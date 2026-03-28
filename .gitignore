@@ -1,0 +1,70 @@
+# ==========================================
+# 1. HỆ THỐNG & IDE (Dùng chung)
+# ==========================================
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+.project
+.classpath
+.settings/
+*.iml
+*.nb-configuration.xml
+
+# ==========================================
+# 2. BACKEND (Spring Boot - Maven)
+# ==========================================
+# Thư mục chứa file đã biên dịch (CỰC KỲ QUAN TRỌNG)
+target/
+
+# Các file tạm của Maven
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.utils_backup
+pom.xml.vbackup
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+
+# Không ignore maven wrapper để người khác có thể chạy project ngay
+# !.mvn/wrapper/maven-wrapper.jar
+# !mvnw
+# !mvnw.cmd
+
+# Logs
+/logs/
+*.log
+
+# ==========================================
+# 3. FRONTEND (React / Vite / Node.js)
+# ==========================================
+node_modules/
+dist/
+dist-ssr/
+build/
+.cache/
+.parcel-cache/
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ==========================================
+# 4. MÔI TRƯỜNG & BẢO MẬT (Environment)
+# ==========================================
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env*.local
+
+# Dữ liệu nhạy cảm
+*.secret
+*.key
+*.jks
