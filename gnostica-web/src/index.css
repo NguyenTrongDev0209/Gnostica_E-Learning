@@ -47,7 +47,36 @@
   --search-border: oklch(98.5% 0 0 / 0.2);
   --button-gradient: linear-gradient(to right, oklch(74% 0.28 55), oklch(80% 0.2 60));
 
+
+
   --container-max: 1536px;
+
+  /* TechOne Style Header Colors */
+  --header-bg: #fcf1e7;
+  --header-orange: #f15e2c;
+  --header-text: #4a4a4a;
+
+  /* Button Design System */
+  --btn-lg-h: 56px;
+  --btn-lg-px-l: 20px;
+  --btn-lg-px-r: 24px;
+  --btn-lg-fz: 18px;
+  --btn-lg-icon: 24px;
+  --btn-lg-gap: 8px;
+
+  --btn-md-h: 40px;
+  --btn-md-px-l: 16px;
+  --btn-md-px-r: 20px;
+  --btn-md-fz: 16px;
+  --btn-md-icon: 20px;
+  --btn-md-gap: 8px;
+
+  --btn-sm-h: 36px;
+  --btn-sm-px-l: 12px;
+  --btn-sm-px-r: 16px;
+  --btn-sm-fz: 14px;
+  --btn-sm-icon: 16px;
+  --btn-sm-gap: 6px;
 }
 
 .dark {
@@ -142,6 +171,11 @@
   --color-search-border: var(--search-border);
   --background-image-primary-gradient: var(--primary-gradient);
   --background-image-button-gradient: var(--button-gradient);
+
+  /* TechOne Extended Colors */
+  --color-header-bg: var(--header-bg);
+  --color-header-orange: var(--header-orange);
+  --color-header-text: var(--header-text);
 }
 
 @layer base {
@@ -172,5 +206,68 @@
   .app-container {
     @apply w-full mx-auto;
     max-width: var(--container-max);
+  }
+
+  /* Header Utility Classes */
+  .header-icon-box {
+    @apply w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm text-header-text hover:text-header-orange transition-all;
+  }
+  .header-nav-item {
+    @apply flex items-center gap-1 font-bold text-header-text hover:text-header-orange transition-all py-3 px-1 relative;
+  }
+  .header-nav-active-bar {
+    @apply absolute bottom-0 left-0 right-0 h-0.5 bg-header-orange scale-x-0 group-hover:scale-x-100 transition-transform origin-left;
+  }
+
+  /* Button Utility Classes */
+  .btn-base {
+    @apply inline-flex items-center justify-center font-medium transition-all active:scale-95 cursor-pointer disabled:opacity-50 disabled:pointer-events-none;
+    white-space: nowrap;
+    user-select: none;
+  }
+
+  .btn-lg {
+    @apply btn-base;
+    height: var(--btn-lg-h);
+    padding-left: var(--btn-lg-px-l);
+    padding-right: var(--btn-lg-px-r);
+    font-size: var(--btn-lg-fz);
+    gap: var(--btn-lg-gap);
+    border-radius: calc(var(--radius) * 1.2);
+  }
+  .btn-lg svg, .btn-lg i {
+    width: var(--btn-lg-icon);
+    height: var(--btn-lg-icon);
+    flex-shrink: 0;
+  }
+
+  .btn-md {
+    @apply btn-base;
+    height: var(--btn-md-h);
+    padding-left: var(--btn-md-px-l);
+    padding-right: var(--btn-md-px-r);
+    font-size: var(--btn-md-fz);
+    gap: var(--btn-md-gap);
+    border-radius: var(--radius);
+  }
+  .btn-md svg, .btn-md i {
+    width: var(--btn-md-icon);
+    height: var(--btn-md-icon);
+    flex-shrink: 0;
+  }
+
+  .btn-sm {
+    @apply btn-base;
+    height: var(--btn-sm-h);
+    padding-left: var(--btn-sm-px-l);
+    padding-right: var(--btn-sm-px-r);
+    font-size: var(--btn-sm-fz);
+    gap: var(--btn-sm-gap);
+    border-radius: calc(var(--radius) * 0.8);
+  }
+  .btn-sm svg, .btn-sm i {
+    width: var(--btn-sm-icon);
+    height: var(--btn-sm-icon);
+    flex-shrink: 0;
   }
 }
