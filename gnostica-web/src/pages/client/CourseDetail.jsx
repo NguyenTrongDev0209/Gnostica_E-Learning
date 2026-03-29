@@ -9,7 +9,7 @@ import {
   PlayCircle, 
   FileText, 
   Clock, 
-  Infinity, 
+  Infinity as InfinityIcon, 
   Smartphone, 
   Trophy,
   ChevronRight,
@@ -28,82 +28,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { SimpleButton } from "@/components/common/AppButton";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
+import { AppBreadcrumb } from "@/components/common/AppSection";
 import { Home } from "lucide-react";
-
-// Dummy data (can be moved to a shared file later)
-const courses = [
-  {
-    id: 1,
-    category: "Web Development",
-    rating: 5.0,
-    reviews: 450,
-    title: "Fullstack Next.js Masterclass",
-    description: "Learn to build high-performance, scalable web applications with Next.js 14, React, and Tailwind CSS. From zero to production ready.",
-    classes: 32,
-    students: 1200,
-    price: "899.000",
-    originalPrice: "1.799.000",
-    discountPercentage: 50,
-    lastUpdated: "March 2024",
-    language: "English",
-    image: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=800&auto=format&fit=crop",
-    instructor: {
-      name: "Sonny Sangha",
-      role: "Senior Full Stack Engineer",
-      avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=200&auto=format&fit=crop",
-      bio: "Sonny Sangha is a world-class instructor with over 10 years of experience in the tech industry. He has taught millions of students globally through his YouTube channel and professional courses.",
-      coursesCount: 24,
-      studentsCount: "1.2M+",
-      reviewsCount: "450K+"
-    },
-    outcomes: [
-      "Build production-ready Next.js 14 applications",
-      "Master React Server Components and Server Actions",
-      "Implement advanced authentication with NextAuth.js",
-      "Optimize SEO and performance for Core Web Vitals",
-      "Deploy full-stack apps to Vercel and AWS",
-      "Manage complex state with Zustand and TanStack Query"
-    ],
-    curriculum: [
-      {
-        title: "Introduction to Next.js 14",
-        lessons: [
-          { title: "What is Next.js?", duration: "10:00", preview: true },
-          { title: "Setting up your environment", duration: "15:30", preview: true },
-          { title: "Understanding the App Router", duration: "25:00", preview: false }
-        ]
-      },
-      {
-        title: "React Server Components Deep Dive",
-        lessons: [
-          { title: "Server vs Client Components", duration: "35:00", preview: false },
-          { title: "Data Fetching Patterns", duration: "45:00", preview: false },
-          { title: "Streaming and Suspense", duration: "20:00", preview: false }
-        ]
-      },
-      {
-        title: "Authentication & Security",
-        lessons: [
-          { title: "NextAuth.js Configuration", duration: "50:00", preview: false },
-          { title: "Role-based Access Control", duration: "40:00", preview: false },
-          { title: "Protecting API Routes", duration: "20:00", preview: false }
-        ]
-      }
-    ]
-  }
-];
+import { getCourseDetailById } from "@/mocks/courses";
 
 export default function CourseDetail() {
   const { id } = useParams();
-  const course = courses.find(c => c.id === parseInt(id || "1")) || courses[0];
+  const course = getCourseDetailById(id || "1");
 
   const breadcrumbItems = [
     { label: "Trang chủ", href: "/", icon: Home },
@@ -220,7 +151,7 @@ export default function CourseDetail() {
                     <span>12 articles & 15 resources</span>
                   </li>
                   <li className="flex items-center gap-3 text-sm text-slate-600">
-                    <Infinity className="w-4 h-4 text-primary" />
+                    <InfinityIcon className="w-4 h-4 text-primary" />
                     <span>Full lifetime access</span>
                   </li>
                   <li className="flex items-center gap-3 text-sm text-slate-600">

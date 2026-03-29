@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import SectionContainer from '@/components/common/AppSection';
+import SectionContainer, { AppBreadcrumb } from '@/components/common/AppSection';
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback, AvatarBadge } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -11,14 +11,6 @@ import {
   ThumbsUp, MessageSquare, Eye, Clock, Tag, Flame, ChevronLeft,
   Share2, Bookmark, Flag, Send, CornerDownRight
 } from 'lucide-react';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
 
 // Mock post data
 const MOCK_POST = {
@@ -181,7 +173,7 @@ const ForumDetail = () => {
   const breadcrumbItems = [
     { component: <Link to="/">Trang chủ</Link> },
     { component: <Link to="/forum">Diễn đàn</Link> },
-    { label: MOCK_POST.title, isLast: true }
+    { label: `${MOCK_POST.title} #${id || MOCK_POST.id}`, isLast: true }
   ];
 
   return (

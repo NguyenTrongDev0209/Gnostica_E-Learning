@@ -227,7 +227,7 @@
   }
 
   .btn-lg {
-    @apply btn-base;
+    @apply inline-flex items-center justify-center font-medium transition-all active:scale-95 cursor-pointer disabled:opacity-50 disabled:pointer-events-none;
     height: var(--btn-lg-h);
     padding-left: var(--btn-lg-px-l);
     padding-right: var(--btn-lg-px-r);
@@ -242,7 +242,7 @@
   }
 
   .btn-md {
-    @apply btn-base;
+    @apply inline-flex items-center justify-center font-medium transition-all active:scale-95 cursor-pointer disabled:opacity-50 disabled:pointer-events-none;
     height: var(--btn-md-h);
     padding-left: var(--btn-md-px-l);
     padding-right: var(--btn-md-px-r);
@@ -257,7 +257,7 @@
   }
 
   .btn-sm {
-    @apply btn-base;
+    @apply inline-flex items-center justify-center font-medium transition-all active:scale-95 cursor-pointer disabled:opacity-50 disabled:pointer-events-none;
     height: var(--btn-sm-h);
     padding-left: var(--btn-sm-px-l);
     padding-right: var(--btn-sm-px-r);
