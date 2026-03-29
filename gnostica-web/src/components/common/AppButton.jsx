@@ -134,7 +134,7 @@ export const AppHeaderButton = ({ icon: Icon, label, badge, className, ...props 
         {...props}
       />
       {label && (
-        <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-white/70 group-hover:text-white transition-all duration-300">
+        <span className="text-[12px] font-bold uppercase tracking-widest text-white group-hover:text-white transition-all duration-300">
           {label}
         </span>
       )}
