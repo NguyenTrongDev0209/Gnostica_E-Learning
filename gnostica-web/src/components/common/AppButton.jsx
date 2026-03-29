@@ -147,12 +147,12 @@ export const AppNavLink = ({ href = "#", children, onClick, className }) => {
 import { Link } from 'react-router-dom'
 
 // Logo thương hiệu: Sử dụng ảnh TechOne_Logo từ public folder
-export const AppLogo = () => {
+export const AppLogo = ({ src = "/TechOne_Logo.png" }) => {
   return (
     <Link to="/" className="flex items-center h-10 md:h-10 hover:opacity-90 transition-opacity">
       <img
-        src="/TechOne_Logo.png"
-        alt="TechOne Logo"
+        src={src}
+        alt="Gnostica Logo"
         className="h-full w-auto object-contain"
       />
     </Link>

@@ -40,8 +40,8 @@
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(58% 0.28 285 / 0.5);
 
-  --header-background: oklch(58% 0.28 285);
-  --header-background-end: oklch(38% 0.32 295);
+  --header-background: var(--primary);
+  --header-background-end: var(--primary);
   --header-foreground: oklch(98.5% 0 0);
   --search-background: oklch(98.5% 0 0 / 0.1);
   --search-border: oklch(98.5% 0 0 / 0.2);
@@ -84,8 +84,8 @@
   --sidebar-ring: oklch(40% 0.2 285 / 0.5);
 
   /* Header & Search Custom Colors (Dark) */
-  --header-background: oklch(40% 0.2 285);
-  --header-background-end: oklch(25% 0.25 295);
+  --header-background: var(--primary);
+  --header-background-end: var(--primary);
   --header-foreground: oklch(98.5% 0 0);
   --search-background: oklch(100% 0 0 / 0.05);
   --search-border: oklch(100% 0 0 / 0.1);

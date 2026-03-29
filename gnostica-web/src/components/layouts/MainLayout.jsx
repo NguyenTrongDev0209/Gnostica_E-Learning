@@ -56,8 +56,8 @@ const courseCategories = [
 const FooterBrand = () => (
   <div className="flex flex-col gap-6">
     <div className="flex flex-col gap-1">
-      <h2 className="text-3xl font-black text-slate-900 tracking-tighter uppercase">Brand Name</h2>
-      <span className="text-sm text-primary font-bold tracking-tight uppercase">Enter Your Slogan Here</span>
+      <h2 className="text-3xl font-black text-slate-900 tracking-tighter uppercase">Gnostica</h2>
+      <span className="text-sm text-primary font-bold tracking-tight uppercase">Nền tảng học tập thông minh</span>
     </div>
 
     <div className="w-40 h-[2px] bg-slate-800"></div>
@@ -120,7 +120,7 @@ const MainLayout = () => {
                     onClick={() => setIsMenuOpen(!isMenuOpen)}
                   />
                 </div>
-                <AppLogo />
+                <AppLogo src="/Gnostica_Mark.webp" />
               </div>
 
               {/* Desktop Navigation Links */}

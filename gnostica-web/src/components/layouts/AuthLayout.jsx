@@ -13,7 +13,7 @@ const AuthLayout = () => {
 
       {/* Logo Container */}
       <div className="absolute top-0 left-0 p-4 sm:p-6 lg:p-8 z-50">
-        <AppLogo />
+        <AppLogo src="/Gnostica_Mark.webp" />
       </div>
 
       <main className="flex-grow flex items-center justify-center p-4 py-20 sm:p-8 relative z-10">
