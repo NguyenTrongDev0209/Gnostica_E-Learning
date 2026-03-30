@@ -39,6 +39,11 @@ import InstructorLayout from "@/components/layouts/InstructorLayout"
 import InstructorDashboard from "@/pages/instructor/InstructorDashboard"
 import InstructorCourses from "@/pages/instructor/InstructorCourses"
 import InstructorRevenue from "@/pages/instructor/InstructorRevenue"
+import InstructorCoupons from "@/pages/instructor/InstructorCoupons"
+import InstructorStudents from "@/pages/instructor/InstructorStudents"
+import InstructorReports from "@/pages/instructor/InstructorReports"
+import InstructorQA from "@/pages/instructor/InstructorQA"
+import InstructorSettings from "@/pages/instructor/InstructorSettings"
 import MainLayout from "@/components/layouts/MainLayout"
 
 function App() {
@@ -94,6 +99,11 @@ function App() {
             <Route path="/instructor" element={<InstructorDashboard />} />
             <Route path="/instructor/courses" element={<InstructorCourses />} />
             <Route path="/instructor/revenue" element={<InstructorRevenue />} />
+            <Route path="/instructor/coupons" element={<InstructorCoupons />} />
+            <Route path="/instructor/students" element={<InstructorStudents />} />
+            <Route path="/instructor/reports" element={<InstructorReports />} />
+            <Route path="/instructor/qa" element={<InstructorQA />} />
+            <Route path="/instructor/settings" element={<InstructorSettings />} />
           </Route>
         </Routes>
       </Router>

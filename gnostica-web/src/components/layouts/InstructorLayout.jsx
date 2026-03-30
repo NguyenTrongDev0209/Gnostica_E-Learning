@@ -1,30 +1,57 @@
 import React from "react";
 import { Outlet, useNavigate, Link, useLocation } from "react-router-dom";
-import { 
-  Bell, 
-  Search, 
-  Menu, 
+import {
+  Bell,
+  Search,
+  Menu,
   Plus,
-  LayoutDashboard, 
-  BookOpen, 
-  Users, 
+  LayoutDashboard,
+  BookOpen,
+  Users,
   MessageSquare,
   BarChart,
   Settings,
   LogOut,
-  Wallet
+  Wallet,
+  Ticket
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AppLogo } from "@/components/common/AppButton";
 
-const INSTRUCTOR_MENU = [
-  { label: "Tổng quan", icon: LayoutDashboard, href: "/instructor" },
-  { label: "Khóa học của tôi", icon: BookOpen, href: "/instructor/courses" },
-  { label: "Học viên", icon: Users, href: "/instructor/students" },
-  { label: "Doanh thu", icon: Wallet, href: "/instructor/revenue" },
-  { label: "Hỏi đáp & Đánh giá", icon: MessageSquare, href: "/instructor/qa" },
-  { label: "Báo cáo nội dung", icon: BarChart, href: "/instructor/reports" },
-  { label: "Cài đặt khóa học", icon: Settings, href: "/instructor/settings" },
+const INSTRUCTOR_MENU_GROUPS = [
+  {
+    title: "QUẢN LÝ CHUNG",
+    items: [
+      { label: "Tổng quan", icon: LayoutDashboard, href: "/instructor" },
+      { label: "Học viên", icon: Users, href: "/instructor/students" },
+    ]
+  },
+  {
+    title: "NỘI DUNG",
+    items: [
+      { label: "Quản lý khóa học", icon: BookOpen, href: "/instructor/courses" },
+      { label: "Báo cáo nội dung", icon: BarChart, href: "/instructor/reports" },
+    ]
+  },
+  {
+    title: "KINH DOANH",
+    items: [
+      { label: "Doanh thu", icon: Wallet, href: "/instructor/revenue" },
+      { label: "Phiếu giảm", icon: Ticket, href: "/instructor/coupons" },
+    ]
+  },
+  {
+    title: "TƯƠNG TÁC",
+    items: [
+      { label: "Hỏi đáp & Đánh giá", icon: MessageSquare, href: "/instructor/qa" },
+    ]
+  },
+  {
+    title: "HỆ THỐNG",
+    items: [
+      { label: "Cài đặt", icon: Settings, href: "/instructor/settings" },
+    ]
+  }
 ];
 
 export default function InstructorLayout() {
@@ -45,34 +72,40 @@ export default function InstructorLayout() {
 
         {/* Menu */}
         <div className="flex-1 overflow-y-auto py-6 px-4">
-          <p className="px-2 text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">
-            Công cụ giảng viên
-          </p>
-          <nav className="flex flex-col gap-1">
-            {INSTRUCTOR_MENU.map((item) => {
-              const Icon = item.icon;
-              const isActive = 
-                item.href === "/instructor" 
-                  ? location.pathname === "/instructor" 
-                  : location.pathname.startsWith(item.href);
+          <nav className="flex flex-col gap-3">
+            {INSTRUCTOR_MENU_GROUPS.map((group, idx) => (
+              <div key={idx} className="space-y-2">
+                <p className="px-3 text-[11px] font-bold text-slate-500 uppercase tracking-widest">
+                  {group.title}
+                </p>
+                <div className="flex flex-col gap-1">
+                  {group.items.map((item) => {
+                    const Icon = item.icon;
+                    const isActive =
+                      item.href === "/instructor"
+                        ? location.pathname === "/instructor"
+                        : location.pathname.startsWith(item.href);
 
-              return (
-                <Link
-                  key={item.href}
-                  to={item.href}
-                  className={`
-                    flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all
-                    ${isActive 
-                      ? "bg-green-600 text-white font-bold shadow-md shadow-green-900/20" 
-                      : "hover:bg-slate-800 hover:text-white"
-                    }
-                  `}
-                >
-                  <Icon className={`w-5 h-5 ${isActive ? "text-white" : "text-slate-400"}`} />
-                  {item.label}
-                </Link>
-              );
-            })}
+                    return (
+                      <Link
+                        key={item.href}
+                        to={item.href}
+                        className={`
+                          flex items-center gap-3 px-3 py-3 rounded-lg text-base font-medium transition-all
+                          ${isActive
+                            ? "bg-green-600 text-white font-bold shadow-md shadow-green-900/20"
+                            : "hover:bg-slate-800 hover:text-white"
+                          }
+                        `}
+                      >
+                        <Icon className={`w-5 h-5 shrink-0 ${isActive ? "text-white" : "text-slate-400"}`} />
+                        {item.label}
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </nav>
         </div>
 
@@ -102,9 +135,9 @@ export default function InstructorLayout() {
             {/* Search Bar */}
             <div className="relative w-full max-w-[340px] hidden md:block">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input 
-                type="text" 
-                placeholder="Tìm khóa học, câu hỏi của học viên..." 
+              <input
+                type="text"
+                placeholder="Tìm khóa học, câu hỏi của học viên..."
                 className="w-full h-10 pl-10 pr-4 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all"
               />
             </div>
@@ -115,17 +148,17 @@ export default function InstructorLayout() {
               <Plus className="w-4 h-4" />
               Tạo khóa học mới
             </Button>
-            
+
             <div className="w-px h-6 bg-slate-200 mx-2 hidden lg:block"></div>
 
-            <button 
+            <button
               className="w-10 h-10 rounded-full hover:bg-slate-100 flex items-center justify-center relative transition-colors"
               onClick={() => navigate("/")}
               title="Về trang chủ chứa danh mục"
             >
               <span className="text-xs font-bold text-slate-500 mr-1">Client</span>
             </button>
-            
+
             <button className="w-10 h-10 rounded-full hover:bg-slate-100 flex items-center justify-center relative transition-colors">
               <Bell className="w-5 h-5 text-slate-600" />
               <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white"></span>
