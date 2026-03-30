@@ -1,0 +1,50 @@
+import React, { useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { toast } from 'sonner';
+import axios from 'axios';
+
+const OAuth2Callback = () => {
+    const [searchParams] = useSearchParams();
+    const navigate = useNavigate();
+    const email = searchParams.get('email');
+
+    useEffect(() => {
+        console.log("OAuth2 Callback received email:", email);
+        if (email) {
+            const fetchUserInfo = async () => {
+                try {
+                    const response = await axios.get(`http://localhost:8080/api/auth/user?email=${encodeURIComponent(email)}`);
+                    console.log("Fetch user response:", response.data);
+                    if (response.data.status === 'success') {
+                        localStorage.setItem('user', JSON.stringify(response.data.data));
+                        toast.success('Đăng nhập thành công!');
+                        setTimeout(() => navigate('/'), 500);
+                    } else {
+                        throw new Error(response.data.message || 'Lấy thông tin thất bại');
+                    }
+                } catch (error) {
+                    console.error("Fetch user error:", error);
+                    toast.error(error.response?.data?.message || error.message || 'Đăng nhập thất bại!');
+                    setTimeout(() => navigate('/login'), 2000);
+                }
+            };
+
+            fetchUserInfo();
+        } else {
+            console.log("No email found in URL, redirecting to login");
+            navigate('/login');
+        }
+    }, [email, navigate]);
+
+    return (
+        <div className="flex items-center justify-center min-h-screen">
+            <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                <h2 className="text-xl font-semibold">Đang xác thực...</h2>
+                <p className="text-muted-foreground transition-all">Vui lòng đợi trong giây lát.</p>
+            </div>
+        </div>
+    );
+};
+
+export default OAuth2Callback;

@@ -8,19 +8,31 @@ import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Eye, EyeOff, Mail, Lock, ArrowRight, Facebook } from 'lucide-react';
 import { SimpleButton } from '@/components/common/AppButton';
+import authService from '@/services/authService';
+import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 const LoginPage = () => {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    // Simulate API call
-    setTimeout(() => setLoading(false), 1500);
+    
+    try {
+        await authService.login(email, password);
+        toast.success('Đăng nhập thành công!');
+        navigate('/'); // Hoặc trang dashboard bạn muốn
+    } catch (error) {
+        toast.error(error.toString());
+    } finally {
+        setLoading(false);
+    }
   };
 
   return (
@@ -128,6 +140,7 @@ const LoginPage = () => {
               type="button"
               variant="outline"
               className="flex-1 h-11 gap-2 font-medium bg-white/90 text-slate-700 hover:bg-white border-slate-200"
+              onClick={() => window.location.href = 'http://localhost:8080/oauth2/authorization/google'}
             >
               <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -141,6 +154,7 @@ const LoginPage = () => {
               type="button"
               variant="outline"
               className="flex-1 h-11 gap-2 font-medium bg-white/90 text-slate-700 hover:bg-white border-slate-200"
+              onClick={() => window.location.href = 'http://localhost:8080/oauth2/authorization/facebook'}
             >
               <Facebook className="w-5 h-5 shrink-0 text-[#1877F2]" />
               Facebook

@@ -8,8 +8,12 @@ import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Eye, EyeOff, Mail, Lock, User, ArrowRight, Facebook } from 'lucide-react';
 import { SimpleButton } from '@/components/common/AppButton';
+import authService from '@/services/authService';
+import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 const RegisterPage = () => {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [fullName, setFullName] = useState('');
@@ -18,11 +22,19 @@ const RegisterPage = () => {
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    // Simulate API call
-    setTimeout(() => setLoading(false), 1500);
+    
+    try {
+        await authService.register(fullName, email, password);
+        toast.success('Đăng ký thành công! Vui lòng kiểm tra email để lấy mã xác thực.');
+        navigate(`/confirm-code?email=${email}`);
+    } catch (error) {
+        toast.error(error.toString());
+    } finally {
+        setLoading(false);
+    }
   };
 
   const getPasswordStrength = (pass) => {

@@ -18,6 +18,7 @@ import LoginPage from "@/pages/auth/LoginPage"
 import RegisterPage from "@/pages/auth/RegisterPage"
 import ForgotPassword from "@/pages/auth/ForgotPassword"
 import ConfirmPage from "@/pages/auth/ConfirmPage"
+import OAuth2Callback from "@/pages/auth/OAuth2Callback"
 import CheckoutPage from "@/pages/client/CheckoutPage"
 import PayosQR from "@/pages/client/PayosQR"
 import CheckoutResult from "@/pages/client/CheckoutResult"
@@ -75,6 +76,7 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/auth/callback" element={<OAuth2Callback />} />
             <Route path="/confirm-code" element={<ConfirmPage />} />
           </Route>
           {/* Admin Area */}

@@ -1,0 +1,136 @@
+package com.gnostica.service.impl;
+
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import com.gnostica.dto.LoginRequest;
+import com.gnostica.dto.RegisterRequest;
+import com.gnostica.model.Account;
+import com.gnostica.model.Role;
+import com.gnostica.repository.AccountRepository;
+import com.gnostica.repository.RoleRepository;
+import com.gnostica.service.AuthService;
+
+import lombok.RequiredArgsConstructor;
+
+import java.time.LocalDateTime;
+import java.security.SecureRandom;
+
+import com.gnostica.service.MailService;
+
+@Service
+@RequiredArgsConstructor
+public class AuthServiceImpl implements AuthService {
+
+    private final AccountRepository accountRepository;
+    private final RoleRepository roleRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final MailService mailService;
+
+    @Override
+    public Account register(RegisterRequest request) {
+        if (accountRepository.existsByEmail(request.getEmail())) {
+            throw new RuntimeException("Email đã tồn tại!");
+        }
+
+        Account account = new Account();
+        account.setFullName(request.getFullName());
+        account.setEmail(request.getEmail());
+        account.setPassword(passwordEncoder.encode(request.getPassword()));
+        
+        //mặc định là student
+        Role defaultRole = roleRepository.findByName("USER")
+                .orElseGet(() -> {
+                   Role newRole = new Role();
+                   newRole.setName("USER");
+                   return roleRepository.save(newRole);
+                });
+        
+        account.setRole(defaultRole);
+        account.setActive(false); // Wait for verification
+
+        // Generate OTP
+        String otp = String.format("%06d", new SecureRandom().nextInt(999999));
+        account.setVerificationCode(otp);
+        account.setVerificationExpiry(LocalDateTime.now().plusMinutes(3));
+
+        Account savedAccount = accountRepository.save(account);
+
+        // Send Email
+        try {
+            mailService.sendVerificationEmail(account.getEmail(), otp);
+        } catch (Exception e) {
+            // Log error but the account is saved. User can resend later.
+            System.err.println("Error sending email: " + e.getMessage());
+        }
+
+        return savedAccount;
+    }
+
+    @Override
+    public Account login(LoginRequest request) {
+        Account account = accountRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("Email hoặc mật khẩu không chính xác!"));
+
+        if (!passwordEncoder.matches(request.getPassword(), account.getPassword())) {
+            throw new RuntimeException("Email hoặc mật khẩu không chính xác!");
+        }
+
+        if (!account.getActive()) {
+            throw new RuntimeException("Tài khoản chưa được xác thực. Vui lòng kiểm tra email.");
+        }
+
+        return account;
+    }
+
+    @Override
+    public boolean verifyOTP(String email, String code) {
+        Account account = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản."));
+
+        if (account.getActive()) {
+            return true;
+        }
+
+        if (account.getVerificationCode() == null || !account.getVerificationCode().equals(code)) {
+            throw new RuntimeException("Mã xác thực không đúng.");
+        }
+
+        if (account.getVerificationExpiry().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Mã xác thực đã hết hạn.");
+        }
+
+        account.setActive(true);
+        account.setVerificationCode(null);
+        account.setVerificationExpiry(null);
+        accountRepository.save(account);
+        return true;
+    }
+
+    @Override
+    public void resendVerificationEmail(String email) {
+        Account account = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản."));
+
+        if (account.getActive()) {
+            throw new RuntimeException("Tài khoản đã được xác thực.");
+        }
+
+        String otp = String.format("%06d", new SecureRandom().nextInt(999999));
+        account.setVerificationCode(otp);
+        account.setVerificationExpiry(LocalDateTime.now().plusMinutes(3));
+        accountRepository.save(account);
+
+        try {
+            mailService.sendVerificationEmail(email, otp);
+        } catch (Exception e) {
+            throw new RuntimeException("Lỗi gửi mail: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public Account findByEmail(String email) {
+        return accountRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản."));
+    }
+}
