@@ -63,11 +63,8 @@ export default function InstructorLayout() {
       {/* Sidebar - Fixed */}
       <aside className="w-64 bg-slate-900 min-h-screen fixed left-0 top-0 bottom-0 text-slate-300 flex flex-col z-50">
         {/* Brand */}
-        <div className="h-16 flex items-center px-6 border-b border-slate-800 bg-slate-950/50">
-          <AppLogo />
-          <span className="ml-2 text-xs font-bold uppercase tracking-wider text-green-400 border border-green-500/20 bg-green-500/10 px-1.5 py-0.5 rounded-md">
-            Instructor
-          </span>
+        <div className="h-16 flex items-center justify-center px-0 border-b border-slate-800 bg-slate-950/50">
+          <AppLogo className="h-12 md:h-12" />
         </div>
 
         {/* Menu */}

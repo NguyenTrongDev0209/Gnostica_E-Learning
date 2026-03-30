@@ -3,7 +3,7 @@ import { useForm, FormProvider, useFieldArray, useFormContext, useWatch } from "
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useNavigate } from "react-router-dom";
-import { Plus, Trash2, GripVertical, Save, ArrowLeft, ArrowRight, Video } from "lucide-react";
+import { Plus, Trash2, GripVertical, Save, ArrowLeft, ArrowRight, Video, CircleFadingArrowUp } from "lucide-react";
 import { toast } from "sonner";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -89,7 +89,7 @@ export default function InstructorCourseForm() {
           onClick={methods.handleSubmit(onSubmit, onError)}
           className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold h-10 px-6 rounded-lg shadow-none transition-colors"
         >
-          <Save size={18} /> Lưu & Xuất bản
+          <Save size={18} /> Lưu nháp
         </button>
       </div>
 
@@ -144,7 +144,6 @@ export default function InstructorCourseForm() {
                     const sequence = ["basic", "curriculum", "media", "pricing"];
                     const currentIdx = sequence.indexOf(activeTab);
                     if (currentIdx < sequence.length - 1) setActiveTab(sequence[currentIdx + 1]);
-                    // Tự động scroll lên đầu form để trải nghiệm tốt hơn
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
                   className="flex items-center gap-2 h-11 px-8 rounded-lg font-bold bg-slate-900 text-white hover:bg-slate-800 transition-all shadow-md shadow-slate-100"
@@ -155,9 +154,9 @@ export default function InstructorCourseForm() {
                 <button
                   type="button"
                   onClick={methods.handleSubmit(onSubmit, onError)}
-                  className="flex items-center gap-2 h-11 px-8 rounded-lg font-black bg-green-600 text-white hover:bg-green-700 transition-all shadow-lg shadow-green-100"
+                  className="flex items-center gap-2 h-11 px-8 rounded-lg font-bold bg-green-600 text-white hover:bg-green-700 transition-all shadow-lg shadow-green-100"
                 >
-                  <Save size={18} /> Lưu & Xuất bản
+                  <CircleFadingArrowUp size={18} /> Xuất bản
                 </button>
               )}
             </div>
@@ -256,7 +255,7 @@ function CourseStepper({ activeTab, onTabChange }) {
                 {/* Inner Circle Content */}
                 <div
                   className={`
-                    w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm z-10 transition-all duration-300
+                    w-[28px] h-[28px] rounded-full flex items-center justify-center font-bold text-sm z-10 transition-all duration-300
                     ${isActive
                       ? "bg-green-600 text-white shadow-lg shadow-green-100 scale-105"
                       : isCompleted
@@ -316,7 +315,7 @@ function BasicInfoTab() {
       </div>
 
       <div className="space-y-2">
-        <label className="block text-xs font-black text-slate-500 uppercase tracking-widest pl-1">
+        <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
           Tên Khóa Học <span className="text-red-500">*</span>
         </label>
         <Input
@@ -328,7 +327,7 @@ function BasicInfoTab() {
       </div>
 
       <div className="space-y-2">
-        <label className="block text-xs font-black text-slate-500 uppercase tracking-widest pl-1">
+        <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
           Mô Tả Khóa Học (Tuỳ chọn)
         </label>
         <Textarea
@@ -355,7 +354,7 @@ function MediaTab() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="space-y-3">
-          <label className="block text-xs font-black text-slate-500 uppercase tracking-widest pl-1">
+          <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
             Ảnh đại diện khóa học (Thumbnail)
           </label>
           <div
@@ -370,7 +369,7 @@ function MediaTab() {
         </div>
 
         <div className="space-y-3">
-          <label className="block text-xs font-black text-slate-500 uppercase tracking-widest pl-1">
+          <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
             Video giới thiệu (Promo Video)
           </label>
           <div
@@ -404,7 +403,7 @@ function PricingTab() {
       </div>
 
       <div className="space-y-2">
-        <label className="block text-xs font-black text-slate-500 uppercase tracking-widest pl-1">
+        <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
           Giá khóa học <span className="text-red-500">*</span>
         </label>
         <Input
@@ -478,7 +477,7 @@ function CurriculumTab() {
               <AccordionTrigger className="px-5 py-4 hover:bg-slate-100/50 hover:no-underline border-b border-transparent data-[state=open]:border-slate-200">
                 <div className="flex items-center w-full pr-4 text-left">
                   <div className="flex flex-col gap-0.5 flex-1">
-                    <span className="text-xs font-black text-green-600 uppercase tracking-widest">
+                    <span className="text-xs font-bold text-green-600 uppercase tracking-widest">
                       Chương {sectionIdx + 1}
                     </span>
                     <span className="font-bold text-slate-900 line-clamp-1">
@@ -525,7 +524,7 @@ function SectionItem({ sectionIndex, control }) {
     <div className="space-y-6">
       {/* Tên Chương */}
       <div className="space-y-2">
-        <label className="block text-xs font-black text-slate-500 uppercase tracking-widest pl-1">
+        <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
           Tiêu đề chương <span className="text-red-500">*</span>
         </label>
         <Input
@@ -544,7 +543,7 @@ function SectionItem({ sectionIndex, control }) {
       {/* Danh sách Bài học */}
       <div className="pt-2">
         <div className="flex items-center justify-between mb-3">
-          <label className="block text-xs font-black text-slate-500 uppercase tracking-widest pl-1">
+          <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
             Danh Sách Bài Học ({fields.length})
           </label>
           <button
@@ -568,7 +567,7 @@ function SectionItem({ sectionIndex, control }) {
 
               <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider pl-1">Tiêu đề bài học</label>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-1">Tiêu đề bài học</label>
                   <Input
                     className="h-9 font-bold border-slate-200 bg-white focus:ring-0 focus:border-green-500 transition-all"
                     placeholder={`Bài học ${lessonIdx + 1}`}
@@ -577,7 +576,7 @@ function SectionItem({ sectionIndex, control }) {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider pl-1">Video URL (Gắn link mp4, yt)</label>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-1">Video URL (Gắn link mp4, yt)</label>
                   <div className="relative">
                     <Video className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 group-focus-within:text-green-500 transition-colors" />
                     <Input

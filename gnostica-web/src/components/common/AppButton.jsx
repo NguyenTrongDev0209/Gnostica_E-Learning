@@ -185,9 +185,12 @@ export const AppNavLink = ({ href = "#", children, onClick, className }) => {
 import { Link } from 'react-router-dom'
 
 // Logo thương hiệu: Sử dụng ảnh TechOne_Logo từ public folder
-export const AppLogo = ({ src = "/Gnostica_Mark.webp" }) => {
+export const AppLogo = ({ src = "/Gnostica_Mark.webp", className }) => {
   return (
-    <Link to="/" className="flex items-center h-10 md:h-10 hover:opacity-90 transition-opacity">
+    <Link
+      to="/"
+      className={cn("flex items-center h-10 md:h-10 hover:opacity-90 transition-opacity", className)}
+    >
       <img
         src={src}
         alt="Gnostica Logo"
