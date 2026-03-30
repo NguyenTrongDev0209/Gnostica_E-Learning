@@ -76,8 +76,8 @@ export default function CheckoutResult() {
         </div>
       </section>
 
-      {/* Main */}
-      <main className="max-w-2xl mx-auto px-4 mt-[-40px]">
+      {/* Main Content */}
+      <main className="app-container max-w-2xl mt-[-40px]">
         <Card className="border-none shadow-xl shadow-slate-200/50 bg-white overflow-hidden">
           <CardContent className="p-8 sm:p-10 flex flex-col items-center text-center">
             {/* Icon */}

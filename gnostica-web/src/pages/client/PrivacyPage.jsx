@@ -87,8 +87,8 @@ export default function PrivacyPage() {
         </div>
       </section>
 
-      {/* Content */}
-      <main className="max-w-3xl mx-auto px-4 mt-10">
+      {/* Main */}
+      <main className="app-container max-w-3xl mt-10">
         <div className="bg-white rounded-2xl shadow-lg border border-slate-100 p-6 sm:p-10 space-y-8">
           {sections.map((section, i) => (
             <div key={i}>

@@ -9,11 +9,11 @@ function HomePage() {
       <div className="flex flex-col gap-4 sm:gap-8 pb-10 relative z-10 w-full overflow-hidden">
         <MainHeroCarousel />
 
-        <div className="w-full max-w-[1536px] mx-auto">
+        <div className="app-container">
           <SubBannerCarousel />
         </div>
 
-        <AppSection title="Sản phẩm tiêu biểu">
+        <AppSection title="Khóa học thịnh hành">
           <AppCard
             price="432.000"
             originalPrice="864.000"
