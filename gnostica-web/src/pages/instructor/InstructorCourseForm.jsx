@@ -1,5 +1,7 @@
 import React from "react";
-import { useForm, FormProvider, useFieldArray, useFormContext, useWatch } from "react-hook-form";
+import { useForm, FormProvider, useFieldArray, useFormContext, useWatch, Controller } from "react-hook-form";
+import ReactQuill from "react-quill-new";
+import "react-quill-new/dist/quill.snow.css";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useNavigate } from "react-router-dom";
@@ -11,6 +13,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 // ==========================================
 // THIẾT LẬP ZOD SCHEMA
@@ -29,6 +32,8 @@ const sectionSchema = z.object({
 
 export const courseSchema = z.object({
   title: z.string().min(1, "Tên khóa học là bắt buộc"),
+  categoryId: z.string().min(1, "Vui lòng chọn danh mục"),
+  level: z.string().min(1, "Vui lòng chọn cấp độ"),
   description: z.string().optional(),
   price: z.coerce.number().min(0, "Giá không hợp lệ"),
   sections: z.array(sectionSchema).min(1, "Cần có ít nhất 1 chương học"),
@@ -47,6 +52,8 @@ export default function InstructorCourseForm() {
     resolver: zodResolver(courseSchema),
     defaultValues: {
       title: "",
+      categoryId: "",
+      level: "",
       description: "",
       price: 0,
       sections: [{ title: "", lessons: [{ title: "" }] }],
@@ -275,7 +282,7 @@ function CourseStepper({ activeTab, onTabChange }) {
               </div>
 
               {/* Label */}
-              <div className="absolute -bottom-8 whitespace-nowrap text-[11px] font-bold transition-all duration-300 text-center uppercase tracking-tighter">
+              <div className="absolute -bottom-6 whitespace-nowrap text-[11px] font-bold transition-all duration-300 text-center uppercase tracking-tighter">
                 <p className={`${isActive ? "text-green-700 scale-110" : isCompleted ? "text-green-600" : "text-slate-400 opacity-60"}`}>
                   {s.label}
                 </p>
@@ -305,13 +312,21 @@ function CourseStepper({ activeTab, onTabChange }) {
 // SUB-COMPONENTS CHO TỪNG TAB
 // ==========================================
 
+const quillModules = {
+  toolbar: [
+    ["bold", "italic", "underline"],
+    [{ list: "ordered" }, { list: "bullet" }],
+    ["clean"],
+  ],
+};
+
 function BasicInfoTab() {
-  const { register, formState: { errors } } = useFormContext();
+  const { register, control, formState: { errors } } = useFormContext();
 
   return (
     <div className="space-y-6 max-w-2xl">
       <div>
-        <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2 mb-4">Thông Tin Nền Tảng</h3>
+        <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2 mb-4">THÔNG TIN CƠ BẢN</h3>
       </div>
 
       <div className="space-y-2">
@@ -326,15 +341,77 @@ function BasicInfoTab() {
         {errors.title && <p className="text-xs font-bold text-red-500 mt-1.5 pl-1">{errors.title.message}</p>}
       </div>
 
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-2">
+          <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
+            Danh Mục <span className="text-red-500">*</span>
+          </label>
+          <Controller
+            name="categoryId"
+            control={control}
+            render={({ field }) => (
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <SelectTrigger className="w-full h-11 border-slate-200 focus:border-green-500 font-medium bg-white data-[state=open]:ring-1 data-[state=open]:ring-green-500">
+                  <SelectValue placeholder="Chọn danh mục" />
+                </SelectTrigger>
+                <SelectContent className="bg-white">
+                  <SelectItem value="web-dev">Lập trình Web</SelectItem>
+                  <SelectItem value="mobile-dev">Lập trình Mobile</SelectItem>
+                  <SelectItem value="data-science">Khoa học dữ liệu</SelectItem>
+                  <SelectItem value="design">Thiết kế UI/UX</SelectItem>
+                  <SelectItem value="marketing">Marketing Online</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+          />
+          {errors.categoryId && <p className="text-xs font-bold text-red-500 mt-1.5 pl-1">{errors.categoryId.message}</p>}
+        </div>
+
+        <div className="space-y-2">
+          <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
+            Cấp Độ <span className="text-red-500">*</span>
+          </label>
+          <Controller
+            name="level"
+            control={control}
+            render={({ field }) => (
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <SelectTrigger className="w-full h-11 border-slate-200 focus:border-green-500 font-medium bg-white data-[state=open]:ring-1 data-[state=open]:ring-green-500">
+                  <SelectValue placeholder="Chọn cấp độ" />
+                </SelectTrigger>
+                <SelectContent className="bg-white">
+                  <SelectItem value="beginner">Người mới bắt đầu</SelectItem>
+                  <SelectItem value="intermediate">Trung bình</SelectItem>
+                  <SelectItem value="advanced">Nâng cao</SelectItem>
+                  <SelectItem value="all">Dành cho mọi đối tượng</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+          />
+          {errors.level && <p className="text-xs font-bold text-red-500 mt-1.5 pl-1">{errors.level.message}</p>}
+        </div>
+      </div>
+
       <div className="space-y-2">
         <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
           Mô Tả Khóa Học (Tuỳ chọn)
         </label>
-        <Textarea
-          className="resize-none min-h-[120px] border-slate-200 focus:border-green-500"
-          placeholder="Mô tả về lợi ích và mục tiêu của khóa học dành cho học viên..."
-          {...register("description")}
-        />
+        <div className="rounded-lg border border-slate-200 overflow-hidden focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50 transition-all bg-white">
+          <Controller
+            name="description"
+            control={control}
+            render={({ field }) => (
+              <ReactQuill
+                theme="snow"
+                value={field.value || ""}
+                onChange={field.onChange}
+                modules={quillModules}
+                placeholder="Mô tả về lợi ích và mục tiêu của khóa học dành cho học viên..."
+                className="[&_.ql-toolbar.ql-snow]:!border-0 [&_.ql-toolbar.ql-snow]:!border-b [&_.ql-toolbar.ql-snow]:!border-slate-200 [&_.ql-toolbar]:bg-slate-50/50 [&_.ql-container.ql-snow]:!border-0 [&_.ql-container]:min-h-[120px] [&_.ql-editor]:min-h-[120px] [&_.ql-editor]:text-sm [&_.ql-editor]:text-slate-700 font-sans"
+              />
+            )}
+          />
+        </div>
       </div>
     </div>
   );
