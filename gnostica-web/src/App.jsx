@@ -25,6 +25,15 @@ import TermsPage from "@/pages/client/TermsPage"
 import PrivacyPage from "@/pages/client/PrivacyPage"
 import AccountLayout from "@/components/layouts/AccountLayout"
 import AccountOverview from "@/pages/account/AccountOverview"
+import MyCourses from "@/pages/account/MyCourses"
+import LearningProgress from "@/pages/account/LearningProgress"
+import Certificates from "@/pages/account/Certificates"
+import Wishlist from "@/pages/account/Wishlist"
+import Orders from "@/pages/account/Orders"
+import Vouchers from "@/pages/account/Vouchers"
+import Notifications from "@/pages/account/Notifications"
+import Settings from "@/pages/account/Settings"
+import ChangePassword from "@/pages/account/ChangePassword"
 import AdminLayout from "@/components/layouts/AdminLayout"
 import AdminDashboard from "@/pages/admin/AdminDashboard"
 import AdminUsers from "@/pages/admin/AdminUsers"
@@ -74,6 +83,15 @@ function App() {
             {/* My Account - Dashboard */}
             <Route element={<AccountLayout />}>
               <Route path="/account" element={<AccountOverview />} />
+              <Route path="/account/my-courses" element={<MyCourses />} />
+              <Route path="/account/progress" element={<LearningProgress />} />
+              <Route path="/account/certificates" element={<Certificates />} />
+              <Route path="/account/wishlist" element={<Wishlist />} />
+              <Route path="/account/orders" element={<Orders />} />
+              <Route path="/account/vouchers" element={<Vouchers />} />
+              <Route path="/account/notifications" element={<Notifications />} />
+              <Route path="/account/settings" element={<Settings />} />
+              <Route path="/account/change-password" element={<ChangePassword />} />
             </Route>
             <Route path="*" element={<ErrorPage />} />
           </Route>

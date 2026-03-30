@@ -46,7 +46,7 @@ export default function CourseDetail() {
     <div className="relative pb-20 bg-background">
       {/* 1. Hero Section (Header) */}
       <section className="bg-slate-900 py-12 lg:py-16 text-white overflow-hidden">
-        <div className="app-container lg:pr-[400px]">
+        <div className="app-container lg:!pr-[440px]">
           {/* Breadcrumbs */}
           <AppBreadcrumb 
             items={breadcrumbItems} 
@@ -93,8 +93,8 @@ export default function CourseDetail() {
       </section>
 
       {/* 2. Floating Sticky Sidebar */}
-      <div className="lg:app-container lg:relative">
-        <aside className="static lg:absolute lg:right-4 lg:-top-64 w-full lg:w-[350px] z-50 px-4 lg:px-0 mt-8 lg:mt-0">
+      <div className="max-w-[var(--container-max)] w-full mx-auto relative">
+        <aside className="static lg:absolute lg:right-16 lg:-top-64 w-full lg:w-[350px] z-50 px-4 lg:px-0 mt-8 lg:mt-0">
           <Card className="shadow-2xl border-white shadow-orange-500/10 overflow-hidden bg-card">
             {/* Preview Image */}
             <div className="relative aspect-video group cursor-pointer">
@@ -178,7 +178,7 @@ export default function CourseDetail() {
       </div>
 
       {/* 3. Main Content Area */}
-      <main className="app-container mt-12 lg:pr-[400px]">
+      <main className="app-container mt-12 lg:!pr-[440px]">
         {/* Learning Outcomes */}
         <section className="bg-slate-50/50 border border-slate-200/60 rounded-xl p-8 mb-12">
           <h2 className="text-2xl font-bold mb-6 text-slate-900">What you'll learn</h2>
