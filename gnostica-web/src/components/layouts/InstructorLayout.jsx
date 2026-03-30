@@ -71,7 +71,7 @@ export default function InstructorLayout() {
         </div>
 
         {/* Menu */}
-        <div className="flex-1 overflow-y-auto py-6 px-4">
+        <div className="flex-1 overflow-y-auto py-6 px-4 scrollbar-hide">
           <nav className="flex flex-col gap-3">
             {INSTRUCTOR_MENU_GROUPS.map((group, idx) => (
               <div key={idx} className="space-y-2">
@@ -110,21 +110,26 @@ export default function InstructorLayout() {
         </div>
 
         {/* User / Logout */}
-        <div className="p-4 border-t border-slate-800 bg-slate-950/30">
-          <div className="flex items-center gap-3 mb-4 px-2">
-            <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center font-bold text-slate-300 overflow-hidden border border-slate-700">
-              <img src="https://i.pravatar.cc/100?u=instructor" alt="Instructor Profile" className="w-full h-full object-cover" />
+        <div className="p-4 border-t border-slate-800 bg-slate-950/30 font-bold">
+          <div className="flex items-center justify-between px-2">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center font-bold text-slate-300 shrink-0 border border-slate-700 overflow-hidden">
+                <img src="https://i.pravatar.cc/100?u=instructor" alt="Instructor Profile" className="w-full h-full object-cover" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-white truncate">Sonny Sangha</p>
+                <p className="text-[11px] text-slate-500 truncate">Giảng viên xuất sắc</p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-bold text-white">Sonny Sangha</p>
-              <p className="text-xs text-slate-500">Giảng viên xuất sắc</p>
-            </div>
+            <button
+              className="w-10 h-10 flex items-center justify-center rounded-lg text-slate-500 hover:bg-slate-800 hover:text-red-400 transition-all ml-2 hover:shadow-lg"
+              title="Đăng xuất"
+            >
+              <LogOut className="w-5 h-5 shrink-0" />
+            </button>
           </div>
-          <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-red-400 transition-all">
-            <LogOut className="w-5 h-5" />
-            Đăng xuất
-          </button>
         </div>
+
       </aside>
 
       {/* Main Content Area */}
@@ -144,7 +149,10 @@ export default function InstructorLayout() {
           </div>
 
           <div className="flex items-center gap-4 shrink-0">
-            <Button className="h-9 font-bold bg-green-600 hover:bg-green-700 text-white flex items-center gap-1.5 shadow-none hidden lg:flex">
+            <Button 
+              onClick={() => navigate("/instructor/courses/courses-form")}
+              className="h-9 font-bold bg-green-600 hover:bg-green-700 text-white flex items-center gap-1.5 shadow-none hidden lg:flex"
+            >
               <Plus className="w-4 h-4" />
               Tạo khóa học mới
             </Button>

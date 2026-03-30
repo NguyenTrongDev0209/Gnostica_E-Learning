@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { 
   Plus, 
   Search, 
@@ -71,6 +72,8 @@ const MY_COURSES = [
 ];
 
 export default function InstructorCourses() {
+  const navigate = useNavigate();
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       {/* Page Header */}
@@ -81,7 +84,10 @@ export default function InstructorCourses() {
             Quản lý, chỉnh sửa và theo dõi hiệu suất các khóa học bạn đang giảng dạy.
           </p>
         </div>
-        <Button className="font-bold flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white shadow-none">
+        <Button 
+          onClick={() => navigate("/instructor/courses/courses-form")}
+          className="font-bold flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white shadow-none"
+        >
           <Plus className="w-4 h-4" />
           Tạo Khóa Học Mới
         </Button>

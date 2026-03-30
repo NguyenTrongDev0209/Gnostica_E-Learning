@@ -139,9 +139,11 @@ export default function InstructorDashboard() {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" className="border-slate-200">Xuất báo cáo</Button>
-          <Button className="bg-green-600 hover:bg-green-700 text-white shadow-none font-bold">
-            Tạo Khóa Học Mới
-          </Button>
+          <Link to="/instructor/courses/courses-form">
+            <Button className="bg-green-600 hover:bg-green-700 text-white shadow-none font-bold">
+              Tạo Khóa Học Mới
+            </Button>
+          </Link>
         </div>
       </div>
 
@@ -304,9 +306,11 @@ export default function InstructorDashboard() {
               ))}
             </div>
             <div className="p-4 bg-slate-50/50">
-              <Button variant="outline" className="w-full font-bold border-dashed border-slate-300 text-slate-500 hover:text-green-600 hover:border-green-300 hover:bg-green-50/50 transition-all">
-                <Plus className="w-4 h-4 mr-2" /> Thêm khóa học mới
-              </Button>
+              <Link to="/instructor/courses/courses-form" className="block w-full">
+                <Button variant="outline" className="w-full font-bold border-dashed border-slate-300 text-slate-500 hover:text-green-600 hover:border-green-300 hover:bg-green-50/50 transition-all">
+                  <Plus className="w-4 h-4 mr-2" /> Thêm khóa học mới
+                </Button>
+              </Link>
             </div>
           </CardContent>
         </Card>

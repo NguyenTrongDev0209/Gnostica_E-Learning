@@ -70,7 +70,7 @@ export default function AdminLayout() {
         </div>
 
         {/* Menu */}
-        <div className="flex-1 overflow-y-auto py-6 px-4 text-slate-300">
+        <div className="flex-1 overflow-y-auto py-6 px-4 scrollbar-hide text-slate-300">
           <nav className="flex flex-col gap-3">
             {ADMIN_MENU_GROUPS.map((group, idx) => (
               <div key={idx} className="space-y-2">
