@@ -1,9 +1,9 @@
 import React from "react";
-import { useForm, FormProvider, useFieldArray, useFormContext } from "react-hook-form";
+import { useForm, FormProvider, useFieldArray, useFormContext, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useNavigate } from "react-router-dom";
-import { Plus, Trash2, GripVertical, Save, ArrowLeft } from "lucide-react";
+import { Plus, Trash2, GripVertical, Save, ArrowLeft, ArrowRight, Video } from "lucide-react";
 import { toast } from "sonner";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -30,8 +30,10 @@ const sectionSchema = z.object({
 export const courseSchema = z.object({
   title: z.string().min(1, "Tên khóa học là bắt buộc"),
   description: z.string().optional(),
-  price: z.coerce.number().min(1, "Giá khóa học phải lớn hơn 0đ"),
+  price: z.coerce.number().min(0, "Giá không hợp lệ"),
   sections: z.array(sectionSchema).min(1, "Cần có ít nhất 1 chương học"),
+  thumbnail: z.any().optional(),
+  promoVideo: z.any().optional(),
 });
 
 // ==========================================
@@ -40,7 +42,7 @@ export const courseSchema = z.object({
 export default function InstructorCourseForm() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = React.useState("basic");
-  
+
   const methods = useForm({
     resolver: zodResolver(courseSchema),
     defaultValues: {
@@ -48,6 +50,8 @@ export default function InstructorCourseForm() {
       description: "",
       price: 0,
       sections: [{ title: "", lessons: [{ title: "" }] }],
+      thumbnail: null,
+      promoVideo: null,
     },
   });
 
@@ -67,8 +71,8 @@ export default function InstructorCourseForm() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div className="flex items-center gap-3">
-          <button 
-            type="button" 
+          <button
+            type="button"
             onClick={() => navigate("/instructor/courses")}
             className="w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-900 transition-colors"
           >
@@ -81,7 +85,7 @@ export default function InstructorCourseForm() {
             </p>
           </div>
         </div>
-        <button 
+        <button
           onClick={methods.handleSubmit(onSubmit, onError)}
           className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold h-10 px-6 rounded-lg shadow-none transition-colors"
         >
@@ -113,6 +117,51 @@ export default function InstructorCourseForm() {
               <PricingTab />
             </TabsContent>
           </Tabs>
+
+          {/* Navigation Footer */}
+          <div className="mt-10 pt-6 border-t border-slate-100 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {activeTab !== "basic" && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const sequence = ["basic", "curriculum", "media", "pricing"];
+                    const currentIdx = sequence.indexOf(activeTab);
+                    if (currentIdx > 0) setActiveTab(sequence[currentIdx - 1]);
+                  }}
+                  className="flex items-center gap-2 h-11 px-5 rounded-lg font-bold text-slate-500 hover:bg-slate-100 transition-all"
+                >
+                  <ArrowLeft size={18} /> Quay lại
+                </button>
+              )}
+            </div>
+
+            <div className="flex items-center gap-3">
+              {activeTab !== "pricing" ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const sequence = ["basic", "curriculum", "media", "pricing"];
+                    const currentIdx = sequence.indexOf(activeTab);
+                    if (currentIdx < sequence.length - 1) setActiveTab(sequence[currentIdx + 1]);
+                    // Tự động scroll lên đầu form để trải nghiệm tốt hơn
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="flex items-center gap-2 h-11 px-8 rounded-lg font-bold bg-slate-900 text-white hover:bg-slate-800 transition-all shadow-md shadow-slate-100"
+                >
+                  Tiếp theo <ArrowRight size={18} />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={methods.handleSubmit(onSubmit, onError)}
+                  className="flex items-center gap-2 h-11 px-8 rounded-lg font-black bg-green-600 text-white hover:bg-green-700 transition-all shadow-lg shadow-green-100"
+                >
+                  <Save size={18} /> Lưu & Xuất bản
+                </button>
+              )}
+            </div>
+          </div>
         </form>
       </FormProvider>
     </div>
@@ -120,66 +169,126 @@ export default function InstructorCourseForm() {
 }
 
 function CourseStepper({ activeTab, onTabChange }) {
-  const steps = [
-    { id: "basic", label: "Thông tin cơ bản", step: 1 },
-    { id: "curriculum", label: "Nội dung bài học", step: 2 },
-    { id: "media", label: "Hình ảnh & Media", step: 3 },
-    { id: "pricing", label: "Định giá & Cài đặt", step: 4 },
-  ];
+  const { control } = useFormContext();
+
+  // Watch only necessary fields for performance
+  const formValues =
+    useWatch({
+      control,
+      name: ["title", "description", "sections", "thumbnail", "promoVideo", "price"],
+    }) || [];
+
+  const steps = React.useMemo(() => {
+    // Basic Info Progress
+    const basicFields = [formValues[0], formValues[1]];
+    const basicFilled = basicFields.filter(f => f && f.length > 0).length;
+    const basicPercent = (basicFilled / 2) * 100;
+
+    // Curriculum Progress (at least one section with title)
+    const sections = formValues[2] || [];
+    const curriculumPercent = sections.some(s => s.title && s.title.length > 0) ? 100 : 0;
+
+    // Media Progress (thumbnail and promoVideo)
+    const mediaFields = [formValues[3], formValues[4]];
+    const mediaFilled = mediaFields.filter(f => f !== null && f !== undefined).length;
+    const mediaPercent = (mediaFilled / 2) * 100;
+
+    // Pricing Progress
+    const price = formValues[5];
+    const pricingPercent = (price && price > 0) ? 100 : 0;
+
+    return [
+      { id: "basic", label: "Thông tin cơ bản", step: 1, progress: basicPercent },
+      { id: "curriculum", label: "Nội dung bài học", step: 2, progress: curriculumPercent },
+      { id: "media", label: "Hình ảnh & Media", step: 3, progress: mediaPercent },
+      { id: "pricing", label: "Định giá & Cài đặt", step: 4, progress: pricingPercent },
+    ];
+  }, [formValues]);
 
   const currentStepNum = steps.find((s) => s.id === activeTab)?.step || 1;
 
   return (
-    <div className="flex items-center justify-between w-full max-w-4xl mx-auto h-12">
+    <div className="flex items-center justify-between w-full max-w-4xl mx-auto h-20">
       {steps.map((s, idx) => {
         const isActive = s.id === activeTab;
-        const isCompleted = currentStepNum > s.step;
+        const isCompleted = s.progress === 100;
         const isLast = idx === steps.length - 1;
+
+        // SVG Circle properties
+        const radius = 18;
+        const circumference = 2 * Math.PI * radius;
+        // Map 0-100 progress to stroke offset
+        const offset = circumference - (s.progress / 100) * circumference;
 
         return (
           <React.Fragment key={s.id}>
-            {/* Step Circle */}
+            {/* Step Node with Circular Progress */}
             <div
-              className="relative flex flex-col items-center group cursor-pointer"
+              className="relative flex flex-col items-center justify-center group cursor-pointer"
               onClick={() => onTabChange(s.id)}
             >
-              <div
-                className={`
-                  w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 border-2
-                  ${isActive
-                    ? "bg-green-600 border-green-100 text-white shadow-md shadow-green-100 scale-110"
-                    : isCompleted
-                      ? "bg-green-500 border-green-500 text-white"
-                      : "bg-white border-slate-200 text-slate-400 group-hover:border-slate-300"
-                  }
-                `}
-              >
-                {isCompleted ? (
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
-                  </svg>
-                ) : (
-                  s.step
-                )}
+              <div className="relative w-12 h-12 flex items-center justify-center">
+                {/* SVG Progress Ring */}
+                <svg className="absolute inset-0 w-full h-full -rotate-90 transform group-hover:scale-105 transition-transform duration-300">
+                  <circle
+                    cx="24"
+                    cy="24"
+                    r={radius}
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    fill="transparent"
+                    className="text-slate-100"
+                  />
+                  <circle
+                    cx="24"
+                    cy="24"
+                    r={radius}
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    fill="transparent"
+                    strokeDasharray={circumference}
+                    strokeDashoffset={offset}
+                    className="text-green-500 transition-all duration-500 ease-out"
+                    strokeLinecap="round"
+                  />
+                </svg>
+
+                {/* Inner Circle Content */}
+                <div
+                  className={`
+                    w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm z-10 transition-all duration-300
+                    ${isActive
+                      ? "bg-green-600 text-white shadow-lg shadow-green-100 scale-105"
+                      : isCompleted
+                        ? "bg-green-500 text-white"
+                        : "bg-white text-slate-300"
+                    }
+                  `}
+                >
+                  {isCompleted ? (
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                    </svg>
+                  ) : (
+                    s.step
+                  )}
+                </div>
               </div>
 
               {/* Label */}
-              <span
-                className={`
-                  absolute -bottom-8 whitespace-nowrap text-[11px] font-bold transition-all duration-300
-                  ${isActive ? "text-green-700" : isCompleted ? "text-green-600" : "text-slate-400"}
-                `}
-              >
-                {s.label}
-              </span>
+              <div className="absolute -bottom-8 whitespace-nowrap text-[11px] font-bold transition-all duration-300 text-center uppercase tracking-tighter">
+                <p className={`${isActive ? "text-green-700 scale-110" : isCompleted ? "text-green-600" : "text-slate-400 opacity-60"}`}>
+                  {s.label}
+                </p>
+              </div>
             </div>
 
             {/* Connection Line Segment */}
             {!isLast && (
-              <div className="flex-1 mx-2 h-[2px] bg-slate-200 relative rounded-full overflow-hidden">
+              <div className="flex-1 mx-2 h-[2px] bg-slate-100 relative rounded-full overflow-hidden">
                 <div
                   className={`
-                    absolute inset-0 bg-green-500 transition-all duration-700
+                    absolute inset-0 bg-green-500 transition-all duration-1000 ease-out
                     ${currentStepNum > idx + 1 ? "w-full" : "w-0"}
                   `}
                 />
@@ -233,6 +342,10 @@ function BasicInfoTab() {
 }
 
 function MediaTab() {
+  const { setValue, watch } = useFormContext();
+  const thumbnail = watch("thumbnail");
+  const promoVideo = watch("promoVideo");
+
   return (
     <div className="space-y-8 max-w-2xl">
       <div>
@@ -245,11 +358,14 @@ function MediaTab() {
           <label className="block text-xs font-black text-slate-500 uppercase tracking-widest pl-1">
             Ảnh đại diện khóa học (Thumbnail)
           </label>
-          <div className="aspect-video rounded-xl bg-slate-50 border-2 border-dashed border-slate-200 flex flex-col items-center justify-center p-4 hover:bg-slate-100/50 hover:border-green-200 transition-all cursor-pointer group">
-            <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-slate-400 group-hover:text-green-500 shadow-sm border border-slate-100 mb-2">
-               <Plus className="w-6 h-6" />
+          <div
+            onClick={() => setValue("thumbnail", thumbnail ? null : "mock-url", { shouldValidate: true })}
+            className={`aspect-video rounded-xl bg-slate-50 border-2 border-dashed flex flex-col items-center justify-center p-4 transition-all cursor-pointer group ${thumbnail ? "border-green-500 bg-green-50" : "border-slate-200 hover:bg-slate-100/50 hover:border-green-200"}`}
+          >
+            <div className={`w-12 h-12 rounded-full bg-white flex items-center justify-center text-slate-400 group-hover:text-green-500 shadow-sm border border-slate-100 mb-2 ${thumbnail ? "text-green-500" : ""}`}>
+              {thumbnail ? <CheckIcon className="w-6 h-6" /> : <Plus className="w-6 h-6" />}
             </div>
-            <p className="text-[11px] font-bold text-slate-500">Nhấn để tải lên (1280x720)</p>
+            <p className="text-[11px] font-bold text-slate-500">{thumbnail ? "Đã tải lên" : "Nhấn để tải lên (1280x720)"}</p>
           </div>
         </div>
 
@@ -257,11 +373,14 @@ function MediaTab() {
           <label className="block text-xs font-black text-slate-500 uppercase tracking-widest pl-1">
             Video giới thiệu (Promo Video)
           </label>
-          <div className="aspect-video rounded-xl bg-slate-50 border-2 border-dashed border-slate-200 flex flex-col items-center justify-center p-4 hover:bg-slate-100/50 hover:border-green-200 transition-all cursor-pointer group">
-            <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-slate-400 group-hover:text-green-500 shadow-sm border border-slate-100 mb-2">
-               <Plus className="w-6 h-6" />
+          <div
+            onClick={() => setValue("promoVideo", promoVideo ? null : "mock-url", { shouldValidate: true })}
+            className={`aspect-video rounded-xl bg-slate-50 border-2 border-dashed flex flex-col items-center justify-center p-4 transition-all cursor-pointer group ${promoVideo ? "border-green-500 bg-green-50" : "border-slate-200 hover:bg-slate-100/50 hover:border-green-200"}`}
+          >
+            <div className={`w-12 h-12 rounded-full bg-white flex items-center justify-center text-slate-400 group-hover:text-green-500 shadow-sm border border-slate-100 mb-2 ${promoVideo ? "text-green-500" : ""}`}>
+              {promoVideo ? <CheckIcon className="w-6 h-6" /> : <Plus className="w-6 h-6" />}
             </div>
-            <p className="text-[11px] font-bold text-slate-500">Nhấn để tải video (MP4, max 50MB)</p>
+            <p className="text-[11px] font-bold text-slate-500">{promoVideo ? "Đã tải lên" : "Nhấn để tải video (MP4, max 50MB)"}</p>
           </div>
         </div>
       </div>
@@ -270,35 +389,48 @@ function MediaTab() {
 }
 
 function PricingTab() {
-  const { register, formState: { errors } } = useFormContext();
+  const {
+    register,
+    formState: { errors },
+  } = useFormContext();
 
   return (
-    <div className="space-y-6 max-w-xl">
+    <div className="space-y-6 max-w-2xl">
       <div>
-        <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2 mb-4">Định Giá Sản Phẩm</h3>
+        <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2 mb-4">
+          Định giá & Cài đặt
+        </h3>
+        <p className="text-xs text-slate-500">Thiết lập giá bán khóa học cho học viên.</p>
       </div>
 
       <div className="space-y-2">
         <label className="block text-xs font-black text-slate-500 uppercase tracking-widest pl-1">
-          Giá Bán (VNĐ) <span className="text-red-500">*</span>
+          Giá khóa học <span className="text-red-500">*</span>
         </label>
-        <div className="relative">
-          <Input
-            type="number"
-            className="h-11 pl-4 pr-12 border-slate-200 focus:border-green-500 font-bold text-lg"
-            placeholder="990000"
-            {...register("price")}
-          />
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 font-black text-slate-400">
-            đ
-          </div>
-        </div>
-        {errors.price && <p className="text-xs font-bold text-red-500 mt-1.5 pl-1">{errors.price.message}</p>}
-        <p className="text-xs font-medium text-slate-400 pl-1">Bao gồm 10% phí nền tảng khi thanh toán.</p>
+        <Input
+          type="number"
+          inputMode="decimal"
+          step="0.01"
+          className="h-11 border-slate-200 focus:border-green-500 font-medium"
+          placeholder="Ví dụ: 499000"
+          {...register("price")}
+        />
+        {errors.price && (
+          <p className="text-xs font-bold text-red-500 mt-1.5 pl-1">{errors.price.message}</p>
+        )}
       </div>
     </div>
   );
 }
+
+function CheckIcon({ className = "w-6 h-6" }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+    </svg>
+  );
+}
+
 
 
 // ------------------------------------------
@@ -418,31 +550,46 @@ function SectionItem({ sectionIndex, control }) {
           <button
             type="button"
             className="flex items-center gap-1.5 text-xs font-bold text-green-600 hover:text-green-700 bg-green-50 hover:bg-green-100 px-2 py-1.5 rounded-md transition-colors"
-            onClick={() => append({ title: "" })}
+            onClick={() => append({ title: "", videoUrl: "" })}
           >
             <Plus size={14} /> Bài học mới
           </button>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-4">
           {fields.map((lesson, lessonIdx) => (
             <div
               key={lesson.id}
-              className="group flex gap-3 items-start p-3 border border-slate-200 rounded-lg bg-slate-50/50 hover:bg-white hover:border-green-200 hover:shadow-sm transition-all"
+              className="group flex gap-3 items-start p-4 border border-slate-200 rounded-xl bg-slate-50/50 hover:bg-white hover:border-green-200 hover:shadow-md transition-all duration-300"
             >
               <div className="pt-2.5 text-slate-300 cursor-grab active:cursor-grabbing hover:text-slate-500">
-                <GripVertical size={16} />
+                <GripVertical size={18} />
               </div>
 
-              <div className="flex-1 space-y-2">
-                <Input
-                  className="h-9 font-medium border-slate-200 bg-white"
-                  placeholder={`Tên bài học ${lessonIdx + 1}`}
-                  {...register(`sections.${sectionIndex}.lessons.${lessonIdx}.title`)}
-                  autoComplete="off"
-                />
+              <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider pl-1">Tiêu đề bài học</label>
+                  <Input
+                    className="h-9 font-bold border-slate-200 bg-white focus:ring-0 focus:border-green-500 transition-all"
+                    placeholder={`Bài học ${lessonIdx + 1}`}
+                    {...register(`sections.${sectionIndex}.lessons.${lessonIdx}.title`)}
+                    autoComplete="off"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider pl-1">Video URL (Gắn link mp4, yt)</label>
+                  <div className="relative">
+                    <Video className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 group-focus-within:text-green-500 transition-colors" />
+                    <Input
+                      className="h-9 pl-8 text-xs font-medium border-slate-200 bg-white focus:ring-0 focus:border-green-500 transition-all text-slate-600"
+                      placeholder="https://example.com/video.mp4"
+                      {...register(`sections.${sectionIndex}.lessons.${lessonIdx}.videoUrl`)}
+                      autoComplete="off"
+                    />
+                  </div>
+                </div>
                 {errors.sections?.[sectionIndex]?.lessons?.[lessonIdx]?.title && (
-                  <p className="text-xs font-bold text-red-500 pl-1">
+                  <p className="text-xs font-bold text-red-500 pl-1 col-span-2">
                     {errors.sections[sectionIndex].lessons[lessonIdx].title.message}
                   </p>
                 )}
@@ -451,10 +598,10 @@ function SectionItem({ sectionIndex, control }) {
               <button
                 type="button"
                 onClick={() => remove(lessonIdx)}
-                className="mt-0.5 p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
+                className="mt-5 p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
                 title="Xóa bài học"
               >
-                <Trash2 size={16} />
+                <Trash2 size={18} />
               </button>
             </div>
           ))}
