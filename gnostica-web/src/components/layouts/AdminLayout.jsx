@@ -65,12 +65,12 @@ export default function AdminLayout() {
       {/* Sidebar - Fixed */}
       <aside className="w-64 bg-slate-900 min-h-screen fixed left-0 top-0 bottom-0 text-slate-300 flex flex-col z-50">
         {/* Brand */}
-        <div className="h-16 flex items-center px-6 border-b border-slate-800 bg-slate-950/50">
-          <AppLogo />
+        <div className="h-16 flex items-center justify-center px-0 border-b border-slate-800 bg-slate-950/50">
+          <AppLogo className="h-12 md:h-12" />
         </div>
 
         {/* Menu */}
-        <div className="flex-1 overflow-y-auto py-6 px-4 text-slate-300">
+        <div className="flex-1 overflow-y-auto py-6 px-4 scrollbar-hide text-slate-300">
           <nav className="flex flex-col gap-3">
             {ADMIN_MENU_GROUPS.map((group, idx) => (
               <div key={idx} className="space-y-2">
@@ -136,7 +136,7 @@ export default function AdminLayout() {
         <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 sticky top-0 z-40">
           <div className="flex items-center gap-4 flex-1">
             {/* Search Bar */}
-            <div className="relative w-96 hidden md:block">
+            <div className="relative w-full max-w-[340px] hidden md:block">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input
                 type="text"
@@ -166,7 +166,7 @@ export default function AdminLayout() {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 p-6 md:p-8 overflow-y-auto">
+        <main className="flex-1 p-6 md:p-8 overflow-y-auto scrollbar-hide">
           <Outlet />
         </main>
       </div>

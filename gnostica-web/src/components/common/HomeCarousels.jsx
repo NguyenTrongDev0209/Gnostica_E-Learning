@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Star } from "lucide-react";
 import AppCard from "./AppCard";
 import AppSection from "./AppSection";
+import { featuredCoursesMock } from "@/mocks/courses";
 
 // Dữ liệu slide kèm theo class màu gradient riêng cho từng ảnh
 const slides = [
@@ -135,94 +135,6 @@ export function MainHeroCarousel({ onBgChange }) {
   );
 }
 
-const dummyCards = [
-  {
-    id: 1,
-    category: "Web Development",
-    rating: 5.0,
-    title: "Fullstack Next.js Masterclass",
-    classes: 32,
-    students: 1200,
-    price: "899.000",
-    originalPrice: "1.799.000",
-    discountPercentage: 50,
-    image: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=400&auto=format&fit=crop",
-    instructor: {
-      name: "Sonny Sangha",
-      avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=100&auto=format&fit=crop",
-      status: "online"
-    }
-  },
-  {
-    id: 2,
-    category: "UI/UX Design",
-    rating: 4.8,
-    title: "Figma Mastery for Professionals",
-    classes: 24,
-    students: 850,
-    price: "299.000",
-    originalPrice: "599.000",
-    discountPercentage: 50,
-    image: "https://images.unsplash.com/photo-1586717791821-3f44a563fc4c?q=80&w=400&auto=format&fit=crop",
-    instructor: {
-      name: "Sarah Jenkins",
-      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=100&auto=format&fit=crop",
-      status: "online"
-    }
-  },
-  {
-    id: 3,
-    category: "Data Science",
-    rating: 4.9,
-    title: "Python for Data Science & ML",
-    classes: 45,
-    students: 3100,
-    price: "432.000",
-    originalPrice: "864.000",
-    discountPercentage: 50,
-    image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=400&auto=format&fit=crop",
-    instructor: {
-      name: "Alex Taylor",
-      avatar: "https://images.unsplash.com/photo-1599566150163-29194dcaad36?q=80&w=100&auto=format&fit=crop",
-      status: "online"
-    }
-  },
-  {
-    id: 4,
-    category: "Mobile Dev",
-    rating: 4.7,
-    title: "React Native: Zero to Hero",
-    classes: 28,
-    students: 1540,
-    price: "549.000",
-    originalPrice: "1.099.000",
-    discountPercentage: 50,
-    image: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?q=80&w=400&auto=format&fit=crop",
-    instructor: {
-      name: "David Chen",
-      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=100&auto=format&fit=crop",
-      status: "online"
-    }
-  },
-  {
-    id: 5,
-    category: "Cyber Security",
-    rating: 4.9,
-    title: "Ethical Hacking Bootcamp 2024",
-    classes: 50,
-    students: 2800,
-    price: "999.000",
-    originalPrice: "1.999.000",
-    discountPercentage: 50,
-    image: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=400&auto=format&fit=crop",
-    instructor: {
-      name: "Marcus Holloway",
-      avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=100&auto=format&fit=crop",
-      status: "online"
-    }
-  }
-];
-
 export function CardCarousel() {
   const [api, setApi] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -248,7 +160,7 @@ export function CardCarousel() {
         className="w-full relative"
       >
         <CarouselContent className="-ml-3 md:-ml-4 py-8 md:py-16 items-stretch">
-          {[...dummyCards, ...dummyCards].map((card, index) => {
+          {[...featuredCoursesMock, ...featuredCoursesMock].map((card, index) => {
             const isActive = activeIndex === index;
             
             return (

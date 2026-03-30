@@ -1,24 +1,27 @@
 import React, { useState } from 'react';
 import { Outlet, Link } from 'react-router-dom';
-import { 
-  ShoppingCart, 
-  User, 
-  Facebook, 
-  Twitter, 
-  Linkedin, 
-  Send, 
-  Phone, 
-  Mail, 
-  MapPin 
+import {
+  ShoppingCart,
+  User,
+  Facebook,
+  Twitter,
+  Linkedin,
+  Send,
+  Phone,
+  Mail,
+  MapPin
 } from "lucide-react"
-import { 
-  SimpleButton, 
-  OutlineGradientButton, 
-  AppIconButton, 
-  AppHamburgerButton, 
-  AppNavLink, 
-  AppLogo 
+import {
+  SimpleButton,
+  OutlineGradientButton,
+  AppIconButton,
+  AppHamburgerButton,
+  AppNavLink,
+  AppLogo,
+  GhostButton,
+  AppHeaderButton
 } from "@/components/common/AppButton"
+import { Search, Heart, ChevronDown, LayoutGrid, Flame } from "lucide-react"
 import AppSearchInput from "@/components/common/AppSearchInput"
 import {
   DropdownMenu,
@@ -28,11 +31,6 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-
-const navLinks = [
-  { label: "Giới thiệu", href: "/about" },
-  { label: "Diễn đàn", href: "/forum" },
-]
 
 const courseCategories = [
   { label: "Tất cả khóa học", href: "/courses" },
@@ -56,8 +54,8 @@ const courseCategories = [
 const FooterBrand = () => (
   <div className="flex flex-col gap-6">
     <div className="flex flex-col gap-1">
-      <h2 className="text-3xl font-black text-slate-900 tracking-tighter uppercase">Brand Name</h2>
-      <span className="text-sm text-primary font-bold tracking-tight uppercase">Enter Your Slogan Here</span>
+      <h2 className="text-3xl font-black text-slate-900 tracking-tighter uppercase">Gnostica</h2>
+      <span className="text-sm text-primary font-bold tracking-tight uppercase">Nền tảng học tập thông minh</span>
     </div>
 
     <div className="w-40 h-[2px] bg-slate-800"></div>
@@ -100,148 +98,149 @@ const FooterLinks = ({ title, links }) => (
   </div>
 )
 
+
 const MainLayout = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isCoursesMobileOpen, setIsCoursesMobileOpen] = useState(false)
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Header */}
-      <header className="w-full sticky top-0 z-50 shadow-md">
-        {/* Primary Header */}
-        <div className="bg-gradient-to-t from-header to-header-end text-header-foreground shadow-lg">
-          <div className="app-container flex items-center py-3 gap-3 lg:gap-8">
-            {/* Left: Logo + Nav */}
-            <div className="flex items-center gap-10">
-              <div className="flex items-center gap-4">
-                <div className="lg:hidden">
-                  <AppHamburgerButton
-                    isOpen={isMenuOpen}
-                    onClick={() => setIsMenuOpen(!isMenuOpen)}
-                  />
-                </div>
-                <AppLogo />
-              </div>
-
-              {/* Desktop Navigation Links */}
-              <nav className="hidden lg:flex items-center gap-7">
-                <Link
-                  to="/about"
-                  className="text-white/90 hover:text-white transition-all font-bold text-base whitespace-nowrap"
-                >
-                  Giới thiệu
-                </Link>
-
-                {/* Courses Dropdown */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger className="flex items-center gap-1 text-white/90 hover:text-white transition-all font-bold text-base whitespace-nowrap outline-none cursor-pointer group">
-                    Khóa học
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-auto min-w-[200px] bg-white border-none shadow-xl rounded-xl p-3 animate-in fade-in zoom-in duration-200">
-                    <div className="grid grid-flow-col grid-rows-[repeat(10,minmax(0,1fr))] gap-x-2">
-                      {courseCategories.map((category) => (
-                        <DropdownMenuItem key={category.label} asChild className="px-5 py-2.5 focus:bg-primary focus:text-white rounded-lg font-bold text-base transition-colors cursor-pointer outline-none">
-                          <Link
-                            to={category.href}
-                            className="text-slate-700 focus:text-inherit block whitespace-nowrap"
-                          >
-                            {category.label}
-                          </Link>
-                        </DropdownMenuItem>
-                      ))}
-                    </div>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-
-                <Link
-                  to="/forum"
-                  className="text-white/90 hover:text-white transition-all font-bold text-base whitespace-nowrap"
-                >
-                  Diễn đàn
-                </Link>
-              </nav>
+      {/* Main Sticky Header */}
+      <header className="w-full sticky top-0 z-[100] shadow-md bg-primary-gradient text-white border-b border-white/10">
+        <div className="app-container flex items-center justify-between py-2 gap-8">
+          {/* Logo */}
+          <div className="flex-1 flex items-center gap-4">
+            <div className="lg:hidden">
+              <AppHamburgerButton
+                isOpen={isMenuOpen}
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                className="text-white"
+              />
             </div>
+            <AppLogo src="/Gnostica_Mark.webp" />
+          </div>
 
-            {/* Right Section: Search Bar + Actions */}
-            <div className="flex-1 flex items-center justify-end lg:justify-between gap-6">
-              {/* Search Bar */}
-              <div className="w-full max-w-[650px] hidden lg:block">
-                <AppSearchInput className="h-10 text-base" />
-              </div>
+          {/* Search - Center */}
+          <div className="flex-[2] max-w-xl hidden lg:flex justify-center">
+            <AppSearchInput className="w-full" />
+          </div>
 
-              <div className="flex items-center gap-2 md:gap-3 shrink-0">
-                <Link to="/cart">
-                  <AppIconButton icon={ShoppingCart} badge={2} />
-                </Link>
-
-                <SimpleButton className="hidden sm:flex px-4">
-                  Kích hoạt
-                </SimpleButton>
-
-                {/* Login Button */}
-                <Link to="/login" className="sm:hidden">
-                  <AppIconButton icon={User} />
-                </Link>
-                <OutlineGradientButton className="hidden sm:flex px-4">
-                  Đăng nhập
-                </OutlineGradientButton>
-              </div>
-            </div>
+          {/* User Actions */}
+          <div className="flex-1 flex items-center justify-end gap-1 md:gap-4">
+            <Link to="/login">
+              <AppHeaderButton 
+                icon={User} 
+                label="Đăng nhập"
+              />
+            </Link>
+            <Link to="/wishlist">
+              <AppHeaderButton 
+                icon={Heart} 
+                label="Yêu thích"
+              />
+            </Link>
+            <Link to="/cart">
+              <AppHeaderButton 
+                icon={ShoppingCart} 
+                label="Giỏ hàng"
+                badge={2} 
+              />
+            </Link>
           </div>
         </div>
 
-        {/* Mobile Menu */}
+        {/* Mobile Menu Content (Inside sticky header to stay visible) */}
         {isMenuOpen && (
-          <div className="lg:hidden border-t border-white/10 bg-header text-header-foreground px-4 pb-8 animate-in slide-in-from-top-4 duration-300">
+          <div className="lg:hidden border-t border-header-orange/10 bg-header-bg px-4 pb-8 animate-in slide-in-from-top-4 duration-300">
             <AppSearchInput className="mt-3 mb-2" />
-            <nav className="flex flex-col mt-4">
-              <Link
-                to="/about"
-                className="py-3 border-b border-white/5 font-bold text-xl block text-white/90 hover:text-white transition-colors"
-                onClick={() => setIsMenuOpen(false)}
+            <nav className="flex flex-col mt-4 text-header-text">
+              <Link to="/" className="py-3 border-b border-header-orange/5 font-bold text-lg">Trang chủ</Link>
+              <button
+                onClick={() => setIsCoursesMobileOpen(!isCoursesMobileOpen)}
+                className="w-full flex items-center justify-between py-3 border-b border-header-orange/5 font-bold text-lg"
               >
-                Giới thiệu
-              </Link>
-
-              {/* Courses Mobile Dropdown */}
-              <div className="py-3 border-b border-white/5">
-                <button
-                  onClick={() => setIsCoursesMobileOpen(!isCoursesMobileOpen)}
-                  className="w-full flex items-center justify-between font-bold text-xl text-left text-white/90 hover:text-white transition-colors"
-                >
-                  Khóa học
-                </button>
-                
-                {isCoursesMobileOpen && (
-                  <div className="flex flex-col gap-2 mt-3 ml-4 border-l-2 border-white/10 pl-4 animate-in slide-in-from-top-2 duration-200">
-                    {courseCategories.map((category) => (
-                      <Link
-                        key={category.label}
-                        to={category.href}
-                        className="py-2 text-lg text-white/70 hover:text-white font-bold"
-                        onClick={() => {
-                          setIsCoursesMobileOpen(false)
-                          setIsMenuOpen(false)
-                        }}
-                      >
-                        {category.label}
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <Link
-                to="/forum"
-                className="py-3 border-b border-white/5 last:border-0 font-bold text-xl block text-white/90 hover:text-white transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Diễn đàn
-              </Link>
+                Danh mục <ChevronDown className={isCoursesMobileOpen ? "rotate-180" : ""} />
+              </button>
+              {isCoursesMobileOpen && (
+                <div className="grid grid-cols-1 gap-1 ml-4 py-2">
+                  {courseCategories.slice(0, 8).map(c => (
+                    <Link key={c.label} to={c.href} className="py-2 text-sm text-slate-600 font-bold">{c.label}</Link>
+                  ))}
+                </div>
+              )}
+              <Link to="/news" className="py-3 border-b border-header-orange/5 font-bold text-lg">Tin tức</Link>
+              <Link to="/promo" className="py-3 font-bold text-lg text-header-orange">Khuyến mãi Hot</Link>
             </nav>
           </div>
         )}
       </header>
+
+      {/* Secondary Header (Non-sticky Navigation) */}
+      <div className="w-full bg-white shadow-sm relative z-40">
+        <div className="app-container flex items-center justify-between py-0 h-14">
+          {/* Left: Category Button */}
+          <div className="flex-1 flex justify-start">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <SimpleButton size="lg" className="rounded-lg font-bold uppercase tracking-wider">
+                  <LayoutGrid className="w-5 h-5" />
+                  Khóa học
+                  <ChevronDown className="w-4 h-4 ml-2" />
+                </SimpleButton>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-[280px] bg-white border-none shadow-2xl rounded-sm p-2 animate-in fade-in slide-in-from-top-2">
+                {courseCategories.map((category) => (
+                  <DropdownMenuItem key={category.label} asChild className="px-4 py-2 hover:bg-header-bg hover:text-header-orange cursor-pointer font-bold text-sm">
+                    <Link to={category.href}>{category.label}</Link>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          {/* Center: Navigation Links */}
+          <nav className="hidden lg:flex items-center h-full gap-2">
+            <Link to="/" className="h-full flex items-center relative group px-4">
+              <span className="font-bold text-slate-700 group-hover:text-[#f15e2c] transition-colors">
+                Trang chủ
+              </span>
+              <div className="absolute bottom-0 left-0 w-full h-[3px] bg-[#f15e2c] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center" />
+            </Link>
+
+            <Link to="/about" className="h-full flex items-center relative group px-4">
+              <span className="font-bold text-slate-700 group-hover:text-[#f15e2c] transition-colors">
+                Giới thiệu
+              </span>
+              <div className="absolute bottom-0 left-0 w-full h-[3px] bg-[#f15e2c] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center" />
+            </Link>
+
+            <Link to="/instructors" className="h-full flex items-center relative group px-4">
+              <span className="font-bold text-slate-700 group-hover:text-[#f15e2c] transition-colors">
+                Giảng viên
+              </span>
+              <div className="absolute bottom-0 left-0 w-full h-[3px] bg-[#f15e2c] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center" />
+            </Link>
+
+            <Link to="/forum" className="h-full flex items-center relative group px-4">
+              <span className="font-bold text-slate-700 group-hover:text-[#f15e2c] transition-colors">
+                Diễn đàn
+              </span>
+              <div className="absolute bottom-0 left-0 w-full h-[3px] bg-[#f15e2c] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center" />
+            </Link>
+
+            <Link to="/promo" className="h-full flex items-center relative group px-4">
+              <span className="font-bold text-[#f15e2c] flex items-center gap-2">
+                <Flame className="w-4 h-4 fill-current" />
+                Khuyến mãi
+              </span>
+              <div className="absolute bottom-0 left-0 w-full h-[3px] bg-[#f15e2c] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center" />
+            </Link>
+          </nav>
+
+          {/* Right: Placeholder */}
+          <div className="flex-1 hidden md:block"></div>
+        </div>
+      </div>
 
       <main className="flex-grow">
         <Outlet />

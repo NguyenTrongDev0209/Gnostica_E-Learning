@@ -4,12 +4,15 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
 // Nút outline với viền & chữ màu cam — dùng cho các hành động phụ (ví dụ: Kích hoạt)
-export const SimpleButton = ({ children, className, variant = "default", ...props }) => {
+export const SimpleButton = ({ children, className, variant = "default", size = "md", ...props }) => {
+  const sizeClass = size === "lg" ? "btn-lg" : size === "sm" ? "btn-sm" : "btn-md";
+
   return (
     <Button
       variant={variant}
       className={cn(
-        "px-4 h-[38px] bg-button-gradient text-primary-foreground hover:brightness-110 transition-all shadow-md active:scale-95 text-base font-semibold tracking-tight",
+        sizeClass,
+        "bg-button-gradient text-primary-foreground hover:brightness-110 shadow-md font-semibold tracking-tight",
         className
       )}
       {...props}
@@ -20,11 +23,14 @@ export const SimpleButton = ({ children, className, variant = "default", ...prop
 }
 
 // Nút viền cam gradient, nền trắng, chữ cam gradient
-export const OutlineGradientButton = ({ children, className, ...props }) => {
+export const OutlineGradientButton = ({ children, className, size = "md", ...props }) => {
+  const sizeClass = size === "lg" ? "btn-lg" : size === "sm" ? "btn-sm" : "btn-md";
+
   return (
     <Button
       className={cn(
-        "px-4 h-[38px] btn-outline-gradient hover:brightness-105 transition-all shadow-sm active:scale-95 text-base font-semibold tracking-tight",
+        sizeClass,
+        "btn-outline-gradient hover:brightness-105 shadow-sm font-semibold tracking-tight",
         className
       )}
       {...props}
@@ -37,12 +43,15 @@ export const OutlineGradientButton = ({ children, className, ...props }) => {
 }
 
 // Nút không có nền (Ghost button) — dùng cho các hành động ít quan trọng hơn hoặc trên nền tối
-export const GhostButton = ({ children, className, ...props }) => {
+export const GhostButton = ({ children, className, size = "md", ...props }) => {
+  const sizeClass = size === "lg" ? "btn-lg" : size === "sm" ? "btn-sm" : "btn-md";
+
   return (
     <Button
       variant="ghost"
       className={cn(
-        "px-4 h-11 text-slate-600 hover:text-primary hover:bg-primary/5 transition-all active:scale-95 text-base font-semibold tracking-tight",
+        sizeClass,
+        "text-slate-600 hover:text-primary hover:bg-primary/5 font-semibold tracking-tight",
         className
       )}
       {...props}
@@ -53,14 +62,24 @@ export const GhostButton = ({ children, className, ...props }) => {
 }
 
 // Nút nền cam có icon bên trái + nhãn chữ — dùng cho hành động chính (ví dụ: Đăng nhập)
-export const IconLabelButton = ({ children, icon: Icon, className, variant = "default", ...props }) => {
+export const IconLabelButton = ({ children, icon: Icon, className, variant = "default", badge, ...props }) => {
   return (
     <Button
       variant={variant}
-      className={`h-9 w-9 md:w-auto px-0 md:px-3 flex flex-col items-center justify-center gap-0.5 bg-button-gradient bg-clip-border border-none hover:brightness-110 active:scale-95 transition-all text-primary-foreground font-semibold tracking-tight ${className}`}
+      className={cn(
+        "relative h-auto min-h-9 md:w-auto px-0 md:px-3 flex flex-col items-center justify-center gap-0.5 bg-button-gradient bg-clip-border border-none hover:brightness-110 active:scale-95 transition-all text-primary-foreground font-semibold tracking-tight",
+        className
+      )}
       {...props}
     >
-      {Icon && <Icon className="h-6 w-6" />}
+      <div className="relative">
+        {Icon && <Icon className="h-6 w-6" />}
+        {badge > 0 && (
+          <span className="absolute -top-1 -right-2 h-4 w-4 bg-red-600 rounded-full text-[10px] font-bold text-white flex items-center justify-center border-2 border-white">
+            {badge}
+          </span>
+        )}
+      </div>
       <span className="text-[11px] font-bold leading-tight">{children}</span>
     </Button>
   )
@@ -101,6 +120,25 @@ export const AppIconButton = ({ icon: Icon, className, variant = "ghost", badge,
         </span>
       )}
     </Button>
+  )
+}
+
+// Nút chuyên dụng cho Header: Icon bọc trong ô vuông (style AppIconButton) và nhãn bên dưới
+export const AppHeaderButton = ({ icon: Icon, label, badge, className, ...props }) => {
+  return (
+    <div className={cn("flex flex-col items-center gap-1.5 group cursor-pointer w-fit", className)}>
+      <AppIconButton
+        icon={Icon}
+        badge={badge}
+        className="!h-10 !w-10 !rounded-xl !bg-white/10 !text-white !border-white/10 hover:!bg-white hover:!text-primary transition-all duration-300 shadow-none group-hover:scale-105 active:scale-95"
+        {...props}
+      />
+      {label && (
+        <span className="text-[12px] font-bold uppercase tracking-widest text-white group-hover:text-white transition-all duration-300">
+          {label}
+        </span>
+      )}
+    </div>
   )
 }
 
@@ -147,12 +185,15 @@ export const AppNavLink = ({ href = "#", children, onClick, className }) => {
 import { Link } from 'react-router-dom'
 
 // Logo thương hiệu: Sử dụng ảnh TechOne_Logo từ public folder
-export const AppLogo = () => {
+export const AppLogo = ({ src = "/Gnostica_Mark.webp", className }) => {
   return (
-    <Link to="/" className="flex items-center h-10 md:h-10 hover:opacity-90 transition-opacity">
+    <Link
+      to="/"
+      className={cn("flex items-center h-10 md:h-10 hover:opacity-90 transition-opacity", className)}
+    >
       <img
-        src="/TechOne_Logo.png"
-        alt="TechOne Logo"
+        src={src}
+        alt="Gnostica Logo"
         className="h-full w-auto object-contain"
       />
     </Link>
