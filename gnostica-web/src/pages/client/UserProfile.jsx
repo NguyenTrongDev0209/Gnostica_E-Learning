@@ -12,6 +12,7 @@ import {
   MessageSquare, ThumbsUp, Eye, Clock, MapPin, Link as LinkIcon,
   Calendar, Star, Award, BookOpen, Flame, UserPlus, Send
 } from 'lucide-react';
+import StatItem from '@/components/common/StatItem';
 
 // ── Mock Data ──────────────────────────────────────────────
 const MOCK_USER = {
@@ -76,15 +77,6 @@ const MOCK_LIKED_POSTS = [
     isHot: false,
   },
 ];
-
-// ── Stat Card ──────────────────────────────────────────────
-const StatItem = ({ icon: Icon, value, label, color = "text-primary" }) => (
-  <div className="flex flex-col items-center gap-1 py-3 px-4">
-    <Icon className={`w-5 h-5 ${color} mb-0.5`} />
-    <span className="text-xl font-bold text-slate-800">{value}</span>
-    <span className="text-xs text-muted-foreground font-medium">{label}</span>
-  </div>
-);
 
 // ── Main Component ─────────────────────────────────────────
 const UserProfile = () => {
