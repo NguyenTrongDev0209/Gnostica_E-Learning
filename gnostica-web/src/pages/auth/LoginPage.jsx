@@ -93,6 +93,7 @@ const LoginPage = () => {
                 id="remember"
                 checked={remember}
                 onCheckedChange={setRemember}
+                className="border-slate-900"
               />
               <Label htmlFor="remember" className="text-sm text-slate-600 cursor-pointer font-normal">
                 Ghi nhớ đăng nhập

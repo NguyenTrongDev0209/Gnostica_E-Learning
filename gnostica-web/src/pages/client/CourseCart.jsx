@@ -28,31 +28,10 @@ import { SimpleButton } from "@/components/common/AppButton";
 import { AppBreadcrumb, PageHeader } from "@/components/common/AppSection";
 import CartItemTableRow from "@/components/common/CartItemTableRow";
 import { Home } from "lucide-react";
-
-// Dummy cart data
-const cartItems = [
-  {
-    id: 1,
-    title: "Fullstack Next.js Masterclass",
-    instructor: "Sonny Sangha",
-    price: "899.000",
-    originalPrice: "1.799.000",
-    image: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=200&auto=format&fit=crop",
-    rating: 5.0
-  },
-  {
-    id: 2,
-    title: "Ultimate React Query Course",
-    instructor: "Maximilian Schwarzmüller",
-    price: "499.000",
-    originalPrice: "999.000",
-    image: "https://images.unsplash.com/photo-1587620962725-abab7fe55159?q=80&w=200&auto=format&fit=crop",
-    rating: 4.8
-  }
-];
+import { cartItemsMock } from "@/mocks/cart";
 
 export default function CourseCart() {
-  const [cart, setCart] = useState(cartItems);
+  const [cart, setCart] = useState(cartItemsMock);
   const [selectedIds, setSelectedIds] = useState([]);
 
   const isAllSelected = cart.length > 0 && selectedIds.length === cart.length;

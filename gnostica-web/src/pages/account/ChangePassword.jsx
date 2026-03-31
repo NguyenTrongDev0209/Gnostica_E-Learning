@@ -11,7 +11,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { Home, KeyRound, ShieldCheck, Eye, EyeOff } from "lucide-react";
+import { Home, KeyRound, ShieldCheck, Eye, EyeOff, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 
 export default function ChangePassword() {

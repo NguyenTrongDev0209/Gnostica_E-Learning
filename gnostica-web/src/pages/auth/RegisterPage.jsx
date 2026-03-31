@@ -134,7 +134,7 @@ const RegisterPage = () => {
                 id="agreeTerms"
                 checked={agreeTerms}
                 onCheckedChange={setAgreeTerms}
-                className="mt-0.5"
+                className="mt-0.5 border-slate-900 mt-1"
               />
               <Label htmlFor="agreeTerms" className="text-sm text-slate-600 cursor-pointer font-normal leading-relaxed">
                 Tôi đồng ý với{' '}

@@ -25,68 +25,15 @@ import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { SimpleButton } from "@/components/common/AppButton";
 import { AppBreadcrumb, PageHeader } from "@/components/common/AppSection";
-
-// Mock order data (from cart)
-const ORDER_ITEMS = [
-  {
-    id: 1,
-    title: "Fullstack Next.js Masterclass",
-    instructor: "Sonny Sangha",
-    price: 899000,
-    originalPrice: 1799000,
-    image:
-      "https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=200&auto=format&fit=crop",
-    rating: 5.0
-  },
-  {
-    id: 2,
-    title: "Ultimate React Query Course",
-    instructor: "Maximilian Schwarzmüller",
-    price: 499000,
-    originalPrice: 999000,
-    image:
-      "https://images.unsplash.com/photo-1587620962725-abab7fe55159?q=80&w=200&auto=format&fit=crop",
-    rating: 4.8
-  },
-];
-
-const PAYMENT_METHODS = [
-  {
-    id: "credit-card",
-    label: "Thẻ tín dụng / Ghi nợ",
-    description: "Visa, Mastercard, JCB",
-    icon: CreditCard,
-    color: "text-blue-600 bg-blue-50",
-  },
-  {
-    id: "e-wallet",
-    label: "Ví điện tử",
-    description: "MoMo, ZaloPay, VNPay",
-    icon: Wallet,
-    color: "text-pink-600 bg-pink-50",
-  },
-  {
-    id: "qr-code",
-    label: "QR Code",
-    description: "Quét mã để thanh toán",
-    icon: QrCode,
-    color: "text-green-600 bg-green-50",
-  },
-  {
-    id: "bank-transfer",
-    label: "Chuyển khoản ngân hàng",
-    description: "Chuyển khoản trực tiếp",
-    icon: Building2,
-    color: "text-amber-600 bg-amber-50",
-  },
-];
+import { checkoutOrderItemsMock } from "@/mocks/cart";
+import { paymentMethodsMock } from "@/mocks/checkout";
 
 export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState("credit-card");
   const [loading, setLoading] = useState(false);
 
-  const subtotal = ORDER_ITEMS.reduce((sum, item) => sum + item.price, 0);
-  const totalOriginal = ORDER_ITEMS.reduce((sum, item) => sum + item.originalPrice, 0);
+  const subtotal = checkoutOrderItemsMock.reduce((sum, item) => sum + item.price, 0);
+  const totalOriginal = checkoutOrderItemsMock.reduce((sum, item) => sum + item.originalPrice, 0);
   const discount = totalOriginal - subtotal;
 
   const breadcrumbItems = [
@@ -135,7 +82,7 @@ export default function CheckoutPage() {
                 </CardHeader>
                 <CardContent className="p-0">
                   <div className="divide-y divide-slate-100">
-                    {ORDER_ITEMS.map((item) => (
+                    {checkoutOrderItemsMock.map((item) => (
                       <div key={item.id} className="p-6 flex items-center gap-4 hover:bg-slate-50/50 transition-colors">
                         <div className="w-24 h-16 md:w-32 md:h-20 shrink-0 rounded-lg overflow-hidden border border-slate-100 shadow-sm">
                           <img
@@ -193,7 +140,7 @@ export default function CheckoutPage() {
                     onValueChange={setPaymentMethod}
                     className="grid grid-cols-1 sm:grid-cols-2 gap-3"
                   >
-                    {PAYMENT_METHODS.map((method) => {
+                    {paymentMethodsMock.map((method) => {
                       const Icon = method.icon;
                       const isSelected = paymentMethod === method.id;
                       return (
@@ -270,7 +217,7 @@ export default function CheckoutPage() {
                   <CardContent className="px-8 py-6 space-y-4">
                     <div className="space-y-2.5">
                       <div className="flex justify-between text-sm font-medium text-slate-500">
-                        <span>Tạm tính ({ORDER_ITEMS.length} khóa học)</span>
+                        <span>Tạm tính ({checkoutOrderItemsMock.length} khóa học)</span>
                         <span>{totalOriginal.toLocaleString()}đ</span>
                       </div>
                       <div className="flex justify-between text-sm font-medium">
