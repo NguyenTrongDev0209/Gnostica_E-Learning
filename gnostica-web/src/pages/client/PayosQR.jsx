@@ -13,21 +13,10 @@ import {
 } from "lucide-react";
 import { AppBreadcrumb } from "@/components/common/AppSection";
 import { toast } from "sonner";
-
-// Mock payment data (would come from PayOS API)
-const PAYMENT_DATA = {
-  bank: "Ngân hàng MB Bank",
-  accountNumber: "VQRQAHVMC2042",
-  accountHolder: "LE QUOC MINH",
-  amount: 1398000,
-  transferContent: "Thanh toan don hang #71",
-  qrCodeUrl: "https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=00020101021238570010A000000727012700069704220113VQRQAHVMC20420208QRIBFTTA530370454071398000550200005802VN62230819Thanh+toan+DH716304",
-  orderCode: "#71",
-  expiresInSeconds: 5 * 60,
-};
+import { payosPaymentMock } from "@/mocks/payment";
 
 export default function PayosQR() {
-  const [timeLeft, setTimeLeft] = useState(PAYMENT_DATA.expiresInSeconds);
+  const [timeLeft, setTimeLeft] = useState(payosPaymentMock.expiresInSeconds);
   const [status, setStatus] = useState("waiting"); // waiting, success, cancelled
   const navigate = useNavigate();
 
@@ -92,7 +81,7 @@ export default function PayosQR() {
                 {/* QR Image */}
                 <div className="w-56 h-56 sm:w-60 sm:h-60 bg-white rounded-2xl shadow-lg p-3 border border-slate-100">
                   <img
-                    src={PAYMENT_DATA.qrCodeUrl}
+                    src={payosPaymentMock.qrCodeUrl}
                     alt="QR Code thanh toán"
                     className="w-full h-full object-contain rounded-lg"
                   />
@@ -137,7 +126,7 @@ export default function PayosQR() {
                   {/* Ngân hàng */}
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-slate-500 font-medium">Ngân hàng</span>
-                    <span className="text-sm font-bold text-slate-800">{PAYMENT_DATA.bank}</span>
+                    <span className="text-sm font-bold text-slate-800">{payosPaymentMock.bank}</span>
                   </div>
 
                   <Separator className="bg-slate-100" />
@@ -147,10 +136,10 @@ export default function PayosQR() {
                     <span className="text-sm text-slate-500 font-medium">Số tài khoản</span>
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-bold text-slate-800 tracking-wide">
-                        {PAYMENT_DATA.accountNumber}
+                        {payosPaymentMock.accountNumber}
                       </span>
                       <button
-                        onClick={() => copyToClipboard(PAYMENT_DATA.accountNumber, "số tài khoản")}
+                        onClick={() => copyToClipboard(payosPaymentMock.accountNumber, "số tài khoản")}
                         className="text-slate-400 hover:text-primary transition-colors p-1 rounded hover:bg-primary/5"
                       >
                         <Copy className="w-4 h-4" />
@@ -164,7 +153,7 @@ export default function PayosQR() {
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-slate-500 font-medium">Chủ tài khoản</span>
                     <span className="text-sm font-bold text-slate-800">
-                      {PAYMENT_DATA.accountHolder}
+                      {payosPaymentMock.accountHolder}
                     </span>
                   </div>
 
@@ -174,7 +163,7 @@ export default function PayosQR() {
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-slate-500 font-medium">Số tiền</span>
                     <span className="text-lg font-black text-primary">
-                      {PAYMENT_DATA.amount.toLocaleString()}{" "}
+                      {payosPaymentMock.amount.toLocaleString()}{" "}
                       <span className="text-sm font-bold">VNĐ</span>
                     </span>
                   </div>
@@ -186,10 +175,10 @@ export default function PayosQR() {
                     <span className="text-sm text-slate-500 font-medium">Nội dung</span>
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-bold text-slate-800">
-                        {PAYMENT_DATA.transferContent}
+                        {payosPaymentMock.transferContent}
                       </span>
                       <button
-                        onClick={() => copyToClipboard(PAYMENT_DATA.transferContent, "nội dung")}
+                        onClick={() => copyToClipboard(payosPaymentMock.transferContent, "nội dung")}
                         className="text-slate-400 hover:text-primary transition-colors p-1 rounded hover:bg-primary/5"
                       >
                         <Copy className="w-4 h-4" />

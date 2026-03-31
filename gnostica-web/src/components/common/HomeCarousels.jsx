@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Star } from "lucide-react";
 import AppCard from "./AppCard";
 import AppSection from "./AppSection";
+import { featuredCoursesMock } from "@/mocks/courses";
 
 // Dữ liệu slide kèm theo class màu gradient riêng cho từng ảnh
 const slides = [
@@ -112,19 +112,17 @@ export function MainHeroCarousel({ onBgChange }) {
           ))}
         </CarouselContent>
 
-        {/* Nút điều hướng - ẩn trên Mobile (dùng swipe), hiện trên Desktop */}
         <CarouselPrevious className="hidden md:flex left-4 bg-white/80 backdrop-blur-sm" />
         <CarouselNext className="hidden md:flex right-4 bg-white/80 backdrop-blur-sm" />
 
-        {/* Thanh chỉ số (Dots) - Thiết kế kiểu capsule bo tròn - Ẩn trên Mobile/Tablet (md) */}
         <div className="hidden md:flex absolute bottom-4 left-1/2 -translate-x-1/2 items-center gap-1.5 md:gap-2 px-2 py-1 md:px-3 md:py-1.5 bg-black/30 backdrop-blur-md rounded-full border border-white/10">
           {slides.map((_, index) => (
             <button
               key={index}
               onClick={() => api?.scrollTo(index)}
               className={`transition-all duration-300 rounded-full ${currentIndex === index
-                  ? "w-4 h-1.5 md:w-6 md:h-2 bg-white"
-                  : "w-1.5 h-1.5 md:w-2 md:h-2 bg-white/50 hover:bg-white/80"
+                ? "w-4 h-1.5 md:w-6 md:h-2 bg-white"
+                : "w-1.5 h-1.5 md:w-2 md:h-2 bg-white/50 hover:bg-white/80"
                 }`}
               aria-label={`Go to slide ${index + 1}`}
             />
@@ -134,94 +132,6 @@ export function MainHeroCarousel({ onBgChange }) {
     </div>
   );
 }
-
-const dummyCards = [
-  {
-    id: 1,
-    category: "Web Development",
-    rating: 5.0,
-    title: "Fullstack Next.js Masterclass",
-    classes: 32,
-    students: 1200,
-    price: "899.000",
-    originalPrice: "1.799.000",
-    discountPercentage: 50,
-    image: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=400&auto=format&fit=crop",
-    instructor: {
-      name: "Sonny Sangha",
-      avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=100&auto=format&fit=crop",
-      status: "online"
-    }
-  },
-  {
-    id: 2,
-    category: "UI/UX Design",
-    rating: 4.8,
-    title: "Figma Mastery for Professionals",
-    classes: 24,
-    students: 850,
-    price: "299.000",
-    originalPrice: "599.000",
-    discountPercentage: 50,
-    image: "https://images.unsplash.com/photo-1586717791821-3f44a563fc4c?q=80&w=400&auto=format&fit=crop",
-    instructor: {
-      name: "Sarah Jenkins",
-      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=100&auto=format&fit=crop",
-      status: "online"
-    }
-  },
-  {
-    id: 3,
-    category: "Data Science",
-    rating: 4.9,
-    title: "Python for Data Science & ML",
-    classes: 45,
-    students: 3100,
-    price: "432.000",
-    originalPrice: "864.000",
-    discountPercentage: 50,
-    image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=400&auto=format&fit=crop",
-    instructor: {
-      name: "Alex Taylor",
-      avatar: "https://images.unsplash.com/photo-1599566150163-29194dcaad36?q=80&w=100&auto=format&fit=crop",
-      status: "online"
-    }
-  },
-  {
-    id: 4,
-    category: "Mobile Dev",
-    rating: 4.7,
-    title: "React Native: Zero to Hero",
-    classes: 28,
-    students: 1540,
-    price: "549.000",
-    originalPrice: "1.099.000",
-    discountPercentage: 50,
-    image: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?q=80&w=400&auto=format&fit=crop",
-    instructor: {
-      name: "David Chen",
-      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=100&auto=format&fit=crop",
-      status: "online"
-    }
-  },
-  {
-    id: 5,
-    category: "Cyber Security",
-    rating: 4.9,
-    title: "Ethical Hacking Bootcamp 2024",
-    classes: 50,
-    students: 2800,
-    price: "999.000",
-    originalPrice: "1.999.000",
-    discountPercentage: 50,
-    image: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=400&auto=format&fit=crop",
-    instructor: {
-      name: "Marcus Holloway",
-      avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=100&auto=format&fit=crop",
-      status: "online"
-    }
-  }
-];
 
 export function CardCarousel() {
   const [api, setApi] = useState(null);
@@ -237,7 +147,7 @@ export function CardCarousel() {
   }, [api]);
 
   return (
-    <AppSection title="Sản Phẩm Nổi Bật" className="py-6 md:py-10" containerClassName="relative w-full">
+    <AppSection title="Khóa học nổi bật" className="py-6 md:py-10" containerClassName="relative w-full">
       <Carousel
         setApi={setApi}
         opts={{
@@ -248,17 +158,16 @@ export function CardCarousel() {
         className="w-full relative"
       >
         <CarouselContent className="-ml-3 md:-ml-4 py-8 md:py-16 items-stretch">
-          {[...dummyCards, ...dummyCards].map((card, index) => {
+          {[...featuredCoursesMock, ...featuredCoursesMock].map((card, index) => {
             const isActive = activeIndex === index;
-            
+
             return (
               <CarouselItem key={`${card.id}-${index}`} className="pl-3 md:pl-4 basis-[70%] sm:basis-[40%] lg:basis-[25%] px-2">
-                <div 
-                  className={`h-full transition-all duration-700 ease-in-out origin-center flex flex-col ${
-                    isActive 
-                      ? "scale-105 md:scale-110 z-30 opacity-100 ring-2 ring-primary/20 rounded-xl shadow-xl" 
-                      : "scale-90 md:scale-95 z-10 opacity-50 blur-[0.5px] transition-opacity hover:opacity-100"
-                  }`}
+                <div
+                  className={`h-full transition-all duration-700 ease-in-out origin-center flex flex-col ${isActive
+                    ? "scale-105 md:scale-110 z-30 opacity-100 ring-2 ring-primary/20 rounded-xl shadow-xl"
+                    : "scale-90 md:scale-95 z-10 opacity-50 blur-[0.5px] transition-opacity hover:opacity-100"
+                    }`}
                 >
                   <AppCard {...card} className="flex-1" />
                 </div>
@@ -266,7 +175,6 @@ export function CardCarousel() {
             );
           })}
         </CarouselContent>
-        {/* Nút điều hướng */}
         <CarouselPrevious className="hidden md:flex -left-4 lg:-left-6 bg-white shadow-xl text-neutral-800 hover:bg-neutral-50 hover:scale-110 transition-transform z-40 w-12 h-12 border-none" />
         <CarouselNext className="hidden md:flex -right-4 lg:-right-6 bg-white shadow-xl text-neutral-800 hover:bg-neutral-50 hover:scale-110 transition-transform z-40 w-12 h-12 border-none" />
       </Carousel>
@@ -324,10 +232,8 @@ export function TestimonialCarousel() {
   useEffect(() => {
     if (!api) return;
 
-    // Khởi tạo index ban đầu
     setActiveIndex(api.selectedScrollSnap());
-    
-    // Cập nhật index khi cuộn
+
     api.on("select", () => {
       setActiveIndex(api.selectedScrollSnap());
     });
@@ -340,80 +246,75 @@ export function TestimonialCarousel() {
   );
 
   return (
-    <AppSection 
-      title={titleNode} 
+    <AppSection
+      title={titleNode}
       description="See How Our Digital Marketing Agency Helped Clients Achieve Their Goals"
       centered={true}
       className="py-8 md:py-12 bg-slate-50/50 dark:bg-transparent"
       containerClassName="relative w-full px-2 md:px-12 pt-4"
     >
       <Carousel
-          setApi={setApi}
-          opts={{
-            align: "center",
-            loop: true,
-          }}
-          className="w-full relative"
-        >
-          {/* items-center giúp các phần tử căn ngang theo trục linh hoạt (cross-axis) */}
-          <CarouselContent className="-ml-4 items-center py-4 md:py-8">
-            {testimonials.map((testimonial, index) => {
-              const isActive = activeIndex === index;
-              
-              return (
-                <CarouselItem key={testimonial.id} className="pl-4 basis-[85%] sm:basis-[60%] lg:basis-[33.33%]">
-                  <div 
-                    className={`transition-all duration-700 ease-in-out ${
-                      isActive 
-                        ? "scale-105 md:scale-110 opacity-100 z-30" 
-                        : "scale-90 opacity-40 hover:opacity-75 z-10 blur-[1px] hover:blur-none cursor-pointer"
-                    }`}
-                  >
-                    <Card className={`overflow-hidden border-none rounded-2xl transition-all duration-500 ${isActive ? 'shadow-2xl shadow-orange-500/10 bg-white dark:bg-neutral-800' : 'shadow bg-neutral-100/80 dark:bg-neutral-900/50'}`}>
-                      <CardContent className="p-6 md:p-8 flex flex-col gap-5">
-                        {/* Thông tin khách hàng (Avatar + Name) */}
-                        <div className="flex items-center gap-4">
-                          <img 
-                            src={testimonial.avatar} 
-                            alt={testimonial.name}
-                            className="w-14 h-14 rounded-full object-cover border-2 border-white shadow-sm"
-                          />
-                          <div>
-                            <h4 className={`text-base font-bold mb-0.5 ${isActive ? 'text-orange-500' : 'text-neutral-800 dark:text-neutral-200'}`}>
-                              {testimonial.name}
-                            </h4>
-                            <p className="text-xs text-neutral-500">{testimonial.role}</p>
-                          </div>
-                        </div>
-                        
-                        {/* Đánh giá */}
-                        <p className="text-sm md:text-base text-neutral-600 dark:text-neutral-400 leading-relaxed italic min-h-[80px]">
-                          "{testimonial.text}"
-                        </p>
-                        
-                        {/* Đánh giá sao */}
-                        <div className="flex gap-1 mt-1">
-                          {[...Array(5)].map((_, i) => (
-                            <Star 
-                              key={i} 
-                              size={16} 
-                              strokeWidth={i < testimonial.rating ? 0 : 2}
-                              className={i < testimonial.rating ? "fill-orange-400 text-orange-400" : "text-neutral-300"} 
-                            />
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                </CarouselItem>
-              );
-            })}
-          </CarouselContent>
+        setApi={setApi}
+        opts={{
+          align: "center",
+          loop: true,
+        }}
+        className="w-full relative"
+      >
+        <CarouselContent className="-ml-4 items-center py-4 md:py-8">
+          {testimonials.map((testimonial, index) => {
+            const isActive = activeIndex === index;
 
-          {/* Navigation Buttons */}
-          <CarouselPrevious className="hidden md:flex -left-2 lg:left-4 bg-white shadow-xl border-none hover:bg-orange-50 hover:text-orange-500 hover:scale-110 transition-all w-12 h-12 z-40 text-neutral-400" />
-          <CarouselNext className="hidden md:flex -right-2 lg:right-4 bg-white shadow-xl border-none hover:bg-orange-50 hover:text-orange-500 hover:scale-110 transition-all w-12 h-12 z-40 text-neutral-400" />
-        </Carousel>
+            return (
+              <CarouselItem key={testimonial.id} className="pl-4 basis-[85%] sm:basis-[60%] lg:basis-[33.33%]">
+                <div
+                  className={`transition-all duration-700 ease-in-out ${isActive
+                    ? "scale-105 md:scale-110 opacity-100 z-30"
+                    : "scale-90 opacity-40 hover:opacity-75 z-10 blur-[1px] hover:blur-none cursor-pointer"
+                    }`}
+                >
+                  <Card className={`overflow-hidden border-none rounded-2xl transition-all duration-500 ${isActive ? 'shadow-2xl shadow-orange-500/10 bg-white dark:bg-neutral-800' : 'shadow bg-neutral-100/80 dark:bg-neutral-900/50'}`}>
+                    <CardContent className="p-6 md:p-8 flex flex-col gap-5">
+                      {/* Thông tin khách hàng (Avatar + Name) */}
+                      <div className="flex items-center gap-4">
+                        <img
+                          src={testimonial.avatar}
+                          alt={testimonial.name}
+                          className="w-14 h-14 rounded-full object-cover border-2 border-white shadow-sm"
+                        />
+                        <div>
+                          <h4 className={`text-base font-bold mb-0.5 ${isActive ? 'text-orange-500' : 'text-neutral-800 dark:text-neutral-200'}`}>
+                            {testimonial.name}
+                          </h4>
+                          <p className="text-xs text-neutral-500">{testimonial.role}</p>
+                        </div>
+                      </div>
+
+                      <p className="text-sm md:text-base text-neutral-600 dark:text-neutral-400 leading-relaxed italic min-h-[80px]">
+                        "{testimonial.text}"
+                      </p>
+
+                      <div className="flex gap-1 mt-1">
+                        {[...Array(5)].map((_, i) => (
+                          <Star
+                            key={i}
+                            size={16}
+                            strokeWidth={i < testimonial.rating ? 0 : 2}
+                            className={i < testimonial.rating ? "fill-orange-400 text-orange-400" : "text-neutral-300"}
+                          />
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </CarouselItem>
+            );
+          })}
+        </CarouselContent>
+
+        <CarouselPrevious className="hidden md:flex -left-2 lg:left-4 bg-white shadow-xl border-none hover:bg-orange-50 hover:text-orange-500 hover:scale-110 transition-all w-12 h-12 z-40 text-neutral-400" />
+        <CarouselNext className="hidden md:flex -right-2 lg:right-4 bg-white shadow-xl border-none hover:bg-orange-50 hover:text-orange-500 hover:scale-110 transition-all w-12 h-12 z-40 text-neutral-400" />
+      </Carousel>
     </AppSection>
   );
 }

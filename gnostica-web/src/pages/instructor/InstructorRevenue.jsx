@@ -6,9 +6,10 @@ import {
   Calendar,
   DollarSign,
   ArrowUpRight,
-  ArrowDownRight
+  ArrowDownRight,
+  BarChart as BarChartIcon
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -19,6 +20,27 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer, 
+  Cell 
+} from "recharts";
+
+// Dữ liệu doanh thu 30 ngày qua (Mock data)
+const REVENUE_BY_DAY = [
+  { day: "01/03", amount: 1500000 },
+  { day: "05/03", amount: 2800000 },
+  { day: "10/03", amount: 1200000 },
+  { day: "15/03", amount: 4500000 },
+  { day: "20/03", amount: 3200000 },
+  { day: "25/03", amount: 5600000 },
+  { day: "30/03", amount: 4100000 },
+];
 
 const TRANSACTIONS = [
   { id: "TRX-8942", date: "24/03/2026 - 14:30", course: "Fullstack Next.js Masterclass", amount: "899.000đ", fee: "89.900đ", net: "809.100đ", status: "completed" },
@@ -106,11 +128,45 @@ export default function InstructorRevenue() {
         </Card>
       </div>
 
-      {/* Breakdown Chart Placeholder */}
-      <Card className="border-slate-200 shadow-sm flex flex-col items-center justify-center min-h-[300px] bg-slate-50/50">
-        <BarChart className="w-12 h-12 text-slate-300 mb-4" />
-        <p className="text-slate-500 font-medium">Biểu đồ doanh thu 30 ngày qua sẽ hiển thị ở đây</p>
-        <p className="text-sm text-slate-400 mt-1">(Tích hợp Recharts hoặc Chart.js sau)</p>
+      {/* Revenue Chart */}
+      <Card className="border-slate-200 shadow-sm">
+        <CardHeader className="flex flex-row items-center justify-between pb-4">
+           <div>
+              <CardTitle className="text-lg font-bold">Thống Kê Doanh Thu</CardTitle>
+              <CardDescription>Dòng tiền biến động trong 30 ngày qua</CardDescription>
+           </div>
+           <BarChartIcon className="w-5 h-5 text-slate-400" />
+        </CardHeader>
+        <CardContent className="h-[320px] pt-4">
+           <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={REVENUE_BY_DAY}>
+                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                 <XAxis 
+                   dataKey="day" 
+                   axisLine={false} 
+                   tickLine={false} 
+                   tick={{ fontSize: 11, fontWeight: 700, fill: '#64748b' }}
+                   dy={10}
+                 />
+                 <YAxis 
+                   axisLine={false} 
+                   tickLine={false} 
+                   tick={{ fontSize: 11, fontWeight: 700, fill: '#64748b' }}
+                   tickFormatter={(value) => `${value/1000000}Tr`}
+                 />
+                 <Tooltip 
+                   cursor={{ fill: '#f8fafc' }}
+                   contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                   formatter={(value) => [`${value.toLocaleString()}đ`, "Doanh thu"]}
+                 />
+                 <Bar dataKey="amount" fill="#16a34a" radius={[4, 4, 0, 0]} barSize={40}>
+                    {REVENUE_BY_DAY.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={index === REVENUE_BY_DAY.length - 1 ? '#15803d' : '#22c55e'} opacity={0.8} />
+                    ))}
+                 </Bar>
+              </BarChart>
+           </ResponsiveContainer>
+        </CardContent>
       </Card>
 
       {/* Transaction History */}
@@ -136,7 +192,7 @@ export default function InstructorRevenue() {
             </TableHeader>
             <TableBody>
               {TRANSACTIONS.map((trx) => (
-                <TableRow key={trx.id} className="hover:bg-slate-50/50">
+                <TableRow key={trx.id} className="hover:bg-slate-50/50 transition-colors">
                   <TableCell>
                     <div className="flex flex-col">
                       <span className="font-bold text-slate-900">{trx.id}</span>

@@ -3,25 +3,46 @@ import { Outlet, Link, useLocation } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   LayoutDashboard,
+  BookOpen,
+  Activity,
+  Award,
   ShoppingBag,
-  MapPin,
   Heart,
   Ticket,
   UserCog,
   KeyRound,
+  Bell,
   LogOut,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 
-const MENU_ITEMS = [
-  { label: "Tổng quan", icon: LayoutDashboard, href: "/account", color: "text-primary" },
-  { label: "Đơn hàng", icon: ShoppingBag, href: "/account/orders" },
-  { label: "Địa chỉ", icon: MapPin, href: "/account/addresses" },
-  { label: "Yêu thích", icon: Heart, href: "/account/wishlist" },
-  { label: "Kho Voucher", icon: Ticket, href: "/account/vouchers", badge: "2" },
-  { label: "Thông tin tài khoản", icon: UserCog, href: "/account/settings" },
-  { label: "Đổi mật khẩu", icon: KeyRound, href: "/account/change-password" },
+const MENU_GROUPS = [
+  {
+    title: "Học tập",
+    items: [
+      { label: "Tổng quan", icon: LayoutDashboard, href: "/account" },
+      { label: "Khóa học của tôi", icon: BookOpen, href: "/account/my-courses" },
+      { label: "Tiến độ học tập", icon: Activity, href: "/account/progress" },
+      { label: "Chứng chỉ", icon: Award, href: "/account/certificates" },
+    ],
+  },
+  {
+    title: "Giao dịch",
+    items: [
+      { label: "Danh sách yêu thích", icon: Heart, href: "/account/wishlist" },
+      { label: "Lịch sử đơn hàng", icon: ShoppingBag, href: "/account/orders" },
+      { label: "Kho Voucher", icon: Ticket, href: "/account/vouchers", badge: "2" },
+    ],
+  },
+  {
+    title: "Cá nhân",
+    items: [
+      { label: "Thông báo", icon: Bell, href: "/account/notifications" },
+      { label: "Hồ sơ cá nhân", icon: UserCog, href: "/account/settings" },
+      { label: "Bảo mật & Mật khẩu", icon: KeyRound, href: "/account/change-password" },
+    ],
+  },
 ];
 
 const MOCK_USER = {
@@ -34,10 +55,10 @@ const AccountLayout = () => {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      <main className="max-w-[1536px] mx-auto px-4 py-8">
+      <main className="app-container py-8">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Sidebar */}
-          <aside className="w-full lg:w-64 shrink-0">
+          <aside className="w-full lg:w-1/4 lg:max-w-[320px] shrink-0">
             <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden sticky top-24">
               {/* User Info */}
               <div className="p-5 flex items-center gap-3">
@@ -55,45 +76,54 @@ const AccountLayout = () => {
 
               <Separator />
 
-              {/* Menu */}
-              <nav className="p-2">
-                {MENU_ITEMS.map((item) => {
-                  const Icon = item.icon;
-                  const isActive =
-                    item.href === "/account"
-                      ? location.pathname === "/account"
-                      : location.pathname.startsWith(item.href);
+              {/* Menu Groups */}
+              <nav className="p-2 space-y-6">
+                {MENU_GROUPS.map((group) => (
+                  <div key={group.title}>
+                    <h3 className="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
+                      {group.title}
+                    </h3>
+                    <div className="space-y-1">
+                      {group.items.map((item) => {
+                        const Icon = item.icon;
+                        const isActive =
+                          item.href === "/account"
+                            ? location.pathname === "/account"
+                            : location.pathname.startsWith(item.href);
 
-                  return (
-                    <Link
-                      key={item.href}
-                      to={item.href}
-                      className={`
-                        flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all
-                        ${isActive
-                          ? "bg-primary/5 text-primary font-bold"
-                          : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                        }
-                      `}
-                    >
-                      <Icon className={`w-[18px] h-[18px] ${isActive ? "text-primary" : "text-slate-400"}`} />
-                      <span className="flex-1">{item.label}</span>
-                      {item.badge && (
-                        <Badge className="bg-primary/10 text-primary text-[10px] font-bold px-1.5 py-0 hover:bg-primary/10">
-                          {item.badge}
-                        </Badge>
-                      )}
-                    </Link>
-                  );
-                })}
+                        return (
+                          <Link
+                            key={item.href}
+                            to={item.href}
+                            className={`
+                              flex items-center gap-3 px-4 py-3 rounded-xl text-[15px] font-semibold transition-all
+                              ${isActive
+                                ? "bg-primary/5 text-primary font-bold shadow-sm ring-1 ring-primary/10"
+                                : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                              }
+                            `}
+                          >
+                            <Icon className={`w-5 h-5 ${isActive ? "text-primary" : "text-slate-400"}`} />
+                            <span className="flex-1">{item.label}</span>
+                            {item.badge && (
+                              <Badge className="bg-primary/10 text-primary text-[10px] font-bold px-1.5 py-0 hover:bg-primary/10">
+                                {item.badge}
+                              </Badge>
+                            )}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
               </nav>
 
               <Separator />
 
               {/* Logout */}
               <div className="p-2">
-                <button className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 transition-all">
-                  <LogOut className="w-[18px] h-[18px]" />
+                <button className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-base font-semibold text-red-500 hover:bg-red-50 transition-all">
+                  <LogOut className="w-5 h-5" />
                   Đăng xuất
                 </button>
               </div>

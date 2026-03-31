@@ -16,100 +16,13 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-
-// Mock Data
-const MOCK_CATEGORIES = [
-  { id: 1, name: "Thảo luận chung", count: 128 },
-  { id: 2, name: "Hỏi đáp lập trình", count: 342 },
-  { id: 3, name: "Chia sẻ kinh nghiệm", count: 89 },
-  { id: 4, name: "Tuyển dụng & Việc làm", count: 45 },
-  { id: 5, name: "Góc thư giãn", count: 210 },
-];
-
-const MOCK_POSTS = [
-  {
-    id: 1,
-    title: "Lộ trình học ReactJS cơ bản cho người mới bắt đầu năm 2026",
-    content: "Chào mọi người, mình mới bắt đầu tìm hiểu về lập trình Front-end và đặc biệt quan tâm tới ReactJS. Cho mình hỏi lộ trình tối ưu nhất hiện nay là gì? Mình đã biết HTML, CSS, cơ bản JS...",
-    author: {
-      name: "Nguyễn Văn A",
-      avatar: "https://i.pravatar.cc/150?u=a042581f4e29026024d",
-      status: "online"
-    },
-    category: "Hỏi đáp lập trình",
-    tags: ["ReactJS", "Frontend", "Beginner"],
-    createdAt: "2 giờ trước",
-    stats: {
-      replies: 15,
-      views: 234,
-      likes: 45
-    },
-    isHot: true
-  },
-  {
-    id: 2,
-    title: "Review khóa học Python Data Science tại TechOne",
-    content: "Mình vừa hoàn thành xong module 1 của khóa học Python Data Science. Cảm nhận chung là giảng viên rất nhiệt tình, bài tập thực tế tuy nhiên phần Pandas hơi nhanh...",
-    author: {
-      name: "Trần Thị B",
-      avatar: "https://i.pravatar.cc/150?u=a042581f4e29026704d",
-      status: "offline"
-    },
-    category: "Chia sẻ kinh nghiệm",
-    tags: ["Python", "Data Science", "Review"],
-    createdAt: "5 giờ trước",
-    stats: {
-      replies: 8,
-      views: 156,
-      likes: 23
-    },
-    isHot: false
-  },
-  {
-    id: 3,
-    title: "Công ty X đang tuyển thực tập sinh Web Fullstack (NodeJS/React)",
-    content: "Bên mình đang có nhu cầu tuyển 5 bạn intern Fullstack Web. Yêu cầu nắm vững JS cơ bản, biết sử dụng React và Express là một lợi thế. Có lương hỗ trợ...",
-    author: {
-      name: "HR Tech",
-      avatar: "",
-      status: "online"
-    },
-    category: "Tuyển dụng & Việc làm",
-    tags: ["Tuyển dụng", "Intern", "Fullstack"],
-    createdAt: "1 ngày trước",
-    stats: {
-      replies: 32,
-      views: 890,
-      likes: 112
-    },
-    isHot: true
-  },
-  {
-    id: 4,
-    title: "Làm sao để tối ưu hóa performance trong ứng dụng NextJS?",
-    content: "Dạo gần đây ứng dụng Next.js của mình load khá chậm ở các trang SSR. Mọi người có tip gì để debug và optimize hiệu suất không ạ? Cảm ơn nhiều!",
-    author: {
-      name: "Lê Văn C",
-      avatar: "https://i.pravatar.cc/150?u=a04258114e29026702d",
-      status: "online"
-    },
-    category: "Hỏi đáp lập trình",
-    tags: ["NextJS", "Performance", "SSR"],
-    createdAt: "2 ngày trước",
-    stats: {
-      replies: 12,
-      views: 345,
-      likes: 56
-    },
-    isHot: false
-  }
-];
+import { forumCategoriesMock, forumPostsMock } from "@/mocks/forum";
 
 const ForumPage = () => {
   const [activeCategory, setActiveCategory] = useState("Tất cả");
   const [searchQuery, setSearchQuery] = useState("");
 
-  const filteredPosts = MOCK_POSTS.filter(post => {
+  const filteredPosts = forumPostsMock.filter(post => {
     const matchesCategory = activeCategory === "Tất cả" || post.category === activeCategory;
     const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       post.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -226,7 +139,7 @@ const ForumPage = () => {
                   >
                     <span>Tất cả chủ đề</span>
                   </button>
-                  {MOCK_CATEGORIES.map((cat) => (
+                  {forumCategoriesMock.map((cat) => (
                     <button
                       key={cat.id}
                       onClick={() => setActiveCategory(cat.name)}

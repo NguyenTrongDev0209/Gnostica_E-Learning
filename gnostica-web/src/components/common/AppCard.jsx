@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback, AvatarBadge } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import { Link } from 'react-router-dom';
 
 const AppCard = ({
   image,
@@ -21,9 +22,11 @@ const AppCard = ({
     avatar: "https://images.unsplash.com/photo-1599566150163-29194dcaad36?q=80&w=100&auto=format&fit=crop",
     status: "online"
   },
+  link = "/courses/1",
   className
 }) => {
   return (
+    <Link to={link} className="block w-full h-full">
     <Card className={cn("w-full h-full flex flex-col shadow-sm hover:shadow-md transition-all duration-300 border border-border overflow-hidden bg-card group", className)}>
       {/* Top Image Section */}
       <div className="p-2 sm:p-3 pb-0">
@@ -109,13 +112,13 @@ const AppCard = ({
         </div>
       </CardContent>
     </Card>
+    </Link>
   );
 };
 
 export default AppCard;
 
 import { MessageSquare, Eye, ThumbsUp, Clock, Tag, Flame } from 'lucide-react';
-import { Link } from 'react-router-dom';
 
 /**
  * ForumPostCard - Card hiển thị một bài đăng trên diễn đàn.

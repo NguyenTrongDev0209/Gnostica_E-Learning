@@ -1,0 +1,238 @@
+import React from "react";
+import { 
+  BarChart3, 
+  TrendingUp, 
+  Users, 
+  Award, 
+  Download, 
+  Calendar,
+  ChevronRight,
+  Target,
+  Clock,
+  Layout
+} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer, 
+  LineChart, 
+  Line,
+  Cell,
+  PieChart,
+  Pie
+} from "recharts";
+
+const COMPLETION_DATA = [
+  { name: "Khóa A", rate: 85 },
+  { name: "Khóa B", rate: 62 },
+  { name: "Khóa C", rate: 45 },
+  { name: "Khóa D", rate: 92 },
+  { name: "Khóa E", rate: 78 },
+];
+
+const ENGAGEMENT_DATA = [
+  { day: "Thứ 2", active: 120 },
+  { day: "Thứ 3", active: 210 },
+  { day: "Thứ 4", active: 180 },
+  { day: "Thứ 5", active: 300 },
+  { day: "Thứ 6", active: 250 },
+  { day: "Thứ 7", active: 420 },
+  { day: "Chủ nhật", active: 380 },
+];
+
+const DEVICE_DATA = [
+  { name: "Desktop", value: 65, color: "#3b82f6" },
+  { name: "Mobile", value: 30, color: "#10b981" },
+  { name: "Tablet", value: 5, color: "#f59e0b" },
+];
+
+export default function InstructorReports() {
+  return (
+    <div className="space-y-6 animate-in fade-in duration-500">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Báo Cáo & Phân Tích</h1>
+          <p className="text-sm text-slate-500 mt-1">
+            Xem dữ liệu chi tiết về hiệu suất khóa học và sự tương tác của học viên.
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" className="border-slate-200">
+            <Calendar className="w-4 h-4 mr-2" /> 30 ngày qua
+          </Button>
+          <Button className="bg-green-600 hover:bg-green-700 text-white font-bold shadow-none">
+            <Download className="w-4 h-4 mr-2" /> Tải báo cáo PDF
+          </Button>
+        </div>
+      </div>
+
+      {/* KPI Section */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {[
+          { label: "Tỷ lệ hoàn thành", value: "72.4%", icon: Target, isPositive: true, trend: "+2.1%", styles: "text-blue-600 bg-blue-50 border-blue-100" },
+          { label: "Thời gian học TB", value: "45p/ngày", icon: Clock, isPositive: true, trend: "+5.4%", styles: "text-green-600 bg-green-50 border-green-100" },
+          { label: "Điểm thi trung bình", value: "8.2/10", icon: Award, isPositive: false, trend: "-0.5%", styles: "text-amber-600 bg-amber-50 border-amber-100" },
+          { label: "Số giờ giảng dạy", value: "124h", icon: Layout, isPositive: true, trend: "+12h", styles: "text-indigo-600 bg-indigo-50 border-indigo-100" },
+        ].map((kpi, i) => (
+          <Card key={i} className="border-slate-200 shadow-sm overflow-hidden">
+            <CardContent className="p-4 flex flex-col gap-3">
+              <div className="flex justify-between items-center">
+                <div className={`p-2 rounded-lg border ${kpi.styles}`}>
+                  <kpi.icon className="w-5 h-5" />
+                </div>
+                <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${kpi.isPositive ? 'text-green-700 bg-green-50' : 'text-red-700 bg-red-50'}`}>
+                  {kpi.trend}
+                </span>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{kpi.label}</p>
+                <p className="text-xl font-black text-slate-900">{kpi.value}</p>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Charts Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Completion Rate Chart */}
+        <Card className="border-slate-200 shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-lg font-bold">Tỷ Lệ Hoàn Thành Khóa Học</CardTitle>
+            <CardDescription>So sánh tỷ lệ hoàn thành giữa các khóa học</CardDescription>
+          </CardHeader>
+          <CardContent className="h-[300px] w-full pt-0">
+             <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={COMPLETION_DATA} layout="vertical" margin={{ left: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f1f5f9" />
+                <XAxis type="number" hide />
+                <YAxis 
+                  dataKey="name" 
+                  type="category" 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fontSize: 11, fontWeight: 700, fill: '#64748b' }} 
+                />
+                <Tooltip 
+                  cursor={{ fill: '#f8fafc' }}
+                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                />
+                <Bar dataKey="rate" fill="#16a34a" radius={[0, 4, 4, 0]} barSize={20} />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Engagement Trend */}
+        <Card className="border-slate-200 shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-lg font-bold">Lượng Truy Cập Hàng Ngày</CardTitle>
+            <CardDescription>Số lượng học viên hoạt động trong tuần qua</CardDescription>
+          </CardHeader>
+          <CardContent className="h-[300px] w-full pt-0">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={ENGAGEMENT_DATA}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis 
+                  dataKey="day" 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fontSize: 11, fontWeight: 700, fill: '#64748b' }}
+                  dy={10}
+                />
+                <YAxis 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fontSize: 11, fontWeight: 700, fill: '#64748b' }}
+                />
+                <Tooltip 
+                   contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="active" 
+                  stroke="#3b82f6" 
+                  strokeWidth={3} 
+                  dot={{ r: 4, strokeWidth: 2, fill: '#fff' }} 
+                  activeDot={{ r: 6, strokeWidth: 0 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Device Distribution */}
+        <Card className="border-slate-200 shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-lg font-bold">Thiết Bị Truy Cập</CardTitle>
+            <CardDescription>Tỷ lệ các loại thiết bị học viên sử dụng</CardDescription>
+          </CardHeader>
+          <CardContent className="h-[300px] w-full pt-0 flex flex-col items-center">
+            <ResponsiveContainer width="100%" height="80%">
+              <PieChart>
+                <Pie
+                  data={DEVICE_DATA}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={90}
+                  paddingAngle={5}
+                  dataKey="value"
+                >
+                  {DEVICE_DATA.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="flex justify-center gap-6 mt-4">
+               {DEVICE_DATA.map((d, i) => (
+                 <div key={i} className="flex items-center gap-2">
+                   <div className="w-3 h-3 rounded-full" style={{ backgroundColor: d.color }}></div>
+                   <span className="text-xs font-bold text-slate-600 uppercase tracking-tighter">{d.name} ({d.value}%)</span>
+                 </div>
+               ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Top Content (Lessons) */}
+        <Card className="border-slate-200 shadow-sm h-full">
+          <CardHeader>
+            <CardTitle className="text-lg font-bold">Bài Học Phổ Biến</CardTitle>
+            <CardDescription>Những bài học có lượng truy cập nhiều nhất</CardDescription>
+          </CardHeader>
+          <CardContent className="p-0">
+             <div className="flex flex-col">
+               {[
+                 { title: "Hướng dẫn cài đặt môi trường", views: "2.4k", time: "12m" },
+                 { title: "Sử dụng Tailwind CSS trong Next.js", views: "1.8k", time: "25m" },
+                 { title: "Xử lý Forms với React Hook Form", views: "1.5k", time: "18m" },
+                 { title: "Kết nối API với Axios", views: "1.2k", time: "20m" },
+               ].map((lesson, i) => (
+                 <div key={i} className={`flex items-center justify-between p-4 ${i !== 3 ? 'border-b border-slate-100' : ''} hover:bg-slate-50/50 cursor-pointer transition-colors`}>
+                   <div className="flex items-center gap-3">
+                     <div className="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-500">{i + 1}</div>
+                     <span className="text-sm font-bold text-slate-800 line-clamp-1">{lesson.title}</span>
+                   </div>
+                   <div className="flex items-center gap-4 shrink-0">
+                     <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">{lesson.views} views</span>
+                     <ChevronRight className="w-4 h-4 text-slate-300" />
+                   </div>
+                 </div>
+               ))}
+             </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}

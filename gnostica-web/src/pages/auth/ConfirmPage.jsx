@@ -3,13 +3,18 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent } from "@/components/ui/card";
 import { ShieldCheck, ArrowLeft } from 'lucide-react';
 import { SimpleButton } from '@/components/common/AppButton';
+import authService from '@/services/authService';
+import { toast } from 'sonner';
+import { useSearchParams } from 'react-router-dom';
 
 const OTP_LENGTH = 6;
 
 const ConfirmPage = () => {
+  const [searchParams] = useSearchParams();
+  const email = searchParams.get('email');
   const [otp, setOtp] = useState(Array(OTP_LENGTH).fill(''));
   const [loading, setLoading] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(5 * 60); // 5 minutes in seconds
+  const [timeLeft, setTimeLeft] = useState(3 * 60); // 3 minutes in seconds
   const inputRefs = useRef([]);
   const navigate = useNavigate();
 
@@ -63,24 +68,33 @@ const ConfirmPage = () => {
     inputRefs.current[focusIndex]?.focus();
   };
 
-  const handleResend = () => {
-    setTimeLeft(5 * 60);
-    setOtp(Array(OTP_LENGTH).fill(''));
-    inputRefs.current[0]?.focus();
+  const handleResend = async () => {
+    try {
+        await authService.resendOTP(email);
+        toast.success('Mã xác thực mới đã được gửi!');
+        setTimeLeft(3 * 60);
+        setOtp(Array(OTP_LENGTH).fill(''));
+        inputRefs.current[0]?.focus();
+    } catch (error) {
+        toast.error(error.toString());
+    }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const code = otp.join('');
     if (code.length < OTP_LENGTH) return;
 
     setLoading(true);
-    // Simulate verification
-    setTimeout(() => {
-      setLoading(false);
-      // Navigate to reset password or success page
-      navigate('/login');
-    }, 1500);
+    try {
+        await authService.verify(email, code);
+        toast.success("Xác thực tài khoản thành công! Bạn có thể đăng nhập.");
+        navigate('/login');
+    } catch (error) {
+        toast.error(error.toString());
+    } finally {
+        setLoading(false);
+    }
   };
 
   const isComplete = otp.every((d) => d !== '');
