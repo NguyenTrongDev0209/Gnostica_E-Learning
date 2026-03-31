@@ -32,6 +32,7 @@ public class Account {
 	public String phone;
 	
 	@Column(columnDefinition = "varchar(255)", nullable = true)
+    @com.fasterxml.jackson.annotation.JsonIgnore
 	public String password;
 	
 	@Column(columnDefinition = "varchar(255)")
