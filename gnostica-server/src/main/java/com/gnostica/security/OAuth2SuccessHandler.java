@@ -21,8 +21,6 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
         String email = oAuth2User.getAttribute("email");
         
-        // Redirect back to React frontend
-        // Note: In production, pass a JWT token here.
         getRedirectStrategy().sendRedirect(request, response, "http://localhost:5173/auth/callback?email=" + email);
     }
 }

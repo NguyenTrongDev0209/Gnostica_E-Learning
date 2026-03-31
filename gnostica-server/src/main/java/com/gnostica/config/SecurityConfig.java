@@ -37,12 +37,12 @@ public class SecurityConfig {
             )
             .logout(logout -> logout
                 .logoutUrl("/api/auth/logout")
-                .logoutSuccessHandler((req, res, auth) -> res.setStatus(200)) // Trả về 200 OK
+                .logoutSuccessHandler((req, res, auth) -> res.setStatus(200)) 
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID")
             )
             .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED) // OAuth2 usually needs session to store state
+                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED) 
             );
         
         return http.build();
@@ -51,9 +51,9 @@ public class SecurityConfig {
     @Bean
     public org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource() {
         org.springframework.web.cors.CorsConfiguration configuration = new org.springframework.web.cors.CorsConfiguration();
-        configuration.addAllowedOrigin("*"); // Cho phép mọi nguồn trong môi trường dev
-        configuration.addAllowedMethod("*"); // Cho phép mọi phương thức (GET, POST, ...)
-        configuration.addAllowedHeader("*"); // Cho phép mọi header
+        configuration.addAllowedOrigin("*"); 
+        configuration.addAllowedMethod("*"); 
+        configuration.addAllowedHeader("*"); 
         org.springframework.web.cors.UrlBasedCorsConfigurationSource source = new org.springframework.web.cors.UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;

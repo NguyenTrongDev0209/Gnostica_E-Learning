@@ -20,6 +20,7 @@ import LoginPage from "@/pages/auth/LoginPage";
 import RegisterPage from "@/pages/auth/RegisterPage";
 import ForgotPassword from "@/pages/auth/ForgotPassword";
 import ConfirmPage from "@/pages/auth/ConfirmPage";
+import OAuth2Callback from "@/pages/auth/OAuth2Callback";
 
 export const publicRoutes = {
   main: [
@@ -40,12 +41,12 @@ export const publicRoutes = {
     { path: "/terms", component: TermsPage },
     { path: "/privacy", component: PrivacyPage },
     { path: "/showcase", component: Showcase },
-    { path: "*", component: ErrorPage },
   ],
   auth: [
     { path: "/login", component: LoginPage },
     { path: "/register", component: RegisterPage },
     { path: "/forgot-password", component: ForgotPassword },
     { path: "/confirm-code", component: ConfirmPage },
+    { path: "/auth/callback", component: OAuth2Callback },
   ],
 };

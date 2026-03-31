@@ -16,9 +16,20 @@ const OAuth2Callback = () => {
                     const response = await axios.get(`http://localhost:8080/api/auth/user?email=${encodeURIComponent(email)}`);
                     console.log("Fetch user response:", response.data);
                     if (response.data.status === 'success') {
-                        localStorage.setItem('user', JSON.stringify(response.data.data));
+                        const user = response.data.data;
+                        localStorage.setItem('user', JSON.stringify(user));
                         toast.success('Đăng nhập thành công!');
-                        setTimeout(() => navigate('/'), 500);
+                        
+                        const roleName = user.role?.name?.toUpperCase() || 'USER';
+                        setTimeout(() => {
+                            if (roleName === 'ADMIN') {
+                                navigate('/admin');
+                            } else if (roleName === 'INSTRUCTOR' || roleName === 'TEACHER') {
+                                navigate('/instructor');
+                            } else {
+                                navigate('/');
+                            }
+                        }, 500);
                     } else {
                         throw new Error(response.data.message || 'Lấy thông tin thất bại');
                     }

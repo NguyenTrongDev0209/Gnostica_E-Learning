@@ -25,9 +25,23 @@ const LoginPage = () => {
     setLoading(true);
     
     try {
-        await authService.login(email, password);
+        const response = await authService.login(email, password);
         toast.success('Đăng nhập thành công!');
-        navigate('/'); // Hoặc trang dashboard bạn muốn
+        
+        // Điều hướng dựa trên vai trò
+        const user = response.data;
+        const roleName = user.role?.name?.toUpperCase() || 'USER';
+        
+        console.log("LOGIN SUCCESS: User confirmed as role:", roleName);
+        console.log("Redirecting to:", roleName === 'ADMIN' ? '/admin' : (roleName === 'INSTRUCTOR' || roleName === 'TEACHER' ? '/instructor' : '/'));
+        
+        if (roleName === 'ADMIN') {
+            navigate('/admin');
+        } else if (roleName === 'INSTRUCTOR' || roleName === 'TEACHER') {
+            navigate('/instructor');
+        } else {
+            navigate('/');
+        }
     } catch (error) {
         toast.error(error.toString());
     } finally {
