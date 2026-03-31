@@ -1,12 +1,12 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { 
-  Plus, 
-  Search, 
-  Filter, 
-  MoreHorizontal, 
-  Edit, 
-  Trash2, 
+import {
+  Plus,
+  Search,
+  Filter,
+  MoreHorizontal,
+  Edit,
+  Trash2,
   Star,
   Users,
   PlayCircle
@@ -25,45 +25,45 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 const MY_COURSES = [
-  { 
-    id: "CRS-001", 
-    title: "Fullstack Next.js Masterclass", 
-    price: "899.000đ", 
-    status: "published", 
-    students: 1245, 
+  {
+    id: "CRS-001",
+    title: "Fullstack Next.js Masterclass",
+    price: "899.000đ",
+    status: "published",
+    students: 1245,
     rating: 4.9,
     lessons: 124,
     revenue: "15.000.000đ",
     image: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=200&auto=format&fit=crop"
   },
-  { 
-    id: "CRS-005", 
-    title: "React Native cho người mới bắt đầu", 
-    price: "499.000đ", 
-    status: "published", 
-    students: 512, 
+  {
+    id: "CRS-005",
+    title: "React Native cho người mới bắt đầu",
+    price: "499.000đ",
+    status: "published",
+    students: 512,
     rating: 4.7,
     lessons: 86,
     revenue: "4.500.000đ",
     image: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=200&auto=format&fit=crop"
   },
-  { 
-    id: "CRS-008", 
-    title: "Tailwind CSS Thực chiến", 
-    price: "599.000đ", 
-    status: "draft", 
-    students: 0, 
+  {
+    id: "CRS-008",
+    title: "Tailwind CSS Thực chiến",
+    price: "599.000đ",
+    status: "draft",
+    students: 0,
     rating: 0,
     lessons: 45,
     revenue: "0đ",
     image: "https://images.unsplash.com/photo-1507721999472-8ed4421c4af2?q=80&w=200&auto=format&fit=crop"
   },
-  { 
-    id: "CRS-012", 
-    title: "Figma UI/UX Design Basics", 
-    price: "1.299.000đ", 
-    status: "reviewing", 
-    students: 0, 
+  {
+    id: "CRS-012",
+    title: "Figma UI/UX Design Basics",
+    price: "1.299.000đ",
+    status: "reviewing",
+    students: 0,
     rating: 0,
     lessons: 60,
     revenue: "0đ",
@@ -84,12 +84,12 @@ export default function InstructorCourses() {
             Quản lý, chỉnh sửa và theo dõi hiệu suất các khóa học bạn đang giảng dạy.
           </p>
         </div>
-        <Button 
+        <Button
           onClick={() => navigate("/instructor/courses/courses-form")}
-          className="font-bold flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white shadow-none"
+          className="h-9 font-bold bg-green-600 hover:bg-green-700 text-white flex items-center gap-1.5 shadow-none hidden lg:flex"
         >
           <Plus className="w-4 h-4" />
-          Tạo Khóa Học Mới
+          Tạo khóa học mới
         </Button>
       </div>
 
@@ -99,8 +99,8 @@ export default function InstructorCourses() {
           <div className="flex w-full md:w-auto items-center gap-3">
             <div className="relative w-full md:w-80 border-slate-200">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <Input 
-                placeholder="Tìm khóa học theo tên..." 
+              <Input
+                placeholder="Tìm khóa học theo tên..."
                 className="pl-9 h-10 border-slate-200 focus:bg-white focus:border-green-500 focus:ring-green-500/20"
               />
             </div>
@@ -111,7 +111,7 @@ export default function InstructorCourses() {
               <option>UI/UX Design</option>
             </select>
           </div>
-          
+
           <div className="flex text-sm font-medium text-slate-500 bg-slate-100 p-1 rounded-lg">
             <button className="px-3 py-1.5 rounded-md bg-white text-slate-900 shadow-sm">Tất cả (4)</button>
             <button className="px-3 py-1.5 rounded-md hover:text-slate-900">Đã xuất bản (2)</button>

@@ -2,8 +2,6 @@ import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-  CheckCircle2,
-  XCircle,
   Home,
   ShoppingBag,
   ArrowRight,
@@ -14,43 +12,12 @@ import { SimpleButton } from "@/components/common/AppButton";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { AppBreadcrumb } from "@/components/common/AppSection";
-
-// Mock order info
-const ORDER_INFO = {
-  orderCode: "#71",
-  amount: "1.398.000đ",
-  method: "QR Code - MB Bank",
-  date: "24/03/2026 – 21:15",
-  email: "minhle@example.com",
-};
-
-const STATUS_CONFIG = {
-  success: {
-    icon: CheckCircle2,
-    iconColor: "text-green-500",
-    iconBg: "bg-green-50",
-    ringColor: "ring-green-100",
-    title: "Thanh toán thành công!",
-    description: "Đơn hàng của bạn đã được xác nhận. Khóa học sẽ được kích hoạt ngay lập tức.",
-    badgeText: "Đã thanh toán",
-    badgeColor: "bg-green-100 text-green-700",
-  },
-  cancel: {
-    icon: XCircle,
-    iconColor: "text-red-500",
-    iconBg: "bg-red-50",
-    ringColor: "ring-red-100",
-    title: "Thanh toán đã bị hủy",
-    description: "Đơn hàng của bạn chưa được thanh toán. Các khóa học vẫn còn trong giỏ hàng.",
-    badgeText: "Đã hủy",
-    badgeColor: "bg-red-100 text-red-700",
-  },
-};
+import { checkoutOrderInfoMock, checkoutStatusConfig } from "@/mocks/checkout";
 
 export default function CheckoutResult() {
   const location = useLocation();
   const isSuccess = location.pathname.includes("success");
-  const config = isSuccess ? STATUS_CONFIG.success : STATUS_CONFIG.cancel;
+  const config = isSuccess ? checkoutStatusConfig.success : checkoutStatusConfig.cancel;
   const Icon = config.icon;
 
   const breadcrumbItems = [
@@ -76,8 +43,8 @@ export default function CheckoutResult() {
         </div>
       </section>
 
-      {/* Main */}
-      <main className="max-w-2xl mx-auto px-4 mt-[-40px]">
+      {/* Main Content */}
+      <main className="app-container max-w-2xl mt-[-40px]">
         <Card className="border-none shadow-xl shadow-slate-200/50 bg-white overflow-hidden">
           <CardContent className="p-8 sm:p-10 flex flex-col items-center text-center">
             {/* Icon */}
@@ -97,22 +64,22 @@ export default function CheckoutResult() {
             <div className="w-full bg-slate-50 rounded-xl p-5 sm:p-6 text-left space-y-3 mb-8">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-slate-500">Mã đơn hàng</span>
-                <span className="text-sm font-bold text-slate-800">{ORDER_INFO.orderCode}</span>
+                <span className="text-sm font-bold text-slate-800">{checkoutOrderInfoMock.orderCode}</span>
               </div>
               <Separator className="bg-slate-200/70" />
               <div className="flex items-center justify-between">
                 <span className="text-sm text-slate-500">Tổng tiền</span>
-                <span className="text-sm font-black text-primary">{ORDER_INFO.amount}</span>
+                <span className="text-sm font-black text-primary">{checkoutOrderInfoMock.amount}</span>
               </div>
               <Separator className="bg-slate-200/70" />
               <div className="flex items-center justify-between">
                 <span className="text-sm text-slate-500">Phương thức</span>
-                <span className="text-sm font-bold text-slate-800">{ORDER_INFO.method}</span>
+                <span className="text-sm font-bold text-slate-800">{checkoutOrderInfoMock.method}</span>
               </div>
               <Separator className="bg-slate-200/70" />
               <div className="flex items-center justify-between">
                 <span className="text-sm text-slate-500">Thời gian</span>
-                <span className="text-sm font-bold text-slate-800">{ORDER_INFO.date}</span>
+                <span className="text-sm font-bold text-slate-800">{checkoutOrderInfoMock.date}</span>
               </div>
               <Separator className="bg-slate-200/70" />
               <div className="flex items-center justify-between">
@@ -165,7 +132,7 @@ export default function CheckoutResult() {
             {/* Confirmation email note */}
             {isSuccess && (
               <p className="text-xs text-muted-foreground mt-6">
-                Email xác nhận đã được gửi đến <span className="font-bold text-slate-700">{ORDER_INFO.email}</span>
+                Email xác nhận đã được gửi đến <span className="font-bold text-slate-700">{checkoutOrderInfoMock.email}</span>
               </p>
             )}
           </CardContent>

@@ -204,7 +204,7 @@
   }
 
   .app-container {
-    @apply w-full mx-auto;
+    @apply w-full mx-auto px-16;
     max-width: var(--container-max);
   }
 

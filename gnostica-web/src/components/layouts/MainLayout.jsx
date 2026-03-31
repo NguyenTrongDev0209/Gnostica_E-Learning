@@ -127,23 +127,23 @@ const MainLayout = () => {
 
           {/* User Actions */}
           <div className="flex-1 flex items-center justify-end gap-1 md:gap-4">
-            <Link to="/login">
-              <AppHeaderButton 
-                icon={User} 
-                label="Đăng nhập"
-              />
-            </Link>
-            <Link to="/wishlist">
-              <AppHeaderButton 
-                icon={Heart} 
+            <Link to="/account/wishlist">
+              <AppHeaderButton
+                icon={Heart}
                 label="Yêu thích"
               />
             </Link>
             <Link to="/cart">
-              <AppHeaderButton 
-                icon={ShoppingCart} 
+              <AppHeaderButton
+                icon={ShoppingCart}
                 label="Giỏ hàng"
-                badge={2} 
+                badge={2}
+              />
+            </Link>
+            <Link to="/login">
+              <AppHeaderButton
+                icon={User}
+                label="Đăng nhập"
               />
             </Link>
           </div>
