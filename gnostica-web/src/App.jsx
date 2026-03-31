@@ -23,6 +23,8 @@ import PayosQR from "@/pages/client/PayosQR"
 import CheckoutResult from "@/pages/client/CheckoutResult"
 import TermsPage from "@/pages/client/TermsPage"
 import PrivacyPage from "@/pages/client/PrivacyPage"
+import LearningWorkspace from "@/pages/learning/LearningWorkspace"
+import LearningLayout from "@/components/layouts/LearningLayout"
 import AccountLayout from "@/components/layouts/AccountLayout"
 import AccountOverview from "@/pages/account/AccountOverview"
 import MyCourses from "@/pages/account/MyCourses"
@@ -113,6 +115,11 @@ function App() {
             <Route path="/admin/reports" element={<AdminReports />} />
             <Route path="/admin/settings" element={<AdminSettings />} />
           </Route>
+          {/* Learning Workspace Area - Separate Layout */}
+          <Route element={<LearningLayout />}>
+            <Route path="/learning/:id" element={<LearningWorkspace />} />
+          </Route>
+
           {/* Instructor Area */}
           <Route element={<InstructorLayout />}>
             <Route path="/instructor" element={<InstructorDashboard />} />

@@ -162,7 +162,7 @@ export default function MyCourses() {
                 )}
                 
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <Link to={`/courses/${course.id}`}>
+                  <Link to={`/learning/${course.id}`}>
                     <button className="w-14 h-14 bg-white/90 rounded-full flex items-center justify-center shadow-lg hover:scale-110 hover:bg-white transition-all text-primary">
                       <PlayCircle className="w-8 h-8 ml-1" />
                     </button>
@@ -194,7 +194,7 @@ export default function MyCourses() {
                     />
                   </div>
                   
-                  <Link to={`/courses/${course.id}`} className="block w-full">
+                  <Link to={`/learning/${course.id}`} className="block w-full">
                     <button 
                       className={`w-full py-2.5 rounded-xl text-sm font-bold transition-colors
                         ${course.progress === 100 
