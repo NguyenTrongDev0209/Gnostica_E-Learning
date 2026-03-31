@@ -14,6 +14,8 @@ import {
   Mail,
   Phone,
   MapPin,
+  Star,
+  ShoppingBag,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -22,7 +24,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { SimpleButton } from "@/components/common/AppButton";
-import { AppBreadcrumb } from "@/components/common/AppSection";
+import { AppBreadcrumb, PageHeader } from "@/components/common/AppSection";
 
 // Mock order data (from cart)
 const ORDER_ITEMS = [
@@ -34,6 +36,7 @@ const ORDER_ITEMS = [
     originalPrice: 1799000,
     image:
       "https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=200&auto=format&fit=crop",
+    rating: 5.0
   },
   {
     id: 2,
@@ -43,6 +46,7 @@ const ORDER_ITEMS = [
     originalPrice: 999000,
     image:
       "https://images.unsplash.com/photo-1587620962725-abab7fe55159?q=80&w=200&auto=format&fit=crop",
+    rating: 4.8
   },
 ];
 
@@ -98,101 +102,77 @@ export default function CheckoutPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20">
-      {/* Header Section */}
-      <section className="bg-slate-900 py-12 text-white">
-        <div className="app-container">
-          <AppBreadcrumb 
-            items={breadcrumbItems} 
-            linkClassName="text-slate-400 hover:text-slate-100"
-            activeClassName="font-semibold text-slate-200"
-            separatorClassName="text-slate-500"
+    <div className="min-h-screen bg-background pb-20 pt-8">
+      {/* Main Content Area */}
+      <main className="app-container">
+        <div className="mb-0">
+          <AppBreadcrumb
+            items={breadcrumbItems}
+            linkClassName="text-slate-400 hover:text-primary"
+            activeClassName="font-semibold text-slate-900"
+            separatorClassName="text-slate-300"
           />
-          <h1 className="text-3xl md:text-4xl font-extrabold flex items-center gap-3">
-            <CreditCard className="w-8 h-8 text-primary" />
-            Thanh toán
-          </h1>
-          <p className="text-slate-400 mt-2 font-medium">
-            Hoàn tất đơn hàng của bạn một cách an toàn và nhanh chóng.
-          </p>
+          <PageHeader
+            title="Thanh toán"
+            description="Hoàn tất đơn hàng của bạn một cách an toàn và nhanh chóng"
+            className="mt-4"
+          />
         </div>
-      </section>
 
-      {/* Main Content */}
-      <main className="app-container mt-[-40px]">
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {/* Left Column */}
             <div className="lg:col-span-8 space-y-6">
-              {/* Step 1: Customer Info */}
-              <Card className="border-none shadow-xl shadow-slate-200/50 bg-white/80 backdrop-blur-sm">
+              {/* Step 1: Order Info */}
+              <Card className="border-none shadow-xl shadow-slate-200/50 bg-white/80 backdrop-blur-sm overflow-hidden">
                 <CardHeader className="bg-slate-50/50 border-b border-slate-100">
                   <CardTitle className="text-lg font-bold text-slate-900 flex items-center gap-2">
                     <span className="w-7 h-7 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">
                       1
                     </span>
-                    Thông tin khách hàng
+                    Thông tin đơn hàng
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <div className="flex flex-col gap-1.5">
-                      <Label htmlFor="fullName" className="text-sm font-medium text-slate-700">
-                        Họ và tên
-                      </Label>
-                      <div className="relative">
-                        <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                        <Input
-                          id="fullName"
-                          placeholder="Nguyễn Văn A"
-                          className="pl-9 h-11 bg-slate-50 border-slate-200 focus:bg-white transition-colors"
-                          required
-                        />
+                <CardContent className="p-0">
+                  <div className="divide-y divide-slate-100">
+                    {ORDER_ITEMS.map((item) => (
+                      <div key={item.id} className="p-6 flex items-center gap-4 hover:bg-slate-50/50 transition-colors">
+                        <div className="w-24 h-16 md:w-32 md:h-20 shrink-0 rounded-lg overflow-hidden border border-slate-100 shadow-sm">
+                          <img
+                            src={item.image}
+                            alt={item.title}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0 space-y-1">
+                          <h3 className="font-bold text-slate-900 line-clamp-2 leading-snug">
+                            {item.title}
+                          </h3>
+                          <p className="text-xs text-slate-500 font-medium italic truncate">Giảng viên: {item.instructor}</p>
+                          <div className="flex items-center gap-1">
+                            {[...Array(5)].map((_, i) => (
+                              <Star
+                                key={i}
+                                className={`w-3 h-3 ${i < Math.floor(item.rating) ? "text-yellow-400 fill-yellow-400" : "text-slate-200 fill-slate-100"}`}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                        <div className="flex-none w-24 md:w-32 flex flex-col items-center justify-center border-l border-slate-50">
+                          <p className="text-sm font-bold text-slate-700">Số lượng: 1</p>
+                        </div>
+                        <div className="text-right flex-none w-24 md:w-32 border-l border-slate-50">
+                          <p className="font-black text-lg text-gradient-button font-extrabold">
+                            {item.price.toLocaleString()}đ
+                          </p>
+                          {item.originalPrice && (
+                            <p className="text-xs text-slate-400 line-through font-medium">
+                              {item.originalPrice.toLocaleString()}đ
+                            </p>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex flex-col gap-1.5">
-                      <Label htmlFor="email" className="text-sm font-medium text-slate-700">
-                        Email
-                      </Label>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                        <Input
-                          id="email"
-                          type="email"
-                          placeholder="you@example.com"
-                          className="pl-9 h-11 bg-slate-50 border-slate-200 focus:bg-white transition-colors"
-                          required
-                        />
-                      </div>
-                    </div>
-                    <div className="flex flex-col gap-1.5">
-                      <Label htmlFor="phone" className="text-sm font-medium text-slate-700">
-                        Số điện thoại
-                      </Label>
-                      <div className="relative">
-                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                        <Input
-                          id="phone"
-                          type="tel"
-                          placeholder="0912 345 678"
-                          className="pl-9 h-11 bg-slate-50 border-slate-200 focus:bg-white transition-colors"
-                          required
-                        />
-                      </div>
-                    </div>
-                    <div className="flex flex-col gap-1.5">
-                      <Label htmlFor="address" className="text-sm font-medium text-slate-700">
-                        Địa chỉ
-                      </Label>
-                      <div className="relative">
-                        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                        <Input
-                          id="address"
-                          placeholder="Quận 1, TP. Hồ Chí Minh"
-                          className="pl-9 h-11 bg-slate-50 border-slate-200 focus:bg-white transition-colors"
-                        />
-                      </div>
-                    </div>
+                    ))}
                   </div>
                 </CardContent>
               </Card>
@@ -243,66 +223,11 @@ export default function CheckoutPage() {
                       );
                     })}
                   </RadioGroup>
-
-                  {/* Conditional: Card details */}
-                  {paymentMethod === "credit-card" && (
-                    <div className="mt-6 pt-6 border-t border-slate-100 space-y-5 animate-in fade-in duration-300">
-                      <div className="flex flex-col gap-1.5">
-                        <Label htmlFor="cardNumber" className="text-sm font-medium text-slate-700">
-                          Số thẻ
-                        </Label>
-                        <div className="relative">
-                          <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                          <Input
-                            id="cardNumber"
-                            placeholder="1234 5678 9012 3456"
-                            className="pl-9 h-11 bg-slate-50 border-slate-200 focus:bg-white transition-colors"
-                          />
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="flex flex-col gap-1.5">
-                          <Label htmlFor="expiry" className="text-sm font-medium text-slate-700">
-                            Ngày hết hạn
-                          </Label>
-                          <Input
-                            id="expiry"
-                            placeholder="MM/YY"
-                            className="h-11 bg-slate-50 border-slate-200 focus:bg-white transition-colors"
-                          />
-                        </div>
-                        <div className="flex flex-col gap-1.5">
-                          <Label htmlFor="cvv" className="text-sm font-medium text-slate-700">
-                            CVV
-                          </Label>
-                          <div className="relative">
-                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                            <Input
-                              id="cvv"
-                              placeholder="•••"
-                              maxLength={4}
-                              className="pl-9 h-11 bg-slate-50 border-slate-200 focus:bg-white transition-colors"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex flex-col gap-1.5">
-                        <Label htmlFor="cardName" className="text-sm font-medium text-slate-700">
-                          Tên trên thẻ
-                        </Label>
-                        <Input
-                          id="cardName"
-                          placeholder="NGUYEN VAN A"
-                          className="h-11 bg-slate-50 border-slate-200 focus:bg-white transition-colors uppercase"
-                        />
-                      </div>
-                    </div>
-                  )}
                 </CardContent>
               </Card>
 
               {/* Trust Badges */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pb-2">
                 <div className="flex items-center gap-3 p-4 bg-white rounded-xl shadow-sm border border-slate-100">
                   <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center text-green-600">
                     <ShieldCheck className="w-6 h-6" />
@@ -335,48 +260,14 @@ export default function CheckoutPage() {
 
             {/* Right Column: Order Summary */}
             <div className="lg:col-span-4">
-              <div className="sticky top-8 space-y-6">
+              <div className="sticky top-10 space-y-6">
                 <Card className="border-none shadow-2xl shadow-orange-500/10 overflow-hidden bg-white">
-                  <CardHeader className="bg-slate-50/50 border-b border-slate-100">
-                    <CardTitle className="text-lg font-bold text-slate-900">
-                      Đơn hàng của bạn
+                  <CardHeader className="bg-slate-50/50 border-b border-slate-100 py-5">
+                    <CardTitle className="text-xl font-bold text-slate-900 text-center uppercase tracking-tight">
+                      Tổng kết đơn hàng
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="p-6 space-y-4">
-                    {/* Order Items */}
-                    <div className="space-y-4">
-                      {ORDER_ITEMS.map((item) => (
-                        <div key={item.id} className="flex gap-3">
-                          <div className="w-16 h-12 rounded-lg overflow-hidden border border-slate-100 shrink-0">
-                            <img
-                              src={item.image}
-                              alt={item.title}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h4 className="text-sm font-bold text-slate-800 line-clamp-1">
-                              {item.title}
-                            </h4>
-                            <p className="text-xs text-muted-foreground italic">
-                              {item.instructor}
-                            </p>
-                          </div>
-                          <div className="text-right shrink-0">
-                            <p className="text-sm font-bold text-primary">
-                              {item.price.toLocaleString()}đ
-                            </p>
-                            <p className="text-[10px] text-slate-400 line-through">
-                              {item.originalPrice.toLocaleString()}đ
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    <Separator className="bg-slate-100" />
-
-                    {/* Pricing */}
+                  <CardContent className="px-8 py-6 space-y-4">
                     <div className="space-y-2.5">
                       <div className="flex justify-between text-sm font-medium text-slate-500">
                         <span>Tạm tính ({ORDER_ITEMS.length} khóa học)</span>
@@ -396,30 +287,28 @@ export default function CheckoutPage() {
 
                     <Separator className="bg-slate-100" />
 
-                    {/* Total */}
-                    <div className="flex justify-between items-end pt-1">
+                    <div className="flex justify-between items-center pt-2">
                       <span className="font-bold text-slate-900">Tổng thanh toán</span>
                       <div className="text-right">
-                        <div className="text-3xl font-black text-primary leading-none">
+                        <div className="text-3xl font-bold text-gradient-button font-extrabold leading-none">
                           {subtotal.toLocaleString()}đ
                         </div>
-                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1">
+                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1.5 px-0.5">
                           đã bao gồm thuế
                         </p>
                       </div>
                     </div>
 
-                    {/* Submit Button */}
-                    <div className="pt-3">
+                    <div className="pt-6">
                       <SimpleButton
                         type="submit"
-                        className="w-full py-7 text-lg font-black tracking-wide gap-2"
+                        className="w-fit mx-auto py-7 px-16 text-lg font-bold tracking-wide gap-2 flex"
                         size="lg"
                         disabled={loading}
                       >
-                        {loading ? (
+                        {loading && (
                           <svg
-                            className="animate-spin w-5 h-5"
+                            className="animate-spin w-5 h-5 text-white"
                             xmlns="http://www.w3.org/2000/svg"
                             fill="none"
                             viewBox="0 0 24 24"
@@ -427,14 +316,12 @@ export default function CheckoutPage() {
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
                           </svg>
-                        ) : (
-                          <Lock className="w-5 h-5" />
                         )}
                         {loading ? "ĐANG XỬ LÝ..." : "XÁC NHẬN THANH TOÁN"}
                       </SimpleButton>
                     </div>
 
-                    <p className="text-[11px] text-center text-muted-foreground leading-relaxed">
+                    <p className="text-[11px] text-center text-muted-foreground leading-relaxed pt-2">
                       Bằng việc nhấn "Xác nhận thanh toán", bạn đồng ý với{" "}
                       <Link to="/terms" className="text-primary hover:underline font-medium">
                         điều khoản dịch vụ

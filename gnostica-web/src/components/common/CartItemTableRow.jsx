@@ -1,15 +1,31 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { TableRow, TableCell } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Trash2, Plus, Minus, Star } from "lucide-react";
 
-export default function CartItemTableRow({ item, onRemove }) {
+export default function CartItemTableRow({ item, onRemove, isSelected, onSelect }) {
+  const [quantity, setQuantity] = useState(1);
+
+  const handleIncrement = () => setQuantity(prev => prev + 1);
+  const handleDecrement = () => setQuantity(prev => (prev > 1 ? prev - 1 : 1));
+
   return (
     <TableRow className="group hover:bg-slate-50/50 transition-colors">
+      {/* Cột 1: Checkbox */}
       <TableCell className="py-6">
-        <div className="flex gap-4">
-          <div className="w-24 h-16 md:w-32 md:h-20 shrink-0 rounded-lg overflow-hidden border border-slate-100 shadow-sm relative group/img">
+        <Checkbox 
+          id={`item-${item.id}`} 
+          checked={isSelected}
+          onCheckedChange={(checked) => onSelect && onSelect(item.id, checked)}
+        />
+      </TableCell>
+
+      {/* Cột 2 & 3: Hình ảnh & Thông tin (Gộp chung để giảm khoảng hở) */}
+      <TableCell colSpan={2} className="py-6">
+        <div className="flex items-start gap-4">
+          <div className="w-24 h-16 md:w-32 md:h-20 shrink-0 rounded-lg overflow-hidden border border-slate-100 shadow-sm relative group/img mt-1">
             <img 
               src={item.image} 
               alt={item.title} 
@@ -17,37 +33,64 @@ export default function CartItemTableRow({ item, onRemove }) {
             />
           </div>
           <div className="space-y-1">
-            <h3 className="font-bold text-slate-900 hover:text-primary transition-colors line-clamp-2 leading-snug">
+            <h3 className="font-bold text-slate-900 hover:text-primary transition-colors line-clamp-2 leading-snug text-base">
               {item.title}
             </h3>
-            <p className="text-xs text-slate-500 font-medium italic">Bởi {item.instructor}</p>
-            <div className="flex items-center gap-1 mt-1">
-              <span className="text-xs font-bold text-yellow-500">{item.rating}</span>
-              <div className="flex">
+            <p className="text-xs text-slate-500 font-medium italic">Giảng viên: {item.instructor}</p>
+            
+            <div className="flex items-center gap-1.5 mt-1">
+              <div className="flex items-center">
                 {[...Array(5)].map((_, i) => (
-                  <svg key={i} className={`w-3 h-3 ${i < Math.floor(item.rating) ? "text-yellow-400 fill-yellow-400" : "text-slate-200"}`} viewBox="0 0 20 20">
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                  </svg>
+                  <Star 
+                    key={i} 
+                    className={`w-3.5 h-3.5 ${i < Math.floor(item.rating) ? "text-yellow-400 fill-yellow-400" : "text-slate-200 fill-slate-100"}`} 
+                  />
                 ))}
               </div>
+              <span className="text-xs font-bold text-slate-400">({item.rating})</span>
+            </div>
+
+            <div className="flex items-center gap-3 mt-2">
+              <span className="font-black text-lg text-gradient-button font-extrabold">
+                {item.price}đ
+              </span>
+              {item.originalPrice && (
+                <span className="text-xs text-slate-400 line-through font-medium">
+                  {item.originalPrice}đ
+                </span>
+              )}
             </div>
           </div>
         </div>
       </TableCell>
-      <TableCell>
-        <div className="space-y-1">
-          <div className="font-black text-primary text-lg">
-            {item.price}đ
+
+      {/* Cột 4: Số lượng */}
+      <TableCell className="py-6">
+        <div className="flex items-center justify-center gap-1">
+          <Button 
+            variant="outline" 
+            size="icon" 
+            className="h-8 w-8 rounded-full border-slate-200 hover:bg-primary/5 hover:text-primary hover:border-primary/30 transition-all active:scale-95"
+            onClick={handleDecrement}
+          >
+            <Minus className="w-3 h-3" />
+          </Button>
+          <div className="w-10 text-center font-bold text-slate-700">
+            {quantity}
           </div>
-          <div className="text-xs text-slate-400 line-through">
-            {item.originalPrice}đ
-          </div>
-          <Badge variant="outline" className="text-[10px] text-red-500 border-red-200 bg-red-50 font-bold px-1.5 py-0">
-            TIẾT KIỆM 50%
-          </Badge>
+          <Button 
+            variant="outline" 
+            size="icon" 
+            className="h-8 w-8 rounded-full border-slate-200 hover:bg-primary/5 hover:text-primary hover:border-primary/30 transition-all active:scale-95"
+            onClick={handleIncrement}
+          >
+            <Plus className="w-3 h-3" />
+          </Button>
         </div>
       </TableCell>
-      <TableCell className="text-right">
+
+      {/* Cột 5: Xóa */}
+      <TableCell className="py-6 text-right">
         <Button 
           variant="ghost" 
           size="icon" 
