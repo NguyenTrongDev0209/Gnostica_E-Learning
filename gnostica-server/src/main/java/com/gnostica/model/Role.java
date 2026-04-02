@@ -24,7 +24,6 @@ public class Role {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	public Integer id;
 	
-	@Column(columnDefinition = "nvarchar(255)")
 	@NotBlank(message = "Role không được để trống")
 	public String name;
 	

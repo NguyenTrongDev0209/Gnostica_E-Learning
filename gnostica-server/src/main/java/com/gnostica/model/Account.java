@@ -22,7 +22,6 @@ public class Account {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	public Integer id;
 	
-	@Column(columnDefinition = "nvarchar(255)")
 	public String fullName;
 	
 	@Column(columnDefinition = "varchar(255)", unique = true)
