@@ -1,7 +1,14 @@
 import React from 'react'
-import { Menu, X } from "lucide-react"
+import { Menu, X, User, BookOpen, LogOut, ChevronDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { Link } from 'react-router-dom'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 // Nút outline với viền & chữ màu cam — dùng cho các hành động phụ (ví dụ: Kích hoạt)
 export const SimpleButton = ({ children, className, variant = "default", size = "md", ...props }) => {
@@ -182,7 +189,39 @@ export const AppNavLink = ({ href = "#", children, onClick, className }) => {
   )
 }
 
-import { Link } from 'react-router-dom'
+// Nút người dùng có dropdown: Hình viên thuốc, avatar trái, tên giữa, mũi tên phải
+export const AppUserMenu = ({ user = { name: "Học viên", avatar: "https://github.com/shadcn.png" }, onLogout }) => {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button className="flex items-center gap-2.5 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full p-1.5 pr-4 transition-all duration-300 group focus:outline-none">
+          <img src={user.avatar} alt="Avatar" className="w-10 h-10 rounded-full border-2 border-white/50 object-cover" />
+          <span className="text-base font-bold text-white max-w-[140px] truncate">{user.name}</span>
+          <ChevronDown className="w-5 h-5 text-white/70 group-hover:text-white transition-colors" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="center" className="w-72 bg-white border-slate-100 shadow-xl rounded-2xl p-2 animate-in fade-in slide-in-from-top-2 mt-2">
+        <DropdownMenuItem asChild className="px-5 py-4 cursor-pointer rounded-xl hover:bg-slate-50 text-[17px] font-semibold text-slate-700 focus:bg-slate-50">
+          <Link to="/account/profile" className="flex items-center gap-4">
+            <User className="w-6 h-6 text-primary" />
+            Tài khoản
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild className="px-5 py-4 cursor-pointer rounded-xl hover:bg-slate-50 text-[17px] font-semibold text-slate-700 focus:bg-slate-50">
+          <Link to="/account/courses" className="flex items-center gap-4">
+            <BookOpen className="w-6 h-6 text-emerald-500" />
+            Khóa học
+          </Link>
+        </DropdownMenuItem>
+        <div className="h-[2px] bg-slate-100 my-2 mx-2" />
+        <DropdownMenuItem onClick={onLogout} className="px-5 py-4 cursor-pointer rounded-xl hover:bg-red-50 focus:bg-red-50 text-[17px] font-bold text-red-600 focus:text-red-700 flex items-center">
+          <LogOut className="w-6 h-6 mr-4" />
+          Đăng xuất
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
 
 // Logo thương hiệu: Sử dụng ảnh TechOne_Logo từ public folder
 export const AppLogo = ({ src = "/Gnostica_Mark.webp", className }) => {

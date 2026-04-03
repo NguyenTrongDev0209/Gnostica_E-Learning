@@ -19,7 +19,8 @@ import {
   AppNavLink,
   AppLogo,
   GhostButton,
-  AppHeaderButton
+  AppHeaderButton,
+  AppUserMenu
 } from "@/components/common/AppButton"
 import { Search, Heart, ChevronDown, LayoutGrid, Flame } from "lucide-react"
 import AppSearchInput from "@/components/common/AppSearchInput"
@@ -127,25 +128,7 @@ const MainLayout = () => {
 
           {/* User Actions */}
           <div className="flex-1 flex items-center justify-end gap-1 md:gap-4">
-            <Link to="/account/wishlist">
-              <AppHeaderButton
-                icon={Heart}
-                label="Yêu thích"
-              />
-            </Link>
-            <Link to="/cart">
-              <AppHeaderButton
-                icon={ShoppingCart}
-                label="Giỏ hàng"
-                badge={2}
-              />
-            </Link>
-            <Link to="/login">
-              <AppHeaderButton
-                icon={User}
-                label="Đăng nhập"
-              />
-            </Link>
+            <AppUserMenu />
           </div>
         </div>
 
