@@ -39,7 +39,7 @@ const AppSearchInput = ({ className = "" }) => {
   return (
     <div className={`flex flex-col relative ${className}`}>
       {/* Container chính: Bo tròn, có border, chứa cả Input và Button */}
-      <div className="flex items-center rounded-lg bg-white border border-slate-200 overflow-hidden shadow-sm h-11 focus-within:ring-2 focus-within:ring-header-orange/20 transition-all z-10">
+      <div className="flex items-center rounded-lg bg-white border border-slate-200 overflow-hidden shadow-sm h-[42px] focus-within:ring-2 focus-within:ring-header-orange/20 transition-all z-10">
         {/* Phần nhập liệu bên trái */}
         <div className="flex-1 flex items-center min-w-0 h-full">
           {/* Search icon removed from input as it's now in the button */}

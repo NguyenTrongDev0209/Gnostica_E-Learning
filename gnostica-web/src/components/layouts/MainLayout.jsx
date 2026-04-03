@@ -108,7 +108,7 @@ const MainLayout = () => {
     <div className="flex flex-col min-h-screen">
       {/* Main Sticky Header */}
       <header className="w-full sticky top-0 z-[100] shadow-md bg-primary-gradient text-white border-b border-white/10">
-        <div className="app-container flex items-center justify-between py-2 gap-8">
+        <div className="app-container flex items-center justify-between py-[14px] gap-8">
           {/* Logo */}
           <div className="flex-1 flex items-center gap-4">
             <div className="lg:hidden">
