@@ -202,13 +202,13 @@ export const AppUserMenu = ({ user = { name: "Học viên", avatar: "https://git
       </DropdownMenuTrigger>
       <DropdownMenuContent sideOffset={4} align="center" className="w-[220px] bg-white border-slate-100 shadow-xl rounded-2xl p-2 animate-in fade-in slide-in-from-top-2 z-[200]">
         <DropdownMenuItem asChild className="px-4 py-2 cursor-pointer rounded-xl hover:bg-slate-50 text-base font-semibold text-slate-700 focus:bg-slate-50">
-          <Link to="/account/profile" className="flex items-center gap-3">
+          <Link to="/account" className="flex items-center gap-3">
             <User className="w-8 h-8 text-primary" />
             Tài khoản
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild className="px-4 py-2 cursor-pointer rounded-xl hover:bg-slate-50 text-base font-semibold text-slate-700 focus:bg-slate-50">
-          <Link to="/account/courses" className="flex items-center gap-3">
+          <Link to="/account/my-courses" className="flex items-center gap-3">
             <BookOpen className="w-8 h-8 text-emerald-500" />
             Khóa học
           </Link>

@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import authService from '@/services/authService'
 
 const courseCategories = [
   { label: "Tất cả khóa học", href: "/courses" },
@@ -103,6 +104,7 @@ const FooterLinks = ({ title, links }) => (
 const MainLayout = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isCoursesMobileOpen, setIsCoursesMobileOpen] = useState(false)
+  const currentUser = authService.getCurrentUser()
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -128,7 +130,16 @@ const MainLayout = () => {
 
           {/* User Actions */}
           <div className="flex-1 flex items-center justify-end gap-1 md:gap-4">
-            <AppUserMenu />
+            {currentUser ? (
+              <AppUserMenu />
+            ) : (
+              <Link
+                to="/login"
+                className="flex items-center justify-center bg-white/10 hover:bg-white/20 border border-white/20 rounded-full px-5 h-[42px] transition-all duration-300 text-white font-bold text-base"
+              >
+                Đăng nhập
+              </Link>
+            )}
           </div>
         </div>
 
