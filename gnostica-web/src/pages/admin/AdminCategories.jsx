@@ -46,7 +46,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import axios from "axios";
+import Fuse from "fuse.js";
+import categoryService from "@/services/categoryService";
 
 const categorySchema = z.object({
   name: z
@@ -71,9 +72,9 @@ export default function AdminCategories() {
 
   const fetchCategories = async () => {
     try {
-      const response = await axios.get("http://localhost:8080/api/categories");
-      if (response.data && response.data.data) {
-        setCategories(response.data.data);
+      const response = await categoryService.getAllCategories();
+      if (response && response.data) {
+        setCategories(response.data);
       }
     } catch (error) {
       console.error("Failed to fetch categories", error);
@@ -128,7 +129,7 @@ export default function AdminCategories() {
   const toggleStatus = async (e, id, newStatus) => {
     e.stopPropagation();
     try {
-      await axios.patch(`http://localhost:8080/api/categories/${id}/status?status=${newStatus}`);
+      await categoryService.updateStatus(id, newStatus);
       toast.success(`Đã chuyển trạng thái sang ${newStatus ? 'Hoạt động' : 'Tạm ẩn'}`);
       fetchCategories();
     } catch (error) {
@@ -141,7 +142,7 @@ export default function AdminCategories() {
     if (!window.confirm("Bạn có chắc chắn muốn xóa danh mục này?")) return;
 
     try {
-      await axios.delete(`http://localhost:8080/api/categories/${id}`);
+      await categoryService.deleteCategory(id);
       toast.success("Xóa danh mục thành công!");
       fetchCategories();
     } catch (error) {
@@ -166,16 +167,16 @@ export default function AdminCategories() {
       };
 
       if (editId) {
-        await axios.put(`http://localhost:8080/api/categories/${editId}`, payload);
+        await categoryService.updateCategory(editId, payload);
         toast.success("Cập nhật danh mục thành công!");
       } else {
-        await axios.post("http://localhost:8080/api/categories", payload);
+        await categoryService.createCategory(payload);
         toast.success("Thêm danh mục thành công!");
       }
 
       setIsAddModalOpen(false);
       setEditId(null);
-      form.reset();
+      form.reset({ name: "", slug: "", parent_id: "none", status: true });
       fetchCategories();
     } catch (error) {
       // Backend error format mapping from ResponseDTO payload or standard axios layout
@@ -188,23 +189,47 @@ export default function AdminCategories() {
   const activeCount = categories.filter((c) => c.status).length;
   const inactiveCount = categories.length - activeCount;
 
-  const filteredCategories = categories.filter((cat) => {
-    // Check status
-    if (filterStatus === "active" && !cat.status) return false;
-    if (filterStatus === "inactive" && cat.status) return false;
+  const removeAccents = (str) => {
+    return str
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/đ/g, "d")
+      .replace(/Đ/g, "D");
+  };
 
-    // Check search term
-    if (searchTerm.trim() !== "") {
-      const term = searchTerm.toLowerCase();
-      const matchName = cat.name.toLowerCase().includes(term);
-      const matchSlug = cat.slug.toLowerCase().includes(term);
-      // Tìm cả trong danh mục con
-      const matchSub = cat.subcategories?.some((sub) => sub.name.toLowerCase().includes(term));
-      if (!matchName && !matchSlug && !matchSub) return false;
+  const filteredCategories = React.useMemo(() => {
+    let result = categories;
+
+    if (filterStatus === "active") {
+      result = result.filter((cat) => cat.status);
+    } else if (filterStatus === "inactive") {
+      result = result.filter((cat) => !cat.status);
     }
 
-    return true;
-  });
+    if (searchTerm.trim() !== "") {
+      const fuse = new Fuse(result, {
+        keys: ["name", "slug", "subcategories.name", "subcategories.slug"],
+        includeScore: true,
+        threshold: 0.4,
+        ignoreLocation: true,
+        getFn: (obj, path) => {
+          const value = Fuse.config.getFn(obj, path);
+          if (Array.isArray(value)) {
+            return value.map((v) => (typeof v === "string" ? removeAccents(v) : v));
+          }
+          if (typeof value === "string") {
+            return removeAccents(value);
+          }
+          return value;
+        },
+      });
+
+      const searchResult = fuse.search(removeAccents(searchTerm));
+      result = searchResult.map((res) => res.item);
+    }
+
+    return result;
+  }, [categories, filterStatus, searchTerm]);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -463,7 +488,7 @@ export default function AdminCategories() {
         onOpenChange={(open) => {
           setIsAddModalOpen(open);
           if (!open) {
-            form.reset();
+            form.reset({ name: "", slug: "", parent_id: "none", status: true });
             setEditId(null);
           }
         }}
@@ -593,7 +618,7 @@ export default function AdminCategories() {
                   onClick={() => {
                     setIsAddModalOpen(false);
                     setEditId(null);
-                    form.reset();
+                    form.reset({ name: "", slug: "", parent_id: "none", status: true });
                   }}
                   className="border-slate-200"
                 >
