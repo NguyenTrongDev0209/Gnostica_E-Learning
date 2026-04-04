@@ -18,12 +18,23 @@ public class CategoryService {
     @Autowired
     private CategoryRepository categoryRepository;
 
+
     public List<CategoryResponseDTO> getAllCategories() {
         List<Category> parents = categoryRepository.findByParentIsNull();
         return parents.stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
+    
     public CategoryResponseDTO createCategory(CategoryRequest request) {
+
+        //cat chuoi 2 dau
+        //tach tung chu cua chuoi
+        //ghep thanh cum viet thuong
+        //viet hoa chu cai dau cua danh muc
+        if (request.getName() != null && !request.getName().trim().isEmpty()) {
+            String formattedName = request.getName().trim().replaceAll("\\s+", " ").toLowerCase();
+            request.setName(Character.toUpperCase(formattedName.charAt(0)) + formattedName.substring(1));
+        }
 
         if (categoryRepository.existsByName(request.getName())) {
             throw new RuntimeException("Tên danh mục đã tồn tại");
@@ -50,8 +61,18 @@ public class CategoryService {
     }
 
     public CategoryResponseDTO updateCategory(Integer id, CategoryRequest request) {
+
+        //cat chuoi 2 dau
+        //tach tung chu cua chuoi
+        //ghep thanh cum viet thuong
+        //viet hoa chu cai dau cua danh muc
+        if (request.getName() != null && !request.getName().trim().isEmpty()) {
+            String formattedName = request.getName().trim().replaceAll("\\s+", " ").toLowerCase();
+            request.setName(Character.toUpperCase(formattedName.charAt(0)) + formattedName.substring(1));
+        }
+        
         Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Danh mục không tồn tại"));
+                .orElseThrow(() -> new RuntimeException("Danh mục không tồn tại"));        
 
         if (!category.getName().equals(request.getName()) && categoryRepository.existsByName(request.getName())) {
             throw new RuntimeException("Tên danh mục đã tồn tại");
