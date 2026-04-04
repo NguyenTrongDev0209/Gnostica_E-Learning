@@ -1,14 +1,12 @@
 package com.gnostica.dto;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Getter
-@Setter
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class ConfirmWebhookRequestBody {
   private String webhookUrl;
-
-  public ConfirmWebhookRequestBody(String webhookUrl) {
-    this.webhookUrl = webhookUrl;
-  }
 }

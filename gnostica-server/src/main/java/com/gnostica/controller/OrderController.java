@@ -9,51 +9,29 @@ import org.springframework.web.bind.annotation.*;
 
 import com.gnostica.dto.ApiResponse;
 import com.gnostica.dto.CreatePaymentLinkRequestBody;
+import com.gnostica.service.OrderService;
 
-import vn.payos.PayOS;
 import vn.payos.core.FileDownloadResponse;
 import vn.payos.exception.APIException;
-import vn.payos.model.v2.paymentRequests.CreatePaymentLinkRequest;
 import vn.payos.model.v2.paymentRequests.CreatePaymentLinkResponse;
 import vn.payos.model.v2.paymentRequests.PaymentLink;
-import vn.payos.model.v2.paymentRequests.PaymentLinkItem;
 import vn.payos.model.v2.paymentRequests.invoices.InvoicesInfo;
 import vn.payos.model.webhooks.ConfirmWebhookResponse;
 
 @RestController
 @RequestMapping("/order")
 public class OrderController {
-  private final PayOS payOS;
+  private final OrderService orderService;
 
-  public OrderController(PayOS payOS) {
-    super();
-    this.payOS = payOS;
+  public OrderController(OrderService orderService) {
+    this.orderService = orderService;
   }
 
   @PostMapping(path = "/create")
   public ApiResponse<CreatePaymentLinkResponse> createPaymentLink(
-      @RequestBody CreatePaymentLinkRequestBody RequestBody) {
+      @RequestBody CreatePaymentLinkRequestBody requestBody) {
     try {
-      final String productName = RequestBody.getProductName();
-      final String description = RequestBody.getDescription();
-      final String returnUrl = RequestBody.getReturnUrl();
-      final String cancelUrl = RequestBody.getCancelUrl();
-      final long price = RequestBody.getPrice();
-      long orderCode = System.currentTimeMillis() / 1000;
-      PaymentLinkItem item =
-          PaymentLinkItem.builder().name(productName).quantity(1).price(price).build();
-
-      CreatePaymentLinkRequest paymentData =
-          CreatePaymentLinkRequest.builder()
-              .orderCode(orderCode)
-              .description(description)
-              .amount(price)
-              .item(item)
-              .returnUrl(returnUrl)
-              .cancelUrl(cancelUrl)
-              .build();
-
-      CreatePaymentLinkResponse data = payOS.paymentRequests().create(paymentData);
+      CreatePaymentLinkResponse data = orderService.createPaymentLink(requestBody);
       return ApiResponse.success(data);
     } catch (Exception e) {
       e.printStackTrace();
@@ -64,7 +42,7 @@ public class OrderController {
   @GetMapping(path = "/{orderId}")
   public ApiResponse<PaymentLink> getOrderById(@PathVariable("orderId") long orderId) {
     try {
-      PaymentLink order = payOS.paymentRequests().get(orderId);
+      PaymentLink order = orderService.getOrderById(orderId);
       return ApiResponse.success("ok", order);
     } catch (Exception e) {
       e.printStackTrace();
@@ -75,7 +53,7 @@ public class OrderController {
   @PutMapping(path = "/{orderId}")
   public ApiResponse<PaymentLink> cancelOrder(@PathVariable("orderId") long orderId) {
     try {
-      PaymentLink order = payOS.paymentRequests().cancel(orderId, "change my mind");
+      PaymentLink order = orderService.cancelOrder(orderId, "change my mind");
       return ApiResponse.success("ok", order);
     } catch (Exception e) {
       e.printStackTrace();
@@ -87,7 +65,7 @@ public class OrderController {
   public ApiResponse<ConfirmWebhookResponse> confirmWebhook(
       @RequestBody Map<String, String> requestBody) {
     try {
-      ConfirmWebhookResponse result = payOS.webhooks().confirm(requestBody.get("webhookUrl"));
+      ConfirmWebhookResponse result = orderService.confirmWebhook(requestBody.get("webhookUrl"));
       return ApiResponse.success("ok", result);
     } catch (Exception e) {
       e.printStackTrace();
@@ -98,7 +76,7 @@ public class OrderController {
   @GetMapping(path = "/{orderId}/invoices")
   public ApiResponse<InvoicesInfo> retrieveInvoices(@PathVariable("orderId") long orderId) {
     try {
-      InvoicesInfo invoicesInfo = payOS.paymentRequests().invoices().get(orderId);
+      InvoicesInfo invoicesInfo = orderService.retrieveInvoices(orderId);
       return ApiResponse.success("ok", invoicesInfo);
     } catch (Exception e) {
       e.printStackTrace();
@@ -110,8 +88,7 @@ public class OrderController {
   public ResponseEntity<?> downloadInvoice(
       @PathVariable("orderId") long orderId, @PathVariable("invoiceId") String invoiceId) {
     try {
-      FileDownloadResponse invoiceFile =
-          payOS.paymentRequests().invoices().download(invoiceId, orderId);
+      FileDownloadResponse invoiceFile = orderService.downloadInvoice(invoiceId, orderId);
 
       if (invoiceFile == null || invoiceFile.getData() == null) {
         return ResponseEntity.status(404).body(ApiResponse.error("invoice not found or empty"));
