@@ -13,14 +13,12 @@ import vn.payos.model.v1.payouts.PayoutRequests;
 import vn.payos.model.v1.payouts.batch.PayoutBatchItem;
 import vn.payos.model.v1.payouts.batch.PayoutBatchRequest;
 import vn.payos.model.v1.payoutsAccount.PayoutAccountInfo;
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class PayoutsService {
     private final PayOS payOS;
-
-    public PayoutsService(PayOS payOS) {
-        this.payOS = payOS;
-    }
 
     public Payout createPayout(PayoutRequests body) throws Exception {
         if (body.getReferenceId() == null || body.getReferenceId().isEmpty()) {

@@ -13,5 +13,4 @@ public class CreatePaymentLinkRequestBody {
   private String returnUrl;
   private Long price;
   private String cancelUrl;
-
 }

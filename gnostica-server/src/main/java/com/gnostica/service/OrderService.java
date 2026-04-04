@@ -11,14 +11,12 @@ import vn.payos.model.v2.paymentRequests.invoices.InvoicesInfo;
 import vn.payos.model.webhooks.ConfirmWebhookResponse;
 
 import com.gnostica.dto.CreatePaymentLinkRequestBody;
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class OrderService {
     private final PayOS payOS;
-
-    public OrderService(PayOS payOS) {
-        this.payOS = payOS;
-    }
 
     public CreatePaymentLinkResponse createPaymentLink(CreatePaymentLinkRequestBody requestBody) throws Exception {
         final String productName = requestBody.getProductName();
@@ -27,13 +25,17 @@ public class OrderService {
         final String cancelUrl = requestBody.getCancelUrl();
         final long price = requestBody.getPrice();
         long orderCode = System.currentTimeMillis() / 1000;
-        
-        PaymentLinkItem item = PaymentLinkItem.builder().name(productName).quantity(1).price((int)price).build();
+
+        PaymentLinkItem item = PaymentLinkItem.builder()
+                .name(productName)
+                .quantity(1)
+                .price(price)
+                .build();
 
         CreatePaymentLinkRequest paymentData = CreatePaymentLinkRequest.builder()
                 .orderCode(orderCode)
                 .description(description)
-                .amount((int)price)
+                .amount(price)
                 .item(item)
                 .returnUrl(returnUrl)
                 .cancelUrl(cancelUrl)

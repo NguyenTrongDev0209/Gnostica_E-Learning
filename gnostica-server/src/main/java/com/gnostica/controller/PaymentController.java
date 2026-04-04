@@ -9,15 +9,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import vn.payos.model.webhooks.WebhookData;
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/payment")
+@RequiredArgsConstructor
 public class PaymentController {
   private final PaymentService paymentService;
-
-  public PaymentController(PaymentService paymentService) {
-    this.paymentService = paymentService;
-  }
 
   @PostMapping(path = "/payos_transfer_handler")
   public ApiResponse<WebhookData> payosTransferHandler(@RequestBody Object body)

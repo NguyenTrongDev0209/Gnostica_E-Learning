@@ -16,15 +16,13 @@ import vn.payos.model.v1.payouts.Payout;
 import vn.payos.model.v1.payouts.PayoutRequests;
 import vn.payos.model.v1.payouts.batch.PayoutBatchRequest;
 import vn.payos.model.v1.payoutsAccount.PayoutAccountInfo;
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/payouts")
+@RequiredArgsConstructor
 public class PayoutsController {
   private final PayoutsService payoutsService;
-
-  public PayoutsController(PayoutsService payoutsService) {
-    this.payoutsService = payoutsService;
-  }
 
   @PostMapping("/create")
   public ApiResponse<Payout> create(@RequestBody PayoutRequests body) {
