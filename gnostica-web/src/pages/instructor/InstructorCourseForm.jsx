@@ -1,19 +1,49 @@
 import React from "react";
-import { useForm, FormProvider, useFieldArray, useFormContext, useWatch, Controller } from "react-hook-form";
+import {
+  useForm,
+  FormProvider,
+  useFieldArray,
+  useFormContext,
+  useWatch,
+  Controller,
+} from "react-hook-form";
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useNavigate } from "react-router-dom";
-import { Plus, Trash2, GripVertical, Save, ArrowLeft, ArrowRight, Video, CircleFadingArrowUp } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  GripVertical,
+  Save,
+  ArrowLeft,
+  ArrowRight,
+  Video,
+  CircleFadingArrowUp,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectLabel,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import categoryService from "@/services/categoryService";
 
 // ==========================================
 // THIẾT LẬP ZOD SCHEMA
@@ -32,6 +62,7 @@ const sectionSchema = z.object({
 
 export const courseSchema = z.object({
   title: z.string().min(1, "Tên khóa học là bắt buộc"),
+  slug: z.string().min(1, "Slug không được để trống"),
   categoryId: z.string().min(1, "Vui lòng chọn danh mục"),
   level: z.string().min(1, "Vui lòng chọn cấp độ"),
   description: z.string().optional(),
@@ -52,6 +83,7 @@ export default function InstructorCourseForm() {
     resolver: zodResolver(courseSchema),
     defaultValues: {
       title: "",
+      slug: "",
       categoryId: "",
       level: "",
       description: "",
@@ -86,18 +118,29 @@ export default function InstructorCourseForm() {
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Tạo Mới Khóa Học</h1>
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+              Tạo Mới Khóa Học
+            </h1>
             <p className="text-sm text-slate-500 mt-0.5">
               Thiết lập thông tin nền tảng, thiết kế nội dung và định giá
             </p>
           </div>
         </div>
-        <button
-          onClick={methods.handleSubmit(onSubmit, onError)}
-          className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold h-10 px-6 rounded-lg shadow-none transition-colors"
-        >
-          <Save size={18} /> Lưu nháp
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={methods.handleSubmit(onSubmit, onError)}
+            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold h-10 px-6 rounded-lg shadow-none transition-colors"
+          >
+            <Save size={18} /> Lưu nháp
+          </button>
+
+          <button
+            onClick={methods.handleSubmit(onSubmit, onError)}
+            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold h-10 px-6 rounded-lg shadow-none transition-colors"
+          >
+            <Save size={18} /> Đăng khóa học
+          </button>
+        </div>
       </div>
 
       {/* Form Area */}
@@ -107,20 +150,36 @@ export default function InstructorCourseForm() {
             <CourseStepper activeTab={activeTab} onTabChange={setActiveTab} />
           </div>
 
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsContent value="basic" className="bg-white p-6 md:p-8 rounded-xl border border-slate-200 shadow-sm focus-visible:outline-none focus-visible:ring-0 mt-0">
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="w-full"
+          >
+            <TabsContent
+              value="basic"
+              className="bg-white p-6 md:p-8 rounded-xl border border-slate-200 shadow-sm focus-visible:outline-none focus-visible:ring-0 mt-0"
+            >
               <BasicInfoTab />
             </TabsContent>
 
-            <TabsContent value="curriculum" className="bg-white p-6 md:p-8 rounded-xl border border-slate-200 shadow-sm focus-visible:outline-none focus-visible:ring-0 mt-0">
+            <TabsContent
+              value="curriculum"
+              className="bg-white p-6 md:p-8 rounded-xl border border-slate-200 shadow-sm focus-visible:outline-none focus-visible:ring-0 mt-0"
+            >
               <CurriculumTab />
             </TabsContent>
 
-            <TabsContent value="media" className="bg-white p-6 md:p-8 rounded-xl border border-slate-200 shadow-sm focus-visible:outline-none focus-visible:ring-0 mt-0">
+            <TabsContent
+              value="media"
+              className="bg-white p-6 md:p-8 rounded-xl border border-slate-200 shadow-sm focus-visible:outline-none focus-visible:ring-0 mt-0"
+            >
               <MediaTab />
             </TabsContent>
 
-            <TabsContent value="pricing" className="bg-white p-6 md:p-8 rounded-xl border border-slate-200 shadow-sm focus-visible:outline-none focus-visible:ring-0 mt-0">
+            <TabsContent
+              value="pricing"
+              className="bg-white p-6 md:p-8 rounded-xl border border-slate-200 shadow-sm focus-visible:outline-none focus-visible:ring-0 mt-0"
+            >
               <PricingTab />
             </TabsContent>
           </Tabs>
@@ -132,7 +191,12 @@ export default function InstructorCourseForm() {
                 <button
                   type="button"
                   onClick={() => {
-                    const sequence = ["basic", "curriculum", "media", "pricing"];
+                    const sequence = [
+                      "basic",
+                      "curriculum",
+                      "media",
+                      "pricing",
+                    ];
                     const currentIdx = sequence.indexOf(activeTab);
                     if (currentIdx > 0) setActiveTab(sequence[currentIdx - 1]);
                   }}
@@ -148,10 +212,16 @@ export default function InstructorCourseForm() {
                 <button
                   type="button"
                   onClick={() => {
-                    const sequence = ["basic", "curriculum", "media", "pricing"];
+                    const sequence = [
+                      "basic",
+                      "curriculum",
+                      "media",
+                      "pricing",
+                    ];
                     const currentIdx = sequence.indexOf(activeTab);
-                    if (currentIdx < sequence.length - 1) setActiveTab(sequence[currentIdx + 1]);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    if (currentIdx < sequence.length - 1)
+                      setActiveTab(sequence[currentIdx + 1]);
+                    window.scrollTo({ top: 0, behavior: "smooth" });
                   }}
                   className="flex items-center gap-2 h-11 px-8 rounded-lg font-bold bg-slate-900 text-white hover:bg-slate-800 transition-all shadow-md shadow-slate-100"
                 >
@@ -181,33 +251,66 @@ function CourseStepper({ activeTab, onTabChange }) {
   const formValues =
     useWatch({
       control,
-      name: ["title", "description", "sections", "thumbnail", "promoVideo", "price"],
+      name: [
+        "title",
+        "description",
+        "sections",
+        "thumbnail",
+        "promoVideo",
+        "price",
+      ],
     }) || [];
 
   const steps = React.useMemo(() => {
     // Basic Info Progress
     const basicFields = [formValues[0], formValues[1]];
-    const basicFilled = basicFields.filter(f => f && f.length > 0).length;
+    const basicFilled = basicFields.filter((f) => f && f.length > 0).length;
     const basicPercent = (basicFilled / 2) * 100;
 
     // Curriculum Progress (at least one section with title)
     const sections = formValues[2] || [];
-    const curriculumPercent = sections.some(s => s.title && s.title.length > 0) ? 100 : 0;
+    const curriculumPercent = sections.some(
+      (s) => s.title && s.title.length > 0,
+    )
+      ? 100
+      : 0;
 
     // Media Progress (thumbnail and promoVideo)
     const mediaFields = [formValues[3], formValues[4]];
-    const mediaFilled = mediaFields.filter(f => f !== null && f !== undefined).length;
+    const mediaFilled = mediaFields.filter(
+      (f) => f !== null && f !== undefined,
+    ).length;
     const mediaPercent = (mediaFilled / 2) * 100;
 
     // Pricing Progress
     const price = formValues[5];
-    const pricingPercent = (price && price > 0) ? 100 : 0;
+    const pricingPercent = price && price > 0 ? 100 : 0;
 
     return [
-      { id: "basic", label: "Thông tin cơ bản", step: 1, progress: basicPercent },
-      { id: "curriculum", label: "Nội dung bài học", step: 2, progress: curriculumPercent },
-      { id: "media", label: "Hình ảnh & Media", step: 3, progress: mediaPercent },
-      { id: "pricing", label: "Định giá & Cài đặt", step: 4, progress: pricingPercent },
+      {
+        id: "basic",
+        label: "Thông tin cơ bản",
+        step: 1,
+        progress: basicPercent,
+      },
+      {
+        id: "curriculum",
+        label: "Nội dung bài học",
+        step: 2,
+        progress: curriculumPercent,
+      },
+      {
+        id: "media",
+        label: "Hình ảnh & Media",
+        step: 3,
+        progress: mediaPercent,
+      },
+      {
+        id: "pricing",
+        label: "Định giá & Cài đặt",
+        step: 4,
+        progress: pricingPercent,
+      },
     ];
   }, [formValues]);
 
@@ -263,17 +366,28 @@ function CourseStepper({ activeTab, onTabChange }) {
                 <div
                   className={`
                     w-[28px] h-[28px] rounded-full flex items-center justify-center font-bold text-sm z-10 transition-all duration-300
-                    ${isActive
-                      ? "bg-green-600 text-white shadow-lg shadow-green-100 scale-105"
-                      : isCompleted
-                        ? "bg-green-500 text-white"
-                        : "bg-white text-slate-300"
+                    ${
+                      isActive
+                        ? "bg-green-600 text-white shadow-lg shadow-green-100 scale-105"
+                        : isCompleted
+                          ? "bg-green-500 text-white"
+                          : "bg-white text-slate-300"
                     }
                   `}
                 >
                   {isCompleted ? (
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="3"
+                        d="M5 13l4 4L19 7"
+                      />
                     </svg>
                   ) : (
                     s.step
@@ -283,7 +397,9 @@ function CourseStepper({ activeTab, onTabChange }) {
 
               {/* Label */}
               <div className="absolute -bottom-6 whitespace-nowrap text-[11px] font-bold transition-all duration-300 text-center uppercase tracking-tighter">
-                <p className={`${isActive ? "text-green-700 scale-110" : isCompleted ? "text-green-600" : "text-slate-400 opacity-60"}`}>
+                <p
+                  className={`${isActive ? "text-green-700 scale-110" : isCompleted ? "text-green-600" : "text-slate-400 opacity-60"}`}
+                >
                   {s.label}
                 </p>
               </div>
@@ -307,7 +423,6 @@ function CourseStepper({ activeTab, onTabChange }) {
   );
 }
 
-
 // ==========================================
 // SUB-COMPONENTS CHO TỪNG TAB
 // ==========================================
@@ -321,24 +436,78 @@ const quillModules = {
 };
 
 function BasicInfoTab() {
-  const { register, control, formState: { errors } } = useFormContext();
+  const {
+    register,
+    control,
+    setValue,
+    formState: { errors },
+  } = useFormContext();
+
+  const title = useWatch({ control, name: "title" });
+  const [categories, setCategories] = React.useState([]);
+
+  React.useEffect(() => {
+    categoryService.getAllCategories(1, 1000, "", "active").then((res) => {
+      // Backend returns ResponseDTO: { code, message, data: { content: [...] } } structure
+      const rootCategories = res?.data?.content || [];
+      setCategories(rootCategories);
+    }).catch(err => console.error(err));
+  }, []);
+
+  React.useEffect(() => {
+    if (title && typeof title === "string") {
+      const generatedSlug = title.toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[đĐ]/g, "d")
+        .replace(/[^a-z0-9\s-]/g, "")
+        .trim()
+        .replace(/\s+/g, "-")
+        .replace(/-+/g, "-");
+      setValue("slug", generatedSlug, { shouldValidate: true });
+    }
+  }, [title, setValue]);
 
   return (
-    <div className="space-y-6 max-w-2xl">
+    <div className="space-y-6 w-full">
       <div>
-        <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2 mb-4">THÔNG TIN CƠ BẢN</h3>
+        <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2 mb-4">
+          THÔNG TIN CƠ BẢN
+        </h3>
       </div>
 
-      <div className="space-y-2">
-        <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
-          Tên Khóa Học <span className="text-red-500">*</span>
-        </label>
-        <Input
-          className="h-11 border-slate-200 focus:border-green-500 font-medium"
-          placeholder="Ví dụ: React Native Masterclass 2026..."
-          {...register("title")}
-        />
-        {errors.title && <p className="text-xs font-bold text-red-500 mt-1.5 pl-1">{errors.title.message}</p>}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-2">
+          <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
+            Tên Khóa Học <span className="text-red-500">*</span>
+          </label>
+          <Input
+            className="h-11 border-slate-200 focus:border-green-500 font-medium"
+            placeholder="Ví dụ: React Native Masterclass 2026..."
+            {...register("title")}
+          />
+          {errors.title && (
+            <p className="text-xs font-bold text-red-500 mt-1.5 pl-1">
+              {errors.title.message}
+            </p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
+            Slug <span className="text-red-500">*</span>
+          </label>
+          <Input
+            className="h-11 border-slate-200 focus:border-green-500 font-medium bg-slate-50"
+            placeholder="react-native-masterclass-2026"
+            {...register("slug")}
+          />
+          {errors.slug && (
+            <p className="text-xs font-bold text-red-500 mt-1.5 pl-1">
+              {errors.slug.message}
+            </p>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -350,21 +519,35 @@ function BasicInfoTab() {
             name="categoryId"
             control={control}
             render={({ field }) => (
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                 <SelectTrigger className="w-full !h-11 border-slate-200 focus:border-green-500 font-medium bg-white data-[state=open]:ring-1 data-[state=open]:ring-green-500">
                   <SelectValue placeholder="Chọn danh mục" />
                 </SelectTrigger>
                 <SelectContent className="bg-white">
-                  <SelectItem value="web-dev">Lập trình Web</SelectItem>
-                  <SelectItem value="mobile-dev">Lập trình Mobile</SelectItem>
-                  <SelectItem value="data-science">Khoa học dữ liệu</SelectItem>
-                  <SelectItem value="design">Thiết kế UI/UX</SelectItem>
-                  <SelectItem value="marketing">Marketing Online</SelectItem>
+                  {categories.map(parent => {
+                     const children = (parent.subcategories || []).filter(c => c.status === true);
+                     if (children.length > 0) {
+                         return (
+                           <SelectGroup key={parent.id}>
+                             <SelectLabel className="font-bold text-slate-900 border-b border-slate-50 pb-1 mb-1">{parent.name}</SelectLabel>
+                             {children.map(child => (
+                               <SelectItem key={child.id} value={child.id.toString()} className="pl-6">{child.name}</SelectItem>
+                             ))}
+                           </SelectGroup>
+                         );
+                     } else {
+                         return <SelectItem key={parent.id} value={parent.id.toString()} className="font-bold">{parent.name}</SelectItem>;
+                     }
+                  })}
                 </SelectContent>
               </Select>
             )}
           />
-          {errors.categoryId && <p className="text-xs font-bold text-red-500 mt-1.5 pl-1">{errors.categoryId.message}</p>}
+          {errors.categoryId && (
+            <p className="text-xs font-bold text-red-500 mt-1.5 pl-1">
+              {errors.categoryId.message}
+            </p>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -375,7 +558,7 @@ function BasicInfoTab() {
             name="level"
             control={control}
             render={({ field }) => (
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                 <SelectTrigger className="w-full !h-11 border-slate-200 focus:border-green-500 font-medium bg-white data-[state=open]:ring-1 data-[state=open]:ring-green-500">
                   <SelectValue placeholder="Chọn cấp độ" />
                 </SelectTrigger>
@@ -388,7 +571,11 @@ function BasicInfoTab() {
               </Select>
             )}
           />
-          {errors.level && <p className="text-xs font-bold text-red-500 mt-1.5 pl-1">{errors.level.message}</p>}
+          {errors.level && (
+            <p className="text-xs font-bold text-red-500 mt-1.5 pl-1">
+              {errors.level.message}
+            </p>
+          )}
         </div>
       </div>
 
@@ -425,8 +612,12 @@ function MediaTab() {
   return (
     <div className="space-y-8 max-w-2xl">
       <div>
-        <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2 mb-4">Hình Ảnh & Media</h3>
-        <p className="text-xs text-slate-500">Giới thiệu khóa học một cách trực quan để thu hút học viên.</p>
+        <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2 mb-4">
+          Hình Ảnh & Media
+        </h3>
+        <p className="text-xs text-slate-500">
+          Giới thiệu khóa học một cách trực quan để thu hút học viên.
+        </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -435,13 +626,25 @@ function MediaTab() {
             Ảnh đại diện khóa học (Thumbnail)
           </label>
           <div
-            onClick={() => setValue("thumbnail", thumbnail ? null : "mock-url", { shouldValidate: true })}
+            onClick={() =>
+              setValue("thumbnail", thumbnail ? null : "mock-url", {
+                shouldValidate: true,
+              })
+            }
             className={`aspect-video rounded-xl bg-slate-50 border-2 border-dashed flex flex-col items-center justify-center p-4 transition-all cursor-pointer group ${thumbnail ? "border-green-500 bg-green-50" : "border-slate-200 hover:bg-slate-100/50 hover:border-green-200"}`}
           >
-            <div className={`w-12 h-12 rounded-full bg-white flex items-center justify-center text-slate-400 group-hover:text-green-500 shadow-sm border border-slate-100 mb-2 ${thumbnail ? "text-green-500" : ""}`}>
-              {thumbnail ? <CheckIcon className="w-6 h-6" /> : <Plus className="w-6 h-6" />}
+            <div
+              className={`w-12 h-12 rounded-full bg-white flex items-center justify-center text-slate-400 group-hover:text-green-500 shadow-sm border border-slate-100 mb-2 ${thumbnail ? "text-green-500" : ""}`}
+            >
+              {thumbnail ? (
+                <CheckIcon className="w-6 h-6" />
+              ) : (
+                <Plus className="w-6 h-6" />
+              )}
             </div>
-            <p className="text-[11px] font-bold text-slate-500">{thumbnail ? "Đã tải lên" : "Nhấn để tải lên (1280x720)"}</p>
+            <p className="text-[11px] font-bold text-slate-500">
+              {thumbnail ? "Đã tải lên" : "Nhấn để tải lên (1280x720)"}
+            </p>
           </div>
         </div>
 
@@ -450,13 +653,25 @@ function MediaTab() {
             Video giới thiệu (Promo Video)
           </label>
           <div
-            onClick={() => setValue("promoVideo", promoVideo ? null : "mock-url", { shouldValidate: true })}
+            onClick={() =>
+              setValue("promoVideo", promoVideo ? null : "mock-url", {
+                shouldValidate: true,
+              })
+            }
             className={`aspect-video rounded-xl bg-slate-50 border-2 border-dashed flex flex-col items-center justify-center p-4 transition-all cursor-pointer group ${promoVideo ? "border-green-500 bg-green-50" : "border-slate-200 hover:bg-slate-100/50 hover:border-green-200"}`}
           >
-            <div className={`w-12 h-12 rounded-full bg-white flex items-center justify-center text-slate-400 group-hover:text-green-500 shadow-sm border border-slate-100 mb-2 ${promoVideo ? "text-green-500" : ""}`}>
-              {promoVideo ? <CheckIcon className="w-6 h-6" /> : <Plus className="w-6 h-6" />}
+            <div
+              className={`w-12 h-12 rounded-full bg-white flex items-center justify-center text-slate-400 group-hover:text-green-500 shadow-sm border border-slate-100 mb-2 ${promoVideo ? "text-green-500" : ""}`}
+            >
+              {promoVideo ? (
+                <CheckIcon className="w-6 h-6" />
+              ) : (
+                <Plus className="w-6 h-6" />
+              )}
             </div>
-            <p className="text-[11px] font-bold text-slate-500">{promoVideo ? "Đã tải lên" : "Nhấn để tải video (MP4, max 50MB)"}</p>
+            <p className="text-[11px] font-bold text-slate-500">
+              {promoVideo ? "Đã tải lên" : "Nhấn để tải video (MP4, max 50MB)"}
+            </p>
           </div>
         </div>
       </div>
@@ -476,7 +691,9 @@ function PricingTab() {
         <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2 mb-4">
           Định giá & Cài đặt
         </h3>
-        <p className="text-xs text-slate-500">Thiết lập giá bán khóa học cho học viên.</p>
+        <p className="text-xs text-slate-500">
+          Thiết lập giá bán khóa học cho học viên.
+        </p>
       </div>
 
       <div className="space-y-2">
@@ -492,7 +709,9 @@ function PricingTab() {
           {...register("price")}
         />
         {errors.price && (
-          <p className="text-xs font-bold text-red-500 mt-1.5 pl-1">{errors.price.message}</p>
+          <p className="text-xs font-bold text-red-500 mt-1.5 pl-1">
+            {errors.price.message}
+          </p>
         )}
       </div>
     </div>
@@ -501,20 +720,31 @@ function PricingTab() {
 
 function CheckIcon({ className = "w-6 h-6" }) {
   return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+    <svg
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="3"
+        d="M5 13l4 4L19 7"
+      />
     </svg>
   );
 }
-
-
 
 // ------------------------------------------
 // XỬ LÝ NESTED TAB CHO CURRICULUM
 // ------------------------------------------
 
 function CurriculumTab() {
-  const { control, formState: { errors } } = useFormContext();
+  const {
+    control,
+    formState: { errors },
+  } = useFormContext();
   const { fields, append, remove } = useFieldArray({
     control,
     name: "sections",
@@ -524,8 +754,12 @@ function CurriculumTab() {
     <div className="space-y-6">
       <div className="flex justify-between items-center border-b border-slate-100 pb-4">
         <div>
-          <h3 className="text-lg font-bold text-slate-900">Khung Chương Trình</h3>
-          <p className="text-xs font-medium text-slate-500 mt-1">Xây dựng kiến trúc bài giảng rõ ràng, rành mạch.</p>
+          <h3 className="text-lg font-bold text-slate-900">
+            Khung Chương Trình
+          </h3>
+          <p className="text-xs font-medium text-slate-500 mt-1">
+            Xây dựng kiến trúc bài giảng rõ ràng, rành mạch.
+          </p>
         </div>
         <button
           type="button"
@@ -544,7 +778,11 @@ function CurriculumTab() {
 
       {/* Dùng ScrollArea tạo workspace độc lập giúp đỡ vướng víu footer */}
       <ScrollArea className="h-[550px] pr-4">
-        <Accordion type="multiple" defaultValue={[fields[0]?.id]} className="space-y-4">
+        <Accordion
+          type="multiple"
+          defaultValue={[fields[0]?.id]}
+          className="space-y-4"
+        >
           {fields.map((section, sectionIdx) => (
             <AccordionItem
               value={section.id}
@@ -591,7 +829,10 @@ function CurriculumTab() {
 // COMPONENT LESSON QUẢN LÝ ITEM CON
 // ------------------------------------------
 function SectionItem({ sectionIndex, control }) {
-  const { register, formState: { errors } } = useFormContext();
+  const {
+    register,
+    formState: { errors },
+  } = useFormContext();
   const { fields, append, remove } = useFieldArray({
     control,
     name: `sections.${sectionIndex}.lessons`,
@@ -644,29 +885,41 @@ function SectionItem({ sectionIndex, control }) {
 
               <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-1">Tiêu đề bài học</label>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-1">
+                    Tiêu đề bài học
+                  </label>
                   <Input
                     className="h-9 font-bold border-slate-200 bg-white focus:ring-0 focus:border-green-500 transition-all"
                     placeholder={`Bài học ${lessonIdx + 1}`}
-                    {...register(`sections.${sectionIndex}.lessons.${lessonIdx}.title`)}
+                    {...register(
+                      `sections.${sectionIndex}.lessons.${lessonIdx}.title`,
+                    )}
                     autoComplete="off"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-1">Video URL (Gắn link mp4, yt)</label>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-1">
+                    Video URL (Gắn link mp4, yt)
+                  </label>
                   <div className="relative">
                     <Video className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 group-focus-within:text-green-500 transition-colors" />
                     <Input
                       className="h-9 pl-8 text-xs font-medium border-slate-200 bg-white focus:ring-0 focus:border-green-500 transition-all text-slate-600"
                       placeholder="https://example.com/video.mp4"
-                      {...register(`sections.${sectionIndex}.lessons.${lessonIdx}.videoUrl`)}
+                      {...register(
+                        `sections.${sectionIndex}.lessons.${lessonIdx}.videoUrl`,
+                      )}
                       autoComplete="off"
                     />
                   </div>
                 </div>
-                {errors.sections?.[sectionIndex]?.lessons?.[lessonIdx]?.title && (
+                {errors.sections?.[sectionIndex]?.lessons?.[lessonIdx]
+                  ?.title && (
                   <p className="text-xs font-bold text-red-500 pl-1 col-span-2">
-                    {errors.sections[sectionIndex].lessons[lessonIdx].title.message}
+                    {
+                      errors.sections[sectionIndex].lessons[lessonIdx].title
+                        .message
+                    }
                   </p>
                 )}
               </div>
