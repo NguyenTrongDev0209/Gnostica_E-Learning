@@ -4,19 +4,27 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.gnostica.dto.LoginRequest;
+import com.gnostica.dto.LoginResponse;
 import com.gnostica.dto.RegisterRequest;
 import com.gnostica.model.Account;
 import com.gnostica.model.Role;
 import com.gnostica.repository.AccountRepository;
 import com.gnostica.repository.RoleRepository;
+import com.gnostica.security.JwtProvider;
 import com.gnostica.service.AuthService;
+import com.gnostica.service.MailService;
+
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.security.SecureRandom;
-
-import com.gnostica.service.MailService;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +34,8 @@ public class AuthServiceImpl implements AuthService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final MailService mailService;
+    private final AuthenticationManager authenticationManager;
+    private final JwtProvider tokenProvider;
 
     @Override
     public Account register(RegisterRequest request) {
@@ -38,7 +48,7 @@ public class AuthServiceImpl implements AuthService {
         account.setEmail(request.getEmail());
         account.setPassword(passwordEncoder.encode(request.getPassword()));
         
-        //mặc định là student
+        //mặc định là user
         Role defaultRole = roleRepository.findByName("USER")
                 .orElseGet(() -> {
                    Role newRole = new Role();
@@ -68,20 +78,26 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public Account login(LoginRequest request) {
+    public LoginResponse login(LoginRequest request) {
+        // Principle 6: Login Flow
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+        );
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        String token = tokenProvider.generateToken(authentication);
+
         Account account = accountRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Email hoặc mật khẩu không chính xác!"));
+                .orElseThrow(() -> new RuntimeException("Lỗi hệ thống."));
 
-        if (!passwordEncoder.matches(request.getPassword(), account.getPassword())) {
-            throw new RuntimeException("Email hoặc mật khẩu không chính xác!");
-        }
-
-        if (!account.getActive()) {
-            throw new RuntimeException("Tài khoản chưa được xác thực. Vui lòng kiểm tra email.");
-        }
-
-        return account;
+        return LoginResponse.builder()
+                .token(token)
+                .email(account.getEmail())
+                .fullName(account.getFullName())
+                .role(account.getRole().getName())
+                .build();
     }
+
 
     @Override
     public boolean verifyOTP(String email, String code) {
