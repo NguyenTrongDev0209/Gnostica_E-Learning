@@ -1,13 +1,10 @@
 package com.gnostica.controller;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.gnostica.dto.LoginRequest;
+import com.gnostica.dto.LoginResponse;
 import com.gnostica.dto.RegisterRequest;
 import com.gnostica.dto.ResponseDTO;
 import com.gnostica.model.Account;
@@ -21,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*") 
 public class AuthController {
+
 
     private final AuthService authService;
 
@@ -45,11 +43,11 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest loginRequest) {
         try {
-            Account account = authService.login(loginRequest);
+            LoginResponse loginResponse = authService.login(loginRequest);
             return ResponseEntity.ok(ResponseDTO.builder()
                 .status(200)
                 .message("Đăng nhập thành công")
-                .data(account)
+                .data(loginResponse)
                 .build());
         } catch (Exception e) {
             return ResponseEntity.status(401).body(ResponseDTO.builder()
@@ -58,6 +56,7 @@ public class AuthController {
                 .build());
         }
     }
+
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest registerRequest) {
