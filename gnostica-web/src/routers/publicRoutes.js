@@ -8,9 +8,6 @@ import SearchPage from "@/pages/client/SearchPage";
 import ForumPage from "@/pages/client/ForumPage";
 import ForumDetail from "@/pages/client/ForumDetail";
 import UserProfile from "@/pages/client/UserProfile";
-import CheckoutPage from "@/pages/client/CheckoutPage";
-import PayosQR from "@/pages/client/PayosQR";
-import CheckoutResult from "@/pages/client/CheckoutResult";
 import TermsPage from "@/pages/client/TermsPage";
 import PrivacyPage from "@/pages/client/PrivacyPage";
 import Showcase from "@/pages/Showcase";
@@ -30,10 +27,6 @@ export const publicRoutes = {
     { path: "/courses/category/:categoryName", component: CourseCategory },
     { path: "/courses/:id", component: CourseDetail },
     { path: "/cart", component: CourseCart },
-    { path: "/checkout", component: CheckoutPage },
-    { path: "/checkout/payos", component: PayosQR },
-    { path: "/checkout/success", component: CheckoutResult },
-    { path: "/checkout/cancel", component: CheckoutResult },
     { path: "/search", component: SearchPage },
     { path: "/forum", component: ForumPage },
     { path: "/forum/:id", component: ForumDetail },

@@ -54,9 +54,16 @@ const INSTRUCTOR_MENU_GROUPS = [
   }
 ];
 
+import authService from "@/services/authService";
+
 export default function InstructorLayout() {
   const navigate = useNavigate();
   const location = useLocation();
+
+  const handleLogout = async () => {
+    await authService.logout();
+    navigate("/login");
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 flex">
@@ -119,6 +126,7 @@ export default function InstructorLayout() {
               </div>
             </div>
             <button
+              onClick={handleLogout}
               className="w-10 h-10 flex items-center justify-center rounded-lg text-slate-500 hover:bg-slate-800 hover:text-red-400 transition-all ml-2 hover:shadow-lg"
               title="Đăng xuất"
             >

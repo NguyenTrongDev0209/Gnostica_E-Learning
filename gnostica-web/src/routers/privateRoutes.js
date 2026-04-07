@@ -11,6 +11,10 @@ import Notifications from "@/pages/account/Notifications";
 import Settings from "@/pages/account/Settings";
 import ChangePassword from "@/pages/account/ChangePassword";
 
+import CheckoutPage from "@/pages/client/CheckoutPage";
+import PayosQR from "@/pages/client/PayosQR";
+import CheckoutResult from "@/pages/client/CheckoutResult";
+
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminUsers from "@/pages/admin/AdminUsers";
 import AdminCourses from "@/pages/admin/AdminCourses";
@@ -68,5 +72,11 @@ export const privateRoutes = {
   ],
   learning: [
     { path: "/learning/:id", component: LearningWorkspace },
+  ],
+  checkout: [
+    { path: "/checkout", component: CheckoutPage },
+    { path: "/checkout/payos", component: PayosQR },
+    { path: "/checkout/success", component: CheckoutResult },
+    { path: "/checkout/cancel", component: CheckoutResult },
   ],
 };

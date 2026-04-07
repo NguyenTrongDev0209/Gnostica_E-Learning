@@ -15,12 +15,16 @@ const OAuth2Callback = () => {
                 try {
                     const response = await axios.get(`http://localhost:8080/api/auth/user?email=${encodeURIComponent(email)}`);
                     console.log("Fetch user response:", response.data);
-                    if (response.data.status === 'success') {
+                    if (response.data.status === 200 || response.data.status === 'success') {
                         const user = response.data.data;
-                        localStorage.setItem('user', JSON.stringify(user));
+                        const roleName = (user.role?.name || user.role || 'USER').toUpperCase();
+                        
+                        // Chuẩn hóa dữ liệu user trước khi lưu vào localStorage (để role luôn là String)
+                        const normalizedUser = { ...user, role: roleName };
+                        localStorage.setItem('user', JSON.stringify(normalizedUser));
+                        
                         toast.success('Đăng nhập thành công!');
                         
-                        const roleName = user.role?.name?.toUpperCase() || 'USER';
                         setTimeout(() => {
                             if (roleName === 'ADMIN') {
                                 navigate('/admin');
