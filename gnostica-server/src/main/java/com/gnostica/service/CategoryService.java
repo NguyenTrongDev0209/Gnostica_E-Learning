@@ -59,6 +59,12 @@ public class CategoryService {
         if (request.getParent_id() != null) {
             Category parent = categoryRepository.findById(request.getParent_id())
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy danh mục cha"));
+            
+            // Business rule: Nếu danh mục cha ẩn, danh mục con không thể để trạng thái hoạt động
+            if (!parent.getStatus() && (request.getStatus() == null || request.getStatus())) {
+                throw new RuntimeException("Danh mục cha đang ẩn, không thể tạo danh mục con ở trạng thái hoạt động");
+            }
+            
             category.setParent(parent);
         }
 
@@ -90,11 +96,16 @@ public class CategoryService {
         category.setName(request.getName());
         category.setSlug(request.getSlug());
         if (request.getStatus() != null) {
+            // Business rule: Nếu danh mục cha hiện tại đang ẩn, không thể bật hoạt động cho danh mục con
+            if (request.getStatus() && category.getParent() != null && !category.getParent().getStatus()) {
+                throw new RuntimeException("Danh mục cha đang ẩn, không thể bật hoạt động cho danh mục con");
+            }
+
             category.setStatus(request.getStatus());
-            // Buisness: Nếu ẩn danh mục cha, tự động ẩn luôn các danh mục con
-            if (!request.getStatus() && category.getChildren() != null && !category.getChildren().isEmpty()) {
+            // Business logic: Đồng bộ trạng thái của tất cả danh mục con theo danh mục cha
+            if (category.getChildren() != null && !category.getChildren().isEmpty()) {
                 for (Category child : category.getChildren()) {
-                    child.setStatus(false);
+                    child.setStatus(request.getStatus());
                 }
                 categoryRepository.saveAll(category.getChildren());
             }
@@ -118,12 +129,18 @@ public class CategoryService {
     public void updateStatus(Integer id, Boolean status) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Danh mục không tồn tại"));
+
+        // Business rule: Nếu danh mục cha hiện tại đang ẩn, không thể bật hoạt động cho danh mục con
+        if (status && category.getParent() != null && !category.getParent().getStatus()) {
+            throw new RuntimeException("Danh mục cha đang ẩn, không thể bật hoạt động cho danh mục con");
+        }
+
         category.setStatus(status);
         
-        // Business rule: Nếu ẩn danh mục cha, tự động ẩn luôn các danh mục con
-        if (!status && category.getChildren() != null && !category.getChildren().isEmpty()) {
+        // Business rule: Đồng bộ trạng thái của tất cả danh mục con theo danh mục cha
+        if (category.getChildren() != null && !category.getChildren().isEmpty()) {
             for (Category child : category.getChildren()) {
-                child.setStatus(false);
+                child.setStatus(status);
             }
             categoryRepository.saveAll(category.getChildren());
         }

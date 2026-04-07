@@ -51,13 +51,19 @@ import categoryService from "@/services/categoryService";
 const lessonSchema = z.object({
   id: z.string().optional(),
   title: z.string().min(1, "Tên bài học không được để trống"),
-  videoUrl: z.string().optional(),
+  content: z.string().optional(),
+  videoFile: z.any().optional(),
+  createdAt: z.string().optional(),
+  updatedAt: z.string().optional(),
 });
 
 const sectionSchema = z.object({
   id: z.string().optional(),
   title: z.string().min(1, "Tên chương không được để trống"),
   lessons: z.array(lessonSchema).min(1, "Chương này phải có ít nhất 1 bài học"),
+  attachments: z.any().optional(),
+  createdAt: z.string().optional(),
+  updatedAt: z.string().optional(),
 });
 
 export const courseSchema = z.object({
@@ -66,10 +72,13 @@ export const courseSchema = z.object({
   categoryId: z.string().min(1, "Vui lòng chọn danh mục"),
   level: z.string().min(1, "Vui lòng chọn cấp độ"),
   description: z.string().optional(),
-  price: z.coerce.number().min(0, "Giá không hợp lệ"),
+  price: z.coerce.number().min(0, "Giá phải lớn hơn hoặc bằng 0"),
+  discount: z.coerce.number().min(0, "Giảm giá không được nhỏ hơn 0").max(100, "Giảm giá không được quá 100%").default(0),
   sections: z.array(sectionSchema).min(1, "Cần có ít nhất 1 chương học"),
   thumbnail: z.any().optional(),
   promoVideo: z.any().optional(),
+  createdAt: z.string().optional(),
+  updatedAt: z.string().optional(),
 });
 
 // ==========================================
@@ -88,14 +97,33 @@ export default function InstructorCourseForm() {
       level: "",
       description: "",
       price: 0,
-      sections: [{ title: "", lessons: [{ title: "" }] }],
+      discount: 0,
+      sections: [
+        {
+          title: "",
+          lessons: [{
+            title: "",
+            content: "",
+            videoFile: null,
+            createdAt: new Date().toISOString(),
+            updatedAt: null
+          }],
+          attachments: null,
+          createdAt: new Date().toISOString(),
+          updatedAt: null
+        }
+      ],
       thumbnail: null,
       promoVideo: null,
+      createdAt: new Date().toISOString(),
+      updatedAt: null,
     },
   });
 
   const onSubmit = (data) => {
-    console.log("Xử lý gọi API Submit:", data);
+    // Luôn cập nhật ngày cập nhật mới nhất khi submit
+    methods.setValue("updatedAt", new Date().toISOString());
+    console.log("Xử lý gọi API Submit:", { ...data, updatedAt: new Date().toISOString() });
     toast.success("Đã lưu khóa học thành công!");
     // setTimeout(() => navigate("/instructor/courses"), 1500);
   };
@@ -106,7 +134,7 @@ export default function InstructorCourseForm() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto py-6 animate-in fade-in duration-500">
+    <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 animate-in fade-in duration-500">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div className="flex items-center gap-3">
@@ -132,13 +160,6 @@ export default function InstructorCourseForm() {
             className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold h-10 px-6 rounded-lg shadow-none transition-colors"
           >
             <Save size={18} /> Lưu nháp
-          </button>
-
-          <button
-            onClick={methods.handleSubmit(onSubmit, onError)}
-            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold h-10 px-6 rounded-lg shadow-none transition-colors"
-          >
-            <Save size={18} /> Đăng khóa học
           </button>
         </div>
       </div>
@@ -366,12 +387,11 @@ function CourseStepper({ activeTab, onTabChange }) {
                 <div
                   className={`
                     w-[28px] h-[28px] rounded-full flex items-center justify-center font-bold text-sm z-10 transition-all duration-300
-                    ${
-                      isActive
-                        ? "bg-green-600 text-white shadow-lg shadow-green-100 scale-105"
-                        : isCompleted
-                          ? "bg-green-500 text-white"
-                          : "bg-white text-slate-300"
+                    ${isActive
+                      ? "bg-green-600 text-white shadow-lg shadow-green-100 scale-105"
+                      : isCompleted
+                        ? "bg-green-500 text-white"
+                        : "bg-white text-slate-300"
                     }
                   `}
                 >
@@ -464,7 +484,10 @@ function BasicInfoTab() {
         .trim()
         .replace(/\s+/g, "-")
         .replace(/-+/g, "-");
-      setValue("slug", generatedSlug, { shouldValidate: true });
+      setValue("slug", generatedSlug, { shouldValidate: false });
+    } else {
+      // Khi xóa hết tiêu đề, xóa luôn slug
+      setValue("slug", "", { shouldValidate: false });
     }
   }, [title, setValue]);
 
@@ -498,9 +521,10 @@ function BasicInfoTab() {
             Slug <span className="text-red-500">*</span>
           </label>
           <Input
-            className="h-11 border-slate-200 focus:border-green-500 font-medium bg-slate-50"
+            className="h-11 border-slate-200 bg-slate-50 font-medium cursor-not-allowed"
             placeholder="react-native-masterclass-2026"
             {...register("slug")}
+            readOnly
           />
           {errors.slug && (
             <p className="text-xs font-bold text-red-500 mt-1.5 pl-1">
@@ -509,6 +533,8 @@ function BasicInfoTab() {
           )}
         </div>
       </div>
+
+
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
@@ -525,19 +551,19 @@ function BasicInfoTab() {
                 </SelectTrigger>
                 <SelectContent className="bg-white">
                   {categories.map(parent => {
-                     const children = (parent.subcategories || []).filter(c => c.status === true);
-                     if (children.length > 0) {
-                         return (
-                           <SelectGroup key={parent.id}>
-                             <SelectLabel className="font-bold text-slate-900 border-b border-slate-50 pb-1 mb-1">{parent.name}</SelectLabel>
-                             {children.map(child => (
-                               <SelectItem key={child.id} value={child.id.toString()} className="pl-6">{child.name}</SelectItem>
-                             ))}
-                           </SelectGroup>
-                         );
-                     } else {
-                         return <SelectItem key={parent.id} value={parent.id.toString()} className="font-bold">{parent.name}</SelectItem>;
-                     }
+                    const children = (parent.subcategories || []).filter(c => c.status === true);
+                    if (children.length > 0) {
+                      return (
+                        <SelectGroup key={parent.id}>
+                          <SelectLabel className="font-bold text-slate-900 border-b border-slate-50 pb-1 mb-1">{parent.name}</SelectLabel>
+                          {children.map(child => (
+                            <SelectItem key={child.id} value={child.id.toString()} className="pl-6">{child.name}</SelectItem>
+                          ))}
+                        </SelectGroup>
+                      );
+                    } else {
+                      return <SelectItem key={parent.id} value={parent.id.toString()} className="font-bold">{parent.name}</SelectItem>;
+                    }
                   })}
                 </SelectContent>
               </Select>
@@ -577,6 +603,66 @@ function BasicInfoTab() {
             </p>
           )}
         </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
+              Ngày Tạo
+            </label>
+            <Controller
+              name="createdAt"
+              control={control}
+              render={({ field }) => {
+                const formattedDate = field.value
+                  ? new Date(field.value).toLocaleString("vi-VN", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit",
+                  })
+                  : "";
+                return (
+                  <Input
+                    className="h-11 border-slate-200 bg-slate-50 font-medium cursor-not-allowed"
+                    value={formattedDate}
+                    readOnly
+                  />
+                );
+              }}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
+              Ngày Cập Nhật
+            </label>
+            <Controller
+              name="updatedAt"
+              control={control}
+              render={({ field }) => {
+                const formattedDate = field.value
+                  ? new Date(field.value).toLocaleString("vi-VN", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit",
+                  })
+                  : "Chưa cập nhật";
+                return (
+                  <Input
+                    className="h-11 border-slate-200 bg-slate-50 font-medium cursor-not-allowed"
+                    value={formattedDate}
+                    readOnly
+                  />
+                );
+              }}
+            />
+          </div>
+        </div>
       </div>
 
       <div className="space-y-2">
@@ -610,7 +696,7 @@ function MediaTab() {
   const promoVideo = watch("promoVideo");
 
   return (
-    <div className="space-y-8 max-w-2xl">
+    <div className="space-y-8 max-w-4xl mx-auto">
       <div>
         <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2 mb-4">
           Hình Ảnh & Media
@@ -650,7 +736,7 @@ function MediaTab() {
 
         <div className="space-y-3">
           <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
-            Video giới thiệu (Promo Video)
+            Video giới thiệu (Promo Video) (Nếu có)*
           </label>
           <div
             onClick={() =>
@@ -682,37 +768,95 @@ function MediaTab() {
 function PricingTab() {
   const {
     register,
+    watch,
     formState: { errors },
   } = useFormContext();
 
+  const price = watch("price") || 0;
+  const discount = watch("discount") || 0;
+  const finalPrice = price - (price * discount) / 100;
+
   return (
-    <div className="space-y-6 max-w-2xl">
+    <div className="space-y-8 py-4">
       <div>
         <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2 mb-4">
           Định giá & Cài đặt
         </h3>
         <p className="text-xs text-slate-500">
-          Thiết lập giá bán khóa học cho học viên.
+          Thiết lập giá bán và các chương trình ưu đãi cho học viên.
         </p>
       </div>
 
-      <div className="space-y-2">
-        <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
-          Giá khóa học <span className="text-red-500">*</span>
-        </label>
-        <Input
-          type="number"
-          inputMode="decimal"
-          step="0.01"
-          className="h-11 border-slate-200 focus:border-green-500 font-medium"
-          placeholder="Ví dụ: 499000"
-          {...register("price")}
-        />
-        {errors.price && (
-          <p className="text-xs font-bold text-red-500 mt-1.5 pl-1">
-            {errors.price.message}
-          </p>
-        )}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl">
+        <div className="space-y-6">
+          {/* Ô nhập giá gốc - Format TRỰC TIẾP */}
+          <div className="space-y-2">
+            <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
+              Giá bán thực tế (VNĐ) <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <Controller
+                name="price"
+                control={useFormContext().control}
+                render={({ field }) => (
+                  <Input
+                    className="h-11 border-slate-200 focus:border-green-500 font-bold pl-10"
+                    placeholder="Ví dụ: 500.000"
+                    value={field.value ? new Intl.NumberFormat("vi-VN").format(field.value) : ""}
+                    onChange={(e) => {
+                      // Chỉ lấy số từ chuỗi nhập vào
+                      const rawValue = e.target.value.replace(/\D/g, "");
+                      field.onChange(rawValue ? Number(rawValue) : 0);
+                    }}
+                  />
+                )}
+              />
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">₫</span>
+            </div>
+            {errors.price && (
+              <p className="text-[10px] font-bold text-red-500 mt-1 pl-1">{errors.price.message}</p>
+            )}
+          </div>
+
+          {/* Ô hiển thị tổng tiền sau khi giảm - Đã HOÁN ĐỔI vị trí lên đây */}
+          <div className="space-y-2">
+            <label className="block text-xs font-bold text-green-600 uppercase tracking-widest pl-1">
+              Tổng tiền sau giảm (Hiển thị cho học viên)
+            </label>
+            <div className="relative">
+              <Input
+                className="h-11 border-green-100 bg-green-50/30 text-green-700 font-bold text-lg pl-10 cursor-not-allowed"
+                value={new Intl.NumberFormat("vi-VN").format(finalPrice)}
+                readOnly
+              />
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-green-500 font-bold text-sm">₫</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          {/* Ô nhập % giảm giá - Đã HOÁN ĐỔI vị trí xuống đây */}
+          <div className="space-y-2">
+            <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
+              Phần trăm giảm giá (%)
+            </label>
+            <div className="relative">
+              <Input
+                type="number"
+                className="h-11 border-slate-200 focus:border-green-500 font-bold pl-10 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                placeholder="0 - 100"
+                {...register("discount")}
+              />
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">%</span>
+            </div>
+            <p className="text-[10px] text-slate-400 font-medium pl-1 italic">
+              Giảm {discount}% tương đương giảm {new Intl.NumberFormat("vi-VN").format(price * discount / 100)}₫
+            </p>
+            {errors.discount && (
+              <p className="text-[10px] font-bold text-red-500 mt-1 pl-1">{errors.discount.message}</p>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -763,7 +907,21 @@ function CurriculumTab() {
         </div>
         <button
           type="button"
-          onClick={() => append({ title: "", lessons: [{ title: "" }] })}
+          onClick={() =>
+            append({
+              title: "",
+              lessons: [{
+                title: "",
+                content: "",
+                videoFile: null,
+                createdAt: new Date().toISOString(),
+                updatedAt: null
+              }],
+              attachments: null,
+              createdAt: new Date().toISOString(),
+              updatedAt: null,
+            })
+          }
           className="flex items-center gap-1.5 text-sm font-bold border border-slate-200 px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors"
         >
           <Plus size={16} className="text-slate-600" /> Thêm Chương
@@ -776,12 +934,12 @@ function CurriculumTab() {
         </div>
       )}
 
-      {/* Dùng ScrollArea tạo workspace độc lập giúp đỡ vướng víu footer */}
-      <ScrollArea className="h-[550px] pr-4">
+      {/* Dùng div với overflow-y-auto đơn giản để đảm bảo cuộn luôn hoạt động */}
+      <div className="max-h-[850px] overflow-y-auto pr-2 custom-scrollbar scroll-smooth">
         <Accordion
           type="multiple"
           defaultValue={[fields[0]?.id]}
-          className="space-y-4"
+          className="space-y-4 pb-24"
         >
           {fields.map((section, sectionIdx) => (
             <AccordionItem
@@ -814,13 +972,13 @@ function CurriculumTab() {
                   </button>
                 </div>
               </AccordionTrigger>
-              <AccordionContent className="p-5 bg-white">
+              <AccordionContent className="p-0 bg-white border-t border-slate-50">
                 <SectionItem sectionIndex={sectionIdx} control={control} />
               </AccordionContent>
             </AccordionItem>
           ))}
         </Accordion>
-      </ScrollArea>
+      </div>
     </div>
   );
 }
@@ -831,6 +989,7 @@ function CurriculumTab() {
 function SectionItem({ sectionIndex, control }) {
   const {
     register,
+    setValue,
     formState: { errors },
   } = useFormContext();
   const { fields, append, remove } = useFieldArray({
@@ -839,7 +998,9 @@ function SectionItem({ sectionIndex, control }) {
   });
 
   return (
-    <div className="space-y-6">
+    /* Vùng cuộn cho TOÀN BỘ nội dung của một chương - pt-12 đảm bảo không bị Header che mất Label */
+    <div className="max-h-[650px] overflow-y-auto px-6 pt-12 pb-12 custom-scrollbar space-y-7 overscroll-contain">
+      <div className="h-2" /> {/* Spacer extra giúp né Header Accordion */}
       {/* Tên Chương */}
       <div className="space-y-2">
         <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
@@ -858,6 +1019,58 @@ function SectionItem({ sectionIndex, control }) {
         )}
       </div>
 
+      {/* Attachments & Dates */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
+            Tài liệu đính kèm (PDF, ZIP,...) (Nếu có)*
+          </label>
+          <Input
+            type="file"
+            className="h-10 text-xs pt-2 cursor-pointer"
+            onChange={(e) => {
+              const file = e.target.files[0];
+              setValue(`sections.${sectionIndex}.attachments`, file);
+            }}
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-2">
+            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-1">
+              Ngày tạo chương
+            </label>
+            <Controller
+              name={`sections.${sectionIndex}.createdAt`}
+              control={control}
+              render={({ field }) => (
+                <Input
+                  className="h-10 text-xs border-slate-200 bg-slate-50 cursor-not-allowed opacity-70"
+                  value={field.value ? new Date(field.value).toLocaleString("vi-VN") : ""}
+                  readOnly
+                />
+              )}
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-1">
+              Ngày cập nhật
+            </label>
+            <Controller
+              name={`sections.${sectionIndex}.updatedAt`}
+              control={control}
+              render={({ field }) => (
+                <Input
+                  className="h-10 text-xs border-slate-200 bg-slate-50 cursor-not-allowed opacity-70"
+                  value={field.value ? new Date(field.value).toLocaleString("vi-VN") : "Chưa cập nhật"}
+                  readOnly
+                />
+              )}
+            />
+          </div>
+        </div>
+      </div>
+
       {/* Danh sách Bài học */}
       <div className="pt-2">
         <div className="flex items-center justify-between mb-3">
@@ -867,82 +1080,156 @@ function SectionItem({ sectionIndex, control }) {
           <button
             type="button"
             className="flex items-center gap-1.5 text-xs font-bold text-green-600 hover:text-green-700 bg-green-50 hover:bg-green-100 px-2 py-1.5 rounded-md transition-colors"
-            onClick={() => append({ title: "", videoUrl: "" })}
+            onClick={() => append({
+              title: "",
+              content: "",
+              videoFile: null,
+              createdAt: new Date().toISOString(),
+              updatedAt: null
+            })}
           >
             <Plus size={14} /> Bài học mới
           </button>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-6 pb-4 pt-2 border-t border-slate-50 mt-3">
           {fields.map((lesson, lessonIdx) => (
             <div
               key={lesson.id}
-              className="group flex gap-3 items-start p-4 border border-slate-200 rounded-xl bg-slate-50/50 hover:bg-white hover:border-green-200 hover:shadow-md transition-all duration-300"
+              className="group flex gap-4 p-5 border border-slate-200 rounded-2xl bg-white hover:border-green-300 hover:shadow-lg transition-all duration-300 relative"
             >
-              <div className="pt-2.5 text-slate-300 cursor-grab active:cursor-grabbing hover:text-slate-500">
-                <GripVertical size={18} />
+              <div className="pt-1 text-slate-300 cursor-grab active:cursor-grabbing hover:text-slate-500">
+                <GripVertical size={20} />
               </div>
 
-              <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-1">
-                    Tiêu đề bài học
-                  </label>
-                  <Input
-                    className="h-9 font-bold border-slate-200 bg-white focus:ring-0 focus:border-green-500 transition-all"
-                    placeholder={`Bài học ${lessonIdx + 1}`}
-                    {...register(
-                      `sections.${sectionIndex}.lessons.${lessonIdx}.title`,
-                    )}
-                    autoComplete="off"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-1">
-                    Video URL (Gắn link mp4, yt)
-                  </label>
-                  <div className="relative">
-                    <Video className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 group-focus-within:text-green-500 transition-colors" />
+              <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Left side: Information (Title + Description + Dates) */}
+                <div className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-1">
+                      Tiêu đề bài học <span className="text-red-500">*</span>
+                    </label>
                     <Input
-                      className="h-9 pl-8 text-xs font-medium border-slate-200 bg-white focus:ring-0 focus:border-green-500 transition-all text-slate-600"
-                      placeholder="https://example.com/video.mp4"
-                      {...register(
-                        `sections.${sectionIndex}.lessons.${lessonIdx}.videoUrl`,
-                      )}
+                      className="h-10 font-bold border-slate-200 focus:ring-0 focus:border-green-500 transition-all text-slate-800"
+                      placeholder={`Ví dụ: Bài giảng số ${lessonIdx + 1}: Giới thiệu ngôn ngữ`}
+                      {...register(`sections.${sectionIndex}.lessons.${lessonIdx}.title`)}
                       autoComplete="off"
                     />
+                    {errors.sections?.[sectionIndex]?.lessons?.[lessonIdx]?.title && (
+                      <p className="text-[10px] font-bold text-red-500 pl-1">{errors.sections[sectionIndex].lessons[lessonIdx].title.message}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-1">
+                      Mô tả nội dung bài học
+                    </label>
+                    <Textarea
+                      className="min-h-[80px] text-xs resize-none border-slate-200 focus:ring-0 focus:border-green-500"
+                      placeholder="Một đoạn mô tả ngắn về những gì học viên sẽ được học trong bài này..."
+                      {...register(`sections.${sectionIndex}.lessons.${lessonIdx}.content`)}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider pl-1">Ngày tạo bài</label>
+                      <Controller
+                        name={`sections.${sectionIndex}.lessons.${lessonIdx}.createdAt`}
+                        control={control}
+                        render={({ field }) => (
+                          <Input
+                            className="h-8 text-[10px] border-slate-200 bg-slate-50 cursor-not-allowed opacity-70"
+                            value={field.value ? new Date(field.value).toLocaleString("vi-VN") : ""}
+                            readOnly
+                          />
+                        )}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider pl-1">Cập nhật</label>
+                      <Controller
+                        name={`sections.${sectionIndex}.lessons.${lessonIdx}.updatedAt`}
+                        control={control}
+                        render={({ field }) => (
+                          <Input
+                            className="h-8 text-[10px] border-slate-200 bg-slate-50 cursor-not-allowed opacity-70"
+                            value={field.value ? new Date(field.value).toLocaleString("vi-VN") : "Chưa cập nhật"}
+                            readOnly
+                          />
+                        )}
+                      />
+                    </div>
                   </div>
                 </div>
-                {errors.sections?.[sectionIndex]?.lessons?.[lessonIdx]
-                  ?.title && (
-                  <p className="text-xs font-bold text-red-500 pl-1 col-span-2">
-                    {
-                      errors.sections[sectionIndex].lessons[lessonIdx].title
-                        .message
-                    }
-                  </p>
-                )}
+
+                {/* Right side: Video Upload Box */}
+                <div className="space-y-1.5 flex flex-col justify-between">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-1">
+                    Video bài học
+                  </label>
+                  <Controller
+                    name={`sections.${sectionIndex}.lessons.${lessonIdx}.videoFile`}
+                    control={control}
+                    render={({ field }) => (
+                      <div
+                        onClick={() => {
+                          document.getElementById(`lesson-video-${sectionIndex}-${lessonIdx}`).click();
+                        }}
+                        className={`aspect-video rounded-xl border-2 border-dashed flex flex-col items-center justify-center p-4 transition-all cursor-pointer group/upload
+                           ${field.value ? "border-green-500 bg-green-50/30" : "border-slate-200 bg-slate-50/50 hover:bg-slate-100/50 hover:border-green-300"}`}
+                      >
+                        <input
+                          type="file"
+                          id={`lesson-video-${sectionIndex}-${lessonIdx}`}
+                          className="hidden"
+                          accept="video/*"
+                          onChange={(e) => field.onChange(e.target.files[0])}
+                        />
+
+                        {field.value ? (
+                          <div className="flex flex-col items-center">
+                            <div className="w-10 h-10 rounded-full bg-green-500 text-white flex items-center justify-center mb-2 shadow-sm">
+                              <CheckIcon />
+                            </div>
+                            <p className="text-[10px] font-bold text-green-700">Đã chọn video</p>
+                            <p className="text-[9px] text-slate-400 mt-1 truncate max-w-[150px]">{field.value.name || "Video_lesson.mp4"}</p>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="w-10 h-10 rounded-full bg-white text-slate-300 group-hover/upload:text-green-500 flex items-center justify-center mb-2 shadow-sm border border-slate-100 transition-all">
+                              <Video size={20} />
+                            </div>
+                            <p className="text-[10px] font-bold text-slate-400 group-hover/upload:text-green-600 transition-colors">Tải lên video bài học</p>
+                            <p className="text-[9px] text-slate-400 mt-0.5">MP4, MOV hoặc AVI</p>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  />
+                </div>
               </div>
 
+              {/* Nút Xóa bài học */}
               <button
                 type="button"
                 onClick={() => remove(lessonIdx)}
-                className="mt-5 p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
+                className="absolute -top-2 -right-2 w-8 h-8 flex items-center justify-center bg-white border border-slate-200 text-slate-400 hover:text-red-500 hover:border-red-300 hover:bg-red-50 rounded-full transition-all opacity-0 group-hover:opacity-100 shadow-md z-30"
                 title="Xóa bài học"
               >
-                <Trash2 size={18} />
+                <Trash2 size={14} />
               </button>
             </div>
           ))}
-
-          {/* Error level Section (vd: chưa có lessons nào) */}
-          {errors.sections?.[sectionIndex]?.lessons?.root && (
-            <p className="text-xs font-bold text-red-500 bg-red-50 p-2 rounded-md">
-              {errors.sections[sectionIndex].lessons.root.message}
-            </p>
-          )}
         </div>
       </div>
+
+      {/* Error level Section */}
+      {errors.sections?.[sectionIndex]?.lessons?.root && (
+        <p className="text-xs font-bold text-red-500 bg-red-50 p-2 rounded-md mt-2">
+          {errors.sections[sectionIndex].lessons.root.message}
+        </p>
+      )}
     </div>
   );
 }
