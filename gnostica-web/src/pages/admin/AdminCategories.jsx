@@ -69,12 +69,22 @@ export default function AdminCategories() {
   const [categories, setCategories] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalElements, setTotalElements] = useState(0);
+  const ITEMS_PER_PAGE = 10;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterStatus]);
 
   const fetchCategories = async () => {
     try {
-      const response = await categoryService.getAllCategories();
+      const response = await categoryService.getAllCategories(currentPage, ITEMS_PER_PAGE, searchTerm, filterStatus);
       if (response && response.data) {
-        setCategories(response.data);
+        setCategories(response.data.content || []);
+        setTotalPages(response.data.totalPages || 1);
+        setTotalElements(response.data.totalElements || 0);
       }
     } catch (error) {
       console.error("Failed to fetch categories", error);
@@ -83,8 +93,12 @@ export default function AdminCategories() {
   };
 
   useEffect(() => {
-    fetchCategories();
-  }, []);
+    const delayDebounceFn = setTimeout(() => {
+      fetchCategories();
+    }, 300);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [currentPage, searchTerm, filterStatus]);
 
   const form = useForm({
     resolver: zodResolver(categorySchema),
@@ -186,50 +200,6 @@ export default function AdminCategories() {
     }
   };
 
-  const activeCount = categories.filter((c) => c.status).length;
-  const inactiveCount = categories.length - activeCount;
-
-  const removeAccents = (str) => {
-    return str
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/đ/g, "d")
-      .replace(/Đ/g, "D");
-  };
-
-  const filteredCategories = React.useMemo(() => {
-    let result = categories;
-
-    if (filterStatus === "active") {
-      result = result.filter((cat) => cat.status);
-    } else if (filterStatus === "inactive") {
-      result = result.filter((cat) => !cat.status);
-    }
-
-    if (searchTerm.trim() !== "") {
-      const fuse = new Fuse(result, {
-        keys: ["name", "slug", "subcategories.name", "subcategories.slug"],
-        includeScore: true,
-        threshold: 0.4,
-        ignoreLocation: true,
-        getFn: (obj, path) => {
-          const value = Fuse.config.getFn(obj, path);
-          if (Array.isArray(value)) {
-            return value.map((v) => (typeof v === "string" ? removeAccents(v) : v));
-          }
-          if (typeof value === "string") {
-            return removeAccents(value);
-          }
-          return value;
-        },
-      });
-
-      const searchResult = fuse.search(removeAccents(searchTerm));
-      result = searchResult.map((res) => res.item);
-    }
-
-    return result;
-  }, [categories, filterStatus, searchTerm]);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -269,19 +239,19 @@ export default function AdminCategories() {
               onClick={() => setFilterStatus("all")}
               className={`px-3 py-1.5 rounded-md transition-colors ${filterStatus === "all" ? "bg-white text-slate-900 shadow-sm" : "hover:text-slate-900"}`}
             >
-              Tất cả ({categories.length})
+              Tất cả
             </button>
             <button
               onClick={() => setFilterStatus("active")}
               className={`px-3 py-1.5 rounded-md transition-colors ${filterStatus === "active" ? "bg-white text-slate-900 shadow-sm" : "hover:text-slate-900"}`}
             >
-              Đang hoạt động ({activeCount})
+              Đang hoạt động
             </button>
             <button
               onClick={() => setFilterStatus("inactive")}
               className={`px-3 py-1.5 rounded-md transition-colors ${filterStatus === "inactive" ? "bg-white text-slate-900 shadow-sm" : "hover:text-slate-900"}`}
             >
-              Tạm ẩn ({inactiveCount})
+              Tạm ẩn
             </button>
           </div>
         </CardContent>
@@ -315,14 +285,14 @@ export default function AdminCategories() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredCategories.length === 0 ? (
+              {categories.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="h-32 text-center text-slate-500 font-medium">
                     Không tìm thấy danh mục nào phù hợp.
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredCategories.map((cat) => (
+                categories.map((cat) => (
                   <React.Fragment key={cat.id}>
                     <TableRow
                       key={cat.id}
@@ -480,6 +450,42 @@ export default function AdminCategories() {
               )}
             </TableBody>
           </Table>
+          {totalPages > 1 && (
+            <div className="flex flex-col sm:flex-row justify-between items-center py-4 px-4 bg-white border-t border-slate-200 gap-4">
+              <span className="text-sm font-medium text-slate-500">
+                Hiển thị {(currentPage - 1) * ITEMS_PER_PAGE + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, totalElements)} của {totalElements} danh mục
+              </span>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                >
+                  Trước
+                </Button>
+                {Array.from({ length: totalPages }).map((_, idx) => (
+                  <Button
+                    key={idx}
+                    variant={currentPage === idx + 1 ? "default" : "outline"}
+                    size="sm"
+                    className="w-8 h-8 rounded-lg p-0"
+                    onClick={() => setCurrentPage(idx + 1)}
+                  >
+                    {idx + 1}
+                  </Button>
+                ))}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  Sau
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </Card>
       {/* Add Category Modal */}
@@ -542,8 +548,9 @@ export default function AdminCategories() {
                     <FormControl>
                       <Input
                         {...field}
+                        readOnly
                         placeholder="Duong-dan-tinh"
-                        className="h-10 border-slate-200 bg-slate-50 font-mono text-xs"
+                        className="h-10 border-slate-200 bg-slate-50 font-mono text-xs cursor-not-allowed"
                       />
                     </FormControl>
                     <FormMessage />

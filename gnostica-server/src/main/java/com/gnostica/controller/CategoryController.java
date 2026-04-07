@@ -1,7 +1,5 @@
 package com.gnostica.controller;
 
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -32,9 +30,15 @@ public class CategoryController {
     private CategoryService categoryService;
 
     @GetMapping
-    public ResponseEntity<ResponseDTO<List<CategoryResponseDTO>>> getAll() {
-        List<CategoryResponseDTO> categories = categoryService.getAllCategories();
-        return ResponseEntity.ok(new ResponseDTO<List<CategoryResponseDTO>>(200, "Success", categories));
+    public ResponseEntity<ResponseDTO<org.springframework.data.domain.Page<CategoryResponseDTO>>> getAll(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int limit,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) Boolean status
+    ) {
+        int jpaPage = page > 0 ? page - 1 : 0;
+        org.springframework.data.domain.Page<CategoryResponseDTO> categories = categoryService.getAllCategories(jpaPage, limit, search, status);
+        return ResponseEntity.ok(new ResponseDTO<>(200, "Success", categories));
     }
 
     @PostMapping

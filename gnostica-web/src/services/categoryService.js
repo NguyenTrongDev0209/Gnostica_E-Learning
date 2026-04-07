@@ -2,8 +2,15 @@ import axios from 'axios';
 
 const API_URL = 'http://localhost:8080/api/categories';
 
-const getAllCategories = async () => {
-    const response = await axios.get(API_URL);
+const getAllCategories = async (page = 1, limit = 10, search = "", status = "all") => {
+    const params = new URLSearchParams({ page, limit });
+    if (search && search.trim() !== "") {
+        params.append("search", search.trim());
+    }
+    if (status !== "all") {
+        params.append("status", status === "active" ? "true" : "false");
+    }
+    const response = await axios.get(API_URL, { params });
     return response.data;
 };
 

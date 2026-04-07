@@ -5,6 +5,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.gnostica.dto.CategoryRequest;
@@ -19,9 +23,11 @@ public class CategoryService {
     private CategoryRepository categoryRepository;
 
 
-    public List<CategoryResponseDTO> getAllCategories() {
-        List<Category> parents = categoryRepository.findByParentIsNull();
-        return parents.stream().map(this::mapToDTO).collect(Collectors.toList());
+    public Page<CategoryResponseDTO> getAllCategories(int page, int size, String search, Boolean status) {
+        String safeSearch = search == null ? "" : search;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<Category> categoryPage = categoryRepository.findRootCategoriesWithFilters(safeSearch, status, pageable);
+        return categoryPage.map(this::mapToDTO);
     }
 
     
@@ -83,7 +89,16 @@ public class CategoryService {
 
         category.setName(request.getName());
         category.setSlug(request.getSlug());
-        if (request.getStatus() != null) category.setStatus(request.getStatus());
+        if (request.getStatus() != null) {
+            category.setStatus(request.getStatus());
+            // Buisness: Nếu ẩn danh mục cha, tự động ẩn luôn các danh mục con
+            if (!request.getStatus() && category.getChildren() != null && !category.getChildren().isEmpty()) {
+                for (Category child : category.getChildren()) {
+                    child.setStatus(false);
+                }
+                categoryRepository.saveAll(category.getChildren());
+            }
+        }
 
         if (request.getParent_id() != null) {
             if (request.getParent_id().equals(id)) {
@@ -104,6 +119,15 @@ public class CategoryService {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Danh mục không tồn tại"));
         category.setStatus(status);
+        
+        // Business rule: Nếu ẩn danh mục cha, tự động ẩn luôn các danh mục con
+        if (!status && category.getChildren() != null && !category.getChildren().isEmpty()) {
+            for (Category child : category.getChildren()) {
+                child.setStatus(false);
+            }
+            categoryRepository.saveAll(category.getChildren());
+        }
+        
         categoryRepository.save(category);
     }
 
