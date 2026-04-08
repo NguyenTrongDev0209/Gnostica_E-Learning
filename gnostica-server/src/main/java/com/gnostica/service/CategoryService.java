@@ -5,6 +5,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.gnostica.dto.CategoryRequest;
@@ -19,9 +23,11 @@ public class CategoryService {
     private CategoryRepository categoryRepository;
 
 
-    public List<CategoryResponseDTO> getAllCategories() {
-        List<Category> parents = categoryRepository.findByParentIsNull();
-        return parents.stream().map(this::mapToDTO).collect(Collectors.toList());
+    public Page<CategoryResponseDTO> getAllCategories(int page, int size, String search, Boolean status) {
+        String safeSearch = search == null ? "" : search;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<Category> categoryPage = categoryRepository.findRootCategoriesWithFilters(safeSearch, status, pageable);
+        return categoryPage.map(this::mapToDTO);
     }
 
     
@@ -53,6 +59,12 @@ public class CategoryService {
         if (request.getParent_id() != null) {
             Category parent = categoryRepository.findById(request.getParent_id())
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy danh mục cha"));
+            
+            // Business rule: Nếu danh mục cha ẩn, danh mục con không thể để trạng thái hoạt động
+            if (!parent.getStatus() && (request.getStatus() == null || request.getStatus())) {
+                throw new RuntimeException("Danh mục cha đang ẩn, không thể tạo danh mục con ở trạng thái hoạt động");
+            }
+            
             category.setParent(parent);
         }
 
@@ -83,7 +95,21 @@ public class CategoryService {
 
         category.setName(request.getName());
         category.setSlug(request.getSlug());
-        if (request.getStatus() != null) category.setStatus(request.getStatus());
+        if (request.getStatus() != null) {
+            // Business rule: Nếu danh mục cha hiện tại đang ẩn, không thể bật hoạt động cho danh mục con
+            if (request.getStatus() && category.getParent() != null && !category.getParent().getStatus()) {
+                throw new RuntimeException("Danh mục cha đang ẩn, không thể bật hoạt động cho danh mục con");
+            }
+
+            category.setStatus(request.getStatus());
+            // Business logic: Đồng bộ trạng thái của tất cả danh mục con theo danh mục cha
+            if (category.getChildren() != null && !category.getChildren().isEmpty()) {
+                for (Category child : category.getChildren()) {
+                    child.setStatus(request.getStatus());
+                }
+                categoryRepository.saveAll(category.getChildren());
+            }
+        }
 
         if (request.getParent_id() != null) {
             if (request.getParent_id().equals(id)) {
@@ -103,7 +129,22 @@ public class CategoryService {
     public void updateStatus(Integer id, Boolean status) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Danh mục không tồn tại"));
+
+        // Business rule: Nếu danh mục cha hiện tại đang ẩn, không thể bật hoạt động cho danh mục con
+        if (status && category.getParent() != null && !category.getParent().getStatus()) {
+            throw new RuntimeException("Danh mục cha đang ẩn, không thể bật hoạt động cho danh mục con");
+        }
+
         category.setStatus(status);
+        
+        // Business rule: Đồng bộ trạng thái của tất cả danh mục con theo danh mục cha
+        if (category.getChildren() != null && !category.getChildren().isEmpty()) {
+            for (Category child : category.getChildren()) {
+                child.setStatus(status);
+            }
+            categoryRepository.saveAll(category.getChildren());
+        }
+        
         categoryRepository.save(category);
     }
 

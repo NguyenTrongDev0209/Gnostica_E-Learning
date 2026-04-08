@@ -106,6 +106,11 @@ const MainLayout = () => {
   const [isCoursesMobileOpen, setIsCoursesMobileOpen] = useState(false)
   const currentUser = authService.getCurrentUser()
 
+  const handleLogout = async () => {
+    await authService.logout();
+    window.location.reload();
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       {/* Main Sticky Header */}
@@ -131,7 +136,13 @@ const MainLayout = () => {
           {/* User Actions */}
           <div className="flex-1 flex items-center justify-end gap-1 md:gap-4">
             {currentUser ? (
-              <AppUserMenu />
+              <AppUserMenu
+                user={{
+                  name: currentUser.fullName || currentUser.username || "Người dùng",
+                  avatar: currentUser.avatar || "https://github.com/shadcn.png"
+                }}
+                onLogout={handleLogout}
+              />
             ) : (
               <Link
                 to="/login"

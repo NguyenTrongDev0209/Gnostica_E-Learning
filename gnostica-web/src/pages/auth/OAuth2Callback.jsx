@@ -7,20 +7,34 @@ const OAuth2Callback = () => {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const email = searchParams.get('email');
+    const tokenFromParams = searchParams.get('token'); // Lấy token từ URL
 
     useEffect(() => {
         console.log("OAuth2 Callback received email:", email);
+        console.log("OAuth2 Callback received token:", tokenFromParams ? "Yes" : "No");
+
         if (email) {
             const fetchUserInfo = async () => {
                 try {
                     const response = await axios.get(`http://localhost:8080/api/auth/user?email=${encodeURIComponent(email)}`);
                     console.log("Fetch user response:", response.data);
-                    if (response.data.status === 'success') {
+                    
+                    if (response.data.status === 200 || response.data.status === 'success') {
                         const user = response.data.data;
-                        localStorage.setItem('user', JSON.stringify(user));
+                        const roleName = (user.role?.name || user.role || 'USER').toUpperCase();
+                        
+                        // Chuẩn hóa dữ liệu user và đính kèm token vào
+                        const normalizedUser = { 
+                            ...user, 
+                            role: roleName, 
+                            token: tokenFromParams || user.token // Ưu tiên token từ URL
+                        };
+                        
+                        localStorage.setItem('user', JSON.stringify(normalizedUser));
+                        console.log("OAuth2Callback: User saved to localStorage with token:", normalizedUser.token ? "Yes" : "No");
+                        
                         toast.success('Đăng nhập thành công!');
                         
-                        const roleName = user.role?.name?.toUpperCase() || 'USER';
                         setTimeout(() => {
                             if (roleName === 'ADMIN') {
                                 navigate('/admin');
@@ -45,7 +59,7 @@ const OAuth2Callback = () => {
             console.log("No email found in URL, redirecting to login");
             navigate('/login');
         }
-    }, [email, navigate]);
+    }, [email, tokenFromParams, navigate]);
 
     return (
         <div className="flex items-center justify-center min-h-screen">

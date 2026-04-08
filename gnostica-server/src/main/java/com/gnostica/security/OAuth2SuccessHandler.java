@@ -10,9 +10,13 @@ import org.springframework.stereotype.Component;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 
 @Component
+@RequiredArgsConstructor
 public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
+
+    private final JwtProvider tokenProvider;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -21,6 +25,11 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
         String email = oAuth2User.getAttribute("email");
         
-        getRedirectStrategy().sendRedirect(request, response, "http://localhost:5173/auth/callback?email=" + email);
+        // Generate Token
+        String token = tokenProvider.generateToken(authentication);
+        
+        // Chuyển hướng kèm theo Token và Email
+        String targetUrl = "http://localhost:5173/auth/callback?token=" + token + "&email=" + email;
+        getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
 }

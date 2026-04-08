@@ -9,6 +9,7 @@ import InstructorLayout from "@/components/layouts/InstructorLayout";
 import LearningLayout from "@/components/layouts/LearningLayout";
 import { publicRoutes, privateRoutes } from "@/routers";
 import ErrorPage from "@/pages/ErrorPage";
+import ProtectedRoute from "@/components/common/ProtectedRoute";
 
 function App() {
   return (
@@ -21,11 +22,26 @@ function App() {
             {publicRoutes.main.map(({ path, component: Component }) => (
               <Route key={path} path={path} element={<Component />} />
             ))}
-            <Route element={<AccountLayout />}>
+            <Route element={
+              <ProtectedRoute>
+                <AccountLayout />
+              </ProtectedRoute>
+            }>
               {privateRoutes.account.map(({ path, component: Component }) => (
                 <Route key={path} path={path} element={<Component />} />
               ))}
             </Route>
+            {privateRoutes.checkout.map(({ path, component: Component }) => (
+              <Route
+                key={path}
+                path={path}
+                element={
+                  <ProtectedRoute>
+                    <Component />
+                  </ProtectedRoute>
+                }
+              />
+            ))}
           </Route>
 
           <Route element={<AuthLayout />}>
@@ -34,19 +50,31 @@ function App() {
             ))}
           </Route>
 
-          <Route element={<AdminLayout />}>
+          <Route element={
+            <ProtectedRoute roles={['admin', 'ADMIN']}>
+              <AdminLayout />
+            </ProtectedRoute>
+          }>
             {privateRoutes.admin.map(({ path, component: Component }) => (
               <Route key={path} path={path} element={<Component />} />
             ))}
           </Route>
 
-          <Route element={<LearningLayout />}>
+          <Route element={
+            <ProtectedRoute>
+              <LearningLayout />
+            </ProtectedRoute>
+          }>
             {privateRoutes.learning.map(({ path, component: Component }) => (
               <Route key={path} path={path} element={<Component />} />
             ))}
           </Route>
 
-          <Route element={<InstructorLayout />}>
+          <Route element={
+            <ProtectedRoute roles={['instructor', 'teacher', 'TEACHER', 'INSTRUCTOR']}>
+              <InstructorLayout />
+            </ProtectedRoute>
+          }>
             {privateRoutes.instructor.map(({ path, component: Component }) => (
               <Route key={path} path={path} element={<Component />} />
             ))}
