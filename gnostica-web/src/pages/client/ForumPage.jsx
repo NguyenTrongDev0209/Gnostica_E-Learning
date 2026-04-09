@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import SectionContainer, { PageHeader } from '@/components/common/AppSection';
 import { ForumPostCard } from "@/components/common/AppCard";
 import { Button } from "@/components/ui/button";
@@ -6,6 +7,7 @@ import { Search, Flame, Menu, Star, Tag } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import {
   Pagination,
@@ -16,18 +18,80 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { forumCategoriesMock, forumPostsMock } from "@/mocks/forum";
+// import { forumCategoriesMock, forumPostsMock } from "@/mocks/forum";
 
 const ForumPage = () => {
-  const [activeCategory, setActiveCategory] = useState("Tất cả");
-  const [searchQuery, setSearchQuery] = useState("");
+    const navigate = useNavigate();
+    const [threads, setThreads] = useState([]);
+    const [categories, setCategories] = useState([]);
+    const [activeCategory, setActiveCategory] = useState("Tất cả");
+    const [searchQuery, setSearchQuery] = useState("");
+    const [currentPage, setCurrentPage] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
+    const [isLoading, setIsLoading] = useState(true);
 
-  const filteredPosts = forumPostsMock.filter(post => {
-    const matchesCategory = activeCategory === "Tất cả" || post.category === activeCategory;
-    const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
-    return matchesCategory && matchesSearch;
-  });
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const res = await axios.get('http://localhost:8080/api/forum-categories');
+                setCategories(res.data);
+            } catch (error) {
+                console.error("Failed to load forum categories", error);
+            }
+        };
+        fetchCategories();
+    }, []);
+
+    useEffect(() => {
+        const fetchThreads = async () => {
+            setIsLoading(true);
+            try {
+                const res = await axios.get(`http://localhost:8080/api/threads?page=${currentPage}&size=15`);
+                setThreads(res.data.content);
+                setTotalPages(res.data.totalPages);
+            } catch (error) {
+                console.error("Failed to fetch threads", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchThreads();
+    }, [currentPage]);
+
+    // Map backend data to ForumPostCard format
+    const mappedPosts = threads.map(thread => ({
+        id: thread.id,
+        title: thread.content.substring(0, 100) + (thread.content.length > 100 ? "..." : ""),
+        content: thread.content,
+        author: {
+            name: thread.account?.fullName || "Ẩn danh",
+            avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${thread.account?.email || 'default'}`,
+            status: "online"
+        },
+        category: thread.category?.name || "Thảo luận",
+        tags: ["Thảo luận"], // Default tag for now
+        createdAt: new Date(thread.createdAt).toLocaleDateString('vi-VN', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        }),
+        stats: {
+            likes: thread.likes || 0,
+            views: thread.views || 0,
+            replies: thread.commentCount || 0
+        },
+        images: thread.images || [],
+        isHot: (thread.views || 0) > 50
+    }));
+
+    const filteredPosts = mappedPosts.filter(post => {
+        const matchesCategory = activeCategory === "Tất cả" || post.category === activeCategory;
+        const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            post.content.toLowerCase().includes(searchQuery.toLowerCase());
+        return matchesCategory && matchesSearch;
+    });
 
   return (
     <div className="min-h-screen bg-slate-50/50 pb-16 pt-8">
@@ -39,7 +103,10 @@ const ForumPage = () => {
             description="Nơi giao lưu, hỏi đáp và chia sẻ kiến thức về lập trình, công nghệ."
             className="mb-0 sm:mb-0"
           />
-          <Button className="bg-button-gradient hover:brightness-110 md:w-auto w-full font-bold">
+          <Button 
+            className="bg-button-gradient hover:brightness-110 md:w-auto w-full font-bold"
+            onClick={() => navigate('/forum/create')}
+          >
             + Tạo bài viết mới
           </Button>
         </div>
@@ -70,7 +137,12 @@ const ForumPage = () => {
             </div>
 
             {/* Post List */}
-            {filteredPosts.length > 0 ? (
+            {isLoading ? (
+              <div className="flex flex-col items-center justify-center py-16 bg-white rounded-lg border">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                <p className="mt-4 text-slate-500">Đang tải bài viết...</p>
+              </div>
+            ) : filteredPosts.length > 0 ? (
               <div className="flex flex-col gap-4">
                 {filteredPosts.map((post) => (
                   <ForumPostCard key={post.id} post={post} />
@@ -92,27 +164,42 @@ const ForumPage = () => {
             )}
 
             {/* Pagination Component */}
-            {filteredPosts.length > 0 && (
+            {totalPages > 1 && (
               <div className="flex justify-center mt-8 mb-4">
                 <Pagination>
                   <PaginationContent>
                     <PaginationItem>
-                      <PaginationPrevious href="#" className="text-sm font-medium" />
+                      <Button 
+                        variant="ghost" 
+                        disabled={currentPage === 0}
+                        onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
+                        className="gap-1 pl-2.5"
+                      >
+                         <PaginationPrevious className="hover:bg-transparent p-0" />
+                      </Button>
                     </PaginationItem>
+                    
+                    {[...Array(totalPages)].map((_, i) => (
+                      <PaginationItem key={i}>
+                        <PaginationLink 
+                          onClick={() => setCurrentPage(i)}
+                          isActive={currentPage === i}
+                          className="cursor-pointer"
+                        >
+                          {i + 1}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ))}
+
                     <PaginationItem>
-                      <PaginationLink href="#" isActive>1</PaginationLink>
-                    </PaginationItem>
-                    <PaginationItem>
-                      <PaginationLink href="#">2</PaginationLink>
-                    </PaginationItem>
-                    <PaginationItem>
-                      <PaginationLink href="#">3</PaginationLink>
-                    </PaginationItem>
-                    <PaginationItem>
-                      <PaginationEllipsis />
-                    </PaginationItem>
-                    <PaginationItem>
-                      <PaginationNext href="#" className="text-sm font-medium" />
+                      <Button 
+                        variant="ghost" 
+                        disabled={currentPage === totalPages - 1}
+                        onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
+                        className="gap-1 pr-2.5"
+                      >
+                        <PaginationNext className="hover:bg-transparent p-0" />
+                      </Button>
                     </PaginationItem>
                   </PaginationContent>
                 </Pagination>
@@ -139,7 +226,7 @@ const ForumPage = () => {
                   >
                     <span>Tất cả chủ đề</span>
                   </button>
-                  {forumCategoriesMock.map((cat) => (
+                  {categories.map((cat) => (
                     <button
                       key={cat.id}
                       onClick={() => setActiveCategory(cat.name)}
@@ -149,37 +236,18 @@ const ForumPage = () => {
                         }`}
                     >
                       <span className="truncate pr-2">{cat.name}</span>
-                      <Badge variant="secondary" className={`text-[10px] px-1.5 py-0 border-none transition-colors ${activeCategory === cat.name ? "bg-primary/20 text-primary" : "bg-slate-100 text-slate-500 group-hover:bg-slate-200"
-                        }`}>
-                        {cat.count}
-                      </Badge>
+                      {/* {cat.count && (
+                        <Badge variant="secondary" className={`text-[10px] px-1.5 py-0 border-none transition-colors ${activeCategory === cat.name ? "bg-primary/20 text-primary" : "bg-slate-100 text-slate-500 group-hover:bg-slate-200"
+                          }`}>
+                          {cat.count}
+                        </Badge>
+                      )} */}
                     </button>
                   ))}
                 </div>
               </CardContent>
             </Card>
 
-            {/* Popular Tags Widget */}
-            <Card className="bg-white shadow-sm border-border hidden sm:block">
-              <CardContent className="p-5">
-                <h3 className="font-bold text-base mb-4 flex items-center gap-2">
-                  <Tag className="w-5 h-5 text-primary" />
-                  Tags phổ biến
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {["ReactJS", "Vue", "Java", "Spring Boot", "Tuyển dụng", "Lộ trình", "Data Science", "Câu hỏi phỏng vấn"].map(tag => (
-                    <Badge
-                      key={tag}
-                      variant="outline"
-                      className="cursor-pointer hover:bg-primary hover:text-white hover:border-primary transition-colors text-xs py-1"
-                      onClick={() => setSearchQuery(tag)}
-                    >
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
 
             {/* Top Contributors Widget */}
             <Card className="bg-white shadow-sm border-border hidden lg:block">

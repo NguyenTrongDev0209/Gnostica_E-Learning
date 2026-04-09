@@ -9,6 +9,7 @@ import javax.crypto.SecretKey;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Component;
 
 import io.jsonwebtoken.Claims;
@@ -34,6 +35,17 @@ public class JwtProvider {
 
     public String generateToken(Authentication authentication) {
         String username = authentication.getName();
+        
+        // Nếu là đăng nhập qua OAuth2 (Google), getName() có thể trả về ID số
+        // Ta cần lấy Email để làm định danh thống nhất
+        if (authentication.getPrincipal() instanceof OAuth2User) {
+            OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
+            String email = oAuth2User.getAttribute("email");
+            if (email != null) {
+                username = email;
+            }
+        }
+
         String roles = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(","));
