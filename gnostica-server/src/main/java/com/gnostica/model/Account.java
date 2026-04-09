@@ -1,5 +1,10 @@
 package com.gnostica.model;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -31,11 +36,14 @@ public class Account {
 	public String phone;
 	
 	@Column(columnDefinition = "varchar(255)", nullable = true)
-    @com.fasterxml.jackson.annotation.JsonIgnore
+    @JsonIgnore
 	public String password;
 	
 	@Column(columnDefinition = "varchar(255)")
 	public String provider;
+	
+	@Column(name = "birth_day")
+    private LocalDate birthDay;
 	
 	@Column
 	private Boolean active = false; // Mặc định là false để đợi xác thực
@@ -44,7 +52,7 @@ public class Account {
 	private String verificationCode;
 	
 	@Column
-	private java.time.LocalDateTime verificationExpiry;
+	private LocalDateTime verificationExpiry;
 	
 	@ManyToOne
 	@JoinColumn(name = "role_id")

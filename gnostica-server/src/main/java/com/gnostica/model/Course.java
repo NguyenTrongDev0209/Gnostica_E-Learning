@@ -58,7 +58,7 @@ public class Course {
     private LocalDateTime createdAt;
 
     @Column(name = "coupon_id")
-    private Integer couponId;
+    private Coupon couponId;
 
     @Column
     private String level;
