@@ -40,7 +40,7 @@ public class Coupon {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt; // created_at - DATETIME
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "account_id") // FK - INT
     private Account account; // Liên kết với bảng Accounts
 }
