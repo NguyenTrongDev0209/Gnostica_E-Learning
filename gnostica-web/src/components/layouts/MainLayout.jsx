@@ -19,7 +19,8 @@ import {
   AppNavLink,
   AppLogo,
   GhostButton,
-  AppHeaderButton
+  AppHeaderButton,
+  AppUserMenu
 } from "@/components/common/AppButton"
 import { Search, Heart, ChevronDown, LayoutGrid, Flame } from "lucide-react"
 import AppSearchInput from "@/components/common/AppSearchInput"
@@ -31,6 +32,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import authService from '@/services/authService'
 
 const courseCategories = [
   { label: "Tất cả khóa học", href: "/courses" },
@@ -102,12 +104,18 @@ const FooterLinks = ({ title, links }) => (
 const MainLayout = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isCoursesMobileOpen, setIsCoursesMobileOpen] = useState(false)
+  const currentUser = authService.getCurrentUser()
+
+  const handleLogout = async () => {
+    await authService.logout();
+    window.location.reload();
+  };
 
   return (
     <div className="flex flex-col min-h-screen">
       {/* Main Sticky Header */}
       <header className="w-full sticky top-0 z-[100] shadow-md bg-primary-gradient text-white border-b border-white/10">
-        <div className="app-container flex items-center justify-between py-2 gap-8">
+        <div className="app-container flex items-center justify-between py-[14px] gap-8">
           {/* Logo */}
           <div className="flex-1 flex items-center gap-4">
             <div className="lg:hidden">
@@ -127,25 +135,22 @@ const MainLayout = () => {
 
           {/* User Actions */}
           <div className="flex-1 flex items-center justify-end gap-1 md:gap-4">
-            <Link to="/account/wishlist">
-              <AppHeaderButton
-                icon={Heart}
-                label="Yêu thích"
+            {currentUser ? (
+              <AppUserMenu
+                user={{
+                  name: currentUser.fullName || currentUser.username || "Người dùng",
+                  avatar: currentUser.avatar || "https://github.com/shadcn.png"
+                }}
+                onLogout={handleLogout}
               />
-            </Link>
-            <Link to="/cart">
-              <AppHeaderButton
-                icon={ShoppingCart}
-                label="Giỏ hàng"
-                badge={2}
-              />
-            </Link>
-            <Link to="/login">
-              <AppHeaderButton
-                icon={User}
-                label="Đăng nhập"
-              />
-            </Link>
+            ) : (
+              <Link
+                to="/login"
+                className="flex items-center justify-center bg-white/10 hover:bg-white/20 border border-white/20 rounded-full px-5 h-[42px] transition-all duration-300 text-white font-bold text-base"
+              >
+                Đăng nhập
+              </Link>
+            )}
           </div>
         </div>
 
@@ -214,7 +219,7 @@ const MainLayout = () => {
               <div className="absolute bottom-0 left-0 w-full h-[3px] bg-[#f15e2c] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center" />
             </Link>
 
-            <Link to="/instructors" className="h-full flex items-center relative group px-4">
+            <Link to="/instructor" className="h-full flex items-center relative group px-4">
               <span className="font-bold text-slate-700 group-hover:text-[#f15e2c] transition-colors">
                 Giảng viên
               </span>

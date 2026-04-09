@@ -21,7 +21,7 @@ const login = async (email, password) => {
             email,
             password
         });
-        if (response.data.status === 'success') {
+        if (response.data.status === 200 || response.data.status === 'success') {
             localStorage.setItem('user', JSON.stringify(response.data.data));
         }
         return response.data;

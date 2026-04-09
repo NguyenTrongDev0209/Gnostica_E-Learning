@@ -2,7 +2,6 @@ package com.gnostica.model;
 
 import java.util.List;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -23,12 +22,11 @@ public class Role {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	public Integer id;
-	
-	@Column(columnDefinition = "nvarchar(255)")
+
 	@NotBlank(message = "Role không được để trống")
 	public String name;
-	
+
 	@OneToMany(mappedBy = "role")
-    @com.fasterxml.jackson.annotation.JsonIgnore
+	@com.fasterxml.jackson.annotation.JsonIgnore
 	List<Account> accounts;
 }

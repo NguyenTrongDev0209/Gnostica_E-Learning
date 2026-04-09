@@ -67,7 +67,7 @@ const SectionContainer = ({
     <section className={cn("app-container", className)}>
       {title && (
         <div className={cn(
-          "mb-6 md:mb-10 flex flex-col",
+          "mb-4 md:mb-6 flex flex-col",
           centered ? "items-center text-center w-full" : "items-start text-left w-full"
         )}>
           <h2 className={cn(

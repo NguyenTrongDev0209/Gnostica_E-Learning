@@ -7,18 +7,43 @@ const OAuth2Callback = () => {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const email = searchParams.get('email');
+    const tokenFromParams = searchParams.get('token'); // Lấy token từ URL
 
     useEffect(() => {
         console.log("OAuth2 Callback received email:", email);
+        console.log("OAuth2 Callback received token:", tokenFromParams ? "Yes" : "No");
+
         if (email) {
             const fetchUserInfo = async () => {
                 try {
                     const response = await axios.get(`http://localhost:8080/api/auth/user?email=${encodeURIComponent(email)}`);
                     console.log("Fetch user response:", response.data);
-                    if (response.data.status === 'success') {
-                        localStorage.setItem('user', JSON.stringify(response.data.data));
+                    
+                    if (response.data.status === 200 || response.data.status === 'success') {
+                        const user = response.data.data;
+                        // Chuẩn hóa dữ liệu user để đồng nhất với LoginResponse (chỉ lưu các thông tin cần thiết)
+                        const roleName = (user.role?.name || user.role || 'USER').toUpperCase();
+                        const normalizedUser = { 
+                            fullName: user.fullName,
+                            email: user.email,
+                            role: roleName, 
+                            token: tokenFromParams || user.token 
+                        };
+                        
+                        localStorage.setItem('user', JSON.stringify(normalizedUser));
+                        console.log("OAuth2Callback: User normalized and saved to localStorage");
+                        
                         toast.success('Đăng nhập thành công!');
-                        setTimeout(() => navigate('/'), 500);
+                        
+                        setTimeout(() => {
+                            if (roleName === 'ADMIN') {
+                                navigate('/admin');
+                            } else if (roleName === 'INSTRUCTOR' || roleName === 'TEACHER') {
+                                navigate('/instructor');
+                            } else {
+                                navigate('/');
+                            }
+                        }, 500);
                     } else {
                         throw new Error(response.data.message || 'Lấy thông tin thất bại');
                     }
@@ -34,7 +59,7 @@ const OAuth2Callback = () => {
             console.log("No email found in URL, redirecting to login");
             navigate('/login');
         }
-    }, [email, navigate]);
+    }, [email, tokenFromParams, navigate]);
 
     return (
         <div className="flex items-center justify-center min-h-screen">

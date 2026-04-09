@@ -1,5 +1,5 @@
 import React from "react";
-import { Outlet, Link, useLocation } from "react-router-dom";
+import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   LayoutDashboard,
@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import authService from "@/services/authService";
 
 const MENU_GROUPS = [
   {
@@ -45,13 +46,23 @@ const MENU_GROUPS = [
   },
 ];
 
-const MOCK_USER = {
-  name: "Minh Lê",
-  avatar: "https://i.pravatar.cc/100?u=minhle",
-};
-
 const AccountLayout = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const currentUser = authService.getCurrentUser();
+
+  const user = currentUser ? {
+    name: currentUser.fullName || currentUser.username || "Học viên",
+    avatar: currentUser.avatar || "https://github.com/shadcn.png"
+  } : {
+    name: "Khách",
+    avatar: "https://github.com/shadcn.png"
+  };
+
+  const handleLogout = async () => {
+    await authService.logout();
+    navigate("/login");
+  };
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -63,14 +74,14 @@ const AccountLayout = () => {
               {/* User Info */}
               <div className="p-5 flex items-center gap-3">
                 <Avatar className="w-12 h-12 ring-2 ring-primary/10">
-                  <AvatarImage src={MOCK_USER.avatar} alt={MOCK_USER.name} />
+                  <AvatarImage src={user.avatar} alt={user.name} />
                   <AvatarFallback className="bg-primary/10 text-primary font-bold">
-                    {MOCK_USER.name.substring(0, 2).toUpperCase()}
+                    {user.name.substring(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div>
                   <p className="text-xs text-muted-foreground">Tài khoản của</p>
-                  <p className="font-bold text-slate-900">{MOCK_USER.name}</p>
+                  <p className="font-bold text-slate-900">{user.name}</p>
                 </div>
               </div>
 
@@ -122,7 +133,10 @@ const AccountLayout = () => {
 
               {/* Logout */}
               <div className="p-2">
-                <button className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-base font-semibold text-red-500 hover:bg-red-50 transition-all">
+                <button 
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-base font-semibold text-red-500 hover:bg-red-50 transition-all font-bold"
+                >
                   <LogOut className="w-5 h-5" />
                   Đăng xuất
                 </button>

@@ -54,9 +54,17 @@ const INSTRUCTOR_MENU_GROUPS = [
   }
 ];
 
+import authService from "@/services/authService";
+
 export default function InstructorLayout() {
   const navigate = useNavigate();
   const location = useLocation();
+  const user = authService.getCurrentUser();
+
+  const handleLogout = async () => {
+    await authService.logout();
+    navigate("/login");
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 flex">
@@ -110,15 +118,16 @@ export default function InstructorLayout() {
         <div className="p-4 border-t border-slate-800 bg-slate-950/30 font-bold">
           <div className="flex items-center justify-between px-2">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center font-bold text-slate-300 shrink-0 border border-slate-700 overflow-hidden">
-                <img src="https://i.pravatar.cc/100?u=instructor" alt="Instructor Profile" className="w-full h-full object-cover" />
+              <div className="w-10 h-10 rounded-full bg-green-600 flex items-center justify-center font-bold text-white shrink-0 border border-slate-700 overflow-hidden">
+                {user?.fullName?.charAt(0) || "I"}
               </div>
               <div className="min-w-0">
-                <p className="text-sm font-bold text-white truncate">Sonny Sangha</p>
-                <p className="text-[11px] text-slate-500 truncate">Giảng viên xuất sắc</p>
+                <p className="text-sm font-bold text-white truncate">{user?.fullName || "Giảng viên"}</p>
+                <p className="text-[11px] text-slate-500 truncate uppercase tracking-wider">{user?.role || "Instructor"}</p>
               </div>
             </div>
             <button
+              onClick={handleLogout}
               className="w-10 h-10 flex items-center justify-center rounded-lg text-slate-500 hover:bg-slate-800 hover:text-red-400 transition-all ml-2 hover:shadow-lg"
               title="Đăng xuất"
             >
