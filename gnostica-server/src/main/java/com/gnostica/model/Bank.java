@@ -1,40 +1,38 @@
 package com.gnostica.model;
 
-import jakarta.persistence.*;
+import java.time.LocalDateTime;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.time.LocalDateTime;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
-@Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Data
 @Entity
 @Table(name = "banks")
 public class Bank {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
 
-    @Column(name = "bank_number")
-    private Integer bankNumber;
+    private Integer externalId;
 
-    @Column(name = "bank_name", columnDefinition = "varchar(255)")
-    private String bankName;
+    private String bankCode;
 
-    @Column(columnDefinition = "varchar(255)")
-    private String name;
+    private String bin;
 
-    @Column
+    private String shortName;
+
+    private String logoUrl;
+
     private Integer status;
 
-    @Column(name = "created_at")
     private LocalDateTime createdAt;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "instructor_id")
-    @JsonIgnore
-    private Instructor instructor;
 }
