@@ -4,7 +4,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import com.gnostica.model.OrderDetail;
 import com.gnostica.model.Order;
 import java.util.List;
+import java.util.Optional;
 
 public interface OrderDetailRepository extends JpaRepository<OrderDetail, Integer> {
     List<OrderDetail> findByOrder(Order order);
+    Optional<OrderDetail> findByOrderId(Long orderId);
 }
