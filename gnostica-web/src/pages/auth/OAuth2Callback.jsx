@@ -21,17 +21,17 @@ const OAuth2Callback = () => {
                     
                     if (response.data.status === 200 || response.data.status === 'success') {
                         const user = response.data.data;
+                        // Chuẩn hóa dữ liệu user để đồng nhất với LoginResponse (chỉ lưu các thông tin cần thiết)
                         const roleName = (user.role?.name || user.role || 'USER').toUpperCase();
-                        
-                        // Chuẩn hóa dữ liệu user và đính kèm token vào
                         const normalizedUser = { 
-                            ...user, 
+                            fullName: user.fullName,
+                            email: user.email,
                             role: roleName, 
-                            token: tokenFromParams || user.token // Ưu tiên token từ URL
+                            token: tokenFromParams || user.token 
                         };
                         
                         localStorage.setItem('user', JSON.stringify(normalizedUser));
-                        console.log("OAuth2Callback: User saved to localStorage with token:", normalizedUser.token ? "Yes" : "No");
+                        console.log("OAuth2Callback: User normalized and saved to localStorage");
                         
                         toast.success('Đăng nhập thành công!');
                         

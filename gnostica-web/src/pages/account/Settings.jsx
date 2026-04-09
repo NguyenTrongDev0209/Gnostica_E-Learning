@@ -14,12 +14,15 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Home, UserCog, Camera, Save } from "lucide-react";
 import { toast } from "sonner";
+import authService from "@/services/authService";
 
 export default function Settings() {
+  const user = authService.getCurrentUser();
+
   const [formData, setFormData] = useState({
-    fullName: "Minh Lê",
-    email: "minhle@example.com",
-    phone: "0912345678",
+    fullName: user?.fullName || "",
+    email: user?.email || "",
+    phone: user?.phone || "",
     bio: "Học viên đam mê công nghệ và lập trình. Luôn thích khám phá các kiến thức mới về Frontend Development.",
   });
 
@@ -82,12 +85,8 @@ export default function Settings() {
             {/* Avatar Section */}
             <div className="flex flex-col sm:flex-row items-center gap-6 pb-8 border-b border-slate-100">
               <div className="relative group">
-                <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-lg">
-                  <img 
-                    src="https://i.pravatar.cc/150?u=minhle" 
-                    alt="Avatar" 
-                    className="w-full h-full object-cover"
-                  />
+                <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-lg bg-primary/10 flex items-center justify-center text-primary text-2xl font-bold">
+                  {formData.fullName?.charAt(0) || "U"}
                 </div>
                 <label 
                   htmlFor="avatar-upload" 

@@ -1,6 +1,5 @@
 package com.gnostica.model;
 
-import org.aspectj.weaver.patterns.TypePatternQuestions.Question;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

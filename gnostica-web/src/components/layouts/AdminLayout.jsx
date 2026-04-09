@@ -61,6 +61,7 @@ import authService from "@/services/authService";
 export default function AdminLayout() {
   const navigate = useNavigate();
   const location = useLocation();
+  const user = authService.getCurrentUser();
 
   const handleLogout = async () => {
     await authService.logout();
@@ -119,12 +120,12 @@ export default function AdminLayout() {
         <div className="p-4 border-t border-slate-800 bg-slate-950/30 font-bold">
           <div className="flex items-center justify-between px-2">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center font-bold text-slate-300 shrink-0 border border-slate-700">
-                A
+              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center font-bold text-primary-foreground shrink-0 border border-slate-700">
+                {user?.fullName?.charAt(0) || "A"}
               </div>
               <div className="min-w-0">
-                <p className="text-sm font-bold text-white truncate">Administrator</p>
-                <p className="text-[11px] text-slate-500 truncate">admin@system.com</p>
+                <p className="text-sm font-bold text-white truncate">{user?.fullName || "Administrator"}</p>
+                <p className="text-[11px] text-slate-500 truncate">{user?.email || "admin@system.com"}</p>
               </div>
             </div>
             <button
