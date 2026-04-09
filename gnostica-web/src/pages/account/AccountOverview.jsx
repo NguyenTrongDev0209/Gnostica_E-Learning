@@ -21,6 +21,7 @@ import {
   Trophy,
 } from "lucide-react";
 import { SimpleButton } from "@/components/common/AppButton";
+import authService from "@/services/authService";
 
 const STATS = [
   { label: "Khóa học đang học", value: "4", icon: BookOpen, color: "text-blue-500 bg-blue-50" },
@@ -71,6 +72,7 @@ const RECENT_CERTIFICATES = [
 ];
 
 export default function AccountOverview() {
+  const user = authService.getCurrentUser();
   return (
     <div>
       {/* Breadcrumb */}
@@ -105,7 +107,7 @@ export default function AccountOverview() {
         </div>
         <CardContent className="p-6 md:p-8 relative z-10">
           <h2 className="text-xl sm:text-2xl font-extrabold mb-2">
-            Chào mừng trở lại, Minh Lê! 👋
+            Chào mừng trở lại, {user?.fullName || "Học viên"}! 👋
           </h2>
           <p className="text-slate-200 text-sm leading-relaxed max-w-xl">
             Bạn đã học liên tục 5 ngày tuần này. Tiếp tục phát huy nhé! Khóa học "Lập trình Web Frontend Bootcamp 2026" đang chờ bạn hoàn thành.

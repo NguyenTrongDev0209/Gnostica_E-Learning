@@ -57,8 +57,9 @@ public class Course {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "coupon_id")
-    private Coupon couponId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "coupon_id")
+    private Coupon coupon;
 
     @Column
     private String level;

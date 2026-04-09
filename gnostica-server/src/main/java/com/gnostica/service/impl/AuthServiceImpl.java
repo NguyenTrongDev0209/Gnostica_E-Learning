@@ -8,8 +8,10 @@ import com.gnostica.dto.LoginResponse;
 import com.gnostica.dto.RegisterRequest;
 import com.gnostica.model.Account;
 import com.gnostica.model.Role;
+import com.gnostica.model.Password;
 import com.gnostica.repository.AccountRepository;
 import com.gnostica.repository.RoleRepository;
+import com.gnostica.repository.PasswordRepository;
 import com.gnostica.security.JwtProvider;
 import com.gnostica.service.AuthService;
 import com.gnostica.service.MailService;
@@ -32,6 +34,7 @@ public class AuthServiceImpl implements AuthService {
 
     private final AccountRepository accountRepository;
     private final RoleRepository roleRepository;
+    private final PasswordRepository passwordRepository;
     private final PasswordEncoder passwordEncoder;
     private final MailService mailService;
     private final AuthenticationManager authenticationManager;
@@ -46,7 +49,6 @@ public class AuthServiceImpl implements AuthService {
         Account account = new Account();
         account.setFullName(request.getFullName());
         account.setEmail(request.getEmail());
-        account.setPassword(passwordEncoder.encode(request.getPassword()));
         
         //mặc định là user
         Role defaultRole = roleRepository.findByName("USER")
@@ -65,6 +67,13 @@ public class AuthServiceImpl implements AuthService {
         account.setVerificationExpiry(LocalDateTime.now().plusMinutes(3));
 
         Account savedAccount = accountRepository.save(account);
+
+        // Lưu mật khẩu vào bảng mới
+        Password password = new Password();
+        password.setPassword(passwordEncoder.encode(request.getPassword()));
+        password.setStatus(1); // 1 = Active
+        password.setAccount(savedAccount);
+        passwordRepository.save(password);
 
         // Send Email
         try {
