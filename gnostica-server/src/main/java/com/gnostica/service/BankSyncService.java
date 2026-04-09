@@ -2,8 +2,8 @@ package com.gnostica.service;
 
 import com.gnostica.dto.VietQrBankDto;
 import com.gnostica.dto.VietQrResponse;
-import com.gnostica.model.Banks;
-import com.gnostica.repository.BanksRepository;
+import com.gnostica.model.Bank;
+import com.gnostica.repository.BankRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -13,11 +13,11 @@ import java.time.LocalDateTime;
 @Service
 public class BankSyncService {
 
-    private final BanksRepository banksRepository;
+    private final BankRepository bankRepository;
     private final RestTemplate restTemplate;
 
-    public BankSyncService(BanksRepository banksRepository) {
-        this.banksRepository = banksRepository;
+    public BankSyncService(BankRepository bankRepository) {
+        this.bankRepository = bankRepository;
         this.restTemplate = new RestTemplate();
     }
 
@@ -33,10 +33,10 @@ public class BankSyncService {
                 for (VietQrBankDto dto : response.getData()) {
                     
                     // Kiểm tra xem Ngân hàng này đã có trong Database chưa, tìm theo ID từ API trả về
-                    Banks bank = banksRepository.findByExternalId(dto.getId())
+                    Bank bank = bankRepository.findByExternalId(dto.getId())
                             .orElseGet(() -> {
                                 // Nếu chưa có thì khởi tạo mới
-                                Banks newBank = new Banks();
+                                Bank newBank = new Bank();
                                 newBank.setExternalId(dto.getId());
                                 newBank.setCreatedAt(LocalDateTime.now());
                                 return newBank;
@@ -50,7 +50,7 @@ public class BankSyncService {
                     bank.setStatus(1); // Mặc định là Active
                     
                     // Lưu vào DB (nếu đã tìm thấy bên trên, Spring Data JPA sẽ tự động Update. Nếu chưa, nó sẽ Insert mới)
-                    banksRepository.save(bank);
+                    bankRepository.save(bank);
                     count++;
                 }
                 

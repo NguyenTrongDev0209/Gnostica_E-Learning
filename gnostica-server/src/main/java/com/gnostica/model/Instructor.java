@@ -41,7 +41,4 @@ public class Instructor {
 
     @Column
     private Boolean ticked;
-
-    @OneToMany(mappedBy = "instructor", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Bank> banks;
 }
