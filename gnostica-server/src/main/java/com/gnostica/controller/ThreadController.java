@@ -106,4 +106,14 @@ public class ThreadController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
     }
+
+    @GetMapping("/top-contributors")
+    public ResponseEntity<?> getTopContributors() {
+        try {
+            return ResponseEntity.ok(threadService.getTopContributors());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error fetching top contributors: " + e.getMessage());
+        }
+    }
 }

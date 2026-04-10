@@ -15,6 +15,7 @@ import {
 import { cn } from "@/lib/utils";
 import RenderContent from '@/components/common/RenderContent';
 import CommentCard from '@/components/common/CommentCard';
+import { toast } from 'sonner';
 // import { forumCommentsMock, relatedForumPostsMock } from "@/mocks/forum";
 import { relatedForumPostsMock } from "@/mocks/forum";
 
@@ -92,10 +93,11 @@ const ForumDetail = () => {
         commentCount: (prev.commentCount || 0) + 1
       }));
       setComment('');
+      toast.success("Đã gửi bình luận");
     } catch (err) {
       console.error("Error sending comment:", err);
       const errorMsg = err.response?.data?.message || err.response?.data || err.message;
-      alert("Lỗi khi gửi bình luận: " + errorMsg);
+      toast.error("Lỗi khi gửi bình luận: " + errorMsg);
     }
   };
 
@@ -230,9 +232,13 @@ const ForumDetail = () => {
                           });
                           setPost(res.data);
                           // Toggle trạng thái dựa trên việc backend vừa làm (add hoặc remove Like)
+                          if (!postLiked) {
+                             toast.success("Đã thích bài viết");
+                          }
                           setPostLiked(!postLiked);
                         } catch (err) {
                           console.error("Error liking thread:", err);
+                          toast.error("Không thể thực hiện thao tác Thích");
                         }
                       }}
                     >
@@ -283,12 +289,44 @@ const ForumDetail = () => {
                     threadId={id}
                     onCommentAdded={(newReply) => {
                       // Refresh or update locally
-                      // For simplicity, let's just update the specific comment's replies
                       setComments(prev => prev.map(parent =>
                         parent.id === c.id
-                          ? { ...parent, replies: [...parent.replies, newReply] }
+                          ? { ...parent, replies: [...(parent.replies || []), newReply] }
                           : parent
                       ));
+                    }}
+                    onCommentDeleted={(deletedId) => {
+                      // Xử lý xóa locally
+                      setComments(prev => {
+                        // Tìm comment bị xóa để biết số lượng bình luận cần giảm (bao gồm reply)
+                        let countToRemove = 0;
+                        const findAndCount = (list) => {
+                          for (let i = 0; i < list.length; i++) {
+                            if (list[i].id === deletedId) {
+                               countToRemove = 1 + (list[i].replies?.length || 0);
+                               return list.filter(item => item.id !== deletedId);
+                            }
+                            if (list[i].replies) {
+                               const updatedReplies = findAndCount(list[i].replies);
+                               if (countToRemove > 0) {
+                                  list[i].replies = updatedReplies;
+                                  return list;
+                               }
+                            }
+                          }
+                          return list;
+                        };
+
+                        const newList = findAndCount([...prev]);
+                        
+                        if (countToRemove > 0) {
+                           setPost(curr => ({
+                             ...curr,
+                             commentCount: Math.max(0, (curr.commentCount || 0) - countToRemove)
+                           }));
+                        }
+                        return newList;
+                      });
                     }}
                   />
                 ))}

@@ -17,6 +17,7 @@ const ForumCreatePost = () => {
     const [previewUrls, setPreviewUrls] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [categories, setCategories] = useState([]);
+    const [errors, setErrors] = useState({});
 
     useEffect(() => {
         const fetchCategories = async () => {
@@ -54,11 +55,23 @@ const ForumCreatePost = () => {
         });
     };
 
+    const validateForm = () => {
+        const newErrors = {};
+        if (!categoryId) {
+            newErrors.categoryId = "Vui lòng chọn chủ đề.";
+        }
+        if (!content.trim()) {
+            newErrors.content = "Vui lòng nhập nội dung bài viết.";
+        }
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         
-        if (!content.trim()) {
-            toast.error("Vui lòng nhập nội dung.");
+        if (!validateForm()) {
+            toast.error("Vui lòng điền đầy đủ thông tin bắt buộc.");
             return;
         }
 
@@ -67,9 +80,7 @@ const ForumCreatePost = () => {
         try {
             const formData = new FormData();
             formData.append('content', content);
-            if (categoryId) {
-                formData.append('categoryId', categoryId);
-            }
+            formData.append('categoryId', categoryId);
             
             images.forEach(image => {
                 formData.append('images', image);
@@ -133,29 +144,40 @@ const ForumCreatePost = () => {
                         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
                             {/* Category Selection */}
                             <div className="flex flex-col gap-2">
-                                <label className="text-sm font-semibold text-slate-700">Chủ đề</label>
+                                <label className="text-sm font-semibold text-slate-700">
+                                    Chủ đề <span className="text-red-500">*</span>
+                                </label>
                                 <select 
-                                    className="flex h-12 w-full items-center justify-between rounded-md border border-input bg-slate-50 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                    className={`flex h-12 w-full items-center justify-between rounded-md border ${errors.categoryId ? 'border-red-500' : 'border-input'} bg-slate-50 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50`}
                                     value={categoryId}
-                                    onChange={(e) => setCategoryId(e.target.value)}
+                                    onChange={(e) => {
+                                        setCategoryId(e.target.value);
+                                        if (errors.categoryId) setErrors(prev => ({ ...prev, categoryId: null }));
+                                    }}
                                 >
                                     <option value="">Chọn chủ đề...</option>
                                     {categories.map(cat => (
                                         <option key={cat.id} value={cat.id}>{cat.name}</option>
                                     ))}
                                 </select>
+                                {errors.categoryId && <span className="text-xs text-red-500">{errors.categoryId}</span>}
                             </div>
 
                             {/* Rich Text Content */}
                             <div className="flex flex-col gap-2 relative z-0">
-                                <label className="text-sm font-semibold text-slate-700">Nội dung</label>
+                                <label className="text-sm font-semibold text-slate-700">
+                                    Nội dung <span className="text-red-500">*</span>
+                                </label>
                                 <textarea
-                                    className="flex min-h-[200px] w-full rounded-md border border-input bg-slate-50 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-y"
+                                    className={`flex min-h-[200px] w-full rounded-md border ${errors.content ? 'border-red-500' : 'border-input'} bg-slate-50 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-y`}
                                     value={content}
-                                    onChange={(e) => setContent(e.target.value)}
+                                    onChange={(e) => {
+                                        setContent(e.target.value);
+                                        if (errors.content) setErrors(prev => ({ ...prev, content: null }));
+                                    }}
                                     placeholder="Bạn muốn hỏi hoặc chia sẻ gì?"
-                                    required
                                 />
+                                {errors.content && <span className="text-xs text-red-500">{errors.content}</span>}
                             </div>
 
                             {/* Image Upload */}

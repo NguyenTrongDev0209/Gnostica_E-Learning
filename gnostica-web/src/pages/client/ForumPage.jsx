@@ -29,6 +29,19 @@ const ForumPage = () => {
     const [currentPage, setCurrentPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
+    const [topContributors, setTopContributors] = useState([]);
+
+    useEffect(() => {
+        const fetchTopContributors = async () => {
+            try {
+                const res = await axios.get('http://localhost:8080/api/threads/top-contributors');
+                setTopContributors(res.data);
+            } catch (error) {
+                console.error("Failed to load top contributors", error);
+            }
+        };
+        fetchTopContributors();
+    }, []);
 
     useEffect(() => {
         const fetchCategories = async () => {
@@ -46,7 +59,7 @@ const ForumPage = () => {
         const fetchThreads = async () => {
             setIsLoading(true);
             try {
-                const res = await axios.get(`http://localhost:8080/api/threads?page=${currentPage}&size=15`);
+                const res = await axios.get(`http://localhost:8080/api/threads?page=${currentPage}&size=5`);
                 setThreads(res.data.content);
                 setTotalPages(res.data.totalPages);
             } catch (error) {
@@ -226,24 +239,22 @@ const ForumPage = () => {
                   >
                     <span>Tất cả chủ đề</span>
                   </button>
-                  {categories.map((cat) => (
-                    <button
-                      key={cat.id}
-                      onClick={() => setActiveCategory(cat.name)}
-                      className={`flex items-center justify-between px-3 py-2 rounded-md text-sm transition-colors group ${activeCategory === cat.name
-                          ? "bg-primary/10 text-primary font-semibold"
-                          : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                        }`}
-                    >
-                      <span className="truncate pr-2">{cat.name}</span>
-                      {/* {cat.count && (
+                    {categories.map((cat) => (
+                      <button
+                        key={cat.id}
+                        onClick={() => setActiveCategory(cat.name)}
+                        className={`flex items-center justify-between px-3 py-2 rounded-md text-sm transition-colors group ${activeCategory === cat.name
+                            ? "bg-primary/10 text-primary font-semibold"
+                            : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                          }`}
+                      >
+                        <span className="truncate pr-2">{cat.name}</span>
                         <Badge variant="secondary" className={`text-[10px] px-1.5 py-0 border-none transition-colors ${activeCategory === cat.name ? "bg-primary/20 text-primary" : "bg-slate-100 text-slate-500 group-hover:bg-slate-200"
                           }`}>
-                          {cat.count}
+                          {cat.threadCount || 0}
                         </Badge>
-                      )} */}
-                    </button>
-                  ))}
+                      </button>
+                    ))}
                 </div>
               </CardContent>
             </Card>
@@ -257,18 +268,26 @@ const ForumPage = () => {
                   Người nổi bật
                 </h3>
                 <div className="flex flex-col gap-4">
-                  {[1, 2, 3].map((item) => (
-                    <div key={item} className="flex items-center gap-3">
-                      <Avatar size="sm" className="w-8 h-8">
-                        <AvatarImage src={`https://i.pravatar.cc/150?u=a042581f4e2902670${item}d`} />
-                        <AvatarFallback>U</AvatarFallback>
-                      </Avatar>
-                      <div className="flex flex-col overflow-hidden">
-                        <span className="text-sm font-semibold text-slate-800 truncate">Chuyên gia {item}</span>
-                        <span className="text-[10px] text-muted-foreground">{item * 124} điểm</span>
+                  {topContributors.length > 0 ? (
+                    topContributors.map((item, index) => (
+                      <div key={item.account.id} className="flex items-center gap-3">
+                        <Avatar size="sm" className="w-8 h-8">
+                          <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${item.account.email || 'default'}`} />
+                          <AvatarFallback>{item.account.fullName?.substring(0, 1).toUpperCase() || "U"}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col overflow-hidden">
+                          <span className="text-sm font-semibold text-slate-800 truncate">
+                            {item.account.fullName || "Ẩn danh"}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground">
+                            {item.totalLikes} lượt thích · {item.threadCount} bài viết
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))
+                  ) : (
+                    <p className="text-xs text-slate-400 text-center py-2">Chưa có dữ liệu</p>
+                  )}
                 </div>
               </CardContent>
             </Card>

@@ -21,6 +21,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import org.springframework.data.domain.PageRequest;
+import java.util.stream.Collectors;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
@@ -148,5 +152,20 @@ public class ThreadServiceImpl implements ThreadService {
         
         if (thread == null || account == null) return false;
         return threadLikeRepository.existsByThreadAndAccount(thread, account);
+    }
+
+    @Override
+    public List<Map<String, Object>> getTopContributors() {
+        List<Object[]> results = threadRepository.findTopContributors(PageRequest.of(0, 3));
+        return results.stream().map(result -> {
+            com.gnostica.model.Account account = (com.gnostica.model.Account) result[0];
+            Long totalLikes = (Long) result[1];
+            Long threadCount = (Long) result[2];
+            Map<String, Object> map = new HashMap<>();
+            map.put("account", account);
+            map.put("totalLikes", totalLikes);
+            map.put("threadCount", threadCount);
+            return map;
+        }).collect(Collectors.toList());
     }
 }

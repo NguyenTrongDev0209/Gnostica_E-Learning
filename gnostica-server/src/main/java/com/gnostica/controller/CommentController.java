@@ -42,4 +42,14 @@ public class CommentController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteComment(@PathVariable Integer id, @RequestParam String userEmail) {
+        try {
+            commentService.deleteComment(id, userEmail);
+            return ResponseEntity.ok("Comment deleted successfully");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }

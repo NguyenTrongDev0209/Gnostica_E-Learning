@@ -66,4 +66,47 @@ public class CommentServiceImpl implements CommentService {
 
         return savedComment;
     }
+
+    @Override
+    @Transactional
+    public void deleteComment(Integer commentId, String userEmail) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new RuntimeException("Comment not found"));
+
+        // Verify ownership
+        if (!comment.getAccount().getEmail().equals(userEmail)) {
+            throw new RuntimeException("You are not authorized to delete this comment");
+        }
+
+        // Count how many comments are being deleted (parent + all replies recursively)
+        int totalDeleted = countCommentsRecursively(comment);
+
+        String objectId = comment.getObjectId();
+        commentRepository.delete(comment); // CascadeType.ALL will handle child replies
+
+        // Update Thread commentCount if applicable
+        try {
+            Integer threadId = Integer.parseInt(objectId);
+            Optional<Thread> threadOpt = threadRepository.findById(threadId);
+            if (threadOpt.isPresent()) {
+                Thread thread = threadOpt.get();
+                Integer currentCount = thread.getCommentCount();
+                int newCount = Math.max(0, (currentCount == null ? 0 : currentCount) - totalDeleted);
+                thread.setCommentCount(newCount);
+                threadRepository.save(thread);
+            }
+        } catch (NumberFormatException e) {
+            // Not a numeric thread ID
+        }
+    }
+
+    private int countCommentsRecursively(Comment comment) {
+        int count = 1; // The comment itself
+        if (comment.getReplies() != null) {
+            for (Comment reply : comment.getReplies()) {
+                count += countCommentsRecursively(reply);
+            }
+        }
+        return count;
+    }
 }

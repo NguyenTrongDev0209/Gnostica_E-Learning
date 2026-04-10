@@ -4,10 +4,22 @@ import { Badge } from "@/components/ui/badge";
 import { Clock, CornerDownRight, Send } from 'lucide-react';
 import RenderContent from './RenderContent';
 import axios from 'axios';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
-export default function CommentCard({ comment, isNested = false, threadId, onCommentAdded }) {
+export default function CommentCard({ comment, isNested = false, threadId, onCommentAdded, onCommentDeleted }) {
   const [showReply, setShowReply] = useState(false);
   const [replyContent, setReplyContent] = useState('');
 
@@ -24,16 +36,40 @@ export default function CommentCard({ comment, isNested = false, threadId, onCom
         parentId: comment.id
       });
       
-      if (onCommentAdded) onCommentAdded(res.data);
+      if (onCommentAdded) {
+          onCommentAdded(res.data);
+          toast.success("Đã gửi câu trả lời");
+      }
       setReplyContent('');
       setShowReply(false);
     } catch (err) {
       console.error("Error sending reply:", err);
       const errorMsg = err.response?.data?.message || err.response?.data || err.message;
-      alert("Lỗi khi trả lời bình luận: " + errorMsg);
+      toast.error("Lỗi khi trả lời: " + errorMsg);
     }
   };
   
+  const handleDelete = async () => {
+    try {
+      const userData = JSON.parse(localStorage.getItem('user'));
+      const userEmail = userData?.email;
+      
+      await axios.delete(`http://localhost:8080/api/comments/${comment.id}?userEmail=${userEmail}`);
+      
+      if (onCommentDeleted) {
+          onCommentDeleted(comment.id);
+          toast.success("Đã xóa bình luận");
+      }
+    } catch (err) {
+      console.error("Error deleting comment:", err);
+      const errorMsg = err.response?.data?.message || err.response?.data || err.message;
+      toast.error("Lỗi khi xóa: " + errorMsg);
+    }
+  };
+  
+  const currentUser = JSON.parse(localStorage.getItem('user'));
+  const isOwner = currentUser?.email === comment.account?.email;
+
   return (
     <div className={`flex gap-3 ${isNested ? 'ml-8 sm:ml-12 mt-4 border-l-2 border-slate-100 pl-4' : ''}`}>
       <div className="shrink-0 mt-1">
@@ -71,6 +107,35 @@ export default function CommentCard({ comment, isNested = false, threadId, onCom
             >
               <CornerDownRight className="w-3.5 h-3.5" /> Trả lời
             </button>
+          )}
+          
+          {isOwner && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <button 
+                  className="text-xs font-medium text-slate-400 hover:text-red-500 transition-colors"
+                >
+                  Xóa
+                </button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className="bg-white">
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Xác nhận xóa bình luận?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Hành động này không thể hoàn tác. Bình luận của bạn và các phản hồi liên quan sẽ bị xóa vĩnh viễn khỏi hệ thống.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel className="border-slate-200">Hủy</AlertDialogCancel>
+                  <AlertDialogAction 
+                    onClick={handleDelete}
+                    className="bg-red-500 hover:bg-red-600 text-white font-bold"
+                  >
+                    Xóa bình luận
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           )}
         </div>
 
