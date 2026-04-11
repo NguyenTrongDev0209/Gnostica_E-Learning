@@ -35,24 +35,7 @@ const formatVNNumber = (value) => {
   return parts.join(",");
 };
 
-const parseVNNumber = (value) => {
-  if (typeof value !== "string") return value;
-  const clean = value.replace(/\./g, "").replace(/,/g, ".");
-  const num = parseFloat(clean);
-  return isNaN(num) ? "" : num;
-};
 
-const formatPercentValue = (value) => {
-  if (value === null || value === undefined || value === "") return "";
-  return `${value}%`;
-};
-
-const parsePercentValue = (value) => {
-  if (typeof value !== "string") return value;
-  const clean = value.replace(/%/g, "");
-  const num = parseFloat(clean);
-  return isNaN(num) ? "" : num;
-};
 
 export function CouponFormModal({ isOpen, onOpenChange, onSave }) {
   const form = useForm({
@@ -93,12 +76,12 @@ export function CouponFormModal({ isOpen, onOpenChange, onSave }) {
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 py-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-4 gap-4">
               <FormField
                 control={form.control}
                 name="name"
                 render={({ field }) => (
-                  <FormItem className="col-span-2">
+                  <FormItem className="col-span-4">
                     <FormLabel className="flex items-center gap-2">
                       <Ticket className="w-4 h-4" /> Tên phiếu giảm giá
                     </FormLabel>
@@ -142,20 +125,25 @@ export function CouponFormModal({ isOpen, onOpenChange, onSave }) {
                 control={form.control}
                 name="discountPercent"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="col-span-1">
                     <FormLabel className="flex items-center gap-2">
                       <Percent className="w-4 h-4" /> Phần trăm giảm
                     </FormLabel>
                     <FormControl>
-                      <Input
-                        type="text"
-                        className="h-11 border-slate-200 bg-white"
-                        value={formatPercentValue(field.value)}
-                        onChange={(e) => {
-                          const val = parsePercentValue(e.target.value);
-                          field.onChange(val);
-                        }}
-                      />
+                      <div className="relative">
+                        <Input
+                          type="text"
+                          className="h-11 border-slate-200 bg-white pr-8 text-right font-medium"
+                          value={field.value}
+                          onChange={(e) => {
+                            const clean = e.target.value.replace(/[^0-9]/g, '');
+                            field.onChange(clean === '' ? 0 : Number(clean));
+                          }}
+                        />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 font-bold pointer-events-none">
+                          %
+                        </span>
+                      </div>
                     </FormControl>
                     <div className="min-h-[20px]">
                       <FormMessage className="text-[11px]" />
@@ -168,16 +156,19 @@ export function CouponFormModal({ isOpen, onOpenChange, onSave }) {
                 control={form.control}
                 name="quantity"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="col-span-1">
                     <FormLabel className="flex items-center gap-2">
                       <Package className="w-4 h-4" /> Số lượng
                     </FormLabel>
                     <FormControl>
                       <Input
                         type="text"
-                        className="h-11 border-slate-200 bg-white"
+                        className="h-11 border-slate-200 bg-white text-right font-medium"
                         value={formatVNNumber(field.value)}
-                        onChange={(e) => field.onChange(parseVNNumber(e.target.value))}
+                        onChange={(e) => {
+                          const clean = e.target.value.replace(/[^0-9]/g, '');
+                          field.onChange(clean === '' ? 0 : Number(clean));
+                        }}
                       />
                     </FormControl>
                     <div className="min-h-[20px]">
@@ -191,17 +182,25 @@ export function CouponFormModal({ isOpen, onOpenChange, onSave }) {
                 control={form.control}
                 name="minDiscount"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="col-span-2">
                     <FormLabel className="flex items-center gap-2">
-                      <CircleDollarSign className="w-4 h-4" /> Giảm tối thiểu (đ)
+                      <CircleDollarSign className="w-4 h-4" /> Giảm tối thiểu
                     </FormLabel>
                     <FormControl>
-                      <Input
-                        type="text"
-                        className="h-11 border-slate-200 bg-white"
-                        value={formatVNNumber(field.value)}
-                        onChange={(e) => field.onChange(parseVNNumber(e.target.value))}
-                      />
+                      <div className="relative">
+                        <Input
+                          type="text"
+                          className="h-11 border-slate-200 bg-white pr-8 text-right font-medium"
+                          value={formatVNNumber(field.value)}
+                          onChange={(e) => {
+                            const clean = e.target.value.replace(/[^0-9]/g, '');
+                            field.onChange(clean === '' ? 0 : Number(clean));
+                          }}
+                        />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 font-bold pointer-events-none">
+                          đ
+                        </span>
+                      </div>
                     </FormControl>
                     <div className="min-h-[20px]">
                       <FormMessage className="text-[11px]" />
@@ -214,17 +213,25 @@ export function CouponFormModal({ isOpen, onOpenChange, onSave }) {
                 control={form.control}
                 name="maxDiscount"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="col-span-2">
                     <FormLabel className="flex items-center gap-2">
-                      <CircleDollarSign className="w-4 h-4" /> Giảm tối đa (đ)
+                      <CircleDollarSign className="w-4 h-4" /> Giảm tối đa
                     </FormLabel>
                     <FormControl>
-                      <Input
-                        type="text"
-                        className="h-11 border-slate-200 bg-white"
-                        value={formatVNNumber(field.value)}
-                        onChange={(e) => field.onChange(parseVNNumber(e.target.value))}
-                      />
+                      <div className="relative">
+                        <Input
+                          type="text"
+                          className="h-11 border-slate-200 bg-white pr-8 text-right font-medium"
+                          value={formatVNNumber(field.value)}
+                          onChange={(e) => {
+                            const clean = e.target.value.replace(/[^0-9]/g, '');
+                            field.onChange(clean === '' ? 0 : Number(clean));
+                          }}
+                        />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 font-bold pointer-events-none">
+                          đ
+                        </span>
+                      </div>
                     </FormControl>
                     <div className="min-h-[20px]">
                       <FormMessage className="text-[11px]" />
@@ -237,7 +244,7 @@ export function CouponFormModal({ isOpen, onOpenChange, onSave }) {
                 control={form.control}
                 name="startDate"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="col-span-2">
                     <FormLabel className="flex items-center gap-2">
                       <Calendar className="w-4 h-4" /> Ngày bắt đầu
                     </FormLabel>
@@ -259,7 +266,7 @@ export function CouponFormModal({ isOpen, onOpenChange, onSave }) {
                 control={form.control}
                 name="expiryDate"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="col-span-2">
                     <FormLabel className="flex items-center gap-2">
                       <Calendar className="w-4 h-4" /> Ngày hết hạn
                     </FormLabel>
@@ -282,10 +289,10 @@ export function CouponFormModal({ isOpen, onOpenChange, onSave }) {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => onOpenChange(false)}
-                className="px-6 border-slate-200"
+                onClick={() => form.reset()}
+                className="px-6 border-slate-200 hover:bg-slate-100"
               >
-                Hủy bỏ
+                Tạo lại
               </Button>
               <Button type="submit" className="bg-primary px-8 font-bold">
                 Tạo mã ngay
