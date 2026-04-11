@@ -22,6 +22,20 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import authService from "@/services/authService";
+import { toast } from "sonner";
+import { useEffect, useState } from "react";
+import { Lock, Unlock } from "lucide-react";
 
 const USERS_DATA = [
   { id: "USR-001", name: "Nguyễn Văn A", email: "nguyenvana@gmail.com", role: "user", status: "active", joinDate: "12/03/2026", courses: 3 },
@@ -32,126 +46,222 @@ const USERS_DATA = [
 ];
 
 export default function AdminUsers() {
+  const [activeTab, setActiveTab] = useState("USER");
+  const [accounts, setAccounts] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [lockDialogOpen, setLockDialogOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [lockReason, setLockReason] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const fetchAccounts = async (role) => {
+    setLoading(true);
+    try {
+      const response = await authService.getAccountsByRole(role);
+      setAccounts(response.data || []);
+    } catch (error) {
+      toast.error(error.toString());
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAccounts(activeTab);
+  }, [activeTab]);
+
+  const handleToggleLock = async (user) => {
+    if (user.locked) {
+      // Mở khóa luôn
+      try {
+        await authService.unlockAccount(user.id);
+        toast.success("Đã mở khóa tài khoản.");
+        fetchAccounts(activeTab);
+      } catch (error) {
+        toast.error(error.toString());
+      }
+    } else {
+      // Hiện dialog để nhập lý do
+      setSelectedUser(user);
+      setLockReason("");
+      setLockDialogOpen(true);
+    }
+  };
+
+  const confirmLock = async () => {
+    if (!lockReason.trim()) {
+      toast.error("Vui lòng nhập lý do khóa.");
+      return;
+    }
+
+    try {
+      await authService.lockAccount(selectedUser.id, lockReason);
+      toast.success(`Đã khóa tài khoản ${selectedUser.fullName}.`);
+      setLockDialogOpen(false);
+      fetchAccounts(activeTab);
+    } catch (error) {
+      toast.error(error.toString());
+    }
+  };
+
+  const filteredAccounts = accounts.filter(acc => 
+    acc.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    acc.email?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="space-y-6 animate-in fade-in duration-500 pb-10">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Quản Lý Người Dùng</h1>
           <p className="text-sm text-slate-500 mt-1">
-            Xem, thêm mới, sửa và phân quyền cho người dùng trên hệ thống.
+            Xem, khóa/mở khóa và quản lý quyền hạn của người dùng.
           </p>
         </div>
-        <Button className="font-bold flex items-center gap-2">
-          <Plus className="w-4 h-4" />
-          Thêm Người Dùng
-        </Button>
       </div>
 
-      {/* Filters & Actions */}
-      <Card className="border-slate-200 shadow-sm">
-        <CardContent className="p-4 flex flex-col md:flex-row gap-4 items-center justify-between">
+      <Tabs defaultValue="USER" onValueChange={setActiveTab} className="w-full">
+        <div className="flex flex-col md:flex-row gap-4 items-center justify-between mb-4">
+          <TabsList className="bg-slate-100 p-1">
+            <TabsTrigger value="USER" className="font-bold">Học viên</TabsTrigger>
+            <TabsTrigger value="INSTRUCTOR" className="font-bold">Giảng viên</TabsTrigger>
+          </TabsList>
+
           <div className="flex w-full md:w-auto items-center gap-3">
-            <div className="relative w-full md:w-80 border-slate-200">
+            <div className="relative w-full md:w-80">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <Input 
-                placeholder="Tìm user theo tên, email..." 
-                className="pl-9 h-10 border-slate-200 focus:bg-white"
+                placeholder="Tìm kiếm..." 
+                className="pl-9 h-10 border-slate-200"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <Button variant="outline" className="h-10 px-3 border-slate-200 flex items-center gap-2">
+            <Button variant="outline" className="h-10 px-3 flex items-center gap-2">
               <Filter className="w-4 h-4" />
               Lọc
             </Button>
           </div>
-          
-          <div className="flex text-sm font-medium text-slate-500 bg-slate-100 p-1 rounded-lg">
-            <button className="px-3 py-1.5 rounded-md bg-white text-slate-900 shadow-sm">Tất cả (12,456)</button>
-            <button className="px-3 py-1.5 rounded-md hover:text-slate-900">Admin (4)</button>
-            <button className="px-3 py-1.5 rounded-md hover:text-slate-900">Giảng viên (24)</button>
-          </div>
-        </CardContent>
-      </Card>
+        </div>
 
-      {/* Users Table */}
-      <Card className="border-slate-200 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader className="bg-slate-50">
-              <TableRow>
-                <TableHead className="py-4 font-semibold text-slate-700 w-[300px]">Người dùng</TableHead>
-                <TableHead className="py-4 font-semibold text-slate-700">Vai trò</TableHead>
-                <TableHead className="py-4 font-semibold text-slate-700">Trạng thái</TableHead>
-                <TableHead className="py-4 font-semibold text-slate-700">Ngày tham gia</TableHead>
-                <TableHead className="py-4 font-semibold text-slate-700 text-center">Số khóa học</TableHead>
-                <TableHead className="py-4 font-semibold text-slate-700 text-right">Thao tác</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {USERS_DATA.map((user) => (
-                <TableRow key={user.id} className="hover:bg-slate-50/50">
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-10 w-10 border border-slate-200">
-                        <AvatarImage src={`https://i.pravatar.cc/100?u=${user.id}`} />
-                        <AvatarFallback className="bg-primary/10 text-primary font-bold">
-                          {user.name.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex flex-col">
-                        <span className="font-bold text-slate-900">{user.name}</span>
-                        <span className="text-xs text-slate-500">{user.email}</span>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {user.role === "admin" && <Badge className="bg-purple-100 text-purple-700 hover:bg-purple-100 shadow-none border-purple-200 gap-1"><ShieldCheck className="w-3 h-3"/> Admin</Badge>}
-                    {user.role === "instructor" && <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 shadow-none border-blue-200 gap-1"><BookOpen className="w-3 h-3"/> Giảng viên</Badge>}
-                    {user.role === "user" && <Badge variant="outline" className="text-slate-600 border-slate-200 font-medium">Học viên</Badge>}
-                  </TableCell>
-                  <TableCell>
-                    {user.status === "active" && <span className="inline-flex items-center gap-1.5 text-sm text-green-600 font-medium"><span className="w-2 h-2 rounded-full bg-green-500"></span> Hoạt động</span>}
-                    {user.status === "inactive" && <span className="inline-flex items-center gap-1.5 text-sm text-slate-500 font-medium"><span className="w-2 h-2 rounded-full bg-slate-400"></span> Tạm ngưng</span>}
-                    {user.status === "banned" && <span className="inline-flex items-center gap-1.5 text-sm text-red-600 font-medium"><span className="w-2 h-2 rounded-full bg-red-500"></span> Cấm</span>}
-                  </TableCell>
-                  <TableCell className="text-sm text-slate-600">
-                    {user.joinDate}
-                  </TableCell>
-                  <TableCell className="text-center font-bold text-slate-900">
-                    {user.courses}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end items-center gap-2">
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-primary">
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-red-500">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-slate-900">
-                        <MoreHorizontal className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-        
-        {/* Pagination */}
-        <div className="p-4 border-t border-slate-100 flex items-center justify-between text-sm text-slate-500">
-          <div>Hiển thị <span className="font-bold text-slate-900">1-5</span> trong số <span className="font-bold text-slate-900">12,456</span> người dùng</div>
-          <div className="flex gap-1">
-            <Button variant="outline" size="sm" className="h-8" disabled>Trước</Button>
-            <Button variant="outline" size="sm" className="h-8 bg-primary text-white border-primary hover:bg-primary/90 hover:text-white">1</Button>
-            <Button variant="outline" size="sm" className="h-8">2</Button>
-            <Button variant="outline" size="sm" className="h-8">3</Button>
-            <Button variant="ghost" size="sm" className="h-8">...</Button>
-            <Button variant="outline" size="sm" className="h-8">Sau</Button>
+        <TabsContent value={activeTab} className="mt-0">
+          <Card className="border-slate-200 shadow-sm overflow-hidden">
+            <div className="overflow-x-auto min-h-[400px]">
+              <Table>
+                <TableHeader className="bg-slate-50">
+                  <TableRow>
+                    <TableHead className="py-4 font-bold text-slate-700 w-[300px]">Người dùng</TableHead>
+                    <TableHead className="py-4 font-bold text-slate-700">Trạng thái</TableHead>
+                    <TableHead className="py-4 font-bold text-slate-700">Nơi đăng ký</TableHead>
+                    <TableHead className="py-4 font-bold text-slate-700">Điện thoại</TableHead>
+                    <TableHead className="py-4 font-bold text-slate-700 text-right">Thao tác</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {loading ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="h-40 text-center text-slate-500 font-medium">
+                        Đang tải dữ liệu...
+                      </TableCell>
+                    </TableRow>
+                  ) : filteredAccounts.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="h-40 text-center text-slate-500 font-medium">
+                        Không tìm thấy người dùng nào.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredAccounts.map((acc) => (
+                      <TableRow key={acc.id} className="hover:bg-slate-50/50">
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-10 w-10 border border-slate-200">
+                              <AvatarImage src={acc.avatar} />
+                              <AvatarFallback className="bg-primary/10 text-primary font-bold">
+                                {acc.fullName?.charAt(0)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex flex-col">
+                              <span className="font-bold text-slate-900">{acc.fullName}</span>
+                              <span className="text-xs text-slate-500">{acc.email}</span>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {acc.locked ? (
+                            <Badge className="bg-red-100 text-red-700 shadow-none border-red-200">Bị khóa</Badge>
+                          ) : acc.active ? (
+                            <Badge className="bg-green-100 text-green-700 shadow-none border-green-200">Hoạt động</Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-slate-400">Chưa xác thực</Badge>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-sm font-medium text-slate-600">
+                          <Badge variant="secondary" className="font-bold">{acc.provider || "Manual"}</Badge>
+                        </TableCell>
+                        <TableCell className="text-sm text-slate-600 font-medium">
+                          {acc.phone || "--"}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end items-center gap-2">
+                            <Button 
+                              variant={acc.locked ? "default" : "outline"} 
+                              size="sm" 
+                              className={`h-9 font-bold gap-2 ${acc.locked ? 'bg-emerald-600 hover:bg-emerald-700' : 'border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700'}`}
+                              onClick={() => handleToggleLock(acc)}
+                            >
+                              {acc.locked ? (
+                                <>
+                                  <Unlock className="w-4 h-4" /> Mở khóa
+                                </>
+                              ) : (
+                                <>
+                                  <Lock className="w-4 h-4" /> Khóa
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+            
+            <div className="p-4 border-t border-slate-100 flex items-center justify-between text-sm text-slate-500">
+              <div>Hiển thị <span className="font-bold text-slate-900">{filteredAccounts.length}</span> kết quả</div>
+            </div>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      {/* Lock Reason Dialog */}
+      <Dialog open={lockDialogOpen} onOpenChange={setLockDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">Khóa tài khoản</DialogTitle>
+            <DialogDescription>
+              Vui lòng nhập lý do khóa tài khoản cho <strong>{selectedUser?.fullName}</strong>. Lý do này sẽ hiển thị khi họ cố gắng đăng nhập.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Textarea
+              placeholder="Nhập lý do tại đây..."
+              value={lockReason}
+              onChange={(e) => setLockReason(e.target.value)}
+              className="resize-none h-32 focus-visible:ring-red-500"
+            />
           </div>
-        </div>
-      </Card>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setLockDialogOpen(false)}>Hủy</Button>
+            <Button className="bg-red-600 hover:bg-red-700 font-bold" onClick={confirmLock}>
+              Xác nhận khóa
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -26,6 +26,9 @@ import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDateTime;
+
+import javax.management.RuntimeErrorException;
+
 import java.security.SecureRandom;
 
 @Service
@@ -89,6 +92,18 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public LoginResponse login(LoginRequest request) {
         // Principle 6: Login Flow
+        Account account = accountRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại."));
+        
+        if ("GOOGLE".equalsIgnoreCase(account.getProvider()) && account.getPassword() == null) {
+        	throw new
+        	RuntimeException("Tài khoản này được đăng ký bằng Google. Vui lòng sử dụng tính năng 'Đăng nhập với Google'.");
+        }
+        
+        if (Boolean.TRUE.equals(account.getLocked())) {
+            throw new RuntimeException("Tài khoản của bạn đã bị khóa. Lý do: " + account.getLockReason());
+        }
+
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
         );
@@ -96,14 +111,12 @@ public class AuthServiceImpl implements AuthService {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String token = tokenProvider.generateToken(authentication);
 
-        Account account = accountRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Lỗi hệ thống."));
-
         return LoginResponse.builder()
                 .token(token)
                 .email(account.getEmail())
                 .fullName(account.getFullName())
                 .role(account.getRole().getName())
+                .avatar(account.getAvatar())
                 .build();
     }
 
@@ -206,6 +219,54 @@ public class AuthServiceImpl implements AuthService {
         // Clear OTP
         account.setVerificationCode(null);
         account.setVerificationExpiry(null);
+        accountRepository.save(account);
+    }
+
+    @Override
+    public void becomeInstructor(String email) {
+        Account account = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản."));
+        
+        Role instructorRole = roleRepository.findByName("INSTRUCTOR")
+                .orElseGet(() -> {
+                    Role newRole = new Role();
+                    newRole.setName("INSTRUCTOR");
+                    return roleRepository.save(newRole);
+                });
+        
+        account.setRole(instructorRole);
+        accountRepository.save(account);
+    }
+
+    @Override
+    public java.util.List<Account> getAllAccounts() {
+        return accountRepository.findAll();
+    }
+
+    @Override
+    public java.util.List<Account> getAccountsByRole(String roleName) {
+        Role role = roleRepository.findByName(roleName)
+                .orElseThrow(() -> new RuntimeException("Role không tồn tại."));
+        return accountRepository.findAll().stream()
+                .filter(a -> a.getRole() != null && a.getRole().getName().equalsIgnoreCase(roleName))
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    @Override
+    public void lockAccount(Integer id, String reason) {
+        Account account = accountRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại."));
+        account.setLocked(true);
+        account.setLockReason(reason);
+        accountRepository.save(account);
+    }
+
+    @Override
+    public void unlockAccount(Integer id) {
+        Account account = accountRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại."));
+        account.setLocked(false);
+        account.setLockReason(null);
         accountRepository.save(account);
     }
 }

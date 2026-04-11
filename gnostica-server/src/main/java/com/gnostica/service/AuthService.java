@@ -13,5 +13,12 @@ public interface AuthService {
     Account findByEmail(String email);
     void forgotPassword(String email);
     void resetPassword(String email, String code, String newPassword);
+    void becomeInstructor(String email);
+    
+    // Quản lý Account cho Admin
+    java.util.List<Account> getAllAccounts();
+    java.util.List<Account> getAccountsByRole(String roleName);
+    void lockAccount(Integer id, String reason);
+    void unlockAccount(Integer id);
 }
 
