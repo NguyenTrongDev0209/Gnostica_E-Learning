@@ -119,7 +119,11 @@ export default function InstructorLayout() {
           <div className="flex items-center justify-between px-2">
             <div className="flex items-center gap-3 min-w-0">
               <div className="w-10 h-10 rounded-full bg-green-600 flex items-center justify-center font-bold text-white shrink-0 border border-slate-700 overflow-hidden">
-                {user?.fullName?.charAt(0) || "I"}
+                {user?.avatar ? (
+                  <img src={user.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  user?.fullName?.charAt(0) || "I"
+                )}
               </div>
               <div className="min-w-0">
                 <p className="text-sm font-bold text-white truncate">{user?.fullName || "Giảng viên"}</p>

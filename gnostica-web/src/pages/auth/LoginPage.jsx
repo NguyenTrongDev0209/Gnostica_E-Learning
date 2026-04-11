@@ -10,16 +10,31 @@ import { Eye, EyeOff, Mail, Lock, ArrowRight, Facebook } from 'lucide-react';
 import { SimpleButton } from '@/components/common/AppButton';
 import authService from '@/services/authService';
 import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useEffect } from 'react';
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    const errorParam = searchParams.get('error');
+    if (errorParam) {
+      if (errorParam === 'NOT_LINKED') {
+        toast.error('Tài khoản chưa được liên kết');
+      } else {
+        toast.error(decodeURIComponent(errorParam));
+      }
+      // Xóa params trên URL cho sạch
+      navigate('/login', { replace: true });
+    }
+  }, [searchParams, navigate]);
 
   const validateForm = () => {
     let newErrors = {};

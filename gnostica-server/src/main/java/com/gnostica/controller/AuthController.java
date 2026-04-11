@@ -140,4 +140,68 @@ public class AuthController {
                 .build());
         }
     }
+
+    @PostMapping("/become-instructor")
+    public ResponseEntity<?> becomeInstructor(@RequestParam String email) {
+        try {
+            authService.becomeInstructor(email);
+            return ResponseEntity.ok(ResponseDTO.builder()
+                .status(200)
+                .message("Chúc mừng! Bạn đã trở thành Giảng viên.")
+                .build());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ResponseDTO.builder()
+                .status(400)
+                .message(e.getMessage())
+                .build());
+        }
+    }
+
+    @GetMapping("/accounts")
+    public ResponseEntity<?> getAllAccounts() {
+        return ResponseEntity.ok(ResponseDTO.builder()
+            .status(200)
+            .data(authService.getAllAccounts())
+            .build());
+    }
+
+    @GetMapping("/accounts/role/{role}")
+    public ResponseEntity<?> getAccountsByRole(@PathVariable String role) {
+        return ResponseEntity.ok(ResponseDTO.builder()
+            .status(200)
+            .data(authService.getAccountsByRole(role))
+            .build());
+    }
+
+    @PostMapping("/accounts/{id}/lock")
+    public ResponseEntity<?> lockAccount(@PathVariable Integer id, @RequestParam String reason) {
+        try {
+            authService.lockAccount(id, reason);
+            return ResponseEntity.ok(ResponseDTO.builder()
+                .status(200)
+                .message("Tài khoản đã được khóa.")
+                .build());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ResponseDTO.builder()
+                .status(400)
+                .message(e.getMessage())
+                .build());
+        }
+    }
+
+    @PostMapping("/accounts/{id}/unlock")
+    public ResponseEntity<?> unlockAccount(@PathVariable Integer id) {
+        try {
+            authService.unlockAccount(id);
+            return ResponseEntity.ok(ResponseDTO.builder()
+                .status(200)
+                .message("Tài khoản đã được mở khóa.")
+                .build());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ResponseDTO.builder()
+                .status(400)
+                .message(e.getMessage())
+                .build());
+        }
+    }
 }

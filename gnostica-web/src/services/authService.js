@@ -83,6 +83,58 @@ const resetPassword = async (email, code, newPassword) => {
     }
 };
 
+const becomeInstructor = async (email) => {
+    try {
+        const response = await axios.post(`${API_URL}/become-instructor?email=${email}`);
+        if (response.data.status === 200) {
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (user) {
+                user.role = 'INSTRUCTOR';
+                localStorage.setItem('user', JSON.stringify(user));
+            }
+        }
+        return response.data;
+    } catch (error) {
+        throw error.response?.data?.message || 'Có lỗi xảy ra khi đăng ký giảng viên!';
+    }
+};
+
+const getAllAccounts = async () => {
+    try {
+        const response = await axios.get(`${API_URL}/accounts`);
+        return response.data;
+    } catch (error) {
+        throw error.response?.data?.message || 'Không thể lấy danh sách tài khoản!';
+    }
+};
+
+const getAccountsByRole = async (role) => {
+    try {
+        const response = await axios.get(`${API_URL}/accounts/role/${role}`);
+        return response.data;
+    } catch (error) {
+        throw error.response?.data?.message || 'Không thể lấy danh sách tài khoản theo role!';
+    }
+};
+
+const lockAccount = async (id, reason) => {
+    try {
+        const response = await axios.post(`${API_URL}/accounts/${id}/lock?reason=${encodeURIComponent(reason)}`);
+        return response.data;
+    } catch (error) {
+        throw error.response?.data?.message || 'Không thể khóa tài khoản!';
+    }
+};
+
+const unlockAccount = async (id) => {
+    try {
+        const response = await axios.post(`${API_URL}/accounts/${id}/unlock`);
+        return response.data;
+    } catch (error) {
+        throw error.response?.data?.message || 'Không thể mở khóa tài khoản!';
+    }
+};
+
 const authService = {
     register,
     login,
@@ -91,7 +143,12 @@ const authService = {
     verify,
     resendOTP,
     forgotPassword,
-    resetPassword
+    resetPassword,
+    becomeInstructor,
+    getAllAccounts,
+    getAccountsByRole,
+    lockAccount,
+    unlockAccount
 };
 
 export default authService;
