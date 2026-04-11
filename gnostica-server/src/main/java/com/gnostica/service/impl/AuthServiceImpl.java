@@ -26,6 +26,9 @@ import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDateTime;
+
+import javax.management.RuntimeErrorException;
+
 import java.security.SecureRandom;
 
 @Service
@@ -91,6 +94,11 @@ public class AuthServiceImpl implements AuthService {
         // Principle 6: Login Flow
         Account account = accountRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại."));
+        
+        if ("GOOGLE".equalsIgnoreCase(account.getProvider()) && account.getPassword() == null) {
+        	throw new
+        	RuntimeException("Tài khoản này được đăng ký bằng Google. Vui lòng sử dụng tính năng 'Đăng nhập với Google'.");
+        }
         
         if (Boolean.TRUE.equals(account.getLocked())) {
             throw new RuntimeException("Tài khoản của bạn đã bị khóa. Lý do: " + account.getLockReason());
