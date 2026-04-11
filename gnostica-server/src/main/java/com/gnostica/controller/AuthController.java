@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import com.gnostica.dto.LoginRequest;
 import com.gnostica.dto.LoginResponse;
 import com.gnostica.dto.RegisterRequest;
+import com.gnostica.dto.ResetPasswordRequest;
 import com.gnostica.dto.ResponseDTO;
 import com.gnostica.model.Account;
 import com.gnostica.service.AuthService;
@@ -99,6 +100,38 @@ public class AuthController {
             return ResponseEntity.ok(ResponseDTO.builder()
                 .status(200)
                 .message("Mã xác thực mới đã được gửi vào email của bạn.")
+                .build());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ResponseDTO.builder()
+                .status(400)
+                .message(e.getMessage())
+                .build());
+        }
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestParam String email) {
+        try {
+            authService.forgotPassword(email);
+            return ResponseEntity.ok(ResponseDTO.builder()
+                .status(200)
+                .message("Mã xác thực đã được gửi vào email của bạn.")
+                .build());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ResponseDTO.builder()
+                .status(400)
+                .message(e.getMessage())
+                .build());
+        }
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        try {
+            authService.resetPassword(request.getEmail(), request.getCode(), request.getNewPassword());
+            return ResponseEntity.ok(ResponseDTO.builder()
+                .status(200)
+                .message("Đổi mật khẩu thành công! Bạn có thể đăng nhập bằng mật khẩu mới.")
                 .build());
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(ResponseDTO.builder()

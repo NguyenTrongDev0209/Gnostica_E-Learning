@@ -158,4 +158,54 @@ public class AuthServiceImpl implements AuthService {
         return accountRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản."));
     }
+
+    @Override
+    public void forgotPassword(String email) {
+        Account account = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản với email này."));
+
+        String otp = String.format("%06d", new SecureRandom().nextInt(999999));
+        account.setVerificationCode(otp);
+        account.setVerificationExpiry(LocalDateTime.now().plusMinutes(5)); // 5 mins for reset
+        accountRepository.save(account);
+
+        try {
+            mailService.sendResetPasswordEmail(email, otp); 
+        } catch (Exception e) {
+            throw new RuntimeException("Lỗi gửi mail: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void resetPassword(String email, String code, String newPassword) {
+        Account account = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản."));
+
+        if (account.getVerificationCode() == null || !account.getVerificationCode().equals(code)) {
+            throw new RuntimeException("Mã xác thực không đúng.");
+        }
+
+        if (account.getVerificationExpiry().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Mã xác thực đã hết hạn.");
+        }
+
+        // Hợp lệ, tiến hành đổi mật khẩu theo cơ chế lưu lịch sử
+        // 1. Tìm mật khẩu đang hoạt động (nếu có) và chuyển sang inactive (status = 0)
+        passwordRepository.findByAccountAndStatus(account, 1).ifPresent(p -> {
+            p.setStatus(0);
+            passwordRepository.save(p);
+        });
+        
+        // 2. Tạo bản ghi mật khẩu mới (status = 1)
+        Password newPasswordEntity = new Password();
+        newPasswordEntity.setPassword(passwordEncoder.encode(newPassword));
+        newPasswordEntity.setStatus(1); // Active
+        newPasswordEntity.setAccount(account);
+        passwordRepository.save(newPasswordEntity);
+
+        // Clear OTP
+        account.setVerificationCode(null);
+        account.setVerificationExpiry(null);
+        accountRepository.save(account);
+    }
 }

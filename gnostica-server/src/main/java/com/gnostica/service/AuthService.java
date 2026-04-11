@@ -11,5 +11,7 @@ public interface AuthService {
     boolean verifyOTP(String email, String code);
     void resendVerificationEmail(String email);
     Account findByEmail(String email);
+    void forgotPassword(String email);
+    void resetPassword(String email, String code, String newPassword);
 }
 
