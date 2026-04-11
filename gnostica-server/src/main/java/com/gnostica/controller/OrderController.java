@@ -6,6 +6,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
 
 import com.gnostica.dto.ApiResponse;
 import com.gnostica.dto.CreatePaymentLinkRequestBody;
@@ -20,7 +21,8 @@ import vn.payos.model.webhooks.ConfirmWebhookResponse;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/order")
+@RequestMapping("/api/order")
+@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 public class OrderController {
   private final OrderService orderService;
