@@ -1,6 +1,5 @@
 package com.gnostica.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.gnostica.model.Account;
 import com.gnostica.model.Order;
 import com.gnostica.model.Wallet;
@@ -11,6 +10,7 @@ import com.gnostica.repository.WalletRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gnostica.model.Transaction;
 import java.util.Map;
