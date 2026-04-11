@@ -8,7 +8,7 @@ import {
   CheckoutPaymentMethod, 
   CheckoutTrustBadges, 
   CheckoutOrderSummary 
-} from "@/components/common/CheckoutComponents";
+} from "@/components/pages/client/checkout/CheckoutComponents";
 
 export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState("credit-card");

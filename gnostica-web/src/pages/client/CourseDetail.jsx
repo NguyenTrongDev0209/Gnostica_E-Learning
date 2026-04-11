@@ -11,7 +11,7 @@ import {
   CourseDetailCurriculum, 
   CourseDetailInstructor, 
   CourseDetailPricingCard 
-} from "@/components/common/CourseDetailComponents";
+} from "@/components/pages/client/courseDetail/CourseDetailComponents";
 
 export default function CourseDetail() {
   const { id } = useParams();

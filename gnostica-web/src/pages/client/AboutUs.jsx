@@ -8,7 +8,7 @@ import {
   CheckCircle2
 } from "lucide-react";
 import { SimpleButton, AppIconButton } from "@/components/common/AppButton";
-import { TestimonialCarousel } from "@/components/common/HomeCarousels";
+import { TestimonialCarousel } from "@/components/pages/client/home/HomeCarousels";
 import { AppBreadcrumb } from "@/components/common/AppSection";
 import { Home } from "lucide-react";
 import { aboutToolsMock, aboutStepsMock } from "@/mocks/staticPages";

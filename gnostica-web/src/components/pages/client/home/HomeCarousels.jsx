@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Card, CardContent } from "@/components/ui/card";
 import { Star } from "lucide-react";
-import AppCard from "./AppCard";
-import AppSection from "./AppSection";
+import AppCard from "@/components/common/AppCard";
+import AppSection from "@/components/common/AppSection";
 import { featuredCoursesMock } from "@/mocks/courses";
 
 // Dữ liệu slide kèm theo class màu gradient riêng cho từng ảnh
@@ -147,7 +147,7 @@ export function CardCarousel() {
   }, [api]);
 
   return (
-    <AppSection title="Khóa học nổi bật" className="py-6 md:py-10" containerClassName="relative w-full">
+    <div className="py-6 md:py-10 w-full relative">
       <Carousel
         setApi={setApi}
         opts={{
@@ -178,7 +178,7 @@ export function CardCarousel() {
         <CarouselPrevious className="hidden md:flex -left-4 lg:-left-6 bg-white shadow-xl text-neutral-800 hover:bg-neutral-50 hover:scale-110 transition-transform z-40 w-12 h-12 border-none" />
         <CarouselNext className="hidden md:flex -right-4 lg:-right-6 bg-white shadow-xl text-neutral-800 hover:bg-neutral-50 hover:scale-110 transition-transform z-40 w-12 h-12 border-none" />
       </Carousel>
-    </AppSection>
+    </div>
   );
 }
 
