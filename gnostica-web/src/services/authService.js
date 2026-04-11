@@ -61,13 +61,37 @@ const resendOTP = async (email) => {
     }
 };
 
+const forgotPassword = async (email) => {
+    try {
+        const response = await axios.post(`${API_URL}/forgot-password?email=${email}`);
+        return response.data;
+    } catch (error) {
+        throw error.response?.data?.message || 'Có lỗi xảy ra khi yêu cầu khôi phục mật khẩu!';
+    }
+};
+
+const resetPassword = async (email, code, newPassword) => {
+    try {
+        const response = await axios.post(`${API_URL}/reset-password`, {
+            email,
+            code,
+            newPassword
+        });
+        return response.data;
+    } catch (error) {
+        throw error.response?.data?.message || 'Có lỗi xảy ra khi đặt lại mật khẩu!';
+    }
+};
+
 const authService = {
     register,
     login,
     logout,
     getCurrentUser,
     verify,
-    resendOTP
+    resendOTP,
+    forgotPassword,
+    resetPassword
 };
 
 export default authService;
