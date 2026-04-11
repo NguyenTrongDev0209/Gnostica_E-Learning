@@ -14,6 +14,7 @@ import ChangePassword from "@/pages/account/ChangePassword";
 import CheckoutPage from "@/pages/client/CheckoutPage";
 import PayosQR from "@/pages/client/PayosQR";
 import CheckoutResult from "@/pages/client/CheckoutResult";
+import ForumCreatePost from "@/pages/client/ForumCreatePost";
 
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminUsers from "@/pages/admin/AdminUsers";
@@ -78,5 +79,8 @@ export const privateRoutes = {
     { path: "/checkout/payos", component: PayosQR },
     { path: "/checkout/success", component: CheckoutResult },
     { path: "/checkout/cancel", component: CheckoutResult },
+  ],
+  forum: [
+    { path: "/forum/create", component: ForumCreatePost },
   ],
 };

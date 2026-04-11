@@ -42,6 +42,17 @@ function App() {
                 }
               />
             ))}
+            {privateRoutes.forum && privateRoutes.forum.map(({ path, component: Component }) => (
+              <Route
+                key={path}
+                path={path}
+                element={
+                  <ProtectedRoute>
+                    <Component />
+                  </ProtectedRoute>
+                }
+              />
+            ))}
           </Route>
 
           <Route element={<AuthLayout />}>

@@ -198,6 +198,17 @@ export const ForumPostCard = ({ post, className }) => {
               </div>
             </div>
           </div>
+
+          {/* Right Image Thumbnail */}
+          {post.images && post.images.length > 0 && (
+            <div className="hidden md:block w-32 h-24 shrink-0 rounded-md overflow-hidden border border-slate-100 mt-1">
+               <img 
+                 src={post.images[0].imageUrl} 
+                 alt="preview"
+                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+               />
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
