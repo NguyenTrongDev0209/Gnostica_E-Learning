@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { Link, useParams } from 'react-router-dom';
 import SectionContainer, { AppBreadcrumb } from '@/components/common/AppSection';
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,28 +10,126 @@ import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import {
   ThumbsUp, MessageSquare, Eye, Clock, Tag, Flame, ChevronLeft,
-  Share2, Bookmark, Flag, Send
+  Flag, Send
 } from 'lucide-react';
+import { cn } from "@/lib/utils";
 import RenderContent from '@/components/common/RenderContent';
 import CommentCard from '@/components/common/CommentCard';
-import {
-  forumPostDetailMock,
-  forumCommentsMock,
-  relatedForumPostsMock,
-} from "@/mocks/forum";
+import { toast } from 'sonner';
+// import { forumCommentsMock, relatedForumPostsMock } from "@/mocks/forum";
+import { relatedForumPostsMock } from "@/mocks/forum";
 
 // Helper: simple markdown-like renderer exported to common
 
 const ForumDetail = () => {
   const { id } = useParams();
+  const [post, setPost] = useState(null);
+  const [comments, setComments] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [comment, setComment] = useState('');
   const [postLiked, setPostLiked] = useState(false);
-  const [bookmarked, setBookmarked] = useState(false);
+
+  useEffect(() => {
+    const fetchPost = async () => {
+      setIsLoading(true);
+      try {
+        const res = await axios.get(`http://localhost:8080/api/threads/${id}`);
+        setPost(res.data);
+      } catch (err) {
+        console.error("Error fetching post detail:", err);
+        setError("Không thể tải bài viết. Vui lòng thử lại sau.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    if (id) fetchPost();
+  }, [id]);
+
+  useEffect(() => {
+    const fetchComments = async () => {
+      try {
+        const res = await axios.get(`http://localhost:8080/api/comments/thread/${id}`);
+        setComments(res.data);
+      } catch (err) {
+        console.error("Error fetching comments:", err);
+      }
+    };
+    if (id) fetchComments();
+  }, [id]);
+
+  useEffect(() => {
+    const fetchLikeStatus = async () => {
+      try {
+        const userData = JSON.parse(localStorage.getItem('user'));
+        const email = userData?.email;
+        if (email && id) {
+          const res = await axios.get(`http://localhost:8080/api/threads/${id}/like-status?email=${email}`);
+          setPostLiked(res.data.isLiked);
+        }
+      } catch (err) {
+        console.error("Error fetching like status:", err);
+      }
+    };
+    fetchLikeStatus();
+  }, [id]);
+
+  const handleSendComment = async () => {
+    if (!comment.trim()) return;
+    try {
+      const userData = JSON.parse(localStorage.getItem('user'));
+      const userEmail = userData?.email;
+
+      const res = await axios.post('http://localhost:8080/api/comments', {
+        content: comment,
+        objectId: id,
+        userEmail: userEmail, // Gửi email thay vì dùng token
+        parentId: null
+      });
+
+      setComments(prev => [res.data, ...prev]);
+      setPost(prev => ({
+        ...prev,
+        commentCount: (prev.commentCount || 0) + 1
+      }));
+      setComment('');
+      toast.success("Đã gửi bình luận");
+    } catch (err) {
+      console.error("Error sending comment:", err);
+      const errorMsg = err.response?.data?.message || err.response?.data || err.message;
+      toast.error("Lỗi khi gửi bình luận: " + errorMsg);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50/50">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+          <p className="text-slate-500 font-medium">Đang tải nội dung...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !post) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50/50">
+        <div className="text-center p-8 bg-white rounded-xl shadow-sm border max-w-md">
+          <h2 className="text-2xl font-bold text-slate-800 mb-2">Thao tác thất bại</h2>
+          <p className="text-slate-500 mb-6">{error || "Không tìm thấy bài viết này."}</p>
+          <Link to="/forum">
+            <Button className="bg-button-gradient font-bold w-full">Quay lại Diễn đàn</Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   const breadcrumbItems = [
     { component: <Link to="/">Trang chủ</Link> },
     { component: <Link to="/forum">Diễn đàn</Link> },
-    { label: `${forumPostDetailMock.title} #${id || forumPostDetailMock.id}`, isLast: true }
+    { label: post.content.substring(0, 30) + '...', isLast: true }
   ];
 
   return (
@@ -51,52 +150,65 @@ const ForumDetail = () => {
                 {/* Category + Hot badge */}
                 <div className="flex items-center gap-2 mb-3 flex-wrap">
                   <Badge variant="secondary" className="bg-primary/10 text-primary border-none text-xs font-semibold">
-                    {forumPostDetailMock.category}
+                    {post.category?.name || "Thảo luận"}
                   </Badge>
-                  {forumPostDetailMock.isHot && (
+                  {(post.views || 0) > 100 && (
                     <Badge className="bg-orange-100 text-orange-600 border-none text-xs font-semibold gap-1">
                       <Flame className="w-3 h-3 fill-orange-500" /> Đang hot
                     </Badge>
                   )}
                 </div>
 
-                {/* Title */}
+                {/* Title (Derived from content for now as requested) */}
                 <h1 className="text-xl sm:text-2xl font-bold text-foreground mb-5 leading-snug">
-                  {forumPostDetailMock.title}
+                  {post.content.substring(0, 100)}{(post.content.length > 100) ? '...' : ''}
                 </h1>
 
                 {/* Author meta */}
-                <Link to={`/profile/${forumPostDetailMock.id}`} className="flex items-center gap-3 mb-5 pb-5 border-b border-border hover:opacity-80 transition-opacity">
+                <div className="flex items-center gap-3 mb-5 pb-5 border-b border-border">
                   <Avatar className="w-10 h-10 ring-2 ring-primary/10">
-                    <AvatarImage src={forumPostDetailMock.author.avatar} alt={forumPostDetailMock.author.name} />
+                    <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${post.account?.email || 'default'}`} alt={post.account?.fullName} />
                     <AvatarFallback className="bg-primary/10 text-primary font-bold">
-                      {forumPostDetailMock.author.name.substring(0, 2).toUpperCase()}
+                      {(post.account?.fullName || "A").substring(0, 2).toUpperCase()}
                     </AvatarFallback>
-                    {forumPostDetailMock.author.status === 'online' && (
-                      <AvatarBadge className="bg-green-500 border-2 border-white ring-0" />
-                    )}
                   </Avatar>
                   <div>
-                    <p className="text-sm font-semibold text-slate-800 hover:text-primary transition-colors">{forumPostDetailMock.author.name}</p>
+                    <p className="text-sm font-semibold text-slate-800">{post.account?.fullName || "Ẩn danh"}</p>
                     <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-                      <Clock className="w-3 h-3" /> {forumPostDetailMock.createdAt}
+                      <Clock className="w-3 h-3" /> {new Date(post.createdAt).toLocaleDateString('vi-VN')}
                       <span className="mx-1">·</span>
-                      <Eye className="w-3 h-3" /> {forumPostDetailMock.stats.views} lượt xem
+                      <Eye className="w-3 h-3" /> {post.views || 0} lượt xem
                     </p>
                   </div>
-                </Link>
+                </div>
 
                 {/* Post body */}
-                <RenderContent text={forumPostDetailMock.content} />
+                <RenderContent text={post.content} />
+
+                {/* Post Images Grid */}
+                {post.images && post.images.length > 0 && (
+                  <div className={cn(
+                    "mt-8 grid gap-4",
+                    post.images.length === 1 ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2"
+                  )}>
+                    {post.images.map((img, index) => (
+                      <div key={index} className="rounded-xl overflow-hidden border border-border shadow-sm group bg-slate-50">
+                        <img
+                          src={img.imageUrl}
+                          alt={`img-${index}`}
+                          className="w-full h-auto object-contain max-h-[500px] mx-auto group-hover:scale-[1.02] transition-transform duration-500"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 {/* Tags */}
                 <div className="flex items-center gap-1.5 flex-wrap mt-6 pt-5 border-t border-border">
                   <Tag className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                  {forumPostDetailMock.tags.map(tag => (
-                    <Badge key={tag} variant="secondary" className="bg-slate-100 text-slate-600 hover:bg-slate-200 border-none text-xs cursor-pointer">
-                      {tag}
-                    </Badge>
-                  ))}
+                  <Badge variant="secondary" className="bg-slate-100 text-slate-600 hover:bg-slate-200 border-none text-xs">
+                    Thảo luận
+                  </Badge>
                 </div>
 
                 {/* Action bar */}
@@ -106,28 +218,35 @@ const ForumDetail = () => {
                       variant="outline"
                       size="sm"
                       className={`gap-1.5 h-9 ${postLiked ? 'border-primary text-primary bg-primary/5' : ''}`}
-                      onClick={() => setPostLiked(!postLiked)}
+                      onClick={async () => {
+                        try {
+                          const userData = JSON.parse(localStorage.getItem('user'));
+                          const userEmail = userData?.email;
+                          if (!userEmail) {
+                            alert("Vui lòng đăng nhập để thích bài viết!");
+                            return;
+                          }
+
+                          const res = await axios.post(`http://localhost:8080/api/threads/${id}/like`, {
+                            userEmail: userEmail
+                          });
+                          setPost(res.data);
+                          // Toggle trạng thái dựa trên việc backend vừa làm (add hoặc remove Like)
+                          if (!postLiked) {
+                             toast.success("Đã thích bài viết");
+                          }
+                          setPostLiked(!postLiked);
+                        } catch (err) {
+                          console.error("Error liking thread:", err);
+                          toast.error("Không thể thực hiện thao tác Thích");
+                        }
+                      }}
                     >
                       <ThumbsUp className={`w-4 h-4 ${postLiked ? 'fill-primary' : ''}`} />
-                      {forumPostDetailMock.stats.likes + (postLiked ? 1 : 0)} Hữu ích
-                    </Button>
-                    <Button variant="outline" size="sm" className="gap-1.5 h-9">
-                      <MessageSquare className="w-4 h-4" />
-                      {forumPostDetailMock.stats.replies} Bình luận
+                      {post.likes || 0} Hữu ích
                     </Button>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button
-                      variant="ghost" size="sm"
-                      className={`gap-1.5 h-9 ${bookmarked ? 'text-primary' : 'text-slate-500'}`}
-                      onClick={() => setBookmarked(!bookmarked)}
-                    >
-                      <Bookmark className={`w-4 h-4 ${bookmarked ? 'fill-primary' : ''}`} />
-                      Lưu
-                    </Button>
-                    <Button variant="ghost" size="sm" className="gap-1.5 h-9 text-slate-500">
-                      <Share2 className="w-4 h-4" /> Chia sẻ
-                    </Button>
                     <Button variant="ghost" size="sm" className="gap-1.5 h-9 text-slate-400 hover:text-red-500">
                       <Flag className="w-4 h-4" /> Báo cáo
                     </Button>
@@ -140,12 +259,76 @@ const ForumDetail = () => {
             <div>
               <h2 className="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
                 <MessageSquare className="w-5 h-5 text-primary" />
-                {forumPostDetailMock.stats.replies} Bình luận
+                {post.commentCount || 0} Bình luận
               </h2>
 
               <div className="flex flex-col gap-5">
-                {forumCommentsMock.map(c => (
-                  <CommentCard key={c.id} comment={c} />
+                {comments.map(c => (
+                  <CommentCard
+                    key={c.id}
+                    comment={{
+                      ...c,
+                      author: {
+                        name: c.account?.fullName || "Ẩn danh",
+                        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${c.account?.email || 'default'}`,
+                        status: "online",
+                        role: c.account?.role?.name || "Member"
+                      },
+                      createdAt: new Date(c.createdAt).toLocaleString('vi-VN'),
+                      replies: (c.replies || []).map(r => ({
+                        ...r,
+                        author: {
+                          name: r.account?.fullName || "Ẩn danh",
+                          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${r.account?.email || 'default'}`,
+                          status: "online",
+                          role: r.account?.role?.name || "Member"
+                        },
+                        createdAt: new Date(r.createdAt).toLocaleString('vi-VN')
+                      }))
+                    }}
+                    threadId={id}
+                    onCommentAdded={(newReply) => {
+                      // Refresh or update locally
+                      setComments(prev => prev.map(parent =>
+                        parent.id === c.id
+                          ? { ...parent, replies: [...(parent.replies || []), newReply] }
+                          : parent
+                      ));
+                    }}
+                    onCommentDeleted={(deletedId) => {
+                      // Xử lý xóa locally
+                      setComments(prev => {
+                        // Tìm comment bị xóa để biết số lượng bình luận cần giảm (bao gồm reply)
+                        let countToRemove = 0;
+                        const findAndCount = (list) => {
+                          for (let i = 0; i < list.length; i++) {
+                            if (list[i].id === deletedId) {
+                               countToRemove = 1 + (list[i].replies?.length || 0);
+                               return list.filter(item => item.id !== deletedId);
+                            }
+                            if (list[i].replies) {
+                               const updatedReplies = findAndCount(list[i].replies);
+                               if (countToRemove > 0) {
+                                  list[i].replies = updatedReplies;
+                                  return list;
+                               }
+                            }
+                          }
+                          return list;
+                        };
+
+                        const newList = findAndCount([...prev]);
+                        
+                        if (countToRemove > 0) {
+                           setPost(curr => ({
+                             ...curr,
+                             commentCount: Math.max(0, (curr.commentCount || 0) - countToRemove)
+                           }));
+                        }
+                        return newList;
+                      });
+                    }}
+                  />
                 ))}
               </div>
             </div>
@@ -164,6 +347,7 @@ const ForumDetail = () => {
                   <Button
                     className="bg-button-gradient hover:brightness-110 gap-2 font-bold"
                     disabled={!comment.trim()}
+                    onClick={handleSendComment}
                   >
                     <Send className="w-4 h-4" /> Gửi bình luận
                   </Button>
@@ -179,30 +363,27 @@ const ForumDetail = () => {
             <Card className="bg-white shadow-sm border-border">
               <CardContent className="p-5">
                 <h3 className="text-sm font-bold text-slate-700 mb-4">Thông tin tác giả</h3>
-                <Link to={`/profile/${forumPostDetailMock.id}`} className="flex items-center gap-3 mb-4 hover:opacity-80 transition-opacity">
+                <div className="flex items-center gap-3 mb-4">
                   <Avatar className="w-12 h-12 ring-2 ring-primary/10">
-                    <AvatarImage src={forumPostDetailMock.author.avatar} />
+                    <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${post.account?.email || 'default'}`} />
                     <AvatarFallback className="bg-primary/10 text-primary font-bold">
-                      {forumPostDetailMock.author.name.substring(0, 2).toUpperCase()}
+                      {(post.account?.fullName || "A").substring(0, 2).toUpperCase()}
                     </AvatarFallback>
-                    {forumPostDetailMock.author.status === 'online' && (
-                      <AvatarBadge className="bg-green-500 border-2 border-white ring-0" />
-                    )}
                   </Avatar>
                   <div>
-                    <p className="font-bold text-slate-800 hover:text-primary transition-colors">{forumPostDetailMock.author.name}</p>
-                    <p className="text-xs text-muted-foreground">Tham gia: {forumPostDetailMock.author.joinedAt}</p>
+                    <p className="font-bold text-slate-800">{post.account?.fullName || "Ẩn danh"}</p>
+                    <p className="text-xs text-muted-foreground">Email: {post.account?.email}</p>
                   </div>
-                </Link>
+                </div>
                 <Separator className="mb-4" />
                 <div className="flex justify-around text-center">
                   <div>
-                    <p className="font-bold text-slate-800">{forumPostDetailMock.author.postsCount}</p>
-                    <p className="text-xs text-muted-foreground">Bài đăng</p>
+                    <p className="font-bold text-slate-800">{post.likes || 0}</p>
+                    <p className="text-xs text-muted-foreground">Lượt thích</p>
                   </div>
                   <div>
-                    <p className="font-bold text-slate-800">{forumPostDetailMock.stats.likes}</p>
-                    <p className="text-xs text-muted-foreground">Lượt thích</p>
+                    <p className="font-bold text-slate-800">{post.commentCount || 0}</p>
+                    <p className="text-xs text-muted-foreground">Bình luận</p>
                   </div>
                 </div>
               </CardContent>
@@ -214,9 +395,9 @@ const ForumDetail = () => {
                 <h3 className="text-sm font-bold text-slate-700 mb-4">Thống kê bài viết</h3>
                 <div className="flex flex-col gap-3">
                   {[
-                    { icon: Eye, label: 'Lượt xem', value: forumPostDetailMock.stats.views },
-                    { icon: ThumbsUp, label: 'Lượt thích', value: forumPostDetailMock.stats.likes },
-                    { icon: MessageSquare, label: 'Bình luận', value: forumPostDetailMock.stats.replies },
+                    { icon: Eye, label: 'Lượt xem', value: post.views || 0 },
+                    { icon: ThumbsUp, label: 'Lượt thích', value: post.likes || 0 },
+                    { icon: MessageSquare, label: 'Bình luận', value: post.commentCount || 0 },
                   ].map(({ icon: Icon, label, value }) => (
                     <div key={label} className="flex items-center justify-between text-sm">
                       <span className="flex items-center gap-2 text-slate-500">
