@@ -124,7 +124,7 @@ export function MainHeroCarousel({ onBgChange }) {
                 ? "w-4 h-1.5 md:w-6 md:h-2 bg-white"
                 : "w-1.5 h-1.5 md:w-2 md:h-2 bg-white/50 hover:bg-white/80"
                 }`}
-              aria-label={`Go to slide ${index + 1}`}
+              aria-label={`Chuyển đến slide ${index + 1}`}
             />
           ))}
         </div>
@@ -185,43 +185,43 @@ export function CardCarousel() {
 const testimonials = [
   {
     id: 1,
-    name: "John Doe",
-    role: "CEO, Tech Corp",
+    name: "Nguyễn Văn An",
+    role: "Lập trình viên Full-stack",
     avatar: "https://i.pravatar.cc/150?img=11",
     rating: 5,
-    text: "Lorem ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type."
+    text: "Khóa học thực sự chất lượng, lộ trình bài bản giúp tôi nắm vững kiến thức chỉ trong thời gian ngắn. Rất đáng để đầu tư!"
   },
   {
     id: 2,
-    name: "Jane Smith",
-    role: "Marketing Director",
+    name: "Trần Thị Bình",
+    role: "Quản lý Dự án IT",
     avatar: "https://i.pravatar.cc/150?img=5",
     rating: 4,
-    text: "It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout."
+    text: "Nền tảng học tập rất hiện đại, giao diện trực quan và dễ sử dụng. Tôi đánh giá cao sự hỗ trợ tận tình từ đội ngũ giảng viên."
   },
   {
     id: 3,
-    name: "Alice Johnson",
-    role: "Freelancer",
+    name: "Lê Huỳnh Vũ",
+    role: "Sinh viên Công nghệ",
     avatar: "https://i.pravatar.cc/150?img=9",
     rating: 5,
-    text: "There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form."
+    text: "Dữ liệu và bài tập thực tế giúp ích cho tôi rất nhiều trong việc chuẩn bị kiến thức cho kỳ thực tập quan trọng sắp tới."
   },
   {
     id: 4,
-    name: "Robert Fox",
-    role: "Executive Manager",
+    name: "Phạm Minh Đức",
+    role: "Kỹ sư Trí tuệ nhân tạo",
     avatar: "https://i.pravatar.cc/150?img=8",
     rating: 4,
-    text: "Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature."
+    text: "Hệ thống cá nhân hóa của Gnostica thực sự khác biệt, nó giúp tôi tối ưu hóa thời gian học tập những phần mình còn yếu."
   },
   {
     id: 5,
-    name: "Emily Davis",
-    role: "Designer",
+    name: "Hoàng Mỹ Linh",
+    role: "Nhà thiết kế Đồ họa",
     avatar: "https://i.pravatar.cc/150?img=1",
     rating: 5,
-    text: "The standard chunk of Lorem Ipsum used since the 1500s is reproduced below for those interested, very high quality work."
+    text: "Cách truyền đạt kiến thức rất dễ hiểu và sinh động. Tôi đã tự tin hơn hẳn khi nhận các dự án thiết kế phức tạp sau khóa học."
   }
 ];
 
@@ -241,14 +241,14 @@ export function TestimonialCarousel() {
 
   const titleNode = (
     <span>
-      What <span className="text-orange-500">Clients</span> Say!
+      <span className="text-orange-500">Học viên</span> nói gì!
     </span>
   );
 
   return (
     <AppSection
       title={titleNode}
-      description="See How Our Digital Marketing Agency Helped Clients Achieve Their Goals"
+      description="Khám phá hành trình thay đổi của những học viên đã tin tưởng và đồng hành cùng Gnostica."
       centered={true}
       className="py-8 md:py-12 bg-slate-50/50 dark:bg-transparent"
       containerClassName="relative w-full px-2 md:px-12 pt-4"

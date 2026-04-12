@@ -2,9 +2,10 @@ import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Trash2, Calendar, Ticket, Edit, BarChart } from "lucide-react";
+import { Trash2, Calendar, Ticket, Edit, BarChart, Copy } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { format } from "date-fns";
+import { toast } from "sonner";
 
 export function CouponTable({ coupons, isLoading, onDelete }) {
   return (
@@ -50,9 +51,19 @@ export function CouponTable({ coupons, isLoading, onDelete }) {
                   </TableCell>
                   <TableCell className="text-center">
                     <div className="flex flex-col items-center">
-                      <span className="bg-slate-100 px-2 py-1 rounded text-xs font-mono font-bold text-primary border border-slate-200">
-                        {coupon.code}
-                      </span>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(coupon.code);
+                          toast.success(`Đã sao chép mã: ${coupon.code}`);
+                        }}
+                        title="Nhấn để sao chép"
+                        className="group flex flex-row items-center gap-1.5 bg-slate-100 hover:bg-slate-200/70 px-2 py-1 rounded border border-slate-200 hover:border-slate-300 transition-colors cursor-pointer"
+                      >
+                        <span className="text-xs font-mono font-bold text-primary">
+                          {coupon.code}
+                        </span>
+                        <Copy className="w-3 h-3 text-slate-400 group-hover:text-primary transition-colors" />
+                      </button>
                     </div>
                   </TableCell>
                   <TableCell className="text-center">

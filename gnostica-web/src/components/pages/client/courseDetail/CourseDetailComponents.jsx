@@ -1,5 +1,5 @@
 import React from "react";
-import { Star, Users, Calendar, Globe, PlayCircle, CheckCircle2, Heart, Clock, FileText, Infinity as InfinityIcon, Smartphone, Trophy } from "lucide-react";
+import { Star, Users, Calendar, Globe, PlayCircle, CheckCircle2, Heart, Clock, FileText, Infinity as InfinityIcon, Smartphone, Trophy, Gift } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
@@ -261,16 +261,15 @@ export const CourseDetailPricingCard = ({ course }) => {
           </span>
         </div>
 
-        <div className="space-y-3 mb-6">
-          <SimpleButton className="w-full py-7 text-lg font-bold rounded-2xl shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-shadow">
+        <div className="flex items-stretch gap-3 mb-6">
+          <SimpleButton size="lg" className="flex-1 py-7 text-lg font-bold rounded-2xl">
             Đăng ký học ngay
           </SimpleButton>
-          <Button
-            variant="outline"
-            className="w-full py-7 text-lg font-bold rounded-2xl border-2 border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+          <button
+            className="flex-none p-4 rounded-2xl border-2 border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-primary hover:border-primary transition-all flex items-center justify-center cursor-pointer"
           >
-            Thêm vào giỏ hàng
-          </Button>
+            <Gift className="size-6" />
+          </button>
         </div>
 
         <p className="text-center text-[13px] font-semibold text-slate-500 mb-8">
