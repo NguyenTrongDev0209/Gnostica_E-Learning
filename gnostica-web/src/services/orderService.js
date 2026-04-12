@@ -18,6 +18,21 @@ const getAuthHeaders = () => {
 };
 
 /**
+ * Lấy tất cả đơn hàng (Admin)
+ * @returns {Promise<Array>}
+ */
+const getOrders = async () => {
+    try {
+        const response = await axios.get(`${API_URL}/all`, {
+            headers: getAuthHeaders()
+        });
+        return response.data.data;
+    } catch (error) {
+        throw error.response?.data?.message || 'Không thể lấy danh sách đơn hàng!';
+    }
+};
+
+/**
  * Tạo đơn hàng và link thanh toán PayOS
  * @param {Object} data - Dữ liệu đơn hàng (CreatePaymentLinkRequestBody)
  * @returns {Promise<Object>} - Kết quả từ server (ApiResponse<CreatePaymentLinkResponse>)
@@ -100,6 +115,7 @@ const downloadInvoice = async (orderId, invoiceId) => {
 };
 
 const orderService = {
+    getOrders,
     createOrder,
     getOrderById,
     cancelOrder,

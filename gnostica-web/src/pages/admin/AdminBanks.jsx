@@ -1,73 +1,91 @@
-import React, { useState, useEffect } from "react";
-import { useOrders } from "@/hooks/admin/useOrders";
-import { OrderHeader } from "@/components/pages/admin/orders/OrderHeader";
-import { OrderStatsFilter } from "@/components/pages/admin/orders/OrderStatsFilter";
-import { OrderTable } from "@/components/pages/admin/orders/OrderTable";
-import { OrderDetailModal } from "@/components/pages/admin/orders/OrderDetailModal";
+import React, { useState } from "react";
+import { useBanks } from "@/hooks/admin/useBanks";
+
+import { BankHeader } from "@/components/pages/admin/banks/BankHeader";
+import { BankStatsFilter } from "@/components/pages/admin/banks/BankStatsFilter";
+import { BankTable } from "@/components/pages/admin/banks/BankTable";
+import { BankFormModal } from "@/components/pages/admin/banks/BankFormModal";
 import { Button } from "@/components/ui/button";
 
-export default function AdminOrders() {
-  const { orders, isLoading, fetchOrders } = useOrders();
+export default function AdminBanks() {
+  const { banks, isLoading, addBank, updateBank, removeBank, syncBanks } = useBanks();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState(null);
-  
+  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+  const [editingBank, setEditingBank] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  const filteredOrders = orders.filter((order) => {
+  const filteredBanks = banks.filter((bank) => {
     const searchStr = searchTerm.toLowerCase();
     const matchesSearch = 
-      (order.id?.toString().includes(searchStr)) ||
-      (order.account?.fullname?.toLowerCase().includes(searchStr)) ||
-      (order.account?.email?.toLowerCase().includes(searchStr)) ||
-      (order.transactionId?.toLowerCase().includes(searchStr));
+      (bank.shortName?.toLowerCase().includes(searchStr)) ||
+      (bank.bankCode?.toLowerCase().includes(searchStr)) ||
+      (bank.bin?.toLowerCase().includes(searchStr));
     
     let matchesStatus = true;
     if (statusFilter !== "all") {
-      matchesStatus = order.status === Number(statusFilter);
+      matchesStatus = bank.status === Number(statusFilter);
     }
 
     return matchesSearch && matchesStatus;
   });
 
-  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredBanks.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedOrders = filteredOrders.slice(startIndex, startIndex + itemsPerPage);
+  const paginatedBanks = filteredBanks.slice(startIndex, startIndex + itemsPerPage);
 
-  useEffect(() => {
+  // Reset to page 1 when filters change
+  React.useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, statusFilter]);
 
-  const handleDetailClick = (order) => {
-    setSelectedOrder(order);
-    setIsDetailModalOpen(true);
+  const handleAddClick = () => {
+    setEditingBank(null);
+    setIsFormModalOpen(true);
+  };
+
+  const handleEditClick = (bank) => {
+    setEditingBank(bank);
+    setIsFormModalOpen(true);
+  };
+
+  const handleSave = async (data) => {
+    if (editingBank) {
+      return await updateBank(editingBank.id, data);
+    } else {
+      return await addBank(data);
+    }
   };
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      <OrderHeader />
+      <BankHeader 
+        onAddClick={handleAddClick} 
+        onSyncClick={syncBanks} 
+        isSyncing={isLoading} 
+      />
       
-      <OrderStatsFilter 
+      <BankStatsFilter 
         searchTerm={searchTerm} 
         onSearchChange={setSearchTerm} 
         statusFilter={statusFilter}
         onStatusChange={setStatusFilter}
-        totalCount={orders.length} 
+        totalCount={banks.length} 
       />
       
-      <OrderTable 
-        orders={paginatedOrders} 
+      <BankTable 
+        banks={paginatedBanks} 
         isLoading={isLoading} 
-        onDetailClick={handleDetailClick}
+        onEdit={handleEditClick}
+        onDelete={removeBank} 
         startIndex={startIndex}
       />
 
       {totalPages > 1 && (
         <div className="p-4 border-t border-slate-100 flex flex-col sm:flex-row shadow-sm bg-white rounded-b-xl items-center justify-between gap-4 text-sm text-slate-500">
           <div>
-            Hiển thị <span className="font-bold text-slate-900">{startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredOrders.length)}</span> trong số <span className="font-bold text-slate-900">{filteredOrders.length}</span> đơn hàng
+            Hiển thị <span className="font-bold text-slate-900">{startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredBanks.length)}</span> trong số <span className="font-bold text-slate-900">{filteredBanks.length}</span> ngân hàng
           </div>
           <div className="flex gap-1">
             <Button 
@@ -108,10 +126,11 @@ export default function AdminOrders() {
         </div>
       )}
       
-      <OrderDetailModal 
-        isOpen={isDetailModalOpen} 
-        onOpenChange={setIsDetailModalOpen} 
-        order={selectedOrder} 
+      <BankFormModal 
+        isOpen={isFormModalOpen} 
+        onOpenChange={setIsFormModalOpen} 
+        onSave={handleSave} 
+        editingBank={editingBank}
       />
     </div>
   );

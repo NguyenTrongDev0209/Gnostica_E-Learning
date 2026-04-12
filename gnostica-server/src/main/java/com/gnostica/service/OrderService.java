@@ -11,12 +11,20 @@ import vn.payos.model.v2.paymentRequests.invoices.InvoicesInfo;
 import vn.payos.model.webhooks.ConfirmWebhookResponse;
 
 import com.gnostica.dto.CreatePaymentLinkRequestBody;
+import com.gnostica.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
+import java.util.List;
+import com.gnostica.model.Order;
 
 @Service
 @RequiredArgsConstructor
 public class OrderService {
     private final PayOS payOS;
+    private final OrderRepository orderRepository;
+
+    public List<Order> getAllOrders() {
+        return orderRepository.findAllByOrderByIdDesc();
+    }
 
     public CreatePaymentLinkResponse createPaymentLink(CreatePaymentLinkRequestBody requestBody) throws Exception {
         final String productName = requestBody.getProductName();

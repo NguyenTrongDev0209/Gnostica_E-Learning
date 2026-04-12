@@ -1,17 +1,56 @@
-import React from "react";
-import { Settings } from "lucide-react";
+import React, { useState } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SettingsHeader } from "@/components/pages/admin/settings/SettingsHeader";
+import { GeneralSettings } from "@/components/pages/admin/settings/GeneralSettings";
+import { PaymentConfigSettings } from "@/components/pages/admin/settings/PaymentConfigSettings";
+import { SecuritySettings } from "@/components/pages/admin/settings/SecuritySettings";
+import { Globe, CreditCard, Shield } from "lucide-react";
+import { toast } from "sonner";
 
 export default function AdminSettings() {
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleSave = () => {
+    setIsSaving(true);
+    // Simulate API call
+    setTimeout(() => {
+      setIsSaving(false);
+      toast.success("Đã lưu các thay đổi thành công!");
+    }, 1500);
+  };
+
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Cài Đặt Hệ Thống</h1>
-        <p className="text-sm text-slate-500 mt-1">Cấu hình và tùy chỉnh các thông số của nền tảng.</p>
-      </div>
-      <div className="flex flex-col items-center justify-center h-64 bg-white rounded-xl border border-slate-200 border-dashed gap-4">
-        <Settings className="w-12 h-12 text-slate-300" />
-        <p className="text-slate-400 font-medium">Trang Cài Đặt đang được xây dựng</p>
-      </div>
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <SettingsHeader onSave={handleSave} isSaving={isSaving} />
+
+      <Tabs defaultValue="general" className="w-full">
+        <TabsList className="bg-slate-100/50 border border-slate-200 p-1 mb-6">
+          <TabsTrigger value="general" className="gap-2 data-active:bg-white data-active:shadow-sm">
+            <Globe className="w-4 h-4" />
+            Cài đặt chung
+          </TabsTrigger>
+          <TabsTrigger value="payment" className="gap-2 data-active:bg-white data-active:shadow-sm">
+            <CreditCard className="w-4 h-4" />
+            Thanh toán
+          </TabsTrigger>
+          <TabsTrigger value="security" className="gap-2 data-active:bg-white data-active:shadow-sm">
+            <Shield className="w-4 h-4" />
+            Bảo mật
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="general" className="animate-in fade-in duration-300">
+          <GeneralSettings />
+        </TabsContent>
+
+        <TabsContent value="payment" className="animate-in fade-in duration-300">
+          <PaymentConfigSettings />
+        </TabsContent>
+
+        <TabsContent value="security" className="animate-in fade-in duration-300">
+          <SecuritySettings />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

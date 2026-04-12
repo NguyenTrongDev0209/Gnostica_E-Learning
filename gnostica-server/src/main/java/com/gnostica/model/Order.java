@@ -16,6 +16,12 @@ public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+
+    @org.hibernate.annotations.CreationTimestamp
+    private java.time.LocalDateTime createdAt;
+
+    @org.hibernate.annotations.UpdateTimestamp
+    private java.time.LocalDateTime updatedAt;
     private Double totalPrice;
     private String transactionId;
     private Integer status;
@@ -25,4 +31,7 @@ public class Order {
     @ManyToOne
     @JoinColumn(name = "coupon_id")
     private Coupon coupon;
+
+    @jakarta.persistence.OneToMany(mappedBy = "order", cascade = jakarta.persistence.CascadeType.ALL)
+    private java.util.List<OrderDetail> details;
 }

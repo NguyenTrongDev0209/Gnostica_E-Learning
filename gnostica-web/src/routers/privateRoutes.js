@@ -25,6 +25,9 @@ import AdminCoupons from "@/pages/admin/AdminCoupons";
 import AdminReviews from "@/pages/admin/AdminReviews";
 import AdminReports from "@/pages/admin/AdminReports";
 import AdminSettings from "@/pages/admin/AdminSettings";
+import AdminBanks from "@/pages/admin/AdminBanks";
+import AdminTransactions from "@/pages/admin/AdminTransactions";
+
 
 import InstructorDashboard from "@/pages/instructor/InstructorDashboard";
 import InstructorCourses from "@/pages/instructor/InstructorCourses";
@@ -59,7 +62,10 @@ export const privateRoutes = {
     { path: "/admin/reviews", component: AdminReviews },
     { path: "/admin/reports", component: AdminReports },
     { path: "/admin/settings", component: AdminSettings },
+    { path: "/admin/banks", component: AdminBanks },
+    { path: "/admin/transactions", component: AdminTransactions },
   ],
+
   instructor: [
     { path: "/instructor", component: InstructorDashboard },
     { path: "/instructor/courses", component: InstructorCourses },

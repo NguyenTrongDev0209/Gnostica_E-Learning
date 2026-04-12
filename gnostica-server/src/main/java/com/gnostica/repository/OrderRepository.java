@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface OrderRepository extends JpaRepository<Order, Integer> {
     List<Order> findByAccountOrderByIdDesc(Account account);
+    List<Order> findAllByOrderByIdDesc();
+    long countByCreatedAtAfter(java.time.LocalDateTime date);
 }

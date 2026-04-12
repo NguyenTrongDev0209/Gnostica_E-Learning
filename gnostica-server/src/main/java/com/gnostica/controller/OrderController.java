@@ -1,6 +1,8 @@
 package com.gnostica.controller;
 
 import java.util.Map;
+import java.util.List;
+import com.gnostica.model.Order;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -26,6 +28,16 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class OrderController {
   private final OrderService orderService;
+  
+  @GetMapping("/all")
+  public ApiResponse<List<Order>> getAllOrders() {
+    try {
+      return ApiResponse.success(orderService.getAllOrders());
+    } catch (Exception e) {
+      e.printStackTrace();
+      return ApiResponse.error("fail");
+    }
+  }
 
   @PostMapping(path = "/create")
   public ApiResponse<CreatePaymentLinkResponse> createPaymentLink(
