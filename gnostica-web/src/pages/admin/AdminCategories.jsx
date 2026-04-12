@@ -161,8 +161,9 @@ export default function AdminCategories() {
       fetchCategories();
     } catch (error) {
       const message = error?.response?.data?.message;
-      if (message && message.includes("HAS_CHILDREN")) {
-        if (window.confirm("Danh mục này đang chứa danh mục con (hoặc khóa học). Bạn không thể xóa tránh mất dữ liệu.\n\nBạn có muốn chuyển danh mục sang trạng thái 'Tạm ẩn' thay thế không?")) {
+      if (message && (message.includes("HAS_CHILDREN") || message.includes("HAS_COURSES"))) {
+        const type = message.includes("HAS_CHILDREN") ? "danh mục con" : "khóa học";
+        if (window.confirm(`Danh mục này đang chứa ${type}. Bạn không thể xóa để tránh mất dữ liệu.\n\nBạn có muốn chuyển danh mục sang trạng thái 'Tạm ẩn' thay thế không? (Hành động này cũng sẽ ẩn toàn bộ ${type} bên trong)`)) {
           toggleStatus(e, id, false);
         }
       } else {

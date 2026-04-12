@@ -42,7 +42,23 @@ export default function CourseListSection({ courses, priceRange, setPriceRange, 
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {courses.slice(0, 9).map((course) => (
-            <AppCard key={course.id} {...course} />
+            <AppCard 
+              key={course.id} 
+              image={course.thumbnail}
+              title={course.title}
+              price={new Intl.NumberFormat("vi-VN").format(course.salePrice)}
+              originalPrice={course.discount > 0 ? new Intl.NumberFormat("vi-VN").format(course.price) : null}
+              discountPercentage={course.discount}
+              category={course.categoryId ? "Category ID: " + course.categoryId : "Dân chuyên"}
+              link={`/courses/${course.slug || course.id}`}
+              classes={course.modules?.length || 0}
+              students={0}
+              instructor={{
+                 name: course.account?.fullName || "Giảng viên",
+                 avatar: course.account?.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=100&auto=format&fit=crop",
+                 status: "online"
+              }}
+            />
           ))}
         </div>
 

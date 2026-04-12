@@ -36,6 +36,25 @@ public class CloudinaryService {
         return uploadResult.get("secure_url").toString();
     }
     
+    public String uploadDocument(MultipartFile file) throws IOException {
+        String uniqueIdentifier = UUID.randomUUID().toString();
+        String originalFilename = file.getOriginalFilename();
+        
+        String publicId = uniqueIdentifier;
+        if (originalFilename != null && originalFilename.contains(".")) {
+            String nameWithoutExt = originalFilename.substring(0, originalFilename.lastIndexOf('.'));
+            publicId = nameWithoutExt + "_" + uniqueIdentifier;
+        }
+
+        Map<?, ?> uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap(
+                "folder", "gnostica_documents",
+                "public_id", publicId,
+                "resource_type", "raw"
+        ));
+
+        return uploadResult.get("secure_url").toString();
+    }
+    
     public void deleteImageByUrl(String imageUrl) throws IOException {
         try {
             // Extract the public ID from the URL. 

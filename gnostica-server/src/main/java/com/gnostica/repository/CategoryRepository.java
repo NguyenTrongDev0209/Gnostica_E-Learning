@@ -14,6 +14,7 @@ import com.gnostica.model.Category;
 @Repository
 public interface CategoryRepository extends JpaRepository<Category, Integer> {
     boolean existsBySlug(String slug);
+    boolean existsBySlugAndIdNot(String slug, Integer id);
     boolean existsByName(String name);
     List<Category> findByParentIsNull();
 
