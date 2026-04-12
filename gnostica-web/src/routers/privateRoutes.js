@@ -64,6 +64,7 @@ export const privateRoutes = {
     { path: "/instructor", component: InstructorDashboard },
     { path: "/instructor/courses", component: InstructorCourses },
     { path: "/instructor/courses/courses-form", component: InstructorCourseForm },
+    { path: "/instructor/courses/edit/:slug", component: InstructorCourseForm },
     { path: "/instructor/revenue", component: InstructorRevenue },
     { path: "/instructor/coupons", component: InstructorCoupons },
     { path: "/instructor/students", component: InstructorStudents },

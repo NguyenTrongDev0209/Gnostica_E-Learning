@@ -2,6 +2,10 @@ package com.gnostica.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +14,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.gnostica.dto.CategoryRequest;
 import com.gnostica.dto.CategoryResponseDTO;
@@ -22,12 +27,35 @@ public class CategoryService {
     @Autowired
     private CategoryRepository categoryRepository;
 
+    @Autowired
+    private com.gnostica.repository.CourseRepository courseRepository;
 
+
+    @Transactional(readOnly = true)
     public Page<CategoryResponseDTO> getAllCategories(int page, int size, String search, Boolean status) {
         String safeSearch = search == null ? "" : search;
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Category> categoryPage = categoryRepository.findRootCategoriesWithFilters(safeSearch, status, pageable);
-        return categoryPage.map(this::mapToDTO);
+        
+        // --- Tối ưu N+1: Thu thập tất cả ID cần đếm ---
+        Set<Integer> allIds = new HashSet<>();
+        for (Category root : categoryPage.getContent()) {
+            allIds.add(root.getId());
+            if (root.getChildren() != null) {
+                root.getChildren().forEach(child -> allIds.add(child.getId()));
+            }
+        }
+        
+        // Truy vấn số lượng khóa học trực tiếp cho tất cả ID trong 1 query
+        Map<Integer, Long> courseCountsMap = new HashMap<>();
+        if (!allIds.isEmpty()) {
+            List<Object[]> results = courseRepository.countCoursesByCategoryIdIn(allIds);
+            for (Object[] result : results) {
+                courseCountsMap.put((Integer) result[0], (Long) result[1]);
+            }
+        }
+        
+        return categoryPage.map(category -> mapToDTO(category, courseCountsMap));
     }
 
     
@@ -45,9 +73,10 @@ public class CategoryService {
         if (categoryRepository.existsByName(request.getName())) {
             throw new RuntimeException("Tên danh mục đã tồn tại");
         }
-        if (categoryRepository.existsBySlug(request.getSlug())) {
-            throw new RuntimeException("Slug danh mục đã tồn tại");
-        }
+        
+        // Tự động xử lý trùng slug bằng cách thêm hậu tố số
+        String uniqueSlug = generateUniqueSlug(request.getSlug(), null);
+        request.setSlug(uniqueSlug);
 
         Category category = new Category();
         category.setName(request.getName());
@@ -89,9 +118,10 @@ public class CategoryService {
         if (!category.getName().equals(request.getName()) && categoryRepository.existsByName(request.getName())) {
             throw new RuntimeException("Tên danh mục đã tồn tại");
         }
-        if (!category.getSlug().equals(request.getSlug()) && categoryRepository.existsBySlug(request.getSlug())) {
-            throw new RuntimeException("Slug danh mục đã tồn tại");
-        }
+        
+        // Tự động xử lý trùng slug bằng cách thêm hậu tố số
+        String uniqueSlug = generateUniqueSlug(request.getSlug(), id);
+        request.setSlug(uniqueSlug);
 
         category.setName(request.getName());
         category.setSlug(request.getSlug());
@@ -126,6 +156,7 @@ public class CategoryService {
         return mapToDTO(updatedCategory);
     }
 
+    @Transactional
     public void updateStatus(Integer id, Boolean status) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Danh mục không tồn tại"));
@@ -144,6 +175,10 @@ public class CategoryService {
             }
             categoryRepository.saveAll(category.getChildren());
         }
+
+        // Rule 2: Đồng bộ trạng thái khóa học theo danh mục (1: Hiện, 2: Ẩn)
+        int courseStatus = status ? 1 : 2;
+        courseRepository.syncCourseStatusWithCategory(id, courseStatus);
         
         categoryRepository.save(category);
     }
@@ -156,36 +191,68 @@ public class CategoryService {
             throw new RuntimeException("HAS_CHILDREN"); // Token đặc biệt để Frontend nhận diện và hiển thị gợi ý
         }
 
-        // Tạm thời ẩn kiểm tra Khóa học vì chưa có Repository / Entity liên quan.
-        // if (courseRepository.existsByCategoryId(id)) { throw new RuntimeException("HAS_COURSES"); }
+        if (courseRepository.countByCategoryIdRecursive(id) > 0) {
+            throw new RuntimeException("HAS_COURSES");
+        }
 
         categoryRepository.delete(category);
     }
 
     private CategoryResponseDTO mapToDTO(Category category) {
+        return mapToDTO(category, null);
+    }
+
+    private CategoryResponseDTO mapToDTO(Category category, Map<Integer, Long> countsMap) {
         List<CategoryResponseDTO> childrenDTO = new ArrayList<>();
+        
+        // Tính tổng số lượng khóa học đệ quy (Recursive)
+        // Nếu có countsMap thì dùng Map để tránh query database (Tối ưu N+1)
+        long directCount = (countsMap != null) 
+            ? countsMap.getOrDefault(category.getId(), 0L) 
+            : courseRepository.countByCategoryId(category.getId());
+            
+        long recursiveTotal = directCount;
+
         if (category.getChildren() != null) {
-            childrenDTO = category.getChildren().stream().map(child -> 
-                CategoryResponseDTO.builder()
+            for (Category child : category.getChildren()) {
+                long childCount = (countsMap != null)
+                    ? countsMap.getOrDefault(child.getId(), 0L)
+                    : courseRepository.countByCategoryId(child.getId());
+                
+                recursiveTotal += childCount;
+                
+                childrenDTO.add(CategoryResponseDTO.builder()
                     .id(child.getId())
                     .name(child.getName())
                     .slug(child.getSlug())                 
-                    .courses(0)
+                    .courses((int) childCount)
                     .status(child.getStatus() != null ? child.getStatus() : true)
                     .createdAt(child.getCreatedAt())
                     .subcategories(new ArrayList<>())
-                    .build()
-            ).collect(Collectors.toList());
+                    .build());
+            }
         }
 
         return CategoryResponseDTO.builder()
                 .id(category.getId())
                 .name(category.getName())
                 .slug(category.getSlug())             
-                .courses(0) // Mặc định = 0
+                .courses((int) recursiveTotal)
                 .status(category.getStatus() != null ? category.getStatus() : true)
                 .createdAt(category.getCreatedAt())
                 .subcategories(childrenDTO)
                 .build();
+    }
+
+    private String generateUniqueSlug(String baseSlug, Integer id) {
+        String slug = baseSlug;
+        int count = 1;
+        
+        while (id == null ? categoryRepository.existsBySlug(slug) : categoryRepository.existsBySlugAndIdNot(slug, id)) {
+            slug = baseSlug + "-" + count;
+            count++;
+        }
+        
+        return slug;
     }
 }

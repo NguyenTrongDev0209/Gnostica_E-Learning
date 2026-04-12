@@ -1,0 +1,108 @@
+package com.gnostica.controller;
+
+import com.gnostica.dto.CourseRequest;
+import com.gnostica.model.Course;
+import com.gnostica.service.CourseService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/courses")
+@RequiredArgsConstructor
+@CrossOrigin(origins = "*") // Adjust based on your env
+public class CourseController {
+
+    private final CourseService courseService;
+
+    @PostMapping
+    public ResponseEntity<Map<String, Object>> createCourse(
+            @Valid @RequestBody CourseRequest request,
+            Authentication authentication
+    ) {
+        // Find email from Principal/JWT token
+        String email = authentication.getName(); 
+        
+        try {
+            Course savedCourse = courseService.createCourse(request, email);
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Thêm khóa học thành công");
+            response.put("courseId", savedCourse.getId());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("error", "Lỗi tạo khóa học: " + e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
+    @GetMapping("/{slug}")
+    public ResponseEntity<Course> getCourseDetail(@PathVariable String slug) {
+        return ResponseEntity.ok(courseService.getCourseBySlug(slug));
+    }
+
+    @PutMapping("/{slug}")
+    public ResponseEntity<?> updateCourse(
+            @PathVariable String slug,
+            @Valid @RequestBody CourseRequest request,
+            Authentication authentication
+    ) {
+        String email = authentication.getName();
+        try {
+            Course updatedCourse = courseService.updateCourseBySlug(slug, request, email);
+            return ResponseEntity.ok(updatedCourse);
+        } catch (Exception e) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("error", "Lỗi cập nhật khóa học: " + e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteCourse(@PathVariable Integer id, Authentication authentication) {
+        String email = authentication.getName();
+        try {
+            courseService.deleteCourse(id, email);
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Xóa khóa học thành công");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Lỗi xóa khóa học: " + e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
+
+    @GetMapping("/instructor")
+    public ResponseEntity<?> getInstructorCourses(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            Authentication authentication
+    ) {
+        String email = authentication.getName();
+        return ResponseEntity.ok(courseService.getInstructorCourses(email, page, size));
+    }
+
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<?> updateCourseStatus(
+            @PathVariable Integer id,
+            @RequestBody Map<String, Integer> statusUpdate,
+            Authentication authentication
+    ) {
+        String email = authentication.getName();
+        Integer newStatus = statusUpdate.get("status");
+        if (newStatus == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Vui lòng cung cấp trạng thái mới"));
+        }
+        try {
+            Course updated = courseService.patchCourseStatus(id, newStatus, email);
+            return ResponseEntity.ok(updated);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+}
