@@ -5,21 +5,15 @@ const API_URL = 'http://localhost:8080/api/categories';
 // Hàm lấy token từ localStorage để gắn vào Header
 const getAuthHeaders = () => {
     const userStr = localStorage.getItem('user');
-    console.log("CategoryService: userStr from localStorage:", userStr ? "Found" : "Not Found");
     if (userStr) {
         try {
             const user = JSON.parse(userStr);
             if (user && user.token) {
-                console.log("CategoryService: Token found, attaching to header");
                 return { Authorization: `Bearer ${user.token}` };
-            } else {
-                console.warn("CategoryService: User object found but no token present!");
             }
         } catch (error) {
             console.error('CategoryService: Error parsing user from localStorage', error);
         }
-    } else {
-        console.warn("CategoryService: No user found in localStorage!");
     }
     return {};
 };
@@ -54,7 +48,6 @@ const updateCategory = async (id, data) => {
 };
 
 const updateStatus = async (id, status) => {
-    // Với axios.patch, tham số thứ 2 là data (body), tham số thứ 3 là config
     const response = await axios.patch(`${API_URL}/${id}/status?status=${status}`, null, { 
         headers: getAuthHeaders() 
     });
