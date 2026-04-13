@@ -1,7 +1,9 @@
 package com.gnostica.service;
 
 import com.gnostica.model.Account;
+import com.gnostica.model.Course;
 import com.gnostica.model.Order;
+import com.gnostica.model.OrderDetail;
 import com.gnostica.model.Wallet;
 import com.gnostica.repository.OrderDetailRepository;
 import com.gnostica.repository.OrderRepository;
@@ -12,10 +14,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.gnostica.model.Enrollment;
 import com.gnostica.model.Transaction;
+import com.gnostica.repository.EnrollmentRepository;
+import com.gnostica.repository.TransactionRepository;
+import java.util.List;
 import java.util.Map;
 import java.time.LocalDateTime;
-import com.gnostica.repository.TransactionRepository;
 
 import vn.payos.PayOS;
 import vn.payos.model.webhooks.WebhookData;
@@ -29,6 +34,7 @@ public class PaymentService {
     private final OrderDetailRepository orderDetailRepository;
     private final WalletRepository walletRepository;
     private final TransactionRepository transactionRepository;
+    private final EnrollmentRepository enrollmentRepository;
     private final ObjectMapper objectMapper;
 
     public WebhookData verifyWebhook(Object body) throws JsonProcessingException, IllegalArgumentException {
@@ -56,7 +62,17 @@ public class PaymentService {
         order.setStatus(1);
         orderRepository.save(order);
 
-        orderDetailRepository.findByOrderId(orderId).ifPresent(detail -> {
+        List<OrderDetail> details = orderDetailRepository.findByOrder(order);
+        for (OrderDetail detail : details) {
+            // 1. Create Enrollment
+            Enrollment enrollment = new Enrollment();
+            enrollment.setAccount(order.getAccount());
+            enrollment.setCourse(detail.getCourse());
+            enrollment.setProgressPercent(0);
+            enrollment.setStatus(1); // 1: Active/Ongoing
+            enrollmentRepository.save(enrollment);
+
+            // 2. Credit Instructor Wallet
             Account instructor = detail.getCourse().getAccount();
             if (instructor != null) {
                 Wallet wallet = walletRepository.findByAccount(instructor).orElseGet(() -> {
@@ -68,11 +84,12 @@ public class PaymentService {
                 });
 
                 double currentRemain = wallet.getRemain() != null ? wallet.getRemain() : 0.0;
-                wallet.setRemain(currentRemain + order.getTotalPrice());
+                // Assuming price in detail is the amount to credit
+                wallet.setRemain(currentRemain + detail.getPrice());
                 walletRepository.save(wallet);
-                System.out.println("Added " + order.getTotalPrice() + " to instructor: " + instructor.getEmail());
+                System.out.println("Added " + detail.getPrice() + " to instructor: " + instructor.getEmail() + " for course: " + detail.getCourse().getTitle());
             }
-        });
+        }
     }
 
     @Transactional

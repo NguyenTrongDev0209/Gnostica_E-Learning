@@ -43,8 +43,8 @@ public class DashboardService {
         stats.put("newStudents", newStudents);
 
         // 3. Khóa học đang bán (Active)
-        long activeCourses = courseRepository.countByStatus(true);
-        stats.put("activeCourses", activeCourses);
+//        long activeCourses = courseRepository.countByStatus(true);
+//        stats.put("activeCourses", activeCourses);
 
         // 4. Đơn hàng hôm nay
         LocalDateTime todayStart = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0);
