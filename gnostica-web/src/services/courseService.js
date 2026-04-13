@@ -23,6 +23,13 @@ const createCourse = async (courseData) => {
     });
     return response.data;
 };
+ 
+const getAllCourses = async (page = 0, size = 10) => {
+    const response = await axios.get(API_URL, {
+        params: { page, size }
+    });
+    return response.data;
+};
 
 const getInstructorCourses = async (page = 0, size = 10) => {
     const response = await axios.get(`${API_URL}/instructor`, {
@@ -80,6 +87,7 @@ const deleteDraft = async ({ courseId, slug } = {}) => {
 
 const courseService = {
     createCourse,
+    getAllCourses,
     getInstructorCourses,
     getCourseBySlug,
     updateCourse,

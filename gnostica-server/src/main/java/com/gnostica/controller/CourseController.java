@@ -19,6 +19,14 @@ import java.util.Map;
 public class CourseController {
 
     private final CourseService courseService;
+    
+    @GetMapping
+    public ResponseEntity<?> getAllCourses(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return ResponseEntity.ok(courseService.getAllActiveCourses(page, size));
+    }
 
     @PostMapping
     public ResponseEntity<Map<String, Object>> createCourse(

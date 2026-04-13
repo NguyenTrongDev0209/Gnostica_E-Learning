@@ -136,6 +136,22 @@ export function MainHeroCarousel({ onBgChange }) {
 export function CardCarousel() {
   const [api, setApi] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const data = await courseService.getAllCourses(0, 10);
+        setCourses(data.content || []);
+      } catch (error) {
+        console.error("Lỗi khi tải slide khóa học:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCourses();
+  }, []);
 
   useEffect(() => {
     if (!api) return;
@@ -145,6 +161,12 @@ export function CardCarousel() {
       setActiveIndex(api.selectedScrollSnap());
     });
   }, [api]);
+
+  if (loading) {
+    return <div className="app-container h-64 flex items-center justify-center">Đang tải slide khóa học...</div>;
+  }
+
+  if (courses.length === 0) return null;
 
   return (
     <div className="py-6 md:py-10 w-full relative">
@@ -158,18 +180,35 @@ export function CardCarousel() {
         className="w-full relative"
       >
         <CarouselContent className="-ml-3 md:-ml-4 py-8 md:py-16 items-stretch">
-          {[...featuredCoursesMock, ...featuredCoursesMock].map((card, index) => {
+          {courses.map((course, index) => {
             const isActive = activeIndex === index;
 
             return (
-              <CarouselItem key={`${card.id}-${index}`} className="pl-3 md:pl-4 basis-[70%] sm:basis-[40%] lg:basis-[25%] px-2">
+              <CarouselItem key={`${course.id}-${index}`} className="pl-3 md:pl-4 basis-[70%] sm:basis-[40%] lg:basis-[25%] px-2">
                 <div
                   className={`h-full transition-all duration-700 ease-in-out origin-center flex flex-col ${isActive
                     ? "scale-105 md:scale-110 z-30 opacity-100 ring-2 ring-primary/20 rounded-xl shadow-xl"
                     : "scale-90 md:scale-95 z-10 opacity-50 blur-[0.5px] transition-opacity hover:opacity-100"
                     }`}
                 >
-                  <AppCard {...card} className="flex-1" />
+                  <AppCard
+                    category={course.categoryName}
+                    rating={4.8}
+                    title={course.title}
+                    classes={course.classes}
+                    students={course.students}
+                    price={new Intl.NumberFormat('vi-VN').format(course.finalPrice || course.price)}
+                    originalPrice={course.discount > 0 ? new Intl.NumberFormat('vi-VN').format(course.price) : null}
+                    discountPercentage={course.discount}
+                    image={course.thumbnail}
+                    instructor={{
+                      name: course.instructorName,
+                      avatar: course.instructorAvatar,
+                      status: "online"
+                    }}
+                    link={`/courses/${course.slug}`}
+                    className="flex-1"
+                  />
                 </div>
               </CarouselItem>
             );
