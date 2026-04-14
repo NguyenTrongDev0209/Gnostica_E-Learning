@@ -97,16 +97,6 @@ public class Course {
         return category != null ? category.getId() : null;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("instructorName")
-    public String getInstructorName() {
-        return account != null ? account.getFullName() : null;
-    }
-
-    @com.fasterxml.jackson.annotation.JsonProperty("instructorAvatar")
-    public String getInstructorAvatar() {
-        return account != null ? account.getAvatar() : null;
-    }
-
     @PrePersist
     @PreUpdate
     private void calculateFinalPrice() {

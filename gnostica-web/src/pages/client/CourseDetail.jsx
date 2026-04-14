@@ -71,7 +71,7 @@ export default function CourseDetail() {
   const breadcrumbItems = [
     { label: "Trang chủ", href: "/", icon: Home },
     { label: "Khoá học", href: "/courses" },
-    { label: course.category?.name || "Chi tiết", isLast: true },
+    { label: course.category, isLast: true },
   ];
 
   return (
@@ -91,26 +91,18 @@ export default function CourseDetail() {
             <CourseDetailHeader course={course} />
             
             <CourseDetailVideo 
-              courseImage={course.thumbnail} 
+              courseImage={course.image} 
               courseTitle={course.title} 
               promoVideo={course.promoVideo}
             />
 
-            <CourseDetailOutcomes course={course} />
+            <CourseDetailOutcomes outcomes={course.outcomes} />
 
-            <CourseDetailCurriculum curriculum={course.modules || []} />
+            <CourseDetailCurriculum curriculum={course.curriculum} />
 
             <Separator className="bg-slate-200/60" />
 
-            <CourseDetailInstructor instructor={{
-                name: course.instructorName || "Giảng viên",
-                avatar: course.instructorAvatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=100&auto=format&fit=crop",
-                role: "Chuyên gia đào tạo",
-                bio: "Giảng viên giàu kinh nghiệm trong lĩnh vực công nghệ thông tin và phát triển phần mềm.",
-                reviewsCount: 120,
-                studentsCount: 1250,
-                coursesCount: 5
-            }} />
+            <CourseDetailInstructor instructor={course.instructor} />
           </div>
 
           <div className="lg:col-span-4 relative">

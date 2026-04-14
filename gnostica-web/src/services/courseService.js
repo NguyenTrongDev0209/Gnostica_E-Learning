@@ -1,7 +1,6 @@
 import axios from 'axios';
 
 const API_URL = 'http://localhost:8080/api/courses';
-const PROGRESS_API_URL = 'http://localhost:8080/api/progress';
 
 const getAuthHeaders = () => {
     const userStr = localStorage.getItem('user');
@@ -79,52 +78,7 @@ const deleteDraft = async ({ courseId, slug } = {}) => {
     return response.data;
 };
 
-const getPublicCourses = async ({ categoryId, categorySlug, level, page = 0, size = 9 } = {}) => {
-    const params = { page, size };
-    if (categoryId) params.categoryId = categoryId;
-    if (categorySlug) params.categorySlug = categorySlug;
-    if (level) params.level = level;
-    
-    const response = await axios.get(API_URL, { params });
-    return response.data;
-};
-
-const getCourseProgress = async (slug) => {
-    try {
-        const response = await axios.get(`${PROGRESS_API_URL}/course/${slug}`, {
-            headers: getAuthHeaders()
-        });
-        return response.data;
-    } catch (error) {
-        console.error('Error fetching course progress:', error);
-        return [];
-    }
-};
-
-const updateLastWatchedTime = async (lessonId, time) => {
-    try {
-        await axios.post(`${PROGRESS_API_URL}/lesson/${lessonId}/time?time=${Math.round(time)}`, {}, {
-            headers: getAuthHeaders()
-        });
-    } catch (error) {
-        console.error('Error updating last watched time:', error);
-    }
-};
-
-const markLessonCompleted = async (lessonId) => {
-    try {
-        await axios.post(`${PROGRESS_API_URL}/lesson/${lessonId}/complete`, {}, {
-            headers: getAuthHeaders()
-        });
-        return true;
-    } catch (error) {
-        console.error('Error marking lesson complete:', error);
-        throw error;
-    }
-};
-
 const courseService = {
-    getPublicCourses,
     createCourse,
     getInstructorCourses,
     getCourseBySlug,
@@ -133,9 +87,6 @@ const courseService = {
     deleteCourse,
     getAllDrafts,
     deleteDraft,
-    getCourseProgress,
-    updateLastWatchedTime,
-    markLessonCompleted
 };
 
 export default courseService;
