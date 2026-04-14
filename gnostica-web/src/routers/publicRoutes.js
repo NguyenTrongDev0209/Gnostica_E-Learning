@@ -25,7 +25,7 @@ export const publicRoutes = {
     { path: "/", component: HomePage },
     { path: "/about", component: AboutUs },
     { path: "/courses", component: CourseCatalog },
-    { path: "/courses/category/:categoryName", component: CourseCategory },
+    { path: "/courses/category/:categorySlug", component: CourseCatalog },
     { path: "/courses/:id", component: CourseDetail },
     { path: "/cart", component: CourseCart },
     { path: "/search", component: SearchPage },
