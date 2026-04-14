@@ -40,11 +40,49 @@ public class ForumCategoryController {
             Map<String, Object> map = new HashMap<>();
             map.put("id", cat.getId());
             map.put("name", cat.getName());
-            map.put("description", cat.getDescription());
+            map.put("slug", cat.getSlug());
+            map.put("status", cat.getStatus());
             map.put("threadCount", countMap.getOrDefault(cat.getId(), 0L));
             return map;
         }).collect(Collectors.toList());
 
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping
+    public ResponseEntity<ForumCategory> createCategory(@RequestBody ForumCategory category) {
+        return ResponseEntity.ok(forumCategoryRepository.save(category));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ForumCategory> updateCategory(@PathVariable Integer id, @RequestBody ForumCategory categoryDetails) {
+        return forumCategoryRepository.findById(id)
+            .map(category -> {
+                category.setName(categoryDetails.getName());
+                category.setSlug(categoryDetails.getSlug());
+                category.setStatus(categoryDetails.getStatus());
+                return ResponseEntity.ok(forumCategoryRepository.save(category));
+            })
+            .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PutMapping("/{id}/status")
+    public ResponseEntity<ForumCategory> updateStatus(@PathVariable Integer id, @RequestBody Map<String, Boolean> body) {
+        Boolean status = body.get("status");
+        return forumCategoryRepository.findById(id)
+            .map(category -> {
+                category.setStatus(status);
+                return ResponseEntity.ok(forumCategoryRepository.save(category));
+            })
+            .orElse(ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteCategory(@PathVariable Integer id) {
+        if (!forumCategoryRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        forumCategoryRepository.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 }

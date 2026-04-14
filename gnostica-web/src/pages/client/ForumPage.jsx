@@ -3,11 +3,11 @@ import axios from 'axios';
 import SectionContainer, { PageHeader } from '@/components/common/AppSection';
 import { ForumPostCard } from "@/components/common/AppCard";
 import { Button } from "@/components/ui/button";
-import { Search, Flame, Menu, Star, Tag } from 'lucide-react';
+import { Search, Menu, Star, Tag } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import {
   Pagination,
@@ -21,90 +21,97 @@ import {
 // import { forumCategoriesMock, forumPostsMock } from "@/mocks/forum";
 
 const ForumPage = () => {
-    const navigate = useNavigate();
-    const [threads, setThreads] = useState([]);
-    const [categories, setCategories] = useState([]);
-    const [activeCategory, setActiveCategory] = useState("Tất cả");
-    const [searchQuery, setSearchQuery] = useState("");
-    const [currentPage, setCurrentPage] = useState(0);
-    const [totalPages, setTotalPages] = useState(0);
-    const [isLoading, setIsLoading] = useState(true);
-    const [topContributors, setTopContributors] = useState([]);
+  const navigate = useNavigate();
+  const [threads, setThreads] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [activeCategory, setActiveCategory] = useState("Tất cả");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [topContributors, setTopContributors] = useState([]);
+  const [currentUser, setCurrentUser] = useState(null);
 
-    useEffect(() => {
-        const fetchTopContributors = async () => {
-            try {
-                const res = await axios.get('http://localhost:8080/api/threads/top-contributors');
-                setTopContributors(res.data);
-            } catch (error) {
-                console.error("Failed to load top contributors", error);
-            }
-        };
-        fetchTopContributors();
-    }, []);
+  useEffect(() => {
+    const userData = JSON.parse(localStorage.getItem('user'));
+    setCurrentUser(userData);
+  }, []);
 
-    useEffect(() => {
-        const fetchCategories = async () => {
-            try {
-                const res = await axios.get('http://localhost:8080/api/forum-categories');
-                setCategories(res.data);
-            } catch (error) {
-                console.error("Failed to load forum categories", error);
-            }
-        };
-        fetchCategories();
-    }, []);
+  useEffect(() => {
+    const fetchTopContributors = async () => {
+      try {
+        const res = await axios.get('http://localhost:8080/api/threads/top-contributors');
+        setTopContributors(res.data);
+      } catch (error) {
+        console.error("Failed to load top contributors", error);
+      }
+    };
+    fetchTopContributors();
+  }, []);
 
-    useEffect(() => {
-        const fetchThreads = async () => {
-            setIsLoading(true);
-            try {
-                const res = await axios.get(`http://localhost:8080/api/threads?page=${currentPage}&size=5`);
-                setThreads(res.data.content);
-                setTotalPages(res.data.totalPages);
-            } catch (error) {
-                console.error("Failed to fetch threads", error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchThreads();
-    }, [currentPage]);
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await axios.get('http://localhost:8080/api/forum-categories');
+        const activeCategories = res.data.filter(cat => cat.status === true);
+        setCategories(activeCategories);
+      } catch (error) {
+        console.error("Failed to load forum categories", error);
+      }
+    };
+    fetchCategories();
+  }, []);
 
-    // Map backend data to ForumPostCard format
-    const mappedPosts = threads.map(thread => ({
-        id: thread.id,
-        title: thread.content.substring(0, 100) + (thread.content.length > 100 ? "..." : ""),
-        content: thread.content,
-        author: {
-            name: thread.account?.fullName || "Ẩn danh",
-            avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${thread.account?.email || 'default'}`,
-            status: "online"
-        },
-        category: thread.category?.name || "Thảo luận",
-        tags: ["Thảo luận"], // Default tag for now
-        createdAt: new Date(thread.createdAt).toLocaleDateString('vi-VN', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        }),
-        stats: {
-            likes: thread.likes || 0,
-            views: thread.views || 0,
-            replies: thread.commentCount || 0
-        },
-        images: thread.images || [],
-        isHot: (thread.views || 0) > 50
-    }));
+  useEffect(() => {
+    const fetchThreads = async () => {
+      setIsLoading(true);
+      try {
+        const res = await axios.get(`http://localhost:8080/api/threads?page=${currentPage}&size=5`);
+        setThreads(res.data.content);
+        setTotalPages(res.data.totalPages);
+      } catch (error) {
+        console.error("Failed to fetch threads", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchThreads();
+  }, [currentPage]);
 
-    const filteredPosts = mappedPosts.filter(post => {
-        const matchesCategory = activeCategory === "Tất cả" || post.category === activeCategory;
-        const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            post.content.toLowerCase().includes(searchQuery.toLowerCase());
-        return matchesCategory && matchesSearch;
-    });
+  // Map backend data to ForumPostCard format
+  const mappedPosts = threads.map(thread => ({
+    id: thread.id,
+    title: thread.content.substring(0, 25) + (thread.content.length > 25 ? "..." : ""),
+    content: thread.content,
+    author: {
+      name: thread.account?.fullName || "Ẩn danh",
+      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${thread.account?.email || 'default'}`,
+      status: "online"
+    },
+    category: thread.category?.name || "",
+    tags: [], // Tháo luận removed
+    createdAt: new Date(thread.createdAt).toLocaleDateString('vi-VN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }),
+    stats: {
+      likes: thread.likes || 0,
+      views: thread.views || 0,
+      replies: thread.commentCount || 0
+    },
+    images: thread.images || [],
+    isHot: (thread.views || 0) > 50
+  }));
+
+  const filteredPosts = mappedPosts.filter(post => {
+    const matchesCategory = activeCategory === "Tất cả" || post.category === activeCategory;
+    const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      post.content.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
 
   return (
     <div className="min-h-screen bg-slate-50/50 pb-16 pt-8">
@@ -116,7 +123,7 @@ const ForumPage = () => {
             description="Nơi giao lưu, hỏi đáp và chia sẻ kiến thức về lập trình, công nghệ."
             className="mb-0 sm:mb-0"
           />
-          <Button 
+          <Button
             className="bg-button-gradient hover:brightness-110 md:w-auto w-full font-bold"
             onClick={() => navigate('/forum/create')}
           >
@@ -138,14 +145,6 @@ const ForumPage = () => {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
-              </div>
-              <div className="flex gap-2 shrink-0">
-                <Button variant="outline" className="bg-white shrink-0 h-11 px-5">
-                  Mới nhất
-                </Button>
-                <Button variant="ghost" className="shrink-0 flex items-center gap-1 text-orange-500 hover:text-orange-600 hover:bg-orange-50 font-medium h-11 px-5">
-                  <Flame className="w-4 h-4" /> Đang hot
-                </Button>
               </div>
             </div>
 
@@ -182,19 +181,19 @@ const ForumPage = () => {
                 <Pagination>
                   <PaginationContent>
                     <PaginationItem>
-                      <Button 
-                        variant="ghost" 
+                      <Button
+                        variant="ghost"
                         disabled={currentPage === 0}
                         onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
                         className="gap-1 pl-2.5"
                       >
-                         <PaginationPrevious className="hover:bg-transparent p-0" />
+                        <PaginationPrevious className="hover:bg-transparent p-0" />
                       </Button>
                     </PaginationItem>
-                    
+
                     {[...Array(totalPages)].map((_, i) => (
                       <PaginationItem key={i}>
-                        <PaginationLink 
+                        <PaginationLink
                           onClick={() => setCurrentPage(i)}
                           isActive={currentPage === i}
                           className="cursor-pointer"
@@ -205,8 +204,8 @@ const ForumPage = () => {
                     ))}
 
                     <PaginationItem>
-                      <Button 
-                        variant="ghost" 
+                      <Button
+                        variant="ghost"
                         disabled={currentPage === totalPages - 1}
                         onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
                         className="gap-1 pr-2.5"
@@ -233,28 +232,28 @@ const ForumPage = () => {
                   <button
                     onClick={() => setActiveCategory("Tất cả")}
                     className={`flex items-center justify-between px-3 py-2 rounded-md text-sm transition-colors ${activeCategory === "Tất cả"
-                        ? "bg-primary/10 text-primary font-semibold"
-                        : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                      ? "bg-primary/10 text-primary font-semibold"
+                      : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                       }`}
                   >
                     <span>Tất cả chủ đề</span>
                   </button>
-                    {categories.map((cat) => (
-                      <button
-                        key={cat.id}
-                        onClick={() => setActiveCategory(cat.name)}
-                        className={`flex items-center justify-between px-3 py-2 rounded-md text-sm transition-colors group ${activeCategory === cat.name
-                            ? "bg-primary/10 text-primary font-semibold"
-                            : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                          }`}
-                      >
-                        <span className="truncate pr-2">{cat.name}</span>
-                        <Badge variant="secondary" className={`text-[10px] px-1.5 py-0 border-none transition-colors ${activeCategory === cat.name ? "bg-primary/20 text-primary" : "bg-slate-100 text-slate-500 group-hover:bg-slate-200"
-                          }`}>
-                          {cat.threadCount || 0}
-                        </Badge>
-                      </button>
-                    ))}
+                  {categories.map((cat) => (
+                    <button
+                      key={cat.id}
+                      onClick={() => setActiveCategory(cat.name)}
+                      className={`flex items-center justify-between px-3 py-2 rounded-md text-sm transition-colors group ${activeCategory === cat.name
+                        ? "bg-primary/10 text-primary font-semibold"
+                        : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                        }`}
+                    >
+                      <span className="truncate pr-2">{cat.name}</span>
+                      <Badge variant="secondary" className={`text-[10px] px-1.5 py-0 border-none transition-colors ${activeCategory === cat.name ? "bg-primary/20 text-primary" : "bg-slate-100 text-slate-500 group-hover:bg-slate-200"
+                        }`}>
+                        {cat.threadCount || 0}
+                      </Badge>
+                    </button>
+                  ))}
                 </div>
               </CardContent>
             </Card>
@@ -291,6 +290,40 @@ const ForumPage = () => {
                 </div>
               </CardContent>
             </Card>
+            
+            {/* "Me" Section */}
+            {currentUser && (
+              <Card className="bg-white shadow-sm border-border">
+                <CardContent className="p-5">
+                  <h3 className="font-bold text-base mb-4 flex items-center gap-2">
+                    <Avatar className="w-5 h-5">
+                      <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.email || 'default'}`} />
+                      <AvatarFallback>{currentUser.fullName?.substring(0, 1).toUpperCase() || "U"}</AvatarFallback>
+                    </Avatar>
+                    Tôi
+                  </h3>
+                  <Link 
+                    to="/forum/me"
+                    className="flex items-center gap-3 p-2 -mx-2 rounded-lg hover:bg-slate-50 transition-colors group"
+                  >
+                    <Avatar className="w-10 h-10 ring-2 ring-primary/10 group-hover:ring-primary/30 transition-all">
+                      <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.email || 'default'}`} />
+                      <AvatarFallback className="bg-primary/10 text-primary font-bold">
+                        {currentUser.fullName?.substring(0, 2).toUpperCase() || "U"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col overflow-hidden">
+                      <span className="text-sm font-semibold text-slate-800 truncate group-hover:text-primary transition-colors">
+                        {currentUser.fullName || "Tài khoản của tôi"}
+                      </span>
+                      <span className="text-xs text-muted-foreground flex items-center gap-1">
+                        Xem bài viết của tôi
+                      </span>
+                    </div>
+                  </Link>
+                </CardContent>
+              </Card>
+            )}
 
           </div>
         </div>

@@ -168,4 +168,25 @@ public class ThreadServiceImpl implements ThreadService {
             return map;
         }).collect(Collectors.toList());
     }
+    @Override
+    public List<Thread> getRelatedThreads(Integer categoryId, Integer currentThreadId) {
+        if (categoryId == null) {
+            return new ArrayList<>();
+        }
+        return threadRepository.findTop3ByCategoryIdAndIdNotOrderByLikesDesc(categoryId, currentThreadId);
+    }
+
+    @Override
+    public Page<Thread> getThreadsByEmail(String email, Pageable pageable) {
+        return threadRepository.findByAccountEmailOrderByCreatedAtDesc(email, pageable);
+    }
+
+    @Override
+    public Map<String, Object> getUserStats(String email) {
+        Object[] stats = (Object[]) threadRepository.getUserStats(email)[0];
+        Map<String, Object> response = new HashMap<>();
+        response.put("threadCount", stats[0]);
+        response.put("totalLikes", stats[1]);
+        return response;
+    }
 }
