@@ -24,6 +24,8 @@ import lombok.RequiredArgsConstructor;
 import java.util.List;
 import java.time.LocalDateTime;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.Authentication;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +35,7 @@ public class OrderService {
     private final OrderDetailRepository orderDetailRepository;
     private final AccountRepository accountRepository;
     private final CourseRepository courseRepository;
+    private final PaymentService paymentService;
 
     public List<Order> getAllOrders() {
         return orderRepository.findAllByOrderByIdDesc();
@@ -41,35 +44,45 @@ public class OrderService {
     @Transactional
     public CreatePaymentLinkResponse createPaymentLink(CreatePaymentLinkRequestBody requestBody) throws Exception {
         final String productName = requestBody.getProductName();
-        final String description = requestBody.getDescription();
+        String description = requestBody.getDescription();
+        if (description != null && description.length() > 25) {
+            description = description.substring(0, 25);
+        }
         final String returnUrl = requestBody.getReturnUrl();
         final String cancelUrl = requestBody.getCancelUrl();
         final long price = requestBody.getPrice();
 
-        Account account = accountRepository.findById(requestBody.getAccountId())
-                .orElseThrow(() -> new RuntimeException("Account not found"));
-
-        List<Course> courses = courseRepository.findAllById(requestBody.getCourseIds());
-        if (courses.isEmpty()) {
-            throw new RuntimeException("No courses found for the given IDs");
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new RuntimeException("User not authenticated");
         }
+        String email = authentication.getName();
+
+        Account account = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Account not found for email: " + email));
+
+        Course course = courseRepository.findById(requestBody.getCourseId())
+                .orElseThrow(() -> new RuntimeException("Course not found for ID: " + requestBody.getCourseId()));
+
+        long orderCode = System.currentTimeMillis();
 
         Order order = new Order();
         order.setAccount(account);
         order.setTotalPrice((double) price);
         order.setStatus(0); // 0: PENDING
+        order.setTransactionId(String.valueOf(orderCode));
         order.setCreatedAt(LocalDateTime.now());
         order = orderRepository.save(order);
 
+        OrderDetail detail = new OrderDetail();
+        detail.setOrder(order);
+        detail.setCourse(course);
+        detail.setPrice(course.getPrice());
+        detail.setDiscount(0); // Optional: add discount logic
+        orderDetailRepository.save(detail);
+
         List<OrderDetail> details = new ArrayList<>();
-        for (Course course : courses) {
-            OrderDetail detail = new OrderDetail();
-            detail.setOrder(order);
-            detail.setCourse(course);
-            detail.setPrice(course.getPrice());
-            detail.setDiscount(0); // Optional: add discount logic
-            details.add(orderDetailRepository.save(detail));
-        }
+        details.add(detail);
         order.setDetails(details);
 
         PaymentLinkItem item = PaymentLinkItem.builder()
@@ -79,7 +92,7 @@ public class OrderService {
                 .build();
 
         CreatePaymentLinkRequest paymentData = CreatePaymentLinkRequest.builder()
-                .orderCode((long) order.getId())
+                .orderCode(orderCode)
                 .description(description)
                 .amount(price)
                 .item(item)
@@ -91,7 +104,11 @@ public class OrderService {
     }
 
     public PaymentLink getOrderById(long orderId) throws Exception {
-        return payOS.paymentRequests().get(orderId);
+        PaymentLink paymentLink = payOS.paymentRequests().get(orderId);
+        if (paymentLink != null) {
+            paymentService.syncPayment(paymentLink);
+        }
+        return paymentLink;
     }
 
     public PaymentLink cancelOrder(long orderId, String cancellationReason) throws Exception {

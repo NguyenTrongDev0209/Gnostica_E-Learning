@@ -10,8 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreatePaymentLinkRequestBody {
-  private Integer accountId;
-  private List<Integer> courseIds;
+  private Integer courseId;
   private String productName;
   private String description;
   private String returnUrl;

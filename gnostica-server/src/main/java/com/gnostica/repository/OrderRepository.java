@@ -8,5 +8,6 @@ import java.util.List;
 public interface OrderRepository extends JpaRepository<Order, Integer> {
     List<Order> findByAccountOrderByIdDesc(Account account);
     List<Order> findAllByOrderByIdDesc();
+    java.util.Optional<Order> findByTransactionId(String transactionId);
     long countByCreatedAtAfter(java.time.LocalDateTime date);
 }

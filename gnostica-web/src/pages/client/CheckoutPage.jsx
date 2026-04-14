@@ -11,6 +11,7 @@ import {
   CheckoutTrustBadges,
   CheckoutOrderSummary
 } from "@/components/pages/client/checkout/CheckoutComponents";
+import orderService from "@/services/orderService";
 
 export default function CheckoutPage() {
   const { state } = useLocation();
@@ -32,16 +33,50 @@ export default function CheckoutPage() {
 
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (paymentMethod === "qr-code") {
       setLoading(true);
-      // Giả lập xử lý tạo đơn hàng
-      setTimeout(() => {
+      try {
+        // Kiểm tra đăng nhập
+        const userStr = localStorage.getItem("user");
+        if (!userStr) {
+          toast.error("Vui lòng đăng nhập để thực hiện thanh toán!");
+          setLoading(false);
+          return;
+        }
+
+        // Chuẩn bị dữ liệu tạo đơn hàng theo CreatePaymentLinkRequestBody
+        const requestBody = {
+          courseId: orderItems[0]?.id,
+          productName: orderItems.length === 1 ? orderItems[0].title : `Đơn hàng ${orderItems.length} khóa học`,
+          description: `Thanh toan khoa hoc`,
+          price: subtotal,
+          returnUrl: `${window.location.origin}/checkout/success`,
+          cancelUrl: `${window.location.origin}/checkout/cancel`
+        };
+
+        const response = await orderService.createOrder(requestBody);
+        
+        if (response.status === "success" || response.code === "success" || response.data) {
+          const paymentData = response.data;
+          toast.success("Tạo đơn hàng thành công!");
+          navigate("/checkout/payos", { 
+            state: { 
+              paymentData,
+              orderItems 
+            } 
+          });
+        } else {
+          toast.error(response.message || "Không thể tạo đơn hàng. Vui lòng thử lại!");
+        }
+      } catch (error) {
+        console.error("Checkout error:", error);
+        toast.error(typeof error === 'string' ? error : "Có lỗi xảy ra khi xử lý đơn hàng!");
+      } finally {
         setLoading(false);
-        navigate("/checkout/payos", { state: { orderItems } });
-      }, 1000);
+      }
     } else {
       toast.info("Phương thức thanh toán này hiện đang được bảo trì. Vui lòng chọn phương thức thanh toán khác.");
     }

@@ -23,6 +23,7 @@ import java.util.Map;
 import java.time.LocalDateTime;
 
 import vn.payos.PayOS;
+import vn.payos.model.v2.paymentRequests.PaymentLink;
 import vn.payos.model.webhooks.WebhookData;
 import lombok.RequiredArgsConstructor;
 
@@ -43,18 +44,60 @@ public class PaymentService {
 
     @Transactional
     public void handlePaymentWebhook(WebhookData data) {
-        Long orderId = data.getOrderCode();
-        Order order = orderRepository.findById(orderId.intValue()).orElse(null);
+        String transactionId = String.valueOf(data.getOrderCode());
+        Order order = orderRepository.findByTransactionId(transactionId).orElse(null);
 
         if (order != null && order.getStatus() == 0) {
-            processSuccessfulOrder(orderId, order);
+            processSuccessfulOrder(order);
             saveTransaction(data, order);
-            System.out.println("Order " + orderId + " processed successfully via service.");
+            System.out.println("Order with transactionId " + transactionId + " processed successfully via service.");
+        } else if (order == null) {
+            System.err.println("Order not found for transactionId: " + transactionId);
         }
     }
 
     @Transactional
-    public void processSuccessfulOrder(Long orderId, Order order) {
+    public void syncPayment(PaymentLink paymentLink) {
+        String transactionId = String.valueOf(paymentLink.getOrderCode());
+        Order order = orderRepository.findByTransactionId(transactionId).orElse(null);
+
+        if (order != null && order.getStatus() == 0 && "PAID".equals(paymentLink.getStatus())) {
+            processSuccessfulOrder(order);
+            
+            // Create a pseudo WebhookData for saveTransaction if nested transactions exist
+            if (paymentLink.getTransactions() != null && !paymentLink.getTransactions().isEmpty()) {
+                // We could loop through all transactions, but for now let's just save the last one
+                // Or we can create a simplified saveTransaction version
+                saveTransactionFromLink(paymentLink, order);
+            }
+            
+            System.out.println("Order with transactionId " + transactionId + " synced successfully.");
+        }
+    }
+
+    @Transactional
+    public void saveTransactionFromLink(PaymentLink link, Order order) {
+        // Find if transaction already exists to avoid duplicates
+        if (!transactionRepository.findByOrder(order).isEmpty()) {
+            return;
+        }
+
+        Transaction transaction = new Transaction();
+        transaction.setTransactionCode(link.getId());
+        transaction.setAmount((double) link.getAmountPaid());
+        transaction.setStatus(1);
+        transaction.setPaymentMethod("PAYOS_SYNC");
+        transaction.setRef("PayOS Sync Order: " + link.getOrderCode());
+        transaction.setType(1);
+        transaction.setCreatedAt(LocalDateTime.now());
+        transaction.setOrder(order);
+        transaction.setLog("Manual sync from PayOS status");
+
+        transactionRepository.save(transaction);
+    }
+
+    @Transactional
+    public void processSuccessfulOrder(Order order) {
         if (order == null || order.getStatus() == 1) {
             return;
         }

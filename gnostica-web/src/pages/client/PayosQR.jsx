@@ -14,28 +14,65 @@ import {
 import { AppBreadcrumb } from "@/components/common/AppSection";
 import { toast } from "sonner";
 import { payosPaymentMock } from "@/mocks/payment";
+import orderService from "@/services/orderService";
 
 export default function PayosQR() {
   const { state } = useLocation();
   const [timeLeft, setTimeLeft] = useState(payosPaymentMock.expiresInSeconds);
-  const [status, setStatus] = useState("waiting"); // waiting, success, cancelled
+  const [status, setStatus] = useState("waiting"); // waiting, success, cancelled, paid
   const navigate = useNavigate();
 
-  // Dữ liệu đơn hàng từ state
+  // Dữ liệu đơn hàng từ PayOS truyền qua state
+  const paymentData = state?.paymentData;
   const orderItems = state?.orderItems || [];
-  const totalAmount = orderItems.length > 0 
+  
+  const totalAmount = paymentData?.amount || (orderItems.length > 0 
     ? orderItems.reduce((sum, item) => sum + item.price, 0)
-    : payosPaymentMock.amount;
+    : payosPaymentMock.amount);
 
-  // Tạo mã QR VietQR động dựa trên số tiền thực tế
-  // Format: https://img.vietqr.io/image/<BANK_ID>-<ACCOUNT_NO>-<TEMPLATE>.png?amount=<AMOUNT>&addInfo=<DESCRIPTION>
-  const dynamicQrCodeUrl = `https://img.vietqr.io/image/MB-VQRQAHVMC2042-compact2.png?amount=${totalAmount}&addInfo=${encodeURIComponent(payosPaymentMock.transferContent)}&accountName=${encodeURIComponent(payosPaymentMock.accountHolder)}`;
+  // Ưu tiên mã QR từ PayOS, nếu không có mới dùng VietQR tự tạo
+  const dynamicQrCodeUrl = paymentData?.qrCode 
+    ? (paymentData.qrCode.startsWith("http") 
+        ? paymentData.qrCode 
+        : `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(paymentData.qrCode)}`)
+    : `https://img.vietqr.io/image/${paymentData?.bin || "MB"}-${paymentData?.accountNumber || payosPaymentMock.accountNumber}-compact2.png?amount=${totalAmount}&addInfo=${encodeURIComponent(paymentData?.description || payosPaymentMock.transferContent)}&accountName=${encodeURIComponent(paymentData?.accountName || payosPaymentMock.accountHolder)}`;
 
   const breadcrumbItems = [
     { label: "Trang chủ", href: "/", icon: Home },
     { label: "Thanh toán", href: "/checkout" },
     { label: "PayOS QR", isLast: true }
   ];
+
+  // Cơ chế Polling kiểm tra trạng thái thanh toán mỗi 2 giây
+  useEffect(() => {
+    if (!paymentData?.orderCode || status !== "waiting") return;
+
+    const pollInterval = setInterval(async () => {
+      try {
+        const response = await orderService.getOrderById(paymentData.orderCode);
+        const currentStatus = response.data?.status;
+
+        if (currentStatus === "PAID") {
+          clearInterval(pollInterval);
+          setStatus("paid");
+          toast.success("Thanh toán thành công! Đang kích hoạt khóa học...");
+          
+          // Chờ 1.5s để user thấy thông báo rồi chuyển hướng
+          setTimeout(() => {
+            navigate("/checkout/success", { state: { orderItems } });
+          }, 1500);
+        } else if (currentStatus === "CANCELLED") {
+          clearInterval(pollInterval);
+          setStatus("cancelled");
+          toast.error("Đơn hàng đã bị hủy.");
+        }
+      } catch (error) {
+        console.error("Polling error:", error);
+      }
+    }, 2000);
+
+    return () => clearInterval(pollInterval);
+  }, [paymentData, status, navigate, orderItems]);
 
   // Countdown timer
   useEffect(() => {
@@ -73,11 +110,11 @@ export default function PayosQR() {
             activeClassName="font-semibold text-slate-200"
             separatorClassName="text-slate-500"
           />
-          <h1 className="text-3xl md:text-4xl font-extrabold">
-            Thanh toán đơn hàng
+          <h1 className="text-3xl md:text-4xl font-extrabold uppercase tracking-tight">
+            Thanh toán đơn hàng {paymentData?.orderCode ? `#${paymentData.orderCode}` : ""}
           </h1>
           <p className="text-slate-400 mt-2 font-medium">
-            Quét mã QR hoặc chuyển khoản theo thông tin bên dưới.
+            Quét mã QR hoặc chuyển khoản theo thông tin bên dưới để hoàn tất đơn hàng.
           </p>
         </div>
       </section>
@@ -106,7 +143,9 @@ export default function PayosQR() {
 
                 {/* Browser link */}
                 <a
-                  href="#"
+                  href={paymentData?.checkoutUrl || "#"}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="text-sm text-primary hover:underline font-medium mt-3 flex items-center gap-1"
                 >
                   Hoặc thanh toán qua trình duyệt
@@ -137,7 +176,7 @@ export default function PayosQR() {
                   {/* Ngân hàng */}
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-slate-500 font-medium">Ngân hàng</span>
-                    <span className="text-sm font-bold text-slate-800">{payosPaymentMock.bank}</span>
+                    <span className="text-sm font-bold text-slate-800">{paymentData?.bin === "970422" ? "MB Bank" : "Ngân hàng đối tác"}</span>
                   </div>
 
                   <Separator className="bg-slate-100" />
@@ -147,10 +186,10 @@ export default function PayosQR() {
                     <span className="text-sm text-slate-500 font-medium">Số tài khoản</span>
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-bold text-slate-800 tracking-wide">
-                        {payosPaymentMock.accountNumber}
+                        {paymentData?.accountNumber || payosPaymentMock.accountNumber}
                       </span>
                       <button
-                        onClick={() => copyToClipboard(payosPaymentMock.accountNumber, "số tài khoản")}
+                        onClick={() => copyToClipboard(paymentData?.accountNumber || payosPaymentMock.accountNumber, "số tài khoản")}
                         className="text-slate-400 hover:text-primary transition-colors p-1 rounded hover:bg-primary/5"
                       >
                         <Copy className="w-4 h-4" />
@@ -164,7 +203,7 @@ export default function PayosQR() {
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-slate-500 font-medium">Chủ tài khoản</span>
                     <span className="text-sm font-bold text-slate-800">
-                      {payosPaymentMock.accountHolder}
+                      {paymentData?.accountName || payosPaymentMock.accountHolder}
                     </span>
                   </div>
 
@@ -186,10 +225,10 @@ export default function PayosQR() {
                     <span className="text-sm text-slate-500 font-medium">Nội dung</span>
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-bold text-slate-800">
-                        {payosPaymentMock.transferContent}
+                        {paymentData?.description || payosPaymentMock.transferContent}
                       </span>
                       <button
-                        onClick={() => copyToClipboard(payosPaymentMock.transferContent, "nội dung")}
+                        onClick={() => copyToClipboard(paymentData?.description || payosPaymentMock.transferContent, "nội dung")}
                         className="text-slate-400 hover:text-primary transition-colors p-1 rounded hover:bg-primary/5"
                       >
                         <Copy className="w-4 h-4" />

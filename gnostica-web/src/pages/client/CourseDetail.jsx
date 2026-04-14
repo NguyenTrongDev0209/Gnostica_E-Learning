@@ -27,6 +27,7 @@ export default function CourseDetail() {
         
         // Map backend model to frontend structure
         const formattedCourse = {
+          id: data.id,
           category: data.categoryName || "Chưa phân loại",
           title: data.title,
           promoVideo: data.promoVideo,
