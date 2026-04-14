@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import useInstructorCourses from "@/hooks/useInstructorCourses";
 import {
   Plus,
   Search,
@@ -40,72 +41,16 @@ export default function InstructorCourses() {
   } = useInstructorCourses(10);
 
   const handleDeleteDraft = async (course) => {
-    if (!window.confirm("Bạn có chắc chắn muốn xóa bản nháp này? Dữ liệu chưa lưu sẽ bị mất vĩnh viễn.")) return;
-    
-    try {
-      let courseId = null;
-      let slug = null;
-
-      if (course.isVirtualDraft) {
-        // Bản nháp ảo (chưa có trong DB): dùng slug nếu có
-        const rawSlug = String(course.id).replace('draft-', '');
-        slug = rawSlug === 'new' ? null : rawSlug;
-      } else {
-        // Bản nháp của khóa học đã có trong DB: dùng courseId
-        courseId = String(course.id);
-      }
-
-      await courseService.deleteDraft({ courseId, slug });
-      toast.success("Đã xóa bản nháp");
-      fetchCourses(pagination.currentPage);
-    } catch (error) {
-      console.error("Lỗi xóa bản nháp:", error);
-      toast.error("Không thể xóa bản nháp");
-    }
+    await performDeleteDraft(course);
   };
 
   const handleEdit = (course) => {
     if (course.isVirtualDraft) {
-      // Nếu là bản nháp mới hoàn toàn
       navigate("/instructor/courses/edit/new");
     } else {
-      // Nếu là khóa học đã có trong DB (có thể kèm bản nháp chưa lưu)
       navigate(`/instructor/courses/edit/${course.slug}`);
     }
   };
-
-  const handleToggleStatus = async (courseId, currentStatus) => {
-    try {
-      const newStatus = currentStatus === 1 ? 2 : 1; // 1: Active, 2: Hidden
-      await courseService.updateCourseStatus(courseId, newStatus);
-      toast.success(newStatus === 1 ? "Đã hiển thị khóa học" : "Đã ẩn khóa học");
-      
-      // Update local state for "real-time" feel
-      setCourses(prev => prev.map(c => 
-        c.id === courseId ? { ...c, status: newStatus } : c
-      ));
-    } catch (error) {
-      console.error("Lỗi thay đổi trạng thái:", error);
-      toast.error("Không thể thay đổi trạng thái khóa học");
-    }
-  };
-
-  const handleDelete = async (courseId, title) => {
-    if (window.confirm(`Bạn có chắc chắn muốn xóa khóa học "${title}"? Thao tác này sẽ xóa toàn bộ nội dung liên quan và không thể khôi phục.`)) {
-      try {
-        await courseService.deleteCourse(courseId);
-        toast.success("Đã xóa khóa học thành công");
-        fetchCourses(pagination.currentPage); // Refresh current page
-      } catch (error) {
-        console.error("Lỗi khi xóa khóa học:", error);
-        toast.error("Không thể xóa khóa học này");
-      }
-    }
-  };
-
-  useEffect(() => {
-    fetchCourses(0);
-  }, []);
 
   const handlePageChange = (newPage) => {
     if (newPage >= 0 && newPage < pagination.totalPages) {

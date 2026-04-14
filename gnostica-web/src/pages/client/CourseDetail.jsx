@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
-import { Home } from "lucide-react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Home, Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { AppBreadcrumb } from "@/components/common/AppSection";
 import courseService from "@/services/courseService";
@@ -101,7 +101,7 @@ export default function CourseDetail() {
   const breadcrumbItems = [
     { label: "Trang chủ", href: "/", icon: Home },
     { label: "Khoá học", href: "/courses" },
-    { label: course.category, isLast: true },
+    { label: course.category?.name || "Chi tiết", isLast: true },
   ];
 
   return (
@@ -121,18 +121,26 @@ export default function CourseDetail() {
             <CourseDetailHeader course={course} />
             
             <CourseDetailVideo 
-              courseImage={course.image} 
+              courseImage={course.thumbnail} 
               courseTitle={course.title} 
               promoVideo={course.promoVideo}
             />
 
-            <CourseDetailOutcomes outcomes={course.outcomes} />
+            <CourseDetailOutcomes course={course} />
 
-            <CourseDetailCurriculum curriculum={course.curriculum} />
+            <CourseDetailCurriculum curriculum={course.modules || []} />
 
             <Separator className="bg-slate-200/60" />
 
-            <CourseDetailInstructor instructor={course.instructor} />
+            <CourseDetailInstructor instructor={{
+                name: course.instructorName || "Giảng viên",
+                avatar: course.instructorAvatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=100&auto=format&fit=crop",
+                role: "Chuyên gia đào tạo",
+                bio: "Giảng viên giàu kinh nghiệm trong lĩnh vực công nghệ thông tin và phát triển phần mềm.",
+                reviewsCount: 120,
+                studentsCount: 1250,
+                coursesCount: 5
+            }} />
           </div>
 
           <div className="lg:col-span-4 relative">

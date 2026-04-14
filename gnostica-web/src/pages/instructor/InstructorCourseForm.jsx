@@ -1,4 +1,5 @@
 import React from "react";
+import useInstructorCourseForm from "@/hooks/useInstructorCourseForm";
 import {
   useForm,
   FormProvider,
@@ -27,7 +28,9 @@ import {
   Users,
   PlayCircle,
   Clock,
-  AlertCircle
+  AlertCircle,
+  Check,
+  Loader2
 } from "lucide-react";
 import { toast } from "sonner";
 import axios from "axios";
@@ -56,6 +59,12 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import categoryService from "@/services/categoryService";
+
+// ==========================================
+// CẤU CẤU HÌNH ĐỂ DUY TRÌ TIẾN TRÌNH TẢI VIDEO KHI CHUYỂN TAB
+// ==========================================
+const globalUploadProgress = {}; 
+const uploadCallbacks = {}; 
 
 // ==========================================
 // THIẾT LẬP ZOD SCHEMA & ERROR MAP (VIỆT HÓA)
@@ -169,196 +178,47 @@ export const courseSchema = z.object({
 // ==========================================
 export default function InstructorCourseForm() {
   const navigate = useNavigate();
-  const { slug } = useParams();
-  const isEditMode = !!slug;
-  const [activeTab, setActiveTab] = React.useState("basic");
-  const [isUploading, setIsUploading] = React.useState(false);
-  const [uploadStatus, setUploadStatus] = React.useState("");
-  const [uploadProgress, setUploadProgress] = React.useState(0);
-  const [activeUploads, setActiveUploads] = React.useState(0);
-  const [isSavingDraft, setIsSavingDraft] = React.useState(false);
-  const [showDraftModal, setShowDraftModal] = React.useState(false);
-  const [pendingDraft, setPendingDraft] = React.useState(null);
-  const draftLoadedRef = React.useRef(false);
-  const originalDataRef = React.useRef(null);
-
-  const methods = useForm({
-    resolver: zodResolver(courseSchema, { errorMap: viErrorMap }),
-    defaultValues: {
-      title: "",
-      slug: "",
-      categoryId: "",
-      level: "",
-      description: "",
-      price: "",
-      discount: 0,
-      status: 1,
-      sections: [
-        {
-          title: "",
-          status: 1,
-          lessons: [{
-            title: "",
-            content: "",
-            videoFile: null,
-            status: 1,
-            createdAt: new Date().toISOString(),
-            updatedAt: null
-          }],
-          attachments: null,
-          createdAt: new Date().toISOString(),
-          updatedAt: null
-        }
-      ],
-      thumbnail: null,
-      promoVideo: null,
-      createdAt: new Date().toISOString(),
-      updatedAt: null,
-    },
-  });
-
-  // Khởi tạo originalData cho khóa học mới ngay từ đầu (giá trị mặc định)
-  React.useEffect(() => {
-    if (!isEditMode && !originalDataRef.current) {
-      originalDataRef.current = JSON.stringify(methods.getValues());
-    }
-  }, [isEditMode, methods]);
+  const {
+    methods,
+    isEditMode,
+    slug,
+    activeTab,
+    setActiveTab,
+    isUploading,
+    setIsUploading,
+    uploadStatus,
+    setUploadStatus,
+    activeUploads,
+    setActiveUploads,
+    isSavingDraft,
+    showDraftModal,
+    setShowDraftModal,
+    categories,
+    saveDraft,
+    restoreDraft,
+    handleExitWithConfirmation,
+    isSubmittingRef,
+    originalDataRef,
+    uploadImageToCloudinary,
+    uploadVideoToBunny,
+    uploadDocumentToCloudinary,
+    getAuthHeaders
+  } = useInstructorCourseForm(courseSchema, viErrorMap);
 
   const {
-    control,
-    register,
-    handleSubmit,
-    setValue,
-    getValues,
-    formState: { errors },
-  } = methods;
-
-  const { fields, append, remove, replace } = useFieldArray({
-    control,
+    fields,
+    append,
+    remove,
+    replace
+  } = useFieldArray({
+    control: methods.control,
     name: "sections",
   });
 
-  const getAuthHeaders = () => {
-    const userStr = localStorage.getItem("user");
-    if (userStr) {
-      try {
-        const user = JSON.parse(userStr);
-        if (user && user.token) {
-          return { "Authorization": `Bearer ${user.token}` };
-        }
-      } catch (error) {
-        console.error("CourseForm: Error parsing user", error);
-      }
-    }
-    return {};
-  };
-
-  // Logic Autosave - Debounce
-  const lastDraftRef = React.useRef(null);
-  
-  const saveDraft = React.useCallback(async (formData, showNotification = false) => {
-    // Không lưu nếu đang upload
-    if (isUploading) return;
-    
-    // Chỉ chặn lưu nếu là tự động lưu và dữ liệu không thay đổi
-    const currentString = JSON.stringify(formData);
-    if (!showNotification && lastDraftRef.current === currentString) return;
-    
-    try {
-      if (showNotification) setIsSavingDraft(true);
-      
-      // CHUẨN HÓA DỮ LIỆU TRƯỚC KHI LƯU NHÁP:
-      // Loại bỏ các đối tượng File (binary) vì Redis/Jackson không thể xử lý trực tiếp qua JSON
-      // Lưu ý: Nếu thumbnail là String (URL đã upload), chúng ta giữ nguyên để hiển thị trong list
-      const dataToSave = {
-        ...formData,
-        thumbnail: formData.thumbnail instanceof File ? null : formData.thumbnail,
-        promoVideo: formData.promoVideo instanceof File ? null : formData.promoVideo,
-        sections: formData.sections?.map(s => ({
-          ...s,
-          lessons: s.lessons?.map(l => ({
-            ...l,
-            videoFile: l.videoFile instanceof File ? null : l.videoFile
-          })) || []
-        })) || []
-      };
-
-      const url = isEditMode 
-        ? `http://localhost:8080/api/courses/draft?courseId=${formData.id || ""}&slug=${slug || ""}`
-        : `http://localhost:8080/api/courses/draft`;
-
-      await axios.post(url, dataToSave, {
-        headers: getAuthHeaders()
-      });
-      
-      lastDraftRef.current = currentString;
-      
-      if (showNotification) {
-        toast.success("Lưu bản nháp thành công! Bản nháp này có hiệu lực 24h.");
-        // Chuyển hướng về danh sách sau khi lưu thủ công
-        setTimeout(() => navigate("/instructor/courses"), 1200);
-      }
-    } catch (error) {
-      if (showNotification) {
-        console.error("Lỗi lưu bản nháp:", error);
-        toast.error("Không thể lưu bản nháp");
-      }
-    } finally {
-      setIsSavingDraft(false);
-    }
-  }, [isUploading, isEditMode]);
-
-  // Watch và Trigger Autosave
+  // Watch và Trigger Autosave (giữ logic watch trong component để trigger useEffect)
   const formData = methods.watch();
-  const isSubmittingRef = React.useRef(false); // Cờ để tránh lưu nháp khi đang publish thực sự
 
-  // Tự động lưu khi thoát trang (Unmount)
-  React.useEffect(() => {
-    return () => {
-      // Chỉ lưu nháp khi unmount nếu KHÔNG phải đang nhấn Publish thành công
-      if (!isSubmittingRef.current) {
-        const latestData = methods.getValues();
-        if (latestData.title || latestData.description) {
-           // Gọi lưu nháp (không await vì component đang unmount)
-           saveDraft(latestData, false);
-        }
-      }
-    };
-  }, [saveDraft, methods]);
-
-  const handleExitWithConfirmation = async () => {
-    const currentData = methods.getValues();
-    // Chỉnh sửa logic so sánh: so với bản gốc ban đầu thay vì bản nháp gần nhất
-    const isDirty = originalDataRef.current && JSON.stringify(currentData) !== originalDataRef.current;
-
-    if (isDirty) {
-      const confirmMsg = isEditMode 
-        ? "Bạn có các thay đổi chưa lưu. Bạn có chắc chắn muốn thoát và HỦY BỎ toàn bộ các thay đổi mới không?" 
-        : "Bạn đang tạo khóa học mới nhưng chưa xuất bản. Bạn có chắc chắn muốn thoát và xóa bỏ bản nháp hiện tại không?";
-        
-      if (window.confirm(confirmMsg)) {
-        try {
-          // Xóa bản nháp để trả lại trạng thái CSDL hoặc xóa hẳn nếu là khóa học mới
-          const idToUse = isEditMode ? (currentData.id?.toString() || "") : "";
-          const slugToUse = isEditMode ? (slug || "") : null;
-          
-          await courseService.deleteDraft({ courseId: idToUse, slug: slugToUse });
-          
-          isSubmittingRef.current = true; // Đánh dấu để useEffect cleanup không lưu nháp đè lại
-          toast.info("Đã hủy bỏ thay đổi.");
-          navigate("/instructor/courses");
-        } catch (error) {
-          console.error("Lỗi khi hủy bản nháp:", error);
-          isSubmittingRef.current = true;
-          navigate("/instructor/courses");
-        }
-      }
-    } else {
-      navigate("/instructor/courses");
-    }
-  };
-
-  // Xử lý sự kiện đóng tab/trình duyệt
+  // Logic click toàn cục để xác nhận khi chuyển hướng (Navigation Guard)
   React.useEffect(() => {
     const handleGlobalClick = async (e) => {
       // Không cần kiểm tra nếu đang trong quá trình submit chính thức
@@ -368,14 +228,13 @@ export default function InstructorCourseForm() {
       const anchor = e.target.closest('a');
       const button = e.target.closest('button');
       
-      // Các nút đặc thù gây chuyển hướng trong Layout (Sidebar, Header)
       const isNavAction = 
         (anchor && anchor.getAttribute('href')) || 
         (button && (
           button.title === "Đăng xuất" || 
           button.title?.includes("Về trang chủ") ||
           button.innerText.includes("Tạo khóa học mới") ||
-          button.closest('aside') // Bất kỳ nút nào trong sidebar
+          button.closest('aside')
         ));
 
       if (!isNavAction) return;
@@ -385,22 +244,17 @@ export default function InstructorCourseForm() {
 
       if (isDirty) {
         const confirmMsg = isEditMode 
-          ? "Bạn có các thay đổi chưa lưu (đang được lưu tạm ở bản nháp). Bạn có chắc chắn muốn thoát và HỦY BỎ toàn bộ các thay đổi mới này để quay lại dữ liệu gốc trong cơ sở dữ liệu không?" 
+          ? "Bạn có các thay đổi chưa lưu. Bạn có chắc chắn muốn thoát và HỦY BỎ toàn bộ các thay đổi mới này để quay lại dữ liệu gốc không?" 
           : "Bạn đang tạo khóa học mới nhưng chưa xuất bản. Bạn có chắc chắn muốn thoát và xóa bỏ bản nháp hiện tại không?";
           
         if (!window.confirm(confirmMsg)) {
           e.preventDefault();
           e.stopPropagation();
         } else {
-          // Người dùng đồng ý thoát và HỦY BỎ
           try {
             const idToUse = isEditMode ? (currentData.id?.toString() || "") : "";
             const slugToUse = isEditMode ? (slug || "") : null;
-            
-            // Đánh dấu trước để các logic logic cleanup không lưu đè nháp
             isSubmittingRef.current = true;
-            
-            // Xóa nháp đồng bộ (nếu có thể) - lưu ý navigate của Link sẽ chạy ngay sau confirm
             courseService.deleteDraft({ courseId: idToUse, slug: slugToUse });
           } catch (err) {
             isSubmittingRef.current = true;
@@ -409,25 +263,34 @@ export default function InstructorCourseForm() {
       }
     };
 
-    // Sử dụng capture: true để bắt sự kiện TRƯỚC khi Reach Router xử lý Link
     document.addEventListener('click', handleGlobalClick, true);
     return () => document.removeEventListener('click', handleGlobalClick, true);
-  }, [isEditMode, slug, methods]);
+  }, [isEditMode, slug, methods, originalDataRef, isSubmittingRef]);
 
+  // Cảnh báo khi đóng tab trình duyệt
   React.useEffect(() => {
     const handleBeforeUnload = (e) => {
-      const latestData = methods.getValues();
-      saveDraft(latestData, false);
-      // Hiển thị cảnh báo của trình duyệt
-      e.preventDefault();
-      e.returnValue = '';
+      const currentData = methods.getValues();
+      const isDirty = originalDataRef.current && JSON.stringify(currentData) !== originalDataRef.current;
+      if (isDirty) {
+        saveDraft(currentData, false);
+        e.preventDefault();
+        e.returnValue = '';
+      }
     };
-
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [saveDraft, methods]);
+  }, [saveDraft, methods, originalDataRef]);
 
-  // Tự động Upload Thumbnail khi được chọn (để lưu vào bản nháp)
+  // Autosave timer
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      saveDraft(formData, false);
+    }, 10000);
+    return () => clearTimeout(timer);
+  }, [formData, saveDraft]);
+
+  // Thumbnail Auto-upload
   const watchThumbnail = methods.watch("thumbnail");
   React.useEffect(() => {
     if (watchThumbnail instanceof File) {
@@ -437,7 +300,6 @@ export default function InstructorCourseForm() {
           setUploadStatus("Đang tải lên ảnh đại diện...");
           const url = await uploadImageToCloudinary(watchThumbnail);
           methods.setValue("thumbnail", url);
-          // Sau khi upload xong, kích hoạt lưu nháp ngay để cập nhật URL
           saveDraft({ ...methods.getValues(), thumbnail: url }, false);
         } catch (error) {
           toast.error("Không thể tải lên ảnh đại diện tự động");
@@ -448,208 +310,7 @@ export default function InstructorCourseForm() {
       };
       autoUploadThumbnail();
     }
-  }, [watchThumbnail]);
-
-  React.useEffect(() => {
-    const timer = setTimeout(() => {
-      saveDraft(formData, false); // Autosave: không hiện thông báo
-    }, 10000); // Tăng lên 10 giây
-    
-    return () => clearTimeout(timer);
-  }, [formData, saveDraft]);
-
-  React.useEffect(() => {
-    const checkDraft = async () => {
-      try {
-        const url = isEditMode 
-          ? `http://localhost:8080/api/courses/draft?slug=${slug}`
-          : `http://localhost:8080/api/courses/draft`;
-          
-        const res = await axios.get(url, { headers: getAuthHeaders() });
-        if (res.data) {
-          const draftData = (res.data.data && res.data.error !== undefined) ? res.data.data : res.data;
-          
-          if (draftData) {
-            if (isEditMode) {
-              // Nếu đang ở trang chỉnh sửa khóa học sẵn có, tự động nạp bản nháp không hỏi
-              const rawCategoryId = draftData.categoryId || draftData.category?.id;
-              const mappedDraft = {
-                ...draftData,
-                categoryId: rawCategoryId ? rawCategoryId.toString() : "",
-                level: draftData.level || "",
-                status: (draftData.status !== null && draftData.status !== undefined) ? Number(draftData.status) : 1,
-                sections: draftData.sections?.map(s => ({
-                  ...s,
-                  status: (s.status !== null && s.status !== undefined) ? Number(s.status) : 1,
-                  lessons: s.lessons?.map(l => ({
-                    ...l,
-                    status: (l.status !== null && l.status !== undefined) ? Number(l.status) : 1,
-                    videoFile: l.videoUrl || l.videoFile || null
-                  })) || []
-                })) || []
-              };
-              methods.reset(mappedDraft);
-              lastDraftRef.current = JSON.stringify(methods.getValues());
-              draftLoadedRef.current = true;
-              console.log("CourseForm: Auto-restored draft for existing course");
-            } else {
-              // Nếu đang tạo khóa học mới, hiện Modal hỏi người dùng có muốn khôi phục không
-              setPendingDraft(draftData);
-              setShowDraftModal(true);
-            }
-          }
-        }
-      } catch (error) {
-      }
-    };
-    
-    checkDraft();
-  }, [isEditMode, slug]);
-
-  const restoreDraft = () => {
-    if (pendingDraft) {
-      // Ánh xạ lại dữ liệu bản nháp để đồng bộ kiểu dữ liệu cho form
-      // Kiểm tra cả categoryId (Redis) và category.id (DB)
-      const rawCategoryId = pendingDraft.categoryId || pendingDraft.category?.id;
-      
-      const mappedDraft = {
-        ...pendingDraft,
-        categoryId: rawCategoryId ? rawCategoryId.toString() : "",
-        level: pendingDraft.level || "",
-        status: (pendingDraft.status !== null && pendingDraft.status !== undefined) ? Number(pendingDraft.status) : 1,
-        sections: pendingDraft.sections?.map(s => ({
-          ...s,
-          status: (s.status !== null && s.status !== undefined) ? Number(s.status) : 1,
-          lessons: s.lessons?.map(l => ({
-            ...l,
-            status: (l.status !== null && l.status !== undefined) ? Number(l.status) : 1,
-            // Đảm bảo videoUrl/videoFile được gán đúng để UI hiển thị
-            videoFile: l.videoUrl || l.videoFile || null
-          })) || []
-        })) || []
-      };
-      
-      methods.reset(mappedDraft);
-      lastDraftRef.current = JSON.stringify(methods.getValues());
-      toast.success("Đã khôi phục bản nháp");
-    }
-    setShowDraftModal(false);
-  };
-
-  const [categories, setCategories] = React.useState([]);
-
-  React.useEffect(() => {
-    categoryService.getAllCategories(1, 1000, "", "active").then((res) => {
-      const rootCategories = res?.data?.content || [];
-      setCategories(rootCategories);
-    }).catch(err => console.error("CourseForm: Load categories error", err));
-  }, []);
-
-  React.useEffect(() => {
-    // Chỉ tải từ DB nếu đang ở chế độ chỉnh sửa và không phải là bản nháp ảo 'new'
-    if (isEditMode && slug !== "new") {
-      courseService.getCourseBySlug(slug)
-        .then((data) => {
-          // Chỉ nạp dữ liệu từ DB nếu chưa có bản nháp Redis nào chiến thắng (auto-restored)
-          if (draftLoadedRef.current) return;
-          
-          const mappedData = {
-            ...data,
-            categoryId: data.categoryId?.toString() || "",
-            status: (data.status !== null && data.status !== undefined) ? Number(data.status) : 1,
-            sections: data.modules?.map(m => ({
-              ...m,
-              status: (m.status !== null && m.status !== undefined) ? Number(m.status) : 1,
-              attachments: m.attachments?.[0]?.fileUrl || null,
-              lessons: m.lessons?.map(l => ({
-                ...l,
-                status: (l.status !== null && l.status !== undefined) ? Number(l.status) : 1,
-                videoFile: l.videoUrl || null
-              })) || []
-            })) || []
-          };
-          methods.reset(mappedData);
-          lastDraftRef.current = JSON.stringify(methods.getValues());
-          // Lưu lại bản gốc từ DB để so sánh khi người dùng muốn "Hủy bỏ thay đổi"
-          originalDataRef.current = lastDraftRef.current;
-        })
-        .catch(err => {
-          console.error("Lỗi tải thông tin khóa học:", err);
-          toast.error("Không thể tải thông tin khóa học.");
-        });
-    }
-  }, [isEditMode, slug, methods]);
-
-  const uploadImageToCloudinary = async (file) => {
-    if (typeof file === "string") return file;
-    if (!file || file === "mock-url") return file;
-    const formData = new FormData();
-    formData.append("file", file);
-    const res = await fetch("http://localhost:8080/api/upload/image", {
-      method: "POST",
-      body: formData,
-      headers: { ...getAuthHeaders() }
-    });
-    const jsonData = await res.json();
-    return jsonData.url;
-  };
-
-  const uploadDocumentToCloudinary = async (file) => {
-    if (typeof file === "string") return file;
-    if (!file) return null;
-    const formData = new FormData();
-    formData.append("file", file);
-    const res = await fetch("http://localhost:8080/api/upload/document", {
-      method: "POST",
-      body: formData,
-      headers: { ...getAuthHeaders() }
-    });
-    const jsonData = await res.json();
-    return jsonData.url;
-  };
-
-  const uploadVideoToBunny = async (file, title, onProgress) => {
-    if (typeof file === "string") return file;
-    if (!file || file === "mock-url") return file;
-
-    const initRes = await fetch("http://localhost:8080/api/upload/video/init", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...getAuthHeaders()
-      },
-      body: JSON.stringify({ title }),
-    });
-    const { videoId, libraryId, apiKey } = await initRes.json();
-    if (!videoId) throw new Error("Could not initialize video on Bunny.net");
-
-    return new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhr.open("PUT", `https://video.bunnycdn.com/library/${libraryId}/videos/${videoId}`);
-      xhr.setRequestHeader("AccessKey", apiKey);
-      xhr.setRequestHeader("Accept", "application/json");
-      xhr.setRequestHeader("Content-Type", "application/octet-stream");
-
-      xhr.upload.onprogress = (event) => {
-        if (event.lengthComputable) {
-          const percentComplete = Math.round((event.loaded / event.total) * 100);
-          if (onProgress) onProgress(percentComplete);
-        }
-      };
-
-      xhr.onload = () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          resolve(videoId);
-        } else {
-          console.error("Bunny Upload Raw Error:", xhr.responseText);
-          reject(new Error("Upload video failed to Bunny CDN"));
-        }
-      };
-
-      xhr.onerror = () => reject(new Error("Network Error during upload"));
-      xhr.send(file);
-    });
-  };
+  }, [watchThumbnail, methods, uploadImageToCloudinary, saveDraft, setIsUploading, setUploadStatus]);
 
   const onSubmit = async (data) => {
     try {
@@ -699,7 +360,6 @@ export default function InstructorCourseForm() {
       data.updatedAt = new Date().toISOString();
       isSubmittingRef.current = true;
 
-      // CHUẨN HÓA DỮ LIỆU GỬI LÊN DB (Backend yêu cầu 'sections')
       const sanitizeId = (id) => (typeof id === 'number' || (!isNaN(id) && id !== "")) ? Number(id) : null;
 
       const finalData = {
@@ -712,19 +372,16 @@ export default function InstructorCourseForm() {
           lessons: s.lessons?.map(l => ({
             ...l,
             id: sanitizeId(l.id),
-            // Đảm bảo videoUrl được ưu tiên nếu videoFile là string
             videoUrl: typeof l.videoFile === "string" ? l.videoFile : l.videoUrl
           }))
         }))
       };
 
-      let apiResponse;
       if (isEditMode && slug !== "new") {
-        apiResponse = await courseService.updateCourse(slug, finalData);
+        await courseService.updateCourse(slug, finalData);
       } else {
-        apiResponse = await courseService.createCourse(finalData);
+        await courseService.createCourse(finalData);
       }
-      console.log("Server response:", apiResponse);
 
       toast.success(isEditMode ? "Cập nhật khóa học thành công!" : "Đã tải lên và lưu khóa học thành công!");
       setTimeout(() => navigate("/instructor/courses"), 1500);
@@ -915,6 +572,29 @@ export default function InstructorCourseForm() {
             </div>
           </div>
         </form>
+
+        {/* Upload Progress Overlay - Khôi phục tính năng hiển thị trạng thái xử lý */}
+        {isUploading && (
+          <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] w-full max-w-md px-4">
+            <div className="bg-slate-900 text-white p-4 rounded-xl shadow-2xl flex items-center gap-4 animate-in slide-in-from-bottom-10">
+              <Loader2 className="w-6 h-6 animate-spin text-green-400" />
+              <div className="flex-1">
+                <p className="text-sm font-bold">{uploadStatus}</p>
+                <div className="w-full bg-slate-700 h-1.5 rounded-full mt-2 overflow-hidden">
+                  <div 
+                    className="bg-green-400 h-full transition-all duration-300"
+                    style={{ width: '45%' }} // Tạm thời để tĩnh vì ta k tính tổng %, quan trọng là nhãn text
+                  />
+                </div>
+              </div>
+              {activeUploads > 0 && (
+                <div className="bg-slate-800 px-2 py-1 rounded text-[10px] font-bold text-slate-400 uppercase">
+                  {activeUploads} Files
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Modal khôi phục bản nháp */}
         {showDraftModal && (
@@ -1527,7 +1207,7 @@ function MediaTab({ uploadVideoToBunny, setActiveUploads }) {
                   className={`w-12 h-12 rounded-full bg-white flex items-center justify-center text-slate-400 group-hover:text-green-500 shadow-sm border border-slate-100 mb-2 ${thumbnail ? "text-green-500" : ""}`}
                 >
                   {thumbnail ? (
-                    <CheckIcon className="w-6 h-6" />
+                    <Check className="w-6 h-6" />
                   ) : (
                     <Plus className="w-6 h-6" />
                   )}
@@ -1562,6 +1242,7 @@ function MediaTab({ uploadVideoToBunny, setActiveUploads }) {
                 onUploadStart={() => setActiveUploads(prev => prev + 1)}
                 onUploadEnd={() => setActiveUploads(prev => prev - 1)}
                 uploadVideoToBunny={uploadVideoToBunny}
+                id="promo-video-uploader"
               />
             )}
           />
@@ -1627,7 +1308,7 @@ function PricingTab() {
             )}
           </div>
 
-          {/* Ô hiển thị tổng tiền sau khi giảm - Đã HOÁN ĐỔI vị trí lên đây */}
+          {/* Ô hiển thị tổng tiền sau khi giảm */}
           <div className="space-y-2">
             <label className="block text-xs font-bold text-green-600 uppercase tracking-widest pl-1">
               Tổng tiền sau giảm (Hiển thị cho học viên)
@@ -1644,7 +1325,7 @@ function PricingTab() {
         </div>
 
         <div className="space-y-6">
-          {/* Ô nhập % giảm giá - Đã HOÁN ĐỔI vị trí xuống đây */}
+          {/* Ô nhập % giảm giá */}
           <div className="space-y-2">
             <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
               Phần trăm giảm giá (%)
@@ -2116,18 +1797,43 @@ function BackgroundVideoUploader({ label, value, onChange, onUploadStart, onUplo
   const [isUploading, setIsUploading] = React.useState(false);
   const [error, setError] = React.useState(null);
 
+  // Effect để "kết nối" lại với tiến trình tải lên nếu có (khi quay lại tab)
+  React.useEffect(() => {
+    // Đăng ký callback để nhận cập nhật tiến trình mới nhất
+    uploadCallbacks[id] = (pct) => setLocalProgress(pct);
+    
+    // Nếu đang có tiến trình chạy ngầm, lấy giá trị hiện tại ngay lập tức
+    if (globalUploadProgress[id] !== undefined) {
+      setLocalProgress(globalUploadProgress[id]);
+    }
+
+    return () => {
+      delete uploadCallbacks[id];
+    };
+  }, [id]);
+
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
     try {
+      onChange(file);
+      
       setIsUploading(true);
       setError(null);
       setLocalProgress(0);
+      globalUploadProgress[id] = 0;
       onUploadStart();
 
       const videoId = await uploadVideoToBunny(file, file.name, (pct) => {
+        // Cập nhật state cục bộ (nếu component còn mount)
         setLocalProgress(pct);
+        // Lưu vào biến toàn cục để các lần mount sau có thể lấy được
+        globalUploadProgress[id] = pct;
+        // Nếu có component nào đang mount với ID này, gọi callback của nó
+        if (uploadCallbacks[id]) {
+          uploadCallbacks[id](pct);
+        }
       });
 
       onChange(videoId);
@@ -2137,17 +1843,19 @@ function BackgroundVideoUploader({ label, value, onChange, onUploadStart, onUplo
       toast.error(`Không thể tải lên ${label}`);
     } finally {
       setIsUploading(false);
+      delete globalUploadProgress[id];
       onUploadEnd();
     }
   };
 
   const isCompleted = value && typeof value === 'string' && !isUploading;
+  const isCurrentlyUploading = isUploading || (value instanceof File);
 
   return (
     <div
       onClick={() => !isUploading && document.getElementById(id).click()}
       className={`relative aspect-video rounded-xl border-2 border-dashed flex flex-col items-center justify-center p-4 transition-all cursor-pointer group/upload
-        ${isCompleted ? "border-green-500 bg-green-50/30" : isUploading ? "border-green-300 bg-green-50/10" : "border-slate-200 bg-slate-50/50 hover:bg-slate-100/50 hover:border-green-300"}`}
+        ${isCompleted ? "border-green-500 bg-green-50/30" : isCurrentlyUploading ? "border-green-300 bg-green-50/10" : "border-slate-200 bg-slate-50/50 hover:bg-slate-100/50 hover:border-green-300"}`}
     >
       <input
         type="file"
@@ -2158,12 +1866,14 @@ function BackgroundVideoUploader({ label, value, onChange, onUploadStart, onUplo
         disabled={isUploading}
       />
 
-      {isUploading ? (
-        <VideoProgressCircle progress={localProgress} size={80} />
+      {isCurrentlyUploading ? (
+        <div className="flex flex-col items-center">
+          <VideoProgressCircle progress={localProgress} size={80} />
+        </div>
       ) : isCompleted ? (
         <div className="flex flex-col items-center">
           <div className="w-10 h-10 rounded-full bg-green-500 text-white flex items-center justify-center mb-2 shadow-sm">
-            <CheckIcon />
+            <Check className="w-6 h-6" />
           </div>
           <p className="text-[10px] font-bold text-green-700 uppercase tracking-tight">Tải lên hoàn tất</p>
           <p className="text-[9px] text-slate-400 mt-1 truncate max-w-[150px]">ID: {value.substring(0, 12)}...</p>
