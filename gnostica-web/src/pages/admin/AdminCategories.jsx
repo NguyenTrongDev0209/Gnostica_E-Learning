@@ -34,7 +34,6 @@ import {
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -47,9 +46,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import Fuse from "fuse.js";
 import categoryService from "@/services/categoryService";
-
-const ITEMS_PER_PAGE = 10;
 
 const categorySchema = z.object({
   name: z
@@ -67,7 +65,6 @@ const categorySchema = z.object({
 export default function AdminCategories() {
   const {
     categories,
-    allRootCategories,
     loading,
     searchTerm,
     setSearchTerm,
@@ -426,10 +423,7 @@ export default function AdminCategories() {
                           <TableCell>
                             {sub.status === true ? (
                               <span
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  toggleStatus(sub.id, false);
-                                }}
+                                onClick={(e) => toggleStatus(e, sub.id, false)}
                                 className="inline-flex items-center gap-1.5 text-sm text-green-600 font-medium cursor-pointer hover:underline"
                               >
                                 <span className="w-2 h-2 rounded-full bg-green-500" />{" "}
@@ -437,10 +431,7 @@ export default function AdminCategories() {
                               </span>
                             ) : (
                               <span
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  toggleStatus(sub.id, true);
-                                }}
+                                onClick={(e) => toggleStatus(e, sub.id, true)}
                                 className="inline-flex items-center gap-1.5 text-sm text-slate-500 font-medium cursor-pointer hover:underline"
                               >
                                 <span className="w-2 h-2 rounded-full bg-slate-400" />{" "}
@@ -465,10 +456,7 @@ export default function AdminCategories() {
                                 variant="ghost"
                                 size="icon"
                                 className="h-8 w-8 text-slate-400 hover:text-red-500"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDelete(sub.id);
-                                }}
+                                onClick={(e) => handleDelete(e, sub.id)}
                               >
                                 <Trash2 className="w-4 h-4" />
                               </Button>
@@ -538,11 +526,6 @@ export default function AdminCategories() {
               </div>
               {editId ? "Cập Nhật Danh Mục" : "Thêm Danh Mục Mới"}
             </DialogTitle>
-            <DialogDescription>
-              {editId 
-                ? "Chỉnh sửa thông tin danh mục hiện có." 
-                : "Tạo một danh mục mới để phân loại các khóa học."}
-            </DialogDescription>
           </DialogHeader>
 
           <Form {...form}>
@@ -615,7 +598,7 @@ export default function AdminCategories() {
                         <SelectItem value="none">
                           Không có (Danh mục gốc)
                         </SelectItem>
-                        {allRootCategories.map((cat) => (
+                        {categories.map((cat) => (
                           <SelectItem key={cat.id} value={cat.id.toString()}>
                             {cat.name}
                           </SelectItem>

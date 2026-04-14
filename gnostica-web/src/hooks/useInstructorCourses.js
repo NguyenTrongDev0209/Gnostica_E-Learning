@@ -9,7 +9,6 @@ import courseService from "@/services/courseService";
 export default function useInstructorCourses(pageSize = 10) {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
   const [pagination, setPagination] = useState({
     currentPage: 0,
     totalPages: 0,
@@ -33,15 +32,6 @@ export default function useInstructorCourses(pageSize = 10) {
 
       let dbCourses = dbData.content || [];
 
-      // Lọc theo searchTerm nếu có (Client-side filtering cho list này vì API thường chỉ phân trang theo giảng viên)
-      if (searchTerm.trim()) {
-        const lowerSearch = searchTerm.toLowerCase().trim();
-        dbCourses = dbCourses.filter(c => 
-          (c.title && c.title.toLowerCase().includes(lowerSearch)) ||
-          (c.id && String(c.id).includes(lowerSearch))
-        );
-      }
-
       // Logic Gộp Bản Nháp
       if (Array.isArray(drafts)) {
         drafts.forEach(draft => {
@@ -54,19 +44,13 @@ export default function useInstructorCourses(pageSize = 10) {
             }
           } 
           else if (page === 0) {
-            // Lọc bản nháp ảo mới nếu có search
-            const matchesSearch = !searchTerm.trim() || 
-                                (draft.title && draft.title.toLowerCase().includes(searchTerm.toLowerCase().trim()));
-            
-            if (matchesSearch) {
-                const virtualDraft = {
-                  ...draft,
-                  id: `draft-${draft.slug || 'new'}`,
-                  isVirtualDraft: true,
-                  status: 0, 
-                };
-                dbCourses = [virtualDraft, ...dbCourses];
-            }
+            const virtualDraft = {
+              ...draft,
+              id: `draft-${draft.slug || 'new'}`,
+              isVirtualDraft: true,
+              status: 0, 
+            };
+            dbCourses = [virtualDraft, ...dbCourses];
           }
         });
       }
@@ -87,15 +71,8 @@ export default function useInstructorCourses(pageSize = 10) {
   };
 
   useEffect(() => {
-    const delayDebounceFn = setTimeout(() => {
-        fetchCourses(0);
-    }, 300);
-    return () => clearTimeout(delayDebounceFn);
-  }, [searchTerm]);
-
-  const handlePageChange = (newPage) => {
-    fetchCourses(newPage);
-  };
+    fetchCourses(0);
+  }, []);
 
   const handleToggleStatus = async (courseId, currentStatus) => {
     try {
@@ -159,8 +136,6 @@ export default function useInstructorCourses(pageSize = 10) {
   return {
     courses,
     loading,
-    searchTerm,
-    setSearchTerm,
     pagination,
     fetchCourses,
     handleToggleStatus,
