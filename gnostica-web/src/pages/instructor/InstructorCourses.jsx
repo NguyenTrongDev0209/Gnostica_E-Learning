@@ -29,72 +29,17 @@ import { toast } from "sonner";
 
 export default function InstructorCourses() {
   const navigate = useNavigate();
-  const [courses, setCourses] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [pagination, setPagination] = useState({
-    currentPage: 0,
-    totalPages: 0,
-    totalElements: 0,
-    size: 10
-  });
-
-  const fetchCourses = async (page = 0) => {
-    try {
-      setLoading(true);
-      const response = await courseService.getInstructorCourses(page, pagination.size);
-      const draftsRaw = await courseService.getAllDrafts();
-      
-      const dbData = (response && response.data !== undefined && response.error !== undefined) 
-        ? response.data 
-        : response;
-
-      const drafts = (draftsRaw && draftsRaw.data && draftsRaw.error !== undefined)
-        ? draftsRaw.data
-        : draftsRaw;
-
-      let dbCourses = dbData.content || [];
-
-      // Logic Gộp Bản Nháp
-      if (Array.isArray(drafts)) {
-        drafts.forEach(draft => {
-          // Trường hợp 1: Bản nháp của khóa học đã có trong DB
-          if (draft.id && draft.id !== "new") {
-            const courseInDb = dbCourses.find(c => String(c.id) === String(draft.id));
-            if (courseInDb) {
-              courseInDb.hasUnsavedDraft = true;
-              // Cập nhật thông tin hiển thị từ bản nháp để người dùng thấy ảnh/tên mới nhất 
-              if (draft.title) courseInDb.title = draft.title;
-              if (draft.thumbnail) courseInDb.thumbnail = draft.thumbnail;
-            }
-          } 
-          // Trường hợp 2: Bản nháp mới hoàn toàn (chưa có trong DB)
-          else if (page === 0) {
-            // Chỉ thêm vào trang 0 để tránh trùng lặp khi phân trang
-            const virtualDraft = {
-              ...draft,
-              id: `draft-${draft.slug || 'new'}`,
-              isVirtualDraft: true,
-              status: 0, // 0 as Draft status
-            };
-            dbCourses = [virtualDraft, ...dbCourses];
-          }
-        });
-      }
-
-      setCourses(dbCourses);
-      setPagination({
-        currentPage: dbData.number || 0,
-        totalPages: dbData.totalPages || 0,
-        totalElements: dbData.totalElements || 0,
-        size: dbData.size || 10
-      });
-    } catch (error) {
-      console.error("Lỗi khi tải danh sách khóa học:", error);
-      toast.error("Không thể tải danh sách khóa học");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const {
+    courses,
+    loading,
+    searchTerm,
+    setSearchTerm,
+    pagination,
+    fetchCourses,
+    handleToggleStatus,
+    handleDelete: performDelete,
+    handleDeleteDraft: performDeleteDraft,
+  } = useInstructorCourses(10);
 
   const handleDeleteDraft = async (course) => {
     if (!window.confirm("Bạn có chắc chắn muốn xóa bản nháp này? Dữ liệu chưa lưu sẽ bị mất vĩnh viễn.")) return;
@@ -202,6 +147,8 @@ export default function InstructorCourses() {
               <Input
                 placeholder="Tìm khóa học theo tên..."
                 className="pl-9 h-10 border-slate-200 focus:bg-white focus:border-green-500 focus:ring-green-500/20"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
           </div>
