@@ -24,12 +24,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import courseService from "@/services/courseService";
+import enrollmentService from "@/services/enrollmentService";
 
 export default function LearningWorkspace() {
   const { id: slug } = useParams();
   const navigate = useNavigate();
+  const targetLessonSlug = new URLSearchParams(window.location.search).get("lesson");
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isEnrolled, setIsEnrolled] = useState(false);
+  const [checkingEnrollment, setCheckingEnrollment] = useState(true);
   const [activeSectionIdx, setActiveSectionIdx] = useState(0);
   const [activeLessonIdx, setActiveLessonIdx] = useState(0);
   const [lessonProgress, setLessonProgress] = useState([]);
@@ -42,57 +46,90 @@ export default function LearningWorkspace() {
   const hasEndedRef = useRef(false); // Chặn gọi completed nhiều lần
 
   useEffect(() => {
-    const fetchCourseData = async () => {
+    const checkAccessAndFetch = async () => {
       try {
-        setLoading(true);
-        const [courseData, progressData] = await Promise.all([
-          courseService.getCourseBySlug(slug),
-          courseService.getCourseProgress(slug)
-        ]);
-        
-        const activeModules = (courseData.modules || [])
-          .filter(m => m.status === 1)
-          .map(m => ({
-            ...m,
-            lessons: (m.lessons || []).filter(l => l.status === 1)
-          }))
-          .filter(m => m.lessons.length > 0);
+        setCheckingEnrollment(true);
+        const access = await enrollmentService.checkEnrollment(slug);
+        setIsEnrolled(access.isEnrolled);
 
-        if (activeModules.length === 0) {
-            navigate("/404");
-            return;
-        }
-
-        setCourse({ ...courseData, modules: activeModules });
-        setLessonProgress(progressData || []);
-
-        // Khôi phục phiên học: Tìm bài học vừa xem gần nhất
-        if (progressData && progressData.length > 0) {
-            const lastActive = [...progressData]
-                .filter(p => p.updatedAt)
-                .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))[0];
-            
-            if (lastActive) {
-                activeModules.forEach((mod, sIdx) => {
-                    const lIdx = mod.lessons.findIndex(l => l.id === lastActive.lessonId);
-                    if (lIdx !== -1) {
-                        setActiveSectionIdx(sIdx);
-                        setActiveLessonIdx(lIdx);
-                    }
-                });
-            }
+        if (access.isEnrolled) {
+          await fetchCourseData();
+        } else {
+          setLoading(false);
         }
       } catch (err) {
-        navigate("/404");
-      } finally {
+        setIsEnrolled(false);
         setLoading(false);
+      } finally {
+        setCheckingEnrollment(false);
       }
     };
 
     if (slug) {
-      fetchCourseData();
+      checkAccessAndFetch();
     }
-  }, [slug, navigate]);
+  }, [slug]);
+
+  const fetchCourseData = async () => {
+    try {
+      setLoading(true);
+      const [courseData, progressData] = await Promise.all([
+        courseService.getCourseBySlug(slug),
+        courseService.getCourseProgress(slug)
+      ]);
+      
+      const activeModules = (courseData.modules || [])
+        .filter(m => m.status === 1)
+        .map(m => ({
+          ...m,
+          lessons: (m.lessons || []).filter(l => l.status === 1)
+        }))
+        .filter(m => m.lessons.length > 0);
+
+      if (activeModules.length === 0) {
+          navigate("/404");
+          return;
+      }
+
+      setCourse({ ...courseData, modules: activeModules });
+      setLessonProgress(progressData || []);
+
+      // Khôi phục phiên học: 
+      // 1. Ưu tiên lesson trong URL
+      // 2. Sau đó mới đến bài học vừa xem gần nhất trong DB
+      let lessonFound = false;
+      if (targetLessonSlug) {
+           activeModules.forEach((mod, sIdx) => {
+              const lIdx = mod.lessons.findIndex(l => String(l.id) === targetLessonSlug);
+              if (lIdx !== -1) {
+                  setActiveSectionIdx(sIdx);
+                  setActiveLessonIdx(lIdx);
+                  lessonFound = true;
+              }
+          });
+      }
+
+      if (!lessonFound && progressData && progressData.length > 0) {
+          const lastActive = [...progressData]
+              .filter(p => p.updatedAt)
+              .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))[0];
+          
+          if (lastActive) {
+              activeModules.forEach((mod, sIdx) => {
+                  const lIdx = mod.lessons.findIndex(l => l.id === lastActive.lessonId);
+                  if (lIdx !== -1) {
+                      setActiveSectionIdx(sIdx);
+                      setActiveLessonIdx(lIdx);
+                  }
+              });
+          }
+      }
+    } catch (err) {
+      navigate("/404");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // === Derived values ===
   const completedLessonIds = lessonProgress
@@ -329,11 +366,40 @@ export default function LearningWorkspace() {
   }, [currentLesson?.id, loading]);
 
 
-  if (loading) {
+  if (checkingEnrollment || (loading && !course)) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-background">
         <Loader2 className="w-12 h-12 animate-spin text-primary mb-4" />
-        <p className="text-slate-500 font-medium animate-pulse">Đang tải nội dung học tập...</p>
+        <p className="text-slate-500 font-medium animate-pulse">Đang kiểm tra quyền truy cập...</p>
+      </div>
+    );
+  }
+
+  if (!isEnrolled) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white p-6 text-center">
+        <div className="w-24 h-24 bg-red-50 rounded-full flex items-center justify-center mb-6 border border-red-100 shadow-inner">
+          <Info className="w-10 h-10 text-red-500" />
+        </div>
+        <h2 className="text-2xl font-black text-slate-900 mb-2 uppercase tracking-tight">Truy cập bị từ chối</h2>
+        <p className="text-slate-500 max-w-md mx-auto mb-8 font-bold">
+          Bạn chưa sở hữu khóa học này hoặc phiên thanh toán chưa được xác nhận. Vui lòng mua khóa học để bắt đầu học tập.
+        </p>
+        <div className="flex gap-4">
+          <Button 
+            onClick={() => navigate(`/course/${slug}`)}
+            className="font-black px-8 py-6 rounded-2xl shadow-xl shadow-primary/20"
+          >
+            Đến trang khóa học
+          </Button>
+          <Button 
+            variant="outline"
+            onClick={() => navigate("/account/my-courses")}
+            className="font-black px-8 py-6 rounded-2xl border-slate-200"
+          >
+            Khóa học của tôi
+          </Button>
+        </div>
       </div>
     );
   }

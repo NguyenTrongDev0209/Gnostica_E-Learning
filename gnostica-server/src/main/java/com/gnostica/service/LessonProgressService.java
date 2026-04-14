@@ -22,6 +22,7 @@ public class LessonProgressService {
     private final LessonProgressRepository lessonProgressRepository;
     private final LessonRepository lessonRepository;
     private final AccountRepository accountRepository;
+    private final EnrollmentService enrollmentService;
 
     @Transactional
     public void markLessonAsCompleted(Integer lessonId, String email) {
@@ -43,6 +44,9 @@ public class LessonProgressService {
             progress.setIsCompleted(true);
             progress.setCompletedAt(LocalDateTime.now());
             lessonProgressRepository.save(progress);
+            
+            // Cập nhật tiến độ tổng quan cho Enrollment
+            enrollmentService.updateProgress(account.getId(), lesson.getModule().getCourse().getId());
         }
     }
 

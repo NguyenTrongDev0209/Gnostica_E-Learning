@@ -134,6 +134,7 @@ export default function useAdminCategories(itemsPerPage = 10) {
     fetchCategories,
     toggleStatus,
     handleDelete,
-    generateSlug
+    generateSlug,
+    saveCategory
   };
 }

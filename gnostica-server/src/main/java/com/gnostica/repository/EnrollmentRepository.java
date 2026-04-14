@@ -9,5 +9,5 @@ import java.util.List;
 
 public interface EnrollmentRepository extends JpaRepository<Enrollment, Integer> {
     Optional<Enrollment> findByAccountAndCourse(Account account, Course course);
-    List<Enrollment> findByAccountId(Integer accountId);
+    List<Enrollment> findByAccount(Account account);
 }

@@ -49,6 +49,9 @@ import {
 import { toast } from "sonner";
 import Fuse from "fuse.js";
 import categoryService from "@/services/categoryService";
+import { DialogDescription } from "@/components/ui/dialog";
+
+const ITEMS_PER_PAGE = 10;
 
 const categorySchema = z.object({
   name: z
@@ -81,7 +84,7 @@ export default function AdminCategories() {
     handleDelete,
     generateSlug,
     saveCategory,
-  } = useAdminCategories(10);
+  } = useAdminCategories(ITEMS_PER_PAGE);
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editId, setEditId] = useState(null);
@@ -439,6 +442,11 @@ export default function AdminCategories() {
               </div>
               {editId ? "Cập Nhật Danh Mục" : "Thêm Danh Mục Mới"}
             </DialogTitle>
+            <DialogDescription>
+              {editId 
+                ? "Chỉnh sửa thông tin danh mục hiện có." 
+                : "Tạo một danh mục mới để phân loại các khóa học của bạn."}
+            </DialogDescription>
           </DialogHeader>
 
           <Form {...form}>
