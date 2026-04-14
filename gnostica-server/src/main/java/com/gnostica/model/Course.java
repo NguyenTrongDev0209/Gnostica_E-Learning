@@ -132,16 +132,6 @@ public class Course {
         return category != null ? category.getName() : "Chưa phân loại";
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("instructorName")
-    public String getInstructorName() {
-        return account != null ? account.getFullName() : "Ẩn danh";
-    }
-
-    @com.fasterxml.jackson.annotation.JsonProperty("instructorAvatar")
-    public String getInstructorAvatar() {
-        return account != null ? account.getAvatar() : null;
-    }
-
     @com.fasterxml.jackson.annotation.JsonProperty("classes")
     public Integer getClassesCount() {
         if (modules == null) return 0;

@@ -332,6 +332,7 @@ export const CourseDetailInstructor = ({ instructor }) => {
  */
 export const CourseDetailPricingCard = ({ course }) => {
   const navigate = useNavigate();
+  const totalLessons = course.curriculum?.reduce((acc, section) => acc + (section.lessons?.length || 0), 0) || 0;
 
   const handleCheckout = () => {
     // Chuyển đổi giá từ chuỗi có dấu phẩy sang số nguyên

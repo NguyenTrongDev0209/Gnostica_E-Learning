@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import courseService from "@/services/courseService";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Card, CardContent } from "@/components/ui/card";
 import { Star } from "lucide-react";

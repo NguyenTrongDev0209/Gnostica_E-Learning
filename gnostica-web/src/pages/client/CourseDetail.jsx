@@ -33,9 +33,11 @@ export default function CourseDetail() {
           promoVideo: data.promoVideo,
           image: data.thumbnail,
           description: data.description ? data.description.replace(/&nbsp;/g, ' ') : "Chưa có mô tả chi tiết.",
-          price: new Intl.NumberFormat('vi-VN').format(data.salePrice || data.price || 0),
-          originalPrice: data.discount > 0 ? new Intl.NumberFormat('vi-VN').format(data.price) : null,
+          price: data.price || 0,
+          salePrice: data.salePrice || data.price || 0,
+          originalPrice: data.price || 0,
           discountPercentage: data.discount || 0,
+          discount: data.discount || 0,
           rating: 5.0,
           reviews: 0,
           students: data.students || 0,
@@ -128,7 +130,7 @@ export default function CourseDetail() {
 
             <CourseDetailOutcomes course={course} />
 
-            <CourseDetailCurriculum curriculum={course.modules || []} />
+            <CourseDetailCurriculum curriculum={course.curriculum || []} />
 
             <Separator className="bg-slate-200/60" />
 
