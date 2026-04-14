@@ -17,39 +17,30 @@ public class Coupon {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
-
-    @Column(nullable = false)
-    private String name;
+    private Integer id; // PK - IDENTITY(1,1)
 
     @Column(columnDefinition = "varchar(255)", nullable = false, unique = true)
-    private String code;
+    private String code; // code
 
     @Column(name = "discount_percent")
-    private Integer discountPercent;
+    private Integer discountPercent; // discount_percent - INT
 
     @Column(name = "max_discount")
-    private Integer maxDiscount;
+    private Integer maxDiscount; // max_discount - INT
 
     @Column(name = "min_discount")
-    private Integer minDiscount;
-
-    @Column(name = "start_date")
-    private LocalDateTime startDate;
+    private Integer minDiscount; // min_discount - INT
 
     @Column(name = "expiry_date")
-    private LocalDateTime expiryDate;
+    private LocalDateTime expiryDate; // expiry_date - DATETIME
 
-    private Integer quantity;
-
-    @Column(name = "status")
-    private Integer status; // (0: Tạm ẩn, 1: Hoạt động, 2: Hết hạn, 3: Hết lượt)
+    private Integer quantity; // quantity - INT
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt; // created_at - DATETIME
 
     @ManyToOne
-    @JoinColumn(name = "account_id")
-    private Account account;
+    @JoinColumn(name = "account_id") // FK - INT
+    private Account account; // Liên kết với bảng Accounts
 }

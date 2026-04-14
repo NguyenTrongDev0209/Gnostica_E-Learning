@@ -53,7 +53,7 @@ public class AuthController {
         } catch (Exception e) {
             return ResponseEntity.status(401).body(ResponseDTO.builder()
                 .status(401)
-                .message("Tài khoản chưa được liên kết")
+                .message(e.getMessage())
                 .build());
         }
     }

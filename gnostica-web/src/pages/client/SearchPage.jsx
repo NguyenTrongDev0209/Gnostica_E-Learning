@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { AppBreadcrumb, PageHeader } from "@/components/common/AppSection";
-import CourseListSection from "@/components/pages/client/shared/CourseListSection";
+import CourseListSection from "@/components/client/CourseListSection";
 import { Home } from "lucide-react";
 import { searchCourses } from "@/mocks/courses";
 

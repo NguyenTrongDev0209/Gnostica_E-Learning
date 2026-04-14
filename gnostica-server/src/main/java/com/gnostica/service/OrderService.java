@@ -9,81 +9,22 @@ import vn.payos.model.v2.paymentRequests.PaymentLink;
 import vn.payos.model.v2.paymentRequests.PaymentLinkItem;
 import vn.payos.model.v2.paymentRequests.invoices.InvoicesInfo;
 import vn.payos.model.webhooks.ConfirmWebhookResponse;
-import com.gnostica.dto.CreatePaymentLinkRequestBody;
 
-import java.util.ArrayList;
-import com.gnostica.model.Account;
-import com.gnostica.model.Course;
-import com.gnostica.model.Order;
-import com.gnostica.model.OrderDetail;
-import com.gnostica.repository.AccountRepository;
-import com.gnostica.repository.CourseRepository;
-import com.gnostica.repository.OrderDetailRepository;
-import com.gnostica.repository.OrderRepository;
+import com.gnostica.dto.CreatePaymentLinkRequestBody;
 import lombok.RequiredArgsConstructor;
-import java.util.List;
-import java.time.LocalDateTime;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.Authentication;
 
 @Service
 @RequiredArgsConstructor
 public class OrderService {
     private final PayOS payOS;
-    private final OrderRepository orderRepository;
-    private final OrderDetailRepository orderDetailRepository;
-    private final AccountRepository accountRepository;
-    private final CourseRepository courseRepository;
-    private final PaymentService paymentService;
 
-    public List<Order> getAllOrders() {
-        return orderRepository.findAllByOrderByIdDesc();
-    }
-
-    @Transactional
     public CreatePaymentLinkResponse createPaymentLink(CreatePaymentLinkRequestBody requestBody) throws Exception {
         final String productName = requestBody.getProductName();
-        String description = requestBody.getDescription();
-        if (description != null && description.length() > 25) {
-            description = description.substring(0, 25);
-        }
+        final String description = requestBody.getDescription();
         final String returnUrl = requestBody.getReturnUrl();
         final String cancelUrl = requestBody.getCancelUrl();
         final long price = requestBody.getPrice();
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new RuntimeException("User not authenticated");
-        }
-        String email = authentication.getName();
-
-        Account account = accountRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Account not found for email: " + email));
-
-        Course course = courseRepository.findById(requestBody.getCourseId())
-                .orElseThrow(() -> new RuntimeException("Course not found for ID: " + requestBody.getCourseId()));
-
-        long orderCode = System.currentTimeMillis();
-
-        Order order = new Order();
-        order.setAccount(account);
-        order.setTotalPrice((double) price);
-        order.setStatus(0); // 0: PENDING
-        order.setTransactionId(String.valueOf(orderCode));
-        order.setCreatedAt(LocalDateTime.now());
-        order = orderRepository.save(order);
-
-        OrderDetail detail = new OrderDetail();
-        detail.setOrder(order);
-        detail.setCourse(course);
-        detail.setPrice(course.getPrice());
-        detail.setDiscount(0); // Optional: add discount logic
-        orderDetailRepository.save(detail);
-
-        List<OrderDetail> details = new ArrayList<>();
-        details.add(detail);
-        order.setDetails(details);
+        long orderCode = System.currentTimeMillis() / 1000;
 
         PaymentLinkItem item = PaymentLinkItem.builder()
                 .name(productName)
@@ -104,11 +45,7 @@ public class OrderService {
     }
 
     public PaymentLink getOrderById(long orderId) throws Exception {
-        PaymentLink paymentLink = payOS.paymentRequests().get(orderId);
-        if (paymentLink != null) {
-            paymentService.syncPayment(paymentLink);
-        }
-        return paymentLink;
+        return payOS.paymentRequests().get(orderId);
     }
 
     public PaymentLink cancelOrder(long orderId, String cancellationReason) throws Exception {

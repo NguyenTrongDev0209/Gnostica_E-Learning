@@ -1,14 +1,11 @@
 package com.gnostica.controller;
 
 import java.util.Map;
-import java.util.List;
-import com.gnostica.model.Order;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.annotation.CrossOrigin;
 
 import com.gnostica.dto.ApiResponse;
 import com.gnostica.dto.CreatePaymentLinkRequestBody;
@@ -23,21 +20,10 @@ import vn.payos.model.webhooks.ConfirmWebhookResponse;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/order")
-@CrossOrigin(origins = "*")
+@RequestMapping("/order")
 @RequiredArgsConstructor
 public class OrderController {
   private final OrderService orderService;
-  
-  @GetMapping("/all")
-  public ApiResponse<List<Order>> getAllOrders() {
-    try {
-      return ApiResponse.success(orderService.getAllOrders());
-    } catch (Exception e) {
-      e.printStackTrace();
-      return ApiResponse.error("fail");
-    }
-  }
 
   @PostMapping(path = "/create")
   public ApiResponse<CreatePaymentLinkResponse> createPaymentLink(

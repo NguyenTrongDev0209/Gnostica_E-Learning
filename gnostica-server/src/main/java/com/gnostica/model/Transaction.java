@@ -30,7 +30,6 @@ public class Transaction {
     private String senderAccountNumber;
     private String ref;
     
-    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
     @Column(columnDefinition = "JSONB")
     private String log;
     

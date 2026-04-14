@@ -77,6 +77,9 @@ export const CheckoutOrderItemList = ({ orderItems }) => {
                   ))}
                 </div>
               </div>
+              <div className="flex-none w-24 md:w-32 flex flex-col items-center justify-center border-l border-slate-50">
+                <p className="text-sm font-bold text-slate-700">Số lượng: 1</p>
+              </div>
               <div className="text-right flex-none w-24 md:w-32 border-l border-slate-50">
                 <p className="font-black text-lg text-gradient-button font-extrabold">
                   {item.price.toLocaleString()}đ

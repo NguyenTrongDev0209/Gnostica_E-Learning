@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
-import { Home } from "lucide-react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Home, Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { AppBreadcrumb } from "@/components/common/AppSection";
 import courseService from "@/services/courseService";
@@ -11,13 +11,13 @@ import {
   CourseDetailCurriculum, 
   CourseDetailInstructor, 
   CourseDetailPricingCard 
-} from "@/components/pages/client/courseDetail/CourseDetailComponents";
+} from "@/components/common/CourseDetailComponents";
 
 export default function CourseDetail() {
-  const { slug } = useParams();
+  const { id: slug } = useParams();
+  const navigate = useNavigate();
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchCourse = async () => {
@@ -25,52 +25,28 @@ export default function CourseDetail() {
         setLoading(true);
         const data = await courseService.getCourseBySlug(slug);
         
-        // Map backend model to frontend structure
-        const formattedCourse = {
-          id: data.id,
-          category: data.categoryName || "Chưa phân loại",
-          title: data.title,
-          promoVideo: data.promoVideo,
-          image: data.thumbnail,
-          description: data.description ? data.description.replace(/&nbsp;/g, ' ') : "Chưa có mô tả chi tiết.",
-          price: new Intl.NumberFormat('vi-VN').format(data.salePrice || data.price || 0),
-          originalPrice: data.discount > 0 ? new Intl.NumberFormat('vi-VN').format(data.price) : null,
-          discountPercentage: data.discount || 0,
-          rating: 5.0,
-          reviews: 0,
-          students: data.students || 0,
-          lastUpdated: "Mới đây",
-          language: "Tiếng Việt",
-          outcomes: [
-            "Nắm vững các kiến thức cơ bản từ lý thuyết đến thực hành",
-            "Tự tin áp dụng kỹ năng vào các dự án thực tế",
-            "Nhận chứng chỉ chuyên môn sau khi hoàn thành",
-            "Được tham gia cộng đồng hỗ trợ học tập"
-          ],
-          curriculum: data.modules ? data.modules.map(module => ({
-            title: module.title,
-            lessons: module.lessons ? module.lessons.map(lesson => ({
-              title: lesson.title,
-              duration: "00:00",
-              preview: false
-            })) : []
-          })) : [],
-          instructor: {
-            name: data.instructorName || "Ẩn danh",
-            avatar: data.instructorAvatar || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=100&auto=format&fit=crop",
-            role: "Giảng viên",
-            bio: "Giảng viên chia sẻ kiến thức chuyên sâu.",
-            coursesCount: 1,
-            studentsCount: data.students || 0,
-            reviewsCount: 0,
-            status: "online"
-          }
-        };
+        // Kiểm tra nếu khóa học bị ẩn (status != 1)
+        if (data.status !== 1) {
+            navigate("/404");
+            return;
+        }
 
-        setCourse(formattedCourse);
+        // Lọc modules và lessons có status = 1 (Hoạt động)
+        const activeModules = (data.modules || [])
+          .filter(m => m.status === 1)
+          .map(m => ({
+            ...m,
+            lessons: (m.lessons || []).filter(l => l.status === 1)
+          }))
+          .filter(m => m.lessons.length > 0); // Chỉ giữ lại chương có bài học
+
+        setCourse({
+            ...data,
+            modules: activeModules
+        });
       } catch (err) {
-        console.error("Lỗi khi tải chi tiết khóa học:", err);
-        setError("Không thể tải thông tin khóa học.");
+        console.error("Lỗi lấy chi tiết khóa học:", err);
+        navigate("/404");
       } finally {
         setLoading(false);
       }
@@ -79,24 +55,18 @@ export default function CourseDetail() {
     if (slug) {
       fetchCourse();
     }
-  }, [slug]);
+  }, [slug, navigate]);
 
   if (loading) {
     return (
-      <div className="bg-background min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background">
+        <Loader2 className="w-12 h-12 animate-spin text-primary mb-4" />
+        <p className="text-slate-500 font-medium animate-pulse">Đang tải thông tin khóa học...</p>
       </div>
     );
   }
 
-  if (error || !course) {
-    return (
-      <div className="bg-background min-h-screen pt-24 text-center">
-        <h2 className="text-2xl font-bold text-slate-800 mb-4">{error || "Khóa học không tồn tại"}</h2>
-        <a href="/courses" className="text-primary hover:underline font-medium">Quay lại danh sách khóa học</a>
-      </div>
-    );
-  }
+  if (!course) return null;
 
   const breadcrumbItems = [
     { label: "Trang chủ", href: "/", icon: Home },

@@ -8,13 +8,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import vn.payos.model.webhooks.WebhookData;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/payment")
-@CrossOrigin(origins = "*")
+@RequestMapping("/payment")
 @RequiredArgsConstructor
 public class PaymentController {
   private final PaymentService paymentService;
@@ -24,10 +22,7 @@ public class PaymentController {
       throws JsonProcessingException, IllegalArgumentException {
     try {
       WebhookData data = paymentService.verifyWebhook(body);
-      System.out.println("Webhook received: " + data);
-
-      paymentService.handlePaymentWebhook(data);
-
+      System.out.println(data);
       return ApiResponse.success("Webhook delivered", data);
     } catch (Exception e) {
       e.printStackTrace();
