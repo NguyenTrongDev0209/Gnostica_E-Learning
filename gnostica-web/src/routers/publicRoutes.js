@@ -24,7 +24,7 @@ export const publicRoutes = {
   main: [
     { path: "/", component: HomePage },
     { path: "/about", component: AboutUs },
-    { path: "/courses", component: CourseCatalog },
+    { path: "/courses/category/:categorySlug", component: CourseCatalog },
     { path: "/courses/category/:categoryName", component: CourseCategory },
     { path: "/courses/:slug", component: CourseDetail },
     { path: "/cart", component: CourseCart },
