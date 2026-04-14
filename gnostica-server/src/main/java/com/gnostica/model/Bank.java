@@ -32,7 +32,7 @@ public class Bank {
 
     private String logoUrl;
 
-    private Integer status;
+    private Integer status; //0: Tạm ngưng, 1: Hoạt động
 
     private LocalDateTime createdAt;
 }

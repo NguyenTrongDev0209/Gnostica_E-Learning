@@ -24,6 +24,13 @@ const createCourse = async (courseData) => {
     });
     return response.data;
 };
+ 
+const getAllCourses = async (page = 0, size = 10) => {
+    const response = await axios.get(API_URL, {
+        params: { page, size }
+    });
+    return response.data;
+};
 
 const getInstructorCourses = async (page = 0, size = 10) => {
     const response = await axios.get(`${API_URL}/instructor`, {
@@ -126,6 +133,7 @@ const markLessonCompleted = async (lessonId) => {
 const courseService = {
     getPublicCourses,
     createCourse,
+    getAllCourses,
     getInstructorCourses,
     getCourseBySlug,
     updateCourse,

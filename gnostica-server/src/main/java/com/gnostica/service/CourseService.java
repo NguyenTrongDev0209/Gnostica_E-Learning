@@ -309,6 +309,12 @@ public class CourseService {
         return courseRepository.findByAccountEmail(email, pageable);
     }
 
+    @Transactional(readOnly = true)
+    public org.springframework.data.domain.Page<Course> getAllActiveCourses(int page, int size) {
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size, org.springframework.data.domain.Sort.by("id").descending());
+        return courseRepository.findByStatus(1, pageable);
+    }
+
     @Transactional
     public Course patchCourseStatus(Integer id, Integer status, String email) {
         Course course = courseRepository.findById(id)
