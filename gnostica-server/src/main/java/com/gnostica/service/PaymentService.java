@@ -63,14 +63,15 @@ public class PaymentService {
 
         if (order != null && order.getStatus() == 0 && "PAID".equals(paymentLink.getStatus())) {
             processSuccessfulOrder(order);
-            
+
             // Create a pseudo WebhookData for saveTransaction if nested transactions exist
             if (paymentLink.getTransactions() != null && !paymentLink.getTransactions().isEmpty()) {
-                // We could loop through all transactions, but for now let's just save the last one
+                // We could loop through all transactions, but for now let's just save the last
+                // one
                 // Or we can create a simplified saveTransaction version
                 saveTransactionFromLink(paymentLink, order);
             }
-            
+
             System.out.println("Order with transactionId " + transactionId + " synced successfully.");
         }
     }
@@ -130,7 +131,8 @@ public class PaymentService {
                 // Assuming price in detail is the amount to credit
                 wallet.setRemain(currentRemain + detail.getPrice());
                 walletRepository.save(wallet);
-                System.out.println("Added " + detail.getPrice() + " to instructor: " + instructor.getEmail() + " for course: " + detail.getCourse().getTitle());
+                System.out.println("Added " + detail.getPrice() + " to instructor: " + instructor.getEmail()
+                        + " for course: " + detail.getCourse().getTitle());
             }
         }
     }
