@@ -33,6 +33,8 @@ export default function InstructorCourses() {
   const {
     courses,
     loading,
+    searchTerm,
+    setSearchTerm,
     pagination,
     fetchCourses,
     handleToggleStatus,
@@ -90,6 +92,8 @@ export default function InstructorCourses() {
               <Input
                 placeholder="Tìm khóa học theo tên..."
                 className="pl-9 h-10 border-slate-200 focus:bg-white focus:border-green-500 focus:ring-green-500/20"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
           </div>

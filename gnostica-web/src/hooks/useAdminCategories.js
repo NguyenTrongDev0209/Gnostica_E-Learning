@@ -8,6 +8,7 @@ import categoryService from "@/services/categoryService";
  */
 export default function useAdminCategories(itemsPerPage = 10) {
   const [categories, setCategories] = useState([]);
+  const [allRootCategories, setAllRootCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
@@ -15,6 +16,18 @@ export default function useAdminCategories(itemsPerPage = 10) {
   const [totalPages, setTotalPages] = useState(1);
   const [totalElements, setTotalElements] = useState(0);
   const [expanded, setExpanded] = useState(null);
+
+  const fetchRootCategories = async () => {
+    try {
+      // Lấy danh sách danh mục gốc không phân trang cho dropdown parent
+      const response = await categoryService.getAllCategories(1, 1000, "", "all");
+      if (response && response.data) {
+        setAllRootCategories(response.data.content || []);
+      }
+    } catch (error) {
+      console.error("Failed to fetch root categories for select", error);
+    }
+  };
 
   const fetchCategories = async () => {
     try {
@@ -32,6 +45,11 @@ export default function useAdminCategories(itemsPerPage = 10) {
       setLoading(false);
     }
   };
+
+  // Tải danh sách gốc một lần
+  useEffect(() => {
+    fetchRootCategories();
+  }, []);
 
   // Reset page when search or filter changes
   useEffect(() => {
@@ -52,6 +70,7 @@ export default function useAdminCategories(itemsPerPage = 10) {
       await categoryService.updateStatus(id, newStatus);
       toast.success(`Đã chuyển trạng thái sang ${newStatus ? 'Hoạt động' : 'Tạm ẩn'}`);
       fetchCategories();
+      fetchRootCategories();
       return true;
     } catch (error) {
       toast.error("Không thể cập nhật trạng thái");
@@ -98,6 +117,7 @@ export default function useAdminCategories(itemsPerPage = 10) {
         toast.success("Thêm danh mục thành công!");
       }
       fetchCategories();
+      fetchRootCategories();
       return true;
     } catch (error) {
       const errorMessage = error?.response?.data?.message || "Có lỗi xảy ra, vui lòng thử lại.";
@@ -120,6 +140,7 @@ export default function useAdminCategories(itemsPerPage = 10) {
 
   return {
     categories,
+    allRootCategories,
     loading,
     searchTerm,
     setSearchTerm,
@@ -134,6 +155,7 @@ export default function useAdminCategories(itemsPerPage = 10) {
     fetchCategories,
     toggleStatus,
     handleDelete,
-    generateSlug
+    generateSlug,
+    saveCategory
   };
 }
