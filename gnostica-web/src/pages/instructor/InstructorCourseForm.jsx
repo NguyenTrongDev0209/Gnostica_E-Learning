@@ -1,4 +1,5 @@
 import React from "react";
+import useInstructorCourseForm from "@/hooks/useInstructorCourseForm";
 import {
   useForm,
   FormProvider,
@@ -11,7 +12,7 @@ import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   Plus,
   Trash2,
@@ -21,8 +22,19 @@ import {
   ArrowRight,
   Video,
   CircleFadingArrowUp,
+  ChevronRight,
+  ChevronDown,
+  Star,
+  Users,
+  PlayCircle,
+  Clock,
+  AlertCircle,
+  Check,
+  Loader2
 } from "lucide-react";
 import { toast } from "sonner";
+import axios from "axios";
+import courseService from "../../services/courseService";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -43,42 +55,122 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import categoryService from "@/services/categoryService";
 
 // ==========================================
-// THIẾT LẬP ZOD SCHEMA
+// CẤU CẤU HÌNH ĐỂ DUY TRÌ TIẾN TRÌNH TẢI VIDEO KHI CHUYỂN TAB
 // ==========================================
+const globalUploadProgress = {}; 
+const uploadCallbacks = {}; 
+
+// ==========================================
+// THIẾT LẬP ZOD SCHEMA & ERROR MAP (VIỆT HÓA)
+// ==========================================
+
+const viErrorMap = (issue, ctx) => {
+  // Việt hóa lỗi sai kiểu dữ liệu (Invalid input)
+  if (issue.code === z.ZodIssueCode.invalid_type) {
+    if (issue.received === "null" || issue.received === "undefined") {
+      return { message: "Trường này không được để trống" };
+    }
+    const typeMap = {
+      string: "chuỗi ký tự",
+      number: "con số",
+      boolean: "giá trị đúng/sai",
+      array: "danh sách",
+      object: "đối tượng",
+    };
+    return { 
+      message: `Dữ liệu không hợp lệ (Mong đợi ${typeMap[issue.expected] || issue.expected}, nhưng nhận được ${typeMap[issue.received] || issue.received})` 
+    };
+  }
+
+  // Việt hóa lỗi bỏ trống (String, Array, Number)
+  if (issue.code === z.ZodIssueCode.too_small) {
+    if (issue.type === "string") return { message: "Vui lòng nhập thông tin này" };
+    if (issue.type === "array") return { message: "Cần ít nhất một mục trong danh sách" };
+    if (issue.type === "number") return { message: "Giá trị quá nhỏ" };
+  }
+
+  // Việt hóa lỗi sai giá trị Enum hoặc Union (Thường gây ra "Invalid input")
+  if (issue.code === z.ZodIssueCode.invalid_enum_value || issue.code === z.ZodIssueCode.invalid_union) {
+    return { message: "Lựa chọn không hợp lệ hoặc dữ liệu chưa đúng định dạng" };
+  }
+
+  // Mặc định trả về lỗi gốc nếu không khớp các trường hợp trên, cố gắng dịch "Required"
+  return { message: ctx.defaultError === "Required" ? "Thông tin này là bắt buộc" : ctx.defaultError };
+};
+
+// Đăng ký Error Map cho toàn cục (Dùng cho z.parse bên ngoài)
+z.setErrorMap(viErrorMap);
+
 const lessonSchema = z.object({
-  id: z.string().optional(),
-  title: z.string().min(1, "Tên bài học không được để trống"),
-  content: z.string().optional(),
-  videoFile: z.any().optional(),
-  createdAt: z.string().optional(),
-  updatedAt: z.string().optional(),
+  id: z.any().optional(),
+  title: z.coerce.string({ required_error: "Tên bài học không được để trống" })
+    .min(1, "Tên bài học không được để trống"),
+  content: z.coerce.string({ required_error: "Mô tả bài học không được để trống" })
+    .min(1, "Mô tả nội dung bài học không được để trống"),
+  videoFile: z.any({ required_error: "Video bài học không được để trống" })
+    .refine(val => val !== null && val !== undefined && val !== "", "Video bài học không được để trống"),
+  videoUrl: z.string().optional(),
+  status: z.coerce.number().default(1),
+  createdAt: z.any().nullable().optional(),
+  updatedAt: z.any().nullable().optional(),
 });
 
 const sectionSchema = z.object({
-  id: z.string().optional(),
-  title: z.string().min(1, "Tên chương không được để trống"),
-  lessons: z.array(lessonSchema).min(1, "Chương này phải có ít nhất 1 bài học"),
-  attachments: z.any().optional(),
-  createdAt: z.string().optional(),
-  updatedAt: z.string().optional(),
+  id: z.any().optional(),
+  title: z.coerce.string({ required_error: "Tên chương không được để trống" })
+    .min(1, "Tên chương không được để trống"),
+  lessons: z.preprocess(
+    (val) => (Array.isArray(val) ? val : []),
+    z.array(lessonSchema).min(1, "Chương này phải có ít nhất 1 bài học")
+  ),
+  attachments: z.any().nullable().optional(),
+  status: z.coerce.number().default(1),
+  createdAt: z.any().nullable().optional(),
+  updatedAt: z.any().nullable().optional(),
 });
 
 export const courseSchema = z.object({
-  title: z.string().min(1, "Tên khóa học là bắt buộc"),
-  slug: z.string().min(1, "Slug không được để trống"),
-  categoryId: z.string().min(1, "Vui lòng chọn danh mục"),
-  level: z.string().min(1, "Vui lòng chọn cấp độ"),
-  description: z.string().optional(),
-  price: z.coerce.number().min(0, "Giá phải lớn hơn hoặc bằng 0"),
-  discount: z.coerce.number().min(0, "Giảm giá không được nhỏ hơn 0").max(100, "Giảm giá không được quá 100%").default(0),
-  sections: z.array(sectionSchema).min(1, "Cần có ít nhất 1 chương học"),
-  thumbnail: z.any().optional(),
-  promoVideo: z.any().optional(),
-  createdAt: z.string().optional(),
-  updatedAt: z.string().optional(),
+  title: z.preprocess((val) => (val === null || val === undefined ? "" : String(val)),
+    z.string({ required_error: "Tên khóa học là bắt buộc" }).min(1, "Tên khóa học là bắt buộc")
+  ),
+  slug: z.preprocess((val) => (val === null || val === undefined ? "" : String(val)),
+    z.string({ required_error: "Slug không được để trống" }).min(1, "Slug không được để trống")
+  ),
+  categoryId: z.preprocess((val) => (val === null || val === undefined ? "" : String(val)),
+    z.string({ required_error: "Vui lòng chọn danh mục sản phẩm" }).min(1, "Vui lòng chọn danh mục sản phẩm")
+  ),
+  level: z.preprocess((val) => (val === null || val === undefined ? "" : String(val)),
+    z.string({ required_error: "Vui lòng chọn cấp độ khó" }).min(1, "Vui lòng chọn cấp độ khó")
+  ),
+  description: z.preprocess((val) => (val === null || val === undefined ? "" : String(val)),
+    z.string({ required_error: "Mô tả khóa học không được để trống" })
+     .min(1, "Mô tả khóa học không được để trống")
+     .refine(val => val.replace(/<[^>]*>?/gm, '').trim().length > 0, "Mô tả khóa học không được để trống")
+  ),
+  price: z.preprocess((val) => (val === "" || val === null || val === undefined ? undefined : Number(val)), 
+    z.number({ required_error: "Giá bán không được để trống" })
+     .min(0, "Giá phải lớn hơn hoặc bằng 0")
+  ),
+  discount: z.coerce.number({ invalid_type_error: "Giảm giá phải là số" })
+    .min(0, "Giảm giá không được nhỏ hơn 0")
+    .max(100, "Giảm giá không được quá 100%")
+    .default(0),
+  status: z.coerce.number().default(1),
+  sections: z.preprocess(
+    (val) => (Array.isArray(val) ? val : []),
+    z.array(sectionSchema).min(1, "Cần có ít nhất 1 chương học")
+  ),
+  thumbnail: z.any({ required_error: "Ảnh đại diện khóa học không được để trống" })
+    .refine(val => val !== null && val !== undefined && val !== "", "Ảnh đại diện khóa học không được để trống"),
+  promoVideo: z.any().nullable().optional(),
+  createdAt: z.any().nullable().optional(),
+  updatedAt: z.any().nullable().optional(),
 });
 
 // ==========================================
@@ -86,51 +178,226 @@ export const courseSchema = z.object({
 // ==========================================
 export default function InstructorCourseForm() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = React.useState("basic");
+  const {
+    methods,
+    isEditMode,
+    slug,
+    activeTab,
+    setActiveTab,
+    isUploading,
+    setIsUploading,
+    uploadStatus,
+    setUploadStatus,
+    activeUploads,
+    setActiveUploads,
+    isSavingDraft,
+    showDraftModal,
+    setShowDraftModal,
+    categories,
+    saveDraft,
+    restoreDraft,
+    handleExitWithConfirmation,
+    isSubmittingRef,
+    originalDataRef,
+    uploadImageToCloudinary,
+    uploadVideoToBunny,
+    uploadDocumentToCloudinary,
+    getAuthHeaders
+  } = useInstructorCourseForm(courseSchema, viErrorMap);
 
-  const methods = useForm({
-    resolver: zodResolver(courseSchema),
-    defaultValues: {
-      title: "",
-      slug: "",
-      categoryId: "",
-      level: "",
-      description: "",
-      price: 0,
-      discount: 0,
-      sections: [
-        {
-          title: "",
-          lessons: [{
-            title: "",
-            content: "",
-            videoFile: null,
-            createdAt: new Date().toISOString(),
-            updatedAt: null
-          }],
-          attachments: null,
-          createdAt: new Date().toISOString(),
-          updatedAt: null
-        }
-      ],
-      thumbnail: null,
-      promoVideo: null,
-      createdAt: new Date().toISOString(),
-      updatedAt: null,
-    },
+  const {
+    fields,
+    append,
+    remove,
+    replace
+  } = useFieldArray({
+    control: methods.control,
+    name: "sections",
   });
 
-  const onSubmit = (data) => {
-    // Luôn cập nhật ngày cập nhật mới nhất khi submit
-    methods.setValue("updatedAt", new Date().toISOString());
-    console.log("Xử lý gọi API Submit:", { ...data, updatedAt: new Date().toISOString() });
-    toast.success("Đã lưu khóa học thành công!");
-    // setTimeout(() => navigate("/instructor/courses"), 1500);
+  // Watch và Trigger Autosave (giữ logic watch trong component để trigger useEffect)
+  const formData = methods.watch();
+
+  // Logic click toàn cục để xác nhận khi chuyển hướng (Navigation Guard)
+  React.useEffect(() => {
+    const handleGlobalClick = async (e) => {
+      // Không cần kiểm tra nếu đang trong quá trình submit chính thức
+      if (isSubmittingRef.current) return;
+
+      // Tìm các thành phần có khả năng gây chuyển hướng
+      const anchor = e.target.closest('a');
+      const button = e.target.closest('button');
+      
+      const isNavAction = 
+        (anchor && anchor.getAttribute('href')) || 
+        (button && (
+          button.title === "Đăng xuất" || 
+          button.title?.includes("Về trang chủ") ||
+          button.innerText.includes("Tạo khóa học mới") ||
+          button.closest('aside')
+        ));
+
+      if (!isNavAction) return;
+
+      const currentData = methods.getValues();
+      const isDirty = originalDataRef.current && JSON.stringify(currentData) !== originalDataRef.current;
+
+      if (isDirty) {
+        const confirmMsg = isEditMode 
+          ? "Bạn có các thay đổi chưa lưu. Bạn có chắc chắn muốn thoát và HỦY BỎ toàn bộ các thay đổi mới này để quay lại dữ liệu gốc không?" 
+          : "Bạn đang tạo khóa học mới nhưng chưa xuất bản. Bạn có chắc chắn muốn thoát và xóa bỏ bản nháp hiện tại không?";
+          
+        if (!window.confirm(confirmMsg)) {
+          e.preventDefault();
+          e.stopPropagation();
+        } else {
+          try {
+            const idToUse = isEditMode ? (currentData.id?.toString() || "") : "";
+            const slugToUse = isEditMode ? (slug || "") : null;
+            isSubmittingRef.current = true;
+            courseService.deleteDraft({ courseId: idToUse, slug: slugToUse });
+          } catch (err) {
+            isSubmittingRef.current = true;
+          }
+        }
+      }
+    };
+
+    document.addEventListener('click', handleGlobalClick, true);
+    return () => document.removeEventListener('click', handleGlobalClick, true);
+  }, [isEditMode, slug, methods, originalDataRef, isSubmittingRef]);
+
+  // Cảnh báo khi đóng tab trình duyệt
+  React.useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      const currentData = methods.getValues();
+      const isDirty = originalDataRef.current && JSON.stringify(currentData) !== originalDataRef.current;
+      if (isDirty) {
+        saveDraft(currentData, false);
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [saveDraft, methods, originalDataRef]);
+
+  // Autosave timer
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      saveDraft(formData, false);
+    }, 10000);
+    return () => clearTimeout(timer);
+  }, [formData, saveDraft]);
+
+  // Thumbnail Auto-upload
+  const watchThumbnail = methods.watch("thumbnail");
+  React.useEffect(() => {
+    if (watchThumbnail instanceof File) {
+      const autoUploadThumbnail = async () => {
+        try {
+          setIsUploading(true);
+          setUploadStatus("Đang tải lên ảnh đại diện...");
+          const url = await uploadImageToCloudinary(watchThumbnail);
+          methods.setValue("thumbnail", url);
+          saveDraft({ ...methods.getValues(), thumbnail: url }, false);
+        } catch (error) {
+          toast.error("Không thể tải lên ảnh đại diện tự động");
+        } finally {
+          setIsUploading(false);
+          setUploadStatus("");
+        }
+      };
+      autoUploadThumbnail();
+    }
+  }, [watchThumbnail, methods, uploadImageToCloudinary, saveDraft, setIsUploading, setUploadStatus]);
+
+  const onSubmit = async (data) => {
+    try {
+      setIsUploading(true);
+      setUploadStatus("Đang kiểm tra dữ liệu...");
+
+      if (data.thumbnail && data.thumbnail instanceof File) {
+        setUploadStatus("Đang tải lên ảnh đại diện...");
+        data.thumbnail = await uploadImageToCloudinary(data.thumbnail);
+      }
+
+      if (data.promoVideo && data.promoVideo instanceof File) {
+        setUploadStatus("Đang hoàn tất tải video giới thiệu...");
+        try {
+          data.promoVideo = await uploadVideoToBunny(data.promoVideo, "Promo Video");
+        } catch (vErr) {
+          data.promoVideo = "upload-failed-promo";
+        }
+      }
+
+      for (let sIdx = 0; sIdx < data.sections.length; sIdx++) {
+        const section = data.sections[sIdx];
+        if (section.attachments && section.attachments instanceof File) {
+          setUploadStatus(`Đang xử lý tài liệu chương ${sIdx + 1}...`);
+          try {
+            section.attachments = await uploadDocumentToCloudinary(section.attachments);
+          } catch (docErr) {
+            section.attachments = null;
+          }
+        }
+
+        for (let lIdx = 0; lIdx < section.lessons.length; lIdx++) {
+          const lesson = section.lessons[lIdx];
+          if (lesson.videoFile && lesson.videoFile instanceof File) {
+            setUploadStatus(`Đang hoàn tất bài: ${lesson.title}`);
+            try {
+              lesson.videoUrl = await uploadVideoToBunny(lesson.videoFile, lesson.title);
+              lesson.videoFile = lesson.videoUrl;
+            } catch (vErr) {
+              lesson.videoUrl = "upload-failed-lesson";
+            }
+          }
+        }
+      }
+
+      setUploadStatus("Đang tiến hành xuất bản...");
+      data.updatedAt = new Date().toISOString();
+      isSubmittingRef.current = true;
+
+      const sanitizeId = (id) => (typeof id === 'number' || (!isNaN(id) && id !== "")) ? Number(id) : null;
+
+      const finalData = {
+        ...data,
+        categoryId: Number(data.categoryId),
+        price: Number(data.price),
+        sections: data.sections?.map(s => ({
+          ...s,
+          id: sanitizeId(s.id),
+          lessons: s.lessons?.map(l => ({
+            ...l,
+            id: sanitizeId(l.id),
+            videoUrl: typeof l.videoFile === "string" ? l.videoFile : l.videoUrl
+          }))
+        }))
+      };
+
+      if (isEditMode && slug !== "new") {
+        await courseService.updateCourse(slug, finalData);
+      } else {
+        await courseService.createCourse(finalData);
+      }
+
+      toast.success(isEditMode ? "Cập nhật khóa học thành công!" : "Đã tải lên và lưu khóa học thành công!");
+      setTimeout(() => navigate("/instructor/courses"), 1500);
+    } catch (error) {
+      console.error("Submit Error:", error);
+      const errorMsg = error.response?.data?.error || error.message || "Lỗi trong quá trình tải lên hoặc lưu khóa học.";
+      toast.error(errorMsg);
+    } finally {
+      setIsUploading(false);
+      setUploadStatus("");
+    }
   };
 
   const onError = (errors) => {
     toast.error("Vui lòng kiểm tra lại thông tin trên form!");
-    console.log(errors);
+    console.log("Validation Errors:", errors);
   };
 
   return (
@@ -140,27 +407,63 @@ export default function InstructorCourseForm() {
         <div className="flex items-center gap-3">
           <button
             type="button"
-            onClick={() => navigate("/instructor/courses")}
+            onClick={handleExitWithConfirmation}
             className="w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-900 transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
             <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-              Tạo Mới Khóa Học
+              {isEditMode ? "Chỉnh Sửa Khóa Học" : "Tạo Mới Khóa Học"}
             </h1>
             <p className="text-sm text-slate-500 mt-0.5">
               Thiết lập thông tin nền tảng, thiết kế nội dung và định giá
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={methods.handleSubmit(onSubmit, onError)}
-            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold h-10 px-6 rounded-lg shadow-none transition-colors"
-          >
-            <Save size={18} /> Lưu nháp
-          </button>
+        <div className="flex items-center gap-3 transition-all">
+          {(isUploading || activeUploads > 0) && (
+            <div className="flex flex-col items-end mr-4">
+              <span className="text-sm font-bold text-green-600 animate-pulse mb-1">
+                {activeUploads > 0 ? `Đang tải ${activeUploads} video...` : uploadStatus}
+              </span>
+            </div>
+          )}
+          
+          {/* Right Buttons Section */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            {isSavingDraft && (
+              <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium animate-pulse mr-2">
+                <Save className="w-3.5 h-3.5" />
+                <span>Đang lưu...</span>
+              </div>
+            )}
+            
+            <Button
+              type="button"
+              variant="outline"
+              className="h-9 sm:h-10 px-3 sm:px-5 font-bold border-slate-200 text-slate-600 hover:bg-slate-50 shadow-none text-xs sm:text-sm"
+              onClick={handleExitWithConfirmation}
+            >
+              Hủy
+            </Button>
+
+            <Button
+              type="button"
+              variant="outline"
+              disabled={isSavingDraft || isUploading}
+              className="h-9 sm:h-10 px-3 sm:px-5 font-bold border-blue-200 text-blue-600 hover:bg-blue-50 shadow-none text-xs sm:text-sm flex items-center gap-2"
+              onClick={() => saveDraft(methods.getValues(), true)}
+            >
+              {isSavingDraft ? (
+                <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                <Save size={16} />
+              )}
+              Lưu bản nháp
+            </Button>
+            
+          </div>
         </div>
       </div>
 
@@ -170,7 +473,6 @@ export default function InstructorCourseForm() {
           <div className="px-6 mb-12">
             <CourseStepper activeTab={activeTab} onTabChange={setActiveTab} />
           </div>
-
           <Tabs
             value={activeTab}
             onValueChange={setActiveTab}
@@ -180,21 +482,30 @@ export default function InstructorCourseForm() {
               value="basic"
               className="bg-white p-6 md:p-8 rounded-xl border border-slate-200 shadow-sm focus-visible:outline-none focus-visible:ring-0 mt-0"
             >
-              <BasicInfoTab />
+              <BasicInfoTab categories={categories} />
             </TabsContent>
 
             <TabsContent
               value="curriculum"
               className="bg-white p-6 md:p-8 rounded-xl border border-slate-200 shadow-sm focus-visible:outline-none focus-visible:ring-0 mt-0"
             >
-              <CurriculumTab />
+              <CurriculumTab 
+                uploadVideoToBunny={uploadVideoToBunny} 
+                setActiveUploads={setActiveUploads} 
+                fields={fields}
+                append={append}
+                remove={remove}
+              />
             </TabsContent>
 
             <TabsContent
               value="media"
               className="bg-white p-6 md:p-8 rounded-xl border border-slate-200 shadow-sm focus-visible:outline-none focus-visible:ring-0 mt-0"
             >
-              <MediaTab />
+              <MediaTab 
+                uploadVideoToBunny={uploadVideoToBunny} 
+                setActiveUploads={setActiveUploads} 
+              />
             </TabsContent>
 
             <TabsContent
@@ -251,15 +562,71 @@ export default function InstructorCourseForm() {
               ) : (
                 <button
                   type="button"
+                  disabled={activeUploads > 0}
                   onClick={methods.handleSubmit(onSubmit, onError)}
-                  className="flex items-center gap-2 h-11 px-8 rounded-lg font-bold bg-green-600 text-white hover:bg-green-700 transition-all shadow-lg shadow-green-100"
+                  className="flex items-center gap-2 h-11 px-8 rounded-lg font-bold bg-green-600 text-white hover:bg-green-700 transition-all shadow-lg shadow-green-100 disabled:opacity-50"
                 >
-                  <CircleFadingArrowUp size={18} /> Xuất bản
+                  <CircleFadingArrowUp size={18} /> {activeUploads > 0 ? "Đang tải video..." : "Xuất bản"}
                 </button>
               )}
             </div>
           </div>
         </form>
+
+        {/* Upload Progress Overlay - Khôi phục tính năng hiển thị trạng thái xử lý */}
+        {isUploading && (
+          <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] w-full max-w-md px-4">
+            <div className="bg-slate-900 text-white p-4 rounded-xl shadow-2xl flex items-center gap-4 animate-in slide-in-from-bottom-10">
+              <Loader2 className="w-6 h-6 animate-spin text-green-400" />
+              <div className="flex-1">
+                <p className="text-sm font-bold">{uploadStatus}</p>
+                <div className="w-full bg-slate-700 h-1.5 rounded-full mt-2 overflow-hidden">
+                  <div 
+                    className="bg-green-400 h-full transition-all duration-300"
+                    style={{ width: '45%' }} // Tạm thời để tĩnh vì ta k tính tổng %, quan trọng là nhãn text
+                  />
+                </div>
+              </div>
+              {activeUploads > 0 && (
+                <div className="bg-slate-800 px-2 py-1 rounded text-[10px] font-bold text-slate-400 uppercase">
+                  {activeUploads} Files
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Modal khôi phục bản nháp */}
+        {showDraftModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+            <Card className="w-full max-w-md shadow-2xl border-none overflow-hidden">
+              <div className="p-6 text-center">
+                <div className="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Clock className="w-8 h-8" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 mb-2">Phát hiện bản nháp!</h3>
+                <p className="text-slate-500 text-sm mb-6 leading-relaxed">
+                  Bạn có một bản lưu nháp chưa hoàn thành từ phiên làm việc trước. Bạn có muốn khôi phục lại dữ liệu này không?
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  <Button 
+                    variant="outline" 
+                    className="h-11 font-bold border-slate-200"
+                    onClick={() => setShowDraftModal(false)}
+                  >
+                    Bỏ qua
+                  </Button>
+                  <Button 
+                    className="h-11 font-bold bg-blue-600 hover:bg-blue-700 text-white"
+                    onClick={restoreDraft}
+                  >
+                    Khôi phục ngay
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          </div>
+        )}
       </FormProvider>
     </div>
   );
@@ -455,27 +822,141 @@ const quillModules = {
   ],
 };
 
-function BasicInfoTab() {
+function CategoryCascader({ categories, value, onChange }) {
+  const [open, setOpen] = React.useState(false);
+  const [activeParent, setActiveParent] = React.useState(null);
+
+  let selectedName = "";
+  if (value) {
+    const valStr = value.toString();
+    for (const p of categories) {
+      if (p.id.toString() === valStr) { selectedName = p.name; break; }
+      const child = p.subcategories?.find(c => c.id.toString() === valStr);
+      if (child) {
+        selectedName = child.name;
+        break;
+      }
+    }
+  }
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          onClick={() => {
+            if (!open) setActiveParent(null);
+          }}
+          className="flex h-11 w-full items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 disabled:cursor-not-allowed disabled:opacity-50 data-[state=open]:border-orange-500 data-[state=open]:ring-1 data-[state=open]:ring-orange-500 transition-all font-sans"
+        >
+          <span className={value ? "text-slate-900" : "text-slate-500"}>
+            {selectedName || "Chọn danh mục sản phẩm"}
+          </span>
+          <ChevronDown className="h-4 w-4 opacity-50" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0 flex flex-row items-start gap-1.5 border-none bg-transparent shadow-none" align="start" sideOffset={8}>
+        {/* Cấp 1 */}
+        <div className="w-[240px] max-h-[300px] overflow-y-auto py-2 bg-white rounded-md shadow-lg border border-slate-200">
+          {categories.map(parent => {
+            const hasChildren = parent.subcategories && parent.subcategories.filter(c => c.status).length > 0;
+            const isActive = activeParent?.id === parent.id;
+            return (
+              <div
+                key={parent.id}
+                className={`flex items-center justify-between px-4 py-2.5 text-sm cursor-pointer transition-colors ${isActive ? "text-orange-500 bg-orange-50/50" : "text-slate-700 hover:text-orange-500 hover:bg-orange-50/50"}`}
+                onMouseEnter={() => setActiveParent(parent)}
+                onClick={() => {
+                  if (!hasChildren) {
+                    onChange(parent.id.toString());
+                    setOpen(false);
+                  } else {
+                    setActiveParent(parent);
+                  }
+                }}
+              >
+                <span>{parent.name}</span>
+                {hasChildren && <ChevronRight className="h-4 w-4 opacity-70" />}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Cấp 2 */}
+        {activeParent && activeParent.subcategories && activeParent.subcategories.filter(c => c.status).length > 0 && (
+          <div className="w-[240px] max-h-[300px] overflow-y-auto py-2 bg-white rounded-md shadow-lg border border-slate-200">
+            {activeParent.subcategories.filter(c => c.status).map(child => (
+              <div
+                key={child.id}
+                className="px-4 py-2.5 text-sm cursor-pointer text-slate-700 hover:text-orange-500 hover:bg-orange-50/50 transition-colors"
+                onClick={() => {
+                  onChange(child.id.toString());
+                  setOpen(false);
+                }}
+              >
+                {child.name}
+              </div>
+            ))}
+          </div>
+        )}
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function BasicInfoTab({ categories }) {
   const {
     register,
     control,
     setValue,
+    getValues,
+    replace,
     formState: { errors },
   } = useFormContext();
 
   const title = useWatch({ control, name: "title" });
-  const [categories, setCategories] = React.useState([]);
+  const categoryId = useWatch({ control, name: "categoryId" });
+  const currentStatus = useWatch({ control, name: "status" });
+
+  // Logic tìm danh mục được chọn (bao gồm đệ quy cấp 2)
+  const selectedCategory = React.useMemo(() => {
+    if (!categoryId || !categories) return null;
+    const searchId = categoryId.toString();
+    for (const cat of categories) {
+      if (cat.id.toString() === searchId) return cat;
+      if (cat.subcategories) {
+        const sub = cat.subcategories.find(s => s.id.toString() === searchId);
+        if (sub) return sub;
+      }
+    }
+    return null;
+  }, [categoryId, categories]);
+
+  const isCategoryHidden = selectedCategory && selectedCategory.status === false;
+
+  // Nếu danh mục bị ẩn, ép buộc khóa học phải ẩn theo
+  React.useEffect(() => {
+    if (isCategoryHidden && currentStatus !== 2) {
+      setValue("status", 2);
+      
+      // Đồng bộ xuống chương và bài học ngay lập tức
+      const currentSections = getValues("sections") || [];
+      const updatedSections = currentSections.map(s => ({
+        ...s,
+        status: 2,
+        lessons: s.lessons?.map(l => ({ ...l, status: 2 })) || []
+      }));
+      setValue("sections", updatedSections, { shouldDirty: true });
+      if (replace) replace(updatedSections);
+
+      toast.info(`Danh mục "${selectedCategory.name}" đang ẩn, khóa học đã được chuyển sang trạng thái Ẩn để đồng bộ.`);
+    }
+  }, [isCategoryHidden, currentStatus, setValue, getValues, replace, selectedCategory]);
 
   React.useEffect(() => {
-    categoryService.getAllCategories(1, 1000, "", "active").then((res) => {
-      // Backend returns ResponseDTO: { code, message, data: { content: [...] } } structure
-      const rootCategories = res?.data?.content || [];
-      setCategories(rootCategories);
-    }).catch(err => console.error(err));
-  }, []);
-
-  React.useEffect(() => {
-    if (title && typeof title === "string") {
+    // Chỉ thực hiện tạo slug và validate nếu title CÓ giá trị
+    // Nếu title chưa được nhập lần nào hoặc bị xóa sạch, ta chỉ truyền giá trị "" mà KHÔNG validate
+    if (title && typeof title === "string" && title.trim() !== "") {
       const generatedSlug = title.toLowerCase()
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "")
@@ -484,10 +965,18 @@ function BasicInfoTab() {
         .trim()
         .replace(/\s+/g, "-")
         .replace(/-+/g, "-");
-      setValue("slug", generatedSlug, { shouldValidate: false });
+
+      setValue("slug", generatedSlug, {
+        shouldValidate: true,
+        shouldDirty: true
+      });
     } else {
-      // Khi xóa hết tiêu đề, xóa luôn slug
-      setValue("slug", "", { shouldValidate: false });
+      // Khi title rỗng, chỉ cập nhật giá trị slug về rỗng, không ép validate
+      // Lỗi "bắt buộc" sẽ chỉ hiện ra khi người dùng bấm Lưu khóa học (Submit)
+      setValue("slug", "", {
+        shouldValidate: false,
+        shouldDirty: true
+      });
     }
   }, [title, setValue]);
 
@@ -545,28 +1034,11 @@ function BasicInfoTab() {
             name="categoryId"
             control={control}
             render={({ field }) => (
-              <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
-                <SelectTrigger className="w-full !h-11 border-slate-200 focus:border-green-500 font-medium bg-white data-[state=open]:ring-1 data-[state=open]:ring-green-500">
-                  <SelectValue placeholder="Chọn danh mục" />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  {categories.map(parent => {
-                    const children = (parent.subcategories || []).filter(c => c.status === true);
-                    if (children.length > 0) {
-                      return (
-                        <SelectGroup key={parent.id}>
-                          <SelectLabel className="font-bold text-slate-900 border-b border-slate-50 pb-1 mb-1">{parent.name}</SelectLabel>
-                          {children.map(child => (
-                            <SelectItem key={child.id} value={child.id.toString()} className="pl-6">{child.name}</SelectItem>
-                          ))}
-                        </SelectGroup>
-                      );
-                    } else {
-                      return <SelectItem key={parent.id} value={parent.id.toString()} className="font-bold">{parent.name}</SelectItem>;
-                    }
-                  })}
-                </SelectContent>
-              </Select>
+              <CategoryCascader
+                categories={categories}
+                value={field.value}
+                onChange={field.onChange}
+              />
             )}
           />
           {errors.categoryId && (
@@ -603,65 +1075,55 @@ function BasicInfoTab() {
             </p>
           )}
         </div>
+        <div className="space-y-2">
+          <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
+            Trạng Thái <span className="text-red-500">*</span>
+          </label>
+          <Controller
+            name="status"
+            control={control}
+            render={({ field }) => (
+              <Select 
+                onValueChange={(val) => {
+                  const newStatus = Number(val);
+                  
+                  // Chặn bật hoạt động nếu danh mục đang ẩn
+                  if (isCategoryHidden && newStatus === 1) {
+                    toast.warning("Danh mục của khóa học đang ẩn, không thể bật trạng thái Hoạt động.");
+                    return;
+                  }
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
-              Ngày Tạo
-            </label>
-            <Controller
-              name="createdAt"
-              control={control}
-              render={({ field }) => {
-                const formattedDate = field.value
-                  ? new Date(field.value).toLocaleString("vi-VN", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    second: "2-digit",
-                  })
-                  : "";
-                return (
-                  <Input
-                    className="h-11 border-slate-200 bg-slate-50 font-medium cursor-not-allowed"
-                    value={formattedDate}
-                    readOnly
-                  />
-                );
-              }}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
-              Ngày Cập Nhật
-            </label>
-            <Controller
-              name="updatedAt"
-              control={control}
-              render={({ field }) => {
-                const formattedDate = field.value
-                  ? new Date(field.value).toLocaleString("vi-VN", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    second: "2-digit",
-                  })
-                  : "Chưa cập nhật";
-                return (
-                  <Input
-                    className="h-11 border-slate-200 bg-slate-50 font-medium cursor-not-allowed"
-                    value={formattedDate}
-                    readOnly
-                  />
-                );
-              }}
-            />
-          </div>
+                  field.onChange(newStatus);
+                  
+                  // Logic Đồng bộ trạng thái: Course -> Module -> Lesson
+                  const currentSections = getValues("sections") || [];
+                  const updatedSections = currentSections.map(s => ({
+                    ...s,
+                    status: newStatus,
+                    lessons: s.lessons?.map(l => ({
+                      ...l,
+                      status: newStatus
+                    })) || []
+                  }));
+                  
+                  // setValue với shouldDirty giúp các Controller cấp sâu (lessons) nhận diện thay đổi
+                  setValue("sections", updatedSections, { shouldDirty: true });
+                  // replace giúp cập nhật ngay lập tức giao diện Accordion/FieldArray của chương
+                  if (replace) replace(updatedSections);
+                }} 
+                value={(field.value ?? 1).toString()}
+                disabled={isCategoryHidden}
+              >
+                <SelectTrigger className={`w-full !h-11 border-slate-200 focus:border-green-500 font-medium ${isCategoryHidden ? 'bg-slate-50 opacity-80' : 'bg-white'}`}>
+                  <SelectValue placeholder="Chọn trạng thái" />
+                </SelectTrigger>
+                <SelectContent className="bg-white">
+                  <SelectItem value="1" disabled={isCategoryHidden}>Hoạt động {isCategoryHidden && "(Danh mục cha đang ẩn)"}</SelectItem>
+                  <SelectItem value="2">Ẩn</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+          />
         </div>
       </div>
 
@@ -685,13 +1147,16 @@ function BasicInfoTab() {
             )}
           />
         </div>
+        {errors.description && (
+          <p className="text-xs font-bold text-red-500 mt-1.5 pl-1">{errors.description.message}</p>
+        )}
       </div>
     </div>
   );
 }
 
-function MediaTab() {
-  const { setValue, watch } = useFormContext();
+function MediaTab({ uploadVideoToBunny, setActiveUploads }) {
+  const { setValue, watch, formState: { errors } } = useFormContext();
   const thumbnail = watch("thumbnail");
   const promoVideo = watch("promoVideo");
 
@@ -708,57 +1173,82 @@ function MediaTab() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="space-y-3">
-          <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
-            Ảnh đại diện khóa học (Thumbnail)
+          <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1 text-center">
+            Ảnh đại diện khóa học (Thumbnail) <span className="text-red-500">*</span>
           </label>
+          <input
+            type="file"
+            id="thumbnail-upload"
+            className="hidden"
+            accept="image/*"
+            onChange={(e) => {
+              const file = e.target.files[0];
+              if (file) setValue("thumbnail", file, { shouldValidate: true });
+            }}
+          />
           <div
-            onClick={() =>
-              setValue("thumbnail", thumbnail ? null : "mock-url", {
-                shouldValidate: true,
-              })
-            }
+            onClick={() => document.getElementById("thumbnail-upload").click()}
             className={`aspect-video rounded-xl bg-slate-50 border-2 border-dashed flex flex-col items-center justify-center p-4 transition-all cursor-pointer group ${thumbnail ? "border-green-500 bg-green-50" : "border-slate-200 hover:bg-slate-100/50 hover:border-green-200"}`}
           >
-            <div
-              className={`w-12 h-12 rounded-full bg-white flex items-center justify-center text-slate-400 group-hover:text-green-500 shadow-sm border border-slate-100 mb-2 ${thumbnail ? "text-green-500" : ""}`}
-            >
-              {thumbnail ? (
-                <CheckIcon className="w-6 h-6" />
-              ) : (
-                <Plus className="w-6 h-6" />
-              )}
-            </div>
-            <p className="text-[11px] font-bold text-slate-500">
-              {thumbnail ? "Đã tải lên" : "Nhấn để tải lên (1280x720)"}
-            </p>
+            {thumbnail && (thumbnail instanceof File || typeof thumbnail === "string") ? (
+              <div className="relative w-full h-full rounded-lg overflow-hidden">
+                <img
+                  src={typeof thumbnail === "string" ? thumbnail : URL.createObjectURL(thumbnail)}
+                  alt="Thumbnail preview"
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                  <p className="text-white text-xs font-bold px-3 py-1.5 bg-green-600 rounded-full">Đổi ảnh</p>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div
+                  className={`w-12 h-12 rounded-full bg-white flex items-center justify-center text-slate-400 group-hover:text-green-500 shadow-sm border border-slate-100 mb-2 ${thumbnail ? "text-green-500" : ""}`}
+                >
+                  {thumbnail ? (
+                    <Check className="w-6 h-6" />
+                  ) : (
+                    <Plus className="w-6 h-6" />
+                  )}
+                </div>
+                <p className="text-[11px] font-bold text-slate-500">
+                  {thumbnail ? "Đã chọn ảnh" : "Nhấn để tải lên (1280x720)"}
+                </p>
+                {thumbnail && (
+                  <p className="text-[9px] text-slate-400 mt-1 truncate max-w-[200px]">
+                    {thumbnail.name || (typeof thumbnail === 'string' ? "Đã có ảnh" : "")}
+                  </p>
+                )}
+              </>
+            )}
           </div>
+          {errors.thumbnail && (
+            <p className="text-xs font-bold text-red-500 mt-1.5 pl-1 text-center">{errors.thumbnail.message}</p>
+          )}
         </div>
 
         <div className="space-y-3">
-          <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
+          <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1 text-center">
             Video giới thiệu (Promo Video) (Nếu có)*
           </label>
-          <div
-            onClick={() =>
-              setValue("promoVideo", promoVideo ? null : "mock-url", {
-                shouldValidate: true,
-              })
-            }
-            className={`aspect-video rounded-xl bg-slate-50 border-2 border-dashed flex flex-col items-center justify-center p-4 transition-all cursor-pointer group ${promoVideo ? "border-green-500 bg-green-50" : "border-slate-200 hover:bg-slate-100/50 hover:border-green-200"}`}
-          >
-            <div
-              className={`w-12 h-12 rounded-full bg-white flex items-center justify-center text-slate-400 group-hover:text-green-500 shadow-sm border border-slate-100 mb-2 ${promoVideo ? "text-green-500" : ""}`}
-            >
-              {promoVideo ? (
-                <CheckIcon className="w-6 h-6" />
-              ) : (
-                <Plus className="w-6 h-6" />
-              )}
-            </div>
-            <p className="text-[11px] font-bold text-slate-500">
-              {promoVideo ? "Đã tải lên" : "Nhấn để tải video (MP4, max 50MB)"}
-            </p>
-          </div>
+          <Controller
+            name="promoVideo"
+            render={({ field }) => (
+              <BackgroundVideoUploader
+                label="video giới thiệu"
+                value={field.value}
+                onChange={field.onChange}
+                onUploadStart={() => setActiveUploads(prev => prev + 1)}
+                onUploadEnd={() => setActiveUploads(prev => prev - 1)}
+                uploadVideoToBunny={uploadVideoToBunny}
+                id="promo-video-uploader"
+              />
+            )}
+          />
+          {errors.promoVideo && (
+            <p className="text-xs font-bold text-red-500 mt-1.5 pl-1 text-center">{errors.promoVideo.message}</p>
+          )}
         </div>
       </div>
     </div>
@@ -806,7 +1296,7 @@ function PricingTab() {
                     onChange={(e) => {
                       // Chỉ lấy số từ chuỗi nhập vào
                       const rawValue = e.target.value.replace(/\D/g, "");
-                      field.onChange(rawValue ? Number(rawValue) : 0);
+                      field.onChange(rawValue ? Number(rawValue) : "");
                     }}
                   />
                 )}
@@ -814,11 +1304,11 @@ function PricingTab() {
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">₫</span>
             </div>
             {errors.price && (
-              <p className="text-[10px] font-bold text-red-500 mt-1 pl-1">{errors.price.message}</p>
+              <p className="text-xs font-bold text-red-500 mt-1.5 pl-1">{errors.price.message}</p>
             )}
           </div>
 
-          {/* Ô hiển thị tổng tiền sau khi giảm - Đã HOÁN ĐỔI vị trí lên đây */}
+          {/* Ô hiển thị tổng tiền sau khi giảm */}
           <div className="space-y-2">
             <label className="block text-xs font-bold text-green-600 uppercase tracking-widest pl-1">
               Tổng tiền sau giảm (Hiển thị cho học viên)
@@ -835,7 +1325,7 @@ function PricingTab() {
         </div>
 
         <div className="space-y-6">
-          {/* Ô nhập % giảm giá - Đã HOÁN ĐỔI vị trí xuống đây */}
+          {/* Ô nhập % giảm giá */}
           <div className="space-y-2">
             <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
               Phần trăm giảm giá (%)
@@ -853,7 +1343,7 @@ function PricingTab() {
               Giảm {discount}% tương đương giảm {new Intl.NumberFormat("vi-VN").format(price * discount / 100)}₫
             </p>
             {errors.discount && (
-              <p className="text-[10px] font-bold text-red-500 mt-1 pl-1">{errors.discount.message}</p>
+              <p className="text-xs font-bold text-red-500 mt-1.5 pl-1">{errors.discount.message}</p>
             )}
           </div>
         </div>
@@ -884,15 +1374,9 @@ function CheckIcon({ className = "w-6 h-6" }) {
 // XỬ LÝ NESTED TAB CHO CURRICULUM
 // ------------------------------------------
 
-function CurriculumTab() {
-  const {
-    control,
-    formState: { errors },
-  } = useFormContext();
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: "sections",
-  });
+function CurriculumTab({ uploadVideoToBunny, setActiveUploads, fields, append, remove }) {
+  const { control, watch, formState: { errors } } = useFormContext();
+  const currentCourseStatus = watch("status") ?? 1;
 
   return (
     <div className="space-y-6">
@@ -910,10 +1394,12 @@ function CurriculumTab() {
           onClick={() =>
             append({
               title: "",
+              status: currentCourseStatus,
               lessons: [{
                 title: "",
                 content: "",
                 videoFile: null,
+                status: currentCourseStatus,
                 createdAt: new Date().toISOString(),
                 updatedAt: null
               }],
@@ -958,22 +1444,37 @@ function CurriculumTab() {
                       Nội dung chương
                     </span>
                   </div>
-                  <button
-                    type="button"
+                  <div
+                    role="button"
+                    tabIndex={0}
                     onClick={(e) => {
                       e.stopPropagation();
+                      e.preventDefault(); // Extra safety for accordion
                       if (confirm("Bạn chắc chắn muốn xóa chương này?")) {
                         remove(sectionIdx);
                       }
                     }}
-                    className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.stopPropagation();
+                        if (confirm("Bạn chắc chắn muốn xóa chương này?")) {
+                          remove(sectionIdx);
+                        }
+                      }
+                    }}
+                    className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
                   >
                     <Trash2 size={16} />
-                  </button>
+                  </div>
                 </div>
               </AccordionTrigger>
               <AccordionContent className="p-0 bg-white border-t border-slate-50">
-                <SectionItem sectionIndex={sectionIdx} control={control} />
+                <SectionItem 
+                  sectionIndex={sectionIdx} 
+                  control={control} 
+                  uploadVideoToBunny={uploadVideoToBunny} 
+                  setActiveUploads={setActiveUploads} 
+                />
               </AccordionContent>
             </AccordionItem>
           ))}
@@ -986,12 +1487,17 @@ function CurriculumTab() {
 // ------------------------------------------
 // COMPONENT LESSON QUẢN LÝ ITEM CON
 // ------------------------------------------
-function SectionItem({ sectionIndex, control }) {
+function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploads }) {
   const {
     register,
     setValue,
+    getValues,
+    watch,
     formState: { errors },
   } = useFormContext();
+  
+  const currentCourseStatus = watch("status") ?? 1;
+  const currentSectionStatus = watch(`sections.${sectionIndex}.status`) ?? 1;
   const { fields, append, remove } = useFieldArray({
     control,
     name: `sections.${sectionIndex}.lessons`,
@@ -1019,55 +1525,79 @@ function SectionItem({ sectionIndex, control }) {
         )}
       </div>
 
-      {/* Attachments & Dates */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Attachments & Status */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
           <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
             Tài liệu đính kèm (PDF, ZIP,...) (Nếu có)*
           </label>
-          <Input
-            type="file"
-            className="h-10 text-xs pt-2 cursor-pointer"
-            onChange={(e) => {
-              const file = e.target.files[0];
-              setValue(`sections.${sectionIndex}.attachments`, file);
-            }}
+          <Controller
+            name={`sections.${sectionIndex}.attachments`}
+            control={control}
+            render={({ field }) => (
+              field.value && typeof field.value === "string" ? (
+                <div className="flex items-center gap-2 p-2 border border-green-200 rounded-md bg-green-50/50 h-10">
+                  <span className="text-xs text-green-700 font-bold flex-1 truncate">Đã có tài liệu</span>
+                  <a href={field.value} target="_blank" rel="noreferrer" className="text-xs text-blue-600 hover:underline px-2 border-r border-green-200">Xem file</a>
+                  <button
+                    type="button"
+                    className="text-xs font-bold text-red-500 hover:text-red-700 px-2"
+                    onClick={() => field.onChange(null)}
+                  >
+                    Đổi file khác
+                  </button>
+                </div>
+              ) : (
+                <Input
+                  type="file"
+                  className="h-10 text-xs pt-2 cursor-pointer w-full"
+                  onChange={(e) => field.onChange(e.target.files[0])}
+                />
+              )
+            )}
           />
         </div>
+        <div className="space-y-2">
+          <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
+            Trạng thái chương <span className="text-red-500">*</span>
+          </label>
+          <Controller
+            name={`sections.${sectionIndex}.status`}
+            control={control}
+            render={({ field }) => (
+              <Select 
+                onValueChange={(val) => {
+                  const newStatus = Number(val);
+                  
+                  // Ràng buộc Business: Nếu khóa học đang ẩn, không cho phép bật chương hoạt động
+                  if (currentCourseStatus === 2 && newStatus === 1) {
+                    toast.warning("Khóa học đang Ẩn, không thể bật trạng thái Hoạt động cho chương.");
+                    return;
+                  }
 
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-2">
-            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-1">
-              Ngày tạo chương
-            </label>
-            <Controller
-              name={`sections.${sectionIndex}.createdAt`}
-              control={control}
-              render={({ field }) => (
-                <Input
-                  className="h-10 text-xs border-slate-200 bg-slate-50 cursor-not-allowed opacity-70"
-                  value={field.value ? new Date(field.value).toLocaleString("vi-VN") : ""}
-                  readOnly
-                />
-              )}
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-1">
-              Ngày cập nhật
-            </label>
-            <Controller
-              name={`sections.${sectionIndex}.updatedAt`}
-              control={control}
-              render={({ field }) => (
-                <Input
-                  className="h-10 text-xs border-slate-200 bg-slate-50 cursor-not-allowed opacity-70"
-                  value={field.value ? new Date(field.value).toLocaleString("vi-VN") : "Chưa cập nhật"}
-                  readOnly
-                />
-              )}
-            />
-          </div>
+                  field.onChange(newStatus);
+                  
+                  // Đồng bộ trạng thái từ Chương -> Bài học
+                  const currentLessons = getValues(`sections.${sectionIndex}.lessons`) || [];
+                  const updatedLessons = currentLessons.map(l => ({
+                    ...l,
+                    status: newStatus
+                  }));
+                  
+                  setValue(`sections.${sectionIndex}.lessons`, updatedLessons, { shouldDirty: true });
+                }} 
+                value={(field.value ?? 1).toString()}
+              >
+                <SelectTrigger className="h-10 border-slate-200 focus:border-green-500 font-medium bg-white">
+                  <SelectValue placeholder="Chọn trạng thái" />
+                </SelectTrigger>
+                <SelectContent className="bg-white">
+                  <SelectItem value="1" disabled={currentCourseStatus === 2}>Hoạt động {currentCourseStatus === 2 && "(Bị khóa)"}</SelectItem>
+                  <SelectItem value="2">Ẩn</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+          />
         </div>
       </div>
 
@@ -1084,6 +1614,7 @@ function SectionItem({ sectionIndex, control }) {
               title: "",
               content: "",
               videoFile: null,
+              status: currentSectionStatus,
               createdAt: new Date().toISOString(),
               updatedAt: null
             })}
@@ -1129,37 +1660,43 @@ function SectionItem({ sectionIndex, control }) {
                       placeholder="Một đoạn mô tả ngắn về những gì học viên sẽ được học trong bài này..."
                       {...register(`sections.${sectionIndex}.lessons.${lessonIdx}.content`)}
                     />
+                    {errors.sections?.[sectionIndex]?.lessons?.[lessonIdx]?.content && (
+                      <p className="text-[10px] font-bold text-red-500 pl-1">{errors.sections[sectionIndex].lessons[lessonIdx].content.message}</p>
+                    )}
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider pl-1">Ngày tạo bài</label>
-                      <Controller
-                        name={`sections.${sectionIndex}.lessons.${lessonIdx}.createdAt`}
-                        control={control}
-                        render={({ field }) => (
-                          <Input
-                            className="h-8 text-[10px] border-slate-200 bg-slate-50 cursor-not-allowed opacity-70"
-                            value={field.value ? new Date(field.value).toLocaleString("vi-VN") : ""}
-                            readOnly
-                          />
-                        )}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider pl-1">Cập nhật</label>
-                      <Controller
-                        name={`sections.${sectionIndex}.lessons.${lessonIdx}.updatedAt`}
-                        control={control}
-                        render={({ field }) => (
-                          <Input
-                            className="h-8 text-[10px] border-slate-200 bg-slate-50 cursor-not-allowed opacity-70"
-                            value={field.value ? new Date(field.value).toLocaleString("vi-VN") : "Chưa cập nhật"}
-                            readOnly
-                          />
-                        )}
-                      />
-                    </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-1">
+                      Trạng thái bài học <span className="text-red-500">*</span>
+                    </label>
+                    <Controller
+                      name={`sections.${sectionIndex}.lessons.${lessonIdx}.status`}
+                      control={control}
+                      render={({ field }) => (
+                        <Select 
+                          onValueChange={(val) => {
+                            const newStatus = Number(val);
+                            
+                            // Ràng buộc Business: Nếu chương đang ẩn, không cho phép bật bài học hoạt động
+                            if (currentSectionStatus === 2 && newStatus === 1) {
+                              toast.warning("Chương đang Ẩn, không thể bật trạng thái Hoạt động cho bài học.");
+                              return;
+                            }
+
+                            field.onChange(newStatus);
+                          }} 
+                          value={(field.value ?? 1).toString()}
+                        >
+                          <SelectTrigger className="h-9 border-slate-200 focus:border-green-500 font-medium bg-white text-xs">
+                            <SelectValue placeholder="Chọn trạng thái" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-white">
+                            <SelectItem value="1" disabled={currentSectionStatus === 2}>Hoạt động {currentSectionStatus === 2 && "(Bị khóa)"}</SelectItem>
+                            <SelectItem value="2">Ẩn</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
                   </div>
                 </div>
 
@@ -1172,41 +1709,23 @@ function SectionItem({ sectionIndex, control }) {
                     name={`sections.${sectionIndex}.lessons.${lessonIdx}.videoFile`}
                     control={control}
                     render={({ field }) => (
-                      <div
-                        onClick={() => {
-                          document.getElementById(`lesson-video-${sectionIndex}-${lessonIdx}`).click();
+                      <BackgroundVideoUploader
+                        label="video bài học"
+                        value={field.value}
+                        onChange={(val) => {
+                          field.onChange(val);
+                          setValue(`sections.${sectionIndex}.lessons.${lessonIdx}.videoUrl`, val);
                         }}
-                        className={`aspect-video rounded-xl border-2 border-dashed flex flex-col items-center justify-center p-4 transition-all cursor-pointer group/upload
-                           ${field.value ? "border-green-500 bg-green-50/30" : "border-slate-200 bg-slate-50/50 hover:bg-slate-100/50 hover:border-green-300"}`}
-                      >
-                        <input
-                          type="file"
-                          id={`lesson-video-${sectionIndex}-${lessonIdx}`}
-                          className="hidden"
-                          accept="video/*"
-                          onChange={(e) => field.onChange(e.target.files[0])}
-                        />
-
-                        {field.value ? (
-                          <div className="flex flex-col items-center">
-                            <div className="w-10 h-10 rounded-full bg-green-500 text-white flex items-center justify-center mb-2 shadow-sm">
-                              <CheckIcon />
-                            </div>
-                            <p className="text-[10px] font-bold text-green-700">Đã chọn video</p>
-                            <p className="text-[9px] text-slate-400 mt-1 truncate max-w-[150px]">{field.value.name || "Video_lesson.mp4"}</p>
-                          </div>
-                        ) : (
-                          <>
-                            <div className="w-10 h-10 rounded-full bg-white text-slate-300 group-hover/upload:text-green-500 flex items-center justify-center mb-2 shadow-sm border border-slate-100 transition-all">
-                              <Video size={20} />
-                            </div>
-                            <p className="text-[10px] font-bold text-slate-400 group-hover/upload:text-green-600 transition-colors">Tải lên video bài học</p>
-                            <p className="text-[9px] text-slate-400 mt-0.5">MP4, MOV hoặc AVI</p>
-                          </>
-                        )}
-                      </div>
+                        onUploadStart={() => setActiveUploads(prev => prev + 1)}
+                        onUploadEnd={() => setActiveUploads(prev => prev - 1)}
+                        uploadVideoToBunny={uploadVideoToBunny}
+                        id={`lesson-v-${sectionIndex}-${lessonIdx}`}
+                      />
                     )}
                   />
+                  {errors.sections?.[sectionIndex]?.lessons?.[lessonIdx]?.videoFile && (
+                    <p className="text-[10px] font-bold text-red-500 pl-1">{errors.sections[sectionIndex].lessons[lessonIdx].videoFile.message}</p>
+                  )}
                 </div>
               </div>
 
@@ -1230,6 +1749,148 @@ function SectionItem({ sectionIndex, control }) {
           {errors.sections[sectionIndex].lessons.root.message}
         </p>
       )}
+    </div>
+  );
+}
+
+function VideoProgressCircle({ progress, size = 60 }) {
+  const radius = size * 0.4;
+  const stroke = size * 0.08;
+  const normalizedRadius = radius - stroke * 2;
+  const circumference = normalizedRadius * 2 * Math.PI;
+  const strokeDashoffset = circumference - (progress / 100) * circumference;
+
+  return (
+    <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
+      <svg
+        height={size}
+        width={size}
+        className="transform -rotate-90"
+      >
+        <circle
+          stroke="#f1f5f9"
+          fill="transparent"
+          strokeWidth={stroke}
+          r={normalizedRadius}
+          cx={size / 2}
+          cy={size / 2}
+        />
+        <circle
+          stroke="#22c55e"
+          fill="transparent"
+          strokeWidth={stroke}
+          strokeDasharray={circumference + ' ' + circumference}
+          style={{ strokeDashoffset, transition: 'stroke-dashoffset 0.35s' }}
+          strokeLinecap="round"
+          r={normalizedRadius}
+          cx={size / 2}
+          cy={size / 2}
+        />
+      </svg>
+      <span className="absolute text-[10px] font-bold text-green-700">{progress}%</span>
+    </div>
+  );
+}
+
+function BackgroundVideoUploader({ label, value, onChange, onUploadStart, onUploadEnd, uploadVideoToBunny, id = "v-upload" }) {
+  const [localProgress, setLocalProgress] = React.useState(0);
+  const [isUploading, setIsUploading] = React.useState(false);
+  const [error, setError] = React.useState(null);
+
+  // Effect để "kết nối" lại với tiến trình tải lên nếu có (khi quay lại tab)
+  React.useEffect(() => {
+    // Đăng ký callback để nhận cập nhật tiến trình mới nhất
+    uploadCallbacks[id] = (pct) => setLocalProgress(pct);
+    
+    // Nếu đang có tiến trình chạy ngầm, lấy giá trị hiện tại ngay lập tức
+    if (globalUploadProgress[id] !== undefined) {
+      setLocalProgress(globalUploadProgress[id]);
+    }
+
+    return () => {
+      delete uploadCallbacks[id];
+    };
+  }, [id]);
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+      onChange(file);
+      
+      setIsUploading(true);
+      setError(null);
+      setLocalProgress(0);
+      globalUploadProgress[id] = 0;
+      onUploadStart();
+
+      const videoId = await uploadVideoToBunny(file, file.name, (pct) => {
+        // Cập nhật state cục bộ (nếu component còn mount)
+        setLocalProgress(pct);
+        // Lưu vào biến toàn cục để các lần mount sau có thể lấy được
+        globalUploadProgress[id] = pct;
+        // Nếu có component nào đang mount với ID này, gọi callback của nó
+        if (uploadCallbacks[id]) {
+          uploadCallbacks[id](pct);
+        }
+      });
+
+      onChange(videoId);
+    } catch (err) {
+      console.error("Upload error:", err);
+      setError("Lỗi tải lên");
+      toast.error(`Không thể tải lên ${label}`);
+    } finally {
+      setIsUploading(false);
+      delete globalUploadProgress[id];
+      onUploadEnd();
+    }
+  };
+
+  const isCompleted = value && typeof value === 'string' && !isUploading;
+  const isCurrentlyUploading = isUploading || (value instanceof File);
+
+  return (
+    <div
+      onClick={() => !isUploading && document.getElementById(id).click()}
+      className={`relative aspect-video rounded-xl border-2 border-dashed flex flex-col items-center justify-center p-4 transition-all cursor-pointer group/upload
+        ${isCompleted ? "border-green-500 bg-green-50/30" : isCurrentlyUploading ? "border-green-300 bg-green-50/10" : "border-slate-200 bg-slate-50/50 hover:bg-slate-100/50 hover:border-green-300"}`}
+    >
+      <input
+        type="file"
+        id={id}
+        className="hidden"
+        accept="video/*"
+        onChange={handleFileChange}
+        disabled={isUploading}
+      />
+
+      {isCurrentlyUploading ? (
+        <div className="flex flex-col items-center">
+          <VideoProgressCircle progress={localProgress} size={80} />
+        </div>
+      ) : isCompleted ? (
+        <div className="flex flex-col items-center">
+          <div className="w-10 h-10 rounded-full bg-green-500 text-white flex items-center justify-center mb-2 shadow-sm">
+            <Check className="w-6 h-6" />
+          </div>
+          <p className="text-[10px] font-bold text-green-700 uppercase tracking-tight">Tải lên hoàn tất</p>
+          <p className="text-[9px] text-slate-400 mt-1 truncate max-w-[150px]">ID: {value.substring(0, 12)}...</p>
+        </div>
+      ) : (
+        <>
+          <div className="w-10 h-10 rounded-full bg-white text-slate-300 group-hover/upload:text-green-500 flex items-center justify-center mb-2 shadow-sm border border-slate-100 transition-all">
+            <Video size={20} />
+          </div>
+          <p className="text-[10px] font-bold text-slate-400 group-hover/upload:text-green-600 transition-colors uppercase tracking-tight">
+            Chạm để tải {label}
+          </p>
+          <p className="text-[9px] text-slate-400 mt-0.5">MP4, MOV hoặc AVI</p>
+        </>
+      )}
+
+      {error && <p className="absolute bottom-2 text-[9px] font-bold text-red-500">{error}</p>}
     </div>
   );
 }

@@ -5,23 +5,46 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, Mail, Send } from 'lucide-react';
 import { SimpleButton } from '@/components/common/AppButton';
+import authService from '@/services/authService';
+import { toast } from 'sonner';
 
 const ForgotPassword = () => {
   const [contact, setContact] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const validateForm = () => {
+    if (!contact.trim()) {
+      setError('Vui lòng nhập email hoặc số điện thoại');
+      return false;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const phoneRegex = /^(0|84)(3|5|7|8|9)([0-9]{8})$/;
+    if (!emailRegex.test(contact) && !phoneRegex.test(contact)) {
+      setError('Email hoặc số điện thoại không hợp lệ');
+      return false;
+    }
+    return true;
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateForm()) return;
     setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false);
+    
+    try {
+      await authService.forgotPassword(contact);
       setSent(true);
-      // Navigate to confirm page after a short delay
-      setTimeout(() => navigate('/confirm-code'), 1200);
-    }, 1500);
+      toast.success('Mã xác thực đã được gửi vào email của bạn.');
+      setTimeout(() => navigate(`/confirm-code?email=${contact}&type=reset`), 1500);
+    } catch (err) {
+      toast.error(err.toString());
+      setError(err.toString());
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -48,11 +71,15 @@ const ForgotPassword = () => {
                   id="contact"
                   type="text"
                   placeholder="you@example.com hoặc 0912 345 678"
-                  className="pl-9 h-11 bg-slate-50 border-slate-200 focus:bg-white transition-colors"
+                  className={`pl-9 h-11 bg-slate-50 border-slate-200 focus:bg-white transition-colors ${error ? 'border-red-500 focus:ring-red-500' : ''}`}
                   value={contact}
-                  onChange={(e) => setContact(e.target.value)}
+                  onChange={(e) => {
+                    setContact(e.target.value);
+                    if (error) setError('');
+                  }}
                 />
               </div>
+              {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
             </div>
 
             {/* Success message */}

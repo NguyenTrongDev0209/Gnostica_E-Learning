@@ -26,6 +26,9 @@ import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDateTime;
+
+import javax.management.RuntimeErrorException;
+
 import java.security.SecureRandom;
 
 @Service
@@ -89,6 +92,18 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public LoginResponse login(LoginRequest request) {
         // Principle 6: Login Flow
+        Account account = accountRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại."));
+        
+        if ("GOOGLE".equalsIgnoreCase(account.getProvider()) && account.getPassword() == null) {
+        	throw new
+        	RuntimeException("Tài khoản này được đăng ký bằng Google. Vui lòng sử dụng tính năng 'Đăng nhập với Google'.");
+        }
+        
+        if (Boolean.TRUE.equals(account.getLocked())) {
+            throw new RuntimeException("Tài khoản của bạn đã bị khóa. Lý do: " + account.getLockReason());
+        }
+
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
         );
@@ -96,14 +111,12 @@ public class AuthServiceImpl implements AuthService {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String token = tokenProvider.generateToken(authentication);
 
-        Account account = accountRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Lỗi hệ thống."));
-
         return LoginResponse.builder()
                 .token(token)
                 .email(account.getEmail())
                 .fullName(account.getFullName())
                 .role(account.getRole().getName())
+                .avatar(account.getAvatar())
                 .build();
     }
 
@@ -157,5 +170,103 @@ public class AuthServiceImpl implements AuthService {
     public Account findByEmail(String email) {
         return accountRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản."));
+    }
+
+    @Override
+    public void forgotPassword(String email) {
+        Account account = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản với email này."));
+
+        String otp = String.format("%06d", new SecureRandom().nextInt(999999));
+        account.setVerificationCode(otp);
+        account.setVerificationExpiry(LocalDateTime.now().plusMinutes(5)); // 5 mins for reset
+        accountRepository.save(account);
+
+        try {
+            mailService.sendResetPasswordEmail(email, otp); 
+        } catch (Exception e) {
+            throw new RuntimeException("Lỗi gửi mail: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void resetPassword(String email, String code, String newPassword) {
+        Account account = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản."));
+
+        if (account.getVerificationCode() == null || !account.getVerificationCode().equals(code)) {
+            throw new RuntimeException("Mã xác thực không đúng.");
+        }
+
+        if (account.getVerificationExpiry().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Mã xác thực đã hết hạn.");
+        }
+
+        // Hợp lệ, tiến hành đổi mật khẩu theo cơ chế lưu lịch sử
+        // 1. Tìm mật khẩu đang hoạt động (nếu có) và chuyển sang inactive (status = 0)
+        passwordRepository.findByAccountAndStatus(account, 1).ifPresent(p -> {
+            p.setStatus(0);
+            passwordRepository.save(p);
+        });
+        
+        // 2. Tạo bản ghi mật khẩu mới (status = 1)
+        Password newPasswordEntity = new Password();
+        newPasswordEntity.setPassword(passwordEncoder.encode(newPassword));
+        newPasswordEntity.setStatus(1); // Active
+        newPasswordEntity.setAccount(account);
+        passwordRepository.save(newPasswordEntity);
+
+        // Clear OTP
+        account.setVerificationCode(null);
+        account.setVerificationExpiry(null);
+        accountRepository.save(account);
+    }
+
+    @Override
+    public void becomeInstructor(String email) {
+        Account account = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản."));
+        
+        Role instructorRole = roleRepository.findByName("INSTRUCTOR")
+                .orElseGet(() -> {
+                    Role newRole = new Role();
+                    newRole.setName("INSTRUCTOR");
+                    return roleRepository.save(newRole);
+                });
+        
+        account.setRole(instructorRole);
+        accountRepository.save(account);
+    }
+
+    @Override
+    public java.util.List<Account> getAllAccounts() {
+        return accountRepository.findAll();
+    }
+
+    @Override
+    public java.util.List<Account> getAccountsByRole(String roleName) {
+        Role role = roleRepository.findByName(roleName)
+                .orElseThrow(() -> new RuntimeException("Role không tồn tại."));
+        return accountRepository.findAll().stream()
+                .filter(a -> a.getRole() != null && a.getRole().getName().equalsIgnoreCase(roleName))
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    @Override
+    public void lockAccount(Integer id, String reason) {
+        Account account = accountRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại."));
+        account.setLocked(true);
+        account.setLockReason(reason);
+        accountRepository.save(account);
+    }
+
+    @Override
+    public void unlockAccount(Integer id) {
+        Account account = accountRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại."));
+        account.setLocked(false);
+        account.setLockReason(null);
+        accountRepository.save(account);
     }
 }

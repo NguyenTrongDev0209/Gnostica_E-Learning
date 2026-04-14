@@ -26,6 +26,7 @@ public class SecurityConfig {
 
     private final com.gnostica.security.CustomOAuth2UserService oauth2UserService;
     private final com.gnostica.security.OAuth2SuccessHandler oauth2SuccessHandler;
+    private final com.gnostica.security.OAuth2FailureHandler oauth2FailureHandler;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
@@ -52,13 +53,15 @@ public class SecurityConfig {
             )
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/error", "/favicon.ico", "/**/*.html", "/**/*.css", "/**/*.js").permitAll()
-                .requestMatchers("/api/auth/**", "/oauth2/**", "/login/oauth2/**", "/api/threads/**", "/api/forum-categories/**", "/api/comments/**").permitAll()
+                .requestMatchers("/api/auth/**", "/api/upload/**", "/oauth2/**", "/login/oauth2/**", "/api/threads/**", "/api/forum-categories/**", "/api/comments/**", "/api/progress/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/courses/**", "/api/categories/**").permitAll()
                 .anyRequest().authenticated()
             )
 
             .oauth2Login(oauth2 -> oauth2
                 .userInfoEndpoint(userInfo -> userInfo.userService(oauth2UserService))
                 .successHandler(oauth2SuccessHandler)
+                .failureHandler(oauth2FailureHandler)
             )
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // Principle 5

@@ -40,12 +40,21 @@ public class Account {
 	
 	@Column(columnDefinition = "varchar(255)")
 	public String provider;
+
+	@Column(columnDefinition = "varchar(255)")
+	private String avatar;
 	
 	@Column(name = "birth_day")
     private LocalDate birthDay;
 	
 	@Column
 	private Boolean active = false; // Mặc định là false để đợi xác thực
+
+	@Column
+	private Boolean locked = false; // Mặc định là không khóa
+
+	@Column(columnDefinition = "TEXT")
+	private String lockReason;
 	
 	@Column(length = 6)
 	private String verificationCode;
