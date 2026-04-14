@@ -92,6 +92,10 @@ public class Course {
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Module> modules;
 
+    @OneToMany(mappedBy = "course")
+    @JsonIgnore
+    private List<Enrollment> enrollments;
+
     @com.fasterxml.jackson.annotation.JsonProperty("categoryId")
     public Integer getCategoryId() {
         return category != null ? category.getId() : null;

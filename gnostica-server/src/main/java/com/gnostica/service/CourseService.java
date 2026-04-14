@@ -120,9 +120,44 @@ public class CourseService {
         return savedCourse;
     }
     @Transactional(readOnly = true)
-    public Course getCourseBySlug(String slug) {
-        return courseRepository.findBySlug(slug)
+    public Course getCourseBySlug(String slug, String email) {
+        Course course = courseRepository.findBySlug(slug)
             .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học"));
+
+        // Kiểm tra xem user có phải là Instructor của khóa này hoặc Admin không
+        boolean isOwner = email != null && course.getAccount().getEmail().equals(email);
+        
+        // Kiểm tra xem user có mua khóa học này chưa
+        boolean isEnrolled = false;
+        if (email != null && !isOwner) {
+            Account account = accountRepository.findByEmail(email).orElse(null);
+            if (account != null) {
+                isEnrolled = course.getEnrollments().stream()
+                    .anyMatch(e -> e.getAccount().getId().equals(account.getId()) && e.getStatus() == 1);
+            }
+        }
+
+        // Logic hiển thị:
+        // 1. Nếu là khách (email null) hoặc chưa mua: Chỉ thấy nếu status = 1 (Hoạt động)
+        // 2. Nếu đã mua hoặc là chủ sở hữu: Thấy cả khi status = 2 (Tạm ẩn)
+        if (!isOwner && !isEnrolled && course.getStatus() != 1) {
+            throw new RuntimeException("Khóa học hiện không khả dụng");
+        }
+
+        // Tuy nhiên, các Module hoặc Lesson bị ẩn (status = 2) vẫn phải lọc bỏ 
+        // trừ khi là chủ sở hữu (Instructor) muốn xem bản nháp
+        if (!isOwner) {
+            if (course.getModules() != null) {
+                course.getModules().removeIf(m -> m.getStatus() != 1);
+                for (Module m : course.getModules()) {
+                    if (m.getLessons() != null) {
+                        m.getLessons().removeIf(l -> l.getStatus() != 1);
+                    }
+                }
+            }
+        }
+
+        return course;
     }
 
     @Transactional
