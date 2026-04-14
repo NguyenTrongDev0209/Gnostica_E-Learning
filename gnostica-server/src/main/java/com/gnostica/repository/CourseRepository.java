@@ -25,6 +25,16 @@ public interface CourseRepository extends JpaRepository<Course, Integer> {
     
     boolean existsByCategoryId(Integer categoryId);
 
+    @org.springframework.data.jpa.repository.Query("SELECT c FROM Course c JOIN FETCH c.account JOIN FETCH c.category WHERE c.status = 1 " +
+            "AND (:categoryId IS NULL OR c.category.id = :categoryId OR c.category.parent.id = :categoryId) " +
+            "AND (:categorySlug IS NULL OR c.category.slug = :categorySlug OR c.category.parent.slug = :categorySlug) " +
+            "AND (:level IS NULL OR c.level = :level)")
+    org.springframework.data.domain.Page<Course> findPublicCourses(
+            @org.springframework.data.repository.query.Param("categoryId") Integer categoryId,
+            @org.springframework.data.repository.query.Param("categorySlug") String categorySlug,
+            @org.springframework.data.repository.query.Param("level") String level,
+            org.springframework.data.domain.Pageable pageable);
+
     @org.springframework.data.jpa.repository.Query("SELECT c.category.id, COUNT(c) FROM Course c WHERE c.category.id IN :categoryIds GROUP BY c.category.id")
     java.util.List<Object[]> countCoursesByCategoryIdIn(@org.springframework.data.repository.query.Param("categoryIds") java.util.Collection<Integer> categoryIds);
 }
