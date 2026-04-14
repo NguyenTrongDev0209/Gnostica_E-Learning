@@ -1,6 +1,5 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
-import { Star, Users, Calendar, Globe, PlayCircle, CheckCircle2, Heart, Clock, FileText, Infinity as InfinityIcon, Smartphone, Trophy, Gift } from "lucide-react";
+import { Star, Users, Calendar, Globe, PlayCircle, CheckCircle2, Heart, Clock, FileText, Infinity as InfinityIcon, Smartphone, Trophy } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
@@ -59,82 +58,78 @@ export const CourseDetailHeader = ({ course }) => {
 /**
  * Course trailer/video preview area.
  */
-const BUNNY_LIBRARY_ID = "635422";
-
-// Kiểm tra xem chuỗi có phải Bunny GUID không (UUID format)
-const isBunnyGuid = (str) => {
-  if (!str) return false;
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
-};
-
-// Kiểm tra xem chuỗi có phải YouTube URL không
-const getYoutubeId = (url) => {
-  if (!url) return null;
-  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-  const match = url.match(regExp);
-  return (match && match[2].length === 11) ? match[2] : null;
-};
-
 export const CourseDetailVideo = ({ courseImage, courseTitle, promoVideo }) => {
-  const [isPlaying, setIsPlaying] = React.useState(false);
-
-  if (isPlaying && promoVideo) {
-    const youtubeId = getYoutubeId(promoVideo);
-    const bunnyGuid = isBunnyGuid(promoVideo) ? promoVideo : null;
+  const getEmbedUrl = (url) => {
+    if (!url) return null;
     
-    return (
-      <div className="relative aspect-video overflow-hidden shadow-2xl shadow-slate-200 border-none bg-black">
-        {youtubeId ? (
-          <iframe 
-            src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1`} 
-            title="Course Trailer"
-            className="w-full h-full"
-            frameBorder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          />
-        ) : bunnyGuid ? (
-          <iframe
-            src={`https://iframe.mediadelivery.net/embed/${BUNNY_LIBRARY_ID}/${bunnyGuid}?autoplay=true&loop=false&muted=false&preload=true`}
-            title="Course Trailer"
-            className="w-full h-full"
-            frameBorder="0"
-            allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
-            allowFullScreen
-          />
-        ) : (
-          <video 
-            src={promoVideo} 
-            controls 
-            autoPlay 
-            className="w-full h-full object-contain bg-black"
-          />
-        )}
-      </div>
-    );
-  }
+    // Regex kiểm tra mã UUID (Video ID đơn thuần)
+    const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+    const libraryId = "635422";
 
-  return (
-    <div 
-      className="relative aspect-video overflow-hidden shadow-2xl shadow-slate-200 group cursor-pointer border border-slate-100/50 bg-slate-900"
-      onClick={() => promoVideo && setIsPlaying(true)}
-    >
+    if (uuidRegex.test(url)) {
+      return `https://player.mediadelivery.net/embed/${libraryId}/${url}`;
+    }
+
+    // Chuyển đổi link chia sẻ Bunny.net sang link nhúng
+    if (url.includes("video.bunny.net/play/") || url.includes("video.bunny.net/embed/")) {
+      return url
+        .replace("video.bunny.net/play/", "player.mediadelivery.net/embed/")
+        .replace("video.bunny.net/embed/", "player.mediadelivery.net/embed/");
+    }
+
+    // Đảm bảo domain mới nhất cho mediadelivery
+    if (url.includes("iframe.mediadelivery.net")) {
+      return url.replace("iframe.mediadelivery.net", "player.mediadelivery.net");
+    }
+
+    return url;
+  };
+
+  const isEmbedLink = (url) => {
+    if (!url) return false;
+    // UUID luôn là embed link cho Bunny.net
+    const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+    if (uuidRegex.test(url)) return true;
+
+    const lowUrl = url.toLowerCase();
+    return (
+      lowUrl.includes("mediadelivery.net") || 
+      lowUrl.includes("bunny.net") ||
+      lowUrl.includes("b-cdn.net") ||
+      lowUrl.includes("vimeo.com")
+    );
+  };
+
+  const embedUrl = getEmbedUrl(promoVideo);
+  const useIframe = isEmbedLink(promoVideo);
+
+  // Debug URL cuối cùng
+  React.useEffect(() => {
+    if (promoVideo) {
+      console.log("Original Video Value:", promoVideo);
+      console.log("Final Embed URL:", embedUrl);
+    }
+  }, [promoVideo, embedUrl]);
+
+  const content = (
+    <div className={`relative aspect-video rounded-2xl md:rounded-[32px] overflow-hidden shadow-2xl shadow-slate-200 group border border-slate-100/50 bg-slate-900 ${promoVideo ? 'cursor-pointer' : ''}`}>
       <img
         src={courseImage}
         alt={courseTitle}
         className={`w-full h-full object-cover transition-all duration-700 ease-out ${promoVideo ? 'group-hover:scale-105 group-hover:opacity-60' : ''}`}
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80" />
-
       {promoVideo && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 group-hover:scale-110 group-hover:bg-primary/90 group-hover:border-primary transition-all duration-300 shadow-[0_0_40px_rgba(0,0,0,0.3)]">
-            <PlayCircle className="w-10 h-10 md:w-12 md:h-12 fill-white text-white translate-x-0.5" />
+        <>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80" />
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 group-hover:scale-110 group-hover:bg-primary/90 group-hover:border-primary transition-all duration-300 shadow-[0_0_40px_rgba(0,0,0,0.3)]">
+              <PlayCircle className="w-10 h-10 md:w-12 md:h-12 fill-white text-white translate-x-0.5" />
+            </div>
+            <span className="text-white font-extrabold tracking-widest uppercase mt-4 text-xs md:text-sm drop-shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-y-2 group-hover:translate-y-0">
+              Xem Trailer Khóa Học
+            </span>
           </div>
-          <span className="text-white font-extrabold tracking-widest uppercase mt-4 text-xs md:text-sm drop-shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-y-2 group-hover:translate-y-0">
-            Xem Trailer Khóa Học
-          </span>
-        </div>
+        </>
       )}
     </div>
   );
@@ -325,28 +320,7 @@ export const CourseDetailInstructor = ({ instructor }) => {
  * Sticky pricing card for Course Detail.
  */
 export const CourseDetailPricingCard = ({ course }) => {
-  const navigate = useNavigate();
-
-  const handleCheckout = () => {
-    // Chuyển đổi giá từ chuỗi có dấu phẩy sang số nguyên
-    const parsePrice = (priceStr) => {
-      if (typeof priceStr === 'number') return priceStr;
-      return parseInt(String(priceStr).replace(/\./g, '').replace(/,/g, ''), 10) || 0;
-    };
-
-    const orderItem = {
-      id: course.id,
-      title: course.title,
-      instructor: course.instructor?.name || 'Ẩn danh',
-      price: parsePrice(course.price),
-      originalPrice: parsePrice(course.originalPrice) || parsePrice(course.price),
-      image: course.image,
-      rating: course.rating,
-      slug: course.slug,
-    };
-
-    navigate('/checkout', { state: { orderItems: [orderItem] } });
-  };
+  const totalLessons = course.modules?.reduce((acc, m) => acc + (m.lessons?.length || 0), 0) || 0;
 
   return (
     <Card className="border-slate-200/80 shadow-2xl shadow-slate-200/50 rounded-[28px] overflow-hidden bg-white">
@@ -374,19 +348,10 @@ export const CourseDetailPricingCard = ({ course }) => {
           )}
         </div>
 
-        <div className="flex items-stretch gap-3 mb-6">
-          <SimpleButton
-            size="lg"
-            className="flex-1 py-7 text-lg font-bold rounded-2xl"
-            onClick={handleCheckout}
-          >
+        <div className="space-y-3 mb-6">
+          <SimpleButton className="w-full py-7 text-lg font-bold rounded-2xl shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-shadow">
             Đăng ký học ngay
           </SimpleButton>
-          <button
-            className="flex-none p-4 rounded-2xl border-2 border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-primary hover:border-primary transition-all flex items-center justify-center cursor-pointer"
-          >
-            <Gift className="size-6" />
-          </button>
         </div>
 
         <p className="text-center text-[13px] font-semibold text-slate-500 mb-8">

@@ -15,11 +15,8 @@ import {
   BarChart3,
   Ticket,
   MessageCircleWarning,
-  LayoutList,
-  Building2,
-  History
+  LayoutList
 } from "lucide-react";
-
 import { AppLogo } from "@/components/common/AppButton";
 
 const ADMIN_MENU_GROUPS = [
@@ -42,7 +39,6 @@ const ADMIN_MENU_GROUPS = [
     items: [
       { label: "Đơn hàng", icon: ShoppingCart, href: "/admin/orders" },
       { label: "Phiếu giảm", icon: Ticket, href: "/admin/coupons" },
-      { label: "Giao dịch", icon: History, href: "/admin/transactions" },
     ]
   },
   {
@@ -55,12 +51,10 @@ const ADMIN_MENU_GROUPS = [
   {
     title: "HỆ THỐNG",
     items: [
-      { label: "Ngân hàng", icon: Building2, href: "/admin/banks" },
       { label: "Cài đặt", icon: Settings, href: "/admin/settings" },
     ]
   }
 ];
-
 
 import authService from "@/services/authService";
 

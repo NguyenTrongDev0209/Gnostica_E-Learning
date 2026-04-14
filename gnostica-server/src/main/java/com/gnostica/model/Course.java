@@ -126,33 +126,4 @@ public class Course {
         if (discount == null || discount <= 0) return price;
         return price * (1 - discount / 100.0);
     }
-
-    @com.fasterxml.jackson.annotation.JsonProperty("categoryName")
-    public String getCategoryName() {
-        return category != null ? category.getName() : "Chưa phân loại";
-    }
-
-    @com.fasterxml.jackson.annotation.JsonProperty("instructorName")
-    public String getInstructorName() {
-        return account != null ? account.getFullName() : "Ẩn danh";
-    }
-
-    @com.fasterxml.jackson.annotation.JsonProperty("instructorAvatar")
-    public String getInstructorAvatar() {
-        return account != null ? account.getAvatar() : null;
-    }
-
-    @com.fasterxml.jackson.annotation.JsonProperty("classes")
-    public Integer getClassesCount() {
-        if (modules == null) return 0;
-        return modules.stream()
-                .mapToInt(m -> m.getLessons() != null ? m.getLessons().size() : 0)
-                .sum();
-    }
-
-    @com.fasterxml.jackson.annotation.JsonProperty("students")
-    public Integer getStudentsCount() {
-        // Hiện tại chưa có bảng đăng ký học, trả về số giả lập dựa trên ID để có sự khác biệt
-        return (id != null ? id * 15 + 100 : 0);
-    }
 }

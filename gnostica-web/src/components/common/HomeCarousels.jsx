@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Card, CardContent } from "@/components/ui/card";
 import { Star } from "lucide-react";
-import AppCard from "@/components/common/AppCard";
-import AppSection from "@/components/common/AppSection";
+import AppCard from "./AppCard";
+import AppSection from "./AppSection";
 import { featuredCoursesMock } from "@/mocks/courses";
 
 // Dữ liệu slide kèm theo class màu gradient riêng cho từng ảnh
@@ -124,7 +124,7 @@ export function MainHeroCarousel({ onBgChange }) {
                 ? "w-4 h-1.5 md:w-6 md:h-2 bg-white"
                 : "w-1.5 h-1.5 md:w-2 md:h-2 bg-white/50 hover:bg-white/80"
                 }`}
-              aria-label={`Chuyển đến slide ${index + 1}`}
+              aria-label={`Go to slide ${index + 1}`}
             />
           ))}
         </div>
@@ -136,22 +136,6 @@ export function MainHeroCarousel({ onBgChange }) {
 export function CardCarousel() {
   const [api, setApi] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [courses, setCourses] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchCourses = async () => {
-      try {
-        const data = await courseService.getAllCourses(0, 10);
-        setCourses(data.content || []);
-      } catch (error) {
-        console.error("Lỗi khi tải slide khóa học:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchCourses();
-  }, []);
 
   useEffect(() => {
     if (!api) return;
@@ -162,14 +146,8 @@ export function CardCarousel() {
     });
   }, [api]);
 
-  if (loading) {
-    return <div className="app-container h-64 flex items-center justify-center">Đang tải slide khóa học...</div>;
-  }
-
-  if (courses.length === 0) return null;
-
   return (
-    <div className="py-6 md:py-10 w-full relative">
+    <AppSection title="Khóa học nổi bật" className="py-6 md:py-10" containerClassName="relative w-full">
       <Carousel
         setApi={setApi}
         opts={{
@@ -180,35 +158,18 @@ export function CardCarousel() {
         className="w-full relative"
       >
         <CarouselContent className="-ml-3 md:-ml-4 py-8 md:py-16 items-stretch">
-          {courses.map((course, index) => {
+          {[...featuredCoursesMock, ...featuredCoursesMock].map((card, index) => {
             const isActive = activeIndex === index;
 
             return (
-              <CarouselItem key={`${course.id}-${index}`} className="pl-3 md:pl-4 basis-[70%] sm:basis-[40%] lg:basis-[25%] px-2">
+              <CarouselItem key={`${card.id}-${index}`} className="pl-3 md:pl-4 basis-[70%] sm:basis-[40%] lg:basis-[25%] px-2">
                 <div
                   className={`h-full transition-all duration-700 ease-in-out origin-center flex flex-col ${isActive
                     ? "scale-105 md:scale-110 z-30 opacity-100 ring-2 ring-primary/20 rounded-xl shadow-xl"
                     : "scale-90 md:scale-95 z-10 opacity-50 blur-[0.5px] transition-opacity hover:opacity-100"
                     }`}
                 >
-                  <AppCard
-                    category={course.categoryName}
-                    rating={4.8}
-                    title={course.title}
-                    classes={course.classes}
-                    students={course.students}
-                    price={new Intl.NumberFormat('vi-VN').format(course.finalPrice || course.price)}
-                    originalPrice={course.discount > 0 ? new Intl.NumberFormat('vi-VN').format(course.price) : null}
-                    discountPercentage={course.discount}
-                    image={course.thumbnail}
-                    instructor={{
-                      name: course.instructorName,
-                      avatar: course.instructorAvatar,
-                      status: "online"
-                    }}
-                    link={`/courses/${course.slug}`}
-                    className="flex-1"
-                  />
+                  <AppCard {...card} className="flex-1" />
                 </div>
               </CarouselItem>
             );
@@ -217,50 +178,50 @@ export function CardCarousel() {
         <CarouselPrevious className="hidden md:flex -left-4 lg:-left-6 bg-white shadow-xl text-neutral-800 hover:bg-neutral-50 hover:scale-110 transition-transform z-40 w-12 h-12 border-none" />
         <CarouselNext className="hidden md:flex -right-4 lg:-right-6 bg-white shadow-xl text-neutral-800 hover:bg-neutral-50 hover:scale-110 transition-transform z-40 w-12 h-12 border-none" />
       </Carousel>
-    </div>
+    </AppSection>
   );
 }
 
 const testimonials = [
   {
     id: 1,
-    name: "Nguyễn Văn An",
-    role: "Lập trình viên Full-stack",
+    name: "John Doe",
+    role: "CEO, Tech Corp",
     avatar: "https://i.pravatar.cc/150?img=11",
     rating: 5,
-    text: "Khóa học thực sự chất lượng, lộ trình bài bản giúp tôi nắm vững kiến thức chỉ trong thời gian ngắn. Rất đáng để đầu tư!"
+    text: "Lorem ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type."
   },
   {
     id: 2,
-    name: "Trần Thị Bình",
-    role: "Quản lý Dự án IT",
+    name: "Jane Smith",
+    role: "Marketing Director",
     avatar: "https://i.pravatar.cc/150?img=5",
     rating: 4,
-    text: "Nền tảng học tập rất hiện đại, giao diện trực quan và dễ sử dụng. Tôi đánh giá cao sự hỗ trợ tận tình từ đội ngũ giảng viên."
+    text: "It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout."
   },
   {
     id: 3,
-    name: "Lê Huỳnh Vũ",
-    role: "Sinh viên Công nghệ",
+    name: "Alice Johnson",
+    role: "Freelancer",
     avatar: "https://i.pravatar.cc/150?img=9",
     rating: 5,
-    text: "Dữ liệu và bài tập thực tế giúp ích cho tôi rất nhiều trong việc chuẩn bị kiến thức cho kỳ thực tập quan trọng sắp tới."
+    text: "There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form."
   },
   {
     id: 4,
-    name: "Phạm Minh Đức",
-    role: "Kỹ sư Trí tuệ nhân tạo",
+    name: "Robert Fox",
+    role: "Executive Manager",
     avatar: "https://i.pravatar.cc/150?img=8",
     rating: 4,
-    text: "Hệ thống cá nhân hóa của Gnostica thực sự khác biệt, nó giúp tôi tối ưu hóa thời gian học tập những phần mình còn yếu."
+    text: "Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature."
   },
   {
     id: 5,
-    name: "Hoàng Mỹ Linh",
-    role: "Nhà thiết kế Đồ họa",
+    name: "Emily Davis",
+    role: "Designer",
     avatar: "https://i.pravatar.cc/150?img=1",
     rating: 5,
-    text: "Cách truyền đạt kiến thức rất dễ hiểu và sinh động. Tôi đã tự tin hơn hẳn khi nhận các dự án thiết kế phức tạp sau khóa học."
+    text: "The standard chunk of Lorem Ipsum used since the 1500s is reproduced below for those interested, very high quality work."
   }
 ];
 
@@ -280,14 +241,14 @@ export function TestimonialCarousel() {
 
   const titleNode = (
     <span>
-      <span className="text-orange-500">Học viên</span> nói gì!
+      What <span className="text-orange-500">Clients</span> Say!
     </span>
   );
 
   return (
     <AppSection
       title={titleNode}
-      description="Khám phá hành trình thay đổi của những học viên đã tin tưởng và đồng hành cùng Gnostica."
+      description="See How Our Digital Marketing Agency Helped Clients Achieve Their Goals"
       centered={true}
       className="py-8 md:py-12 bg-slate-50/50 dark:bg-transparent"
       containerClassName="relative w-full px-2 md:px-12 pt-4"

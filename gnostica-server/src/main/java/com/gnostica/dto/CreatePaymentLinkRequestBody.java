@@ -1,7 +1,5 @@
 package com.gnostica.dto;
 
-import java.util.List;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,7 +8,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreatePaymentLinkRequestBody {
-  private Integer courseId;
   private String productName;
   private String description;
   private String returnUrl;

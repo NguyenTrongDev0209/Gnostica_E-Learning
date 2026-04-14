@@ -1,84 +1,17 @@
-import React, { useState } from "react";
-import { useCoupons } from "@/hooks/admin/useCoupons";
-import { CouponHeader } from "@/components/pages/admin/coupons/CouponHeader";
-import { CouponStatsFilter } from "@/components/pages/admin/coupons/CouponStatsFilter";
-import { CouponTable } from "@/components/pages/admin/coupons/CouponTable";
-import { CouponFormModal } from "@/components/pages/admin/coupons/CouponFormModal";
+import React from "react";
+import { Tag } from "lucide-react";
 
 export default function AdminCoupons() {
-  const { coupons, isLoading, addCoupon, removeCoupon } = useCoupons();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [startDateFilter, setStartDateFilter] = useState("");
-  const [endDateFilter, setEndDateFilter] = useState("");
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-
-  const filteredCoupons = coupons.filter((coupon) => {
-    const matchesSearch = coupon.code.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    let matchesStatus = true;
-    if (statusFilter !== "all") {
-      matchesStatus = coupon.status === Number(statusFilter);
-    }
-
-    let matchesStartDate = true;
-    if (startDateFilter && coupon.startDate) {
-      const filterStart = new Date(startDateFilter);
-      filterStart.setHours(0, 0, 0, 0);
-      matchesStartDate = new Date(coupon.startDate) >= filterStart;
-    }
-
-    let matchesEndDate = true;
-    if (endDateFilter && coupon.startDate) {
-      const filterEnd = new Date(endDateFilter);
-      filterEnd.setHours(23, 59, 59, 999);
-      matchesEndDate = new Date(coupon.startDate) <= filterEnd;
-    }
-
-    return matchesSearch && matchesStatus && matchesStartDate && matchesEndDate;
-  });
-
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      <style>{`
-        /* Hide spin-buttons for Chrome, Safari, Edge, Opera */
-        input::-webkit-outer-spin-button,
-        input::-webkit-inner-spin-button {
-          -webkit-appearance: none;
-          margin: 0;
-        }
-
-        /* Hide spin-buttons for Firefox */
-        input[type=number] {
-          -moz-appearance: textfield;
-        }
-      `}</style>
-      
-      <CouponHeader onAddClick={() => setIsAddModalOpen(true)} />
-      
-      <CouponStatsFilter 
-        searchTerm={searchTerm} 
-        onSearchChange={setSearchTerm} 
-        statusFilter={statusFilter}
-        onStatusChange={setStatusFilter}
-        startDateFilter={startDateFilter}
-        onStartDateChange={setStartDateFilter}
-        endDateFilter={endDateFilter}
-        onEndDateChange={setEndDateFilter}
-        totalCount={coupons.length} 
-      />
-      
-      <CouponTable 
-        coupons={filteredCoupons} 
-        isLoading={isLoading} 
-        onDelete={removeCoupon} 
-      />
-      
-      <CouponFormModal 
-        isOpen={isAddModalOpen} 
-        onOpenChange={setIsAddModalOpen} 
-        onSave={addCoupon} 
-      />
+      <div>
+        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Quản Lý Mã Giảm Giá</h1>
+        <p className="text-sm text-slate-500 mt-1">Tạo và quản lý các mã giảm giá cho khóa học.</p>
+      </div>
+      <div className="flex flex-col items-center justify-center h-64 bg-white rounded-xl border border-slate-200 border-dashed gap-4">
+        <Tag className="w-12 h-12 text-slate-300" />
+        <p className="text-slate-400 font-medium">Trang Quản Lý Mã Giảm Giá đang được xây dựng</p>
+      </div>
     </div>
   );
 }
