@@ -203,17 +203,6 @@
     @apply bg-button-gradient bg-clip-text text-transparent;
   }
 
-  .btn-category-glow {
-    @apply relative bg-header-orange text-white rounded-full font-bold uppercase transition-all duration-300;
-    box-shadow: 0 0 0 4px rgba(241, 94, 44, 0.15), 0 0 20px rgba(139, 92, 246, 0.3);
-    border: 2px solid rgba(255, 255, 255, 0.2);
-  }
-
-  .btn-category-glow:hover {
-    @apply brightness-110 scale-[1.02];
-    box-shadow: 0 0 0 6px rgba(241, 94, 44, 0.2), 0 0 30px rgba(139, 92, 246, 0.5);
-  }
-
   .app-container {
     @apply w-full mx-auto px-16;
     max-width: var(--container-max);

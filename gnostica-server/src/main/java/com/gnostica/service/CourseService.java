@@ -296,17 +296,15 @@ public class CourseService {
     }
 
     @Transactional(readOnly = true)
-    public org.springframework.data.domain.Page<Course> getPublicCourses(Integer categoryId, String categorySlug, String level, int page, int size) {
-        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size, org.springframework.data.domain.Sort.by("id").descending());
-        // Chuyển level sang lowercase hoặc xử lý null
-        String levelFilter = (level != null && !level.trim().isEmpty() && !level.equalsIgnoreCase("all")) ? level : null;
-        return courseRepository.findPublicCourses(categoryId, categorySlug, levelFilter, pageable);
-    }
-
-    @Transactional(readOnly = true)
     public org.springframework.data.domain.Page<Course> getInstructorCourses(String email, int page, int size) {
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size, org.springframework.data.domain.Sort.by("id").descending());
         return courseRepository.findByAccountEmail(email, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public org.springframework.data.domain.Page<Course> getAllActiveCourses(int page, int size) {
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size, org.springframework.data.domain.Sort.by("id").descending());
+        return courseRepository.findByStatus(1, pageable);
     }
 
     @Transactional

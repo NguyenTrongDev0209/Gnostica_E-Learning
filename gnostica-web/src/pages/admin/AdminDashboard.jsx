@@ -52,41 +52,6 @@ import {
 
 // ─── Data: Stats & Orders ──────────────────────────────────────────────
 
-const STATS = [
-  {
-    title: "Tổng Doanh Thu",
-    value: "128.500.000đ",
-    trend: "+12.5%",
-    isPositive: true,
-    icon: TrendingUp,
-    color: "text-blue-600 bg-blue-50 border-blue-100"
-  },
-  {
-    title: "Học Viên Mới",
-    value: "1,245",
-    trend: "+18.2%",
-    isPositive: true,
-    icon: Users,
-    color: "text-green-600 bg-green-50 border-green-100"
-  },
-  {
-    title: "Khóa Học Đang Bán",
-    value: "42",
-    trend: "0%",
-    isPositive: true,
-    icon: BookOpen,
-    color: "text-orange-600 bg-orange-50 border-orange-100"
-  },
-  {
-    title: "Đơn Hàng Hôm Nay",
-    value: "38",
-    trend: "-4.1%",
-    isPositive: false,
-    icon: ShoppingCart,
-    color: "text-purple-600 bg-purple-50 border-purple-100"
-  },
-];
-
 const RECENT_ORDERS = [
   { id: "#ORD-001", user: "Nguyễn Văn A", course: "Fullstack Next.js", price: "899.000đ", status: "completed", date: "Vừa xong" },
   { id: "#ORD-002", user: "Trần Thị B", course: "React Query Master", price: "499.000đ", status: "pending", date: "5 phút trước" },
@@ -94,8 +59,6 @@ const RECENT_ORDERS = [
   { id: "#ORD-004", user: "Phạm D", course: "UI/UX Design UI", price: "1.299.000đ", status: "failed", date: "1 giờ trước" },
   { id: "#ORD-005", user: "Hoàng E", course: "NodeJS Backend", price: "599.000đ", status: "completed", date: "2 giờ trước" },
 ];
-
-// ─── Data: Section 1 (Finance) ─────────────────────────────────────────
 
 const REVENUE_DATA = [
   { month: "T1", revenue: 42000000, orders: 210 },
@@ -118,8 +81,6 @@ const REVENUE_BY_CATEGORY_DATA = [
   { month: "Q3/26", web: 165000000, mobile: 110000000, data: 80000000 },
   { month: "Q4/26", web: 210000000, mobile: 130000000, data: 95000000 },
 ];
-
-// ─── Data: Section 2 (User Analytics) ──────────────────────────────────
 
 const USER_GROWTH_DATA = [
   { month: "T1", students: 320, instructors: 8 },
@@ -158,8 +119,6 @@ const ENGAGEMENT_DATA = [
   { week: "Tuần 4", videoViews: 6100, assignments: 1550 },
 ];
 
-// ─── Data: Section 3 (Course Performance) ──────────────────────────────
-
 const RADAR_RATING_DATA = [
   { subject: "Giảng viên", A: 4.8, fullMark: 5 },
   { subject: "Nội dung", A: 4.5, fullMark: 5 },
@@ -181,8 +140,6 @@ const COMPLETION_DATA = [
   { name: "Đang học", value: 24, fill: "hsl(221, 83%, 53%)" },
   { name: "Bỏ dở", value: 8, fill: "hsl(0, 84%, 60%)" },
 ];
-
-// ─── Data: Section 4 (System Infrastructure) ───────────────────────────
 
 const CCU_DATA = [
   { time: "00:00", active: 240 },
@@ -213,9 +170,6 @@ const API_STATUS_DATA = [
   { date: "T7", ok: 61000, error: 320 },
   { date: "CN", ok: 58000, error: 240 },
 ];
-
-
-// ─── Chart Configs ────────────────────────────────────────────────────────────
 
 const revenueConfig = {
   revenue: { label: "Doanh thu (đ)", color: "hsl(221, 83%, 53%)" },
@@ -260,10 +214,47 @@ const ccuConfig = {
   active: { label: "Concurrent Users (CCU)", color: "hsl(271, 81%, 56%)" },
 };
 
-
-// ─── Component ────────────────────────────────────────────────────────────────
+import { useDashboard } from "@/hooks/admin/useDashboard";
 
 export default function AdminDashboard() {
+  const { stats, memberGrowth, isLoading } = useDashboard();
+
+  const dynamicStats = [
+    {
+      title: "Tổng Doanh Thu",
+      value: `${(stats?.totalRevenue || 0).toLocaleString()}đ`,
+      trend: "+12.5%",
+      isPositive: true,
+      icon: TrendingUp,
+      color: "text-blue-600 bg-blue-50 border-blue-100"
+    },
+    {
+      title: "Học Viên Mới",
+      value: (stats?.newStudents || 0).toLocaleString(),
+      trend: "+18.2%",
+      isPositive: true,
+      icon: Users,
+      color: "text-green-600 bg-green-50 border-green-100"
+    },
+    {
+      title: "Khóa Học Đang Bán",
+      value: (stats?.activeCourses || 0).toLocaleString(),
+      trend: "0%",
+      isPositive: true,
+      icon: BookOpen,
+      color: "text-orange-600 bg-orange-50 border-orange-100"
+    },
+    {
+      title: "Đơn Hàng Hôm Nay",
+      value: (stats?.todayOrders || 0).toLocaleString(),
+      trend: "-4.1%",
+      isPositive: false,
+      icon: ShoppingCart,
+      color: "text-purple-600 bg-purple-50 border-purple-100"
+    },
+  ];
+
+  const chartData = memberGrowth.length > 0 ? memberGrowth : USER_GROWTH_DATA;
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-12">
 
@@ -287,7 +278,7 @@ export default function AdminDashboard() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {STATS.map((stat, i) => {
+        {dynamicStats.map((stat, i) => {
           const Icon = stat.icon;
           return (
             <Card key={i} className="border-slate-200 shadow-sm hover:shadow-md transition-all duration-300">
@@ -448,7 +439,7 @@ export default function AdminDashboard() {
             </CardHeader>
             <CardContent className="pt-4 flex-1">
               <ChartContainer config={userGrowthConfig} className="h-[240px] w-full">
-                <BarChart data={USER_GROWTH_DATA} margin={{ left: 0, right: 0, top: 4, bottom: 0 }}>
+                <BarChart data={chartData} margin={{ left: 0, right: 0, top: 4, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                   <XAxis dataKey="month" tickLine={false} axisLine={false} tick={{ fontSize: 12 }} />
                   <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 11 }} />

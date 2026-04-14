@@ -25,14 +25,10 @@ public class LessonProgress {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "lesson_id")
-    @org.hibernate.annotations.OnDelete(action = org.hibernate.annotations.OnDeleteAction.CASCADE)
     private Lesson lesson;
 
     @Column
     private Boolean isCompleted = false;
-
-    @Column(name = "last_watched_time")
-    private Integer lastWatchedTime = 0;
 
     @UpdateTimestamp
     @Column(name = "updated_at")
