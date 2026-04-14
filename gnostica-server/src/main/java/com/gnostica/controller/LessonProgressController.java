@@ -1,0 +1,66 @@
+package com.gnostica.controller;
+
+import com.gnostica.service.LessonProgressService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/progress")
+@RequiredArgsConstructor
+@CrossOrigin(origins = "*")
+public class LessonProgressController {
+
+    private final LessonProgressService lessonProgressService;
+
+    @GetMapping("/course/{slug}")
+    public ResponseEntity<?> getCourseProgress(
+            @PathVariable String slug,
+            Authentication authentication
+    ) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).body(Map.of("error", "Vui lòng đăng nhập để xem tiến độ học tập"));
+        }
+        String email = authentication.getName();
+        return ResponseEntity.ok(lessonProgressService.getCourseProgressBySlug(slug, email));
+    }
+
+    @PostMapping("/lesson/{lessonId}/time")
+    public ResponseEntity<?> updateLastWatchedTime(
+            @PathVariable Integer lessonId,
+            @RequestParam Integer time,
+            Authentication authentication
+    ) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).body(Map.of("error", "Vui lòng đăng nhập để lưu tiến độ học tập"));
+        }
+        String email = authentication.getName();
+        try {
+            lessonProgressService.updateLastWatchedTime(lessonId, email, time);
+            return ResponseEntity.ok(Map.of("message", "Đã cập nhật thời gian xem"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/lesson/{lessonId}/complete")
+    public ResponseEntity<?> markLessonAsCompleted(
+            @PathVariable Integer lessonId,
+            Authentication authentication
+    ) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).body(Map.of("error", "Vui lòng đăng nhập để lưu tiến độ học tập"));
+        }
+        String email = authentication.getName();
+        try {
+            lessonProgressService.markLessonAsCompleted(lessonId, email);
+            return ResponseEntity.ok(Map.of("message", "Đã đánh dấu hoàn thành bài học"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+}
