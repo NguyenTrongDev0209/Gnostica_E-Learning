@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
@@ -16,9 +16,20 @@ import { toast } from "sonner";
 import { payosPaymentMock } from "@/mocks/payment";
 
 export default function PayosQR() {
+  const { state } = useLocation();
   const [timeLeft, setTimeLeft] = useState(payosPaymentMock.expiresInSeconds);
   const [status, setStatus] = useState("waiting"); // waiting, success, cancelled
   const navigate = useNavigate();
+
+  // Dữ liệu đơn hàng từ state
+  const orderItems = state?.orderItems || [];
+  const totalAmount = orderItems.length > 0 
+    ? orderItems.reduce((sum, item) => sum + item.price, 0)
+    : payosPaymentMock.amount;
+
+  // Tạo mã QR VietQR động dựa trên số tiền thực tế
+  // Format: https://img.vietqr.io/image/<BANK_ID>-<ACCOUNT_NO>-<TEMPLATE>.png?amount=<AMOUNT>&addInfo=<DESCRIPTION>
+  const dynamicQrCodeUrl = `https://img.vietqr.io/image/MB-VQRQAHVMC2042-compact2.png?amount=${totalAmount}&addInfo=${encodeURIComponent(payosPaymentMock.transferContent)}&accountName=${encodeURIComponent(payosPaymentMock.accountHolder)}`;
 
   const breadcrumbItems = [
     { label: "Trang chủ", href: "/", icon: Home },
@@ -81,7 +92,7 @@ export default function PayosQR() {
                 {/* QR Image */}
                 <div className="w-56 h-56 sm:w-60 sm:h-60 bg-white rounded-2xl shadow-lg p-3 border border-slate-100">
                   <img
-                    src={payosPaymentMock.qrCodeUrl}
+                    src={dynamicQrCodeUrl}
                     alt="QR Code thanh toán"
                     className="w-full h-full object-contain rounded-lg"
                   />
@@ -163,7 +174,7 @@ export default function PayosQR() {
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-slate-500 font-medium">Số tiền</span>
                     <span className="text-lg font-black text-primary">
-                      {payosPaymentMock.amount.toLocaleString()}{" "}
+                      {totalAmount.toLocaleString()}{" "}
                       <span className="text-sm font-bold">VNĐ</span>
                     </span>
                   </div>

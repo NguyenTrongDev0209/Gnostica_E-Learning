@@ -29,8 +29,9 @@ export default function CourseDetail() {
         const formattedCourse = {
           category: data.categoryName || "Chưa phân loại",
           title: data.title,
+          promoVideo: data.promoVideo,
           image: data.thumbnail,
-          description: data.description || "Chưa có mô tả chi tiết.",
+          description: data.description ? data.description.replace(/&nbsp;/g, ' ') : "Chưa có mô tả chi tiết.",
           price: new Intl.NumberFormat('vi-VN').format(data.salePrice || data.price || 0),
           originalPrice: data.discount > 0 ? new Intl.NumberFormat('vi-VN').format(data.price) : null,
           discountPercentage: data.discount || 0,
@@ -121,6 +122,7 @@ export default function CourseDetail() {
             <CourseDetailVideo 
               courseImage={course.image} 
               courseTitle={course.title} 
+              promoVideo={course.promoVideo}
             />
 
             <CourseDetailOutcomes outcomes={course.outcomes} />

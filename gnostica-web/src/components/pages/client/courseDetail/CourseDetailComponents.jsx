@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { Star, Users, Calendar, Globe, PlayCircle, CheckCircle2, Heart, Clock, FileText, Infinity as InfinityIcon, Smartphone, Trophy, Gift } from "lucide-react";
 import {
   Accordion,
@@ -22,9 +23,12 @@ export const CourseDetailHeader = ({ course }) => {
       <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-slate-900 mb-5 leading-tight">
         {course.title}
       </h1>
-      <p className="text-lg md:text-xl text-slate-600 mb-6 leading-relaxed">
-        {course.description}
-      </p>
+      {/* Tạm thời ẩn phần mô tả
+      <div 
+        className="text-lg md:text-xl text-slate-600 mb-6 leading-relaxed prose prose-slate max-w-none [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:mb-4 [&_p]:mb-4"
+        dangerouslySetInnerHTML={{ __html: course.description }}
+      />
+      */}
 
       <div className="flex flex-wrap items-center gap-y-3 gap-x-6 text-sm font-medium">
         <div className="flex items-center gap-1.5 px-3 py-1.5 bg-yellow-50 rounded-lg text-yellow-700">
@@ -54,9 +58,66 @@ export const CourseDetailHeader = ({ course }) => {
 /**
  * Course trailer/video preview area.
  */
-export const CourseDetailVideo = ({ courseImage, courseTitle }) => {
+const BUNNY_LIBRARY_ID = "635422";
+
+// Kiểm tra xem chuỗi có phải Bunny GUID không (UUID format)
+const isBunnyGuid = (str) => {
+  if (!str) return false;
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+};
+
+// Kiểm tra xem chuỗi có phải YouTube URL không
+const getYoutubeId = (url) => {
+  if (!url) return null;
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const match = url.match(regExp);
+  return (match && match[2].length === 11) ? match[2] : null;
+};
+
+export const CourseDetailVideo = ({ courseImage, courseTitle, promoVideo }) => {
+  const [isPlaying, setIsPlaying] = React.useState(false);
+
+  if (isPlaying && promoVideo) {
+    const youtubeId = getYoutubeId(promoVideo);
+    const bunnyGuid = isBunnyGuid(promoVideo) ? promoVideo : null;
+    
+    return (
+      <div className="relative aspect-video overflow-hidden shadow-2xl shadow-slate-200 border-none bg-black">
+        {youtubeId ? (
+          <iframe 
+            src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1`} 
+            title="Course Trailer"
+            className="w-full h-full"
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        ) : bunnyGuid ? (
+          <iframe
+            src={`https://iframe.mediadelivery.net/embed/${BUNNY_LIBRARY_ID}/${bunnyGuid}?autoplay=true&loop=false&muted=false&preload=true`}
+            title="Course Trailer"
+            className="w-full h-full"
+            frameBorder="0"
+            allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
+            allowFullScreen
+          />
+        ) : (
+          <video 
+            src={promoVideo} 
+            controls 
+            autoPlay 
+            className="w-full h-full object-contain bg-black"
+          />
+        )}
+      </div>
+    );
+  }
+
   return (
-    <div className="relative aspect-video rounded-2xl md:rounded-[32px] overflow-hidden shadow-2xl shadow-slate-200 group cursor-pointer border border-slate-100/50 bg-slate-900">
+    <div 
+      className="relative aspect-video overflow-hidden shadow-2xl shadow-slate-200 group cursor-pointer border border-slate-100/50 bg-slate-900"
+      onClick={() => promoVideo && setIsPlaying(true)}
+    >
       <img
         src={courseImage}
         alt={courseTitle}
@@ -64,14 +125,16 @@ export const CourseDetailVideo = ({ courseImage, courseTitle }) => {
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80" />
 
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 group-hover:scale-110 group-hover:bg-primary/90 group-hover:border-primary transition-all duration-300 shadow-[0_0_40px_rgba(0,0,0,0.3)]">
-          <PlayCircle className="w-10 h-10 md:w-12 md:h-12 fill-white text-white translate-x-0.5" />
+      {promoVideo && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 group-hover:scale-110 group-hover:bg-primary/90 group-hover:border-primary transition-all duration-300 shadow-[0_0_40px_rgba(0,0,0,0.3)]">
+            <PlayCircle className="w-10 h-10 md:w-12 md:h-12 fill-white text-white translate-x-0.5" />
+          </div>
+          <span className="text-white font-extrabold tracking-widest uppercase mt-4 text-xs md:text-sm drop-shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-y-2 group-hover:translate-y-0">
+            Xem Trailer Khóa Học
+          </span>
         </div>
-        <span className="text-white font-extrabold tracking-widest uppercase mt-4 text-xs md:text-sm drop-shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-y-2 group-hover:translate-y-0">
-          Xem Trailer Khóa Học
-        </span>
-      </div>
+      )}
     </div>
   );
 };
@@ -237,6 +300,29 @@ export const CourseDetailInstructor = ({ instructor }) => {
  * Sticky pricing card for Course Detail.
  */
 export const CourseDetailPricingCard = ({ course }) => {
+  const navigate = useNavigate();
+
+  const handleCheckout = () => {
+    // Chuyển đổi giá từ chuỗi có dấu phẩy sang số nguyên
+    const parsePrice = (priceStr) => {
+      if (typeof priceStr === 'number') return priceStr;
+      return parseInt(String(priceStr).replace(/\./g, '').replace(/,/g, ''), 10) || 0;
+    };
+
+    const orderItem = {
+      id: course.id,
+      title: course.title,
+      instructor: course.instructor?.name || 'Ẩn danh',
+      price: parsePrice(course.price),
+      originalPrice: parsePrice(course.originalPrice) || parsePrice(course.price),
+      image: course.image,
+      rating: course.rating,
+      slug: course.slug,
+    };
+
+    navigate('/checkout', { state: { orderItems: [orderItem] } });
+  };
+
   return (
     <Card className="border-slate-200/80 shadow-2xl shadow-slate-200/50 rounded-[28px] overflow-hidden bg-white">
       <CardContent className="p-7 md:p-8">
@@ -262,7 +348,11 @@ export const CourseDetailPricingCard = ({ course }) => {
         </div>
 
         <div className="flex items-stretch gap-3 mb-6">
-          <SimpleButton size="lg" className="flex-1 py-7 text-lg font-bold rounded-2xl">
+          <SimpleButton
+            size="lg"
+            className="flex-1 py-7 text-lg font-bold rounded-2xl"
+            onClick={handleCheckout}
+          >
             Đăng ký học ngay
           </SimpleButton>
           <button
