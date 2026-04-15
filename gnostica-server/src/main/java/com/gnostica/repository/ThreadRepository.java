@@ -25,4 +25,8 @@ public interface ThreadRepository extends JpaRepository<Thread, Integer> {
 
     @Query("SELECT COUNT(t), COALESCE(SUM(t.likes), 0) FROM Thread t WHERE t.account.email = :email")
     Object[] getUserStats(@Param("email") String email);
+
+    List<Thread> findTop5ByOrderByLikesDesc();
+
+    List<Thread> findTop5ByContentContainingIgnoreCaseOrderByCreatedAtDesc(String keyword);
 }
