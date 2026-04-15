@@ -23,7 +23,7 @@ import lombok.RequiredArgsConstructor;
 @CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 public class CouponController {
-	
+
     private final CouponService couponService;
 
     @PostMapping
@@ -39,6 +39,11 @@ public class CouponController {
     @GetMapping
     public ResponseEntity<ResponseDTO<java.util.List<CouponResponse>>> getAllCoupons() {
         return ResponseEntity.ok(new ResponseDTO<>(200, "Success", couponService.getAllCoupons()));
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<ResponseDTO<java.util.List<CouponResponse>>> getMyCoupons() {
+        return ResponseEntity.ok(new ResponseDTO<>(200, "Success", couponService.getMyCoupons()));
     }
 
     @DeleteMapping("/{id}")

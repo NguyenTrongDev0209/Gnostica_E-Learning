@@ -18,7 +18,7 @@ import lombok.Data;
 @Entity
 @Table(name = "transactions")
 public class Transaction {
-	@Id
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     private Double amount;
@@ -29,16 +29,20 @@ public class Transaction {
     private String senderBankId;
     private String senderAccountNumber;
     private String ref;
-    
+
     @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
     @Column(columnDefinition = "JSONB")
     private String log;
-    
+
     @CreationTimestamp
     private LocalDateTime createdAt;
-    
+
     private Integer type; // 1: Nạp, 2: Thanh toán, 3: Rút
-    
+
+    @ManyToOne
+    @JoinColumn(name = "account_id")
+    private Account account;
+
     @ManyToOne
     @JoinColumn(name = "order_id")
     private Order order;

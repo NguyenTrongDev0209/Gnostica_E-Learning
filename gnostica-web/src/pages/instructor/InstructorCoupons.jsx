@@ -1,12 +1,12 @@
-import React from "react";
-import { 
-  Plus, 
-  Search, 
-  Ticket, 
-  Calendar, 
-  Tag, 
-  Trash2, 
-  Edit, 
+import React, { useState } from "react";
+import {
+  Plus,
+  Search,
+  Ticket,
+  Calendar,
+  Tag,
+  Trash2,
+  Edit,
   MoreHorizontal,
   CircleCheck,
   CircleOff,
@@ -24,55 +24,38 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-
-const MOCK_COUPONS = [
-  {
-    id: "CPN-001",
-    code: "GNOSTICA100",
-    discount: "100.000đ",
-    type: "fixed",
-    minOrder: "500.000đ",
-    expiryDate: "2024-12-31",
-    usageCount: 45,
-    maxUsage: 100,
-    status: "active"
-  },
-  {
-    id: "CPN-002",
-    code: "SUMMER50",
-    discount: "50%",
-    type: "percentage",
-    minOrder: "200.000đ",
-    expiryDate: "2024-06-30",
-    usageCount: 120,
-    maxUsage: 200,
-    status: "active"
-  },
-  {
-    id: "CPN-003",
-    code: "WELCOME2024",
-    discount: "20.000đ",
-    type: "fixed",
-    minOrder: "0đ",
-    expiryDate: "2024-01-15",
-    usageCount: 50,
-    maxUsage: 50,
-    status: "expired"
-  },
-  {
-    id: "CPN-004",
-    code: "HOLIDAY15",
-    discount: "15%",
-    type: "percentage",
-    minOrder: "300.000đ",
-    expiryDate: "2024-05-20",
-    usageCount: 0,
-    maxUsage: 300,
-    status: "scheduled"
-  }
-];
+import { useCoupons } from "@/hooks/admin/useCoupons";
+import { CouponFormModal } from "@/components/pages/admin/coupons/CouponFormModal";
 
 export default function InstructorCoupons() {
+  const { coupons, isLoading, addCoupon, removeCoupon } = useCoupons({ mine: true });
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const formatVND = (amount) => {
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+  };
+
+  const filteredCoupons = coupons.filter((coupon) => {
+    const matchesSearch = coupon.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      coupon.name.toLowerCase().includes(searchTerm.toLowerCase());
+
+    let matchesStatus = true;
+    if (statusFilter !== "all") {
+      matchesStatus = coupon.status === Number(statusFilter);
+    }
+
+    return matchesSearch && matchesStatus;
+  });
+
+  const stats = {
+    total: coupons.length,
+    active: coupons.filter(c => c.status === 1).length,
+    scheduled: coupons.filter(c => c.status === 0).length,
+    expired: coupons.filter(c => c.status === 2).length
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       {/* Page Header */}
@@ -83,7 +66,10 @@ export default function InstructorCoupons() {
             Tạo và quản lý các mã giảm giá để thúc đẩy doanh số bán khóa học của bạn.
           </p>
         </div>
-        <Button className="font-bold flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white shadow-none">
+        <Button
+          onClick={() => setIsModalOpen(true)}
+          className="font-bold flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white shadow-none"
+        >
           <Plus className="w-4 h-4" />
           Tạo Mã Giảm Giá Mới
         </Button>
@@ -98,7 +84,7 @@ export default function InstructorCoupons() {
             </div>
             <div>
               <p className="text-xs font-bold text-slate-500 mb-0.5">Tổng số mã</p>
-              <p className="text-xl font-black text-slate-900">12</p>
+              <p className="text-xl font-black text-slate-900">{stats.total}</p>
             </div>
           </CardContent>
         </Card>
@@ -109,7 +95,7 @@ export default function InstructorCoupons() {
             </div>
             <div>
               <p className="text-xs font-bold text-slate-500 mb-0.5">Đang hoạt động</p>
-              <p className="text-xl font-black text-slate-900">8</p>
+              <p className="text-xl font-black text-slate-900">{stats.active}</p>
             </div>
           </CardContent>
         </Card>
@@ -120,7 +106,7 @@ export default function InstructorCoupons() {
             </div>
             <div>
               <p className="text-xs font-bold text-slate-500 mb-0.5">Sắp diễn ra</p>
-              <p className="text-xl font-black text-slate-900">2</p>
+              <p className="text-xl font-black text-slate-900">{stats.scheduled}</p>
             </div>
           </CardContent>
         </Card>
@@ -131,7 +117,7 @@ export default function InstructorCoupons() {
             </div>
             <div>
               <p className="text-xs font-bold text-slate-500 mb-0.5">Đã hết hạn</p>
-              <p className="text-xl font-black text-slate-900">2</p>
+              <p className="text-xl font-black text-slate-900">{stats.expired}</p>
             </div>
           </CardContent>
         </Card>
@@ -143,17 +129,34 @@ export default function InstructorCoupons() {
           <div className="flex w-full md:w-auto items-center gap-3">
             <div className="relative w-full md:w-80 border-slate-200">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <Input 
-                placeholder="Tìm mã giảm giá..." 
+              <Input
+                placeholder="Tìm mã giảm giá..."
                 className="pl-9 h-10 border-slate-200 focus:bg-white focus:border-green-500 focus:ring-green-500/20"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
           </div>
-          
+
           <div className="flex text-sm font-medium text-slate-500 bg-slate-100 p-1 rounded-lg">
-            <button className="px-3 py-1.5 rounded-md bg-white text-slate-900 shadow-sm">Tất cả</button>
-            <button className="px-3 py-1.5 rounded-md hover:text-slate-900">Đang hoạt động</button>
-            <button className="px-3 py-1.5 rounded-md hover:text-slate-900">Đã hết hạn</button>
+            <button
+              onClick={() => setStatusFilter("all")}
+              className={`px-3 py-1.5 rounded-md ${statusFilter === "all" ? "bg-white text-slate-900 shadow-sm" : "hover:text-slate-900"}`}
+            >
+              Tất cả
+            </button>
+            <button
+              onClick={() => setStatusFilter("1")}
+              className={`px-3 py-1.5 rounded-md ${statusFilter === "1" ? "bg-white text-slate-900 shadow-sm" : "hover:text-slate-900"}`}
+            >
+              Đang hoạt động
+            </button>
+            <button
+              onClick={() => setStatusFilter("2")}
+              className={`px-3 py-1.5 rounded-md ${statusFilter === "2" ? "bg-white text-slate-900 shadow-sm" : "hover:text-slate-900"}`}
+            >
+              Đã hết hạn
+            </button>
           </div>
         </CardContent>
       </Card>
@@ -173,69 +176,92 @@ export default function InstructorCoupons() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {MOCK_COUPONS.map((coupon) => (
-                <TableRow key={coupon.id} className="hover:bg-slate-50/50">
-                  <TableCell>
-                    <div className="flex flex-col gap-1">
-                      <span className="font-black text-slate-900 tracking-wider text-base">{coupon.code}</span>
-                      <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded border border-green-100 w-fit">
-                        Giảm {coupon.discount}
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col gap-1 text-xs text-slate-600 font-medium">
-                      <span>Đơn tối thiểu: <span className="font-bold text-slate-900">{coupon.minOrder}</span></span>
-                      <span className="capitalize">Loại: <span className="font-bold text-slate-900">{coupon.type === 'percentage' ? 'Phần trăm' : 'Số tiền cố định'}</span></span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
-                      <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                      {coupon.expiryDate}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col gap-1.5 w-32">
-                      <div className="flex justify-between text-[10px] font-bold text-slate-500 uppercase">
-                        <span>Đã dùng</span>
-                        <span>{coupon.usageCount}/{coupon.maxUsage}</span>
-                      </div>
-                      <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                        <div 
-                          className={`h-full rounded-full ${
-                            (coupon.usageCount / coupon.maxUsage) > 0.8 ? 'bg-amber-500' : 'bg-green-500'
-                          }`}
-                          style={{ width: `${(coupon.usageCount / coupon.maxUsage) * 100}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {coupon.status === "active" && (
-                      <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-none font-bold">Hoạt động</Badge>
-                    )}
-                    {coupon.status === "expired" && (
-                      <Badge className="bg-slate-100 text-slate-500 hover:bg-slate-100 border-none font-bold">Hết hạn</Badge>
-                    )}
-                    {coupon.status === "scheduled" && (
-                      <Badge className="bg-blue-100 text-blue-600 hover:bg-blue-100 border-none font-bold">Lên lịch</Badge>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end items-center gap-2">
-                      <Button variant="outline" size="sm" className="h-8 font-medium border-slate-200">Sửa</Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-slate-900 bg-slate-50 hover:bg-slate-200">
-                        <MoreHorizontal className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-8 text-slate-500">Đang tải dữ liệu...</TableCell>
                 </TableRow>
-              ))}
+              ) : filteredCoupons.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-8 text-slate-500">Chưa có mã giảm giá nào</TableCell>
+                </TableRow>
+              ) : (
+                filteredCoupons.map((coupon) => (
+                  <TableRow key={coupon.id} className="hover:bg-slate-50/50">
+                    <TableCell>
+                      <div className="flex flex-col gap-1">
+                        <span className="font-black text-slate-900 tracking-wider text-base">{coupon.code}</span>
+                        <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded border border-green-100 w-fit">
+                          Giảm {coupon.discountPercent}%
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col gap-1 text-xs text-slate-600 font-medium">
+                        <span>Đơn tối thiểu: <span className="font-bold text-slate-900">{formatVND(coupon.minDiscount)}</span></span>
+                        <span>Giảm tối đa: <span className="font-bold text-slate-900">{formatVND(coupon.maxDiscount)}</span></span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
+                        <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                        {new Date(coupon.expiryDate).toLocaleDateString('vi-VN')}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col gap-1.5 w-32">
+                        <div className="flex justify-between text-[10px] font-bold text-slate-500 uppercase">
+                          <span>Đã dùng</span>
+                          <span>{coupon.usedCount || 0}/{coupon.quantity}</span>
+                        </div>
+                        <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full rounded-full ${((coupon.usedCount || 0) / coupon.quantity) > 0.8 ? 'bg-amber-500' : 'bg-green-500'
+                              }`}
+                            style={{ width: `${((coupon.usedCount || 0) / coupon.quantity) * 100}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {coupon.status === 1 && (
+                        <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-none font-bold">Hoạt động</Badge>
+                      )}
+                      {coupon.status === 2 && (
+                        <Badge className="bg-slate-100 text-slate-500 hover:bg-slate-100 border-none font-bold">Hết hạn</Badge>
+                      )}
+                      {coupon.status === 0 && (
+                        <Badge className="bg-blue-100 text-blue-600 hover:bg-blue-100 border-none font-bold">Tạm ẩn</Badge>
+                      )}
+                      {coupon.status === 3 && (
+                        <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 border-none font-bold">Hết lượt</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end items-center gap-2">
+                        <Button variant="outline" size="sm" className="h-8 font-medium border-slate-200">Sửa</Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-slate-400 hover:text-red-600 bg-slate-50 hover:bg-red-50"
+                          onClick={() => removeCoupon(coupon.id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </div>
       </Card>
+
+      <CouponFormModal
+        isOpen={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        onSave={addCoupon}
+      />
     </div>
   );
 }
