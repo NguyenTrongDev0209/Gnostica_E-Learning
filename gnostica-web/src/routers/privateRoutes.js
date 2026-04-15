@@ -15,6 +15,7 @@ import CheckoutPage from "@/pages/client/CheckoutPage";
 import PayosQR from "@/pages/client/PayosQR";
 import CheckoutResult from "@/pages/client/CheckoutResult";
 import ForumCreatePost from "@/pages/client/ForumCreatePost";
+import MyForumPosts from "@/pages/client/MyForumPosts";
 
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminUsers from "@/pages/admin/AdminUsers";
@@ -25,6 +26,7 @@ import AdminCoupons from "@/pages/admin/AdminCoupons";
 import AdminReviews from "@/pages/admin/AdminReviews";
 import AdminReports from "@/pages/admin/AdminReports";
 import AdminSettings from "@/pages/admin/AdminSettings";
+import AdminForumCategory from "@/pages/admin/AdminForumCategory";
 import AdminBanks from "@/pages/admin/AdminBanks";
 import AdminTransactions from "@/pages/admin/AdminTransactions";
 
@@ -62,6 +64,7 @@ export const privateRoutes = {
     { path: "/admin/reviews", component: AdminReviews },
     { path: "/admin/reports", component: AdminReports },
     { path: "/admin/settings", component: AdminSettings },
+    { path: "/admin/forum-categories", component: AdminForumCategory },
     { path: "/admin/banks", component: AdminBanks },
     { path: "/admin/transactions", component: AdminTransactions },
   ],
@@ -89,5 +92,6 @@ export const privateRoutes = {
   ],
   forum: [
     { path: "/forum/create", component: ForumCreatePost },
+    { path: "/forum/me", component: MyForumPosts },
   ],
 };

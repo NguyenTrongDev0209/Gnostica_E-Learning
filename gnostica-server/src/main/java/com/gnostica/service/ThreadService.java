@@ -14,4 +14,7 @@ public interface ThreadService {
     Thread likeThread(Integer id, String userEmail);
     boolean hasLiked(Integer id, String userEmail);
     List<Map<String, Object>> getTopContributors();
+    List<Thread> getRelatedThreads(Integer categoryId, Integer currentThreadId);
+    Page<Thread> getThreadsByEmail(String email, Pageable pageable);
+    Map<String, Object> getUserStats(String email);
 }

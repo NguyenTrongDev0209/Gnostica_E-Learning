@@ -38,6 +38,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import authService from '@/services/authService'
+import AiChatBot from '@/components/common/AiChatBot'
 
 const FooterBrand = () => (
   <div className="flex flex-col gap-6">
@@ -367,6 +368,7 @@ const MainLayout = () => {
           </div>
         </div>
       </footer>
+      <AiChatBot />
     </div>
   );
 };
