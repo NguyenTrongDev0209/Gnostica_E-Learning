@@ -136,6 +136,7 @@ public class CourseService {
                     .anyMatch(e -> e.getAccount().getId().equals(account.getId()) && e.getStatus() == 1);
             }
         }
+        course.setIsEnrolled(isEnrolled);
 
         // Logic hiển thị:
         // 1. Nếu là khách (email null) hoặc chưa mua: Chỉ thấy nếu status = 1 (Hoạt động)
