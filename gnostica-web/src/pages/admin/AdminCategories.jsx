@@ -339,7 +339,10 @@ export default function AdminCategories() {
                           <TableCell>
                             {sub.status === true ? (
                               <span
-                                onClick={(e) => toggleStatus(e, sub.id, false)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleStatus(sub.id, false);
+                                }}
                                 className="inline-flex items-center gap-1.5 text-sm text-green-600 font-medium cursor-pointer hover:underline"
                               >
                                 <span className="w-2 h-2 rounded-full bg-green-500" />{" "}
@@ -347,7 +350,10 @@ export default function AdminCategories() {
                               </span>
                             ) : (
                               <span
-                                onClick={(e) => toggleStatus(e, sub.id, true)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleStatus(sub.id, true);
+                                }}
                                 className="inline-flex items-center gap-1.5 text-sm text-slate-500 font-medium cursor-pointer hover:underline"
                               >
                                 <span className="w-2 h-2 rounded-full bg-slate-400" />{" "}
@@ -372,7 +378,10 @@ export default function AdminCategories() {
                                 variant="ghost"
                                 size="icon"
                                 className="h-8 w-8 text-slate-400 hover:text-red-500"
-                                onClick={(e) => handleDelete(e, sub.id)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDelete(sub.id);
+                                }}
                               >
                                 <Trash2 className="w-4 h-4" />
                               </Button>

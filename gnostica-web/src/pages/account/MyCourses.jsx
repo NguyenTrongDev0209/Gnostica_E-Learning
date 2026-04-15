@@ -152,7 +152,9 @@ export default function MyCourses() {
                   )}
                   
                   <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
-                    <Link to={`/learning/${course.courseSlug}${course.lastWatchedLessonSlug ? `?lesson=${course.lastWatchedLessonSlug}` : ""}`}>
+                    <Link to={course.progressPercent === 100 
+                      ? `/learning/${course.courseSlug}?lesson=${course.firstLessonId}&restart=true` 
+                      : `/learning/${course.courseSlug}${course.lastWatchedLessonSlug ? `?lesson=${course.lastWatchedLessonSlug}` : ""}`}>
                       <button className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition-all text-primary">
                         <PlayCircle className="w-10 h-10 ml-1" />
                       </button>
@@ -185,7 +187,12 @@ export default function MyCourses() {
                     />
                   </div>
                   
-                  <Link to={`/learning/${course.courseSlug}${course.lastWatchedLessonSlug ? `?lesson=${course.lastWatchedLessonSlug}` : ""}`} className="block w-full">
+                  <Link 
+                    to={course.progressPercent === 100 
+                      ? `/learning/${course.courseSlug}?lesson=${course.firstLessonId}&restart=true` 
+                      : `/learning/${course.courseSlug}${course.lastWatchedLessonSlug ? `?lesson=${course.lastWatchedLessonSlug}` : ""}`} 
+                    className="block w-full"
+                  >
                     <button 
                       className={`w-full py-2.5 rounded-xl text-sm font-bold transition-colors
                         ${course.progressPercent === 100 
