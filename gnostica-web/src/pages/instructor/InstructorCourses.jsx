@@ -106,8 +106,8 @@ export default function InstructorCourses() {
           <Table>
             <TableHeader className="bg-slate-50">
               <TableRow>
-                <TableHead className="py-4 font-semibold text-slate-700 w-[400px]">Khóa học</TableHead>
-                <TableHead className="py-4 font-semibold text-slate-700">Giá & Trạng thái</TableHead>
+                <TableHead className="py-4 font-semibold text-slate-700">Khóa học</TableHead>
+                <TableHead className="py-4 font-semibold text-slate-700">Giá và Trạng thái</TableHead>
                 <TableHead className="py-4 font-semibold text-slate-700 text-center">Nội dung</TableHead>
                 <TableHead className="py-4 font-semibold text-slate-700 text-center">Thống kê</TableHead>
                 <TableHead className="py-4 font-semibold text-slate-700 text-center w-[120px]">Trạng thái</TableHead>
@@ -119,8 +119,8 @@ export default function InstructorCourses() {
                 <TableRow>
                   <TableCell colSpan={5} className="h-32 text-center text-slate-500">
                     <div className="flex justify-center items-center gap-2">
-                       <Loader2 className="w-5 h-5 animate-spin" />
-                       Đang tải dữ liệu...
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Đang tải dữ liệu...
                     </div>
                   </TableCell>
                 </TableRow>
@@ -132,20 +132,19 @@ export default function InstructorCourses() {
                 </TableRow>
               ) : (
                 courses.map((course) => (
-                  <TableRow 
-                    key={course.id} 
-                    className={`hover:bg-slate-50/50 transition-colors ${
-                      course.isVirtualDraft ? 'bg-amber-50/40 border-l-2 border-l-amber-400' : ''
-                    }`}
+                  <TableRow
+                    key={course.id}
+                    className={`hover:bg-slate-50/50 transition-colors ${course.isVirtualDraft ? 'bg-amber-50/40 border-l-2 border-l-amber-400' : ''
+                      }`}
                   >
                     <TableCell>
                       <div className="flex gap-4 items-center">
                         <div className="w-24 h-16 rounded-md overflow-hidden shrink-0 border border-slate-200 relative bg-slate-50 flex items-center justify-center">
                           {course.thumbnail ? (
-                            <img 
-                              src={course.thumbnail} 
-                              alt={course.title} 
-                              className="w-full h-full object-cover" 
+                            <img
+                              src={course.thumbnail}
+                              alt={course.title}
+                              className="w-full h-full object-cover"
                             />
                           ) : (
                             <div className="flex flex-col items-center justify-center text-slate-300">
@@ -153,7 +152,7 @@ export default function InstructorCourses() {
                               <span className="text-[7px] font-bold uppercase tracking-tighter opacity-40">No Image</span>
                             </div>
                           )}
-                          
+
                           {course.isVirtualDraft && (
                             <div className="absolute inset-0 bg-amber-500/10 flex items-center justify-center">
                               <span className="text-[8px] font-black text-amber-700 bg-amber-100/90 px-1 py-0.5 rounded uppercase tracking-wider">
@@ -198,7 +197,7 @@ export default function InstructorCourses() {
                             {formatPrice(course.price)}
                           </span>
                         )}
-                        
+
                         <div className="flex flex-wrap gap-1 mt-1.5">
                           {course.isVirtualDraft ? (
                             <span className="inline-flex items-center gap-1 text-[10px] text-amber-700 font-bold bg-amber-50 px-1.5 py-0.5 rounded border border-amber-300">
@@ -208,16 +207,17 @@ export default function InstructorCourses() {
                             <>
                               {course.status === 1 ? (
                                 <span className="inline-flex items-center gap-1 text-[10px] text-green-600 font-bold bg-green-50 px-1.5 py-0 rounded border border-green-200">
-                                   Đang bán
+                                  Đang bán
                                 </span>
                               ) : (
                                 <span className="inline-flex items-center gap-1 text-[10px] text-slate-600 font-bold bg-slate-100 px-1.5 py-0 rounded border border-slate-200">
-                                   Ẩn
+                                  Ẩn
                                 </span>
                               )}
                               {course.hasUnsavedDraft && (
                                 <span className="inline-flex items-center gap-1 text-[10px] text-orange-600 font-bold bg-orange-50 px-1.5 py-0 rounded border border-orange-200">
                                   Có bản nháp
+                                  <span className="w-1 h-1 rounded-full bg-orange-400 animate-pulse ml-1" />
                                 </span>
                               )}
                             </>
@@ -255,14 +255,13 @@ export default function InstructorCourses() {
                     </TableCell>
                     <TableCell className="text-center">
                       {!course.isVirtualDraft && (
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className={`h-9 w-9 rounded-lg transition-all mx-auto ${
-                            course.status === 1 
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className={`h-9 w-9 rounded-lg transition-all mx-auto ${course.status === 1
                               ? "bg-green-50 text-green-600 hover:bg-green-100 hover:text-green-700"
                               : "bg-slate-50 text-slate-400 hover:bg-slate-100 hover:text-slate-500"
-                          }`}
+                            }`}
                           onClick={() => handleToggleStatus(course.id, course.status)}
                           title={course.status === 1 ? "Khóa học đang hiển thị (Nhấn để ẩn)" : "Khóa học đang ẩn (Nhấn để hiện)"}
                         >
@@ -272,24 +271,24 @@ export default function InstructorCourses() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end items-center gap-3">
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           className="h-9 px-5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 hover:text-indigo-800 font-bold rounded-lg transition-all"
                           onClick={() => handleEdit(course)}
                         >
                           Chỉnh sửa
                         </Button>
-                        
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
+
+                        <Button
+                          variant="ghost"
+                          size="icon"
                           className="h-9 w-9 bg-red-50 text-red-500 hover:bg-red-100 hover:text-red-600 rounded-lg transition-all"
                           onClick={() => {
                             if (course.isVirtualDraft) {
                               handleDeleteDraft(course);
                             } else {
-                              handleDelete(course.id, course.title);
+                              performDelete(course.id, course.title);
                             }
                           }}
                         >

@@ -143,7 +143,7 @@ export const courseSchema = z.object({
     z.string({ required_error: "Slug không được để trống" }).min(1, "Slug không được để trống")
   ),
   categoryId: z.preprocess((val) => (val === null || val === undefined ? "" : String(val)),
-    z.string({ required_error: "Vui lòng chọn danh mục sản phẩm" }).min(1, "Vui lòng chọn danh mục sản phẩm")
+    z.string({ required_error: "Vui lòng chọn danh mục khóa học" }).min(1, "Vui lòng chọn danh mục khóa học")
   ),
   level: z.preprocess((val) => (val === null || val === undefined ? "" : String(val)),
     z.string({ required_error: "Vui lòng chọn cấp độ khó" }).min(1, "Vui lòng chọn cấp độ khó")
@@ -850,7 +850,7 @@ function CategoryCascader({ categories, value, onChange }) {
           className="flex h-11 w-full items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 disabled:cursor-not-allowed disabled:opacity-50 data-[state=open]:border-orange-500 data-[state=open]:ring-1 data-[state=open]:ring-orange-500 transition-all font-sans"
         >
           <span className={value ? "text-slate-900" : "text-slate-500"}>
-            {selectedName || "Chọn danh mục sản phẩm"}
+            {selectedName || "Chọn danh mục khóa học"}
           </span>
           <ChevronDown className="h-4 w-4 opacity-50" />
         </button>

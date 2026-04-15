@@ -29,7 +29,9 @@ import enrollmentService from "@/services/enrollmentService";
 export default function LearningWorkspace() {
   const { id: slug } = useParams();
   const navigate = useNavigate();
-  const targetLessonSlug = new URLSearchParams(window.location.search).get("lesson");
+  const searchParams = new URLSearchParams(window.location.search);
+  const targetLessonSlug = searchParams.get("lesson");
+  const isRestart = searchParams.get("restart") === "true";
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isEnrolled, setIsEnrolled] = useState(false);
@@ -79,10 +81,10 @@ export default function LearningWorkspace() {
       ]);
       
       const activeModules = (courseData.modules || [])
-        .filter(m => m.status === 1)
+        .filter(m => m.status === 1 || m.status === 2)
         .map(m => ({
           ...m,
-          lessons: (m.lessons || []).filter(l => l.status === 1)
+          lessons: (m.lessons || []).filter(l => l.status === 1 || l.status === 2)
         }))
         .filter(m => m.lessons.length > 0);
 
@@ -140,7 +142,7 @@ export default function LearningWorkspace() {
   const currentLesson = currentSection?.lessons?.[activeLessonIdx];
   
   const currentLessonProgress = lessonProgress.find(lp => lp.lessonId === currentLesson?.id);
-  const startAtTime = currentLessonProgress?.lastWatchedTime || 0;
+  const startAtTime = isRestart ? 0 : (currentLessonProgress?.lastWatchedTime || 0);
 
   // === Đồng bộ refs mỗi khi giá trị thay đổi ===
   useEffect(() => { currentLessonRef.current = currentLesson; }, [currentLesson]);

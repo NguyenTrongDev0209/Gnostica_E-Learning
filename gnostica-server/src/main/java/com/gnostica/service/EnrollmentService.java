@@ -79,6 +79,15 @@ public class EnrollmentService {
                 .findFirst()
                 .orElse(null);
 
+        // Tìm bài học đầu tiên (cho nút "Ôn tập" hoặc "Bắt đầu học")
+        String firstLessonIdStr = course.getModules().stream()
+                .filter(m -> m.getStatus() != null && (m.getStatus() == 1 || m.getStatus() == 2))
+                .flatMap(m -> m.getLessons().stream())
+                .filter(l -> l.getStatus() != null && (l.getStatus() == 1 || l.getStatus() == 2))
+                .map(l -> l.getId().toString())
+                .findFirst()
+                .orElse(null);
+
         return EnrollmentDTO.builder()
                 .id(enrollment.getId())
                 .courseId(course.getId())
@@ -89,7 +98,8 @@ public class EnrollmentService {
                 .progressPercent(enrollment.getProgressPercent() != null ? enrollment.getProgressPercent() : 0)
                 .completedAt(enrollment.getCompletedAt())
                 .joinedAt(enrollment.getCreatedAt())
-                .lastWatchedLessonSlug(lastLessonIdStr) // Truyền ID vào trường này để Frontend nhận dạng
+                .lastWatchedLessonSlug(lastLessonIdStr) 
+                .firstLessonId(firstLessonIdStr)
                 .build();
     }
 
@@ -106,7 +116,7 @@ public class EnrollmentService {
         Course course = enrollment.getCourse();
         long totalLessons = course.getModules().stream()
                 .flatMap(m -> m.getLessons().stream())
-                .filter(l -> l.getStatus() == 1)
+                .filter(l -> l.getStatus() != null && (l.getStatus() == 1 || l.getStatus() == 2))
                 .count();
 
         if (totalLessons == 0) return;
