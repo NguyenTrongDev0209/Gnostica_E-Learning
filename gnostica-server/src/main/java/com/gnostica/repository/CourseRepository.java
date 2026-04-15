@@ -11,6 +11,11 @@ public interface CourseRepository extends JpaRepository<Course, Integer> {
     boolean existsBySlug(String slug);
     boolean existsBySlugAndIdNot(String slug, Integer id);
     
+    long countByAccountIdAndStatus(Integer accountId, Integer status);
+
+    @org.springframework.data.jpa.repository.Query("SELECT COALESCE(SUM(SIZE(c.enrollments)), 0) FROM Course c WHERE c.account.id = :accountId")
+    long countStudentsByInstructorId(@org.springframework.data.repository.query.Param("accountId") Integer accountId);
+
     org.springframework.data.domain.Page<Course> findByStatus(Integer status, org.springframework.data.domain.Pageable pageable);
     
     @org.springframework.data.jpa.repository.Query("SELECT COUNT(c) FROM Course c WHERE c.category.id = :categoryId")
