@@ -52,8 +52,12 @@ public class CourseController {
         }
     }
     @GetMapping("/{slug}")
-    public ResponseEntity<Course> getCourseDetail(@PathVariable String slug) {
-        return ResponseEntity.ok(courseService.getCourseBySlug(slug));
+    public ResponseEntity<Course> getCourseDetail(
+            @PathVariable String slug,
+            Authentication authentication
+    ) {
+        String email = authentication != null ? authentication.getName() : null;
+        return ResponseEntity.ok(courseService.getCourseBySlug(slug, email));
     }
 
     @PutMapping("/{slug}")

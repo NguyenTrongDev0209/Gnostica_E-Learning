@@ -27,6 +27,9 @@ import AdminReviews from "@/pages/admin/AdminReviews";
 import AdminReports from "@/pages/admin/AdminReports";
 import AdminSettings from "@/pages/admin/AdminSettings";
 import AdminForumCategory from "@/pages/admin/AdminForumCategory";
+import AdminBanks from "@/pages/admin/AdminBanks";
+import AdminTransactions from "@/pages/admin/AdminTransactions";
+
 
 import InstructorDashboard from "@/pages/instructor/InstructorDashboard";
 import InstructorCourses from "@/pages/instructor/InstructorCourses";
@@ -62,7 +65,10 @@ export const privateRoutes = {
     { path: "/admin/reports", component: AdminReports },
     { path: "/admin/settings", component: AdminSettings },
     { path: "/admin/forum-categories", component: AdminForumCategory },
+    { path: "/admin/banks", component: AdminBanks },
+    { path: "/admin/transactions", component: AdminTransactions },
   ],
+
   instructor: [
     { path: "/instructor", component: InstructorDashboard },
     { path: "/instructor/courses", component: InstructorCourses },

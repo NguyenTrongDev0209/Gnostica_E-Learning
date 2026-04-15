@@ -49,6 +49,9 @@ import {
 import { toast } from "sonner";
 import Fuse from "fuse.js";
 import categoryService from "@/services/categoryService";
+import { DialogDescription } from "@/components/ui/dialog";
+
+const ITEMS_PER_PAGE = 10;
 
 const categorySchema = z.object({
   name: z
@@ -81,7 +84,7 @@ export default function AdminCategories() {
     handleDelete,
     generateSlug,
     saveCategory,
-  } = useAdminCategories(10);
+  } = useAdminCategories(ITEMS_PER_PAGE);
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editId, setEditId] = useState(null);
@@ -336,7 +339,10 @@ export default function AdminCategories() {
                           <TableCell>
                             {sub.status === true ? (
                               <span
-                                onClick={(e) => toggleStatus(e, sub.id, false)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleStatus(sub.id, false);
+                                }}
                                 className="inline-flex items-center gap-1.5 text-sm text-green-600 font-medium cursor-pointer hover:underline"
                               >
                                 <span className="w-2 h-2 rounded-full bg-green-500" />{" "}
@@ -344,7 +350,10 @@ export default function AdminCategories() {
                               </span>
                             ) : (
                               <span
-                                onClick={(e) => toggleStatus(e, sub.id, true)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleStatus(sub.id, true);
+                                }}
                                 className="inline-flex items-center gap-1.5 text-sm text-slate-500 font-medium cursor-pointer hover:underline"
                               >
                                 <span className="w-2 h-2 rounded-full bg-slate-400" />{" "}
@@ -369,7 +378,10 @@ export default function AdminCategories() {
                                 variant="ghost"
                                 size="icon"
                                 className="h-8 w-8 text-slate-400 hover:text-red-500"
-                                onClick={(e) => handleDelete(e, sub.id)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDelete(sub.id);
+                                }}
                               >
                                 <Trash2 className="w-4 h-4" />
                               </Button>
@@ -439,6 +451,11 @@ export default function AdminCategories() {
               </div>
               {editId ? "Cập Nhật Danh Mục" : "Thêm Danh Mục Mới"}
             </DialogTitle>
+            <DialogDescription>
+              {editId 
+                ? "Chỉnh sửa thông tin danh mục hiện có." 
+                : "Tạo một danh mục mới để phân loại các khóa học của bạn."}
+            </DialogDescription>
           </DialogHeader>
 
           <Form {...form}>
