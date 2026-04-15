@@ -20,6 +20,9 @@ public class OAuth2FailureHandler extends SimpleUrlAuthenticationFailureHandler 
             AuthenticationException exception) throws IOException, ServletException {
         
         String errorMessage = exception.getMessage();
+        if (errorMessage == null) {
+            errorMessage = "Đã có lỗi xảy ra trong quá trình xác thực.";
+        }
         String targetUrl = "http://localhost:5173/login?error=" + URLEncoder.encode(errorMessage, StandardCharsets.UTF_8);
         
         System.out.println("OAuth2 Login Failed: " + errorMessage + ". Redirecting to: " + targetUrl);

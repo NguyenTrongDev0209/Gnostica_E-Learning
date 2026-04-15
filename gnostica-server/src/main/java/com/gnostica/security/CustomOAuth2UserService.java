@@ -92,10 +92,15 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             }
             
             return oAuth2User;
+        } catch (org.springframework.security.core.AuthenticationException e) {
+            throw e;
         } catch (Exception e) {
             System.out.println("CRITICAL ERROR in CustomOAuth2UserService: " + e.getLocalizedMessage());
             e.printStackTrace();
-            throw new OAuth2AuthenticationException(e.getMessage());
+            throw new OAuth2AuthenticationException(
+                new org.springframework.security.oauth2.core.OAuth2Error("oauth2_error", e.getMessage() != null ? e.getMessage() : "Lỗi xử lý OAuth2", null), 
+                e.getMessage() != null ? e.getMessage() : "Lỗi xử lý OAuth2"
+            );
         }
     }
 }
