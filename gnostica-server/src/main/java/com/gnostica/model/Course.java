@@ -111,6 +111,11 @@ public class Course {
         return account != null ? account.getAvatar() : null;
     }
 
+    @com.fasterxml.jackson.annotation.JsonProperty("instructorId")
+    public Integer getInstructorId() {
+        return account != null ? account.getId() : null;
+    }
+
     @PrePersist
     @PreUpdate
     private void calculateFinalPrice() {

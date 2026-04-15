@@ -4,6 +4,7 @@ import { Home, Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { AppBreadcrumb } from "@/components/common/AppSection";
 import courseService from "@/services/courseService";
+import axios from "axios";
 import { 
   CourseDetailHeader, 
   CourseDetailVideo, 
@@ -16,6 +17,7 @@ import {
 export default function CourseDetail() {
   const { slug } = useParams();
   const [course, setCourse] = useState(null);
+  const [instructorProfile, setInstructorProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -70,6 +72,16 @@ export default function CourseDetail() {
         };
 
         setCourse(formattedCourse);
+
+        // Fetch instructor profile nếu có instructorId
+        if (data.instructorId) {
+          try {
+            const profileRes = await axios.get(`http://localhost:8080/api/instructors/${data.instructorId}/profile`);
+            setInstructorProfile(profileRes.data);
+          } catch (profileErr) {
+            console.warn("Không thể tải thông tin giảng viên:", profileErr);
+          }
+        }
       } catch (err) {
         console.error("Lỗi khi tải chi tiết khóa học:", err);
         setError("Không thể tải thông tin khóa học.");
@@ -99,6 +111,17 @@ export default function CourseDetail() {
       </div>
     );
   }
+
+  // Build instructor data: ưu tiên dữ liệu từ API profile, fallback về course data
+  const instructorData = {
+    name: instructorProfile?.name || course.instructor?.name || "Giảng viên",
+    avatar: instructorProfile?.avatar || course.instructor?.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=100&auto=format&fit=crop",
+    role: "Chuyên gia đào tạo",
+    bio: `Giảng viên tại Gnostica với ${instructorProfile?.coursesCount || 1} khóa học và ${instructorProfile?.studentsCount || 0} học viên đã đăng ký.`,
+    reviewsCount: instructorProfile?.reviewsCount || 0,
+    studentsCount: instructorProfile?.studentsCount || 0,
+    coursesCount: instructorProfile?.coursesCount || 1,
+  };
 
   const breadcrumbItems = [
     { label: "Trang chủ", href: "/", icon: Home },
@@ -134,15 +157,7 @@ export default function CourseDetail() {
 
             <Separator className="bg-slate-200/60" />
 
-            <CourseDetailInstructor instructor={{
-                name: course.instructorName || "Giảng viên",
-                avatar: course.instructorAvatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=100&auto=format&fit=crop",
-                role: "Chuyên gia đào tạo",
-                bio: "Giảng viên giàu kinh nghiệm trong lĩnh vực công nghệ thông tin và phát triển phần mềm.",
-                reviewsCount: 120,
-                studentsCount: 1250,
-                coursesCount: 5
-            }} />
+            <CourseDetailInstructor instructor={instructorData} />
           </div>
 
           <div className="lg:col-span-4 relative">
