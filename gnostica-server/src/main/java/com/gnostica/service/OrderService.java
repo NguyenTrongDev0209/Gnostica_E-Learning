@@ -9,7 +9,7 @@ import vn.payos.model.v2.paymentRequests.PaymentLink;
 import vn.payos.model.v2.paymentRequests.PaymentLinkItem;
 import vn.payos.model.v2.paymentRequests.invoices.InvoicesInfo;
 import vn.payos.model.webhooks.ConfirmWebhookResponse;
-import com.gnostica.dto.CreatePaymentLinkRequestBody;
+import com.gnostica.dto.request.CreatePaymentLinkRequestBody;
 
 import java.util.ArrayList;
 import com.gnostica.model.Account;

@@ -5,8 +5,8 @@ import java.time.LocalDateTime;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import com.gnostica.dto.CouponRequest;
-import com.gnostica.dto.CouponResponse;
+import com.gnostica.dto.request.CouponRequest;
+import com.gnostica.dto.response.CouponResponse;
 import com.gnostica.model.Account;
 import com.gnostica.model.Coupon;
 import com.gnostica.repository.AccountRepository;

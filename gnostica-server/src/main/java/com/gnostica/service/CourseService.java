@@ -1,8 +1,8 @@
 package com.gnostica.service;
 
-import com.gnostica.dto.CourseRequest;
-import com.gnostica.dto.LessonRequest;
-import com.gnostica.dto.ModuleRequest;
+import com.gnostica.dto.request.CourseRequest;
+import com.gnostica.dto.request.LessonRequest;
+import com.gnostica.dto.request.ModuleRequest;
 import com.gnostica.model.Account;
 import com.gnostica.model.Attachment;
 import com.gnostica.model.Category;

@@ -3,9 +3,9 @@ package com.gnostica.service.impl;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.gnostica.dto.LoginRequest;
-import com.gnostica.dto.LoginResponse;
-import com.gnostica.dto.RegisterRequest;
+import com.gnostica.dto.request.LoginRequest;
+import com.gnostica.dto.response.LoginResponse;
+import com.gnostica.dto.request.RegisterRequest;
 import com.gnostica.model.Account;
 import com.gnostica.model.Role;
 import com.gnostica.model.Password;

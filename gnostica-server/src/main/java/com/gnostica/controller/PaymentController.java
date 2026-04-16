@@ -1,7 +1,7 @@
 package com.gnostica.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.gnostica.dto.ApiResponse;
+import com.gnostica.dto.response.ApiResponse;
 import com.gnostica.service.PaymentService;
 
 import org.springframework.web.bind.annotation.PostMapping;

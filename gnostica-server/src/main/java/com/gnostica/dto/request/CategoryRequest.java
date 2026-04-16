@@ -1,4 +1,4 @@
-package com.gnostica.dto;
+package com.gnostica.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

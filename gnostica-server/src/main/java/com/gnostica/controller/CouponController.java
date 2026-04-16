@@ -10,9 +10,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.gnostica.dto.CouponRequest;
-import com.gnostica.dto.CouponResponse;
-import com.gnostica.dto.ResponseDTO;
+import com.gnostica.dto.request.CouponRequest;
+import com.gnostica.dto.response.CouponResponse;
+import com.gnostica.dto.response.ResponseDTO;
 import com.gnostica.service.CouponService;
 
 import jakarta.validation.Valid;

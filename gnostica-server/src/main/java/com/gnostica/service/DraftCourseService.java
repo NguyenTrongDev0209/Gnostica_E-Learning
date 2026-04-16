@@ -1,6 +1,6 @@
 package com.gnostica.service;
 
-import com.gnostica.dto.CourseRequest;
+import com.gnostica.dto.request.CourseRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;

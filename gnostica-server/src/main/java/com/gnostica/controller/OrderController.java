@@ -10,8 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.CrossOrigin;
 
-import com.gnostica.dto.ApiResponse;
-import com.gnostica.dto.CreatePaymentLinkRequestBody;
+import com.gnostica.dto.response.ApiResponse;
+import com.gnostica.dto.request.CreatePaymentLinkRequestBody;
 import com.gnostica.service.OrderService;
 
 import vn.payos.core.FileDownloadResponse;

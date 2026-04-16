@@ -16,8 +16,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.gnostica.dto.CategoryRequest;
-import com.gnostica.dto.CategoryResponseDTO;
+import com.gnostica.dto.request.CategoryRequest;
+import com.gnostica.dto.response.CategoryResponseDTO;
 import com.gnostica.model.Category;
 import com.gnostica.repository.CategoryRepository;
 

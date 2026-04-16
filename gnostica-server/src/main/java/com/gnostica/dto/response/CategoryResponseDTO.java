@@ -1,4 +1,4 @@
-package com.gnostica.dto;
+package com.gnostica.dto.response;
 
 import java.time.LocalDateTime;
 import java.util.List;

@@ -3,11 +3,11 @@ package com.gnostica.controller;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.gnostica.dto.LoginRequest;
-import com.gnostica.dto.LoginResponse;
-import com.gnostica.dto.RegisterRequest;
-import com.gnostica.dto.ResetPasswordRequest;
-import com.gnostica.dto.ResponseDTO;
+import com.gnostica.dto.request.LoginRequest;
+import com.gnostica.dto.response.LoginResponse;
+import com.gnostica.dto.request.RegisterRequest;
+import com.gnostica.dto.request.ResetPasswordRequest;
+import com.gnostica.dto.response.ResponseDTO;
 import com.gnostica.model.Account;
 import com.gnostica.service.AuthService;
 

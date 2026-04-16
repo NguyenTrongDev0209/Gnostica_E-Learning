@@ -1,6 +1,6 @@
 package com.gnostica.controller;
 
-import com.gnostica.dto.CourseRequest;
+import com.gnostica.dto.request.CourseRequest;
 import com.gnostica.model.Course;
 import com.gnostica.service.CourseService;
 import jakarta.validation.Valid;

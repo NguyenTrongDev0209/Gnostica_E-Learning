@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.CrossOrigin;
 
-import com.gnostica.dto.ApiResponse;
+import com.gnostica.dto.response.ApiResponse;
 import com.gnostica.service.PayoutsService;
 
 import vn.payos.model.v1.payouts.Payout;
