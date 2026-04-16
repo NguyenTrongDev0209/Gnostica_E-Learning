@@ -1,21 +1,6 @@
-import axios from 'axios';
+import api from './api';
 
-const API_URL = 'http://localhost:8080/api/order';
-
-const getAuthHeaders = () => {
-    const userStr = localStorage.getItem('user');
-    if (userStr) {
-        try {
-            const user = JSON.parse(userStr);
-            if (user && user.token) {
-                return { Authorization: `Bearer ${user.token}` };
-            }
-        } catch (error) {
-            console.error('OrderService: Error parsing user from localStorage', error);
-        }
-    }
-    return {};
-};
+const RESOURCE_PATH = '/order';
 
 /**
  * Lấy tất cả đơn hàng (Admin)
@@ -23,9 +8,7 @@ const getAuthHeaders = () => {
  */
 const getOrders = async () => {
     try {
-        const response = await axios.get(`${API_URL}/all`, {
-            headers: getAuthHeaders()
-        });
+        const response = await api.get(`${RESOURCE_PATH}/all`);
         return response.data.data;
     } catch (error) {
         throw error.response?.data?.message || 'Không thể lấy danh sách đơn hàng!';
@@ -39,9 +22,7 @@ const getOrders = async () => {
  */
 const createOrder = async (data) => {
     try {
-        const response = await axios.post(`${API_URL}/create`, data, {
-            headers: getAuthHeaders()
-        });
+        const response = await api.post(`${RESOURCE_PATH}/create`, data);
         return response.data;
     } catch (error) {
         throw error.response?.data?.message || 'Có lỗi xảy ra khi tạo đơn hàng!';
@@ -55,9 +36,7 @@ const createOrder = async (data) => {
  */
 const getOrderById = async (orderId) => {
     try {
-        const response = await axios.get(`${API_URL}/${orderId}`, {
-            headers: getAuthHeaders()
-        });
+        const response = await api.get(`${RESOURCE_PATH}/${orderId}`);
         return response.data;
     } catch (error) {
         throw error.response?.data?.message || 'Không thể lấy thông tin đơn hàng!';
@@ -71,9 +50,7 @@ const getOrderById = async (orderId) => {
  */
 const cancelOrder = async (orderId) => {
     try {
-        const response = await axios.put(`${API_URL}/${orderId}`, null, {
-            headers: getAuthHeaders()
-        });
+        const response = await api.put(`${RESOURCE_PATH}/${orderId}`, null);
         return response.data;
     } catch (error) {
         throw error.response?.data?.message || 'Có lỗi xảy ra khi hủy đơn hàng!';
@@ -87,9 +64,7 @@ const cancelOrder = async (orderId) => {
  */
 const getInvoices = async (orderId) => {
     try {
-        const response = await axios.get(`${API_URL}/${orderId}/invoices`, {
-            headers: getAuthHeaders()
-        });
+        const response = await api.get(`${RESOURCE_PATH}/${orderId}/invoices`);
         return response.data;
     } catch (error) {
         throw error.response?.data?.message || 'Không thể lấy danh sách hóa đơn!';
@@ -104,8 +79,7 @@ const getInvoices = async (orderId) => {
  */
 const downloadInvoice = async (orderId, invoiceId) => {
     try {
-        const response = await axios.get(`${API_URL}/${orderId}/invoices/${invoiceId}/download`, {
-            headers: getAuthHeaders(),
+        const response = await api.get(`${RESOURCE_PATH}/${orderId}/invoices/${invoiceId}/download`, {
             responseType: 'blob'
         });
         return response.data;

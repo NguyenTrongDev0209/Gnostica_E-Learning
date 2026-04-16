@@ -1,54 +1,29 @@
-import axios from 'axios';
+import api from './api';
 
-const API_URL = 'http://localhost:8080/api/banks';
-
-const getAuthHeaders = () => {
-    const userStr = localStorage.getItem('user');
-    if (userStr) {
-        try {
-            const user = JSON.parse(userStr);
-            if (user && user.token) {
-                return { Authorization: `Bearer ${user.token}` };
-            }
-        } catch (error) {
-            console.error('BankService: Error parsing user from localStorage', error);
-        }
-    }
-    return {};
-};
+const RESOURCE_PATH = '/banks';
 
 const createBank = async (data) => {
-    const response = await axios.post(API_URL, data, {
-        headers: getAuthHeaders()
-    });
+    const response = await api.post(RESOURCE_PATH, data);
     return response.data;
 };
 
 const getBanks = async () => {
-    const response = await axios.get(API_URL, {
-        headers: getAuthHeaders()
-    });
+    const response = await api.get(RESOURCE_PATH);
     return response.data;
 };
 
 const updateBank = async (id, data) => {
-    const response = await axios.put(`${API_URL}/${id}`, data, {
-        headers: getAuthHeaders()
-    });
+    const response = await api.put(`${RESOURCE_PATH}/${id}`, data);
     return response.data;
 };
 
 const deleteBank = async (id) => {
-    const response = await axios.delete(`${API_URL}/${id}`, {
-        headers: getAuthHeaders()
-    });
+    const response = await api.delete(`${RESOURCE_PATH}/${id}`);
     return response.data;
 };
 
 const syncBanks = async () => {
-    const response = await axios.post(`${API_URL}/sync`, {}, {
-        headers: getAuthHeaders()
-    });
+    const response = await api.post(`${RESOURCE_PATH}/sync`, {});
     return response.data;
 };
 
