@@ -31,6 +31,13 @@ const getCoupons = async () => {
     return response.data;
 };
 
+const getMyCoupons = async () => {
+    const response = await axios.get(`${API_URL}/me`, {
+        headers: getAuthHeaders()
+    });
+    return response.data;
+};
+
 const deleteCoupon = async (id) => {
     const response = await axios.delete(`${API_URL}/${id}`, {
         headers: getAuthHeaders()
@@ -41,6 +48,7 @@ const deleteCoupon = async (id) => {
 const couponService = {
     createCoupon,
     getCoupons,
+    getMyCoupons,
     deleteCoupon,
 };
 

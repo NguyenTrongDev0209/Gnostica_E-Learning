@@ -12,10 +12,13 @@ import java.util.List;
 
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, Integer> {
-    
+
     @Query("SELECT SUM(t.amount) FROM Transaction t WHERE t.type = :type AND t.status = :status")
     Double sumAmountByTypeAndStatus(@Param("type") Integer type, @Param("status") Integer status);
 
     List<Transaction> findByCreatedAtAfter(LocalDateTime date);
+
     List<Transaction> findByOrder(Order order);
+
+    List<Transaction> findByAccountOrderByCreatedAtDesc(com.gnostica.model.Account account);
 }

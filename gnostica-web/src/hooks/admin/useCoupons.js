@@ -2,14 +2,17 @@ import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import couponService from '@/services/couponService';
 
-export function useCoupons() {
+export function useCoupons(options = {}) {
+  const { mine = false } = options;
   const [coupons, setCoupons] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const fetchCoupons = async () => {
     setIsLoading(true);
     try {
-      const response = await couponService.getCoupons();
+      const response = mine
+        ? await couponService.getMyCoupons()
+        : await couponService.getCoupons();
       if (response && response.data) {
         setCoupons(response.data);
       }

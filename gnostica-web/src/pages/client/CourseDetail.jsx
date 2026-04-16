@@ -42,6 +42,7 @@ export default function CourseDetail() {
           discount: data.discount || 0,
           rating: 5.0,
           reviews: 0,
+          isEnrolled: data.isEnrolled || false,
           students: data.students || 0,
           lastUpdated: "Mới đây",
           language: "Tiếng Việt",
