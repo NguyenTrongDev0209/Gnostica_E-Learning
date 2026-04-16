@@ -12,6 +12,7 @@ import TermsPage from "@/pages/client/TermsPage";
 import PrivacyPage from "@/pages/client/PrivacyPage";
 import Showcase from "@/pages/Showcase";
 import ErrorPage from "@/pages/ErrorPage";
+import InstructorList from "@/pages/client/InstructorList";
 
 import LoginPage from "@/pages/auth/LoginPage";
 import RegisterPage from "@/pages/auth/RegisterPage";
@@ -35,8 +36,8 @@ export const publicRoutes = {
     { path: "/forum/:id", component: ForumDetail },
     { path: "/profile/:id", component: UserProfile },
     { path: "/terms", component: TermsPage },
-    { path: "/privacy", component: PrivacyPage },
     { path: "/showcase", component: Showcase },
+    { path: "/instructors", component: InstructorList },
   ],
   auth: [
     { path: "/login", component: LoginPage },

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { Link, useParams } from 'react-router-dom';
 import SectionContainer from '@/components/common/AppSection';
 import { Card, CardContent } from "@/components/ui/card";
@@ -7,10 +8,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ForumPostCard } from "@/components/common/AppCard";
+import AppCard, { ForumPostCard } from "@/components/common/AppCard";
 import {
   MessageSquare, ThumbsUp, Eye, Clock, MapPin, Link as LinkIcon,
-  Calendar, Star, Award, BookOpen, Flame, UserPlus, Send
+  Calendar, Star, Award, BookOpen, Flame, UserPlus, Send, Users
 } from 'lucide-react';
 import StatItem from '@/components/common/StatItem';
 import {
@@ -89,21 +90,74 @@ const MOCK_LIKED_POSTS = [
   },
 ];
 
-// ── Main Component ─────────────────────────────────────────
 const UserProfile = () => {
   const { id } = useParams();
   const [following, setFollowing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [instructorCourses, setInstructorCourses] = useState([]);
+  const [loadingCourses, setLoadingCourses] = useState(false);
   
   const [isInstructorDialogOpen, setIsInstructorDialogOpen] = useState(false);
   const [agreedTerms, setAgreedTerms] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const currentUser = JSON.parse(localStorage.getItem('user'));
+  const isOwnProfile = currentUser && (id === String(currentUser.id) || !id);
+
+  const [userData, setUserData] = useState(() => 
+    isOwnProfile ? { ...MOCK_USER, ...currentUser, name: currentUser.fullName, role: currentUser.role } : MOCK_USER
+  );
+
+  useEffect(() => {
+    // Nếu là chính mình, đã set ở trạng thái khởi tạo, nhưng vẫn có thể fetch mới, tạm bọc trong loading để render
+    if (isOwnProfile) {
+        setLoading(false);
+        return;
+    }
+    
+    // Nếu là xem user khác, tải dữ liệu
+    const fetchUserData = async () => {
+        setLoading(true);
+        try {
+            // Thử gọi api dành cho public profile
+            const response = await axios.get(`http://localhost:8080/api/instructors/${id}/profile`);
+            const data = response.data;
+            setUserData(prev => ({
+                ...prev,
+                id: data.id,
+                name: data.name,
+                avatar: data.avatar || prev.avatar,
+                email: data.email,
+                role: "INSTRUCTOR",
+                stats: {
+                    ...prev.stats,
+                    courses: data.coursesCount || 0,
+                    students: data.studentsCount || 0,
+                }
+            }));
+            
+            // Xử lý load khóa học nếu là INSTRUCTOR
+            setLoadingCourses(true);
+            try {
+                const coursesResp = await axios.get(`http://localhost:8080/api/instructors/${id}/courses`);
+                setInstructorCourses(coursesResp.data || []);
+            } catch (err) {
+                console.error("Không thể lấy danh sách khóa học của giảng viên", err);
+            } finally {
+                setLoadingCourses(false);
+            }
+
+        } catch (error) {
+            console.error("Không thể lấy thông tin chi tiết user", error);
+            // Fallback back to MOCK with id if error
+        } finally {
+            setLoading(false);
+        }
+    };
+    if (id) fetchUserData();
+  }, [id, isOwnProfile]);
   
-  // Logic hiển thị: Nếu là trang của tôi thì dùng data thật, ko thì dùng Mock
-  const isOwnProfile = currentUser && (id === String(currentUser.id) || !id || currentUser.email === MOCK_USER.email); 
-  const user = isOwnProfile ? { ...MOCK_USER, ...currentUser, name: currentUser.fullName, role: currentUser.role } : MOCK_USER;
-  
+  const user = userData;
   const isInstructor = (user.role || '').toUpperCase() === 'INSTRUCTOR';
 
   const handleBecomeInstructor = async () => {
@@ -125,6 +179,10 @@ const UserProfile = () => {
       setIsSubmitting(false);
     }
   };
+
+  if (loading) {
+     return <div className="min-h-screen flex items-center justify-center">Đang tải hồ sơ...</div>;
+  }
 
   return (
     <div className="min-h-screen bg-slate-50/50 pb-16">
@@ -216,11 +274,19 @@ const UserProfile = () => {
                 </div>
               </div>
 
-              {/* Stats Row */}
               <Separator className="mt-5 mb-0" />
               <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-border">
-                <StatItem icon={BookOpen} value={user.stats.posts} label="Bài đăng" />
-                <StatItem icon={ThumbsUp} value={user.stats.likes} label="Lượt thích" color="text-orange-500" />
+                {isInstructor ? (
+                  <>
+                    <StatItem icon={BookOpen} value={user.stats.courses || 0} label="Khóa học" />
+                    <StatItem icon={Users} value={user.stats.students || 0} label="Học viên" color="text-orange-500" />
+                  </>
+                ) : (
+                  <>
+                    <StatItem icon={BookOpen} value={user.stats.posts} label="Bài đăng" />
+                    <StatItem icon={ThumbsUp} value={user.stats.likes} label="Lượt thích" color="text-orange-500" />
+                  </>
+                )}
                 <StatItem icon={Eye} value={user.stats.views} label="Lượt xem" color="text-blue-500" />
                 <StatItem icon={MessageSquare} value={user.stats.comments} label="Bình luận" color="text-green-500" />
               </div>
@@ -232,23 +298,55 @@ const UserProfile = () => {
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Main Tabs */}
           <div className="flex-1 min-w-0">
-            <Tabs defaultValue="posts">
-              <TabsList className="bg-white border border-border h-10 mb-5 rounded-lg">
-                <TabsTrigger value="posts" className="text-sm font-medium gap-1.5">
-                  <BookOpen className="w-4 h-4" /> Bài đăng ({MOCK_POSTS.length})
-                </TabsTrigger>
-                <TabsTrigger value="liked" className="text-sm font-medium gap-1.5">
+            <Tabs defaultValue={isInstructor ? "courses" : "posts"}>
+              <TabsList className="bg-white border border-border h-10 mb-5 rounded-lg flex gap-2">
+                {isInstructor ? (
+                  <TabsTrigger value="courses" className="text-sm font-medium gap-1.5 flex-1 md:flex-none">
+                    <BookOpen className="w-4 h-4" /> Khóa học ({instructorCourses.length})
+                  </TabsTrigger>
+                ) : (
+                  <TabsTrigger value="posts" className="text-sm font-medium gap-1.5 flex-1 md:flex-none">
+                    <BookOpen className="w-4 h-4" /> Bài đăng ({MOCK_POSTS.length})
+                  </TabsTrigger>
+                )}
+                <TabsTrigger value="liked" className="text-sm font-medium gap-1.5 flex-1 md:flex-none">
                   <ThumbsUp className="w-4 h-4" /> Đã thích ({MOCK_LIKED_POSTS.length})
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="posts" className="mt-0">
-                <div className="flex flex-col gap-4">
-                  {MOCK_POSTS.map(post => (
-                    <ForumPostCard key={post.id} post={post} />
-                  ))}
-                </div>
-              </TabsContent>
+              {isInstructor ? (
+                <TabsContent value="courses" className="mt-0">
+                  {loadingCourses ? (
+                    <div className="text-center py-10 text-muted-foreground">Đang tải danh sách khóa học...</div>
+                  ) : instructorCourses.length > 0 ? (
+                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {instructorCourses.map(course => (
+                          <AppCard 
+                            key={course.id} 
+                            title={course.title} 
+                            image={course.thumbnail} 
+                            price={course.price} 
+                            category={course.category?.name} 
+                            students={course.enrollments ? course.enrollments.length : 0}
+                            classes={course.modules ? course.modules.length : 0}
+                            instructor={{name: user.name, avatar: user.avatar, status: user.status}}
+                            link={`/courses/${course.slug}`}
+                          />
+                        ))}
+                     </div>
+                  ) : (
+                    <div className="text-center py-10 text-muted-foreground">Giảng viên này chưa có khóa học nào.</div>
+                  )}
+                </TabsContent>
+              ) : (
+                <TabsContent value="posts" className="mt-0">
+                  <div className="flex flex-col gap-4">
+                    {MOCK_POSTS.map(post => (
+                      <ForumPostCard key={post.id} post={post} />
+                    ))}
+                  </div>
+                </TabsContent>
+              )}
 
               <TabsContent value="liked" className="mt-0">
                 <div className="flex flex-col gap-4">
