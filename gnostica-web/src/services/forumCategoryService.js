@@ -1,25 +1,25 @@
-import api from "./api";
+import axios from "axios";
 
-const RESOURCE_PATH = "/forum-categories";
+const API_URL = "http://localhost:8080/api/forum-categories";
 
 const getAllCategories = () => {
-  return api.get(RESOURCE_PATH);
+  return axios.get(API_URL);
 };
 
 const createCategory = (category) => {
-  return api.post(RESOURCE_PATH, category);
+  return axios.post(API_URL, category);
 };
 
 const updateCategory = (id, category) => {
-  return api.put(`${RESOURCE_PATH}/${id}`, category);
+  return axios.put(`${API_URL}/${id}`, category);
 };
 
 const deleteCategory = (id) => {
-  return api.delete(`${RESOURCE_PATH}/${id}`);
+  return axios.delete(`${API_URL}/${id}`);
 };
 
 const updateStatus = (id, status) => {
-  return api.put(`${RESOURCE_PATH}/${id}/status`, { status });
+  return axios.put(`${API_URL}/${id}/status`, { status });
 };
 
 const forumCategoryService = {

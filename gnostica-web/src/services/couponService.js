@@ -1,24 +1,47 @@
-import api from './api';
+import axios from 'axios';
 
-const RESOURCE_PATH = '/coupons';
+const API_URL = 'http://localhost:8080/api/coupons';
+
+const getAuthHeaders = () => {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+        try {
+            const user = JSON.parse(userStr);
+            if (user && user.token) {
+                return { Authorization: `Bearer ${user.token}` };
+            }
+        } catch (error) {
+            console.error('CouponService: Error parsing user from localStorage', error);
+        }
+    }
+    return {};
+};
 
 const createCoupon = async (data) => {
-    const response = await api.post(RESOURCE_PATH, data);
+    const response = await axios.post(API_URL, data, {
+        headers: getAuthHeaders()
+    });
     return response.data;
 };
 
 const getCoupons = async () => {
-    const response = await api.get(RESOURCE_PATH);
+    const response = await axios.get(API_URL, {
+        headers: getAuthHeaders()
+    });
     return response.data;
 };
 
 const getMyCoupons = async () => {
-    const response = await api.get(`${RESOURCE_PATH}/me`);
+    const response = await axios.get(`${API_URL}/me`, {
+        headers: getAuthHeaders()
+    });
     return response.data;
 };
 
 const deleteCoupon = async (id) => {
-    const response = await api.delete(`${RESOURCE_PATH}/${id}`);
+    const response = await axios.delete(`${API_URL}/${id}`, {
+        headers: getAuthHeaders()
+    });
     return response.data;
 };
 

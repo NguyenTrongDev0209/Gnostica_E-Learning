@@ -1,58 +1,87 @@
-import api from './api';
+import axios from 'axios';
 
-const RESOURCE_PATH = '/courses';
-const PROGRESS_PATH = '/progress';
+const API_URL = 'http://localhost:8080/api/courses';
+const PROGRESS_API_URL = 'http://localhost:8080/api/progress';
+
+const getAuthHeaders = () => {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+        try {
+            const user = JSON.parse(userStr);
+            if (user && user.token) {
+                return { Authorization: `Bearer ${user.token}` };
+            }
+        } catch (error) {
+            console.error('CourseService: Error parsing user from localStorage', error);
+        }
+    }
+    return {};
+};
 
 const createCourse = async (courseData) => {
-    const response = await api.post(RESOURCE_PATH, courseData);
+    const response = await axios.post(API_URL, courseData, { 
+        headers: getAuthHeaders() 
+    });
     return response.data;
 };
  
 const getAllCourses = async (page = 0, size = 10) => {
-    const response = await api.get(RESOURCE_PATH, {
+    const response = await axios.get(API_URL, {
         params: { page, size }
     });
     return response.data;
 };
 
 const getInstructorCourses = async (page = 0, size = 10) => {
-    const response = await api.get(`${RESOURCE_PATH}/instructor`, {
-        params: { page, size }
+    const response = await axios.get(`${API_URL}/instructor`, {
+        params: { page, size },
+        headers: getAuthHeaders()
     });
     return response.data;
 };
 
 const getCourseBySlug = async (slug) => {
-    const response = await api.get(`${RESOURCE_PATH}/${slug}`);
+    const response = await axios.get(`${API_URL}/${slug}`, {
+        headers: getAuthHeaders()
+    });
     return response.data;
 };
 
 const updateCourse = async (slug, courseData) => {
-    const response = await api.put(`${RESOURCE_PATH}/${slug}`, courseData);
+    const response = await axios.put(`${API_URL}/${slug}`, courseData, {
+        headers: getAuthHeaders()
+    });
     return response.data;
 };
 
 const updateCourseStatus = async (id, status) => {
-    const response = await api.patch(`${RESOURCE_PATH}/${id}/status`, { status });
+    const response = await axios.patch(`${API_URL}/${id}/status`, { status }, {
+        headers: getAuthHeaders()
+    });
     return response.data;
 };
 
 const deleteCourse = async (id) => {
-    const response = await api.delete(`${RESOURCE_PATH}/${id}`);
+    const response = await axios.delete(`${API_URL}/${id}`, {
+        headers: getAuthHeaders()
+    });
     return response.data;
 };
 
 const getAllDrafts = async () => {
-    const response = await api.get(`${RESOURCE_PATH}/draft/all`);
+    const response = await axios.get(`${API_URL}/draft/all`, {
+        headers: getAuthHeaders()
+    });
     return response.data;
 };
 
 const deleteDraft = async ({ courseId, slug } = {}) => {
-    const response = await api.delete(`${RESOURCE_PATH}/draft`, {
+    const response = await axios.delete(`${API_URL}/draft`, {
         params: {
             courseId: courseId || undefined,
             slug: slug || undefined,
-        }
+        },
+        headers: getAuthHeaders(),
     });
     return response.data;
 };
@@ -63,13 +92,15 @@ const getPublicCourses = async ({ categoryId, categorySlug, level, page = 0, siz
     if (categorySlug) params.categorySlug = categorySlug;
     if (level) params.level = level;
     
-    const response = await api.get(RESOURCE_PATH, { params });
+    const response = await axios.get(API_URL, { params });
     return response.data;
 };
 
 const getCourseProgress = async (slug) => {
     try {
-        const response = await api.get(`${PROGRESS_PATH}/course/${slug}`);
+        const response = await axios.get(`${PROGRESS_API_URL}/course/${slug}`, {
+            headers: getAuthHeaders()
+        });
         return response.data;
     } catch (error) {
         console.error('Error fetching course progress:', error);
@@ -79,7 +110,9 @@ const getCourseProgress = async (slug) => {
 
 const updateLastWatchedTime = async (lessonId, time) => {
     try {
-        await api.post(`${PROGRESS_PATH}/lesson/${lessonId}/time?time=${Math.round(time)}`, {});
+        await axios.post(`${PROGRESS_API_URL}/lesson/${lessonId}/time?time=${Math.round(time)}`, {}, {
+            headers: getAuthHeaders()
+        });
     } catch (error) {
         console.error('Error updating last watched time:', error);
     }
@@ -87,7 +120,9 @@ const updateLastWatchedTime = async (lessonId, time) => {
 
 const markLessonCompleted = async (lessonId) => {
     try {
-        await api.post(`${PROGRESS_PATH}/lesson/${lessonId}/complete`, {});
+        await axios.post(`${PROGRESS_API_URL}/lesson/${lessonId}/complete`, {}, {
+            headers: getAuthHeaders()
+        });
         return true;
     } catch (error) {
         console.error('Error marking lesson complete:', error);

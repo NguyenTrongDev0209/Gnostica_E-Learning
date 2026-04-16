@@ -1,10 +1,10 @@
-import api from './api';
+import axios from 'axios';
 
-const RESOURCE_PATH = '/ai'; 
+const API_URL = 'http://localhost:8080/api/ai'; // Adjust base URL if needed
 
 export const sendChatMessage = async (messages) => {
     try {
-        const response = await api.post(`${RESOURCE_PATH}/chat`, {
+        const response = await axios.post(`${API_URL}/chat`, {
             messages: messages.map(m => ({
                 role: m.role,
                 content: m.content
