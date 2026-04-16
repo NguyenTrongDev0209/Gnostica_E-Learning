@@ -17,7 +17,7 @@ import RenderContent from '@/components/common/RenderContent';
 import CommentCard from '@/components/common/CommentCard';
 import { toast } from 'sonner';
 // import { forumCommentsMock, relatedForumPostsMock } from "@/mocks/forum";
-import { relatedForumPostsMock } from "@/mocks/forum";
+// import { relatedForumPostsMock } from "@/mocks/forum";
 
 // Helper: simple markdown-like renderer exported to common
 
@@ -29,6 +29,7 @@ const ForumDetail = () => {
   const [error, setError] = useState(null);
   const [comment, setComment] = useState('');
   const [postLiked, setPostLiked] = useState(false);
+  const [relatedPosts, setRelatedPosts] = useState([]);
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -72,6 +73,18 @@ const ForumDetail = () => {
       }
     };
     fetchLikeStatus();
+  }, [id]);
+
+  useEffect(() => {
+    const fetchRelatedPosts = async () => {
+      try {
+        const res = await axios.get(`http://localhost:8080/api/threads/${id}/related`);
+        setRelatedPosts(res.data);
+      } catch (err) {
+        console.error("Error fetching related posts:", err);
+      }
+    };
+    if (id) fetchRelatedPosts();
   }, [id]);
 
   const handleSendComment = async () => {
@@ -415,18 +428,22 @@ const ForumDetail = () => {
               <CardContent className="p-5">
                 <h3 className="text-sm font-bold text-slate-700 mb-4">Bài viết liên quan</h3>
                 <div className="flex flex-col gap-3">
-                  {relatedForumPostsMock.map(post => (
-                    <Link
-                      key={post.id}
-                      to={`/forum/${post.id}`}
-                      className="group flex flex-col gap-1 hover:bg-slate-50 rounded-md p-2 -mx-2 transition-colors"
-                    >
-                      <span className="text-xs text-primary font-medium">{post.category}</span>
-                      <span className="text-sm font-medium text-slate-700 group-hover:text-primary transition-colors line-clamp-2 leading-snug">
-                        {post.title}
-                      </span>
-                    </Link>
-                  ))}
+                  {relatedPosts.length > 0 ? (
+                    relatedPosts.map(p => (
+                      <Link
+                        key={p.id}
+                        to={`/forum/${p.id}`}
+                        className="group flex flex-col gap-1 hover:bg-slate-50 rounded-md p-2 -mx-2 transition-colors"
+                      >
+                        <span className="text-xs text-primary font-medium">{p.category?.name || "Thảo luận"}</span>
+                        <span className="text-sm font-medium text-slate-700 group-hover:text-primary transition-colors line-clamp-2 leading-snug">
+                          {p.content.substring(0, 70)}{p.content.length > 70 ? '...' : ''}
+                        </span>
+                      </Link>
+                    ))
+                  ) : (
+                    <p className="text-xs text-slate-400 text-center py-2">Không có bài viết liên quan</p>
+                  )}
                 </div>
 
                 <Separator className="my-4" />

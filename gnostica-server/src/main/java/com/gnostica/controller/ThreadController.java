@@ -116,4 +116,43 @@ public class ThreadController {
                     .body("Error fetching top contributors: " + e.getMessage());
         }
     }
+
+    @GetMapping("/{id}/related")
+    public ResponseEntity<?> getRelatedThreads(@PathVariable Integer id) {
+        try {
+            Thread currentThread = (Thread) threadService.getThreadById(id);
+            if (currentThread.getCategory() == null) {
+                return ResponseEntity.ok(new java.util.ArrayList<>());
+            }
+            return ResponseEntity.ok(threadService.getRelatedThreads(
+                    currentThread.getCategory().getId(), id));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error fetching related threads: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<?> getMyThreads(
+            @RequestParam String email,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size) {
+        try {
+            Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+            return ResponseEntity.ok(threadService.getThreadsByEmail(email, pageable));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error fetching your threads: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/me/stats")
+    public ResponseEntity<?> getMyStats(@RequestParam String email) {
+        try {
+            return ResponseEntity.ok(threadService.getUserStats(email));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error fetching your statistics: " + e.getMessage());
+        }
+    }
 }

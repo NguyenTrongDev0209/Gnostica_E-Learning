@@ -146,8 +146,8 @@ public class CourseService {
         }
 
         // Tuy nhiên, các Module hoặc Lesson bị ẩn (status = 2) vẫn phải lọc bỏ 
-        // trừ khi là chủ sở hữu (Instructor) muốn xem bản nháp
-        if (!isOwner) {
+        // trừ khi là chủ sở hữu (Instructor) hoặc học viên đã mua khóa học muốn xem
+        if (!isOwner && !isEnrolled) {
             if (course.getModules() != null) {
                 course.getModules().removeIf(m -> m.getStatus() != 1);
                 for (Module m : course.getModules()) {

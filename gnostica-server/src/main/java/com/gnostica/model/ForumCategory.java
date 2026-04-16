@@ -30,8 +30,6 @@ public class ForumCategory {
     @Column(nullable = false, length = 255)
     private String slug;
 
-    @Column(columnDefinition = "text")
-    private String description;
 
     @Column(nullable = false, columnDefinition = "boolean default true")
     private Boolean status = true;

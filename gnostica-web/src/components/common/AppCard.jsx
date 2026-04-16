@@ -177,14 +177,15 @@ export const ForumPostCard = ({ post, className }) => {
 
             {/* Tags & Stats */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-auto">
+            {post.tags && post.tags.length > 0 && (
               <div className="flex items-center gap-1.5 flex-wrap">
-                <Tag className="w-3.5 h-3.5 text-slate-400" />
                 {post.tags.map(tag => (
                   <Badge key={tag} variant="secondary" className="bg-slate-100 text-slate-600 hover:bg-slate-200 text-[10px] px-1.5 py-0 font-medium border-none shadow-none">
                     {tag}
                   </Badge>
                 ))}
               </div>
+            )}
               <div className="flex items-center gap-4 text-xs font-medium text-slate-500 shrink-0">
                 <div className="flex items-center gap-1.5 hover:text-primary transition-colors">
                   <ThumbsUp className="w-4 h-4" /><span>{post.stats.likes}</span>

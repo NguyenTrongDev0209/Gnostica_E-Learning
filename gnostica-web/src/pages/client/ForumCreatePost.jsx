@@ -23,7 +23,8 @@ const ForumCreatePost = () => {
         const fetchCategories = async () => {
             try {
                 const res = await axios.get('http://localhost:8080/api/forum-categories');
-                setCategories(res.data);
+                const activeCategories = res.data.filter(cat => cat.status === true);
+                setCategories(activeCategories);
             } catch (error) {
                 console.error("Failed to load forum categories", error);
                 toast.error("Không thể tải danh sách chủ đề.");
