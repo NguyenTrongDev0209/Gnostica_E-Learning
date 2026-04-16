@@ -19,21 +19,64 @@ const RegisterPage = () => {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
+
+  const validateForm = () => {
+    let newErrors = {};
+
+    if (!fullName.trim()) {
+      newErrors.fullName = 'Vui lòng nhập họ và tên';
+    }
+
+    if (!email.trim()) {
+      newErrors.email = 'Vui lòng nhập email';
+    } else {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const phoneRegex = /^(0|84)(3|5|7|8|9)([0-9]{8})$/;
+      if (!emailRegex.test(email) && !phoneRegex.test(email)) {
+        newErrors.email = 'Email không hợp lệ';
+      }
+    }
+
+    if (!password) {
+      newErrors.password = 'Vui lòng nhập mật khẩu';
+    } else {
+      const strength = getPasswordStrength(password);
+      if (strength.score <= 1) {
+        newErrors.password = 'Mật khẩu quá yếu (cần bao gồm chữ hoa, số hoặc ký tự đặc biệt)';
+      }
+    }
+
+    if (!confirmPassword) {
+      newErrors.confirmPassword = 'Vui lòng xác nhận mật khẩu';
+    } else if (confirmPassword !== password) {
+      newErrors.confirmPassword = 'Mật khẩu xác nhận không khớp';
+    }
+
+    if (!agreeTerms) {
+      newErrors.agreeTerms = 'Bạn phải đồng ý với điều khoản';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateForm()) return;
     setLoading(true);
-    
+
     try {
-        await authService.register(fullName, email, password);
-        toast.success('Đăng ký thành công! Vui lòng kiểm tra email để lấy mã xác thực.');
-        navigate(`/confirm-code?email=${email}`);
+      await authService.register(fullName, email, password);
+      toast.success('Đăng ký thành công! Vui lòng kiểm tra email để lấy mã xác thực.');
+      navigate(`/confirm-code?email=${email}`);
     } catch (error) {
-        toast.error(error.toString());
+      toast.error(error.toString());
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   };
 
@@ -75,11 +118,15 @@ const RegisterPage = () => {
                   id="fullName"
                   type="text"
                   placeholder="Nguyễn Văn A"
-                  className="pl-9 h-11 bg-slate-50 border-slate-200 focus:bg-white transition-colors"
+                  className={`pl-9 h-11 bg-slate-50 border-slate-200 focus:bg-white transition-colors ${errors.fullName ? 'border-red-500 focus:ring-red-500' : ''}`}
                   value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
+                  onChange={(e) => {
+                    setFullName(e.target.value);
+                    if (errors.fullName) setErrors({ ...errors, fullName: '' });
+                  }}
                 />
               </div>
+              {errors.fullName && <p className="text-red-500 text-xs mt-1">{errors.fullName}</p>}
             </div>
 
             {/* Email */}
@@ -91,11 +138,15 @@ const RegisterPage = () => {
                   id="email"
                   type="text"
                   placeholder="Nhập email hoặc số điện thoại"
-                  className="pl-9 h-11 bg-slate-50 border-slate-200 focus:bg-white transition-colors"
+                  className={`pl-9 h-11 bg-slate-50 border-slate-200 focus:bg-white transition-colors ${errors.email ? 'border-red-500 focus:ring-red-500' : ''}`}
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (errors.email) setErrors({ ...errors, email: '' });
+                  }}
                 />
               </div>
+              {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
             </div>
 
             {/* Password */}
@@ -107,9 +158,12 @@ const RegisterPage = () => {
                   id="password"
                   type={showPassword ? 'text' : 'password'}
                   placeholder="Tối thiểu 8 ký tự"
-                  className="pl-9 pr-10 h-11 bg-slate-50 border-slate-200 focus:bg-white transition-colors"
+                  className={`pl-9 pr-10 h-11 bg-slate-50 border-slate-200 focus:bg-white transition-colors ${errors.password ? 'border-red-500 focus:ring-red-500' : ''}`}
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (errors.password) setErrors({ ...errors, password: '' });
+                  }}
                 />
                 <button
                   type="button"
@@ -138,29 +192,63 @@ const RegisterPage = () => {
                   </p>
                 </div>
               )}
+              {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
+            </div>
+
+            {/* Confirm Password */}
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="confirmPassword" className="text-sm font-medium text-slate-700">Xác nhận mật khẩu</Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  id="confirmPassword"
+                  type={showConfirm ? 'text' : 'password'}
+                  placeholder="Nhập lại mật khẩu"
+                  className={`pl-9 pr-10 h-11 bg-slate-50 border-slate-200 focus:bg-white transition-colors ${errors.confirmPassword ? 'border-red-500 focus:ring-red-500' : ''}`}
+                  value={confirmPassword}
+                  onChange={(e) => {
+                    setConfirmPassword(e.target.value);
+                    if (errors.confirmPassword) setErrors({ ...errors, confirmPassword: '' });
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirm(!showConfirm)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+              {errors.confirmPassword && <p className="text-red-500 text-xs mt-1">{errors.confirmPassword}</p>}
             </div>
 
             {/* Agree Terms */}
-            <div className="flex items-start gap-2">
-              <Checkbox
-                id="agreeTerms"
-                checked={agreeTerms}
-                onCheckedChange={setAgreeTerms}
-                className="mt-0.5 border-slate-900 mt-1"
-              />
-              <Label htmlFor="agreeTerms" className="text-sm text-slate-600 cursor-pointer font-normal leading-relaxed">
-                Tôi đồng ý với{' '}
-                <Link to="/terms" className="text-primary hover:underline font-medium">Điều khoản dịch vụ</Link>
-                {' '}và{' '}
-                <Link to="/privacy" className="text-primary hover:underline font-medium">Chính sách bảo mật</Link>
-              </Label>
+            <div className="flex flex-col gap-1">
+              <div className="flex items-start gap-2">
+                <Checkbox
+                  id="agreeTerms"
+                  checked={agreeTerms}
+                  onCheckedChange={(val) => {
+                    setAgreeTerms(val);
+                    if (errors.agreeTerms) setErrors({ ...errors, agreeTerms: '' });
+                  }}
+                  className={`mt-1 border-slate-900 ${errors.agreeTerms ? 'border-red-500' : ''}`}
+                />
+                <Label htmlFor="agreeTerms" className="text-sm text-slate-600 cursor-pointer font-normal leading-relaxed">
+                  Tôi đồng ý với{' '}
+                  <Link to="/terms" className="text-primary hover:underline font-medium">Điều khoản dịch vụ</Link>
+                  {' '}và{' '}
+                  <Link to="/privacy" className="text-primary hover:underline font-medium">Chính sách bảo mật</Link>
+                </Label>
+              </div>
+              {errors.agreeTerms && <p className="text-red-500 text-xs ml-6">{errors.agreeTerms}</p>}
             </div>
 
             {/* Submit */}
             <SimpleButton
               type="submit"
               className="w-full h-11 mt-1 gap-2"
-              disabled={loading || !agreeTerms}
+              disabled={loading}
             >
               {loading ? (
                 <svg className="animate-spin w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -178,7 +266,7 @@ const RegisterPage = () => {
             <span className="text-xs text-slate-500 font-medium px-1">Hoặc</span>
             <div className="flex-1 h-[1px] bg-slate-500"></div>
           </div>
- 
+
           {/* Social Register */}
           <div className="flex flex-col gap-3">
             <Button

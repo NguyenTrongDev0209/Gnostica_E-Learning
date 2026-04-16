@@ -1,5 +1,6 @@
 import React from "react";
-import { Star, Users, Calendar, Globe, PlayCircle, CheckCircle2, Heart, Clock, FileText, Infinity as InfinityIcon, Smartphone, Trophy } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Star, Users, Calendar, Globe, PlayCircle, CheckCircle2, Heart, Clock, FileText, Infinity as InfinityIcon, Smartphone, Trophy, Gift } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
@@ -12,6 +13,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { SimpleButton } from "@/components/common/AppButton";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 /**
  * Header section for Course Detail, showing title, description and stats.
@@ -22,29 +30,32 @@ export const CourseDetailHeader = ({ course }) => {
       <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-slate-900 mb-5 leading-tight">
         {course.title}
       </h1>
-      <p className="text-lg md:text-xl text-slate-600 mb-6 leading-relaxed">
-        {course.description}
-      </p>
+      {/* Tạm thời ẩn phần mô tả
+      <div 
+        className="text-lg md:text-xl text-slate-600 mb-6 leading-relaxed prose prose-slate max-w-none [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:mb-4 [&_p]:mb-4"
+        dangerouslySetInnerHTML={{ __html: course.description }}
+      />
+      */}
 
       <div className="flex flex-wrap items-center gap-y-3 gap-x-6 text-sm font-medium">
         <div className="flex items-center gap-1.5 px-3 py-1.5 bg-yellow-50 rounded-lg text-yellow-700">
           <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
-          <span className="font-bold">{course.rating}</span>
+          <span className="font-bold">{course.rating || "4.8"}</span>
           <span className="opacity-80 underline decoration-yellow-600/30 hover:decoration-yellow-600 cursor-pointer">
-            ({course.reviews} reviews)
+            ({course.reviews || "120"} đánh giá)
           </span>
         </div>
         <div className="flex items-center gap-2 text-slate-600">
           <Users className="w-4 h-4" />
-          <span>{course.students.toLocaleString()} students enrolled</span>
+          <span>{(course.studentsCount || 0).toLocaleString()} học viên đã tham gia</span>
         </div>
         <div className="flex items-center gap-2 text-slate-600">
           <Calendar className="w-4 h-4" />
-          <span>Last updated {course.lastUpdated}</span>
+          <span>Cập nhật lần cuối {course.updatedAt ? new Date(course.updatedAt).toLocaleDateString('vi-VN') : 'Gần đây'}</span>
         </div>
         <div className="flex items-center gap-2 text-slate-600">
           <Globe className="w-4 h-4" />
-          <span>{course.language}</span>
+          <span>Tiếng Việt</span>
         </div>
       </div>
     </div>
@@ -54,47 +65,137 @@ export const CourseDetailHeader = ({ course }) => {
 /**
  * Course trailer/video preview area.
  */
-export const CourseDetailVideo = ({ courseImage, courseTitle }) => {
+const BUNNY_LIBRARY_ID = "635422";
+
+// Kiểm tra xem chuỗi có phải Bunny GUID không (UUID format)
+const isBunnyGuid = (str) => {
+  if (!str) return false;
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+};
+
+// Kiểm tra xem chuỗi có phải YouTube URL không
+const getYoutubeId = (url) => {
+  if (!url) return null;
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const match = url.match(regExp);
+  return (match && match[2].length === 11) ? match[2] : null;
+};
+
+export const CourseDetailVideo = ({ courseImage, courseTitle, promoVideo }) => {
+  const [isPlaying, setIsPlaying] = React.useState(false);
+
+  if (isPlaying && promoVideo) {
+    const youtubeId = getYoutubeId(promoVideo);
+    const bunnyGuid = isBunnyGuid(promoVideo) ? promoVideo : null;
+    
+    return (
+      <div className="relative aspect-video overflow-hidden shadow-2xl shadow-slate-200 border-none bg-black">
+        {youtubeId ? (
+          <iframe 
+            src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1`} 
+            title="Course Trailer"
+            className="w-full h-full"
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        ) : bunnyGuid ? (
+          <iframe
+            src={`https://iframe.mediadelivery.net/embed/${BUNNY_LIBRARY_ID}/${bunnyGuid}?autoplay=true&loop=false&muted=false&preload=true`}
+            title="Course Trailer"
+            className="w-full h-full"
+            frameBorder="0"
+            allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
+            allowFullScreen
+          />
+        ) : (
+          <video 
+            src={promoVideo} 
+            controls 
+            autoPlay 
+            className="w-full h-full object-contain bg-black"
+          />
+        )}
+      </div>
+    );
+  }
+
   return (
-    <div className="relative aspect-video rounded-2xl md:rounded-[32px] overflow-hidden shadow-2xl shadow-slate-200 group cursor-pointer border border-slate-100/50 bg-slate-900">
+    <div 
+      className="relative aspect-video overflow-hidden shadow-2xl shadow-slate-200 group cursor-pointer border border-slate-100/50 bg-slate-900"
+      onClick={() => promoVideo && setIsPlaying(true)}
+    >
       <img
         src={courseImage}
         alt={courseTitle}
-        className="w-full h-full object-cover group-hover:scale-105 group-hover:opacity-60 transition-all duration-700 ease-out"
+        className={`w-full h-full object-cover transition-all duration-700 ease-out ${promoVideo ? 'group-hover:scale-105 group-hover:opacity-60' : ''}`}
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80" />
 
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 group-hover:scale-110 group-hover:bg-primary/90 group-hover:border-primary transition-all duration-300 shadow-[0_0_40px_rgba(0,0,0,0.3)]">
-          <PlayCircle className="w-10 h-10 md:w-12 md:h-12 fill-white text-white translate-x-0.5" />
+      {promoVideo && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 group-hover:scale-110 group-hover:bg-primary/90 group-hover:border-primary transition-all duration-300 shadow-[0_0_40px_rgba(0,0,0,0.3)]">
+            <PlayCircle className="w-10 h-10 md:w-12 md:h-12 fill-white text-white translate-x-0.5" />
+          </div>
+          <span className="text-white font-extrabold tracking-widest uppercase mt-4 text-xs md:text-sm drop-shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-y-2 group-hover:translate-y-0">
+            Xem Trailer Khóa Học
+          </span>
         </div>
-        <span className="text-white font-extrabold tracking-widest uppercase mt-4 text-xs md:text-sm drop-shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-y-2 group-hover:translate-y-0">
-          Xem Trailer Khóa Học
-        </span>
-      </div>
+      )}
     </div>
+  );
+
+  if (!promoVideo) return content;
+
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        {content}
+      </DialogTrigger>
+      <DialogContent className="max-w-4xl p-0 overflow-hidden bg-black border-none ring-0 sm:max-w-[85vw] md:max-w-3xl lg:max-w-4xl">
+        <DialogHeader className="sr-only">
+          <DialogTitle>{courseTitle} - Trailer</DialogTitle>
+        </DialogHeader>
+        <div className="aspect-video w-full flex items-center justify-center bg-black">
+          {useIframe ? (
+            <iframe
+              width="100%"
+              height="100%"
+              src={`${embedUrl}?autoplay=true`}
+              title={`${courseTitle} Trailer`}
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className="w-full h-full"
+            ></iframe>
+          ) : (
+            <video
+              src={promoVideo}
+              controls
+              autoPlay
+              className="w-full h-full"
+              poster={courseImage}
+            >
+              Trình duyệt của bạn không hỗ trợ phát video.
+            </video>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 
 /**
  * "What you'll learn" section for Course Detail.
  */
-export const CourseDetailOutcomes = ({ outcomes }) => {
+export const CourseDetailOutcomes = ({ course }) => {
   return (
     <section className="bg-slate-50/80 border border-slate-200/60 rounded-[24px] p-6 md:p-10">
-      <h2 className="text-2xl font-extrabold mb-6 text-slate-900">Mục tiêu khóa học</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
-        {outcomes.map((outcome, idx) => (
-          <div key={idx} className="flex items-start gap-4">
-            <div className="mt-1 w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-            </div>
-            <span className="text-slate-700 text-[15px] leading-relaxed font-medium">
-              {outcome}
-            </span>
-          </div>
-        ))}
-      </div>
+      <h2 className="text-2xl font-extrabold mb-6 text-slate-900">Nội dung bài học</h2>
+      <div 
+        className="text-slate-700 text-[15px] leading-relaxed prose prose-slate max-w-none"
+        dangerouslySetInnerHTML={{ __html: course.description }}
+      />
     </section>
   );
 };
@@ -103,12 +204,14 @@ export const CourseDetailOutcomes = ({ outcomes }) => {
  * Course curriculum with expandable accordion sections.
  */
 export const CourseDetailCurriculum = ({ curriculum }) => {
+  const totalLessons = curriculum.reduce((acc, section) => acc + (section.lessons?.length || 0), 0);
+  
   return (
     <section>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <h2 className="text-2xl font-extrabold text-slate-900">Nội dung bài giảng</h2>
         <div className="text-sm text-slate-600 font-semibold bg-slate-100 px-4 py-2 rounded-full">
-          3 chương • 12 bài học • Thời lượng: 4h 25m
+          {curriculum.length} chương • {totalLessons} bài học
         </div>
       </div>
 
@@ -145,22 +248,13 @@ export const CourseDetailCurriculum = ({ curriculum }) => {
                         <PlayCircle className="w-4 h-4" />
                       </div>
                       <span
-                        className={`text-[15px] font-semibold ${
-                          lesson.preview
-                            ? "text-slate-900 group-hover:text-primary transition-colors cursor-pointer"
-                            : "text-slate-600"
-                        }`}
+                        className="text-[15px] font-semibold text-slate-600"
                       >
                         {lesson.title}
                       </span>
                     </div>
                     <div className="flex items-center gap-4 text-sm text-slate-500 font-medium">
-                      {lesson.preview && (
-                        <button className="text-primary font-bold hover:underline hidden sm:block">
-                          Học thử
-                        </button>
-                      )}
-                      <span>{lesson.duration}</span>
+                      <span>{lesson.duration || ""}</span>
                     </div>
                   </div>
                 ))}
@@ -237,6 +331,30 @@ export const CourseDetailInstructor = ({ instructor }) => {
  * Sticky pricing card for Course Detail.
  */
 export const CourseDetailPricingCard = ({ course }) => {
+  const navigate = useNavigate();
+  const totalLessons = course.curriculum?.reduce((acc, section) => acc + (section.lessons?.length || 0), 0) || 0;
+
+  const handleCheckout = () => {
+    // Chuyển đổi giá từ chuỗi có dấu phẩy sang số nguyên
+    const parsePrice = (priceStr) => {
+      if (typeof priceStr === 'number') return priceStr;
+      return parseInt(String(priceStr).replace(/\./g, '').replace(/,/g, ''), 10) || 0;
+    };
+
+    const orderItem = {
+      id: course.id,
+      title: course.title,
+      instructor: course.instructor?.name || 'Ẩn danh',
+      price: parsePrice(course.price),
+      originalPrice: parsePrice(course.originalPrice) || parsePrice(course.price),
+      image: course.image,
+      rating: course.rating,
+      slug: course.slug,
+    };
+
+    navigate('/checkout', { state: { orderItems: [orderItem] } });
+  };
+
   return (
     <Card className="border-slate-200/80 shadow-2xl shadow-slate-200/50 rounded-[28px] overflow-hidden bg-white">
       <CardContent className="p-7 md:p-8">
@@ -245,7 +363,7 @@ export const CourseDetailPricingCard = ({ course }) => {
             variant="destructive"
             className="bg-red-100 text-red-600 hover:bg-red-100 border-none font-bold px-3 py-1"
           >
-            Giảm giá {course.discountPercentage}%
+            Giảm giá {course.discount}%
           </Badge>
           <button className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors">
             <Heart className="w-5 h-5" />
@@ -254,23 +372,28 @@ export const CourseDetailPricingCard = ({ course }) => {
 
         <div className="flex items-end gap-3 mb-8 mt-4">
           <span className="text-[40px] leading-none font-black text-slate-900 tracking-tight">
-            {course.price}đ
+            {new Intl.NumberFormat("vi-VN").format(course.salePrice)}đ
           </span>
-          <span className="text-lg text-slate-400 line-through font-semibold mb-1">
-            {course.originalPrice}đ
-          </span>
+          {course.discount > 0 && (
+            <span className="text-lg text-slate-400 line-through font-semibold mb-1">
+              {new Intl.NumberFormat("vi-VN").format(course.price)}đ
+            </span>
+          )}
         </div>
 
-        <div className="space-y-3 mb-6">
-          <SimpleButton className="w-full py-7 text-lg font-bold rounded-2xl shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-shadow">
+        <div className="flex items-stretch gap-3 mb-6">
+          <SimpleButton
+            size="lg"
+            className="flex-1 py-7 text-lg font-bold rounded-2xl"
+            onClick={handleCheckout}
+          >
             Đăng ký học ngay
           </SimpleButton>
-          <Button
-            variant="outline"
-            className="w-full py-7 text-lg font-bold rounded-2xl border-2 border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+          <button
+            className="flex-none p-4 rounded-2xl border-2 border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-primary hover:border-primary transition-all flex items-center justify-center cursor-pointer"
           >
-            Thêm vào giỏ hàng
-          </Button>
+            <Gift className="size-6" />
+          </button>
         </div>
 
         <p className="text-center text-[13px] font-semibold text-slate-500 mb-8">
@@ -283,12 +406,12 @@ export const CourseDetailPricingCard = ({ course }) => {
           </h4>
           <ul className="space-y-4">
             <li className="flex items-start gap-4 text-[15px] text-slate-700 font-medium">
-              <Clock className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-              <span>24.5 giờ video bài giảng chất lượng cao</span>
+              <PlayCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+              <span>{totalLessons} bài học trực tuyến</span>
             </li>
             <li className="flex items-start gap-4 text-[15px] text-slate-700 font-medium">
               <FileText className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-              <span>12 bài tập thực hành & 15 tài liệu tham khảo</span>
+              <span>Tài liệu tham khảo chuyên sâu</span>
             </li>
             <li className="flex items-start gap-4 text-[15px] text-slate-700 font-medium">
               <InfinityIcon className="w-5 h-5 text-primary shrink-0 mt-0.5" />

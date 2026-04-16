@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import useAdminCategories from "@/hooks/useAdminCategories";
 import {
   Plus,
   Search,
@@ -48,6 +49,9 @@ import {
 import { toast } from "sonner";
 import Fuse from "fuse.js";
 import categoryService from "@/services/categoryService";
+import { DialogDescription } from "@/components/ui/dialog";
+
+const ITEMS_PER_PAGE = 10;
 
 const categorySchema = z.object({
   name: z
@@ -63,42 +67,27 @@ const categorySchema = z.object({
 });
 
 export default function AdminCategories() {
-  const [expanded, setExpanded] = useState(null);
+  const {
+    categories,
+    loading,
+    searchTerm,
+    setSearchTerm,
+    filterStatus,
+    setFilterStatus,
+    currentPage,
+    setCurrentPage,
+    totalPages,
+    totalElements,
+    expanded,
+    setExpanded,
+    toggleStatus,
+    handleDelete,
+    generateSlug,
+    saveCategory,
+  } = useAdminCategories(ITEMS_PER_PAGE);
+
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editId, setEditId] = useState(null);
-  const [categories, setCategories] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterStatus, setFilterStatus] = useState("all");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalElements, setTotalElements] = useState(0);
-  const ITEMS_PER_PAGE = 10;
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm, filterStatus]);
-
-  const fetchCategories = async () => {
-    try {
-      const response = await categoryService.getAllCategories(currentPage, ITEMS_PER_PAGE, searchTerm, filterStatus);
-      if (response && response.data) {
-        setCategories(response.data.content || []);
-        setTotalPages(response.data.totalPages || 1);
-        setTotalElements(response.data.totalElements || 0);
-      }
-    } catch (error) {
-      console.error("Failed to fetch categories", error);
-      toast.error("Không thể tải danh sách danh mục");
-    }
-  };
-
-  useEffect(() => {
-    const delayDebounceFn = setTimeout(() => {
-      fetchCategories();
-    }, 300);
-
-    return () => clearTimeout(delayDebounceFn);
-  }, [currentPage, searchTerm, filterStatus]);
 
   const form = useForm({
     resolver: zodResolver(categorySchema),
@@ -109,18 +98,6 @@ export default function AdminCategories() {
       status: true,
     },
   });
-
-  const generateSlug = (text) => {
-    return text
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[đĐ]/g, "d")
-      .trim()
-      .replace(/[^\w\s-]/g, "")
-      .replace(/[\s_-]+/g, "-")
-      .replace(/^-+|-+$/g, "");
-  };
 
   const onNameChange = (e) => {
     const name = e.target.value;
@@ -140,63 +117,12 @@ export default function AdminCategories() {
     setIsAddModalOpen(true);
   };
 
-  const toggleStatus = async (e, id, newStatus) => {
-    e.stopPropagation();
-    try {
-      await categoryService.updateStatus(id, newStatus);
-      toast.success(`Đã chuyển trạng thái sang ${newStatus ? 'Hoạt động' : 'Tạm ẩn'}`);
-      fetchCategories();
-    } catch (error) {
-      toast.error("Không thể cập nhật trạng thái");
-    }
-  };
-
-  const handleDelete = async (e, id) => {
-    e.stopPropagation();
-    if (!window.confirm("Bạn có chắc chắn muốn xóa danh mục này?")) return;
-
-    try {
-      await categoryService.deleteCategory(id);
-      toast.success("Xóa danh mục thành công!");
-      fetchCategories();
-    } catch (error) {
-      const message = error?.response?.data?.message;
-      if (message && message.includes("HAS_CHILDREN")) {
-        if (window.confirm("Danh mục này đang chứa danh mục con (hoặc khóa học). Bạn không thể xóa tránh mất dữ liệu.\n\nBạn có muốn chuyển danh mục sang trạng thái 'Tạm ẩn' thay thế không?")) {
-          toggleStatus(e, id, false);
-        }
-      } else {
-        toast.error(message || "Lỗi khi xóa danh mục");
-      }
-    }
-  };
-
   const onSubmit = async (data) => {
-    try {
-      const payload = {
-        name: data.name,
-        slug: data.slug,
-        parent_id: data.parent_id === "none" ? null : parseInt(data.parent_id),
-        status: data.status,
-      };
-
-      if (editId) {
-        await categoryService.updateCategory(editId, payload);
-        toast.success("Cập nhật danh mục thành công!");
-      } else {
-        await categoryService.createCategory(payload);
-        toast.success("Thêm danh mục thành công!");
-      }
-
+    const success = await saveCategory(editId, data);
+    if (success) {
       setIsAddModalOpen(false);
       setEditId(null);
       form.reset({ name: "", slug: "", parent_id: "none", status: true });
-      fetchCategories();
-    } catch (error) {
-      // Backend error format mapping from ResponseDTO payload or standard axios layout
-      const errorMessage =
-        error?.response?.data?.message || "Có lỗi xảy ra, vui lòng thử lại.";
-      toast.error(errorMessage);
     }
   };
 
@@ -329,7 +255,10 @@ export default function AdminCategories() {
                       <TableCell>
                         {cat.status === true ? (
                           <span
-                            onClick={(e) => toggleStatus(e, cat.id, false)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleStatus(cat.id, false);
+                            }}
                             className="inline-flex items-center gap-1.5 text-sm text-green-600 font-medium cursor-pointer hover:underline"
                           >
                             <span className="w-2 h-2 rounded-full bg-green-500" />{" "}
@@ -337,7 +266,10 @@ export default function AdminCategories() {
                           </span>
                         ) : (
                           <span
-                            onClick={(e) => toggleStatus(e, cat.id, true)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleStatus(cat.id, true);
+                            }}
                             className="inline-flex items-center gap-1.5 text-sm text-slate-500 font-medium cursor-pointer hover:underline"
                           >
                             <span className="w-2 h-2 rounded-full bg-slate-400" />{" "}
@@ -362,9 +294,12 @@ export default function AdminCategories() {
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8 text-slate-400 hover:text-red-500"
-                            onClick={(e) => handleDelete(e, cat.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDelete(cat.id);
+                            }}
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
                       </TableCell>
@@ -404,7 +339,10 @@ export default function AdminCategories() {
                           <TableCell>
                             {sub.status === true ? (
                               <span
-                                onClick={(e) => toggleStatus(e, sub.id, false)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleStatus(sub.id, false);
+                                }}
                                 className="inline-flex items-center gap-1.5 text-sm text-green-600 font-medium cursor-pointer hover:underline"
                               >
                                 <span className="w-2 h-2 rounded-full bg-green-500" />{" "}
@@ -412,7 +350,10 @@ export default function AdminCategories() {
                               </span>
                             ) : (
                               <span
-                                onClick={(e) => toggleStatus(e, sub.id, true)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleStatus(sub.id, true);
+                                }}
                                 className="inline-flex items-center gap-1.5 text-sm text-slate-500 font-medium cursor-pointer hover:underline"
                               >
                                 <span className="w-2 h-2 rounded-full bg-slate-400" />{" "}
@@ -437,7 +378,10 @@ export default function AdminCategories() {
                                 variant="ghost"
                                 size="icon"
                                 className="h-8 w-8 text-slate-400 hover:text-red-500"
-                                onClick={(e) => handleDelete(e, sub.id)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDelete(sub.id);
+                                }}
                               >
                                 <Trash2 className="w-4 h-4" />
                               </Button>
@@ -507,6 +451,11 @@ export default function AdminCategories() {
               </div>
               {editId ? "Cập Nhật Danh Mục" : "Thêm Danh Mục Mới"}
             </DialogTitle>
+            <DialogDescription>
+              {editId 
+                ? "Chỉnh sửa thông tin danh mục hiện có." 
+                : "Tạo một danh mục mới để phân loại các khóa học của bạn."}
+            </DialogDescription>
           </DialogHeader>
 
           <Form {...form}>

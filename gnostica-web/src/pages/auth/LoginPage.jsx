@@ -10,18 +10,53 @@ import { Eye, EyeOff, Mail, Lock, ArrowRight, Facebook } from 'lucide-react';
 import { SimpleButton } from '@/components/common/AppButton';
 import authService from '@/services/authService';
 import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useEffect } from 'react';
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    const errorParam = searchParams.get('error');
+    if (errorParam) {
+      if (errorParam === 'NOT_LINKED') {
+        toast.error('Tài khoản chưa được liên kết');
+      } else {
+        toast.error(decodeURIComponent(errorParam));
+      }
+      // Xóa params trên URL cho sạch
+      navigate('/login', { replace: true });
+    }
+  }, [searchParams, navigate]);
+
+  const validateForm = () => {
+    let newErrors = {};
+    if (!email.trim()) {
+      newErrors.email = 'Vui lòng nhập email';
+    } else {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const phoneRegex = /^(0|84)(3|5|7|8|9)([0-9]{8})$/;
+      if (!emailRegex.test(email) && !phoneRegex.test(email)) {
+        newErrors.email = 'Email  không hợp lệ';
+      }
+    }
+    if (!password) {
+      newErrors.password = 'Vui lòng nhập mật khẩu';
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateForm()) return;
     setLoading(true);
 
     try {
@@ -72,11 +107,15 @@ const LoginPage = () => {
                   id="email"
                   type="text"
                   placeholder="you@example.com hoặc số điện thoại"
-                  className="pl-9 h-11 bg-slate-50 border-slate-200 focus:bg-white transition-colors"
+                  className={`pl-9 h-11 bg-slate-50 border-slate-200 focus:bg-white transition-colors ${errors.email ? 'border-red-500 focus:ring-red-500' : ''}`}
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (errors.email) setErrors({ ...errors, email: '' });
+                  }}
                 />
               </div>
+              {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
             </div>
 
             {/* Password */}
@@ -96,9 +135,12 @@ const LoginPage = () => {
                   id="password"
                   type={showPassword ? 'text' : 'password'}
                   placeholder="••••••••"
-                  className="pl-9 pr-10 h-11 bg-slate-50 border-slate-200 focus:bg-white transition-colors"
+                  className={`pl-9 pr-10 h-11 bg-slate-50 border-slate-200 focus:bg-white transition-colors ${errors.password ? 'border-red-500 focus:ring-red-500' : ''}`}
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (errors.password) setErrors({ ...errors, password: '' });
+                  }}
                 />
                 <button
                   type="button"
@@ -111,6 +153,7 @@ const LoginPage = () => {
                   }
                 </button>
               </div>
+              {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
             </div>
 
             {/* Remember Me */}

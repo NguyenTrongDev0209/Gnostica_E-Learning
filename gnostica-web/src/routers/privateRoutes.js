@@ -14,6 +14,8 @@ import ChangePassword from "@/pages/account/ChangePassword";
 import CheckoutPage from "@/pages/client/CheckoutPage";
 import PayosQR from "@/pages/client/PayosQR";
 import CheckoutResult from "@/pages/client/CheckoutResult";
+import ForumCreatePost from "@/pages/client/ForumCreatePost";
+import MyForumPosts from "@/pages/client/MyForumPosts";
 
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminUsers from "@/pages/admin/AdminUsers";
@@ -24,6 +26,10 @@ import AdminCoupons from "@/pages/admin/AdminCoupons";
 import AdminReviews from "@/pages/admin/AdminReviews";
 import AdminReports from "@/pages/admin/AdminReports";
 import AdminSettings from "@/pages/admin/AdminSettings";
+import AdminForumCategory from "@/pages/admin/AdminForumCategory";
+import AdminBanks from "@/pages/admin/AdminBanks";
+import AdminTransactions from "@/pages/admin/AdminTransactions";
+
 
 import InstructorDashboard from "@/pages/instructor/InstructorDashboard";
 import InstructorCourses from "@/pages/instructor/InstructorCourses";
@@ -58,11 +64,16 @@ export const privateRoutes = {
     { path: "/admin/reviews", component: AdminReviews },
     { path: "/admin/reports", component: AdminReports },
     { path: "/admin/settings", component: AdminSettings },
+    { path: "/admin/forum-categories", component: AdminForumCategory },
+    { path: "/admin/banks", component: AdminBanks },
+    { path: "/admin/transactions", component: AdminTransactions },
   ],
+
   instructor: [
     { path: "/instructor", component: InstructorDashboard },
     { path: "/instructor/courses", component: InstructorCourses },
     { path: "/instructor/courses/courses-form", component: InstructorCourseForm },
+    { path: "/instructor/courses/edit/:slug", component: InstructorCourseForm },
     { path: "/instructor/revenue", component: InstructorRevenue },
     { path: "/instructor/coupons", component: InstructorCoupons },
     { path: "/instructor/students", component: InstructorStudents },
@@ -78,5 +89,9 @@ export const privateRoutes = {
     { path: "/checkout/payos", component: PayosQR },
     { path: "/checkout/success", component: CheckoutResult },
     { path: "/checkout/cancel", component: CheckoutResult },
+  ],
+  forum: [
+    { path: "/forum/create", component: ForumCreatePost },
+    { path: "/forum/me", component: MyForumPosts },
   ],
 };

@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.CrossOrigin;
 
 import com.gnostica.dto.ApiResponse;
 import com.gnostica.service.PayoutsService;
@@ -19,7 +20,8 @@ import vn.payos.model.v1.payoutsAccount.PayoutAccountInfo;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/payouts")
+@RequestMapping("/api/payouts")
+@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 public class PayoutsController {
   private final PayoutsService payoutsService;

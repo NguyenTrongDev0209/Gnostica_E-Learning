@@ -15,8 +15,11 @@ import {
   BarChart3,
   Ticket,
   MessageCircleWarning,
-  LayoutList
+  LayoutList,
+  Building2,
+  History
 } from "lucide-react";
+
 import { AppLogo } from "@/components/common/AppButton";
 
 const ADMIN_MENU_GROUPS = [
@@ -32,6 +35,7 @@ const ADMIN_MENU_GROUPS = [
     items: [
       { label: "Khóa học", icon: BookOpen, href: "/admin/courses" },
       { label: "Danh mục", icon: LayoutList, href: "/admin/categories" },
+      { label: "Danh mục diễn đàn", icon: MessageSquare, href: "/admin/forum-categories" },
     ]
   },
   {
@@ -39,6 +43,7 @@ const ADMIN_MENU_GROUPS = [
     items: [
       { label: "Đơn hàng", icon: ShoppingCart, href: "/admin/orders" },
       { label: "Phiếu giảm", icon: Ticket, href: "/admin/coupons" },
+      { label: "Giao dịch", icon: History, href: "/admin/transactions" },
     ]
   },
   {
@@ -51,10 +56,12 @@ const ADMIN_MENU_GROUPS = [
   {
     title: "HỆ THỐNG",
     items: [
+      { label: "Ngân hàng", icon: Building2, href: "/admin/banks" },
       { label: "Cài đặt", icon: Settings, href: "/admin/settings" },
     ]
   }
 ];
+
 
 import authService from "@/services/authService";
 
@@ -120,8 +127,12 @@ export default function AdminLayout() {
         <div className="p-4 border-t border-slate-800 bg-slate-950/30 font-bold">
           <div className="flex items-center justify-between px-2">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center font-bold text-primary-foreground shrink-0 border border-slate-700">
-                {user?.fullName?.charAt(0) || "A"}
+              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center font-bold text-primary-foreground shrink-0 border border-slate-700 overflow-hidden">
+                {user?.avatar ? (
+                  <img src={user.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  user?.fullName?.charAt(0) || "A"
+                )}
               </div>
               <div className="min-w-0">
                 <p className="text-sm font-bold text-white truncate">{user?.fullName || "Administrator"}</p>
@@ -168,8 +179,12 @@ export default function AdminLayout() {
               <Bell className="w-5 h-5 text-slate-600" />
               <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white"></span>
             </button>
-            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
-              AD
+            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm overflow-hidden">
+              {user?.avatar ? (
+                <img src={user.avatar} alt="Avatar" className="w-full h-full object-cover" />
+              ) : (
+                user?.fullName?.substring(0, 2).toUpperCase() || "AD"
+              )}
             </div>
           </div>
         </header>

@@ -1,11 +1,20 @@
 import React from "react";
 import { PageHeader, AppBreadcrumb } from "@/components/common/AppSection";
-import CourseListSection from "@/components/client/CourseListSection";
+import CourseListSection from "@/components/pages/client/shared/CourseListSection";
 import { Home } from "lucide-react";
-import { courseCatalogMock } from "@/mocks/courses";
+import useCategories from "@/hooks/useCategories";
+import useCourses from "@/hooks/useCourses";
 
 export default function CourseCatalog() {
-  const [priceRange, setPriceRange] = React.useState([0, 2000000]);
+  const { categories } = useCategories();
+  const { 
+    courses, 
+    loading, 
+    filters, 
+    pagination, 
+    handleFilterChange, 
+    handlePageChange 
+  } = useCourses({ initialPageSize: 9 });
 
   const breadcrumbItems = [
     { label: "Trang chủ", href: "/", icon: Home },
@@ -17,16 +26,20 @@ export default function CourseCatalog() {
       <AppBreadcrumb items={breadcrumbItems} />
       
       <PageHeader 
-        title="Explore Our" 
-        highlightedTitle="Courses" 
-        description="Discover a wide range of courses tailored to help you master new skills and advance your career in the tech industry."
+        title="Khám phá các" 
+        highlightedTitle="Khóa học" 
+        description="Khám phá các khóa học đa dạng được thiết kế để giúp bạn làm chủ các kỹ năng mới và thăng tiến trong sự nghiệp."
       />
 
       <CourseListSection
-        courses={courseCatalogMock}
-        priceRange={priceRange}
-        setPriceRange={setPriceRange}
-        emptyMessage="Hiện chưa có khóa học phù hợp."
+        courses={courses}
+        loading={loading}
+        categories={categories}
+        filters={filters}
+        onFilterChange={handleFilterChange}
+        pagination={pagination}
+        onPageChange={handlePageChange}
+        emptyMessage="Hiện chưa có khóa học nào phù hợp với tiêu chí của bạn."
       />
     </div>
   );

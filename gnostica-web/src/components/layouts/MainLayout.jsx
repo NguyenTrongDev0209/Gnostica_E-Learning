@@ -24,34 +24,21 @@ import {
 } from "@/components/common/AppButton"
 import { Search, Heart, ChevronDown, LayoutGrid, Flame } from "lucide-react"
 import AppSearchInput from "@/components/common/AppSearchInput"
+import useCategories from "@/hooks/useCategories"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+  DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu"
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import authService from '@/services/authService'
-
-const courseCategories = [
-  { label: "Tất cả khóa học", href: "/courses" },
-  { label: "Lập trình Web", href: "/courses/category/web-development" },
-  { label: "Thiết kế UI/UX", href: "/courses/category/ui-ux-design" },
-  { label: "Khoa học dữ liệu", href: "/courses/category/data-science" },
-  { label: "Lập trình Di động", href: "/courses/category/mobile-dev" },
-  { label: "An ninh mạng", href: "/courses/category/cyber-security" },
-  { label: "Thiết kế Đồ họa", href: "/courses/category/graphic-design" },
-  { label: "Kinh doanh", href: "/courses/category/business" },
-  { label: "Marketing", href: "/courses/category/marketing" },
-  { label: "Điện toán đám mây", href: "/courses/category/cloud-computing" },
-  { label: "Trí tuệ nhân tạo", href: "/courses/category/artificial-intelligence" },
-  { label: "Phát triển Game", href: "/courses/category/game-development" },
-  { label: "Blockchain", href: "/courses/category/blockchain" },
-  { label: "Marketing kỹ thuật số", href: "/courses/category/digital-marketing" },
-  { label: "Sức khỏe & Đời sống", href: "/courses/category/health" },
-  { label: "Ngoại ngữ", href: "/courses/category/language" },
-]
+import AiChatBot from '@/components/common/AiChatBot'
 
 const FooterBrand = () => (
   <div className="flex flex-col gap-6">
@@ -105,10 +92,47 @@ const MainLayout = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isCoursesMobileOpen, setIsCoursesMobileOpen] = useState(false)
   const currentUser = authService.getCurrentUser()
+  const { categories: flatCategories } = useCategories()
 
   const handleLogout = async () => {
     await authService.logout();
     window.location.reload();
+  };
+
+  // Logic chuyển đổi danh sách phẳng thành cấu trúc cây (tree)
+  // Sử dụng trực tiếp categories từ API (đã là cấu trúc cây với subcategories)
+  const categoryTree = flatCategories;
+
+  // Hàm đệ quy để render menu danh mục đa cấp (Giới hạn tối đa 2 cấp)
+  const renderCategoryItems = (items, depth = 1) => {
+    return items.map((category) => {
+      const hasSub = category.subcategories && category.subcategories.length > 0 && depth < 2;
+      
+      if (hasSub) {
+        return (
+          <DropdownMenuSub key={category.id}>
+            <DropdownMenuSubTrigger className="px-4 py-2.5 hover:bg-header-bg hover:text-header-orange cursor-pointer font-bold text-sm">
+              <Link to={`/courses/category/${category.slug}`} className="flex-1">{category.name}</Link>
+            </DropdownMenuSubTrigger>
+            <DropdownMenuPortal>
+              <DropdownMenuSubContent 
+                sideOffset={10} 
+                alignOffset={-5}
+                className="bg-white border-none shadow-[0_10px_40px_rgba(0,0,0,0.15)] min-w-[220px] p-1.5 animate-in slide-in-from-left-2 duration-200"
+              >
+                {renderCategoryItems(category.subcategories, depth + 1)}
+              </DropdownMenuSubContent>
+            </DropdownMenuPortal>
+          </DropdownMenuSub>
+        );
+      }
+
+      return (
+        <DropdownMenuItem key={category.id} asChild className="px-4 py-2.5 hover:bg-header-bg hover:text-header-orange cursor-pointer font-bold text-sm">
+          <Link to={`/courses/category/${category.slug}`}>{category.name}</Link>
+        </DropdownMenuItem>
+      );
+    });
   };
 
   return (
@@ -168,8 +192,8 @@ const MainLayout = () => {
               </button>
               {isCoursesMobileOpen && (
                 <div className="grid grid-cols-1 gap-1 ml-4 py-2">
-                  {courseCategories.slice(0, 8).map(c => (
-                    <Link key={c.label} to={c.href} className="py-2 text-sm text-slate-600 font-bold">{c.label}</Link>
+                  {flatCategories.filter(c => !c.parentId && !c.parent_id).slice(0, 10).map(c => (
+                    <Link key={c.id} to={`/courses/category/${c.slug}`} className="py-2 text-sm text-slate-600 font-bold">{c.name}</Link>
                   ))}
                 </div>
               )}
@@ -184,21 +208,17 @@ const MainLayout = () => {
       <div className="w-full bg-white shadow-sm relative z-40">
         <div className="app-container flex items-center justify-between py-0 h-14">
           {/* Left: Category Button */}
-          <div className="flex-1 flex justify-start">
+          <div className="flex-1 flex justify-start pl-8">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <SimpleButton size="lg" className="rounded-lg font-bold uppercase tracking-wider">
-                  <LayoutGrid className="w-5 h-5" />
-                  Khóa học
-                  <ChevronDown className="w-4 h-4 ml-2" />
-                </SimpleButton>
+                <button className="btn-category-glow flex items-center gap-3 px-6 h-11 focus:outline-none">
+                  <LayoutGrid className="w-5 h-5 pointer-events-none" />
+                  <span className="pointer-events-none">Khóa học</span>
+                  <ChevronDown className="w-4 h-4 ml-1 pointer-events-none" />
+                </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-[280px] bg-white border-none shadow-2xl rounded-sm p-2 animate-in fade-in slide-in-from-top-2">
-                {courseCategories.map((category) => (
-                  <DropdownMenuItem key={category.label} asChild className="px-4 py-2 hover:bg-header-bg hover:text-header-orange cursor-pointer font-bold text-sm">
-                    <Link to={category.href}>{category.label}</Link>
-                  </DropdownMenuItem>
-                ))}
+              <DropdownMenuContent align="start" className="w-[280px] bg-white border-none shadow-2xl rounded-lg p-2 animate-in fade-in slide-in-from-top-2 z-[101]">
+                {renderCategoryItems(categoryTree)}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
@@ -348,6 +368,7 @@ const MainLayout = () => {
           </div>
         </div>
       </footer>
+      <AiChatBot />
     </div>
   );
 };

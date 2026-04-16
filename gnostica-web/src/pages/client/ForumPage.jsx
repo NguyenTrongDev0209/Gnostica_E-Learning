@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import SectionContainer, { PageHeader } from '@/components/common/AppSection';
 import { ForumPostCard } from "@/components/common/AppCard";
 import { Button } from "@/components/ui/button";
-import { Search, Flame, Menu, Star, Tag } from 'lucide-react';
+import { Search, Menu, Star, Tag } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { useNavigate, Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import {
   Pagination,
@@ -16,16 +18,98 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { forumCategoriesMock, forumPostsMock } from "@/mocks/forum";
+// import { forumCategoriesMock, forumPostsMock } from "@/mocks/forum";
 
 const ForumPage = () => {
+  const navigate = useNavigate();
+  const [threads, setThreads] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [activeCategory, setActiveCategory] = useState("Tất cả");
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [topContributors, setTopContributors] = useState([]);
+  const [currentUser, setCurrentUser] = useState(null);
 
-  const filteredPosts = forumPostsMock.filter(post => {
+  useEffect(() => {
+    const userData = JSON.parse(localStorage.getItem('user'));
+    setCurrentUser(userData);
+  }, []);
+
+  useEffect(() => {
+    const fetchTopContributors = async () => {
+      try {
+        const res = await axios.get('http://localhost:8080/api/threads/top-contributors');
+        setTopContributors(res.data);
+      } catch (error) {
+        console.error("Failed to load top contributors", error);
+      }
+    };
+    fetchTopContributors();
+  }, []);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await axios.get('http://localhost:8080/api/forum-categories');
+        const activeCategories = res.data.filter(cat => cat.status === true);
+        setCategories(activeCategories);
+      } catch (error) {
+        console.error("Failed to load forum categories", error);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  useEffect(() => {
+    const fetchThreads = async () => {
+      setIsLoading(true);
+      try {
+        const res = await axios.get(`http://localhost:8080/api/threads?page=${currentPage}&size=5`);
+        setThreads(res.data.content);
+        setTotalPages(res.data.totalPages);
+      } catch (error) {
+        console.error("Failed to fetch threads", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchThreads();
+  }, [currentPage]);
+
+  // Map backend data to ForumPostCard format
+  const mappedPosts = threads.map(thread => ({
+    id: thread.id,
+    title: thread.content.substring(0, 25) + (thread.content.length > 25 ? "..." : ""),
+    content: thread.content,
+    author: {
+      name: thread.account?.fullName || "Ẩn danh",
+      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${thread.account?.email || 'default'}`,
+      status: "online"
+    },
+    category: thread.category?.name || "",
+    tags: [], // Tháo luận removed
+    createdAt: new Date(thread.createdAt).toLocaleDateString('vi-VN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }),
+    stats: {
+      likes: thread.likes || 0,
+      views: thread.views || 0,
+      replies: thread.commentCount || 0
+    },
+    images: thread.images || [],
+    isHot: (thread.views || 0) > 50
+  }));
+
+  const filteredPosts = mappedPosts.filter(post => {
     const matchesCategory = activeCategory === "Tất cả" || post.category === activeCategory;
     const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+      post.content.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
@@ -39,7 +123,10 @@ const ForumPage = () => {
             description="Nơi giao lưu, hỏi đáp và chia sẻ kiến thức về lập trình, công nghệ."
             className="mb-0 sm:mb-0"
           />
-          <Button className="bg-button-gradient hover:brightness-110 md:w-auto w-full font-bold">
+          <Button
+            className="bg-button-gradient hover:brightness-110 md:w-auto w-full font-bold"
+            onClick={() => navigate('/forum/create')}
+          >
             + Tạo bài viết mới
           </Button>
         </div>
@@ -59,18 +146,15 @@ const ForumPage = () => {
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-              <div className="flex gap-2 shrink-0">
-                <Button variant="outline" className="bg-white shrink-0 h-11 px-5">
-                  Mới nhất
-                </Button>
-                <Button variant="ghost" className="shrink-0 flex items-center gap-1 text-orange-500 hover:text-orange-600 hover:bg-orange-50 font-medium h-11 px-5">
-                  <Flame className="w-4 h-4" /> Đang hot
-                </Button>
-              </div>
             </div>
 
             {/* Post List */}
-            {filteredPosts.length > 0 ? (
+            {isLoading ? (
+              <div className="flex flex-col items-center justify-center py-16 bg-white rounded-lg border">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                <p className="mt-4 text-slate-500">Đang tải bài viết...</p>
+              </div>
+            ) : filteredPosts.length > 0 ? (
               <div className="flex flex-col gap-4">
                 {filteredPosts.map((post) => (
                   <ForumPostCard key={post.id} post={post} />
@@ -92,27 +176,42 @@ const ForumPage = () => {
             )}
 
             {/* Pagination Component */}
-            {filteredPosts.length > 0 && (
+            {totalPages > 1 && (
               <div className="flex justify-center mt-8 mb-4">
                 <Pagination>
                   <PaginationContent>
                     <PaginationItem>
-                      <PaginationPrevious href="#" className="text-sm font-medium" />
+                      <Button
+                        variant="ghost"
+                        disabled={currentPage === 0}
+                        onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
+                        className="gap-1 pl-2.5"
+                      >
+                        <PaginationPrevious className="hover:bg-transparent p-0" />
+                      </Button>
                     </PaginationItem>
+
+                    {[...Array(totalPages)].map((_, i) => (
+                      <PaginationItem key={i}>
+                        <PaginationLink
+                          onClick={() => setCurrentPage(i)}
+                          isActive={currentPage === i}
+                          className="cursor-pointer"
+                        >
+                          {i + 1}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ))}
+
                     <PaginationItem>
-                      <PaginationLink href="#" isActive>1</PaginationLink>
-                    </PaginationItem>
-                    <PaginationItem>
-                      <PaginationLink href="#">2</PaginationLink>
-                    </PaginationItem>
-                    <PaginationItem>
-                      <PaginationLink href="#">3</PaginationLink>
-                    </PaginationItem>
-                    <PaginationItem>
-                      <PaginationEllipsis />
-                    </PaginationItem>
-                    <PaginationItem>
-                      <PaginationNext href="#" className="text-sm font-medium" />
+                      <Button
+                        variant="ghost"
+                        disabled={currentPage === totalPages - 1}
+                        onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
+                        className="gap-1 pr-2.5"
+                      >
+                        <PaginationNext className="hover:bg-transparent p-0" />
+                      </Button>
                     </PaginationItem>
                   </PaginationContent>
                 </Pagination>
@@ -133,25 +232,25 @@ const ForumPage = () => {
                   <button
                     onClick={() => setActiveCategory("Tất cả")}
                     className={`flex items-center justify-between px-3 py-2 rounded-md text-sm transition-colors ${activeCategory === "Tất cả"
-                        ? "bg-primary/10 text-primary font-semibold"
-                        : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                      ? "bg-primary/10 text-primary font-semibold"
+                      : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                       }`}
                   >
                     <span>Tất cả chủ đề</span>
                   </button>
-                  {forumCategoriesMock.map((cat) => (
+                  {categories.map((cat) => (
                     <button
                       key={cat.id}
                       onClick={() => setActiveCategory(cat.name)}
                       className={`flex items-center justify-between px-3 py-2 rounded-md text-sm transition-colors group ${activeCategory === cat.name
-                          ? "bg-primary/10 text-primary font-semibold"
-                          : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                        ? "bg-primary/10 text-primary font-semibold"
+                        : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                         }`}
                     >
                       <span className="truncate pr-2">{cat.name}</span>
                       <Badge variant="secondary" className={`text-[10px] px-1.5 py-0 border-none transition-colors ${activeCategory === cat.name ? "bg-primary/20 text-primary" : "bg-slate-100 text-slate-500 group-hover:bg-slate-200"
                         }`}>
-                        {cat.count}
+                        {cat.threadCount || 0}
                       </Badge>
                     </button>
                   ))}
@@ -159,27 +258,6 @@ const ForumPage = () => {
               </CardContent>
             </Card>
 
-            {/* Popular Tags Widget */}
-            <Card className="bg-white shadow-sm border-border hidden sm:block">
-              <CardContent className="p-5">
-                <h3 className="font-bold text-base mb-4 flex items-center gap-2">
-                  <Tag className="w-5 h-5 text-primary" />
-                  Tags phổ biến
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {["ReactJS", "Vue", "Java", "Spring Boot", "Tuyển dụng", "Lộ trình", "Data Science", "Câu hỏi phỏng vấn"].map(tag => (
-                    <Badge
-                      key={tag}
-                      variant="outline"
-                      className="cursor-pointer hover:bg-primary hover:text-white hover:border-primary transition-colors text-xs py-1"
-                      onClick={() => setSearchQuery(tag)}
-                    >
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
 
             {/* Top Contributors Widget */}
             <Card className="bg-white shadow-sm border-border hidden lg:block">
@@ -189,21 +267,63 @@ const ForumPage = () => {
                   Người nổi bật
                 </h3>
                 <div className="flex flex-col gap-4">
-                  {[1, 2, 3].map((item) => (
-                    <div key={item} className="flex items-center gap-3">
-                      <Avatar size="sm" className="w-8 h-8">
-                        <AvatarImage src={`https://i.pravatar.cc/150?u=a042581f4e2902670${item}d`} />
-                        <AvatarFallback>U</AvatarFallback>
-                      </Avatar>
-                      <div className="flex flex-col overflow-hidden">
-                        <span className="text-sm font-semibold text-slate-800 truncate">Chuyên gia {item}</span>
-                        <span className="text-[10px] text-muted-foreground">{item * 124} điểm</span>
+                  {topContributors.length > 0 ? (
+                    topContributors.map((item, index) => (
+                      <div key={item.account.id} className="flex items-center gap-3">
+                        <Avatar size="sm" className="w-8 h-8">
+                          <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${item.account.email || 'default'}`} />
+                          <AvatarFallback>{item.account.fullName?.substring(0, 1).toUpperCase() || "U"}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col overflow-hidden">
+                          <span className="text-sm font-semibold text-slate-800 truncate">
+                            {item.account.fullName || "Ẩn danh"}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground">
+                            {item.totalLikes} lượt thích · {item.threadCount} bài viết
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))
+                  ) : (
+                    <p className="text-xs text-slate-400 text-center py-2">Chưa có dữ liệu</p>
+                  )}
                 </div>
               </CardContent>
             </Card>
+            
+            {/* "Me" Section */}
+            {currentUser && (
+              <Card className="bg-white shadow-sm border-border">
+                <CardContent className="p-5">
+                  <h3 className="font-bold text-base mb-4 flex items-center gap-2">
+                    <Avatar className="w-5 h-5">
+                      <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.email || 'default'}`} />
+                      <AvatarFallback>{currentUser.fullName?.substring(0, 1).toUpperCase() || "U"}</AvatarFallback>
+                    </Avatar>
+                    Tôi
+                  </h3>
+                  <Link 
+                    to="/forum/me"
+                    className="flex items-center gap-3 p-2 -mx-2 rounded-lg hover:bg-slate-50 transition-colors group"
+                  >
+                    <Avatar className="w-10 h-10 ring-2 ring-primary/10 group-hover:ring-primary/30 transition-all">
+                      <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.email || 'default'}`} />
+                      <AvatarFallback className="bg-primary/10 text-primary font-bold">
+                        {currentUser.fullName?.substring(0, 2).toUpperCase() || "U"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col overflow-hidden">
+                      <span className="text-sm font-semibold text-slate-800 truncate group-hover:text-primary transition-colors">
+                        {currentUser.fullName || "Tài khoản của tôi"}
+                      </span>
+                      <span className="text-xs text-muted-foreground flex items-center gap-1">
+                        Xem bài viết của tôi
+                      </span>
+                    </div>
+                  </Link>
+                </CardContent>
+              </Card>
+            )}
 
           </div>
         </div>

@@ -12,6 +12,7 @@ const OTP_LENGTH = 6;
 const ConfirmPage = () => {
   const [searchParams] = useSearchParams();
   const email = searchParams.get('email');
+  const type = searchParams.get('type'); // 'reset' or null (registration)
   const [otp, setOtp] = useState(Array(OTP_LENGTH).fill(''));
   const [loading, setLoading] = useState(false);
   const [timeLeft, setTimeLeft] = useState(3 * 60); // 3 minutes in seconds
@@ -87,9 +88,16 @@ const ConfirmPage = () => {
 
     setLoading(true);
     try {
-        await authService.verify(email, code);
-        toast.success("Xác thực tài khoản thành công! Bạn có thể đăng nhập.");
-        navigate('/login');
+        if (type === 'reset') {
+            // For reset password, we just pass the code forward or verify locally
+            // We'll let ResetPassword page handle the actual reset call which also verifies the code
+            toast.success("Mã xác thực chính xác!");
+            navigate(`/reset-password?email=${email}&code=${code}`);
+        } else {
+            await authService.verify(email, code);
+            toast.success("Xác thực tài khoản thành công! Bạn có thể đăng nhập.");
+            navigate('/login');
+        }
     } catch (error) {
         toast.error(error.toString());
     } finally {

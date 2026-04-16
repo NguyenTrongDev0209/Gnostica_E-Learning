@@ -145,3 +145,28 @@ export const privacySectionsMock = [
       "Nếu bạn có câu hỏi hoặc lo ngại về chính sách bảo mật, vui lòng liên hệ Bộ phận bảo mật dữ liệu qua email: privacy@example.com hoặc hotline: 1900 xxxx.",
   },
 ];
+
+export const aboutHeroMock = {
+  badge: "TƯƠNG LAI CỦA GIÁO DỤC",
+  title: "Chúng tôi tạo ra giải pháp cho việc",
+  highlight: "Học tập.",
+  description: "Tiếp sức cho những bộ óc tò mò thông qua những trải nghiệm học tập hiện đại, kết hợp trí tuệ nhân tạo với môi trường cộng tác lấy con người làm trung tâm.",
+  primaryCta: "Bắt đầu ngay",
+  secondaryCta: "Khám phá thêm"
+};
+
+export const aboutVisionMock = {
+  title: "Tầm nhìn của Chúng tôi về Tương lai",
+  paragraphs: [
+    "Chúng tôi tin rằng giáo dục nên độc đáo như chính những cá nhân tìm kiếm nó. Gnostica Academy cam kết tiên phong trong khung sư phạm dựa trên dữ liệu, nơi mọi lượt nhấp, tương tác và thành tích đều được phân tích để tinh chỉnh trải nghiệm học tập của bạn.",
+    "Đến năm 2030, chúng tôi hình dung về một thế giới nơi giáo dục chất lượng cao không phải là đặc quyền, mà là một môi trường hiện đại, dễ dàng tiếp cận cho bất kỳ ai sẵn sàng khám phá. Sứ mệnh của chúng tôi là thu hẹp khoảng cách giữa nội dung tĩnh và sự hiểu biết động."
+  ],
+  quote: "Giáo dục là kiến trúc của tâm hồn.",
+  author: "KHƠI DẬY ĐAM MÊ"
+};
+
+export const aboutCTAMock = {
+  title: "Sẵn sàng bắt đầu chưa?",
+  description: "Tham gia cùng hàng ngàn học viên đã thay đổi hành trình học tập của họ với nền tảng thông minh của chúng tôi.",
+  buttonText: "Liên hệ với chúng tôi"
+};

@@ -7,6 +7,9 @@ import java.time.LocalDateTime;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.CascadeType;
+import org.hibernate.annotations.CreationTimestamp;
+
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -37,15 +40,27 @@ public class Account {
 	
 	@Column(columnDefinition = "varchar(12)")
 	public String phone;
+
+    @CreationTimestamp
+    private LocalDateTime createdAt;
 	
 	@Column(columnDefinition = "varchar(255)")
 	public String provider;
+
+	@Column(columnDefinition = "varchar(255)")
+	private String avatar;
 	
 	@Column(name = "birth_day")
     private LocalDate birthDay;
 	
 	@Column
 	private Boolean active = false; // Mặc định là false để đợi xác thực
+
+	@Column
+	private Boolean locked = false; // Mặc định là không khóa
+
+	@Column(columnDefinition = "TEXT")
+	private String lockReason;
 	
 	@Column(length = 6)
 	private String verificationCode;
