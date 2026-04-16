@@ -1,22 +1,6 @@
-import axios from 'axios';
+import api from './api';
 
-const API_URL = 'http://localhost:8080/api/categories';
-
-// Hàm lấy token từ localStorage để gắn vào Header
-const getAuthHeaders = () => {
-    const userStr = localStorage.getItem('user');
-    if (userStr) {
-        try {
-            const user = JSON.parse(userStr);
-            if (user && user.token) {
-                return { Authorization: `Bearer ${user.token}` };
-            }
-        } catch (error) {
-            console.error('CategoryService: Error parsing user from localStorage', error);
-        }
-    }
-    return {};
-};
+const RESOURCE_PATH = '/categories';
 
 const getAllCategories = async (page = 1, limit = 10, search = "", status = "all") => {
     const params = new URLSearchParams({ page, limit });
@@ -26,38 +10,27 @@ const getAllCategories = async (page = 1, limit = 10, search = "", status = "all
     if (status !== "all") {
         params.append("status", status === "active" ? "true" : "false");
     }
-    const response = await axios.get(API_URL, { 
-        params,
-        headers: getAuthHeaders() 
-    });
+    const response = await api.get(RESOURCE_PATH, { params });
     return response.data;
 };
 
 const createCategory = async (data) => {
-    const response = await axios.post(API_URL, data, { 
-        headers: getAuthHeaders() 
-    });
+    const response = await api.post(RESOURCE_PATH, data);
     return response.data;
 };
 
 const updateCategory = async (id, data) => {
-    const response = await axios.put(`${API_URL}/${id}`, data, { 
-        headers: getAuthHeaders() 
-    });
+    const response = await api.put(`${RESOURCE_PATH}/${id}`, data);
     return response.data;
 };
 
 const updateStatus = async (id, status) => {
-    const response = await axios.patch(`${API_URL}/${id}/status?status=${status}`, null, { 
-        headers: getAuthHeaders() 
-    });
+    const response = await api.patch(`${RESOURCE_PATH}/${id}/status?status=${status}`, null);
     return response.data;
 };
 
 const deleteCategory = async (id) => {
-    const response = await axios.delete(`${API_URL}/${id}`, { 
-        headers: getAuthHeaders() 
-    });
+    const response = await api.delete(`${RESOURCE_PATH}/${id}`);
     return response.data;
 };
 

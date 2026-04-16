@@ -1,26 +1,9 @@
-import axios from 'axios';
+import api from './api';
 
-const API_URL = 'http://localhost:8080/api/transactions';
-
-const getAuthHeaders = () => {
-    const userStr = localStorage.getItem('user');
-    if (userStr) {
-        try {
-            const user = JSON.parse(userStr);
-            if (user && user.token) {
-                return { Authorization: `Bearer ${user.token}` };
-            }
-        } catch (error) {
-            console.error('TransactionService: Error parsing user from localStorage', error);
-        }
-    }
-    return {};
-};
+const RESOURCE_PATH = '/transactions';
 
 const getTransactions = async () => {
-    const response = await axios.get(API_URL, {
-        headers: getAuthHeaders()
-    });
+    const response = await api.get(RESOURCE_PATH);
     return response.data;
 };
 

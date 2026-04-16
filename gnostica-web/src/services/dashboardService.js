@@ -1,33 +1,14 @@
-import axios from 'axios';
+import api from './api';
 
-const API_URL = 'http://localhost:8080/api/dashboard';
-
-const getAuthHeaders = () => {
-    const userStr = localStorage.getItem('user');
-    if (userStr) {
-        try {
-            const user = JSON.parse(userStr);
-            if (user && user.token) {
-                return { Authorization: `Bearer ${user.token}` };
-            }
-        } catch (error) {
-            console.error('DashboardService: Error parsing user from localStorage', error);
-        }
-    }
-    return {};
-};
+const RESOURCE_PATH = '/dashboard';
 
 const getStats = async () => {
-    const response = await axios.get(`${API_URL}/stats`, {
-        headers: getAuthHeaders()
-    });
+    const response = await api.get(`${RESOURCE_PATH}/stats`);
     return response.data.data;
 };
 
 const getMemberGrowth = async () => {
-    const response = await axios.get(`${API_URL}/member-growth`, {
-        headers: getAuthHeaders()
-    });
+    const response = await api.get(`${RESOURCE_PATH}/member-growth`);
     return response.data.data;
 };
 
