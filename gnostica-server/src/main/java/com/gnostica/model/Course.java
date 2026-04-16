@@ -96,6 +96,10 @@ public class Course {
     @JsonIgnore
     private List<Enrollment> enrollments;
 
+    @Transient
+    @com.fasterxml.jackson.annotation.JsonProperty("isEnrolled")
+    private Boolean isEnrolled;
+
     @com.fasterxml.jackson.annotation.JsonProperty("categoryId")
     public Integer getCategoryId() {
         return category != null ? category.getId() : null;

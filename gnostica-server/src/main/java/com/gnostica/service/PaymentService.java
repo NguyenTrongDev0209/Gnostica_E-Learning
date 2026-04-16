@@ -50,7 +50,8 @@ public class PaymentService {
         Order order = orderRepository.findByTransactionId(transactionId).orElse(null);
 
         if (order != null) {
-            System.out.println(">>> DEBUG [handlePaymentWebhook] Order found. status: " + order.getStatus() + ", webhook payload code: " + data.getCode());
+            System.out.println(">>> DEBUG [handlePaymentWebhook] Order found. status: " + order.getStatus()
+                    + ", webhook payload code: " + data.getCode());
         }
 
         if (order != null && order.getStatus() == 0) {
@@ -77,7 +78,8 @@ public class PaymentService {
         boolean isPaid = status.trim().equalsIgnoreCase("PAID");
         boolean isPendingOrder = order != null && order.getStatus() == 0;
 
-        System.out.println(">>> DEBUG [syncPayment] Evaluated conditions -> isPaid: " + isPaid + ", isPendingOrder: " + isPendingOrder);
+        System.out.println(">>> DEBUG [syncPayment] Evaluated conditions -> isPaid: " + isPaid + ", isPendingOrder: "
+                + isPendingOrder);
 
         if (isPaid && isPendingOrder) {
             System.out.println(">>> DEBUG [syncPayment] Conditions MET. Calling processSuccessfulOrder...");
@@ -113,7 +115,8 @@ public class PaymentService {
     public void processSuccessfulOrder(Order order) {
         System.out.println(">>> DEBUG [processSuccessfulOrder] Started for order ID: " + order.getId());
         if (order == null || order.getStatus() == 1) {
-            System.out.println(">>> DEBUG [processSuccessfulOrder] Aborted! Order is null or already processed (status=1)");
+            System.out.println(
+                    ">>> DEBUG [processSuccessfulOrder] Aborted! Order is null or already processed (status=1)");
             return;
         }
 
@@ -125,9 +128,11 @@ public class PaymentService {
         System.out.println(">>> DEBUG [processSuccessfulOrder] Found " + details.size() + " order details.");
         for (OrderDetail detail : details) {
             try {
-                System.out.println(">>> DEBUG [processSuccessfulOrder] Processing course ID: " + detail.getCourse().getId());
+                System.out.println(
+                        ">>> DEBUG [processSuccessfulOrder] Processing course ID: " + detail.getCourse().getId());
                 // 1. Check for existing enrollment to avoid unique constraint violations
-                Optional<Enrollment> existingEnrollment = enrollmentRepository.findByAccountAndCourse(order.getAccount(), detail.getCourse());
+                Optional<Enrollment> existingEnrollment = enrollmentRepository
+                        .findByAccountAndCourse(order.getAccount(), detail.getCourse());
                 if (existingEnrollment.isEmpty()) {
                     Enrollment enrollment = new Enrollment();
                     enrollment.setAccount(order.getAccount());
@@ -137,12 +142,18 @@ public class PaymentService {
                     enrollmentRepository.save(enrollment);
                     System.out.println(">>> DEBUG [processSuccessfulOrder] Saved Enrollment successfully!");
                 } else {
-                    System.out.println(">>> DEBUG [processSuccessfulOrder] Student already enrolled. Skipping creation.");
+                    System.out
+                            .println(">>> DEBUG [processSuccessfulOrder] Student already enrolled. Skipping creation.");
                 }
 
-                // 2. Credit Instructor Wallet
+                // 2. Credit Instructor Wallet (Net = 90% Price)
                 Account instructor = detail.getCourse().getAccount();
                 if (instructor != null) {
+                    double platformFeeRate = 0.1; // 10% platform fee
+                    double totalAmount = detail.getPrice();
+                    double platformFee = totalAmount * platformFeeRate;
+                    double netAmount = totalAmount - platformFee;
+
                     System.out.println(">>> DEBUG [processSuccessfulOrder] Instructor found: " + instructor.getEmail());
                     Wallet wallet = walletRepository.findByAccount(instructor).orElseGet(() -> {
                         System.out.println(">>> DEBUG [processSuccessfulOrder] Creating new Wallet for instructor");
@@ -154,9 +165,34 @@ public class PaymentService {
                     });
 
                     double currentRemain = wallet.getRemain() != null ? wallet.getRemain() : 0.0;
-                    wallet.setRemain(currentRemain + detail.getPrice());
+                    wallet.setRemain(currentRemain + netAmount);
                     walletRepository.save(wallet);
-                    System.out.println(">>> DEBUG [processSuccessfulOrder] Added " + detail.getPrice() + " to instructor wallet.");
+                    System.out.println(">>> DEBUG [processSuccessfulOrder] Added " + netAmount
+                            + " to instructor wallet (Fee: " + platformFee + ").");
+
+                    // 3. Log Revenue Transaction for Instructor
+                    Transaction revenueTransaction = new Transaction();
+                    revenueTransaction.setAmount(netAmount);
+                    revenueTransaction.setType(1); // 1: Nạp/Cộng tiền
+                    revenueTransaction.setStatus(1); // 1: Thành công
+                    revenueTransaction.setPaymentMethod("REVENUE");
+                    revenueTransaction.setRef("Doanh thu từ khóa học: " + detail.getCourse().getTitle());
+                    revenueTransaction.setCreatedAt(LocalDateTime.now());
+                    revenueTransaction.setOrder(order);
+                    revenueTransaction.setAccount(instructor);
+
+                    try {
+                        Map<String, Object> logData = new HashMap<>();
+                        logData.put("course_id", detail.getCourse().getId());
+                        logData.put("original_price", totalAmount);
+                        logData.put("platform_fee", platformFee);
+                        revenueTransaction.setLog(objectMapper.writeValueAsString(logData));
+                    } catch (Exception e) {
+                        System.err.println(
+                                ">>> DEBUG [processSuccessfulOrder] Error logging revenue json: " + e.getMessage());
+                    }
+
+                    transactionRepository.save(revenueTransaction);
                 }
             } catch (Exception e) {
                 System.err.println(">>> DEBUG [processSuccessfulOrder] EXCEPTION: " + e.getMessage());
@@ -187,7 +223,7 @@ public class PaymentService {
             logData.put("payer_name", data.getCounterAccountName() != null ? data.getCounterAccountName() : "N/A");
             logData.put("description", data.getDescription() != null ? data.getDescription() : "");
             logData.put("transaction_date", data.getTransactionDateTime() != null ? data.getTransactionDateTime() : "");
-            
+
             transaction.setLog(objectMapper.writeValueAsString(logData));
         } catch (JsonProcessingException e) {
             e.printStackTrace();

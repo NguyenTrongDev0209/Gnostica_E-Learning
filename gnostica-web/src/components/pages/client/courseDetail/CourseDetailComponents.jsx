@@ -345,7 +345,7 @@ export const CourseDetailPricingCard = ({ course }) => {
       id: course.id,
       title: course.title,
       instructor: course.instructor?.name || 'Ẩn danh',
-      price: parsePrice(course.price),
+      price: parsePrice(course.salePrice),
       originalPrice: parsePrice(course.originalPrice) || parsePrice(course.price),
       image: course.image,
       rating: course.rating,
@@ -386,8 +386,9 @@ export const CourseDetailPricingCard = ({ course }) => {
             size="lg"
             className="flex-1 py-7 text-lg font-bold rounded-2xl"
             onClick={handleCheckout}
+            disabled={course.isEnrolled}
           >
-            Đăng ký học ngay
+            {course.isEnrolled ? "Đã đăng ký" : "Đăng ký học ngay"}
           </SimpleButton>
           <button
             className="flex-none p-4 rounded-2xl border-2 border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-primary hover:border-primary transition-all flex items-center justify-center cursor-pointer"

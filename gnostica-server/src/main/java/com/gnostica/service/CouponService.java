@@ -52,6 +52,16 @@ public class CouponService {
                 .collect(java.util.stream.Collectors.toList());
     }
 
+    public java.util.List<CouponResponse> getMyCoupons() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Account account = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại"));
+
+        return couponRepository.findAllByAccount(account).stream()
+                .map(this::mapToResponse)
+                .collect(java.util.stream.Collectors.toList());
+    }
+
     public void deleteCoupon(Integer id) {
         if (!couponRepository.existsById(id)) {
             throw new RuntimeException("Mã giảm giá không tồn tại");
