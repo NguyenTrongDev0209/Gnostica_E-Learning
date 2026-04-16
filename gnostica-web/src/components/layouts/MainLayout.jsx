@@ -239,7 +239,7 @@ const MainLayout = () => {
               <div className="absolute bottom-0 left-0 w-full h-[3px] bg-[#f15e2c] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center" />
             </Link>
 
-            <Link to="/instructor" className="h-full flex items-center relative group px-4">
+            <Link to="/instructors" className="h-full flex items-center relative group px-4">
               <span className="font-bold text-slate-700 group-hover:text-[#f15e2c] transition-colors">
                 Giảng viên
               </span>

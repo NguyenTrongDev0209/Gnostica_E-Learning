@@ -27,7 +27,6 @@ const ForumPage = () => {
   const [activeCategory, setActiveCategory] = useState("Tất cả");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [topContributors, setTopContributors] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
@@ -66,9 +65,8 @@ const ForumPage = () => {
     const fetchThreads = async () => {
       setIsLoading(true);
       try {
-        const res = await axios.get(`http://localhost:8080/api/threads?page=${currentPage}&size=5`);
+        const res = await axios.get(`http://localhost:8080/api/threads?page=0&size=1000`);
         setThreads(res.data.content);
-        setTotalPages(res.data.totalPages);
       } catch (error) {
         console.error("Failed to fetch threads", error);
       } finally {
@@ -76,7 +74,12 @@ const ForumPage = () => {
       }
     };
     fetchThreads();
-  }, [currentPage]);
+  }, []);
+
+  // Đặt lại trang đầu tiên khi thay đổi bộ lọc
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [activeCategory, searchQuery]);
 
   // Map backend data to ForumPostCard format
   const mappedPosts = threads.map(thread => ({
@@ -112,6 +115,10 @@ const ForumPage = () => {
       post.content.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
+
+  const postsPerPage = 5;
+  const totalPages = Math.ceil(filteredPosts.length / postsPerPage);
+  const currentPosts = filteredPosts.slice(currentPage * postsPerPage, (currentPage + 1) * postsPerPage);
 
   return (
     <div className="min-h-screen bg-slate-50/50 pb-16 pt-8">
@@ -154,9 +161,9 @@ const ForumPage = () => {
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                 <p className="mt-4 text-slate-500">Đang tải bài viết...</p>
               </div>
-            ) : filteredPosts.length > 0 ? (
+            ) : currentPosts.length > 0 ? (
               <div className="flex flex-col gap-4">
-                {filteredPosts.map((post) => (
+                {currentPosts.map((post) => (
                   <ForumPostCard key={post.id} post={post} />
                 ))}
               </div>

@@ -44,4 +44,12 @@ public class InstructorProfileController {
 
         return ResponseEntity.ok(profile);
     }
+
+    /**
+     * Lấy các khóa học đang hoạt động của giảng viên
+     */
+    @GetMapping("/{id}/courses")
+    public ResponseEntity<?> getInstructorCourses(@PathVariable Integer id) {
+        return ResponseEntity.ok(courseRepository.findByAccountIdAndStatus(id, 1));
+    }
 }
