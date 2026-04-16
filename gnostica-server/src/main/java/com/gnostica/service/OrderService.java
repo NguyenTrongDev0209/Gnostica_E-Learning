@@ -1,17 +1,7 @@
 package com.gnostica.service;
 
-import org.springframework.stereotype.Service;
-import vn.payos.PayOS;
-import vn.payos.core.FileDownloadResponse;
-import vn.payos.model.v2.paymentRequests.CreatePaymentLinkRequest;
-import vn.payos.model.v2.paymentRequests.CreatePaymentLinkResponse;
-import vn.payos.model.v2.paymentRequests.PaymentLink;
-import vn.payos.model.v2.paymentRequests.PaymentLinkItem;
-import vn.payos.model.v2.paymentRequests.invoices.InvoicesInfo;
-import vn.payos.model.webhooks.ConfirmWebhookResponse;
+import com.gnostica.dto.response.PaymentLinkResponse;
 import com.gnostica.dto.request.CreatePaymentLinkRequestBody;
-
-import java.util.ArrayList;
 import com.gnostica.model.Account;
 import com.gnostica.model.Course;
 import com.gnostica.model.Order;
@@ -20,17 +10,22 @@ import com.gnostica.repository.AccountRepository;
 import com.gnostica.repository.CourseRepository;
 import com.gnostica.repository.OrderDetailRepository;
 import com.gnostica.repository.OrderRepository;
+// import com.gnostica.service.PaymentService; (redundant)
 import lombok.RequiredArgsConstructor;
-import java.util.List;
-import java.time.LocalDateTime;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.security.core.context.SecurityContextHolder;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class OrderService {
-    private final PayOS payOS;
     private final OrderRepository orderRepository;
     private final OrderDetailRepository orderDetailRepository;
     private final AccountRepository accountRepository;
@@ -42,16 +37,7 @@ public class OrderService {
     }
 
     @Transactional
-    public CreatePaymentLinkResponse createPaymentLink(CreatePaymentLinkRequestBody requestBody) throws Exception {
-        final String productName = requestBody.getProductName();
-        String description = requestBody.getDescription();
-        if (description != null && description.length() > 25) {
-            description = description.substring(0, 25);
-        }
-        final String returnUrl = requestBody.getReturnUrl();
-        final String cancelUrl = requestBody.getCancelUrl();
-        final long price = requestBody.getPrice();
-
+    public PaymentLinkResponse createPaymentLink(CreatePaymentLinkRequestBody requestBody) throws Exception {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new RuntimeException("User not authenticated");
@@ -68,7 +54,7 @@ public class OrderService {
 
         Order order = new Order();
         order.setAccount(account);
-        order.setTotalPrice((double) price);
+        order.setTotalPrice((double) requestBody.getPrice());
         order.setStatus(0); // 0: PENDING
         order.setTransactionId(String.valueOf(orderCode));
         order.setCreatedAt(LocalDateTime.now());
@@ -78,52 +64,13 @@ public class OrderService {
         detail.setOrder(order);
         detail.setCourse(course);
         detail.setPrice(course.getPrice());
-        detail.setDiscount(0); // Optional: add discount logic
+        detail.setDiscount(0);
         orderDetailRepository.save(detail);
 
         List<OrderDetail> details = new ArrayList<>();
         details.add(detail);
         order.setDetails(details);
 
-        PaymentLinkItem item = PaymentLinkItem.builder()
-                .name(productName)
-                .quantity(1)
-                .price(price)
-                .build();
-
-        CreatePaymentLinkRequest paymentData = CreatePaymentLinkRequest.builder()
-                .orderCode(orderCode)
-                .description(description)
-                .amount(price)
-                .item(item)
-                .returnUrl(returnUrl)
-                .cancelUrl(cancelUrl)
-                .build();
-
-        return payOS.paymentRequests().create(paymentData);
-    }
-
-    public PaymentLink getOrderById(long orderId) throws Exception {
-        PaymentLink paymentLink = payOS.paymentRequests().get(orderId);
-        if (paymentLink != null) {
-            paymentService.syncPayment(paymentLink);
-        }
-        return paymentLink;
-    }
-
-    public PaymentLink cancelOrder(long orderId, String cancellationReason) throws Exception {
-        return payOS.paymentRequests().cancel(orderId, cancellationReason);
-    }
-
-    public ConfirmWebhookResponse confirmWebhook(String webhookUrl) throws Exception {
-        return payOS.webhooks().confirm(webhookUrl);
-    }
-
-    public InvoicesInfo retrieveInvoices(long orderId) throws Exception {
-        return payOS.paymentRequests().invoices().get(orderId);
-    }
-
-    public FileDownloadResponse downloadInvoice(String invoiceId, long orderId) throws Exception {
-        return payOS.paymentRequests().invoices().download(invoiceId, orderId);
+        return paymentService.createPaymentLink(order);
     }
 }

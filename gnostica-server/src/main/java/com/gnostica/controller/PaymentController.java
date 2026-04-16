@@ -23,7 +23,7 @@ public class PaymentController {
   public ApiResponse<WebhookData> payosTransferHandler(@RequestBody Object body)
       throws JsonProcessingException, IllegalArgumentException {
     try {
-      WebhookData data = paymentService.verifyWebhook(body);
+      WebhookData data = paymentService.verifyWebhook("PAYOS", body);
       System.out.println("Webhook received: " + data);
 
       paymentService.handlePaymentWebhook(data);
