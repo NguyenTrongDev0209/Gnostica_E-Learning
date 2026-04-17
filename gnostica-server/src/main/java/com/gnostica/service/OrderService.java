@@ -34,7 +34,7 @@ public class OrderService {
     private final OrderDetailRepository orderDetailRepository;
     private final AccountRepository accountRepository;
     private final CourseRepository courseRepository;
-    private final PaymentService paymentService;
+    private final PaymentService paymentService; // Giữ lại để dùng trong createPaymentLink
 
     public List<Order> getAllOrders() {
         return orderRepository.findAllByOrderByIdDesc();
@@ -60,11 +60,16 @@ public class OrderService {
     }
 
     private Order checkAndReturnOrder(Order order) throws Exception {
-        // If order is still PENDING, poll PayOS status
+        // Nếu order đang PENDING, chủ động hỏi PayOS để cập nhật trạng thái
         if (order.getStatus() == 0) {
-            paymentService.checkPaymentStatus(order);
-            // Re-fetch order from DB after possible status update
-            return orderRepository.findById(order.getId()).get();
+            try {
+                paymentService.checkPaymentStatus(order);
+            } catch (Exception e) {
+                // Nếu PayOS API lỗi, log và bỏ qua - frontend sẽ thử lại sau 2 giây
+                log.warn("Không thể kiểm tra trạng thái PayOS cho order {}: {}", order.getId(), e.getMessage());
+            }
+            // Re-fetch order từ DB sau khi có thể đã được cập nhật
+            return orderRepository.findById(order.getId()).orElse(order);
         }
         return order;
     }

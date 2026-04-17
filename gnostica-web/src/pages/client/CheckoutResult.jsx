@@ -33,7 +33,7 @@ export default function CheckoutResult() {
       if (orderCode) {
         try {
           const response = await orderService.getOrderById(orderCode);
-          if (response.success) {
+          if (response.error === 0 || response.data) {
             setOrder(response.data);
           }
         } catch (error) {

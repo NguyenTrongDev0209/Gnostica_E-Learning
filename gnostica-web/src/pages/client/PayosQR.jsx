@@ -61,7 +61,9 @@ export default function PayosQR() {
           // Chuyển hướng sang trang kết quả kèm orderCode để hiển thị chi tiết
           setTimeout(() => {
             navigate(`/checkout/success?orderCode=${paymentData.orderCode}`);
-          }, 1500);
+          }, 500);
+        } else if (response.error !== 0) {
+          console.error("API Error:", response.message);
         } else if (currentStatus === 2) {
           // status 2 = CANCELLED (nếu có)
           clearInterval(pollInterval);
@@ -71,10 +73,10 @@ export default function PayosQR() {
       } catch (error) {
         console.error("Polling error:", error);
       }
-    }, 2000);
+    }, 1000);
 
     return () => clearInterval(pollInterval);
-  }, [paymentData, status, navigate, orderItems]);
+  }, [paymentData?.orderCode, status, navigate]);
 
   // Countdown timer
   useEffect(() => {

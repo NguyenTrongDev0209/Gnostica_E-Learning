@@ -8,6 +8,7 @@ import com.gnostica.service.PaymentStrategyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import vn.payos.PayOS;
+import vn.payos.model.v2.paymentRequests.PaymentLink;
 import vn.payos.model.v2.paymentRequests.PaymentLinkItem;
 import vn.payos.model.v2.paymentRequests.CreatePaymentLinkRequest;
 import vn.payos.model.v2.paymentRequests.CreatePaymentLinkResponse;
@@ -43,6 +44,7 @@ public class PayOSStrategyImpl implements PaymentStrategyService {
                 .cancelUrl(baseUrl + "/payment/cancel")
                 .build();
 
+        // Tạo link thanh toán
         CreatePaymentLinkResponse paymentLink = payOS.paymentRequests().create(paymentData);
 
         return PaymentLinkResponse.builder()
@@ -65,11 +67,14 @@ public class PayOSStrategyImpl implements PaymentStrategyService {
     }
 
     @Override
-    public boolean checkPaymentStatus(Order order) throws Exception {
-        // Use direct chained call with toString() to avoid type resolution issues with
-        // intermediate objects
-        String status = payOS.paymentRequests().get(Long.parseLong(order.getTransactionId())).getStatus().toString();
+    public PaymentLink getPaymentDetails(Order order) throws Exception {
+        return payOS.paymentRequests().get(Long.parseLong(order.getTransactionId()));
+    }
 
+    @Override
+    public boolean checkPaymentStatus(Order order) throws Exception {
+        PaymentLink paymentLink = getPaymentDetails(order);
+        String status = paymentLink.getStatus() != null ? paymentLink.getStatus().toString() : "";
         boolean isPaid = "PAID".equals(status);
 
         if (isPaid) {

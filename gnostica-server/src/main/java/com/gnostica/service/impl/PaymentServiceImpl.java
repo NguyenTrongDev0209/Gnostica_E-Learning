@@ -52,12 +52,22 @@ public class PaymentServiceImpl implements PaymentService {
             return;
         }
 
-        // Get strategy (assuming PAYOS for now, or match from order if stored)
-        boolean isPaid = paymentStrategyFactory.getStrategy("PAYOS").checkPaymentStatus(order);
+        PaymentStrategyService strategy = paymentStrategyFactory.getStrategy("PAYOS");
+        boolean isPaid = strategy.checkPaymentStatus(order);
 
         if (isPaid) {
             log.info("Order {} confirmed as PAID via server-side polling", order.getId());
             processSuccessfulOrder(order);
+
+            // Lấy thêm details từ PayOS để lưu transaction với bank info
+            try {
+                vn.payos.model.v2.paymentRequests.PaymentLink paymentLink = strategy.getPaymentDetails(order);
+                if (paymentLink != null) {
+                    saveTransactionFromPolling(paymentLink, order);
+                }
+            } catch (Exception e) {
+                log.warn("Không thể lấy payment details để lưu transaction: {}", e.getMessage());
+            }
         }
     }
 
@@ -112,6 +122,43 @@ public class PaymentServiceImpl implements PaymentService {
             transaction.setLog(objectMapper.writeValueAsString(logData));
         } catch (JsonProcessingException e) {
             log.error("Error logging transaction data", e);
+        }
+
+        transactionRepository.save(transaction);
+    }
+
+    @Transactional
+    public void saveTransactionFromPolling(vn.payos.model.v2.paymentRequests.PaymentLink link, Order order) {
+        // Tránh tạo transaction trùng lặp
+        if (!transactionRepository.findByOrder(order).isEmpty()) {
+            return;
+        }
+
+        Transaction transaction = new Transaction();
+        transaction.setTransactionCode(String.valueOf(link.getOrderCode()));
+        transaction.setAmount((double) link.getAmountPaid());
+        transaction.setStatus(1); // 1: Thành công
+        transaction.setPaymentMethod("PAYOS_POLLING");
+        transaction.setRef("PayOS Polling Order: " + link.getOrderCode());
+        transaction.setType(1); // 1: Cộng tiền
+        transaction.setCreatedAt(LocalDateTime.now());
+        transaction.setOrder(order);
+
+        // Lấy thông tin người chuyển từ transaction cuối cùng của link (nếu có)
+        if (link.getTransactions() != null && !link.getTransactions().isEmpty()) {
+            // Lấy transaction mới nhất
+            var lastTx = link.getTransactions().get(link.getTransactions().size() - 1);
+            transaction.setSenderAccountNumber(lastTx.getCounterAccountNumber());
+            transaction.setSenderBankId(lastTx.getCounterAccountBankId());
+
+            try {
+                Map<String, Object> logData = new HashMap<>();
+                logData.put("polling_full_data", link);
+                logData.put("last_transaction", lastTx);
+                transaction.setLog(objectMapper.writeValueAsString(logData));
+            } catch (JsonProcessingException e) {
+                log.error("Error logging polling transaction data", e);
+            }
         }
 
         transactionRepository.save(transaction);
