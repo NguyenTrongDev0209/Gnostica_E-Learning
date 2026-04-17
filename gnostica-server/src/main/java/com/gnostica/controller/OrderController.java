@@ -19,13 +19,13 @@ import java.util.List;
 public class OrderController {
 	private final OrderService orderService;
 
-	@GetMapping("/all")
+	@GetMapping(value = "/all")
 	public ApiResponse<List<Order>> getAllOrders() {
 		try {
 			return ApiResponse.success(orderService.getAllOrders());
 		} catch (Exception e) {
-			log.error("Error fetching all orders", e);
-			return ApiResponse.error("fail");
+			log.error("Lỗi khi lấy danh sách đơn hàng", e);
+			return ApiResponse.error("Lỗi khi lấy danh sách đơn hàng");
 		}
 	}
 
@@ -35,8 +35,20 @@ public class OrderController {
 			PaymentLinkResponse data = orderService.createPaymentLink(requestBody);
 			return ApiResponse.success(data);
 		} catch (Exception e) {
-			log.error("Error creating payment link", e);
-			return ApiResponse.error("fail: " + e.getMessage());
+			log.error("Lỗi khi tạo link thanh toán", e);
+			return ApiResponse.error("Lỗi khi tạo link thanh toán");
+		}
+	}
+
+	@GetMapping("/paged")
+	public ApiResponse<org.springframework.data.domain.Page<Order>> getOrdersPaginated(
+			@RequestParam(defaultValue = "0") int page,
+			@RequestParam(defaultValue = "10") int size) {
+		try {
+			return ApiResponse.success(orderService.getOrdersPaginated(page, size));
+		} catch (Exception e) {
+			log.error("Lỗi khi lấy danh sách đơn hàng phân trang", e);
+			return ApiResponse.error("Lỗi khi lấy danh sách đơn hàng phân trang");
 		}
 	}
 }

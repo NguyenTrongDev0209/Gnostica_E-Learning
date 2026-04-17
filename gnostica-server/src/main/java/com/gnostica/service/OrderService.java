@@ -10,9 +10,13 @@ import com.gnostica.repository.AccountRepository;
 import com.gnostica.repository.CourseRepository;
 import com.gnostica.repository.OrderDetailRepository;
 import com.gnostica.repository.OrderRepository;
-// import com.gnostica.service.PaymentService; (redundant)
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -36,6 +40,11 @@ public class OrderService {
         return orderRepository.findAllByOrderByIdDesc();
     }
 
+    public Page<Order> getOrdersPaginated(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
+        return orderRepository.findAll(pageable);
+    }
+
     @Transactional
     public PaymentLinkResponse createPaymentLink(CreatePaymentLinkRequestBody requestBody) throws Exception {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -52,25 +61,32 @@ public class OrderService {
 
         long orderCode = System.currentTimeMillis();
 
-        Order order = new Order();
-        order.setAccount(account);
-        order.setTotalPrice((double) requestBody.getPrice());
-        order.setStatus(0); // 0: PENDING
-        order.setTransactionId(String.valueOf(orderCode));
-        order.setCreatedAt(LocalDateTime.now());
-        order = orderRepository.save(order);
-
-        OrderDetail detail = new OrderDetail();
-        detail.setOrder(order);
-        detail.setCourse(course);
-        detail.setPrice(course.getPrice());
-        detail.setDiscount(0);
-        orderDetailRepository.save(detail);
+        Order order = saveOrder(account, course.getSalePrice(), String.valueOf(orderCode));
+        OrderDetail detail = saveOrderDetail(order, course);
 
         List<OrderDetail> details = new ArrayList<>();
         details.add(detail);
         order.setDetails(details);
 
         return paymentService.createPaymentLink(order);
+    }
+
+    private Order saveOrder(Account account, Double totalPrice, String transactionId) {
+        Order order = new Order();
+        order.setAccount(account);
+        order.setTotalPrice(totalPrice);
+        order.setStatus(0); // 0: PENDING
+        order.setTransactionId(transactionId);
+        order.setCreatedAt(LocalDateTime.now());
+        return orderRepository.save(order);
+    }
+
+    private OrderDetail saveOrderDetail(Order order, Course course) {
+        OrderDetail detail = new OrderDetail();
+        detail.setOrder(order);
+        detail.setCourse(course);
+        detail.setPrice(course.getPrice());
+        detail.setDiscount(course.getDiscount());
+        return orderDetailRepository.save(detail);
     }
 }
