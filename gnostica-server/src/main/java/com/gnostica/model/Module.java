@@ -39,6 +39,9 @@ public class Module {
     @Column
     private Integer status;
 
+    @Column(columnDefinition = "boolean default false")
+    private Boolean deleted = false;
+
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 

@@ -71,6 +71,9 @@ public class Course {
     @Column
     private Integer status;
 
+    @Column(columnDefinition = "boolean default false")
+    private Boolean deleted = false;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
