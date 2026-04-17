@@ -17,27 +17,26 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 public class OrderController {
-  private final OrderService orderService;
+	private final OrderService orderService;
 
-  @GetMapping("/all")
-  public ApiResponse<List<Order>> getAllOrders() {
-    try {
-      return ApiResponse.success(orderService.getAllOrders());
-    } catch (Exception e) {
-      log.error("Error fetching all orders", e);
-      return ApiResponse.error("fail");
-    }
-  }
+	@GetMapping("/all")
+	public ApiResponse<List<Order>> getAllOrders() {
+		try {
+			return ApiResponse.success(orderService.getAllOrders());
+		} catch (Exception e) {
+			log.error("Error fetching all orders", e);
+			return ApiResponse.error("fail");
+		}
+	}
 
-  @PostMapping(path = "/create")
-  public ApiResponse<PaymentLinkResponse> createPaymentLink(
-      @RequestBody CreatePaymentLinkRequestBody requestBody) {
-    try {
-      PaymentLinkResponse data = orderService.createPaymentLink(requestBody);
-      return ApiResponse.success(data);
-    } catch (Exception e) {
-      log.error("Error creating payment link", e);
-      return ApiResponse.error("fail: " + e.getMessage());
-    }
-  }
+	@PostMapping(path = "/create")
+	public ApiResponse<PaymentLinkResponse> createPaymentLink(@RequestBody CreatePaymentLinkRequestBody requestBody) {
+		try {
+			PaymentLinkResponse data = orderService.createPaymentLink(requestBody);
+			return ApiResponse.success(data);
+		} catch (Exception e) {
+			log.error("Error creating payment link", e);
+			return ApiResponse.error("fail: " + e.getMessage());
+		}
+	}
 }

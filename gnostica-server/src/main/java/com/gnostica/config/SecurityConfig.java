@@ -20,7 +20,7 @@ import lombok.RequiredArgsConstructor;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity 
+@EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -32,7 +32,7 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
-    }	
+    }
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
@@ -42,32 +42,34 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable())
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .exceptionHandling(exception -> exception // Trả về 401 thay vì redirect trang login UI
-                .authenticationEntryPoint((request, response, authException) -> {
-                    response.setStatus(jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED);
-                    response.setContentType("application/json;charset=UTF-8");
-                    response.getWriter().write("{\"status\": \"error\", \"message\": \"Vui lòng đăng nhập để thực hiện hành động này!\"}");
-                })
-            )
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/error", "/favicon.ico", "/**/*.html", "/**/*.css", "/**/*.js").permitAll()
-                .requestMatchers("/api/auth/**", "/api/upload/**", "/oauth2/**", "/login/oauth2/**", "/api/threads/**", "/api/forum-categories/**", "/api/comments/**", "/api/progress/**", "/api/ai/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/courses/**", "/api/categories/**", "/api/instructors/**").permitAll()
-                .anyRequest().authenticated()
-            )
+                .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .exceptionHandling(exception -> exception // Trả về 401 thay vì redirect trang login UI
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED);
+                            response.setContentType("application/json;charset=UTF-8");
+                            response.getWriter().write(
+                                    "{\"status\": \"error\", \"message\": \"Vui lòng đăng nhập để thực hiện hành động này!\"}");
+                        }))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/", "/error", "/favicon.ico", "/**/*.html", "/**/*.css", "/**/*.js", "/ws/**")
+                        .permitAll()
+                        .requestMatchers("/api/auth/**", "/api/upload/**", "/oauth2/**", "/login/oauth2/**",
+                                "/api/threads/**", "/api/forum-categories/**", "/api/comments/**", "/api/progress/**",
+                                "/api/ai/**", "/api/dashboard/**")
+                        .permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/courses/**", "/api/categories/**", "/api/instructors/**")
+                        .permitAll()
+                        .anyRequest().authenticated())
 
-            .oauth2Login(oauth2 -> oauth2
-                .userInfoEndpoint(userInfo -> userInfo.userService(oauth2UserService))
-                .successHandler(oauth2SuccessHandler)
-                .failureHandler(oauth2FailureHandler)
-            )
-            .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // Principle 5
-            );
+                .oauth2Login(oauth2 -> oauth2
+                        .userInfoEndpoint(userInfo -> userInfo.userService(oauth2UserService))
+                        .successHandler(oauth2SuccessHandler)
+                        .failureHandler(oauth2FailureHandler))
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // Principle 5
+                );
 
-        
         // Principle 8: Add JWT Filter
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
@@ -77,12 +79,13 @@ public class SecurityConfig {
     @Bean
     public org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource() {
         org.springframework.web.cors.CorsConfiguration configuration = new org.springframework.web.cors.CorsConfiguration();
-        configuration.addAllowedOrigin("*"); 
-        configuration.addAllowedMethod("*"); 
-        configuration.addAllowedHeader("*"); 
+        configuration.setAllowedOriginPatterns(
+                java.util.List.of("http://localhost:5173", "http://localhost:3000", "http://127.0.0.1:*"));
+        configuration.addAllowedMethod("*");
+        configuration.addAllowedHeader("*");
+        configuration.setAllowCredentials(true);
         org.springframework.web.cors.UrlBasedCorsConfigurationSource source = new org.springframework.web.cors.UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
 }
-
