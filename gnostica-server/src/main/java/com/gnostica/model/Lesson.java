@@ -39,6 +39,9 @@ public class Lesson {
 
     private Integer status;
 
+    @Column(columnDefinition = "boolean default false")
+    private Boolean deleted = false;
+
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
