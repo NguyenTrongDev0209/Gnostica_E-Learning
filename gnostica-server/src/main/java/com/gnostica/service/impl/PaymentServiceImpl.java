@@ -47,6 +47,22 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     @Transactional
+    public void checkPaymentStatus(Order order) throws Exception {
+        if (order == null || order.getStatus() == 1) {
+            return;
+        }
+
+        // Get strategy (assuming PAYOS for now, or match from order if stored)
+        boolean isPaid = paymentStrategyFactory.getStrategy("PAYOS").checkPaymentStatus(order);
+
+        if (isPaid) {
+            log.info("Order {} confirmed as PAID via server-side polling", order.getId());
+            processSuccessfulOrder(order);
+        }
+    }
+
+    @Override
+    @Transactional
     public void handlePaymentWebhook(WebhookData data) {
         String transactionId = String.valueOf(data.getOrderCode());
         log.info("Webhook triggered for transactionId: {}", transactionId);

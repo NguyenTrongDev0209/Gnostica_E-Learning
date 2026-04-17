@@ -9,6 +9,8 @@ public interface PaymentService {
 
     WebhookData verifyWebhook(String gateway, Object body) throws Exception;
 
+    void checkPaymentStatus(Order order) throws Exception;
+
     void handlePaymentWebhook(WebhookData data);
 
     void processSuccessfulOrder(Order order);

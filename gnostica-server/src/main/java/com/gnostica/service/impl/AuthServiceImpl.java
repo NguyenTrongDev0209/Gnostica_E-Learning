@@ -27,8 +27,6 @@ import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDateTime;
 
-import javax.management.RuntimeErrorException;
-
 import java.security.SecureRandom;
 
 @Service
@@ -52,15 +50,15 @@ public class AuthServiceImpl implements AuthService {
         Account account = new Account();
         account.setFullName(request.getFullName());
         account.setEmail(request.getEmail());
-        
-        //mặc định là user
+
+        // mặc định là user
         Role defaultRole = roleRepository.findByName("USER")
                 .orElseGet(() -> {
-                   Role newRole = new Role();
-                   newRole.setName("USER");
-                   return roleRepository.save(newRole);
+                    Role newRole = new Role();
+                    newRole.setName("USER");
+                    return roleRepository.save(newRole);
                 });
-        
+
         account.setRole(defaultRole);
         account.setActive(false); // Wait for verification
 
@@ -94,19 +92,18 @@ public class AuthServiceImpl implements AuthService {
         // Principle 6: Login Flow
         Account account = accountRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại."));
-        
+
         if ("GOOGLE".equalsIgnoreCase(account.getProvider()) && account.getPassword() == null) {
-        	throw new
-        	RuntimeException("Tài khoản này được đăng ký bằng Google. Vui lòng sử dụng tính năng 'Đăng nhập với Google'.");
+            throw new RuntimeException(
+                    "Tài khoản này được đăng ký bằng Google. Vui lòng sử dụng tính năng 'Đăng nhập với Google'.");
         }
-        
+
         if (Boolean.TRUE.equals(account.getLocked())) {
             throw new RuntimeException("Tài khoản của bạn đã bị khóa. Lý do: " + account.getLockReason());
         }
 
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
-        );
+                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String token = tokenProvider.generateToken(authentication);
@@ -119,7 +116,6 @@ public class AuthServiceImpl implements AuthService {
                 .avatar(account.getAvatar())
                 .build();
     }
-
 
     @Override
     public boolean verifyOTP(String email, String code) {
@@ -183,7 +179,7 @@ public class AuthServiceImpl implements AuthService {
         accountRepository.save(account);
 
         try {
-            mailService.sendResetPasswordEmail(email, otp); 
+            mailService.sendResetPasswordEmail(email, otp);
         } catch (Exception e) {
             throw new RuntimeException("Lỗi gửi mail: " + e.getMessage());
         }
@@ -208,7 +204,7 @@ public class AuthServiceImpl implements AuthService {
             p.setStatus(0);
             passwordRepository.save(p);
         });
-        
+
         // 2. Tạo bản ghi mật khẩu mới (status = 1)
         Password newPasswordEntity = new Password();
         newPasswordEntity.setPassword(passwordEncoder.encode(newPassword));
@@ -226,14 +222,14 @@ public class AuthServiceImpl implements AuthService {
     public void becomeInstructor(String email) {
         Account account = accountRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản."));
-        
+
         Role instructorRole = roleRepository.findByName("INSTRUCTOR")
                 .orElseGet(() -> {
                     Role newRole = new Role();
                     newRole.setName("INSTRUCTOR");
                     return roleRepository.save(newRole);
                 });
-        
+
         account.setRole(instructorRole);
         accountRepository.save(account);
     }

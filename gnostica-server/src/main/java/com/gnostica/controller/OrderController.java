@@ -40,6 +40,26 @@ public class OrderController {
 		}
 	}
 
+	@GetMapping("/{idOrCode}")
+	public ApiResponse<Order> getOrderById(@PathVariable String idOrCode) {
+		try {
+			Order order;
+			if (idOrCode.length() > 10) { // Likely a long transactionId
+				order = orderService.getOrderByTransactionId(idOrCode);
+			} else {
+				try {
+					order = orderService.getOrderById(Integer.parseInt(idOrCode));
+				} catch (NumberFormatException e) {
+					order = orderService.getOrderByTransactionId(idOrCode);
+				}
+			}
+			return ApiResponse.success(order);
+		} catch (Exception e) {
+			log.error("Lỗi khi lấy thông tin đơn hàng", e);
+			return ApiResponse.error("Lỗi khi lấy thông tin đơn hàng: " + e.getMessage());
+		}
+	}
+
 	@GetMapping("/paged")
 	public ApiResponse<org.springframework.data.domain.Page<Order>> getOrdersPaginated(
 			@RequestParam(defaultValue = "0") int page,

@@ -45,6 +45,30 @@ public class OrderService {
         return orderRepository.findAll(pageable);
     }
 
+    public Order getOrderById(Integer id) throws Exception {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Order not found with ID: " + id));
+
+        return checkAndReturnOrder(order);
+    }
+
+    public Order getOrderByTransactionId(String transactionId) throws Exception {
+        Order order = orderRepository.findByTransactionId(transactionId)
+                .orElseThrow(() -> new RuntimeException("Order not found with Transaction ID: " + transactionId));
+
+        return checkAndReturnOrder(order);
+    }
+
+    private Order checkAndReturnOrder(Order order) throws Exception {
+        // If order is still PENDING, poll PayOS status
+        if (order.getStatus() == 0) {
+            paymentService.checkPaymentStatus(order);
+            // Re-fetch order from DB after possible status update
+            return orderRepository.findById(order.getId()).get();
+        }
+        return order;
+    }
+
     @Transactional
     public PaymentLinkResponse createPaymentLink(CreatePaymentLinkRequestBody requestBody) throws Exception {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

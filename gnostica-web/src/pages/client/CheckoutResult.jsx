@@ -1,5 +1,5 @@
-import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Home,
@@ -7,18 +7,47 @@ import {
   ArrowRight,
   RotateCcw,
   FileText,
+  Loader2,
 } from "lucide-react";
 import { SimpleButton } from "@/components/common/AppButton";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { AppBreadcrumb } from "@/components/common/AppSection";
-import { checkoutOrderInfoMock, checkoutStatusConfig } from "@/mocks/checkout";
+import { checkoutStatusConfig } from "@/mocks/checkout";
+import orderService from "@/services/orderService";
 
 export default function CheckoutResult() {
+  const [searchParams] = useSearchParams();
   const location = useLocation();
-  const isSuccess = location.pathname.includes("success");
+  const [order, setOrder] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const orderCode = searchParams.get("orderCode");
+  const isSuccess = location.pathname.includes("success") || searchParams.get("status") === "PAID";
+
   const config = isSuccess ? checkoutStatusConfig.success : checkoutStatusConfig.cancel;
   const Icon = config.icon;
+
+  useEffect(() => {
+    const fetchOrder = async () => {
+      if (orderCode) {
+        try {
+          const response = await orderService.getOrderById(orderCode);
+          if (response.success) {
+            setOrder(response.data);
+          }
+        } catch (error) {
+          console.error("Lỗi khi lấy thông tin đơn hàng:", error);
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        setLoading(false);
+      }
+    };
+
+    fetchOrder();
+  }, [orderCode]);
 
   const breadcrumbItems = [
     { label: "Trang chủ", href: "/", icon: Home },
@@ -26,13 +55,21 @@ export default function CheckoutResult() {
     { label: isSuccess ? "Thành công" : "Đã hủy", isLast: true }
   ];
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-10 h-10 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
       <section className="bg-slate-900 py-12 text-white">
         <div className="app-container">
-          <AppBreadcrumb 
-            items={breadcrumbItems} 
+          <AppBreadcrumb
+            items={breadcrumbItems}
             linkClassName="text-slate-400 hover:text-slate-100"
             activeClassName="font-semibold text-slate-200"
             separatorClassName="text-slate-500"
@@ -54,85 +91,86 @@ export default function CheckoutResult() {
 
             {/* Status Title */}
             <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-2">
-              {config.title}
+              {order?.status === 1 ? "Thanh toán thành công!" : config.title}
             </h2>
             <p className="text-sm text-muted-foreground max-w-sm mb-8">
-              {config.description}
+              {order?.status === 1
+                ? "Cảm ơn bạn đã tin tưởng Gnostica. Đơn hàng của bạn đã được xử lý và khóa học đã sẵn sàng."
+                : config.description}
             </p>
 
             {/* Order Details */}
             <div className="w-full bg-slate-50 rounded-xl p-5 sm:p-6 text-left space-y-3 mb-8">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-slate-500">Mã đơn hàng</span>
-                <span className="text-sm font-bold text-slate-800">{checkoutOrderInfoMock.orderCode}</span>
+                <span className="text-sm font-bold text-slate-800">#{orderCode || order?.id || "N/A"}</span>
               </div>
               <Separator className="bg-slate-200/70" />
               <div className="flex items-center justify-between">
                 <span className="text-sm text-slate-500">Tổng tiền</span>
-                <span className="text-sm font-black text-primary">{checkoutOrderInfoMock.amount}</span>
+                <span className="text-sm font-black text-primary">
+                  {order ? order.totalPrice.toLocaleString() + "đ" : "0đ"}
+                </span>
               </div>
               <Separator className="bg-slate-200/70" />
               <div className="flex items-center justify-between">
                 <span className="text-sm text-slate-500">Phương thức</span>
-                <span className="text-sm font-bold text-slate-800">{checkoutOrderInfoMock.method}</span>
-              </div>
-              <Separator className="bg-slate-200/70" />
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-500">Thời gian</span>
-                <span className="text-sm font-bold text-slate-800">{checkoutOrderInfoMock.date}</span>
+                <span className="text-sm font-bold text-slate-800">PAYOS (Chuyển khoản)</span>
               </div>
               <Separator className="bg-slate-200/70" />
               <div className="flex items-center justify-between">
                 <span className="text-sm text-slate-500">Trạng thái</span>
-                <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${config.badgeColor}`}>
-                  {config.badgeText}
+                <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${order?.status === 1 ? "bg-green-100 text-green-700" : config.badgeColor}`}>
+                  {order?.status === 1 ? "ĐÃ THANH TOÁN" : config.badgeText}
                 </span>
               </div>
             </div>
 
             {/* Actions */}
-            {isSuccess ? (
-              <div className="flex flex-col sm:flex-row gap-3 w-full">
-                <Link to="/account/orders" className="flex-1">
-                  <Button
-                    variant="outline"
-                    className="w-full h-12 font-bold gap-2 border-slate-200 hover:bg-slate-50 rounded-xl"
-                  >
-                    <FileText className="w-4 h-4" />
-                    Xem đơn hàng
-                  </Button>
-                </Link>
-                <Link to="/courses" className="flex-1">
-                  <SimpleButton className="w-full h-12 font-bold gap-2 rounded-xl">
-                    Tiếp tục học
-                    <ArrowRight className="w-4 h-4" />
-                  </SimpleButton>
-                </Link>
-              </div>
-            ) : (
-              <div className="flex flex-col sm:flex-row gap-3 w-full">
-                <Link to="/cart" className="flex-1">
-                  <Button
-                    variant="outline"
-                    className="w-full h-12 font-bold gap-2 border-slate-200 hover:bg-slate-50 rounded-xl"
-                  >
-                    <ShoppingBag className="w-4 h-4" />
-                    Về giỏ hàng
-                  </Button>
-                </Link>
-                <Link to="/checkout" className="flex-1">
-                  <SimpleButton className="w-full h-12 font-bold gap-2 rounded-xl">
-                    <RotateCcw className="w-4 h-4" />
-                    Thử thanh toán lại
-                  </SimpleButton>
-                </Link>
-              </div>
-            )}
+            <div className="flex flex-col sm:flex-row gap-3 w-full">
+              {order?.status === 1 ? (
+                <>
+                  <Link to="/account/orders" className="flex-1">
+                    <Button
+                      variant="outline"
+                      className="w-full h-12 font-bold gap-2 border-slate-200 hover:bg-slate-50 rounded-xl"
+                    >
+                      <FileText className="w-4 h-4" />
+                      Lịch sử mua hàng
+                    </Button>
+                  </Link>
+                  <Link to="/account/my-courses" className="flex-1">
+                    <SimpleButton className="w-full h-12 font-bold gap-2 rounded-xl">
+                      Vào học ngay
+                      <ArrowRight className="w-4 h-4" />
+                    </SimpleButton>
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link to="/cart" className="flex-1">
+                    <Button
+                      variant="outline"
+                      className="w-full h-12 font-bold gap-2 border-slate-200 hover:bg-slate-50 rounded-xl"
+                    >
+                      <ShoppingBag className="w-4 h-4" />
+                      Về giỏ hàng
+                    </Button>
+                  </Link>
+                  <Link to="/checkout" className="flex-1">
+                    <SimpleButton className="w-full h-12 font-bold gap-2 rounded-xl">
+                      <RotateCcw className="w-4 h-4" />
+                      Thử lại
+                    </SimpleButton>
+                  </Link>
+                </>
+              )}
+            </div>
 
             {/* Confirmation email note */}
-            {isSuccess && (
+            {order?.status === 1 && (
               <p className="text-xs text-muted-foreground mt-6">
-                Email xác nhận đã được gửi đến <span className="font-bold text-slate-700">{checkoutOrderInfoMock.email}</span>
+                Email xác nhận đã được gửi đến email đăng ký tài khoản của bạn.
               </p>
             )}
           </CardContent>

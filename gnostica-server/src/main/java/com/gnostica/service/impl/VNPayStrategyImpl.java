@@ -21,6 +21,11 @@ public class VNPayStrategyImpl implements PaymentStrategyService {
 	}
 
 	@Override
+	public boolean checkPaymentStatus(Order order) throws Exception {
+		return false;
+	}
+
+	@Override
 	public String getGatewayName() {
 		// TODO Auto-generated method stub
 		return "VNPAY";

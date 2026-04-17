@@ -9,5 +9,7 @@ public interface PaymentStrategyService {
 
     WebhookData verifyWebhook(Object body) throws Exception;
 
+    boolean checkPaymentStatus(Order order) throws Exception;
+
     String getGatewayName();
 }

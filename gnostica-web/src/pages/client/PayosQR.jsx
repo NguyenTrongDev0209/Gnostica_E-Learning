@@ -25,16 +25,16 @@ export default function PayosQR() {
   // Dữ liệu đơn hàng từ PayOS truyền qua state
   const paymentData = state?.paymentData;
   const orderItems = state?.orderItems || [];
-  
-  const totalAmount = paymentData?.amount || (orderItems.length > 0 
+
+  const totalAmount = paymentData?.amount || (orderItems.length > 0
     ? orderItems.reduce((sum, item) => sum + item.price, 0)
     : payosPaymentMock.amount);
 
   // Ưu tiên mã QR từ PayOS, nếu không có mới dùng VietQR tự tạo
-  const dynamicQrCodeUrl = paymentData?.qrCode 
-    ? (paymentData.qrCode.startsWith("http") 
-        ? paymentData.qrCode 
-        : `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(paymentData.qrCode)}`)
+  const dynamicQrCodeUrl = paymentData?.qrCode
+    ? (paymentData.qrCode.startsWith("http")
+      ? paymentData.qrCode
+      : `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(paymentData.qrCode)}`)
     : `https://img.vietqr.io/image/${paymentData?.bin || "MB"}-${paymentData?.accountNumber || payosPaymentMock.accountNumber}-compact2.png?amount=${totalAmount}&addInfo=${encodeURIComponent(paymentData?.description || payosPaymentMock.transferContent)}&accountName=${encodeURIComponent(paymentData?.accountName || payosPaymentMock.accountHolder)}`;
 
   const breadcrumbItems = [
@@ -50,18 +50,20 @@ export default function PayosQR() {
     const pollInterval = setInterval(async () => {
       try {
         const response = await orderService.getOrderById(paymentData.orderCode);
+        // Backend Order entity dùng status số: 0 = PENDING, 1 = PAID
         const currentStatus = response.data?.status;
 
-        if (currentStatus === "PAID") {
+        if (currentStatus === 1) {
           clearInterval(pollInterval);
           setStatus("paid");
           toast.success("Thanh toán thành công! Đang kích hoạt khóa học...");
-          
-          // Chờ 1.5s để user thấy thông báo rồi chuyển hướng
+
+          // Chuyển hướng sang trang kết quả kèm orderCode để hiển thị chi tiết
           setTimeout(() => {
-            navigate("/checkout/success", { state: { orderItems } });
+            navigate(`/checkout/success?orderCode=${paymentData.orderCode}`);
           }, 1500);
-        } else if (currentStatus === "CANCELLED") {
+        } else if (currentStatus === 2) {
+          // status 2 = CANCELLED (nếu có)
           clearInterval(pollInterval);
           setStatus("cancelled");
           toast.error("Đơn hàng đã bị hủy.");
@@ -104,8 +106,8 @@ export default function PayosQR() {
       {/* Header */}
       <section className="bg-slate-900 py-12 text-white">
         <div className="app-container">
-          <AppBreadcrumb 
-            items={breadcrumbItems} 
+          <AppBreadcrumb
+            items={breadcrumbItems}
             linkClassName="text-slate-400 hover:text-slate-100"
             activeClassName="font-semibold text-slate-200"
             separatorClassName="text-slate-500"
@@ -156,9 +158,8 @@ export default function PayosQR() {
                 <div className="flex items-center gap-2 mt-5">
                   <Clock className={`w-4 h-4 ${timeLeft <= 60 ? "text-red-500" : "text-orange-500"}`} />
                   <span
-                    className={`text-lg font-bold tabular-nums ${
-                      timeLeft <= 60 ? "text-red-500" : "text-orange-500"
-                    }`}
+                    className={`text-lg font-bold tabular-nums ${timeLeft <= 60 ? "text-red-500" : "text-orange-500"
+                      }`}
                   >
                     {formatTime(timeLeft)}
                   </span>

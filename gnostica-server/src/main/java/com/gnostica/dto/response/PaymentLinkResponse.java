@@ -10,4 +10,10 @@ public class PaymentLinkResponse {
     private String paymentLinkId;
     private Long orderCode;
     private String status;
+    private String description;
+    private String accountNumber;
+    private String accountName;
+    private String bin;
+    private String qrCode;
+    private Long amount;
 }

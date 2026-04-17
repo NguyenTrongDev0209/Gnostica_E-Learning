@@ -33,7 +33,7 @@ public class PayOSStrategyImpl implements PaymentStrategyService {
                 .price((long) d.getPrice().doubleValue())
                 .build()).collect(Collectors.toList());
 
-        String baseUrl = "https://localhost:5173";
+        String baseUrl = "http://localhost:5173";
         CreatePaymentLinkRequest paymentData = CreatePaymentLinkRequest.builder()
                 .orderCode(Long.parseLong(order.getTransactionId()))
                 .amount((long) order.getTotalPrice().doubleValue())
@@ -50,12 +50,35 @@ public class PayOSStrategyImpl implements PaymentStrategyService {
                 .paymentLinkId(paymentLink.getPaymentLinkId())
                 .orderCode(paymentLink.getOrderCode())
                 .status(paymentLink.getStatus().toString())
+                .description(paymentLink.getDescription())
+                .accountNumber(paymentLink.getAccountNumber())
+                .accountName(paymentLink.getAccountName())
+                .bin(paymentLink.getBin())
+                .qrCode(paymentLink.getQrCode())
+                .amount(paymentLink.getAmount())
                 .build();
     }
 
     @Override
     public WebhookData verifyWebhook(Object body) throws Exception {
         return payOS.webhooks().verify(body);
+    }
+
+    @Override
+    public boolean checkPaymentStatus(Order order) throws Exception {
+        // Use direct chained call with toString() to avoid type resolution issues with
+        // intermediate objects
+        String status = payOS.paymentRequests().get(Long.parseLong(order.getTransactionId())).getStatus().toString();
+
+        boolean isPaid = "PAID".equals(status);
+
+        if (isPaid) {
+            System.out.println("PayOS polling: Order " + order.getId() + " is PAID.");
+        } else if (!"PENDING".equals(status)) {
+            System.out.println("PayOS polling: Order " + order.getId() + " status is " + status);
+        }
+
+        return isPaid;
     }
 
     @Override
