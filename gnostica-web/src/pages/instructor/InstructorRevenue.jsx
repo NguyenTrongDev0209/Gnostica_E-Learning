@@ -32,11 +32,13 @@ import {
 } from "recharts";
 import walletService from "@/services/walletService";
 import { toast } from "sonner";
+import WithdrawModal from "./WithdrawModal";
 
 export default function InstructorRevenue() {
   const [wallet, setWallet] = useState(null);
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -98,7 +100,9 @@ export default function InstructorRevenue() {
             <Download className="w-4 h-4" />
             Xuất Excel
           </Button>
-          <Button className="font-bold flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white shadow-none">
+          <Button
+            onClick={() => setIsWithdrawOpen(true)}
+            className="font-bold flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white shadow-none">
             <WalletIcon className="w-4 h-4" />
             Rút Tiền
           </Button>
@@ -270,6 +274,13 @@ export default function InstructorRevenue() {
           </Button>
         </div>
       </Card>
+
+      <WithdrawModal
+        isOpen={isWithdrawOpen}
+        onClose={() => setIsWithdrawOpen(false)}
+        wallet={wallet}
+        onSuccess={() => window.location.reload()}
+      />
     </div>
   );
 }
