@@ -43,18 +43,27 @@ export default function PayosQR() {
     { label: "PayOS QR", isLast: true }
   ];
 
-  // Cơ chế Polling kiểm tra trạng thái thanh toán mỗi 2 giây
+  // Cơ chế Polling kiểm tra trạng thái thanh toán
   useEffect(() => {
     if (!paymentData?.orderCode || status !== "waiting") return;
 
-    const pollInterval = setInterval(async () => {
+    let isPolling = true;
+    let pollTimeout;
+
+    const checkPaymentStatus = async () => {
+      if (!isPolling) return;
+
       try {
         const response = await orderService.getOrderById(paymentData.orderCode);
+
+        // Ngăn request hoàn thành sau khi component unmount
+        if (!isPolling) return;
+
         // Backend Order entity dùng status số: 0 = PENDING, 1 = PAID
         const currentStatus = response.data?.status;
 
         if (currentStatus === 1) {
-          clearInterval(pollInterval);
+          isPolling = false;
           setStatus("paid");
           toast.success("Thanh toán thành công! Đang kích hoạt khóa học...");
 
@@ -62,20 +71,31 @@ export default function PayosQR() {
           setTimeout(() => {
             navigate(`/checkout/success?orderCode=${paymentData.orderCode}`);
           }, 500);
+          return;
         } else if (response.error !== 0) {
           console.error("API Error:", response.message);
         } else if (currentStatus === 2) {
           // status 2 = CANCELLED (nếu có)
-          clearInterval(pollInterval);
+          isPolling = false;
           setStatus("cancelled");
           toast.error("Đơn hàng đã bị hủy.");
+          return;
         }
       } catch (error) {
         console.error("Polling error:", error);
       }
-    }, 1000);
 
-    return () => clearInterval(pollInterval);
+      if (isPolling) {
+        pollTimeout = setTimeout(checkPaymentStatus, 1000);
+      }
+    };
+
+    checkPaymentStatus();
+
+    return () => {
+      isPolling = false;
+      if (pollTimeout) clearTimeout(pollTimeout);
+    };
   }, [paymentData?.orderCode, status, navigate]);
 
   // Countdown timer
