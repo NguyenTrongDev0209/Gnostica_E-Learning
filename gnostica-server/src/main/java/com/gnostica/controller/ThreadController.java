@@ -51,6 +51,16 @@ public class ThreadController {
         }
     }
 
+    @PostMapping("/{id}/view")
+    public ResponseEntity<?> incrementView(@PathVariable Integer id) {
+        try {
+            threadService.incrementView(id);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
     @PostMapping(consumes = {"multipart/form-data"})
     public ResponseEntity<?> createThread(
             @RequestParam(value = "content", required = false) String content,
@@ -153,6 +163,17 @@ public class ThreadController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error fetching your statistics: " + e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteThread(@PathVariable Integer id) {
+        try {
+            threadService.deleteThread(id);
+            return ResponseEntity.ok(Map.of("message", "Thread deleted successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error deleting thread: " + e.getMessage());
         }
     }
 }

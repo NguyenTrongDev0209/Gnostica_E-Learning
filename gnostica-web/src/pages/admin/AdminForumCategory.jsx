@@ -121,7 +121,7 @@ export default function AdminForumCategory() {
   const toggleStatus = async (id, newStatus) => {
     try {
       await forumCategoryService.updateStatus(id, newStatus);
-      toast.success(`Đã chuyển trạng thái sang ${newStatus ? 'Hoạt động' : 'Tạm ẩn'}`);
+      toast.success(newStatus ? "Đã hiển thị chủ đề thành công" : "Đã ẩn chủ đề thành công");
       fetchCategories();
     } catch (error) {
       toast.error("Không thể cập nhật trạng thái");
@@ -141,13 +141,25 @@ export default function AdminForumCategory() {
   };
 
   const onSubmit = async (data) => {
+    // Kiểm tra trùng tên chủ đề
+    const isDuplicate = categories.some(
+      (cat) =>
+        cat.name.toLowerCase().trim() === data.name.toLowerCase().trim() &&
+        cat.id !== editId
+    );
+
+    if (isDuplicate) {
+      toast.error("Chủ đề đã tồn tại");
+      return;
+    }
+
     try {
       if (editId) {
         await forumCategoryService.updateCategory(editId, data);
-        toast.success("Cập nhật danh mục thành công!");
+        toast.success("Đã chỉnh sửa chủ đề thành công");
       } else {
         await forumCategoryService.createCategory(data);
-        toast.success("Thêm danh mục thành công!");
+        toast.success("Đã tạo chủ đề thành công!");
       }
 
       setIsAddModalOpen(false);
@@ -163,8 +175,8 @@ export default function AdminForumCategory() {
 
   const filteredCategories = categories.filter((cat) => {
     const matchesSearch = cat.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = 
-      filterStatus === "all" || 
+    const matchesStatus =
+      filterStatus === "all" ||
       (filterStatus === "active" && cat.status === true) ||
       (filterStatus === "inactive" && cat.status === false);
     return matchesSearch && matchesStatus;
@@ -262,7 +274,7 @@ export default function AdminForumCategory() {
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                            <MessageSquare className="w-4 h-4 text-primary" />
+                          <MessageSquare className="w-4 h-4 text-primary" />
                         </div>
                         <div>
                           <p className="font-bold text-slate-900">{cat.name}</p>
@@ -349,7 +361,9 @@ export default function AdminForumCategory() {
 
           <Form {...form}>
             <form
-              onSubmit={form.handleSubmit(onSubmit)}
+              onSubmit={form.handleSubmit(onSubmit, () => {
+                toast.error("Vui lòng điền đầy đủ thông tin bắt buộc");
+              })}
               className="space-y-4 py-4"
             >
               <FormField

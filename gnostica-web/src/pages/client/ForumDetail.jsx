@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { Link, useParams } from 'react-router-dom';
 import SectionContainer, { AppBreadcrumb } from '@/components/common/AppSection';
@@ -8,6 +8,21 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   ThumbsUp, MessageSquare, Eye, Clock, Tag, Flame, ChevronLeft,
   Flag, Send
@@ -30,6 +45,14 @@ const ForumDetail = () => {
   const [comment, setComment] = useState('');
   const [postLiked, setPostLiked] = useState(false);
   const [relatedPosts, setRelatedPosts] = useState([]);
+
+  // Báo cáo
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [reportType, setReportType] = useState('');
+  const [reportDetail, setReportDetail] = useState('');
+  const [isSubmittingReport, setIsSubmittingReport] = useState(false);
+  const [hasReported, setHasReported] = useState(false);
+  const hasIncrementedView = useRef(false);
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -86,6 +109,81 @@ const ForumDetail = () => {
     };
     if (id) fetchRelatedPosts();
   }, [id]);
+
+  useEffect(() => {
+    const incrementView = async () => {
+      // Dùng ref để đảm bảo chỉ tăng view 1 lần duy nhất trong session component này (kể cả khi Strict Mode chạy 2 lần)
+      if (id && !hasIncrementedView.current) {
+        try {
+          await axios.post(`http://localhost:8080/api/threads/${id}/view`);
+          hasIncrementedView.current = true;
+        } catch (err) {
+          console.error("Error incrementing view:", err);
+        }
+      }
+    };
+    incrementView();
+  }, [id]);
+
+  useEffect(() => {
+    const fetchReportStatus = async () => {
+      try {
+        const userData = JSON.parse(localStorage.getItem('user'));
+        const email = userData?.email;
+        if (email && id) {
+          const res = await axios.get(`http://localhost:8080/api/thread-reports/check?threadId=${id}&email=${email}`);
+          setHasReported(res.data);
+        }
+      } catch (err) {
+        console.error("Error fetching report status:", err);
+      }
+    };
+    fetchReportStatus();
+  }, [id]);
+
+  const handleSendReport = async () => {
+    if (!reportType) {
+      toast.error("Vui lòng chọn vi phạm");
+      return;
+    }
+    
+    setIsSubmittingReport(true);
+    try {
+      const userData = JSON.parse(localStorage.getItem('user'));
+      const userEmail = userData?.email;
+      
+      if (!userEmail) {
+        toast.error("Vui lòng đăng nhập để thực hiện chức năng này.");
+        return;
+      }
+
+      await axios.post('http://localhost:8080/api/thread-reports', {
+        threadId: id,
+        userEmail: userEmail,
+        type: reportType,
+        details: reportDetail
+      });
+      
+      toast.success("Đã gửi báo cáo");
+      setHasReported(true);
+      setIsReportModalOpen(false);
+      setReportType('');
+      setReportDetail('');
+    } catch (error) {
+      console.error("Error reporting thread:", error);
+      if (error.response && error.response.data && typeof error.response.data === 'string' && error.response.data.includes("Bạn đã báo cáo")) {
+        toast.error("Bạn đã báo cáo bài viết này rồi");
+        setHasReported(true);
+      } else if (error.response && error.response.data && error.response.data.message && error.response.data.message.includes("Bạn đã báo cáo")) {
+        toast.error("Bạn đã báo cáo bài viết này rồi");
+        setHasReported(true);
+      } else {
+        toast.error("Đã có lỗi xảy ra khi gửi báo cáo.");
+      }
+    } finally {
+      setIsSubmittingReport(false);
+    }
+  };
 
   const handleSendComment = async () => {
     if (!comment.trim()) return;
@@ -260,8 +358,24 @@ const ForumDetail = () => {
                     </Button>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="sm" className="gap-1.5 h-9 text-slate-400 hover:text-red-500">
-                      <Flag className="w-4 h-4" /> Báo cáo
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className={cn(
+                        "gap-1.5 h-9",
+                        hasReported ? "text-red-500 bg-red-50" : "text-slate-400 hover:text-red-500"
+                      )}
+                      onClick={() => {
+                        if (hasReported) {
+                          toast.info("Bạn đã báo cáo bài viết này rồi");
+                          return;
+                        }
+                        setIsReportModalOpen(true);
+                      }}
+                      disabled={hasReported}
+                    >
+                      <Flag className={cn("w-4 h-4", hasReported && "fill-red-500")} /> 
+                      {hasReported ? "Đã báo cáo" : "Báo cáo"}
                     </Button>
                   </div>
                 </div>
@@ -456,6 +570,57 @@ const ForumDetail = () => {
             </Card>
           </div>
         </div>
+        
+        {/* Report Modal */}
+        <Dialog open={isReportModalOpen} onOpenChange={setIsReportModalOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Báo cáo bài viết</DialogTitle>
+              <DialogDescription>
+                Vui lòng chọn loại vi phạm và cung cấp thông tin chi tiết để quản trị viên có thể xem xét.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex flex-col gap-4 py-4">
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-medium text-slate-700">Loại vi phạm <span className="text-red-500">*</span></label>
+                <Select value={reportType} onValueChange={setReportType}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Chọn loại vi phạm" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="spam">Spam / Quảng cáo</SelectItem>
+                    <SelectItem value="harassment">Quấy rối / Chửi bới / Lăng mạ</SelectItem>
+                    <SelectItem value="inappropriate">Nội dung không phù hợp / Phản cảm</SelectItem>
+                    <SelectItem value="copyright">Vi phạm bản quyền</SelectItem>
+                    <SelectItem value="other">Khác</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-medium text-slate-700">Chi tiết vi phạm</label>
+                <Textarea 
+                  placeholder="Nhập thông tin chi tiết về vi phạm (nếu cần)..."
+                  value={reportDetail}
+                  onChange={(e) => setReportDetail(e.target.value)}
+                  className="min-h-[100px] resize-none"
+                />
+              </div>
+            </div>
+            <DialogFooter className="sm:justify-end gap-2 text-right">
+              <Button type="button" variant="outline" onClick={() => setIsReportModalOpen(false)} disabled={isSubmittingReport}>
+                Hủy
+              </Button>
+              <Button 
+                type="button" 
+                className="bg-red-500 hover:bg-red-600 text-white" 
+                onClick={handleSendReport}
+                disabled={isSubmittingReport}
+              >
+                {isSubmittingReport ? "Đang gửi..." : "Gửi báo cáo"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </SectionContainer>
     </div>
   );
