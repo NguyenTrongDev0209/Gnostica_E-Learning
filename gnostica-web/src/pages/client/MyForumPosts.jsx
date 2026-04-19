@@ -3,8 +3,8 @@ import axios from 'axios';
 import SectionContainer, { PageHeader, AppBreadcrumb } from '@/components/common/AppSection';
 import { ForumPostCard } from "@/components/common/AppCard";
 import { Button } from "@/components/ui/button";
-import { Search, ChevronLeft, ThumbsUp, FileText, LayoutGrid } from 'lucide-react';
-import { Input } from "@/components/ui/input";
+import { ChevronLeft, ThumbsUp, FileText, LayoutGrid, Trash2 } from 'lucide-react';
+
 import { useNavigate, Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -17,16 +17,26 @@ import {
     PaginationNext,
     PaginationPrevious,
 } from "@/components/ui/pagination";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 
 const MyForumPosts = () => {
     const navigate = useNavigate();
     const [threads, setThreads] = useState([]);
-    const [searchQuery, setSearchQuery] = useState("");
     const [isLoading, setIsLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(0);
-    const [totalPages, setTotalPages] = useState(0);
     const [userStats, setUserStats] = useState({ threadCount: 0, totalLikes: 0 });
     const [currentUser, setCurrentUser] = useState(null);
+    const [threadToDelete, setThreadToDelete] = useState(null);
 
     useEffect(() => {
         const userData = JSON.parse(localStorage.getItem('user'));
@@ -39,9 +49,9 @@ const MyForumPosts = () => {
 
             setIsLoading(true);
             try {
-                const res = await axios.get(`http://localhost:8080/api/threads/me?email=${currentUser.email}&page=${currentPage}&size=5`);
+                // Fetch all threads to handle pagination on frontend like ForumPage.jsx
+                const res = await axios.get(`http://localhost:8080/api/threads/me?email=${currentUser.email}&page=0&size=1000`);
                 setThreads(res.data.content);
-                setTotalPages(res.data.totalPages);
             } catch (error) {
                 console.error("Failed to fetch your threads", error);
             } finally {
@@ -61,7 +71,28 @@ const MyForumPosts = () => {
 
         fetchMyThreads();
         fetchMyStats();
-    }, [currentUser, currentPage]);
+    }, [currentUser]); // Remove currentPage to handle it locally
+
+    const handleDelete = async () => {
+        if (!threadToDelete) return;
+
+        try {
+            await axios.delete(`http://localhost:8080/api/threads/${threadToDelete}`);
+            // Xóa khỏi danh sách cục bộ
+            setThreads(prev => prev.filter(t => t.id !== threadToDelete));
+            // Cập nhật lại stats
+            setUserStats(prev => ({
+                ...prev,
+                threadCount: Math.max(0, prev.threadCount - 1)
+            }));
+            toast.success("Đã xóa bài viết thành công!");
+        } catch (error) {
+            console.error("Failed to delete thread", error);
+            toast.error("Có lỗi xảy ra khi xóa bài viết.");
+        } finally {
+            setThreadToDelete(null);
+        }
+    };
 
     const mappedPosts = threads.map(thread => ({
         id: thread.id,
@@ -87,12 +118,18 @@ const MyForumPosts = () => {
             replies: thread.commentCount || 0
         },
         images: thread.images || [],
-        isHot: (thread.views || 0) > 50
+        isHot: (thread.views || 0) > 50,
+        status: thread.status
     }));
 
-    const filteredPosts = mappedPosts.filter(post =>
-        post.content.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const postsPerPage = 5;
+    const totalPages = Math.ceil(mappedPosts.length / postsPerPage);
+    const currentPosts = mappedPosts.slice(currentPage * postsPerPage, (currentPage + 1) * postsPerPage);
+
+    // Reset page if data changes
+    useEffect(() => {
+        setCurrentPage(0);
+    }, [threads.length]);
 
     const breadcrumbItems = [
         { component: <Link to="/">Trang chủ</Link> },
@@ -177,16 +214,7 @@ const MyForumPosts = () => {
 
                     {/* Main Content */}
                     <div className="flex-1 order-1 lg:order-2">
-                        {/* Search Bar */}
-                        <div className="relative mb-6">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                            <Input
-                                placeholder="Tìm kiếm trong bài viết của bạn..."
-                                className="pl-9 bg-white h-11 shadow-sm"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                            />
-                        </div>
+
 
                         {/* Post List */}
                         {isLoading ? (
@@ -194,11 +222,45 @@ const MyForumPosts = () => {
                                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                                 <p className="mt-4 text-slate-500">Đang tải bài viết của bạn...</p>
                             </div>
-                        ) : filteredPosts.length > 0 ? (
+                        ) : currentPosts.length > 0 ? (
                             <div className="flex flex-col gap-4">
-                                {filteredPosts.map((post) => (
-                                    <ForumPostCard key={post.id} post={post} />
+                                {currentPosts.map((post) => (
+                                    <div key={post.id} className="relative group">
+                                        <ForumPostCard post={post} />
+                                        <button
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                setThreadToDelete(post.id);
+                                            }}
+                                            className="absolute top-4 right-4 p-2 bg-red-50 text-red-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500 hover:text-white shadow-sm z-10"
+                                            title="Xóa bài viết"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    </div>
                                 ))}
+
+                                {/* Deletion Confirmation Dialog */}
+                                <AlertDialog open={!!threadToDelete} onOpenChange={(open) => !open && setThreadToDelete(null)}>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>Xác nhận xóa bài viết?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                Hành động này không thể hoàn tác. Bài viết, hình ảnh, lượt thích và toàn bộ bình luận liên quan sẽ bị xóa vĩnh viễn.
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Hủy</AlertDialogCancel>
+                                            <AlertDialogAction 
+                                                onClick={handleDelete}
+                                                className="bg-red-500 hover:bg-red-600 font-bold"
+                                            >
+                                                Tiếp tục xóa
+                                            </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
 
                                 {/* Pagination Component */}
                                 {totalPages > 1 && (
@@ -206,14 +268,10 @@ const MyForumPosts = () => {
                                         <Pagination>
                                             <PaginationContent>
                                                 <PaginationItem>
-                                                    <Button
-                                                        variant="ghost"
-                                                        disabled={currentPage === 0}
+                                                    <PaginationPrevious 
                                                         onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
-                                                        className="gap-1 pl-2.5"
-                                                    >
-                                                        <PaginationPrevious className="hover:bg-transparent p-0" />
-                                                    </Button>
+                                                        className={currentPage === 0 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                                                    />
                                                 </PaginationItem>
 
                                                 {[...Array(totalPages)].map((_, i) => (
@@ -229,14 +287,10 @@ const MyForumPosts = () => {
                                                 ))}
 
                                                 <PaginationItem>
-                                                    <Button
-                                                        variant="ghost"
-                                                        disabled={currentPage === totalPages - 1}
+                                                    <PaginationNext 
                                                         onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
-                                                        className="gap-1 pr-2.5"
-                                                    >
-                                                        <PaginationNext className="hover:bg-transparent p-0" />
-                                                    </Button>
+                                                        className={currentPage === totalPages - 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                                                    />
                                                 </PaginationItem>
                                             </PaginationContent>
                                         </Pagination>
@@ -246,7 +300,7 @@ const MyForumPosts = () => {
                         ) : (
                             <div className="flex flex-col items-center justify-center py-20 text-center bg-white rounded-lg border border-dashed border-border">
                                 <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
-                                    <Search className="w-8 h-8 text-slate-400" />
+                                    <LayoutGrid className="w-8 h-8 text-slate-400" />
                                 </div>
                                 <h3 className="text-lg font-bold text-slate-700 mb-1">Bạn chưa có bài viết nào</h3>
                                 <p className="text-slate-500 text-sm max-w-sm">

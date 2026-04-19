@@ -106,7 +106,8 @@ const ForumPage = () => {
       replies: thread.commentCount || 0
     },
     images: thread.images || [],
-    isHot: (thread.views || 0) > 50
+    isHot: (thread.views || 0) > 50,
+    status: thread.status
   }));
 
   const filteredPosts = mappedPosts.filter(post => {
