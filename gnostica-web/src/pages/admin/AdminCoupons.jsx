@@ -6,7 +6,7 @@ import { CouponTable } from "@/components/pages/admin/coupons/CouponTable";
 import { CouponFormModal } from "@/components/pages/admin/coupons/CouponFormModal";
 
 export default function AdminCoupons() {
-  const { coupons, isLoading, addCoupon, removeCoupon } = useCoupons();
+  const { coupons, isLoading, addCoupon, removeCoupon, toggleCouponStatus } = useCoupons();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [startDateFilter, setStartDateFilter] = useState("");
@@ -15,7 +15,7 @@ export default function AdminCoupons() {
 
   const filteredCoupons = coupons.filter((coupon) => {
     const matchesSearch = coupon.code.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     let matchesStatus = true;
     if (statusFilter !== "all") {
       matchesStatus = coupon.status === Number(statusFilter);
@@ -53,31 +53,32 @@ export default function AdminCoupons() {
           -moz-appearance: textfield;
         }
       `}</style>
-      
+
       <CouponHeader onAddClick={() => setIsAddModalOpen(true)} />
-      
-      <CouponStatsFilter 
-        searchTerm={searchTerm} 
-        onSearchChange={setSearchTerm} 
+
+      <CouponStatsFilter
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
         statusFilter={statusFilter}
         onStatusChange={setStatusFilter}
         startDateFilter={startDateFilter}
         onStartDateChange={setStartDateFilter}
         endDateFilter={endDateFilter}
         onEndDateChange={setEndDateFilter}
-        totalCount={coupons.length} 
+        totalCount={coupons.length}
       />
-      
-      <CouponTable 
-        coupons={filteredCoupons} 
-        isLoading={isLoading} 
-        onDelete={removeCoupon} 
+
+      <CouponTable
+        coupons={filteredCoupons}
+        isLoading={isLoading}
+        onDelete={removeCoupon}
+        onToggleStatus={toggleCouponStatus}
       />
-      
-      <CouponFormModal 
-        isOpen={isAddModalOpen} 
-        onOpenChange={setIsAddModalOpen} 
-        onSave={addCoupon} 
+
+      <CouponFormModal
+        isOpen={isAddModalOpen}
+        onOpenChange={setIsAddModalOpen}
+        onSave={addCoupon}
       />
     </div>
   );

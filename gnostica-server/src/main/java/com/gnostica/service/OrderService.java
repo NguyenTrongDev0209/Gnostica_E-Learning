@@ -90,8 +90,10 @@ public class OrderService {
 
         long orderCode = System.currentTimeMillis();
 
-        Order order = saveOrder(account, course.getSalePrice(), String.valueOf(orderCode));
-        OrderDetail detail = saveOrderDetail(order, course);
+        Double actualPrice = (requestBody.getPrice() != null) ? requestBody.getPrice().doubleValue()
+                : course.getSalePrice();
+        Order order = saveOrder(account, actualPrice, String.valueOf(orderCode));
+        OrderDetail detail = saveOrderDetail(order, course, actualPrice);
 
         List<OrderDetail> details = new ArrayList<>();
         details.add(detail);
@@ -110,11 +112,11 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
-    private OrderDetail saveOrderDetail(Order order, Course course) {
+    private OrderDetail saveOrderDetail(Order order, Course course, Double actualPrice) {
         OrderDetail detail = new OrderDetail();
         detail.setOrder(order);
         detail.setCourse(course);
-        detail.setPrice(course.getPrice());
+        detail.setPrice(actualPrice);
         detail.setDiscount(course.getDiscount());
         return orderDetailRepository.save(detail);
     }

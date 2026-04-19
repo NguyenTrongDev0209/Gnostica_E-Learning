@@ -28,7 +28,7 @@ import { useCoupons } from "@/hooks/admin/useCoupons";
 import { CouponFormModal } from "@/components/pages/admin/coupons/CouponFormModal";
 
 export default function InstructorCoupons() {
-  const { coupons, isLoading, addCoupon, removeCoupon } = useCoupons({ mine: true });
+  const { coupons, isLoading, addCoupon, removeCoupon, toggleCouponStatus } = useCoupons({ mine: true });
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -238,7 +238,15 @@ export default function InstructorCoupons() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end items-center gap-2">
-                        <Button variant="outline" size="sm" className="h-8 font-medium border-slate-200">Sửa</Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 font-medium border-slate-200"
+                          onClick={() => toggleCouponStatus && toggleCouponStatus(coupon)}
+                          title="Đổi trạng thái"
+                        >
+                          Đổi Trạng Thái
+                        </Button>
                         <Button
                           variant="ghost"
                           size="icon"
