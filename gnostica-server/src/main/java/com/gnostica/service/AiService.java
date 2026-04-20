@@ -2,8 +2,10 @@ package com.gnostica.service;
 
 import com.gnostica.dto.request.AiChatRequest;
 import com.gnostica.dto.response.AiChatResponse;
+import com.gnostica.model.Course;
 import com.gnostica.model.ForumCategory;
 import com.gnostica.model.Thread;
+import com.gnostica.repository.CourseRepository;
 import com.gnostica.repository.ForumCategoryRepository;
 import com.gnostica.repository.ThreadRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -25,6 +27,7 @@ public class AiService {
     private final RestTemplate restTemplate;
     private final ThreadRepository threadRepository;
     private final ForumCategoryRepository forumCategoryRepository;
+    private final CourseRepository courseRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Value("${openrouter.api-key}")
@@ -60,7 +63,14 @@ public class AiService {
         if(currentMessages.isEmpty() || !currentMessages.get(0).get("role").equals("system")) {
             Map<String, Object> systemMap = new HashMap<>();
             systemMap.put("role", "system");
-            systemMap.put("content", "Bạn là một trợ lý ảo của Gnostica E-Learning. Bạn có thể truy cập DB để tìm bài viết. QUAN TRỌNG: Khi gợi ý danh sách bài viết/threads cho người dùng, hãy LUÔN luôn sử dụng định dạng chuỗi sau để UI có thể vẽ thành Thẻ Card: `[[CARD:{id}|{title}|{likes}|{author}|{category}|{imageUrl}]]`. Ví dụ: `[[CARD:3|Hướng dẫn Spring|54|Tuấn|Lập trình|http...]]` (nếu không có link ảnh thì để là chữ `none` ở trường imageUrl). Không được tự ý viết text thông thường cho danh sách.");
+            systemMap.put("content", "Bạn là một trợ lý ảo của Gnostica E-Learning. Bạn có thể truy cập DB để tìm bài viết và khóa học. " +
+                    "QUAN TRỌNG: Khi gợi ý danh sách (bài viết hoặc khóa học) cho người dùng, hãy LUÔN luôn sử dụng định dạng chuỗi sau để UI có thể vẽ thành Thẻ Card: `[[CARD:TYPE|id|title|info|author|category|imageUrl]]`. " +
+                    "\n- TYPE: 'forum' (nếu là bài viết/thread) hoặc 'course' (nếu là khóa học)." +
+                    "\n- id: ID của bài viết (nếu là forum) hoặc SLUG của khóa học (nếu là course)." +
+                    "\n- info: Số lượt thích (nếu là forum) hoặc Giá tiền kèm đơn vị (nếu là khóa học)." +
+                    "\nVí dụ bài viết: `[[CARD:forum|3|Hướng dẫn Spring|54|Tuấn|Lập trình|none]]`." +
+                    "\nVí dụ khóa học: `[[CARD:course|java-co-ban-101|Java Cơ Bản|500.000đ|Thầy Nam|Lập trình|http://...]]`." +
+                    "\nNếu không có link ảnh thì để là chữ `none` ở trường imageUrl. Không được tự ý viết text thông thường cho danh sách.");
             currentMessages.add(0, systemMap);
         }
 
@@ -129,13 +139,6 @@ public class AiService {
                     List<Thread> topThreads = threadRepository.findTop5ByOrderByLikesDesc();
                     return buildThreadResponse(topThreads);
 
-                case "search_threads":
-                    if(arguments == null || arguments.trim().isEmpty() || arguments.equals("{}")) arguments = "{\"keyword\" : \"\"}";
-                    Map<String, String> argsMap = objectMapper.readValue(arguments, Map.class);
-                    String keyword = argsMap.getOrDefault("keyword", "");
-                    List<Thread> searchedThreads = threadRepository.findTop5ByContentContainingIgnoreCaseOrderByCreatedAtDesc(keyword);
-                    return buildThreadResponse(searchedThreads);
-
                 case "get_top_contributors":
                     List<Object[]> contributors = threadRepository.findTopContributors(PageRequest.of(0, 5));
                     StringBuilder sb = new StringBuilder("Top 5 người đóng góp (đăng nhiều lượt tương tác nhất):\n");
@@ -153,6 +156,17 @@ public class AiService {
                         catSb.append(String.format("- Tên: %s (ID: %d)\n", fc.getName(), fc.getId()));
                     }
                     return catSb.toString();
+
+                case "get_top_rated_courses":
+                    List<Course> topCourses = courseRepository.findTop5ByAverageRating(PageRequest.of(0, 5));
+                    return buildCourseResponse(topCourses);
+
+                case "search_courses":
+                    Map<String, Object> courseArgs = objectMapper.readValue(arguments, Map.class);
+                    String courseCategory = (String) courseArgs.get("category");
+                    Double maxPrice = courseArgs.get("maxPrice") != null ? Double.valueOf(courseArgs.get("maxPrice").toString()) : null;
+                    List<Course> searchedCourses = courseRepository.findCoursesByCategoryAndPrice(courseCategory, maxPrice, PageRequest.of(0, 5));
+                    return buildCourseResponse(searchedCourses);
 
                 default:
                     return "Tool không tồn tại.";
@@ -177,12 +191,25 @@ public class AiService {
                 imageUrl = t.getImages().get(0).getImageUrl();
             }
 
-            sb.append(String.format("Bài viết ID: %d\n", t.getId()));
-            sb.append(String.format("Nội dung tóm tắt: %s\n", contentPreview));
-            sb.append(String.format("Lượt thích (Likes): %d | Bình luận (Comments): %d\n", t.getLikes(), t.getCommentCount()));
-            sb.append(String.format("Tác giả: %s (Email: %s)\n", t.getAccount() != null ? t.getAccount().getFullName() : "Ẩn danh", t.getAccount() != null ? t.getAccount().getEmail() : "N/A"));
+            sb.append(String.format("Lượt thích (Likes): %d\n", t.getLikes()));
+            sb.append(String.format("Tác giả: %s\n", t.getAccount() != null ? t.getAccount().getFullName() : "Ẩn danh"));
             sb.append(String.format("Mục chuyên đề: %s\n", t.getCategory() != null ? t.getCategory().getName() : "Không rõ"));
             sb.append(String.format("Ảnh: %s\n", imageUrl));
+            sb.append("---\n");
+        }
+        return sb.toString();
+    }
+
+    private String buildCourseResponse(List<Course> courses) {
+        if (courses.isEmpty()) return "Không tìm thấy khóa học nào phù hợp.";
+        StringBuilder sb = new StringBuilder();
+        for (Course c : courses) {
+            sb.append(String.format("Khóa học Slug: %s\n", c.getSlug()));
+            sb.append(String.format("Tiêu đề: %s\n", c.getTitle()));
+            sb.append(String.format("Giá: %.0f VNĐ (Giảm giá %d%%)\n", c.getPrice(), c.getDiscount()));
+            sb.append(String.format("Tác giả: %s\n", c.getInstructorName()));
+            sb.append(String.format("Danh mục: %s\n", c.getCategoryName()));
+            sb.append(String.format("Ảnh: %s\n", c.getThumbnail()));
             sb.append("---\n");
         }
         return sb.toString();
@@ -193,18 +220,16 @@ public class AiService {
             createTool("get_top_liked_threads", "Lấy top 5 bài viết có nhiều lượt thích (like) nhất trong diễn đàn.", Collections.emptyMap()),
             createTool("get_top_contributors", "Lấy thông tin những người dùng đăng bài nhiều nhất hoặc nhận được tổng số like cao nhất.", Collections.emptyMap()),
             createTool("get_forum_categories", "Xem danh sách các chủ đề (categories) của diễn đàn hiện đang có để biết người dùng đang quan tâm điều gì.", Collections.emptyMap()),
+            createTool("get_top_rated_courses", "Lấy danh sách 5 khóa học có điểm đánh giá trung bình cao nhất.", Collections.emptyMap()),
             createTool(
-                "search_threads", 
-                "Tìm kiếm các bài viết (threads) trong diễn đàn liên quan đến một từ khóa (keyword) cụ thể.", 
+                "search_courses", 
+                "Tìm kiếm khóa học theo tên danh mục (ví dụ: Java, Web,...) và/hoặc theo giá tối đa.", 
                 Map.of(
                     "type", "object",
                     "properties", Map.of(
-                        "keyword", Map.of(
-                            "type", "string",
-                            "description", "Từ khóa liên quan đến bài viết cần tìm kiếm."
-                        )
-                    ),
-                    "required", Arrays.asList("keyword")
+                        "category", Map.of("type", "string", "description", "Tên danh mục khóa học cần tìm."),
+                        "maxPrice", Map.of("type", "number", "description", "Giá tối đa của khóa học.")
+                    )
                 )
             )
         );

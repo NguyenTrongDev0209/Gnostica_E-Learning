@@ -68,7 +68,7 @@ public class Course {
     @JsonIgnore
     private Category category;
 
-    @Column
+    @Column(columnDefinition = "integer default 1")
     private Integer status;
 
     @Column(columnDefinition = "boolean default false")
