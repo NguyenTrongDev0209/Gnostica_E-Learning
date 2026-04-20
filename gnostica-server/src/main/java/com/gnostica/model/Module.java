@@ -36,7 +36,7 @@ public class Module {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
-    @Column
+    @Column(columnDefinition = "integer default 1")
     private Integer status;
 
     @Column(columnDefinition = "boolean default false")

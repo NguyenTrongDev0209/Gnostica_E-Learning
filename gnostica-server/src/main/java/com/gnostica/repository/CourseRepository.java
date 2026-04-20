@@ -44,4 +44,15 @@ public interface CourseRepository extends JpaRepository<Course, Integer> {
 
     @org.springframework.data.jpa.repository.Query("SELECT c.category.id, COUNT(c) FROM Course c WHERE c.category.id IN :categoryIds GROUP BY c.category.id")
     java.util.List<Object[]> countCoursesByCategoryIdIn(@org.springframework.data.repository.query.Param("categoryIds") java.util.Collection<Integer> categoryIds);
+
+    @org.springframework.data.jpa.repository.Query("SELECT c FROM Course c LEFT JOIN Review r ON r.course = c WHERE c.status = 1 AND (c.deleted = false OR c.deleted IS NULL) GROUP BY c.id ORDER BY AVG(r.rating) DESC NULLS LAST")
+    java.util.List<Course> findTop5ByAverageRating(org.springframework.data.domain.Pageable pageable);
+
+    @org.springframework.data.jpa.repository.Query("SELECT c FROM Course c WHERE c.status = 1 AND (c.deleted = false OR c.deleted IS NULL) " +
+            "AND (:categoryName IS NULL OR LOWER(c.category.name) LIKE LOWER(CONCAT('%', :categoryName, '%'))) " +
+            "AND (:maxPrice IS NULL OR c.price <= :maxPrice)")
+    java.util.List<Course> findCoursesByCategoryAndPrice(
+            @org.springframework.data.repository.query.Param("categoryName") String categoryName, 
+            @org.springframework.data.repository.query.Param("maxPrice") Double maxPrice, 
+            org.springframework.data.domain.Pageable pageable);
 }
