@@ -20,24 +20,24 @@ import lombok.RequiredArgsConstructor;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity 
+@EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final com.gnostica.security.CustomOAuth2UserService oauth2UserService;
-    private final com.gnostica.security.OAuth2SuccessHandler oauth2SuccessHandler;
-    private final com.gnostica.security.OAuth2FailureHandler oauth2FailureHandler;
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+        private final com.gnostica.security.CustomOAuth2UserService oauth2UserService;
+        private final com.gnostica.security.OAuth2SuccessHandler oauth2SuccessHandler;
+        private final com.gnostica.security.OAuth2FailureHandler oauth2FailureHandler;
+        private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }	
+        @Bean
+        public PasswordEncoder passwordEncoder() {
+                return new BCryptPasswordEncoder();
+        }
 
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
-        return config.getAuthenticationManager();
-    }
+        @Bean
+        public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+                return config.getAuthenticationManager();
+        }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -52,37 +52,38 @@ public class SecurityConfig {
                 })
             )
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/error", "/favicon.ico", "/**/*.html", "/**/*.css", "/**/*.js").permitAll()
-                .requestMatchers("/api/auth/**", "/api/upload/**", "/oauth2/**", "/login/oauth2/**", "/api/threads/**", "/api/forum-categories/**", "/api/comments/**", "/api/progress/**", "/api/ai/**").permitAll()
+                .requestMatchers("/", "/error", "/favicon.ico", "/**/*.html", "/**/*.css", "/**/*.js", "/ws/**").permitAll()
+                .requestMatchers("/api/auth/**", "/api/upload/**", "/oauth2/**", "/login/oauth2/**", "/api/threads/**", "/api/forum-categories/**", "/api/comments/**", "/api/progress/**", "/api/ai/**", "/api/thread-reports/**", "/api/dashboard/**", "/api/payment/**",
+                                                                "/api/order/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/courses/**", "/api/categories/**", "/api/instructors/**").permitAll()
                 .anyRequest().authenticated()
             )
 
-            .oauth2Login(oauth2 -> oauth2
-                .userInfoEndpoint(userInfo -> userInfo.userService(oauth2UserService))
-                .successHandler(oauth2SuccessHandler)
-                .failureHandler(oauth2FailureHandler)
-            )
-            .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // Principle 5
-            );
+                                .oauth2Login(oauth2 -> oauth2
+                                                .userInfoEndpoint(userInfo -> userInfo.userService(oauth2UserService))
+                                                .successHandler(oauth2SuccessHandler)
+                                                .failureHandler(oauth2FailureHandler))
+                                .sessionManagement(session -> session
+                                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // Principle 5
+                                );
 
-        
-        // Principle 8: Add JWT Filter
-        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                // Principle 8: Add JWT Filter
+                http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
-        return http.build();
-    }
+                return http.build();
+        }
 
-    @Bean
-    public org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource() {
-        org.springframework.web.cors.CorsConfiguration configuration = new org.springframework.web.cors.CorsConfiguration();
-        configuration.addAllowedOrigin("*"); 
-        configuration.addAllowedMethod("*"); 
-        configuration.addAllowedHeader("*"); 
-        org.springframework.web.cors.UrlBasedCorsConfigurationSource source = new org.springframework.web.cors.UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
-    }
+        @Bean
+        public org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource() {
+                org.springframework.web.cors.CorsConfiguration configuration = new org.springframework.web.cors.CorsConfiguration();
+                configuration.setAllowedOriginPatterns(
+                                java.util.List.of("http://localhost:5173", "http://localhost:3000",
+                                                "http://127.0.0.1:*"));
+                configuration.addAllowedMethod("*");
+                configuration.addAllowedHeader("*");
+                configuration.setAllowCredentials(true);
+                org.springframework.web.cors.UrlBasedCorsConfigurationSource source = new org.springframework.web.cors.UrlBasedCorsConfigurationSource();
+                source.registerCorsConfiguration("/**", configuration);
+                return source;
+        }
 }
-

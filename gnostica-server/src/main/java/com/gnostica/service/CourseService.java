@@ -1,8 +1,8 @@
 package com.gnostica.service;
 
-import com.gnostica.dto.CourseRequest;
-import com.gnostica.dto.LessonRequest;
-import com.gnostica.dto.ModuleRequest;
+import com.gnostica.dto.request.CourseRequest;
+import com.gnostica.dto.request.LessonRequest;
+import com.gnostica.dto.request.ModuleRequest;
 import com.gnostica.model.Account;
 import com.gnostica.model.Attachment;
 import com.gnostica.model.Category;
@@ -139,9 +139,8 @@ public class CourseService {
         course.setIsEnrolled(isEnrolled);
 
         // Logic hiển thị:
-        // 1. Nếu là khách (email null) hoặc chưa mua: Chỉ thấy nếu status = 1 (Hoạt động)
-        // 2. Nếu đã mua hoặc là chủ sở hữu: Thấy cả khi status = 2 (Tạm ẩn)
-        if (!isOwner && !isEnrolled && course.getStatus() != 1) {
+        // 1. Nếu là khách (email null) hoặc chưa mua: Chỉ thấy nếu status = 1 (Hoạt động) và chưa bị xóa
+        if (!isOwner && !isEnrolled && (course.getStatus() != 1 || Boolean.TRUE.equals(course.getDeleted()))) {
             throw new RuntimeException("Khóa học hiện không khả dụng");
         }
 
@@ -170,7 +169,22 @@ public class CourseService {
             throw new RuntimeException("Bạn không có quyền xóa khóa học này");
         }
         
-        courseRepository.delete(course);
+        // Soft delete the course
+        course.setDeleted(true);
+        
+        // Soft delete all modules and lessons
+        if (course.getModules() != null) {
+            for (Module m : course.getModules()) {
+                m.setDeleted(true);
+                if (m.getLessons() != null) {
+                    for (Lesson l : m.getLessons()) {
+                        l.setDeleted(true);
+                    }
+                }
+            }
+        }
+        
+        courseRepository.save(course);
     }
 
     @Transactional
@@ -342,13 +356,13 @@ public class CourseService {
     @Transactional(readOnly = true)
     public org.springframework.data.domain.Page<Course> getInstructorCourses(String email, int page, int size) {
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size, org.springframework.data.domain.Sort.by("id").descending());
-        return courseRepository.findByAccountEmail(email, pageable);
+        return courseRepository.findByAccountEmailAndDeletedFalse(email, pageable);
     }
 
     @Transactional(readOnly = true)
     public org.springframework.data.domain.Page<Course> getAllActiveCourses(int page, int size) {
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size, org.springframework.data.domain.Sort.by("id").descending());
-        return courseRepository.findByStatus(1, pageable);
+        return courseRepository.findByStatusAndDeletedFalse(1, pageable);
     }
 
     @Transactional

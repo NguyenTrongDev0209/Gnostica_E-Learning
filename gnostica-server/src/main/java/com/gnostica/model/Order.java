@@ -1,5 +1,6 @@
 package com.gnostica.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -33,5 +34,6 @@ public class Order {
     private Coupon coupon;
 
     @jakarta.persistence.OneToMany(mappedBy = "order", cascade = jakarta.persistence.CascadeType.ALL)
+    @JsonIgnore
     private java.util.List<OrderDetail> details;
 }

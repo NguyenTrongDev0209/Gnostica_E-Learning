@@ -10,7 +10,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import com.gnostica.dto.ResponseDTO;
+import com.gnostica.dto.response.ResponseDTO;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {

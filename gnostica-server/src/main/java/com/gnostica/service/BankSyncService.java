@@ -1,7 +1,7 @@
 package com.gnostica.service;
 
-import com.gnostica.dto.VietQrBankDto;
-import com.gnostica.dto.VietQrResponse;
+import com.gnostica.dto.response.VietQrBankDto;
+import com.gnostica.dto.response.VietQrResponse;
 import com.gnostica.model.Bank;
 import com.gnostica.repository.BankRepository;
 import org.springframework.stereotype.Service;

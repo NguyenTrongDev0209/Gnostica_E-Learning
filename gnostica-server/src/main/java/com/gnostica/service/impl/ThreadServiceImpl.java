@@ -10,6 +10,7 @@ import com.gnostica.repository.ForumCategoryRepository;
 import com.gnostica.repository.ThreadRepository;
 import com.gnostica.repository.ThreadLikeRepository;
 import com.gnostica.repository.CommentRepository;
+import com.gnostica.repository.ThreadReportRepository;
 import com.gnostica.service.CloudinaryService;
 import com.gnostica.service.ThreadService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +49,9 @@ public class ThreadServiceImpl implements ThreadService {
 
     @Autowired
     private CommentRepository commentRepository;
+
+    @Autowired
+    private ThreadReportRepository threadReportRepository;
 
     @Override
     @Transactional
@@ -94,7 +98,7 @@ public class ThreadServiceImpl implements ThreadService {
 
     @Override
     public Page<Thread> getAllThreads(Pageable pageable) {
-        return threadRepository.findAll(pageable);
+        return threadRepository.findAllByStatusTrue(pageable);
     }
 
     @Override
@@ -107,9 +111,7 @@ public class ThreadServiceImpl implements ThreadService {
         long actualCommentCount = commentRepository.countByObjectId(String.valueOf(id));
         thread.setCommentCount((int) actualCommentCount);
 
-        // Cập nhật lượt xem an toàn
-        Integer currentViews = thread.getViews();
-        thread.setViews((currentViews == null ? 0 : currentViews) + 1);
+        // (Xóa logic tăng views ở đây để tránh bị double count khi gọi API liên quan)
         
         return threadRepository.save(thread);
     }
@@ -183,10 +185,49 @@ public class ThreadServiceImpl implements ThreadService {
 
     @Override
     public Map<String, Object> getUserStats(String email) {
-        Object[] stats = (Object[]) threadRepository.getUserStats(email)[0];
+        Object[] statsArray = threadRepository.getUserStats(email);
+        if (statsArray == null || statsArray.length == 0) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("threadCount", 0);
+            response.put("totalLikes", 0);
+            return response;
+        }
+        Object[] stats = (Object[]) statsArray[0];
         Map<String, Object> response = new HashMap<>();
         response.put("threadCount", stats[0]);
         response.put("totalLikes", stats[1]);
         return response;
+    }
+
+    @Override
+    @Transactional
+    public void deleteThread(Integer id) {
+        Thread thread = threadRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Thread not found with id: " + id));
+
+        // 1. Delete associated ThreadLikes
+        threadLikeRepository.deleteByThreadId(id);
+
+        // 2. Delete associated ThreadReports
+        threadReportRepository.deleteByThreadId(id);
+
+        // 3. Delete associated Comments (objectId is thread id as string)
+        commentRepository.deleteByObjectId(id.toString());
+
+        // 4. Delete associated images (handled by CascadeType.ALL + orphanRemoval = true in entity)
+        
+        // 5. Delete the thread
+        threadRepository.delete(thread);
+    }
+
+    @Override
+    @Transactional
+    public void incrementView(Integer id) {
+        Thread thread = threadRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Thread not found with id: " + id));
+        
+        Integer currentViews = thread.getViews();
+        thread.setViews((currentViews == null ? 0 : currentViews) + 1);
+        threadRepository.save(thread);
     }
 }

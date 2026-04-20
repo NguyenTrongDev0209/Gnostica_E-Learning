@@ -17,4 +17,6 @@ public interface ThreadService {
     List<Thread> getRelatedThreads(Integer categoryId, Integer currentThreadId);
     Page<Thread> getThreadsByEmail(String email, Pageable pageable);
     Map<String, Object> getUserStats(String email);
+    void deleteThread(Integer id);
+    void incrementView(Integer id);
 }

@@ -71,12 +71,11 @@ public class Course {
     @Column
     private Integer status;
 
+    @Column(columnDefinition = "boolean default false")
+    private Boolean deleted = false;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "coupon_id")
-    private Coupon coupon;
 
     @NotBlank(message = "Vui lòng chọn cấp độ")
     @Column

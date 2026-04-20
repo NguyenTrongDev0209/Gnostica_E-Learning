@@ -1,6 +1,6 @@
 package com.gnostica.service;
 
-import com.gnostica.dto.LessonProgressDTO;
+import com.gnostica.dto.response.LessonProgressDTO;
 import com.gnostica.model.Account;
 import com.gnostica.model.Lesson;
 import com.gnostica.model.LessonProgress;
