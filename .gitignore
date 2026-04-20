@@ -69,3 +69,4 @@ pnpm-debug.log*
 *.secret
 *.key
 *.jks
+gnostica-server/.factorypath
