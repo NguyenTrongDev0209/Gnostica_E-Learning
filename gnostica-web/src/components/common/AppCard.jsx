@@ -169,6 +169,7 @@ export const ForumPostCard = ({ post, className }) => {
             {/* Title */}
             <h3 className="text-lg font-bold text-foreground mb-1 group-hover:text-primary transition-colors flex items-center gap-2">
               {post.isHot && <Flame className="w-4 h-4 text-orange-500 fill-orange-500 shrink-0" />}
+              {post.status === false && <Badge variant="destructive" className="bg-red-500 text-white border-none text-[10px] h-5">Bị ẩn / Vi phạm</Badge>}
               <span className="line-clamp-2">{post.title}</span>
             </h3>
 

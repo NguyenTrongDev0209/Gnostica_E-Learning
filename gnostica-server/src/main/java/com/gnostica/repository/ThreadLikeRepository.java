@@ -12,4 +12,8 @@ import java.util.Optional;
 public interface ThreadLikeRepository extends JpaRepository<ThreadLike, Integer> {
     Optional<ThreadLike> findByThreadAndAccount(Thread thread, Account account);
     boolean existsByThreadAndAccount(Thread thread, Account account);
+
+    @org.springframework.transaction.annotation.Transactional
+    @org.springframework.data.jpa.repository.Modifying
+    void deleteByThreadId(Integer threadId);
 }

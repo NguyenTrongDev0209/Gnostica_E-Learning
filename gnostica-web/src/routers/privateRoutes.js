@@ -16,6 +16,7 @@ import PayosQR from "@/pages/client/PayosQR";
 import CheckoutResult from "@/pages/client/CheckoutResult";
 import ForumCreatePost from "@/pages/client/ForumCreatePost";
 import MyForumPosts from "@/pages/client/MyForumPosts";
+import ApplyInstructor from "@/pages/client/ApplyInstructor";
 
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminUsers from "@/pages/admin/AdminUsers";
@@ -93,5 +94,6 @@ export const privateRoutes = {
   forum: [
     { path: "/forum/create", component: ForumCreatePost },
     { path: "/forum/me", component: MyForumPosts },
+    { path: "/apply-instructor", component: ApplyInstructor },
   ],
 };

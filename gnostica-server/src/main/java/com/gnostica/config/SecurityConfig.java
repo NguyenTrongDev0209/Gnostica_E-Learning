@@ -39,34 +39,25 @@ public class SecurityConfig {
                 return config.getAuthenticationManager();
         }
 
-        @Bean
-        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-                http
-                                .csrf(csrf -> csrf.disable())
-                                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                                .exceptionHandling(exception -> exception // Trả về 401 thay vì redirect trang login UI
-                                                .authenticationEntryPoint((request, response, authException) -> {
-                                                        response.setStatus(
-                                                                        jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED);
-                                                        response.setContentType("application/json;charset=UTF-8");
-                                                        response.getWriter().write(
-                                                                        "{\"status\": \"error\", \"message\": \"Vui lòng đăng nhập để thực hiện hành động này!\"}");
-                                                }))
-                                .authorizeHttpRequests(auth -> auth
-                                                .requestMatchers("/", "/error", "/favicon.ico", "/**/*.html",
-                                                                "/**/*.css", "/**/*.js", "/ws/**")
-                                                .permitAll()
-                                                .requestMatchers("/api/auth/**", "/api/upload/**", "/oauth2/**",
-                                                                "/login/oauth2/**",
-                                                                "/api/threads/**", "/api/forum-categories/**",
-                                                                "/api/comments/**", "/api/progress/**",
-                                                                "/api/ai/**", "/api/dashboard/**", "/api/payment/**",
-                                                                "/api/order/**")
-                                                .permitAll()
-                                                .requestMatchers(HttpMethod.GET, "/api/courses/**",
-                                                                "/api/categories/**", "/api/instructors/**")
-                                                .permitAll()
-                                                .anyRequest().authenticated())
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+            .csrf(csrf -> csrf.disable())
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            .exceptionHandling(exception -> exception // Trả về 401 thay vì redirect trang login UI
+                .authenticationEntryPoint((request, response, authException) -> {
+                    response.setStatus(jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setContentType("application/json;charset=UTF-8");
+                    response.getWriter().write("{\"status\": \"error\", \"message\": \"Vui lòng đăng nhập để thực hiện hành động này!\"}");
+                })
+            )
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/", "/error", "/favicon.ico", "/**/*.html", "/**/*.css", "/**/*.js", "/ws/**").permitAll()
+                .requestMatchers("/api/auth/**", "/api/upload/**", "/oauth2/**", "/login/oauth2/**", "/api/threads/**", "/api/forum-categories/**", "/api/comments/**", "/api/progress/**", "/api/ai/**", "/api/thread-reports/**", "/api/dashboard/**", "/api/payment/**",
+                                                                "/api/order/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/courses/**", "/api/categories/**", "/api/instructors/**").permitAll()
+                .anyRequest().authenticated()
+            )
 
                                 .oauth2Login(oauth2 -> oauth2
                                                 .userInfoEndpoint(userInfo -> userInfo.userService(oauth2UserService))
