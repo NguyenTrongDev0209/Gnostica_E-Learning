@@ -25,16 +25,16 @@ export default function PayosQR() {
   // Dữ liệu đơn hàng từ PayOS truyền qua state
   const paymentData = state?.paymentData;
   const orderItems = state?.orderItems || [];
-  
-  const totalAmount = paymentData?.amount || (orderItems.length > 0 
+
+  const totalAmount = paymentData?.amount || (orderItems.length > 0
     ? orderItems.reduce((sum, item) => sum + item.price, 0)
     : payosPaymentMock.amount);
 
   // Ưu tiên mã QR từ PayOS, nếu không có mới dùng VietQR tự tạo
-  const dynamicQrCodeUrl = paymentData?.qrCode 
-    ? (paymentData.qrCode.startsWith("http") 
-        ? paymentData.qrCode 
-        : `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(paymentData.qrCode)}`)
+  const dynamicQrCodeUrl = paymentData?.qrCode
+    ? (paymentData.qrCode.startsWith("http")
+      ? paymentData.qrCode
+      : `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(paymentData.qrCode)}`)
     : `https://img.vietqr.io/image/${paymentData?.bin || "MB"}-${paymentData?.accountNumber || payosPaymentMock.accountNumber}-compact2.png?amount=${totalAmount}&addInfo=${encodeURIComponent(paymentData?.description || payosPaymentMock.transferContent)}&accountName=${encodeURIComponent(paymentData?.accountName || payosPaymentMock.accountHolder)}`;
 
   const breadcrumbItems = [
@@ -43,36 +43,60 @@ export default function PayosQR() {
     { label: "PayOS QR", isLast: true }
   ];
 
-  // Cơ chế Polling kiểm tra trạng thái thanh toán mỗi 2 giây
+  // Cơ chế Polling kiểm tra trạng thái thanh toán
   useEffect(() => {
     if (!paymentData?.orderCode || status !== "waiting") return;
 
-    const pollInterval = setInterval(async () => {
+    let isPolling = true;
+    let pollTimeout;
+
+    const checkPaymentStatus = async () => {
+      if (!isPolling) return;
+
       try {
         const response = await orderService.getOrderById(paymentData.orderCode);
+
+        // Ngăn request hoàn thành sau khi component unmount
+        if (!isPolling) return;
+
+        // Backend Order entity dùng status số: 0 = PENDING, 1 = PAID
         const currentStatus = response.data?.status;
 
-        if (currentStatus === "PAID") {
-          clearInterval(pollInterval);
+        if (currentStatus === 1) {
+          isPolling = false;
           setStatus("paid");
           toast.success("Thanh toán thành công! Đang kích hoạt khóa học...");
-          
-          // Chờ 1.5s để user thấy thông báo rồi chuyển hướng
+
+          // Chuyển hướng sang trang kết quả kèm orderCode để hiển thị chi tiết
           setTimeout(() => {
-            navigate("/checkout/success", { state: { orderItems } });
-          }, 1500);
-        } else if (currentStatus === "CANCELLED") {
-          clearInterval(pollInterval);
+            navigate(`/checkout/success?orderCode=${paymentData.orderCode}`);
+          }, 500);
+          return;
+        } else if (response.error !== 0) {
+          console.error("API Error:", response.message);
+        } else if (currentStatus === 2) {
+          // status 2 = CANCELLED (nếu có)
+          isPolling = false;
           setStatus("cancelled");
           toast.error("Đơn hàng đã bị hủy.");
+          return;
         }
       } catch (error) {
         console.error("Polling error:", error);
       }
-    }, 2000);
 
-    return () => clearInterval(pollInterval);
-  }, [paymentData, status, navigate, orderItems]);
+      if (isPolling) {
+        pollTimeout = setTimeout(checkPaymentStatus, 1000);
+      }
+    };
+
+    checkPaymentStatus();
+
+    return () => {
+      isPolling = false;
+      if (pollTimeout) clearTimeout(pollTimeout);
+    };
+  }, [paymentData?.orderCode, status, navigate]);
 
   // Countdown timer
   useEffect(() => {
@@ -104,8 +128,8 @@ export default function PayosQR() {
       {/* Header */}
       <section className="bg-slate-900 py-12 text-white">
         <div className="app-container">
-          <AppBreadcrumb 
-            items={breadcrumbItems} 
+          <AppBreadcrumb
+            items={breadcrumbItems}
             linkClassName="text-slate-400 hover:text-slate-100"
             activeClassName="font-semibold text-slate-200"
             separatorClassName="text-slate-500"
@@ -156,9 +180,8 @@ export default function PayosQR() {
                 <div className="flex items-center gap-2 mt-5">
                   <Clock className={`w-4 h-4 ${timeLeft <= 60 ? "text-red-500" : "text-orange-500"}`} />
                   <span
-                    className={`text-lg font-bold tabular-nums ${
-                      timeLeft <= 60 ? "text-red-500" : "text-orange-500"
-                    }`}
+                    className={`text-lg font-bold tabular-nums ${timeLeft <= 60 ? "text-red-500" : "text-orange-500"
+                      }`}
                   >
                     {formatTime(timeLeft)}
                   </span>

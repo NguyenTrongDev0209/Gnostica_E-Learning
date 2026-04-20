@@ -45,11 +45,28 @@ const deleteCoupon = async (id) => {
     return response.data;
 };
 
+const validateCoupon = async (code) => {
+    const response = await axios.get(`${API_URL}/validate/${code}`, {
+        headers: getAuthHeaders()
+    });
+    return response.data;
+};
+
+const updateCouponStatus = async (id, status) => {
+    const response = await axios.put(`${API_URL}/${id}/status`, null, {
+        params: { status },
+        headers: getAuthHeaders()
+    });
+    return response.data;
+};
+
 const couponService = {
     createCoupon,
     getCoupons,
     getMyCoupons,
     deleteCoupon,
+    validateCoupon,
+    updateCouponStatus,
 };
 
 export default couponService;

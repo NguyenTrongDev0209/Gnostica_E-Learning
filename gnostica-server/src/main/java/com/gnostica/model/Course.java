@@ -77,10 +77,6 @@ public class Course {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "coupon_id")
-    private Coupon coupon;
-
     @NotBlank(message = "Vui lòng chọn cấp độ")
     @Column
     private String level;

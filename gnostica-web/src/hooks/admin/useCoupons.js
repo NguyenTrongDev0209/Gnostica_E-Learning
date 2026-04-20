@@ -55,5 +55,19 @@ export function useCoupons(options = {}) {
     }
   };
 
-  return { coupons, isLoading, addCoupon, removeCoupon, fetchCoupons };
+  const toggleCouponStatus = async (coupon) => {
+    // 1 -> 0, 0 -> 1. If 2 or 3, maybe just switch to 1 (active) anyway for editing.
+    const newStatus = coupon.status === 1 ? 0 : 1;
+    try {
+      await couponService.updateCouponStatus(coupon.id, newStatus);
+      toast.success("Cập nhật trạng thái ưu đãi thành công!");
+      await fetchCoupons();
+      return true;
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Không thể cập nhật trạng thái");
+      return false;
+    }
+  };
+
+  return { coupons, isLoading, addCoupon, removeCoupon, toggleCouponStatus, fetchCoupons };
 }

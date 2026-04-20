@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import couponService from "@/services/couponService";
 import { Home } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -17,13 +18,61 @@ export default function CheckoutPage() {
   const { state } = useLocation();
   const [paymentMethod, setPaymentMethod] = useState("credit-card");
   const [loading, setLoading] = useState(false);
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [couponMessage, setCouponMessage] = useState("");
+  const [isCouponLoading, setIsCouponLoading] = useState(false);
 
   // Dùng dữ liệu từ CourseDetail nếu có, fallback về mock
   const orderItems = state?.orderItems ?? checkoutOrderItemsMock;
 
-  const subtotal = orderItems.reduce((sum, item) => sum + item.price, 0);
+  // Calculators
+  let currentSubtotal = orderItems.reduce((sum, item) => sum + item.price, 0);
+  let extraDiscount = 0;
+
+  if (appliedCoupon) {
+    if (appliedCoupon.discountPercent) {
+      extraDiscount = currentSubtotal * (appliedCoupon.discountPercent / 100);
+    }
+    if (appliedCoupon.maxDiscount && extraDiscount > appliedCoupon.maxDiscount) {
+      extraDiscount = appliedCoupon.maxDiscount;
+    }
+    // Capped by max subtotal
+    if (extraDiscount > currentSubtotal) {
+      extraDiscount = currentSubtotal;
+    }
+  }
+
+  const subtotal = currentSubtotal - extraDiscount;
   const totalOriginal = orderItems.reduce((sum, item) => sum + (item.originalPrice || item.price), 0);
   const discount = totalOriginal - subtotal;
+
+  const applyCoupon = async () => {
+    if (!couponCode) return;
+    setIsCouponLoading(true);
+    setCouponMessage("");
+    try {
+      const response = await couponService.validateCoupon(couponCode);
+      if (response && response.data) {
+        setAppliedCoupon(response.data);
+        setCouponMessage(`Áp dụng thành công mã giảm giá!`);
+      } else {
+        setAppliedCoupon(null);
+        setCouponMessage("Mã giảm giá không hợp lệ");
+      }
+    } catch (err) {
+      setAppliedCoupon(null);
+      setCouponMessage(err.response?.data?.message || "Mã giảm giá không hợp lệ hoặc đã hết hạn");
+    } finally {
+      setIsCouponLoading(false);
+    }
+  };
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode("");
+    setCouponMessage("");
+  };
 
   const breadcrumbItems = [
     { label: "Trang chủ", href: "/", icon: Home },
@@ -58,15 +107,15 @@ export default function CheckoutPage() {
         };
 
         const response = await orderService.createOrder(requestBody);
-        
+
         if (response.status === "success" || response.code === "success" || response.data) {
           const paymentData = response.data;
           toast.success("Tạo đơn hàng thành công!");
-          navigate("/checkout/payos", { 
-            state: { 
+          navigate("/checkout/payos", {
+            state: {
               paymentData,
-              orderItems 
-            } 
+              orderItems
+            }
           });
         } else {
           toast.error(response.message || "Không thể tạo đơn hàng. Vui lòng thử lại!");
@@ -107,6 +156,13 @@ export default function CheckoutPage() {
                   subtotal={subtotal}
                   totalOriginal={totalOriginal}
                   discount={discount}
+                  couponCode={couponCode}
+                  setCouponCode={setCouponCode}
+                  applyCoupon={applyCoupon}
+                  removeCoupon={removeCoupon}
+                  appliedCoupon={appliedCoupon}
+                  couponMessage={couponMessage}
+                  isCouponLoading={isCouponLoading}
                 />
                 <div className="p-4 bg-primary/5 rounded-xl border border-primary/10">
                   <p className="text-[11px] text-center font-bold text-primary italic">

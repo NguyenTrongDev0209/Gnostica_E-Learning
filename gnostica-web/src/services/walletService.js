@@ -38,10 +38,18 @@ const getWalletStats = async () => {
     return response.data;
 };
 
+const requestWithdraw = async (withdrawData) => {
+    const response = await axios.post(`${API_URL}/withdraw`, withdrawData, {
+        headers: getAuthHeaders()
+    });
+    return response.data;
+};
+
 const walletService = {
     getMyWallet,
     getMyTransactions,
-    getWalletStats
+    getWalletStats,
+    requestWithdraw
 };
 
 export default walletService;
