@@ -9,4 +9,6 @@ public interface MailService {
     void sendVerificationEmail(String to, String code) throws MessagingException;
 
     void sendResetPasswordEmail(String to, String code) throws MessagingException;
+
+    void sendEmail(String to, String subject, String body);
 }
