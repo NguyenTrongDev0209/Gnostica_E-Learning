@@ -31,9 +31,33 @@ const getMemberGrowth = async () => {
     return response.data.data;
 };
 
+const getRevenue = async () => {
+    const response = await axios.get(`${API_URL}/revenue`, {
+        headers: getAuthHeaders()
+    });
+    return response.data.data;
+};
+
+const getRecentOrders = async () => {
+    const response = await axios.get(`${API_URL}/recent-orders`, {
+        headers: getAuthHeaders()
+    });
+    return response.data.data;
+};
+
+const getTopCourses = async () => {
+    const response = await axios.get(`${API_URL}/top-courses`, {
+        headers: getAuthHeaders()
+    });
+    return response.data.data;
+};
+
 const dashboardService = {
     getStats,
-    getMemberGrowth
+    getMemberGrowth,
+    getRevenue,
+    getRecentOrders,
+    getTopCourses
 };
 
 export default dashboardService;

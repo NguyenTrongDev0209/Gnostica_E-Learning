@@ -1,6 +1,6 @@
 package com.gnostica.service;
 
-import com.gnostica.dto.EnrollmentDTO;
+import com.gnostica.dto.response.EnrollmentDTO;
 import com.gnostica.model.Account;
 import com.gnostica.model.Course;
 import com.gnostica.model.Enrollment;

@@ -14,9 +14,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.gnostica.dto.CategoryRequest;
-import com.gnostica.dto.ResponseDTO;
-import com.gnostica.dto.CategoryResponseDTO;
+import com.gnostica.dto.request.CategoryRequest;
+import com.gnostica.dto.response.ResponseDTO;
+import com.gnostica.dto.response.CategoryResponseDTO;
 import com.gnostica.service.CategoryService;
 
 import jakarta.validation.Valid;

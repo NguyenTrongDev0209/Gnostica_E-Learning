@@ -5,8 +5,8 @@ import java.time.LocalDateTime;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import com.gnostica.dto.CouponRequest;
-import com.gnostica.dto.CouponResponse;
+import com.gnostica.dto.request.CouponRequest;
+import com.gnostica.dto.response.CouponResponse;
 import com.gnostica.model.Account;
 import com.gnostica.model.Coupon;
 import com.gnostica.repository.AccountRepository;
@@ -62,11 +62,38 @@ public class CouponService {
                 .collect(java.util.stream.Collectors.toList());
     }
 
+    public CouponResponse updateCouponStatus(Integer id, Integer status) {
+        Coupon coupon = couponRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Mã giảm giá không tồn tại"));
+        coupon.setStatus(status);
+        Coupon updatedCoupon = couponRepository.save(coupon);
+        return mapToResponse(updatedCoupon);
+    }
+
     public void deleteCoupon(Integer id) {
         if (!couponRepository.existsById(id)) {
             throw new RuntimeException("Mã giảm giá không tồn tại");
         }
         couponRepository.deleteById(id);
+    }
+
+    public CouponResponse validateCoupon(String code) {
+        Coupon coupon = couponRepository.findByCode(code.toUpperCase())
+                .orElseThrow(() -> new RuntimeException("Mã giảm giá không tồn tại"));
+
+        if (coupon.getStatus() != 1) {
+            throw new RuntimeException("Mã giảm giá chưa được kích hoạt hoặc đã hết hạn");
+        }
+
+        if (coupon.getExpiryDate() != null && coupon.getExpiryDate().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Mã giảm giá đã hết hạn");
+        }
+
+        if (coupon.getQuantity() != null && coupon.getQuantity() <= 0) {
+            throw new RuntimeException("Mã giảm giá đã hết lượt sử dụng");
+        }
+
+        return mapToResponse(coupon);
     }
 
     private CouponResponse mapToResponse(Coupon coupon) {

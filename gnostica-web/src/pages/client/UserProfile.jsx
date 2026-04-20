@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import SectionContainer from '@/components/common/AppSection';
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback, AvatarBadge } from "@/components/ui/avatar";
@@ -96,10 +96,7 @@ const UserProfile = () => {
   const [loading, setLoading] = useState(true);
   const [instructorCourses, setInstructorCourses] = useState([]);
   const [loadingCourses, setLoadingCourses] = useState(false);
-  
-  const [isInstructorDialogOpen, setIsInstructorDialogOpen] = useState(false);
-  const [agreedTerms, setAgreedTerms] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate = useNavigate();
 
   const currentUser = JSON.parse(localStorage.getItem('user'));
   const isOwnProfile = currentUser && (id === String(currentUser.id) || !id);
@@ -161,23 +158,7 @@ const UserProfile = () => {
   const isInstructor = (user.role || '').toUpperCase() === 'INSTRUCTOR';
 
   const handleBecomeInstructor = async () => {
-    if (!agreedTerms) {
-      toast.error("Vui lòng đồng ý với các điều khoản!");
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      await authService.becomeInstructor(currentUser.email);
-      toast.success("Chúc mừng! Bạn đã trở thành giảng viên.");
-      setIsInstructorDialogOpen(false);
-      // In real app: refresh data or update local state
-      user.role = 'INSTRUCTOR'; // For demonstration
-    } catch (error) {
-      toast.error(error.toString());
-    } finally {
-      setIsSubmitting(false);
-    }
+    navigate('/apply-instructor');
   };
 
   if (loading) {
@@ -249,7 +230,7 @@ const UserProfile = () => {
                         <Button 
                           className="gap-1.5 h-9 font-bold bg-orange-500 hover:bg-orange-600 border-none" 
                           size="sm"
-                          onClick={() => setIsInstructorDialogOpen(true)}
+                          onClick={handleBecomeInstructor}
                         >
                           <Award className="w-4 h-4" /> Đăng ký giảng viên
                         </Button>
@@ -390,54 +371,6 @@ const UserProfile = () => {
           </div>
         </div>
       </SectionContainer>
-
-      {/* Become Instructor Dialog */}
-      <Dialog open={isInstructorDialogOpen} onOpenChange={setIsInstructorDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold">Đăng ký trở thành Giảng viên</DialogTitle>
-            <DialogDescription>
-              Trở thành giảng viên để chia sẻ kiến thức và tạo ra các khóa học tuyệt vời trên Gnostica.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="py-4 flex flex-col gap-4">
-            <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 h-48 overflow-y-auto text-sm text-slate-600 leading-relaxed">
-              <h4 className="font-bold text-slate-900 mb-2">ĐIỀU KHOẢN VÀ ĐIỀU KIỆN</h4>
-              <p className="mb-2">1. Bạn cam kết các thông tin cung cấp là chính xác và trung thực.</p>
-              <p className="mb-2">2. Nội dung các khóa học phải tuân thủ quy định về bản quyền và đạo đức nghề nghiệp.</p>
-              <p className="mb-2">3. Bạn chịu trách nhiệm hoàn toàn về nội dung và chất lượng bài giảng của mình.</p>
-              <p className="mb-2">4. Gnostica có quyền tạm dừng hoặc hủy bỏ tư cách giảng viên nếu phát hiện vi phạm nghiêm trọng các quy định chung.</p>
-              <p className="mb-2">5. Tỷ lệ chia sẻ doanh thu sẽ được thực hiện theo thỏa thuận cụ thể cho từng khóa học.</p>
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="terms" 
-                checked={agreedTerms}
-                onCheckedChange={setAgreedTerms}
-              />
-              <label 
-                htmlFor="terms" 
-                className="text-sm font-medium leading-none cursor-pointer select-none"
-              >
-                Tôi đã đọc và đồng ý với các điều khoản trên
-              </label>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setIsInstructorDialogOpen(false)}>Hủy</Button>
-            <Button 
-                onClick={handleBecomeInstructor} 
-                disabled={!agreedTerms || isSubmitting}
-                className="bg-primary hover:bg-primary/90"
-            >
-              {isSubmitting ? "Đang xử lý..." : "Xác nhận đăng ký"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

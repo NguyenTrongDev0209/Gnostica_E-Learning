@@ -4,6 +4,7 @@ import { Star, CheckCircle2, ShieldCheck, Lock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { SimpleButton } from "@/components/common/AppButton";
 import { AppBreadcrumb, PageHeader } from "@/components/common/AppSection";
@@ -68,11 +69,10 @@ export const CheckoutOrderItemList = ({ orderItems }) => {
                   {[...Array(5)].map((_, i) => (
                     <Star
                       key={i}
-                      className={`w-3 h-3 ${
-                        i < Math.floor(item.rating)
+                      className={`w-3 h-3 ${i < Math.floor(item.rating)
                           ? "text-yellow-400 fill-yellow-400"
                           : "text-slate-200 fill-slate-100"
-                      }`}
+                        }`}
                     />
                   ))}
                 </div>
@@ -124,10 +124,9 @@ export const CheckoutPaymentMethod = ({ paymentMethods, paymentMethod, setPaymen
                 htmlFor={method.id}
                 className={`
                   relative flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200
-                  ${
-                    isSelected
-                      ? "border-primary bg-primary/5 shadow-sm"
-                      : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+                  ${isSelected
+                    ? "border-primary bg-primary/5 shadow-sm"
+                    : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
                   }
                 `}
               >
@@ -191,7 +190,10 @@ export const CheckoutTrustBadges = () => {
 /**
  * Summary of the order including subtotal, discount, and payment button.
  */
-export const CheckoutOrderSummary = ({ orderItems, loading, subtotal, totalOriginal, discount }) => {
+export const CheckoutOrderSummary = ({
+  orderItems, loading, subtotal, totalOriginal, discount,
+  couponCode, setCouponCode, applyCoupon, removeCoupon, appliedCoupon, couponMessage, isCouponLoading
+}) => {
   return (
     <Card className="border-none shadow-2xl shadow-orange-500/10 overflow-hidden bg-white">
       <CardHeader className="bg-slate-50/50 border-b border-slate-100 py-5">
@@ -234,7 +236,37 @@ export const CheckoutOrderSummary = ({ orderItems, loading, subtotal, totalOrigi
           </div>
         </div>
 
-        <div className="pt-6">
+        <div className="pt-2 pb-4 space-y-2">
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              {appliedCoupon && (
+                <CheckCircle2 className="w-4 h-4 text-green-500 absolute left-3 top-1/2 -translate-y-1/2" />
+              )}
+              <input
+                type="text"
+                placeholder="Nhập mã giảm giá..."
+                value={couponCode}
+                onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                disabled={isCouponLoading || appliedCoupon != null}
+                className={`w-full border rounded-lg text-sm px-3 py-2.5 outline-none focus:border-primary transition-all ${appliedCoupon ? 'pl-9 bg-green-50/50 border-green-200 text-green-700 font-bold' : 'border-slate-200'}`}
+              />
+            </div>
+            <Button
+              type="button"
+              variant={appliedCoupon ? "outline" : "default"}
+              className={appliedCoupon ? "text-red-500 hover:text-red-600 hover:bg-red-50 border-red-200" : "bg-slate-900 border-none"}
+              onClick={appliedCoupon ? removeCoupon : applyCoupon}
+              disabled={isCouponLoading || (!couponCode && !appliedCoupon)}
+            >
+              {isCouponLoading ? "..." : appliedCoupon ? "Bỏ" : "Áp dụng"}
+            </Button>
+          </div>
+          {couponMessage && (
+            <p className={`text-xs ml-1 font-medium ${appliedCoupon ? 'text-green-600' : 'text-red-500'}`}>{couponMessage}</p>
+          )}
+        </div>
+
+        <div className="pt-2">
           <SimpleButton
             type="submit"
             className="w-fit mx-auto py-7 px-16 text-lg font-bold tracking-wide gap-2 flex"

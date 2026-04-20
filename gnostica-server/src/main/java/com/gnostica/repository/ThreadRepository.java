@@ -13,6 +13,8 @@ import java.util.List;
 @Repository
 public interface ThreadRepository extends JpaRepository<Thread, Integer> {
     
+    Page<Thread> findAllByStatusTrue(Pageable pageable);
+
     @Query("SELECT t.account, SUM(t.likes) as totalLikes, COUNT(t) as threadCount FROM Thread t GROUP BY t.account ORDER BY totalLikes DESC")
     List<Object[]> findTopContributors(Pageable pageable);
 

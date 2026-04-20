@@ -92,7 +92,7 @@ export default function useInstructorCourses(pageSize = 10) {
   };
 
   const handleDelete = async (courseId, title) => {
-    if (!window.confirm(`Bạn có chắc chắn muốn xóa khóa học "${title}"? Thao tác này sẽ xóa toàn bộ nội dung liên quan và không thể khôi phục.`)) {
+    if (!window.confirm(`Bạn có chắc chắn muốn xóa khóa học "${title}"? Khóa học sẽ bị ẩn khỏi mọi học viên mới, nhưng những học viên đã mua vẫn có thể tiếp tục học nội dung này.`)) {
       return false;
     }
     

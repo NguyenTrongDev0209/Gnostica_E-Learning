@@ -12,6 +12,10 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import com.gnostica.dto.WithdrawRequest;
+import vn.payos.model.v1.payouts.Payout;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
 @RequestMapping("/api/wallet")
@@ -47,5 +51,17 @@ public class WalletController {
         stats.put("transactionCount", transactions.size());
 
         return ResponseEntity.ok(stats);
+    }
+
+    @PostMapping("/withdraw")
+    public ResponseEntity<?> withdraw(@RequestBody WithdrawRequest request) {
+        try {
+            Payout payout = walletService.withdraw(request);
+            return ResponseEntity.ok(Map.of("message", "Lệnh rút tiền đã khởi tạo thành công", "payout", payout));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(Map.of("message",
+                    e.getMessage() != null ? e.getMessage() : "Lỗi hệ thống: Không thể xử lý yêu cầu"));
+        }
     }
 }

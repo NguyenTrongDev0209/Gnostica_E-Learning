@@ -1,5 +1,6 @@
 package com.gnostica.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -20,6 +21,7 @@ public class OrderDetail {
     private Integer discount;
     @ManyToOne
     @JoinColumn(name = "order_id")
+    @JsonIgnore
     private Order order;
     @ManyToOne
     @JoinColumn(name = "course_id")

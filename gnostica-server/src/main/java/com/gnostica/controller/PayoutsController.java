@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.CrossOrigin;
 
-import com.gnostica.dto.ApiResponse;
+import com.gnostica.dto.response.ApiResponse;
 import com.gnostica.service.PayoutsService;
 
 import vn.payos.model.v1.payouts.Payout;
@@ -24,67 +24,64 @@ import lombok.RequiredArgsConstructor;
 @CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 public class PayoutsController {
-  private final PayoutsService payoutsService;
+	private final PayoutsService payoutsService;
 
-  @PostMapping("/create")
-  public ApiResponse<Payout> create(@RequestBody PayoutRequests body) {
-    try {
-      Payout payout = payoutsService.createPayout(body);
-      return ApiResponse.success(payout);
-    } catch (Exception e) {
-      e.printStackTrace();
-      return ApiResponse.error("fail");
-    }
-  }
+	@PostMapping("/create")
+	public ApiResponse<Payout> create(@RequestBody PayoutRequests body) {
+		try {
+			Payout payout = payoutsService.createPayout(body);
+			return ApiResponse.success(payout);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ApiResponse.error("fail");
+		}
+	}
 
-  @PostMapping("/batch/create")
-  public ApiResponse<Payout> createBatch(@RequestBody PayoutBatchRequest body) {
-    try {
-      Payout payout = payoutsService.createBatchPayout(body);
-      return ApiResponse.success(payout);
-    } catch (Exception e) {
-      e.printStackTrace();
-      return ApiResponse.error("fail");
-    }
-  }
+	@PostMapping("/batch/create")
+	public ApiResponse<Payout> createBatch(@RequestBody PayoutBatchRequest body) {
+		try {
+			Payout payout = payoutsService.createBatchPayout(body);
+			return ApiResponse.success(payout);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ApiResponse.error("fail");
+		}
+	}
 
-  @GetMapping("/{payoutId}")
-  public ApiResponse<Payout> retrieve(@PathVariable String payoutId) {
-    try {
-      Payout payout = payoutsService.retrievePayout(payoutId);
-      return ApiResponse.success(payout);
-    } catch (Exception e) {
-      e.printStackTrace();
-      return ApiResponse.error("fail");
-    }
-  }
+	@GetMapping("/{payoutId}")
+	public ApiResponse<Payout> retrieve(@PathVariable String payoutId) {
+		try {
+			Payout payout = payoutsService.retrievePayout(payoutId);
+			return ApiResponse.success(payout);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ApiResponse.error("fail");
+		}
+	}
 
-  @GetMapping("/list")
-  public ApiResponse<List<Payout>> retrieveList(
-      @RequestParam(required = false) String referenceId,
-      @RequestParam(required = false) String approvalState,
-      @RequestParam(required = false) List<String> category,
-      @RequestParam(required = false) String fromDate,
-      @RequestParam(required = false) String toDate,
-      @RequestParam(required = false) Integer limit,
-      @RequestParam(required = false) Integer offset) {
-    try {
-      List<Payout> data = payoutsService.retrievePayoutList(referenceId, approvalState, category, fromDate, toDate, limit, offset);
-      return ApiResponse.success(data);
-    } catch (Exception e) {
-      e.printStackTrace();
-      return ApiResponse.error("fail");
-    }
-  }
+	@GetMapping("/list")
+	public ApiResponse<List<Payout>> retrieveList(@RequestParam(required = false) String referenceId,
+			@RequestParam(required = false) String approvalState, @RequestParam(required = false) List<String> category,
+			@RequestParam(required = false) String fromDate, @RequestParam(required = false) String toDate,
+			@RequestParam(required = false) Integer limit, @RequestParam(required = false) Integer offset) {
+		try {
+			List<Payout> data = payoutsService.retrievePayoutList(referenceId, approvalState, category, fromDate,
+					toDate, limit, offset);
+			return ApiResponse.success(data);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ApiResponse.error("fail");
+		}
+	}
 
-  @GetMapping("/balance")
-  public ApiResponse<PayoutAccountInfo> getAccountBalance() {
-    try {
-      PayoutAccountInfo accountInfo = payoutsService.getAccountBalance();
-      return ApiResponse.success(accountInfo);
-    } catch (Exception e) {
-      e.printStackTrace();
-      return ApiResponse.error("fail");
-    }
-  }
+	@GetMapping("/balance")
+	public ApiResponse<PayoutAccountInfo> getAccountBalance() {
+		try {
+			PayoutAccountInfo accountInfo = payoutsService.getAccountBalance();
+			return ApiResponse.success(accountInfo);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ApiResponse.error("fail");
+		}
+	}
 }

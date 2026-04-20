@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -83,32 +83,11 @@ const RECENT_CERTIFICATES = [
 
 export default function AccountOverview() {
   const user = authService.getCurrentUser();
-  const [isInstructorDialogOpen, setIsInstructorDialogOpen] = React.useState(false);
-  const [agreedTerms, setAgreedTerms] = React.useState(false);
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
-
+  const navigate = useNavigate();
   const isInstructor = (user?.role || '').toUpperCase() === 'INSTRUCTOR';
 
-  const handleBecomeInstructor = async () => {
-    if (!agreedTerms) {
-      toast.error("Vui lòng đồng ý với các điều khoản!");
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      await authService.becomeInstructor(user.email);
-      toast.success("Chúc mừng! Bạn đã trở thành giảng viên.");
-      setIsInstructorDialogOpen(false);
-      // Cập nhật lại UI local
-      const updatedUser = { ...user, role: 'INSTRUCTOR' };
-      localStorage.setItem('user', JSON.stringify(updatedUser));
-      window.location.reload(); // Cách nhanh nhất để cập nhật mọi nơi
-    } catch (error) {
-      toast.error(error.toString());
-    } finally {
-      setIsSubmitting(false);
-    }
+  const handleBecomeInstructor = () => {
+    navigate('/apply-instructor');
   };
 
   return (
@@ -155,7 +134,7 @@ export default function AccountOverview() {
 
       {/* Instructor Promotion Banner */}
       {!isInstructor && (
-        <Card className="border-2 border-dashed border-orange-200 bg-orange-50/50 mb-6 group cursor-pointer hover:bg-orange-50 transition-colors" onClick={() => setIsInstructorDialogOpen(true)}>
+        <Card className="border-2 border-dashed border-orange-200 bg-orange-50/50 mb-6 group cursor-pointer hover:bg-orange-50 transition-colors" onClick={handleBecomeInstructor}>
           <CardContent className="p-5 flex items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 shrink-0">
@@ -285,54 +264,6 @@ export default function AccountOverview() {
         </div>
         
       </div>
-
-      {/* Become Instructor Dialog */}
-      <Dialog open={isInstructorDialogOpen} onOpenChange={setIsInstructorDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold">Đăng ký trở thành Giảng viên</DialogTitle>
-            <DialogDescription>
-              Trở thành giảng viên để chia sẻ kiến thức và tạo ra các khóa học tuyệt vời trên Gnostica.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="py-4 flex flex-col gap-4">
-            <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 h-48 overflow-y-auto text-sm text-slate-600 leading-relaxed">
-              <h4 className="font-bold text-slate-900 mb-2">ĐIỀU KHOẢN VÀ ĐIỀU KIỆN</h4>
-              <p className="mb-2">1. Bạn cam kết các thông tin cung cấp là chính xác và trung thực.</p>
-              <p className="mb-2">2. Nội dung các khóa học phải tuân thủ quy định về bản quyền và đạo đức nghề nghiệp.</p>
-              <p className="mb-2">3. Bạn chịu trách nhiệm hoàn toàn về nội dung và chất lượng bài giảng của mình.</p>
-              <p className="mb-2">4. Gnostica có quyền tạm dừng hoặc hủy bỏ tư cách giảng viên nếu phát hiện vi phạm nghiêm trọng các quy định chung.</p>
-              <p className="mb-2">5. Tỷ lệ chia sẻ doanh thu sẽ được thực hiện theo thỏa thuận cụ thể cho từng khóa học.</p>
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="terms" 
-                checked={agreedTerms}
-                onCheckedChange={setAgreedTerms}
-              />
-              <label 
-                htmlFor="terms" 
-                className="text-sm font-medium leading-none cursor-pointer select-none"
-              >
-                Tôi đã đọc và đồng ý với các điều khoản trên
-              </label>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <SimpleButton variant="ghost" onClick={() => setIsInstructorDialogOpen(false)}>Hủy</SimpleButton>
-            <SimpleButton 
-                onClick={handleBecomeInstructor} 
-                disabled={!agreedTerms || isSubmitting}
-                className="bg-orange-500 hover:bg-orange-600 text-white font-bold"
-            >
-              {isSubmitting ? "Đang xử lý..." : "Xác nhận đăng ký"}
-            </SimpleButton>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
