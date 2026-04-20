@@ -9,6 +9,7 @@ Thumbs.db
 *.swo
 .project
 .classpath
+.factorypath
 .settings/
 *.iml
 *.nb-configuration.xml
