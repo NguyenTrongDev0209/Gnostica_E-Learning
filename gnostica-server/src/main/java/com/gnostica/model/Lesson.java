@@ -37,6 +37,7 @@ public class Lesson {
     @Column(name = "video_url")
     private String videoUrl;
 
+    @Column(columnDefinition = "integer default 1")
     private Integer status;
 
     @Column(columnDefinition = "boolean default false")

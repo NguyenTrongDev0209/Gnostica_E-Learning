@@ -19,6 +19,7 @@ public class Enrollment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     private Integer progressPercent;
+    @jakarta.persistence.Column(columnDefinition = "integer default 1")
     private Integer status;
     private String certifiUrl;
     private LocalDateTime completedAt;
