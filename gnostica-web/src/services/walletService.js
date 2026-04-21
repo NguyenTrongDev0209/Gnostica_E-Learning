@@ -45,11 +45,28 @@ const requestWithdraw = async (withdrawData) => {
     return response.data;
 };
 
+const setBankAccount = async (data) => {
+    const response = await axios.post(`${API_URL}/bank-account`, data, {
+        headers: getAuthHeaders()
+    });
+    return response.data;
+};
+
+const removeBankAccount = async (pin) => {
+    const response = await axios.delete(`${API_URL}/bank-account`, {
+        headers: getAuthHeaders(),
+        data: { pin }
+    });
+    return response.data;
+};
+
 const walletService = {
     getMyWallet,
     getMyTransactions,
     getWalletStats,
-    requestWithdraw
+    requestWithdraw,
+    setBankAccount,
+    removeBankAccount
 };
 
 export default walletService;
