@@ -35,7 +35,7 @@ public class InstructorApplicationServiceImpl implements InstructorApplicationSe
         // Check if there is already a pending or approved application
         applicationRepository.findByAccount_Id(account.getId()).ifPresent(app -> {
             if ("PENDING".equals(app.getStatus())) {
-                throw new RuntimeException("You already have a pending application.");
+                throw new RuntimeException("Bạn đã gửi yêu cầu xét duyệt rồi.");
             } else if ("APPROVED".equals(app.getStatus())) {
                 throw new RuntimeException("You are already an approved instructor.");
             }
