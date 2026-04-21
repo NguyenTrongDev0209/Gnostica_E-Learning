@@ -181,16 +181,29 @@ public class AiService {
         if (threads.isEmpty()) return "Không tìm thấy bài viết nào phù hợp.";
         StringBuilder sb = new StringBuilder();
         for (Thread t : threads) {
-            // Remove HTML tags for AI to read easily
-            String contentPreview = t.getContent() != null && t.getContent().length() > 200 
-                ? t.getContent().substring(0, 200).replaceAll("<[^>]*>", " ") + "..." 
-                : (t.getContent() != null ? t.getContent().replaceAll("<[^>]*>", " ") : "Không có nội dung");
+            // Clean content: remove HTML tags and normalize spaces
+            String plainContent = t.getContent() != null 
+                ? t.getContent().replaceAll("<[^>]*>", " ").replaceAll("\\s+", " ").trim() 
+                : "Không có nội dung";
+            
+            // Create title: first 50 chars
+            String derivedTitle = plainContent.length() > 50 
+                ? plainContent.substring(0, 50) + "..." 
+                : plainContent;
+
+            // Create preview: first 200 chars
+            String contentPreview = plainContent.length() > 200 
+                ? plainContent.substring(0, 200) + "..." 
+                : plainContent;
             
             String imageUrl = "none";
             if (t.getImages() != null && !t.getImages().isEmpty()) {
                 imageUrl = t.getImages().get(0).getImageUrl();
             }
 
+            sb.append(String.format("ID Bài viết: %d\n", t.getId()));
+            sb.append(String.format("Tiêu đề: %s\n", derivedTitle));
+            sb.append(String.format("Nội dung tóm tắt: %s\n", contentPreview));
             sb.append(String.format("Lượt thích (Likes): %d\n", t.getLikes()));
             sb.append(String.format("Tác giả: %s\n", t.getAccount() != null ? t.getAccount().getFullName() : "Ẩn danh"));
             sb.append(String.format("Mục chuyên đề: %s\n", t.getCategory() != null ? t.getCategory().getName() : "Không rõ"));
