@@ -123,7 +123,12 @@ export default function InstructorRevenue() {
               </Badge>
             </div>
             <div>
-              <p className="text-sm font-medium text-slate-300 mb-1">Số dư khả dụng</p>
+              <div className="flex justify-between items-end mb-1">
+                <p className="text-sm font-medium text-slate-300">Số dư khả dụng</p>
+                <div className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/5 text-slate-400 border border-white/10">
+                  {wallet?.withdrawalsToday || 0}/3 lượt rút hôm nay
+                </div>
+              </div>
               <h2 className="text-3xl font-black text-white">{formatVND(wallet?.remain || 0)}</h2>
             </div>
           </CardContent>

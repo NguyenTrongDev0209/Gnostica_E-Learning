@@ -1,21 +1,18 @@
 package com.gnostica.controller;
 
+import com.gnostica.dto.SetBankAccountRequest;
+import com.gnostica.dto.WithdrawRequest;
 import com.gnostica.model.Wallet;
 import com.gnostica.model.Transaction;
 import com.gnostica.service.WalletService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
-import com.gnostica.dto.WithdrawRequest;
 import vn.payos.model.v1.payouts.Payout;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
 @RequestMapping("/api/wallet")
@@ -43,8 +40,6 @@ public class WalletController {
                 .mapToDouble(Transaction::getAmount)
                 .sum();
 
-        // Bạn có thể thêm logic tính doanh thu tháng này ở đây
-
         Map<String, Object> stats = new HashMap<>();
         stats.put("balance", wallet.getRemain());
         stats.put("totalRevenue", totalRevenue);
@@ -53,6 +48,38 @@ public class WalletController {
         return ResponseEntity.ok(stats);
     }
 
+    /**
+     * Thiết lập tài khoản ngân hàng (lần đầu hoặc sau khi xóa)
+     */
+    @PostMapping("/bank-account")
+    public ResponseEntity<?> setBankAccount(@RequestBody SetBankAccountRequest request) {
+        try {
+            Wallet wallet = walletService.setBankAccount(request);
+            return ResponseEntity.ok(Map.of("message", "Thiết lập tài khoản ngân hàng thành công", "wallet", wallet));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message",
+                    e.getMessage() != null ? e.getMessage() : "Lỗi hệ thống"));
+        }
+    }
+
+    /**
+     * Xóa tài khoản ngân hàng (yêu cầu xác minh PIN)
+     */
+    @DeleteMapping("/bank-account")
+    public ResponseEntity<?> removeBankAccount(@RequestBody Map<String, String> body) {
+        try {
+            String pin = body.get("pin");
+            walletService.removeBankAccount(pin);
+            return ResponseEntity.ok(Map.of("message", "Đã xóa tài khoản ngân hàng thành công"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message",
+                    e.getMessage() != null ? e.getMessage() : "Lỗi hệ thống"));
+        }
+    }
+
+    /**
+     * Rút tiền — dùng bank đã lưu, xác thực PIN
+     */
     @PostMapping("/withdraw")
     public ResponseEntity<?> withdraw(@RequestBody WithdrawRequest request) {
         try {

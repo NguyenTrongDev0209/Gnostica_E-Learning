@@ -1,5 +1,7 @@
 package com.gnostica.service;
 
+import com.gnostica.dto.SetBankAccountRequest;
+import com.gnostica.dto.WithdrawRequest;
 import com.gnostica.model.Account;
 import com.gnostica.model.Wallet;
 import com.gnostica.model.Transaction;
@@ -9,11 +11,11 @@ import com.gnostica.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import com.gnostica.dto.WithdrawRequest;
 import vn.payos.model.v1.payouts.Payout;
 import vn.payos.model.v1.payouts.PayoutRequests;
 
@@ -25,6 +27,7 @@ public class WalletService {
     private final AccountRepository accountRepository;
     private final PayoutsService payoutsService;
     private final com.gnostica.repository.PayoutRepository payoutRepository;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
 
     public Account getCurrentAccount() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -39,13 +42,20 @@ public class WalletService {
     @Transactional(readOnly = true)
     public Wallet getMyWallet() {
         Account account = getCurrentAccount();
-        return walletRepository.findByAccount(account).orElseGet(() -> {
+        Wallet wallet = walletRepository.findByAccount(account).orElseGet(() -> {
             Wallet newWallet = new Wallet();
             newWallet.setAccount(account);
             newWallet.setRemain(0.0);
             newWallet.setStatus(1);
             return walletRepository.save(newWallet);
         });
+
+        // Đếm số lượt rút tiền trong ngày (type = 2)
+        java.time.LocalDateTime startOfDay = java.time.LocalDate.now().atStartOfDay();
+        long count = transactionRepository.countByAccountAndTypeAndCreatedAtAfter(account, 2, startOfDay);
+        wallet.setWithdrawalsToday(count);
+
+        return wallet;
     }
 
     @Transactional(readOnly = true)
@@ -54,9 +64,72 @@ public class WalletService {
         return transactionRepository.findByAccountOrderByCreatedAtDesc(account);
     }
 
+    /**
+     * Thiết lập tài khoản ngân hàng lần đầu (hoặc sau khi đã xóa).
+     * Nếu wallet đã có accountNumber thì từ chối — phải xóa trước.
+     */
+    @Transactional
+    public Wallet setBankAccount(SetBankAccountRequest request) {
+        Wallet wallet = getMyWallet();
+
+        if (wallet.getAccountNumber() != null && !wallet.getAccountNumber().isBlank()) {
+            throw new RuntimeException("Tài khoản ngân hàng đã được thiết lập. Vui lòng xóa trước khi cập nhật.");
+        }
+
+        if (request.getPin() == null || request.getPin().length() < 4) {
+            throw new RuntimeException("PIN phải có ít nhất 4 ký tự.");
+        }
+
+        wallet.setBankBin(request.getBin());
+        wallet.setAccountNumber(request.getAccountNumber());
+        wallet.setPinHash(bCryptPasswordEncoder.encode(request.getPin()));
+        return walletRepository.save(wallet);
+    }
+
+    /**
+     * Xóa tài khoản ngân hàng sau khi xác minh PIN.
+     */
+    @Transactional
+    public void removeBankAccount(String pin) {
+        Wallet wallet = getMyWallet();
+
+        if (wallet.getPinHash() == null) {
+            throw new RuntimeException("Chưa thiết lập mã PIN cho ví.");
+        }
+
+        if (!bCryptPasswordEncoder.matches(pin, wallet.getPinHash())) {
+            throw new RuntimeException("Mã PIN không đúng.");
+        }
+
+        wallet.setBankBin(null);
+        wallet.setAccountNumber(null);
+        wallet.setPinHash(null);
+        walletRepository.save(wallet);
+    }
+
+    /**
+     * Rút tiền — dùng thông tin ngân hàng đã lưu trong ví, xác thực bằng PIN.
+     */
     @Transactional(rollbackFor = Exception.class)
     public Payout withdraw(WithdrawRequest request) throws Exception {
         Wallet wallet = getMyWallet();
+
+        if (wallet.getAccountNumber() == null || wallet.getBankBin() == null) {
+            throw new RuntimeException("Vui lòng thiết lập tài khoản ngân hàng trước khi rút tiền.");
+        }
+
+        if (wallet.getPinHash() == null || !bCryptPasswordEncoder.matches(request.getPin(), wallet.getPinHash())) {
+            throw new RuntimeException("Mã PIN không đúng.");
+        }
+
+        // Kiểm tra giới hạn rút tiền 3 lần/ngày
+        java.time.LocalDateTime startOfDay = java.time.LocalDate.now().atStartOfDay();
+        long withdrawalCountToday = transactionRepository.countByAccountAndTypeAndCreatedAtAfter(wallet.getAccount(), 2,
+                startOfDay);
+        if (withdrawalCountToday >= 3) {
+            throw new RuntimeException("Bạn đã đạt giới hạn rút tiền tối đa 3 lần trong ngày hôm nay.");
+        }
+
         Double amount = request.getAmount().doubleValue();
 
         if (wallet.getRemain() == null || wallet.getRemain() < amount) {
@@ -64,9 +137,9 @@ public class WalletService {
         }
 
         PayoutRequests payoutRequest = new PayoutRequests();
-        payoutRequest.setAmount(request.getAmount().longValue());
-        payoutRequest.setToBin(request.getBin());
-        payoutRequest.setToAccountNumber(request.getAccountNumber());
+        payoutRequest.setAmount(request.getAmount());
+        payoutRequest.setToBin(wallet.getBankBin());
+        payoutRequest.setToAccountNumber(wallet.getAccountNumber());
 
         String desc = "Rut tien " + wallet.getAccount().getFullName();
         if (desc.length() > 25) {
@@ -81,8 +154,8 @@ public class WalletService {
 
         Transaction transaction = new Transaction();
         transaction.setAmount(amount);
-        transaction.setType(2); // 2: Tru tien, Giam tru
-        transaction.setStatus(1); // 1: Thanh cong
+        transaction.setType(2); // 2: Trừ tiền
+        transaction.setStatus(1); // 1: Thành công
         transaction.setPaymentMethod("WITHDRAW");
         transaction.setRef("Rút tiền về tài khoản ngân hàng");
         transaction.setTransactionCode(payout.getId());

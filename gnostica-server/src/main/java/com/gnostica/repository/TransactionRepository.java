@@ -21,4 +21,6 @@ public interface TransactionRepository extends JpaRepository<Transaction, Intege
     List<Transaction> findByOrder(Order order);
 
     List<Transaction> findByAccountOrderByCreatedAtDesc(com.gnostica.model.Account account);
+
+    long countByAccountAndTypeAndCreatedAtAfter(com.gnostica.model.Account account, Integer type, LocalDateTime date);
 }
