@@ -12,6 +12,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import lombok.Data;
 
 @Data
@@ -41,4 +42,7 @@ public class Wallet {
     @OneToOne
     @JoinColumn(name = "account_id")
     private Account account;
+
+    @Transient
+    private Long withdrawalsToday;
 }

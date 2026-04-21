@@ -42,13 +42,20 @@ public class WalletService {
     @Transactional(readOnly = true)
     public Wallet getMyWallet() {
         Account account = getCurrentAccount();
-        return walletRepository.findByAccount(account).orElseGet(() -> {
+        Wallet wallet = walletRepository.findByAccount(account).orElseGet(() -> {
             Wallet newWallet = new Wallet();
             newWallet.setAccount(account);
             newWallet.setRemain(0.0);
             newWallet.setStatus(1);
             return walletRepository.save(newWallet);
         });
+
+        // Đếm số lượt rút tiền trong ngày (type = 2)
+        java.time.LocalDateTime startOfDay = java.time.LocalDate.now().atStartOfDay();
+        long count = transactionRepository.countByAccountAndTypeAndCreatedAtAfter(account, 2, startOfDay);
+        wallet.setWithdrawalsToday(count);
+
+        return wallet;
     }
 
     @Transactional(readOnly = true)
@@ -113,6 +120,14 @@ public class WalletService {
 
         if (wallet.getPinHash() == null || !bCryptPasswordEncoder.matches(request.getPin(), wallet.getPinHash())) {
             throw new RuntimeException("Mã PIN không đúng.");
+        }
+
+        // Kiểm tra giới hạn rút tiền 3 lần/ngày
+        java.time.LocalDateTime startOfDay = java.time.LocalDate.now().atStartOfDay();
+        long withdrawalCountToday = transactionRepository.countByAccountAndTypeAndCreatedAtAfter(wallet.getAccount(), 2,
+                startOfDay);
+        if (withdrawalCountToday >= 3) {
+            throw new RuntimeException("Bạn đã đạt giới hạn rút tiền tối đa 3 lần trong ngày hôm nay.");
         }
 
         Double amount = request.getAmount().doubleValue();
