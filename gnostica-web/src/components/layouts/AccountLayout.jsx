@@ -13,6 +13,7 @@ import {
   KeyRound,
   Bell,
   LogOut,
+  Users,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -25,6 +26,7 @@ const MENU_GROUPS = [
       { label: "Tổng quan", icon: LayoutDashboard, href: "/account" },
       { label: "Khóa học của tôi", icon: BookOpen, href: "/account/my-courses" },
       { label: "Tiến độ học tập", icon: Activity, href: "/account/progress" },
+      { label: "Giảng viên yêu thích", icon: Users, href: "/account/following" },
       { label: "Chứng chỉ", icon: Award, href: "/account/certificates" },
     ],
   },
@@ -89,44 +91,56 @@ const AccountLayout = () => {
 
               {/* Menu Groups */}
               <nav className="p-2 space-y-6">
-                {MENU_GROUPS.map((group) => (
-                  <div key={group.title}>
-                    <h3 className="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
-                      {group.title}
-                    </h3>
-                    <div className="space-y-1">
-                      {group.items.map((item) => {
-                        const Icon = item.icon;
-                        const isActive =
-                          item.href === "/account"
-                            ? location.pathname === "/account"
-                            : location.pathname.startsWith(item.href);
+                {MENU_GROUPS.map((group) => {
+                  // Lọc bớt các mục menu không phù hợp với loại tài khoản
+                  const filteredItems = group.items.filter(item => {
+                    if (item.href === "/account/change-password" && currentUser?.provider === "GOOGLE") {
+                      return false;
+                    }
+                    return true;
+                  });
 
-                        return (
-                          <Link
-                            key={item.href}
-                            to={item.href}
-                            className={`
-                              flex items-center gap-3 px-4 py-3 rounded-xl text-[15px] font-semibold transition-all
-                              ${isActive
-                                ? "bg-primary/5 text-primary font-bold shadow-sm ring-1 ring-primary/10"
-                                : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                              }
-                            `}
-                          >
-                            <Icon className={`w-5 h-5 ${isActive ? "text-primary" : "text-slate-400"}`} />
-                            <span className="flex-1">{item.label}</span>
-                            {item.badge && (
-                              <Badge className="bg-primary/10 text-primary text-[10px] font-bold px-1.5 py-0 hover:bg-primary/10">
-                                {item.badge}
-                              </Badge>
-                            )}
-                          </Link>
-                        );
-                      })}
+                  if (filteredItems.length === 0) return null;
+
+                  return (
+                    <div key={group.title}>
+                      <h3 className="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
+                        {group.title}
+                      </h3>
+                      <div className="space-y-1">
+                        {filteredItems.map((item) => {
+                          const Icon = item.icon;
+                          const isActive =
+                            item.href === "/account"
+                              ? location.pathname === "/account"
+                              : location.pathname.startsWith(item.href);
+
+                          return (
+                            <Link
+                              key={item.href}
+                              to={item.href}
+                              className={`
+                                flex items-center gap-3 px-4 py-3 rounded-xl text-[15px] font-semibold transition-all
+                                ${isActive
+                                  ? "bg-primary/5 text-primary font-bold shadow-sm ring-1 ring-primary/10"
+                                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                                }
+                              `}
+                            >
+                              <Icon className={`w-5 h-5 ${isActive ? "text-primary" : "text-slate-400"}`} />
+                              <span className="flex-1">{item.label}</span>
+                              {item.badge && (
+                                <Badge className="bg-primary/10 text-primary text-[10px] font-bold px-1.5 py-0 hover:bg-primary/10">
+                                  {item.badge}
+                                </Badge>
+                              )}
+                            </Link>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </nav>
 
               <Separator />

@@ -10,6 +10,7 @@ import Vouchers from "@/pages/account/Vouchers";
 import Notifications from "@/pages/account/Notifications";
 import Settings from "@/pages/account/Settings";
 import ChangePassword from "@/pages/account/ChangePassword";
+import FavoriteInstructors from "@/pages/account/FavoriteInstructors";
 
 import CheckoutPage from "@/pages/client/CheckoutPage";
 import PayosQR from "@/pages/client/PayosQR";
@@ -54,6 +55,7 @@ export const privateRoutes = {
     { path: "/account/notifications", component: Notifications },
     { path: "/account/settings", component: Settings },
     { path: "/account/change-password", component: ChangePassword },
+    { path: "/account/following", component: FavoriteInstructors },
   ],
   admin: [
     { path: "/admin", component: AdminDashboard },

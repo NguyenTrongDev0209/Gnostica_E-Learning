@@ -28,7 +28,8 @@ const OAuth2Callback = () => {
                             email: user.email,
                             role: roleName, 
                             token: tokenFromParams || user.token,
-                            avatar: user.avatar
+                            avatar: user.avatar,
+                            provider: user.provider
                         };
                         
                         localStorage.setItem('user', JSON.stringify(normalizedUser));

@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Loader2, UploadCloud } from "lucide-react";
+import { Loader2, UploadCloud, X, FileText, Image as ImageIcon } from "lucide-react";
 
 const ApplyInstructor = () => {
     const navigate = useNavigate();
@@ -20,16 +20,59 @@ const ApplyInstructor = () => {
         idCardFront: null,
         idCardBack: null,
         cvUrl: null,
-        degreeUrls: null
+        degreeUrls: [] // Changed to array
     });
     const [agreedTerms, setAgreedTerms] = useState(false);
 
     const currentUser = JSON.parse(localStorage.getItem('user'));
 
     const handleFileChange = async (e, field) => {
-        const file = e.target.files[0];
-        if (!file) return;
+        const selectedFiles = Array.from(e.target.files);
+        if (selectedFiles.length === 0) return;
 
+        if (field === 'degreeUrls') {
+            toast.info(`Đang tải ${selectedFiles.length} file bằng cấp...`);
+            
+            const uploadPromises = selectedFiles.map(async (file) => {
+                const formData = new FormData();
+                formData.append('file', file);
+                
+                let endpoint = '/api/upload/image';
+                if (file.type === 'application/pdf') {
+                    endpoint = '/api/upload/document';
+                }
+
+                try {
+                    const res = await axios.post(`http://localhost:8080${endpoint}`, formData, {
+                        headers: { 'Content-Type': 'multipart/form-data' }
+                    });
+                    return { name: file.name, url: res.data.url, type: file.type };
+                } catch (err) {
+                    toast.error(`Lỗi khi tải file: ${file.name}`);
+                    return null;
+                }
+            });
+
+            const results = (await Promise.all(uploadPromises)).filter(r => r !== null);
+            
+            if (results.length > 0) {
+                const currentUrls = watch('degreeUrls') ? watch('degreeUrls').split(',').filter(u => u) : [];
+                const newUrls = results.map(r => r.url);
+                const updatedUrls = [...currentUrls, ...newUrls];
+                
+                setValue('degreeUrls', updatedUrls.join(','));
+                setFiles(prev => ({
+                    ...prev,
+                    degreeUrls: [...prev.degreeUrls, ...results]
+                }));
+                toast.success(`Đã tải thành công ${results.length} file`);
+            }
+            e.target.value = null; // Reset input
+            return;
+        }
+
+        // Existing single file logic for others
+        const file = selectedFiles[0];
         // Custom validation for CV PDF
         if (field === 'cvUrl' && file.type !== 'application/pdf') {
             toast.error("CV/Resume phải là file định dạng PDF");
@@ -41,7 +84,7 @@ const ApplyInstructor = () => {
         formData.append('file', file);
 
         let endpoint = '/api/upload/image';
-        if (field === 'cvUrl' || (field === 'degreeUrls' && file.type === 'application/pdf')) {
+        if (field === 'cvUrl') {
             endpoint = '/api/upload/document';
         }
 
@@ -58,6 +101,15 @@ const ApplyInstructor = () => {
         }
     };
 
+    const removeDegreeFile = (index) => {
+        const currentFiles = [...files.degreeUrls];
+        currentFiles.splice(index, 1);
+        
+        const updatedUrls = currentFiles.map(f => f.url).join(',');
+        setValue('degreeUrls', updatedUrls);
+        setFiles(prev => ({...prev, degreeUrls: currentFiles}));
+    };
+
     const onSubmit = async (data) => {
         if (!agreedTerms) {
             toast.error("Vui lòng đồng ý với các điều khoản!");
@@ -65,8 +117,8 @@ const ApplyInstructor = () => {
         }
 
         // Validate files not empty (if required)
-        if (!data.idCardFront || !data.idCardBack || !data.cvUrl) {
-            toast.error("Vui lòng tải lên đầy đủ CCCD 2 mặt và CV/Resume");
+        if (!data.idCardFront || !data.idCardBack || !data.cvUrl || !data.degreeUrls) {
+            toast.error("Vui lòng tải lên đầy đủ CCCD 2 mặt, CV/Resume và các bằng cấp liên quan");
             return;
         }
 
@@ -156,10 +208,50 @@ const ApplyInstructor = () => {
                                     {files.cvUrl && <p className="text-green-600 text-sm">Đã chọn: {files.cvUrl.name}</p>}
                                 </div>
 
-                                <div className="space-y-2">
-                                    <Label>Ảnh bằng cấp, tín chỉ (Chấp nhận Ảnh hoặc PDF)</Label>
-                                    <Input type="file" accept="image/*,application/pdf" onChange={(e) => handleFileChange(e, 'degreeUrls')} />
-                                    {files.degreeUrls && <p className="text-green-600 text-sm">Đã chọn: {files.degreeUrls.name}</p>}
+                                <div className="space-y-3">
+                                    <Label>Ảnh bằng cấp, tín chỉ (Chấp nhận Ảnh hoặc PDF) <span className="text-red-500">*</span></Label>
+                                    <div className="flex items-center justify-center w-full">
+                                        <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer bg-slate-50 hover:bg-slate-100 transition-colors">
+                                            <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                                <UploadCloud className="w-8 h-8 mb-3 text-slate-400" />
+                                                <p className="mb-2 text-sm text-slate-500 font-semibold text-center px-4">Nhấp để tải lên hoặc kéo thả nhiều file</p>
+                                                <p className="text-xs text-slate-400 text-center px-4">PNG, JPG, PDF (Tối đa 10MB/file)</p>
+                                            </div>
+                                            <input 
+                                                type="file" 
+                                                className="hidden" 
+                                                multiple 
+                                                accept="image/*,application/pdf" 
+                                                onChange={(e) => handleFileChange(e, 'degreeUrls')} 
+                                            />
+                                        </label>
+                                    </div>
+                                    
+                                    {files.degreeUrls.length > 0 && (
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+                                            {files.degreeUrls.map((file, index) => (
+                                                <div key={index} className="flex items-center justify-between p-3 bg-white border rounded-md shadow-sm">
+                                                    <div className="flex items-center space-x-3 overflow-hidden">
+                                                        {file.type === 'application/pdf' ? (
+                                                            <FileText className="w-5 h-5 text-red-500 flex-shrink-0" />
+                                                        ) : (
+                                                            <ImageIcon className="w-5 h-5 text-blue-500 flex-shrink-0" />
+                                                        )}
+                                                        <span className="text-sm font-medium truncate max-w-[150px]" title={file.name}>
+                                                            {file.name}
+                                                        </span>
+                                                    </div>
+                                                    <button 
+                                                        type="button"
+                                                        onClick={() => removeDegreeFile(index)}
+                                                        className="text-slate-400 hover:text-red-500 transition-colors"
+                                                    >
+                                                        <X className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 

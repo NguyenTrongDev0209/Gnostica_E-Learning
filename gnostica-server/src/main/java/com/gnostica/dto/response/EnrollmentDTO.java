@@ -23,4 +23,6 @@ public class EnrollmentDTO {
     private LocalDateTime joinedAt; 
     private String lastWatchedLessonSlug;
     private String firstLessonId;
+    private Integer totalLessons;
+    private Integer completedLessons;
 }

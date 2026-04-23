@@ -6,13 +6,16 @@ import com.gnostica.model.Role;
 import com.gnostica.payload.request.InstructorApplicationRequest;
 import com.gnostica.payload.request.RejectApplicationRequest;
 import com.gnostica.payload.response.InstructorApplicationResponse;
+import com.gnostica.model.Instructor;
 import com.gnostica.repository.AccountRepository;
 import com.gnostica.repository.InstructorApplicationRepository;
+import com.gnostica.repository.InstructorRepository;
 import com.gnostica.repository.RoleRepository;
 import com.gnostica.service.InstructorApplicationService;
 import com.gnostica.service.MailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -24,6 +27,7 @@ public class InstructorApplicationServiceImpl implements InstructorApplicationSe
 
     private final InstructorApplicationRepository applicationRepository;
     private final AccountRepository accountRepository;
+    private final InstructorRepository instructorRepository;
     private final RoleRepository roleRepository;
     private final MailService mailService;
 
@@ -87,6 +91,21 @@ public class InstructorApplicationServiceImpl implements InstructorApplicationSe
                 .orElseThrow(() -> new RuntimeException("Role INSTRUCTOR not found"));
         account.setRole(role);
         accountRepository.save(account);
+
+        // Create or Update Instructor record
+        Instructor instructor = instructorRepository.findByAccountId(account.getId())
+                .orElse(new Instructor());
+        
+        instructor.setAccount(account);
+        instructor.setFullName(account.getFullName());
+        instructor.setEmail(account.getEmail());
+        instructor.setPhone(application.getContactPhone());
+        instructor.setStatus(1); // Active
+        instructor.setCreatedAt(LocalDateTime.now());
+        instructor.setTicked(false);
+        // Bio can be default or empty for now, or extracted from somewhere if available
+        
+        instructorRepository.save(instructor);
 
         try {
             mailService.sendEmail(account.getEmail(), "Đơn đăng ký giảng viên được chấp thuận",

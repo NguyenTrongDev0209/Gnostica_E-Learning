@@ -431,6 +431,15 @@ export default function AdminUsers() {
                           <div>
                              <a href={app.cvUrl} target="_blank" rel="noreferrer" className="text-blue-600 underline">CV PDF</a>
                           </div>
+                          {app.degreeUrls && (
+                            <div className="flex flex-wrap gap-x-2 mt-1 italic">
+                              {app.degreeUrls.split(',').filter(u => u).map((url, i) => (
+                                <a key={i} href={url} target="_blank" rel="noreferrer" className="text-emerald-600 underline">
+                                  Bằng cấp {i + 1}
+                                </a>
+                              ))}
+                            </div>
+                          )}
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end items-center gap-2">

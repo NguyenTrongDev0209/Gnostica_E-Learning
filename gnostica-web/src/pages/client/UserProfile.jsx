@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import authService from '@/services/authService';
+import followingService from '@/services/followingService';
 import { toast } from 'sonner';
 
 // ── Mock Data ──────────────────────────────────────────────
@@ -93,6 +94,7 @@ const MOCK_LIKED_POSTS = [
 const UserProfile = () => {
   const { id } = useParams();
   const [following, setFollowing] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [instructorCourses, setInstructorCourses] = useState([]);
   const [loadingCourses, setLoadingCourses] = useState(false);
@@ -100,6 +102,38 @@ const UserProfile = () => {
 
   const currentUser = JSON.parse(localStorage.getItem('user'));
   const isOwnProfile = currentUser && (id === String(currentUser.id) || !id);
+
+  // Check following status
+  useEffect(() => {
+    const checkStatus = async () => {
+        if (currentUser && id && !isOwnProfile) {
+            try {
+                const res = await followingService.checkFollowing(id);
+                setFollowing(res.data.isFollowing);
+            } catch (err) {
+                console.error("Lỗi kiểm tra trạng thái theo dõi", err);
+            }
+        }
+    };
+    checkStatus();
+  }, [id, currentUser, isOwnProfile]);
+
+  const handleToggleFollow = async () => {
+    if (!currentUser) {
+        toast.error("Vui lòng đăng nhập để theo dõi giảng viên!");
+        return;
+    }
+    try {
+        setFollowLoading(true);
+        const res = await followingService.toggleFollow(id);
+        setFollowing(res.data.isFollowing);
+        toast.success(res.data.message);
+    } catch (err) {
+        toast.error("Không thể thực hiện thao tác này!");
+    } finally {
+        setFollowLoading(false);
+    }
+  };
 
   const [userData, setUserData] = useState(() => 
     isOwnProfile ? { ...MOCK_USER, ...currentUser, name: currentUser.fullName, role: currentUser.role } : MOCK_USER
@@ -123,7 +157,7 @@ const UserProfile = () => {
                 ...prev,
                 id: data.id,
                 name: data.name,
-                avatar: data.avatar || prev.avatar,
+                avatar: data.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name)}&background=random&color=fff`,
                 email: data.email,
                 role: "INSTRUCTOR",
                 stats: {
@@ -213,15 +247,22 @@ const UserProfile = () => {
 
                     {/* Actions */}
                     <div className="flex items-center gap-2 shrink-0">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className={`gap-1.5 h-9 font-semibold transition-all ${following ? 'border-primary text-primary bg-primary/5' : ''}`}
-                        onClick={() => setFollowing(!following)}
-                      >
-                        <UserPlus className="w-4 h-4" />
-                        {following ? 'Đang theo dõi' : 'Theo dõi'}
-                      </Button>
+                      {!isOwnProfile && (
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={followLoading}
+                            className={`gap-1.5 h-9 font-semibold transition-all ${following ? 'border-primary text-primary bg-primary/5' : ''}`}
+                            onClick={handleToggleFollow}
+                        >
+                            {followLoading ? (
+                                <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                            ) : (
+                                <UserPlus className="w-4 h-4" />
+                            )}
+                            {following ? 'Đang theo dõi' : 'Theo dõi'}
+                        </Button>
+                      )}
                       <Button variant="outline" size="sm" className="gap-1.5 h-9">
                         <Send className="w-4 h-4" /> Nhắn tin
                       </Button>

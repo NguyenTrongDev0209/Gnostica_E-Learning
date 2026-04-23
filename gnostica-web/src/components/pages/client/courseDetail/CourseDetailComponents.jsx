@@ -1,5 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import wishlistService from "@/services/wishlistService";
+import { toast } from "sonner";
 import { Star, Users, Calendar, Globe, PlayCircle, CheckCircle2, Heart, Clock, FileText, Infinity as InfinityIcon, Smartphone, Trophy, Gift } from "lucide-react";
 import {
   Accordion,
@@ -330,9 +332,12 @@ export const CourseDetailInstructor = ({ instructor }) => {
 /**
  * Sticky pricing card for Course Detail.
  */
-export const CourseDetailPricingCard = ({ course }) => {
+export const CourseDetailPricingCard = ({ course: initialCourse }) => {
   const navigate = useNavigate();
-  const totalLessons = course.curriculum?.reduce((acc, section) => acc + (section.lessons?.length || 0), 0) || 0;
+  const [isFavourite, setIsFavourite] = React.useState(initialCourse?.isFavourite || false);
+  const [isToggling, setIsToggling] = React.useState(false);
+  
+  const totalLessons = initialCourse?.curriculum?.reduce((acc, section) => acc + (section.lessons?.length || 0), 0) || 0;
 
   const handleCheckout = () => {
     // Chuyển đổi giá từ chuỗi có dấu phẩy sang số nguyên
@@ -342,17 +347,37 @@ export const CourseDetailPricingCard = ({ course }) => {
     };
 
     const orderItem = {
-      id: course.id,
-      title: course.title,
-      instructor: course.instructor?.name || 'Ẩn danh',
-      price: parsePrice(course.salePrice),
-      originalPrice: parsePrice(course.originalPrice) || parsePrice(course.price),
-      image: course.image,
-      rating: course.rating,
-      slug: course.slug,
+      id: initialCourse.id,
+      title: initialCourse.title,
+      instructor: initialCourse.instructor?.name || 'Ẩn danh',
+      price: parsePrice(initialCourse.salePrice),
+      originalPrice: parsePrice(initialCourse.originalPrice) || parsePrice(initialCourse.price),
+      image: initialCourse.image,
+      rating: initialCourse.rating,
+      slug: initialCourse.slug,
     };
 
     navigate('/checkout', { state: { orderItems: [orderItem] } });
+  };
+
+  const handleToggleWishlist = async () => {
+    if (isToggling) return;
+    try {
+      setIsToggling(true);
+      const res = await wishlistService.toggleWishlist(initialCourse.id);
+      if (res.success) {
+        setIsFavourite(res.data.isFavourite);
+        if (res.data.isFavourite) {
+          toast.success("Đã thêm vào danh sách yêu thích");
+        } else {
+          toast.info("Đã xóa khỏi danh sách yêu thích");
+        }
+      }
+    } catch (error) {
+      toast.error("Vui lòng đăng nhập để thực hiện chức năng này");
+    } finally {
+      setIsToggling(false);
+    }
   };
 
   return (
@@ -363,20 +388,28 @@ export const CourseDetailPricingCard = ({ course }) => {
             variant="destructive"
             className="bg-red-100 text-red-600 hover:bg-red-100 border-none font-bold px-3 py-1"
           >
-            Giảm giá {course.discount}%
+            Giảm giá {initialCourse.discount}%
           </Badge>
-          <button className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors">
-            <Heart className="w-5 h-5" />
+          <button 
+            onClick={handleToggleWishlist}
+            disabled={isToggling}
+            className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
+              isFavourite 
+                ? "bg-red-50 text-red-500 shadow-sm" 
+                : "bg-slate-50 text-slate-400 hover:text-red-500 hover:bg-red-50"
+            }`}
+          >
+            <Heart className={`w-5 h-5 ${isFavourite ? "fill-red-500" : ""}`} />
           </button>
         </div>
 
         <div className="flex items-end gap-3 mb-8 mt-4">
           <span className="text-[40px] leading-none font-black text-slate-900 tracking-tight">
-            {new Intl.NumberFormat("vi-VN").format(course.salePrice)}đ
+            {new Intl.NumberFormat("vi-VN").format(initialCourse.salePrice)}đ
           </span>
-          {course.discount > 0 && (
+          {initialCourse.discount > 0 && (
             <span className="text-lg text-slate-400 line-through font-semibold mb-1">
-              {new Intl.NumberFormat("vi-VN").format(course.price)}đ
+              {new Intl.NumberFormat("vi-VN").format(initialCourse.price)}đ
             </span>
           )}
         </div>
@@ -386,9 +419,9 @@ export const CourseDetailPricingCard = ({ course }) => {
             size="lg"
             className="flex-1 py-7 text-lg font-bold rounded-2xl"
             onClick={handleCheckout}
-            disabled={course.isEnrolled}
+            disabled={initialCourse.isEnrolled}
           >
-            {course.isEnrolled ? "Đã đăng ký" : "Đăng ký học ngay"}
+            {initialCourse.isEnrolled ? "Đã đăng ký" : "Đăng ký học ngay"}
           </SimpleButton>
           <button
             className="flex-none p-4 rounded-2xl border-2 border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-primary hover:border-primary transition-all flex items-center justify-center cursor-pointer"

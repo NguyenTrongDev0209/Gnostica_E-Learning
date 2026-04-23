@@ -60,6 +60,41 @@ public class EnrollmentService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public com.gnostica.dto.response.StudentStatsResponse getStudentStats(String email) {
+        Account account = accountRepository.findByEmail(email.toLowerCase().trim())
+                .orElseGet(() -> accountRepository.findByEmail(email).orElse(null));
+
+        if (account == null) {
+            throw new RuntimeException("Tài khoản không tồn tại");
+        }
+
+        List<Enrollment> enrollments = enrollmentRepository.findByAccount(account);
+        
+        long enrolledCourses = enrollments.stream()
+                .filter(e -> e.getStatus() == null || Objects.equals(e.getStatus(), 1))
+                .count();
+                
+        long completedCourses = enrollments.stream()
+                .filter(e -> e.getStatus() == null || Objects.equals(e.getStatus(), 1))
+                .filter(e -> e.getProgressPercent() != null && e.getProgressPercent() == 100)
+                .count();
+
+        // Tính số giờ đã học dựa trên số bài học đã hoàn thành
+        // Tạm thời giả định mỗi bài học trung bình 0.5 giờ (30 phút)
+        long completedLessons = lessonProgressRepository.findByAccount(account).stream()
+                .filter(LessonProgress::getIsCompleted)
+                .count();
+        
+        double hoursStudied = completedLessons * 0.5;
+
+        return com.gnostica.dto.response.StudentStatsResponse.builder()
+                .enrolledCourses(enrolledCourses)
+                .completedCourses(completedCourses)
+                .hoursStudied(hoursStudied)
+                .build();
+    }
+
     private EnrollmentDTO convertToDTO(Enrollment enrollment, List<LessonProgress> courseProgress) {
         Course course = enrollment.getCourse();
         if (course == null) return null;
@@ -88,6 +123,15 @@ public class EnrollmentService {
                 .findFirst()
                 .orElse(null);
 
+        int totalLessons = (int) course.getModules().stream()
+                .flatMap(m -> m.getLessons().stream())
+                .filter(l -> l.getStatus() != null && (l.getStatus() == 1 || l.getStatus() == 2))
+                .count();
+
+        int completedLessons = (int) courseProgress.stream()
+                .filter(LessonProgress::getIsCompleted)
+                .count();
+
         return EnrollmentDTO.builder()
                 .id(enrollment.getId())
                 .courseId(course.getId())
@@ -100,6 +144,8 @@ public class EnrollmentService {
                 .joinedAt(enrollment.getCreatedAt())
                 .lastWatchedLessonSlug(lastLessonIdStr) 
                 .firstLessonId(firstLessonIdStr)
+                .totalLessons(totalLessons)
+                .completedLessons(completedLessons)
                 .build();
     }
 

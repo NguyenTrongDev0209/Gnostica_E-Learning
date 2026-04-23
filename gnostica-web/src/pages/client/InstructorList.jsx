@@ -20,9 +20,9 @@ const InstructorList = () => {
         window.scrollTo(0, 0);
         const fetchInstructors = async () => {
             try {
-                const response = await authService.getAccountsByRole('INSTRUCTOR');
-                if (response && Array.isArray(response.data)) {
-                    setInstructors(response.data);
+                const response = await fetch('http://localhost:8080/api/instructors/list').then(res => res.json());
+                if (response) {
+                    setInstructors(response);
                 }
             } catch (error) {
                 console.error("Lỗi khi tải danh sách giảng viên", error);
@@ -94,27 +94,26 @@ const InstructorList = () => {
                     ) : instructors.length > 0 ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                             {instructors.map((instructor, idx) => {
-                                // Default details since basic auth list doesn't have courses/students stats
-                                const avatar = instructor.avatar || fallbackAvatars[idx % fallbackAvatars.length];
-                                
-                                return (
-                                    <div 
-                                        key={instructor.id}
-                                        className="group relative bg-white border border-slate-200 rounded-[28px] overflow-hidden hover:shadow-2xl hover:shadow-primary/5 transition-all duration-500 flex flex-col hover:-translate-y-2 animate-in fade-in slide-in-from-bottom-8"
-                                        style={{ animationFillMode: 'both', animationDelay: `${idx * 100}ms` }}
-                                    >
-                                        <div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-br from-slate-100 to-slate-200/50 -z-10 group-hover:from-primary/10 group-hover:to-orange-50 transition-colors duration-500"></div>
-                                        
-                                        <div className="flex justify-center pt-10 pb-6 relative">
-                                            <div className="relative">
-                                                <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-lg relative z-10 group-hover:scale-105 transition-transform duration-500">
-                                                    <img 
-                                                        src={avatar} 
-                                                        alt={instructor.fullName} 
-                                                        className="w-full h-full object-cover"
-                                                        onError={(e) => { e.target.src = fallbackAvatars[idx % 5] }}
-                                                    />
-                                                </div>
+                const avatar = instructor.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(instructor.fullName)}&background=random&color=fff`;
+                
+                return (
+                    <div 
+                        key={instructor.id}
+                        className="group relative bg-white border border-slate-200 rounded-[28px] overflow-hidden hover:shadow-2xl hover:shadow-primary/5 transition-all duration-500 flex flex-col hover:-translate-y-2 animate-in fade-in slide-in-from-bottom-8"
+                        style={{ animationFillMode: 'both', animationDelay: `${idx * 100}ms` }}
+                    >
+                        <div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-br from-slate-100 to-slate-200/50 -z-10 group-hover:from-primary/10 group-hover:to-orange-50 transition-colors duration-500"></div>
+                        
+                        <div className="flex justify-center pt-10 pb-6 relative">
+                            <div className="relative">
+                                <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-lg relative z-10 group-hover:scale-105 transition-transform duration-500 flex items-center justify-center bg-slate-50">
+                                    <img 
+                                        src={avatar} 
+                                        alt={instructor.fullName} 
+                                        className="w-full h-full object-cover"
+                                        onError={(e) => { e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(instructor.fullName)}&background=random&color=fff` }}
+                                    />
+                                </div>
                                                 <div className="absolute bottom-0 right-0 w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center border-2 border-white z-20 shadow-md">
                                                     <Award className="w-4 h-4" />
                                                 </div>
@@ -130,16 +129,19 @@ const InstructorList = () => {
                                             </p>
 
                                             <div className="mt-auto pt-6 border-t border-slate-100 flex items-center justify-center gap-6 mb-6">
-                                                <div className="flex flex-col items-center gap-1">
-                                                    <BookOpen className="w-5 h-5 text-slate-400 group-hover:text-primary transition-colors" />
+                                                <div className="flex flex-col items-center gap-1 group/stat">
+                                                    <BookOpen className="w-5 h-5 text-slate-400 group-hover/stat:text-primary transition-colors" />
+                                                    <span className="text-[11px] font-bold text-slate-500">{instructor.coursesCount}</span>
                                                 </div>
                                                 <div className="w-[1px] h-8 bg-slate-200"></div>
-                                                <div className="flex flex-col items-center gap-1">
-                                                    <Users className="w-5 h-5 text-slate-400 group-hover:text-primary transition-colors" />
+                                                <div className="flex flex-col items-center gap-1 group/stat">
+                                                    <Users className="w-5 h-5 text-slate-400 group-hover/stat:text-primary transition-colors" />
+                                                    <span className="text-[11px] font-bold text-slate-500">{instructor.studentsCount}+</span>
                                                 </div>
                                                 <div className="w-[1px] h-8 bg-slate-200"></div>
-                                                <div className="flex flex-col items-center gap-1">
-                                                    <Star className="w-5 h-5 text-slate-400 group-hover:text-primary transition-colors" />
+                                                <div className="flex flex-col items-center gap-1 group/stat">
+                                                    <Star className="w-5 h-5 text-slate-400 group-hover/stat:text-primary transition-colors" />
+                                                    <span className="text-[11px] font-bold text-slate-500">{instructor.rating}</span>
                                                 </div>
                                             </div>
 

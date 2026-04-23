@@ -7,9 +7,11 @@ import com.gnostica.dto.request.LoginRequest;
 import com.gnostica.dto.response.LoginResponse;
 import com.gnostica.dto.request.RegisterRequest;
 import com.gnostica.model.Account;
+import com.gnostica.model.Instructor;
 import com.gnostica.model.Role;
 import com.gnostica.model.Password;
 import com.gnostica.repository.AccountRepository;
+import com.gnostica.repository.InstructorRepository;
 import com.gnostica.repository.RoleRepository;
 import com.gnostica.repository.PasswordRepository;
 import com.gnostica.security.JwtProvider;
@@ -34,6 +36,7 @@ import java.security.SecureRandom;
 public class AuthServiceImpl implements AuthService {
 
     private final AccountRepository accountRepository;
+    private final InstructorRepository instructorRepository;
     private final RoleRepository roleRepository;
     private final PasswordRepository passwordRepository;
     private final PasswordEncoder passwordEncoder;
@@ -114,6 +117,7 @@ public class AuthServiceImpl implements AuthService {
                 .fullName(account.getFullName())
                 .role(account.getRole().getName())
                 .avatar(account.getAvatar())
+                .provider(account.getProvider())
                 .build();
     }
 
@@ -232,6 +236,17 @@ public class AuthServiceImpl implements AuthService {
 
         account.setRole(instructorRole);
         accountRepository.save(account);
+
+        // Đảm bảo có bản ghi trong bảng instructors
+        Instructor instructor = instructorRepository.findByAccountId(account.getId())
+                .orElse(new Instructor());
+        
+        instructor.setAccount(account);
+        instructor.setFullName(account.getFullName());
+        instructor.setEmail(account.getEmail());
+        instructor.setStatus(1);
+        instructor.setCreatedAt(LocalDateTime.now());
+        instructorRepository.save(instructor);
     }
 
     @Override
@@ -263,6 +278,14 @@ public class AuthServiceImpl implements AuthService {
                 .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại."));
         account.setLocked(false);
         account.setLockReason(null);
+        accountRepository.save(account);
+    }
+
+    @Override
+    public void updateAvatar(String email, String avatarUrl) {
+        Account account = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại."));
+        account.setAvatar(avatarUrl);
         accountRepository.save(account);
     }
 }

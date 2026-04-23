@@ -9,12 +9,12 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class LoginResponse {
-    private String token;
-    private String type = "Bearer";
-    private String email;
+public class InstructorStatsResponse {
+    private Integer id;
     private String fullName;
-    private String role;
+    private String email;
     private String avatar;
-    private String provider;
+    private long coursesCount;
+    private long studentsCount;
+    private double rating;
 }

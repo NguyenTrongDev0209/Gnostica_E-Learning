@@ -4,6 +4,7 @@ import { Home, Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { AppBreadcrumb } from "@/components/common/AppSection";
 import courseService from "@/services/courseService";
+import wishlistService from "@/services/wishlistService";
 import axios from "axios";
 import { 
   CourseDetailHeader, 
@@ -34,6 +35,7 @@ export default function CourseDetail() {
           title: data.title,
           promoVideo: data.promoVideo,
           image: data.thumbnail,
+          thumbnail: data.thumbnail, // Added thumbnail for consistency
           description: data.description ? data.description.replace(/&nbsp;/g, ' ') : "Chưa có mô tả chi tiết.",
           price: data.price || 0,
           salePrice: data.salePrice || data.price || 0,
@@ -43,6 +45,7 @@ export default function CourseDetail() {
           rating: 5.0,
           reviews: 0,
           isEnrolled: data.isEnrolled || false,
+          isFavourite: false, // Default
           students: data.students || 0,
           lastUpdated: "Mới đây",
           language: "Tiếng Việt",
@@ -71,6 +74,16 @@ export default function CourseDetail() {
             status: "online"
           }
         };
+
+        // Check if favorite
+        try {
+          const wishRes = await wishlistService.checkWishlist(data.id);
+          if (wishRes.success) {
+            formattedCourse.isFavourite = wishRes.data.isFavourite;
+          }
+        } catch (e) {
+          console.warn("Could not check wishlist status");
+        }
 
         setCourse(formattedCourse);
 

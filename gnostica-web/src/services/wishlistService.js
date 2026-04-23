@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:8080/api/enrollments";
+const API_URL = "http://localhost:8080/api/favourites";
 
 const getAuthHeaders = () => {
   const userStr = localStorage.getItem("user");
@@ -17,27 +17,27 @@ const getAuthHeaders = () => {
   return {};
 };
 
-const enrollmentService = {
-  getMyCourses: async () => {
-    const response = await axios.get(`${API_URL}/my-courses`, {
+const wishlistService = {
+  getMyWishlist: async () => {
+    const response = await axios.get(API_URL, {
       headers: getAuthHeaders(),
     });
     return response.data;
   },
 
-  checkEnrollment: async (courseSlug) => {
-    const response = await axios.get(`${API_URL}/check/${courseSlug}`, {
+  toggleWishlist: async (courseId) => {
+    const response = await axios.post(`${API_URL}/toggle/${courseId}`, {}, {
       headers: getAuthHeaders(),
     });
     return response.data;
   },
 
-  getMyStats: async () => {
-    const response = await axios.get(`${API_URL}/stats`, {
+  checkWishlist: async (courseId) => {
+    const response = await axios.get(`${API_URL}/check/${courseId}`, {
       headers: getAuthHeaders(),
     });
     return response.data;
   },
 };
 
-export default enrollmentService;
+export default wishlistService;

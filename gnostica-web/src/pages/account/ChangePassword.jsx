@@ -11,10 +11,14 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { Home, KeyRound, ShieldCheck, Eye, EyeOff, CheckCircle2 } from "lucide-react";
+import { Home, KeyRound, ShieldCheck, Eye, EyeOff, CheckCircle2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import authService from "@/services/authService";
 
 export default function ChangePassword() {
+  const user = authService.getCurrentUser();
+  const isGoogleUser = user?.provider === "GOOGLE";
+
   const [formData, setFormData] = useState({
     currentPassword: "",
     newPassword: "",
@@ -113,9 +117,39 @@ export default function ChangePassword() {
           Đổi mật khẩu
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Bảo vệ tài khoản của bạn bằng cách sử dụng mật khẩu mạnh, bao gồm chữ hoa, số và ký tự đặc biệt.
+          {isGoogleUser 
+            ? "Tài khoản của bạn được liên kết với Google. Bạn không thể đổi mật khẩu trực tiếp tại đây."
+            : "Bảo vệ tài khoản của bạn bằng cách sử dụng mật khẩu mạnh, bao gồm chữ hoa, số và ký tự đặc biệt."
+          }
         </p>
       </div>
+
+      {isGoogleUser ? (
+        <Card className="border-none shadow-sm bg-blue-50/50">
+          <CardContent className="p-10 text-center space-y-4">
+            <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mx-auto text-blue-600">
+              <AlertCircle className="w-8 h-8" />
+            </div>
+            <div className="max-w-md mx-auto">
+              <h3 className="text-lg font-bold text-slate-900">Tính năng này không khả dụng</h3>
+              <p className="text-sm text-slate-500 mt-2">
+                Vì bạn đăng nhập bằng tài khoản **Google**, việc quản lý mật khẩu sẽ được thực hiện thông qua cài đặt bảo mật của Google.
+              </p>
+              <div className="pt-6">
+                <a 
+                  href="https://myaccount.google.com/signinoptions/password" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold text-sm shadow-sm hover:bg-slate-50 transition-colors gap-2"
+                >
+                  <img src="https://www.gstatic.com/images/branding/product/1x/googleg_48dp.png" className="w-4 h-4" alt="Google" />
+                  Quản lý mật khẩu Google
+                </a>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-7">
@@ -286,6 +320,7 @@ export default function ChangePassword() {
           </Card>
         </div>
       </div>
-    </div>
-  );
+    )}
+  </div>
+);
 }

@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -11,15 +11,6 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import {
   Home,
@@ -32,63 +23,83 @@ import {
 } from "lucide-react";
 import { SimpleButton } from "@/components/common/AppButton";
 import authService from "@/services/authService";
-
-const STATS = [
-  { label: "Khóa học đang học", value: "4", icon: BookOpen, color: "text-blue-500 bg-blue-50" },
-  { label: "Chứng chỉ đạt được", value: "2", icon: Award, color: "text-emerald-500 bg-emerald-50" },
-  { label: "Số giờ đã học", value: "32", icon: Clock, color: "text-purple-500 bg-purple-50" },
-];
-
-const RECENT_COURSES = [
-  {
-    id: 1,
-    title: "Lập trình Web Frontend Bootcamp 2026",
-    instructor: "ThS. Nguyên Trần",
-    progress: 68,
-    lastAccessed: "2 giờ trước",
-    image: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=200&auto=format&fit=crop",
-  },
-  {
-    id: 2,
-    title: "Mastering React 18 & Next.js 14",
-    instructor: "Phạm Hồng Việt",
-    progress: 32,
-    lastAccessed: "Hôm qua",
-    image: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=200&auto=format&fit=crop",
-  },
-  {
-    id: 3,
-    title: "Thiết kế UI/UX Thực chiến với Figma",
-    instructor: "Lê Minh Tâm",
-    progress: 100,
-    lastAccessed: "Tuần trước",
-    image: "https://images.unsplash.com/photo-1586717791821-3f44a563fc4c?q=80&w=200&auto=format&fit=crop",
-  },
-];
-
-const RECENT_CERTIFICATES = [
-  {
-    id: 1,
-    title: "Thiết kế UI/UX Thực chiến",
-    date: "15/03/2026",
-    color: "from-orange-500 to-amber-500",
-  },
-  {
-    id: 2,
-    title: "JavaScript Cơ bản",
-    date: "10/01/2026",
-    color: "from-blue-500 to-cyan-500",
-  },
-];
+import enrollmentService from "@/services/enrollmentService";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function AccountOverview() {
   const user = authService.getCurrentUser();
   const navigate = useNavigate();
   const isInstructor = (user?.role || '').toUpperCase() === 'INSTRUCTOR';
 
+  const [stats, setStats] = useState(null);
+  const [recentCourses, setRecentCourses] = useState([]);
+  const [recentCertificates, setRecentCertificates] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const [statsRes, coursesRes] = await Promise.all([
+          enrollmentService.getMyStats(),
+          enrollmentService.getMyCourses()
+        ]);
+
+        if (statsRes.success) {
+          setStats(statsRes.data);
+        }
+
+        if (coursesRes.success) {
+          const courses = coursesRes.data;
+          setRecentCourses(courses.slice(0, 3));
+          
+          const certificates = courses
+            .filter(c => c.progressPercent === 100)
+            .map(c => ({
+              id: c.id,
+              title: c.courseTitle,
+              date: c.completedAt ? new Date(c.completedAt).toLocaleDateString('vi-VN') : "N/A",
+              color: "from-blue-500 to-cyan-500", 
+            }))
+            .slice(0, 2);
+          
+          setRecentCertificates(certificates);
+        }
+      } catch (error) {
+        console.error("Error fetching account data:", error);
+        toast.error("Không thể tải thông tin tài khoản");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   const handleBecomeInstructor = () => {
     navigate('/apply-instructor');
   };
+
+  const statItems = [
+    { 
+      label: "Khóa học đang học", 
+      value: stats?.enrolledCourses || "0", 
+      icon: BookOpen, 
+      color: "text-blue-500 bg-blue-50" 
+    },
+    { 
+      label: "Chứng chỉ đạt được", 
+      value: stats?.completedCourses || "0", 
+      icon: Award, 
+      color: "text-emerald-500 bg-emerald-50" 
+    },
+    { 
+      label: "Số giờ đã học", 
+      value: stats?.hoursStudied?.toFixed(1) || "0", 
+      icon: Clock, 
+      color: "text-purple-500 bg-purple-50" 
+    },
+  ];
 
   return (
     <div>
@@ -127,7 +138,7 @@ export default function AccountOverview() {
             Chào mừng trở lại, {user?.fullName || "Học viên"}! 👋
           </h2>
           <p className="text-slate-200 text-sm leading-relaxed max-w-xl">
-            Bạn đã học liên tục 5 ngày tuần này. Tiếp tục phát huy nhé! Khóa học "Lập trình Web Frontend Bootcamp 2026" đang chờ bạn hoàn thành.
+            Tiếp tục hành trình chinh phục kiến thức mới hôm nay nhé. Mỗi phút học tập đều đưa bạn đến gần hơn với mục tiêu!
           </p>
         </CardContent>
       </Card>
@@ -154,22 +165,36 @@ export default function AccountOverview() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        {STATS.map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <Card key={stat.label} className="border-slate-100 shadow-sm hover:shadow-md transition-shadow">
-              <CardContent className="p-5 flex flex-col md:flex-row items-start md:items-center gap-4">
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${stat.color}`}>
-                  <Icon className="w-6 h-6" />
-                </div>
-                <div>
-                  <p className="text-2xl font-black text-slate-900">{stat.value}</p>
-                  <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mt-0.5">{stat.label}</p>
+        {loading ? (
+          Array(3).fill(0).map((_, i) => (
+            <Card key={i} className="border-slate-100 shadow-sm">
+              <CardContent className="p-5 flex items-center gap-4">
+                <Skeleton className="w-12 h-12 rounded-xl" />
+                <div className="space-y-2">
+                  <Skeleton className="h-6 w-12" />
+                  <Skeleton className="h-3 w-24" />
                 </div>
               </CardContent>
             </Card>
-          );
-        })}
+          ))
+        ) : (
+          statItems.map((stat) => {
+            const Icon = stat.icon;
+            return (
+              <Card key={stat.label} className="border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                <CardContent className="p-5 flex flex-col md:flex-row items-start md:items-center gap-4">
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${stat.color}`}>
+                    <Icon className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-black text-slate-900">{stat.value}</p>
+                    <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mt-0.5">{stat.label}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })
+        )}
       </div>
 
       {/* Main Content Grid */}
@@ -185,41 +210,74 @@ export default function AccountOverview() {
           </div>
 
           <div className="space-y-4">
-            {RECENT_COURSES.map((course) => (
-              <Card key={course.id} className="border-slate-100 shadow-sm hover:shadow-md transition-shadow">
-                <CardContent className="p-4 sm:p-5 flex flex-col sm:flex-row gap-5">
-                  <div className="w-full sm:w-40 h-28 sm:h-24 rounded-xl overflow-hidden shrink-0 border border-slate-100">
-                    <img src={course.image} alt={course.title} className="w-full h-full object-cover" />
-                  </div>
-                  
-                  <div className="flex-1 min-w-0 flex flex-col justify-center">
-                    <div className="flex items-start justify-between gap-4 mb-1">
-                      <h3 className="font-bold text-slate-900 line-clamp-2">{course.title}</h3>
-                      {course.progress === 100 && (
-                        <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-none shrink-0">Hoàn thành</Badge>
-                      )}
-                    </div>
-                    <p className="text-xs text-muted-foreground mb-4">Giảng viên: {course.instructor} • Đã xem {course.lastAccessed}</p>
-                    
-                    <div className="flex items-center gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between text-xs font-bold mb-1.5">
-                          <span className={course.progress === 100 ? "text-emerald-500" : "text-primary"}>
-                            {course.progress}%
-                          </span>
-                        </div>
-                        <Progress value={course.progress} className={`h-2 ${course.progress === 100 ? "[&>div]:bg-emerald-500" : ""}`} />
+            {loading ? (
+              Array(2).fill(0).map((_, i) => (
+                <Card key={i} className="border-slate-100 shadow-sm">
+                  <CardContent className="p-4 sm:p-5 flex flex-col sm:flex-row gap-5">
+                    <Skeleton className="w-full sm:w-40 h-28 sm:h-24 rounded-xl" />
+                    <div className="flex-1 space-y-3">
+                      <Skeleton className="h-6 w-3/4" />
+                      <Skeleton className="h-3 w-1/2" />
+                      <div className="flex items-center gap-4 pt-4">
+                        <Skeleton className="h-2 flex-1" />
+                        <Skeleton className="w-10 h-10 rounded-full" />
                       </div>
-                      <Link to={`/courses/${course.id}`}>
-                        <button className="w-10 h-10 rounded-full flex items-center justify-center bg-slate-100 hover:bg-primary hover:text-white text-slate-600 transition-colors shrink-0">
-                          <PlayCircle className="w-5 h-5" />
-                        </button>
-                      </Link>
                     </div>
+                  </CardContent>
+                </Card>
+              ))
+            ) : recentCourses.length > 0 ? (
+              recentCourses.map((course) => (
+                <Card key={course.id} className="border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                  <CardContent className="p-4 sm:p-5 flex flex-col sm:flex-row gap-5">
+                    <div className="w-full sm:w-40 h-28 sm:h-24 rounded-xl overflow-hidden shrink-0 border border-slate-100">
+                      <img src={course.courseThumbnail} alt={course.courseTitle} className="w-full h-full object-cover" />
+                    </div>
+                    
+                    <div className="flex-1 min-w-0 flex flex-col justify-center">
+                      <div className="flex items-start justify-between gap-4 mb-1">
+                        <h3 className="font-bold text-slate-900 line-clamp-2">{course.courseTitle}</h3>
+                        {course.progressPercent === 100 && (
+                          <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-none shrink-0">Hoàn thành</Badge>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground mb-4">Giảng viên: {course.instructorName} • Đã tham gia {new Date(course.joinedAt).toLocaleDateString('vi-VN')}</p>
+                      
+                      <div className="flex items-center gap-4">
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between text-xs font-bold mb-1.5">
+                            <span className={course.progressPercent === 100 ? "text-emerald-500" : "text-primary"}>
+                              {course.progressPercent}%
+                            </span>
+                          </div>
+                          <Progress value={course.progressPercent} className={`h-2 ${course.progressPercent === 100 ? "[&>div]:bg-emerald-500" : ""}`} />
+                        </div>
+                        <Link to={`/courses/${course.courseSlug}/learn`}>
+                          <button className="w-10 h-10 rounded-full flex items-center justify-center bg-slate-100 hover:bg-primary hover:text-white text-slate-600 transition-colors shrink-0">
+                            <PlayCircle className="w-5 h-5" />
+                          </button>
+                        </Link>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <Card className="border-dashed border-2 bg-slate-50/50 shadow-none">
+                <CardContent className="p-10 text-center space-y-4">
+                  <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
+                    <BookOpen className="w-8 h-8" />
                   </div>
+                  <div>
+                    <p className="font-bold text-slate-900">Bạn chưa đăng ký khóa học nào</p>
+                    <p className="text-sm text-slate-500 mt-1">Hãy khám phá các khóa học hấp dẫn trên Gnostica</p>
+                  </div>
+                  <Link to="/courses">
+                    <SimpleButton variant="outline" className="mt-2 font-bold">Khám phá ngay</SimpleButton>
+                  </Link>
                 </CardContent>
               </Card>
-            ))}
+            )}
           </div>
         </div>
 
@@ -233,33 +291,39 @@ export default function AccountOverview() {
           </div>
 
           <div className="space-y-4">
-            {RECENT_CERTIFICATES.map((cert) => (
-              <div 
-                key={cert.id} 
-                className={`p-5 rounded-2xl bg-gradient-to-br ${cert.color} text-white shadow-lg relative overflow-hidden group cursor-pointer hover:scale-[1.02] transition-transform`}
-              >
-                <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white/10 rounded-full blur-2xl group-hover:bg-white/20 transition-colors"></div>
-                <Award className="w-8 h-8 text-white/80 mb-3" />
-                <h3 className="font-bold text-lg leading-tight mb-4">{cert.title}</h3>
-                <div className="flex items-center justify-between mt-auto">
-                  <span className="text-xs font-medium text-white/80">Cấp ngày: {cert.date}</span>
-                  <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
-                    <ChevronRight className="w-4 h-4" />
+            {loading ? (
+              Array(2).fill(0).map((_, i) => (
+                <Skeleton key={i} className="h-32 w-full rounded-2xl" />
+              ))
+            ) : recentCertificates.length > 0 ? (
+              recentCertificates.map((cert) => (
+                <div 
+                  key={cert.id} 
+                  className={`p-5 rounded-2xl bg-gradient-to-br ${cert.color} text-white shadow-lg relative overflow-hidden group cursor-pointer hover:scale-[1.02] transition-transform`}
+                >
+                  <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white/10 rounded-full blur-2xl group-hover:bg-white/20 transition-colors"></div>
+                  <Award className="w-8 h-8 text-white/80 mb-3" />
+                  <h3 className="font-bold text-lg leading-tight mb-4">{cert.title}</h3>
+                  <div className="flex items-center justify-between mt-auto">
+                    <span className="text-xs font-medium text-white/80">Cấp ngày: {cert.date}</span>
+                    <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
+                      <ChevronRight className="w-4 h-4" />
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-
-            <Card className="border-dashed border-2 bg-transparent shadow-none border-slate-200">
-              <CardContent className="p-6 text-center space-y-3">
-                <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
-                  <Trophy className="w-6 h-6" />
-                </div>
-                <p className="text-sm font-medium text-slate-500">
-                  Hoàn thành thêm khóa học để nhận chứng chỉ
-                </p>
-              </CardContent>
-            </Card>
+              ))
+            ) : (
+              <Card className="border-dashed border-2 bg-transparent shadow-none border-slate-200">
+                <CardContent className="p-6 text-center space-y-3">
+                  <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
+                    <Trophy className="w-6 h-6" />
+                  </div>
+                  <p className="text-sm font-medium text-slate-500">
+                    Hoàn thành thêm khóa học để nhận chứng chỉ
+                  </p>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
         

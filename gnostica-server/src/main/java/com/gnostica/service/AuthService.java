@@ -20,5 +20,6 @@ public interface AuthService {
     java.util.List<Account> getAccountsByRole(String roleName);
     void lockAccount(Integer id, String reason);
     void unlockAccount(Integer id);
+    void updateAvatar(String email, String avatarUrl);
 }
 
