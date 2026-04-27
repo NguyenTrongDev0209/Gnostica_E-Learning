@@ -43,20 +43,17 @@ public class CourseService {
         course.setSlug(request.getSlug());
         course.setDescription(request.getDescription());
         course.setThumbnail(request.getThumbnail());
-        
+
         // Default values for numbers if null
         course.setPrice(request.getPrice() != null ? request.getPrice() : 0.0);
         course.setDiscount(request.getDiscount() != null ? request.getDiscount() : 0);
-        
-        // Tính toán giá sau giảm
-        course.setFinalPrice(course.getPrice() * (1 - course.getDiscount() / 100.0));
-        
+
         course.setLevel(request.getLevel() != null ? request.getLevel() : "Beginner");
         course.setPromoVideo(request.getPromoVideo());
-        
+
         course.setCategory(category);
         course.setAccount(account);
-        
+
         // Rule 3: Kiểm tra trạng thái danh mục trước khi cho phép Hiện khóa học
         if (request.getStatus() != null && request.getStatus() == 1 && !category.getStatus()) {
             throw new RuntimeException("Danh mục đang ẩn, không thể tạo khóa học ở trạng thái Hoạt động.");
@@ -95,16 +92,18 @@ public class CourseService {
                         lesson.setContent(lReq.getContent());
                         lesson.setVideoUrl(lReq.getVideoUrl());
                         // Nếu khóa học đang ẩn thì bài học buộc phải ẩn
-                        int finalLessonStatus = (course.getStatus() == 2) ? 2 : (lReq.getStatus() != null ? lReq.getStatus() : module.getStatus());
+                        int finalLessonStatus = (course.getStatus() == 2) ? 2
+                                : (lReq.getStatus() != null ? lReq.getStatus() : module.getStatus());
                         lesson.setStatus(finalLessonStatus);
                         lesson.setModule(module);
                         lessons.add(lesson);
                     }
                 }
                 module.setLessons(lessons);
-                
+
                 // Nếu khóa học đang ẩn thì chương buộc phải ẩn
-                int finalModuleStatus = (course.getStatus() == 2) ? 2 : (mReq.getStatus() != null ? mReq.getStatus() : course.getStatus());
+                int finalModuleStatus = (course.getStatus() == 2) ? 2
+                        : (mReq.getStatus() != null ? mReq.getStatus() : course.getStatus());
                 module.setStatus(finalModuleStatus);
                 modules.add(module);
             }
@@ -113,38 +112,40 @@ public class CourseService {
 
         // 4. Save and return
         Course savedCourse = courseRepository.save(course);
-        
+
         // 5. Clear Redis Draft
         draftCourseService.deleteDraft(email, null); // "new" draft
-        
+
         return savedCourse;
     }
+
     @Transactional(readOnly = true)
     public Course getCourseBySlug(String slug, String email) {
         Course course = courseRepository.findBySlug(slug)
-            .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học"));
 
         // Kiểm tra xem user có phải là Instructor của khóa này hoặc Admin không
         boolean isOwner = email != null && course.getAccount().getEmail().equals(email);
-        
+
         // Kiểm tra xem user có mua khóa học này chưa
         boolean isEnrolled = false;
         if (email != null && !isOwner) {
             Account account = accountRepository.findByEmail(email).orElse(null);
             if (account != null) {
                 isEnrolled = course.getEnrollments().stream()
-                    .anyMatch(e -> e.getAccount().getId().equals(account.getId()) && e.getStatus() == 1);
+                        .anyMatch(e -> e.getAccount().getId().equals(account.getId()) && e.getStatus() == 1);
             }
         }
         course.setIsEnrolled(isEnrolled);
 
         // Logic hiển thị:
-        // 1. Nếu là khách (email null) hoặc chưa mua: Chỉ thấy nếu status = 1 (Hoạt động) và chưa bị xóa
+        // 1. Nếu là khách (email null) hoặc chưa mua: Chỉ thấy nếu status = 1 (Hoạt
+        // động) và chưa bị xóa
         if (!isOwner && !isEnrolled && (course.getStatus() != 1 || Boolean.TRUE.equals(course.getDeleted()))) {
             throw new RuntimeException("Khóa học hiện không khả dụng");
         }
 
-        // Tuy nhiên, các Module hoặc Lesson bị ẩn (status = 2) vẫn phải lọc bỏ 
+        // Tuy nhiên, các Module hoặc Lesson bị ẩn (status = 2) vẫn phải lọc bỏ
         // trừ khi là chủ sở hữu (Instructor) hoặc học viên đã mua khóa học muốn xem
         if (!isOwner && !isEnrolled) {
             if (course.getModules() != null) {
@@ -163,15 +164,15 @@ public class CourseService {
     @Transactional
     public void deleteCourse(Integer id, String email) {
         Course course = courseRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học"));
-        
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học"));
+
         if (!course.getAccount().getEmail().equals(email)) {
             throw new RuntimeException("Bạn không có quyền xóa khóa học này");
         }
-        
+
         // Soft delete the course
         course.setDeleted(true);
-        
+
         // Soft delete all modules and lessons
         if (course.getModules() != null) {
             for (Module m : course.getModules()) {
@@ -183,7 +184,7 @@ public class CourseService {
                 }
             }
         }
-        
+
         courseRepository.save(course);
     }
 
@@ -206,12 +207,7 @@ public class CourseService {
         course.setThumbnail(request.getThumbnail());
         course.setPrice(request.getPrice());
         course.setDiscount(request.getDiscount());
-        
-        // Cập nhật giá sau giảm
-        if (course.getPrice() != null) {
-            double disc = course.getDiscount() != null ? course.getDiscount() : 0;
-            course.setFinalPrice(course.getPrice() * (1 - disc / 100.0));
-        }
+
         course.setLevel(request.getLevel());
         course.setCategory(category);
 
@@ -231,9 +227,8 @@ public class CourseService {
         if (requestedSections == null) {
             currentModules.clear();
         } else {
-            currentModules.removeIf(existingModule -> 
-                requestedSections.stream().noneMatch(req -> req.getId() != null && req.getId().equals(existingModule.getId()))
-            );
+            currentModules.removeIf(existingModule -> requestedSections.stream()
+                    .noneMatch(req -> req.getId() != null && req.getId().equals(existingModule.getId())));
 
             for (ModuleRequest mReq : requestedSections) {
                 Module module;
@@ -263,8 +258,9 @@ public class CourseService {
 
                 // Handle Attachments (Update or create single)
                 if (mReq.getAttachments() != null && !mReq.getAttachments().trim().isEmpty()) {
-                    if (module.getAttachments() == null) module.setAttachments(new ArrayList<>());
-                    
+                    if (module.getAttachments() == null)
+                        module.setAttachments(new ArrayList<>());
+
                     if (module.getAttachments().isEmpty()) {
                         Attachment attachment = new Attachment();
                         attachment.setFileUrl(mReq.getAttachments());
@@ -283,15 +279,14 @@ public class CourseService {
                     module.setLessons(new ArrayList<>());
                 }
                 final List<Lesson> currentLessons = module.getLessons();
-                
+
                 List<LessonRequest> requestedLessons = mReq.getLessons();
                 if (requestedLessons == null) {
                     currentLessons.clear();
                 } else {
                     // Remove lessons not in request
-                    currentLessons.removeIf(existingLesson -> 
-                        requestedLessons.stream().noneMatch(req -> req.getId() != null && req.getId().equals(existingLesson.getId()))
-                    );
+                    currentLessons.removeIf(existingLesson -> requestedLessons.stream()
+                            .noneMatch(req -> req.getId() != null && req.getId().equals(existingLesson.getId())));
 
                     for (LessonRequest lReq : requestedLessons) {
                         Lesson lesson;
@@ -313,15 +308,17 @@ public class CourseService {
                         lesson.setTitle(lReq.getTitle());
                         lesson.setContent(lReq.getContent());
                         lesson.setVideoUrl(lReq.getVideoUrl());
-                        
+
                         // Nếu khóa học đang ẩn thì bài học buộc phải ẩn
-                        int finalLessonStatus = (course.getStatus() == 2) ? 2 : (lReq.getStatus() != null ? lReq.getStatus() : module.getStatus());
+                        int finalLessonStatus = (course.getStatus() == 2) ? 2
+                                : (lReq.getStatus() != null ? lReq.getStatus() : module.getStatus());
                         lesson.setStatus(finalLessonStatus);
                     }
                 }
-                
+
                 // Nếu khóa học đang ẩn thì chương buộc phải ẩn
-                int finalModuleStatus = (course.getStatus() == 2) ? 2 : (mReq.getStatus() != null ? mReq.getStatus() : course.getStatus());
+                int finalModuleStatus = (course.getStatus() == 2) ? 2
+                        : (mReq.getStatus() != null ? mReq.getStatus() : course.getStatus());
                 module.setStatus(finalModuleStatus);
 
                 if (isNewModule) {
@@ -330,13 +327,15 @@ public class CourseService {
             }
         }
 
-        // Explicit validation to clearly inform the user WHICH module is causing the issue
+        // Explicit validation to clearly inform the user WHICH module is causing the
+        // issue
         for (Module m : course.getModules()) {
             if (m.getLessons() == null || m.getLessons().isEmpty()) {
-                throw new RuntimeException("Lỗi dữ liệu: Chương '" + m.getTitle() + "' không có bài học nào! Hệ thống bắt buộc mỗi chương phải có bài học. Vui lòng kiểm tra lại các chương cũ hoặc thêm bài học cho chương mới.");
+                throw new RuntimeException("Lỗi dữ liệu: Chương '" + m.getTitle()
+                        + "' không có bài học nào! Hệ thống bắt buộc mỗi chương phải có bài học. Vui lòng kiểm tra lại các chương cũ hoặc thêm bài học cho chương mới.");
             }
         }
-        
+
         Course updatedCourse = courseRepository.save(course);
 
         // 4. Clear Redis Draft
@@ -346,22 +345,27 @@ public class CourseService {
     }
 
     @Transactional(readOnly = true)
-    public org.springframework.data.domain.Page<Course> getPublicCourses(Integer categoryId, String categorySlug, String level, int page, int size) {
-        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size, org.springframework.data.domain.Sort.by("id").descending());
+    public org.springframework.data.domain.Page<Course> getPublicCourses(Integer categoryId, String categorySlug,
+            String level, int page, int size) {
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size,
+                org.springframework.data.domain.Sort.by("id").descending());
         // Chuyển level sang lowercase hoặc xử lý null
-        String levelFilter = (level != null && !level.trim().isEmpty() && !level.equalsIgnoreCase("all")) ? level : null;
+        String levelFilter = (level != null && !level.trim().isEmpty() && !level.equalsIgnoreCase("all")) ? level
+                : null;
         return courseRepository.findPublicCourses(categoryId, categorySlug, levelFilter, pageable);
     }
 
     @Transactional(readOnly = true)
     public org.springframework.data.domain.Page<Course> getInstructorCourses(String email, int page, int size) {
-        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size, org.springframework.data.domain.Sort.by("id").descending());
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size,
+                org.springframework.data.domain.Sort.by("id").descending());
         return courseRepository.findByAccountEmailAndDeletedFalse(email, pageable);
     }
 
     @Transactional(readOnly = true)
     public org.springframework.data.domain.Page<Course> getAllActiveCourses(int page, int size) {
-        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size, org.springframework.data.domain.Sort.by("id").descending());
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size,
+                org.springframework.data.domain.Sort.by("id").descending());
         return courseRepository.findByStatusAndDeletedFalse(1, pageable);
     }
 
@@ -380,7 +384,7 @@ public class CourseService {
         }
 
         course.setStatus(status);
-        
+
         // Propagate status to modules and lessons
         if (course.getModules() != null) {
             for (Module m : course.getModules()) {

@@ -54,9 +54,6 @@ public class Course {
     @Column
     private Integer discount;
 
-    @Column(name = "final_price")
-    private Double finalPrice;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "account_id")
     @JsonIgnore
@@ -119,23 +116,12 @@ public class Course {
         return account != null ? account.getId() : null;
     }
 
-    @PrePersist
-    @PreUpdate
-    private void calculateFinalPrice() {
-        if (this.price == null) {
-            this.finalPrice = 0.0;
-            return;
-        }
-        int disc = (this.discount != null) ? this.discount : 0;
-        this.finalPrice = this.price * (1 - disc / 100.0);
-    }
-
     @com.fasterxml.jackson.annotation.JsonProperty("salePrice")
     public Double getSalePrice() {
-        if (finalPrice != null) return finalPrice;
-        // Fallback cho dữ liệu cũ chưa có finalPrice trong DB
-        if (price == null) return 0.0;
-        if (discount == null || discount <= 0) return price;
+        if (price == null)
+            return 0.0;
+        if (discount == null || discount <= 0)
+            return price;
         return price * (1 - discount / 100.0);
     }
 
@@ -146,7 +132,8 @@ public class Course {
 
     @com.fasterxml.jackson.annotation.JsonProperty("classes")
     public Integer getClassesCount() {
-        if (modules == null) return 0;
+        if (modules == null)
+            return 0;
         return modules.stream()
                 .mapToInt(m -> m.getLessons() != null ? m.getLessons().size() : 0)
                 .sum();
@@ -154,7 +141,8 @@ public class Course {
 
     @com.fasterxml.jackson.annotation.JsonProperty("students")
     public Integer getStudentsCount() {
-        // Hiện tại chưa có bảng đăng ký học, trả về số giả lập dựa trên ID để có sự khác biệt
+        // Hiện tại chưa có bảng đăng ký học, trả về số giả lập dựa trên ID để có sự
+        // khác biệt
         return (id != null ? id * 15 + 100 : 0);
     }
 }
