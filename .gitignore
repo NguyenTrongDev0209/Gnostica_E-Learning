@@ -69,4 +69,28 @@ pnpm-debug.log*
 *.secret
 *.key
 *.jks
-gnostica-server/.factorypath
+
+# ==========================================
+# 5. MOBILE APP (React Native / Expo)
+# ==========================================
+# Expo
+gnostica-mobile/.expo/
+gnostica-mobile/web-build/
+gnostica-mobile/expo-env.d.ts
+
+# Native
+gnostica-mobile/.kotlin/
+gnostica-mobile/*.orig.*
+gnostica-mobile/*.p8
+gnostica-mobile/*.p12
+gnostica-mobile/*.mobileprovision
+
+# Metro
+gnostica-mobile/.metro-health-check*
+
+# generated native folders
+gnostica-mobile/ios/
+gnostica-mobile/android/
+
+# typescript
+gnostica-mobile/*.tsbuildinfo

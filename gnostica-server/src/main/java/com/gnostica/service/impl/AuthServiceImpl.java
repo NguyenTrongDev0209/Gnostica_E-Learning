@@ -1,23 +1,24 @@
 package com.gnostica.service.impl;
 
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gnostica.dto.request.LoginRequest;
-import com.gnostica.dto.response.LoginResponse;
 import com.gnostica.dto.request.RegisterRequest;
+import com.gnostica.dto.response.LoginResponse;
+import com.gnostica.event.LogEvent;
 import com.gnostica.model.Account;
 import com.gnostica.model.Instructor;
-import com.gnostica.model.Role;
 import com.gnostica.model.Password;
+import com.gnostica.model.Role;
 import com.gnostica.repository.AccountRepository;
 import com.gnostica.repository.InstructorRepository;
-import com.gnostica.repository.RoleRepository;
 import com.gnostica.repository.PasswordRepository;
+import com.gnostica.repository.RoleRepository;
 import com.gnostica.security.JwtProvider;
 import com.gnostica.service.AuthService;
 import com.gnostica.service.MailService;
-
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -25,12 +26,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import lombok.RequiredArgsConstructor;
-
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
 
-import java.security.SecureRandom;
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
@@ -43,6 +42,8 @@ public class AuthServiceImpl implements AuthService {
     private final MailService mailService;
     private final AuthenticationManager authenticationManager;
     private final JwtProvider tokenProvider;
+    private final ApplicationEventPublisher eventPublisher;
+    private final ObjectMapper objectMapper;
 
     @Override
     public Account register(RegisterRequest request) {
@@ -111,7 +112,7 @@ public class AuthServiceImpl implements AuthService {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String token = tokenProvider.generateToken(authentication);
 
-        return LoginResponse.builder()
+        LoginResponse response = LoginResponse.builder()
                 .token(token)
                 .email(account.getEmail())
                 .fullName(account.getFullName())
@@ -119,6 +120,21 @@ public class AuthServiceImpl implements AuthService {
                 .avatar(account.getAvatar())
                 .provider(account.getProvider())
                 .build();
+
+        // Publish audit log event (async)
+        // Lưu ý: account lấy từ DB (dòng 96-97), KHÔNG dùng SecurityContextHolder
+        // vì authentication vừa mới được set trong hàm này, chưa propagate sang thread
+        // khác
+        try {
+            String payload = objectMapper.writeValueAsString(java.util.Map.of(
+                    "email", account.getEmail(),
+                    "role", account.getRole().getName()));
+            eventPublisher.publishEvent(new LogEvent(this, "LOGIN_SUCCESS", payload, account.getId()));
+        } catch (Exception e) {
+            log.warn("Could not publish log event for LOGIN_SUCCESS: {}", e.getMessage());
+        }
+
+        return response;
     }
 
     @Override
@@ -240,7 +256,7 @@ public class AuthServiceImpl implements AuthService {
         // Đảm bảo có bản ghi trong bảng instructors
         Instructor instructor = instructorRepository.findByAccountId(account.getId())
                 .orElse(new Instructor());
-        
+
         instructor.setAccount(account);
         instructor.setFullName(account.getFullName());
         instructor.setEmail(account.getEmail());

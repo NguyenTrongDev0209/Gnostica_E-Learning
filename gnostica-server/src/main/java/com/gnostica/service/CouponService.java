@@ -1,25 +1,33 @@
 package com.gnostica.service;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gnostica.dto.request.CouponRequest;
 import com.gnostica.dto.response.CouponResponse;
+import com.gnostica.event.LogEvent;
 import com.gnostica.model.Account;
 import com.gnostica.model.Coupon;
 import com.gnostica.repository.AccountRepository;
 import com.gnostica.repository.CouponRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CouponService {
 
     private final CouponRepository couponRepository;
     private final AccountRepository accountRepository;
+    private final ApplicationEventPublisher eventPublisher;
+    private final ObjectMapper objectMapper;
 
     public CouponResponse createCoupon(CouponRequest request) {
         if (couponRepository.existsByCode(request.getCode())) {
@@ -43,6 +51,19 @@ public class CouponService {
         coupon.setAccount(account);
 
         Coupon savedCoupon = couponRepository.save(coupon);
+
+        // Publish audit log event (async)
+        try {
+            String payload = objectMapper.writeValueAsString(Map.of(
+                    "target_type", "Coupon",
+                    "target_id", savedCoupon.getId(),
+                    "code", savedCoupon.getCode(),
+                    "discount_percent", savedCoupon.getDiscountPercent()));
+            eventPublisher.publishEvent(new LogEvent(this, "CREATE_COUPON", payload, account.getId()));
+        } catch (Exception e) {
+            log.warn("Could not publish log event for CREATE_COUPON: {}", e.getMessage());
+        }
+
         return mapToResponse(savedCoupon);
     }
 
