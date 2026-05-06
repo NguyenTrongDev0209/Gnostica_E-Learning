@@ -137,7 +137,7 @@ const MainHeader = ({
             <div className="w-full bg-white shadow-sm relative z-40">
                 <div className="app-container flex items-center justify-between py-0 h-14">
                     {/* Left: Category Button */}
-                    <div className="flex-1 flex justify-start pl-8">
+                    <div className="flex-1 flex justify-start">
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <button className="btn-category-glow flex items-center gap-3 px-6 h-11 focus:outline-none">
