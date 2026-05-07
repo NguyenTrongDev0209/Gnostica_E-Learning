@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import useInstructorCourses from "@/hooks/useInstructorCourses";
+import useInstructorCourses from "@/hooks/admin/useInstructorCourses";
 import {
   Plus,
   Search,

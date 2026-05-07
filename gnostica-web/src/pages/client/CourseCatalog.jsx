@@ -2,8 +2,8 @@ import React from "react";
 import { PageHeader, AppBreadcrumb } from "@/components/common/AppSection";
 import CourseListSection from "@/components/pages/client/shared/CourseListSection";
 import { Home } from "lucide-react";
-import useCategories from "@/hooks/useCategories";
-import useCourses from "@/hooks/useCourses";
+import useCategories from "@/hooks/admin/useCategories";
+import useCourses from "@/hooks/admin/useCourses";
 
 export default function CourseCatalog() {
   const { categories } = useCategories();
