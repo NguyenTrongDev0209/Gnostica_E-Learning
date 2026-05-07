@@ -1,5 +1,5 @@
 import React from "react";
-import useInstructorCourseForm from "@/hooks/useInstructorCourseForm";
+import useInstructorCourseForm from "@/hooks/admin/useInstructorCourseForm";
 import {
   useForm,
   FormProvider,
@@ -30,7 +30,13 @@ import {
   Clock,
   AlertCircle,
   Check,
-  Loader2
+  Loader2,
+  Sparkles,
+  FileText,
+  Database,
+  CheckCircle2,
+  ListOrdered,
+  Search
 } from "lucide-react";
 import { toast } from "sonner";
 import axios from "axios";
@@ -63,8 +69,8 @@ import categoryService from "@/services/categoryService";
 // ==========================================
 // CẤU CẤU HÌNH ĐỂ DUY TRÌ TIẾN TRÌNH TẢI VIDEO KHI CHUYỂN TAB
 // ==========================================
-const globalUploadProgress = {}; 
-const uploadCallbacks = {}; 
+const globalUploadProgress = {};
+const uploadCallbacks = {};
 
 // ==========================================
 // THIẾT LẬP ZOD SCHEMA & ERROR MAP (VIỆT HÓA)
@@ -83,8 +89,8 @@ const viErrorMap = (issue, ctx) => {
       array: "danh sách",
       object: "đối tượng",
     };
-    return { 
-      message: `Dữ liệu không hợp lệ (Mong đợi ${typeMap[issue.expected] || issue.expected}, nhưng nhận được ${typeMap[issue.received] || issue.received})` 
+    return {
+      message: `Dữ liệu không hợp lệ (Mong đợi ${typeMap[issue.expected] || issue.expected}, nhưng nhận được ${typeMap[issue.received] || issue.received})`
     };
   }
 
@@ -150,12 +156,12 @@ export const courseSchema = z.object({
   ),
   description: z.preprocess((val) => (val === null || val === undefined ? "" : String(val)),
     z.string({ required_error: "Mô tả khóa học không được để trống" })
-     .min(1, "Mô tả khóa học không được để trống")
-     .refine(val => val.replace(/<[^>]*>?/gm, '').trim().length > 0, "Mô tả khóa học không được để trống")
+      .min(1, "Mô tả khóa học không được để trống")
+      .refine(val => val.replace(/<[^>]*>?/gm, '').trim().length > 0, "Mô tả khóa học không được để trống")
   ),
-  price: z.preprocess((val) => (val === "" || val === null || val === undefined ? undefined : Number(val)), 
+  price: z.preprocess((val) => (val === "" || val === null || val === undefined ? undefined : Number(val)),
     z.number({ required_error: "Giá bán không được để trống" })
-     .min(0, "Giá phải lớn hơn hoặc bằng 0")
+      .min(0, "Giá phải lớn hơn hoặc bằng 0")
   ),
   discount: z.coerce.number({ invalid_type_error: "Giảm giá phải là số" })
     .min(0, "Giảm giá không được nhỏ hơn 0")
@@ -227,11 +233,11 @@ export default function InstructorCourseForm() {
       // Tìm các thành phần có khả năng gây chuyển hướng
       const anchor = e.target.closest('a');
       const button = e.target.closest('button');
-      
-      const isNavAction = 
-        (anchor && anchor.getAttribute('href')) || 
+
+      const isNavAction =
+        (anchor && anchor.getAttribute('href')) ||
         (button && (
-          button.title === "Đăng xuất" || 
+          button.title === "Đăng xuất" ||
           button.title?.includes("Về trang chủ") ||
           button.innerText.includes("Tạo khóa học mới") ||
           button.closest('aside')
@@ -243,10 +249,10 @@ export default function InstructorCourseForm() {
       const isDirty = originalDataRef.current && JSON.stringify(currentData) !== originalDataRef.current;
 
       if (isDirty) {
-        const confirmMsg = isEditMode 
-          ? "Bạn có các thay đổi chưa lưu. Bạn có chắc chắn muốn thoát và HỦY BỎ toàn bộ các thay đổi mới này để quay lại dữ liệu gốc không?" 
+        const confirmMsg = isEditMode
+          ? "Bạn có các thay đổi chưa lưu. Bạn có chắc chắn muốn thoát và HỦY BỎ toàn bộ các thay đổi mới này để quay lại dữ liệu gốc không?"
           : "Bạn đang tạo khóa học mới nhưng chưa xuất bản. Bạn có chắc chắn muốn thoát và xóa bỏ bản nháp hiện tại không?";
-          
+
         if (!window.confirm(confirmMsg)) {
           e.preventDefault();
           e.stopPropagation();
@@ -429,7 +435,7 @@ export default function InstructorCourseForm() {
               </span>
             </div>
           )}
-          
+
           {/* Right Buttons Section */}
           <div className="flex items-center gap-2 sm:gap-3">
             {isSavingDraft && (
@@ -438,7 +444,7 @@ export default function InstructorCourseForm() {
                 <span>Đang lưu...</span>
               </div>
             )}
-            
+
             <Button
               type="button"
               variant="outline"
@@ -462,7 +468,7 @@ export default function InstructorCourseForm() {
               )}
               Lưu bản nháp
             </Button>
-            
+
           </div>
         </div>
       </div>
@@ -486,12 +492,19 @@ export default function InstructorCourseForm() {
             </TabsContent>
 
             <TabsContent
+              value="quiz"
+              className="bg-white p-6 md:p-8 rounded-xl border border-slate-200 shadow-sm focus-visible:outline-none focus-visible:ring-0 mt-0"
+            >
+              <QuizTab />
+            </TabsContent>
+
+            <TabsContent
               value="curriculum"
               className="bg-white p-6 md:p-8 rounded-xl border border-slate-200 shadow-sm focus-visible:outline-none focus-visible:ring-0 mt-0"
             >
-              <CurriculumTab 
-                uploadVideoToBunny={uploadVideoToBunny} 
-                setActiveUploads={setActiveUploads} 
+              <CurriculumTab
+                uploadVideoToBunny={uploadVideoToBunny}
+                setActiveUploads={setActiveUploads}
                 fields={fields}
                 append={append}
                 remove={remove}
@@ -499,20 +512,13 @@ export default function InstructorCourseForm() {
             </TabsContent>
 
             <TabsContent
-              value="media"
+              value="settings"
               className="bg-white p-6 md:p-8 rounded-xl border border-slate-200 shadow-sm focus-visible:outline-none focus-visible:ring-0 mt-0"
             >
-              <MediaTab 
-                uploadVideoToBunny={uploadVideoToBunny} 
-                setActiveUploads={setActiveUploads} 
+              <SettingsTab
+                uploadVideoToBunny={uploadVideoToBunny}
+                setActiveUploads={setActiveUploads}
               />
-            </TabsContent>
-
-            <TabsContent
-              value="pricing"
-              className="bg-white p-6 md:p-8 rounded-xl border border-slate-200 shadow-sm focus-visible:outline-none focus-visible:ring-0 mt-0"
-            >
-              <PricingTab />
             </TabsContent>
           </Tabs>
 
@@ -525,9 +531,9 @@ export default function InstructorCourseForm() {
                   onClick={() => {
                     const sequence = [
                       "basic",
+                      "quiz",
                       "curriculum",
-                      "media",
-                      "pricing",
+                      "settings",
                     ];
                     const currentIdx = sequence.indexOf(activeTab);
                     if (currentIdx > 0) setActiveTab(sequence[currentIdx - 1]);
@@ -540,15 +546,15 @@ export default function InstructorCourseForm() {
             </div>
 
             <div className="flex items-center gap-3">
-              {activeTab !== "pricing" ? (
+              {activeTab !== "settings" ? (
                 <button
                   type="button"
                   onClick={() => {
                     const sequence = [
                       "basic",
+                      "quiz",
                       "curriculum",
-                      "media",
-                      "pricing",
+                      "settings",
                     ];
                     const currentIdx = sequence.indexOf(activeTab);
                     if (currentIdx < sequence.length - 1)
@@ -581,7 +587,7 @@ export default function InstructorCourseForm() {
               <div className="flex-1">
                 <p className="text-sm font-bold">{uploadStatus}</p>
                 <div className="w-full bg-slate-700 h-1.5 rounded-full mt-2 overflow-hidden">
-                  <div 
+                  <div
                     className="bg-green-400 h-full transition-all duration-300"
                     style={{ width: '45%' }} // Tạm thời để tĩnh vì ta k tính tổng %, quan trọng là nhãn text
                   />
@@ -609,14 +615,14 @@ export default function InstructorCourseForm() {
                   Bạn có một bản lưu nháp chưa hoàn thành từ phiên làm việc trước. Bạn có muốn khôi phục lại dữ liệu này không?
                 </p>
                 <div className="grid grid-cols-2 gap-3">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     className="h-11 font-bold border-slate-200"
                     onClick={() => setShowDraftModal(false)}
                   >
                     Bỏ qua
                   </Button>
-                  <Button 
+                  <Button
                     className="h-11 font-bold bg-blue-600 hover:bg-blue-700 text-white"
                     onClick={restoreDraft}
                   >
@@ -674,6 +680,8 @@ function CourseStepper({ activeTab, onTabChange }) {
     const price = formValues[5];
     const pricingPercent = price && price > 0 ? 100 : 0;
 
+    const settingsPercent = (mediaPercent + pricingPercent) / 2;
+
     return [
       {
         id: "basic",
@@ -682,22 +690,22 @@ function CourseStepper({ activeTab, onTabChange }) {
         progress: basicPercent,
       },
       {
+        id: "quiz",
+        label: "Ngân hàng câu hỏi",
+        step: 2,
+        progress: 0,
+      },
+      {
         id: "curriculum",
         label: "Nội dung bài học",
-        step: 2,
+        step: 3,
         progress: curriculumPercent,
       },
       {
-        id: "media",
-        label: "Hình ảnh & Media",
-        step: 3,
-        progress: mediaPercent,
-      },
-      {
-        id: "pricing",
-        label: "Định giá & Cài đặt",
+        id: "settings",
+        label: "Media & Định giá",
         step: 4,
-        progress: pricingPercent,
+        progress: settingsPercent,
       },
     ];
   }, [formValues]);
@@ -938,7 +946,7 @@ function BasicInfoTab({ categories }) {
   React.useEffect(() => {
     if (isCategoryHidden && currentStatus !== 2) {
       setValue("status", 2);
-      
+
       // Đồng bộ xuống chương và bài học ngay lập tức
       const currentSections = getValues("sections") || [];
       const updatedSections = currentSections.map(s => ({
@@ -1083,10 +1091,10 @@ function BasicInfoTab({ categories }) {
             name="status"
             control={control}
             render={({ field }) => (
-              <Select 
+              <Select
                 onValueChange={(val) => {
                   const newStatus = Number(val);
-                  
+
                   // Chặn bật hoạt động nếu danh mục đang ẩn
                   if (isCategoryHidden && newStatus === 1) {
                     toast.warning("Danh mục của khóa học đang ẩn, không thể bật trạng thái Hoạt động.");
@@ -1094,7 +1102,7 @@ function BasicInfoTab({ categories }) {
                   }
 
                   field.onChange(newStatus);
-                  
+
                   // Logic Đồng bộ trạng thái: Course -> Module -> Lesson
                   const currentSections = getValues("sections") || [];
                   const updatedSections = currentSections.map(s => ({
@@ -1105,12 +1113,12 @@ function BasicInfoTab({ categories }) {
                       status: newStatus
                     })) || []
                   }));
-                  
+
                   // setValue với shouldDirty giúp các Controller cấp sâu (lessons) nhận diện thay đổi
                   setValue("sections", updatedSections, { shouldDirty: true });
                   // replace giúp cập nhật ngay lập tức giao diện Accordion/FieldArray của chương
                   if (replace) replace(updatedSections);
-                }} 
+                }}
                 value={(field.value ?? 1).toString()}
                 disabled={isCategoryHidden}
               >
@@ -1155,13 +1163,326 @@ function BasicInfoTab({ categories }) {
   );
 }
 
+function SettingsTab({ uploadVideoToBunny, setActiveUploads }) {
+  return (
+    <div className="space-y-12">
+      <MediaTab uploadVideoToBunny={uploadVideoToBunny} setActiveUploads={setActiveUploads} />
+      <div className="border-t border-slate-100"></div>
+      <PricingTab />
+    </div>
+  );
+}
+
+function QuizTab() {
+  const [aiFile, setAiFile] = React.useState(null);
+  const [aiQuestionCount, setAiQuestionCount] = React.useState(10);
+  const [draftQuestions, setDraftQuestions] = React.useState([1, 2, 3]); // Mock data
+
+  const handleCreateAI = () => {
+    if (!aiFile) {
+      toast.error("Vui lòng tải lên tài liệu bài giảng trước khi tạo câu hỏi!");
+      return;
+    }
+    if (aiQuestionCount < 1 || aiQuestionCount > 100) {
+      toast.warning("Số lượng câu hỏi phải từ 1 đến 100!");
+      return;
+    }
+    toast.success("Đang phân tích tài liệu và tạo câu hỏi...");
+    // TODO: Call API
+  };
+
+  const [manualOptions, setManualOptions] = React.useState({ A: "", B: "", C: "", D: "" });
+  const [manualCorrect, setManualCorrect] = React.useState("A");
+  const [manualLevel, setManualLevel] = React.useState("medium");
+  
+  const handleAddManual = () => {
+    if (!manualOptions.A.trim() || !manualOptions.B.trim() || !manualOptions.C.trim() || !manualOptions.D.trim()) {
+      toast.warning("Vui lòng nhập đầy đủ nội dung cho cả 4 đáp án!");
+      return;
+    }
+    toast.success("Đã thêm câu hỏi vào ngân hàng!");
+    // TODO: Add to draftQuestions
+  };
+
+  const handleConfirmBank = () => {
+    if (draftQuestions.length === 0) {
+      toast.warning("Ngân hàng câu hỏi đang trống!");
+      return;
+    }
+    toast.success("Đã lưu ngân hàng câu hỏi thành công!");
+  };
+
+  return (
+    <div className="space-y-10 py-4 w-full">
+      <div>
+        <h3 className="text-xl font-bold text-slate-900 border-b border-slate-100 pb-3 mb-4 flex items-center gap-2">
+          <Database className="w-5 h-5 text-indigo-500" />
+          Tạo Ngân Hàng Câu Hỏi
+        </h3>
+        <p className="text-sm text-slate-500">
+          Sử dụng AI để phân tích tài liệu bài giảng và tự động tạo ra ngân hàng câu hỏi.
+        </p>
+      </div>
+
+      <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 relative overflow-hidden shadow-sm">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-full blur-3xl opacity-50 pointer-events-none" />
+
+        <h4 className="text-md font-bold text-slate-800 mb-5 flex items-center gap-2">
+          <div className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-bold">1</div>
+          Tạo Question Bank bằng AI
+        </h4>
+
+        <div className="relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+            <div className="lg:col-span-3 space-y-3">
+              <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-widest pl-1">
+                Upload tài liệu (PDF, DOCX,...)
+              </label>
+              <div 
+                className="border-2 border-dashed border-indigo-300 bg-white rounded-xl p-8 flex flex-col items-center justify-center text-center hover:bg-indigo-50/50 hover:border-indigo-400 transition-colors cursor-pointer group h-[220px] relative"
+              >
+                <input 
+                  type="file" 
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
+                  accept=".pdf,.docx,.doc,.txt"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      if (file.size > 10 * 1024 * 1024) { // 10MB
+                        toast.error("Dung lượng file không được vượt quá 10MB");
+                        return;
+                      }
+                      setAiFile(file);
+                    }
+                  }}
+                />
+                {aiFile ? (
+                  <div className="flex flex-col items-center">
+                    <div className="w-14 h-14 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mb-3">
+                      <CheckCircle2 className="w-6 h-6" />
+                    </div>
+                    <p className="text-sm font-bold text-emerald-700">{aiFile.name}</p>
+                    <p className="text-xs text-slate-500 mt-1">{(aiFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="w-14 h-14 bg-indigo-50 text-indigo-400 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 group-hover:text-indigo-500 transition-all">
+                      <FileText className="w-6 h-6" />
+                    </div>
+                    <p className="text-sm font-bold text-indigo-900">Kéo thả file vào đây hoặc nhấn để chọn</p>
+                    <p className="text-xs text-slate-500 mt-2 max-w-[280px]">
+                      AI sẽ đọc và phân tích nội dung để tạo câu hỏi bám sát tài liệu bài giảng của bạn.
+                    </p>
+                  </>
+                )}
+              </div>
+            </div>
+
+            <div className="lg:col-span-2 space-y-6 flex flex-col justify-end">
+              <div className="space-y-3 w-full">
+                <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-widest pl-1">
+                  Số lượng câu hỏi (Tối đa 100)
+                </label>
+                <Input 
+                  type="number" 
+                  value={aiQuestionCount} 
+                  onChange={(e) => setAiQuestionCount(Number(e.target.value))}
+                  min={1}
+                  max={100}
+                  className="h-11 border-slate-200 bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 font-bold" 
+                />
+              </div>
+              <Button 
+                type="button" 
+                onClick={handleCreateAI}
+                className="w-full h-12 text-sm font-bold bg-[#8b5cf6] hover:bg-[#7c3aed] text-white rounded-xl gap-2 transition-all shadow-md shadow-indigo-100"
+              >
+                <Sparkles className="w-5 h-5" />
+                Bắt Đầu Tạo Câu Hỏi Bằng AI
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm mt-8">
+        <h4 className="text-md font-bold text-slate-800 mb-6 flex items-center gap-2">
+          <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold">2</div>
+          Thêm Câu Hỏi Thủ Công
+        </h4>
+        <div className="space-y-5 border-b border-slate-100 pb-6">
+          <div className="space-y-2">
+            <label className="block text-xs font-bold text-slate-600 uppercase tracking-widest pl-1">
+              Nội dung câu hỏi <span className="text-red-500">*</span>
+            </label>
+            <div className="rounded-xl border border-slate-200 overflow-hidden focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500 transition-all bg-white">
+              <ReactQuill 
+                theme="snow"
+                modules={quillModules}
+                placeholder="Nhập nội dung câu hỏi (hỗ trợ định dạng và chèn ảnh)..."
+                className="[&_.ql-toolbar.ql-snow]:!border-0 [&_.ql-toolbar.ql-snow]:!border-b [&_.ql-toolbar.ql-snow]:!border-slate-200 [&_.ql-toolbar]:bg-slate-50/50 [&_.ql-container.ql-snow]:!border-0 [&_.ql-container]:min-h-[100px] [&_.ql-editor]:min-h-[100px] [&_.ql-editor]:text-sm [&_.ql-editor]:text-slate-700 font-sans"
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <label className="block text-xs font-bold text-slate-600 uppercase tracking-widest pl-1">
+              Độ khó câu hỏi
+            </label>
+            <Select value={manualLevel} onValueChange={setManualLevel}>
+              <SelectTrigger className="w-[180px] h-10 border-slate-200 bg-white text-xs font-bold">
+                <SelectValue placeholder="Chọn độ khó" />
+              </SelectTrigger>
+              <SelectContent className="bg-white">
+                <SelectItem value="easy">Dễ</SelectItem>
+                <SelectItem value="medium">Trung bình</SelectItem>
+                <SelectItem value="hard">Khó</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-3">
+            <label className="block text-xs font-bold text-slate-600 uppercase tracking-widest pl-1">
+              Các đáp án & Chọn đáp án đúng <span className="text-red-500">*</span>
+            </label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {['A', 'B', 'C', 'D'].map((opt, i) => (
+                <div key={opt} className={`flex items-start gap-3 p-3 rounded-xl border transition-all ${manualCorrect === opt ? 'border-emerald-200 bg-emerald-50/30' : 'border-slate-200 bg-slate-50/50'}`}>
+                  <div className="pt-2.5">
+                    <input 
+                      type="radio" 
+                      name="correctAnswer" 
+                      className="w-4 h-4 text-emerald-500 focus:ring-emerald-500 border-slate-300 cursor-pointer" 
+                      checked={manualCorrect === opt}
+                      onChange={() => setManualCorrect(opt)}
+                    />
+                  </div>
+                  <div className="flex-1 relative">
+                    <span className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-md flex items-center justify-center font-bold text-[10px] ${manualCorrect === opt ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}`}>
+                      {opt}
+                    </span>
+                    <Input 
+                      value={manualOptions[opt]}
+                      onChange={(e) => setManualOptions({...manualOptions, [opt]: e.target.value})}
+                      className={`h-10 pl-10 border-transparent bg-white shadow-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-sm`} 
+                      placeholder={`Nhập đáp án ${opt}`} 
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="flex justify-end pt-2">
+            <Button type="button" onClick={handleAddManual} className="h-11 px-8 font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-xl gap-2 shadow-md shadow-blue-100">
+              <Plus size={16} /> Thêm Vào Ngân Hàng
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm mt-8">
+        <h4 className="text-md font-bold text-slate-800 mb-6 flex items-center gap-2">
+          <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs font-bold">3</div>
+          Question Bank Preview
+        </h4>
+
+        <div className="bg-white rounded-xl border border-slate-200 p-5 flex flex-col shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4 mb-4">
+            <div>
+              <h5 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                Danh sách câu hỏi
+                <span className="bg-yellow-100 text-yellow-700 text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider flex items-center gap-1">
+                  <Clock className="w-3 h-3" />
+                  Draft
+                </span>
+              </h5>
+            </div>
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <div className="relative flex-1 sm:w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Input placeholder="Tìm kiếm câu hỏi..." className="pl-9 h-9 border-slate-200 text-sm focus:ring-indigo-500 focus:border-indigo-500 bg-slate-50" />
+              </div>
+              <Select defaultValue="all">
+                <SelectTrigger className="w-[110px] h-9 border-slate-200 bg-slate-50 text-xs font-bold">
+                  <SelectValue placeholder="Độ khó" />
+                </SelectTrigger>
+                <SelectContent className="bg-white">
+                  <SelectItem value="all">Tất cả</SelectItem>
+                  <SelectItem value="easy">Dễ</SelectItem>
+                  <SelectItem value="medium">Trung bình</SelectItem>
+                  <SelectItem value="hard">Khó</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="flex-1 overflow-y-auto space-y-3 pr-2 custom-scrollbar min-h-[500px] max-h-[800px]">
+            {[1, 2, 3].map((q) => (
+              <div key={q} className="border border-slate-100 rounded-lg p-4 hover:border-indigo-200 transition-colors bg-slate-50/50">
+                <p className="text-sm font-bold text-slate-700 leading-relaxed">Câu {q}: Khái niệm chính của tài liệu này là gì và làm thế nào để ứng dụng?</p>
+
+                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-2">
+                  <div className="flex items-start gap-2 px-3 py-2 rounded-md bg-white border border-slate-200">
+                    <span className="w-5 h-5 rounded bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">A</span>
+                    <span className="text-xs text-slate-600">Khái niệm cơ bản và nền tảng</span>
+                  </div>
+                  <div className="flex items-start gap-2 px-3 py-2 rounded-md bg-emerald-50 border border-emerald-200">
+                    <span className="w-5 h-5 rounded bg-emerald-500 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5"><Check size={12} strokeWidth={3} /></span>
+                    <span className="text-xs text-emerald-700 font-bold">Cách áp dụng vào thực tế</span>
+                  </div>
+                  <div className="flex items-start gap-2 px-3 py-2 rounded-md bg-white border border-slate-200">
+                    <span className="w-5 h-5 rounded bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">C</span>
+                    <span className="text-xs text-slate-600">Lịch sử hình thành và phát triển</span>
+                  </div>
+                  <div className="flex items-start gap-2 px-3 py-2 rounded-md bg-white border border-slate-200">
+                    <span className="w-5 h-5 rounded bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">D</span>
+                    <span className="text-xs text-slate-600">Tất cả các phương án trên đều sai</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 mt-4">
+                  <span className={`text-[10px] px-2.5 py-0.5 rounded-md font-bold uppercase tracking-wider ${
+                    q === 1 ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' :
+                    q === 2 ? 'bg-amber-50 text-amber-700 border border-amber-100' :
+                    'bg-rose-50 text-rose-700 border border-rose-100'
+                  }`}>
+                    {q === 1 ? 'Dễ' : q === 2 ? 'Trung bình' : 'Khó'}
+                  </span>
+                  <div className="flex gap-2 ml-auto">
+                    <button type="button" className="w-8 h-8 flex items-center justify-center rounded-md bg-white border border-slate-200 text-slate-400 hover:text-indigo-600 hover:border-indigo-200 transition-colors"><FileText size={14} /></button>
+                    <button type="button" className="w-8 h-8 flex items-center justify-center rounded-md bg-white border border-slate-200 text-slate-400 hover:text-red-500 hover:border-red-200 transition-colors"><Trash2 size={14} /></button>
+                  </div>
+                </div>
+              </div>
+            ))}
+            <div className="text-center pt-2 pb-2">
+              <p className="text-[11px] text-slate-400 font-medium">Bạn có thể xem lại và chỉnh sửa trước khi xác nhận.</p>
+            </div>
+          </div>
+
+          <div className="pt-4 mt-4 border-t border-slate-100">
+            <Button 
+              type="button" 
+              onClick={handleConfirmBank}
+              disabled={draftQuestions.length === 0}
+              variant="outline" 
+              className="w-full h-11 border-green-200 bg-green-50/50 text-green-700 hover:bg-green-100 hover:text-green-800 font-bold gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <CheckCircle2 size={18} />
+              Xác Nhận
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function MediaTab({ uploadVideoToBunny, setActiveUploads }) {
   const { setValue, watch, formState: { errors } } = useFormContext();
   const thumbnail = watch("thumbnail");
   const promoVideo = watch("promoVideo");
 
   return (
-    <div className="space-y-8 max-w-4xl mx-auto">
+    <div className="space-y-8 w-full">
       <div>
         <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2 mb-4">
           Hình Ảnh & Media
@@ -1230,7 +1551,7 @@ function MediaTab({ uploadVideoToBunny, setActiveUploads }) {
 
         <div className="space-y-3">
           <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1 text-center">
-            Video giới thiệu (Promo Video) (Nếu có)*
+            Video giới thiệu (Promo Video) (Nếu có)
           </label>
           <Controller
             name="promoVideo"
@@ -1267,7 +1588,7 @@ function PricingTab() {
   const finalPrice = price - (price * discount) / 100;
 
   return (
-    <div className="space-y-8 py-4">
+    <div className="space-y-8 py-4 w-full">
       <div>
         <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2 mb-4">
           Định giá & Cài đặt
@@ -1277,7 +1598,7 @@ function PricingTab() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="space-y-6">
           {/* Ô nhập giá gốc - Format TRỰC TIẾP */}
           <div className="space-y-2">
@@ -1469,11 +1790,11 @@ function CurriculumTab({ uploadVideoToBunny, setActiveUploads, fields, append, r
                 </div>
               </AccordionTrigger>
               <AccordionContent className="p-0 bg-white border-t border-slate-50">
-                <SectionItem 
-                  sectionIndex={sectionIdx} 
-                  control={control} 
-                  uploadVideoToBunny={uploadVideoToBunny} 
-                  setActiveUploads={setActiveUploads} 
+                <SectionItem
+                  sectionIndex={sectionIdx}
+                  control={control}
+                  uploadVideoToBunny={uploadVideoToBunny}
+                  setActiveUploads={setActiveUploads}
                 />
               </AccordionContent>
             </AccordionItem>
@@ -1488,6 +1809,34 @@ function CurriculumTab({ uploadVideoToBunny, setActiveUploads, fields, append, r
 // COMPONENT LESSON QUẢN LÝ ITEM CON
 // ------------------------------------------
 function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploads }) {
+  const [isQuizModalOpen, setIsQuizModalOpen] = React.useState(false);
+  const [quizTitle, setQuizTitle] = React.useState("");
+  const [selectedQuizQuestions, setSelectedQuizQuestions] = React.useState([]);
+
+  const handleSaveQuiz = () => {
+    if (!quizTitle.trim()) {
+      toast.error("Vui lòng nhập tên bài Quiz!");
+      return;
+    }
+    if (selectedQuizQuestions.length === 0) {
+      toast.warning("Vui lòng chọn ít nhất 1 câu hỏi từ Ngân hàng!");
+      return;
+    }
+    toast.success("Đã lưu bài Quiz thành công!");
+    setIsQuizModalOpen(false);
+  };
+
+  const handleCancelQuiz = () => {
+    if (quizTitle.trim() || selectedQuizQuestions.length > 0) {
+      if (window.confirm("Bạn có chắc chắn muốn hủy? Mọi thay đổi sẽ không được lưu.")) {
+        setIsQuizModalOpen(false);
+        setQuizTitle("");
+        setSelectedQuizQuestions([]);
+      }
+    } else {
+      setIsQuizModalOpen(false);
+    }
+  };
   const {
     register,
     setValue,
@@ -1495,7 +1844,7 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
     watch,
     formState: { errors },
   } = useFormContext();
-  
+
   const currentCourseStatus = watch("status") ?? 1;
   const currentSectionStatus = watch(`sections.${sectionIndex}.status`) ?? 1;
   const { fields, append, remove } = useFieldArray({
@@ -1529,33 +1878,44 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
           <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
-            Tài liệu đính kèm (PDF, ZIP,...) (Nếu có)*
+            Tài liệu đính kèm (PDF, ZIP,...) (Nếu có)
           </label>
-          <Controller
-            name={`sections.${sectionIndex}.attachments`}
-            control={control}
-            render={({ field }) => (
-              field.value && typeof field.value === "string" ? (
-                <div className="flex items-center gap-2 p-2 border border-green-200 rounded-md bg-green-50/50 h-10">
-                  <span className="text-xs text-green-700 font-bold flex-1 truncate">Đã có tài liệu</span>
-                  <a href={field.value} target="_blank" rel="noreferrer" className="text-xs text-blue-600 hover:underline px-2 border-r border-green-200">Xem file</a>
-                  <button
-                    type="button"
-                    className="text-xs font-bold text-red-500 hover:text-red-700 px-2"
-                    onClick={() => field.onChange(null)}
-                  >
-                    Đổi file khác
-                  </button>
-                </div>
-              ) : (
-                <Input
-                  type="file"
-                  className="h-10 text-xs pt-2 cursor-pointer w-full"
-                  onChange={(e) => field.onChange(e.target.files[0])}
-                />
-              )
-            )}
-          />
+          <div className="flex flex-col gap-3">
+            <Controller
+              name={`sections.${sectionIndex}.attachments`}
+              control={control}
+              render={({ field }) => (
+                field.value && typeof field.value === "string" ? (
+                  <div className="flex items-center gap-2 p-2 border border-green-200 rounded-md bg-green-50/50 h-10">
+                    <span className="text-xs text-green-700 font-bold flex-1 truncate">Đã có tài liệu</span>
+                    <a href={field.value} target="_blank" rel="noreferrer" className="text-xs text-blue-600 hover:underline px-2 border-r border-green-200">Xem file</a>
+                    <button
+                      type="button"
+                      className="text-xs font-bold text-red-500 hover:text-red-700 px-2"
+                      onClick={() => field.onChange(null)}
+                    >
+                      Đổi file khác
+                    </button>
+                  </div>
+                ) : (
+                  <Input
+                    type="file"
+                    className="h-10 text-xs pt-2 cursor-pointer w-full"
+                    onChange={(e) => field.onChange(e.target.files[0])}
+                  />
+                )
+              )}
+            />
+            <Button
+              type="button"
+              onClick={() => setIsQuizModalOpen(true)}
+              variant="outline"
+              className="w-full h-10 border-indigo-200 text-indigo-700 hover:bg-indigo-50 hover:text-indigo-800 font-bold gap-2 border-dashed"
+            >
+              <Database size={16} />
+              Tạo bài Quiz cho chương này
+            </Button>
+          </div>
         </div>
         <div className="space-y-2">
           <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
@@ -1565,10 +1925,10 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
             name={`sections.${sectionIndex}.status`}
             control={control}
             render={({ field }) => (
-              <Select 
+              <Select
                 onValueChange={(val) => {
                   const newStatus = Number(val);
-                  
+
                   // Ràng buộc Business: Nếu khóa học đang ẩn, không cho phép bật chương hoạt động
                   if (currentCourseStatus === 2 && newStatus === 1) {
                     toast.warning("Khóa học đang Ẩn, không thể bật trạng thái Hoạt động cho chương.");
@@ -1576,16 +1936,16 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
                   }
 
                   field.onChange(newStatus);
-                  
+
                   // Đồng bộ trạng thái từ Chương -> Bài học
                   const currentLessons = getValues(`sections.${sectionIndex}.lessons`) || [];
                   const updatedLessons = currentLessons.map(l => ({
                     ...l,
                     status: newStatus
                   }));
-                  
+
                   setValue(`sections.${sectionIndex}.lessons`, updatedLessons, { shouldDirty: true });
-                }} 
+                }}
                 value={(field.value ?? 1).toString()}
               >
                 <SelectTrigger className="h-10 border-slate-200 focus:border-green-500 font-medium bg-white">
@@ -1673,10 +2033,10 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
                       name={`sections.${sectionIndex}.lessons.${lessonIdx}.status`}
                       control={control}
                       render={({ field }) => (
-                        <Select 
+                        <Select
                           onValueChange={(val) => {
                             const newStatus = Number(val);
-                            
+
                             // Ràng buộc Business: Nếu chương đang ẩn, không cho phép bật bài học hoạt động
                             if (currentSectionStatus === 2 && newStatus === 1) {
                               toast.warning("Chương đang Ẩn, không thể bật trạng thái Hoạt động cho bài học.");
@@ -1684,7 +2044,7 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
                             }
 
                             field.onChange(newStatus);
-                          }} 
+                          }}
                           value={(field.value ?? 1).toString()}
                         >
                           <SelectTrigger className="h-9 border-slate-200 focus:border-green-500 font-medium bg-white text-xs">
@@ -1749,6 +2109,170 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
           {errors.sections[sectionIndex].lessons.root.message}
         </p>
       )}
+
+      {/* Quiz Modal */}
+      {isQuizModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-7xl max-h-[95vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+              <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                <Database className="w-5 h-5 text-indigo-500" />
+                Tạo Bài Quiz - Chương {sectionIndex + 1}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setIsQuizModalOpen(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-colors"
+              >
+                <Plus className="w-5 h-5 rotate-45" />
+              </button>
+            </div>
+
+            <div className="p-6 flex flex-col flex-1 overflow-hidden space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[580px] overflow-hidden">
+                {/* L Pane: Bài Quiz */}
+                <div className="flex flex-col gap-4 overflow-hidden h-full">
+                  <div className="space-y-2 shrink-0">
+                    <label className="block text-xs font-bold text-slate-600 uppercase tracking-widest pl-1">
+                      Tên bài Quiz <span className="text-red-500">*</span>
+                    </label>
+                    <Input 
+                      value={quizTitle}
+                      onChange={(e) => setQuizTitle(e.target.value)}
+                      placeholder="Ví dụ: Kiểm tra kiến thức chương" 
+                      className="h-11 border-slate-200 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 font-bold bg-white" 
+                    />
+                  </div>
+
+                  <div className="border border-slate-200 rounded-xl flex flex-col flex-1 overflow-hidden bg-white shadow-sm">
+                    <div className="bg-indigo-50/50 px-4 py-3 border-b border-indigo-100 flex items-center justify-between">
+                      <div>
+                        <span className="text-sm font-bold text-indigo-900 block">Nội dung bài Quiz</span>
+                        <span className="text-[11px] text-indigo-600 font-bold">{selectedQuizQuestions.length} câu hỏi được chọn</span>
+                      </div>
+                    </div>
+                    <div className="p-4 flex-1 overflow-y-auto custom-scrollbar bg-slate-50/50">
+                      {selectedQuizQuestions.length === 0 ? (
+                        <div className="h-full flex flex-col justify-center items-center text-slate-400 border-dashed border-2 border-slate-200 rounded-xl p-8 bg-white">
+                          <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mb-3">
+                            <ListOrdered className="w-6 h-6 text-slate-300" />
+                          </div>
+                          <p className="text-sm font-bold text-slate-600">Chưa có câu hỏi nào</p>
+                          <p className="text-xs mt-1 text-slate-400 text-center">Hãy tick chọn câu hỏi từ Ngân hàng bên phải và nhấn "Thêm vào Quiz".</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          {selectedQuizQuestions.map((q) => (
+                            <div key={q} className="border border-indigo-100 rounded-lg p-3 bg-white shadow-sm flex gap-3">
+                              <div className="pt-0.5">
+                                <div className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-[10px] font-bold">{q}</div>
+                              </div>
+                              <div className="flex-1">
+                                <p className="text-xs font-bold text-slate-700 leading-relaxed">Câu {q}: Khái niệm chính của tài liệu này là gì?</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* R Pane: Question Bank */}
+                <div className="flex flex-col h-full overflow-hidden">
+                  <div className="h-[24px] shrink-0"></div>
+                  <div className="border border-slate-200 rounded-xl flex flex-col flex-1 overflow-hidden bg-white shadow-sm">
+                  <div className="bg-slate-50 px-4 py-3 border-b border-slate-200 flex flex-col gap-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="text-sm font-bold text-slate-800 block">Ngân Hàng Câu Hỏi</span>
+                        <span className="text-[11px] text-slate-500 font-medium">Chọn câu hỏi để thêm</span>
+                      </div>
+                      <Button type="button" size="sm" className="h-8 px-4 text-xs font-bold gap-1 bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm">
+                        <Plus size={14} /> Thêm vào Quiz
+                      </Button>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="relative flex-1">
+                        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                        <Input placeholder="Tìm kiếm theo từ khóa..." className="pl-8 h-8 text-xs border-slate-200 bg-white focus:ring-indigo-500 focus:border-indigo-500" />
+                      </div>
+                      <Select defaultValue="all">
+                        <SelectTrigger className="w-[100px] h-8 border-slate-200 bg-white text-xs font-bold">
+                          <SelectValue placeholder="Độ khó" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white">
+                          <SelectItem value="all">Tất cả</SelectItem>
+                          <SelectItem value="easy">Dễ</SelectItem>
+                          <SelectItem value="medium">Trung bình</SelectItem>
+                          <SelectItem value="hard">Khó</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="p-3 flex-1 overflow-y-auto custom-scrollbar space-y-2">
+                    {[1, 2, 3, 4, 5].map((q) => (
+                      <div key={q} className="border border-slate-100 rounded-lg p-3 hover:border-indigo-200 transition-colors flex gap-3 cursor-pointer group bg-white">
+                        <div className="pt-0.5">
+                          <input 
+                            type="checkbox" 
+                            checked={selectedQuizQuestions.includes(q)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedQuizQuestions([...selectedQuizQuestions, q]);
+                              } else {
+                                setSelectedQuizQuestions(selectedQuizQuestions.filter(id => id !== q));
+                              }
+                            }}
+                            className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-600 cursor-pointer" 
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-xs font-bold text-slate-700 leading-relaxed">Câu {q}: Khái niệm chính của tài liệu này là gì và làm thế nào để ứng dụng?</p>
+
+                          <div className="mt-3 grid grid-cols-1 gap-2">
+                            <div className="flex items-start gap-2 px-2.5 py-1.5 rounded bg-slate-50 border border-slate-100">
+                              <span className="w-4 h-4 rounded bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-[9px] shrink-0 mt-0.5">A</span>
+                              <span className="text-[11px] text-slate-600">Khái niệm cơ bản và nền tảng</span>
+                            </div>
+                            <div className="flex items-start gap-2 px-2.5 py-1.5 rounded bg-emerald-50 border border-emerald-200">
+                              <span className="w-4 h-4 rounded bg-emerald-500 text-white flex items-center justify-center font-bold text-[9px] shrink-0 mt-0.5"><Check size={10} strokeWidth={3} /></span>
+                              <span className="text-[11px] text-emerald-700 font-bold">Cách áp dụng vào thực tế</span>
+                            </div>
+                            <div className="flex items-start gap-2 px-2.5 py-1.5 rounded bg-slate-50 border border-slate-100">
+                              <span className="w-4 h-4 rounded bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-[9px] shrink-0 mt-0.5">C</span>
+                              <span className="text-[11px] text-slate-600">Lịch sử hình thành và phát triển</span>
+                            </div>
+                            <div className="flex items-start gap-2 px-2.5 py-1.5 rounded bg-slate-50 border border-slate-100">
+                              <span className="w-4 h-4 rounded bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-[9px] shrink-0 mt-0.5">D</span>
+                              <span className="text-[11px] text-slate-600">Tất cả các phương án trên đều sai</span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 mt-3">
+                            <span className="text-[10px] text-indigo-600 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded font-bold">Trung bình</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex justify-end gap-3">
+              <Button type="button" variant="outline" onClick={handleCancelQuiz} className="h-11 px-6 font-bold border-slate-200 hover:bg-slate-100 text-slate-600">
+                Hủy
+              </Button>
+              <Button type="button" onClick={handleSaveQuiz} className="h-11 px-8 font-bold bg-indigo-600 hover:bg-indigo-700 text-white gap-2 shadow-md shadow-indigo-100">
+                <Save size={16} />
+                Lưu Bài Quiz
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1801,7 +2325,7 @@ function BackgroundVideoUploader({ label, value, onChange, onUploadStart, onUplo
   React.useEffect(() => {
     // Đăng ký callback để nhận cập nhật tiến trình mới nhất
     uploadCallbacks[id] = (pct) => setLocalProgress(pct);
-    
+
     // Nếu đang có tiến trình chạy ngầm, lấy giá trị hiện tại ngay lập tức
     if (globalUploadProgress[id] !== undefined) {
       setLocalProgress(globalUploadProgress[id]);
@@ -1818,7 +2342,7 @@ function BackgroundVideoUploader({ label, value, onChange, onUploadStart, onUplo
 
     try {
       onChange(file);
-      
+
       setIsUploading(true);
       setError(null);
       setLocalProgress(0);

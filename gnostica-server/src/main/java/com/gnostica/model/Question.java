@@ -8,6 +8,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
@@ -18,6 +19,7 @@ public class Question {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @NotBlank(message = "Nội dung câu hỏi không được để trống")
     @Column(columnDefinition = "TEXT")
     private String content;
 
@@ -26,4 +28,8 @@ public class Question {
     @ManyToOne
     @JoinColumn(name = "source_file_id") // Quan hệ với SourceFiles trong ERD
     private SourceFile sourceFile;
+
+    @ManyToOne
+    @JoinColumn(name = "course_id")
+    private Course course;
 }
