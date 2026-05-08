@@ -46,4 +46,6 @@ public class CourseRequest {
     @Valid
     @NotEmpty(message = "Cần có ít nhất 1 chương học")
     private List<ModuleRequest> sections;
+
+    private List<com.gnostica.dto.response.QuestionDto> questionBank;
 }

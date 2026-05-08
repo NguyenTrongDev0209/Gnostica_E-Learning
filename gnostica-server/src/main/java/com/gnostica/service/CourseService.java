@@ -27,6 +27,8 @@ public class CourseService {
     private final CategoryRepository categoryRepository;
     private final AccountRepository accountRepository;
     private final DraftCourseService draftCourseService;
+    private final QuizService quizService;
+    private final QuestionBankService questionBankService;
 
     @Transactional
     public Course createCourse(CourseRequest request, String email) {
@@ -112,6 +114,38 @@ public class CourseService {
 
         // 4. Save and return
         Course savedCourse = courseRepository.save(course);
+
+        // Save question bank first and get ID mapping
+        java.util.Map<Integer, Integer> questionIdMap = new java.util.HashMap<>();
+        if (request.getQuestionBank() != null) {
+            questionIdMap = questionBankService.saveQuestionBankAndGetMap(savedCourse, request.getQuestionBank());
+        }
+
+        // Save associated quizzes for each module
+        if (request.getSections() != null && savedCourse.getModules() != null) {
+            for (int i = 0; i < request.getSections().size(); i++) {
+                if (i < savedCourse.getModules().size()) {
+                    ModuleRequest mReq = request.getSections().get(i);
+                    Module savedModule = savedCourse.getModules().get(i);
+                    if (mReq.getQuiz() != null) {
+                        List<Integer> originalQuestionIds = mReq.getQuiz().getQuestionIds();
+                        List<Integer> realQuestionIds = new ArrayList<>();
+                        if (originalQuestionIds != null) {
+                            for (Integer origId : originalQuestionIds) {
+                                Integer realId = questionIdMap.get(origId);
+                                if (realId != null) {
+                                    realQuestionIds.add(realId);
+                                } else {
+                                    realQuestionIds.add(origId);
+                                }
+                            }
+                        }
+                        mReq.getQuiz().setQuestionIds(realQuestionIds);
+                        quizService.saveQuizForModule(savedModule, mReq.getQuiz());
+                    }
+                }
+            }
+        }
 
         // 5. Clear Redis Draft
         draftCourseService.deleteDraft(email, null); // "new" draft
@@ -337,6 +371,48 @@ public class CourseService {
         }
 
         Course updatedCourse = courseRepository.save(course);
+
+        // Save question bank first and get ID mapping
+        java.util.Map<Integer, Integer> questionIdMap = new java.util.HashMap<>();
+        if (request.getQuestionBank() != null) {
+            questionIdMap = questionBankService.saveQuestionBankAndGetMap(updatedCourse, request.getQuestionBank());
+        }
+
+        // Save associated quizzes for each module in update
+        if (requestedSections != null && updatedCourse.getModules() != null) {
+            for (ModuleRequest mReq : requestedSections) {
+                Module savedModule = null;
+                if (mReq.getId() != null) {
+                    savedModule = updatedCourse.getModules().stream()
+                            .filter(m -> m.getId().equals(mReq.getId()))
+                            .findFirst()
+                            .orElse(null);
+                } else {
+                    // Match by title for new modules
+                    savedModule = updatedCourse.getModules().stream()
+                            .filter(m -> m.getTitle().equals(mReq.getTitle()))
+                            .findFirst()
+                            .orElse(null);
+                }
+
+                if (savedModule != null && mReq.getQuiz() != null) {
+                    List<Integer> originalQuestionIds = mReq.getQuiz().getQuestionIds();
+                    List<Integer> realQuestionIds = new ArrayList<>();
+                    if (originalQuestionIds != null) {
+                        for (Integer origId : originalQuestionIds) {
+                            Integer realId = questionIdMap.get(origId);
+                            if (realId != null) {
+                                realQuestionIds.add(realId);
+                            } else {
+                                realQuestionIds.add(origId);
+                            }
+                        }
+                    }
+                    mReq.getQuiz().setQuestionIds(realQuestionIds);
+                    quizService.saveQuizForModule(savedModule, mReq.getQuiz());
+                }
+            }
+        }
 
         // 4. Clear Redis Draft
         draftCourseService.deleteDraft(email, updatedCourse.getId().toString());

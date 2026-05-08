@@ -23,7 +23,11 @@ public class Question {
     @Column(columnDefinition = "TEXT")
     private String content;
 
-    private Integer level;
+    @Column(length = 20)
+    private String level;
+
+    @Column(columnDefinition = "TEXT")
+    private String explanation;
 
     @ManyToOne
     @JoinColumn(name = "source_file_id") // Quan hệ với SourceFiles trong ERD

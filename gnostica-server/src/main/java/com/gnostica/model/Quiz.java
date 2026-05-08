@@ -25,6 +25,10 @@ public class Quiz {
     @NotBlank(message = "Tên bài Quiz không được để trống")
     private String title;
 
+    private Integer duration; // Thời gian làm bài tối đa (phút)
+    private Double passingScore; // Điểm tối thiểu để đạt
+    private Integer maxAttempts; // Số lần làm bài tối đa
+
     @ManyToOne
     @JoinColumn(name = "module_id")
     private Module module;
