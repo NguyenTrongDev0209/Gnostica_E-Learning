@@ -130,6 +130,43 @@ const markLessonCompleted = async (lessonId) => {
     }
 };
 
+const generateAiQuestions = async (courseId, file, count, level) => {
+    const idToUse = courseId || 0;
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('count', count);
+    formData.append('level', level);
+
+    const response = await axios.post(`http://localhost:8080/api/instructor/courses/${idToUse}/questions/ai-generate`, formData, {
+        headers: {
+            ...getAuthHeaders(),
+            'Content-Type': 'multipart/form-data'
+        }
+    });
+    return response.data;
+};
+
+const saveDraftQuestions = async (courseId, questions) => {
+    const response = await axios.post(`http://localhost:8080/api/instructor/courses/${courseId}/questions/drafts`, questions, {
+        headers: getAuthHeaders()
+    });
+    return response.data;
+};
+
+const getDraftQuestions = async (courseId) => {
+    const response = await axios.get(`http://localhost:8080/api/instructor/courses/${courseId}/questions/drafts`, {
+        headers: getAuthHeaders()
+    });
+    return response.data;
+};
+
+const saveQuestionBank = async (courseId, questions) => {
+    const response = await axios.put(`http://localhost:8080/api/instructor/courses/${courseId}/questions`, questions, {
+        headers: getAuthHeaders()
+    });
+    return response.data;
+};
+
 const courseService = {
     getPublicCourses,
     createCourse,
@@ -143,7 +180,11 @@ const courseService = {
     deleteDraft,
     getCourseProgress,
     updateLastWatchedTime,
-    markLessonCompleted
+    markLessonCompleted,
+    generateAiQuestions,
+    saveDraftQuestions,
+    getDraftQuestions,
+    saveQuestionBank
 };
 
 export default courseService;
