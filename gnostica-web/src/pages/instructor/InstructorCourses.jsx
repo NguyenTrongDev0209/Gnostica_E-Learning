@@ -12,7 +12,12 @@ import {
   Loader2,
   Trash2,
   Eye,
-  EyeOff
+  EyeOff,
+  Pencil,
+  MessageSquareWarning,
+  XCircle,
+  AlertCircle,
+  Tag,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -25,8 +30,26 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import courseService from "@/services/courseService";
 import { toast } from "sonner";
+import categoryService from "@/services/categoryService";
 
 export default function InstructorCourses() {
   const navigate = useNavigate();
@@ -38,7 +61,57 @@ export default function InstructorCourses() {
     handleToggleStatus,
     handleDelete: performDelete,
     handleDeleteDraft: performDeleteDraft,
+    filters,
+    setFilters
   } = useInstructorCourses(10);
+
+  // Local states for UI controls
+  const [categories, setCategories] = useState([]);
+  const [localSearch, setLocalSearch] = useState("");
+  
+  // 1. Load Categories for Dropdown
+  useEffect(() => {
+    categoryService.getAllCategories(1, 1000, "", "active")
+      .then((res) => {
+        const catList = res?.data?.content || [];
+        // Simple mapping to build standard flattened tree for clean single-select dropdowns
+        const flattened = [];
+        const parents = catList.filter(c => !c.parent);
+        
+        parents.forEach(p => {
+          flattened.push({ id: p.id, name: p.name, isParent: true });
+          const children = catList.filter(c => c.parent && c.parent.id === p.id);
+          children.forEach(c => {
+            flattened.push({ id: c.id, name: `↳ ${c.name}`, isParent: false });
+          });
+        });
+        setCategories(flattened);
+      })
+      .catch(err => console.error("Error loading filter cats", err));
+  }, []);
+
+  // 2. Debounce Search Mechanism
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setFilters(prev => ({...prev, search: localSearch}));
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [localSearch, setFilters]);
+
+  // State logic to view rejection details
+  const [rejectViewModal, setRejectViewModal] = useState({
+    isOpen: false,
+    courseTitle: "",
+    reason: "",
+  });
+
+  const handleOpenRejectReason = (course) => {
+    setRejectViewModal({
+      isOpen: true,
+      courseTitle: course.title,
+      reason: course.rejectReason || "Không có nội dung lý do chi tiết đính kèm.",
+    });
+  };
 
   const handleDeleteDraft = async (course) => {
     await performDeleteDraft(course);
@@ -83,20 +156,67 @@ export default function InstructorCourses() {
 
       {/* Filters & Actions */}
       <Card className="border-slate-200 shadow-sm">
-        <CardContent className="p-4 flex flex-col md:flex-row gap-4 items-center justify-between">
-          <div className="flex w-full md:w-auto items-center gap-3">
-            <div className="relative w-full md:w-80 border-slate-200">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <Input
-                placeholder="Tìm khóa học theo tên..."
-                className="pl-9 h-10 border-slate-200 focus:bg-white focus:border-green-500 focus:ring-green-500/20"
-              />
-            </div>
-          </div>
+        <CardContent className="p-4">
+           <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+              {/* 1. TÌM THEO TÊN - BÊN TRÁI */}
+              <div className="relative w-full md:w-[320px] border-slate-200">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Input
+                  placeholder="Tìm khóa học theo tên..."
+                  value={localSearch}
+                  onChange={(e) => setLocalSearch(e.target.value)}
+                  className="pl-9 h-10 border-slate-200 focus:bg-white focus:border-green-500 focus:ring-green-500/20"
+                />
+              </div>
 
-          <div className="flex text-sm font-medium text-slate-500 bg-slate-100 p-1 rounded-lg">
-            <button className="px-3 py-1.5 rounded-md bg-white text-slate-900 shadow-sm">Tất cả ({pagination.totalElements})</button>
-          </div>
+              {/* BỘ LỌC GOM QUA BÊN PHẢI */}
+              <div className="flex flex-col sm:flex-row gap-3 items-center w-full md:w-auto">
+                 {/* 2. LỌC DANH MỤC 2 CẤP */}
+                 <div className="w-full sm:w-[220px]">
+                    <Select 
+                      value={filters.categoryId ? String(filters.categoryId) : "all"} 
+                      onValueChange={(val) => setFilters(prev => ({...prev, categoryId: val === "all" ? null : Number(val)}))}
+                    >
+                       <SelectTrigger className="h-10 border-slate-200 focus:ring-green-500/20">
+                          <div className="flex items-center gap-2 truncate">
+                            <Tag className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                            <SelectValue placeholder="Tất cả danh mục" />
+                          </div>
+                       </SelectTrigger>
+                       <SelectContent className="max-h-[300px]">
+                          <SelectItem value="all" className="font-bold">Tất cả danh mục</SelectItem>
+                          {categories.map(cat => (
+                             <SelectItem 
+                               key={cat.id} 
+                               value={String(cat.id)}
+                               className={cat.isParent ? "font-extrabold bg-slate-50/50" : "pl-6 font-medium"}
+                             >
+                               {cat.name}
+                             </SelectItem>
+                          ))}
+                       </SelectContent>
+                    </Select>
+                 </div>
+
+                 {/* 3. LỌC TRẠNG THÁI */}
+                 <div className="w-full sm:w-[180px]">
+                    <Select 
+                      value={filters.status !== "" ? String(filters.status) : "all"} 
+                      onValueChange={(val) => setFilters(prev => ({...prev, status: val === "all" ? "" : Number(val)}))}
+                    >
+                       <SelectTrigger className="h-10 border-slate-200 focus:ring-green-500/20">
+                          <SelectValue placeholder="Tất cả trạng thái" />
+                       </SelectTrigger>
+                       <SelectContent>
+                          <SelectItem value="all" className="font-bold">Tất cả trạng thái</SelectItem>
+                          <SelectItem value="1">Đang bán (Hiển thị)</SelectItem>
+                          <SelectItem value="2">Ẩn</SelectItem>
+                          <SelectItem value="3">Bị từ chối</SelectItem>
+                       </SelectContent>
+                    </Select>
+                 </div>
+              </div>
+           </div>
         </CardContent>
       </Card>
 
@@ -108,7 +228,7 @@ export default function InstructorCourses() {
               <TableRow>
                 <TableHead className="py-4 font-semibold text-slate-700">Khóa học</TableHead>
                 <TableHead className="py-4 font-semibold text-slate-700">Giá và Trạng thái</TableHead>
-                <TableHead className="py-4 font-semibold text-slate-700 text-center">Nội dung</TableHead>
+                <TableHead className="py-4 font-semibold text-slate-700 text-center">Danh mục</TableHead>
                 <TableHead className="py-4 font-semibold text-slate-700 text-center">Thống kê</TableHead>
                 <TableHead className="py-4 font-semibold text-slate-700 text-center w-[120px]">Trạng thái</TableHead>
                 <TableHead className="py-4 font-semibold text-slate-700 text-right">Thao tác</TableHead>
@@ -209,6 +329,10 @@ export default function InstructorCourses() {
                                 <span className="inline-flex items-center gap-1 text-[10px] text-green-600 font-bold bg-green-50 px-1.5 py-0 rounded border border-green-200">
                                   Đang bán
                                 </span>
+                              ) : course.status === 3 || course.status === "rejected" ? (
+                                <span className="inline-flex items-center gap-1 text-[10px] text-rose-600 font-bold bg-rose-50 px-1.5 py-0 rounded border border-rose-200">
+                                  Bị từ chối
+                                </span>
                               ) : (
                                 <span className="inline-flex items-center gap-1 text-[10px] text-slate-600 font-bold bg-slate-100 px-1.5 py-0 rounded border border-slate-200">
                                   Ẩn
@@ -229,9 +353,9 @@ export default function InstructorCourses() {
                       {course.isVirtualDraft ? (
                         <span className="text-slate-300 text-sm">—</span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 font-bold text-slate-700 bg-slate-100 px-2 py-1 rounded-md text-xs border border-slate-200">
-                          <PlayCircle className="w-3.5 h-3.5 text-slate-500" />
-                          {course.modules?.length || 0} chương học
+                        <span className="inline-flex items-center gap-1.5 font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full text-xs border border-indigo-100">
+                          <Tag className="w-3 h-3" />
+                          {course.categoryName || "Chưa phân loại"}
                         </span>
                       )}
                     </TableCell>
@@ -271,13 +395,26 @@ export default function InstructorCourses() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end items-center gap-3">
+                        {(course.status === 3 || course.status === "rejected" || course.rejectReason) && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-9 w-9 bg-amber-50 text-amber-600 hover:bg-amber-100 hover:text-amber-700 rounded-lg transition-all"
+                            title="Xem lý do từ chối"
+                            onClick={() => handleOpenRejectReason(course)}
+                          >
+                            <MessageSquareWarning className="w-4.5 h-4.5" />
+                          </Button>
+                        )}
+
                         <Button
                           variant="ghost"
-                          size="sm"
-                          className="h-9 px-5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 hover:text-indigo-800 font-bold rounded-lg transition-all"
+                          size="icon"
+                          className="h-9 w-9 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 hover:text-indigo-800 rounded-lg transition-all"
                           onClick={() => handleEdit(course)}
+                          title="Chỉnh sửa"
                         >
-                          Chỉnh sửa
+                          <Pencil className="w-4 h-4" />
                         </Button>
 
                         <Button
@@ -343,6 +480,52 @@ export default function InstructorCourses() {
           </div>
         </div>
       </Card>
+
+      {/* REJECTION REASON VIEWER MODAL */}
+      <Dialog 
+        open={rejectViewModal.isOpen} 
+        onOpenChange={(open) => setRejectViewModal(prev => ({...prev, isOpen: open}))}
+      >
+        <DialogContent className="sm:!max-w-[450px] p-0 overflow-hidden border-none shadow-2xl bg-white">
+          <DialogHeader className="p-6 pb-4 bg-slate-50/50 border-b border-slate-100 text-left sm:text-left flex flex-row items-start gap-4 space-y-0">
+            <div className="w-12 h-12 shrink-0 rounded-full bg-rose-100 flex items-center justify-center text-rose-600">
+              <XCircle className="w-6 h-6" />
+            </div>
+            <div className="space-y-1">
+              <DialogTitle className="text-lg font-extrabold text-slate-900 tracking-tight leading-tight">
+                Lý do từ chối kiểm duyệt
+              </DialogTitle>
+              <DialogDescription className="text-slate-500 text-sm font-medium leading-tight">
+                Khóa học: <span className="font-bold text-slate-800">"{rejectViewModal.courseTitle}"</span>
+              </DialogDescription>
+            </div>
+          </DialogHeader>
+          
+          <div className="p-6">
+             <div className="p-4 bg-rose-50/30 border border-rose-100 rounded-xl relative">
+                <AlertCircle className="absolute top-3 right-3 w-4 h-4 text-rose-300" />
+                <p className="text-xs font-bold text-rose-600 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                   Nội dung phản hồi từ Quản trị viên
+                </p>
+                <p className="text-slate-700 font-medium text-[15px] leading-relaxed italic whitespace-pre-wrap">
+                   "{rejectViewModal.reason}"
+                </p>
+             </div>
+             <p className="mt-4 text-xs text-slate-500 font-medium flex items-start gap-1.5 leading-relaxed">
+                <span className="shrink-0">💡</span> Vui lòng bấm nút "Chỉnh sửa" trên danh sách, cập nhật lại nội dung theo yêu cầu và lưu nháp để gửi yêu cầu kiểm duyệt lại.
+             </p>
+          </div>
+
+          <DialogFooter className="p-4 bg-slate-50 border-t border-slate-100">
+             <Button 
+               onClick={() => setRejectViewModal(prev => ({...prev, isOpen: false}))}
+               className="w-full font-bold bg-slate-900 hover:bg-slate-800 text-white"
+             >
+               Đã hiểu
+             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

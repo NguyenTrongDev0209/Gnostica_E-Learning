@@ -51,4 +51,7 @@ public class Module {
     @NotEmpty(message = "Chương này phải có ít nhất 1 bài học")
     @OneToMany(mappedBy = "module", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Lesson> lessons;
+
+    @OneToOne(mappedBy = "module", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Quiz quiz;
 }

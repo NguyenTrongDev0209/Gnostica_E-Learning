@@ -32,9 +32,14 @@ const getAllCourses = async (page = 0, size = 10) => {
     return response.data;
 };
 
-const getInstructorCourses = async (page = 0, size = 10) => {
+const getInstructorCourses = async (page = 0, size = 10, search = "", categoryId = null, status = null) => {
+    const params = { page, size };
+    if (search && search.trim() !== "") params.search = search.trim();
+    if (categoryId) params.categoryId = categoryId;
+    if (status !== null && status !== undefined && status !== "") params.status = status;
+
     const response = await axios.get(`${API_URL}/instructor`, {
-        params: { page, size },
+        params,
         headers: getAuthHeaders()
     });
     return response.data;
@@ -130,6 +135,30 @@ const markLessonCompleted = async (lessonId) => {
     }
 };
 
+const submitQuizResult = async (quizId, payload) => {
+    try {
+        const response = await axios.post(`${PROGRESS_API_URL}/quiz/${quizId}/submit`, payload, {
+            headers: getAuthHeaders()
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error submitting quiz result:', error);
+        throw error;
+    }
+};
+
+const resetQuizResult = async (quizId) => {
+    try {
+        const response = await axios.post(`${PROGRESS_API_URL}/quiz/${quizId}/reset`, {}, {
+            headers: getAuthHeaders()
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error resetting quiz result:', error);
+        throw error;
+    }
+};
+
 const generateAiQuestions = async (courseId, file, count, level) => {
     const idToUse = courseId || 0;
     const formData = new FormData();
@@ -181,6 +210,8 @@ const courseService = {
     getCourseProgress,
     updateLastWatchedTime,
     markLessonCompleted,
+    submitQuizResult,
+    resetQuizResult,
     generateAiQuestions,
     saveDraftQuestions,
     getDraftQuestions,

@@ -7,9 +7,12 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Data;
+import java.util.List;
 
 @Data
 @Entity
@@ -28,11 +31,17 @@ public class Question {
 
     @Column(columnDefinition = "TEXT")
     private String explanation;
-
+    
+    @JsonManagedReference(value = "question-answers")
+    @OneToMany(mappedBy = "question", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    private List<Answer> answers;
+    
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "source_file_id") // Quan hệ với SourceFiles trong ERD
     private SourceFile sourceFile;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "course_id")
     private Course course;

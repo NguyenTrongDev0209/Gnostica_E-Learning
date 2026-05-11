@@ -94,12 +94,15 @@ public class CourseController {
 
     @GetMapping("/instructor")
     public ResponseEntity<?> getInstructorCourses(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) Integer categoryId,
+            @RequestParam(required = false) Integer status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             Authentication authentication
     ) {
         String email = authentication.getName();
-        return ResponseEntity.ok(courseService.getInstructorCourses(email, page, size));
+        return ResponseEntity.ok(courseService.getInstructorCourses(email, search, categoryId, status, page, size));
     }
 
     @PatchMapping("/{id}/status")

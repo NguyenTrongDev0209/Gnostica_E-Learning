@@ -17,7 +17,8 @@ import {
   MessageCircleWarning,
   LayoutList,
   Building2,
-  History
+  History,
+  ShieldCheck
 } from "lucide-react";
 
 import { AppLogo } from "@/components/common/AppButton";
@@ -36,6 +37,12 @@ const ADMIN_MENU_GROUPS = [
       { label: "Khóa học", icon: BookOpen, href: "/admin/courses" },
       { label: "Danh mục", icon: LayoutList, href: "/admin/categories" },
       { label: "Danh mục diễn đàn", icon: MessageSquare, href: "/admin/forum-categories" },
+    ]
+  },
+  {
+    title: "KIỂM DUYỆT",
+    items: [
+      { label: "Kiểm duyệt khóa học", icon: ShieldCheck, href: "/admin/course-moderation" },
     ]
   },
   {
