@@ -16,6 +16,7 @@ import java.util.Map;
 public class LessonProgressController {
 
     private final LessonProgressService lessonProgressService;
+    private final com.gnostica.service.QuizResultService quizResultService; // Inject Quiz service
 
     @GetMapping("/course/{slug}")
     public ResponseEntity<?> getCourseProgress(
@@ -59,6 +60,42 @@ public class LessonProgressController {
         try {
             lessonProgressService.markLessonAsCompleted(lessonId, email);
             return ResponseEntity.ok(Map.of("message", "Đã đánh dấu hoàn thành bài học"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    // ── Endpoint Mới: Submit & Reset Quiz Results ──
+    @PostMapping("/quiz/{quizId}/submit")
+    public ResponseEntity<?> submitQuizResult(
+            @PathVariable Integer quizId,
+            @RequestBody com.gnostica.dto.request.QuizSubmitRequest req,
+            Authentication authentication
+    ) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).body(Map.of("error", "Vui lòng đăng nhập để lưu điểm bài tập"));
+        }
+        String email = authentication.getName();
+        try {
+            quizResultService.submitQuizResult(quizId, email, req);
+            return ResponseEntity.ok(Map.of("message", "Đã lưu kết quả bài tập"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/quiz/{quizId}/reset")
+    public ResponseEntity<?> resetQuizResult(
+            @PathVariable Integer quizId,
+            Authentication authentication
+    ) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).body(Map.of("error", "Vui lòng đăng nhập để thực hiện"));
+        }
+        String email = authentication.getName();
+        try {
+            quizResultService.resetQuizResult(quizId, email);
+            return ResponseEntity.ok(Map.of("message", "Đã đặt lại bài tập (cho phép làm lại)"));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }

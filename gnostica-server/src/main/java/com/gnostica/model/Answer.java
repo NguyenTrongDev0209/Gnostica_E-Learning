@@ -9,6 +9,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.Data;
 
 @Data
@@ -24,6 +25,7 @@ public class Answer {
     @Column(length = 1)
     private String optionLabel; // Lưu nhãn "A", "B", "C", "D"
 
+    @JsonBackReference(value = "question-answers")
     @ManyToOne
     @JoinColumn(name = "question_id")
     private Question question;

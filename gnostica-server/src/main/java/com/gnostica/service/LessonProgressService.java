@@ -23,6 +23,7 @@ public class LessonProgressService {
     private final LessonRepository lessonRepository;
     private final AccountRepository accountRepository;
     private final EnrollmentService enrollmentService;
+    private final com.gnostica.repository.QuizResultRepository quizResultRepository; // Inject Quiz Repo
 
     @Transactional
     public void markLessonAsCompleted(Integer lessonId, String email) {
@@ -73,11 +74,12 @@ public class LessonProgressService {
     }
 
     @Transactional(readOnly = true)
-    public List<LessonProgressDTO> getCourseProgressBySlug(String slug, String email) {
+    public com.gnostica.dto.response.CourseProgressResponse getCourseProgressBySlug(String slug, String email) {
         Account account = accountRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại"));
 
-        return lessonProgressRepository.findAll().stream()
+        // 1. Lấy Tiến trình Video
+        List<LessonProgressDTO> lessons = lessonProgressRepository.findAll().stream()
                 .filter(lp -> lp.getAccount().getId().equals(account.getId()) 
                            && lp.getLesson().getModule().getCourse().getSlug().equals(slug))
                 .map(lp -> LessonProgressDTO.builder()
@@ -87,6 +89,27 @@ public class LessonProgressService {
                         .updatedAt(lp.getUpdatedAt())
                         .build())
                 .collect(Collectors.toList());
+
+        // 2. Lấy Kết quả Quiz
+        List<com.gnostica.dto.response.QuizResultDTO> quizzes = quizResultRepository.findByAccount(account).stream()
+                .filter(qr -> qr.getQuiz() != null 
+                           && qr.getQuiz().getModule() != null 
+                           && qr.getQuiz().getModule().getCourse() != null
+                           && qr.getQuiz().getModule().getCourse().getSlug().equals(slug))
+                .map(qr -> com.gnostica.dto.response.QuizResultDTO.builder()
+                        .quizId(qr.getQuiz().getId())
+                        .point(qr.getPoint())
+                        .totalQuestions(qr.getTotalQuestions())
+                        .correctAnswers(qr.getCorrectAnswers())
+                        .completedAt(qr.getCompletedAt())
+                        .build())
+                .collect(Collectors.toList());
+
+        // Trả về object gộp
+        return com.gnostica.dto.response.CourseProgressResponse.builder()
+                .lessons(lessons)
+                .quizzes(quizzes)
+                .build();
     }
 
     @Transactional(readOnly = true)

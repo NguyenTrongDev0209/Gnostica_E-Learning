@@ -36,9 +36,7 @@ public class QuizService {
                 });
 
         quiz.setTitle(quizReq.getTitle());
-        quiz.setDuration(quizReq.getDuration() != null ? quizReq.getDuration() : 15);
-        quiz.setPassingScore(quizReq.getPassingScore() != null ? quizReq.getPassingScore() : 8.0);
-        quiz.setMaxAttempts(quizReq.getMaxAttempts() != null ? quizReq.getMaxAttempts() : 3);
+
 
         Quiz savedQuiz = quizRepository.save(quiz);
 

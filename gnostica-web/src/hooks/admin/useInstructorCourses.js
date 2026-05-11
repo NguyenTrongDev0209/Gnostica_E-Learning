@@ -16,10 +16,23 @@ export default function useInstructorCourses(pageSize = 10) {
     size: pageSize
   });
 
+  // Store filter states to survive component render cycles and share seamlessly
+  const [filters, setFilters] = useState({
+    search: "",
+    categoryId: null,
+    status: "" // Use empty string for all, numeric/string for specific
+  });
+
   const fetchCourses = async (page = 0) => {
     try {
       setLoading(true);
-      const response = await courseService.getInstructorCourses(page, pagination.size);
+      const response = await courseService.getInstructorCourses(
+        page, 
+        pagination.size, 
+        filters.search, 
+        filters.categoryId, 
+        filters.status
+      );
       const draftsRaw = await courseService.getAllDrafts();
       
       const dbData = (response && response.data !== undefined && response.error !== undefined) 
@@ -72,7 +85,7 @@ export default function useInstructorCourses(pageSize = 10) {
 
   useEffect(() => {
     fetchCourses(0);
-  }, []);
+  }, [filters]); // Re-trigger fetch when filters change
 
   const handleToggleStatus = async (courseId, currentStatus) => {
     try {
@@ -140,6 +153,8 @@ export default function useInstructorCourses(pageSize = 10) {
     fetchCourses,
     handleToggleStatus,
     handleDelete,
-    handleDeleteDraft
+    handleDeleteDraft,
+    filters,
+    setFilters
   };
 }

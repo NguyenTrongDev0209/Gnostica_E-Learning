@@ -178,6 +178,18 @@ public class CourseService {
         if (!isOwner && !isEnrolled && (course.getStatus() != 1 || Boolean.TRUE.equals(course.getDeleted()))) {
             throw new RuntimeException("Khóa học hiện không khả dụng");
         }
+        
+        // Tuyệt chiêu bảo vệ dữ liệu:
+        // CHỈ CÓ Học viên đã mua (isEnrolled = true) mới thấy được module/lesson bị xóa mềm.
+        // Khách vãng lai VÀ Giảng viên (khi vào edit) sẽ không thấy các mục đã xóa nữa.
+        if (!isEnrolled && course.getModules() != null) {
+            course.getModules().removeIf(m -> Boolean.TRUE.equals(m.getDeleted()));
+            for (Module m : course.getModules()) {
+                if (m.getLessons() != null) {
+                    m.getLessons().removeIf(l -> Boolean.TRUE.equals(l.getDeleted()));
+                }
+            }
+        }
 
         // Tuy nhiên, các Module hoặc Lesson bị ẩn (status = 2) vẫn phải lọc bỏ
         // trừ khi là chủ sở hữu (Instructor) hoặc học viên đã mua khóa học muốn xem
@@ -257,12 +269,15 @@ public class CourseService {
         List<Module> currentModules = course.getModules();
         List<ModuleRequest> requestedSections = request.getSections();
 
-        // Remove modules not in request
+        // CHUYỂN SANG XÓA MỀM: Không clear() hay removeIf() nữa vì orphanRemoval sẽ xóa sạch DB.
         if (requestedSections == null) {
-            currentModules.clear();
+            currentModules.forEach(m -> m.setDeleted(true));
         } else {
-            currentModules.removeIf(existingModule -> requestedSections.stream()
-                    .noneMatch(req -> req.getId() != null && req.getId().equals(existingModule.getId())));
+            // Lọc các Module đang tồn tại trong DB nhưng KHÔNG nằm trong danh sách gửi lên -> Đánh dấu Deleted
+            currentModules.stream()
+                    .filter(existingModule -> existingModule.getId() != null && requestedSections.stream()
+                            .noneMatch(req -> req.getId() != null && req.getId().equals(existingModule.getId())))
+                    .forEach(m -> m.setDeleted(true));
 
             for (ModuleRequest mReq : requestedSections) {
                 Module module;
@@ -315,12 +330,14 @@ public class CourseService {
                 final List<Lesson> currentLessons = module.getLessons();
 
                 List<LessonRequest> requestedLessons = mReq.getLessons();
+                // Tương tự với Lesson: Chuyển sang XÓA MỀM cho từng lesson con
                 if (requestedLessons == null) {
-                    currentLessons.clear();
+                    currentLessons.forEach(l -> l.setDeleted(true));
                 } else {
-                    // Remove lessons not in request
-                    currentLessons.removeIf(existingLesson -> requestedLessons.stream()
-                            .noneMatch(req -> req.getId() != null && req.getId().equals(existingLesson.getId())));
+                    currentLessons.stream()
+                            .filter(existingLesson -> existingLesson.getId() != null && requestedLessons.stream()
+                                    .noneMatch(req -> req.getId() != null && req.getId().equals(existingLesson.getId())))
+                            .forEach(l -> l.setDeleted(true));
 
                     for (LessonRequest lReq : requestedLessons) {
                         Lesson lesson;
@@ -363,8 +380,14 @@ public class CourseService {
 
         // Explicit validation to clearly inform the user WHICH module is causing the
         // issue
+        // Xác thực dữ liệu: Bắt buộc mỗi chương (không bị xóa) phải có ít nhất 1 bài học (không bị xóa).
         for (Module m : course.getModules()) {
-            if (m.getLessons() == null || m.getLessons().isEmpty()) {
+            if (Boolean.TRUE.equals(m.getDeleted())) continue; // Bỏ qua chương đã bị xóa mềm
+            
+            long activeLessonCount = (m.getLessons() == null) ? 0 : 
+                m.getLessons().stream().filter(l -> !Boolean.TRUE.equals(l.getDeleted())).count();
+
+            if (activeLessonCount == 0) {
                 throw new RuntimeException("Lỗi dữ liệu: Chương '" + m.getTitle()
                         + "' không có bài học nào! Hệ thống bắt buộc mỗi chương phải có bài học. Vui lòng kiểm tra lại các chương cũ hoặc thêm bài học cho chương mới.");
             }
@@ -432,10 +455,17 @@ public class CourseService {
     }
 
     @Transactional(readOnly = true)
-    public org.springframework.data.domain.Page<Course> getInstructorCourses(String email, int page, int size) {
+    public org.springframework.data.domain.Page<Course> getInstructorCourses(String email, String search, Integer categoryId, Integer status, int page, int size) {
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size,
                 org.springframework.data.domain.Sort.by("id").descending());
-        return courseRepository.findByAccountEmailAndDeletedFalse(email, pageable);
+        
+        // Prep search string in Java to bypass complex concatenated SQL param resolution errors in Postgres
+        String formattedSearch = null;
+        if (search != null && !search.trim().isEmpty()) {
+            formattedSearch = "%" + search.trim().toLowerCase() + "%";
+        }
+        
+        return courseRepository.findInstructorCourses(email, formattedSearch, categoryId, status, pageable);
     }
 
     @Transactional(readOnly = true)

@@ -140,6 +140,7 @@ const sectionSchema = z.object({
   status: z.coerce.number().default(1),
   createdAt: z.any().nullable().optional(),
   updatedAt: z.any().nullable().optional(),
+  quiz: z.any().nullable().optional(),
 });
 
 export const courseSchema = z.object({
@@ -178,6 +179,7 @@ export const courseSchema = z.object({
   promoVideo: z.any().nullable().optional(),
   createdAt: z.any().nullable().optional(),
   updatedAt: z.any().nullable().optional(),
+  questionBank: z.any().nullable().optional(),
 });
 
 // ==========================================
@@ -369,15 +371,11 @@ export default function InstructorCourseForm() {
 
       const sanitizeId = (id) => (typeof id === 'number' || (!isNaN(id) && id !== "")) ? Number(id) : null;
 
-      const localStorageKey = `course_questions_${slug || 'new'}`;
-      const savedQuestionsStr = localStorage.getItem(localStorageKey);
-      const questionsToSave = savedQuestionsStr ? JSON.parse(savedQuestionsStr) : draftQuestions;
-
       const finalData = {
         ...data,
         categoryId: Number(data.categoryId),
         price: Number(data.price),
-        questionBank: questionsToSave || [],
+        questionBank: data.questionBank || [],
         sections: data.sections?.map(s => ({
           ...s,
           id: sanitizeId(s.id),
@@ -398,7 +396,7 @@ export default function InstructorCourseForm() {
         savedCourseId = res?.data?.id || res?.id;
       }
 
-      localStorage.removeItem(localStorageKey);
+      localStorage.removeItem(`course_questions_${slug || 'new'}`);
 
       toast.success(isEditMode ? "Cập nhật khóa học thành công!" : "Đã tải lên và lưu khóa học thành công!");
       setTimeout(() => navigate("/instructor/courses"), 1500);
@@ -1186,7 +1184,7 @@ function SettingsTab({ uploadVideoToBunny, setActiveUploads }) {
 
 function QuizTab({ courseId }) {
   const { slug } = useParams();
-  const { setValue } = useFormContext();
+  const { setValue, getValues } = useFormContext();
   const localStorageKey = `course_questions_${slug || 'new'}`;
 
   const [aiFile, setAiFile] = React.useState(null);
@@ -1195,19 +1193,27 @@ function QuizTab({ courseId }) {
   
   const [draftQuestions, setDraftQuestions] = React.useState(() => {
     const saved = localStorage.getItem(localStorageKey);
-    return saved ? JSON.parse(saved) : [];
+    if (saved && JSON.parse(saved).length > 0) {
+      return JSON.parse(saved);
+    }
+    // Pre-populated from top-level course load or draft injection
+    return getValues("questionBank") || [];
   });
 
   const [isGeneratingAi, setIsGeneratingAi] = React.useState(false);
   const [isFetchingDrafts, setIsFetchingDrafts] = React.useState(false);
   const [isSavingDraft, setIsSavingDraft] = React.useState(false);
-  const [isBankConfirmed, setIsBankConfirmed] = React.useState(false);
+  const [isBankConfirmed, setIsBankConfirmed] = React.useState(() => {
+    const confirmed = getValues("questionBank") || [];
+    if (!draftQuestions || draftQuestions.length === 0) return false;
+    // If in-memory draft exactly matches the globally confirmed list, restore confirmed state
+    return JSON.stringify(draftQuestions) === JSON.stringify(confirmed);
+  });
 
-  // Sync to localStorage and form state
+  // Sync only to localStorage for persistent stage between tab switches
   React.useEffect(() => {
     localStorage.setItem(localStorageKey, JSON.stringify(draftQuestions));
-    setValue("questionBank", draftQuestions, { shouldDirty: true });
-  }, [draftQuestions, localStorageKey, setValue]);
+  }, [draftQuestions, localStorageKey]);
 
   // Load drafts from server on mount if localStorage is empty
   React.useEffect(() => {
@@ -2141,9 +2147,9 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
   // Load real bank questions and pre-populate quiz data when modal opens
   React.useEffect(() => {
     if (isQuizModalOpen) {
-      // 1. Load questions from question bank
-      const savedBank = localStorage.getItem(localStorageKey);
-      setBankQuestions(savedBank ? JSON.parse(savedBank) : []);
+      // 1. Load ONLY CONFIRMED questions from top-level form state
+      const confirmedBank = getValues("questionBank") || [];
+      setBankQuestions(confirmedBank);
 
       // 2. Load existing quiz data from form state
       const savedQuiz = getValues(`sections.${sectionIndex}.quiz`);

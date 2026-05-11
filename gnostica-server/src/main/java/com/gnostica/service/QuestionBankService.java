@@ -7,6 +7,7 @@ import com.gnostica.model.Question;
 import com.gnostica.repository.AnswerRepository;
 import com.gnostica.repository.CourseRepository;
 import com.gnostica.repository.QuestionRepository;
+import com.gnostica.repository.QuizQuestionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,6 +26,7 @@ public class QuestionBankService {
     private final QuestionRepository questionRepository;
     private final AnswerRepository answerRepository;
     private final CourseRepository courseRepository;
+    private final QuizQuestionRepository quizQuestionRepository;
     private final RedisDraftService redisDraftService;
 
     @Transactional(readOnly = true)
@@ -63,9 +65,14 @@ public class QuestionBankService {
         // Chiến lược đơn giản nhất: Xóa toàn bộ câu hỏi và đáp án cũ của khóa học này, sau đó insert lại.
         // Điều này đảm bảo trạng thái DB luôn đồng bộ chính xác 100% với Frontend state.
         List<Question> existingQuestions = questionRepository.findByCourseId(courseId);
-        for (Question q : existingQuestions) {
-            List<Answer> oldAnswers = answerRepository.findByQuestionId(q.getId());
-            answerRepository.deleteAll(oldAnswers);
+        if (existingQuestions != null && !existingQuestions.isEmpty()) {
+            // Gỡ mối nối QuizQuestion trước để tránh vỡ ràng buộc FK của Database
+            quizQuestionRepository.deleteByQuestionIn(existingQuestions);
+
+            for (Question q : existingQuestions) {
+                List<Answer> oldAnswers = answerRepository.findByQuestionId(q.getId());
+                answerRepository.deleteAll(oldAnswers);
+            }
         }
         questionRepository.deleteAll(existingQuestions);
 
@@ -109,9 +116,14 @@ public class QuestionBankService {
     @Transactional
     public Map<Integer, Integer> saveQuestionBankAndGetMap(Course course, List<QuestionDto> dtos) {
         List<Question> existingQuestions = questionRepository.findByCourseId(course.getId());
-        for (Question q : existingQuestions) {
-            List<Answer> oldAnswers = answerRepository.findByQuestionId(q.getId());
-            answerRepository.deleteAll(oldAnswers);
+        if (existingQuestions != null && !existingQuestions.isEmpty()) {
+            // Gỡ mối nối QuizQuestion trước để tránh vỡ ràng buộc FK của Database
+            quizQuestionRepository.deleteByQuestionIn(existingQuestions);
+
+            for (Question q : existingQuestions) {
+                List<Answer> oldAnswers = answerRepository.findByQuestionId(q.getId());
+                answerRepository.deleteAll(oldAnswers);
+            }
         }
         questionRepository.deleteAll(existingQuestions);
 
