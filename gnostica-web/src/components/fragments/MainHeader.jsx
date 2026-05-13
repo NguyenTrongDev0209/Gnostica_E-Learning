@@ -8,7 +8,8 @@ import {
 import {
     AppHamburgerButton,
     AppLogo,
-    AppUserMenu
+    AppUserMenu,
+    CategoryButton
 } from "@/components/common/AppButton"
 import AppSearchInput from "@/components/common/AppSearchInput"
 import {
@@ -67,7 +68,7 @@ const MainHeader = ({
     return (
         <>
             {/* Main Sticky Header */}
-            <header className="w-full sticky top-0 z-[100] shadow-md bg-primary-gradient text-white border-b border-white/10">
+            <header className="w-full sticky top-0 z-[100] shadow-md bg-primary text-white border-b border-white/10">
                 <div className="app-container flex items-center justify-between py-[14px] gap-8">
                     {/* Logo */}
                     <div className="flex-1 flex items-center gap-4">
@@ -122,7 +123,7 @@ const MainHeader = ({
                             {isCoursesMobileOpen && (
                                 <div className="grid grid-cols-1 gap-1 ml-4 py-2">
                                     {flatCategories.filter(c => !c.parentId && !c.parent_id).slice(0, 10).map(c => (
-                                        <Link key={c.id} to={`/courses/category/${c.slug}`} className="py-2 text-sm text-slate-600 font-bold">{c.name}</Link>
+                                        <Link key={c.id} to={`/courses/category/${c.slug}`} className="py-2 text-xs text-slate-600 font-bold">{c.name}</Link>
                                     ))}
                                 </div>
                             )}
@@ -140,11 +141,11 @@ const MainHeader = ({
                     <div className="flex-1 flex justify-start">
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <button className="btn-category-glow flex items-center gap-3 px-6 h-11 focus:outline-none">
+                                <CategoryButton>
                                     <LayoutGrid className="w-5 h-5 pointer-events-none" />
                                     <span className="pointer-events-none">Khóa học</span>
                                     <ChevronDown className="w-4 h-4 ml-1 pointer-events-none" />
-                                </button>
+                                </CategoryButton>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="start" className="w-[280px] bg-white border-none shadow-2xl rounded-lg p-2 animate-in fade-in slide-in-from-top-2 z-[101]">
                                 {renderCategoryItems(categoryTree)}

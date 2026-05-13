@@ -6,57 +6,50 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: oklch(91.82% 0.019 281.3);
+  /* --- Primary Group (Brand Identity) --- */
+  --primary: oklch(58% 0.28 285);
+  --primary-foreground: oklch(98.5% 0 0);
+  --primary-gradient: linear-gradient(to top, oklch(58% 0.28 285), oklch(38% 0.32 295));
+  --accent: #f15e2c;
+  /* Brand Orange */
+  --accent-foreground: oklch(98.5% 0 0);
+  --button-gradient: linear-gradient(to right, oklch(74% 0.28 55), oklch(80% 0.2 60));
+
+  /* --- Neutral Group (Layout & Text) --- */
+  --background: #ffffff;
   --foreground: oklch(14.5% 0 0);
   --card: oklch(100% 0 0);
   --card-foreground: oklch(14.5% 0 0);
   --popover: oklch(100% 0 0);
   --popover-foreground: oklch(14.5% 0 0);
-  --primary: oklch(58% 0.28 285);
-  --primary-gradient: linear-gradient(to top, oklch(58% 0.28 285), oklch(38% 0.32 295));
-  --primary-foreground: oklch(98.5% 0 0);
   --secondary: oklch(97% 0 0);
   --secondary-foreground: oklch(20.5% 0 0);
   --muted: oklch(97% 0 0);
   --muted-foreground: oklch(55.6% 0 0);
-  --accent: oklch(97% 0 0);
-  --accent-foreground: oklch(20.5% 0 0);
-  --destructive: oklch(57.7% 0.245 27.325);
   --border: oklch(92.2% 0 0);
   --input: oklch(92.2% 0 0);
   --ring: oklch(58% 0.28 285 / 0.5);
-  --chart-1: oklch(0.809 0.105 251.813);
-  --chart-2: oklch(0.623 0.214 259.815);
-  --chart-3: oklch(0.546 0.245 262.881);
-  --chart-4: oklch(0.488 0.243 264.376);
-  --chart-5: oklch(0.424 0.199 265.638);
+
+  /* --- Semantic Group (Feedback & Status) --- */
+  --success: oklch(62.7% 0.194 149.21);
+  --success-foreground: oklch(99% 0 0);
+  --warning: oklch(84.6% 0.188 70.08);
+  --warning-foreground: oklch(14.5% 0 0);
+  --error: oklch(57.7% 0.245 27.325);
+  /* Same as destructive */
+  --error-foreground: oklch(98.5% 0 0);
+  --info: oklch(70.7% 0.165 254.62);
+  --info-foreground: oklch(98.5% 0 0);
+  --destructive: var(--error);
+  --destructive-foreground: var(--error-foreground);
+
+  /* --- Other Configurations --- */
   --radius: 0.625rem;
-  --sidebar: oklch(98.5% 0 0);
-  --sidebar-foreground: oklch(14.5% 0 0);
-  --sidebar-primary: oklch(20.5% 0 0);
-  --sidebar-primary-foreground: oklch(98.5% 0 0);
-  --sidebar-accent: oklch(97% 0 0);
-  --sidebar-accent-foreground: oklch(20.5% 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(58% 0.28 285 / 0.5);
-
-  --header-background: var(--primary);
-  --header-background-end: var(--primary);
-  --header-foreground: oklch(98.5% 0 0);
-  --search-background: oklch(98.5% 0 0 / 0.1);
-  --search-border: oklch(98.5% 0 0 / 0.2);
-  --button-gradient: linear-gradient(to right, oklch(74% 0.28 55), oklch(80% 0.2 60));
-
-
-
   --container-max: 1536px;
-
-  /* TechOne Style Header Colors */
   --header-bg: #fcf1e7;
-  --header-orange: #f15e2c;
   --header-text: #4a4a4a;
 
-  /* Button Design System */
+  /* Button Design System (Sizes) */
   --btn-lg-h: 56px;
   --btn-lg-px-l: 20px;
   --btn-lg-px-r: 24px;
@@ -80,81 +73,86 @@
 }
 
 .dark {
+  /* --- Primary Group (Dark) --- */
+  --primary: oklch(40% 0.2 285);
+  --primary-foreground: oklch(98.5% 0 0);
+  --primary-gradient: linear-gradient(to right, oklch(40% 0.2 285), oklch(25% 0.25 295));
+  --accent: #f15e2c;
+  --button-gradient: linear-gradient(to right, oklch(68% 0.22 55), oklch(75% 0.15 60));
+
+  /* --- Neutral Group (Dark) --- */
   --background: oklch(14.5% 0 0);
   --foreground: oklch(98.5% 0 0);
   --card: oklch(0.205 0 0);
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(40% 0.2 285);
-  --primary-foreground: oklch(98.5% 0 0);
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
   --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(40% 0.2 285 / 0.5);
-  --chart-1: oklch(0.809 0.105 251.813);
-  --chart-2: oklch(0.623 0.214 259.815);
-  --chart-3: oklch(0.546 0.245 262.881);
-  --chart-4: oklch(0.488 0.243 264.376);
-  --chart-5: oklch(0.424 0.199 265.638);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(40% 0.2 285 / 0.5);
 
-  /* Header & Search Custom Colors (Dark) */
-  --header-background: var(--primary);
-  --header-background-end: var(--primary);
-  --header-foreground: oklch(98.5% 0 0);
-  --search-background: oklch(100% 0 0 / 0.05);
-  --search-border: oklch(100% 0 0 / 0.1);
-  --primary-gradient: linear-gradient(to right, oklch(40% 0.2 285), oklch(25% 0.25 295));
-  --button-gradient: linear-gradient(to right, oklch(68% 0.22 55), oklch(75% 0.15 60));
+  /* --- Semantic Group (Dark) --- */
+  --success: oklch(62.7% 0.194 149.21);
+  --warning: oklch(84.6% 0.188 70.08);
+  --error: oklch(0.704 0.191 22.216);
+  --error-foreground: oklch(98.5% 0 0);
+  --info: oklch(70.7% 0.165 254.62);
+  --destructive: var(--error);
 }
 
 @theme inline {
   --font-sans: 'Inter Variable', sans-serif;
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
+
+  /* --- Typography --- */
+  --font-size-display: 3.75rem;
+  --font-size-h1: 2.25rem;
+  --font-size-h2: 1.875rem;
+  --font-size-h3: 1.5rem;
+  --font-size-lg: 1.125rem;
+  --font-size-base: 1rem;
+  --font-size-sm: 0.875rem;
+  --font-size-xs: 0.75rem;
+
+  /* --- Primary Group (Thương hiệu) --- */
   --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
-  --color-foreground: var(--foreground);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --background-image-primary-gradient: var(--primary-gradient);
+  --background-image-button-gradient: var(--button-gradient);
+
+  /* --- Neutral Group (Bố cục & Chữ) --- */
   --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* --- Semantic Group (Trạng thái) --- */
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-error: var(--error);
+  --color-error-foreground: var(--error-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  /* --- Radius --- */
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -163,19 +161,10 @@
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
 
-  /* Header & Search Theme Mappings */
-  --color-header: var(--header-background);
-  --color-header-end: var(--header-background-end);
-  --color-header-foreground: var(--header-foreground);
-  --color-search: var(--search-background);
-  --color-search-border: var(--search-border);
-  --background-image-primary-gradient: var(--primary-gradient);
-  --background-image-button-gradient: var(--button-gradient);
-
-  /* TechOne Extended Colors */
+  /* --- Legacy & Other Mappings --- */
   --color-header-bg: var(--header-bg);
-  --color-header-orange: var(--header-orange);
   --color-header-text: var(--header-text);
+  --color-header-orange: var(--accent);
 }
 
 @layer base {
@@ -203,17 +192,6 @@
     @apply bg-button-gradient bg-clip-text text-transparent;
   }
 
-  .btn-category-glow {
-    @apply relative bg-header-orange text-white rounded-full font-bold uppercase transition-all duration-300;
-    box-shadow: 0 0 0 4px rgba(241, 94, 44, 0.15), 0 0 20px rgba(139, 92, 246, 0.3);
-    border: 2px solid rgba(255, 255, 255, 0.2);
-  }
-
-  .btn-category-glow:hover {
-    @apply brightness-110 scale-[1.02];
-    box-shadow: 0 0 0 6px rgba(241, 94, 44, 0.2), 0 0 30px rgba(139, 92, 246, 0.5);
-  }
-
   .app-container {
     @apply w-full mx-auto px-16;
     max-width: var(--container-max);
@@ -223,9 +201,11 @@
   .header-icon-box {
     @apply w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm text-header-text hover:text-header-orange transition-all;
   }
+
   .header-nav-item {
     @apply flex items-center gap-1 font-bold text-header-text hover:text-header-orange transition-all py-3 px-1 relative;
   }
+
   .header-nav-active-bar {
     @apply absolute bottom-0 left-0 right-0 h-0.5 bg-header-orange scale-x-0 group-hover:scale-x-100 transition-transform origin-left;
   }
@@ -246,7 +226,9 @@
     gap: var(--btn-lg-gap);
     border-radius: calc(var(--radius) * 1.2);
   }
-  .btn-lg svg, .btn-lg i {
+
+  .btn-lg svg,
+  .btn-lg i {
     width: var(--btn-lg-icon);
     height: var(--btn-lg-icon);
     flex-shrink: 0;
@@ -261,7 +243,9 @@
     gap: var(--btn-md-gap);
     border-radius: var(--radius);
   }
-  .btn-md svg, .btn-md i {
+
+  .btn-md svg,
+  .btn-md i {
     width: var(--btn-md-icon);
     height: var(--btn-md-icon);
     flex-shrink: 0;
@@ -276,7 +260,9 @@
     gap: var(--btn-sm-gap);
     border-radius: calc(var(--radius) * 0.8);
   }
-  .btn-sm svg, .btn-sm i {
+
+  .btn-sm svg,
+  .btn-sm i {
     width: var(--btn-sm-icon);
     height: var(--btn-sm-icon);
     flex-shrink: 0;
@@ -286,6 +272,7 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
