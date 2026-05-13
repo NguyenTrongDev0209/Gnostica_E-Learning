@@ -1,7 +1,10 @@
 package com.gnostica.controller;
 
 import com.gnostica.model.Course;
+import com.gnostica.model.Lesson;
 import com.gnostica.service.CourseService;
+import com.gnostica.service.AiModerationService;
+import com.gnostica.repository.LessonRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +22,8 @@ import java.util.Map;
 public class AdminCourseController {
 
     private final CourseService courseService;
+    private final AiModerationService aiModerationService;
+    private final LessonRepository lessonRepository;
 
     /**
      * Endpoint Lấy danh sách khóa học theo trạng thái (Pending, Approved, Rejected) dành cho Admin
@@ -84,6 +89,46 @@ public class AdminCourseController {
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", "Lỗi từ chối duyệt: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Endpoint Cho phép Admin kích hoạt chạy quét/phân tích lại bằng AI cho một bài học cụ thể
+     */
+    @PostMapping("/lessons/{lessonId}/ai-scan")
+    public ResponseEntity<Map<String, Object>> scanLesson(@PathVariable Integer lessonId) {
+        try {
+            Lesson lesson = lessonRepository.findById(lessonId)
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy bài học yêu cầu."));
+            
+            Lesson scanned = aiModerationService.scanLesson(lesson);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Quét kiểm duyệt AI thành công!");
+            response.put("lessonId", scanned.getId());
+            response.put("aiModerationReport", scanned.getAiModerationReport());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Lỗi khi gọi AI quét bài học: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Endpoint Cho phép Admin kích hoạt chạy quét lại bằng AI cho thông tin văn bản chung của khóa học
+     */
+    @PostMapping("/{slug}/ai-scan-info")
+    public ResponseEntity<Map<String, Object>> scanCourseInfo(@PathVariable String slug) {
+        try {
+            Course course = courseService.getCourseForModerationBySlug(slug);
+            Course scanned = aiModerationService.scanCourseInfo(course);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Quét AI văn bản khóa học thành công!");
+            response.put("slug", scanned.getSlug());
+            response.put("aiModerationReport", scanned.getAiModerationReport());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Lỗi khi gọi AI quét khóa học: " + e.getMessage()));
         }
     }
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -16,6 +16,10 @@ import {
   Loader2,
   Globe,
   Download,
+  Sparkles,
+  ShieldCheck,
+  AlertTriangle,
+  ShieldAlert
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -50,6 +54,103 @@ export default function AdminCourseDetailModeration() {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
   const [activePreview, setActivePreview] = useState(null);
+
+  // --- AI ASSISTED MODERATION LOGIC ---
+  const playerRef = useRef(null);
+  const [isAiScanning, setIsAiScanning] = useState(false);
+  const [isAiScanningInfo, setIsAiScanningInfo] = useState(false);
+
+  const jumpToTime = (timeString) => {
+    if (!playerRef.current) {
+      toast.error("Vui lòng phát Video trước khi tua tới thời gian!");
+      return;
+    }
+    
+    const parts = timeString.split(":").map(Number);
+    let seconds = 0;
+    if (parts.length === 3) {
+      seconds = parts[0] * 3600 + parts[1] * 60 + parts[2];
+    } else if (parts.length === 2) {
+      seconds = parts[0] * 60 + parts[1];
+    }
+
+    const isEmbed = isEmbedLink(activePreview?.data?.videoUrl);
+
+    if (isEmbed) {
+      // Bunny.net iframe seek trigger via postMessage
+      try {
+        playerRef.current.contentWindow?.postMessage(
+          JSON.stringify({ type: "seek", value: seconds }), 
+          "*"
+        );
+        playerRef.current.contentWindow?.postMessage(
+          JSON.stringify({ type: "play" }), 
+          "*"
+        );
+      } catch (e) {
+        console.error("PostMessage seek error:", e);
+      }
+    } else {
+      // HTML5 video player seek trigger
+      playerRef.current.currentTime = seconds;
+      playerRef.current.play().catch(() => {});
+    }
+    toast.info(`Tua video đến ${timeString}`);
+  };
+
+  const handleTriggerAiScan = async (lessonId) => {
+    if (!lessonId) return;
+    try {
+      setIsAiScanning(true);
+      const res = await courseService.triggerAiScan(lessonId);
+      toast.success("Quét kiểm duyệt AI thành công!");
+      
+      // Fetch latest state
+      const updatedCourse = await courseService.getCourseForModeration(slug);
+      setCourse(updatedCourse);
+      
+      // Update UI preview payload actively
+      if (activePreview && activePreview.data.id === lessonId) {
+        setActivePreview(prev => ({
+          ...prev,
+          data: {
+            ...prev.data,
+            aiModerationReport: res.aiModerationReport
+          }
+        }));
+      }
+    } catch (err) {
+      console.error("AI Scan failed:", err);
+      toast.error(err.response?.data?.error || "Có lỗi xảy ra khi quét AI.");
+    } finally {
+      setIsAiScanning(false);
+    }
+  };
+
+  const handleTriggerAiScanInfo = async () => {
+    try {
+      setIsAiScanningInfo(true);
+      await courseService.triggerAiScanInfo(slug);
+      toast.success("Quét AI nội dung văn bản khóa học thành công!");
+      const updatedCourse = await courseService.getCourseForModeration(slug);
+      setCourse(updatedCourse);
+    } catch (err) {
+      console.error("AI Text Scan failed:", err);
+      toast.error(err.response?.data?.error || "Lỗi quét văn bản khóa học.");
+    } finally {
+      setIsAiScanningInfo(false);
+    }
+  };
+
+  const focusAndPreviewLesson = (lesson, mod) => {
+    setActivePreview({
+      type: "lesson",
+      data: lesson,
+      moduleAttachments: mod?.attachments?.filter(a => !a.deleted) || []
+    });
+    window.scrollTo({ top: 180, behavior: "smooth" });
+    toast.info(`Chuyển chế độ xem: ${lesson.title}`);
+  };
 
   const fetchCourseDetail = async () => {
     try {
@@ -340,6 +441,7 @@ export default function AdminCourseDetailModeration() {
                           {/* Video Player Integration supporting IFrame and Native */}
                           {isEmbedLink(activePreview.data.videoUrl) ? (
                             <iframe
+                              ref={playerRef}
                               width="100%"
                               height="100%"
                               src={`${getEmbedUrl(activePreview.data.videoUrl)}&autoplay=true`}
@@ -351,6 +453,7 @@ export default function AdminCourseDetailModeration() {
                             ></iframe>
                           ) : (
                             <video 
+                              ref={playerRef}
                               src={activePreview.data.videoUrl} 
                               controls 
                               className="w-full h-full object-contain" 
@@ -576,6 +679,294 @@ export default function AdminCourseDetailModeration() {
               ) : (
                  <p className="italic text-slate-400 text-sm">Tác giả chưa cập nhật mô tả bằng chữ cho khóa học này.</p>
               )}
+            </div>
+          </div>
+
+          {/* --- CENTER FOR AI SURVEILLANCE AND INSIGHTS (MASTER DASHBOARD) --- */}
+          <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="p-5 border-b border-indigo-100 bg-gradient-to-r from-indigo-50/40 to-violet-50/40 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-md shadow-indigo-100">
+                  <Sparkles className="w-5 h-5 animate-pulse" />
+                </div>
+                <div>
+                  <h2 className="font-black text-slate-900 text-[15px] tracking-tight uppercase">
+                    AI hỗ trợ duyệt bài nhanh chống
+                  </h2>
+                  <p className="text-[10px] font-extrabold text-indigo-600 uppercase tracking-widest mt-0.5">
+                    Bảo vệ tiêu chuẩn chất lượng và pháp luật
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-6">
+              <Tabs defaultValue="course-text" className="w-full">
+                <TabsList className="grid w-full grid-cols-2 bg-slate-100 p-1 rounded-xl mb-6 h-11 shadow-inner">
+                  <TabsTrigger value="course-text" className="font-extrabold text-xs data-[state=active]:bg-white data-[state=active]:text-indigo-700 data-[state=active]:shadow-sm flex items-center gap-2">
+                    <FileText className="w-3.5 h-3.5" /> Giám sát Văn bản Khóa học
+                  </TabsTrigger>
+                  <TabsTrigger value="curriculum-ai" className="font-extrabold text-xs data-[state=active]:bg-white data-[state=active]:text-indigo-700 data-[state=active]:shadow-sm flex items-center gap-2">
+                    <BookOpen className="w-3.5 h-3.5" /> Khảo sát Từng Bài giảng
+                    <Badge className="h-4.5 px-1.5 py-0 bg-indigo-600 hover:bg-indigo-600 text-[10px] border-none font-black text-white flex items-center justify-center rounded-full ml-0.5 shadow-sm">
+                      {totalLessons}
+                    </Badge>
+                  </TabsTrigger>
+                </TabsList>
+
+                {/* 1. COURSE GENERAL TEXT MODERATION */}
+                <TabsContent value="course-text" className="space-y-4 focus-visible:ring-0 outline-none mt-0">
+                  {(() => {
+                    let report = null;
+                    try {
+                      if (course.aiModerationReport) {
+                        report = JSON.parse(course.aiModerationReport);
+                      }
+                    } catch (e) { console.error("Failed to parse course AI report:", e); }
+
+                    if (!report) {
+                      return (
+                        <div className="p-10 border border-dashed border-slate-200 bg-slate-50/30 rounded-2xl flex flex-col items-center justify-center text-center gap-4 animate-in fade-in duration-300">
+                          <div className="p-4.5 rounded-full bg-violet-50 text-violet-600 border border-violet-100 animate-pulse shadow-inner">
+                            <Sparkles className="w-8 h-8" />
+                          </div>
+                          <div className="space-y-1">
+                            <h4 className="font-black text-sm text-slate-900 uppercase tracking-wide">Chưa quét văn bản khóa học</h4>
+                            <p className="text-[12px] text-slate-500 max-w-[420px] font-medium leading-relaxed">
+                              Kích hoạt AI để thẩm định xem Tiêu đề và Mô tả chi tiết của khóa học có chứa đường link chèo kéo giao dịch ngoài, số điện thoại hay ngôn từ vi phạm chính sách không.
+                            </p>
+                          </div>
+                          <Button 
+                            onClick={handleTriggerAiScanInfo}
+                            disabled={isAiScanningInfo}
+                            className="h-9 px-6 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-xs font-bold flex items-center gap-2 mt-1 shadow-md transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0"
+                          >
+                            {isAiScanningInfo ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                            {isAiScanningInfo ? "Đang chạy quét AI..." : "Chạy kiểm duyệt AI ngay"}
+                          </Button>
+                        </div>
+                      );
+                    }
+
+                    const score = report.safetyScore ?? 100;
+                    let scoreBg = "bg-gradient-to-br from-emerald-50 to-emerald-100 text-emerald-700 border-emerald-200/60";
+                    let scoreText = "Nội dung chữ an toàn";
+                    let ShieldIcon = ShieldCheck;
+                    if (score < 80) {
+                      scoreBg = "bg-gradient-to-br from-amber-50 to-amber-100 text-amber-700 border-amber-200/60";
+                      scoreText = "Văn bản có nghi vấn";
+                      ShieldIcon = AlertTriangle;
+                    }
+                    if (score < 50) {
+                      scoreBg = "bg-gradient-to-br from-rose-50 to-rose-100 text-rose-700 border-rose-200/60";
+                      scoreText = "Phát hiện lỗi nghiêm trọng";
+                      ShieldIcon = ShieldAlert;
+                    }
+
+                    return (
+                      <div className="space-y-5 animate-in fade-in duration-300 mt-0">
+                        <div className="flex flex-col sm:flex-row gap-5 p-5 bg-white border border-slate-200/80 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300">
+                          <div className={`flex-shrink-0 w-full sm:w-36 h-28 rounded-2xl flex flex-col items-center justify-center border shadow-inner ${scoreBg}`}>
+                            <span className="text-4xl font-black tracking-tighter leading-none">{score}%</span>
+                            <span className="text-[9px] font-black uppercase tracking-widest mt-2 opacity-85">CHỈ SỐ AN TOÀN</span>
+                          </div>
+                          <div className="flex-1 flex flex-col justify-center min-w-0">
+                            <div className="flex items-center gap-1.5 text-slate-900 font-extrabold text-[13px] uppercase tracking-wider">
+                              <ShieldIcon className="w-4.5 h-4.5 text-indigo-600" />
+                              Đánh giá văn bản: <span className="text-indigo-700 font-black">{scoreText}</span>
+                            </div>
+                            <p className="text-xs text-slate-600 leading-relaxed font-medium mt-2.5 bg-slate-50 p-3 rounded-xl border border-slate-100 italic shadow-sm">
+                              "{report.assessment}"
+                            </p>
+                          </div>
+                          <div className="sm:shrink-0 self-center flex pt-2 sm:pt-0">
+                            <Button 
+                              onClick={handleTriggerAiScanInfo}
+                              disabled={isAiScanningInfo}
+                              variant="outline"
+                              className="h-9 px-4 border-slate-200 hover:bg-violet-50 hover:text-violet-700 hover:border-violet-200/60 rounded-xl text-[11px] font-bold flex items-center gap-1.5 shadow-sm transition-transform active:scale-95"
+                            >
+                              {isAiScanningInfo ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                              Quét lại
+                            </Button>
+                          </div>
+                        </div>
+
+                        {/* Text Violations Details */}
+                        {report.violations && report.violations.length > 0 ? (
+                          <div className="space-y-2.5 mt-4">
+                            <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest px-1 flex items-center gap-1.5">
+                              ⚠️ Chi tiết phát hiện vi phạm ({report.violations.length})
+                            </h5>
+                            <div className="space-y-2">
+                              {report.violations.map((v, idx) => {
+                                let badgeStyle = "bg-rose-100 text-rose-700 ring-1 ring-rose-200";
+                                if (v.severity === "WARNING") badgeStyle = "bg-amber-100 text-amber-700 ring-1 ring-amber-200";
+
+                                return (
+                                  <div key={idx} className="p-4 bg-rose-50/10 border border-rose-100/80 rounded-2xl flex flex-col gap-1.5 shadow-sm">
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-xs font-black text-rose-800 uppercase flex items-center gap-1.5">
+                                        {v.type === "EXTERNAL_MARKETING" ? "📢 Kéo khách ngoài / Quảng cáo" : "🗣️ Lỗi từ ngữ / Pháp lý"}
+                                      </span>
+                                      <Badge className={`h-4.5 px-2 py-0 text-[9px] font-black uppercase border-none tracking-widest ${badgeStyle}`}>
+                                        {v.severity}
+                                      </Badge>
+                                    </div>
+                                    <p className="text-xs font-bold text-slate-800 bg-white p-2 rounded-xl border border-slate-100 mt-1 leading-relaxed italic">
+                                      "{v.content}"
+                                    </p>
+                                    <p className="text-xs text-slate-800 font-bold leading-relaxed mt-1">
+                                      📌 Giải thích: <span className="font-medium text-slate-600">{v.explanation}</span>
+                                    </p>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="p-6 text-center border border-emerald-100 bg-emerald-50/5 rounded-2xl flex flex-col items-center justify-center gap-1 mt-2 shadow-inner">
+                            <CheckCircle2 className="w-7 h-7 text-emerald-500 animate-bounce" />
+                            <p className="text-emerald-800 text-xs font-black uppercase tracking-wide mt-1">Nội dung chữ sạch & an toàn</p>
+                            <p className="text-slate-500 text-[10px] font-medium">Không phát hiện quảng cáo ngoài, số điện thoại hay ngôn từ nhạy cảm trong Tiêu đề & Mô tả.</p>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
+                </TabsContent>
+
+                {/* 2. CURRICULUM SURVEILLANCE MONITOR */}
+                <TabsContent value="curriculum-ai" className="space-y-3 focus-visible:ring-0 outline-none mt-0">
+                  <div className="space-y-4 animate-in fade-in duration-300">
+                    {validModules.length === 0 ? (
+                      <div className="text-center p-8 text-slate-400 italic text-xs border border-slate-100 rounded-xl bg-slate-50/30">
+                        Chưa khởi tạo cấu trúc chương để theo dõi.
+                      </div>
+                    ) : (
+                      validModules.map((mod, mIdx) => {
+                        const lessons = mod.lessons?.filter(l => !l.deleted) || [];
+                        if (lessons.length === 0) return null;
+
+                        return (
+                          <div key={mod.id || mIdx} className="border border-slate-200/60 rounded-2xl overflow-hidden bg-slate-50/30 shadow-sm">
+                            <div className="bg-slate-100/60 px-4.5 py-2.5 flex items-center gap-2 border-b border-slate-200/60">
+                              <div className="h-5 px-2 bg-slate-600 text-white rounded flex items-center justify-center text-[9px] font-black uppercase shrink-0">
+                                CHƯƠNG {mIdx + 1}
+                              </div>
+                              <h6 className="text-[12px] font-extrabold text-slate-800 truncate flex-1 leading-none mt-0.5">
+                                {mod.title}
+                              </h6>
+                            </div>
+                            <div className="divide-y divide-slate-100 bg-white">
+                              {lessons.map((lesson, lIdx) => {
+                                let rep = null;
+                                try {
+                                  if (lesson.aiModerationReport) {
+                                    rep = JSON.parse(lesson.aiModerationReport);
+                                  }
+                                } catch (e) {}
+
+                                // Determine detailed reactive visual state
+                                let statusBadge = (
+                                  <Badge className="bg-slate-100 text-slate-500 hover:bg-slate-100 border-none text-[10px] font-black uppercase tracking-wider">
+                                    Chưa quét
+                                  </Badge>
+                                );
+                                let actionBtnText = "Quét AI";
+                                const isProcessing = rep?.status === "PROCESSING";
+
+                                if (isProcessing) {
+                                  statusBadge = (
+                                    <Badge className="bg-amber-50 text-amber-600 hover:bg-amber-50 border border-amber-200 text-[10px] font-black flex items-center gap-1.5 animate-pulse uppercase tracking-wider shadow-sm">
+                                      <Loader2 className="w-3 h-3 animate-spin" /> Chờ Bunny
+                                    </Badge>
+                                  );
+                                  actionBtnText = "Thử lại";
+                                } else if (rep) {
+                                  const sc = rep.safetyScore ?? 100;
+                                  if (sc >= 80) {
+                                    statusBadge = (
+                                      <Badge className="bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200/80 border-none text-[10px] font-black uppercase tracking-wider shadow-inner">
+                                        {sc}% AN TOÀN
+                                      </Badge>
+                                    );
+                                    actionBtnText = "Quét lại";
+                                  } else if (sc >= 50) {
+                                    statusBadge = (
+                                      <Badge className="bg-amber-50 text-amber-700 ring-1 ring-amber-200/80 border-none text-[10px] font-black uppercase tracking-wider shadow-inner">
+                                        {sc}% CẢNH BÁO
+                                      </Badge>
+                                    );
+                                    actionBtnText = "Cập nhật";
+                                  } else {
+                                    statusBadge = (
+                                      <Badge className="bg-rose-50 text-rose-700 ring-1 ring-rose-200/80 border-none text-[10px] font-black uppercase tracking-wider shadow-inner">
+                                        {sc}% NGUY CẤP
+                                      </Badge>
+                                    );
+                                    actionBtnText = "Cập nhật";
+                                  }
+                                }
+
+                                return (
+                                  <div key={lesson.id || lIdx} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-indigo-50/10 transition-all duration-300 group">
+                                    <div className="flex-1 min-w-0 flex items-start gap-3">
+                                      <div className="w-6 h-6 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center font-black text-[11px] mt-0.5 shrink-0 shadow-sm group-hover:bg-indigo-600 group-hover:text-white transition-colors duration-300">
+                                        {lIdx + 1}
+                                      </div>
+                                      <div className="min-w-0 flex-1">
+                                        <p className="text-[13px] font-extrabold text-slate-800 truncate leading-snug group-hover:text-indigo-950 transition-colors">
+                                          {lesson.title}
+                                        </p>
+                                        {rep && !isProcessing && rep.violations?.length > 0 && (
+                                          <p className="text-[10px] font-extrabold text-rose-600 mt-1 flex items-center gap-1 bg-rose-50/50 px-2 py-0.5 rounded-md border border-rose-100/60 w-fit animate-pulse">
+                                            🚨 Phát hiện {rep.violations.length} vi phạm chính sách
+                                          </p>
+                                        )}
+                                        {isProcessing && (
+                                          <p className="text-[10px] text-amber-600 mt-1 font-bold flex items-center gap-1 animate-pulse">
+                                             ✨ Hệ thống đang sinh phụ đề video, vui lòng thử lại sau vài giây.
+                                          </p>
+                                        )}
+                                      </div>
+                                    </div>
+                                    
+                                    <div className="flex items-center justify-between sm:justify-end gap-3.5 shrink-0 border-t sm:border-none pt-2.5 sm:pt-0">
+                                      {statusBadge}
+                                      
+                                      <div className="flex items-center gap-1.5">
+                                        <Button 
+                                          onClick={() => handleTriggerAiScan(lesson.id)}
+                                          disabled={isAiScanning}
+                                          size="sm"
+                                          variant="ghost"
+                                          className="h-7.5 px-2.5 rounded-xl font-bold text-[11px] text-violet-600 hover:bg-violet-50 border border-transparent hover:border-violet-100 flex items-center gap-1 shrink-0 active:scale-95 transition-transform"
+                                        >
+                                          {isAiScanning ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                                          {actionBtnText}
+                                        </Button>
+                                        <Button 
+                                          onClick={() => focusAndPreviewLesson(lesson, mod)}
+                                          size="sm"
+                                          variant="ghost"
+                                          className="h-7.5 px-2.5 rounded-xl font-bold text-[11px] text-indigo-600 hover:bg-indigo-50 border border-transparent hover:border-indigo-100 flex items-center gap-1 shrink-0 active:scale-95 transition-transform"
+                                        >
+                                          Xem Video <ChevronRight className="w-3 h-3 mt-0.5" />
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </TabsContent>
+              </Tabs>
             </div>
           </div>
         </div>

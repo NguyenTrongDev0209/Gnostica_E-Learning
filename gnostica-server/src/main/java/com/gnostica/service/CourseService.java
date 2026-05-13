@@ -29,6 +29,7 @@ public class CourseService {
     private final DraftCourseService draftCourseService;
     private final QuizService quizService;
     private final QuestionBankService questionBankService;
+    private final AiModerationService aiModerationService;
 
     @Transactional
     public Course createCourse(CourseRequest request, String email) {
@@ -150,6 +151,11 @@ public class CourseService {
         // 5. Clear Redis Draft
         draftCourseService.deleteDraft(email, null); // "new" draft
 
+        // --- BỨC TƯỜNG LỬA AI (AI FIREWALL) ---
+        // User Request: Tắt tự động quét lúc Lưu để tăng tốc độ lưu khóa học.
+        // Việc quét AI chỉ thực hiện thủ công khi giảng viên bấm "Quét thử" trên giao diện.
+        // executeAiFirewall(savedCourse);
+
         return savedCourse;
     }
 
@@ -245,6 +251,12 @@ public class CourseService {
 
         Category category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new RuntimeException("Danh mục không tồn tại"));
+
+        // Reset AI report if key textual metadata is edited
+        if (course.getTitle() == null || !course.getTitle().equals(request.getTitle()) || 
+            course.getDescription() == null || !course.getDescription().equals(request.getDescription())) {
+            course.setAiModerationReport(null);
+        }
 
         // Update basic info
         course.setTitle(request.getTitle());
@@ -359,7 +371,13 @@ public class CourseService {
                         }
                         lesson.setTitle(lReq.getTitle());
                         lesson.setContent(lReq.getContent());
-                        lesson.setVideoUrl(lReq.getVideoUrl());
+                        
+                        String oldVideoUrl = lesson.getVideoUrl();
+                        String newVideoUrl = lReq.getVideoUrl();
+                        if (oldVideoUrl == null || !oldVideoUrl.equals(newVideoUrl)) {
+                            lesson.setAiModerationReport(null); // Clear report to trigger automatic re-scan
+                        }
+                        lesson.setVideoUrl(newVideoUrl);
 
                         // Nếu khóa học đang ẩn thì bài học buộc phải ẩn
                         int finalLessonStatus = (course.getStatus() == 2) ? 2
@@ -440,6 +458,11 @@ public class CourseService {
 
         // 4. Clear Redis Draft
         draftCourseService.deleteDraft(email, updatedCourse.getId().toString());
+
+        // --- BỨC TƯỜNG LỬA AI (AI FIREWALL) ---
+        // User Request: Tắt tự động quét lúc Lưu để tăng tốc độ lưu khóa học.
+        // Việc quét AI chỉ thực hiện thủ công khi giảng viên bấm "Quét thử" trên giao diện.
+        // executeAiFirewall(updatedCourse);
 
         return updatedCourse;
     }
@@ -589,5 +612,45 @@ public class CourseService {
         }
 
         return slug;
+    }
+
+    /**
+     * Executes automated AI Moderation checks on active, unscanned lessons.
+     * Blocks further processing if explicit policy breaches are encountered.
+     */
+    private void executeAiFirewall(Course course) {
+        // Phase 1: Scan Overall Course Metadata (Title/Description)
+        if (course.getAiModerationReport() == null) {
+            aiModerationService.scanCourseInfo(course);
+        }
+
+        String courseReport = course.getAiModerationReport();
+        if (courseReport != null && (courseReport.contains("\"severity\":\"CRITICAL\"") || courseReport.contains("\"severity\":\"HIGH\""))) {
+            throw new RuntimeException("🔥 BỨC TƯỜNG LỬA AI: Phát hiện vi phạm chính sách nghiêm trọng trong phần Tiêu đề hoặc Mô tả khóa học. Vui lòng kiểm tra lại nội dung văn bản!");
+        }
+
+        // Phase 2: Scan individual lessons as before
+        if (course.getModules() != null) {
+            for (Module m : course.getModules()) {
+                if (Boolean.TRUE.equals(m.getDeleted())) continue;
+                if (m.getLessons() != null) {
+                    for (Lesson l : m.getLessons()) {
+                        if (Boolean.TRUE.equals(l.getDeleted())) continue;
+
+                        // Scan lesson automatically if it lacks an AI report
+                        if (l.getAiModerationReport() == null) {
+                            aiModerationService.scanLesson(l);
+                        }
+
+                        // Interrogate result payload for CRITICAL or HIGH severity violations
+                        String report = l.getAiModerationReport();
+                        if (report != null && (report.contains("\"severity\":\"CRITICAL\"") || report.contains("\"severity\":\"HIGH\""))) {
+                            throw new RuntimeException("🔥 BỨC TƯỜNG LỬA AI: Phát hiện vi phạm chính sách nghiêm trọng tại bài học '" 
+                                + l.getTitle() + "'. Vui lòng kiểm tra chi tiết lỗi và cập nhật lại video!");
+                        }
+                    }
+                }
+            }
+        }
     }
 }

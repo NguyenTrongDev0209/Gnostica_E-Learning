@@ -236,7 +236,52 @@ const rejectCourse = async (slug, rejectReason) => {
     return response.data;
 };
 
+const triggerAiScan = async (lessonId) => {
+    const response = await axios.post(`${ADMIN_API_URL}/lessons/${lessonId}/ai-scan`, {}, {
+        headers: getAuthHeaders()
+    });
+    return response.data;
+};
+
+const triggerAiScanInfo = async (slug) => {
+    const response = await axios.post(`${ADMIN_API_URL}/${slug}/ai-scan-info`, {}, {
+        headers: getAuthHeaders()
+    });
+    return response.data;
+};
+
+const checkSubtitleStatus = async (videoId) => {
+    const response = await axios.get(`${API_URL}/lessons/check-subtitle/${videoId}`, {
+        headers: getAuthHeaders()
+    });
+    return response.data;
+};
+
+const preScanCourseText = async (title, description) => {
+    const response = await axios.post(`${API_URL}/ai-pre-scan-text`, { title, description }, {
+        headers: getAuthHeaders()
+    });
+    return response.data;
+};
+
+const preScanVideoContent = async (videoUrl) => {
+    const response = await axios.post(`${API_URL}/ai-pre-scan-video`, { videoUrl }, {
+        headers: getAuthHeaders()
+    });
+    return response.data;
+};
+
+const getVideoTranscriptText = async (videoUrl) => {
+    const response = await axios.post(`${API_URL}/get-video-transcript`, { videoUrl }, {
+        headers: getAuthHeaders()
+    });
+    return response.data; // returns { transcript: "..." }
+};
+
 const courseService = {
+    getVideoTranscriptText,
+    preScanVideoContent,
+    preScanCourseText,
     getPublicCourses,
     createCourse,
     getAllCourses,
@@ -256,12 +301,15 @@ const courseService = {
     saveDraftQuestions,
     getDraftQuestions,
     saveQuestionBank,
+    checkSubtitleStatus,
     // Admin specific APIs
     getModerationCourses,
     getModerationStats,
     getCourseForModeration,
     approveCourse,
-    rejectCourse
+    rejectCourse,
+    triggerAiScan,
+    triggerAiScanInfo
 };
 
 export default courseService;

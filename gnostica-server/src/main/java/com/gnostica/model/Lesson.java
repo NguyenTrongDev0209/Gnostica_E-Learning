@@ -37,6 +37,9 @@ public class Lesson {
     @Column(name = "video_url")
     private String videoUrl;
 
+    @Column(name = "ai_moderation_report", columnDefinition = "TEXT")
+    private String aiModerationReport;
+
     @Column(columnDefinition = "integer default 1")
     private Integer status;
 

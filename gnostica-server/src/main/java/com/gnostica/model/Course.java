@@ -74,6 +74,9 @@ public class Course {
     @Column(name = "reject_reason", columnDefinition = "text")
     private String rejectReason;
 
+    @Column(name = "ai_moderation_report", columnDefinition = "text")
+    private String aiModerationReport;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
