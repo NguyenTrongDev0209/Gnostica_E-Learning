@@ -14,7 +14,8 @@ import {
   Download,
   Trophy,
   Award,
-  HelpCircle
+  HelpCircle,
+  XCircle
 } from "lucide-react";
 import {
   Accordion,
@@ -142,151 +143,140 @@ function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }
       }
   };
 
-  if (isSubmitted) {
-    // Dùng static 80% để trang trí màu sắc UI, tuy nhiên ĐÃ LƯU thì Sidebar luôn được tick.
-    const isPassed = scorePercent >= 80; 
-    return (
-      <div className="w-full bg-white rounded-[40px] border-[6px] border-white shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] p-10 md:p-16 text-center relative overflow-hidden">
-         <div className="absolute top-0 left-0 w-full h-3 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
-         <div className={`w-28 h-28 ${isPassed ? 'bg-emerald-50' : 'bg-orange-50'} rounded-full flex items-center justify-center mx-auto mb-8 border ${isPassed ? 'border-emerald-100' : 'border-orange-100'} shadow-inner relative`}>
-            {isPassed ? <Trophy className="w-12 h-12 text-emerald-500" /> : <Award className="w-12 h-12 text-orange-500" />}
-         </div>
-         
-         <h2 className="text-3xl md:text-4xl font-black text-slate-900 leading-tight tracking-tight mb-4">
-             {isPassed ? "Hoàn Thành Xuất Sắc!" : "Cần Cố Gắng Thêm"}
-         </h2>
-         <p className="text-slate-500 text-lg font-bold max-w-md mx-auto mb-12">
-             Bạn đã hoàn tất bài Quiz "{quiz.title}". Điểm số của bạn được hiển thị bên dưới.
-         </p>
-
-         <div className="flex items-center justify-center gap-12 mb-16 flex-wrap">
-            <div className="text-center">
-                <div className="text-[64px] font-black leading-none text-transparent bg-clip-text bg-gradient-to-br from-indigo-600 to-violet-600 mb-2">
-                    {scorePercent}%
-                </div>
-                <div className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">ĐIỂM SỐ ĐẠT ĐƯỢC</div>
-            </div>
-            <div className="w-px h-16 bg-slate-200 hidden sm:block"></div>
-            <div className="text-center">
-                <div className="text-4xl font-black text-slate-800 mb-2">{correctCount}/{questions.length}</div>
-                <div className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">CÂU TRẢ LỜI ĐÚNG</div>
-            </div>
-         </div>
-
-         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
-               onClick={handleReset} 
-               disabled={isSyncing}
-               variant="outline" 
-               className="rounded-2xl h-14 px-8 font-black border-slate-200 hover:bg-slate-50 transition-all active:scale-95 text-slate-700 shadow-sm"
-            >
-                {isSyncing ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                Làm Lại Bài Tập
-            </Button>
-            <Button onClick={onBack} className="rounded-2xl h-14 px-10 font-black bg-indigo-600 hover:bg-indigo-700 shadow-xl shadow-indigo-200 transition-all hover:-translate-y-0.5 active:scale-95">
-                Quay Lại Bài Học
-            </Button>
-         </div>
-      </div>
-    );
-  }
+  // ── CHỈNH SỬA GIAO DIỆN THEO MẪU ──
+  const isPassed = scorePercent >= 80;
 
   return (
-    <div className="w-full">
-        {/* Quiz Header Info */}
-        <div className="bg-gradient-to-br from-slate-900 to-indigo-950 rounded-[40px] p-10 md:p-14 mb-10 text-white shadow-2xl border border-white/10 relative overflow-hidden">
-            <div className="absolute -right-20 -top-20 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
-            <div className="absolute right-20 bottom-0 w-32 h-32 bg-purple-500/20 rounded-full blur-2xl pointer-events-none"></div>
-            
-            <div className="flex items-center gap-3 mb-6">
-                <div className="px-4 py-1.5 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-[11px] font-black uppercase tracking-widest text-indigo-200 flex items-center gap-2">
-                    <FileText className="w-3.5 h-3.5" /> BÀI KIỂM TRA
+    <div className="w-full space-y-6 max-w-5xl mx-auto pb-12">
+        {/* Header Banner (Theo mẫu) */}
+        <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm p-6 md:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-in fade-in duration-500">
+            <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-full bg-violet-600 flex items-center justify-center text-white shadow-lg shadow-violet-200 shrink-0">
+                    <Trophy className="w-7 h-7" />
                 </div>
-                <div className="px-4 py-1.5 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-[11px] font-black uppercase tracking-widest text-white flex items-center gap-2">
-                    {questions.length} CÂU HỎI
+                <div>
+                    <h2 className="text-xl md:text-2xl font-black text-slate-900 leading-tight">
+                        Bài kiểm tra Trắc nghiệm: {quiz.title}
+                    </h2>
+                    <p className="text-slate-500 text-xs font-bold mt-1 flex items-center gap-1.5">
+                        Bao gồm {questions.length} câu hỏi trắc nghiệm
+                    </p>
                 </div>
             </div>
             
-            <h1 className="text-3xl md:text-4xl font-black tracking-tight max-w-2xl leading-tight mb-6">
-                {quiz.title}
-            </h1>
-            <p className="text-indigo-200/80 font-medium text-base max-w-xl mb-8">
-                Hãy đọc kĩ từng câu hỏi và chọn đáp án đúng nhất. Sau khi chắc chắn, hãy nhấn nút Nộp bài ở phía cuối trang.
-            </p>
-            
-            <div className="h-1.5 bg-white/10 rounded-full w-full max-w-xs overflow-hidden">
-                <div 
-                   className="h-full bg-gradient-to-r from-indigo-400 to-purple-400 transition-all duration-500"
-                   style={{ width: `${(Object.keys(userAnswers).length / questions.length) * 100}%` }}
-                ></div>
-            </div>
-            <div className="mt-2 text-[10px] font-black text-indigo-300 uppercase tracking-widest">
-                TIẾN ĐỘ: ĐÃ CHỌN {Object.keys(userAnswers).length}/{questions.length} CÂU
-            </div>
+            {/* Nút quay lại bài học */}
+            <Button onClick={onBack} variant="ghost" className="font-extrabold text-xs gap-1 text-slate-500 hover:bg-slate-50 rounded-xl self-end sm:self-center">
+                <ChevronLeft className="w-3.5 h-3.5" /> Quay lại xem Video
+            </Button>
         </div>
 
-        {/* Questions List */}
-        <div className="space-y-10">
-            {questions.map((q, idx) => (
-                <div key={q.id} className="bg-white rounded-[40px] p-8 md:p-12 shadow-sm border border-slate-100 hover:shadow-xl hover:shadow-slate-200/30 transition-shadow duration-500">
-                    <div className="flex items-start gap-6">
-                        <div className="w-14 h-14 shrink-0 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-xl font-black text-indigo-600 shadow-inner">
-                            {idx + 1}
-                        </div>
-                        <div className="flex-1 pt-2">
-                            <h3 className="text-xl font-black text-slate-900 leading-relaxed mb-10" dangerouslySetInnerHTML={{ __html: q.content }}>
-                            </h3>
+        {/* Bảng kết quả điểm số (Hiện ra sau khi nộp bài) */}
+        {isSubmitted && (
+            <div className="bg-gradient-to-br from-slate-900 to-indigo-950 rounded-2xl p-6 md:p-8 text-white shadow-xl border border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-6 animate-in slide-in-from-top duration-500">
+                <div className="flex items-center gap-5">
+                    <div className={`w-16 h-16 ${isPassed ? 'bg-emerald-500' : 'bg-orange-500'} rounded-full flex items-center justify-center shadow-lg shrink-0`}>
+                        {isPassed ? <Award className="w-8 h-8 text-white" /> : <HelpCircle className="w-8 h-8 text-white" />}
+                    </div>
+                    <div>
+                        <h3 className="text-xl font-black leading-none">
+                            {isPassed ? "Hoàn Thành Xuất Sắc!" : "Cần Cố Gắng Thêm"}
+                        </h3>
+                        <p className="text-indigo-200/80 text-sm font-medium mt-2">
+                            Kết quả bài thi: <strong className="text-white font-black">{correctCount}/{questions.length}</strong> đáp án đúng (Đạt {scorePercent}%)
+                        </p>
+                    </div>
+                </div>
+                
+                <div className="flex flex-wrap gap-3 shrink-0">
+                    <Button 
+                       onClick={handleReset} 
+                       disabled={isSyncing}
+                       variant="outline" 
+                       className="rounded-xl font-extrabold border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white gap-2 text-xs h-11 px-5"
+                    >
+                        {isSyncing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
+                        Làm lại bài thi
+                    </Button>
+                </div>
+            </div>
+        )}
 
-                            <div className="grid grid-cols-1 gap-4">
-                                {(q.answers || []).map((opt) => {
-                                    const isSelected = userAnswers[q.id] === opt.id;
-                                    return (
-                                        <button
-                                            key={opt.id}
-                                            disabled={isSyncing}
-                                            onClick={() => handleOptionSelect(q.id, opt.id)}
-                                            className={`w-full group flex items-center gap-5 p-6 text-left border-2 rounded-3xl transition-all duration-300 
-                                                ${isSelected 
-                                                    ? 'bg-indigo-50/50 border-indigo-500 shadow-md shadow-indigo-100 scale-[1.01]' 
-                                                    : 'bg-white border-slate-100 hover:border-indigo-200 hover:bg-slate-50/50 hover:scale-[0.995]'
-                                                }`}
-                                        >
-                                            <div className={`w-8 h-8 shrink-0 rounded-xl border-2 flex items-center justify-center font-black text-sm transition-colors
-                                                ${isSelected 
-                                                    ? 'border-indigo-600 bg-indigo-600 text-white' 
-                                                    : 'border-slate-200 text-slate-400 group-hover:border-indigo-300 group-hover:text-indigo-500'
-                                                }`}>
-                                                {opt.optionLabel || '?'}
-                                            </div>
-                                            <span className={`font-bold text-lg ${isSelected ? 'text-indigo-900' : 'text-slate-600'}`}>
-                                                {opt.answerText}
-                                            </span>
-                                        </button>
+        {/* Questions List (Theo mẫu mockup) */}
+        <div className="space-y-5">
+            {questions.map((q, idx) => (
+                <div key={q.id} className="bg-white rounded-2xl p-6 md:p-8 border border-slate-200/60 shadow-sm space-y-6 transition-all duration-300 hover:shadow-md">
+                    <h3 className="text-sm md:text-[15px] font-extrabold text-slate-900 leading-relaxed flex gap-1.5 items-start">
+                        <span className="shrink-0">Câu {idx + 1}:</span>
+                        <span dangerouslySetInnerHTML={{ __html: q.content }}></span>
+                    </h3>
+
+                    <div className="grid grid-cols-1 gap-3">
+                        {(q.answers || []).map((opt, oIdx) => {
+                            const optionLabel = opt.optionLabel || String.fromCharCode(65 + oIdx);
+                            const isSelected = userAnswers[q.id] == opt.id; // Use loose comparison to avoid JS type mismatches
+                            const isCorrect = opt.isCorrect;
+
+                            let buttonClass = "w-full flex items-center justify-between p-4 text-left border rounded-xl transition-all duration-200 text-xs md:text-[13px] font-medium ";
+                            let icon = null;
+
+                            if (!isSubmitted) {
+                                // CHẾ ĐỘ ĐANG LÀM BÀI
+                                if (isSelected) {
+                                    buttonClass += "bg-violet-50/50 border-violet-500 text-violet-900 font-bold shadow-sm";
+                                } else {
+                                    buttonClass += "bg-slate-50/40 border-slate-200/60 text-slate-600 hover:bg-slate-50 hover:border-slate-300";
+                                }
+                            } else {
+                                // CHẾ ĐỘ XEM KẾT QUẢ (ĐÚNG MẪU GIAO DIỆN TRẢ KẾT QUẢ CÓ NHÃN RÕ RÀNG)
+                                if (isCorrect) {
+                                    buttonClass += "bg-emerald-50/40 border-emerald-300 text-emerald-900 font-bold";
+                                    icon = (
+                                        <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-700 px-2 py-1 rounded-lg flex items-center gap-1 shadow-sm shrink-0">
+                                            <CheckCircle2 className="w-3 h-3" /> Đáp án đúng
+                                        </span>
                                     );
-                                })}
-                            </div>
-                        </div>
+                                } else if (isSelected && !isCorrect) {
+                                    buttonClass += "bg-rose-50/40 border-rose-300 text-rose-900 font-bold";
+                                    icon = (
+                                        <span className="text-[10px] font-black uppercase tracking-wider bg-rose-100 text-rose-700 px-2 py-1 rounded-lg flex items-center gap-1 shadow-sm shrink-0">
+                                            <XCircle className="w-3 h-3" /> Lựa chọn sai
+                                        </span>
+                                    );
+                                } else {
+                                    buttonClass += "bg-slate-50/20 border-slate-100 text-slate-400 opacity-60";
+                                }
+                            }
+
+                            return (
+                                <button
+                                    key={opt.id}
+                                    disabled={isSyncing || isSubmitted}
+                                    onClick={() => handleOptionSelect(q.id, opt.id)}
+                                    className={buttonClass}
+                                >
+                                    <span className="pr-4">{optionLabel}. {opt.answerText}</span>
+                                    {icon}
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
             ))}
         </div>
 
-        {/* Final Submit CTA */}
-        <div className="mt-16 p-10 bg-white rounded-[40px] border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-center">
-            <div className="w-20 h-20 rounded-full bg-indigo-50 flex items-center justify-center mb-6">
-                <CheckCircle2 className="w-10 h-10 text-indigo-600" />
+        {/* Nút Nộp bài ở cuối trang (Chỉ hiện khi chưa nộp) */}
+        {!isSubmitted && (
+            <div className="pt-4 flex justify-end">
+                <Button 
+                    onClick={handleSubmitQuiz}
+                    disabled={isSyncing}
+                    className="h-12 px-12 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-black text-xs uppercase tracking-wider shadow-lg shadow-violet-100 transition-all hover:scale-[1.02] active:scale-95 gap-2"
+                >
+                    {isSyncing ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                    NỘP BÀI THI VÀ CHẤM ĐIỂM
+                </Button>
             </div>
-            <h4 className="text-xl font-black text-slate-900 mb-2">Đã Hoàn Thành Tất Cả Câu Hỏi?</h4>
-            <p className="text-slate-500 font-bold mb-10 max-w-sm">Hãy kiểm tra kĩ lại các lựa chọn của bạn trước khi nhấn nộp bài để tính điểm.</p>
-            <Button 
-                onClick={handleSubmitQuiz}
-                disabled={isSyncing}
-                className="h-16 px-14 rounded-[24px] bg-indigo-600 hover:bg-indigo-700 font-black text-lg shadow-2xl shadow-indigo-200 transition-all hover:scale-105 active:scale-95"
-            >
-                {isSyncing ? <Loader2 className="w-6 h-6 animate-spin mr-2" /> : null}
-                NỘP BÀI VÀ CHẤM ĐIỂM
-            </Button>
-        </div>
+        )}
     </div>
   );
 }
@@ -511,11 +501,26 @@ export default function LearningWorkspace() {
   const getEmbedUrl = (url) => {
     if (!url) return null;
     const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
-    const libraryId = "635422";
+    let libraryId = "655066"; // default legacy fallback
+    let videoId = url;
     let baseUrl = "";
     
-    if (uuidRegex.test(url)) {
-      baseUrl = `https://player.mediadelivery.net/embed/${libraryId}/${url}`;
+    // Resilient dynamic check: Check if the url is a composite string format: "libraryId/videoId"
+    if (url.includes("/")) {
+      const parts = url.split("/");
+      const lastPart = parts[parts.length - 1];
+      if (uuidRegex.test(lastPart)) {
+        videoId = lastPart;
+        // Extra safety: Only assign libraryId if there's a non-empty value before the slash
+        const secondToLast = parts[parts.length - 2];
+        if (secondToLast && secondToLast.length > 2) {
+          libraryId = secondToLast;
+        }
+      }
+    }
+
+    if (uuidRegex.test(videoId)) {
+      baseUrl = `https://player.mediadelivery.net/embed/${libraryId}/${videoId}`;
     } else if (url.includes("video.bunny.net/play/") || url.includes("video.bunny.net/embed/")) {
       baseUrl = url.replace(/video\.bunny\.net\/(play|embed)\//, "player.mediadelivery.net/embed/");
     } else {
@@ -538,7 +543,14 @@ export default function LearningWorkspace() {
     if (isDirectVideo) return false;
 
     const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+    // Check direct UUID
     if (uuidRegex.test(url)) return true;
+    // Check composite libraryId/videoId format
+    if (url.includes("/")) {
+      const parts = url.split("/");
+      if (uuidRegex.test(parts[parts.length - 1])) return true;
+    }
+
     const lowUrl = url.toLowerCase();
     return (lowUrl.includes("mediadelivery.net") || lowUrl.includes("bunny.net") || lowUrl.includes("vimeo.com")) && !lowUrl.includes("b-cdn.net");
   };
@@ -969,7 +981,7 @@ export default function LearningWorkspace() {
                         <AccordionContent className="pb-4 pt-1 px-4">
                           <div className="flex flex-col gap-1">
                             {section.lessons.map((lesson, lIdx) => {
-                              const isCurrent = activeSectionIdx === sIdx && activeLessonIdx === lIdx;
+                              const isCurrent = activeViewMode === "video" && activeSectionIdx === sIdx && activeLessonIdx === lIdx;
                               const isCompleted = completedLessonIds.includes(lesson.id);
                               return (
                                 <button

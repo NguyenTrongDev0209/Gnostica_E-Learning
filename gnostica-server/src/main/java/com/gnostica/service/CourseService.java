@@ -56,13 +56,13 @@ public class CourseService {
         course.setCategory(category);
         course.setAccount(account);
 
-        // Rule 3: Kiểm tra trạng thái danh mục trước khi cho phép Hiện khóa học
-        if (request.getStatus() != null && request.getStatus() == 1 && !category.getStatus()) {
-            throw new RuntimeException("Danh mục đang ẩn, không thể tạo khóa học ở trạng thái Hoạt động.");
+        // Kiểm tra danh mục trước khi cho phép gửi duyệt
+        if (!category.getStatus()) {
+            throw new RuntimeException("Danh mục cha đang bị ẩn, không thể tạo khóa học.");
         }
 
-        // Default Status: 1 (Hoạt động)
-        course.setStatus(request.getStatus() != null ? request.getStatus() : 1);
+        // Default Status: 4 (Chờ duyệt)
+        course.setStatus(4);
 
         // 3. Map Modules (Sections)
         List<Module> modules = new ArrayList<>();
@@ -257,12 +257,13 @@ public class CourseService {
         course.setLevel(request.getLevel());
         course.setCategory(category);
 
-        // Rule 3: Kiểm tra trạng thái danh mục trước khi cho phép Hiện khóa học
-        if (request.getStatus() != null && request.getStatus() == 1 && !category.getStatus()) {
-            throw new RuntimeException("Danh mục đang ẩn, không thể chuyển khóa học sang trạng thái Hoạt động.");
+        if (!category.getStatus()) {
+            throw new RuntimeException("Danh mục cha đang bị ẩn, không thể cập nhật khóa học.");
         }
 
-        course.setStatus(request.getStatus() != null ? request.getStatus() : 1);
+        // Khóa học chuyển về trạng thái Chờ duyệt sau khi sửa
+        course.setStatus(4);
+        course.setRejectReason(null);
         course.setPromoVideo(request.getPromoVideo());
 
         // 3. Smart Update Modules
@@ -503,6 +504,78 @@ public class CourseService {
             }
         }
 
+        return courseRepository.save(course);
+    }
+
+    @Transactional(readOnly = true)
+    public org.springframework.data.domain.Page<Course> getModerationCourses(Integer status, int page, int size) {
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size,
+                org.springframework.data.domain.Sort.by("updatedAt").descending());
+        return courseRepository.findModerationCourses(status, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public java.util.Map<String, Long> getModerationStats() {
+        java.util.List<Object[]> results = courseRepository.countModerationStats();
+        java.util.Map<String, Long> stats = new java.util.HashMap<>();
+        stats.put("pending", 0L);
+        stats.put("approved", 0L);
+        stats.put("rejected", 0L);
+        
+        if (results != null) {
+            for (Object[] row : results) {
+                if (row != null && row.length >= 2 && row[0] != null && row[1] != null) {
+                    Integer status = (Integer) row[0];
+                    Long count = (Long) row[1];
+                    if (status == 4) stats.put("pending", count);
+                    else if (status == 1) stats.put("approved", count);
+                    else if (status == 3) stats.put("rejected", count);
+                }
+            }
+        }
+        return stats;
+    }
+
+    @Transactional(readOnly = true)
+    public Course getCourseForModerationBySlug(String slug) {
+        return courseRepository.findBySlug(slug)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học để kiểm duyệt"));
+    }
+
+    @Transactional
+    public Course approveCourseBySlug(String slug) {
+        Course course = courseRepository.findBySlug(slug)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học để phê duyệt"));
+        
+        course.setStatus(1); // Chuyển thành Hoạt động
+        course.setRejectReason(null);
+
+        // Phê duyệt cho cả các chương, bài học chưa bị xóa
+        if (course.getModules() != null) {
+            for (Module m : course.getModules()) {
+                if (!Boolean.TRUE.equals(m.getDeleted())) {
+                    m.setStatus(1);
+                    if (m.getLessons() != null) {
+                        for (Lesson l : m.getLessons()) {
+                            if (!Boolean.TRUE.equals(l.getDeleted())) {
+                                l.setStatus(1);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return courseRepository.save(course);
+    }
+
+    @Transactional
+    public Course rejectCourseBySlug(String slug, String rejectReason) {
+        Course course = courseRepository.findBySlug(slug)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học"));
+        
+        course.setStatus(3); // Bị từ chối
+        course.setRejectReason(rejectReason != null && !rejectReason.trim().isEmpty() ? rejectReason.trim() : "Nội dung khóa học chưa đáp ứng chuẩn kiểm duyệt.");
+        
         return courseRepository.save(course);
     }
 

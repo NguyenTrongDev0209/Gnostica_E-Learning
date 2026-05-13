@@ -212,6 +212,7 @@ export default function InstructorCourses() {
                           <SelectItem value="1">Đang bán (Hiển thị)</SelectItem>
                           <SelectItem value="2">Ẩn</SelectItem>
                           <SelectItem value="3">Bị từ chối</SelectItem>
+                          <SelectItem value="4">Chờ duyệt</SelectItem>
                        </SelectContent>
                     </Select>
                  </div>
@@ -333,6 +334,10 @@ export default function InstructorCourses() {
                                 <span className="inline-flex items-center gap-1 text-[10px] text-rose-600 font-bold bg-rose-50 px-1.5 py-0 rounded border border-rose-200">
                                   Bị từ chối
                                 </span>
+                              ) : course.status === 4 ? (
+                                <span className="inline-flex items-center gap-1 text-[10px] text-amber-600 font-bold bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
+                                  Chờ duyệt
+                                </span>
                               ) : (
                                 <span className="inline-flex items-center gap-1 text-[10px] text-slate-600 font-bold bg-slate-100 px-1.5 py-0 rounded border border-slate-200">
                                   Ẩn
@@ -378,7 +383,7 @@ export default function InstructorCourses() {
                       )}
                     </TableCell>
                     <TableCell className="text-center">
-                      {!course.isVirtualDraft && (
+                      {!course.isVirtualDraft && (course.status === 1 || course.status === 2) ? (
                         <Button
                           variant="ghost"
                           size="icon"
@@ -391,7 +396,9 @@ export default function InstructorCourses() {
                         >
                           {course.status === 1 ? <Eye className="w-4.5 h-4.5" /> : <EyeOff className="w-4.5 h-4.5" />}
                         </Button>
-                      )}
+                      ) : !course.isVirtualDraft ? (
+                         <span className="text-slate-300 text-xs font-bold tracking-tighter opacity-60">—</span>
+                      ) : null}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end items-center gap-3">

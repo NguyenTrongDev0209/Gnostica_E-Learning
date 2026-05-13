@@ -73,7 +73,7 @@ export const privateRoutes = {
     { path: "/admin/banks", component: AdminBanks },
     { path: "/admin/transactions", component: AdminTransactions },
     { path: "/admin/course-moderation", component: AdminCourseModeration },
-    { path: "/admin/course-moderation/:id", component: AdminCourseDetailModeration },
+    { path: "/admin/course-moderation/:slug", component: AdminCourseDetailModeration },
   ],
 
   instructor: [

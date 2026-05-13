@@ -71,6 +71,9 @@ public class Course {
     @Column(columnDefinition = "boolean default false")
     private Boolean deleted = false;
 
+    @Column(name = "reject_reason", columnDefinition = "text")
+    private String rejectReason;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
@@ -114,6 +117,21 @@ public class Course {
     @com.fasterxml.jackson.annotation.JsonProperty("instructorId")
     public Integer getInstructorId() {
         return account != null ? account.getId() : null;
+    }
+
+    @com.fasterxml.jackson.annotation.JsonProperty("instructorEmail")
+    public String getInstructorEmail() {
+        return account != null ? account.getEmail() : null;
+    }
+
+    @com.fasterxml.jackson.annotation.JsonProperty("instructorPhone")
+    public String getInstructorPhone() {
+        return account != null ? account.getPhone() : null;
+    }
+
+    @com.fasterxml.jackson.annotation.JsonProperty("instructorCreatedAt")
+    public java.time.LocalDateTime getInstructorCreatedAt() {
+        return account != null ? account.getCreatedAt() : null;
     }
 
     @com.fasterxml.jackson.annotation.JsonProperty("salePrice")

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Search,
@@ -9,24 +9,8 @@ import {
   Filter,
   ArrowUpRight,
   MoreVertical,
-  PlayCircle,
-  FileText,
-  Video,
-  Tag,
-  BookOpen,
   Calendar,
-  Globe,
-  Trophy,
-  Layers,
-  Mail,
-  Briefcase,
-  MapPin,
-  Phone,
-  CreditCard,
-  Award,
-  FileCheck,
-  ExternalLink,
-  User,
+  Loader2,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -46,109 +30,137 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
+import courseService from "@/services/courseService";
+import { toast } from "sonner";
 
 // Shared Modal Imports
 import CourseRejectModal from "@/components/modals/CourseRejectModal";
 import InstructorProfileModal from "@/components/modals/InstructorProfileModal";
 
-// Mock Data
-const MODERATION_DATA = [
-  {
-    id: "CRS-1024",
-    title: "Mastering Advanced Next.js & Node.js 2024",
-    instructor: "Nguyễn Văn A",
-    instructorAvatar: "https://i.pravatar.cc/150?u=a",
-    price: "1.299.000đ",
-    submittedDate: "10/05/2026 09:30",
-    status: "pending",
-    category: "Web Development",
-    image:
-      "https://images.unsplash.com/photo-1627398242454-45a1465c2479?q=80&w=200&auto=format&fit=crop",
-  },
-  {
-    id: "CRS-1025",
-    title: "Thiết kế UI/UX Mobile App chuyên nghiệp",
-    instructor: "Trần Thị B",
-    instructorAvatar: "https://i.pravatar.cc/150?u=b",
-    price: "890.000đ",
-    submittedDate: "09/05/2026 14:15",
-    status: "pending",
-    category: "UI/UX Design",
-    image:
-      "https://images.unsplash.com/photo-1586717791821-3f44a563fa4c?q=80&w=200&auto=format&fit=crop",
-  },
-  {
-    id: "CRS-1021",
-    title: "DevOps cho người mới bắt đầu với Docker",
-    instructor: "Lê Quang C",
-    instructorAvatar: "https://i.pravatar.cc/150?u=c",
-    price: "500.000đ",
-    submittedDate: "08/05/2026 16:45",
-    status: "approved",
-    category: "DevOps",
-    image:
-      "https://images.unsplash.com/photo-1605745341112-85968b19335b?q=80&w=200&auto=format&fit=crop",
-  },
-  {
-    id: "CRS-1019",
-    title: "React Native & Expo Toàn tập",
-    instructor: "Phạm Minh D",
-    instructorAvatar: "https://i.pravatar.cc/150?u=d",
-    price: "950.000đ",
-    submittedDate: "07/05/2026 10:20",
-    status: "rejected",
-    category: "Mobile App",
-    image:
-      "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?q=80&w=200&auto=format&fit=crop",
-  },
-];
-
 export default function AdminCourseModeration() {
   const [activeTab, setActiveTab] = useState("all");
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [pagination, setPagination] = useState({
+    currentPage: 0,
+    totalPages: 0,
+    totalElements: 0,
+  });
+  const [searchTerm, setSearchTerm] = useState("");
+  const [stats, setStats] = useState({ pending: 0, approved: 0, rejected: 0 });
+
   const navigate = useNavigate();
 
   // Reject Modal State
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [rejectReason, setRejectReason] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Instructor Profile State
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [activeInstructor, setActiveInstructor] = useState(null);
 
+  // Safe extraction function to support standard Page, ResponseDTO, or ApiResponse
+  const extractPageData = (res) => {
+    if (!res) return null;
+    if (res.data !== undefined) {
+      // Wrapped inside ResponseDTO or ApiResponse
+      return res.data;
+    }
+    return res; // Raw Page object
+  };
+
+  // Load real data based on current active tab and page
+  const loadCourses = async (page = 0) => {
+    try {
+      setLoading(true);
+      let statusParam = null;
+      if (activeTab === "pending") statusParam = 4;
+      else if (activeTab === "approved") statusParam = 1;
+      else if (activeTab === "rejected") statusParam = 3;
+
+      const resRaw = await courseService.getModerationCourses(statusParam, page, 10);
+      const res = extractPageData(resRaw) || {};
+      
+      setCourses(res.content || []);
+      setPagination({
+        currentPage: res.number || 0,
+        totalPages: res.totalPages || 0,
+        totalElements: res.totalElements || 0,
+      });
+    } catch (err) {
+      console.error("Fetch courses error:", err);
+      toast.error("Không thể kết nối đến máy chủ dữ liệu");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch general counts for statistics cards (Runs once on component mount)
+  const loadStats = async () => {
+    try {
+      const res = await courseService.getModerationStats();
+      // Safely handle wrapper if present
+      const statsData = res?.data !== undefined ? res.data : res;
+      
+      if (statsData) {
+        setStats({
+          pending: statsData.pending || 0,
+          approved: statsData.approved || 0,
+          rejected: statsData.rejected || 0,
+        });
+      }
+    } catch (e) {
+      console.error("Load Stats Error:", e);
+    }
+  };
+
+  useEffect(() => {
+    loadCourses(0);
+    loadStats();
+  }, [activeTab]);
+
   const handleOpenInstructorProfile = (course) => {
+     if (!course.instructorId && !course.instructorName) return;
      setActiveInstructor({
-        name: course.instructor,
+        name: course.instructorName || "Chưa cập nhật",
         avatar: course.instructorAvatar,
-        email: course.instructor.replace(" ", ".").toLowerCase() + "@gmail.com",
-        phone: "0987.654.321",
-        cccd: "012345678901",
-        address: "Hà Nội, Việt Nam",
-        joinedDate: "15/08/2023",
-        job: "Tech Lead / Architect",
-        bio: "Giảng viên với nhiều năm kinh nghiệm làm việc tại các tập đoàn đa quốc gia.",
-        bankName: "Vietcombank",
-        bankNumber: "10123456789",
-        bankHolder: course.instructor.toUpperCase(),
-        courses: 12,
-        students: "5.4k",
-        rating: "4.9"
+        email: course.instructorEmail || "---",
+        phone: course.instructorPhone || "---",
+        cccd: "---",
+        address: "Việt Nam",
+        joinedDate: formatFriendlyDate(course.instructorCreatedAt),
+        job: "Giảng viên Gnostica",
+        bio: "Thông tin chi tiết về kinh nghiệm giảng dạy của tác giả khóa học.",
+        bankName: "Ngân hàng liên kết",
+        bankNumber: "---",
+        bankHolder: (course.instructorName || "").toUpperCase(),
+        courses: 1,
+        students: "--",
+        rating: "4.8"
      });
      setIsProfileModalOpen(true);
   };
 
   const handleOpenPreview = (course) => {
-    navigate(`/admin/course-moderation/${course.id}`);
+    // Navigation relies strictly on SLUG requested by user
+    navigate(`/admin/course-moderation/${course.slug}`);
+  };
+
+  const handleApprove = async (course) => {
+    if (!window.confirm(`Bạn có chắc chắn phê duyệt công khai khóa học "${course.title}"?`)) return;
+    try {
+      setIsSubmitting(true);
+      await courseService.approveCourse(course.slug);
+      toast.success("Phê duyệt và xuất bản khóa học thành công!");
+      loadCourses(pagination.currentPage);
+      loadStats();
+    } catch (err) {
+      toast.error(err.response?.data?.error || "Không thể phê duyệt khóa học này.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleOpenRejectModal = (course) => {
@@ -157,51 +169,83 @@ export default function AdminCourseModeration() {
     setIsRejectModalOpen(true);
   };
 
-  const handleConfirmReject = () => {
-    if (!rejectReason.trim()) return;
-
-    // Logics handled here (Mock update or API call later)
-    console.log(
-      `Rejecting course ${selectedCourse.id} with reason: ${rejectReason}`,
-    );
-
-    setIsRejectModalOpen(false);
-    setSelectedCourse(null);
-    // Show success toast could go here
+  const handleConfirmReject = async () => {
+    if (!rejectReason.trim()) {
+      toast.warning("Vui lòng điền lý do từ chối kiểm duyệt.");
+      return;
+    }
+    try {
+      setIsSubmitting(true);
+      await courseService.rejectCourse(selectedCourse.slug, rejectReason);
+      toast.success("Đã gửi lý do từ chối phê duyệt khóa học.");
+      setIsRejectModalOpen(false);
+      setSelectedCourse(null);
+      loadCourses(pagination.currentPage);
+      loadStats();
+    } catch (err) {
+      toast.error(err.response?.data?.error || "Lỗi khi từ chối khóa học.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
-
-  const filteredData =
-    activeTab === "all"
-      ? MODERATION_DATA
-      : MODERATION_DATA.filter((item) => item.status === activeTab);
 
   const getStatusBadge = (status) => {
     switch (status) {
-      case "pending":
+      case 4: // Backend Chờ duyệt
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 shadow-sm">
             <Clock className="w-3.5 h-3.5 animate-pulse" />
             Chờ duyệt
           </span>
         );
-      case "approved":
+      case 1: // Backend Đã duyệt
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm">
             <CheckCircle2 className="w-3.5 h-3.5" />
             Đã duyệt
           </span>
         );
-      case "rejected":
+      case 3: // Backend Từ chối
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200 shadow-sm">
             <XCircle className="w-3.5 h-3.5" />
             Từ chối
           </span>
         );
+      case 2: // Backend Ẩn
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-slate-50 text-slate-500 border border-slate-200 shadow-sm">
+            <Clock className="w-3.5 h-3.5" />
+            Tạm ẩn
+          </span>
+        );
       default:
-        return null;
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-slate-50 text-slate-500 border border-slate-200 shadow-sm">
+            Nháp
+          </span>
+        );
     }
   };
+
+  const formatCurrency = (price) => {
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    }).format(price);
+  };
+
+  const formatFriendlyDate = (dateStr) => {
+    if (!dateStr) return "--";
+    const d = new Date(dateStr);
+    return `${d.toLocaleDateString("vi-VN")} ${d.toLocaleTimeString("vi-VN", { hour: '2-digit', minute: '2-digit' })}`;
+  };
+
+  // Client-side search filtering over current page data
+  const filteredCourses = courses.filter(c => 
+    c.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    c.instructorName?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -212,43 +256,40 @@ export default function AdminCourseModeration() {
             Kiểm Duyệt Khóa Học
           </h1>
           <p className="text-slate-500 font-medium">
-            Xem xét nội dung khóa học và phê duyệt để phát hành lên nền tảng.
+            Xem xét và duyệt khóa học do Giảng viên thiết kế trước khi công khai.
           </p>
         </div>
       </div>
 
       {/* Status Grid Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="p-5 bg-gradient-to-br from-white to-slate-50 border border-slate-200 rounded-xl shadow-sm relative overflow-hidden group">
-          <div className="absolute right-0 bottom-0 opacity-5 transform translate-x-4 translate-y-4 group-hover:scale-110 transition-transform duration-300"></div>
+        <div className="p-5 bg-gradient-to-br from-white to-amber-50/20 border border-slate-200 rounded-xl shadow-sm">
           <h4 className="text-sm font-bold text-slate-500 tracking-wide uppercase mb-1">
-            Chờ phê duyệt
+            Đang chờ phê duyệt
           </h4>
-          <div className="flex items-end justify-between">
-            <span className="text-3xl font-black text-slate-800">2</span>
-            <span className="text-amber-600 bg-amber-50 text-xs font-bold px-2 py-0.5 rounded-md border border-amber-100">
-              Khóa mới
-            </span>
+          <div className="flex items-end justify-between mt-2">
+            <span className="text-3xl font-black text-amber-700">{stats.pending}</span>
+            <Badge variant="outline" className="bg-amber-50 border-amber-200 text-amber-700 font-extrabold">Cần duyệt</Badge>
           </div>
         </div>
 
-        <div className="p-5 bg-gradient-to-br from-white to-slate-50 border border-slate-200 rounded-xl shadow-sm relative overflow-hidden group">
-          <div className="absolute right-0 bottom-0 opacity-5 transform translate-x-4 translate-y-4 group-hover:scale-110 transition-transform duration-300"></div>
+        <div className="p-5 bg-gradient-to-br from-white to-emerald-50/20 border border-slate-200 rounded-xl shadow-sm">
           <h4 className="text-sm font-bold text-slate-500 tracking-wide uppercase mb-1">
-            Đã duyệt
+            Đã phê duyệt
           </h4>
-          <div className="flex items-end justify-between">
-            <span className="text-3xl font-black text-slate-800">24</span>      
+          <div className="flex items-end justify-between mt-2">
+            <span className="text-3xl font-black text-emerald-700">{stats.approved}</span>
+            <Badge variant="outline" className="bg-emerald-50 border-emerald-200 text-emerald-700 font-extrabold">Hoạt động</Badge>
           </div>
         </div>
 
-        <div className="p-5 bg-gradient-to-br from-white to-slate-50 border border-slate-200 rounded-xl shadow-sm relative overflow-hidden group">
-          <div className="absolute right-0 bottom-0 opacity-5 transform translate-x-4 translate-y-4 group-hover:scale-110 transition-transform duration-300"></div>
+        <div className="p-5 bg-gradient-to-br from-white to-rose-50/20 border border-slate-200 rounded-xl shadow-sm">
           <h4 className="text-sm font-bold text-slate-500 tracking-wide uppercase mb-1">
-            Từ chối
+            Đã từ chối duyệt
           </h4>
-          <div className="flex items-end justify-between">
-            <span className="text-3xl font-black text-slate-800">5</span>         
+          <div className="flex items-end justify-between mt-2">
+            <span className="text-3xl font-black text-rose-700">{stats.rejected}</span>
+            <Badge variant="outline" className="bg-rose-50 border-rose-200 text-rose-700 font-extrabold">Yêu cầu sửa</Badge>
           </div>
         </div>
       </div>
@@ -259,16 +300,12 @@ export default function AdminCourseModeration() {
           <div className="relative flex-1 lg:w-72">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <Input
-              placeholder="Tìm kiếm khóa học..."
+              placeholder="Tìm nhanh trong trang..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-9 bg-slate-50/50 border-slate-200 h-10 focus:bg-white focus:ring-2 focus:ring-primary/10 transition-all"
             />
           </div>
-          <select className="h-10 px-3 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all cursor-pointer hover:border-slate-300">
-            <option>Tất cả danh mục</option>
-            <option>Web Development</option>
-            <option>Mobile App</option>
-            <option>UI/UX Design</option>
-          </select>
         </div>
 
         <div className="flex items-center gap-1 bg-slate-100/80 p-1 rounded-xl w-full lg:w-auto border border-slate-200/30">
@@ -305,17 +342,17 @@ export default function AdminCourseModeration() {
           <Table>
             <TableHeader className="bg-slate-50/80">
               <TableRow>
-                <TableHead className="py-4 font-bold text-slate-600 uppercase text-xs tracking-wider pl-6">
+                <TableHead className="py-4 font-bold text-slate-600 uppercase text-xs tracking-wider pl-6 w-[380px]">
                   Thông tin khóa học
                 </TableHead>
                 <TableHead className="py-4 font-bold text-slate-600 uppercase text-xs tracking-wider">
                   Giảng viên
                 </TableHead>
                 <TableHead className="py-4 font-bold text-slate-600 uppercase text-xs tracking-wider">
-                  Ngày gửi
+                  Ngày cập nhật
                 </TableHead>
                 <TableHead className="py-4 font-bold text-slate-600 uppercase text-xs tracking-wider">
-                  Giá niêm yết
+                  Giá bán
                 </TableHead>
                 <TableHead className="py-4 font-bold text-slate-600 uppercase text-xs tracking-wider">
                   Trạng thái
@@ -326,143 +363,159 @@ export default function AdminCourseModeration() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredData.map((item) => (
-                <TableRow
-                  key={item.id}
-                  className="hover:bg-slate-50/60 group transition-colors"
-                >
-                  <TableCell className="pl-6 py-4">
-                    <div className="flex gap-4 items-center">
-                      <div 
-                        onClick={() => handleOpenPreview(item)}
-                        className="w-24 h-16 rounded-lg overflow-hidden border border-slate-100 shadow-sm shrink-0 relative group-hover:shadow-md transition-shadow cursor-pointer"
-                      >
-                        <img
-                          src={item.image}
-                          alt={item.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer">
-                          <Eye className="w-5 h-5 text-white drop-shadow" />
-                        </div>
-                      </div>
-                      <div className="flex flex-col min-w-0 max-w-[300px]">
-                        <span
-                          onClick={() => handleOpenPreview(item)}
-                          className="font-bold text-slate-900 truncate group-hover:text-primary transition-colors cursor-pointer"
-                          title={item.title}
-                        >
-                          {item.title}
-                        </span>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wide bg-slate-100 px-1.5 py-0.5 rounded">
-                            {item.id}
-                          </span>
-                          <span className="text-xs text-slate-500 font-medium">
-                            {item.category}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-full overflow-hidden border border-slate-200 bg-slate-100 shadow-sm">
-                        <img
-                          src={item.instructorAvatar}
-                          alt=""
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <span className="font-semibold text-slate-700 text-sm">
-                        {item.instructor}
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col">
-                      <span className="font-medium text-slate-700 text-sm">
-                        {item.submittedDate.split(" ")[0]}
-                      </span>
-                      <span className="text-xs text-slate-400 font-medium">
-                        {item.submittedDate.split(" ")[1]}
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <span className="font-extrabold text-slate-800 text-[15px]">
-                      {item.price}
-                    </span>
-                  </TableCell>
-                  <TableCell>{getStatusBadge(item.status)}</TableCell>
-                  <TableCell className="text-right pr-6">
-                    <div className="flex justify-end items-center gap-2 opacity-90 group-hover:opacity-100">
-                      {item.status === "pending" ? (
-                        <>
-                          <Button
-                            size="sm"
-                            className="h-8 font-bold gap-1.5 shadow-sm bg-emerald-600 hover:bg-emerald-700 text-white px-3 border-none"
-                          >
-                            <CheckCircle2 className="w-3.5 h-3.5" />
-                            Duyệt
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleOpenRejectModal(item)}
-                            className="h-8 font-bold border-slate-200 text-slate-600 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-200 shadow-sm"
-                          >
-                            Từ chối
-                          </Button>
-                        </>
-                      ) : (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleOpenPreview(item)}
-                          className="h-8 font-bold text-slate-600 gap-1.5 hover:border-primary hover:text-primary bg-white transition-all"
-                        >
-                          Xem chi tiết <ArrowUpRight className="w-3.5 h-3.5" />
-                        </Button>
-                      )}
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-slate-400 hover:text-slate-900 rounded-full"
-                          >
-                            <MoreVertical className="w-4 h-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-48">
-                          <DropdownMenuItem 
-                            onClick={() => handleOpenPreview(item)}
-                            className="cursor-pointer font-medium"
-                          >
-                            Xem nhanh chương trình
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={() => handleOpenInstructorProfile(item)}
-                            className="cursor-pointer font-medium"
-                          >
-                            Xem thông tin Giảng viên
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="h-48 text-center">
+                    <div className="flex flex-col items-center justify-center text-slate-400 gap-2">
+                      <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                      <p className="font-bold">Đang tải danh sách kiểm duyệt...</p>
                     </div>
                   </TableCell>
                 </TableRow>
-              ))}
-
-              {filteredData.length === 0 && (
+              ) : filteredCourses.length > 0 ? (
+                filteredCourses.map((item) => (
+                  <TableRow
+                    key={item.id}
+                    className="hover:bg-slate-50/60 group transition-colors"
+                  >
+                    <TableCell className="pl-6 py-4">
+                      <div className="flex gap-4 items-center">
+                        <div 
+                          onClick={() => handleOpenPreview(item)}
+                          className="w-24 h-16 rounded-lg overflow-hidden border border-slate-200 shadow-sm shrink-0 relative group-hover:shadow-md transition-shadow cursor-pointer bg-slate-100 flex items-center justify-center"
+                        >
+                          {item.thumbnail ? (
+                            <img
+                              src={item.thumbnail}
+                              alt={item.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            />
+                          ) : (
+                            <span className="text-[8px] font-extrabold text-slate-400">Gnostica Image</span>
+                          )}
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+                            <Eye className="w-5 h-5 text-white drop-shadow" />
+                          </div>
+                        </div>
+                        <div className="flex flex-col min-w-0 flex-1">
+                          <span
+                            onClick={() => handleOpenPreview(item)}
+                            className="font-bold text-slate-900 truncate group-hover:text-primary transition-colors cursor-pointer leading-tight"
+                            title={item.title}
+                          >
+                            {item.title || <i className="text-slate-400 font-normal">Chưa đặt tên</i>}
+                          </span>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Badge variant="outline" className="text-[10px] font-extrabold uppercase tracking-wide px-1 bg-slate-50">
+                              ID: {item.id}
+                            </Badge>
+                            <span className="text-xs text-slate-500 font-bold">
+                              {item.categoryName || "Chưa rõ danh mục"}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-full overflow-hidden border border-slate-200 bg-slate-100 shadow-sm shrink-0 flex items-center justify-center">
+                          {item.instructorAvatar ? (
+                            <img
+                              src={item.instructorAvatar}
+                              alt=""
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <span className="text-xs font-bold text-slate-500">Gv</span>
+                          )}
+                        </div>
+                        <span className="font-semibold text-slate-700 text-sm line-clamp-1">
+                          {item.instructorName || "Unknown"}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1.5 text-slate-600 text-sm font-medium">
+                        <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                        {formatFriendlyDate(item.updatedAt)}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className="font-extrabold text-slate-800 text-[15px]">
+                        {formatCurrency(item.salePrice || item.price || 0)}
+                      </span>
+                    </TableCell>
+                    <TableCell>{getStatusBadge(item.status)}</TableCell>
+                    <TableCell className="text-right pr-6">
+                      <div className="flex justify-end items-center gap-2">
+                        {item.status === 4 ? (
+                          <>
+                            <Button
+                              size="sm"
+                              disabled={isSubmitting}
+                              onClick={() => handleApprove(item)}
+                              className="h-8 font-bold gap-1.5 shadow-sm bg-emerald-600 hover:bg-emerald-700 text-white px-3"
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              Duyệt
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled={isSubmitting}
+                              onClick={() => handleOpenRejectModal(item)}
+                              className="h-8 font-bold border-slate-200 text-slate-600 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-200"
+                            >
+                              Từ chối
+                            </Button>
+                          </>
+                        ) : (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleOpenPreview(item)}
+                            className="h-8 font-bold text-slate-600 gap-1.5 hover:border-primary hover:text-primary bg-white"
+                          >
+                            Chi tiết <ArrowUpRight className="w-3.5 h-3.5" />
+                          </Button>
+                        )}
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-slate-400 hover:text-slate-900 rounded-full"
+                            >
+                              <MoreVertical className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-52">
+                            <DropdownMenuItem 
+                              onClick={() => handleOpenPreview(item)}
+                              className="cursor-pointer font-semibold"
+                            >
+                              Xem giáo trình đầy đủ
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={() => handleOpenInstructorProfile(item)}
+                              className="cursor-pointer font-semibold"
+                            >
+                              Hồ sơ Giảng viên
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
                 <TableRow>
                   <TableCell colSpan={6} className="h-64 text-center">
                     <div className="flex flex-col items-center justify-center text-slate-400 gap-2">
                       <div className="p-4 bg-slate-50 rounded-full">
                         <Filter className="w-8 h-8 text-slate-300" />
                       </div>
-                      <p className="font-bold">Không tìm thấy dữ liệu</p>
+                      <p className="font-bold">Danh sách kiểm duyệt đang trống</p>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -474,32 +527,24 @@ export default function AdminCourseModeration() {
         {/* Pagination */}
         <div className="p-4 border-t border-slate-100 flex items-center justify-between text-sm text-slate-500 bg-white">
           <div className="font-medium pl-2">
-            Đang hiển thị{" "}
-            <span className="font-extrabold text-slate-900">
-              {filteredData.length}
-            </span>{" "}
-            mục
+            Hiển thị trang <span className="font-black text-slate-900">{pagination.currentPage + 1}</span> / {pagination.totalPages || 1} ({pagination.totalElements} kết quả)
           </div>
           <div className="flex gap-1">
             <Button
               variant="outline"
               size="sm"
-              className="h-9 font-semibold border-slate-200 text-slate-600"
-              disabled
+              className="h-9 font-bold border-slate-200 text-slate-600"
+              onClick={() => loadCourses(pagination.currentPage - 1)}
+              disabled={pagination.currentPage === 0 || loading}
             >
               Trước
             </Button>
             <Button
               variant="outline"
               size="sm"
-              className="h-9 w-9 font-bold bg-primary text-white border-primary shadow-md shadow-primary/20 hover:bg-primary hover:text-white"
-            >
-              1
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-9 font-semibold border-slate-200 text-slate-600"
+              className="h-9 font-bold border-slate-200 text-slate-600"
+              onClick={() => loadCourses(pagination.currentPage + 1)}
+              disabled={pagination.currentPage >= pagination.totalPages - 1 || loading}
             >
               Sau
             </Button>
@@ -525,7 +570,6 @@ export default function AdminCourseModeration() {
   );
 }
 
-// Mini component for Tab Toggle buttons
 const TabButton = ({ children, active, onClick }) => (
   <button
     onClick={onClick}

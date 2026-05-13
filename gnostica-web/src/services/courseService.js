@@ -196,6 +196,46 @@ const saveQuestionBank = async (courseId, questions) => {
     return response.data;
 };
 
+const ADMIN_API_URL = 'http://localhost:8080/api/admin/courses';
+
+const getModerationCourses = async (status = null, page = 0, size = 10) => {
+    const params = { page, size };
+    if (status !== null && status !== undefined && status !== "") params.status = status;
+    const response = await axios.get(`${ADMIN_API_URL}/moderation`, {
+        params,
+        headers: getAuthHeaders()
+    });
+    return response.data;
+};
+
+const getModerationStats = async () => {
+    const response = await axios.get(`${ADMIN_API_URL}/moderation/stats`, {
+        headers: getAuthHeaders()
+    });
+    return response.data;
+};
+
+const getCourseForModeration = async (slug) => {
+    const response = await axios.get(`${ADMIN_API_URL}/${slug}`, {
+        headers: getAuthHeaders()
+    });
+    return response.data;
+};
+
+const approveCourse = async (slug) => {
+    const response = await axios.post(`${ADMIN_API_URL}/${slug}/approve`, {}, {
+        headers: getAuthHeaders()
+    });
+    return response.data;
+};
+
+const rejectCourse = async (slug, rejectReason) => {
+    const response = await axios.post(`${ADMIN_API_URL}/${slug}/reject`, { rejectReason }, {
+        headers: getAuthHeaders()
+    });
+    return response.data;
+};
+
 const courseService = {
     getPublicCourses,
     createCourse,
@@ -215,7 +255,13 @@ const courseService = {
     generateAiQuestions,
     saveDraftQuestions,
     getDraftQuestions,
-    saveQuestionBank
+    saveQuestionBank,
+    // Admin specific APIs
+    getModerationCourses,
+    getModerationStats,
+    getCourseForModeration,
+    approveCourse,
+    rejectCourse
 };
 
 export default courseService;
