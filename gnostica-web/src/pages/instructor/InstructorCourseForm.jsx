@@ -37,7 +37,10 @@ import {
   CheckCircle2,
   ListOrdered,
   Search,
-  Pencil
+  Pencil,
+  ShieldCheck,
+  ShieldAlert,
+  AlertTriangle
 } from "lucide-react";
 import { toast } from "sonner";
 import axios from "axios";
@@ -64,6 +67,14 @@ import {
 } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Card } from "@/components/ui/card";
 import categoryService from "@/services/categoryService";
 
@@ -180,6 +191,7 @@ export const courseSchema = z.object({
   createdAt: z.any().nullable().optional(),
   updatedAt: z.any().nullable().optional(),
   questionBank: z.any().nullable().optional(),
+  aiModerationReport: z.any().nullable().optional(),
 });
 
 // ==========================================
@@ -187,6 +199,8 @@ export const courseSchema = z.object({
 // ==========================================
 export default function InstructorCourseForm() {
   const navigate = useNavigate();
+  const [showAiReportModal, setShowAiReportModal] = React.useState(false);
+  const [isPreScanning, setIsPreScanning] = React.useState(false);
   const {
     methods,
     isEditMode,
@@ -213,6 +227,92 @@ export default function InstructorCourseForm() {
     uploadDocumentToCloudinary,
     getAuthHeaders
   } = useInstructorCourseForm(courseSchema, viErrorMap);
+
+  const overallAiReport = methods.watch("aiModerationReport");
+
+  const handlePreScanWholeCourse = async () => {
+    const curTitle = methods.getValues("title");
+    const curDesc = methods.getValues("description");
+    const sections = methods.getValues("sections") || [];
+    
+    if (!curTitle || curTitle.trim() === "") {
+      toast.warning("Vui lòng nhập ít nhất tiêu đề khóa học trước khi quét thử!");
+      return;
+    }
+    
+    try {
+      setIsPreScanning(true);
+      toast.info("🚀 Đang trích xuất lời thoại video và tổng hợp dữ liệu...");
+
+      // 1. Trích xuất trước lời thoại cho toàn bộ video (chạy song song để tối ưu tốc độ)
+      const videoTranscriptMap = {};
+      const transcriptPromises = [];
+
+      sections.forEach((sect, sIdx) => {
+        if (sect.lessons) {
+          sect.lessons.forEach((less, lIdx) => {
+            if (less.videoUrl) {
+              const key = `${sIdx}-${lIdx}`;
+              const p = courseService.getVideoTranscriptText(less.videoUrl)
+                .then((res) => {
+                  videoTranscriptMap[key] = res?.transcript || "[Không lấy được lời thoại]";
+                })
+                .catch(() => {
+                  videoTranscriptMap[key] = "[Lỗi kết nối trích xuất lời thoại]";
+                });
+              transcriptPromises.push(p);
+            }
+          });
+        }
+      });
+
+      // Chờ toàn bộ request trích xuất transcript hoàn tất
+      if (transcriptPromises.length > 0) {
+        await Promise.all(transcriptPromises);
+      }
+
+      // 2. Gom nhóm toàn bộ văn bản (Khóa học, Chương, Bài học & Lời thoại video)
+      let aggregatedText = "";
+      aggregatedText += `[MÔ TẢ KHÓA HỌC]: ${curDesc || ""}\n\n`;
+      
+      sections.forEach((sect, sIdx) => {
+        const sectTitle = sect.title || "";
+        aggregatedText += `[CHƯƠNG ${sIdx + 1}]: ${sectTitle}\n`;
+        
+        if (sect.lessons) {
+          sect.lessons.forEach((less, lIdx) => {
+            const lessTitle = less.title || "";
+            const lessContent = less.content || "";
+            const videoKey = `${sIdx}-${lIdx}`;
+            const videoTranscript = videoTranscriptMap[videoKey];
+
+            aggregatedText += `  - [BÀI HỌC ${lIdx + 1}]: ${lessTitle}\n`;
+            if (lessContent) {
+              aggregatedText += `    [MÔ TẢ NỘI DUNG]: ${lessContent}\n`;
+            }
+            if (videoTranscript) {
+              aggregatedText += `    [LỜI THOẠI CỦA VIDEO BÀI HỌC NÀY]:\n${videoTranscript}\n`;
+            }
+          });
+        }
+        aggregatedText += "\n";
+      });
+
+      toast.info("🧠 Đang kích hoạt AI phân tích toàn diện văn bản & lời thoại video...");
+
+      // 3. Gửi một yêu cầu quét duy nhất cho AI đánh giá toàn bộ khóa học
+      const res = await courseService.preScanCourseText(curTitle, aggregatedText);
+      const reportString = typeof res === "string" ? res : JSON.stringify(res);
+      methods.setValue("aiModerationReport", reportString, { shouldDirty: true });
+      
+      toast.success("🎉 Đã hoàn tất quét thử AI toàn bộ khóa học bao gồm cả lời thoại video!");
+    } catch (e) {
+      console.error("Pre-scan simulation failure:", e);
+      toast.error("Gặp sự cố khi kết nối hệ thống quét AI.");
+    } finally {
+      setIsPreScanning(false);
+    }
+  };
 
   const {
     fields,
@@ -457,6 +557,28 @@ export default function InstructorCourseForm() {
             <Button
               type="button"
               variant="outline"
+              onClick={() => setShowAiReportModal(true)}
+              className={`h-9 sm:h-10 px-3 sm:px-5 rounded-xl font-bold border shadow-sm text-xs sm:text-sm flex items-center gap-2 transition-all duration-300 hover:-translate-y-0.5 shrink-0 ${
+                (() => {
+                  try {
+                    const rep = overallAiReport ? JSON.parse(overallAiReport) : null;
+                    if (!rep) return "text-slate-500 bg-slate-50/50 border-slate-200 border-dashed";
+                    const sc = rep.safetyScore ?? 100;
+                    const hasV = rep.violations && rep.violations.length > 0;
+                    if (sc < 70 || hasV) return "bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200 animate-pulse shadow-rose-100/40 shadow-lg";
+                    return "bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-200";
+                  } catch(e) { return "text-slate-500 border-slate-200"; }
+                })()
+              }`}
+            >
+              <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span className="hidden md:inline">Kết quả kiểm duyệt AI</span>
+              <span className="md:hidden">AI Report</span>
+            </Button>
+
+            <Button
+              type="button"
+              variant="outline"
               className="h-9 sm:h-10 px-3 sm:px-5 font-bold border-slate-200 text-slate-600 hover:bg-slate-50 shadow-none text-xs sm:text-sm"
               onClick={handleExitWithConfirmation}
             >
@@ -575,7 +697,29 @@ export default function InstructorCourseForm() {
                   Tiếp theo <ArrowRight size={18} />
                 </button>
               ) : (
-                <button
+                <>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowAiReportModal(true)}
+                    className={`h-11 px-6 rounded-xl font-bold border shadow-sm text-xs sm:text-sm flex items-center gap-2 transition-all duration-300 hover:-translate-y-0.5 ${
+                      (() => {
+                        try {
+                          const rep = overallAiReport ? JSON.parse(overallAiReport) : null;
+                          if (!rep) return "text-slate-500 bg-slate-50/50 border-slate-200 border-dashed";
+                          const sc = rep.safetyScore ?? 100;
+                          const hasV = rep.violations && rep.violations.length > 0;
+                          if (sc < 70 || hasV) return "bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200 animate-pulse shadow-rose-100/40 shadow-lg";
+                          return "bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-200";
+                        } catch(e) { return "text-slate-500 border-slate-200"; }
+                      })()
+                    }`}
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    Kết quả kiểm duyệt AI
+                  </Button>
+
+                  <button
                   type="button"
                   disabled={activeUploads > 0}
                   onClick={methods.handleSubmit(onSubmit, onError)}
@@ -583,6 +727,7 @@ export default function InstructorCourseForm() {
                 >
                   <CircleFadingArrowUp size={18} /> {activeUploads > 0 ? "Đang tải video..." : "Xuất bản"}
                 </button>
+                </>
               )}
             </div>
           </div>
@@ -642,6 +787,144 @@ export default function InstructorCourseForm() {
             </Card>
           </div>
         )}
+        {/* --- Elegant AI Audit Report Modal for Instructors --- */}
+        <Dialog open={showAiReportModal} onOpenChange={setShowAiReportModal}>
+          <DialogContent className="sm:max-w-[600px] rounded-2xl border border-slate-100 p-0 overflow-hidden shadow-2xl bg-white focus-visible:outline-none z-[9999]">
+            {(() => {
+              let report = null;
+              try {
+                if (overallAiReport) report = JSON.parse(overallAiReport);
+              } catch(e) {}
+
+              const score = report?.safetyScore ?? 100;
+              const hasViolations = report?.violations && report.violations.length > 0;
+              const isCritical = score < 70 || report?.violations?.some(v => v.severity === 'CRITICAL' || v.severity === 'HIGH');
+              
+              let headerBg = "bg-gradient-to-br from-emerald-600 to-emerald-500 text-white";
+              let ShieldIcon = ShieldCheck;
+              let statusText = "Nội Dung Đạt Chuẩn An Toàn";
+
+              if (isCritical) {
+                headerBg = "bg-gradient-to-br from-rose-600 to-rose-500 text-white";
+                ShieldIcon = ShieldAlert;
+                statusText = "Phát Hiện Vi Phạm Tường Lửa";
+              } else if (hasViolations || score < 90) {
+                headerBg = "bg-gradient-to-br from-amber-500 to-orange-500 text-white";
+                ShieldIcon = AlertTriangle;
+                statusText = "Cần Xem Lại Nội Dung Nghi Vấn";
+              }
+
+              return (
+                <div className="flex flex-col h-full animate-in fade-in zoom-in-95 duration-300">
+                  <div className={`p-6 flex items-center gap-4 border-b border-white/10 shadow-sm shrink-0 ${headerBg}`}>
+                    <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-white backdrop-blur-md shadow-inner shrink-0">
+                      <ShieldIcon className="w-7 h-7" />
+                    </div>
+                    <div>
+                      <h3 className="font-black text-lg tracking-tight leading-none flex items-center gap-2">
+                        {statusText}
+                      </h3>
+                      <p className="text-[10px] font-extrabold tracking-widest uppercase mt-2 opacity-90 flex items-center gap-1">
+                        <Sparkles className="w-3.5 h-3.5 animate-pulse" /> CHỈ SỐ AN TOÀN AI: {score}%
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="p-6 space-y-5 max-h-[60vh] overflow-y-auto scrollbar-thin bg-slate-50/30">
+                    {!report ? (
+                      <div className="text-center py-12 px-6 flex flex-col items-center">
+                        <div className="w-16 h-16 bg-violet-50 border border-violet-100 text-violet-600 rounded-full flex items-center justify-center mb-4 shadow-inner">
+                          <Sparkles className="w-8 h-8 animate-bounce" />
+                        </div>
+                        <p className="font-black text-slate-800 text-[15px] uppercase tracking-wide">Chưa có dữ liệu quét AI</p>
+                        <p className="text-slate-500 text-xs mt-1.5 max-w-[320px] font-medium leading-relaxed">
+                          Hệ thống Tường lửa AI sẽ tự động thẩm định Tiêu đề & Mô tả khóa học ngay khi bạn bấm nút <span className="font-bold text-blue-600">"Lưu khóa học"</span> lần đầu tiên.
+                        </p>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="bg-white p-4 rounded-2xl border border-slate-200/60 shadow-sm">
+                          <p className="text-[10px] font-black text-slate-400 tracking-widest uppercase mb-2.5 pl-1">📝 Nhận xét tổng hợp từ Trợ lý AI</p>
+                          <p className="text-xs text-slate-700 font-bold italic bg-slate-50/50 p-3.5 rounded-xl border border-slate-100 leading-relaxed shadow-inner">
+                            "{report.assessment}"
+                          </p>
+                        </div>
+
+                        {report.violations && report.violations.length > 0 ? (
+                          <div className="space-y-3">
+                            <p className="text-[10px] font-black text-slate-500 tracking-widest uppercase pl-1 flex items-center gap-1.5">
+                              ⚠️ Danh sách điểm cần sửa đổi ({report.violations.length})
+                            </p>
+                            <div className="space-y-3">
+                              {report.violations.map((v, i) => (
+                                <div key={i} className="p-4 bg-white rounded-2xl border border-slate-200 shadow-sm space-y-2.5 hover:shadow-md transition-all duration-300 group">
+                                  <div className="flex items-center justify-between">
+                                    <span className={`text-[11px] font-black uppercase flex items-center gap-1 ${isCritical ? 'text-rose-700' : 'text-amber-700'}`}>
+                                      {v.type === 'EXTERNAL_MARKETING' ? '📢 Quảng cáo / Kéo khách ngoài' : '🗣️ Từ ngữ vi phạm'}
+                                    </span>
+                                    <Badge className={`h-4.5 px-2 py-0 text-[9px] font-black border-none uppercase tracking-wider ${v.severity === 'CRITICAL' || v.severity === 'HIGH' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'}`}>
+                                      {v.severity}
+                                    </Badge>
+                                  </div>
+                                  <p className="text-xs font-bold text-slate-800 italic bg-slate-50 p-2.5 rounded-xl border border-slate-100 leading-relaxed group-hover:bg-slate-100/50 transition-colors">
+                                    "{v.content}"
+                                  </p>
+                                  <p className="text-[11px] text-slate-600 leading-relaxed mt-1.5 flex items-start gap-1 pl-0.5">
+                                    <span className="font-extrabold text-slate-800 shrink-0">📌 Giải thích:</span> 
+                                    <span className="font-medium">{v.explanation}</span>
+                                  </p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="p-8 text-center bg-white rounded-2xl border border-emerald-100 flex flex-col items-center shadow-sm">
+                            <div className="w-14 h-14 rounded-full bg-emerald-50 flex items-center justify-center mb-3 border border-emerald-100 shadow-inner">
+                              <CheckCircle2 className="w-8 h-8 text-emerald-500 animate-pulse" />
+                            </div>
+                            <p className="font-black text-emerald-800 uppercase tracking-wide text-[13px]">Văn bản sạch tuyệt đối!</p>
+                            <p className="text-slate-500 text-xs mt-1.5 font-medium max-w-[340px] leading-relaxed">
+                              Trợ lý AI không phát hiện bất kỳ lỗi ngôn từ, kéo khách ngoài hay vi phạm chính sách nào. Bạn đã sẵn sàng gửi duyệt!
+                            </p>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+
+                  <div className="p-4 bg-white border-t border-slate-100 flex items-center justify-between gap-3 shrink-0">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={isPreScanning}
+                      onClick={handlePreScanWholeCourse}
+                      className="h-10 px-4 border-violet-200 text-violet-700 hover:bg-violet-50 hover:text-violet-800 font-bold rounded-xl shadow-sm text-xs flex items-center gap-1.5 active:scale-95 transition-all"
+                    >
+                      {isPreScanning ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          <span>Đang quét toàn khóa...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-3.5 h-3.5 text-violet-500" />
+                          <span>Quét thử toàn bộ khóa học</span>
+                        </>
+                      )}
+                    </Button>
+                    <Button 
+                      onClick={() => setShowAiReportModal(false)}
+                      className="h-10 px-5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl shadow-md text-xs select-none active:scale-95 transition-transform"
+                    >
+                      Đóng báo cáo
+                    </Button>
+                  </div>
+                </div>
+              );
+            })()}
+          </DialogContent>
+        </Dialog>
+
       </FormProvider>
     </div>
   );
@@ -934,6 +1217,7 @@ function BasicInfoTab({ categories }) {
   const title = useWatch({ control, name: "title" });
   const categoryId = useWatch({ control, name: "categoryId" });
   const currentStatus = useWatch({ control, name: "status" });
+  const aiModerationReport = useWatch({ control, name: "aiModerationReport" });
 
   // Logic tìm danh mục được chọn (bao gồm đệ quy cấp 2)
   const selectedCategory = React.useMemo(() => {
@@ -1004,6 +1288,13 @@ function BasicInfoTab({ categories }) {
           THÔNG TIN CƠ BẢN
         </h3>
       </div>
+
+      {aiModerationReport && (
+        <div className="flex items-center gap-1.5 bg-violet-50/50 border border-violet-100/60 px-4 py-2 rounded-xl text-violet-700 text-xs font-bold">
+          <Sparkles className="w-3.5 h-3.5 animate-pulse" />
+          Mẹo: Bấm nút <span className="underline font-black decoration-2 decoration-violet-300 mx-0.5">"Kết quả kiểm duyệt AI"</span> ở góc trên hoặc dưới cùng màn hình để xem chi tiết thẩm định.
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
@@ -2144,6 +2435,7 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
   const [searchTerm, setSearchTerm] = React.useState("");
   const [filterLevel, setFilterLevel] = React.useState("all");
 
+
   // Load real bank questions and pre-populate quiz data when modal opens
   React.useEffect(() => {
     if (isQuizModalOpen) {
@@ -2360,6 +2652,8 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
               key={lesson.id}
               className="group flex gap-4 p-5 border border-slate-200 rounded-2xl bg-white hover:border-green-300 hover:shadow-lg transition-all duration-300 relative"
             >
+
+
               <div className="pt-1 text-slate-300 cursor-grab active:cursor-grabbing hover:text-slate-500">
                 <GripVertical size={20} />
               </div>
@@ -2743,16 +3037,54 @@ function BackgroundVideoUploader({ label, value, onChange, onUploadStart, onUplo
       globalUploadProgress[id] = 0;
       onUploadStart();
 
+      // Bước 1: Tải video lên Bunny.net (Quy đổi 0 -> 100% tải thực tế thành 0 -> 70% thanh tiến trình tổng thể)
       const videoId = await uploadVideoToBunny(file, file.name, (pct) => {
-        // Cập nhật state cục bộ (nếu component còn mount)
-        setLocalProgress(pct);
-        // Lưu vào biến toàn cục để các lần mount sau có thể lấy được
-        globalUploadProgress[id] = pct;
-        // Nếu có component nào đang mount với ID này, gọi callback của nó
+        const displayPct = Math.round(pct * 0.70);
+        setLocalProgress(displayPct);
+        globalUploadProgress[id] = displayPct;
         if (uploadCallbacks[id]) {
-          uploadCallbacks[id](pct);
+          uploadCallbacks[id](displayPct);
         }
       });
+
+      // Bước 2: Đợi sinh phụ đề tự động từ Bunny Stream AI (Nhích đều từ 70% -> 99%)
+      let captionReady = false;
+      let attempts = 0;
+      const maxAttempts = 40; // Tối đa ~3.5 phút (40 lần * 5 giây)
+
+      while (!captionReady && attempts < maxAttempts) {
+        // Nghỉ 5 giây giữa mỗi nhịp thăm dò
+        await new Promise(resolve => setTimeout(resolve, 5000));
+        attempts++;
+
+        // Nhích đều đặn từ 70% lên 99% thay vì kẹt cứng
+        const step = 29 / maxAttempts; 
+        const progressBoost = Math.min(99, Math.round(70 + (attempts * step)));
+        
+        setLocalProgress(progressBoost);
+        globalUploadProgress[id] = progressBoost;
+        if (uploadCallbacks[id]) {
+          uploadCallbacks[id](progressBoost);
+        }
+
+        try {
+          // Gọi API kiểm tra trạng thái VTT của videoId
+          const status = await courseService.checkSubtitleStatus(videoId);
+          if (status && status.ready) {
+            captionReady = true;
+          }
+        } catch (err) {
+          console.warn("Lỗi kiểm tra phụ đề, thử lại...", err);
+        }
+      }
+
+      // Hoàn tất mỹ mãn: Đạt 100%
+      setLocalProgress(100);
+      globalUploadProgress[id] = 100;
+      if (uploadCallbacks[id]) {
+        uploadCallbacks[id](100);
+      }
+      await new Promise(resolve => setTimeout(resolve, 800)); // Giữ trạng thái 100% cho sướng mắt
 
       onChange(videoId);
     } catch (err) {
@@ -2785,8 +3117,11 @@ function BackgroundVideoUploader({ label, value, onChange, onUploadStart, onUplo
       />
 
       {isCurrentlyUploading ? (
-        <div className="flex flex-col items-center">
+        <div className="flex flex-col items-center gap-2">
           <VideoProgressCircle progress={localProgress} size={80} />
+          <p className="text-[10px] font-bold text-green-600 animate-pulse text-center leading-tight">
+            Đang tải dữ liệu video...
+          </p>
         </div>
       ) : isCompleted ? (
         <div className="flex flex-col items-center">

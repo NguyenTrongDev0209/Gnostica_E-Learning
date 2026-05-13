@@ -3,6 +3,8 @@ package com.gnostica.controller;
 import com.gnostica.dto.request.CourseRequest;
 import com.gnostica.model.Course;
 import com.gnostica.service.CourseService;
+import com.gnostica.service.BunnyTranscriptionService;
+import com.gnostica.service.AiModerationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +21,8 @@ import java.util.Map;
 public class CourseController {
 
     private final CourseService courseService;
+    private final BunnyTranscriptionService bunnyTranscriptionService;
+    private final AiModerationService aiModerationService;
     
     @GetMapping
     public ResponseEntity<?> getPublicCourses(
@@ -122,5 +126,39 @@ public class CourseController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
+    }
+
+    @GetMapping("/lessons/check-subtitle/{videoId}")
+    public ResponseEntity<Map<String, Object>> checkSubtitleStatus(@PathVariable String videoId) {
+        String subtitle = bunnyTranscriptionService.fetchSubtitleVtt(videoId);
+        Map<String, Object> response = new HashMap<>();
+        response.put("ready", subtitle != null);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/ai-pre-scan-text")
+    public ResponseEntity<String> preScanText(@RequestBody Map<String, String> body) {
+        String title = body.get("title");
+        String description = body.get("description");
+        
+        String resultJson = aiModerationService.preScanCourseText(title, description);
+        return ResponseEntity.ok(resultJson);
+    }
+
+    @PostMapping("/ai-pre-scan-video")
+    public ResponseEntity<String> preScanVideo(@RequestBody Map<String, String> body) {
+        String videoUrl = body.get("videoUrl");
+        String resultJson = aiModerationService.preScanVideoContent(videoUrl);
+        return ResponseEntity.ok(resultJson);
+    }
+
+    @PostMapping("/get-video-transcript")
+    public ResponseEntity<Map<String, String>> getVideoTranscript(@RequestBody Map<String, String> body) {
+        String videoUrl = body.get("videoUrl");
+        String transcript = aiModerationService.getVideoTranscriptText(videoUrl);
+        
+        Map<String, String> response = new HashMap<>();
+        response.put("transcript", transcript);
+        return ResponseEntity.ok(response);
     }
 }
