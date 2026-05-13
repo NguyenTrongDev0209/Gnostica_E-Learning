@@ -74,4 +74,23 @@ public interface CourseRepository extends JpaRepository<Course, Integer> {
             @org.springframework.data.repository.query.Param("categoryName") String categoryName, 
             @org.springframework.data.repository.query.Param("maxPrice") Double maxPrice, 
             org.springframework.data.domain.Pageable pageable);
+
+    @org.springframework.data.jpa.repository.Query(
+        value = "SELECT DISTINCT c FROM Course c LEFT JOIN FETCH c.account LEFT JOIN FETCH c.category " +
+                "WHERE (:status IS NULL OR c.status = :status) " +
+                "AND (c.deleted = false OR c.deleted IS NULL)",
+        countQuery = "SELECT COUNT(c) FROM Course c " +
+                     "WHERE (:status IS NULL OR c.status = :status) " +
+                     "AND (c.deleted = false OR c.deleted IS NULL)"
+    )
+    org.springframework.data.domain.Page<Course> findModerationCourses(
+            @org.springframework.data.repository.query.Param("status") Integer status,
+            org.springframework.data.domain.Pageable pageable);
+
+    @org.springframework.data.jpa.repository.Query(
+        "SELECT c.status, COUNT(c) FROM Course c " +
+        "WHERE (c.deleted = false OR c.deleted IS NULL) " +
+        "GROUP BY c.status"
+    )
+    java.util.List<Object[]> countModerationStats();
 }

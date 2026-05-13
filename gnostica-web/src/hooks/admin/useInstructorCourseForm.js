@@ -140,7 +140,8 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
 
       xhr.onload = () => {
         if (xhr.status >= 200 && xhr.status < 300) {
-          resolve(videoId);
+          // Return a composite libraryId/videoId string so the player can dynamically stream from correct library bucket!
+          resolve(`${libraryId}/${videoId}`);
         } else {
           reject(new Error("Upload video failed to Bunny CDN"));
         }
