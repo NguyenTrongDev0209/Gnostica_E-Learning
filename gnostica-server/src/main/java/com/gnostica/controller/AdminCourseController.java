@@ -131,4 +131,24 @@ public class AdminCourseController {
             return ResponseEntity.badRequest().body(Map.of("error", "Lỗi khi gọi AI quét khóa học: " + e.getMessage()));
         }
     }
+
+    /**
+     * Endpoint Cho phép Admin kích hoạt chạy quét AI TOÀN DIỆN cho khóa học (bao gồm nội dung bài học, trắc nghiệm, lời thoại)
+     */
+    @PostMapping("/{slug}/ai-scan-full")
+    public ResponseEntity<Map<String, Object>> scanCourseFull(@PathVariable String slug) {
+        try {
+            Course course = courseService.getCourseForModerationBySlug(slug);
+            // Hiện tại scanCourseInfo đã được nâng cấp để quét toàn bộ dữ liệu aggregated
+            Course scanned = aiModerationService.scanCourseInfo(course);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Kiểm duyệt AI toàn diện hoàn tất!");
+            response.put("slug", scanned.getSlug());
+            response.put("aiModerationReport", scanned.getAiModerationReport());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Lỗi khi gọi AI quét toàn diện: " + e.getMessage()));
+        }
+    }
 }

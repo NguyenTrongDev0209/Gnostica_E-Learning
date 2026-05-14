@@ -103,7 +103,7 @@ export default function MyCourses() {
       </div>
 
       {/* Filters Bar */}
-      <div className="flex flex-col sm:flex-row gap-4 mb-8 bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
+      <div className="flex flex-col sm:flex-row gap-4 mb-8 bg-white p-4 rounded-lg border border-slate-100 shadow-sm">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <Input 
@@ -130,15 +130,15 @@ export default function MyCourses() {
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {[1,2,3,4].map(n => (
-            <div key={n} className="h-80 bg-slate-100 animate-pulse rounded-2xl" />
+            <div key={n} className="h-80 bg-slate-100 animate-pulse rounded-lg" />
           ))}
         </div>
       ) : filteredCourses.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-6">
           {filteredCourses.map((course) => (
-            <Card key={course.id} className="overflow-hidden border-slate-100 shadow-sm hover:shadow-xl transition-all group active:scale-[0.98] rounded-[2.5rem] bg-white">
+            <Card key={course.id} className="overflow-hidden border-slate-100 shadow-sm hover:shadow-xl transition-all group active:scale-[0.98] rounded-xl bg-white">
               <div className="relative h-52 sm:h-60 w-full p-4 pb-0">
-                <div className="w-full h-full overflow-hidden rounded-[2rem] relative shadow-inner bg-slate-50">
+                <div className="w-full h-full overflow-hidden rounded-lg relative shadow-inner bg-slate-50">
                   <img 
                     src={course.courseThumbnail || "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=600&auto=format&fit=crop"} 
                     alt={course.courseTitle} 
@@ -194,7 +194,7 @@ export default function MyCourses() {
                     className="block w-full"
                   >
                     <button 
-                      className={`w-full py-2.5 rounded-xl text-sm font-bold transition-colors
+                      className={`w-full py-2.5 rounded-lg text-sm font-bold transition-colors
                         ${course.progressPercent === 100 
                           ? "bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200" 
                           : course.progressPercent === 0 
@@ -211,12 +211,12 @@ export default function MyCourses() {
           ))}
         </div>
       ) : (
-        <div className="text-center py-20 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+        <div className="text-center py-20 bg-slate-50 rounded-lg border border-dashed border-slate-200">
           <BookOpen className="w-16 h-16 text-slate-300 mx-auto mb-4" />
           <h3 className="text-lg font-bold text-slate-900 mb-2">Không tìm thấy khóa học nào</h3>
           <p className="text-slate-500 mb-6">Bạn chưa sở hữu khóa học nào phù hợp với bộ lọc hiện tại.</p>
           <Link to="/courses">
-            <button className="px-6 py-2.5 rounded-xl border-2 border-primary text-primary font-bold hover:bg-primary/5 transition-colors">
+            <button className="px-6 py-2.5 rounded-lg border-2 border-primary text-primary font-bold hover:bg-primary/5 transition-colors">
               Khám phá khóa học
             </button>
           </Link>

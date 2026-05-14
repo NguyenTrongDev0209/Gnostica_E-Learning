@@ -77,6 +77,12 @@ public class Course {
     @Column(name = "ai_moderation_report", columnDefinition = "text")
     private String aiModerationReport;
 
+    @Column(name = "ai_moderation_status")
+    private String aiModerationStatus; // PENDING, SCANNING, COMPLETED, FAILED
+
+    @Column(name = "ai_moderation_last_content_hash")
+    private String aiModerationLastContentHash;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 

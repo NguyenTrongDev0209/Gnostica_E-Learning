@@ -271,7 +271,7 @@ export default function InstructorCourseForm() {
         await Promise.all(transcriptPromises);
       }
 
-      // 2. Gom nhóm toàn bộ văn bản (Khóa học, Chương, Bài học & Lời thoại video)
+      // 2. Gom nhóm toàn bộ văn bản (Khóa học, Chương, Bài học, Quiz & Ngân hàng câu hỏi)
       let aggregatedText = "";
       aggregatedText += `[MÔ TẢ KHÓA HỌC]: ${curDesc || ""}\n\n`;
       
@@ -295,8 +295,40 @@ export default function InstructorCourseForm() {
             }
           });
         }
+
+        // Thêm nội dung Quiz của chương (nếu có)
+        if (sect.quiz) {
+          aggregatedText += `  - [BÀI TRẮC NGHIỆM CHƯƠNG]: ${sect.quiz.title || "Chưa đặt tên"}\n`;
+          if (sect.quiz.questions && sect.quiz.questions.length > 0) {
+            sect.quiz.questions.forEach((q, qIdx) => {
+              aggregatedText += `    + Câu hỏi ${qIdx + 1}: ${q.content}\n`;
+              if (q.answers) {
+                q.answers.forEach(a => {
+                  aggregatedText += `      * ${a.content}${a.isCorrect ? " (Đúng)" : ""}\n`;
+                });
+              }
+            });
+          }
+        }
         aggregatedText += "\n";
       });
+
+      // Thêm nội dung Ngân hàng câu hỏi tổng thể
+      const questionBank = methods.getValues("questionBank") || [];
+      if (questionBank.length > 0) {
+        aggregatedText += `[NGÂN HÀNG CÂU HỎI TỔNG THỂ]:\n`;
+        questionBank.forEach((q, qIdx) => {
+          aggregatedText += `  + Câu hỏi ${qIdx + 1}: ${q.content}\n`;
+          if (q.answers) {
+            q.answers.forEach(a => {
+              aggregatedText += `    * ${a.content}${a.isCorrect ? " (Đúng)" : ""}\n`;
+            });
+          }
+          if (q.explanation) {
+            aggregatedText += `    * Giải thích: ${q.explanation}\n`;
+          }
+        });
+      }
 
       toast.info("🧠 Đang kích hoạt AI phân tích toàn diện văn bản & lời thoại video...");
 
