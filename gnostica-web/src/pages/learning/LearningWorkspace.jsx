@@ -58,13 +58,13 @@ function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }
 
   if (!quiz || questions.length === 0) {
     return (
-      <div className="w-full bg-white rounded-[40px] border border-slate-200 p-20 text-center shadow-sm">
+      <div className="w-full bg-white rounded-2xl border border-slate-200 p-20 text-center shadow-sm">
         <div className="w-24 h-24 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-6 border border-indigo-100">
             <HelpCircle className="w-10 h-10 text-indigo-400" />
         </div>
         <h2 className="text-2xl font-black text-slate-900 mb-2">Chương học chưa có bài tập</h2>
         <p className="text-slate-500 font-bold mb-8">Bài quiz này hiện chưa chứa câu hỏi nào.</p>
-        <Button onClick={onBack} className="rounded-xl font-bold">Quay lại xem Video</Button>
+        <Button onClick={onBack} className="rounded-lg font-bold">Quay lại xem Video</Button>
       </div>
     );
   }
@@ -149,7 +149,7 @@ function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }
   return (
     <div className="w-full space-y-6 max-w-5xl mx-auto pb-12">
         {/* Header Banner (Theo mẫu) */}
-        <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm p-6 md:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-in fade-in duration-500">
+        <div className="bg-white rounded-xl border border-slate-200/60 shadow-sm p-6 md:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-in fade-in duration-500">
             <div className="flex items-center gap-4">
                 <div className="w-14 h-14 rounded-full bg-violet-600 flex items-center justify-center text-white shadow-lg shadow-violet-200 shrink-0">
                     <Trophy className="w-7 h-7" />
@@ -165,14 +165,14 @@ function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }
             </div>
             
             {/* Nút quay lại bài học */}
-            <Button onClick={onBack} variant="ghost" className="font-extrabold text-xs gap-1 text-slate-500 hover:bg-slate-50 rounded-xl self-end sm:self-center">
+            <Button onClick={onBack} variant="ghost" className="font-extrabold text-xs gap-1 text-slate-500 hover:bg-slate-50 rounded-lg self-end sm:self-center">
                 <ChevronLeft className="w-3.5 h-3.5" /> Quay lại xem Video
             </Button>
         </div>
 
         {/* Bảng kết quả điểm số (Hiện ra sau khi nộp bài) */}
         {isSubmitted && (
-            <div className="bg-gradient-to-br from-slate-900 to-indigo-950 rounded-2xl p-6 md:p-8 text-white shadow-xl border border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-6 animate-in slide-in-from-top duration-500">
+            <div className="bg-gradient-to-br from-slate-900 to-indigo-950 rounded-xl p-6 md:p-8 text-white shadow-xl border border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-6 animate-in slide-in-from-top duration-500">
                 <div className="flex items-center gap-5">
                     <div className={`w-16 h-16 ${isPassed ? 'bg-emerald-500' : 'bg-orange-500'} rounded-full flex items-center justify-center shadow-lg shrink-0`}>
                         {isPassed ? <Award className="w-8 h-8 text-white" /> : <HelpCircle className="w-8 h-8 text-white" />}
@@ -192,7 +192,7 @@ function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }
                        onClick={handleReset} 
                        disabled={isSyncing}
                        variant="outline" 
-                       className="rounded-xl font-extrabold border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white gap-2 text-xs h-11 px-5"
+                       className="rounded-lg font-extrabold border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white gap-2 text-xs h-11 px-5"
                     >
                         {isSyncing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
                         Làm lại bài thi
@@ -204,7 +204,7 @@ function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }
         {/* Questions List (Theo mẫu mockup) */}
         <div className="space-y-5">
             {questions.map((q, idx) => (
-                <div key={q.id} className="bg-white rounded-2xl p-6 md:p-8 border border-slate-200/60 shadow-sm space-y-6 transition-all duration-300 hover:shadow-md">
+                <div key={q.id} className="bg-white rounded-xl p-6 md:p-8 border border-slate-200/60 shadow-sm space-y-6 transition-all duration-300 hover:shadow-md">
                     <h3 className="text-sm md:text-[15px] font-extrabold text-slate-900 leading-relaxed flex gap-1.5 items-start">
                         <span className="shrink-0">Câu {idx + 1}:</span>
                         <span dangerouslySetInnerHTML={{ __html: q.content }}></span>
@@ -216,7 +216,7 @@ function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }
                             const isSelected = userAnswers[q.id] == opt.id; // Use loose comparison to avoid JS type mismatches
                             const isCorrect = opt.isCorrect;
 
-                            let buttonClass = "w-full flex items-center justify-between p-4 text-left border rounded-xl transition-all duration-200 text-xs md:text-[13px] font-medium ";
+                            let buttonClass = "w-full flex items-center justify-between p-4 text-left border rounded-lg transition-all duration-200 text-xs md:text-[13px] font-medium ";
                             let icon = null;
 
                             if (!isSubmitted) {
@@ -270,7 +270,7 @@ function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }
                 <Button 
                     onClick={handleSubmitQuiz}
                     disabled={isSyncing}
-                    className="h-12 px-12 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-black text-xs uppercase tracking-wider shadow-lg shadow-violet-100 transition-all hover:scale-[1.02] active:scale-95 gap-2"
+                    className="h-12 px-12 rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-black text-xs uppercase tracking-wider shadow-lg shadow-violet-100 transition-all hover:scale-[1.02] active:scale-95 gap-2"
                 >
                     {isSyncing ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                     NỘP BÀI THI VÀ CHẤM ĐIỂM
@@ -691,14 +691,14 @@ export default function LearningWorkspace() {
         <div className="flex gap-4">
           <Button 
             onClick={() => navigate(`/course/${slug}`)}
-            className="font-black px-8 py-6 rounded-2xl shadow-xl shadow-primary/20"
+            className="font-black px-8 py-6 rounded-xl shadow-xl shadow-primary/20"
           >
             Đến trang khóa học
           </Button>
           <Button 
             variant="outline"
             onClick={() => navigate("/account/my-courses")}
-            className="font-black px-8 py-6 rounded-2xl border-slate-200"
+            className="font-black px-8 py-6 rounded-xl border-slate-200"
           >
             Khóa học của tôi
           </Button>
@@ -732,7 +732,7 @@ export default function LearningWorkspace() {
         <div className="flex items-center gap-4 min-w-0">
           <button
             onClick={() => navigate("/account/my-courses")}
-            className="p-2.5 hover:bg-slate-800 rounded-xl transition-all text-slate-300 hover:text-white group"
+            className="p-2.5 hover:bg-slate-800 rounded-lg transition-all text-slate-300 hover:text-white group"
           >
             <ChevronLeft className="w-6 h-6 group-hover:-translate-x-0.5 transition-transform" />
           </button>
@@ -760,12 +760,12 @@ export default function LearningWorkspace() {
           <Button
             variant="ghost"
             size="sm"
-            className="text-slate-300 hover:bg-slate-800 hover:text-white font-bold hidden lg:flex items-center gap-2 rounded-xl"
+            className="text-slate-300 hover:bg-slate-800 hover:text-white font-bold hidden lg:flex items-center gap-2 rounded-lg"
           >
             <LayoutDashboard className="w-4 h-4" />
             Giao diện
           </Button>
-          <div className="flex items-center gap-1.5 bg-slate-800 p-1.5 rounded-xl border border-white/5">
+          <div className="flex items-center gap-1.5 bg-slate-800 p-1.5 rounded-lg border border-white/5">
             <button
               onClick={handlePrevLesson}
               disabled={activeSectionIdx === 0 && activeLessonIdx === 0}
@@ -797,7 +797,7 @@ export default function LearningWorkspace() {
               {activeViewMode === "video" ? (
                 <>
                   {/* Video Player Section */}
-                  <div className="w-full aspect-video rounded-[40px] overflow-hidden bg-black border-[6px] border-white shadow-[0_20px_50px_rgba(0,0,0,0.1)] relative group">
+                  <div className="w-full aspect-video rounded-xl overflow-hidden bg-black border-[6px] border-white shadow-[0_20px_50px_rgba(0,0,0,0.1)] relative group">
                     {useIframe ? (
                       <iframe
                         id="bunny-video-player"
@@ -826,7 +826,7 @@ export default function LearningWorkspace() {
                         Trình duyệt không hỗ trợ phát video.
                       </video>
                     )}
-                    <div className="absolute top-8 left-8 px-5 py-3 rounded-3xl bg-black/50 backdrop-blur-2xl border border-white/20 text-white pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="absolute top-8 left-8 px-5 py-3 rounded-lg border border-white/20 text-white pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                       <p className="text-[10px] font-black text-primary mb-1 uppercase tracking-[0.25em] italic">Gnostica Learning</p>
                       <h3 className="text-sm font-black">{currentLesson?.title}</h3>
                     </div>
@@ -851,29 +851,29 @@ export default function LearningWorkspace() {
 
                   {/* Tabs Container */}
                   <Tabs defaultValue="overview" className="w-full">
-                    <TabsList className="bg-white p-1.5 h-14 rounded-[20px] w-full sm:w-fit border border-slate-200 shadow-sm gap-1.5">
+                    <TabsList className="bg-white p-1.5 h-14 rounded-xl w-full sm:w-fit border border-slate-200 shadow-sm gap-1.5">
                       <TabsTrigger 
                         value="overview" 
-                        className="rounded-[14px] h-full px-5 font-black text-[11px] uppercase tracking-widest flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-primary/30 transition-all duration-300"
+                        className="rounded-lg h-full px-5 font-black text-[11px] uppercase tracking-widest flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-primary/30 transition-all duration-300"
                       >
                         <Info className="w-4 h-4" /> Tổng quan
                       </TabsTrigger>
                       <TabsTrigger 
                         value="qa" 
-                        className="rounded-[14px] h-full px-5 font-black text-[11px] uppercase tracking-widest flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-primary/30 transition-all duration-300"
+                        className="rounded-lg h-full px-5 font-black text-[11px] uppercase tracking-widest flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-primary/30 transition-all duration-300"
                       >
                         <MessageSquare className="w-4 h-4" /> Hỏi đáp
                       </TabsTrigger>
                       <TabsTrigger 
                         value="resources" 
-                        className="rounded-[14px] h-full px-5 font-black text-[11px] uppercase tracking-widest flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-primary/30 transition-all duration-300"
+                        className="rounded-lg h-full px-5 font-black text-[11px] uppercase tracking-widest flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-primary/30 transition-all duration-300"
                       >
                         <FileText className="w-4 h-4" /> Tài liệu
                       </TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="overview" className="mt-10 outline-none">
-                      <div className="bg-white rounded-[40px] p-10 md:p-14 border border-slate-200 shadow-sm leading-[1.8] text-slate-800">
+                      <div className="bg-white rounded-xl p-10 md:p-14 border border-slate-200 shadow-sm leading-[1.8] text-slate-800">
                         <h3 className="text-2xl font-black mb-8 flex items-center gap-4">
                             <div className="w-2.5 h-10 bg-primary rounded-full shadow-[0_0_15px_rgba(var(--primary),0.5)]" />
                             Nội dung bài học
@@ -886,7 +886,7 @@ export default function LearningWorkspace() {
                     </TabsContent>
 
                     <TabsContent value="qa" className="mt-10 outline-none">
-                      <div className="bg-white rounded-[40px] p-16 border border-slate-200 shadow-sm text-center">
+                      <div className="bg-white rounded-xl p-16 border border-slate-200 shadow-sm text-center">
                         <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-8 border border-slate-100 shadow-inner">
                           <MessageSquare className="w-10 h-10 text-slate-300" />
                         </div>
@@ -894,7 +894,7 @@ export default function LearningWorkspace() {
                         <p className="text-slate-500 max-w-md mx-auto mt-4 font-bold">
                             Tham gia thảo luận về bài học này. Giảng viên và cộng đồng luôn sẵn sàng hỗ trợ bạn 24/7!
                         </p>
-                        <Button className="mt-10 font-black px-12 rounded-2xl h-14 text-sm uppercase tracking-widest shadow-xl shadow-primary/30 transition-all hover:scale-105 active:scale-95">Đặt câu hỏi ngay</Button>
+                        <Button className="mt-10 font-black px-12 rounded-lg h-14 text-sm uppercase tracking-widest shadow-xl shadow-primary/30 transition-all hover:scale-105 active:scale-95">Đặt câu hỏi ngay</Button>
                       </div>
                     </TabsContent>
 
@@ -902,7 +902,7 @@ export default function LearningWorkspace() {
                        {currentSection?.attachments && currentSection.attachments.length > 0 ? (
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {currentSection.attachments.map((file, i) => (
-                              <div key={file.id || i} className="flex items-center justify-between p-6 bg-white border border-slate-200 rounded-[28px] hover:border-primary hover:shadow-2xl hover:shadow-primary/5 transition-all group cursor-pointer duration-500">
+                              <div key={file.id || i} className="flex items-center justify-between p-6 bg-white border border-slate-200 rounded-xl hover:border-primary hover:shadow-2xl hover:shadow-primary/5 transition-all group cursor-pointer duration-500">
                                 <div className="flex items-center gap-5">
                                   <div className="w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center text-primary border border-slate-100 group-hover:bg-primary group-hover:text-white group-hover:rotate-6 transition-all duration-300">
                                     <FileText className="w-7 h-7" />
@@ -928,7 +928,7 @@ export default function LearningWorkspace() {
                             ))}
                           </div>
                        ) : (
-                          <div className="bg-white rounded-[40px] p-16 border border-slate-200 shadow-sm text-center text-slate-400 font-black italic uppercase tracking-widest text-xs">
+                          <div className="bg-white rounded-xl p-16 border border-slate-200 shadow-sm text-center text-slate-400 font-black italic uppercase tracking-widest text-xs">
                             Chương này chưa tải lên tài liệu tham khảo.
                           </div>
                        )}
@@ -947,7 +947,7 @@ export default function LearningWorkspace() {
             </div>
 
             {/* ── Right: Course Playlist Sidebar ── */}
-            <aside className="w-full lg:w-[380px] xl:w-[450px] shrink-0 border border-slate-200 rounded-[48px] bg-white overflow-hidden shadow-2xl flex flex-col">
+            <aside className="w-full lg:w-[380px] xl:w-[450px] shrink-0 border border-slate-200 rounded-xl overflow-hidden shadow-2xl flex flex-col">
               <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                 <div className="flex flex-col gap-1">
                     <h3 className="font-black text-slate-900 uppercase tracking-[0.2em] text-[11px]">Nội dung khóa học</h3>
@@ -968,7 +968,7 @@ export default function LearningWorkspace() {
                         value={`section-${sIdx}`}
                         className={`border-b-0 px-2 last:mb-0`}
                       >
-                        <AccordionTrigger className="px-6 py-6 hover:bg-slate-50/50 hover:no-underline [&[data-state=open]]:bg-slate-50/80 rounded-[32px] transition-all font-black mx-2 mb-1">
+                        <AccordionTrigger className="px-6 py-6 hover:bg-slate-50/50 hover:no-underline [&[data-state=open]]:bg-slate-50/80 rounded-xl transition-all font-black mx-2 mb-1">
                           <div className="flex flex-col items-start gap-1 text-left min-w-0">
                             <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em] italic">
                               Phần {sIdx + 1}
@@ -987,7 +987,7 @@ export default function LearningWorkspace() {
                                 <button
                                   key={lesson.id || lIdx}
                                   onClick={() => handleLessonSelect(sIdx, lIdx)}
-                                  className={`flex items-start gap-4 px-6 py-5 transition-all text-left rounded-3xl border-2
+                                  className={`flex items-start gap-4 px-6 py-5 transition-all text-left rounded-lg border-2
                                     ${isCurrent 
                                         ? "bg-primary shadow-xl shadow-primary/20 border-primary text-white" 
                                         : "hover:bg-slate-50 border-transparent text-slate-700 hover:scale-[0.98]"}`}
@@ -1022,7 +1022,7 @@ export default function LearningWorkspace() {
                             {section.quiz && (
                               <button
                                 onClick={() => handleQuizSelect(sIdx)}
-                                className={`flex items-start gap-4 px-6 py-5 transition-all text-left rounded-3xl border-2 mt-1
+                                className={`flex items-start gap-4 px-6 py-5 transition-all text-left rounded-lg border-2 mt-1
                                   ${(activeSectionIdx === sIdx && activeViewMode === "quiz")
                                       ? "bg-indigo-600 shadow-xl shadow-indigo-200 border-indigo-600 text-white" 
                                       : "hover:bg-slate-50 border-transparent text-slate-700 hover:scale-[0.98]"}`}

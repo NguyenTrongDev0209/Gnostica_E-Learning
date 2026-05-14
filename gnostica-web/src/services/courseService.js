@@ -250,6 +250,13 @@ const triggerAiScanInfo = async (slug) => {
     return response.data;
 };
 
+const triggerAiScanFull = async (slug) => {
+    const response = await axios.post(`${ADMIN_API_URL}/${slug}/ai-scan-full`, {}, {
+        headers: getAuthHeaders()
+    });
+    return response.data;
+};
+
 const checkSubtitleStatus = async (videoId) => {
     const response = await axios.get(`${API_URL}/lessons/check-subtitle/${videoId}`, {
         headers: getAuthHeaders()
@@ -309,7 +316,8 @@ const courseService = {
     approveCourse,
     rejectCourse,
     triggerAiScan,
-    triggerAiScanInfo
+    triggerAiScanInfo,
+    triggerAiScanFull
 };
 
 export default courseService;
