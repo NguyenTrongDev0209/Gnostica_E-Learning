@@ -24,6 +24,7 @@ public class EnrollmentService {
     private final EnrollmentRepository enrollmentRepository;
     private final AccountRepository accountRepository;
     private final LessonProgressRepository lessonProgressRepository;
+    private final com.gnostica.repository.QuizResultRepository quizResultRepository; // Inject Quiz Repo
 
     @Transactional(readOnly = true)
     public List<EnrollmentDTO> getMyCourses(String email) {
@@ -160,13 +161,20 @@ public class EnrollmentService {
                 .orElseThrow(() -> new RuntimeException("Enrollment not found"));
 
         Course course = enrollment.getCourse();
+        
+        // 1. Đếm tổng số Lessons + số Quizzes (cả 2 đều được xem là 1 "bước" học tập)
         long totalLessons = course.getModules().stream()
                 .flatMap(m -> m.getLessons().stream())
-                .filter(l -> l.getStatus() != null && (l.getStatus() == 1 || l.getStatus() == 2))
                 .count();
 
-        if (totalLessons == 0) return;
+        long totalQuizzes = course.getModules().stream()
+                .filter(m -> m.getQuiz() != null)
+                .count();
 
+        long totalSteps = totalLessons + totalQuizzes;
+        if (totalSteps == 0) return;
+
+        // 2. Đếm số Lessons đã hoàn thành
         long completedLessons = lessonProgressRepository.findByAccount(account).stream()
                 .filter(lp -> lp != null && lp.getIsCompleted() &&
                         lp.getLesson() != null &&
@@ -175,7 +183,22 @@ public class EnrollmentService {
                         Objects.equals(lp.getLesson().getModule().getCourse().getId(), courseId))
                 .count();
 
-        int progressPercent = (int) ((completedLessons * 100) / totalLessons);
+        // 3. Đếm số Quizzes đã hoàn thành
+        long completedQuizzes = quizResultRepository.findByAccount(account).stream()
+                .filter(qr -> qr != null && qr.getQuiz() != null &&
+                        qr.getQuiz().getModule() != null &&
+                        qr.getQuiz().getModule().getCourse() != null &&
+                        Objects.equals(qr.getQuiz().getModule().getCourse().getId(), courseId))
+                .count();
+
+        long completedSteps = completedLessons + completedQuizzes;
+
+        // Tính phần trăm & Lưu lại
+        int progressPercent = (int) ((completedSteps * 100) / totalSteps);
+        
+        // Chặn lỗi logic nếu lỡ vượt 100%
+        if (progressPercent > 100) progressPercent = 100;
+
         enrollment.setProgressPercent(progressPercent);
         if (progressPercent == 100 && enrollment.getCompletedAt() == null) {
             enrollment.setCompletedAt(LocalDateTime.now());

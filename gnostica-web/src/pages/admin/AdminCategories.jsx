@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import useAdminCategories from "@/hooks/useAdminCategories";
+import useAdminCategories from "@/hooks/admin/useAdminCategories";
 import {
   Plus,
   Search,

@@ -61,6 +61,7 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
       promoVideo: null,
       createdAt: new Date().toISOString(),
       updatedAt: null,
+      questionBank: []
     },
   });
 
@@ -139,7 +140,8 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
 
       xhr.onload = () => {
         if (xhr.status >= 200 && xhr.status < 300) {
-          resolve(videoId);
+          // Return a composite libraryId/videoId string so the player can dynamically stream from correct library bucket!
+          resolve(`${libraryId}/${videoId}`);
         } else {
           reject(new Error("Upload video failed to Bunny CDN"));
         }
@@ -272,14 +274,30 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
   }, [isEditMode, slug, getAuthHeaders, methods]);
 
   useEffect(() => {
-    if (isEditMode && slug !== "new") {
-      courseService.getCourseBySlug(slug)
-        .then((data) => {
+    const loadCourseData = async () => {
+      if (isEditMode && slug !== "new") {
+        try {
+          const data = await courseService.getCourseBySlug(slug);
           if (draftLoadedRef.current) return;
+
+          // Eagerly load questions bank so it is available immediately for onSubmit
+          let bankQuestions = [];
+          try {
+            if (data && data.id) {
+              const qs = await courseService.getDraftQuestions(data.id);
+              if (qs && Array.isArray(qs)) {
+                bankQuestions = qs;
+              }
+            }
+          } catch (qErr) {
+            console.error("Không thể tải trước ngân hàng câu hỏi:", qErr);
+          }
+
           const mappedData = {
             ...data,
             categoryId: data.categoryId?.toString() || "",
             status: (data.status !== null && data.status !== undefined) ? Number(data.status) : 1,
+            questionBank: bankQuestions,
             sections: data.modules?.map(m => ({
               ...m,
               status: (m.status !== null && m.status !== undefined) ? Number(m.status) : 1,
@@ -291,13 +309,18 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
               })) || []
             })) || []
           };
+          
           methods.reset(mappedData);
           lastDraftRef.current = JSON.stringify(methods.getValues());
           originalDataRef.current = lastDraftRef.current;
-        });
-    } else if (!isEditMode && !originalDataRef.current) {
-        originalDataRef.current = JSON.stringify(methods.getValues());
-    }
+        } catch (err) {
+          console.error("Lỗi khi tải dữ liệu khóa học:", err);
+        }
+      } else if (!isEditMode && !originalDataRef.current) {
+          originalDataRef.current = JSON.stringify(methods.getValues());
+      }
+    };
+    loadCourseData();
   }, [isEditMode, slug, methods]);
 
   // --- EXIT LOGIC ---
