@@ -976,6 +976,7 @@ function CourseStepper({ activeTab, onTabChange }) {
         "thumbnail",
         "promoVideo",
         "price",
+        "questionBank",
       ],
     }) || [];
 
@@ -1006,6 +1007,10 @@ function CourseStepper({ activeTab, onTabChange }) {
 
     const settingsPercent = (mediaPercent + pricingPercent) / 2;
 
+    // Quiz Progress
+    const questionBank = formValues[6];
+    const quizPercent = (questionBank && questionBank.length > 0) ? 100 : 0;
+
     return [
       {
         id: "basic",
@@ -1017,7 +1022,7 @@ function CourseStepper({ activeTab, onTabChange }) {
         id: "quiz",
         label: "Ngân hàng câu hỏi",
         step: 2,
-        progress: 0,
+        progress: quizPercent,
       },
       {
         id: "curriculum",
@@ -3069,9 +3074,9 @@ function BackgroundVideoUploader({ label, value, onChange, onUploadStart, onUplo
       globalUploadProgress[id] = 0;
       onUploadStart();
 
-      // Bước 1: Tải video lên Bunny.net (Quy đổi 0 -> 100% tải thực tế thành 0 -> 70% thanh tiến trình tổng thể)
+      // Bước 1: Tải video lên Bunny.net sử dụng TUS Protocol (Quy đổi 0 -> 100% tải thực tế thành 0 -> 50% thanh tiến trình tổng thể)
       const videoId = await uploadVideoToBunny(file, file.name, (pct) => {
-        const displayPct = Math.round(pct * 0.70);
+        const displayPct = Math.round(pct * 0.50);
         setLocalProgress(displayPct);
         globalUploadProgress[id] = displayPct;
         if (uploadCallbacks[id]) {
@@ -3079,7 +3084,7 @@ function BackgroundVideoUploader({ label, value, onChange, onUploadStart, onUplo
         }
       });
 
-      // Bước 2: Đợi sinh phụ đề tự động từ Bunny Stream AI (Nhích đều từ 70% -> 99%)
+      // Bước 2: Đợi sinh phụ đề tự động từ Bunny Stream AI (Nhích đều từ 50% -> 99%)
       let captionReady = false;
       let attempts = 0;
       const maxAttempts = 40; // Tối đa ~3.5 phút (40 lần * 5 giây)
@@ -3089,9 +3094,9 @@ function BackgroundVideoUploader({ label, value, onChange, onUploadStart, onUplo
         await new Promise(resolve => setTimeout(resolve, 5000));
         attempts++;
 
-        // Nhích đều đặn từ 70% lên 99% thay vì kẹt cứng
-        const step = 29 / maxAttempts; 
-        const progressBoost = Math.min(99, Math.round(70 + (attempts * step)));
+        // Nhích đều đặn từ 50% lên 99% thay vì kẹt cứng
+        const step = 49 / maxAttempts; 
+        const progressBoost = Math.min(99, Math.round(50 + (attempts * step)));
         
         setLocalProgress(progressBoost);
         globalUploadProgress[id] = progressBoost;
