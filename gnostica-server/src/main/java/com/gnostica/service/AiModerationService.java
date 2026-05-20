@@ -13,6 +13,9 @@ import org.springframework.stereotype.Service;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Optional;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +26,10 @@ public class AiModerationService {
     private final OpenRouterAiService openRouterAiService;
     private final LessonRepository lessonRepository;
     private final CourseRepository courseRepository;
+
+    @Autowired
+    @Lazy
+    private AiModerationService self;
 
     /**
      * Executes full AI Moderation Scan pipeline on a single Lesson's video.
@@ -112,8 +119,8 @@ public class AiModerationService {
         course.setAiModerationStatus("SCANNING");
         course = courseRepository.save(course);
 
-        // Trigger Async processing
-        processFullCourseScanAsync(course.getId());
+        // Trigger Async processing via self-proxy to ensure @Async and @Transactional work
+        self.processFullCourseScanAsync(course.getId());
         
         return course;
     }
@@ -122,6 +129,7 @@ public class AiModerationService {
      * Background process for AI scanning.
      */
     @Async
+    @Transactional
     public void processFullCourseScanAsync(Integer courseId) {
         log.info("Starting background AI scan for course id: {}", courseId);
         Optional<Course> courseOpt = courseRepository.findById(courseId);
