@@ -24,6 +24,7 @@ public class LessonProgressService {
     private final AccountRepository accountRepository;
     private final EnrollmentService enrollmentService;
     private final com.gnostica.repository.QuizResultRepository quizResultRepository; // Inject Quiz Repo
+    private final com.gnostica.repository.EnrollmentRepository enrollmentRepository; // Inject Enrollment Repo
 
     @Transactional
     public void markLessonAsCompleted(Integer lessonId, String email) {
@@ -73,10 +74,22 @@ public class LessonProgressService {
         lessonProgressRepository.save(progress);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public com.gnostica.dto.response.CourseProgressResponse getCourseProgressBySlug(String slug, String email) {
         Account account = accountRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại"));
+
+        // 0. Lấy Enrollment
+        com.gnostica.model.Enrollment enrollment = enrollmentRepository.findByAccount(account).stream()
+                .filter(e -> e.getCourse().getSlug().equals(slug))
+                .findFirst()
+                .orElse(null);
+
+        // Auto generate certifiUrl if missing
+        if (enrollment != null && enrollment.getProgressPercent() != null && enrollment.getProgressPercent() == 100 && enrollment.getCertifiUrl() == null) {
+            enrollment.setCertifiUrl("UC-" + java.util.UUID.randomUUID().toString());
+            enrollmentRepository.save(enrollment);
+        }
 
         // 1. Lấy Tiến trình Video
         List<LessonProgressDTO> lessons = lessonProgressRepository.findAll().stream()
@@ -109,6 +122,8 @@ public class LessonProgressService {
         return com.gnostica.dto.response.CourseProgressResponse.builder()
                 .lessons(lessons)
                 .quizzes(quizzes)
+                .certifiUrl(enrollment != null ? enrollment.getCertifiUrl() : null)
+                .progressPercent(enrollment != null ? enrollment.getProgressPercent() : 0)
                 .build();
     }
 

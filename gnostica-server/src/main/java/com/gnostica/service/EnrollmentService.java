@@ -25,8 +25,9 @@ public class EnrollmentService {
     private final AccountRepository accountRepository;
     private final LessonProgressRepository lessonProgressRepository;
     private final com.gnostica.repository.QuizResultRepository quizResultRepository; // Inject Quiz Repo
+    private final MailService mailService;
 
-    @Transactional(readOnly = true)
+    @Transactional
     public List<EnrollmentDTO> getMyCourses(String email) {
         System.out.println(">>> DEBUG [getMyCourses] Fetching courses for email: " + email);
         
@@ -133,6 +134,17 @@ public class EnrollmentService {
                 .filter(LessonProgress::getIsCompleted)
                 .count();
 
+        // Auto generate certifiUrl if missing
+        if (enrollment.getProgressPercent() != null && enrollment.getProgressPercent() == 100 && enrollment.getCertifiUrl() == null) {
+            enrollment.setCertifiUrl("UC-" + java.util.UUID.randomUUID().toString());
+            if (enrollment.getCompletedAt() == null) {
+                enrollment.setCompletedAt(LocalDateTime.now());
+            }
+            enrollmentRepository.save(enrollment);
+            mailService.sendCourseCompletionEmail(enrollment);
+            System.out.println(">>> DEBUG [getMyCourses] Generated certifiUrl: " + enrollment.getCertifiUrl());
+        }
+
         return EnrollmentDTO.builder()
                 .id(enrollment.getId())
                 .courseId(course.getId())
@@ -147,6 +159,7 @@ public class EnrollmentService {
                 .firstLessonId(firstLessonIdStr)
                 .totalLessons(totalLessons)
                 .completedLessons(completedLessons)
+                .certifiUrl(enrollment.getCertifiUrl())
                 .build();
     }
 
@@ -174,21 +187,28 @@ public class EnrollmentService {
         long totalSteps = totalLessons + totalQuizzes;
         if (totalSteps == 0) return;
 
-        // 2. Đếm số Lessons đã hoàn thành
         long completedLessons = lessonProgressRepository.findByAccount(account).stream()
                 .filter(lp -> lp != null && lp.getIsCompleted() &&
                         lp.getLesson() != null &&
                         lp.getLesson().getModule() != null &&
                         lp.getLesson().getModule().getCourse() != null &&
                         Objects.equals(lp.getLesson().getModule().getCourse().getId(), courseId))
+                .map(lp -> lp.getLesson().getId())
+                .distinct()
                 .count();
 
-        // 3. Đếm số Quizzes đã hoàn thành
+        // 3. Đếm số Quizzes đã hoàn thành (Chỉ tính các bài quiz có điểm >= 50)
         long completedQuizzes = quizResultRepository.findByAccount(account).stream()
                 .filter(qr -> qr != null && qr.getQuiz() != null &&
                         qr.getQuiz().getModule() != null &&
                         qr.getQuiz().getModule().getCourse() != null &&
                         Objects.equals(qr.getQuiz().getModule().getCourse().getId(), courseId))
+                .filter(qr -> {
+                    Double point = qr.getPoint();
+                    return point != null && point >= 50.0;
+                })
+                .map(qr -> qr.getQuiz().getId())
+                .distinct()
                 .count();
 
         long completedSteps = completedLessons + completedQuizzes;
@@ -200,8 +220,14 @@ public class EnrollmentService {
         if (progressPercent > 100) progressPercent = 100;
 
         enrollment.setProgressPercent(progressPercent);
-        if (progressPercent == 100 && enrollment.getCompletedAt() == null) {
-            enrollment.setCompletedAt(LocalDateTime.now());
+        if (progressPercent == 100) {
+            if (enrollment.getCompletedAt() == null) {
+                enrollment.setCompletedAt(LocalDateTime.now());
+            }
+            if (enrollment.getCertifiUrl() == null) {
+                enrollment.setCertifiUrl("UC-" + java.util.UUID.randomUUID().toString());
+                mailService.sendCourseCompletionEmail(enrollment);
+            }
         }
         enrollmentRepository.save(enrollment);
     }

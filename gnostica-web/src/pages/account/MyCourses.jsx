@@ -23,6 +23,7 @@ import {
   Search,
   BookOpen,
   PlayCircle,
+  Award,
 } from "lucide-react";
 
 import enrollmentService from "@/services/enrollmentService";
@@ -205,6 +206,13 @@ export default function MyCourses() {
                       {course.progressPercent === 100 ? "Ôn tập lại" : course.progressPercent === 0 ? "Bắt đầu học ngay" : "Tiếp tục học"}
                     </button>
                   </Link>
+                  {course.progressPercent === 100 && course.certifiUrl && (
+                    <Link to={`/certificate/${course.certifiUrl}`} target="_blank" className="block w-full">
+                       <button className="w-full py-2.5 rounded-lg text-sm font-bold bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 transition-colors flex items-center justify-center gap-2">
+                           <Award className="w-4 h-4" /> Xem chứng chỉ
+                       </button>
+                    </Link>
+                  )}
                 </div>
               </CardContent>
             </Card>

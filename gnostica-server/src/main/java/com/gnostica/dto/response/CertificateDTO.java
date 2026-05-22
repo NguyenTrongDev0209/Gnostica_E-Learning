@@ -1,18 +1,20 @@
 package com.gnostica.dto.response;
 
+import java.time.LocalDateTime;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.util.List;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CourseProgressResponse {
-    private List<LessonProgressDTO> lessons;
-    private List<QuizResultDTO> quizzes;
+public class CertificateDTO {
     private String certifiUrl;
-    private Integer progressPercent;
+    private String courseTitle;
+    private String studentName;
+    private String instructorName;
+    private LocalDateTime completedAt;
 }

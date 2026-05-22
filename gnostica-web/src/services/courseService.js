@@ -101,6 +101,11 @@ const getPublicCourses = async ({ categoryId, categorySlug, level, page = 0, siz
     return response.data;
 };
 
+const getPublicLevels = async () => {
+    const response = await axios.get(`${API_URL}/public-levels`);
+    return response.data;
+};
+
 const getCourseProgress = async (slug) => {
     try {
         const response = await axios.get(`${PROGRESS_API_URL}/course/${slug}`, {
@@ -290,6 +295,7 @@ const courseService = {
     preScanVideoContent,
     preScanCourseText,
     getPublicCourses,
+    getPublicLevels,
     createCourse,
     getAllCourses,
     getInstructorCourses,

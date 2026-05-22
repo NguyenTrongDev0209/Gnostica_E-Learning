@@ -522,6 +522,7 @@ export default function LearningWorkspace() {
   const [activeViewMode, setActiveViewMode] = useState("video"); // 'video' | 'quiz'
   const [lessonProgress, setLessonProgress] = useState([]);
   const [quizProgress, setQuizProgress] = useState([]); // Track existing quiz results
+  const [certifiUrl, setCertifiUrl] = useState(null);
   const [currentTime, setCurrentTime] = useState(0);
 
   // === REFS để tránh stale closure trong interval/listener ===
@@ -577,6 +578,7 @@ export default function LearningWorkspace() {
       const lessonsList = progressData?.lessons || [];
       setLessonProgress(lessonsList);
       setQuizProgress(progressData?.quizzes || []);
+      setCertifiUrl(progressData?.certifiUrl || null);
 
       // Khôi phục phiên học: 
       // 1. Ưu tiên lesson trong URL
@@ -661,15 +663,28 @@ export default function LearningWorkspace() {
     const section = course.modules[activeSectionIdx];
     const lessons = section?.lessons || [];
 
-    if (activeLessonIdx < lessons.length - 1) {
-      // Còn bài trong chương hiện tại
-      setActiveLessonIdx(activeLessonIdx + 1);
-    } else if (activeSectionIdx < course.modules.length - 1) {
-      // Hết bài trong chương hiện tại, sang chương tiếp theo
-      setActiveSectionIdx(activeSectionIdx + 1);
-      setActiveLessonIdx(0);
+    if (activeViewMode === "video") {
+      if (activeLessonIdx < lessons.length - 1) {
+        // Còn bài trong chương hiện tại
+        setActiveLessonIdx(activeLessonIdx + 1);
+      } else if (section.quiz) {
+        // Hết bài trong chương, nhưng có quiz -> chuyển sang quiz
+        setActiveViewMode("quiz");
+      } else if (activeSectionIdx < course.modules.length - 1) {
+        // Hết bài, không có quiz -> sang chương tiếp theo
+        setActiveSectionIdx(activeSectionIdx + 1);
+        setActiveLessonIdx(0);
+        setActiveViewMode("video");
+      }
+    } else if (activeViewMode === "quiz") {
+      if (activeSectionIdx < course.modules.length - 1) {
+        // Đang ở quiz, sang chương tiếp theo
+        setActiveSectionIdx(activeSectionIdx + 1);
+        setActiveLessonIdx(0);
+        setActiveViewMode("video");
+      }
     }
-  }, [course, activeSectionIdx, activeLessonIdx]);
+  }, [course, activeSectionIdx, activeLessonIdx, activeViewMode]);
 
   const markLessonComplete = useCallback(async (lessonId) => {
     if (completedIdsRef.current.includes(lessonId)) return;
@@ -939,12 +954,21 @@ export default function LearningWorkspace() {
     : 0;
 
   const handlePrevLesson = () => {
-    if (activeLessonIdx > 0) {
+    if (activeViewMode === "quiz") {
+      setActiveViewMode("video");
+      setActiveLessonIdx((currentSection?.lessons?.length || 1) - 1);
+    } else if (activeLessonIdx > 0) {
       setActiveLessonIdx(activeLessonIdx - 1);
     } else if (activeSectionIdx > 0) {
       const prevSectionIdx = activeSectionIdx - 1;
       setActiveSectionIdx(prevSectionIdx);
-      setActiveLessonIdx(course.modules[prevSectionIdx].lessons.length - 1);
+      const prevSection = course.modules[prevSectionIdx];
+      if (prevSection?.quiz) {
+        setActiveViewMode("quiz");
+      } else {
+        setActiveViewMode("video");
+        setActiveLessonIdx((prevSection?.lessons?.length || 1) - 1);
+      }
     }
   };
 
@@ -988,6 +1012,16 @@ export default function LearningWorkspace() {
             <LayoutDashboard className="w-4 h-4" />
             Giao diện
           </Button>
+          {progressValue === 100 && certifiUrl && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => window.open(`/certificate/${certifiUrl}`, '_blank')}
+              className="text-amber-500 border-amber-500 hover:bg-amber-500/10 hover:text-amber-400 font-bold hidden lg:flex items-center gap-2 rounded-lg ml-2"
+            >
+              <Award className="w-4 h-4" /> Xem chứng chỉ
+            </Button>
+          )}
           <div className="flex items-center gap-1.5 bg-slate-800 p-1.5 rounded-lg border border-white/5">
             <button
               onClick={handlePrevLesson}
@@ -999,8 +1033,11 @@ export default function LearningWorkspace() {
             <button
               onClick={handleNextLesson}
               disabled={
-                activeSectionIdx === course?.modules?.length - 1 &&
-                activeLessonIdx === (currentSection?.lessons?.length || 0) - 1
+                activeSectionIdx === (course?.modules?.length || 1) - 1 &&
+                (
+                  (activeViewMode === "video" && activeLessonIdx === (currentSection?.lessons?.length || 1) - 1 && !currentSection?.quiz) ||
+                  (activeViewMode === "quiz")
+                )
               }
               className="p-1.5 hover:bg-slate-700 disabled:opacity-20 disabled:cursor-not-allowed rounded-lg transition-all text-slate-300"
             >

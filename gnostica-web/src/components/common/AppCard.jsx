@@ -30,7 +30,7 @@ const AppCard = ({
     <Card className={cn("w-full h-full flex flex-col shadow-sm hover:shadow-md transition-all duration-300 border border-border overflow-hidden bg-card group", className)}>
       {/* Top Image Section */}
       <div className="p-2 sm:p-3 pb-0">
-        <div className="relative aspect-[4/3] overflow-hidden shadow-sm">
+        <div className="relative aspect-video overflow-hidden shadow-sm rounded-md bg-muted">
           <img
             src={image || "https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=400&auto=format&fit=crop"}
             alt={title}
@@ -75,15 +75,11 @@ const AppCard = ({
           </Badge>
         </div>
 
-        {/* Info Row (Classes & Students) */}
+        {/* Info Row (Students) */}
         <div className="flex items-center gap-3 sm:gap-6 text-muted-foreground">
           <div className="flex items-center gap-1 sm:gap-2">
-            <BookOpen className="w-3 sm:w-4 h-3 sm:h-4 text-primary/70" />
-            <span className="text-[10px] sm:text-sm font-medium">{classes} Classes</span>
-          </div>
-          <div className="flex items-center gap-1 sm:gap-2">
             <Users className="w-3 sm:w-4 h-3 sm:h-4 text-primary/70" />
-            <span className="text-[10px] sm:text-sm font-medium">{students} Students</span>
+            <span className="text-[10px] sm:text-sm font-medium">{students} học viên</span>
           </div>
         </div>
 
