@@ -54,7 +54,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/error", "/favicon.ico", "/**/*.html", "/**/*.css", "/**/*.js", "/ws/**").permitAll()
                 .requestMatchers("/api/auth/**", "/api/account/**", "/api/upload/**", "/api/follow/**", "/oauth2/**", "/login/oauth2/**", "/api/threads/**", "/api/forum-categories/**", "/api/comments/**", "/api/progress/**", "/api/ai/**", "/api/thread-reports/**", "/api/dashboard/**", "/api/payment/**",
-                                                                "/api/order/**").permitAll()
+                                                                "/api/order/**", "/api/certificates/**").permitAll()
                 .requestMatchers("/api/courses/draft/**", "/api/courses/draft", "/api/courses/instructor").authenticated()
                 .requestMatchers(HttpMethod.GET, "/api/courses/**", "/api/categories/**", "/api/instructors/**").permitAll()
                 .anyRequest().authenticated()

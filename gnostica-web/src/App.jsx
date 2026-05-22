@@ -10,6 +10,7 @@ import LearningLayout from "@/components/layouts/LearningLayout";
 import { publicRoutes, privateRoutes } from "@/routers";
 import ErrorPage from "@/pages/ErrorPage";
 import ProtectedRoute from "@/components/common/ProtectedRoute";
+import CertificatePage from "@/pages/learning/CertificatePage";
 
 function App() {
   return (
@@ -91,6 +92,7 @@ function App() {
             ))}
           </Route>
 
+          <Route path="/certificate/:certifiUrl" element={<CertificatePage />} />
           <Route path="*" element={<ErrorPage />} />
         </Routes>
       </Router>

@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import courseService from "@/services/courseService";
 
 const levels = [
   { label: "Tất cả trình độ", value: "all" },
@@ -17,8 +18,28 @@ export default function FilterOptions({ categories = [], selectedFilters, onFilt
     // Trạng thái đóng/mở danh mục cha
     const [expandedId, setExpandedId] = useState(null);
 
-    // Sử dụng trực tiếp categories từ API (đã là cấu trúc cây với subcategories)
-    const categoryTree = categories;
+    // Lọc các danh mục có khóa học
+    const categoryTree = categories
+      .map(cat => ({
+        ...cat,
+        subcategories: cat.subcategories?.filter(sub => sub.courses > 0) || []
+      }))
+      .filter(cat => cat.courses > 0);
+
+    const [activeLevels, setActiveLevels] = useState([]);
+
+    useEffect(() => {
+      courseService.getPublicLevels().then(data => {
+        if (data) {
+          // Normalize to lowercase for matching
+          setActiveLevels(data.map(l => l?.toLowerCase()));
+        }
+      }).catch(err => console.error(err));
+    }, []);
+
+    const filteredLevels = levels.filter(
+      l => l.value === "all" || activeLevels.includes(l.value)
+    );
 
     // Tự động mở rộng danh mục cha nếu có danh mục con đang được chọn
     React.useEffect(() => {
@@ -112,7 +133,7 @@ export default function FilterOptions({ categories = [], selectedFilters, onFilt
             onValueChange={(val) => onFilterChange("level", val)}
             className="flex flex-col gap-2.5"
           >
-            {levels.map((level) => (
+            {filteredLevels.map((level) => (
               <div key={level.value} className="flex items-center gap-2 group cursor-pointer">
                 <RadioGroupItem value={level.value} id={`level-${level.value}`} className="border-slate-300 text-orange-500 focus:ring-orange-500" />
                 <Label htmlFor={`level-${level.value}`} className="text-sm font-medium text-slate-600 group-hover:text-slate-900 cursor-pointer transition-colors">

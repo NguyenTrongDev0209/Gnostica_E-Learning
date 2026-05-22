@@ -35,6 +35,11 @@ public class CourseController {
         return ResponseEntity.ok(courseService.getPublicCourses(categoryId, categorySlug, level, page, size));
     }
 
+    @GetMapping("/public-levels")
+    public ResponseEntity<java.util.List<String>> getPublicLevels() {
+        return ResponseEntity.ok(courseService.getPublicLevels());
+    }
+
     @PostMapping
     public ResponseEntity<Map<String, Object>> createCourse(
             @Valid @RequestBody CourseRequest request,

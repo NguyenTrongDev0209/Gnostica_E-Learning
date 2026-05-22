@@ -17,9 +17,13 @@ const MainLayout = () => {
     window.location.reload();
   };
 
-  // Logic chuyển đổi danh sách phẳng thành cấu trúc cây (tree)
-  // Sử dụng trực tiếp categories từ API (đã là cấu trúc cây với subcategories)
-  const categoryTree = flatCategories;
+  // Lọc chỉ giữ lại những danh mục có khóa học
+  const categoryTree = flatCategories
+    .map(cat => ({
+      ...cat,
+      subcategories: cat.subcategories?.filter(sub => sub.courses > 0) || []
+    }))
+    .filter(cat => cat.courses > 0);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -30,7 +34,7 @@ const MainLayout = () => {
         setIsMenuOpen={setIsMenuOpen}
         isCoursesMobileOpen={isCoursesMobileOpen}
         setIsCoursesMobileOpen={setIsCoursesMobileOpen}
-        flatCategories={flatCategories}
+        flatCategories={categoryTree}
         categoryTree={categoryTree}
       />
 

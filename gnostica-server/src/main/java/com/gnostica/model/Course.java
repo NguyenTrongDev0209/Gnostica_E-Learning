@@ -168,8 +168,7 @@ public class Course {
 
     @com.fasterxml.jackson.annotation.JsonProperty("students")
     public Integer getStudentsCount() {
-        // Hiện tại chưa có bảng đăng ký học, trả về số giả lập dựa trên ID để có sự
-        // khác biệt
-        return (id != null ? id * 15 + 100 : 0);
+        if (enrollments == null) return 0;
+        return enrollments.size();
     }
 }
