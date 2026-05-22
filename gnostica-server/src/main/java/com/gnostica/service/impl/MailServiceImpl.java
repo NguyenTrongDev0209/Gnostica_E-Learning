@@ -117,20 +117,17 @@ public class MailServiceImpl implements MailService {
         String certificateLink = "http://localhost:5173/certificate/" + enrollment.getCertifiUrl();
         
         String htmlContent = "<div style='font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px; background-color: #ffffff;'>"
-                + "<div style='text-align: center; margin-bottom: 20px;'>"
-                + "<img src='https://res.cloudinary.com/db9x524i1/image/upload/v1714406161/c2x8a5g8f4a3f2b1d9c7.png' alt='Gnostica Logo' style='height: 40px;'/>"
-                + "</div>"
-                + "<h2 style='color: #2D3FE3; text-align: center;'>Chúc Mừng Bạn Đã Hoàn Thành Khóa Học!</h2>"
+                + "<h2 style='color: #2D3FE3; text-align: center; margin-top: 10px;'>Chúc Mừng Bạn Đã Hoàn Thành Khóa Học!</h2>"
                 + "<p style='font-size: 16px; color: #333;'>Chào <b>" + enrollment.getAccount().getFullName() + "</b>,</p>"
-                + "<p style='font-size: 16px; color: #333; line-height: 1.5;'>Chúng tôi xin chúc mừng bạn đã xuất sắc hoàn thành 100% tiến độ khóa học: <br><br> "
+                + "<p style='font-size: 16px; color: #333; line-height: 1.5;'>Chúng tôi xin chúc mừng bạn đã xuất sắc hoàn thành 100% tiên độ khóa học: <br><br> "
                 + "<b style='font-size: 18px; color: #2D3FE3;'>" + enrollment.getCourse().getTitle() + "</b></p>"
-                + "<p style='font-size: 16px; color: #333; line-height: 1.5;'>Chứng chỉ hoàn thành khóa học của bạn đã được cấp phát. Bạn có thể xem, tải xuống hoặc chia sẻ chứng chỉ này lên các nền tảng mạng xã hội để chứng minh năng lực của mình.</p>"
+                + "<p style='font-size: 16px; color: #333; line-height: 1.5;'>Chứng chỉ hoàn thành khóa học của bạn đã được cấp phát.</p>"
                 + "<div style='text-align: center; margin: 30px 0;'>"
                 + "<a href='" + certificateLink + "' style='background-color: #2D3FE3; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;'>Xem Chứng Nhận Của Tôi</a>"
                 + "</div>"
                 + "<p style='color: #666; font-style: italic; text-align: center;'>Hãy tiếp tục giữ vững tinh thần học tập và khám phá thêm nhiều khóa học thú vị khác trên Gnostica nhé!</p>"
                 + "<hr style='border: 0; border-top: 1px solid #eee; margin: 20px 0;'>"
-                + "<p style='font-size: 12px; color: #999; text-align: center;'>© 2026 Gnostica E-Learning. All rights reserved.</p>"
+                + "<p style='font-size: 12px; color: #999; text-align: center;'>© Gnostica E-Learning.</p>"
                 + "</div>";
 
         sendEmail(to, subject, htmlContent);
