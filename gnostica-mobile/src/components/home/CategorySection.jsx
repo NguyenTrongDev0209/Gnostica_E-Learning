@@ -1,36 +1,54 @@
 import React from 'react';
 import { Text, View, ScrollView, TouchableOpacity } from 'react-native';
-import { MonitorPlay, PenTool, Lightbulb, Briefcase } from 'lucide-react-native';
+import { MonitorPlay, PenTool, Lightbulb, Briefcase, Languages, Sparkles } from 'lucide-react-native';
+import { categories } from '../../constants/mockData';
 
-const categories = [
-    { name: 'Lập trình', icon: MonitorPlay },
-    { name: 'Thiết kế', icon: PenTool },
-    { name: 'Marketing', icon: Lightbulb },
-    { name: 'Kinh doanh', icon: Briefcase },
-];
+const ICONS = {
+    MonitorPlay, PenTool, Lightbulb, Briefcase, Languages, Sparkles,
+};
 
 const CategorySection = () => {
     return (
-        <View className="mt-6">
-            <View className="flex-row justify-between items-center px-5 mb-4">
-                <Text className="text-xl font-bold text-gray-800">Danh mục nổi bật</Text>
+        <View style={{ marginTop: 24 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginBottom: 14 }}>
+                <Text style={{ fontSize: 18, fontWeight: '800', color: '#1E293B' }}>Danh mục</Text>
                 <TouchableOpacity>
-                    <Text className="text-primary font-semibold active:opacity-60">Tất cả</Text>
+                    <Text style={{ fontSize: 13, color: '#2563EB', fontWeight: '600' }}>Tất cả</Text>
                 </TouchableOpacity>
             </View>
-            <View className="flex-row justify-between px-5">
-                {categories.map((cat, index) => {
-                    const IconComponent = cat.icon;
+            <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ paddingHorizontal: 16, gap: 10 }}
+            >
+                {categories.map((cat) => {
+                    const IconComponent = ICONS[cat.icon];
                     return (
-                        <View key={index} className="items-center w-[22%]">
-                            <View className="w-16 h-16 rounded-2xl bg-white mb-2 shadow-sm border border-gray-100 items-center justify-center">
-                                <IconComponent size={28} color="#2563eb" strokeWidth={1.5} />
+                        <TouchableOpacity
+                            key={cat.id}
+                            activeOpacity={0.75}
+                            style={{ alignItems: 'center', width: 74 }}
+                        >
+                            <View style={{
+                                width: 58,
+                                height: 58,
+                                borderRadius: 18,
+                                backgroundColor: cat.bgColor,
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                marginBottom: 7,
+                                borderWidth: 1,
+                                borderColor: cat.color + '30',
+                            }}>
+                                {IconComponent && <IconComponent size={26} color={cat.color} strokeWidth={1.8} />}
                             </View>
-                            <Text className="text-xs text-gray-500 text-center">{cat.name}</Text>
-                        </View>
+                            <Text style={{ fontSize: 11, color: '#475569', textAlign: 'center', fontWeight: '600' }} numberOfLines={1}>
+                                {cat.name}
+                            </Text>
+                        </TouchableOpacity>
                     );
                 })}
-            </View>
+            </ScrollView>
         </View>
     );
 };

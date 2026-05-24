@@ -1,16 +1,43 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Image, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Image, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { Mail, Lock, User as UserIcon, Eye, EyeOff } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
+import { useAuth } from '../../context/AuthContext';
 
 const RegisterScreen = () => {
     const navigation = useNavigation();
+    const { login } = useAuth();
+
     const [showPassword, setShowPassword] = useState(false);
     const [fullName, setFullName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [errors, setErrors] = useState({});
+
+    const validate = () => {
+        const newErrors = {};
+        if (!fullName.trim()) newErrors.fullName = 'Vui lòng nhập họ tên';
+
+        if (!email.trim()) newErrors.email = 'Vui lòng nhập email';
+        else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = 'Email không hợp lệ';
+
+        if (!password) newErrors.password = 'Vui lòng nhập mật khẩu';
+        else if (password.length < 6) newErrors.password = 'Mật khẩu phải từ 6 ký tự';
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const handleRegister = () => {
+        if (validate()) {
+            // Mock API Call
+            login({ name: fullName, email: email });
+            navigation.navigate('Main', { screen: 'Home' });
+            Alert.alert('Thành công', 'Đăng ký tài khoản thành công!');
+        }
+    };
 
     return (
         <KeyboardAvoidingView
@@ -37,32 +64,36 @@ const RegisterScreen = () => {
                         icon={UserIcon}
                         placeholder="Nguyễn Văn A"
                         value={fullName}
-                        onChangeText={setFullName}
-                        containerClassName="mb-4"
+                        onChangeText={(text) => { setFullName(text); setErrors({ ...errors, fullName: null }); }}
+                        containerClassName="mb-1"
                         autoCapitalize="words"
                     />
+                    {errors.fullName && <Text className="text-red-500 text-xs mb-3">{errors.fullName}</Text>}
+                    {!errors.fullName && <View className="mb-4" />}
 
                     <Input
-                        label="Email hoặc Số điện thoại"
+                        label="Email"
                         icon={Mail}
                         placeholder="you@example.com"
                         value={email}
-                        onChangeText={setEmail}
-                        containerClassName="mb-4"
+                        onChangeText={(text) => { setEmail(text); setErrors({ ...errors, email: null }); }}
+                        containerClassName="mb-1"
                         keyboardType="email-address"
                         autoCapitalize="none"
                     />
+                    {errors.email && <Text className="text-red-500 text-xs mb-3">{errors.email}</Text>}
+                    {!errors.email && <View className="mb-4" />}
 
-                    <View className="mb-6">
+                    <View className="mb-1">
                         <View className="flex-row justify-between mb-1.5 items-center">
                             <Text className="text-sm font-medium text-slate-700">Mật khẩu</Text>
                         </View>
                         <Input
                             icon={Lock}
                             placeholder="••••••••"
-                            secureTextEntry={!!(!showPassword)}
+                            secureTextEntry={!showPassword}
                             value={password}
-                            onChangeText={setPassword}
+                            onChangeText={(text) => { setPassword(text); setErrors({ ...errors, password: null }); }}
                             rightIcon={
                                 <TouchableOpacity onPress={() => setShowPassword(!showPassword)} className="p-1">
                                     {showPassword ? <EyeOff size={18} color="#64748b" /> : <Eye size={18} color="#64748b" />}
@@ -70,8 +101,10 @@ const RegisterScreen = () => {
                             }
                         />
                     </View>
+                    {errors.password && <Text className="text-red-500 text-xs mb-3">{errors.password}</Text>}
+                    {!errors.password && <View className="mb-6" />}
 
-                    <Button variant="primary" className="w-full mb-6">Đăng ký tài khoản</Button>
+                    <Button variant="primary" className="w-full mb-6" onPress={handleRegister}>Đăng ký tài khoản</Button>
 
                     <View className="flex-row items-center mb-6">
                         <View className="flex-1 h-[1px] bg-slate-200" />
@@ -81,7 +114,7 @@ const RegisterScreen = () => {
 
                     <Button variant="outline" className="w-full" textClassName="text-slate-700 font-semibold" icon={() => (
                         <Image source={{ uri: "https://img.icons8.com/color/48/000000/google-logo.png" }} className="w-5 h-5 mr-3" />
-                    )}>
+                    )} onPress={() => Alert.alert('Tính năng đang phát triển')}>
                         Tiếp tục với Google
                     </Button>
 
@@ -92,7 +125,7 @@ const RegisterScreen = () => {
                         </TouchableOpacity>
                     </View>
 
-                    <TouchableOpacity className="mt-8 items-center" onPress={() => navigation.navigate('Home')}>
+                    <TouchableOpacity className="mt-8 items-center" onPress={() => navigation.navigate('Main', { screen: 'Home' })}>
                         <Text className="text-sm text-gray-400 font-medium">Trở lại trang chủ</Text>
                     </TouchableOpacity>
                 </View>
