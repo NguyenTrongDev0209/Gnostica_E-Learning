@@ -653,4 +653,9 @@ public class CourseService {
             }
         }
     }
+
+    @Transactional(readOnly = true)
+    public List<String> getPublicLevels() {
+        return courseRepository.findDistinctPublicLevels();
+    }
 }

@@ -23,6 +23,8 @@ public class Enrollment {
     private Integer status;
     private String certifiUrl;
     private LocalDateTime completedAt;
+    @jakarta.persistence.Column(columnDefinition = "boolean default false")
+    private Boolean certificateEmailSent = false;
     @ManyToOne
     @JoinColumn(name = "account_id")
     private Account account;

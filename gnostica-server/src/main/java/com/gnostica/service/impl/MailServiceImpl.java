@@ -1,6 +1,7 @@
 package com.gnostica.service.impl;
 
 import com.gnostica.model.Order;
+import com.gnostica.model.Enrollment;
 import com.gnostica.service.MailService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -106,5 +107,30 @@ public class MailServiceImpl implements MailService {
                 +
                 "</div>";
         sendEmail(to, subject, htmlContent);
+    }
+
+    @Override
+    @org.springframework.scheduling.annotation.Async
+    public void sendCourseCompletionEmail(Enrollment enrollment) {
+        String to = enrollment.getAccount().getEmail();
+        String subject = "Chúc mừng bạn đã hoàn thành khóa học - Gnostica E-Learning";
+        String certificateLink = "http://localhost:5173/certificate/" + enrollment.getCertifiUrl();
+        
+        String htmlContent = "<div style='font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px; background-color: #ffffff;'>"
+                + "<h2 style='color: #2D3FE3; text-align: center; margin-top: 10px;'>Chúc Mừng Bạn Đã Hoàn Thành Khóa Học!</h2>"
+                + "<p style='font-size: 16px; color: #333;'>Chào <b>" + enrollment.getAccount().getFullName() + "</b>,</p>"
+                + "<p style='font-size: 16px; color: #333; line-height: 1.5;'>Chúng tôi xin chúc mừng bạn đã xuất sắc hoàn thành 100% tiên độ khóa học: <br><br> "
+                + "<b style='font-size: 18px; color: #2D3FE3;'>" + enrollment.getCourse().getTitle() + "</b></p>"
+                + "<p style='font-size: 16px; color: #333; line-height: 1.5;'>Chứng chỉ hoàn thành khóa học của bạn đã được cấp phát.</p>"
+                + "<div style='text-align: center; margin: 30px 0;'>"
+                + "<a href='" + certificateLink + "' style='background-color: #2D3FE3; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;'>Xem Chứng Nhận Của Tôi</a>"
+                + "</div>"
+                + "<p style='color: #666; font-style: italic; text-align: center;'>Hãy tiếp tục giữ vững tinh thần học tập và khám phá thêm nhiều khóa học thú vị khác trên Gnostica nhé!</p>"
+                + "<hr style='border: 0; border-top: 1px solid #eee; margin: 20px 0;'>"
+                + "<p style='font-size: 12px; color: #999; text-align: center;'>© Gnostica E-Learning.</p>"
+                + "</div>";
+
+        sendEmail(to, subject, htmlContent);
+        log.info("Sent course completion email to {}", to);
     }
 }

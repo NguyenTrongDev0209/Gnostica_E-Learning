@@ -61,6 +61,9 @@ public interface CourseRepository extends JpaRepository<Course, Integer> {
             @org.springframework.data.repository.query.Param("level") String level,
             org.springframework.data.domain.Pageable pageable);
 
+    @org.springframework.data.jpa.repository.Query("SELECT DISTINCT c.level FROM Course c WHERE c.status = 1 AND (c.deleted = false OR c.deleted IS NULL) AND c.level IS NOT NULL")
+    java.util.List<String> findDistinctPublicLevels();
+
     @org.springframework.data.jpa.repository.Query("SELECT c.category.id, COUNT(c) FROM Course c WHERE c.category.id IN :categoryIds GROUP BY c.category.id")
     java.util.List<Object[]> countCoursesByCategoryIdIn(@org.springframework.data.repository.query.Param("categoryIds") java.util.Collection<Integer> categoryIds);
 

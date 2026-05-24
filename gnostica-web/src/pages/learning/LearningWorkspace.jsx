@@ -15,7 +15,13 @@ import {
   Trophy,
   Award,
   HelpCircle,
-  XCircle
+  XCircle,
+  Send,
+  Trash,
+  User,
+  CornerDownRight,
+  ChevronDown,
+  ChevronUp
 } from "lucide-react";
 import {
   Accordion,
@@ -29,6 +35,9 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import courseService from "@/services/courseService";
 import enrollmentService from "@/services/enrollmentService";
+import commentService from "@/services/commentService";
+import authService from "@/services/authService";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 // ── Component Hỗ Trợ: Giao Diện Làm Bài Quiz Cho Học Viên ──
 function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }) {
@@ -37,8 +46,14 @@ function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }
   const [scorePercent, setScorePercent] = useState(0);
   const [correctCount, setCorrectCount] = useState(0);
   const [isSyncing, setIsSyncing] = useState(false);
+  const quizTopRef = useRef(null);
 
   const questions = quiz?.questions || [];
+
+  // Reset state khi đổi bài tập khác
+  useEffect(() => {
+      setUserAnswers({});
+  }, [quiz?.id]);
 
   // Tải dữ liệu cũ nếu bài tập này học viên ĐÃ LÀM RỒI
   useEffect(() => {
@@ -46,15 +61,12 @@ function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }
           setIsSubmitted(true);
           setScorePercent(existingResult.point || 0);
           setCorrectCount(existingResult.correctAnswers || 0);
-          setUserAnswers({});
       } else {
-          // Nếu đổi qua quiz khác chưa làm, reset form
           setIsSubmitted(false);
           setScorePercent(0);
           setCorrectCount(0);
-          setUserAnswers({});
       }
-  }, [existingResult, quiz?.id]);
+  }, [existingResult]);
 
   if (!quiz || questions.length === 0) {
     return (
@@ -110,7 +122,7 @@ function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }
             onQuizCompleted(quiz.id, finalScore, correct, questions.length);
         }
 
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        quizTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } catch (err) {
         alert("Đã xảy ra lỗi khi gửi bài làm, vui lòng thử lại sau!");
     } finally {
@@ -144,10 +156,10 @@ function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }
   };
 
   // ── CHỈNH SỬA GIAO DIỆN THEO MẪU ──
-  const isPassed = scorePercent >= 80;
+  const isPassed = scorePercent >= 50;
 
   return (
-    <div className="w-full space-y-6 max-w-5xl mx-auto pb-12">
+    <div ref={quizTopRef} className="w-full space-y-6 max-w-5xl mx-auto pb-12 pt-2">
         {/* Header Banner (Theo mẫu) */}
         <div className="bg-white rounded-xl border border-slate-200/60 shadow-sm p-6 md:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-in fade-in duration-500">
             <div className="flex items-center gap-4">
@@ -184,6 +196,11 @@ function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }
                         <p className="text-indigo-200/80 text-sm font-medium mt-2">
                             Kết quả bài thi: <strong className="text-white font-black">{correctCount}/{questions.length}</strong> đáp án đúng (Đạt {scorePercent}%)
                         </p>
+                        {!isPassed && (
+                            <p className="text-orange-300/90 text-[13px] font-bold mt-1 flex items-center gap-1.5">
+                                <Info className="w-3.5 h-3.5" /> Bạn cần đạt từ 50% trở lên để vượt qua bài kiểm tra này.
+                            </p>
+                        )}
                     </div>
                 </div>
                 
@@ -227,16 +244,16 @@ function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }
                                     buttonClass += "bg-slate-50/40 border-slate-200/60 text-slate-600 hover:bg-slate-50 hover:border-slate-300";
                                 }
                             } else {
-                                // CHẾ ĐỘ XEM KẾT QUẢ (ĐÚNG MẪU GIAO DIỆN TRẢ KẾT QUẢ CÓ NHÃN RÕ RÀNG)
-                                if (isCorrect) {
-                                    buttonClass += "bg-emerald-50/40 border-emerald-300 text-emerald-900 font-bold";
+                                // CHẾ ĐỘ XEM KẾT QUẢ
+                                if (isSelected && isCorrect) {
+                                    buttonClass += "bg-emerald-50/40 border-emerald-500 text-emerald-900 font-bold shadow-sm";
                                     icon = (
                                         <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-700 px-2 py-1 rounded-lg flex items-center gap-1 shadow-sm shrink-0">
-                                            <CheckCircle2 className="w-3 h-3" /> Đáp án đúng
+                                            <CheckCircle2 className="w-3 h-3" /> Lựa chọn đúng
                                         </span>
                                     );
                                 } else if (isSelected && !isCorrect) {
-                                    buttonClass += "bg-rose-50/40 border-rose-300 text-rose-900 font-bold";
+                                    buttonClass += "bg-rose-50/40 border-rose-500 text-rose-900 font-bold shadow-sm";
                                     icon = (
                                         <span className="text-[10px] font-black uppercase tracking-wider bg-rose-100 text-rose-700 px-2 py-1 rounded-lg flex items-center gap-1 shadow-sm shrink-0">
                                             <XCircle className="w-3 h-3" /> Lựa chọn sai
@@ -260,6 +277,12 @@ function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }
                             );
                         })}
                     </div>
+                    {isSubmitted && q.answers.some(opt => opt.id == userAnswers[q.id] && opt.isCorrect) && q.explanation && (
+                        <div className="mt-4 p-4 rounded-lg bg-emerald-50 border border-emerald-100 text-emerald-800 text-sm animate-in fade-in slide-in-from-top-2">
+                            <p className="font-bold mb-1 flex items-center gap-1.5"><Info className="w-4 h-4" /> Giải thích:</p>
+                            <div dangerouslySetInnerHTML={{ __html: q.explanation }}></div>
+                        </div>
+                    )}
                 </div>
             ))}
         </div>
@@ -281,6 +304,209 @@ function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }
   );
 }
 
+// ── Component Hỗ Trợ: Giao Diện Hỏi Đáp Q&A ──
+function LessonQA({ lesson }) {
+  const [comments, setComments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [newComment, setNewComment] = useState("");
+  const [replyingTo, setReplyingTo] = useState(null);
+  const [replyContent, setReplyContent] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [collapsedComments, setCollapsedComments] = useState(new Set());
+  const currentUser = authService.getCurrentUser();
+
+  const toggleCollapse = (id) => {
+    setCollapsedComments(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) newSet.delete(id);
+      else newSet.add(id);
+      return newSet;
+    });
+  };
+
+  const fetchComments = useCallback(async () => {
+    if (!lesson?.id) return;
+    setLoading(true);
+    try {
+      const data = await commentService.getCommentsByThreadId(`lesson_${lesson.id}`);
+      setComments(data || []);
+    } catch (error) {
+      console.error("Failed to fetch comments", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [lesson?.id]);
+
+  useEffect(() => {
+    fetchComments();
+  }, [fetchComments]);
+
+  const handleSubmit = async (e, parentId = null) => {
+    e.preventDefault();
+    const content = parentId ? replyContent : newComment;
+    if (!content.trim() || !currentUser?.email) return;
+
+    setIsSubmitting(true);
+    try {
+      await commentService.addComment({
+        content,
+        objectId: `lesson_${lesson.id}`,
+        userEmail: currentUser.email,
+        parentId
+      });
+      if (parentId) {
+        setReplyContent("");
+        setReplyingTo(null);
+      } else {
+        setNewComment("");
+      }
+      fetchComments();
+    } catch (error) {
+      alert(error?.response?.data || "Đã xảy ra lỗi khi gửi bình luận.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Bạn có chắc chắn muốn xóa bình luận này?")) return;
+    try {
+      await commentService.deleteComment(id, currentUser.email);
+      fetchComments();
+    } catch (error) {
+      alert("Xóa bình luận thất bại.");
+    }
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString("vi-VN", {
+      day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit"
+    });
+  };
+
+  const renderComment = (comment, isReply = false) => (
+    <div key={comment.id} className={`flex gap-4 ${isReply ? 'mt-4' : 'mt-6 pt-6 border-t border-slate-100'}`}>
+      <Avatar className="w-10 h-10 border border-slate-200 shrink-0">
+        <AvatarImage src={comment.account?.avatar} />
+        <AvatarFallback className="bg-primary/10 text-primary font-bold">
+          {comment.account?.fullName?.charAt(0) || <User className="w-5 h-5" />}
+        </AvatarFallback>
+      </Avatar>
+      <div className="flex-1 min-w-0">
+        <div className="bg-slate-50 border border-slate-100 rounded-2xl rounded-tl-none p-4 relative group">
+          <div className="flex items-center justify-between mb-1">
+            <span className="font-bold text-sm text-slate-900">{comment.account?.fullName || "Người dùng"}</span>
+            <span className="text-xs text-slate-400 font-medium">{formatDate(comment.createdAt)}</span>
+          </div>
+          <p className="text-sm text-slate-600 whitespace-pre-wrap">{comment.content}</p>
+          
+          {currentUser?.email === comment.account?.email && (
+            <button 
+              onClick={() => handleDelete(comment.id)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <Trash className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+        
+        <div className="flex items-center gap-4 mt-2 ml-2">
+          <button 
+            onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
+            className="text-xs font-bold text-slate-500 hover:text-primary transition-colors flex items-center gap-1"
+          >
+            <CornerDownRight className="w-3.5 h-3.5" /> Phản hồi
+          </button>
+          {comment.replies && comment.replies.length > 0 && (
+            <button 
+              onClick={() => toggleCollapse(comment.id)}
+              className="text-xs font-bold text-slate-500 hover:text-primary transition-colors flex items-center gap-1"
+            >
+              {collapsedComments.has(comment.id) ? (
+                <><ChevronDown className="w-3.5 h-3.5" /> Hiển thị {comment.replies.length} phản hồi</>
+              ) : (
+                <><ChevronUp className="w-3.5 h-3.5" /> Ẩn phản hồi</>
+              )}
+            </button>
+          )}
+        </div>
+
+        {replyingTo === comment.id && (
+          <form onSubmit={(e) => handleSubmit(e, comment.id)} className="mt-3 flex gap-2">
+            <input
+              type="text"
+              value={replyContent}
+              onChange={(e) => setReplyContent(e.target.value)}
+              placeholder="Viết phản hồi..."
+              className="flex-1 text-sm rounded-md border-slate-200 focus:border-primary focus:ring-primary/20"
+              autoFocus
+            />
+            <Button type="submit" size="sm" disabled={isSubmitting || !replyContent.trim()} className="rounded-md px-4">
+              <Send className="w-4 h-4" />
+            </Button>
+          </form>
+        )}
+
+        {comment.replies && comment.replies.length > 0 && !collapsedComments.has(comment.id) && (
+          <div className="pl-4 border-l-2 border-slate-100 mt-2">
+            {comment.replies.map(reply => renderComment(reply, true))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="bg-white rounded-xl p-6 md:p-8 border border-slate-200 shadow-sm">
+      <h3 className="text-xl font-black text-slate-900 mb-6 flex items-center gap-3">
+        <MessageSquare className="w-6 h-6 text-primary" /> Thảo luận bài học
+      </h3>
+
+      <form onSubmit={(e) => handleSubmit(e, null)} className="mb-8">
+        <div className="flex gap-4">
+          <Avatar className="w-12 h-12 border border-slate-200 shrink-0">
+            <AvatarImage src={currentUser?.avatar} />
+            <AvatarFallback className="bg-primary/10 text-primary font-bold">
+              {currentUser?.fullName?.charAt(0) || <User className="w-6 h-6" />}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1 relative">
+            <textarea
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              placeholder="Bạn có câu hỏi gì về bài học này?"
+              className="w-full rounded-2xl border-slate-200 focus:border-primary focus:ring-primary/20 min-h-[100px] p-4 text-sm resize-y shadow-sm"
+            />
+            <Button 
+              type="submit" 
+              disabled={isSubmitting || !newComment.trim()} 
+              className="absolute bottom-3 right-3 rounded-xl gap-2 h-9 px-4 shadow-md font-bold"
+            >
+              Gửi <Send className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+      </form>
+
+      {loading ? (
+        <div className="flex justify-center py-8 text-slate-400">
+          <Loader2 className="w-8 h-8 animate-spin" />
+        </div>
+      ) : comments.length > 0 ? (
+        <div className="space-y-2">
+          {comments.map(c => renderComment(c, false))}
+        </div>
+      ) : (
+        <div className="text-center py-12 text-slate-400 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
+          <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-20" />
+          <p className="font-bold">Chưa có bình luận nào.</p>
+          <p className="text-sm mt-1 opacity-80">Hãy là người đầu tiên đặt câu hỏi!</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function LearningWorkspace() {
   const { id: slug } = useParams();
   const navigate = useNavigate();
@@ -296,6 +522,7 @@ export default function LearningWorkspace() {
   const [activeViewMode, setActiveViewMode] = useState("video"); // 'video' | 'quiz'
   const [lessonProgress, setLessonProgress] = useState([]);
   const [quizProgress, setQuizProgress] = useState([]); // Track existing quiz results
+  const [certifiUrl, setCertifiUrl] = useState(null);
   const [currentTime, setCurrentTime] = useState(0);
 
   // === REFS để tránh stale closure trong interval/listener ===
@@ -351,6 +578,7 @@ export default function LearningWorkspace() {
       const lessonsList = progressData?.lessons || [];
       setLessonProgress(lessonsList);
       setQuizProgress(progressData?.quizzes || []);
+      setCertifiUrl(progressData?.certifiUrl || null);
 
       // Khôi phục phiên học: 
       // 1. Ưu tiên lesson trong URL
@@ -390,11 +618,8 @@ export default function LearningWorkspace() {
   };
 
   // === Derived values ===
-  const completedLessonIds = lessonProgress
-    .filter(lp => lp.isCompleted)
-    .map(lp => lp.lessonId);
-
-  const completedQuizIds = quizProgress.map(qp => qp.quizId);
+  const completedLessonIds = lessonProgress.filter(lp => lp.isCompleted).map(lp => lp.lessonId);
+  const completedQuizIds = quizProgress.filter(qp => qp.point >= 50).map(qp => qp.quizId);
 
   const currentSection = course?.modules?.[activeSectionIdx];
   const currentLesson = currentSection?.lessons?.[activeLessonIdx];
@@ -438,15 +663,28 @@ export default function LearningWorkspace() {
     const section = course.modules[activeSectionIdx];
     const lessons = section?.lessons || [];
 
-    if (activeLessonIdx < lessons.length - 1) {
-      // Còn bài trong chương hiện tại
-      setActiveLessonIdx(activeLessonIdx + 1);
-    } else if (activeSectionIdx < course.modules.length - 1) {
-      // Hết bài trong chương hiện tại, sang chương tiếp theo
-      setActiveSectionIdx(activeSectionIdx + 1);
-      setActiveLessonIdx(0);
+    if (activeViewMode === "video") {
+      if (activeLessonIdx < lessons.length - 1) {
+        // Còn bài trong chương hiện tại
+        setActiveLessonIdx(activeLessonIdx + 1);
+      } else if (section.quiz) {
+        // Hết bài trong chương, nhưng có quiz -> chuyển sang quiz
+        setActiveViewMode("quiz");
+      } else if (activeSectionIdx < course.modules.length - 1) {
+        // Hết bài, không có quiz -> sang chương tiếp theo
+        setActiveSectionIdx(activeSectionIdx + 1);
+        setActiveLessonIdx(0);
+        setActiveViewMode("video");
+      }
+    } else if (activeViewMode === "quiz") {
+      if (activeSectionIdx < course.modules.length - 1) {
+        // Đang ở quiz, sang chương tiếp theo
+        setActiveSectionIdx(activeSectionIdx + 1);
+        setActiveLessonIdx(0);
+        setActiveViewMode("video");
+      }
     }
-  }, [course, activeSectionIdx, activeLessonIdx]);
+  }, [course, activeSectionIdx, activeLessonIdx, activeViewMode]);
 
   const markLessonComplete = useCallback(async (lessonId) => {
     if (completedIdsRef.current.includes(lessonId)) return;
@@ -716,12 +954,21 @@ export default function LearningWorkspace() {
     : 0;
 
   const handlePrevLesson = () => {
-    if (activeLessonIdx > 0) {
+    if (activeViewMode === "quiz") {
+      setActiveViewMode("video");
+      setActiveLessonIdx((currentSection?.lessons?.length || 1) - 1);
+    } else if (activeLessonIdx > 0) {
       setActiveLessonIdx(activeLessonIdx - 1);
     } else if (activeSectionIdx > 0) {
       const prevSectionIdx = activeSectionIdx - 1;
       setActiveSectionIdx(prevSectionIdx);
-      setActiveLessonIdx(course.modules[prevSectionIdx].lessons.length - 1);
+      const prevSection = course.modules[prevSectionIdx];
+      if (prevSection?.quiz) {
+        setActiveViewMode("quiz");
+      } else {
+        setActiveViewMode("video");
+        setActiveLessonIdx((prevSection?.lessons?.length || 1) - 1);
+      }
     }
   };
 
@@ -765,6 +1012,16 @@ export default function LearningWorkspace() {
             <LayoutDashboard className="w-4 h-4" />
             Giao diện
           </Button>
+          {progressValue === 100 && certifiUrl && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => window.open(`/certificate/${certifiUrl}`, '_blank')}
+              className="text-amber-500 border-amber-500 hover:bg-amber-500/10 hover:text-amber-400 font-bold hidden lg:flex items-center gap-2 rounded-lg ml-2"
+            >
+              <Award className="w-4 h-4" /> Xem chứng chỉ
+            </Button>
+          )}
           <div className="flex items-center gap-1.5 bg-slate-800 p-1.5 rounded-lg border border-white/5">
             <button
               onClick={handlePrevLesson}
@@ -776,8 +1033,11 @@ export default function LearningWorkspace() {
             <button
               onClick={handleNextLesson}
               disabled={
-                activeSectionIdx === course?.modules?.length - 1 &&
-                activeLessonIdx === (currentSection?.lessons?.length || 0) - 1
+                activeSectionIdx === (course?.modules?.length || 1) - 1 &&
+                (
+                  (activeViewMode === "video" && activeLessonIdx === (currentSection?.lessons?.length || 1) - 1 && !currentSection?.quiz) ||
+                  (activeViewMode === "quiz")
+                )
               }
               className="p-1.5 hover:bg-slate-700 disabled:opacity-20 disabled:cursor-not-allowed rounded-lg transition-all text-slate-300"
             >
@@ -886,16 +1146,7 @@ export default function LearningWorkspace() {
                     </TabsContent>
 
                     <TabsContent value="qa" className="mt-10 outline-none">
-                      <div className="bg-white rounded-xl p-16 border border-slate-200 shadow-sm text-center">
-                        <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-8 border border-slate-100 shadow-inner">
-                          <MessageSquare className="w-10 h-10 text-slate-300" />
-                        </div>
-                        <h3 className="text-xl font-black text-slate-900">Tính năng Hỏi & Đáp</h3>
-                        <p className="text-slate-500 max-w-md mx-auto mt-4 font-bold">
-                            Tham gia thảo luận về bài học này. Giảng viên và cộng đồng luôn sẵn sàng hỗ trợ bạn 24/7!
-                        </p>
-                        <Button className="mt-10 font-black px-12 rounded-lg h-14 text-sm uppercase tracking-widest shadow-xl shadow-primary/30 transition-all hover:scale-105 active:scale-95">Đặt câu hỏi ngay</Button>
-                      </div>
+                      <LessonQA lesson={currentLesson} />
                     </TabsContent>
 
                     <TabsContent value="resources" className="mt-10 outline-none">

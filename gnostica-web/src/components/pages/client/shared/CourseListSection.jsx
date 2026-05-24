@@ -100,10 +100,10 @@ export default function CourseListSection({
                   price={new Intl.NumberFormat("vi-VN").format(course.salePrice)}
                   originalPrice={course.discount > 0 ? new Intl.NumberFormat("vi-VN").format(course.price) : null}
                   discountPercentage={course.discount}
-                  category={course.category?.name || "Chưa phân loại"}
+                  category={course.categoryName || course.category?.name || "Chưa phân loại"}
                   link={`/courses/${course.slug || course.id}`}
-                  classes={course.modules?.length || 0}
-                  students={course.studentsCount || 0} // Giả sử có studentsCount hoặc mặc định 0
+                  classes={course.classes || 0}
+                  students={course.students || 0}
                   instructor={{
                      name: course.instructorName || "Giảng viên",
                      avatar: course.instructorAvatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=100&auto=format&fit=crop",

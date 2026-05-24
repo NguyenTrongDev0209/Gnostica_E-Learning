@@ -125,30 +125,46 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
     if (!videoId) throw new Error("Could not initialize video on Bunny.net");
 
     return new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhr.open("PUT", `https://video.bunnycdn.com/library/${libraryId}/videos/${videoId}`);
-      xhr.setRequestHeader("AccessKey", apiKey);
-      xhr.setRequestHeader("Accept", "application/json");
-      xhr.setRequestHeader("Content-Type", "application/octet-stream");
+      import("tus-js-client").then((tus) => {
+        const upload = new tus.Upload(file, {
+          endpoint: "https://video.bunnycdn.com/tusupload",
+          retryDelays: [0, 3000, 5000, 10000, 20000],
+          headers: {
+            AccessKey: apiKey,
+            LibraryId: String(libraryId),
+            VideoId: String(videoId)
+          },
+          metadata: {
+            filetype: file.type,
+            title: title || file.name,
+            collection: ""
+          },
+          onError: function (error) {
+            console.error("Failed because: " + error);
+            reject(new Error("Upload video failed to Bunny CDN via TUS"));
+          },
+          onProgress: function (bytesUploaded, bytesTotal) {
+            const percentComplete = Math.round((bytesUploaded / bytesTotal) * 100);
+            if (onProgress) onProgress(percentComplete);
+          },
+          onSuccess: function () {
+            // Return a composite libraryId/videoId string so the player can dynamically stream from correct library bucket!
+            resolve(`${libraryId}/${videoId}`);
+          }
+        });
 
-      xhr.upload.onprogress = (event) => {
-        if (event.lengthComputable) {
-          const percentComplete = Math.round((event.loaded / event.total) * 100);
-          if (onProgress) onProgress(percentComplete);
-        }
-      };
-
-      xhr.onload = () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          // Return a composite libraryId/videoId string so the player can dynamically stream from correct library bucket!
-          resolve(`${libraryId}/${videoId}`);
-        } else {
-          reject(new Error("Upload video failed to Bunny CDN"));
-        }
-      };
-
-      xhr.onerror = () => reject(new Error("Network Error during upload"));
-      xhr.send(file);
+        // Check if there are any previous uploads to continue.
+        upload.findPreviousUploads().then(function (previousUploads) {
+          // Found previous uploads so we select the first one. 
+          if (previousUploads.length) {
+            upload.resumeFromPreviousUpload(previousUploads[0]);
+          }
+          upload.start();
+        });
+      }).catch(err => {
+        console.error("Failed to load tus-js-client", err);
+        reject(err);
+      });
     });
   };
 
