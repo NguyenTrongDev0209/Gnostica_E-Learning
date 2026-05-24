@@ -30,12 +30,11 @@ const CourseDetailScreen = () => {
     const isInCart = cartItems.some(item => item.id === course.id);
 
     const handleCtaPress = () => {
-        if (isInCart) {
-            navigation.navigate('Cart');
-        } else {
+        if (!isInCart) {
             addToCart(course);
-            alert('Đã thêm vào giỏ hàng!');
         }
+        // Navigate user straight to Checkout for purchase
+        navigation.navigate('Checkout');
     };
 
     return (

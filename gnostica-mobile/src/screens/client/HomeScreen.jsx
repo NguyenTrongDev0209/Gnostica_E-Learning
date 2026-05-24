@@ -71,6 +71,18 @@ const HomeScreen = () => {
             {/* Hero Banner */}
             <HeroSection />
 
+            <View style={{ paddingHorizontal: 20, marginTop: 12 }}>
+                <TouchableOpacity
+                    onPress={() => navigation.navigate('CourseCatalog')}
+                    style={{
+                        backgroundColor: '#2563EB', paddingVertical: 12, borderRadius: 10,
+                        alignItems: 'center', justifyContent: 'center'
+                    }}
+                >
+                    <Text style={{ color: '#ffffff', fontSize: 15, fontWeight: '700' }}>Khám phá khóa học</Text>
+                </TouchableOpacity>
+            </View>
+
             {/* Categories */}
             <CategorySection />
 

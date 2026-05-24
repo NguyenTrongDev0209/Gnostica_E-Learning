@@ -120,12 +120,7 @@ const CartScreen = () => {
                             variant="primary"
                             style={{ borderRadius: 12 }}
                             textStyle={{ fontSize: 16 }}
-                            onPress={() => {
-                                // Mock payment success
-                                alert('Thanh toán thành công! Khóa học đã được thêm vào của bạn.');
-                                clearCart();
-                                navigation.navigate('Main', { screen: 'MyCourses' });
-                            }}
+                            onPress={() => navigation.navigate('Checkout')}
                         >
                             Thanh toán ngay
                         </Button>
