@@ -12,12 +12,14 @@ import com.gnostica.model.Module;
 import com.gnostica.repository.AccountRepository;
 import com.gnostica.repository.CategoryRepository;
 import com.gnostica.repository.CourseRepository;
+import com.gnostica.repository.LessonRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +32,8 @@ public class CourseService {
     private final QuizService quizService;
     private final QuestionBankService questionBankService;
     private final AiModerationService aiModerationService;
+    private final LessonRepository lessonRepository;
+    private final BunnyNetService bunnyNetService;
 
     @Transactional
     public Course createCourse(CourseRequest request, String email) {
@@ -43,7 +47,7 @@ public class CourseService {
         // 2. Initialize Course Entity
         Course course = new Course();
         course.setTitle(request.getTitle());
-        course.setSlug(request.getSlug());
+        course.setSlug(generateUniqueSlug(request.getSlug(), course.getId()));
         course.setDescription(request.getDescription());
         course.setThumbnail(request.getThumbnail());
 
@@ -161,7 +165,7 @@ public class CourseService {
 
     @Transactional(readOnly = true)
     public Course getCourseBySlug(String slug, String email) {
-        Course course = courseRepository.findBySlug(slug)
+        Course course = courseRepository.findFirstBySlugAndDeletedFalseOrderByIdDesc(slug)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học"));
 
         // Kiểm tra xem user có phải là Instructor của khóa này hoặc Admin không
@@ -242,7 +246,7 @@ public class CourseService {
 
     @Transactional
     public Course updateCourseBySlug(String slug, CourseRequest request, String email) {
-        Course course = courseRepository.findBySlug(slug)
+        Course course = courseRepository.findFirstBySlugAndDeletedFalseOrderByIdDesc(slug)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học"));
 
         if (!course.getAccount().getEmail().equals(email)) {
@@ -252,6 +256,23 @@ public class CourseService {
         Category category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new RuntimeException("Danh mục không tồn tại"));
 
+        // DỌN RÁC VIDEO (Lớp 4): Thu thập danh sách video CŨ
+        List<String> oldVideoUrls = new ArrayList<>();
+        if (course.getPromoVideo() != null && !course.getPromoVideo().isEmpty()) {
+            oldVideoUrls.add(course.getPromoVideo());
+        }
+        if (course.getModules() != null) {
+            for (Module m : course.getModules()) {
+                if (!Boolean.TRUE.equals(m.getDeleted()) && m.getLessons() != null) {
+                    for (Lesson l : m.getLessons()) {
+                        if (!Boolean.TRUE.equals(l.getDeleted()) && l.getVideoUrl() != null && !l.getVideoUrl().isEmpty()) {
+                            oldVideoUrls.add(l.getVideoUrl());
+                        }
+                    }
+                }
+            }
+        }
+
         // Reset AI report if key textual metadata is edited
         if (course.getTitle() == null || !course.getTitle().equals(request.getTitle()) || 
             course.getDescription() == null || !course.getDescription().equals(request.getDescription())) {
@@ -260,7 +281,7 @@ public class CourseService {
 
         // Update basic info
         course.setTitle(request.getTitle());
-        course.setSlug(request.getSlug());
+        course.setSlug(generateUniqueSlug(request.getSlug(), course.getId()));
         course.setDescription(request.getDescription());
         course.setThumbnail(request.getThumbnail());
         course.setPrice(request.getPrice());
@@ -456,6 +477,39 @@ public class CourseService {
             }
         }
 
+        // DỌN RÁC VIDEO (Lớp 4): Thu thập danh sách video MỚI sau khi cập nhật thành công
+        List<String> newVideoUrls = new ArrayList<>();
+        if (request.getPromoVideo() != null && !request.getPromoVideo().isEmpty()) {
+            newVideoUrls.add(request.getPromoVideo());
+        }
+        if (request.getSections() != null) {
+            for (ModuleRequest mReq : request.getSections()) {
+                if (mReq.getLessons() != null) {
+                    for (LessonRequest lReq : mReq.getLessons()) {
+                        if (lReq.getVideoUrl() != null && !lReq.getVideoUrl().isEmpty()) {
+                            newVideoUrls.add(lReq.getVideoUrl());
+                        }
+                    }
+                }
+            }
+        }
+
+        // Tìm ra những video cũ đã bị thay thế hoặc xóa
+        List<String> deletedVideoUrls = oldVideoUrls.stream()
+                .filter(url -> !newVideoUrls.contains(url))
+                .collect(Collectors.toList());
+
+        // Tiến hành xóa các video mồ côi trên Bunny CDN (nếu không còn bài học nào khác dùng chung)
+        for (String url : deletedVideoUrls) {
+            boolean isUsed = lessonRepository.existsByVideoUrl(url) || courseRepository.existsByPromoVideo(url);
+            if (!isUsed) {
+                String[] parts = url.split("/");
+                if (parts.length >= 2) {
+                    bunnyNetService.deleteVideo(parts[0], parts[1]);
+                }
+            }
+        }
+
         // 4. Clear Redis Draft
         draftCourseService.deleteDraft(email, updatedCourse.getId().toString());
 
@@ -561,13 +615,13 @@ public class CourseService {
 
     @Transactional(readOnly = true)
     public Course getCourseForModerationBySlug(String slug) {
-        return courseRepository.findBySlug(slug)
+        return courseRepository.findFirstBySlugAndDeletedFalseOrderByIdDesc(slug)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học để kiểm duyệt"));
     }
 
     @Transactional
     public Course approveCourseBySlug(String slug) {
-        Course course = courseRepository.findBySlug(slug)
+        Course course = courseRepository.findFirstBySlugAndDeletedFalseOrderByIdDesc(slug)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học để phê duyệt"));
         
         course.setStatus(1); // Chuyển thành Hoạt động
@@ -593,7 +647,7 @@ public class CourseService {
 
     @Transactional
     public Course rejectCourseBySlug(String slug, String rejectReason) {
-        Course course = courseRepository.findBySlug(slug)
+        Course course = courseRepository.findFirstBySlugAndDeletedFalseOrderByIdDesc(slug)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học"));
         
         course.setStatus(3); // Bị từ chối
@@ -606,7 +660,7 @@ public class CourseService {
         String slug = baseSlug;
         int count = 1;
 
-        while (id == null ? courseRepository.existsBySlug(slug) : courseRepository.existsBySlugAndIdNot(slug, id)) {
+        while (id == null ? courseRepository.existsBySlugAndDeletedFalse(slug) : courseRepository.existsBySlugAndIdNotAndDeletedFalse(slug, id)) {
             slug = baseSlug + "-" + count;
             count++;
         }

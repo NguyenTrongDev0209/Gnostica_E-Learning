@@ -40,4 +40,24 @@ public class BunnyNetService {
         }
         return null;
     }
+
+    public boolean deleteVideo(String libraryId, String videoId) {
+        String targetLibrary = (libraryId != null && !libraryId.isEmpty() && !libraryId.equals("null")) ? libraryId : bunnyNetConfig.getLibraryId();
+        String url = "https://video.bunnycdn.com/library/" + targetLibrary + "/videos/" + videoId;
+        
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("AccessKey", bunnyNetConfig.getApiKey());
+        headers.set("Accept", "application/json");
+
+        HttpEntity<String> request = new HttpEntity<>(headers);
+
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.DELETE, request, Map.class);
+            return response.getStatusCode().is2xxSuccessful();
+        } catch (Exception e) {
+            System.err.println("BunnyNet API Delete Error for video " + videoId + ": " + e.getMessage());
+            return false;
+        }
+    }
 }

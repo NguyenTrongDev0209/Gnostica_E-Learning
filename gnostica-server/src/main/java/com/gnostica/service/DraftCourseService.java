@@ -1,6 +1,10 @@
 package com.gnostica.service;
 
 import com.gnostica.dto.request.CourseRequest;
+import com.gnostica.dto.request.ModuleRequest;
+import com.gnostica.dto.request.LessonRequest;
+import com.gnostica.repository.CourseRepository;
+import com.gnostica.repository.LessonRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -17,6 +21,9 @@ import java.util.stream.Collectors;
 public class DraftCourseService {
 
     private final RedisTemplate<String, Object> redisTemplate;
+    private final CourseRepository courseRepository;
+    private final LessonRepository lessonRepository;
+    private final BunnyNetService bunnyNetService;
 
     @Value("${app.course.draft.ttl-hours:24}")
     private int ttlHours;
@@ -50,6 +57,45 @@ public class DraftCourseService {
 
     public void deleteDraft(String email, String courseId) {
         String key = buildKey(email, courseId);
+        
+        // Dọn rác video trước khi xóa bản nháp
+        try {
+            CourseRequest draft = getDraft(email, courseId);
+            if (draft != null) {
+                // Quét promo video
+                if (draft.getPromoVideo() != null && !draft.getPromoVideo().isEmpty()) {
+                    boolean isUsed = courseRepository.existsByPromoVideo(draft.getPromoVideo());
+                    if (!isUsed) {
+                        String[] parts = draft.getPromoVideo().split("/");
+                        if (parts.length >= 2) {
+                            bunnyNetService.deleteVideo(parts[0], parts[1]);
+                        }
+                    }
+                }
+                
+                // Quét video trong các bài học
+                if (draft.getSections() != null) {
+                    for (ModuleRequest section : draft.getSections()) {
+                        if (section.getLessons() != null) {
+                            for (LessonRequest lesson : section.getLessons()) {
+                                if (lesson.getVideoUrl() != null && !lesson.getVideoUrl().isEmpty()) {
+                                    boolean isUsed = lessonRepository.existsByVideoUrl(lesson.getVideoUrl());
+                                    if (!isUsed) {
+                                        String[] parts = lesson.getVideoUrl().split("/");
+                                        if (parts.length >= 2) {
+                                            bunnyNetService.deleteVideo(parts[0], parts[1]);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error cleaning up draft orphaned videos: " + e.getMessage());
+        }
+
         redisTemplate.delete(key);
     }
 
