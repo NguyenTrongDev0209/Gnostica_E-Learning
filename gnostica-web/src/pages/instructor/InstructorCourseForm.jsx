@@ -380,8 +380,8 @@ export default function InstructorCourseForm() {
 
       if (!isNavAction) return;
 
-      const currentData = methods.getValues();
-      const isDirty = originalDataRef.current && JSON.stringify(currentData) !== originalDataRef.current;
+      
+      const isDirty = methods.formState.isDirty;
 
       if (isDirty) {
         const confirmMsg = isEditMode
@@ -411,10 +411,10 @@ export default function InstructorCourseForm() {
   // Cảnh báo khi đóng tab trình duyệt
   React.useEffect(() => {
     const handleBeforeUnload = (e) => {
-      const currentData = methods.getValues();
-      const isDirty = originalDataRef.current && JSON.stringify(currentData) !== originalDataRef.current;
+      
+      const isDirty = methods.formState.isDirty;
       if (isDirty) {
-        saveDraft(currentData, false);
+        saveDraft(methods.getValues(), false);
         e.preventDefault();
         e.returnValue = '';
       }
@@ -3042,18 +3042,38 @@ function VideoProgressCircle({ progress, size = 60 }) {
 }
 
 function BackgroundVideoUploader({ label, value, onChange, onUploadStart, onUploadEnd, uploadVideoToBunny, id = "v-upload" }) {
-  const [localProgress, setLocalProgress] = React.useState(0);
+  const [uploadProgress, setUploadProgress] = React.useState(0);
+  const [processingProgress, setProcessingProgress] = React.useState(0);
+  const [uploadPhase, setUploadPhase] = React.useState("idle"); // idle, uploading, processing, completed
   const [isUploading, setIsUploading] = React.useState(false);
   const [error, setError] = React.useState(null);
+  
+  // Lưu lại giá trị video gốc ban đầu khi component mới render (để không xóa nhầm video đã publish)
+  const originalValueRef = React.useRef(value);
 
   // Effect để "kết nối" lại với tiến trình tải lên nếu có (khi quay lại tab)
   React.useEffect(() => {
     // Đăng ký callback để nhận cập nhật tiến trình mới nhất
-    uploadCallbacks[id] = (pct) => setLocalProgress(pct);
+    uploadCallbacks[id] = (state) => {
+      if (typeof state === 'number') {
+         setUploadProgress(state);
+      } else if (state) {
+         setUploadProgress(state.upload || 0);
+         setProcessingProgress(state.processing || 0);
+         setUploadPhase(state.phase || "idle");
+      }
+    };
 
     // Nếu đang có tiến trình chạy ngầm, lấy giá trị hiện tại ngay lập tức
     if (globalUploadProgress[id] !== undefined) {
-      setLocalProgress(globalUploadProgress[id]);
+      const state = globalUploadProgress[id];
+      if (typeof state === 'number') {
+         setUploadProgress(state);
+      } else {
+         setUploadProgress(state.upload || 0);
+         setProcessingProgress(state.processing || 0);
+         setUploadPhase(state.phase || "idle");
+      }
     }
 
     return () => {
@@ -3065,26 +3085,43 @@ function BackgroundVideoUploader({ label, value, onChange, onUploadStart, onUplo
     const file = e.target.files[0];
     if (!file) return;
 
+    // Lớp bảo vệ 2: Nếu người dùng đang thay thế một video trung gian (vừa tải lên trong phiên này nhưng chưa lưu)
+    // thì gọi Bunny xóa video cũ đi để tránh sinh rác
+    if (typeof value === 'string' && value !== originalValueRef.current) {
+       courseService.deleteVideoFromBunny(value).catch(err => console.error("Không thể dọn rác video cũ", err));
+    }
+
     try {
       onChange(file);
 
       setIsUploading(true);
       setError(null);
-      setLocalProgress(0);
-      globalUploadProgress[id] = 0;
+      setUploadProgress(0);
+      setProcessingProgress(0);
+      setUploadPhase("uploading");
+      
+      const updateGlobalState = (u, p, phase) => {
+         globalUploadProgress[id] = { upload: u, processing: p, phase };
+         if (uploadCallbacks[id]) {
+            uploadCallbacks[id]({ upload: u, processing: p, phase });
+         }
+      };
+
+      updateGlobalState(0, 0, "uploading");
       onUploadStart();
 
-      // Bước 1: Tải video lên Bunny.net sử dụng TUS Protocol (Quy đổi 0 -> 100% tải thực tế thành 0 -> 50% thanh tiến trình tổng thể)
+      // Bước 1: Tải video lên Bunny.net sử dụng TUS Protocol
       const videoId = await uploadVideoToBunny(file, file.name, (pct) => {
-        const displayPct = Math.round(pct * 0.50);
-        setLocalProgress(displayPct);
-        globalUploadProgress[id] = displayPct;
-        if (uploadCallbacks[id]) {
-          uploadCallbacks[id](displayPct);
-        }
+        setUploadProgress(pct);
+        updateGlobalState(pct, 0, "uploading");
       });
 
-      // Bước 2: Đợi sinh phụ đề tự động từ Bunny Stream AI (Nhích đều từ 50% -> 99%)
+      // Upload xong 100%, chuyển phase
+      setUploadProgress(100);
+      setUploadPhase("processing");
+      updateGlobalState(100, 0, "processing");
+
+      // Bước 2: Đợi sinh phụ đề tự động từ Bunny Stream AI
       let captionReady = false;
       let attempts = 0;
       const maxAttempts = 40; // Tối đa ~3.5 phút (40 lần * 5 giây)
@@ -3094,15 +3131,12 @@ function BackgroundVideoUploader({ label, value, onChange, onUploadStart, onUplo
         await new Promise(resolve => setTimeout(resolve, 5000));
         attempts++;
 
-        // Nhích đều đặn từ 50% lên 99% thay vì kẹt cứng
-        const step = 49 / maxAttempts; 
-        const progressBoost = Math.min(99, Math.round(50 + (attempts * step)));
+        // Nhích đều đặn từ 0% lên 99%
+        const step = 99 / maxAttempts; 
+        const progressBoost = Math.min(99, Math.round(attempts * step));
         
-        setLocalProgress(progressBoost);
-        globalUploadProgress[id] = progressBoost;
-        if (uploadCallbacks[id]) {
-          uploadCallbacks[id](progressBoost);
-        }
+        setProcessingProgress(progressBoost);
+        updateGlobalState(100, progressBoost, "processing");
 
         try {
           // Gọi API kiểm tra trạng thái VTT của videoId
@@ -3115,12 +3149,11 @@ function BackgroundVideoUploader({ label, value, onChange, onUploadStart, onUplo
         }
       }
 
-      // Hoàn tất mỹ mãn: Đạt 100%
-      setLocalProgress(100);
-      globalUploadProgress[id] = 100;
-      if (uploadCallbacks[id]) {
-        uploadCallbacks[id](100);
-      }
+      // Hoàn tất mỹ mãn
+      setProcessingProgress(100);
+      setUploadPhase("completed");
+      updateGlobalState(100, 100, "completed");
+
       await new Promise(resolve => setTimeout(resolve, 800)); // Giữ trạng thái 100% cho sướng mắt
 
       onChange(videoId);
@@ -3155,10 +3188,14 @@ function BackgroundVideoUploader({ label, value, onChange, onUploadStart, onUplo
 
       {isCurrentlyUploading ? (
         <div className="flex flex-col items-center gap-2">
-          <VideoProgressCircle progress={localProgress} size={80} />
-          <p className="text-[10px] font-bold text-green-600 animate-pulse text-center leading-tight">
-            Đang tải dữ liệu video...
-          </p>
+           <VideoProgressCircle 
+              key={uploadPhase}
+              progress={uploadPhase === "uploading" ? uploadProgress : processingProgress} 
+              size={80} 
+           />
+           <p className={`text-[10px] font-bold text-center leading-tight animate-pulse ${uploadPhase === "uploading" ? "text-slate-500" : "text-green-600"}`}>
+             {uploadPhase === "uploading" ? "ĐANG TIẾN HÀNH UPLOAD VIDEO..." : "AI ĐANG XỬ LÍ PHỤ ĐỀ..."}
+           </p>
         </div>
       ) : isCompleted ? (
         <div className="flex flex-col items-center">
