@@ -20,8 +20,6 @@ import OrdersScreen from './src/screens/client/OrdersScreen';
 import SettingsScreen from './src/screens/client/SettingsScreen';
 import CheckoutResultScreen from './src/screens/client/CheckoutResultScreen';
 import ChangePasswordScreen from './src/screens/client/ChangePasswordScreen';
-import ChatScreen from './src/screens/common/ChatScreen';
-import GlobalChatButton from './src/components/ui/GlobalChatButton';
 
 const Stack = createNativeStackNavigator();
 
@@ -41,11 +39,9 @@ export default function App() {
             <Stack.Screen name="Checkout" component={CheckoutScreen} />
             <Stack.Screen name="CheckoutResult" component={CheckoutResultScreen} />
             <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
-            <Stack.Screen name="Chat" component={ChatScreen} />
             <Stack.Screen name="Orders" component={OrdersScreen} />
             <Stack.Screen name="Settings" component={SettingsScreen} />
           </Stack.Navigator>
-          <GlobalChatButton />
         </NavigationContainer>
       </CartProvider>
     </AuthProvider>
