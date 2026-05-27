@@ -121,7 +121,7 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
       },
       body: JSON.stringify({ title }),
     });
-    const { videoId, libraryId, apiKey } = await initRes.json();
+    const { videoId, libraryId, authorizationSignature, authorizationExpire } = await initRes.json();
     if (!videoId) throw new Error("Could not initialize video on Bunny.net");
 
     return new Promise((resolve, reject) => {
@@ -130,7 +130,8 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
           endpoint: "https://video.bunnycdn.com/tusupload",
           retryDelays: [0, 3000, 5000, 10000, 20000],
           headers: {
-            AccessKey: apiKey,
+            AuthorizationSignature: authorizationSignature,
+            AuthorizationExpire: String(authorizationExpire),
             LibraryId: String(libraryId),
             VideoId: String(videoId)
           },
@@ -341,8 +342,8 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
 
   // --- EXIT LOGIC ---
   const handleExitWithConfirmation = useCallback(async () => {
-    const currentData = methods.getValues();
-    const isDirty = originalDataRef.current && JSON.stringify(currentData) !== originalDataRef.current;
+    
+    const isDirty = methods.formState.isDirty;
 
     if (isDirty) {
       const confirmMsg = isEditMode 
@@ -351,7 +352,7 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
         
       if (window.confirm(confirmMsg)) {
         try {
-          const idToUse = isEditMode ? (currentData.id?.toString() || "") : "";
+          const idToUse = isEditMode ? (methods.getValues().id?.toString() || "") : "";
           const slugToUse = isEditMode ? (slug || "") : null;
           await courseService.deleteDraft({ courseId: idToUse, slug: slugToUse });
           isSubmittingRef.current = true;

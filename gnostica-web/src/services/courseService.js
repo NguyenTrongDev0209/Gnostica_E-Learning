@@ -290,6 +290,20 @@ const getVideoTranscriptText = async (videoUrl) => {
     return response.data; // returns { transcript: "..." }
 };
 
+const deleteVideoFromBunny = async (videoUrl) => {
+    if (!videoUrl || !videoUrl.includes('/')) return false;
+    // videoUrl is in format: libraryId/videoId
+    try {
+        const response = await axios.delete(`http://localhost:8080/api/upload/video/${videoUrl}`, {
+            headers: getAuthHeaders()
+        });
+        return response.status === 200;
+    } catch (error) {
+        console.error('Error deleting video from Bunny:', error);
+        return false;
+    }
+};
+
 const courseService = {
     getVideoTranscriptText,
     preScanVideoContent,
@@ -315,6 +329,7 @@ const courseService = {
     getDraftQuestions,
     saveQuestionBank,
     checkSubtitleStatus,
+    deleteVideoFromBunny,
     // Admin specific APIs
     getModerationCourses,
     getModerationStats,

@@ -57,24 +57,48 @@ public class UploadController {
             String title = request.get("title");
             Map<String, Object> bunnyResponse = bunnyNetService.createVideoInteraction(title);
             if (bunnyResponse != null && bunnyResponse.containsKey("guid")) {
-                // Return necessary credentials to frontend to perform direct upload
+                String videoId = (String) bunnyResponse.get("guid");
+                long expirationTime = (System.currentTimeMillis() / 1000L) + 3600; // 1 hour expiration
+                
+                String stringToSign = bunnyNetConfig.getLibraryId() + bunnyNetConfig.getApiKey() + expirationTime + videoId;
+                
+                java.security.MessageDigest md = java.security.MessageDigest.getInstance("SHA-256");
+                byte[] hash = md.digest(stringToSign.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                StringBuilder hexString = new StringBuilder(2 * hash.length);
+                for (byte b : hash) {
+                    String hex = Integer.toHexString(0xff & b);
+                    if (hex.length() == 1) {
+                        hexString.append('0');
+                    }
+                    hexString.append(hex);
+                }
+                String signature = hexString.toString();
+
                 Map<String, Object> response = new HashMap<>();
-                response.put("videoId", bunnyResponse.get("guid"));
+                response.put("videoId", videoId);
                 response.put("libraryId", bunnyNetConfig.getLibraryId());
                 response.put("pullZoneUrl", bunnyNetConfig.getPullZone());
-                // We should theoretically return a short-lived token or presigned signature
-                // But for pure direct upload securely from the dashboard perspective, 
-                // Bunny Stream API requires Library API Key for the upload PUT request. 
-                // Exposing stream API key to frontend is standard if using Bunny Stream Direct Upload from client directly (with TUS), 
-                // but usually through a proxy or temporary auth token if using an advanced flow.
-                // For a simpler and working solution while maintaining some safety:
-                response.put("apiKey", bunnyNetConfig.getApiKey()); 
+                response.put("authorizationSignature", signature);
+                response.put("authorizationExpire", expirationTime);
                 
                 return ResponseEntity.ok(response);
             }
             return ResponseEntity.badRequest().build();
         } catch (Exception e) {
             return ResponseEntity.status(500).build();
+        }
+    }
+
+    @DeleteMapping("/video/{libraryId}/{videoId}")
+    public ResponseEntity<?> deleteVideo(@PathVariable String libraryId, @PathVariable String videoId) {
+        try {
+            boolean success = bunnyNetService.deleteVideo(libraryId, videoId);
+            if (success) {
+                return ResponseEntity.ok().build();
+            }
+            return ResponseEntity.status(500).body(Map.of("message", "Could not delete video from CDN"));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("message", e.getMessage()));
         }
     }
 }

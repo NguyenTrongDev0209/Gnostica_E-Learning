@@ -7,9 +7,12 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface CourseRepository extends JpaRepository<Course, Integer> {
     org.springframework.data.domain.Page<Course> findByAccountEmailAndDeletedFalse(String email, org.springframework.data.domain.Pageable pageable);
-    java.util.Optional<Course> findBySlug(String slug);
-    boolean existsBySlug(String slug);
-    boolean existsBySlugAndIdNot(String slug, Integer id);
+    java.util.Optional<Course> findFirstBySlugAndDeletedFalseOrderByIdDesc(String slug);
+    boolean existsBySlugAndDeletedFalse(String slug);
+    boolean existsBySlugAndIdNotAndDeletedFalse(String slug, Integer id);
+    
+    @org.springframework.data.jpa.repository.Query("SELECT COUNT(c) > 0 FROM Course c WHERE c.promoVideo = :promoVideo AND (c.deleted = false OR c.deleted IS NULL)")
+    boolean existsByPromoVideo(@org.springframework.data.repository.query.Param("promoVideo") String promoVideo);
     
     @org.springframework.data.jpa.repository.Query(
         value = "SELECT c FROM Course c LEFT JOIN c.category cat LEFT JOIN cat.parent p WHERE c.account.email = :email " +

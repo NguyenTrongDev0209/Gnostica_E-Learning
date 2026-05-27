@@ -519,7 +519,7 @@ export default function InstructorCourses() {
                 </p>
              </div>
              <p className="mt-4 text-xs text-slate-500 font-medium flex items-start gap-1.5 leading-relaxed">
-                <span className="shrink-0">💡</span> Vui lòng bấm nút "Chỉnh sửa" trên danh sách, cập nhật lại nội dung theo yêu cầu và lưu nháp để gửi yêu cầu kiểm duyệt lại.
+                <span className="shrink-0">💡</span> Vui lòng bấm nút "Chỉnh sửa" trên danh sách, cập nhật lại nội dung theo yêu cầu để gửi yêu cầu kiểm duyệt lại.
              </p>
           </div>
 
