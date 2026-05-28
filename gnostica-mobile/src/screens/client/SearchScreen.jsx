@@ -26,55 +26,55 @@ const SearchScreen = () => {
             {/* Header */}
             <View style={{
                 backgroundColor: '#ffffff',
-                paddingTop: 52,
+                paddingTop: 40,
                 paddingHorizontal: 20,
                 paddingBottom: 16,
-                borderBottomWidth: 1,
-                borderBottomColor: '#F1F5F9',
             }}>
-                <Text style={{ fontSize: 22, fontWeight: '800', color: '#1E293B', marginBottom: 14 }}>
+                <Text style={{ fontSize: 24, fontWeight: '800', color: '#1E293B', marginBottom: 14 }}>
                     Tìm kiếm
                 </Text>
                 <SearchBar
                     value={query}
                     onChangeText={setQuery}
                     onClear={() => setQuery('')}
+                    style={{ backgroundColor: '#F1F5F9', borderWidth: 0, borderRadius: 12 }}
                 />
             </View>
 
             {/* Filter Chips */}
-            <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 12, gap: 8 }}
-                style={{ flexGrow: 0, backgroundColor: '#ffffff', borderBottomWidth: 1, borderBottomColor: '#F1F5F9' }}
-            >
-                {FILTERS.map(f => (
-                    <TouchableOpacity
-                        key={f}
-                        onPress={() => setActiveFilter(f)}
-                        style={{
-                            paddingHorizontal: 16,
-                            paddingVertical: 7,
-                            borderRadius: 99,
-                            backgroundColor: activeFilter === f ? '#2563EB' : '#F1F5F9',
-                            borderWidth: 1,
-                            borderColor: activeFilter === f ? '#2563EB' : '#E2E8F0',
-                        }}
-                    >
-                        <Text style={{
-                            fontSize: 13, fontWeight: '600',
-                            color: activeFilter === f ? '#ffffff' : '#475569',
-                        }}>
-                            {f}
-                        </Text>
-                    </TouchableOpacity>
-                ))}
-            </ScrollView>
+            <View style={{ backgroundColor: '#ffffff', borderBottomWidth: 1, borderBottomColor: '#F1F5F9' }}>
+                <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 14, gap: 8 }}
+                >
+                    {FILTERS.map(f => (
+                        <TouchableOpacity
+                            key={f}
+                            onPress={() => setActiveFilter(f)}
+                            style={{
+                                paddingHorizontal: 18,
+                                paddingVertical: 8,
+                                borderRadius: 10,
+                                backgroundColor: activeFilter === f ? '#2563EB' : '#F8FAFC',
+                                borderWidth: 1,
+                                borderColor: activeFilter === f ? '#2563EB' : '#E2E8F0',
+                            }}
+                        >
+                            <Text style={{
+                                fontSize: 13, fontWeight: '700',
+                                color: activeFilter === f ? '#ffffff' : '#64748B',
+                            }}>
+                                {f}
+                            </Text>
+                        </TouchableOpacity>
+                    ))}
+                </ScrollView>
+            </View>
 
             {/* Results */}
             {filtered.length === 0 ? (
-                <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingBottom: 80 }}>
+                <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingBottom: 100 }}>
                     <Text style={{ fontSize: 48, marginBottom: 12 }}>🔍</Text>
                     <Text style={{ fontSize: 17, fontWeight: '700', color: '#1E293B', marginBottom: 6 }}>
                         Không tìm thấy kết quả
@@ -88,7 +88,7 @@ const SearchScreen = () => {
                     data={filtered}
                     keyExtractor={item => item.id.toString()}
                     numColumns={2}
-                    contentContainerStyle={{ padding: 16, gap: 12 }}
+                    contentContainerStyle={{ padding: 16, paddingBottom: 120, gap: 12 }}
                     columnWrapperStyle={{ gap: 12 }}
                     showsVerticalScrollIndicator={false}
                     renderItem={({ item }) => (

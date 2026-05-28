@@ -26,7 +26,9 @@ const CourseSection = ({ title, variant = 'trending' }) => {
                 contentContainerStyle={{ paddingHorizontal: 12, paddingBottom: 4 }}
             >
                 {data.map((course) => (
-                    <CourseCard key={course.id} course={course} />
+                    <View key={course.id} style={{ marginHorizontal: 8 }}>
+                        <CourseCard course={course} width={220} />
+                    </View>
                 ))}
             </ScrollView>
         </View>

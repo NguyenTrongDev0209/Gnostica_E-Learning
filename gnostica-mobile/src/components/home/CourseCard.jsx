@@ -9,7 +9,7 @@ const BADGE_COLORS = {
     'Nổi bật': { bg: '#EDE9FE', text: '#5B21B6' },
 };
 
-const CourseCard = ({ course }) => {
+const CourseCard = ({ course, width }) => {
     const navigation = useNavigation();
     const badge = course?.badge ? BADGE_COLORS[course.badge] : null;
 
@@ -17,10 +17,9 @@ const CourseCard = ({ course }) => {
         <TouchableOpacity
             onPress={() => navigation.navigate('CourseDetail', { course })}
             style={{
-                width: 220,
+                width: width || '100%',
                 backgroundColor: '#ffffff',
                 borderRadius: 16,
-                marginHorizontal: 8,
                 overflow: 'hidden',
                 shadowColor: '#000',
                 shadowOffset: { width: 0, height: 2 },
