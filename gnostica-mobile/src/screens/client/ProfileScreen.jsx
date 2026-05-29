@@ -3,7 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
     User, CreditCard, Settings, LogOut,
-    ChevronRight, Bell, HelpCircle, Shield, Smile,
+    ChevronRight, Bell, HelpCircle, Shield, Smile, Star, TrendingUp,
 } from 'lucide-react-native';
 import Avatar from '../../components/ui/Avatar';
 import Button from '../../components/ui/Button';
