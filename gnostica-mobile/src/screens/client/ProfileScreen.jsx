@@ -13,42 +13,61 @@ const MENU_GROUPS = [
     {
         title: 'Tài khoản',
         items: [
-            { label: 'Thông tin cá nhân', icon: User, color: '#3B82F6' },
-            { label: 'Lịch sử thanh toán', icon: CreditCard, color: '#10B981' },
-            { label: 'Thông báo', icon: Bell, color: '#F59E0B' },
+            { label: 'Thông tin cá nhân', icon: User, color: '#3B82F6', target: 'Profile' },
+            { label: 'Khóa học đã lưu', icon: Star, color: '#EC4899', target: 'Wishlist' },
+            { label: 'Chứng chỉ của tôi', icon: CreditCard, color: '#10B981', target: 'Certificates' },
+            { label: 'Mã giảm giá', icon: Bell, color: '#F59E0B', target: 'Vouchers' },
+            { label: 'Thông báo', icon: Bell, color: '#3B82F6', target: 'Notifications' },
         ],
     },
     {
         title: 'Hỗ trợ',
         items: [
-            { label: 'Cài đặt', icon: Settings, color: '#64748B' },
-            { label: 'Trợ giúp & FAQ', icon: HelpCircle, color: '#8B5CF6' },
-            { label: 'Chính sách bảo mật', icon: Shield, color: '#EC4899' },
+            { label: 'Cài đặt', icon: Settings, color: '#64748B', target: 'Settings' },
+            { label: 'Về Gnostica', icon: HelpCircle, color: '#8B5CF6', target: 'LegalInfo', params: { type: 'about' } },
+            { label: 'Chính sách bảo mật', icon: Shield, color: '#EC4899', target: 'LegalInfo', params: { type: 'privacy' } },
+            { label: 'Điều khoản sử dụng', icon: Shield, color: '#64748B', target: 'LegalInfo', params: { type: 'terms' } },
+        ],
+    },
+    {
+        title: 'Dành cho giảng viên',
+        items: [
+            { label: 'Bảng điều khiển giảng viên', icon: TrendingUp, color: '#2563EB', target: 'InstructorDashboard' },
+        ],
+    },
+    {
+        title: 'Dành cho quản trị viên',
+        items: [
+            { label: 'Bảng điều khiển admin', icon: Shield, color: '#DC2626', target: 'AdminDashboard' },
         ],
     },
 ];
 
-const MenuItem = ({ item }) => (
-    <TouchableOpacity
-        activeOpacity={0.7}
-        style={{
-            flexDirection: 'row', alignItems: 'center',
-            paddingVertical: 14, paddingHorizontal: 20,
-            borderBottomWidth: 1, borderBottomColor: '#F8FAFC',
-        }}
-    >
-        <View style={{
-            width: 38, height: 38, borderRadius: 12,
-            backgroundColor: item.color + '18',
-            alignItems: 'center', justifyContent: 'center',
-            marginRight: 14,
-        }}>
-            <item.icon size={18} color={item.color} strokeWidth={2} />
-        </View>
-        <Text style={{ flex: 1, fontSize: 15, color: '#1E293B', fontWeight: '500' }}>{item.label}</Text>
-        <ChevronRight size={16} color="#CBD5E1" />
-    </TouchableOpacity>
-);
+const MenuItem = ({ item }) => {
+    const navigation = useNavigation();
+    return (
+        <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => item.target && navigation.navigate(item.target, item.params)}
+            style={{
+                flexDirection: 'row', alignItems: 'center',
+                paddingVertical: 14, paddingHorizontal: 20,
+                borderBottomWidth: 1, borderBottomColor: '#F8FAFC',
+            }}
+        >
+            <View style={{
+                width: 38, height: 38, borderRadius: 12,
+                backgroundColor: item.color + '18',
+                alignItems: 'center', justifyContent: 'center',
+                marginRight: 14,
+            }}>
+                <item.icon size={18} color={item.color} strokeWidth={2} />
+            </View>
+            <Text style={{ flex: 1, fontSize: 15, color: '#1E293B', fontWeight: '500' }}>{item.label}</Text>
+            <ChevronRight size={16} color="#CBD5E1" />
+        </TouchableOpacity>
+    );
+};
 
 const ProfileScreen = () => {
     const navigation = useNavigation();

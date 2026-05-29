@@ -1,0 +1,90 @@
+import React from 'react';
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { ArrowLeft, Bell, BookOpen, CreditCard, Star } from 'lucide-react-native';
+
+const MOCK_NOTIFICATIONS = [
+    {
+        id: '1',
+        title: 'Khóa học mới ra mắt!',
+        message: 'Khóa học "Next.js 14 Masterclass" vừa được cập nhật nội dung mới. Xem ngay!',
+        time: '2 giờ trước',
+        icon: BookOpen,
+        color: '#3b82f6',
+        read: false
+    },
+    {
+        id: '2',
+        title: 'Thanh toán thành công',
+        message: 'Đơn hàng #GN-8892 của bạn đã được xác nhận. Chúc bạn học tốt!',
+        time: '1 ngày trước',
+        icon: CreditCard,
+        color: '#10b981',
+        read: true
+    },
+    {
+        id: '3',
+        title: 'Đánh giá khóa học',
+        message: 'Bạn thấy khóa học "UI Design" thế nào? Hãy dành chút thời gian đánh giá nhé.',
+        time: '3 ngày trước',
+        icon: Star,
+        color: '#f59e0b',
+        read: true
+    }
+];
+
+const NotificationsScreen = () => {
+    const navigation = useNavigation();
+
+    return (
+        <View className="flex-1 bg-slate-50">
+            {/* Header */}
+            <View className="bg-white pt-12 pb-4 px-4 border-b border-slate-100 flex-row items-center justify-between">
+                <View className="flex-row items-center">
+                    <TouchableOpacity onPress={() => navigation.goBack()} className="p-2">
+                        <ArrowLeft size={24} color="#1e293b" />
+                    </TouchableOpacity>
+                    <Text className="text-xl font-bold text-slate-800 ml-2">Thông báo</Text>
+                </View>
+                <TouchableOpacity>
+                    <Text className="text-primary font-medium text-sm">Đánh dấu đã đọc</Text>
+                </TouchableOpacity>
+            </View>
+
+            <ScrollView className="flex-1">
+                {MOCK_NOTIFICATIONS.map(item => (
+                    <TouchableOpacity
+                        key={item.id}
+                        className={`p-4 border-b border-slate-100 flex-row items-start ${item.read ? 'bg-transparent' : 'bg-blue-50/30'}`}
+                    >
+                        <View
+                            className="w-10 h-10 rounded-full items-center justify-center"
+                            style={{ backgroundColor: item.color + '15' }}
+                        >
+                            <item.icon size={20} color={item.color} />
+                        </View>
+                        <View className="flex-1 ml-4">
+                            <View className="flex-row justify-between items-start">
+                                <Text className={`text-sm ${item.read ? 'font-semibold text-slate-700' : 'font-bold text-slate-900'}`}>
+                                    {item.title}
+                                </Text>
+                                {!item.read && <View className="w-2 h-2 rounded-full bg-blue-600 mt-1" />}
+                            </View>
+                            <Text className="text-slate-500 text-xs mt-1 leading-4">{item.message}</Text>
+                            <Text className="text-slate-400 text-[10px] mt-2">{item.time}</Text>
+                        </View>
+                    </TouchableOpacity>
+                ))}
+
+                <View className="items-center py-8">
+                    <Text className="text-slate-400 text-xs text-center">
+                        Bạn đã xem hết tất cả thông báo hiện có.{"\n"}
+                        Chúng tôi sẽ gửi thêm khi có tin mới!
+                    </Text>
+                </View>
+            </ScrollView>
+        </View>
+    );
+};
+
+export default NotificationsScreen;

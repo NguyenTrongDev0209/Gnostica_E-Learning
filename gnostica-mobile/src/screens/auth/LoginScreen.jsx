@@ -71,7 +71,7 @@ const LoginScreen = () => {
                     <View className="mb-1">
                         <View className="flex-row justify-between mb-1.5 items-center">
                             <Text className="text-sm font-medium text-slate-700">Mật khẩu</Text>
-                            <TouchableOpacity>
+                            <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
                                 <Text className="text-xs text-primary font-medium">Quên mật khẩu?</Text>
                             </TouchableOpacity>
                         </View>

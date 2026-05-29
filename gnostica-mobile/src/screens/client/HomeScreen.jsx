@@ -76,6 +76,34 @@ const HomeScreen = () => {
 
             {/* Course Sections */}
             <CourseSection title="Khóa học thịnh hành" variant="trending" />
+
+            {/* Phase 2: Discovery Section */}
+            <View style={{ paddingHorizontal: 20, marginTop: 24, gap: 16 }}>
+                <View style={{ flexDirection: 'row', gap: 12 }}>
+                    <TouchableOpacity
+                        style={{ flex: 1, backgroundColor: '#ffffff', padding: 16, borderRadius: 20, borderWidth: 1, borderColor: '#F1F5F9', elevation: 2, shadowColor: '#000', shadowOpacity: 0.05, shadowOffset: { width: 0, height: 2 } }}
+                        onPress={() => navigation.navigate('Forum')}
+                    >
+                        <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#EFF6FF', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
+                            <Text style={{ fontSize: 20 }}>💬</Text>
+                        </View>
+                        <Text style={{ fontSize: 15, fontWeight: '800', color: '#1E293B' }}>Diễn đàn</Text>
+                        <Text style={{ fontSize: 11, color: '#64748B', marginTop: 2 }}>Cùng thảo luận</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        style={{ flex: 1, backgroundColor: '#ffffff', padding: 16, borderRadius: 20, borderWidth: 1, borderColor: '#F1F5F9', elevation: 2, shadowColor: '#000', shadowOpacity: 0.05, shadowOffset: { width: 0, height: 2 } }}
+                        onPress={() => navigation.navigate('InstructorList')}
+                    >
+                        <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#F0FDF4', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
+                            <Text style={{ fontSize: 20 }}>👨‍🏫</Text>
+                        </View>
+                        <Text style={{ fontSize: 15, fontWeight: '800', color: '#1E293B' }}>Giảng viên</Text>
+                        <Text style={{ fontSize: 11, color: '#64748B', marginTop: 2 }}>Tìm chuyên gia</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+
             <CourseSection title="Khóa học nổi bật" variant="featured" />
 
             <View style={{ height: 20 }} />

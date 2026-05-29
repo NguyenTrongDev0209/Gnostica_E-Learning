@@ -2,17 +2,19 @@ import React from 'react';
 import { Text, View, ScrollView, TouchableOpacity } from 'react-native';
 import { MonitorPlay, PenTool, Lightbulb, Briefcase, Languages, Sparkles } from 'lucide-react-native';
 import { categories } from '../../constants/mockData';
+import { useNavigation } from '@react-navigation/native';
 
 const ICONS = {
     MonitorPlay, PenTool, Lightbulb, Briefcase, Languages, Sparkles,
 };
 
 const CategorySection = () => {
+    const navigation = useNavigation();
     return (
         <View style={{ marginTop: 24 }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginBottom: 14 }}>
                 <Text style={{ fontSize: 18, fontWeight: '800', color: '#1E293B' }}>Danh mục</Text>
-                <TouchableOpacity>
+                <TouchableOpacity onPress={() => navigation.navigate('CategoryBrowse')}>
                     <Text style={{ fontSize: 13, color: '#2563EB', fontWeight: '600' }}>Tất cả</Text>
                 </TouchableOpacity>
             </View>
