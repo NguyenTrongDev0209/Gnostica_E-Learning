@@ -3,7 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
     User, CreditCard, Settings, LogOut,
-    ChevronRight, Bell, HelpCircle, Shield,
+    ChevronRight, Bell, HelpCircle, Shield, Smile,
 } from 'lucide-react-native';
 import Avatar from '../../components/ui/Avatar';
 import Button from '../../components/ui/Button';
@@ -77,7 +77,9 @@ const ProfileScreen = () => {
     if (!isAuthenticated) {
         return (
             <View style={{ flex: 1, backgroundColor: '#F8FAFC', justifyContent: 'center', alignItems: 'center', padding: 20 }}>
-                <Text style={{ fontSize: 64, marginBottom: 16 }}>👋</Text>
+                <View style={{ marginBottom: 16 }}>
+                    <Smile size={64} color="#2563EB" />
+                </View>
                 <Text style={{ fontSize: 22, fontWeight: '800', color: '#1E293B', marginBottom: 8, textAlign: 'center' }}>
                     Chào bạn mới
                 </Text>

@@ -5,7 +5,7 @@ import {
     TouchableOpacity,
     Image,
 } from 'react-native';
-import { Menu, Bell, User } from 'lucide-react-native';
+import { Menu, Bell, User, MessageSquare, Users } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useCart } from '../../context/CartContext';
 import SearchBar from '../../components/ui/SearchBar';
@@ -85,7 +85,7 @@ const HomeScreen = () => {
                         onPress={() => navigation.navigate('Forum')}
                     >
                         <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#EFF6FF', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
-                            <Text style={{ fontSize: 20 }}>💬</Text>
+                            <MessageSquare size={22} color="#2563EB" />
                         </View>
                         <Text style={{ fontSize: 15, fontWeight: '800', color: '#1E293B' }}>Diễn đàn</Text>
                         <Text style={{ fontSize: 11, color: '#64748B', marginTop: 2 }}>Cùng thảo luận</Text>
@@ -96,7 +96,7 @@ const HomeScreen = () => {
                         onPress={() => navigation.navigate('InstructorList')}
                     >
                         <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#F0FDF4', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
-                            <Text style={{ fontSize: 20 }}>👨‍🏫</Text>
+                            <Users size={22} color="#10B981" />
                         </View>
                         <Text style={{ fontSize: 15, fontWeight: '800', color: '#1E293B' }}>Giảng viên</Text>
                         <Text style={{ fontSize: 11, color: '#64748B', marginTop: 2 }}>Tìm chuyên gia</Text>
