@@ -33,6 +33,7 @@ import AdminBanks from "@/pages/admin/AdminBanks";
 import AdminTransactions from "@/pages/admin/AdminTransactions";
 import AdminCourseModeration from "@/pages/admin/AdminCourseModeration";
 import AdminCourseDetailModeration from "@/pages/admin/AdminCourseDetailModeration";
+import AdminThreadModeration from "@/pages/admin/AdminThreadModeration";
 
 
 import InstructorDashboard from "@/pages/instructor/InstructorDashboard";
@@ -74,6 +75,7 @@ export const privateRoutes = {
     { path: "/admin/transactions", component: AdminTransactions },
     { path: "/admin/course-moderation", component: AdminCourseModeration },
     { path: "/admin/course-moderation/:slug", component: AdminCourseDetailModeration },
+    { path: "/admin/thread-moderation", component: AdminThreadModeration },
   ],
 
   instructor: [

@@ -14,21 +14,22 @@ import java.util.List;
 public interface ThreadRepository extends JpaRepository<Thread, Integer> {
     
     Page<Thread> findAllByStatusTrue(Pageable pageable);
+    Page<Thread> findAllByStatusFalse(Pageable pageable);
 
-    @Query("SELECT t.account, SUM(t.likes) as totalLikes, COUNT(t) as threadCount FROM Thread t GROUP BY t.account ORDER BY totalLikes DESC")
+    @Query("SELECT t.account, SUM(t.likes) as totalLikes, COUNT(t) as threadCount FROM Thread t WHERE t.status = true GROUP BY t.account ORDER BY totalLikes DESC")
     List<Object[]> findTopContributors(Pageable pageable);
 
-    @Query("SELECT t.category.id, COUNT(t) FROM Thread t GROUP BY t.category.id")
+    @Query("SELECT t.category.id, COUNT(t) FROM Thread t WHERE t.status = true GROUP BY t.category.id")
     List<Object[]> findThreadCountsByCategory();
 
-    List<Thread> findTop3ByCategoryIdAndIdNotOrderByLikesDesc(Integer categoryId, Integer id);
+    List<Thread> findTop3ByCategoryIdAndIdNotAndStatusTrueOrderByLikesDesc(Integer categoryId, Integer id);
 
     Page<Thread> findByAccountEmailOrderByCreatedAtDesc(String email, Pageable pageable);
 
     @Query("SELECT COUNT(t), COALESCE(SUM(t.likes), 0) FROM Thread t WHERE t.account.email = :email")
     Object[] getUserStats(@Param("email") String email);
 
-    List<Thread> findTop5ByOrderByLikesDesc();
+    List<Thread> findTop5ByStatusTrueOrderByLikesDesc();
 
     List<Thread> findTop5ByContentContainingIgnoreCaseOrderByCreatedAtDesc(String keyword);
 }

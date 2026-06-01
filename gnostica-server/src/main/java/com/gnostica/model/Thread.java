@@ -28,6 +28,8 @@ public class Thread {
     @Column(columnDefinition = "TEXT")
     private String content;
     private Boolean status;
+    @Column(columnDefinition = "boolean default true")
+    private Boolean pendingModeration = true;
     @CreationTimestamp
     private LocalDateTime createdAt;
     @ManyToOne
