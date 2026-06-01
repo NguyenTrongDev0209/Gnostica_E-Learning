@@ -39,7 +39,7 @@ const AppSearchInput = ({ className = "" }) => {
   return (
     <div className={`flex flex-col relative ${className}`}>
       {/* Container chính: Bo tròn, có border, chứa cả Input và Button */}
-      <div className="flex items-center rounded-lg bg-white border border-slate-200 overflow-hidden shadow-sm h-[42px] focus-within:ring-2 focus-within:ring-header-orange/20 transition-all z-10">
+      <div className="flex items-center rounded-lg bg-white border border-border overflow-hidden shadow-sm h-[42px] focus-within:ring-2 focus-within:ring-accent/20 transition-all z-10">
         {/* Phần nhập liệu bên trái */}
         <div className="flex-1 flex items-center min-w-0 h-full">
           {/* Search icon removed from input as it's now in the button */}
@@ -48,7 +48,7 @@ const AppSearchInput = ({ className = "" }) => {
             onChange={(e) => setValue(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Bạn đang tìm gì..."
-            className="border-none focus-visible:ring-0 shadow-none h-full text-base text-black placeholder:text-slate-400 pl-5 bg-transparent md:text-base"
+            className="border-none focus-visible:ring-0 shadow-none h-full text-base text-black placeholder:text-muted-foreground pl-5 bg-transparent md:text-base"
             onFocus={() => setIsFocused(true)}
             onBlur={() => setTimeout(() => setIsFocused(false), 200)}
           />
@@ -56,7 +56,7 @@ const AppSearchInput = ({ className = "" }) => {
 
         <button
           onClick={handleSearch}
-          className="h-full px-6 flex items-center justify-center bg-[#f15e2c] text-white hover:brightness-110 transition-all cursor-pointer"
+          className="h-full px-6 flex items-center justify-center bg-accent text-white hover:brightness-110 transition-all cursor-pointer"
         >
           <Search className="h-5 w-5 stroke-[2.5]" />
         </button>

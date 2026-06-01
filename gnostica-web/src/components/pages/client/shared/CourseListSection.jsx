@@ -1,5 +1,5 @@
 import React from "react";
-import AppCard from "@/components/common/AppCard";
+import AppCard, { CourseCardHorizontal } from "@/components/common/AppCard";
 import FilterOptions from "@/components/common/FilterOptions";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -14,27 +14,28 @@ import {
 } from "@/components/ui/pagination";
 import { Loader2, SearchX } from "lucide-react";
 
-export default function CourseListSection({ 
-  courses = [], 
+export default function CourseListSection({
+  courses = [],
   loading = false,
-  categories = [], 
-  filters, 
-  onFilterChange, 
-  pagination, 
+  categories = [],
+  filters,
+  onFilterChange,
+  pagination,
   onPageChange,
-  emptyMessage 
+  emptyMessage,
+  sectionTitle
 }) {
-  
+
   // Tạo mảng các trang để hiển thị trong pagination
   const renderPaginationItems = () => {
     const items = [];
     const { page, totalPages } = pagination;
-    
+
     for (let i = 0; i < totalPages; i++) {
       items.push(
         <PaginationItem key={i}>
-          <PaginationLink 
-            onClick={() => onPageChange(i)} 
+          <PaginationLink
+            onClick={() => onPageChange(i)}
             isActive={page === i}
             className="cursor-pointer"
           >
@@ -51,19 +52,19 @@ export default function CourseListSection({
       {/* Sidebar Filters */}
       <aside className="hidden lg:block lg:col-span-3">
         <div className="sticky top-24">
-          <FilterOptions 
-            categories={categories} 
-            selectedFilters={filters} 
-            onFilterChange={onFilterChange} 
+          <FilterOptions
+            categories={categories}
+            selectedFilters={filters}
+            onFilterChange={onFilterChange}
           />
         </div>
       </aside>
 
       {/* Course List Area */}
       <div className="flex flex-col gap-6 lg:gap-10 lg:col-span-9">
-        {/* Mobile Filter Trigger */}
+        {/* Mobile Heading */}
         <div className="flex lg:hidden items-center justify-between">
-          <h3 className="text-lg font-bold">Danh sách khóa học</h3>
+          <h3 className="text-lg font-bold">{sectionTitle || 'Danh sách khóa học'}</h3>
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="outline" className="h-10 px-4 flex items-center gap-2 bg-white shadow-sm border-slate-200">
@@ -74,10 +75,10 @@ export default function CourseListSection({
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="w-[300px] sm:w-[400px] overflow-y-auto p-4 bg-slate-50 border-l-slate-200">
-              <FilterOptions 
-                categories={categories} 
-                selectedFilters={filters} 
-                onFilterChange={onFilterChange} 
+              <FilterOptions
+                categories={categories}
+                selectedFilters={filters}
+                onFilterChange={onFilterChange}
               />
             </SheetContent>
           </Sheet>
@@ -91,10 +92,14 @@ export default function CourseListSection({
           </div>
         ) : courses.length > 0 ? (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {sectionTitle && (
+              <h3 className="hidden lg:block text-xl font-bold text-foreground">{sectionTitle}</h3>
+            )}
+            <div className="flex flex-col gap-4">
               {courses.map((course) => (
-                <AppCard 
-                  key={course.id} 
+                <CourseCardHorizontal
+                  key={course.id}
+                  id={course.id}
                   image={course.thumbnail}
                   title={course.title}
                   price={new Intl.NumberFormat("vi-VN").format(course.salePrice)}
@@ -105,9 +110,9 @@ export default function CourseListSection({
                   classes={course.classes || 0}
                   students={course.students || 0}
                   instructor={{
-                     name: course.instructorName || "Giảng viên",
-                     avatar: course.instructorAvatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=100&auto=format&fit=crop",
-                     status: "online"
+                    name: course.instructorName || "Giảng viên",
+                    avatar: course.instructorAvatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=100&auto=format&fit=crop",
+                    status: "online"
                   }}
                 />
               ))}
@@ -119,16 +124,16 @@ export default function CourseListSection({
                 <Pagination>
                   <PaginationContent>
                     <PaginationItem>
-                      <PaginationPrevious 
+                      <PaginationPrevious
                         onClick={() => pagination.page > 0 && onPageChange(pagination.page - 1)}
                         className={pagination.page === 0 ? "pointer-events-none opacity-50" : "cursor-pointer"}
                       />
                     </PaginationItem>
-                    
+
                     {renderPaginationItems()}
 
                     <PaginationItem>
-                      <PaginationNext 
+                      <PaginationNext
                         onClick={() => pagination.page < pagination.totalPages - 1 && onPageChange(pagination.page + 1)}
                         className={pagination.page === pagination.totalPages - 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
                       />
@@ -145,15 +150,15 @@ export default function CourseListSection({
             </div>
             <h3 className="text-xl font-bold text-slate-900 mb-2">Không tìm thấy kết quả</h3>
             <p className="text-slate-500 max-w-xs mx-auto">{emptyMessage}</p>
-            <Button 
-                variant="outline" 
-                className="mt-6 font-bold border-slate-200"
-                onClick={() => {
-                    onFilterChange("categoryId", null);
-                    onFilterChange("level", "all");
-                }}
+            <Button
+              variant="outline"
+              className="mt-6 font-bold border-slate-200"
+              onClick={() => {
+                onFilterChange("categoryId", null);
+                onFilterChange("level", "all");
+              }}
             >
-                Xóa các bộ lọc
+              Xóa các bộ lọc
             </Button>
           </div>
         )}

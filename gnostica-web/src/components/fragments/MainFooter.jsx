@@ -18,7 +18,7 @@ const FooterBrand = () => (
         <div className="w-40 h-[2px] bg-slate-800"></div>
 
         <p className="text-sm text-slate-500 max-w-xs leading-relaxed">
-            Consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet
+            Gnostica là nền tảng học tập trực tuyến hiện đại, giúp bạn khai phá tiềm năng và phát triển kỹ năng mỗi ngày.
         </p>
 
         <div className="flex gap-4">
@@ -62,18 +62,18 @@ const MainFooter = () => {
             <div className="app-container border-b border-slate-100 pb-6 mb-10">
                 <div className="flex flex-col lg:flex-row items-center gap-10 lg:gap-20">
                     <div className="flex flex-col md:flex-row items-baseline gap-4 md:gap-10 lg:w-3/5">
-                        <h2 className="text-3xl font-black text-slate-900">Subscribe</h2>
+                        <h2 className="text-3xl font-black text-slate-900">Đăng ký ngay</h2>
                         <p className="text-sm text-slate-500 max-w-lg leading-relaxed">
-                            Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim
+                            Đăng ký nhận bản tin để không bỏ lỡ các khóa học mới nhất, sự kiện hấp dẫn và ưu đãi đặc biệt từ Gnostica.
                         </p>
                     </div>
 
                     <div className="flex-1 w-full relative">
                         <Input
-                            placeholder="Write Email"
+                            placeholder="Nhập email của bạn"
                             className="h-14 pl-6 pr-16 bg-slate-50 border-none rounded-sm placeholder:text-slate-400"
                         />
-                        <Button className="absolute right-0 top-0 bottom-0 px-4 bg-primary hover:bg-primary/90 text-primary-foreground rounded-sm transition-all shadow-none">
+                        <Button className="absolute right-1 top-1 bottom-1 px-4 bg-primary hover:bg-primary/90 text-primary-foreground rounded-sm transition-all shadow-none h-auto">
                             <Send className="h-5 w-5 fill-current" />
                         </Button>
                     </div>
@@ -91,24 +91,24 @@ const MainFooter = () => {
                     {/* Links Group */}
                     <div className="lg:col-span-6 flex flex-col gap-12">
                         <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
-                            <FooterLinks title="About" links={['Planning', 'Research', 'Consulting', 'Analysis']} />
-                            <FooterLinks title="Menu" links={['About', 'Blog', 'Service', 'Contact']} />
-                            <FooterLinks title="Services" links={['Logo', 'Web Design', 'Branding', 'Marketing']} />
+                            <FooterLinks title="Về Gnostica" links={['Câu chuyện', 'Đội ngũ', 'Tuyển dụng', 'Đối tác']} />
+                            <FooterLinks title="Khám phá" links={['Khóa học', 'Bài viết', 'Sự kiện', 'Tài liệu']} />
+                            <FooterLinks title="Dịch vụ" links={['Học trực tuyến', 'Cố vấn 1-1', 'Chứng chỉ', 'Cộng đồng']} />
 
                             {/* Contact Column */}
                             <div className="flex flex-col gap-8">
-                                <h3 className="font-bold text-xl text-slate-900 tracking-tight">Contact</h3>
+                                <h3 className="font-bold text-xl text-slate-900 tracking-tight">Liên hệ</h3>
                                 <div className="flex flex-col gap-6">
                                     <div className="flex flex-col gap-2">
-                                        <span className="text-sm font-bold text-slate-900">Call :</span>
+                                        <span className="text-sm font-bold text-slate-900">Điện thoại :</span>
                                         <a href="tel:+012345678900" className="text-sm text-slate-600 hover:text-primary transition-colors font-medium">
                                             +0123 456 789 00
                                         </a>
                                     </div>
                                     <div className="flex flex-col gap-2">
                                         <span className="text-sm font-bold text-slate-900">Email :</span>
-                                        <a href="mailto:user@example.com" className="text-sm text-slate-600 hover:text-primary transition-colors font-medium">
-                                            user@example.com
+                                        <a href="mailto:gnostica.team@gmail.com" className="text-sm text-slate-600 hover:text-primary transition-colors font-medium">
+                                            gnostica.team@gmail.com
                                         </a>
                                     </div>
                                 </div>
@@ -118,7 +118,7 @@ const MainFooter = () => {
                         {/* Thank You Bar */}
                         <div className="w-full py-5 px-6 border-2 border-slate-900 rounded-lg flex items-center justify-center bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,0.05)]">
                             <span className="text-slate-900 font-bold text-sm lg:text-[15px] text-center leading-relaxed">
-                                Thank! You For Your Creative Business Landing Page
+                                Cảm ơn bạn đã tin tưởng và đồng hành cùng Gnostica
                             </span>
                         </div>
                     </div>
@@ -141,14 +141,14 @@ const MainFooter = () => {
                 <div className="h-[3px] w-full bg-primary"></div>
                 <div className="app-container py-4 flex flex-col md:flex-row justify-between items-center gap-6">
                     <div className="flex gap-4 items-center">
-                        <a href="#" className="text-sm text-slate-400 hover:text-white transition-colors">Privacy Policy</a>
+                        <a href="#" className="text-sm text-slate-400 hover:text-white transition-colors">Chính sách bảo mật</a>
                         <span className="text-primary font-bold">|</span>
-                        <a href="#" className="text-sm text-slate-400 hover:text-white transition-colors">Our History</a>
+                        <a href="#" className="text-sm text-slate-400 hover:text-white transition-colors">Điều khoản dịch vụ</a>
                         <span className="text-primary font-bold">|</span>
-                        <a href="#" className="text-sm text-slate-400 hover:text-white transition-colors">What We Do</a>
+                        <a href="#" className="text-sm text-slate-400 hover:text-white transition-colors">Trung tâm hỗ trợ</a>
                     </div>
                     <p className="text-sm text-slate-500 font-medium">
-                        © 2025 Example Text. All images are for demo purposes only.
+                        © 2026 Gnostica. Bản quyền thuộc về đội ngũ phát triển.
                     </p>
                 </div>
             </div>

@@ -1,0 +1,79 @@
+import React, { useState } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { ArrowLeft, Image as ImageIcon, ChevronDown } from 'lucide-react-native';
+import Button from '../../components/ui/Button';
+
+const CreatePostScreen = () => {
+    const navigation = useNavigation();
+    const [title, setTitle] = useState('');
+    const [content, setContent] = useState('');
+    const [category, setCategory] = useState('Lập trình');
+
+    const handleCreate = () => {
+        if (!title.trim() || !content.trim()) {
+            Alert.alert('Lỗi', 'Vui lòng nhập đầy đủ tiêu đề và nội dung.');
+            return;
+        }
+        Alert.alert('Thành công', 'Bài viết của bạn đã được đăng!', [
+            { text: 'OK', onPress: () => navigation.goBack() }
+        ]);
+    };
+
+    return (
+        <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+            className="flex-1 bg-white"
+        >
+            {/* Header */}
+            <View className="pt-12 pb-4 px-4 border-b border-slate-100 flex-row items-center justify-between">
+                <View className="flex-row items-center">
+                    <TouchableOpacity onPress={() => navigation.goBack()} className="p-2">
+                        <ArrowLeft size={24} color="#1e293b" />
+                    </TouchableOpacity>
+                    <Text className="text-xl font-bold text-slate-800 ml-2">Đăng bài thảo luận</Text>
+                </View>
+                <TouchableOpacity onPress={handleCreate}>
+                    <Text className="text-blue-600 font-bold text-base">Đăng</Text>
+                </TouchableOpacity>
+            </View>
+
+            <ScrollView className="flex-1 p-4">
+                {/* Category Selector */}
+                <Text className="text-slate-500 font-bold text-xs uppercase tracking-wider mb-2">Chuyên mục</Text>
+                <TouchableOpacity className="flex-row items-center justify-between bg-slate-50 p-4 rounded-2xl mb-6 border border-slate-100">
+                    <Text className="text-slate-800 font-medium">{category}</Text>
+                    <ChevronDown size={18} color="#64748b" />
+                </TouchableOpacity>
+
+                <TextInput
+                    placeholder="Tiêu đề bài viết"
+                    className="text-2xl font-bold text-slate-900 mb-4"
+                    multiline
+                    value={title}
+                    onChangeText={setTitle}
+                />
+
+                <TextInput
+                    placeholder="Bạn muốn chia sẻ điều gì?"
+                    className="text-base text-slate-700 min-h-[200px]"
+                    multiline
+                    textAlignVertical="top"
+                    value={content}
+                    onChangeText={setContent}
+                />
+
+                <View className="h-px bg-slate-100 my-6" />
+
+                <TouchableOpacity className="flex-row items-center bg-slate-50 p-4 rounded-2xl border border-dashed border-slate-300">
+                    <ImageIcon size={20} color="#64748b" />
+                    <Text className="ml-3 text-slate-500 font-medium">Thêm hình ảnh minh họa</Text>
+                </TouchableOpacity>
+
+                <View className="h-20" />
+            </ScrollView>
+        </KeyboardAvoidingView>
+    );
+};
+
+export default CreatePostScreen;

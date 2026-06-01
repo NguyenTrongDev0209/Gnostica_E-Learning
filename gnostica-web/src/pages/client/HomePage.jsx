@@ -5,8 +5,9 @@ import AppSection from "@/components/common/AppSection"
 import CategoryGrid from "@/components/pages/client/home/CategoryGrid"
 import FeaturedCourses from "@/components/pages/client/home/FeaturedCourses"
 import InstructorGrid from "@/components/pages/client/home/InstructorGrid"
+import FAQSection from "@/components/pages/client/home/FAQSection"
+import OutcomeBanner from "@/components/pages/client/home/OutcomeBanner"
 
-const PlatformStats = React.lazy(() => import("@/components/pages/client/home/PlatformStats"));
 
 function HomePage() {
 
@@ -29,15 +30,16 @@ function HomePage() {
 
         <AppSection title="Giảng viên tiêu biểu" containerClassName="w-full">
           <InstructorGrid />
+          <OutcomeBanner />
         </AppSection>
 
         <AppSection title="Khóa học nổi bật" containerClassName="w-full">
           <CardCarousel />
         </AppSection>
 
-        <Suspense fallback={<div className="app-container mb-8 h-32 flex items-center justify-center text-muted-foreground">Đang tải thống kê...</div>}>
-          <PlatformStats />
-        </Suspense>
+        <AppSection title="Câu hỏi thường gặp" containerClassName="w-full">
+          <FAQSection />
+        </AppSection>
 
       </div>
     </div>

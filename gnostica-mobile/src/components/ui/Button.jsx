@@ -8,55 +8,67 @@ const Button = ({
     size = 'default',
     className = '',
     textClassName = '',
+    style,
+    textStyle,
     icon: Icon,
     disabled = false,
     ...props
 }) => {
-    // Base classes for the button wrapper
-    let baseLayout = 'flex-row items-center justify-center rounded-lg active:opacity-80';
-
-    // Variant classes
-    const variants = {
-        primary: 'bg-primary',
-        secondary: 'bg-gray-100',
-        outline: 'bg-transparent border border-gray-300',
-        ghost: 'bg-transparent',
-        danger: 'bg-red-500',
+    const variantStyles = {
+        primary: { backgroundColor: '#2563EB' },
+        secondary: { backgroundColor: '#F1F5F9' },
+        outline: { backgroundColor: 'transparent', borderWidth: 1, borderColor: '#CBD5E1' },
+        ghost: { backgroundColor: 'transparent' },
+        danger: { backgroundColor: '#EF4444' },
     };
 
-    // Size classes
-    const sizes = {
-        default: 'px-4 py-3',
-        sm: 'px-3 py-2',
-        lg: 'px-6 py-4',
-        icon: 'p-3',
+    const sizeStyles = {
+        default: { paddingHorizontal: 16, paddingVertical: 12 },
+        sm: { paddingHorizontal: 12, paddingVertical: 8 },
+        lg: { paddingHorizontal: 24, paddingVertical: 16 },
+        icon: { padding: 12 },
     };
 
-    // Text colors based on variant
-    const textColors = {
-        primary: 'text-white',
-        secondary: 'text-gray-900',
-        outline: 'text-gray-700',
-        ghost: 'text-primary',
-        danger: 'text-white',
+    const textColorStyles = {
+        primary: { color: '#ffffff' },
+        secondary: { color: '#1E293B' },
+        outline: { color: '#475569' },
+        ghost: { color: '#2563EB' },
+        danger: { color: '#ffffff' },
     };
 
-    const buttonClasses = `${baseLayout} ${variants[variant]} ${sizes[size]} ${disabled ? 'opacity-50' : ''} ${className}`;
-    const textClasses = `font-semibold ${textColors[variant]} ${textClassName}`;
+    const iconSize = size === 'sm' ? 16 : 20;
+    const iconColor = variant === 'primary' || variant === 'danger' ? '#ffffff' : '#2563EB';
 
     return (
         <TouchableOpacity
-            className={buttonClasses}
+            style={[
+                {
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: 10,
+                    opacity: disabled ? 0.5 : 1,
+                },
+                variantStyles[variant],
+                sizeStyles[size],
+                style,
+            ]}
             onPress={onPress}
             disabled={disabled}
+            activeOpacity={0.8}
             {...props}
         >
             {Icon && (
-                <View className={children ? 'mr-2' : ''}>
-                    <Icon size={size === 'sm' ? 16 : 20} color={variant === 'primary' ? 'white' : 'currentColor'} />
+                <View style={{ marginRight: children ? 8 : 0 }}>
+                    <Icon size={iconSize} color={iconColor} />
                 </View>
             )}
-            {children && <Text className={textClasses}>{children}</Text>}
+            {children && (
+                <Text style={[{ fontWeight: '600', ...textColorStyles[variant] }, textStyle]}>
+                    {children}
+                </Text>
+            )}
         </TouchableOpacity>
     );
 };

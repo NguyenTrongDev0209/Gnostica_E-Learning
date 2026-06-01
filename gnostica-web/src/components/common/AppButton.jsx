@@ -200,26 +200,41 @@ export const AppUserMenu = ({ user = { name: "Học viên", avatar: "https://git
           <ChevronDown className="w-5 h-5 text-white/70 group-hover:text-white transition-colors" />
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent sideOffset={4} align="center" className="w-[220px] bg-white border-slate-100 shadow-xl rounded-2xl p-2 animate-in fade-in slide-in-from-top-2 z-[200]">
-        <DropdownMenuItem asChild className="px-4 py-2 cursor-pointer rounded-xl hover:bg-slate-50 text-base font-semibold text-slate-700 focus:bg-slate-50">
+      <DropdownMenuContent sideOffset={4} align="center" className="w-[220px] bg-white border-slate-100 shadow-xl rounded-lg p-2 animate-in fade-in slide-in-from-top-2 z-[200]">
+        <DropdownMenuItem asChild className="px-4 py-2 cursor-pointer rounded-lg hover:bg-slate-50 text-base font-semibold text-slate-700 focus:bg-slate-50">
           <Link to="/account" className="flex items-center gap-3">
             <User className="w-8 h-8 text-primary" />
             Tài khoản
           </Link>
         </DropdownMenuItem>
-        <DropdownMenuItem asChild className="px-4 py-2 cursor-pointer rounded-xl hover:bg-slate-50 text-base font-semibold text-slate-700 focus:bg-slate-50">
+        <DropdownMenuItem asChild className="px-4 py-2 cursor-pointer rounded-lg hover:bg-slate-50 text-base font-semibold text-slate-700 focus:bg-slate-50">
           <Link to="/account/my-courses" className="flex items-center gap-3">
             <BookOpen className="w-8 h-8 text-emerald-500" />
             Khóa học
           </Link>
         </DropdownMenuItem>
         <div className="h-[2px] bg-slate-100 my-2 mx-2" />
-        <DropdownMenuItem onClick={onLogout} className="px-4 py-2 cursor-pointer rounded-xl hover:bg-red-50 focus:bg-red-50 text-base font-bold text-red-600 focus:text-red-700 flex items-center gap-3">
+        <DropdownMenuItem onClick={onLogout} className="px-4 py-2 cursor-pointer rounded-lg hover:bg-red-50 focus:bg-red-50 text-base font-bold text-red-600 focus:text-red-700 flex items-center gap-3">
           <LogOut className="w-8 h-8" />
           Đăng xuất
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
+  )
+}
+
+// Nút danh mục khóa học: Nền cam, chữ trắng, không đổ bóng/transition theo yêu cầu
+export const CategoryButton = ({ children, className, ...props }) => {
+  return (
+    <button
+      className={cn(
+        "flex items-center gap-3 px-6 h-11 bg-header-orange text-white rounded-lg font-bold uppercase border-2 border-white/20 focus:outline-none transition-all duration-300 hover:brightness-110 active:scale-95",
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </button>
   )
 }
 
