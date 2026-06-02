@@ -3,7 +3,7 @@ import { ArrowRight } from 'lucide-react';
 
 const OutcomeBanner = () => {
     return (
-        <div className="w-full mt-12 bg-[#001E3C] rounded-[2rem] overflow-hidden flex flex-col md:flex-row items-center justify-between p-8 md:p-10 relative">
+        <div className="w-full mt-12 bg-[#001E3C] rounded-2xl overflow-hidden flex flex-col md:flex-row items-center justify-between p-8 md:p-10 relative">
             {/* Background decoration */}
             <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-primary/5 to-transparent pointer-events-none"></div>
 

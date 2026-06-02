@@ -19,12 +19,12 @@ const getAuthHeaders = () => {
 };
 
 const createCourse = async (courseData) => {
-    const response = await axios.post(API_URL, courseData, { 
-        headers: getAuthHeaders() 
+    const response = await axios.post(API_URL, courseData, {
+        headers: getAuthHeaders()
     });
     return response.data;
 };
- 
+
 const getAllCourses = async (page = 0, size = 10) => {
     const response = await axios.get(API_URL, {
         params: { page, size }
@@ -91,12 +91,13 @@ const deleteDraft = async ({ courseId, slug } = {}) => {
     return response.data;
 };
 
-const getPublicCourses = async ({ categoryId, categorySlug, level, page = 0, size = 9 } = {}) => {
+const getPublicCourses = async ({ categoryId, categorySlug, level, search, page = 0, size = 9 } = {}) => {
     const params = { page, size };
     if (categoryId) params.categoryId = categoryId;
     if (categorySlug) params.categorySlug = categorySlug;
-    if (level) params.level = level;
-    
+    if (level && level !== 'all') params.level = level;
+    if (search && search.trim() !== "") params.search = search.trim();
+
     const response = await axios.get(API_URL, { params });
     return response.data;
 };
