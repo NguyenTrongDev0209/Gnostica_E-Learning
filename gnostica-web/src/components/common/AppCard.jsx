@@ -1,5 +1,5 @@
 import React from 'react';
-import { Star, BookOpen, Users } from 'lucide-react';
+import { Star, BookOpen, Users, Clock, Flame, ThumbsUp, MessageSquare, Eye } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback, AvatarBadge } from "@/components/ui/avatar";
@@ -271,7 +271,8 @@ export const ForumPostCard = ({ post, className }) => {
               {/* Title */}
               <h3 className="text-lg font-bold text-foreground mb-1 group-hover:text-primary transition-colors flex items-center gap-2">
                 {post.isHot && <Flame className="w-4 h-4 text-orange-500 fill-orange-500 shrink-0" />}
-                {post.status === false && <Badge variant="destructive" className="bg-red-500 text-white border-none text-[10px] h-5">Bị ẩn / Vi phạm</Badge>}
+                {post.status === false && post.pendingModeration === true && <Badge variant="secondary" className="bg-yellow-100 text-yellow-700 border-none text-[10px] h-5 shrink-0">Chờ duyệt</Badge>}
+                {post.status === false && post.pendingModeration !== true && <Badge variant="destructive" className="bg-red-500 text-white border-none text-[10px] h-5 shrink-0">Vi phạm</Badge>}
                 <span className="line-clamp-2">{post.title}</span>
               </h3>
 

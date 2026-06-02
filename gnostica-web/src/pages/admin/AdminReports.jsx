@@ -24,7 +24,10 @@ export default function AdminReports() {
     setIsLoading(true);
     try {
       const res = await axios.get("http://localhost:8080/api/thread-reports?page=0&size=50");
-      setReports(res.data.content || []);
+      const allReports = res.data.content || [];
+      // Lọc bỏ các báo cáo có trạng thái là DISMISSED (Bỏ qua) khỏi bảng hiển thị
+      const activeReports = allReports.filter(report => report.status !== "DISMISSED");
+      setReports(activeReports);
     } catch (error) {
       console.error("Error fetching reports:", error);
       toast.error("Không thể tải danh sách báo cáo");
@@ -140,24 +143,44 @@ export default function AdminReports() {
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-2">
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              className="h-8 gap-1 text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
-                              onClick={() => handleUpdateStatus(report.id, "RESOLVED")}
-                              disabled={report.status !== "PENDING"}
-                            >
-                              <CheckCircle2 className="w-3.5 h-3.5" /> Duyệt
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="h-8 gap-1 text-slate-500 hover:text-slate-700"
-                              onClick={() => handleUpdateStatus(report.id, "DISMISSED")}
-                              disabled={report.status !== "PENDING"}
-                            >
-                              <XCircle className="w-3.5 h-3.5" /> Bỏ qua
-                            </Button>
+                            {report.status === "RESOLVED" ? (
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="h-8 gap-1 text-slate-600 border-slate-200 hover:bg-slate-50"
+                                onClick={() => handleUpdateStatus(report.id, "PENDING")}
+                              >
+                                <XCircle className="w-3.5 h-3.5" /> Hủy duyệt
+                              </Button>
+                            ) : report.status === "DISMISSED" ? (
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="h-8 gap-1 text-slate-600 border-slate-200 hover:bg-slate-50"
+                                onClick={() => handleUpdateStatus(report.id, "PENDING")}
+                              >
+                                <XCircle className="w-3.5 h-3.5" /> Hoàn tác
+                              </Button>
+                            ) : (
+                              <>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  className="h-8 gap-1 text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
+                                  onClick={() => handleUpdateStatus(report.id, "RESOLVED")}
+                                >
+                                  <CheckCircle2 className="w-3.5 h-3.5" /> Duyệt
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="h-8 gap-1 text-slate-500 hover:text-slate-700"
+                                  onClick={() => handleUpdateStatus(report.id, "DISMISSED")}
+                                >
+                                  <XCircle className="w-3.5 h-3.5" /> Bỏ qua
+                                </Button>
+                              </>
+                            )}
                           </div>
                         </TableCell>
                       </TableRow>

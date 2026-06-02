@@ -43,6 +43,7 @@ const ADMIN_MENU_GROUPS = [
     title: "KIỂM DUYỆT",
     items: [
       { label: "Kiểm duyệt khóa học", icon: ShieldCheck, href: "/admin/course-moderation" },
+      { label: "Kiểm duyệt bài viết", icon: MessageSquare, href: "/admin/thread-moderation" },
     ]
   },
   {

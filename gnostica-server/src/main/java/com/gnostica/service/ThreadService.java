@@ -19,4 +19,6 @@ public interface ThreadService {
     Map<String, Object> getUserStats(String email);
     void deleteThread(Integer id);
     void incrementView(Integer id);
+    Page<Thread> getPendingThreads(Pageable pageable);
+    Thread approveThread(Integer id);
 }

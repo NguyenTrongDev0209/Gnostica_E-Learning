@@ -72,7 +72,7 @@ public class ThreadServiceImpl implements ThreadService {
         thread.setContent(content);
         thread.setAccount(account);
         thread.setCategory(category);
-        thread.setStatus(true); // Active by default
+        thread.setStatus(false); // Pending moderation by default
         
         // Handle image uploads
         if (images != null && !images.isEmpty()) {
@@ -175,7 +175,7 @@ public class ThreadServiceImpl implements ThreadService {
         if (categoryId == null) {
             return new ArrayList<>();
         }
-        return threadRepository.findTop3ByCategoryIdAndIdNotOrderByLikesDesc(categoryId, currentThreadId);
+        return threadRepository.findTop3ByCategoryIdAndIdNotAndStatusTrueOrderByLikesDesc(categoryId, currentThreadId);
     }
 
     @Override
@@ -229,5 +229,20 @@ public class ThreadServiceImpl implements ThreadService {
         Integer currentViews = thread.getViews();
         thread.setViews((currentViews == null ? 0 : currentViews) + 1);
         threadRepository.save(thread);
+    }
+
+    @Override
+    public Page<Thread> getPendingThreads(Pageable pageable) {
+        return threadRepository.findAllByStatusFalse(pageable);
+    }
+
+    @Override
+    @Transactional
+    public Thread approveThread(Integer id) {
+        Thread thread = threadRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Thread not found with id: " + id));
+        thread.setStatus(true);
+        thread.setPendingModeration(false);
+        return threadRepository.save(thread);
     }
 }

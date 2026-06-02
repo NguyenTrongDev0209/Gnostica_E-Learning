@@ -119,7 +119,8 @@ const MyForumPosts = () => {
         },
         images: thread.images || [],
         isHot: (thread.views || 0) > 50,
-        status: thread.status
+        status: thread.status,
+        pendingModeration: thread.pendingModeration
     }));
 
     const postsPerPage = 5;

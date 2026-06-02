@@ -136,7 +136,7 @@ public class AiService {
         try {
             switch (functionName) {
                 case "get_top_liked_threads":
-                    List<Thread> topThreads = threadRepository.findTop5ByOrderByLikesDesc();
+                    List<Thread> topThreads = threadRepository.findTop5ByStatusTrueOrderByLikesDesc();
                     return buildThreadResponse(topThreads);
 
                 case "get_top_contributors":
