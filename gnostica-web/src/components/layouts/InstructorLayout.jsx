@@ -145,42 +145,44 @@ export default function InstructorLayout() {
       {/* Main Content Area */}
       <div className="flex-1 ml-64 flex flex-col min-h-screen">
         {/* Top Header */}
-        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 sticky top-0 z-40">
-          <div className="flex items-center gap-4 flex-1">
-            {/* Search Bar */}
-            <div className="relative w-full max-w-[340px] hidden md:block">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Tìm khóa học, câu hỏi của học viên..."
-                className="w-full h-10 pl-10 pr-4 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all"
-              />
+        <header className="px-6 pt-4 pb-2">
+          <div className="h-16 bg-white border border-slate-200 rounded-xl flex items-center justify-between px-6 shadow-sm">
+            <div className="flex items-center gap-4 flex-1">
+              {/* Search Bar */}
+              <div className="relative w-full max-w-[340px] hidden md:block">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Tìm khóa học, câu hỏi của học viên..."
+                  className="w-full h-10 pl-10 pr-4 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all"
+                />
+              </div>
             </div>
-          </div>
 
-          <div className="flex items-center gap-4 shrink-0">
-            <Button 
-              onClick={() => navigate("/instructor/courses/courses-form")}
-              className="h-9 font-bold bg-green-600 hover:bg-green-700 text-white flex items-center gap-1.5 shadow-none hidden lg:flex"
-            >
-              <Plus className="w-4 h-4" />
-              Tạo khóa học mới
-            </Button>
+            <div className="flex items-center gap-4 shrink-0">
+              <Button
+                onClick={() => navigate("/instructor/courses/courses-form")}
+                className="h-9 font-bold bg-green-600 hover:bg-green-700 text-white flex items-center gap-1.5 shadow-none hidden lg:flex"
+              >
+                <Plus className="w-4 h-4" />
+                Tạo khóa học mới
+              </Button>
 
-            <div className="w-px h-6 bg-slate-200 mx-2 hidden lg:block"></div>
+              <div className="w-px h-6 bg-slate-200 mx-2 hidden lg:block"></div>
 
-            <button
-              className="w-10 h-10 rounded-full hover:bg-slate-100 flex items-center justify-center relative transition-colors"
-              onClick={() => navigate("/")}
-              title="Về trang chủ chứa danh mục"
-            >
-              <span className="text-xs font-bold text-slate-500 mr-1">Client</span>
-            </button>
+              <button
+                className="w-10 h-10 rounded-full hover:bg-slate-100 flex items-center justify-center relative transition-colors"
+                onClick={() => navigate("/")}
+                title="Về trang chủ chứa danh mục"
+              >
+                <span className="text-xs font-bold text-slate-500 mr-1">Client</span>
+              </button>
 
-            <button className="w-10 h-10 rounded-full hover:bg-slate-100 flex items-center justify-center relative transition-colors">
-              <Bell className="w-5 h-5 text-slate-600" />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white"></span>
-            </button>
+              <button className="w-10 h-10 rounded-full hover:bg-slate-100 flex items-center justify-center relative transition-colors">
+                <Bell className="w-5 h-5 text-slate-600" />
+                <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white"></span>
+              </button>
+            </div>
           </div>
         </header>
 
