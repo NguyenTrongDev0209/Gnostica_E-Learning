@@ -400,27 +400,37 @@
 
   /* Các kích thước container */
   .app-container {
-    @apply container-base;
+    @apply w-full mx-auto;
+    padding-left: var(--container-px);
+    padding-right: var(--container-px);
     max-width: var(--container-max);
   }
 
   .container-xl {
-    @apply container-base;
+    @apply w-full mx-auto;
+    padding-left: var(--container-px);
+    padding-right: var(--container-px);
     max-width: var(--container-xl);
   }
 
   .container-lg {
-    @apply container-base;
+    @apply w-full mx-auto;
+    padding-left: var(--container-px);
+    padding-right: var(--container-px);
     max-width: var(--container-lg);
   }
 
   .container-md {
-    @apply container-base;
+    @apply w-full mx-auto;
+    padding-left: var(--container-px);
+    padding-right: var(--container-px);
     max-width: var(--container-md);
   }
 
   .container-sm {
-    @apply container-base;
+    @apply w-full mx-auto;
+    padding-left: var(--container-px);
+    padding-right: var(--container-px);
     max-width: var(--container-sm);
   }
 
@@ -542,7 +552,11 @@
   }
 
   .hover-glow {
-    @apply transition-shadow duration-300 ease-out hover:shadow-[0_0_20px_rgba(var(--primary), 0.3)];
+    @apply transition-shadow duration-300 ease-out;
+  }
+
+  .hover-glow:hover {
+    box-shadow: 0 0 20px color-mix(in srgb, var(--primary), transparent 70%);
   }
 
   /* Custom Scrollbar Utility */
@@ -574,7 +588,8 @@
 
   /* Advanced Border Utilities */
   .border-glow {
-    @apply border border-primary/30 shadow-[0_0_10px_rgba(var(--primary), 0.1)];
+    @apply border border-primary/30;
+    box-shadow: 0 0 10px color-mix(in srgb, var(--primary), transparent 90%);
   }
 
   /* Avatar System Utilities */
