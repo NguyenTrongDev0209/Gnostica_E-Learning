@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Users,
   Mail,
@@ -7,72 +7,61 @@ import {
   Clock,
   Activity,
   Search,
-  Filter
+  Filter,
+  Loader2
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import InstructorStudentTable from "@/components/pages/instructor/students/InstructorStudentTable";
-
-const MOCK_STUDENTS = [
-  {
-    id: "STU-001",
-    name: "Lê Văn Minh",
-    email: "minhle.dev@gmail.com",
-    course: "Fullstack Next.js Masterclass",
-    progress: 85,
-    joinedDate: "12/03/2026",
-    lastActive: "2 giờ trước",
-    status: "active",
-    avatar: "https://i.pravatar.cc/150?u=stu1"
-  },
-  {
-    id: "STU-002",
-    name: "Trần Thế Quang",
-    email: "quangtran99@yahoo.com",
-    course: "React Native cho người mới",
-    progress: 42,
-    joinedDate: "15/03/2026",
-    lastActive: "5 giờ trước",
-    status: "active",
-    avatar: "https://i.pravatar.cc/150?u=stu2"
-  },
-  {
-    id: "STU-003",
-    name: "Nguyễn Thu Huyền",
-    email: "huyenkute@hotmail.com",
-    course: "Tailwind CSS Thực chiến",
-    progress: 100,
-    joinedDate: "05/02/2026",
-    lastActive: "1 ngày trước",
-    status: "completed",
-    avatar: "https://i.pravatar.cc/150?u=stu3"
-  },
-  {
-    id: "STU-004",
-    name: "Phạm Anh Khoa",
-    email: "khoapham@gmail.com",
-    course: "Fullstack Next.js Masterclass",
-    progress: 12,
-    joinedDate: "20/03/2026",
-    lastActive: "30 phút trước",
-    status: "active",
-    avatar: "https://i.pravatar.cc/150?u=stu4"
-  },
-  {
-    id: "STU-005",
-    name: "Hoàng Minh Chế",
-    email: "chehm@outlook.com",
-    course: "Figma UI/UX Design",
-    progress: 0,
-    joinedDate: "24/03/2026",
-    lastActive: "Mới đăng ký",
-    status: "inactive",
-    avatar: "https://i.pravatar.cc/150?u=stu5"
-  }
-];
+import StudentCoursesModal from "@/components/pages/instructor/students/StudentCoursesModal";
+import instructorService from "@/services/instructorService";
+import { toast } from "sonner";
 
 export default function InstructorStudents() {
+  const [students, setStudents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    total: 0,
+    completed: 0,
+    learning: 0,
+    active: 0
+  });
+
+  // Modal state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState(null);
+
+  const handleOpenCoursesModal = (student) => {
+    setSelectedStudent(student);
+    setIsModalOpen(true);
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const data = await instructorService.getMyStudents();
+        setStudents(data);
+
+        // Calculate basic stats from real data
+        const total = data.length;
+        const completed = data.filter(s => s.progress === 100).length;
+        const learning = data.filter(s => s.progress < 100 && s.progress > 0).length;
+        const active = data.filter(s => !s.lastActive.includes("ngày") && !s.lastActive.includes("/")).length;
+
+        setStats({ total, completed, learning, active });
+      } catch (error) {
+        console.error("Failed to fetch students:", error);
+        toast.error("Không thể tải danh sách học viên");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   return (
     <div className="py-8 space-y-8 animate-fade-up">
       {/* Page Header */}
@@ -96,10 +85,10 @@ export default function InstructorStudents() {
       {/* Stats Summary */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: "Tổng học viên", value: "8,942", icon: Users, color: "blue", trend: "+12%" },
-          { label: "Hoàn thành", value: "1,245", icon: CheckCircle2, color: "green", trend: "+5%" },
-          { label: "Đang học", value: "7,180", icon: Clock, color: "amber", trend: "+18%" },
-          { label: "Hoạt động", value: "245", icon: Activity, color: "purple", trend: "+2%" },
+          { label: "Tổng học viên", value: stats.total.toLocaleString(), icon: Users, color: "blue", trend: "+0%" },
+          { label: "Hoàn thành", value: stats.completed.toLocaleString(), icon: CheckCircle2, color: "green", trend: "+0%" },
+          { label: "Đang học", value: stats.learning.toLocaleString(), icon: Clock, color: "amber", trend: "+0%" },
+          { label: "Hoạt động", value: stats.active.toLocaleString(), icon: Activity, color: "purple", trend: "+0%" },
         ].map((stat, i) => (
           <Card key={i} className="group hover-lift border-border shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden relative rounded-2xl">
             <div className={`absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 rounded-full bg-${stat.color}-50/50 group-hover:bg-${stat.color}-100/50 transition-colors duration-500`} />
@@ -133,9 +122,6 @@ export default function InstructorStudents() {
             <div className="flex items-center gap-2 bg-muted/80 p-1 rounded-xl w-full sm:w-auto border border-border/50">
               <select className="h-9 px-3 bg-transparent border-none rounded-lg text-sm text-foreground font-bold focus:outline-none appearance-none min-w-[160px] cursor-pointer">
                 <option>Tất cả khóa học</option>
-                {Array.from(new Set(MOCK_STUDENTS.map(s => s.course))).map(course => (
-                  <option key={course}>{course}</option>
-                ))}
               </select>
             </div>
           </div>
@@ -147,17 +133,31 @@ export default function InstructorStudents() {
           </div>
         </div>
 
-        <InstructorStudentTable
-          students={MOCK_STUDENTS}
-          pagination={{
-            currentPage: 1,
-            totalPages: 10,
-            totalItems: 8942,
-            itemsPerPage: 5
-          }}
-          onPageChange={(page) => console.log("Page changed to:", page)}
-        />
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20 gap-4 bg-white rounded-2xl border border-border shadow-sm">
+            <Loader2 className="w-10 h-10 text-primary animate-spin" />
+            <p className="text-sm font-bold text-muted-foreground animate-pulse">Đang tải danh sách học viên...</p>
+          </div>
+        ) : (
+          <InstructorStudentTable
+            students={students}
+            onCoursesClick={handleOpenCoursesModal}
+            pagination={{
+              currentPage: 1,
+              totalPages: 1,
+              totalItems: students.length,
+              itemsPerPage: 50
+            }}
+            onPageChange={(page) => console.log("Page changed to:", page)}
+          />
+        )}
       </div>
+
+      <StudentCoursesModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        student={selectedStudent}
+      />
     </div>
   );
 }

@@ -5,7 +5,18 @@ import { Badge } from "@/components/ui/badge";
 import DataTable from "@/components/common/DataTable";
 import { cn } from "@/lib/utils";
 
-export default function InstructorStudentTable({ students, onActionClick, pagination, onPageChange }) {
+const formatDate = (dateValue) => {
+    if (!dateValue) return "N/A";
+    const date = new Date(dateValue);
+    if (isNaN(date.getTime())) return dateValue;
+    return date.toLocaleDateString("vi-VN", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric"
+    });
+};
+
+export default function InstructorStudentTable({ students, onActionClick, onCoursesClick, pagination, onPageChange }) {
     const columns = [
         {
             key: "stt",
@@ -19,7 +30,7 @@ export default function InstructorStudentTable({ students, onActionClick, pagina
         },
         {
             key: "name",
-            header: "Học viên",
+            header: () => <div className="text-center w-full">Học viên</div>,
             className: "min-w-[280px]",
             render: (student) => (
                 <div className="flex items-center gap-3">
@@ -44,26 +55,32 @@ export default function InstructorStudentTable({ students, onActionClick, pagina
         },
         {
             key: "course",
-            header: "Khóa học",
-            className: "min-w-[200px]",
+            header: "Khóa học tham gia",
+            className: "text-center",
             render: (student) => (
-                <div className="group/course">
-                    <span className="text-2xs font-bold text-muted-foreground bg-muted/50 px-2.5 py-1 rounded-full group-hover/course:bg-white group-hover/course:shadow-sm group-hover/course:border group-hover/course:border-border transition-all duration-200">
-                        {student.course}
+                <div className="flex justify-center">
+                    <span
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onCoursesClick?.(student);
+                        }}
+                        className="text-xs font-black text-primary bg-primary/5 border border-primary/10 px-3 py-1.5 rounded-xl whitespace-nowrap shadow-sm hover:bg-primary hover:text-white transition-all cursor-pointer group-hover:scale-105 active:scale-95"
+                    >
+                        {student.coursesCount} Khóa học
                     </span>
                 </div>
-            ),
+            )
         },
         {
             key: "progress",
             header: () => (
-                <div className="flex items-center gap-1.5 cursor-pointer hover:text-foreground transition-colors">
-                    Tiến độ <ArrowUpDown className="w-3 h-3" />
+                <div className="flex items-center gap-1.5 cursor-pointer hover:text-foreground transition-colors justify-center">
+                    Tiến độ học tập <ArrowUpDown className="w-3 h-3" />
                 </div>
             ),
-            className: "min-w-[150px]",
+            className: "text-center",
             render: (student) => (
-                <div className="flex flex-col gap-2 w-full max-w-[140px]">
+                <div className="w-[140px] mx-auto flex flex-col gap-2">
                     <div className="flex justify-between items-end">
                         <span className={cn(
                             "text-[10px] font-black uppercase tracking-tight",
@@ -73,15 +90,15 @@ export default function InstructorStudentTable({ students, onActionClick, pagina
                         </span>
                         <span className="text-xs font-black text-foreground">{student.progress}%</span>
                     </div>
-                    <div className="h-1.5 w-full bg-muted/80 rounded-full overflow-hidden border border-border shadow-inner">
+                    <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden border border-slate-200/50 p-[1px]">
                         <div
                             className={cn(
-                                "h-full rounded-full transition-all duration-1000 ease-out relative",
+                                "h-full rounded-full transition-all duration-1000 ease-out relative shadow-sm",
                                 student.progress === 100 ? "bg-success" : "bg-primary"
                             )}
                             style={{ width: `${student.progress}%` }}
                         >
-                            <div className="absolute inset-0 bg-white/20 animate-shimmer" style={{ backgroundSize: '200% 100%' }} />
+                            <div className="absolute inset-0 bg-white/30 animate-shimmer" style={{ backgroundSize: '200% 100%' }} />
                         </div>
                     </div>
                 </div>
@@ -89,14 +106,19 @@ export default function InstructorStudentTable({ students, onActionClick, pagina
         },
         {
             key: "joinedDate",
-            header: "Ngày tham gia",
-            className: "min-w-[140px]",
+            header: () => <div className="text-center w-full">Ngày tham gia</div>,
+            className: "min-w-[160px]",
             render: (student) => (
-                <div className="flex flex-col gap-0.5">
-                    <span className="text-sm font-bold text-foreground">{student.joinedDate}</span>
-                    <div className="flex items-center gap-1">
-                        <span className="w-1 h-1 rounded-full bg-muted" />
-                        <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">{student.lastActive}</span>
+                <div className="flex flex-col gap-1 items-center">
+                    <span className="text-xs font-bold text-slate-700 bg-slate-50 border border-slate-100 px-2.5 py-1 rounded-lg tabular-nums">
+                        {formatDate(student.joinedDate)}
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                        <span className={cn(
+                            "w-1.5 h-1.5 rounded-full shadow-sm",
+                            student.lastActive.includes("giờ") || student.lastActive.includes("phút") ? "bg-success animate-pulse" : "bg-slate-300"
+                        )} />
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-tight">{student.lastActive}</span>
                     </div>
                 </div>
             ),
@@ -127,7 +149,7 @@ export default function InstructorStudentTable({ students, onActionClick, pagina
         <DataTable
             columns={columns}
             data={students}
-            className="bg-white"
+            className="bg-white rounded-2xl border border-border shadow-sm"
             pagination={pagination}
             onPageChange={onPageChange}
         />

@@ -41,8 +41,8 @@ export default function DataTable({
     ...props
 }) {
     return (
-        <div className={cn("w-full space-y-4", className)}>
-            <div className="border border-border">
+        <div className={cn("w-full", className)}>
+            <div className="border border-border rounded-t-xl overflow-hidden">
                 <div className="overflow-x-auto scrollbar-thin">
                     <Table {...props}>
                         <TableHeader className="bg-muted/50 border-b border-border">
@@ -108,7 +108,7 @@ export default function DataTable({
             </div>
 
             {pagination && (
-                <div className="flex items-center justify-between px-2 pt-4 pb-4">
+                <div className="flex items-center justify-between px-6 py-4 border-t border-border/50 bg-slate-50/30">
                     <p className="text-sm font-medium text-muted-foreground">
                         Hiển thị {data.length} / {pagination.totalItems.toLocaleString()} bản ghi
                     </p>
