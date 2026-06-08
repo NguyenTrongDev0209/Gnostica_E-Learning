@@ -29,8 +29,7 @@ const INSTRUCTOR_MENU_GROUPS = [
   {
     title: "NỘI DUNG",
     items: [
-      { label: "Quản lý khóa học", icon: BookOpen, href: "/instructor/courses" },
-      { label: "Báo cáo nội dung", icon: BarChart, href: "/instructor/reports" },
+      { label: "Khóa học", icon: BookOpen, href: "/instructor/courses" },
     ]
   },
   {
@@ -38,12 +37,6 @@ const INSTRUCTOR_MENU_GROUPS = [
     items: [
       { label: "Doanh thu", icon: Wallet, href: "/instructor/revenue" },
       { label: "Phiếu giảm", icon: Ticket, href: "/instructor/coupons" },
-    ]
-  },
-  {
-    title: "TƯƠNG TÁC",
-    items: [
-      { label: "Hỏi đáp & Đánh giá", icon: MessageSquare, href: "/instructor/qa" },
     ]
   },
   {

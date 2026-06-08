@@ -36,7 +36,6 @@ const ADMIN_MENU_GROUPS = [
     items: [
       { label: "Khóa học", icon: BookOpen, href: "/admin/courses" },
       { label: "Danh mục", icon: LayoutList, href: "/admin/categories" },
-      { label: "Danh mục diễn đàn", icon: MessageSquare, href: "/admin/forum-categories" },
     ]
   },
   {
