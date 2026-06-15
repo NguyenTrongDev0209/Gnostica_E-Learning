@@ -5,8 +5,6 @@ import {
     Linkedin,
     Send
 } from "lucide-react"
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
 
 const FooterBrand = () => (
     <div className="flex flex-col gap-6">
@@ -58,27 +56,6 @@ const FooterLinks = ({ title, links }) => (
 const MainFooter = () => {
     return (
         <footer className="w-full bg-white pt-6">
-            {/* Subscribe Section */}
-            <div className="app-container border-b border-slate-100 pb-6 mb-10">
-                <div className="flex flex-col lg:flex-row items-center gap-10 lg:gap-20">
-                    <div className="flex flex-col md:flex-row items-baseline gap-4 md:gap-10 lg:w-3/5">
-                        <h2 className="text-3xl font-black text-slate-900">Đăng ký ngay</h2>
-                        <p className="text-sm text-slate-500 max-w-lg leading-relaxed">
-                            Đăng ký nhận bản tin để không bỏ lỡ các khóa học mới nhất, sự kiện hấp dẫn và ưu đãi đặc biệt từ Gnostica.
-                        </p>
-                    </div>
-
-                    <div className="flex-1 w-full relative">
-                        <Input
-                            placeholder="Nhập email của bạn"
-                            className="h-14 pl-6 pr-16 bg-slate-50 border-none rounded-sm placeholder:text-slate-400"
-                        />
-                        <Button className="absolute right-1 top-1 bottom-1 px-4 bg-primary hover:bg-primary/90 text-primary-foreground rounded-sm transition-all shadow-none h-auto">
-                            <Send className="h-5 w-5 fill-current" />
-                        </Button>
-                    </div>
-                </div>
-            </div>
 
             {/* Main Sections */}
             <div className="app-container pb-9">
