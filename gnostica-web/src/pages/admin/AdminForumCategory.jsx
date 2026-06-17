@@ -58,7 +58,7 @@ const categorySchema = z.object({
   status: z.boolean().default(true),
 });
 
-export default function AdminForumCategory() {
+export default function AdminForumCategory({ hideHeader = false }) {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editId, setEditId] = useState(null);
   const [categories, setCategories] = useState([]);
@@ -184,16 +184,19 @@ export default function AdminForumCategory() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      {/* Page Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-            Quản Lý Danh Mục Diễn Đàn
-          </h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Thêm mới, chỉnh sửa danh mục bài viết trên diễn đàn.
-          </p>
-        </div>
+        {!hideHeader ? (
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+              Quản Lý Danh Mục Diễn Đàn
+            </h1>
+            <p className="text-sm text-slate-500 mt-1">
+              Thêm mới, chỉnh sửa danh mục bài viết trên diễn đàn.
+            </p>
+          </div>
+        ) : (
+          <div />
+        )}
         <Button
           className="font-bold flex items-center gap-2"
           onClick={() => setIsAddModalOpen(true)}

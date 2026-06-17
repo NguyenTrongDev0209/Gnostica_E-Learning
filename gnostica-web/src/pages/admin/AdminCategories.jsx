@@ -66,7 +66,7 @@ const categorySchema = z.object({
   status: z.boolean().default(true),
 });
 
-export default function AdminCategories() {
+export default function AdminCategories({ hideHeader = false }) {
   const {
     categories,
     loading,
@@ -129,16 +129,19 @@ export default function AdminCategories() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      {/* Page Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-            Quản Lý Danh Mục
-          </h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Thêm mới, chỉnh sửa và sắp xếp danh mục khóa học.
-          </p>
-        </div>
+        {!hideHeader ? (
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+              Quản Lý Danh Mục
+            </h1>
+            <p className="text-sm text-slate-500 mt-1">
+              Thêm mới, chỉnh sửa và sắp xếp danh mục khóa học.
+            </p>
+          </div>
+        ) : (
+          <div />
+        )}
         <Button
           className="font-bold flex items-center gap-2"
           onClick={() => setIsAddModalOpen(true)}
@@ -452,8 +455,8 @@ export default function AdminCategories() {
               {editId ? "Cập Nhật Danh Mục" : "Thêm Danh Mục Mới"}
             </DialogTitle>
             <DialogDescription>
-              {editId 
-                ? "Chỉnh sửa thông tin danh mục hiện có." 
+              {editId
+                ? "Chỉnh sửa thông tin danh mục hiện có."
                 : "Tạo một danh mục mới để phân loại các khóa học của bạn."}
             </DialogDescription>
           </DialogHeader>

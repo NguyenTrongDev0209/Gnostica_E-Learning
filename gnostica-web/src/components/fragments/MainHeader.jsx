@@ -41,7 +41,7 @@ const MainHeader = ({
             if (hasSub) {
                 return (
                     <DropdownMenuSub key={category.id}>
-                        <DropdownMenuSubTrigger className="px-4 py-2.5 hover:bg-header-bg hover:text-header-orange cursor-pointer font-bold text-sm">
+                        <DropdownMenuSubTrigger className="px-4 py-2.5 hover:bg-header-bg hover:text-header-orange focus:bg-header-bg focus:text-header-orange cursor-pointer font-bold text-sm">
                             <Link to={`/courses/category/${category.slug}`} className="flex-1">{category.name}</Link>
                         </DropdownMenuSubTrigger>
                         <DropdownMenuPortal>
@@ -58,7 +58,7 @@ const MainHeader = ({
             }
 
             return (
-                <DropdownMenuItem key={category.id} asChild className="px-4 py-2.5 hover:bg-header-bg hover:text-header-orange cursor-pointer font-bold text-sm">
+                <DropdownMenuItem key={category.id} asChild className="px-4 py-2.5 hover:bg-header-bg hover:text-header-orange focus:bg-header-bg focus:text-header-orange cursor-pointer font-bold text-sm">
                     <Link to={`/courses/category/${category.slug}`}>{category.name}</Link>
                 </DropdownMenuItem>
             );
