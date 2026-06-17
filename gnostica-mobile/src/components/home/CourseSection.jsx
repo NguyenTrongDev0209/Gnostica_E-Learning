@@ -7,17 +7,11 @@ const CourseSection = ({ title, variant = 'trending' }) => {
     const data = variant === 'featured' ? featuredCourses : courses;
 
     return (
-        <View style={{ marginTop: 28 }}>
-            <View style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                paddingHorizontal: 20,
-                marginBottom: 12,
-            }}>
-                <Text style={{ fontSize: 18, fontWeight: '800', color: '#1E293B' }}>{title}</Text>
+        <View className="mt-7">
+            <View className="flex-row justify-between items-center px-5 mb-3">
+                <Text className="text-[18px] font-extrabold text-slate-800">{title}</Text>
                 <TouchableOpacity>
-                    <Text style={{ fontSize: 13, color: '#2563EB', fontWeight: '600' }}>Xem tất cả</Text>
+                    <Text className="text-[13px] text-blue-600 font-semibold">Xem tất cả</Text>
                 </TouchableOpacity>
             </View>
             <ScrollView
@@ -26,7 +20,7 @@ const CourseSection = ({ title, variant = 'trending' }) => {
                 contentContainerStyle={{ paddingHorizontal: 12, paddingBottom: 4 }}
             >
                 {data.map((course) => (
-                    <View key={course.id} style={{ marginHorizontal: 8 }}>
+                    <View key={course.id} className="mx-2">
                         <CourseCard course={course} width={220} />
                     </View>
                 ))}

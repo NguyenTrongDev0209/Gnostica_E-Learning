@@ -5,8 +5,8 @@ import RatingStars from '../ui/RatingStars';
 
 const BADGE_COLORS = {
     'Bán chạy': { bg: '#FEF3C7', text: '#92400E' },
-    'Mới': { bg: '#DCFCE7', text: '#166534' },
-    'Nổi bật': { bg: '#EDE9FE', text: '#5B21B6' },
+    'Mới':      { bg: '#DCFCE7', text: '#166534' },
+    'Nổi bật':  { bg: '#EDE9FE', text: '#5B21B6' },
 };
 
 const CourseCard = ({ course, width }) => {
@@ -16,36 +16,24 @@ const CourseCard = ({ course, width }) => {
     return (
         <TouchableOpacity
             onPress={() => navigation.navigate('CourseDetail', { course })}
-            style={{
-                width: width || '100%',
-                backgroundColor: '#ffffff',
-                borderRadius: 16,
-                overflow: 'hidden',
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.08,
-                shadowRadius: 8,
-                elevation: 3,
-                borderWidth: 1,
-                borderColor: '#F1F5F9',
-                marginBottom: 4,
-            }}
+            className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100 mb-1"
+            style={{ width: width || '100%' }}
             activeOpacity={0.85}
         >
             {/* Thumbnail */}
-            <View style={{ position: 'relative' }}>
+            <View className="relative">
                 <Image
                     source={{ uri: course?.thumbnail }}
-                    style={{ width: '100%', height: 120, backgroundColor: '#E2E8F0' }}
+                    className="w-full bg-slate-200"
+                    style={{ height: 120 }}
                     resizeMode="cover"
                 />
                 {badge && (
-                    <View style={{
-                        position: 'absolute', top: 8, left: 8,
-                        backgroundColor: badge.bg, borderRadius: 6,
-                        paddingHorizontal: 8, paddingVertical: 3,
-                    }}>
-                        <Text style={{ fontSize: 10, fontWeight: '700', color: badge.text }}>
+                    <View
+                        className="absolute top-2 left-2 rounded-md px-2 py-[3px]"
+                        style={{ backgroundColor: badge.bg }}
+                    >
+                        <Text className="text-[10px] font-bold" style={{ color: badge.text }}>
                             {course.badge}
                         </Text>
                     </View>
@@ -53,25 +41,25 @@ const CourseCard = ({ course, width }) => {
             </View>
 
             {/* Info */}
-            <View style={{ padding: 12 }}>
+            <View className="p-3">
                 <Text
                     numberOfLines={2}
-                    style={{ fontSize: 13, fontWeight: '700', color: '#1E293B', lineHeight: 18, minHeight: 36 }}
+                    className="text-[13px] font-bold text-slate-800 leading-[18px] min-h-[36px]"
                 >
                     {course?.title}
                 </Text>
-                <Text style={{ fontSize: 12, color: '#64748B', marginTop: 4 }} numberOfLines={1}>
+                <Text className="text-xs text-slate-500 mt-1" numberOfLines={1}>
                     {course?.instructor}
                 </Text>
-                <View style={{ marginTop: 6 }}>
+                <View className="mt-1.5">
                     <RatingStars rating={course?.rating || 0} reviewCount={course?.reviewCount} size={12} />
                 </View>
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8, gap: 6 }}>
-                    <Text style={{ fontSize: 14, fontWeight: '800', color: '#2563EB' }}>
+                <View className="flex-row items-center mt-2 gap-1.5">
+                    <Text className="text-sm font-extrabold text-blue-600">
                         {course?.price}
                     </Text>
                     {course?.originalPrice && (
-                        <Text style={{ fontSize: 11, color: '#94A3B8', textDecorationLine: 'line-through' }}>
+                        <Text className="text-[11px] text-slate-400 line-through">
                             {course.originalPrice}
                         </Text>
                     )}

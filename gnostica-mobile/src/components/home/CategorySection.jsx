@@ -11,11 +11,11 @@ const ICONS = {
 const CategorySection = () => {
     const navigation = useNavigation();
     return (
-        <View style={{ marginTop: 24 }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginBottom: 14 }}>
-                <Text style={{ fontSize: 18, fontWeight: '800', color: '#1E293B' }}>Danh mục</Text>
+        <View className="mt-6">
+            <View className="flex-row justify-between items-center px-5 mb-3.5">
+                <Text className="text-[18px] font-extrabold text-slate-800">Danh mục</Text>
                 <TouchableOpacity onPress={() => navigation.navigate('CategoryBrowse')}>
-                    <Text style={{ fontSize: 13, color: '#2563EB', fontWeight: '600' }}>Tất cả</Text>
+                    <Text className="text-[13px] text-blue-600 font-semibold">Tất cả</Text>
                 </TouchableOpacity>
             </View>
             <ScrollView
@@ -29,22 +29,19 @@ const CategorySection = () => {
                         <TouchableOpacity
                             key={cat.id}
                             activeOpacity={0.75}
-                            style={{ alignItems: 'center', width: 74 }}
+                            className="items-center w-[74px]"
                         >
-                            <View style={{
-                                width: 58,
-                                height: 58,
-                                borderRadius: 18,
-                                backgroundColor: cat.bgColor,
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                marginBottom: 7,
-                                borderWidth: 1,
-                                borderColor: cat.color + '30',
-                            }}>
+                            <View
+                                className="w-[58px] h-[58px] rounded-[18px] items-center justify-center mb-[7px]"
+                                style={{
+                                    backgroundColor: cat.bgColor,
+                                    borderWidth: 1,
+                                    borderColor: cat.color + '30',
+                                }}
+                            >
                                 {IconComponent && <IconComponent size={26} color={cat.color} strokeWidth={1.8} />}
                             </View>
-                            <Text style={{ fontSize: 11, color: '#475569', textAlign: 'center', fontWeight: '600' }} numberOfLines={1}>
+                            <Text className="text-[11px] text-slate-600 text-center font-semibold" numberOfLines={1}>
                                 {cat.name}
                             </Text>
                         </TouchableOpacity>

@@ -4,16 +4,17 @@ import {
     Dimensions,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { ArrowLeft, Star, Users, Clock, ChevronDown, ChevronUp, BookOpen, ShoppingBag } from 'lucide-react-native';
+import { ArrowLeft, Users, Clock, ChevronDown, ChevronUp, BookOpen, ShoppingBag } from 'lucide-react-native';
 import RatingStars from '../../components/ui/RatingStars';
 import Button from '../../components/ui/Button';
 import { useCart } from '../../context/CartContext';
 
 const { width } = Dimensions.get('window');
+
 const BADGE_COLORS = {
     'Bán chạy': { bg: '#FEF3C7', text: '#92400E' },
-    'Mới': { bg: '#DCFCE7', text: '#166534' },
-    'Nổi bật': { bg: '#EDE9FE', text: '#5B21B6' },
+    'Mới':      { bg: '#DCFCE7', text: '#166534' },
+    'Nổi bật':  { bg: '#EDE9FE', text: '#5B21B6' },
 };
 
 const CourseDetailScreen = () => {
@@ -30,118 +31,100 @@ const CourseDetailScreen = () => {
     const isInCart = cartItems.some(item => item.id === course.id);
 
     const handleCtaPress = () => {
-        if (!isInCart) {
-            addToCart(course);
-        }
-        // Navigate user straight to Checkout for purchase
+        if (!isInCart) addToCart(course);
         navigation.navigate('Checkout');
     };
 
     return (
-        <View style={{ flex: 1, backgroundColor: '#F8FAFC' }}>
+        <View className="flex-1 bg-slate-50">
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
                 {/* Hero Image */}
-                <View style={{ position: 'relative' }}>
+                <View className="relative">
                     <Image
                         source={{ uri: course.thumbnail }}
                         style={{ width, height: 220, backgroundColor: '#E2E8F0' }}
                         resizeMode="cover"
                     />
-                    <View style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(0,0,0,0.25)' }} />
+                    <View className="absolute top-0 bottom-0 left-0 right-0" style={{ backgroundColor: 'rgba(0,0,0,0.25)' }} />
 
                     {/* Back button */}
                     <TouchableOpacity
                         onPress={() => navigation.goBack()}
-                        style={{
-                            position: 'absolute', top: 48, left: 20,
-                            width: 40, height: 40, borderRadius: 20,
-                            backgroundColor: 'rgba(0,0,0,0.4)',
-                            alignItems: 'center', justifyContent: 'center',
-                        }}
+                        className="absolute top-12 left-5 w-10 h-10 rounded-full items-center justify-center"
+                        style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}
                     >
                         <ArrowLeft size={20} color="#ffffff" />
                     </TouchableOpacity>
 
                     {badge && (
-                        <View style={{
-                            position: 'absolute', top: 48, right: 20,
-                            backgroundColor: badge.bg, borderRadius: 8,
-                            paddingHorizontal: 12, paddingVertical: 5,
-                        }}>
-                            <Text style={{ fontSize: 12, fontWeight: '700', color: badge.text }}>{course.badge}</Text>
+                        <View
+                            className="absolute top-12 right-5 rounded-lg px-3 py-[5px]"
+                            style={{ backgroundColor: badge.bg }}
+                        >
+                            <Text className="text-xs font-bold" style={{ color: badge.text }}>
+                                {course.badge}
+                            </Text>
                         </View>
                     )}
                 </View>
 
                 {/* Main Content */}
-                <View style={{ backgroundColor: '#ffffff', padding: 20, marginBottom: 8 }}>
-                    <Text style={{ fontSize: 14, color: '#2563EB', fontWeight: '600', marginBottom: 8 }}>
-                        {course.category}
-                    </Text>
-                    <Text style={{ fontSize: 20, fontWeight: '800', color: '#1E293B', lineHeight: 28, marginBottom: 12 }}>
+                <View className="bg-white p-5 mb-2">
+                    <Text className="text-sm text-blue-600 font-semibold mb-2">{course.category}</Text>
+                    <Text className="text-[20px] font-extrabold text-slate-800 leading-7 mb-3">
                         {course.title}
                     </Text>
 
-                    {/* Rating & Stats row */}
+                    {/* Rating & Stats */}
                     <RatingStars rating={course.rating} reviewCount={course.reviewCount} size={14} />
-                    <View style={{ flexDirection: 'row', gap: 20, marginTop: 12 }}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+                    <View className="flex-row gap-5 mt-3">
+                        <View className="flex-row items-center gap-[5px]">
                             <Users size={14} color="#64748B" />
-                            <Text style={{ fontSize: 13, color: '#64748B' }}>
+                            <Text className="text-[13px] text-slate-500">
                                 {course.studentCount?.toLocaleString()} học viên
                             </Text>
                         </View>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+                        <View className="flex-row items-center gap-[5px]">
                             <Clock size={14} color="#64748B" />
-                            <Text style={{ fontSize: 13, color: '#64748B' }}>{course.duration}</Text>
+                            <Text className="text-[13px] text-slate-500">{course.duration}</Text>
                         </View>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+                        <View className="flex-row items-center gap-[5px]">
                             <BookOpen size={14} color="#64748B" />
-                            <Text style={{ fontSize: 13, color: '#64748B' }}>{course.level}</Text>
+                            <Text className="text-[13px] text-slate-500">{course.level}</Text>
                         </View>
                     </View>
 
                     {/* Instructor */}
-                    <View style={{
-                        marginTop: 16, paddingTop: 16,
-                        borderTopWidth: 1, borderTopColor: '#F1F5F9',
-                        flexDirection: 'row', alignItems: 'center', gap: 12,
-                    }}>
-                        <View style={{
-                            width: 44, height: 44, borderRadius: 22,
-                            backgroundColor: '#EFF6FF', alignItems: 'center', justifyContent: 'center',
-                        }}>
-                            <Text style={{ fontSize: 18 }}>👨‍🏫</Text>
+                    <View className="mt-4 pt-4 border-t border-slate-100 flex-row items-center gap-3">
+                        <View className="w-11 h-11 rounded-full bg-blue-50 items-center justify-center">
+                            <Text className="text-lg">👨‍🏫</Text>
                         </View>
                         <View>
-                            <Text style={{ fontSize: 12, color: '#94A3B8', fontWeight: '500' }}>Giảng viên</Text>
-                            <Text style={{ fontSize: 14, color: '#1E293B', fontWeight: '700' }}>{course.instructor}</Text>
+                            <Text className="text-xs text-slate-400 font-medium">Giảng viên</Text>
+                            <Text className="text-sm text-slate-800 font-bold">{course.instructor}</Text>
                         </View>
                     </View>
                 </View>
 
                 {/* Description */}
-                <View style={{ backgroundColor: '#ffffff', padding: 20, marginBottom: 8 }}>
-                    <Text style={{ fontSize: 16, fontWeight: '800', color: '#1E293B', marginBottom: 10 }}>Mô tả khóa học</Text>
-                    <Text style={{ fontSize: 14, color: '#475569', lineHeight: 22 }}>{course.description}</Text>
+                <View className="bg-white p-5 mb-2">
+                    <Text className="text-base font-extrabold text-slate-800 mb-2.5">Mô tả khóa học</Text>
+                    <Text className="text-sm text-slate-600 leading-[22px]">{course.description}</Text>
                 </View>
 
                 {/* Curriculum */}
-                <View style={{ backgroundColor: '#ffffff', padding: 20, marginBottom: 8 }}>
-                    <Text style={{ fontSize: 16, fontWeight: '800', color: '#1E293B', marginBottom: 12 }}>Nội dung khóa học</Text>
+                <View className="bg-white p-5 mb-2">
+                    <Text className="text-base font-extrabold text-slate-800 mb-3">Nội dung khóa học</Text>
                     {course.curriculum?.map((section, i) => (
                         <TouchableOpacity
                             key={i}
                             onPress={() => setExpandedSection(expandedSection === i ? null : i)}
-                            style={{
-                                flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-                                paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#F1F5F9',
-                            }}
+                            className="flex-row justify-between items-center py-3 border-b border-slate-100"
                         >
-                            <View style={{ flex: 1 }}>
-                                <Text style={{ fontSize: 14, fontWeight: '600', color: '#1E293B' }}>{section.section}</Text>
+                            <View className="flex-1">
+                                <Text className="text-sm font-semibold text-slate-800">{section.section}</Text>
                                 {expandedSection === i && (
-                                    <Text style={{ fontSize: 13, color: '#64748B', marginTop: 4 }}>
+                                    <Text className="text-[13px] text-slate-500 mt-1">
                                         {section.lessons} bài học
                                     </Text>
                                 )}
@@ -156,31 +139,24 @@ const CourseDetailScreen = () => {
             </ScrollView>
 
             {/* Sticky Bottom CTA */}
-            <View style={{
-                position: 'absolute', bottom: 0, left: 0, right: 0,
-                backgroundColor: '#ffffff',
-                paddingHorizontal: 20, paddingVertical: 14, paddingBottom: 28,
-                borderTopWidth: 1, borderTopColor: '#F1F5F9',
-                flexDirection: 'row', alignItems: 'center', gap: 16,
-                shadowColor: '#000', shadowOffset: { width: 0, height: -3 },
-                shadowOpacity: 0.06, shadowRadius: 8, elevation: 8,
-            }}>
-                <View style={{ flex: 1 }}>
-                    <Text style={{ fontSize: 18, fontWeight: '800', color: '#2563EB' }}>{course.price}</Text>
+            <View
+                className="absolute bottom-0 left-0 right-0 bg-white px-5 pt-3.5 pb-7 border-t border-slate-100 flex-row items-center gap-4"
+                style={{ shadowColor: '#000', shadowOffset: { width: 0, height: -3 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 8 }}
+            >
+                <View className="flex-1">
+                    <Text className="text-lg font-extrabold text-blue-600">{course.price}</Text>
                     {course.originalPrice && (
-                        <Text style={{ fontSize: 12, color: '#94A3B8', textDecorationLine: 'line-through' }}>
-                            {course.originalPrice}
-                        </Text>
+                        <Text className="text-xs text-slate-400 line-through">{course.originalPrice}</Text>
                     )}
                 </View>
                 <Button
-                    variant={isInCart ? "outline" : "primary"}
-                    style={{ flex: 1.5, paddingVertical: 14, borderRadius: 12 }}
-                    textStyle={{ fontSize: 15, fontWeight: '700' }}
+                    variant={isInCart ? 'outline' : 'primary'}
+                    className="flex-[1.5] py-3.5 rounded-xl"
+                    textClassName="text-[15px] font-bold"
                     icon={isInCart ? ShoppingBag : null}
                     onPress={handleCtaPress}
                 >
-                    {isInCart ? " Đi đến giỏ hàng" : "Thêm vào giỏ hàng"}
+                    {isInCart ? ' Đi đến giỏ hàng' : 'Thêm vào giỏ hàng'}
                 </Button>
             </View>
         </View>

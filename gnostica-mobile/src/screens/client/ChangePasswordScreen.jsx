@@ -1,13 +1,141 @@
-import React from 'react';
-import { View, Text, ScrollView, Button } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { ArrowLeft, Lock, Eye, EyeOff, ShieldCheck } from 'lucide-react-native';
+import Input from '../../components/ui/Input';
+import Button from '../../components/ui/Button';
 
-const ChangePasswordScreen = ({ navigation }) => {
+const ChangePasswordScreen = () => {
+    const navigation = useNavigation();
+    const [currentPassword, setCurrentPassword] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [showCurrent, setShowCurrent] = useState(false);
+    const [showNew, setShowNew] = useState(false);
+    const [showConfirm, setShowConfirm] = useState(false);
+    const [errors, setErrors] = useState({});
+
+    const validate = () => {
+        const newErrors = {};
+        if (!currentPassword) newErrors.current = 'Vui lòng nhập mật khẩu hiện tại';
+        if (!newPassword) newErrors.new = 'Vui lòng nhập mật khẩu mới';
+        else if (newPassword.length < 6) newErrors.new = 'Mật khẩu phải từ 6 ký tự';
+        if (!confirmPassword) newErrors.confirm = 'Vui lòng xác nhận mật khẩu';
+        else if (newPassword !== confirmPassword) newErrors.confirm = 'Mật khẩu xác nhận không khớp';
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const handleSave = () => {
+        if (validate()) {
+            Alert.alert('Thành công', 'Mật khẩu đã được thay đổi thành công!', [
+                { text: 'OK', onPress: () => navigation.goBack() }
+            ]);
+        }
+    };
+
     return (
-        <ScrollView style={{ flex: 1, backgroundColor: '#F8FAFC' }} contentContainerStyle={{ padding: 20 }}>
-            <Text style={{ fontSize: 20, fontWeight: '700', marginBottom: 12 }}>Thay đổi mật khẩu</Text>
-            <Text style={{ marginBottom: 12 }}>Form thay đổi mật khẩu sẽ được thêm ở đây.</Text>
-            <Button title="Lưu" onPress={() => navigation.goBack()} />
-        </ScrollView>
+        <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            className="flex-1 bg-slate-50"
+        >
+            {/* Header */}
+            <View className="bg-white pt-12 pb-4 px-4 border-b border-slate-100 flex-row items-center">
+                <TouchableOpacity onPress={() => navigation.goBack()} className="p-2">
+                    <ArrowLeft size={24} color="#1e293b" />
+                </TouchableOpacity>
+                <Text className="text-xl font-bold text-slate-800 ml-2">Đổi mật khẩu</Text>
+            </View>
+
+            <ScrollView
+                className="flex-1"
+                contentContainerStyle={{ padding: 20 }}
+                showsVerticalScrollIndicator={false}
+            >
+                {/* Security Icon */}
+                <View className="items-center mb-6">
+                    <View className="w-16 h-16 rounded-2xl bg-blue-50 items-center justify-center mb-3">
+                        <ShieldCheck size={32} color="#2563EB" />
+                    </View>
+                    <Text className="text-slate-500 text-sm text-center leading-5">
+                        Để bảo mật tài khoản, hãy chọn{'\n'}mật khẩu mạnh và không chia sẻ.
+                    </Text>
+                </View>
+
+                {/* Form */}
+                <View className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+                    <Input
+                        label="Mật khẩu hiện tại"
+                        icon={Lock}
+                        placeholder="••••••••"
+                        secureTextEntry={!showCurrent}
+                        value={currentPassword}
+                        onChangeText={(t) => { setCurrentPassword(t); setErrors({ ...errors, current: null }); }}
+                        error={errors.current}
+                        containerClassName="mb-4"
+                        rightIcon={
+                            <TouchableOpacity onPress={() => setShowCurrent(!showCurrent)} className="p-1">
+                                {showCurrent ? <EyeOff size={18} color="#64748b" /> : <Eye size={18} color="#64748b" />}
+                            </TouchableOpacity>
+                        }
+                    />
+
+                    <Input
+                        label="Mật khẩu mới"
+                        icon={Lock}
+                        placeholder="Tối thiểu 6 ký tự"
+                        secureTextEntry={!showNew}
+                        value={newPassword}
+                        onChangeText={(t) => { setNewPassword(t); setErrors({ ...errors, new: null }); }}
+                        error={errors.new}
+                        containerClassName="mb-4"
+                        rightIcon={
+                            <TouchableOpacity onPress={() => setShowNew(!showNew)} className="p-1">
+                                {showNew ? <EyeOff size={18} color="#64748b" /> : <Eye size={18} color="#64748b" />}
+                            </TouchableOpacity>
+                        }
+                    />
+
+                    <Input
+                        label="Xác nhận mật khẩu mới"
+                        icon={Lock}
+                        placeholder="Nhập lại mật khẩu mới"
+                        secureTextEntry={!showConfirm}
+                        value={confirmPassword}
+                        onChangeText={(t) => { setConfirmPassword(t); setErrors({ ...errors, confirm: null }); }}
+                        error={errors.confirm}
+                        containerClassName="mb-2"
+                        rightIcon={
+                            <TouchableOpacity onPress={() => setShowConfirm(!showConfirm)} className="p-1">
+                                {showConfirm ? <EyeOff size={18} color="#64748b" /> : <Eye size={18} color="#64748b" />}
+                            </TouchableOpacity>
+                        }
+                    />
+                </View>
+
+                {/* Password Tips */}
+                <View className="mt-5 bg-amber-50 p-4 rounded-2xl border border-amber-100">
+                    <Text className="text-amber-800 font-bold text-[13px] mb-2">💡 Lời khuyên bảo mật</Text>
+                    <Text className="text-amber-700 text-xs leading-[18px]">
+                        • Sử dụng ít nhất 8 ký tự{'\n'}
+                        • Kết hợp chữ hoa, chữ thường và số{'\n'}
+                        • Không dùng thông tin cá nhân làm mật khẩu
+                    </Text>
+                </View>
+
+                {/* Save Button */}
+                <Button
+                    variant="primary"
+                    className="mt-6 py-3.5 rounded-xl"
+                    textClassName="text-base font-bold"
+                    onPress={handleSave}
+                >
+                    Lưu thay đổi
+                </Button>
+
+                <View className="h-10" />
+            </ScrollView>
+        </KeyboardAvoidingView>
     );
 };
 

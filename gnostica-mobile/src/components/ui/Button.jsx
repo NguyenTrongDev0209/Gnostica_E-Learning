@@ -1,5 +1,30 @@
 import React from 'react';
 import { TouchableOpacity, Text, View } from 'react-native';
+import { clsx } from 'clsx';
+
+// Variant className maps
+const variantClass = {
+    primary:   'bg-blue-600',
+    secondary: 'bg-slate-100',
+    outline:   'bg-transparent border border-slate-300',
+    ghost:     'bg-transparent',
+    danger:    'bg-red-500',
+};
+
+const sizeClass = {
+    default: 'px-4 py-3',
+    sm:      'px-3 py-2',
+    lg:      'px-6 py-4',
+    icon:    'p-3',
+};
+
+const textVariantClass = {
+    primary:   'text-white',
+    secondary: 'text-slate-800',
+    outline:   'text-slate-600',
+    ghost:     'text-blue-600',
+    danger:    'text-white',
+};
 
 const Button = ({
     children,
@@ -14,58 +39,34 @@ const Button = ({
     disabled = false,
     ...props
 }) => {
-    const variantStyles = {
-        primary: { backgroundColor: '#2563EB' },
-        secondary: { backgroundColor: '#F1F5F9' },
-        outline: { backgroundColor: 'transparent', borderWidth: 1, borderColor: '#CBD5E1' },
-        ghost: { backgroundColor: 'transparent' },
-        danger: { backgroundColor: '#EF4444' },
-    };
-
-    const sizeStyles = {
-        default: { paddingHorizontal: 16, paddingVertical: 12 },
-        sm: { paddingHorizontal: 12, paddingVertical: 8 },
-        lg: { paddingHorizontal: 24, paddingVertical: 16 },
-        icon: { padding: 12 },
-    };
-
-    const textColorStyles = {
-        primary: { color: '#ffffff' },
-        secondary: { color: '#1E293B' },
-        outline: { color: '#475569' },
-        ghost: { color: '#2563EB' },
-        danger: { color: '#ffffff' },
-    };
-
     const iconSize = size === 'sm' ? 16 : 20;
-    const iconColor = variant === 'primary' || variant === 'danger' ? '#ffffff' : '#2563EB';
+    const iconColor = (variant === 'primary' || variant === 'danger') ? '#ffffff' : '#2563EB';
 
     return (
         <TouchableOpacity
-            style={[
-                {
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    borderRadius: 10,
-                    opacity: disabled ? 0.5 : 1,
-                },
-                variantStyles[variant],
-                sizeStyles[size],
-                style,
-            ]}
+            className={clsx(
+                'flex-row items-center justify-center rounded-[10px]',
+                variantClass[variant],
+                sizeClass[size],
+                disabled && 'opacity-50',
+                className,
+            )}
+            style={style}
             onPress={onPress}
             disabled={disabled}
             activeOpacity={0.8}
             {...props}
         >
             {Icon && (
-                <View style={{ marginRight: children ? 8 : 0 }}>
+                <View className={children ? 'mr-2' : ''}>
                     <Icon size={iconSize} color={iconColor} />
                 </View>
             )}
             {children && (
-                <Text style={[{ fontWeight: '600', ...textColorStyles[variant] }, textStyle]}>
+                <Text
+                    className={clsx('font-semibold', textVariantClass[variant], textClassName)}
+                    style={textStyle}
+                >
                     {children}
                 </Text>
             )}

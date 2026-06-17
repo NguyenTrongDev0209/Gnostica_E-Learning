@@ -1,27 +1,94 @@
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { ArrowLeft, ChevronRight, Package } from 'lucide-react-native';
 import { myCourses } from '../../constants/mockData';
 
-const OrdersScreen = ({ navigation }) => {
-    // Using myCourses as placeholder for purchased items
+const STATUS_MAP = {
+    completed: { label: 'Hoàn thành', bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-100' },
+    active:    { label: 'Đang học',   bg: 'bg-blue-50',  text: 'text-blue-700',  border: 'border-blue-100' },
+    pending:   { label: 'Chờ xử lý', bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-100' },
+};
+
+const MOCK_ORDERS = myCourses.map((course, i) => ({
+    ...course,
+    orderId: `GN-${8890 + i}`,
+    orderDate: `${15 + i}/05/2026`,
+    status: course.completed ? 'completed' : 'active',
+}));
+
+const OrdersScreen = () => {
+    const navigation = useNavigation();
+
     return (
-        <ScrollView style={{ flex: 1, backgroundColor: '#F8FAFC' }} contentContainerStyle={{ padding: 20 }}>
-            <Text style={{ fontSize: 20, fontWeight: '700', marginBottom: 12 }}>Đơn hàng của tôi</Text>
-
-            {myCourses.map(order => (
-                <TouchableOpacity key={order.id} onPress={() => navigation.navigate('CourseDetail', { course: order })} style={{ backgroundColor: '#ffffff', padding: 12, borderRadius: 12, marginBottom: 12, borderWidth: 1, borderColor: '#F1F5F9' }}>
-                    <Text style={{ fontSize: 16, fontWeight: '800' }}>{order.title}</Text>
-                    <Text style={{ color: '#64748B', marginTop: 6 }}>{order.instructor}</Text>
-                    <Text style={{ marginTop: 8, color: '#0f766e' }}>{order.progress ? `Tiến độ: ${order.progress}%` : 'Đã mua'}</Text>
+        <View className="flex-1 bg-slate-50">
+            {/* Header */}
+            <View className="bg-white pt-12 pb-4 px-4 border-b border-slate-100 flex-row items-center">
+                <TouchableOpacity onPress={() => navigation.goBack()} className="p-2">
+                    <ArrowLeft size={24} color="#1e293b" />
                 </TouchableOpacity>
-            ))}
+                <Text className="text-xl font-bold text-slate-800 ml-2">Đơn hàng của tôi</Text>
+                <Text className="text-slate-400 text-sm ml-auto">{MOCK_ORDERS.length} đơn</Text>
+            </View>
 
-            {myCourses.length === 0 && (
-                <View style={{ paddingVertical: 40, alignItems: 'center' }}>
-                    <Text style={{ color: '#64748B' }}>Bạn chưa có đơn hàng nào.</Text>
-                </View>
-            )}
-        </ScrollView>
+            <ScrollView className="flex-1 p-4" showsVerticalScrollIndicator={false}>
+                {MOCK_ORDERS.length === 0 ? (
+                    <View className="items-center justify-center mt-20">
+                        <Package size={64} color="#CBD5E1" />
+                        <Text className="text-lg font-bold text-slate-800 mt-4">Chưa có đơn hàng</Text>
+                        <Text className="text-slate-500 text-center mt-2 text-sm">
+                            Khi bạn mua khóa học, đơn hàng sẽ xuất hiện ở đây.
+                        </Text>
+                    </View>
+                ) : (
+                    MOCK_ORDERS.map(order => {
+                        const status = STATUS_MAP[order.status];
+                        return (
+                            <TouchableOpacity
+                                key={order.id}
+                                className="bg-white rounded-2xl p-4 mb-4 shadow-sm border border-slate-100"
+                                onPress={() => navigation.navigate('CourseDetail', { course: order })}
+                                activeOpacity={0.8}
+                            >
+                                {/* Top: Order ID + Status */}
+                                <View className="flex-row justify-between items-center mb-3">
+                                    <Text className="text-xs text-slate-400 font-medium">#{order.orderId}</Text>
+                                    <View className={`px-2.5 py-1 rounded-lg ${status.bg} border ${status.border}`}>
+                                        <Text className={`text-[10px] font-bold uppercase ${status.text}`}>
+                                            {status.label}
+                                        </Text>
+                                    </View>
+                                </View>
+
+                                {/* Course Info */}
+                                <View className="flex-row items-center">
+                                    <Image
+                                        source={{ uri: order.thumbnail }}
+                                        className="w-14 h-14 rounded-xl bg-slate-200"
+                                    />
+                                    <View className="flex-1 ml-3">
+                                        <Text className="text-sm font-bold text-slate-800" numberOfLines={2}>
+                                            {order.title}
+                                        </Text>
+                                        <Text className="text-xs text-slate-400 mt-1">
+                                            {order.instructor}
+                                        </Text>
+                                    </View>
+                                    <ChevronRight size={16} color="#cbd5e1" />
+                                </View>
+
+                                {/* Bottom: Date + Price */}
+                                <View className="flex-row justify-between items-center mt-3 pt-3 border-t border-slate-50">
+                                    <Text className="text-xs text-slate-400">{order.orderDate}</Text>
+                                    <Text className="text-sm font-extrabold text-blue-600">{order.price}</Text>
+                                </View>
+                            </TouchableOpacity>
+                        );
+                    })
+                )}
+                <View className="h-10" />
+            </ScrollView>
+        </View>
     );
 };
 

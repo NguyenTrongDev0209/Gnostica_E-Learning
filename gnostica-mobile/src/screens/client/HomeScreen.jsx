@@ -3,7 +3,6 @@ import {
     View,
     ScrollView,
     TouchableOpacity,
-    Image,
 } from 'react-native';
 import { Menu, Bell, User, MessageSquare, Users } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -18,49 +17,26 @@ const HomeScreen = () => {
     const { cartItems } = useCart();
 
     return (
-        <ScrollView style={{ flex: 1, backgroundColor: '#F8FAFC' }} showsVerticalScrollIndicator={false}>
+        <ScrollView className="flex-1 bg-slate-50" showsVerticalScrollIndicator={false}>
             {/* Header */}
-            <View style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                paddingHorizontal: 16,
-                paddingTop: 40,
-                paddingBottom: 16,
-                backgroundColor: '#ffffff',
-                gap: 12,
-            }}>
-                <TouchableOpacity style={{ padding: 4 }}>
+            <View className="flex-row items-center px-4 pt-10 pb-4 bg-white gap-3">
+                <TouchableOpacity className="p-1">
                     <Menu size={26} color="#1e293b" />
                 </TouchableOpacity>
 
-                <View style={{ flex: 1 }}>
+                <View className="flex-1">
                     <SearchBar
                         placeholder="Tìm kiếm"
-                        style={{
-                            backgroundColor: '#F1F5F9',
-                            borderRadius: 12,
-                            paddingVertical: 8,
-                            paddingHorizontal: 12,
-                            borderWidth: 0
-                        }}
+                        style={{ backgroundColor: '#F1F5F9', borderRadius: 12, borderWidth: 0 }}
                     />
                 </View>
 
-                <TouchableOpacity style={{ padding: 4 }}>
+                <TouchableOpacity className="p-1">
                     <Bell size={24} color="#1e293b" />
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                    style={{
-                        width: 38,
-                        height: 38,
-                        borderRadius: 19,
-                        backgroundColor: '#EFF6FF',
-                        borderWidth: 1,
-                        borderColor: '#BFDBFE',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                    }}
+                    className="w-[38px] h-[38px] rounded-[19px] bg-blue-50 border border-blue-200 items-center justify-center"
                     onPress={() => navigation.navigate('Login')}
                 >
                     <User size={22} color="#2563EB" />
@@ -70,43 +46,44 @@ const HomeScreen = () => {
             {/* Hero Banner */}
             <HeroSection />
 
-
             {/* Categories */}
             <CategorySection />
 
             {/* Course Sections */}
             <CourseSection title="Khóa học thịnh hành" variant="trending" />
 
-            {/* Phase 2: Discovery Section */}
-            <View style={{ paddingHorizontal: 20, marginTop: 24, gap: 16 }}>
-                <View style={{ flexDirection: 'row', gap: 12 }}>
+            {/* Discovery Section */}
+            <View className="px-5 mt-6 gap-4">
+                <View className="flex-row gap-3">
                     <TouchableOpacity
-                        style={{ flex: 1, backgroundColor: '#ffffff', padding: 16, borderRadius: 20, borderWidth: 1, borderColor: '#F1F5F9', elevation: 2, shadowColor: '#000', shadowOpacity: 0.05, shadowOffset: { width: 0, height: 2 } }}
+                        className="flex-1 bg-white p-4 rounded-[20px] border border-slate-100"
+                        style={{ elevation: 2, shadowColor: '#000', shadowOpacity: 0.05, shadowOffset: { width: 0, height: 2 } }}
                         onPress={() => navigation.navigate('Forum')}
                     >
-                        <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#EFF6FF', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
+                        <View className="w-10 h-10 rounded-xl bg-blue-50 items-center justify-center mb-3">
                             <MessageSquare size={22} color="#2563EB" />
                         </View>
-                        <Text style={{ fontSize: 15, fontWeight: '800', color: '#1E293B' }}>Diễn đàn</Text>
-                        <Text style={{ fontSize: 11, color: '#64748B', marginTop: 2 }}>Cùng thảo luận</Text>
+                        <Text className="text-[15px] font-extrabold text-slate-800">Diễn đàn</Text>
+                        <Text className="text-[11px] text-slate-500 mt-0.5">Cùng thảo luận</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                        style={{ flex: 1, backgroundColor: '#ffffff', padding: 16, borderRadius: 20, borderWidth: 1, borderColor: '#F1F5F9', elevation: 2, shadowColor: '#000', shadowOpacity: 0.05, shadowOffset: { width: 0, height: 2 } }}
+                        className="flex-1 bg-white p-4 rounded-[20px] border border-slate-100"
+                        style={{ elevation: 2, shadowColor: '#000', shadowOpacity: 0.05, shadowOffset: { width: 0, height: 2 } }}
                         onPress={() => navigation.navigate('InstructorList')}
                     >
-                        <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#F0FDF4', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
+                        <View className="w-10 h-10 rounded-xl bg-green-50 items-center justify-center mb-3">
                             <Users size={22} color="#10B981" />
                         </View>
-                        <Text style={{ fontSize: 15, fontWeight: '800', color: '#1E293B' }}>Giảng viên</Text>
-                        <Text style={{ fontSize: 11, color: '#64748B', marginTop: 2 }}>Tìm chuyên gia</Text>
+                        <Text className="text-[15px] font-extrabold text-slate-800">Giảng viên</Text>
+                        <Text className="text-[11px] text-slate-500 mt-0.5">Tìm chuyên gia</Text>
                     </TouchableOpacity>
                 </View>
             </View>
 
             <CourseSection title="Khóa học nổi bật" variant="featured" />
 
-            <View style={{ height: 20 }} />
+            <View className="h-5" />
         </ScrollView>
     );
 };

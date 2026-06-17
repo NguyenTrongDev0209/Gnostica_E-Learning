@@ -13,20 +13,20 @@ const MENU_GROUPS = [
     {
         title: 'Tài khoản',
         items: [
-            { label: 'Thông tin cá nhân', icon: User, color: '#3B82F6', target: 'Profile' },
-            { label: 'Khóa học đã lưu', icon: Star, color: '#EC4899', target: 'Wishlist' },
+            { label: 'Thông tin cá nhân', icon: User,       color: '#3B82F6', target: 'Profile' },
+            { label: 'Khóa học đã lưu',  icon: Star,       color: '#EC4899', target: 'Wishlist' },
             { label: 'Chứng chỉ của tôi', icon: CreditCard, color: '#10B981', target: 'Certificates' },
-            { label: 'Mã giảm giá', icon: Bell, color: '#F59E0B', target: 'Vouchers' },
-            { label: 'Thông báo', icon: Bell, color: '#3B82F6', target: 'Notifications' },
+            { label: 'Mã giảm giá',      icon: Bell,       color: '#F59E0B', target: 'Vouchers' },
+            { label: 'Thông báo',        icon: Bell,       color: '#3B82F6', target: 'Notifications' },
         ],
     },
     {
         title: 'Hỗ trợ',
         items: [
-            { label: 'Cài đặt', icon: Settings, color: '#64748B', target: 'Settings' },
-            { label: 'Về Gnostica', icon: HelpCircle, color: '#8B5CF6', target: 'LegalInfo', params: { type: 'about' } },
-            { label: 'Chính sách bảo mật', icon: Shield, color: '#EC4899', target: 'LegalInfo', params: { type: 'privacy' } },
-            { label: 'Điều khoản sử dụng', icon: Shield, color: '#64748B', target: 'LegalInfo', params: { type: 'terms' } },
+            { label: 'Cài đặt',              icon: Settings,    color: '#64748B', target: 'Settings' },
+            { label: 'Về Gnostica',          icon: HelpCircle,  color: '#8B5CF6', target: 'LegalInfo', params: { type: 'about' } },
+            { label: 'Chính sách bảo mật',   icon: Shield,      color: '#EC4899', target: 'LegalInfo', params: { type: 'privacy' } },
+            { label: 'Điều khoản sử dụng',   icon: Shield,      color: '#64748B', target: 'LegalInfo', params: { type: 'terms' } },
         ],
     },
     {
@@ -49,21 +49,15 @@ const MenuItem = ({ item }) => {
         <TouchableOpacity
             activeOpacity={0.7}
             onPress={() => item.target && navigation.navigate(item.target, item.params)}
-            style={{
-                flexDirection: 'row', alignItems: 'center',
-                paddingVertical: 14, paddingHorizontal: 20,
-                borderBottomWidth: 1, borderBottomColor: '#F8FAFC',
-            }}
+            className="flex-row items-center py-3.5 px-5 border-b border-slate-50"
         >
-            <View style={{
-                width: 38, height: 38, borderRadius: 12,
-                backgroundColor: item.color + '18',
-                alignItems: 'center', justifyContent: 'center',
-                marginRight: 14,
-            }}>
+            <View
+                className="w-[38px] h-[38px] rounded-xl items-center justify-center mr-3.5"
+                style={{ backgroundColor: item.color + '18' }}
+            >
                 <item.icon size={18} color={item.color} strokeWidth={2} />
             </View>
-            <Text style={{ flex: 1, fontSize: 15, color: '#1E293B', fontWeight: '500' }}>{item.label}</Text>
+            <Text className="flex-1 text-[15px] text-slate-800 font-medium">{item.label}</Text>
             <ChevronRight size={16} color="#CBD5E1" />
         </TouchableOpacity>
     );
@@ -76,19 +70,19 @@ const ProfileScreen = () => {
     // Unauthenticated state
     if (!isAuthenticated) {
         return (
-            <View style={{ flex: 1, backgroundColor: '#F8FAFC', justifyContent: 'center', alignItems: 'center', padding: 20 }}>
-                <View style={{ marginBottom: 16 }}>
+            <View className="flex-1 bg-slate-50 justify-center items-center p-5">
+                <View className="mb-4">
                     <Smile size={64} color="#2563EB" />
                 </View>
-                <Text style={{ fontSize: 22, fontWeight: '800', color: '#1E293B', marginBottom: 8, textAlign: 'center' }}>
+                <Text className="text-[22px] font-extrabold text-slate-800 mb-2 text-center">
                     Chào bạn mới
                 </Text>
-                <Text style={{ fontSize: 14, color: '#64748B', textAlign: 'center', marginBottom: 32, lineHeight: 22 }}>
+                <Text className="text-sm text-slate-500 text-center mb-8 leading-[22px]">
                     Đăng nhập để xem thông tin cá nhân, cập nhật cài đặt và theo dõi chứng chỉ của bạn.
                 </Text>
                 <Button
                     variant="primary"
-                    style={{ width: '100%', maxWidth: 300, paddingVertical: 14 }}
+                    className="w-full max-w-[300px] py-3.5"
                     onPress={() => navigation.navigate('Login')}
                 >
                     Đăng nhập hoặc Đăng ký
@@ -103,49 +97,34 @@ const ProfileScreen = () => {
     };
 
     return (
-        <ScrollView style={{ flex: 1, backgroundColor: '#F8FAFC' }} showsVerticalScrollIndicator={false}>
+        <ScrollView className="flex-1 bg-slate-50" showsVerticalScrollIndicator={false}>
             {/* Header */}
-            <View style={{
-                backgroundColor: '#ffffff',
-                paddingTop: 52,
-                paddingHorizontal: 20,
-                paddingBottom: 28,
-                alignItems: 'center',
-                borderBottomWidth: 1,
-                borderBottomColor: '#F1F5F9',
-            }}>
-                <Text style={{ fontSize: 22, fontWeight: '800', color: '#1E293B', alignSelf: 'flex-start', marginBottom: 20 }}>
+            <View className="bg-white pt-[52px] px-5 pb-7 items-center border-b border-slate-100">
+                <Text className="text-[22px] font-extrabold text-slate-800 self-start mb-5">
                     Cá nhân
                 </Text>
                 <Avatar name={user?.name || 'Học viên'} size={80} />
-                <Text style={{ fontSize: 20, fontWeight: '800', color: '#1E293B', marginTop: 14 }}>
+                <Text className="text-[20px] font-extrabold text-slate-800 mt-3.5">
                     {user?.name || 'Học viên E-Learning'}
                 </Text>
-                <Text style={{ fontSize: 14, color: '#64748B', marginTop: 4 }}>
+                <Text className="text-sm text-slate-500 mt-1">
                     {user?.email || 'Chưa cập nhật email'}
                 </Text>
 
                 {/* Stats row */}
-                <View style={{
-                    flexDirection: 'row', marginTop: 20, gap: 0,
-                    backgroundColor: '#F8FAFC', borderRadius: 16,
-                    borderWidth: 1, borderColor: '#F1F5F9', overflow: 'hidden',
-                }}>
+                <View className="flex-row mt-5 bg-slate-50 rounded-2xl border border-slate-100 overflow-hidden">
                     {[
-                        { label: 'Khóa học', value: '3' },
+                        { label: 'Khóa học',  value: '3' },
                         { label: 'Hoàn thành', value: '1' },
                         { label: 'Chứng chỉ', value: '1' },
                     ].map((stat, i) => (
                         <View
                             key={stat.label}
-                            style={{
-                                flex: 1, alignItems: 'center', paddingVertical: 14,
-                                borderRightWidth: i < 2 ? 1 : 0,
-                                borderRightColor: '#E2E8F0',
-                            }}
+                            className="flex-1 items-center py-3.5"
+                            style={{ borderRightWidth: i < 2 ? 1 : 0, borderRightColor: '#E2E8F0' }}
                         >
-                            <Text style={{ fontSize: 20, fontWeight: '800', color: '#2563EB' }}>{stat.value}</Text>
-                            <Text style={{ fontSize: 11, color: '#64748B', marginTop: 2, fontWeight: '500' }}>{stat.label}</Text>
+                            <Text className="text-[20px] font-extrabold text-blue-600">{stat.value}</Text>
+                            <Text className="text-[11px] text-slate-500 mt-0.5 font-medium">{stat.label}</Text>
                         </View>
                     ))}
                 </View>
@@ -153,8 +132,8 @@ const ProfileScreen = () => {
 
             {/* Menu Groups */}
             {MENU_GROUPS.map(group => (
-                <View key={group.title} style={{ marginTop: 16, backgroundColor: '#ffffff' }}>
-                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#94A3B8', paddingHorizontal: 20, paddingTop: 14, paddingBottom: 6, letterSpacing: 0.8, textTransform: 'uppercase' }}>
+                <View key={group.title} className="mt-4 bg-white">
+                    <Text className="text-xs font-bold text-slate-400 px-5 pt-3.5 pb-1.5 tracking-[0.8px] uppercase">
                         {group.title}
                     </Text>
                     {group.items.map(item => <MenuItem key={item.label} item={item} />)}
@@ -165,15 +144,10 @@ const ProfileScreen = () => {
             <TouchableOpacity
                 onPress={handleLogout}
                 activeOpacity={0.75}
-                style={{
-                    marginHorizontal: 20, marginTop: 20, marginBottom: 40,
-                    paddingVertical: 15, borderRadius: 14,
-                    backgroundColor: '#FEF2F2', borderWidth: 1, borderColor: '#FECACA',
-                    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10,
-                }}
+                className="mx-5 mt-5 mb-10 py-[15px] rounded-[14px] bg-red-50 border border-red-200 flex-row items-center justify-center gap-2.5"
             >
                 <LogOut size={18} color="#EF4444" />
-                <Text style={{ fontSize: 15, fontWeight: '700', color: '#EF4444' }}>Đăng xuất</Text>
+                <Text className="text-[15px] font-bold text-red-500">Đăng xuất</Text>
             </TouchableOpacity>
         </ScrollView>
     );
