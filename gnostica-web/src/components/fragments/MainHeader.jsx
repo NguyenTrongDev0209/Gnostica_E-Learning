@@ -12,6 +12,7 @@ import {
     CategoryButton
 } from "@/components/common/AppButton"
 import AppSearchInput from "@/components/common/AppSearchInput"
+import NotificationBell from "@/components/common/NotificationBell"
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -90,13 +91,16 @@ const MainHeader = ({
                     {/* User Actions */}
                     <div className="flex-1 flex items-center justify-end gap-1 md:gap-4">
                         {currentUser ? (
-                            <AppUserMenu
-                                user={{
-                                    name: currentUser.fullName || currentUser.username || "Người dùng",
-                                    avatar: currentUser.avatar || "https://github.com/shadcn.png"
-                                }}
-                                onLogout={handleLogout}
-                            />
+                            <div className="flex items-center gap-2 md:gap-4">
+                                <NotificationBell isDark={true} />
+                                <AppUserMenu
+                                    user={{
+                                        name: currentUser.fullName || currentUser.username || "Người dùng",
+                                        avatar: currentUser.avatar || "https://github.com/shadcn.png"
+                                    }}
+                                    onLogout={handleLogout}
+                                />
+                            </div>
                         ) : (
                             <Link
                                 to="/login"

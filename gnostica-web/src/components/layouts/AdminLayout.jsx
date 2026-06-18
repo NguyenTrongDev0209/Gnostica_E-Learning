@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 
 import { AppLogo } from "@/components/common/AppButton";
+import NotificationBell from "@/components/common/NotificationBell";
 
 const ADMIN_MENU_GROUPS = [
   {
@@ -182,10 +183,7 @@ export default function AdminLayout() {
               <span className="text-xs font-bold text-primary mr-1">Client</span>
             </button>
             <div className="w-px h-6 bg-muted mx-1"></div>
-            <button className="w-10 h-10 rounded-full hover:bg-secondary flex items-center justify-center relative transition-colors">
-              <Bell className="w-5 h-5 text-muted-foreground" />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-error/10 text-error rounded-full ring-2 ring-white"></span>
-            </button>
+            <NotificationBell />
             <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm overflow-hidden">
               {user?.avatar ? (
                 <img src={user.avatar} alt="Avatar" className="w-full h-full object-cover" />

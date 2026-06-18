@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AppLogo } from "@/components/common/AppButton";
+import NotificationBell from "@/components/common/NotificationBell";
 
 const INSTRUCTOR_MENU_GROUPS = [
   {
@@ -171,10 +172,7 @@ export default function InstructorLayout() {
                 <span className="text-xs font-bold text-muted-foreground mr-1">Client</span>
               </button>
 
-              <button className="w-10 h-10 rounded-full hover:bg-secondary flex items-center justify-center relative transition-colors">
-                <Bell className="w-5 h-5 text-muted-foreground" />
-                <span className="absolute top-2 right-2 w-2 h-2 bg-error/10 text-error rounded-full ring-2 ring-white"></span>
-              </button>
+              <NotificationBell />
             </div>
           </div>
         </header>

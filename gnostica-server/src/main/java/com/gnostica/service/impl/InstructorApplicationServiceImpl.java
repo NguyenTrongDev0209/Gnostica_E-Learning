@@ -13,6 +13,7 @@ import com.gnostica.repository.InstructorRepository;
 import com.gnostica.repository.RoleRepository;
 import com.gnostica.service.InstructorApplicationService;
 import com.gnostica.service.MailService;
+import com.gnostica.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +31,7 @@ public class InstructorApplicationServiceImpl implements InstructorApplicationSe
     private final InstructorRepository instructorRepository;
     private final RoleRepository roleRepository;
     private final MailService mailService;
+    private final NotificationService notificationService;
 
     @Override
     public void submitApplication(String email, InstructorApplicationRequest request) {
@@ -110,6 +112,8 @@ public class InstructorApplicationServiceImpl implements InstructorApplicationSe
         try {
             mailService.sendEmail(account.getEmail(), "Đơn đăng ký giảng viên được chấp thuận",
                     "Chúc mừng! Đơn đăng ký giảng viên của bạn đã được chấp thuận. Bạn có thể bắt đầu tạo khóa học ngay bây giờ.");
+            notificationService.createNotification(account, "Đơn đăng ký được phê duyệt", 
+                    "Chúc mừng! Đơn đăng ký giảng viên của bạn đã được chấp thuận.", "SYSTEM");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -131,6 +135,8 @@ public class InstructorApplicationServiceImpl implements InstructorApplicationSe
         try {
             mailService.sendEmail(application.getAccount().getEmail(), "Thông báo về đơn đăng ký giảng viên",
                     "Rất tiếc, đơn đăng ký làm giảng viên của bạn đã bị từ chối.<br/><strong>Lý do:</strong> " + request.getReason());
+            notificationService.createNotification(application.getAccount(), "Đơn đăng ký bị từ chối", 
+                    "Rất tiếc, đơn đăng ký làm giảng viên của bạn đã bị từ chối. Lý do: " + request.getReason(), "SYSTEM");
         } catch (Exception e) {
             e.printStackTrace();
         }

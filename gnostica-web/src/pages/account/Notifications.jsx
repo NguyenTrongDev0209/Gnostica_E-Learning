@@ -1,73 +1,83 @@
 import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { Home, Bell, MessageSquare, BookOpen, AlertCircle, CheckCircle2 } from "lucide-react";
-
-// Mock Data
-const NOTIFICATIONS_DATA = [
-  {
-    id: 1,
-    type: "course",
-    title: "Bài giảng mới đã được thêm vào khóa học",
-    message: "Khóa học 'Lập trình Web Frontend Bootcamp 2026' vừa cập nhật thêm Module 5: React Hooks.",
-    time: "2 giờ trước",
-    isRead: false,
-    icon: BookOpen,
-    color: "text-info bg-blue-50",
-  },
-  {
-    id: 2,
-    type: "system",
-    title: "Đơn hàng của bạn đã được xác nhận",
-    message: "Bạn đã đăng ký thành công khóa học 'Mastering React 18 & Next.js 14'. Bạn có thể bắt đầu học ngay bây giờ.",
-    time: "Hôm qua, 14:30",
-    isRead: false,
-    icon: CheckCircle2,
-    color: "text-emerald-500 bg-emerald-50",
-  },
-  {
-    id: 3,
-    type: "forum",
-    title: "Có người đã trả lời bình luận của bạn",
-    message: "Giảng viên Phạm Hồng Việt đã trả lời thắc mắc của bạn trong bài 'Kiến trúc Next.js App Router'.",
-    time: "20/03/2026",
-    isRead: true,
-    icon: MessageSquare,
-    color: "text-warning bg-orange-50",
-  },
-  {
-    id: 4,
-    type: "alert",
-    title: "Bảo trì hệ thống định kỳ",
-    message: "Hệ thống sẽ tạm ngừng hoạt động từ 2:00 sáng đến 4:00 sáng Chủ nhật tuần này để nâng cấp server.",
-    time: "15/03/2026",
-    isRead: true,
-    icon: AlertCircle,
-    color: "text-error bg-red-50",
-  },
-];
-
+import notificationService from "../../services/notificationService";
 export default function Notifications() {
-  const [notifications, setNotifications] = useState(NOTIFICATIONS_DATA);
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const markAllAsRead = () => {
-    setNotifications(notifications.map(n => ({ ...n, isRead: true })));
+  React.useEffect(() => {
+    fetchNotifications();
+  }, []);
+
+  const fetchNotifications = async () => {
+    try {
+      const res = await notificationService.getNotifications();
+      setNotifications(res.data);
+    } catch (error) {
+      console.error('Lỗi khi lấy thông báo:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const markAsRead = (id) => {
-    setNotifications(notifications.map(n => 
-      n.id === id ? { ...n, isRead: true } : n
-    ));
+  const markAllAsRead = async () => {
+    try {
+      await notificationService.markAllAsRead();
+      fetchNotifications();
+    } catch (error) {
+      console.error('Lỗi khi đánh dấu tất cả đã đọc:', error);
+    }
+  };
+
+  const markAsRead = async (id) => {
+    const notif = notifications.find(n => n.id === id);
+    if (!notif || notif.isRead) return;
+    
+    try {
+      await notificationService.markAsRead(id);
+      fetchNotifications();
+    } catch (error) {
+      console.error('Lỗi khi đánh dấu đã đọc:', error);
+    }
   };
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
+
+  const getNotificationIcon = (type) => {
+    switch (type) {
+      case 'ENROLLMENT': return CheckCircle2;
+      case 'SYSTEM': return AlertCircle;
+      default: return Bell;
+    }
+  };
+  
+  const getNotificationColor = (type) => {
+    switch (type) {
+      case 'ENROLLMENT': return "text-emerald-500 bg-emerald-50";
+      case 'SYSTEM': return "text-info bg-blue-50";
+      default: return "text-primary bg-primary/10";
+    }
+  };
+
+  const timeAgo = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const seconds = Math.floor((now - date) / 1000);
+    if (seconds < 60) return "Vừa xong";
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes} phút trước`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours} giờ trước`;
+    const days = Math.floor(hours / 24);
+    if (days < 30) return `${days} ngày trước`;
+    return date.toLocaleDateString('vi-VN');
+  };
+
+  if (loading) {
+    return <div className="p-8 text-center text-muted-foreground">Đang tải thông báo...</div>;
+  }
 
   return (
     <div>
@@ -124,14 +134,15 @@ export default function Notifications() {
         <CardContent className="p-0 divide-y divide-slate-100">
           {notifications.length > 0 ? (
             notifications.map((notification) => {
-              const Icon = notification.icon;
+              const Icon = getNotificationIcon(notification.type);
+              const color = getNotificationColor(notification.type);
               return (
                 <div 
                   key={notification.id} 
                   className={`p-5 flex gap-4 transition-colors hover:bg-muted cursor-pointer ${notification.isRead ? 'opacity-70' : 'bg-primary/5'}`}
                   onClick={() => markAsRead(notification.id)}
                 >
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${notification.color}`}>
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${color}`}>
                     <Icon className="w-5 h-5" />
                   </div>
                   
@@ -141,11 +152,11 @@ export default function Notifications() {
                         {notification.title}
                       </h3>
                       <span className="text-xs font-medium text-muted-foreground whitespace-nowrap pt-1">
-                        {notification.time}
+                        {timeAgo(notification.createdAt)}
                       </span>
                     </div>
                     <p className={`text-sm line-clamp-2 ${notification.isRead ? 'text-muted-foreground' : 'text-foreground font-medium'}`}>
-                      {notification.message}
+                      {notification.content}
                     </p>
                   </div>
                 </div>

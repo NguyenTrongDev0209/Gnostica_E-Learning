@@ -19,7 +19,6 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-// import { forumCategoriesMock, forumPostsMock } from "@/apiMocks/forum";
 
 const ForumPage = () => {
   const navigate = useNavigate();

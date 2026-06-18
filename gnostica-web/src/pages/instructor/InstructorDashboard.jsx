@@ -59,13 +59,9 @@ export default function InstructorDashboard() {
         <RatingDistribution data={RATING_DISTRIBUTION} />
       </div>
 
-      {/* Student Growth Chart + Pending Tasks */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Student Growth Chart */}
+      {/* Student Growth Chart (Pending Tasks hidden for now) */}
+      <div className="grid grid-cols-1 gap-6">
         <StudentGrowthChart data={STUDENT_GROWTH_DATA} />
-
-        {/* Pending Tasks Widget */}
-        <PendingTasks tasks={PENDING_TASKS} />
       </div>
 
       {/* Student Performance Table */}
