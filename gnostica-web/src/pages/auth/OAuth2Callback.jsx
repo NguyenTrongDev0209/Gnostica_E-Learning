@@ -16,7 +16,7 @@ const OAuth2Callback = () => {
         if (email) {
             const fetchUserInfo = async () => {
                 try {
-                    const data = await axiosClient.get(`/auth/user?email=${encodeURIComponent(email)}`);
+                    const response = await axiosClient.get(`/auth/user?email=${encodeURIComponent(email)}`);
                     console.log("Fetch user response:", response.data);
                     
                     if (response.data.status === 200 || response.data.status === 'success') {

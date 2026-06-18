@@ -41,7 +41,8 @@ export default function InstructorStudents() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const data = await instructorService.getMyStudents();
+        const responseData = await instructorService.getMyStudents();
+        const data = responseData.data || responseData || [];
         setStudents(data);
 
         // Calculate basic stats from real data
