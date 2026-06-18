@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import threadService from '@/services/threadService';
 import SectionContainer, { PageHeader, AppBreadcrumb } from '@/components/common/AppSection';
 import { ForumPostCard } from "@/components/common/AppCard";
 import { Button } from "@/components/ui/button";
@@ -50,7 +50,7 @@ const MyForumPosts = () => {
             setIsLoading(true);
             try {
                 // Fetch all threads to handle pagination on frontend like ForumPage.jsx
-                const res = await axios.get(`http://localhost:8080/api/threads/me?email=${currentUser.email}&page=0&size=1000`);
+                const res = await threadService.getMyThreads(currentUser.email);
                 setThreads(res.data.content);
             } catch (error) {
                 console.error("Failed to fetch your threads", error);
@@ -62,7 +62,7 @@ const MyForumPosts = () => {
         const fetchMyStats = async () => {
              if (!currentUser?.email) return;
              try {
-                const res = await axios.get(`http://localhost:8080/api/threads/me/stats?email=${currentUser.email}`);
+                const res = await threadService.getMyThreadStats(currentUser.email);
                 setUserStats(res.data);
              } catch (error) {
                 console.error("Failed to fetch statistics", error);
@@ -77,7 +77,7 @@ const MyForumPosts = () => {
         if (!threadToDelete) return;
 
         try {
-            await axios.delete(`http://localhost:8080/api/threads/${threadToDelete}`);
+            await threadService.deleteThread(threadToDelete);
             // Xóa khỏi danh sách cục bộ
             setThreads(prev => prev.filter(t => t.id !== threadToDelete));
             // Cập nhật lại stats
@@ -139,7 +139,7 @@ const MyForumPosts = () => {
     ];
 
     return (
-        <div className="min-h-screen bg-slate-50/50 pb-16 pt-8">
+        <div className="min-h-screen bg-muted pb-16 pt-8">
             <SectionContainer containerClassName="w-full">
                 <AppBreadcrumb items={breadcrumbItems} />
 
@@ -169,22 +169,22 @@ const MyForumPosts = () => {
                                         {currentUser?.fullName?.substring(0, 2).toUpperCase() || "U"}
                                     </AvatarFallback>
                                 </Avatar>
-                                <h3 className="font-bold text-lg text-slate-800 mb-1">{currentUser?.fullName || "Tài khoản của tôi"}</h3>
+                                <h3 className="font-bold text-lg text-foreground mb-1">{currentUser?.fullName || "Tài khoản của tôi"}</h3>
                                 <p className="text-sm text-muted-foreground mb-6">{currentUser?.email}</p>
 
-                                <div className="grid grid-cols-2 gap-4 pt-6 border-t border-slate-100">
+                                <div className="grid grid-cols-2 gap-4 pt-6 border-t border-border">
                                     <div className="flex flex-col items-center">
-                                        <div className="w-10 h-10 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mb-2">
+                                        <div className="w-10 h-10 bg-blue-50 text-info rounded-full flex items-center justify-center mb-2">
                                             <FileText className="w-5 h-5" />
                                         </div>
-                                        <span className="text-xl font-bold text-slate-800">{userStats.threadCount || 0}</span>
+                                        <span className="text-xl font-bold text-foreground">{userStats.threadCount || 0}</span>
                                         <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Bài viết</span>
                                     </div>
                                     <div className="flex flex-col items-center">
-                                        <div className="w-10 h-10 bg-orange-50 text-orange-500 rounded-full flex items-center justify-center mb-2">
+                                        <div className="w-10 h-10 bg-orange-50 text-warning rounded-full flex items-center justify-center mb-2">
                                             <ThumbsUp className="w-5 h-5" />
                                         </div>
-                                        <span className="text-xl font-bold text-slate-800">{userStats.totalLikes || 0}</span>
+                                        <span className="text-xl font-bold text-foreground">{userStats.totalLikes || 0}</span>
                                         <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Lượt thích</span>
                                     </div>
                                 </div>
@@ -193,18 +193,18 @@ const MyForumPosts = () => {
 
                         <Card className="bg-white shadow-sm border-border">
                             <CardContent className="p-5">
-                                <h4 className="font-bold text-sm text-slate-700 mb-4 flex items-center gap-2">
+                                <h4 className="font-bold text-sm text-foreground mb-4 flex items-center gap-2">
                                     <LayoutGrid className="w-4 h-4 text-primary" />
                                     Truy cập nhanh
                                 </h4>
                                 <div className="flex flex-col gap-2">
                                     <Link to="/forum">
-                                        <Button variant="ghost" className="w-full justify-start text-sm hover:bg-slate-50 gap-3">
+                                        <Button variant="ghost" className="w-full justify-start text-sm hover:bg-muted gap-3">
                                             <ChevronLeft className="w-4 h-4" /> Toàn bộ diễn đàn
                                         </Button>
                                     </Link>
                                     <Link to="/account">
-                                        <Button variant="ghost" className="w-full justify-start text-sm hover:bg-slate-50 gap-3">
+                                        <Button variant="ghost" className="w-full justify-start text-sm hover:bg-muted gap-3">
                                             Tài khoản của tôi
                                         </Button>
                                     </Link>
@@ -221,7 +221,7 @@ const MyForumPosts = () => {
                         {isLoading ? (
                             <div className="flex flex-col items-center justify-center py-16 bg-white rounded-lg border">
                                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                                <p className="mt-4 text-slate-500">Đang tải bài viết của bạn...</p>
+                                <p className="mt-4 text-muted-foreground">Đang tải bài viết của bạn...</p>
                             </div>
                         ) : currentPosts.length > 0 ? (
                             <div className="flex flex-col gap-4">
@@ -234,7 +234,7 @@ const MyForumPosts = () => {
                                                 e.stopPropagation();
                                                 setThreadToDelete(post.id);
                                             }}
-                                            className="absolute top-4 right-4 p-2 bg-red-50 text-red-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500 hover:text-white shadow-sm z-10"
+                                            className="absolute top-4 right-4 p-2 bg-red-50 text-error rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-error/10 text-error hover:text-white shadow-sm z-10"
                                             title="Xóa bài viết"
                                         >
                                             <Trash2 className="w-4 h-4" />
@@ -255,7 +255,7 @@ const MyForumPosts = () => {
                                             <AlertDialogCancel>Hủy</AlertDialogCancel>
                                             <AlertDialogAction 
                                                 onClick={handleDelete}
-                                                className="bg-red-500 hover:bg-red-600 font-bold"
+                                                className="bg-error/10 text-error hover:bg-error/10 text-error font-bold"
                                             >
                                                 Tiếp tục xóa
                                             </AlertDialogAction>
@@ -300,11 +300,11 @@ const MyForumPosts = () => {
                             </div>
                         ) : (
                             <div className="flex flex-col items-center justify-center py-20 text-center bg-white rounded-lg border border-dashed border-border">
-                                <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
-                                    <LayoutGrid className="w-8 h-8 text-slate-400" />
+                                <div className="w-16 h-16 bg-secondary rounded-full flex items-center justify-center mb-4">
+                                    <LayoutGrid className="w-8 h-8 text-muted-foreground" />
                                 </div>
-                                <h3 className="text-lg font-bold text-slate-700 mb-1">Bạn chưa có bài viết nào</h3>
-                                <p className="text-slate-500 text-sm max-w-sm">
+                                <h3 className="text-lg font-bold text-foreground mb-1">Bạn chưa có bài viết nào</h3>
+                                <p className="text-muted-foreground text-sm max-w-sm">
                                     Hãy chia sẻ kiến thức hoặc đặt câu hỏi đầu tiên của bạn ngay hôm nay!
                                 </p>
                                 <Button

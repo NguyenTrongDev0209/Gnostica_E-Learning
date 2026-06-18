@@ -108,7 +108,7 @@ export default function DataTable({
             </div>
 
             {pagination && (
-                <div className="flex items-center justify-between px-6 py-4 border-t border-border/50 bg-slate-50/30">
+                <div className="flex items-center justify-between px-6 py-4 border-t border-border/50 bg-muted/30">
                     <p className="text-sm font-medium text-muted-foreground">
                         Hiển thị {data.length} / {pagination.totalItems.toLocaleString()} bản ghi
                     </p>

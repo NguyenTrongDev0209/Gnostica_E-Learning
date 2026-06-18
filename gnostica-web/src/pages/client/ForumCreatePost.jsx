@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { ImagePlus, X, Send } from 'lucide-react';
 import { toast } from "sonner";
-import axios from 'axios';
+import threadService from '@/services/threadService';
+import forumCategoryService from '@/services/forumCategoryService';
 import { useEffect } from 'react';
 
 const ForumCreatePost = () => {
@@ -22,7 +23,7 @@ const ForumCreatePost = () => {
     useEffect(() => {
         const fetchCategories = async () => {
             try {
-                const res = await axios.get('http://localhost:8080/api/forum-categories');
+                const data = await forumCategoryService.getAllCategories();
                 const activeCategories = res.data.filter(cat => cat.status === true);
                 setCategories(activeCategories);
             } catch (error) {
@@ -108,9 +109,9 @@ const ForumCreatePost = () => {
                 'Content-Type': 'multipart/form-data',
             };
 
-            const response = await axios.post('http://localhost:8080/api/threads', formData, { headers });
+            const data = await threadService.createThread(formData);
 
-            if (response.status === 200 || response.status === 201) {
+            if (data) {
                 toast.success("Tạo bài viết thành công!");
                 // Navigate back to forum or to the new thread detail (if response returns ID)
                 navigate('/forum');
@@ -131,7 +132,7 @@ const ForumCreatePost = () => {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50/50 pb-16 pt-8">
+        <div className="min-h-screen bg-muted pb-16 pt-8">
             <SectionContainer containerClassName="max-w-4xl mx-auto w-full">
                 <PageHeader
                     title="Tạo bài viết"
@@ -145,11 +146,11 @@ const ForumCreatePost = () => {
                         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
                             {/* Category Selection */}
                             <div className="flex flex-col gap-2">
-                                <label className="text-sm font-semibold text-slate-700">
-                                    Chủ đề <span className="text-red-500">*</span>
+                                <label className="text-sm font-semibold text-foreground">
+                                    Chủ đề <span className="text-error">*</span>
                                 </label>
                                 <select 
-                                    className={`flex h-12 w-full items-center justify-between rounded-md border ${errors.categoryId ? 'border-red-500' : 'border-input'} bg-slate-50 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50`}
+                                    className={`flex h-12 w-full items-center justify-between rounded-md border ${errors.categoryId ? 'border-error/20' : 'border-input'} bg-muted px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50`}
                                     value={categoryId}
                                     onChange={(e) => {
                                         setCategoryId(e.target.value);
@@ -161,16 +162,16 @@ const ForumCreatePost = () => {
                                         <option key={cat.id} value={cat.id}>{cat.name}</option>
                                     ))}
                                 </select>
-                                {errors.categoryId && <span className="text-xs text-red-500">{errors.categoryId}</span>}
+                                {errors.categoryId && <span className="text-xs text-error">{errors.categoryId}</span>}
                             </div>
 
                             {/* Rich Text Content */}
                             <div className="flex flex-col gap-2 relative z-0">
-                                <label className="text-sm font-semibold text-slate-700">
-                                    Nội dung <span className="text-red-500">*</span>
+                                <label className="text-sm font-semibold text-foreground">
+                                    Nội dung <span className="text-error">*</span>
                                 </label>
                                 <textarea
-                                    className={`flex min-h-[200px] w-full rounded-md border ${errors.content ? 'border-red-500' : 'border-input'} bg-slate-50 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-y`}
+                                    className={`flex min-h-[200px] w-full rounded-md border ${errors.content ? 'border-error/20' : 'border-input'} bg-muted px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-y`}
                                     value={content}
                                     onChange={(e) => {
                                         setContent(e.target.value);
@@ -178,12 +179,12 @@ const ForumCreatePost = () => {
                                     }}
                                     placeholder="Bạn muốn hỏi hoặc chia sẻ gì?"
                                 />
-                                {errors.content && <span className="text-xs text-red-500">{errors.content}</span>}
+                                {errors.content && <span className="text-xs text-error">{errors.content}</span>}
                             </div>
 
                             {/* Image Upload */}
                             <div className="flex flex-col gap-4">
-                                <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                                <label className="text-sm font-semibold text-foreground flex items-center gap-2">
                                     Đính kèm hình ảnh
                                     <span className="text-xs font-normal text-muted-foreground">(Tùy chọn, có thể chọn nhiều ảnh)</span>
                                 </label>
@@ -198,7 +199,7 @@ const ForumCreatePost = () => {
                                             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                                             onChange={handleImageChange}
                                         />
-                                        <div className="w-24 h-24 sm:w-32 sm:h-32 border-2 border-dashed border-slate-300 rounded-lg flex flex-col items-center justify-center text-slate-500 hover:bg-slate-50 hover:border-primary transition-colors bg-white">
+                                        <div className="w-24 h-24 sm:w-32 sm:h-32 border-2 border-dashed border-border rounded-lg flex flex-col items-center justify-center text-muted-foreground hover:bg-muted hover:border-primary transition-colors bg-white">
                                             <ImagePlus className="w-6 h-6 sm:w-8 sm:h-8 mb-2" />
                                             <span className="text-xs px-2 text-center">Thêm ảnh</span>
                                         </div>
@@ -206,12 +207,12 @@ const ForumCreatePost = () => {
 
                                     {/* Previews */}
                                     {previewUrls.map((url, index) => (
-                                        <div key={index} className="relative w-24 h-24 sm:w-32 sm:h-32 group rounded-lg overflow-hidden border bg-slate-100">
+                                        <div key={index} className="relative w-24 h-24 sm:w-32 sm:h-32 group rounded-lg overflow-hidden border bg-secondary">
                                             <img src={url} alt={`preview-${index}`} className="w-full h-full object-cover" />
                                             <button 
                                                 type="button"
                                                 onClick={() => removeImage(index)}
-                                                className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center transform scale-90"
+                                                className="absolute top-1 right-1 bg-error/10 text-error hover:bg-error/10 text-error text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center transform scale-90"
                                             >
                                                 <X className="w-4 h-4" />
                                             </button>

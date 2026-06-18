@@ -1,6 +1,6 @@
-import axios from 'axios';
+import axiosClient from '@/lib/axiosClient';
 
-const API_URL = 'http://localhost:8080/api/wallet';
+const API_URL = '/wallet';
 
 const getAuthHeaders = () => {
     const userStr = localStorage.getItem('user');
@@ -18,42 +18,42 @@ const getAuthHeaders = () => {
 };
 
 const getMyWallet = async () => {
-    const response = await axios.get(`${API_URL}/me`, {
+    const response = await axiosClient.get(`${API_URL}/me`, {
         headers: getAuthHeaders()
     });
     return response.data;
 };
 
 const getMyTransactions = async () => {
-    const response = await axios.get(`${API_URL}/transactions`, {
+    const response = await axiosClient.get(`${API_URL}/transactions`, {
         headers: getAuthHeaders()
     });
     return response.data;
 };
 
 const getWalletStats = async () => {
-    const response = await axios.get(`${API_URL}/stats`, {
+    const response = await axiosClient.get(`${API_URL}/stats`, {
         headers: getAuthHeaders()
     });
     return response.data;
 };
 
 const requestWithdraw = async (withdrawData) => {
-    const response = await axios.post(`${API_URL}/withdraw`, withdrawData, {
+    const response = await axiosClient.post(`${API_URL}/withdraw`, withdrawData, {
         headers: getAuthHeaders()
     });
     return response.data;
 };
 
 const setBankAccount = async (data) => {
-    const response = await axios.post(`${API_URL}/bank-account`, data, {
+    const response = await axiosClient.post(`${API_URL}/bank-account`, data, {
         headers: getAuthHeaders()
     });
     return response.data;
 };
 
 const removeBankAccount = async (pin) => {
-    const response = await axios.delete(`${API_URL}/bank-account`, {
+    const response = await axiosClient.delete(`${API_URL}/bank-account`, {
         headers: getAuthHeaders(),
         data: { pin }
     });

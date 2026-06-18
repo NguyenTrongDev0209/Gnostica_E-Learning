@@ -81,7 +81,7 @@ const AppSearchInput = ({ className = "" }) => {
 
       {/* Gợi ý tìm kiếm */}
       {isFocused && value.trim().length >= 2 && suggestions.length > 0 && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-slate-100 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-border z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
           <div className="py-2 max-h-[400px] overflow-y-auto">
             {suggestions.map((s) => (
               <button
@@ -91,10 +91,10 @@ const AppSearchInput = ({ className = "" }) => {
                   navigate(`/search?q=${encodeURIComponent(s)}`)
                   setIsFocused(false)
                 }}
-                className="w-full px-4 py-2.5 flex items-center gap-4 hover:bg-slate-50 transition-colors text-left group"
+                className="w-full px-4 py-2.5 flex items-center gap-4 hover:bg-muted transition-colors text-left group"
               >
-                <Search className="h-4 w-4 text-slate-400 group-hover:text-primary transition-colors" />
-                <span className="text-sm text-slate-700 group-hover:text-black line-clamp-1">{s}</span>
+                <Search className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                <span className="text-sm text-foreground group-hover:text-black line-clamp-1">{s}</span>
               </button>
             ))}
           </div>

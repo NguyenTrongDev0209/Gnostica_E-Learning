@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import axios from 'axios';
+import axiosClient from '@/lib/axiosClient';
 
 const OAuth2Callback = () => {
     const [searchParams] = useSearchParams();
@@ -16,7 +16,7 @@ const OAuth2Callback = () => {
         if (email) {
             const fetchUserInfo = async () => {
                 try {
-                    const response = await axios.get(`http://localhost:8080/api/auth/user?email=${encodeURIComponent(email)}`);
+                    const data = await axiosClient.get(`/auth/user?email=${encodeURIComponent(email)}`);
                     console.log("Fetch user response:", response.data);
                     
                     if (response.data.status === 200 || response.data.status === 'success') {

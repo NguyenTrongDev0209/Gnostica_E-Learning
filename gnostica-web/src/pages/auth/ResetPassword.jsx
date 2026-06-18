@@ -21,16 +21,16 @@ const ResetPassword = () => {
   const [errors, setErrors] = useState({});
 
   const getPasswordStrength = (pass) => {
-    if (!pass) return { score: 0, label: '', color: 'bg-slate-200', text: 'text-slate-500' };
+    if (!pass) return { score: 0, label: '', color: 'bg-muted', text: 'text-muted-foreground' };
     let score = 0;
     if (pass.length >= 6) score += 1;
     if (pass.length >= 8 && (/[A-Z]/.test(pass) || /[0-9]/.test(pass))) score += 1;
     if (pass.length >= 8 && /[A-Z]/.test(pass) && /[0-9]/.test(pass) && /[^A-Za-z0-9]/.test(pass)) score += 1;
 
-    if (score <= 1) return { score: 1, label: 'Yếu', color: 'bg-red-500', text: 'text-red-500' };
-    if (score === 2) return { score: 2, label: 'Trung bình', color: 'bg-yellow-500', text: 'text-yellow-500' };
-    if (score >= 3) return { score: 3, label: 'Mạnh', color: 'bg-green-500', text: 'text-green-500' };
-    return { score: 0, label: '', color: 'bg-slate-200', text: '' };
+    if (score <= 1) return { score: 1, label: 'Yếu', color: 'bg-error/10 text-error', text: 'text-error' };
+    if (score === 2) return { score: 2, label: 'Trung bình', color: 'bg-warning/10 text-warning', text: 'text-warning' };
+    if (score >= 3) return { score: 3, label: 'Mạnh', color: 'bg-success/10 text-success', text: 'text-success' };
+    return { score: 0, label: '', color: 'bg-muted', text: '' };
   };
 
   const validateForm = () => {
@@ -92,7 +92,7 @@ const ResetPassword = () => {
                   id="password"
                   type={showPassword ? 'text' : 'password'}
                   placeholder="••••••••"
-                  className={`pl-9 pr-10 h-11 ${errors.password ? 'border-red-500' : ''}`}
+                  className={`pl-9 pr-10 h-11 ${errors.password ? 'border-error/20' : ''}`}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
@@ -110,13 +110,13 @@ const ResetPassword = () => {
                 <div className="mt-1">
                   <div className="flex gap-1.5 mb-1">
                     {[1, 2, 3].map((l) => (
-                      <div key={l} className={`h-1.5 w-full rounded-full ${strength.score >= l ? strength.color : 'bg-slate-200'}`} />
+                      <div key={l} className={`h-1.5 w-full rounded-full ${strength.score >= l ? strength.color : 'bg-muted'}`} />
                     ))}
                   </div>
                   <p className={`text-xs font-medium ${strength.text}`}>Độ mạnh: {strength.label}</p>
                 </div>
               )}
-              {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
+              {errors.password && <p className="text-error text-xs mt-1">{errors.password}</p>}
             </div>
 
             {/* Confirm Password */}
@@ -128,12 +128,12 @@ const ResetPassword = () => {
                   id="confirmPassword"
                   type={showPassword ? 'text' : 'password'}
                   placeholder="••••••••"
-                  className={`pl-9 h-11 ${errors.confirmPassword ? 'border-red-500' : ''}`}
+                  className={`pl-9 h-11 ${errors.confirmPassword ? 'border-error/20' : ''}`}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                 />
               </div>
-              {errors.confirmPassword && <p className="text-red-500 text-xs mt-1">{errors.confirmPassword}</p>}
+              {errors.confirmPassword && <p className="text-error text-xs mt-1">{errors.confirmPassword}</p>}
             </div>
 
             <SimpleButton type="submit" className="w-full h-11 gap-2" disabled={loading}>

@@ -6,7 +6,7 @@ export const paymentMethodsMock = [
     label: "Thẻ tín dụng / Ghi nợ",
     description: "Visa, Mastercard, JCB",
     icon: CreditCard,
-    color: "text-blue-600 bg-blue-50",
+    color: "text-info bg-blue-50",
   },
   {
     id: "e-wallet",
@@ -20,7 +20,7 @@ export const paymentMethodsMock = [
     label: "QR Code",
     description: "Quét mã để thanh toán",
     icon: QrCode,
-    color: "text-green-600 bg-green-50",
+    color: "text-success bg-green-50",
   },
   {
     id: "bank-transfer",
@@ -42,22 +42,22 @@ export const checkoutOrderInfoMock = {
 export const checkoutStatusConfig = {
   success: {
     icon: CheckCircle2,
-    iconColor: "text-green-500",
+    iconColor: "text-success",
     iconBg: "bg-green-50",
     ringColor: "ring-green-100",
     title: "Thanh toán thành công!",
     description: "Đơn hàng của bạn đã được xác nhận. Khóa học sẽ được kích hoạt ngay lập tức.",
     badgeText: "Đã thanh toán",
-    badgeColor: "bg-green-100 text-green-700",
+    badgeColor: "bg-success/10 text-success text-success",
   },
   cancel: {
     icon: XCircle,
-    iconColor: "text-red-500",
+    iconColor: "text-error",
     iconBg: "bg-red-50",
     ringColor: "ring-red-100",
     title: "Thanh toán đã bị hủy",
     description: "Đơn hàng của bạn chưa được thanh toán. Các khóa học vẫn còn trong giỏ hàng.",
     badgeText: "Đã hủy",
-    badgeColor: "bg-red-100 text-red-700",
+    badgeColor: "bg-error/10 text-error text-error",
   },
 };

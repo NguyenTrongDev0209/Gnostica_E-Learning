@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate, useParams } from "react-router-dom";
-import axios from "axios";
+import axiosClient from "@/lib/axiosClient";
 import { toast } from "sonner";
 import courseService from "@/services/courseService";
 import categoryService from "@/services/categoryService";
@@ -86,12 +86,7 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
     if (!file || file === "mock-url") return file;
     const formData = new FormData();
     formData.append("file", file);
-    const res = await fetch("http://localhost:8080/api/upload/image", {
-      method: "POST",
-      body: formData,
-      headers: { ...getAuthHeaders() }
-    });
-    const jsonData = await res.json();
+    const jsonData = await axiosClient.post("/api/upload/image", formData);
     return jsonData.url;
   };
 
@@ -100,12 +95,7 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
     if (!file) return null;
     const formData = new FormData();
     formData.append("file", file);
-    const res = await fetch("http://localhost:8080/api/upload/document", {
-      method: "POST",
-      body: formData,
-      headers: { ...getAuthHeaders() }
-    });
-    const jsonData = await res.json();
+    const jsonData = await axiosClient.post("/api/upload/document", formData);
     return jsonData.url;
   };
 
@@ -113,15 +103,8 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
     if (typeof file === "string") return file;
     if (!file || file === "mock-url") return file;
 
-    const initRes = await fetch("http://localhost:8080/api/upload/video/init", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...getAuthHeaders()
-      },
-      body: JSON.stringify({ title }),
-    });
-    const { videoId, libraryId, authorizationSignature, authorizationExpire } = await initRes.json();
+    const initRes = { data: await axiosClient.post("/api/upload/video/init", { title }) };
+    const { videoId, libraryId, authorizationSignature, authorizationExpire } = initRes.data;
     if (!videoId) throw new Error("Could not initialize video on Bunny.net");
 
     return new Promise((resolve, reject) => {
@@ -191,13 +174,9 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
         })) || []
       };
 
-      const url = isEditMode 
-        ? `http://localhost:8080/api/courses/draft?courseId=${formData.id || ""}&slug=${slug || ""}`
-        : `http://localhost:8080/api/courses/draft`;
+      const url = isEditMode ? `/api/courses/draft?courseId=${formData.id || ""}&slug=${slug || ""}` : `/api/courses/draft`;
 
-      await axios.post(url, dataToSave, {
-        headers: getAuthHeaders()
-      });
+      await axiosClient.post(url, dataToSave);
       
       lastDraftRef.current = currentString;
       
@@ -250,11 +229,9 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
   useEffect(() => {
     const checkDraft = async () => {
       try {
-        const url = isEditMode 
-          ? `http://localhost:8080/api/courses/draft?slug=${slug}`
-          : `http://localhost:8080/api/courses/draft`;
+        const url = isEditMode ? `/api/courses/draft?slug=${slug}` : `/api/courses/draft`;
           
-        const res = await axios.get(url, { headers: getAuthHeaders() });
+        const res = { data: await axiosClient.get(url) };
         if (res.data) {
           const draftData = (res.data.data && res.data.error !== undefined) ? res.data.data : res.data;
           if (draftData) {

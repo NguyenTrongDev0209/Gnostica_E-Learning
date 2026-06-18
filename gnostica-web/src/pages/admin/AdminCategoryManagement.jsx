@@ -8,10 +8,10 @@ export default function AdminCategoryManagement() {
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
             <div>
-                <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+                <h1 className="text-2xl font-bold text-foreground tracking-tight">
                     Quản Lý Danh Mục
                 </h1>
-                <p className="text-sm text-slate-500 mt-1">
+                <p className="text-sm text-muted-foreground mt-1">
                     Quản lý danh mục khóa học và danh mục diễn đàn.
                 </p>
             </div>

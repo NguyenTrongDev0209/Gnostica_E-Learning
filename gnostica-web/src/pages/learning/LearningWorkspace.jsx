@@ -70,12 +70,12 @@ function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }
 
   if (!quiz || questions.length === 0) {
     return (
-      <div className="w-full bg-white rounded-2xl border border-slate-200 p-20 text-center shadow-sm">
+      <div className="w-full bg-white rounded-2xl border border-border p-20 text-center shadow-sm">
         <div className="w-24 h-24 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-6 border border-indigo-100">
             <HelpCircle className="w-10 h-10 text-indigo-400" />
         </div>
-        <h2 className="text-2xl font-black text-slate-900 mb-2">Chương học chưa có bài tập</h2>
-        <p className="text-slate-500 font-bold mb-8">Bài quiz này hiện chưa chứa câu hỏi nào.</p>
+        <h2 className="text-2xl font-black text-foreground mb-2">Chương học chưa có bài tập</h2>
+        <p className="text-muted-foreground font-bold mb-8">Bài quiz này hiện chưa chứa câu hỏi nào.</p>
         <Button onClick={onBack} className="rounded-lg font-bold">Quay lại xem Video</Button>
       </div>
     );
@@ -161,23 +161,23 @@ function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }
   return (
     <div ref={quizTopRef} className="w-full space-y-6 max-w-5xl mx-auto pb-12 pt-2">
         {/* Header Banner (Theo mẫu) */}
-        <div className="bg-white rounded-xl border border-slate-200/60 shadow-sm p-6 md:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-in fade-in duration-500">
+        <div className="bg-white rounded-xl border border-border/60 shadow-sm p-6 md:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-in fade-in duration-500">
             <div className="flex items-center gap-4">
                 <div className="w-14 h-14 rounded-full bg-violet-600 flex items-center justify-center text-white shadow-lg shadow-violet-200 shrink-0">
                     <Trophy className="w-7 h-7" />
                 </div>
                 <div>
-                    <h2 className="text-xl md:text-2xl font-black text-slate-900 leading-tight">
+                    <h2 className="text-xl md:text-2xl font-black text-foreground leading-tight">
                         Bài kiểm tra Trắc nghiệm: {quiz.title}
                     </h2>
-                    <p className="text-slate-500 text-xs font-bold mt-1 flex items-center gap-1.5">
+                    <p className="text-muted-foreground text-xs font-bold mt-1 flex items-center gap-1.5">
                         Bao gồm {questions.length} câu hỏi trắc nghiệm
                     </p>
                 </div>
             </div>
             
             {/* Nút quay lại bài học */}
-            <Button onClick={onBack} variant="ghost" className="font-extrabold text-xs gap-1 text-slate-500 hover:bg-slate-50 rounded-lg self-end sm:self-center">
+            <Button onClick={onBack} variant="ghost" className="font-extrabold text-xs gap-1 text-muted-foreground hover:bg-muted rounded-lg self-end sm:self-center">
                 <ChevronLeft className="w-3.5 h-3.5" /> Quay lại xem Video
             </Button>
         </div>
@@ -186,7 +186,7 @@ function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }
         {isSubmitted && (
             <div className="bg-gradient-to-br from-slate-900 to-indigo-950 rounded-xl p-6 md:p-8 text-white shadow-xl border border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-6 animate-in slide-in-from-top duration-500">
                 <div className="flex items-center gap-5">
-                    <div className={`w-16 h-16 ${isPassed ? 'bg-emerald-500' : 'bg-orange-500'} rounded-full flex items-center justify-center shadow-lg shrink-0`}>
+                    <div className={`w-16 h-16 ${isPassed ? 'bg-emerald-500' : 'bg-warning/10 text-warning'} rounded-full flex items-center justify-center shadow-lg shrink-0`}>
                         {isPassed ? <Award className="w-8 h-8 text-white" /> : <HelpCircle className="w-8 h-8 text-white" />}
                     </div>
                     <div>
@@ -197,7 +197,7 @@ function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }
                             Kết quả bài thi: <strong className="text-white font-black">{correctCount}/{questions.length}</strong> đáp án đúng (Đạt {scorePercent}%)
                         </p>
                         {!isPassed && (
-                            <p className="text-orange-300/90 text-[13px] font-bold mt-1 flex items-center gap-1.5">
+                            <p className="text-warning/90 text-[13px] font-bold mt-1 flex items-center gap-1.5">
                                 <Info className="w-3.5 h-3.5" /> Bạn cần đạt từ 50% trở lên để vượt qua bài kiểm tra này.
                             </p>
                         )}
@@ -221,8 +221,8 @@ function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }
         {/* Questions List (Theo mẫu mockup) */}
         <div className="space-y-5">
             {questions.map((q, idx) => (
-                <div key={q.id} className="bg-white rounded-xl p-6 md:p-8 border border-slate-200/60 shadow-sm space-y-6 transition-all duration-300 hover:shadow-md">
-                    <h3 className="text-sm md:text-[15px] font-extrabold text-slate-900 leading-relaxed flex gap-1.5 items-start">
+                <div key={q.id} className="bg-white rounded-xl p-6 md:p-8 border border-border/60 shadow-sm space-y-6 transition-all duration-300 hover:shadow-md">
+                    <h3 className="text-sm md:text-[15px] font-extrabold text-foreground leading-relaxed flex gap-1.5 items-start">
                         <span className="shrink-0">Câu {idx + 1}:</span>
                         <span dangerouslySetInnerHTML={{ __html: q.content }}></span>
                     </h3>
@@ -241,7 +241,7 @@ function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }
                                 if (isSelected) {
                                     buttonClass += "bg-violet-50/50 border-violet-500 text-violet-900 font-bold shadow-sm";
                                 } else {
-                                    buttonClass += "bg-slate-50/40 border-slate-200/60 text-slate-600 hover:bg-slate-50 hover:border-slate-300";
+                                    buttonClass += "bg-muted/40 border-border/60 text-muted-foreground hover:bg-muted hover:border-border";
                                 }
                             } else {
                                 // CHẾ ĐỘ XEM KẾT QUẢ
@@ -260,7 +260,7 @@ function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }
                                         </span>
                                     );
                                 } else {
-                                    buttonClass += "bg-slate-50/20 border-slate-100 text-slate-400 opacity-60";
+                                    buttonClass += "bg-muted/20 border-border text-muted-foreground opacity-60";
                                 }
                             }
 
@@ -385,25 +385,25 @@ function LessonQA({ lesson }) {
   };
 
   const renderComment = (comment, isReply = false) => (
-    <div key={comment.id} className={`flex gap-4 ${isReply ? 'mt-4' : 'mt-6 pt-6 border-t border-slate-100'}`}>
-      <Avatar className="w-10 h-10 border border-slate-200 shrink-0">
+    <div key={comment.id} className={`flex gap-4 ${isReply ? 'mt-4' : 'mt-6 pt-6 border-t border-border'}`}>
+      <Avatar className="w-10 h-10 border border-border shrink-0">
         <AvatarImage src={comment.account?.avatar} />
         <AvatarFallback className="bg-primary/10 text-primary font-bold">
           {comment.account?.fullName?.charAt(0) || <User className="w-5 h-5" />}
         </AvatarFallback>
       </Avatar>
       <div className="flex-1 min-w-0">
-        <div className="bg-slate-50 border border-slate-100 rounded-2xl rounded-tl-none p-4 relative group">
+        <div className="bg-muted border border-border rounded-2xl rounded-tl-none p-4 relative group">
           <div className="flex items-center justify-between mb-1">
-            <span className="font-bold text-sm text-slate-900">{comment.account?.fullName || "Người dùng"}</span>
-            <span className="text-xs text-slate-400 font-medium">{formatDate(comment.createdAt)}</span>
+            <span className="font-bold text-sm text-foreground">{comment.account?.fullName || "Người dùng"}</span>
+            <span className="text-xs text-muted-foreground font-medium">{formatDate(comment.createdAt)}</span>
           </div>
-          <p className="text-sm text-slate-600 whitespace-pre-wrap">{comment.content}</p>
+          <p className="text-sm text-muted-foreground whitespace-pre-wrap">{comment.content}</p>
           
           {currentUser?.email === comment.account?.email && (
             <button 
               onClick={() => handleDelete(comment.id)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+              className="absolute top-4 right-4 text-muted-foreground hover:text-error opacity-0 group-hover:opacity-100 transition-opacity"
             >
               <Trash className="w-4 h-4" />
             </button>
@@ -413,14 +413,14 @@ function LessonQA({ lesson }) {
         <div className="flex items-center gap-4 mt-2 ml-2">
           <button 
             onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
-            className="text-xs font-bold text-slate-500 hover:text-primary transition-colors flex items-center gap-1"
+            className="text-xs font-bold text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
           >
             <CornerDownRight className="w-3.5 h-3.5" /> Phản hồi
           </button>
           {comment.replies && comment.replies.length > 0 && (
             <button 
               onClick={() => toggleCollapse(comment.id)}
-              className="text-xs font-bold text-slate-500 hover:text-primary transition-colors flex items-center gap-1"
+              className="text-xs font-bold text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
             >
               {collapsedComments.has(comment.id) ? (
                 <><ChevronDown className="w-3.5 h-3.5" /> Hiển thị {comment.replies.length} phản hồi</>
@@ -438,7 +438,7 @@ function LessonQA({ lesson }) {
               value={replyContent}
               onChange={(e) => setReplyContent(e.target.value)}
               placeholder="Viết phản hồi..."
-              className="flex-1 text-sm rounded-md border-slate-200 focus:border-primary focus:ring-primary/20"
+              className="flex-1 text-sm rounded-md border-border focus:border-primary focus:ring-primary/20"
               autoFocus
             />
             <Button type="submit" size="sm" disabled={isSubmitting || !replyContent.trim()} className="rounded-md px-4">
@@ -448,7 +448,7 @@ function LessonQA({ lesson }) {
         )}
 
         {comment.replies && comment.replies.length > 0 && !collapsedComments.has(comment.id) && (
-          <div className="pl-4 border-l-2 border-slate-100 mt-2">
+          <div className="pl-4 border-l-2 border-border mt-2">
             {comment.replies.map(reply => renderComment(reply, true))}
           </div>
         )}
@@ -457,14 +457,14 @@ function LessonQA({ lesson }) {
   );
 
   return (
-    <div className="bg-white rounded-xl p-6 md:p-8 border border-slate-200 shadow-sm">
-      <h3 className="text-xl font-black text-slate-900 mb-6 flex items-center gap-3">
+    <div className="bg-white rounded-xl p-6 md:p-8 border border-border shadow-sm">
+      <h3 className="text-xl font-black text-foreground mb-6 flex items-center gap-3">
         <MessageSquare className="w-6 h-6 text-primary" /> Thảo luận bài học
       </h3>
 
       <form onSubmit={(e) => handleSubmit(e, null)} className="mb-8">
         <div className="flex gap-4">
-          <Avatar className="w-12 h-12 border border-slate-200 shrink-0">
+          <Avatar className="w-12 h-12 border border-border shrink-0">
             <AvatarImage src={currentUser?.avatar} />
             <AvatarFallback className="bg-primary/10 text-primary font-bold">
               {currentUser?.fullName?.charAt(0) || <User className="w-6 h-6" />}
@@ -475,7 +475,7 @@ function LessonQA({ lesson }) {
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               placeholder="Bạn có câu hỏi gì về bài học này?"
-              className="w-full rounded-2xl border-slate-200 focus:border-primary focus:ring-primary/20 min-h-[100px] p-4 text-sm resize-y shadow-sm"
+              className="w-full rounded-2xl border-border focus:border-primary focus:ring-primary/20 min-h-[100px] p-4 text-sm resize-y shadow-sm"
             />
             <Button 
               type="submit" 
@@ -489,7 +489,7 @@ function LessonQA({ lesson }) {
       </form>
 
       {loading ? (
-        <div className="flex justify-center py-8 text-slate-400">
+        <div className="flex justify-center py-8 text-muted-foreground">
           <Loader2 className="w-8 h-8 animate-spin" />
         </div>
       ) : comments.length > 0 ? (
@@ -497,7 +497,7 @@ function LessonQA({ lesson }) {
           {comments.map(c => renderComment(c, false))}
         </div>
       ) : (
-        <div className="text-center py-12 text-slate-400 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
+        <div className="text-center py-12 text-muted-foreground bg-muted rounded-2xl border border-dashed border-border">
           <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-20" />
           <p className="font-bold">Chưa có bình luận nào.</p>
           <p className="text-sm mt-1 opacity-80">Hãy là người đầu tiên đặt câu hỏi!</p>
@@ -911,7 +911,7 @@ export default function LearningWorkspace() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-background">
         <Loader2 className="w-12 h-12 animate-spin text-primary mb-4" />
-        <p className="text-slate-500 font-medium animate-pulse">Đang kiểm tra quyền truy cập...</p>
+        <p className="text-muted-foreground font-medium animate-pulse">Đang kiểm tra quyền truy cập...</p>
       </div>
     );
   }
@@ -919,11 +919,11 @@ export default function LearningWorkspace() {
   if (!isEnrolled) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-white p-6 text-center">
-        <div className="w-24 h-24 bg-red-50 rounded-full flex items-center justify-center mb-6 border border-red-100 shadow-inner">
-          <Info className="w-10 h-10 text-red-500" />
+        <div className="w-24 h-24 bg-red-50 rounded-full flex items-center justify-center mb-6 border border-error/20 shadow-inner">
+          <Info className="w-10 h-10 text-error" />
         </div>
-        <h2 className="text-2xl font-black text-slate-900 mb-2 uppercase tracking-tight">Truy cập bị từ chối</h2>
-        <p className="text-slate-500 max-w-md mx-auto mb-8 font-bold">
+        <h2 className="text-2xl font-black text-foreground mb-2 uppercase tracking-tight">Truy cập bị từ chối</h2>
+        <p className="text-muted-foreground max-w-md mx-auto mb-8 font-bold">
           Bạn chưa sở hữu khóa học này hoặc phiên thanh toán chưa được xác nhận. Vui lòng mua khóa học để bắt đầu học tập.
         </p>
         <div className="flex gap-4">
@@ -936,7 +936,7 @@ export default function LearningWorkspace() {
           <Button 
             variant="outline"
             onClick={() => navigate("/account/my-courses")}
-            className="font-black px-8 py-6 rounded-xl border-slate-200"
+            className="font-black px-8 py-6 rounded-xl border-border"
           >
             Khóa học của tôi
           </Button>
@@ -975,11 +975,11 @@ export default function LearningWorkspace() {
   return (
     <div className="flex flex-col h-screen bg-background overflow-hidden font-sans">
       {/* ── Header ── */}
-      <header className="h-16 bg-slate-900 text-white flex items-center justify-between px-6 z-50 shrink-0 shadow-lg border-b border-white/5">
+      <header className="h-16 bg-muted text-white flex items-center justify-between px-6 z-50 shrink-0 shadow-lg border-b border-white/5">
         <div className="flex items-center gap-4 min-w-0">
           <button
             onClick={() => navigate("/account/my-courses")}
-            className="p-2.5 hover:bg-slate-800 rounded-lg transition-all text-slate-300 hover:text-white group"
+            className="p-2.5 hover:bg-muted rounded-lg transition-all text-slate-300 hover:text-white group"
           >
             <ChevronLeft className="w-6 h-6 group-hover:-translate-x-0.5 transition-transform" />
           </button>
@@ -995,11 +995,11 @@ export default function LearningWorkspace() {
 
         <div className="flex-1 max-w-xl px-12 hidden md:block">
           <div className="flex flex-col gap-1.5">
-            <div className="flex items-center justify-between text-[10px] font-black text-slate-400 uppercase tracking-widest">
+            <div className="flex items-center justify-between text-[10px] font-black text-muted-foreground uppercase tracking-widest">
                 <span>Tiến độ hoàn thành</span>
                 <span>{completedLessonIds.length}/{totalLessonsCount} BÀI HỌC</span>
             </div>
-            <Progress value={progressValue} className="h-2 bg-slate-800 [&>div]:bg-primary shadow-inner" />
+            <Progress value={progressValue} className="h-2 bg-muted [&>div]:bg-primary shadow-inner" />
           </div>
         </div>
 
@@ -1007,7 +1007,7 @@ export default function LearningWorkspace() {
           <Button
             variant="ghost"
             size="sm"
-            className="text-slate-300 hover:bg-slate-800 hover:text-white font-bold hidden lg:flex items-center gap-2 rounded-lg"
+            className="text-slate-300 hover:bg-muted hover:text-white font-bold hidden lg:flex items-center gap-2 rounded-lg"
           >
             <LayoutDashboard className="w-4 h-4" />
             Giao diện
@@ -1022,11 +1022,11 @@ export default function LearningWorkspace() {
               <Award className="w-4 h-4" /> Xem chứng chỉ
             </Button>
           )}
-          <div className="flex items-center gap-1.5 bg-slate-800 p-1.5 rounded-lg border border-white/5">
+          <div className="flex items-center gap-1.5 bg-muted p-1.5 rounded-lg border border-white/5">
             <button
               onClick={handlePrevLesson}
               disabled={activeSectionIdx === 0 && activeLessonIdx === 0}
-              className="p-1.5 hover:bg-slate-700 disabled:opacity-20 disabled:cursor-not-allowed rounded-lg transition-all text-slate-300"
+              className="p-1.5 hover:bg-muted disabled:opacity-20 disabled:cursor-not-allowed rounded-lg transition-all text-slate-300"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
@@ -1039,7 +1039,7 @@ export default function LearningWorkspace() {
                   (activeViewMode === "quiz")
                 )
               }
-              className="p-1.5 hover:bg-slate-700 disabled:opacity-20 disabled:cursor-not-allowed rounded-lg transition-all text-slate-300"
+              className="p-1.5 hover:bg-muted disabled:opacity-20 disabled:cursor-not-allowed rounded-lg transition-all text-slate-300"
             >
               <ChevronRight className="w-5 h-5" />
             </button>
@@ -1094,7 +1094,7 @@ export default function LearningWorkspace() {
 
                   {/* Lesson Title Section */}
                   <div className="mt-10 mb-10 pl-2">
-                    <h2 className="text-2xl md:text-3xl font-black text-slate-900 leading-[1.15] tracking-tight">
+                    <h2 className="text-2xl md:text-3xl font-black text-foreground leading-[1.15] tracking-tight">
                       {currentLesson?.title}
                     </h2>
                     <div className="flex items-center gap-4 mt-5">
@@ -1102,8 +1102,8 @@ export default function LearningWorkspace() {
                             <CheckCircle2 className="w-3.5 h-3.5" />
                             Phần {activeSectionIdx + 1}
                         </div>
-                        <Separator orientation="vertical" className="h-4 bg-slate-300" />
-                        <p className="text-slate-400 font-bold italic text-sm tracking-tight capitalize">
+                        <Separator orientation="vertical" className="h-4 bg-muted" />
+                        <p className="text-muted-foreground font-bold italic text-sm tracking-tight capitalize">
                           {currentSection?.title}
                         </p>
                     </div>
@@ -1111,7 +1111,7 @@ export default function LearningWorkspace() {
 
                   {/* Tabs Container */}
                   <Tabs defaultValue="overview" className="w-full">
-                    <TabsList className="bg-white p-1.5 h-14 rounded-xl w-full sm:w-fit border border-slate-200 shadow-sm gap-1.5">
+                    <TabsList className="bg-white p-1.5 h-14 rounded-xl w-full sm:w-fit border border-border shadow-sm gap-1.5">
                       <TabsTrigger 
                         value="overview" 
                         className="rounded-lg h-full px-5 font-black text-[11px] uppercase tracking-widest flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-primary/30 transition-all duration-300"
@@ -1133,13 +1133,13 @@ export default function LearningWorkspace() {
                     </TabsList>
 
                     <TabsContent value="overview" className="mt-10 outline-none">
-                      <div className="bg-white rounded-xl p-10 md:p-14 border border-slate-200 shadow-sm leading-[1.8] text-slate-800">
+                      <div className="bg-white rounded-xl p-10 md:p-14 border border-border shadow-sm leading-[1.8] text-foreground">
                         <h3 className="text-2xl font-black mb-8 flex items-center gap-4">
                             <div className="w-2.5 h-10 bg-primary rounded-full shadow-[0_0_15px_rgba(var(--primary),0.5)]" />
                             Nội dung bài học
                         </h3>
                         <div 
-                          className="prose prose-slate max-w-none text-slate-600 font-bold text-lg"
+                          className="prose prose-slate max-w-none text-muted-foreground font-bold text-lg"
                           dangerouslySetInnerHTML={{ __html: currentLesson?.content }}
                         />
                       </div>
@@ -1153,16 +1153,16 @@ export default function LearningWorkspace() {
                        {currentSection?.attachments && currentSection.attachments.length > 0 ? (
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {currentSection.attachments.map((file, i) => (
-                              <div key={file.id || i} className="flex items-center justify-between p-6 bg-white border border-slate-200 rounded-xl hover:border-primary hover:shadow-2xl hover:shadow-primary/5 transition-all group cursor-pointer duration-500">
+                              <div key={file.id || i} className="flex items-center justify-between p-6 bg-white border border-border rounded-xl hover:border-primary hover:shadow-2xl hover:shadow-primary/5 transition-all group cursor-pointer duration-500">
                                 <div className="flex items-center gap-5">
-                                  <div className="w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center text-primary border border-slate-100 group-hover:bg-primary group-hover:text-white group-hover:rotate-6 transition-all duration-300">
+                                  <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center text-primary border border-border group-hover:bg-primary group-hover:text-white group-hover:rotate-6 transition-all duration-300">
                                     <FileText className="w-7 h-7" />
                                   </div>
                                   <div className="min-w-0">
-                                    <p className="text-[15px] font-black text-slate-900 truncate max-w-[200px] mb-1">
+                                    <p className="text-[15px] font-black text-foreground truncate max-w-[200px] mb-1">
                                         {file.fileUrl.split('/').pop() || `Tài liệu ${i + 1}`}
                                     </p>
-                                    <p className="text-[11px] text-slate-400 font-black uppercase tracking-widest">
+                                    <p className="text-[11px] text-muted-foreground font-black uppercase tracking-widest">
                                         {file.fileType || "DOCUMENT"} • FILE DOWNLOAD
                                     </p>
                                   </div>
@@ -1179,7 +1179,7 @@ export default function LearningWorkspace() {
                             ))}
                           </div>
                        ) : (
-                          <div className="bg-white rounded-xl p-16 border border-slate-200 shadow-sm text-center text-slate-400 font-black italic uppercase tracking-widest text-xs">
+                          <div className="bg-white rounded-xl p-16 border border-border shadow-sm text-center text-muted-foreground font-black italic uppercase tracking-widest text-xs">
                             Chương này chưa tải lên tài liệu tham khảo.
                           </div>
                        )}
@@ -1198,11 +1198,11 @@ export default function LearningWorkspace() {
             </div>
 
             {/* ── Right: Course Playlist Sidebar ── */}
-            <aside className="w-full lg:w-[380px] xl:w-[450px] shrink-0 border border-slate-200 rounded-xl overflow-hidden shadow-2xl flex flex-col">
-              <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+            <aside className="w-full lg:w-[380px] xl:w-[450px] shrink-0 border border-border rounded-xl overflow-hidden shadow-2xl flex flex-col">
+              <div className="p-8 border-b border-border flex items-center justify-between bg-muted">
                 <div className="flex flex-col gap-1">
-                    <h3 className="font-black text-slate-900 uppercase tracking-[0.2em] text-[11px]">Nội dung khóa học</h3>
-                    <p className="text-[10px] font-black text-slate-400">DANH SÁCH BÀI GIẢNG DÀNH CHO BẠN</p>
+                    <h3 className="font-black text-foreground uppercase tracking-[0.2em] text-[11px]">Nội dung khóa học</h3>
+                    <p className="text-[10px] font-black text-muted-foreground">DANH SÁCH BÀI GIẢNG DÀNH CHO BẠN</p>
                 </div>
                 <div className="text-[10px] font-black text-primary bg-primary/10 px-3 py-1.5 rounded-xl border border-primary/20">
                     {course?.modules?.length || 0} CHƯƠNG
@@ -1219,12 +1219,12 @@ export default function LearningWorkspace() {
                         value={`section-${sIdx}`}
                         className={`border-b-0 px-2 last:mb-0`}
                       >
-                        <AccordionTrigger className="px-6 py-6 hover:bg-slate-50/50 hover:no-underline [&[data-state=open]]:bg-slate-50/80 rounded-xl transition-all font-black mx-2 mb-1">
+                        <AccordionTrigger className="px-6 py-6 hover:bg-muted hover:no-underline [&[data-state=open]]:bg-muted/80 rounded-xl transition-all font-black mx-2 mb-1">
                           <div className="flex flex-col items-start gap-1 text-left min-w-0">
                             <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em] italic">
                               Phần {sIdx + 1}
                             </span>
-                            <span className="font-black text-slate-900 text-[16px] truncate w-full tracking-tight">
+                            <span className="font-black text-foreground text-[16px] truncate w-full tracking-tight">
                               {section.title}
                             </span>
                           </div>
@@ -1241,7 +1241,7 @@ export default function LearningWorkspace() {
                                   className={`flex items-start gap-4 px-6 py-5 transition-all text-left rounded-lg border-2
                                     ${isCurrent 
                                         ? "bg-primary shadow-xl shadow-primary/20 border-primary text-white" 
-                                        : "hover:bg-slate-50 border-transparent text-slate-700 hover:scale-[0.98]"}`}
+                                        : "hover:bg-muted border-transparent text-foreground hover:scale-[0.98]"}`}
                                 >
                                   <div className="mt-1.5 shrink-0">
                                     {isCompleted ? (
@@ -1253,14 +1253,14 @@ export default function LearningWorkspace() {
                                         <PlayCircle className="w-3.5 h-3.5 text-primary" />
                                       </div>
                                     ) : (
-                                      <div className="w-5 h-5 rounded-full border-2 border-slate-200 group-hover:border-primary/50 transition-colors bg-white shadow-inner" />
+                                      <div className="w-5 h-5 rounded-full border-2 border-border group-hover:border-primary/50 transition-colors bg-white shadow-inner" />
                                     )}
                                   </div>
                                   <div className="flex-1 min-w-0">
-                                    <p className={`text-[14px] font-black leading-snug break-words ${isCurrent ? "text-white" : "text-slate-800"}`}>
+                                    <p className={`text-[14px] font-black leading-snug break-words ${isCurrent ? "text-white" : "text-foreground"}`}>
                                       {lesson.title}
                                     </p>
-                                    <div className={`flex items-center gap-2 mt-2 text-[10px] font-black uppercase tracking-widest ${isCurrent ? "text-white/80" : "text-slate-400"}`}>
+                                    <div className={`flex items-center gap-2 mt-2 text-[10px] font-black uppercase tracking-widest ${isCurrent ? "text-white/80" : "text-muted-foreground"}`}>
                                       <PlayCircle className="w-3 h-3" />
                                       <span>Nội dung bài học</span>
                                     </div>
@@ -1276,7 +1276,7 @@ export default function LearningWorkspace() {
                                 className={`flex items-start gap-4 px-6 py-5 transition-all text-left rounded-lg border-2 mt-1
                                   ${(activeSectionIdx === sIdx && activeViewMode === "quiz")
                                       ? "bg-indigo-600 shadow-xl shadow-indigo-200 border-indigo-600 text-white" 
-                                      : "hover:bg-slate-50 border-transparent text-slate-700 hover:scale-[0.98]"}`}
+                                      : "hover:bg-muted border-transparent text-foreground hover:scale-[0.98]"}`}
                               >
                                 <div className="mt-1.5 shrink-0">
                                    {completedQuizIds.includes(section.quiz.id) ? (
@@ -1290,7 +1290,7 @@ export default function LearningWorkspace() {
                                    )}
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <p className={`text-[14px] font-black leading-snug ${(activeSectionIdx === sIdx && activeViewMode === "quiz") ? "text-white" : "text-slate-800"}`}>
+                                  <p className={`text-[14px] font-black leading-snug ${(activeSectionIdx === sIdx && activeViewMode === "quiz") ? "text-white" : "text-foreground"}`}>
                                     {section.quiz.title || "Bài tập cuối chương"}
                                   </p>
                                   <div className={`flex items-center gap-2 mt-2 text-[10px] font-black uppercase tracking-widest ${(activeSectionIdx === sIdx && activeViewMode === "quiz") ? "text-white/80" : "text-indigo-500"}`}>

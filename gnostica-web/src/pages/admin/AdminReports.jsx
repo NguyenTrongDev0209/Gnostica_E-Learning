@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { BarChart3, ShieldAlert, CheckCircle2, XCircle } from "lucide-react";
-import axios from "axios";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -23,8 +22,8 @@ export default function AdminReports() {
   const fetchReports = async () => {
     setIsLoading(true);
     try {
-      const res = await axios.get("http://localhost:8080/api/thread-reports?page=0&size=50");
-      const allReports = res.data.content || [];
+      const data = await threadReportService.getReports(0, 50);
+      const allReports = data.content || data || [];
       // Lọc bỏ các báo cáo có trạng thái là DISMISSED (Bỏ qua) khỏi bảng hiển thị
       const activeReports = allReports.filter(report => report.status !== "DISMISSED");
       setReports(activeReports);
@@ -42,7 +41,7 @@ export default function AdminReports() {
 
   const handleUpdateStatus = async (id, status) => {
     try {
-      await axios.put(`http://localhost:8080/api/thread-reports/${id}/status`, { status });
+      await threadReportService.updateReportStatus(id, status);
       toast.success("Đã cập nhật trạng thái báo cáo");
       fetchReports();
     } catch (error) {
@@ -54,11 +53,11 @@ export default function AdminReports() {
   const getStatusBadge = (status) => {
     switch (status) {
       case "PENDING":
-        return <Badge variant="secondary" className="bg-orange-100 text-orange-700 hover:bg-orange-100 border-none">Chờ xử lý</Badge>;
+        return <Badge variant="secondary" className="bg-warning/10 text-warning text-warning hover:bg-warning/10 text-warning border-none">Chờ xử lý</Badge>;
       case "RESOLVED":
-        return <Badge variant="secondary" className="bg-green-100 text-green-700 hover:bg-green-100 border-none">Đã duyệt</Badge>;
+        return <Badge variant="secondary" className="bg-success/10 text-success text-success hover:bg-success/10 text-success border-none">Đã duyệt</Badge>;
       case "DISMISSED":
-        return <Badge variant="secondary" className="bg-slate-100 text-slate-700 hover:bg-slate-100 border-none">Bỏ qua</Badge>;
+        return <Badge variant="secondary" className="bg-secondary text-foreground hover:bg-secondary border-none">Bỏ qua</Badge>;
       default:
         return <Badge>{status}</Badge>;
     }
@@ -67,8 +66,8 @@ export default function AdminReports() {
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-10">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Thống Kê & Báo Cáo</h1>
-        <p className="text-sm text-slate-500 mt-1">Phân tích doanh thu và quản lý nội dung nền tảng.</p>
+        <h1 className="text-2xl font-bold text-foreground tracking-tight">Thống Kê & Báo Cáo</h1>
+        <p className="text-sm text-muted-foreground mt-1">Phân tích doanh thu và quản lý nội dung nền tảng.</p>
       </div>
 
       <Tabs defaultValue="stats" className="w-full">
@@ -78,9 +77,9 @@ export default function AdminReports() {
         </TabsList>
         
         <TabsContent value="stats">
-          <div className="flex flex-col items-center justify-center h-64 bg-white rounded-xl border border-slate-200 border-dashed gap-4">
+          <div className="flex flex-col items-center justify-center h-64 bg-white rounded-xl border border-border border-dashed gap-4">
             <BarChart3 className="w-12 h-12 text-slate-300" />
-            <p className="text-slate-400 font-medium">Trang Thống Kê đang được xây dựng</p>
+            <p className="text-muted-foreground font-medium">Trang Thống Kê đang được xây dựng</p>
           </div>
         </TabsContent>
 
@@ -88,7 +87,7 @@ export default function AdminReports() {
           <Card className="border-border shadow-sm">
             <CardContent className="p-0">
               <Table>
-                <TableHeader className="bg-slate-50/50">
+                <TableHeader className="bg-muted">
                   <TableRow>
                     <TableHead className="w-[150px]">Người báo cáo</TableHead>
                     <TableHead className="w-[150px]">Vi phạm</TableHead>
@@ -101,13 +100,13 @@ export default function AdminReports() {
                 <TableBody>
                   {isLoading ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-10 h-32 text-slate-500">
+                      <TableCell colSpan={6} className="text-center py-10 h-32 text-muted-foreground">
                         Đang tải dữ liệu...
                       </TableCell>
                     </TableRow>
                   ) : reports.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-10 h-32 text-slate-500">
+                      <TableCell colSpan={6} className="text-center py-10 h-32 text-muted-foreground">
                         Chưa có báo cáo nào
                       </TableCell>
                     </TableRow>
@@ -115,14 +114,14 @@ export default function AdminReports() {
                     reports.map((report) => (
                       <TableRow key={report.id}>
                         <TableCell>
-                          <p className="font-medium text-slate-700">{report.reporterName}</p>
-                          <p className="text-xs text-slate-400">{report.reporterEmail}</p>
+                          <p className="font-medium text-foreground">{report.reporterName}</p>
+                          <p className="text-xs text-muted-foreground">{report.reporterEmail}</p>
                         </TableCell>
                         <TableCell>
-                          <span className="font-medium text-slate-700 text-sm">{violationTypes[report.type] || report.type}</span>
+                          <span className="font-medium text-foreground text-sm">{violationTypes[report.type] || report.type}</span>
                         </TableCell>
                         <TableCell>
-                          <p className="text-sm text-slate-600" title={report.threadContent}>
+                          <p className="text-sm text-muted-foreground" title={report.threadContent}>
                             {report.threadContent?.length > 50 
                               ? report.threadContent.substring(0, 50) + "..." 
                               : report.threadContent}
@@ -132,10 +131,10 @@ export default function AdminReports() {
                           </a>
                         </TableCell>
                         <TableCell>
-                          <p className="text-sm text-slate-600" title={report.details}>
+                          <p className="text-sm text-muted-foreground" title={report.details}>
                             {report.details 
                               ? (report.details.length > 50 ? report.details.substring(0, 50) + "..." : report.details)
-                              : <span className="text-slate-400 italic">Không có</span>}
+                              : <span className="text-muted-foreground italic">Không có</span>}
                           </p>
                         </TableCell>
                         <TableCell>
@@ -147,7 +146,7 @@ export default function AdminReports() {
                               <Button 
                                 variant="outline" 
                                 size="sm" 
-                                className="h-8 gap-1 text-slate-600 border-slate-200 hover:bg-slate-50"
+                                className="h-8 gap-1 text-muted-foreground border-border hover:bg-muted"
                                 onClick={() => handleUpdateStatus(report.id, "PENDING")}
                               >
                                 <XCircle className="w-3.5 h-3.5" /> Hủy duyệt
@@ -156,7 +155,7 @@ export default function AdminReports() {
                               <Button 
                                 variant="outline" 
                                 size="sm" 
-                                className="h-8 gap-1 text-slate-600 border-slate-200 hover:bg-slate-50"
+                                className="h-8 gap-1 text-muted-foreground border-border hover:bg-muted"
                                 onClick={() => handleUpdateStatus(report.id, "PENDING")}
                               >
                                 <XCircle className="w-3.5 h-3.5" /> Hoàn tác
@@ -166,7 +165,7 @@ export default function AdminReports() {
                                 <Button 
                                   variant="outline" 
                                   size="sm" 
-                                  className="h-8 gap-1 text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
+                                  className="h-8 gap-1 text-error border-error/20 hover:bg-red-50 hover:text-error"
                                   onClick={() => handleUpdateStatus(report.id, "RESOLVED")}
                                 >
                                   <CheckCircle2 className="w-3.5 h-3.5" /> Duyệt
@@ -174,7 +173,7 @@ export default function AdminReports() {
                                 <Button 
                                   variant="ghost" 
                                   size="sm" 
-                                  className="h-8 gap-1 text-slate-500 hover:text-slate-700"
+                                  className="h-8 gap-1 text-muted-foreground hover:text-foreground"
                                   onClick={() => handleUpdateStatus(report.id, "DISMISSED")}
                                 >
                                   <XCircle className="w-3.5 h-3.5" /> Bỏ qua

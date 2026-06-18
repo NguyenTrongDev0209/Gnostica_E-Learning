@@ -20,7 +20,7 @@ const NOTIFICATIONS_DATA = [
     time: "2 giờ trước",
     isRead: false,
     icon: BookOpen,
-    color: "text-blue-500 bg-blue-50",
+    color: "text-info bg-blue-50",
   },
   {
     id: 2,
@@ -40,7 +40,7 @@ const NOTIFICATIONS_DATA = [
     time: "20/03/2026",
     isRead: true,
     icon: MessageSquare,
-    color: "text-orange-500 bg-orange-50",
+    color: "text-warning bg-orange-50",
   },
   {
     id: 4,
@@ -50,7 +50,7 @@ const NOTIFICATIONS_DATA = [
     time: "15/03/2026",
     isRead: true,
     icon: AlertCircle,
-    color: "text-red-500 bg-red-50",
+    color: "text-error bg-red-50",
   },
 ];
 
@@ -95,11 +95,11 @@ export default function Notifications() {
       {/* Page Title */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-3">
+          <h1 className="text-2xl font-extrabold text-foreground flex items-center gap-3">
             <div className="relative">
               <Bell className="w-7 h-7 text-primary" />
               {unreadCount > 0 && (
-                <span className="absolute top-0 right-0 w-2.5 h-2.5 rounded-full bg-red-500 ring-2 ring-white"></span>
+                <span className="absolute top-0 right-0 w-2.5 h-2.5 rounded-full bg-error/10 text-error ring-2 ring-white"></span>
               )}
             </div>
             Thông báo của bạn
@@ -120,7 +120,7 @@ export default function Notifications() {
       </div>
 
       {/* Notifications List */}
-      <Card className="border-slate-100 shadow-sm overflow-hidden">
+      <Card className="border-border shadow-sm overflow-hidden">
         <CardContent className="p-0 divide-y divide-slate-100">
           {notifications.length > 0 ? (
             notifications.map((notification) => {
@@ -128,7 +128,7 @@ export default function Notifications() {
               return (
                 <div 
                   key={notification.id} 
-                  className={`p-5 flex gap-4 transition-colors hover:bg-slate-50 cursor-pointer ${notification.isRead ? 'opacity-70' : 'bg-primary/5'}`}
+                  className={`p-5 flex gap-4 transition-colors hover:bg-muted cursor-pointer ${notification.isRead ? 'opacity-70' : 'bg-primary/5'}`}
                   onClick={() => markAsRead(notification.id)}
                 >
                   <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${notification.color}`}>
@@ -137,14 +137,14 @@ export default function Notifications() {
                   
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-start gap-4 mb-1.5">
-                      <h3 className={`text-base line-clamp-1 ${notification.isRead ? 'font-semibold text-slate-700' : 'font-extrabold text-primary'}`}>
+                      <h3 className={`text-base line-clamp-1 ${notification.isRead ? 'font-semibold text-foreground' : 'font-extrabold text-primary'}`}>
                         {notification.title}
                       </h3>
-                      <span className="text-xs font-medium text-slate-400 whitespace-nowrap pt-1">
+                      <span className="text-xs font-medium text-muted-foreground whitespace-nowrap pt-1">
                         {notification.time}
                       </span>
                     </div>
-                    <p className={`text-sm line-clamp-2 ${notification.isRead ? 'text-slate-500' : 'text-slate-700 font-medium'}`}>
+                    <p className={`text-sm line-clamp-2 ${notification.isRead ? 'text-muted-foreground' : 'text-foreground font-medium'}`}>
                       {notification.message}
                     </p>
                   </div>
@@ -153,11 +153,11 @@ export default function Notifications() {
             })
           ) : (
             <div className="py-20 text-center">
-              <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center text-slate-300 mx-auto mb-4">
+              <div className="w-16 h-16 rounded-full bg-secondary flex items-center justify-center text-slate-300 mx-auto mb-4">
                 <Bell className="w-8 h-8" />
               </div>
-              <h3 className="text-lg font-bold text-slate-900 mb-2">Không có thông báo nào</h3>
-              <p className="text-sm text-slate-500">Khi có hoạt động mới, thông báo sẽ hiển thị ở đây.</p>
+              <h3 className="text-lg font-bold text-foreground mb-2">Không có thông báo nào</h3>
+              <p className="text-sm text-muted-foreground">Khi có hoạt động mới, thông báo sẽ hiển thị ở đây.</p>
             </div>
           )}
         </CardContent>

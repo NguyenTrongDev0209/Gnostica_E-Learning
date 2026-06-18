@@ -83,11 +83,11 @@ export default function AdminLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex">
+    <div className="min-h-screen bg-muted flex">
       {/* Sidebar - Fixed */}
-      <aside className="w-64 bg-slate-900 min-h-screen fixed left-0 top-0 bottom-0 text-slate-300 flex flex-col z-50">
+      <aside className="w-64 bg-muted min-h-screen fixed left-0 top-0 bottom-0 text-slate-300 flex flex-col z-50">
         {/* Brand */}
-        <div className="h-16 flex items-center justify-center px-0 border-b border-slate-800 bg-slate-950/50">
+        <div className="h-16 flex items-center justify-center px-0 border-b border-border bg-slate-950/50">
           <AppLogo className="h-12 md:h-12" />
         </div>
 
@@ -96,7 +96,7 @@ export default function AdminLayout() {
           <nav className="flex flex-col gap-3">
             {ADMIN_MENU_GROUPS.map((group, idx) => (
               <div key={idx} className="space-y-2">
-                <p className="px-3 text-[11px] font-bold text-slate-500 uppercase tracking-widest">
+                <p className="px-3 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">
                   {group.title}
                 </p>
                 <div className="flex flex-col gap-1">
@@ -115,11 +115,11 @@ export default function AdminLayout() {
                           flex items-center gap-3 px-3 py-3 rounded-lg text-base font-medium transition-all
                           ${isActive
                             ? "bg-primary text-primary-foreground font-bold shadow-md shadow-primary/20"
-                            : "hover:bg-slate-800 hover:text-white"
+                            : "hover:bg-muted hover:text-white"
                           }
                         `}
                       >
-                        <Icon className={`w-5 h-5 shrink-0 ${isActive ? "text-primary-foreground" : "text-slate-400"}`} />
+                        <Icon className={`w-5 h-5 shrink-0 ${isActive ? "text-primary-foreground" : "text-muted-foreground"}`} />
                         {item.label}
                       </Link>
                     );
@@ -131,10 +131,10 @@ export default function AdminLayout() {
         </div>
 
         {/* User / Logout */}
-        <div className="p-4 border-t border-slate-800 bg-slate-950/30 font-bold">
+        <div className="p-4 border-t border-border bg-slate-950/30 font-bold">
           <div className="flex items-center justify-between px-2">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center font-bold text-primary-foreground shrink-0 border border-slate-700 overflow-hidden">
+              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center font-bold text-primary-foreground shrink-0 border border-border overflow-hidden">
                 {user?.avatar ? (
                   <img src={user.avatar} alt="Avatar" className="w-full h-full object-cover" />
                 ) : (
@@ -143,12 +143,12 @@ export default function AdminLayout() {
               </div>
               <div className="min-w-0">
                 <p className="text-sm font-bold text-white truncate">{user?.fullName || "Administrator"}</p>
-                <p className="text-[11px] text-slate-500 truncate">{user?.email || "admin@system.com"}</p>
+                <p className="text-[11px] text-muted-foreground truncate">{user?.email || "admin@system.com"}</p>
               </div>
             </div>
             <button
               onClick={handleLogout}
-              className="w-10 h-10 flex items-center justify-center rounded-lg text-slate-500 hover:bg-slate-800 hover:text-red-400 transition-all ml-2 hover:shadow-lg"
+              className="w-10 h-10 flex items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-error transition-all ml-2 hover:shadow-lg"
               title="Đăng xuất"
             >
               <LogOut className="w-5 h-5 shrink-0" />
@@ -160,31 +160,31 @@ export default function AdminLayout() {
       {/* Main Content Area */}
       <div className="flex-1 ml-64 flex flex-col min-h-screen">
         {/* Top Header */}
-        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 sticky top-0 z-40">
+        <header className="h-16 bg-white border-b border-border flex items-center justify-between px-6 sticky top-0 z-40">
           <div className="flex items-center gap-4 flex-1">
             {/* Search Bar */}
             <div className="relative w-full max-w-[340px] hidden md:block">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input
                 type="text"
                 placeholder="Tìm kiếm khóa học, học viên, mã giảm giá..."
-                className="w-full h-10 pl-10 pr-4 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                className="w-full h-10 pl-10 pr-4 bg-muted border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
               />
             </div>
           </div>
 
           <div className="flex items-center gap-4 shrink-0">
             <button
-              className="w-10 h-10 rounded-full hover:bg-slate-100 flex items-center justify-center relative transition-colors"
+              className="w-10 h-10 rounded-full hover:bg-secondary flex items-center justify-center relative transition-colors"
               onClick={() => navigate("/")}
               title="Về trang chủ phía Client"
             >
               <span className="text-xs font-bold text-primary mr-1">Client</span>
             </button>
-            <div className="w-px h-6 bg-slate-200 mx-1"></div>
-            <button className="w-10 h-10 rounded-full hover:bg-slate-100 flex items-center justify-center relative transition-colors">
-              <Bell className="w-5 h-5 text-slate-600" />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white"></span>
+            <div className="w-px h-6 bg-muted mx-1"></div>
+            <button className="w-10 h-10 rounded-full hover:bg-secondary flex items-center justify-center relative transition-colors">
+              <Bell className="w-5 h-5 text-muted-foreground" />
+              <span className="absolute top-2 right-2 w-2 h-2 bg-error/10 text-error rounded-full ring-2 ring-white"></span>
             </button>
             <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm overflow-hidden">
               {user?.avatar ? (

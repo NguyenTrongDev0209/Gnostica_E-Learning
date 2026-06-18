@@ -10,7 +10,7 @@ import {
 
 export default function RatingDistribution({ data }) {
     return (
-        <Card className="border-slate-200 shadow-sm">
+        <Card className="border-border shadow-sm">
             <CardHeader>
                 <CardTitle className="text-lg font-bold">Phân Bổ Đánh Giá</CardTitle>
                 <CardDescription>Dựa trên 1,000+ đánh giá mới nhất</CardDescription>
@@ -38,7 +38,7 @@ export default function RatingDistribution({ data }) {
                     {data.map((item, i) => (
                         <div key={i} className="flex items-center gap-1.5">
                             <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }}></div>
-                            <span className="text-[11px] font-bold text-slate-600">{item.name}</span>
+                            <span className="text-[11px] font-bold text-muted-foreground">{item.name}</span>
                         </div>
                     ))}
                 </div>

@@ -1,8 +1,8 @@
 export const mockCategories = [
-  { id: 1, title: "Lập trình & IT", iconName: "Code", coursesCount: "320+", colorClass: "bg-blue-500/10 text-blue-500" },
+  { id: 1, title: "Lập trình & IT", iconName: "Code", coursesCount: "320+", colorClass: "bg-info/10 text-info/10 text-info" },
   { id: 2, title: "Thiết kế Đồ họa", iconName: "PenTool", coursesCount: "150+", colorClass: "bg-pink-500/10 text-pink-500" },
-  { id: 3, title: "Kinh doanh", iconName: "BarChart", coursesCount: "210+", colorClass: "bg-orange-500/10 text-orange-500" },
-  { id: 4, title: "Marketing", iconName: "Megaphone", coursesCount: "180+", colorClass: "bg-green-500/10 text-green-500" },
+  { id: 3, title: "Kinh doanh", iconName: "BarChart", coursesCount: "210+", colorClass: "bg-warning/10 text-warning/10 text-warning" },
+  { id: 4, title: "Marketing", iconName: "Megaphone", coursesCount: "180+", colorClass: "bg-success/10 text-success/10 text-success" },
 ];
 
 export const mockFeaturedCourses = [

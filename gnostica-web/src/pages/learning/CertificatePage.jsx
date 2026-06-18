@@ -2,7 +2,6 @@ import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Download, Loader2 } from "lucide-react";
-import axios from "axios";
 import * as htmlToImage from "html-to-image";
 import { jsPDF } from "jspdf";
 
@@ -17,7 +16,7 @@ export default function CertificatePage() {
     useEffect(() => {
         const fetchCertificate = async () => {
             try {
-                const response = await axios.get(`http://localhost:8080/api/certificates/${certifiUrl}`);
+                const response = await certificateService.getCertificateByUrl(certifiUrl);
                 setCertificate(response.data);
             } catch (err) {
                 setError(true);
@@ -51,7 +50,7 @@ export default function CertificatePage() {
 
     if (loading) {
         return (
-            <div className="flex h-screen items-center justify-center bg-slate-50">
+            <div className="flex h-screen items-center justify-center bg-muted">
                 <Loader2 className="w-10 h-10 animate-spin text-primary" />
             </div>
         );
@@ -59,9 +58,9 @@ export default function CertificatePage() {
 
     if (error || !certificate) {
         return (
-            <div className="flex flex-col h-screen items-center justify-center bg-slate-50 gap-4">
-                <h1 className="text-2xl font-bold text-slate-800">Chứng chỉ không tồn tại</h1>
-                <p className="text-slate-500">Đường dẫn không hợp lệ hoặc chứng chỉ chưa được cấp.</p>
+            <div className="flex flex-col h-screen items-center justify-center bg-muted gap-4">
+                <h1 className="text-2xl font-bold text-foreground">Chứng chỉ không tồn tại</h1>
+                <p className="text-muted-foreground">Đường dẫn không hợp lệ hoặc chứng chỉ chưa được cấp.</p>
                 <Button onClick={() => navigate("/")}>Về trang chủ</Button>
             </div>
         );
@@ -74,7 +73,7 @@ export default function CertificatePage() {
     });
 
     return (
-        <div className="min-h-screen bg-slate-100 flex flex-col items-center justify-center p-6">
+        <div className="min-h-screen bg-secondary flex flex-col items-center justify-center p-6">
             <div className="mb-6 flex gap-4 w-full max-w-[1050px] justify-end">
                 <Button onClick={handleDownloadPdf} className="font-bold gap-2">
                     <Download className="w-4 h-4" /> Tải PDF

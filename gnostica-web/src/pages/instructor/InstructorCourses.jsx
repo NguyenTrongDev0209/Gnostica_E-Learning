@@ -114,8 +114,8 @@ export default function InstructorCourses() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
         <div className="space-y-1">
-          <h1 className="text-h1 font-black text-slate-900 tracking-tight leading-none">Khóa Học Của Tôi</h1>
-          <p className="text-sm font-medium text-slate-500">
+          <h1 className="text-h1 font-black text-foreground tracking-tight leading-none">Khóa Học Của Tôi</h1>
+          <p className="text-sm font-medium text-muted-foreground">
             Quản lý, chỉnh sửa và theo dõi hiệu suất các khóa học bạn đang giảng dạy.
           </p>
         </div>
@@ -181,7 +181,7 @@ export default function InstructorCourses() {
                     <SelectItem
                       key={cat.id}
                       value={String(cat.id)}
-                      className={cat.isParent ? "font-extrabold bg-slate-50/50" : "pl-6 font-medium"}
+                      className={cat.isParent ? "font-extrabold bg-muted" : "pl-6 font-medium"}
                     >
                       {cat.name}
                     </SelectItem>
@@ -242,15 +242,15 @@ export default function InstructorCourses() {
         onOpenChange={(open) => setRejectViewModal(prev => ({ ...prev, isOpen: open }))}
       >
         <DialogContent className="sm:!max-w-[450px] p-0 overflow-hidden border-none shadow-2xl bg-white rounded-2xl">
-          <DialogHeader className="p-6 pb-4 bg-slate-50/50 border-b border-slate-100 text-left sm:text-left flex flex-row items-start gap-4 space-y-0">
+          <DialogHeader className="p-6 pb-4 bg-muted border-b border-border text-left sm:text-left flex flex-row items-start gap-4 space-y-0">
             <div className="w-12 h-12 shrink-0 rounded-2xl bg-rose-50 flex items-center justify-center text-rose-600 border border-rose-100 shadow-sm">
               <XCircle className="w-6 h-6" />
             </div>
             <div className="space-y-1">
-              <DialogTitle className="text-lg font-black text-slate-900 tracking-tight leading-tight uppercase">
+              <DialogTitle className="text-lg font-black text-foreground tracking-tight leading-tight uppercase">
                 Lý do từ chối
               </DialogTitle>
-              <DialogDescription className="text-slate-500 text-xs font-bold leading-tight">
+              <DialogDescription className="text-muted-foreground text-xs font-bold leading-tight">
                 Khóa học: <span className="text-rose-600">"{rejectViewModal.courseTitle}"</span>
               </DialogDescription>
             </div>
@@ -262,19 +262,19 @@ export default function InstructorCourses() {
               <p className="text-[10px] font-black text-rose-600 uppercase tracking-widest mb-2 flex items-center gap-1.5">
                 Phản hồi từ Quản trị viên
               </p>
-              <p className="text-slate-700 font-bold text-sm leading-relaxed whitespace-pre-wrap italic">
+              <p className="text-foreground font-bold text-sm leading-relaxed whitespace-pre-wrap italic">
                 "{rejectViewModal.reason}"
               </p>
             </div>
-            <p className="mt-4 text-xs text-slate-500 font-bold flex items-start gap-1.5 leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-100">
+            <p className="mt-4 text-xs text-muted-foreground font-bold flex items-start gap-1.5 leading-relaxed bg-muted p-3 rounded-xl border border-border">
               <span className="shrink-0 text-amber-500">💡</span> Vui lòng cập nhật lại nội dung theo yêu cầu để gửi kiểm duyệt lại.
             </p>
           </div>
 
-          <DialogFooter className="p-4 bg-slate-50/50 border-t border-slate-100">
+          <DialogFooter className="p-4 bg-muted border-t border-border">
             <Button
               onClick={() => setRejectViewModal(prev => ({ ...prev, isOpen: false }))}
-              className="w-full h-11 font-black bg-slate-900 hover:bg-slate-800 text-white rounded-xl shadow-lg shadow-slate-200"
+              className="w-full h-11 font-black bg-muted hover:bg-muted text-white rounded-xl shadow-lg shadow-slate-200"
             >
               Đã hiểu
             </Button>

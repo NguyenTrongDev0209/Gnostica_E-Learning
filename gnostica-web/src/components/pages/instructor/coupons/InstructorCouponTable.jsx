@@ -72,11 +72,11 @@ export default function InstructorCouponTable({
                                     {/* Cột: Mã & Giảm giá */}
                                     <TableCell>
                                         <div className="flex flex-col items-center gap-2 p-1">
-                                            <div className="flex items-center gap-1.5 bg-slate-900 text-white px-3 py-1 rounded-lg shadow-sm border border-slate-700">
+                                            <div className="flex items-center gap-1.5 bg-muted text-white px-3 py-1 rounded-lg shadow-sm border border-border">
                                                 <Ticket className="w-3.5 h-3.5 text-amber-400" />
                                                 <span className="text-sm font-black tracking-widest font-mono">{coupon.code}</span>
                                             </div>
-                                            <Badge className="bg-green-50 text-green-700 border-green-200 shadow-none hover:bg-green-100 text-[10px] font-black uppercase tracking-wider h-5 flex items-center gap-1">
+                                            <Badge className="bg-green-50 text-success border-success/20 shadow-none hover:bg-success/10 text-success text-[10px] font-black uppercase tracking-wider h-5 flex items-center gap-1">
                                                 Giảm {coupon.discountPercent}%
                                             </Badge>
                                         </div>
@@ -84,14 +84,14 @@ export default function InstructorCouponTable({
 
                                     {/* Cột: Điều kiện */}
                                     <TableCell>
-                                        <div className="flex flex-col gap-1 text-[11px] font-bold text-slate-500 uppercase tracking-tight">
+                                        <div className="flex flex-col gap-1 text-[11px] font-bold text-muted-foreground uppercase tracking-tight">
                                             <div className="flex items-center gap-1.5">
-                                                <span className="w-1 h-1 rounded-full bg-slate-300" />
-                                                Tối thiểu: <span className="text-slate-900">{formatVND(coupon.minDiscount)}</span>
+                                                <span className="w-1 h-1 rounded-full bg-muted" />
+                                                Tối thiểu: <span className="text-foreground">{formatVND(coupon.minDiscount)}</span>
                                             </div>
                                             <div className="flex items-center gap-1.5">
-                                                <span className="w-1 h-1 rounded-full bg-slate-300" />
-                                                Tối đa: <span className="text-slate-900">{formatVND(coupon.maxDiscount)}</span>
+                                                <span className="w-1 h-1 rounded-full bg-muted" />
+                                                Tối đa: <span className="text-foreground">{formatVND(coupon.maxDiscount)}</span>
                                             </div>
                                         </div>
                                     </TableCell>
@@ -99,8 +99,8 @@ export default function InstructorCouponTable({
                                     {/* Cột: Hạn dùng */}
                                     <TableCell className="text-center">
                                         <div className="flex flex-col items-center gap-1">
-                                            <Calendar className="w-4 h-4 text-slate-400" />
-                                            <span className="text-xs font-black text-slate-800">
+                                            <Calendar className="w-4 h-4 text-muted-foreground" />
+                                            <span className="text-xs font-black text-foreground">
                                                 {new Date(coupon.expiryDate).toLocaleDateString('vi-VN', {
                                                     day: '2-digit', month: '2-digit', year: 'numeric'
                                                 })}
@@ -112,11 +112,11 @@ export default function InstructorCouponTable({
                                     <TableCell>
                                         <div className="flex justify-center">
                                             <div className="flex flex-col gap-1.5 w-32">
-                                                <div className="flex justify-between text-[10px] font-black text-slate-500 uppercase tracking-tighter">
+                                                <div className="flex justify-between text-[10px] font-black text-muted-foreground uppercase tracking-tighter">
                                                     <span>Đã dùng</span>
                                                     <span>{coupon.usedCount || 0}/{coupon.quantity}</span>
                                                 </div>
-                                                <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden border border-slate-200/50">
+                                                <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden border border-border/50">
                                                     <div
                                                         className={`h-full rounded-full transition-all duration-500 ${((coupon.usedCount || 0) / coupon.quantity) > 0.8 ? 'bg-amber-500' : 'bg-primary'
                                                             }`}
@@ -130,15 +130,15 @@ export default function InstructorCouponTable({
                                     {/* Cột: Trạng thái */}
                                     <TableCell className="text-center">
                                         {coupon.status === 1 ? (
-                                            <Badge className="bg-green-50 text-green-700 border-green-200 shadow-none hover:bg-green-50 text-[10px] font-black py-0.5 inline-flex items-center gap-1 uppercase tracking-tight">
+                                            <Badge className="bg-green-50 text-success border-success/20 shadow-none hover:bg-green-50 text-[10px] font-black py-0.5 inline-flex items-center gap-1 uppercase tracking-tight">
                                                 <CheckCircle2 className="w-3 h-3" /> Hoạt động
                                             </Badge>
                                         ) : coupon.status === 2 ? (
-                                            <Badge className="bg-slate-50 text-slate-500 border-slate-200 shadow-none hover:bg-slate-50 text-[10px] font-black py-0.5 inline-flex items-center gap-1 uppercase tracking-tight">
+                                            <Badge className="bg-muted text-muted-foreground border-border shadow-none hover:bg-muted text-[10px] font-black py-0.5 inline-flex items-center gap-1 uppercase tracking-tight">
                                                 <Clock className="w-3 h-3" /> Hết hạn
                                             </Badge>
                                         ) : coupon.status === 0 ? (
-                                            <Badge className="bg-blue-50 text-blue-700 border-blue-200 shadow-none hover:bg-blue-50 text-[10px] font-black py-0.5 inline-flex items-center gap-1 uppercase tracking-tight">
+                                            <Badge className="bg-blue-50 text-info border-info/20 shadow-none hover:bg-blue-50 text-[10px] font-black py-0.5 inline-flex items-center gap-1 uppercase tracking-tight">
                                                 <XCircle className="w-3 h-3" /> Tạm ẩn
                                             </Badge>
                                         ) : (
@@ -179,7 +179,7 @@ export default function InstructorCouponTable({
             </div>
 
             {/* Phân trang - Đồng bộ với DataTable style */}
-            <div className="flex items-center justify-between px-6 py-4 border-t border-border/50 bg-slate-50/30">
+            <div className="flex items-center justify-between px-6 py-4 border-t border-border/50 bg-muted/30">
                 <p className="text-sm font-medium text-muted-foreground">
                     Hiển thị {coupons?.length || 0} / {(pagination.totalElements || coupons?.length || 0).toLocaleString()} phiếu giảm giá
                 </p>

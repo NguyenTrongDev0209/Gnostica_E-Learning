@@ -13,7 +13,7 @@ import { SimpleButton } from "@/components/common/AppButton";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { AppBreadcrumb } from "@/components/common/AppSection";
-import { checkoutStatusConfig } from "@/mocks/checkout";
+import { checkoutStatusConfig } from "@/apiMocks/checkout";
 import orderService from "@/services/orderService";
 
 export default function CheckoutResult() {
@@ -66,13 +66,13 @@ export default function CheckoutResult() {
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
-      <section className="bg-slate-900 py-12 text-white">
+      <section className="bg-muted py-12 text-white">
         <div className="app-container">
           <AppBreadcrumb
             items={breadcrumbItems}
-            linkClassName="text-slate-400 hover:text-slate-100"
+            linkClassName="text-muted-foreground hover:text-slate-100"
             activeClassName="font-semibold text-slate-200"
-            separatorClassName="text-slate-500"
+            separatorClassName="text-muted-foreground"
           />
           <h1 className="text-3xl md:text-4xl font-extrabold">
             Kết quả thanh toán
@@ -90,7 +90,7 @@ export default function CheckoutResult() {
             </div>
 
             {/* Status Title */}
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-2">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-foreground mb-2">
               {order?.status === 1 ? "Thanh toán thành công!" : config.title}
             </h2>
             <p className="text-sm text-muted-foreground max-w-sm mb-8">
@@ -100,27 +100,27 @@ export default function CheckoutResult() {
             </p>
 
             {/* Order Details */}
-            <div className="w-full bg-slate-50 rounded-xl p-5 sm:p-6 text-left space-y-3 mb-8">
+            <div className="w-full bg-muted rounded-xl p-5 sm:p-6 text-left space-y-3 mb-8">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-500">Mã đơn hàng</span>
-                <span className="text-sm font-bold text-slate-800">#{orderCode || order?.id || "N/A"}</span>
+                <span className="text-sm text-muted-foreground">Mã đơn hàng</span>
+                <span className="text-sm font-bold text-foreground">#{orderCode || order?.id || "N/A"}</span>
               </div>
-              <Separator className="bg-slate-200/70" />
+              <Separator className="bg-muted/70" />
               <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-500">Tổng tiền</span>
+                <span className="text-sm text-muted-foreground">Tổng tiền</span>
                 <span className="text-sm font-black text-primary">
                   {order ? order.totalPrice.toLocaleString() + "đ" : "0đ"}
                 </span>
               </div>
-              <Separator className="bg-slate-200/70" />
+              <Separator className="bg-muted/70" />
               <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-500">Phương thức</span>
-                <span className="text-sm font-bold text-slate-800">PAYOS (Chuyển khoản)</span>
+                <span className="text-sm text-muted-foreground">Phương thức</span>
+                <span className="text-sm font-bold text-foreground">PAYOS (Chuyển khoản)</span>
               </div>
-              <Separator className="bg-slate-200/70" />
+              <Separator className="bg-muted/70" />
               <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-500">Trạng thái</span>
-                <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${order?.status === 1 ? "bg-green-100 text-green-700" : config.badgeColor}`}>
+                <span className="text-sm text-muted-foreground">Trạng thái</span>
+                <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${order?.status === 1 ? "bg-success/10 text-success text-success" : config.badgeColor}`}>
                   {order?.status === 1 ? "ĐÃ THANH TOÁN" : config.badgeText}
                 </span>
               </div>
@@ -133,7 +133,7 @@ export default function CheckoutResult() {
                   <Link to="/account/orders" className="flex-1">
                     <Button
                       variant="outline"
-                      className="w-full h-12 font-bold gap-2 border-slate-200 hover:bg-slate-50 rounded-xl"
+                      className="w-full h-12 font-bold gap-2 border-border hover:bg-muted rounded-xl"
                     >
                       <FileText className="w-4 h-4" />
                       Lịch sử mua hàng
@@ -151,7 +151,7 @@ export default function CheckoutResult() {
                   <Link to="/cart" className="flex-1">
                     <Button
                       variant="outline"
-                      className="w-full h-12 font-bold gap-2 border-slate-200 hover:bg-slate-50 rounded-xl"
+                      className="w-full h-12 font-bold gap-2 border-border hover:bg-muted rounded-xl"
                     >
                       <ShoppingBag className="w-4 h-4" />
                       Về giỏ hàng

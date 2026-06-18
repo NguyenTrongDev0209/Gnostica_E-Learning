@@ -58,15 +58,15 @@ export default function InstructorRevenueTable({
                                     {/* Cột: Mã GD & Thời gian */}
                                     <TableCell>
                                         <div className="flex flex-col">
-                                            <span className="font-bold text-slate-900 flex items-center gap-1.5 capitalize">
+                                            <span className="font-bold text-foreground flex items-center gap-1.5 capitalize">
                                                 TRX-{trx.id}
                                                 {trx.type === 1 ? (
-                                                    <ArrowUpRight className="w-3 h-3 text-green-500" />
+                                                    <ArrowUpRight className="w-3 h-3 text-success" />
                                                 ) : (
                                                     <ArrowDownRight className="w-3 h-3 text-rose-500" />
                                                 )}
                                             </span>
-                                            <span className="text-xs text-slate-500 font-medium mt-0.5">
+                                            <span className="text-xs text-muted-foreground font-medium mt-0.5">
                                                 {new Date(trx.createdAt).toLocaleString('vi-VN', {
                                                     hour: '2-digit',
                                                     minute: '2-digit',
@@ -81,21 +81,21 @@ export default function InstructorRevenueTable({
 
                                     {/* Cột: Nội dung */}
                                     <TableCell className="max-w-[300px]">
-                                        <span className="text-sm font-bold text-slate-700 line-clamp-1" title={trx.ref}>
+                                        <span className="text-sm font-bold text-foreground line-clamp-1" title={trx.ref}>
                                             {trx.ref || "Không có nội dung"}
                                         </span>
                                     </TableCell>
 
                                     {/* Cột: Phát sinh */}
                                     <TableCell className="text-center">
-                                        <span className={`font-black text-sm ${trx.type === 1 ? "text-green-600" : "text-rose-600"}`}>
+                                        <span className={`font-black text-sm ${trx.type === 1 ? "text-success" : "text-rose-600"}`}>
                                             {trx.type === 1 ? "+" : "-"}{formatVND(trx.amount)}
                                         </span>
                                     </TableCell>
 
                                     {/* Cột: Loại */}
                                     <TableCell className="text-center">
-                                        <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-tight py-0 bg-slate-50 border-slate-200 text-slate-600">
+                                        <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-tight py-0 bg-muted border-border text-muted-foreground">
                                             {trx.paymentMethod === "REVENUE" ? "Thanh toán khóa học" :
                                                 trx.paymentMethod === "WITHDRAW" ? "Rút tiền mặt" : trx.paymentMethod}
                                         </Badge>
@@ -104,7 +104,7 @@ export default function InstructorRevenueTable({
                                     {/* Cột: Trạng thái */}
                                     <TableCell className="text-center">
                                         {trx.status === 1 ? (
-                                            <Badge className="bg-green-50 text-green-700 border-green-200 shadow-none hover:bg-green-50 text-[10px] font-bold py-0.5 inline-flex items-center gap-1">
+                                            <Badge className="bg-green-50 text-success border-success/20 shadow-none hover:bg-green-50 text-[10px] font-bold py-0.5 inline-flex items-center gap-1">
                                                 <CheckCircle2 className="w-3 h-3" /> Thành công
                                             </Badge>
                                         ) : trx.status === 0 ? (
@@ -125,7 +125,7 @@ export default function InstructorRevenueTable({
             </div>
 
             {/* Phân trang - Đồng bộ với DataTable style */}
-            <div className="flex items-center justify-between px-6 py-4 border-t border-border/50 bg-slate-50/30">
+            <div className="flex items-center justify-between px-6 py-4 border-t border-border/50 bg-muted/30">
                 <p className="text-sm font-medium text-muted-foreground">
                     Hiển thị {transactions?.length || 0} / {(pagination.totalElements || transactions?.length || 0).toLocaleString()} giao dịch
                 </p>

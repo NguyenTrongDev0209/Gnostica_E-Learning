@@ -1,6 +1,6 @@
 import React from 'react';
 import { Users, BookOpen } from 'lucide-react';
-import { mockInstructors } from '@/mocks/home';
+import { mockInstructors } from '@/apiMocks/home';
 
 const InstructorGrid = () => {
   return (

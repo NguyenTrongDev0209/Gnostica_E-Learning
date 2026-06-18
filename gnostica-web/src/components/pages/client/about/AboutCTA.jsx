@@ -13,7 +13,7 @@ export default function AboutCTA({ data }) {
         <p className="text-white/80 max-w-xl text-lg relative z-10">
           {data.description}
         </p>
-        <SimpleButton size="lg" variant="secondary" className="py-2 text-orange-600 h-auto font-bold text-lg hover:scale-105 transition-transform bg-white border-none shadow-xl mt-4 relative z-10">
+        <SimpleButton size="lg" variant="secondary" className="py-2 text-warning h-auto font-bold text-lg hover:scale-105 transition-transform bg-white border-none shadow-xl mt-4 relative z-10">
           {data.buttonText}
         </SimpleButton>
       </div>

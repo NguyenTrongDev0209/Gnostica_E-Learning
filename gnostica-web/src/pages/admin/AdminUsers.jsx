@@ -35,7 +35,7 @@ import { Textarea } from "@/components/ui/textarea";
 import authService from "@/services/authService";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
-import axios from 'axios';
+import instructorService from '@/services/instructorService';
 import { Lock, Unlock } from "lucide-react";
 
 const USERS_DATA = [
@@ -80,10 +80,8 @@ export default function AdminUsers() {
     try {
       const user = JSON.parse(localStorage.getItem('user'));
       const token = user?.token;
-      const response = await axios.get('http://localhost:8080/api/instructor-applications?status=PENDING', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setApplications(response.data || []);
+      const data = await instructorService.getApplications('PENDING');
+      setApplications(data.content || data || []);
     } catch (error) {
       toast.error(error.response?.data?.message || "Lỗi tải đơn đăng ký");
     } finally {
@@ -99,9 +97,7 @@ export default function AdminUsers() {
     try {
       const user = JSON.parse(localStorage.getItem('user'));
       const token = user?.token;
-      await axios.put(`http://localhost:8080/api/instructor-applications/${id}/approve`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await instructorService.approveApplication(id);
       toast.success("Đã phê duyệt đơn đăng ký");
       fetchApplications();
     } catch (error) {
@@ -117,9 +113,7 @@ export default function AdminUsers() {
     try {
       const user = JSON.parse(localStorage.getItem('user'));
       const token = user?.token;
-      await axios.put(`http://localhost:8080/api/instructor-applications/${selectedApp}/reject`, { reason: rejectReason }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await instructorService.rejectApplication(selectedApp, rejectReason);
       toast.success("Đã từ chối đơn đăng ký");
       setRejectDialogOpen(false);
       fetchApplications();
@@ -172,8 +166,8 @@ export default function AdminUsers() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Quản Lý Người Dùng</h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <h1 className="text-2xl font-bold text-foreground tracking-tight">Quản Lý Người Dùng</h1>
+          <p className="text-sm text-muted-foreground mt-1">
             Xem, khóa/mở khóa và quản lý quyền hạn của người dùng.
           </p>
         </div>
@@ -181,7 +175,7 @@ export default function AdminUsers() {
 
       <Tabs defaultValue="USER" onValueChange={setActiveTab} className="w-full">
         <div className="flex flex-col md:flex-row gap-4 items-center justify-between mb-4">
-          <TabsList className="bg-slate-100 p-1">
+          <TabsList className="bg-secondary p-1">
             <TabsTrigger value="USER" className="font-bold">Học viên</TabsTrigger>
             <TabsTrigger value="INSTRUCTOR" className="font-bold">Giảng viên</TabsTrigger>
             <TabsTrigger value="PENDING_APP" className="font-bold">Chờ duyệt</TabsTrigger>
@@ -189,10 +183,10 @@ export default function AdminUsers() {
 
           <div className="flex w-full md:w-auto items-center gap-3">
             <div className="relative w-full md:w-80">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input 
                 placeholder="Tìm kiếm..." 
-                className="pl-9 h-10 border-slate-200"
+                className="pl-9 h-10 border-border"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -205,61 +199,61 @@ export default function AdminUsers() {
         </div>
 
         <TabsContent value="USER" className="mt-0">
-          <Card className="border-slate-200 shadow-sm overflow-hidden">
+          <Card className="border-border shadow-sm overflow-hidden">
             <div className="overflow-x-auto min-h-[400px]">
               <Table>
-                <TableHeader className="bg-slate-50">
+                <TableHeader className="bg-muted">
                   <TableRow>
-                    <TableHead className="py-4 font-bold text-slate-700 w-[300px]">Người dùng</TableHead>
-                    <TableHead className="py-4 font-bold text-slate-700">Trạng thái</TableHead>
-                    <TableHead className="py-4 font-bold text-slate-700">Nơi đăng ký</TableHead>
-                    <TableHead className="py-4 font-bold text-slate-700">Điện thoại</TableHead>
-                    <TableHead className="py-4 font-bold text-slate-700 text-right">Thao tác</TableHead>
+                    <TableHead className="py-4 font-bold text-foreground w-[300px]">Người dùng</TableHead>
+                    <TableHead className="py-4 font-bold text-foreground">Trạng thái</TableHead>
+                    <TableHead className="py-4 font-bold text-foreground">Nơi đăng ký</TableHead>
+                    <TableHead className="py-4 font-bold text-foreground">Điện thoại</TableHead>
+                    <TableHead className="py-4 font-bold text-foreground text-right">Thao tác</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {loading ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="h-40 text-center text-slate-500 font-medium">
+                      <TableCell colSpan={5} className="h-40 text-center text-muted-foreground font-medium">
                         Đang tải dữ liệu...
                       </TableCell>
                     </TableRow>
                   ) : filteredAccounts.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="h-40 text-center text-slate-500 font-medium">
+                      <TableCell colSpan={5} className="h-40 text-center text-muted-foreground font-medium">
                         Không tìm thấy người dùng nào.
                       </TableCell>
                     </TableRow>
                   ) : (
                     filteredAccounts.map((acc) => (
-                      <TableRow key={acc.id} className="hover:bg-slate-50/50">
+                      <TableRow key={acc.id} className="hover:bg-muted">
                         <TableCell>
                           <div className="flex items-center gap-3">
-                            <Avatar className="h-10 w-10 border border-slate-200">
+                            <Avatar className="h-10 w-10 border border-border">
                               <AvatarImage src={acc.avatar} />
                               <AvatarFallback className="bg-primary/10 text-primary font-bold">
                                 {acc.fullName?.charAt(0)}
                               </AvatarFallback>
                             </Avatar>
                             <div className="flex flex-col">
-                              <span className="font-bold text-slate-900">{acc.fullName}</span>
-                              <span className="text-xs text-slate-500">{acc.email}</span>
+                              <span className="font-bold text-foreground">{acc.fullName}</span>
+                              <span className="text-xs text-muted-foreground">{acc.email}</span>
                             </div>
                           </div>
                         </TableCell>
                         <TableCell>
                           {acc.locked ? (
-                            <Badge className="bg-red-100 text-red-700 shadow-none border-red-200">Bị khóa</Badge>
+                            <Badge className="bg-error/10 text-error text-error shadow-none border-error/20">Bị khóa</Badge>
                           ) : acc.active ? (
-                            <Badge className="bg-green-100 text-green-700 shadow-none border-green-200">Hoạt động</Badge>
+                            <Badge className="bg-success/10 text-success text-success shadow-none border-success/20">Hoạt động</Badge>
                           ) : (
-                            <Badge variant="outline" className="text-slate-400">Chưa xác thực</Badge>
+                            <Badge variant="outline" className="text-muted-foreground">Chưa xác thực</Badge>
                           )}
                         </TableCell>
-                        <TableCell className="text-sm font-medium text-slate-600">
+                        <TableCell className="text-sm font-medium text-muted-foreground">
                           <Badge variant="secondary" className="font-bold">{acc.provider || "Manual"}</Badge>
                         </TableCell>
-                        <TableCell className="text-sm text-slate-600 font-medium">
+                        <TableCell className="text-sm text-muted-foreground font-medium">
                           {acc.phone || "--"}
                         </TableCell>
                         <TableCell className="text-right">
@@ -267,7 +261,7 @@ export default function AdminUsers() {
                             <Button 
                               variant={acc.locked ? "default" : "outline"} 
                               size="sm" 
-                              className={`h-9 font-bold gap-2 ${acc.locked ? 'bg-emerald-600 hover:bg-emerald-700' : 'border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700'}`}
+                              className={`h-9 font-bold gap-2 ${acc.locked ? 'bg-emerald-600 hover:bg-emerald-700' : 'border-error/20 text-error hover:bg-red-50 hover:text-error'}`}
                               onClick={() => handleToggleLock(acc)}
                             >
                               {acc.locked ? (
@@ -289,68 +283,68 @@ export default function AdminUsers() {
               </Table>
             </div>
             
-            <div className="p-4 border-t border-slate-100 flex items-center justify-between text-sm text-slate-500">
-              <div>Hiển thị <span className="font-bold text-slate-900">{filteredAccounts.length}</span> kết quả</div>
+            <div className="p-4 border-t border-border flex items-center justify-between text-sm text-muted-foreground">
+              <div>Hiển thị <span className="font-bold text-foreground">{filteredAccounts.length}</span> kết quả</div>
             </div>
           </Card>
         </TabsContent>
 
         <TabsContent value="INSTRUCTOR" className="mt-0">
-          <Card className="border-slate-200 shadow-sm overflow-hidden">
+          <Card className="border-border shadow-sm overflow-hidden">
             <div className="overflow-x-auto min-h-[400px]">
               <Table>
-                <TableHeader className="bg-slate-50">
+                <TableHeader className="bg-muted">
                   <TableRow>
-                    <TableHead className="py-4 font-bold text-slate-700 w-[300px]">Người dùng</TableHead>
-                    <TableHead className="py-4 font-bold text-slate-700">Trạng thái</TableHead>
-                    <TableHead className="py-4 font-bold text-slate-700">Nơi đăng ký</TableHead>
-                    <TableHead className="py-4 font-bold text-slate-700">Điện thoại</TableHead>
-                    <TableHead className="py-4 font-bold text-slate-700 text-right">Thao tác</TableHead>
+                    <TableHead className="py-4 font-bold text-foreground w-[300px]">Người dùng</TableHead>
+                    <TableHead className="py-4 font-bold text-foreground">Trạng thái</TableHead>
+                    <TableHead className="py-4 font-bold text-foreground">Nơi đăng ký</TableHead>
+                    <TableHead className="py-4 font-bold text-foreground">Điện thoại</TableHead>
+                    <TableHead className="py-4 font-bold text-foreground text-right">Thao tác</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {loading ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="h-40 text-center text-slate-500 font-medium">
+                      <TableCell colSpan={5} className="h-40 text-center text-muted-foreground font-medium">
                         Đang tải dữ liệu...
                       </TableCell>
                     </TableRow>
                   ) : filteredAccounts.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="h-40 text-center text-slate-500 font-medium">
+                      <TableCell colSpan={5} className="h-40 text-center text-muted-foreground font-medium">
                         Không tìm thấy người dùng nào.
                       </TableCell>
                     </TableRow>
                   ) : (
                     filteredAccounts.map((acc) => (
-                      <TableRow key={acc.id} className="hover:bg-slate-50/50">
+                      <TableRow key={acc.id} className="hover:bg-muted">
                         <TableCell>
                           <div className="flex items-center gap-3">
-                            <Avatar className="h-10 w-10 border border-slate-200">
+                            <Avatar className="h-10 w-10 border border-border">
                               <AvatarImage src={acc.avatar} />
                               <AvatarFallback className="bg-primary/10 text-primary font-bold">
                                 {acc.fullName?.charAt(0)}
                               </AvatarFallback>
                             </Avatar>
                             <div className="flex flex-col">
-                              <span className="font-bold text-slate-900">{acc.fullName}</span>
-                              <span className="text-xs text-slate-500">{acc.email}</span>
+                              <span className="font-bold text-foreground">{acc.fullName}</span>
+                              <span className="text-xs text-muted-foreground">{acc.email}</span>
                             </div>
                           </div>
                         </TableCell>
                         <TableCell>
                           {acc.locked ? (
-                            <Badge className="bg-red-100 text-red-700 shadow-none border-red-200">Bị khóa</Badge>
+                            <Badge className="bg-error/10 text-error text-error shadow-none border-error/20">Bị khóa</Badge>
                           ) : acc.active ? (
-                            <Badge className="bg-green-100 text-green-700 shadow-none border-green-200">Hoạt động</Badge>
+                            <Badge className="bg-success/10 text-success text-success shadow-none border-success/20">Hoạt động</Badge>
                           ) : (
-                            <Badge variant="outline" className="text-slate-400">Chưa xác thực</Badge>
+                            <Badge variant="outline" className="text-muted-foreground">Chưa xác thực</Badge>
                           )}
                         </TableCell>
-                        <TableCell className="text-sm font-medium text-slate-600">
+                        <TableCell className="text-sm font-medium text-muted-foreground">
                           <Badge variant="secondary" className="font-bold">{acc.provider || "Manual"}</Badge>
                         </TableCell>
-                        <TableCell className="text-sm text-slate-600 font-medium">
+                        <TableCell className="text-sm text-muted-foreground font-medium">
                           {acc.phone || "--"}
                         </TableCell>
                         <TableCell className="text-right">
@@ -358,7 +352,7 @@ export default function AdminUsers() {
                             <Button 
                               variant={acc.locked ? "default" : "outline"} 
                               size="sm" 
-                              className={`h-9 font-bold gap-2 ${acc.locked ? 'bg-emerald-600 hover:bg-emerald-700' : 'border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700'}`}
+                              className={`h-9 font-bold gap-2 ${acc.locked ? 'bg-emerald-600 hover:bg-emerald-700' : 'border-error/20 text-error hover:bg-red-50 hover:text-error'}`}
                               onClick={() => handleToggleLock(acc)}
                             >
                               {acc.locked ? (
@@ -380,56 +374,56 @@ export default function AdminUsers() {
               </Table>
             </div>
             
-            <div className="p-4 border-t border-slate-100 flex items-center justify-between text-sm text-slate-500">
-              <div>Hiển thị <span className="font-bold text-slate-900">{filteredAccounts.length}</span> kết quả</div>
+            <div className="p-4 border-t border-border flex items-center justify-between text-sm text-muted-foreground">
+              <div>Hiển thị <span className="font-bold text-foreground">{filteredAccounts.length}</span> kết quả</div>
             </div>
           </Card>
         </TabsContent>
 
         <TabsContent value="PENDING_APP" className="mt-0">
-          <Card className="border-slate-200 shadow-sm overflow-hidden">
+          <Card className="border-border shadow-sm overflow-hidden">
             <div className="overflow-x-auto min-h-[400px]">
               <Table>
-                <TableHeader className="bg-slate-50">
+                <TableHeader className="bg-muted">
                   <TableRow>
-                    <TableHead className="py-4 font-bold text-slate-700">Người dùng</TableHead>
-                    <TableHead className="py-4 font-bold text-slate-700">Liên hệ</TableHead>
-                    <TableHead className="py-4 font-bold text-slate-700">Chi tiết Hồ sơ</TableHead>
-                    <TableHead className="py-4 font-bold text-slate-700 text-right">Thao tác</TableHead>
+                    <TableHead className="py-4 font-bold text-foreground">Người dùng</TableHead>
+                    <TableHead className="py-4 font-bold text-foreground">Liên hệ</TableHead>
+                    <TableHead className="py-4 font-bold text-foreground">Chi tiết Hồ sơ</TableHead>
+                    <TableHead className="py-4 font-bold text-foreground text-right">Thao tác</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {loading ? (
                     <TableRow>
-                      <TableCell colSpan={4} className="h-40 text-center text-slate-500 font-medium">
+                      <TableCell colSpan={4} className="h-40 text-center text-muted-foreground font-medium">
                         Đang tải dữ liệu...
                       </TableCell>
                     </TableRow>
                   ) : applications.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={4} className="h-40 text-center text-slate-500 font-medium">
+                      <TableCell colSpan={4} className="h-40 text-center text-muted-foreground font-medium">
                         Không có đơn đăng ký chờ duyệt.
                       </TableCell>
                     </TableRow>
                   ) : (
                     applications.map((app) => (
-                      <TableRow key={app.id} className="hover:bg-slate-50/50">
+                      <TableRow key={app.id} className="hover:bg-muted">
                         <TableCell>
                           <div className="flex flex-col">
-                            <span className="font-bold text-slate-900">{app.fullName}</span>
-                            <span className="text-xs text-slate-500">{app.email}</span>
+                            <span className="font-bold text-foreground">{app.fullName}</span>
+                            <span className="text-xs text-muted-foreground">{app.email}</span>
                           </div>
                         </TableCell>
-                        <TableCell className="text-sm font-medium text-slate-600">
+                        <TableCell className="text-sm font-medium text-muted-foreground">
                           {app.contactPhone}
                         </TableCell>
-                        <TableCell className="text-sm text-slate-600">
+                        <TableCell className="text-sm text-muted-foreground">
                           <div className="flex gap-2 mb-1">
-                             <a href={app.idCardFront} target="_blank" rel="noreferrer" className="text-blue-600 underline">CCCD Trước</a>
-                             <a href={app.idCardBack} target="_blank" rel="noreferrer" className="text-blue-600 underline">CCCD Sau</a>
+                             <a href={app.idCardFront} target="_blank" rel="noreferrer" className="text-info underline">CCCD Trước</a>
+                             <a href={app.idCardBack} target="_blank" rel="noreferrer" className="text-info underline">CCCD Sau</a>
                           </div>
                           <div>
-                             <a href={app.cvUrl} target="_blank" rel="noreferrer" className="text-blue-600 underline">CV PDF</a>
+                             <a href={app.cvUrl} target="_blank" rel="noreferrer" className="text-info underline">CV PDF</a>
                           </div>
                           {app.degreeUrls && (
                             <div className="flex flex-wrap gap-x-2 mt-1 italic">
@@ -446,7 +440,7 @@ export default function AdminUsers() {
                             <Button 
                               variant="outline" 
                               size="sm" 
-                              className="border-green-200 text-green-600 hover:bg-green-50"
+                              className="border-success/20 text-success hover:bg-green-50"
                               onClick={() => handleApprove(app.id)}
                             >
                               Phê duyệt
@@ -454,7 +448,7 @@ export default function AdminUsers() {
                             <Button 
                               variant="outline" 
                               size="sm" 
-                              className="border-red-200 text-red-600 hover:bg-red-50"
+                              className="border-error/20 text-error hover:bg-red-50"
                               onClick={() => {
                                 setSelectedApp(app.id);
                                 setRejectReason("");
@@ -494,7 +488,7 @@ export default function AdminUsers() {
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setLockDialogOpen(false)}>Hủy</Button>
-            <Button className="bg-red-600 hover:bg-red-700 font-bold" onClick={confirmLock}>
+            <Button className="bg-error/10 text-error hover:bg-error/10 text-error font-bold" onClick={confirmLock}>
               Xác nhận khóa
             </Button>
           </DialogFooter>
@@ -519,7 +513,7 @@ export default function AdminUsers() {
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setRejectDialogOpen(false)}>Hủy</Button>
-            <Button className="bg-red-600 hover:bg-red-700 font-bold" onClick={handleReject}>
+            <Button className="bg-error/10 text-error hover:bg-error/10 text-error font-bold" onClick={handleReject}>
               Xác nhận từ chối
             </Button>
           </DialogFooter>

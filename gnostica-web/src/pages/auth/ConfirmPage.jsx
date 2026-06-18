@@ -138,10 +138,10 @@ const ConfirmPage = () => {
                     text-center text-xl sm:text-2xl font-bold
                     rounded-xl border-2 outline-none
                     transition-all duration-200
-                    bg-slate-50 text-slate-800
+                    bg-muted text-foreground
                     ${digit
                       ? 'border-primary shadow-[0_0_0_3px_rgba(var(--primary-rgb),0.1)]'
-                      : 'border-slate-200 hover:border-slate-300'
+                      : 'border-border hover:border-border'
                     }
                     focus:border-primary focus:bg-white focus:shadow-[0_0_0_3px_rgba(var(--primary-rgb),0.15)]
                   `}
@@ -153,7 +153,7 @@ const ConfirmPage = () => {
             <div className="text-center">
               <p className="text-sm text-muted-foreground">
                 Mã hết hạn sau{' '}
-                <span className={`font-bold ${timeLeft <= 60 ? 'text-red-500' : 'text-orange-500'}`}>
+                <span className={`font-bold ${timeLeft <= 60 ? 'text-error' : 'text-warning'}`}>
                   {formatTime(timeLeft)}
                 </span>
               </p>
@@ -168,7 +168,7 @@ const ConfirmPage = () => {
                 disabled={timeLeft > 0}
                 className={`font-semibold transition-colors ${
                   timeLeft > 0
-                    ? 'text-slate-400 cursor-not-allowed'
+                    ? 'text-muted-foreground cursor-not-allowed'
                     : 'text-primary hover:underline cursor-pointer'
                 }`}
               >

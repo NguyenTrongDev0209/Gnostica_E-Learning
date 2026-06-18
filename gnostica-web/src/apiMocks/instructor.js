@@ -43,10 +43,10 @@ export const COURSE_PERFORMANCE = [
 ];
 
 export const PENDING_TASKS = [
-    { id: 1, type: "question", icon: HelpCircle, color: "text-blue-500 bg-blue-50", label: "Câu hỏi chưa trả lời", count: 12, href: "/instructor/questions", urgent: true },
+    { id: 1, type: "question", icon: HelpCircle, color: "text-info bg-blue-50", label: "Câu hỏi chưa trả lời", count: 12, href: "/instructor/questions", urgent: true },
     { id: 2, type: "review", icon: MessageSquare, color: "text-amber-500 bg-amber-50", label: "Đánh giá chưa phản hồi", count: 5, href: "/instructor/reviews", urgent: false },
     { id: 3, type: "draft", icon: FileEdit, color: "text-purple-500 bg-purple-50", label: "Khóa học nháp cần hoàn thiện", count: 2, href: "/instructor/courses", urgent: false },
-    { id: 4, type: "update", icon: AlertCircle, color: "text-red-500 bg-red-50", label: "Nội dung cũ cần cập nhật", count: 3, href: "/instructor/courses", urgent: true },
+    { id: 4, type: "update", icon: AlertCircle, color: "text-error bg-red-50", label: "Nội dung cũ cần cập nhật", count: 3, href: "/instructor/courses", urgent: true },
 ];
 
 export const STATS = [
@@ -64,7 +64,7 @@ export const STATS = [
         trend: "+12.4%",
         isPositive: true,
         icon: Users,
-        color: "text-blue-600 bg-blue-50 border-blue-100"
+        color: "text-info bg-blue-50 border-info/20"
     },
     {
         title: "Điểm Đánh Giá",

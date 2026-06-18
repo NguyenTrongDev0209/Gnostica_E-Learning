@@ -123,7 +123,7 @@ const MainHeader = ({
                             {isCoursesMobileOpen && (
                                 <div className="grid grid-cols-1 gap-1 ml-4 py-2">
                                     {flatCategories.filter(c => !c.parentId && !c.parent_id).slice(0, 10).map(c => (
-                                        <Link key={c.id} to={`/courses/category/${c.slug}`} className="py-2 text-xs text-slate-600 font-bold">{c.name}</Link>
+                                        <Link key={c.id} to={`/courses/category/${c.slug}`} className="py-2 text-xs text-muted-foreground font-bold">{c.name}</Link>
                                     ))}
                                 </div>
                             )}
@@ -156,28 +156,28 @@ const MainHeader = ({
                     {/* Center: Navigation Links */}
                     <nav className="hidden lg:flex items-center h-full gap-2">
                         <Link to="/" className="h-full flex items-center relative group px-4">
-                            <span className="font-bold text-slate-700 group-hover:text-[#f15e2c] transition-colors">
+                            <span className="font-bold text-foreground group-hover:text-[#f15e2c] transition-colors">
                                 Trang chủ
                             </span>
                             <div className="absolute bottom-0 left-0 w-full h-[3px] bg-[#f15e2c] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center" />
                         </Link>
 
                         <Link to="/about" className="h-full flex items-center relative group px-4">
-                            <span className="font-bold text-slate-700 group-hover:text-[#f15e2c] transition-colors">
+                            <span className="font-bold text-foreground group-hover:text-[#f15e2c] transition-colors">
                                 Giới thiệu
                             </span>
                             <div className="absolute bottom-0 left-0 w-full h-[3px] bg-[#f15e2c] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center" />
                         </Link>
 
                         <Link to="/instructors" className="h-full flex items-center relative group px-4">
-                            <span className="font-bold text-slate-700 group-hover:text-[#f15e2c] transition-colors">
+                            <span className="font-bold text-foreground group-hover:text-[#f15e2c] transition-colors">
                                 Giảng viên
                             </span>
                             <div className="absolute bottom-0 left-0 w-full h-[3px] bg-[#f15e2c] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center" />
                         </Link>
 
                         <Link to="/forum" className="h-full flex items-center relative group px-4">
-                            <span className="font-bold text-slate-700 group-hover:text-[#f15e2c] transition-colors">
+                            <span className="font-bold text-foreground group-hover:text-[#f15e2c] transition-colors">
                                 Diễn đàn
                             </span>
                             <div className="absolute bottom-0 left-0 w-full h-[3px] bg-[#f15e2c] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center" />

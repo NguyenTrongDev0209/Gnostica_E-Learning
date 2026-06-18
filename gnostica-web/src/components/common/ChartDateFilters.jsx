@@ -120,7 +120,7 @@ export default function ChartDateFilters({
     return (
         <div className="flex flex-wrap items-center gap-3">
             {/* Date Range Selector */}
-            <div className="flex items-center h-[40px] gap-2 bg-slate-50 border border-slate-200 rounded-lg px-2">
+            <div className="flex items-center h-[40px] gap-2 bg-muted border border-border rounded-lg px-2">
                 <div className="relative h-full flex items-center">
                     <Input
                         type="date"
@@ -130,7 +130,7 @@ export default function ChartDateFilters({
                         onChange={(e) => handleDateInput('start', e.target.value)}
                     />
                 </div>
-                <div className="w-2 h-[1px] bg-slate-300"></div>
+                <div className="w-2 h-[1px] bg-muted"></div>
                 <div className="relative h-full flex items-center">
                     <Input
                         type="date"
@@ -144,10 +144,10 @@ export default function ChartDateFilters({
 
             {/* Presets Selector */}
             <Select value={selectedPreset} onValueChange={handlePresetSelect}>
-                <SelectTrigger className="!h-[40px] w-[140px] bg-slate-50 border-slate-200 text-xs font-bold rounded-lg shadow-none">
+                <SelectTrigger className="!h-[40px] w-[140px] bg-muted border-border text-xs font-bold rounded-lg shadow-none">
                     <SelectValue placeholder="Chọn khoảng thời gian" />
                 </SelectTrigger>
-                <SelectContent className="rounded-lg border-slate-100 shadow-xl">
+                <SelectContent className="rounded-lg border-border shadow-xl">
                     {selectedPreset === "custom" && (
                         <SelectItem value="custom" className="text-xs font-bold">Tùy chọn</SelectItem>
                     )}

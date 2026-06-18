@@ -11,10 +11,10 @@ export function TransactionDetailModal({ isOpen, onOpenChange, transaction }) {
 
   const DetailItem = ({ icon: Icon, label, value, className = "" }) => (
     <div className={`flex flex-col gap-1 ${className}`}>
-      <span className="text-[10px] uppercase font-bold text-slate-400 flex items-center gap-1.5">
+      <span className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1.5">
         <Icon className="w-3 h-3" /> {label}
       </span>
-      <span className="text-sm font-semibold text-slate-700">{value || 'N/A'}</span>
+      <span className="text-sm font-semibold text-foreground">{value || 'N/A'}</span>
     </div>
   );
 
@@ -24,7 +24,7 @@ export function TransactionDetailModal({ isOpen, onOpenChange, transaction }) {
         <DialogHeader>
           <DialogTitle className="text-xl font-bold flex items-center gap-2 border-b pb-4">
             Chi tiết Giao dịch
-            <span className="text-xs font-mono text-slate-400">#{transaction.id}</span>
+            <span className="text-xs font-mono text-muted-foreground">#{transaction.id}</span>
           </DialogTitle>
         </DialogHeader>
 
@@ -34,12 +34,12 @@ export function TransactionDetailModal({ isOpen, onOpenChange, transaction }) {
           <DetailItem icon={DollarSign} label="Số tiền" value={`${transaction.amount?.toLocaleString()}đ`} />
           
           <div className="flex flex-col gap-1">
-            <span className="text-[10px] uppercase font-bold text-slate-400 flex items-center gap-1.5">
+            <span className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1.5">
               Trạng thái
             </span>
             <div>
               {transaction.status === 1 ? (
-                <Badge className="bg-green-100 text-green-600 border-green-200">Thành công</Badge>
+                <Badge className="bg-success/10 text-success text-success border-success/20">Thành công</Badge>
               ) : (
                 <Badge variant="secondary">Chờ xử lý / Thất bại</Badge>
               )}
@@ -49,7 +49,7 @@ export function TransactionDetailModal({ isOpen, onOpenChange, transaction }) {
           <DetailItem icon={CreditCard} label="Phương thức" value={transaction.paymentMethod} />
           <DetailItem icon={Calendar} label="Thời gian" value={transaction.createdAt ? format(new Date(transaction.createdAt), "dd/MM/yyyy HH:mm:ss") : 'N/A'} />
           
-          <div className="col-span-2 h-px bg-slate-100 my-2"></div>
+          <div className="col-span-2 h-px bg-secondary my-2"></div>
 
           <DetailItem icon={Building2} label="Ngân hàng người gửi" value={transaction.senderBankId} />
           <DetailItem icon={User} label="Số tài khoản người gửi" value={transaction.senderAccountNumber} />
@@ -57,11 +57,11 @@ export function TransactionDetailModal({ isOpen, onOpenChange, transaction }) {
 
           {logs && (
             <div className="col-span-2 space-y-2 mt-4">
-              <span className="text-[10px] uppercase font-bold text-slate-400 flex items-center gap-1.5">
+              <span className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1.5">
                 Dữ liệu Log (JSON Metadata)
               </span>
-              <div className="bg-slate-900 rounded-lg p-4 overflow-x-auto">
-                <pre className="text-[11px] text-green-400 font-mono leading-relaxed">
+              <div className="bg-muted rounded-lg p-4 overflow-x-auto">
+                <pre className="text-[11px] text-success font-mono leading-relaxed">
                   {JSON.stringify(logs, null, 2)}
                 </pre>
               </div>

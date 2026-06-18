@@ -45,7 +45,7 @@ const ImageCropModal = ({ open, setOpen, image, onCropComplete }) => {
           <DialogTitle>Chỉnh sửa ảnh đại diện</DialogTitle>
         </DialogHeader>
         
-        <div className="relative w-full h-[300px] bg-slate-100 rounded-lg overflow-hidden mt-4">
+        <div className="relative w-full h-[300px] bg-secondary rounded-lg overflow-hidden mt-4">
           <Cropper
             image={image}
             crop={crop}
@@ -61,7 +61,7 @@ const ImageCropModal = ({ open, setOpen, image, onCropComplete }) => {
 
         <div className="py-6 space-y-4">
           <div className="flex items-center gap-4">
-            <span className="text-sm font-medium text-slate-500 shrink-0">Phóng to</span>
+            <span className="text-sm font-medium text-muted-foreground shrink-0">Phóng to</span>
             <Slider
               value={[zoom]}
               min={1}

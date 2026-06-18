@@ -58,8 +58,8 @@ export default function InstructorCoupons() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 text-foreground">
         <div className="space-y-1">
-          <h1 className="text-h1 font-black text-slate-900 tracking-tight leading-none">Phiếu Giảm Giá</h1>
-          <p className="text-sm font-medium text-slate-500">
+          <h1 className="text-h1 font-black text-foreground tracking-tight leading-none">Phiếu Giảm Giá</h1>
+          <p className="text-sm font-medium text-muted-foreground">
             Tạo và quản lý các mã giảm giá để thúc đẩy doanh số bán khóa học của bạn.
           </p>
         </div>
@@ -99,7 +99,7 @@ export default function InstructorCoupons() {
       <div className="glass p-4 rounded-2xl border border-border flex flex-col md:flex-row gap-6 items-center justify-between shadow-sm">
         <div className="flex w-full md:w-auto items-center gap-4">
           <div className="relative w-full md:w-96 group">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-slate-400 group-focus-within:text-primary transition-colors" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-muted-foreground group-focus-within:text-primary transition-colors" />
             <Input
               placeholder="Tìm theo mã hoặc tên..."
               className="pl-11 h-11 border-border bg-white/50 backdrop-blur-sm focus:bg-white focus:ring-4 focus:ring-primary/10 transition-all rounded-xl font-medium shadow-inner"
@@ -108,13 +108,13 @@ export default function InstructorCoupons() {
             />
           </div>
           <div className="h-10 w-px bg-border/60 hidden md:block" />
-          <div className="flex items-center gap-2 text-xs font-black text-slate-500 uppercase tracking-widest">
+          <div className="flex items-center gap-2 text-xs font-black text-muted-foreground uppercase tracking-widest">
             <Filter className="w-3.5 h-3.5" />
             Bộ lọc
           </div>
         </div>
 
-        <div className="flex bg-slate-100/80 backdrop-blur-sm p-1.5 rounded-[14px] border border-slate-200/50 shadow-inner w-full md:w-auto">
+        <div className="flex bg-secondary/80 backdrop-blur-sm p-1.5 rounded-[14px] border border-border/50 shadow-inner w-full md:w-auto">
           {[
             { id: "all", label: "Tất cả" },
             { id: "1", label: "Đang hoạt động" },
@@ -125,7 +125,7 @@ export default function InstructorCoupons() {
               onClick={() => setStatusFilter(tab.id)}
               className={`flex-1 md:flex-none px-6 py-2 rounded-xl text-xs font-black transition-all duration-200 uppercase tracking-tight ${statusFilter === tab.id
                 ? "bg-white text-primary shadow-sm ring-1 ring-black/5"
-                : "text-slate-500 hover:text-slate-900"
+                : "text-muted-foreground hover:text-foreground"
                 }`}
             >
               {tab.label}
@@ -142,8 +142,8 @@ export default function InstructorCoupons() {
               <Activity className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-lg font-black text-slate-900 tracking-tight">Danh Sách Mã Giảm Giá</h2>
-              <p className="text-xs font-bold text-slate-500">Quản lý các chương trình ưu đãi và chiến dịch của bạn.</p>
+              <h2 className="text-lg font-black text-foreground tracking-tight">Danh Sách Mã Giảm Giá</h2>
+              <p className="text-xs font-bold text-muted-foreground">Quản lý các chương trình ưu đãi và chiến dịch của bạn.</p>
             </div>
           </div>
 

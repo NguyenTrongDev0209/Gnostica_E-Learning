@@ -23,16 +23,16 @@ export default function CourseRejectModal({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:!max-w-[500px] w-full p-0 overflow-hidden border-none shadow-2xl bg-white">
-        <DialogHeader className="p-6 pb-4 bg-slate-50/50 border-b border-slate-100">
+        <DialogHeader className="p-6 pb-4 bg-muted border-b border-border">
           <div className="w-12 h-12 rounded-full bg-rose-100 flex items-center justify-center mb-2 text-rose-600">
             <XCircle className="w-6 h-6" />
           </div>
-          <DialogTitle className="text-xl font-extrabold text-slate-900 tracking-tight">
+          <DialogTitle className="text-xl font-extrabold text-foreground tracking-tight">
             Từ chối kiểm duyệt
           </DialogTitle>
-          <DialogDescription className="text-slate-500 font-medium">
+          <DialogDescription className="text-muted-foreground font-medium">
             Bạn đang chuẩn bị từ chối khóa học{" "}
-            <span className="font-bold text-slate-800">"{courseName}"</span>.
+            <span className="font-bold text-foreground">"{courseName}"</span>.
             Vui lòng cung cấp lý do cụ thể.
           </DialogDescription>
         </DialogHeader>
@@ -40,28 +40,28 @@ export default function CourseRejectModal({
           <div className="grid w-full gap-2">
             <Label
               htmlFor="reason"
-              className="font-bold text-slate-700 flex items-center gap-1.5"
+              className="font-bold text-foreground flex items-center gap-1.5"
             >
               Lý do từ chối <span className="text-rose-500 font-black">*</span>
             </Label>
             <Textarea
               id="reason"
               placeholder="Ví dụ: Hình ảnh vi phạm bản quyền, chất lượng âm thanh quá kém..."
-              className="min-h-[140px] focus-visible:ring-rose-500/20 focus-visible:border-rose-500 resize-none bg-slate-50 border-slate-200 font-medium"
+              className="min-h-[140px] focus-visible:ring-rose-500/20 focus-visible:border-rose-500 resize-none bg-muted border-border font-medium"
               value={rejectReason}
               onChange={(e) => setRejectReason(e.target.value)}
             />
-            <p className="text-[11px] text-slate-400 font-semibold italic flex items-center gap-1 mt-1">
+            <p className="text-[11px] text-muted-foreground font-semibold italic flex items-center gap-1 mt-1">
               ℹ️ Giảng viên sẽ nhận được phản hồi này trong mục thông báo cá
               nhân.
             </p>
           </div>
         </div>
-        <DialogFooter className="p-6 bg-slate-50/50 border-t border-slate-100 gap-2 sm:gap-0">
+        <DialogFooter className="p-6 bg-muted border-t border-border gap-2 sm:gap-0">
           <Button
             variant="outline"
             onClick={() => onClose(false)}
-            className="font-bold border-slate-200 text-slate-600 h-11 px-5"
+            className="font-bold border-border text-muted-foreground h-11 px-5"
           >
             Hủy bỏ
           </Button>

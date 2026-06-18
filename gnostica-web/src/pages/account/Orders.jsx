@@ -47,7 +47,7 @@ const ORDERS_DATA = [
     total: "749.000đ",
     method: "Momo",
     status: "Đã hủy",
-    statusColor: "bg-red-100 text-red-700",
+    statusColor: "bg-error/10 text-error text-error",
   },
 ];
 
@@ -78,7 +78,7 @@ export default function Orders() {
       {/* Page Title */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-3">
+          <h1 className="text-2xl font-extrabold text-foreground flex items-center gap-3">
             <ShoppingBag className="w-7 h-7 text-primary" />
             Lịch sử mua hàng
           </h1>
@@ -89,35 +89,35 @@ export default function Orders() {
       </div>
 
       {/* Orders Table */}
-      <Card className="border-slate-100 shadow-sm overflow-hidden">
+      <Card className="border-border shadow-sm overflow-hidden">
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <Table>
-              <TableHeader className="bg-slate-50/80">
-                <TableRow className="hover:bg-transparent border-slate-100">
-                  <TableHead className="font-bold text-slate-700 py-4 whitespace-nowrap">Mã đơn hàng</TableHead>
-                  <TableHead className="font-bold text-slate-700 py-4 whitespace-nowrap">Ngày đặt</TableHead>
-                  <TableHead className="font-bold text-slate-700 py-4 w-[300px]">Sản phẩm</TableHead>
-                  <TableHead className="font-bold text-slate-700 py-4 whitespace-nowrap">Tổng tiền</TableHead>
-                  <TableHead className="font-bold text-slate-700 py-4 whitespace-nowrap">PT Thanh toán</TableHead>
-                  <TableHead className="font-bold text-slate-700 py-4 whitespace-nowrap">Trạng thái</TableHead>
-                  <TableHead className="font-bold text-slate-700 py-4 text-right whitespace-nowrap">Thao tác</TableHead>
+              <TableHeader className="bg-muted/80">
+                <TableRow className="hover:bg-transparent border-border">
+                  <TableHead className="font-bold text-foreground py-4 whitespace-nowrap">Mã đơn hàng</TableHead>
+                  <TableHead className="font-bold text-foreground py-4 whitespace-nowrap">Ngày đặt</TableHead>
+                  <TableHead className="font-bold text-foreground py-4 w-[300px]">Sản phẩm</TableHead>
+                  <TableHead className="font-bold text-foreground py-4 whitespace-nowrap">Tổng tiền</TableHead>
+                  <TableHead className="font-bold text-foreground py-4 whitespace-nowrap">PT Thanh toán</TableHead>
+                  <TableHead className="font-bold text-foreground py-4 whitespace-nowrap">Trạng thái</TableHead>
+                  <TableHead className="font-bold text-foreground py-4 text-right whitespace-nowrap">Thao tác</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {ORDERS_DATA.length > 0 ? (
                   ORDERS_DATA.map((order) => (
-                    <TableRow key={order.id} className="border-slate-100 hover:bg-slate-50/50 transition-colors">
-                      <TableCell className="font-mono font-semibold text-slate-900 py-4">
+                    <TableRow key={order.id} className="border-border hover:bg-muted transition-colors">
+                      <TableCell className="font-mono font-semibold text-foreground py-4">
                         {order.id}
                       </TableCell>
-                      <TableCell className="text-slate-600 font-medium py-4">
+                      <TableCell className="text-muted-foreground font-medium py-4">
                         {order.date}
                       </TableCell>
                       <TableCell className="py-4">
                         <div className="space-y-1">
                           {order.courses.map((course, idx) => (
-                            <p key={idx} className="text-sm font-bold text-slate-800 line-clamp-1">
+                            <p key={idx} className="text-sm font-bold text-foreground line-clamp-1">
                               • {course}
                             </p>
                           ))}
@@ -131,7 +131,7 @@ export default function Orders() {
                       <TableCell className="font-black text-primary py-4">
                         {order.total}
                       </TableCell>
-                      <TableCell className="text-slate-600 font-medium py-4">
+                      <TableCell className="text-muted-foreground font-medium py-4">
                         {order.method}
                       </TableCell>
                       <TableCell className="py-4">
@@ -141,10 +141,10 @@ export default function Orders() {
                       </TableCell>
                       <TableCell className="text-right py-4">
                         <div className="flex items-center justify-end gap-2">
-                          <button className="p-2 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors" title="Xem chi tiết">
+                          <button className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-colors" title="Xem chi tiết">
                             <Eye className="w-5 h-5" />
                           </button>
-                          <button className="p-2 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors" title="Tải hóa đơn">
+                          <button className="p-2 text-muted-foreground hover:text-info hover:bg-blue-50 rounded-lg transition-colors" title="Tải hóa đơn">
                             <Download className="w-5 h-5" />
                           </button>
                         </div>
@@ -154,8 +154,8 @@ export default function Orders() {
                 ) : (
                   <TableRow>
                     <TableCell colSpan={7} className="h-48 text-center">
-                      <div className="flex flex-col items-center gap-3 text-slate-400">
-                        <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
+                      <div className="flex flex-col items-center gap-3 text-muted-foreground">
+                        <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center">
                           <ShoppingBag className="w-6 h-6" />
                         </div>
                         <p className="text-sm font-medium">Bạn chưa có đơn hàng nào</p>
@@ -171,7 +171,7 @@ export default function Orders() {
       
       {/* Pagination Placeholder */}
       <div className="flex items-center justify-between px-2 py-4 mt-2">
-        <p className="text-sm text-slate-500 font-medium">Hiển thị {ORDERS_DATA.length} đơn hàng</p>
+        <p className="text-sm text-muted-foreground font-medium">Hiển thị {ORDERS_DATA.length} đơn hàng</p>
       </div>
     </div>
   );

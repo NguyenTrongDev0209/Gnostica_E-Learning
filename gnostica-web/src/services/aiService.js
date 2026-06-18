@@ -1,10 +1,10 @@
-import axios from 'axios';
+import axiosClient from '@/lib/axiosClient';
 
-const API_URL = 'http://localhost:8080/api/ai'; // Adjust base URL if needed
+const API_URL = '/ai'; // Adjust base URL if needed
 
 export const sendChatMessage = async (messages) => {
     try {
-        const response = await axios.post(`${API_URL}/chat`, {
+        const response = await axiosClient.post(`${API_URL}/chat`, {
             messages: messages.map(m => ({
                 role: m.role,
                 content: m.content

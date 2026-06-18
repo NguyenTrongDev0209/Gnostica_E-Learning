@@ -54,22 +54,22 @@ export default function FilterOptions({ categories = [], selectedFilters = {}, o
 
   return (
     <Card className="border shadow-sm bg-white z-10 max-h-[calc(100vh-6rem)] overflow-y-auto scrollbar-thin">
-      <CardHeader className="pb-3 border-b border-slate-100 mb-4">
+      <CardHeader className="pb-3 border-b border-border mb-4">
         <CardTitle className="text-lg font-bold text-center uppercase tracking-tighter">Lọc kết quả</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-6">
 
         {/* Category Filter */}
         <div className="flex flex-col gap-3">
-          <h4 className="text-xs font-bold text-slate-900 uppercase tracking-widest">Danh mục</h4>
+          <h4 className="text-xs font-bold text-foreground uppercase tracking-widest">Danh mục</h4>
           <RadioGroup
             value={selectedFilters.categorySlug || "all"}
             onValueChange={(val) => onFilterChange("categorySlug", val === "all" ? null : val)}
             className="flex flex-col gap-1"
           >
             <div className="flex items-center gap-2 group cursor-pointer py-1.5" onClick={() => setExpandedId(null)}>
-              <RadioGroupItem value="all" id="cat-all" className="border-slate-300 text-orange-500 focus:ring-orange-500" />
-              <Label htmlFor="cat-all" className="text-sm font-bold text-slate-600 group-hover:text-slate-900 cursor-pointer transition-colors">
+              <RadioGroupItem value="all" id="cat-all" className="border-border text-warning focus:ring-orange-500" />
+              <Label htmlFor="cat-all" className="text-sm font-bold text-muted-foreground group-hover:text-foreground cursor-pointer transition-colors">
                 Tất cả danh mục
               </Label>
             </div>
@@ -89,14 +89,14 @@ export default function FilterOptions({ categories = [], selectedFilters = {}, o
                       <RadioGroupItem
                         value={parent.slug}
                         id={`cat-${parent.id}`}
-                        className="border-slate-300 text-orange-500 focus:ring-orange-500"
+                        className="border-border text-warning focus:ring-orange-500"
                       />
-                      <Label htmlFor={`cat-${parent.id}`} className="text-sm font-bold text-slate-700 group-hover:text-slate-900 cursor-pointer transition-colors">
+                      <Label htmlFor={`cat-${parent.id}`} className="text-sm font-bold text-foreground group-hover:text-foreground cursor-pointer transition-colors">
                         {parent.name}
                       </Label>
                     </div>
                     {hasSub && (
-                      <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
+                      <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
                     )}
                   </div>
 
@@ -108,9 +108,9 @@ export default function FilterOptions({ categories = [], selectedFilters = {}, o
                           <RadioGroupItem
                             value={child.slug}
                             id={`cat-${child.id}`}
-                            className="border-slate-300 text-orange-500 focus:ring-orange-500"
+                            className="border-border text-warning focus:ring-orange-500"
                           />
-                          <Label htmlFor={`cat-${child.id}`} className="text-sm font-medium text-slate-500 group-hover:text-slate-900 cursor-pointer transition-colors">
+                          <Label htmlFor={`cat-${child.id}`} className="text-sm font-medium text-muted-foreground group-hover:text-foreground cursor-pointer transition-colors">
                             {child.name}
                           </Label>
                         </div>
@@ -123,11 +123,11 @@ export default function FilterOptions({ categories = [], selectedFilters = {}, o
           </RadioGroup>
         </div>
 
-        <Separator className="bg-slate-100" />
+        <Separator className="bg-secondary" />
 
         {/* Level Filter */}
         <div className="flex flex-col gap-3">
-          <h4 className="text-xs font-bold text-slate-900 uppercase tracking-widest">Trình độ</h4>
+          <h4 className="text-xs font-bold text-foreground uppercase tracking-widest">Trình độ</h4>
           <RadioGroup
             value={selectedFilters.level || "all"}
             onValueChange={(val) => onFilterChange("level", val)}
@@ -135,8 +135,8 @@ export default function FilterOptions({ categories = [], selectedFilters = {}, o
           >
             {filteredLevels.map((level) => (
               <div key={level.value} className="flex items-center gap-2 group cursor-pointer">
-                <RadioGroupItem value={level.value} id={`level-${level.value}`} className="border-slate-300 text-orange-500 focus:ring-orange-500" />
-                <Label htmlFor={`level-${level.value}`} className="text-sm font-medium text-slate-600 group-hover:text-slate-900 cursor-pointer transition-colors">
+                <RadioGroupItem value={level.value} id={`level-${level.value}`} className="border-border text-warning focus:ring-orange-500" />
+                <Label htmlFor={`level-${level.value}`} className="text-sm font-medium text-muted-foreground group-hover:text-foreground cursor-pointer transition-colors">
                   {level.label}
                 </Label>
               </div>
@@ -144,7 +144,7 @@ export default function FilterOptions({ categories = [], selectedFilters = {}, o
           </RadioGroup>
         </div>
 
-        <Separator className="bg-slate-100" />
+        <Separator className="bg-secondary" />
 
         <div className="pt-2">
           <button
@@ -152,7 +152,7 @@ export default function FilterOptions({ categories = [], selectedFilters = {}, o
               onFilterChange("categoryId", null);
               onFilterChange("level", "all");
             }}
-            className="w-full h-10 rounded-lg border border-slate-200 text-xs font-bold text-slate-500 hover:bg-slate-50 transition-colors uppercase"
+            className="w-full h-10 rounded-lg border border-border text-xs font-bold text-muted-foreground hover:bg-muted transition-colors uppercase"
           >
             Xóa tất cả lọc
           </button>

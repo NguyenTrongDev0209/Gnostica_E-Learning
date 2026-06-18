@@ -26,7 +26,7 @@ export default function LineChart({
     className = ""
 }) {
     return (
-        <Card className={`lg:col-span-2 border-slate-200 shadow-sm ${className}`}>
+        <Card className={`lg:col-span-2 border-border shadow-sm ${className}`}>
             <CardHeader className="pb-2">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="space-y-1">

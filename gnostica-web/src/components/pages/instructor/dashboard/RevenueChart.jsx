@@ -5,8 +5,8 @@ import ChartDateFilters from "@/components/common/ChartDateFilters";
 export default function RevenueChart({ data }) {
     const subtitle = (
         <>
-            <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">Tổng doanh thu:</span>
-            <span className="text-2xl font-bold text-slate-900">112.800.000đ</span>
+            <span className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Tổng doanh thu:</span>
+            <span className="text-2xl font-bold text-foreground">112.800.000đ</span>
         </>
     );
 

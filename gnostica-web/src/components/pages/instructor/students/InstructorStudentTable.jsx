@@ -90,7 +90,7 @@ export default function InstructorStudentTable({ students, onActionClick, onCour
                         </span>
                         <span className="text-xs font-black text-foreground">{student.progress}%</span>
                     </div>
-                    <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden border border-slate-200/50 p-[1px]">
+                    <div className="h-2 w-full bg-secondary rounded-full overflow-hidden border border-border/50 p-[1px]">
                         <div
                             className={cn(
                                 "h-full rounded-full transition-all duration-1000 ease-out relative shadow-sm",
@@ -110,15 +110,15 @@ export default function InstructorStudentTable({ students, onActionClick, onCour
             className: "min-w-[160px]",
             render: (student) => (
                 <div className="flex flex-col gap-1 items-center">
-                    <span className="text-xs font-bold text-slate-700 bg-slate-50 border border-slate-100 px-2.5 py-1 rounded-lg tabular-nums">
+                    <span className="text-xs font-bold text-foreground bg-muted border border-border px-2.5 py-1 rounded-lg tabular-nums">
                         {formatDate(student.joinedDate)}
                     </span>
                     <div className="flex items-center gap-1.5">
                         <span className={cn(
                             "w-1.5 h-1.5 rounded-full shadow-sm",
-                            student.lastActive.includes("giờ") || student.lastActive.includes("phút") ? "bg-success animate-pulse" : "bg-slate-300"
+                            student.lastActive.includes("giờ") || student.lastActive.includes("phút") ? "bg-success animate-pulse" : "bg-muted"
                         )} />
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-tight">{student.lastActive}</span>
+                        <span className="text-[10px] font-black text-muted-foreground uppercase tracking-tight">{student.lastActive}</span>
                     </div>
                 </div>
             ),

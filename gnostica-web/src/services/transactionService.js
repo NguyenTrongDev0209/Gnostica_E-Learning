@@ -1,6 +1,6 @@
-import axios from 'axios';
+import axiosClient from '@/lib/axiosClient';
 
-const API_URL = 'http://localhost:8080/api/transactions';
+const API_URL = '/transactions';
 
 const getAuthHeaders = () => {
     const userStr = localStorage.getItem('user');
@@ -18,7 +18,7 @@ const getAuthHeaders = () => {
 };
 
 const getTransactions = async () => {
-    const response = await axios.get(API_URL, {
+    const response = await axiosClient.get(API_URL, {
         headers: getAuthHeaders()
     });
     return response.data;

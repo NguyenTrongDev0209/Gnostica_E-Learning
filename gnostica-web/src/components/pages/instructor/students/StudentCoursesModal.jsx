@@ -48,17 +48,17 @@ const StudentCoursesModal = ({ isOpen, onClose, student }) => {
                 showCloseButton={false}
             >
                 {/* Header */}
-                <DialogHeader className="px-6 py-5 bg-slate-50 border-b border-slate-100">
+                <DialogHeader className="px-6 py-5 bg-muted border-b border-border">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
                                 <GraduationCap className="w-5 h-5" />
                             </div>
                             <div>
-                                <DialogTitle className="text-base font-black text-slate-900">
+                                <DialogTitle className="text-base font-black text-foreground">
                                     Khóa học tham gia
                                 </DialogTitle>
-                                <p className="text-xs font-medium text-slate-500">
+                                <p className="text-xs font-medium text-muted-foreground">
                                     Học viên:{" "}
                                     <span className="text-primary font-bold">{student?.fullName}</span>
                                 </p>
@@ -66,7 +66,7 @@ const StudentCoursesModal = ({ isOpen, onClose, student }) => {
                         </div>
                         <button
                             onClick={onClose}
-                            className="w-10 h-10 rounded-xl bg-red-50 hover:bg-red-100 flex items-center justify-center text-red-500 hover:text-red-600 transition-colors flex-shrink-0"
+                            className="w-10 h-10 rounded-xl bg-red-50 hover:bg-error/10 text-error flex items-center justify-center text-error hover:text-error transition-colors flex-shrink-0"
                         >
                             <X className="w-5 h-5" />
                         </button>
@@ -104,14 +104,14 @@ const StudentCoursesModal = ({ isOpen, onClose, student }) => {
                                     >
                                         {/* STT */}
                                         <td className="py-4 px-4 text-center">
-                                            <span className="text-sm font-bold text-slate-400">
+                                            <span className="text-sm font-bold text-muted-foreground">
                                                 {(index + 1).toString().padStart(2, "0")}
                                             </span>
                                         </td>
                                         {/* Khóa học */}
                                         <td className="py-4 px-4">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-lg bg-slate-100 border border-slate-200 overflow-hidden flex-shrink-0">
+                                                <div className="w-10 h-10 rounded-lg bg-secondary border border-border overflow-hidden flex-shrink-0">
                                                     {course.courseThumbnail ? (
                                                         <img
                                                             src={course.courseThumbnail}
@@ -125,10 +125,10 @@ const StudentCoursesModal = ({ isOpen, onClose, student }) => {
                                                     )}
                                                 </div>
                                                 <div className="flex flex-col min-w-0">
-                                                    <span className="text-sm font-bold text-slate-800 truncate max-w-[280px]">
+                                                    <span className="text-sm font-bold text-foreground truncate max-w-[280px]">
                                                         {course.courseTitle}
                                                     </span>
-                                                    <span className="text-xs text-slate-400 font-medium">
+                                                    <span className="text-xs text-muted-foreground font-medium">
                                                         {course.instructorName}
                                                     </span>
                                                 </div>
@@ -145,14 +145,14 @@ const StudentCoursesModal = ({ isOpen, onClose, student }) => {
                                         </td>
                                         {/* Ngày tham gia */}
                                         <td className="py-4 px-4 text-center">
-                                            <span className="text-sm font-bold text-slate-700 block">
+                                            <span className="text-sm font-bold text-foreground block">
                                                 {formatDate(course.joinedAt)}
                                             </span>
-                                            <span className="text-xs text-slate-400">Ghi danh</span>
+                                            <span className="text-xs text-muted-foreground">Ghi danh</span>
                                         </td>
                                         {/* Thao tác */}
                                         <td className="py-4 px-4 text-center">
-                                            <button className="p-1.5 hover:bg-primary/5 text-slate-400 hover:text-primary rounded-lg transition-colors">
+                                            <button className="p-1.5 hover:bg-primary/5 text-muted-foreground hover:text-primary rounded-lg transition-colors">
                                                 <Eye className="w-4 h-4" />
                                             </button>
                                         </td>

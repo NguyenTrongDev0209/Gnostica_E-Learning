@@ -1,6 +1,6 @@
-import axios from 'axios';
+import axiosClient from '@/lib/axiosClient';
 
-const API_URL = 'http://localhost:8080/api/follow';
+const API_URL = '/follow';
 
 const getAuthHeaders = () => {
     const user = JSON.parse(localStorage.getItem('user'));
@@ -12,17 +12,17 @@ const getAuthHeaders = () => {
 };
 
 const getFollowedInstructors = async () => {
-    const response = await axios.get(`${API_URL}/instructors`, getAuthHeaders());
+    const response = await axiosClient.get(`${API_URL}/instructors`, getAuthHeaders());
     return response.data;
 };
 
 const toggleFollow = async (instructorId) => {
-    const response = await axios.post(`${API_URL}/toggle/${instructorId}`, {}, getAuthHeaders());
+    const response = await axiosClient.post(`${API_URL}/toggle/${instructorId}`, {}, getAuthHeaders());
     return response.data;
 };
 
 const checkFollowing = async (instructorId) => {
-    const response = await axios.get(`${API_URL}/check/${instructorId}`, getAuthHeaders());
+    const response = await axiosClient.get(`${API_URL}/check/${instructorId}`, getAuthHeaders());
     return response.data;
 };
 

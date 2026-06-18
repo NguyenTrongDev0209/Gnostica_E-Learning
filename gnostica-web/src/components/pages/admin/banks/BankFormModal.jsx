@@ -84,7 +84,7 @@ export function BankFormModal({ isOpen, onOpenChange, onSave, editingBank }) {
                     <Input
                       {...field}
                       placeholder="VD: Vietcombank, MBBank..."
-                      className="h-10 border-slate-200 bg-white"
+                      className="h-10 border-border bg-white"
                     />
                   </FormControl>
                   <FormMessage className="text-[11px]" />
@@ -105,7 +105,7 @@ export function BankFormModal({ isOpen, onOpenChange, onSave, editingBank }) {
                       <Input
                         {...field}
                         placeholder="VD: VCB, MB"
-                        className="h-10 border-slate-200 bg-white uppercase font-bold"
+                        className="h-10 border-border bg-white uppercase font-bold"
                       />
                     </FormControl>
                     <FormMessage className="text-[11px]" />
@@ -125,7 +125,7 @@ export function BankFormModal({ isOpen, onOpenChange, onSave, editingBank }) {
                       <Input
                         {...field}
                         placeholder="Nhập mã BIN"
-                        className="h-10 border-slate-200 bg-white"
+                        className="h-10 border-border bg-white"
                       />
                     </FormControl>
                     <FormMessage className="text-[11px]" />
@@ -146,7 +146,7 @@ export function BankFormModal({ isOpen, onOpenChange, onSave, editingBank }) {
                     <Input
                       {...field}
                       placeholder="https://..."
-                      className="h-10 border-slate-200 bg-white"
+                      className="h-10 border-border bg-white"
                     />
                   </FormControl>
                   <FormMessage className="text-[11px]" />
@@ -167,11 +167,11 @@ export function BankFormModal({ isOpen, onOpenChange, onSave, editingBank }) {
                     onValueChange={(val) => field.onChange(parseInt(val))}
                   >
                     <FormControl>
-                      <SelectTrigger className="h-10 border-slate-200 bg-white">
+                      <SelectTrigger className="h-10 border-border bg-white">
                         <SelectValue placeholder="Chọn trạng thái" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent className="z-[10000] bg-white border border-slate-200 shadow-md">
+                    <SelectContent className="z-[10000] bg-white border border-border shadow-md">
                       <SelectItem value="1">Đang hoạt động</SelectItem>
                       <SelectItem value="0">Tạm dừng</SelectItem>
                     </SelectContent>
@@ -186,7 +186,7 @@ export function BankFormModal({ isOpen, onOpenChange, onSave, editingBank }) {
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
-                className="px-6 border-slate-200 hover:bg-slate-100"
+                className="px-6 border-border hover:bg-secondary"
               >
                 Hủy
               </Button>

@@ -1,7 +1,7 @@
-import axios from 'axios';
+import axiosClient from '@/lib/axiosClient';
 
-const API_URL = 'http://localhost:8080/api/courses';
-const PROGRESS_API_URL = 'http://localhost:8080/api/progress';
+const API_URL = '/courses';
+const PROGRESS_API_URL = '/progress';
 
 const getAuthHeaders = () => {
     const userStr = localStorage.getItem('user');
@@ -19,14 +19,14 @@ const getAuthHeaders = () => {
 };
 
 const createCourse = async (courseData) => {
-    const response = await axios.post(API_URL, courseData, {
+    const response = await axiosClient.post(API_URL, courseData, {
         headers: getAuthHeaders()
     });
     return response.data;
 };
 
 const getAllCourses = async (page = 0, size = 10) => {
-    const response = await axios.get(API_URL, {
+    const response = await axiosClient.get(API_URL, {
         params: { page, size }
     });
     return response.data;
@@ -38,7 +38,7 @@ const getInstructorCourses = async (page = 0, size = 10, search = "", categoryId
     if (categoryId) params.categoryId = categoryId;
     if (status !== null && status !== undefined && status !== "") params.status = status;
 
-    const response = await axios.get(`${API_URL}/instructor`, {
+    const response = await axiosClient.get(`${API_URL}/instructor`, {
         params,
         headers: getAuthHeaders()
     });
@@ -46,42 +46,42 @@ const getInstructorCourses = async (page = 0, size = 10, search = "", categoryId
 };
 
 const getCourseBySlug = async (slug) => {
-    const response = await axios.get(`${API_URL}/${slug}`, {
+    const response = await axiosClient.get(`${API_URL}/${slug}`, {
         headers: getAuthHeaders()
     });
     return response.data;
 };
 
 const updateCourse = async (slug, courseData) => {
-    const response = await axios.put(`${API_URL}/${slug}`, courseData, {
+    const response = await axiosClient.put(`${API_URL}/${slug}`, courseData, {
         headers: getAuthHeaders()
     });
     return response.data;
 };
 
 const updateCourseStatus = async (id, status) => {
-    const response = await axios.patch(`${API_URL}/${id}/status`, { status }, {
+    const response = await axiosClient.patch(`${API_URL}/${id}/status`, { status }, {
         headers: getAuthHeaders()
     });
     return response.data;
 };
 
 const deleteCourse = async (id) => {
-    const response = await axios.delete(`${API_URL}/${id}`, {
+    const response = await axiosClient.delete(`${API_URL}/${id}`, {
         headers: getAuthHeaders()
     });
     return response.data;
 };
 
 const getAllDrafts = async () => {
-    const response = await axios.get(`${API_URL}/draft/all`, {
+    const response = await axiosClient.get(`${API_URL}/draft/all`, {
         headers: getAuthHeaders()
     });
     return response.data;
 };
 
 const deleteDraft = async ({ courseId, slug } = {}) => {
-    const response = await axios.delete(`${API_URL}/draft`, {
+    const response = await axiosClient.delete(`${API_URL}/draft`, {
         params: {
             courseId: courseId || undefined,
             slug: slug || undefined,
@@ -98,18 +98,18 @@ const getPublicCourses = async ({ categoryId, categorySlug, level, search, page 
     if (level && level !== 'all') params.level = level;
     if (search && search.trim() !== "") params.search = search.trim();
 
-    const response = await axios.get(API_URL, { params });
+    const response = await axiosClient.get(API_URL, { params });
     return response.data;
 };
 
 const getPublicLevels = async () => {
-    const response = await axios.get(`${API_URL}/public-levels`);
+    const response = await axiosClient.get(`${API_URL}/public-levels`);
     return response.data;
 };
 
 const getCourseProgress = async (slug) => {
     try {
-        const response = await axios.get(`${PROGRESS_API_URL}/course/${slug}`, {
+        const response = await axiosClient.get(`${PROGRESS_API_URL}/course/${slug}`, {
             headers: getAuthHeaders()
         });
         return response.data;
@@ -121,7 +121,7 @@ const getCourseProgress = async (slug) => {
 
 const updateLastWatchedTime = async (lessonId, time) => {
     try {
-        await axios.post(`${PROGRESS_API_URL}/lesson/${lessonId}/time?time=${Math.round(time)}`, {}, {
+        await axiosClient.post(`${PROGRESS_API_URL}/lesson/${lessonId}/time?time=${Math.round(time)}`, {}, {
             headers: getAuthHeaders()
         });
     } catch (error) {
@@ -131,7 +131,7 @@ const updateLastWatchedTime = async (lessonId, time) => {
 
 const markLessonCompleted = async (lessonId) => {
     try {
-        await axios.post(`${PROGRESS_API_URL}/lesson/${lessonId}/complete`, {}, {
+        await axiosClient.post(`${PROGRESS_API_URL}/lesson/${lessonId}/complete`, {}, {
             headers: getAuthHeaders()
         });
         return true;
@@ -143,7 +143,7 @@ const markLessonCompleted = async (lessonId) => {
 
 const submitQuizResult = async (quizId, payload) => {
     try {
-        const response = await axios.post(`${PROGRESS_API_URL}/quiz/${quizId}/submit`, payload, {
+        const response = await axiosClient.post(`${PROGRESS_API_URL}/quiz/${quizId}/submit`, payload, {
             headers: getAuthHeaders()
         });
         return response.data;
@@ -155,7 +155,7 @@ const submitQuizResult = async (quizId, payload) => {
 
 const resetQuizResult = async (quizId) => {
     try {
-        const response = await axios.post(`${PROGRESS_API_URL}/quiz/${quizId}/reset`, {}, {
+        const response = await axiosClient.post(`${PROGRESS_API_URL}/quiz/${quizId}/reset`, {}, {
             headers: getAuthHeaders()
         });
         return response.data;
@@ -172,7 +172,7 @@ const generateAiQuestions = async (courseId, file, count, level) => {
     formData.append('count', count);
     formData.append('level', level);
 
-    const response = await axios.post(`http://localhost:8080/api/instructor/courses/${idToUse}/questions/ai-generate`, formData, {
+    const response = await axiosClient.post(`/instructor/courses/${idToUse}/questions/ai-generate`, formData, {
         headers: {
             ...getAuthHeaders(),
             'Content-Type': 'multipart/form-data'
@@ -182,32 +182,32 @@ const generateAiQuestions = async (courseId, file, count, level) => {
 };
 
 const saveDraftQuestions = async (courseId, questions) => {
-    const response = await axios.post(`http://localhost:8080/api/instructor/courses/${courseId}/questions/drafts`, questions, {
+    const response = await axiosClient.post(`/instructor/courses/${courseId}/questions/drafts`, questions, {
         headers: getAuthHeaders()
     });
     return response.data;
 };
 
 const getDraftQuestions = async (courseId) => {
-    const response = await axios.get(`http://localhost:8080/api/instructor/courses/${courseId}/questions/drafts`, {
+    const response = await axiosClient.get(`/instructor/courses/${courseId}/questions/drafts`, {
         headers: getAuthHeaders()
     });
     return response.data;
 };
 
 const saveQuestionBank = async (courseId, questions) => {
-    const response = await axios.put(`http://localhost:8080/api/instructor/courses/${courseId}/questions`, questions, {
+    const response = await axiosClient.put(`/instructor/courses/${courseId}/questions`, questions, {
         headers: getAuthHeaders()
     });
     return response.data;
 };
 
-const ADMIN_API_URL = 'http://localhost:8080/api/admin/courses';
+const ADMIN_API_URL = '/admin/courses';
 
 const getModerationCourses = async (status = null, page = 0, size = 10) => {
     const params = { page, size };
     if (status !== null && status !== undefined && status !== "") params.status = status;
-    const response = await axios.get(`${ADMIN_API_URL}/moderation`, {
+    const response = await axiosClient.get(`${ADMIN_API_URL}/moderation`, {
         params,
         headers: getAuthHeaders()
     });
@@ -215,77 +215,77 @@ const getModerationCourses = async (status = null, page = 0, size = 10) => {
 };
 
 const getModerationStats = async () => {
-    const response = await axios.get(`${ADMIN_API_URL}/moderation/stats`, {
+    const response = await axiosClient.get(`${ADMIN_API_URL}/moderation/stats`, {
         headers: getAuthHeaders()
     });
     return response.data;
 };
 
 const getCourseForModeration = async (slug) => {
-    const response = await axios.get(`${ADMIN_API_URL}/${slug}`, {
+    const response = await axiosClient.get(`${ADMIN_API_URL}/${slug}`, {
         headers: getAuthHeaders()
     });
     return response.data;
 };
 
 const approveCourse = async (slug) => {
-    const response = await axios.post(`${ADMIN_API_URL}/${slug}/approve`, {}, {
+    const response = await axiosClient.post(`${ADMIN_API_URL}/${slug}/approve`, {}, {
         headers: getAuthHeaders()
     });
     return response.data;
 };
 
 const rejectCourse = async (slug, rejectReason) => {
-    const response = await axios.post(`${ADMIN_API_URL}/${slug}/reject`, { rejectReason }, {
+    const response = await axiosClient.post(`${ADMIN_API_URL}/${slug}/reject`, { rejectReason }, {
         headers: getAuthHeaders()
     });
     return response.data;
 };
 
 const triggerAiScan = async (lessonId) => {
-    const response = await axios.post(`${ADMIN_API_URL}/lessons/${lessonId}/ai-scan`, {}, {
+    const response = await axiosClient.post(`${ADMIN_API_URL}/lessons/${lessonId}/ai-scan`, {}, {
         headers: getAuthHeaders()
     });
     return response.data;
 };
 
 const triggerAiScanInfo = async (slug) => {
-    const response = await axios.post(`${ADMIN_API_URL}/${slug}/ai-scan-info`, {}, {
+    const response = await axiosClient.post(`${ADMIN_API_URL}/${slug}/ai-scan-info`, {}, {
         headers: getAuthHeaders()
     });
     return response.data;
 };
 
 const triggerAiScanFull = async (slug) => {
-    const response = await axios.post(`${ADMIN_API_URL}/${slug}/ai-scan-full`, {}, {
+    const response = await axiosClient.post(`${ADMIN_API_URL}/${slug}/ai-scan-full`, {}, {
         headers: getAuthHeaders()
     });
     return response.data;
 };
 
 const checkSubtitleStatus = async (videoId) => {
-    const response = await axios.get(`${API_URL}/lessons/check-subtitle/${videoId}`, {
+    const response = await axiosClient.get(`${API_URL}/lessons/check-subtitle/${videoId}`, {
         headers: getAuthHeaders()
     });
     return response.data;
 };
 
 const preScanCourseText = async (title, description) => {
-    const response = await axios.post(`${API_URL}/ai-pre-scan-text`, { title, description }, {
+    const response = await axiosClient.post(`${API_URL}/ai-pre-scan-text`, { title, description }, {
         headers: getAuthHeaders()
     });
     return response.data;
 };
 
 const preScanVideoContent = async (videoUrl) => {
-    const response = await axios.post(`${API_URL}/ai-pre-scan-video`, { videoUrl }, {
+    const response = await axiosClient.post(`${API_URL}/ai-pre-scan-video`, { videoUrl }, {
         headers: getAuthHeaders()
     });
     return response.data;
 };
 
 const getVideoTranscriptText = async (videoUrl) => {
-    const response = await axios.post(`${API_URL}/get-video-transcript`, { videoUrl }, {
+    const response = await axiosClient.post(`${API_URL}/get-video-transcript`, { videoUrl }, {
         headers: getAuthHeaders()
     });
     return response.data; // returns { transcript: "..." }
@@ -295,7 +295,7 @@ const deleteVideoFromBunny = async (videoUrl) => {
     if (!videoUrl || !videoUrl.includes('/')) return false;
     // videoUrl is in format: libraryId/videoId
     try {
-        const response = await axios.delete(`http://localhost:8080/api/upload/video/${videoUrl}`, {
+        const response = await axiosClient.delete(`/upload/video/${videoUrl}`, {
             headers: getAuthHeaders()
         });
         return response.status === 200;

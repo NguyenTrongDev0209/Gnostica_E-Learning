@@ -43,7 +43,6 @@ import {
   AlertTriangle
 } from "lucide-react";
 import { toast } from "sonner";
-import axios from "axios";
 import courseService from "../../services/courseService";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -555,15 +554,15 @@ export default function InstructorCourseForm() {
           <button
             type="button"
             onClick={handleExitWithConfirmation}
-            className="w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-900 transition-colors"
+            className="w-10 h-10 flex items-center justify-center rounded-full bg-secondary text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+            <h1 className="text-2xl font-bold text-foreground tracking-tight">
               {isEditMode ? "Chỉnh Sửa Khóa Học" : "Tạo Mới Khóa Học"}
             </h1>
-            <p className="text-sm text-slate-500 mt-0.5">
+            <p className="text-sm text-muted-foreground mt-0.5">
               Thiết lập thông tin nền tảng, thiết kế nội dung và định giá
             </p>
           </div>
@@ -571,7 +570,7 @@ export default function InstructorCourseForm() {
         <div className="flex items-center gap-3 transition-all">
           {(isUploading || activeUploads > 0) && (
             <div className="flex flex-col items-end mr-4">
-              <span className="text-sm font-bold text-green-600 animate-pulse mb-1">
+              <span className="text-sm font-bold text-success animate-pulse mb-1">
                 {activeUploads > 0 ? `Đang tải ${activeUploads} video...` : uploadStatus}
               </span>
             </div>
@@ -580,7 +579,7 @@ export default function InstructorCourseForm() {
           {/* Right Buttons Section */}
           <div className="flex items-center gap-2 sm:gap-3">
             {isSavingDraft && (
-              <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium animate-pulse mr-2">
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium animate-pulse mr-2">
                 <Save className="w-3.5 h-3.5" />
                 <span>Đang lưu...</span>
               </div>
@@ -594,12 +593,12 @@ export default function InstructorCourseForm() {
                 (() => {
                   try {
                     const rep = overallAiReport ? JSON.parse(overallAiReport) : null;
-                    if (!rep) return "text-slate-500 bg-slate-50/50 border-slate-200 border-dashed";
+                    if (!rep) return "text-muted-foreground bg-muted border-border border-dashed";
                     const sc = rep.safetyScore ?? 100;
                     const hasV = rep.violations && rep.violations.length > 0;
                     if (sc < 70 || hasV) return "bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200 animate-pulse shadow-rose-100/40 shadow-lg";
                     return "bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-200";
-                  } catch(e) { return "text-slate-500 border-slate-200"; }
+                  } catch(e) { return "text-muted-foreground border-border"; }
                 })()
               }`}
             >
@@ -611,7 +610,7 @@ export default function InstructorCourseForm() {
             <Button
               type="button"
               variant="outline"
-              className="h-9 sm:h-10 px-3 sm:px-5 font-bold border-slate-200 text-slate-600 hover:bg-slate-50 shadow-none text-xs sm:text-sm"
+              className="h-9 sm:h-10 px-3 sm:px-5 font-bold border-border text-muted-foreground hover:bg-muted shadow-none text-xs sm:text-sm"
               onClick={handleExitWithConfirmation}
             >
               Hủy
@@ -621,11 +620,11 @@ export default function InstructorCourseForm() {
               type="button"
               variant="outline"
               disabled={isSavingDraft || isUploading}
-              className="h-9 sm:h-10 px-3 sm:px-5 font-bold border-blue-200 text-blue-600 hover:bg-blue-50 shadow-none text-xs sm:text-sm flex items-center gap-2"
+              className="h-9 sm:h-10 px-3 sm:px-5 font-bold border-info/20 text-info hover:bg-blue-50 shadow-none text-xs sm:text-sm flex items-center gap-2"
               onClick={() => saveDraft(methods.getValues(), true)}
             >
               {isSavingDraft ? (
-                <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                <div className="w-4 h-4 border-2 border-info/20 border-t-transparent rounded-full animate-spin"></div>
               ) : (
                 <Save size={16} />
               )}
@@ -649,21 +648,21 @@ export default function InstructorCourseForm() {
           >
             <TabsContent
               value="basic"
-              className="bg-white p-6 md:p-8 rounded-xl border border-slate-200 shadow-sm focus-visible:outline-none focus-visible:ring-0 mt-0"
+              className="bg-white p-6 md:p-8 rounded-xl border border-border shadow-sm focus-visible:outline-none focus-visible:ring-0 mt-0"
             >
               <BasicInfoTab categories={categories} />
             </TabsContent>
 
             <TabsContent
               value="quiz"
-              className="bg-white p-6 md:p-8 rounded-xl border border-slate-200 shadow-sm focus-visible:outline-none focus-visible:ring-0 mt-0"
+              className="bg-white p-6 md:p-8 rounded-xl border border-border shadow-sm focus-visible:outline-none focus-visible:ring-0 mt-0"
             >
               <QuizTab courseId={methods.watch("id")} />
             </TabsContent>
 
             <TabsContent
               value="curriculum"
-              className="bg-white p-6 md:p-8 rounded-xl border border-slate-200 shadow-sm focus-visible:outline-none focus-visible:ring-0 mt-0"
+              className="bg-white p-6 md:p-8 rounded-xl border border-border shadow-sm focus-visible:outline-none focus-visible:ring-0 mt-0"
             >
               <CurriculumTab
                 uploadVideoToBunny={uploadVideoToBunny}
@@ -676,7 +675,7 @@ export default function InstructorCourseForm() {
 
             <TabsContent
               value="settings"
-              className="bg-white p-6 md:p-8 rounded-xl border border-slate-200 shadow-sm focus-visible:outline-none focus-visible:ring-0 mt-0"
+              className="bg-white p-6 md:p-8 rounded-xl border border-border shadow-sm focus-visible:outline-none focus-visible:ring-0 mt-0"
             >
               <SettingsTab
                 uploadVideoToBunny={uploadVideoToBunny}
@@ -686,7 +685,7 @@ export default function InstructorCourseForm() {
           </Tabs>
 
           {/* Navigation Footer */}
-          <div className="mt-10 pt-6 border-t border-slate-100 flex items-center justify-between">
+          <div className="mt-10 pt-6 border-t border-border flex items-center justify-between">
             <div className="flex items-center gap-2">
               {activeTab !== "basic" && (
                 <button
@@ -701,7 +700,7 @@ export default function InstructorCourseForm() {
                     const currentIdx = sequence.indexOf(activeTab);
                     if (currentIdx > 0) setActiveTab(sequence[currentIdx - 1]);
                   }}
-                  className="flex items-center gap-2 h-11 px-5 rounded-lg font-bold text-slate-500 hover:bg-slate-100 transition-all"
+                  className="flex items-center gap-2 h-11 px-5 rounded-lg font-bold text-muted-foreground hover:bg-secondary transition-all"
                 >
                   <ArrowLeft size={18} /> Quay lại
                 </button>
@@ -724,7 +723,7 @@ export default function InstructorCourseForm() {
                       setActiveTab(sequence[currentIdx + 1]);
                     window.scrollTo({ top: 0, behavior: "smooth" });
                   }}
-                  className="flex items-center gap-2 h-11 px-8 rounded-lg font-bold bg-slate-900 text-white hover:bg-slate-800 transition-all shadow-md shadow-slate-100"
+                  className="flex items-center gap-2 h-11 px-8 rounded-lg font-bold bg-muted text-white hover:bg-muted transition-all shadow-md shadow-slate-100"
                 >
                   Tiếp theo <ArrowRight size={18} />
                 </button>
@@ -738,12 +737,12 @@ export default function InstructorCourseForm() {
                       (() => {
                         try {
                           const rep = overallAiReport ? JSON.parse(overallAiReport) : null;
-                          if (!rep) return "text-slate-500 bg-slate-50/50 border-slate-200 border-dashed";
+                          if (!rep) return "text-muted-foreground bg-muted border-border border-dashed";
                           const sc = rep.safetyScore ?? 100;
                           const hasV = rep.violations && rep.violations.length > 0;
                           if (sc < 70 || hasV) return "bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200 animate-pulse shadow-rose-100/40 shadow-lg";
                           return "bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-200";
-                        } catch(e) { return "text-slate-500 border-slate-200"; }
+                        } catch(e) { return "text-muted-foreground border-border"; }
                       })()
                     }`}
                   >
@@ -755,7 +754,7 @@ export default function InstructorCourseForm() {
                   type="button"
                   disabled={activeUploads > 0}
                   onClick={methods.handleSubmit(onSubmit, onError)}
-                  className="flex items-center gap-2 h-11 px-8 rounded-lg font-bold bg-green-600 text-white hover:bg-green-700 transition-all shadow-lg shadow-green-100 disabled:opacity-50"
+                  className="flex items-center gap-2 h-11 px-8 rounded-lg font-bold bg-success/10 text-success text-white hover:bg-success/10 text-success transition-all shadow-lg shadow-green-100 disabled:opacity-50"
                 >
                   <CircleFadingArrowUp size={18} /> {activeUploads > 0 ? "Đang tải video..." : "Xuất bản"}
                 </button>
@@ -768,19 +767,19 @@ export default function InstructorCourseForm() {
         {/* Upload Progress Overlay - Khôi phục tính năng hiển thị trạng thái xử lý */}
         {isUploading && (
           <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] w-full max-w-md px-4">
-            <div className="bg-slate-900 text-white p-4 rounded-xl shadow-2xl flex items-center gap-4 animate-in slide-in-from-bottom-10">
-              <Loader2 className="w-6 h-6 animate-spin text-green-400" />
+            <div className="bg-muted text-white p-4 rounded-xl shadow-2xl flex items-center gap-4 animate-in slide-in-from-bottom-10">
+              <Loader2 className="w-6 h-6 animate-spin text-success" />
               <div className="flex-1">
                 <p className="text-sm font-bold">{uploadStatus}</p>
-                <div className="w-full bg-slate-700 h-1.5 rounded-full mt-2 overflow-hidden">
+                <div className="w-full bg-muted h-1.5 rounded-full mt-2 overflow-hidden">
                   <div
-                    className="bg-green-400 h-full transition-all duration-300"
+                    className="bg-success/10 text-success h-full transition-all duration-300"
                     style={{ width: '45%' }} // Tạm thời để tĩnh vì ta k tính tổng %, quan trọng là nhãn text
                   />
                 </div>
               </div>
               {activeUploads > 0 && (
-                <div className="bg-slate-800 px-2 py-1 rounded text-[10px] font-bold text-slate-400 uppercase">
+                <div className="bg-muted px-2 py-1 rounded text-[10px] font-bold text-muted-foreground uppercase">
                   {activeUploads} Files
                 </div>
               )}
@@ -793,23 +792,23 @@ export default function InstructorCourseForm() {
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
             <Card className="w-full max-w-md shadow-2xl border-none overflow-hidden">
               <div className="p-6 text-center">
-                <div className="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-16 h-16 bg-blue-50 text-info rounded-full flex items-center justify-center mx-auto mb-4">
                   <Clock className="w-8 h-8" />
                 </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-2">Phát hiện bản nháp!</h3>
-                <p className="text-slate-500 text-sm mb-6 leading-relaxed">
+                <h3 className="text-xl font-bold text-foreground mb-2">Phát hiện bản nháp!</h3>
+                <p className="text-muted-foreground text-sm mb-6 leading-relaxed">
                   Bạn có một bản lưu nháp chưa hoàn thành từ phiên làm việc trước. Bạn có muốn khôi phục lại dữ liệu này không?
                 </p>
                 <div className="grid grid-cols-2 gap-3">
                   <Button
                     variant="outline"
-                    className="h-11 font-bold border-slate-200"
+                    className="h-11 font-bold border-border"
                     onClick={() => setShowDraftModal(false)}
                   >
                     Bỏ qua
                   </Button>
                   <Button
-                    className="h-11 font-bold bg-blue-600 hover:bg-blue-700 text-white"
+                    className="h-11 font-bold bg-info/10 text-info hover:bg-info/10 text-info text-white"
                     onClick={restoreDraft}
                   >
                     Khôi phục ngay
@@ -821,7 +820,7 @@ export default function InstructorCourseForm() {
         )}
         {/* --- Elegant AI Audit Report Modal for Instructors --- */}
         <Dialog open={showAiReportModal} onOpenChange={setShowAiReportModal}>
-          <DialogContent className="sm:max-w-[600px] rounded-2xl border border-slate-100 p-0 overflow-hidden shadow-2xl bg-white focus-visible:outline-none z-[9999]">
+          <DialogContent className="sm:max-w-[600px] rounded-2xl border border-border p-0 overflow-hidden shadow-2xl bg-white focus-visible:outline-none z-[9999]">
             {(() => {
               let report = null;
               try {
@@ -862,34 +861,34 @@ export default function InstructorCourseForm() {
                     </div>
                   </div>
 
-                  <div className="p-6 space-y-5 max-h-[60vh] overflow-y-auto scrollbar-thin bg-slate-50/30">
+                  <div className="p-6 space-y-5 max-h-[60vh] overflow-y-auto scrollbar-thin bg-muted/30">
                     {!report ? (
                       <div className="text-center py-12 px-6 flex flex-col items-center">
                         <div className="w-16 h-16 bg-violet-50 border border-violet-100 text-violet-600 rounded-full flex items-center justify-center mb-4 shadow-inner">
                           <Sparkles className="w-8 h-8 animate-bounce" />
                         </div>
-                        <p className="font-black text-slate-800 text-[15px] uppercase tracking-wide">Chưa có dữ liệu quét AI</p>
-                        <p className="text-slate-500 text-xs mt-1.5 max-w-[320px] font-medium leading-relaxed">
-                          Hệ thống Tường lửa AI sẽ tự động thẩm định Tiêu đề & Mô tả khóa học ngay khi bạn bấm nút <span className="font-bold text-blue-600">"Lưu khóa học"</span> lần đầu tiên.
+                        <p className="font-black text-foreground text-[15px] uppercase tracking-wide">Chưa có dữ liệu quét AI</p>
+                        <p className="text-muted-foreground text-xs mt-1.5 max-w-[320px] font-medium leading-relaxed">
+                          Hệ thống Tường lửa AI sẽ tự động thẩm định Tiêu đề & Mô tả khóa học ngay khi bạn bấm nút <span className="font-bold text-info">"Lưu khóa học"</span> lần đầu tiên.
                         </p>
                       </div>
                     ) : (
                       <>
-                        <div className="bg-white p-4 rounded-2xl border border-slate-200/60 shadow-sm">
-                          <p className="text-[10px] font-black text-slate-400 tracking-widest uppercase mb-2.5 pl-1">📝 Nhận xét tổng hợp từ Trợ lý AI</p>
-                          <p className="text-xs text-slate-700 font-bold italic bg-slate-50/50 p-3.5 rounded-xl border border-slate-100 leading-relaxed shadow-inner">
+                        <div className="bg-white p-4 rounded-2xl border border-border/60 shadow-sm">
+                          <p className="text-[10px] font-black text-muted-foreground tracking-widest uppercase mb-2.5 pl-1">📝 Nhận xét tổng hợp từ Trợ lý AI</p>
+                          <p className="text-xs text-foreground font-bold italic bg-muted p-3.5 rounded-xl border border-border leading-relaxed shadow-inner">
                             "{report.assessment}"
                           </p>
                         </div>
 
                         {report.violations && report.violations.length > 0 ? (
                           <div className="space-y-3">
-                            <p className="text-[10px] font-black text-slate-500 tracking-widest uppercase pl-1 flex items-center gap-1.5">
+                            <p className="text-[10px] font-black text-muted-foreground tracking-widest uppercase pl-1 flex items-center gap-1.5">
                               ⚠️ Danh sách điểm cần sửa đổi ({report.violations.length})
                             </p>
                             <div className="space-y-3">
                               {report.violations.map((v, i) => (
-                                <div key={i} className="p-4 bg-white rounded-2xl border border-slate-200 shadow-sm space-y-2.5 hover:shadow-md transition-all duration-300 group">
+                                <div key={i} className="p-4 bg-white rounded-2xl border border-border shadow-sm space-y-2.5 hover:shadow-md transition-all duration-300 group">
                                   <div className="flex items-center justify-between">
                                     <span className={`text-[11px] font-black uppercase flex items-center gap-1 ${isCritical ? 'text-rose-700' : 'text-amber-700'}`}>
                                       {v.type === 'EXTERNAL_MARKETING' ? '📢 Quảng cáo / Kéo khách ngoài' : '🗣️ Từ ngữ vi phạm'}
@@ -898,11 +897,11 @@ export default function InstructorCourseForm() {
                                       {v.severity}
                                     </Badge>
                                   </div>
-                                  <p className="text-xs font-bold text-slate-800 italic bg-slate-50 p-2.5 rounded-xl border border-slate-100 leading-relaxed group-hover:bg-slate-100/50 transition-colors">
+                                  <p className="text-xs font-bold text-foreground italic bg-muted p-2.5 rounded-xl border border-border leading-relaxed group-hover:bg-secondary transition-colors">
                                     "{v.content}"
                                   </p>
-                                  <p className="text-[11px] text-slate-600 leading-relaxed mt-1.5 flex items-start gap-1 pl-0.5">
-                                    <span className="font-extrabold text-slate-800 shrink-0">📌 Giải thích:</span> 
+                                  <p className="text-[11px] text-muted-foreground leading-relaxed mt-1.5 flex items-start gap-1 pl-0.5">
+                                    <span className="font-extrabold text-foreground shrink-0">📌 Giải thích:</span> 
                                     <span className="font-medium">{v.explanation}</span>
                                   </p>
                                 </div>
@@ -915,7 +914,7 @@ export default function InstructorCourseForm() {
                               <CheckCircle2 className="w-8 h-8 text-emerald-500 animate-pulse" />
                             </div>
                             <p className="font-black text-emerald-800 uppercase tracking-wide text-[13px]">Văn bản sạch tuyệt đối!</p>
-                            <p className="text-slate-500 text-xs mt-1.5 font-medium max-w-[340px] leading-relaxed">
+                            <p className="text-muted-foreground text-xs mt-1.5 font-medium max-w-[340px] leading-relaxed">
                               Trợ lý AI không phát hiện bất kỳ lỗi ngôn từ, kéo khách ngoài hay vi phạm chính sách nào. Bạn đã sẵn sàng gửi duyệt!
                             </p>
                           </div>
@@ -924,7 +923,7 @@ export default function InstructorCourseForm() {
                     )}
                   </div>
 
-                  <div className="p-4 bg-white border-t border-slate-100 flex items-center justify-between gap-3 shrink-0">
+                  <div className="p-4 bg-white border-t border-border flex items-center justify-between gap-3 shrink-0">
                     <Button
                       type="button"
                       variant="outline"
@@ -946,7 +945,7 @@ export default function InstructorCourseForm() {
                     </Button>
                     <Button 
                       onClick={() => setShowAiReportModal(false)}
-                      className="h-10 px-5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl shadow-md text-xs select-none active:scale-95 transition-transform"
+                      className="h-10 px-5 bg-muted hover:bg-muted text-white font-bold rounded-xl shadow-md text-xs select-none active:scale-95 transition-transform"
                     >
                       Đóng báo cáo
                     </Button>
@@ -1082,7 +1081,7 @@ function CourseStepper({ activeTab, onTabChange }) {
                     fill="transparent"
                     strokeDasharray={circumference}
                     strokeDashoffset={offset}
-                    className="text-green-500 transition-all duration-500 ease-out"
+                    className="text-success transition-all duration-500 ease-out"
                     strokeLinecap="round"
                   />
                 </svg>
@@ -1092,9 +1091,9 @@ function CourseStepper({ activeTab, onTabChange }) {
                   className={`
                     w-[28px] h-[28px] rounded-full flex items-center justify-center font-bold text-sm z-10 transition-all duration-300
                     ${isActive
-                      ? "bg-green-600 text-white shadow-lg shadow-green-100 scale-105"
+                      ? "bg-success/10 text-success text-white shadow-lg shadow-green-100 scale-105"
                       : isCompleted
-                        ? "bg-green-500 text-white"
+                        ? "bg-success/10 text-success text-white"
                         : "bg-white text-slate-300"
                     }
                   `}
@@ -1122,7 +1121,7 @@ function CourseStepper({ activeTab, onTabChange }) {
               {/* Label */}
               <div className="absolute -bottom-6 whitespace-nowrap text-[11px] font-bold transition-all duration-300 text-center uppercase tracking-tighter">
                 <p
-                  className={`${isActive ? "text-green-700 scale-110" : isCompleted ? "text-green-600" : "text-slate-400 opacity-60"}`}
+                  className={`${isActive ? "text-success scale-110" : isCompleted ? "text-success" : "text-muted-foreground opacity-60"}`}
                 >
                   {s.label}
                 </p>
@@ -1131,10 +1130,10 @@ function CourseStepper({ activeTab, onTabChange }) {
 
             {/* Connection Line Segment */}
             {!isLast && (
-              <div className="flex-1 mx-2 h-[2px] bg-slate-100 relative rounded-full overflow-hidden">
+              <div className="flex-1 mx-2 h-[2px] bg-secondary relative rounded-full overflow-hidden">
                 <div
                   className={`
-                    absolute inset-0 bg-green-500 transition-all duration-1000 ease-out
+                    absolute inset-0 bg-success/10 text-success transition-all duration-1000 ease-out
                     ${currentStepNum > idx + 1 ? "w-full" : "w-0"}
                   `}
                 />
@@ -1184,9 +1183,9 @@ function CategoryCascader({ categories, value, onChange }) {
           onClick={() => {
             if (!open) setActiveParent(null);
           }}
-          className="flex h-11 w-full items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 disabled:cursor-not-allowed disabled:opacity-50 data-[state=open]:border-orange-500 data-[state=open]:ring-1 data-[state=open]:ring-orange-500 transition-all font-sans"
+          className="flex h-11 w-full items-center justify-between rounded-md border border-border bg-white px-3 py-2 text-sm font-medium focus:outline-none focus:border-warning/20 focus:ring-1 focus:ring-orange-500 disabled:cursor-not-allowed disabled:opacity-50 data-[state=open]:border-warning/20 data-[state=open]:ring-1 data-[state=open]:ring-orange-500 transition-all font-sans"
         >
-          <span className={value ? "text-slate-900" : "text-slate-500"}>
+          <span className={value ? "text-foreground" : "text-muted-foreground"}>
             {selectedName || "Chọn danh mục khóa học"}
           </span>
           <ChevronDown className="h-4 w-4 opacity-50" />
@@ -1194,14 +1193,14 @@ function CategoryCascader({ categories, value, onChange }) {
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0 flex flex-row items-start gap-1.5 border-none bg-transparent shadow-none" align="start" sideOffset={8}>
         {/* Cấp 1 */}
-        <div className="w-[240px] max-h-[300px] overflow-y-auto py-2 bg-white rounded-md shadow-lg border border-slate-200">
+        <div className="w-[240px] max-h-[300px] overflow-y-auto py-2 bg-white rounded-md shadow-lg border border-border">
           {categories.map(parent => {
             const hasChildren = parent.subcategories && parent.subcategories.filter(c => c.status).length > 0;
             const isActive = activeParent?.id === parent.id;
             return (
               <div
                 key={parent.id}
-                className={`flex items-center justify-between px-4 py-2.5 text-sm cursor-pointer transition-colors ${isActive ? "text-orange-500 bg-orange-50/50" : "text-slate-700 hover:text-orange-500 hover:bg-orange-50/50"}`}
+                className={`flex items-center justify-between px-4 py-2.5 text-sm cursor-pointer transition-colors ${isActive ? "text-warning bg-orange-50/50" : "text-foreground hover:text-warning hover:bg-orange-50/50"}`}
                 onMouseEnter={() => setActiveParent(parent)}
                 onClick={() => {
                   if (!hasChildren) {
@@ -1221,11 +1220,11 @@ function CategoryCascader({ categories, value, onChange }) {
 
         {/* Cấp 2 */}
         {activeParent && activeParent.subcategories && activeParent.subcategories.filter(c => c.status).length > 0 && (
-          <div className="w-[240px] max-h-[300px] overflow-y-auto py-2 bg-white rounded-md shadow-lg border border-slate-200">
+          <div className="w-[240px] max-h-[300px] overflow-y-auto py-2 bg-white rounded-md shadow-lg border border-border">
             {activeParent.subcategories.filter(c => c.status).map(child => (
               <div
                 key={child.id}
-                className="px-4 py-2.5 text-sm cursor-pointer text-slate-700 hover:text-orange-500 hover:bg-orange-50/50 transition-colors"
+                className="px-4 py-2.5 text-sm cursor-pointer text-foreground hover:text-warning hover:bg-orange-50/50 transition-colors"
                 onClick={() => {
                   onChange(child.id.toString());
                   setOpen(false);
@@ -1321,7 +1320,7 @@ function BasicInfoTab({ categories }) {
   return (
     <div className="space-y-6 w-full">
       <div>
-        <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2 mb-4">
+        <h3 className="text-lg font-bold text-foreground border-b border-border pb-2 mb-4">
           THÔNG TIN CƠ BẢN
         </h3>
       </div>
@@ -1335,33 +1334,33 @@ function BasicInfoTab({ categories }) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
-          <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
-            Tên Khóa Học <span className="text-red-500">*</span>
+          <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
+            Tên Khóa Học <span className="text-error">*</span>
           </label>
           <Input
-            className="h-11 border-slate-200 focus:border-green-500 font-medium"
+            className="h-11 border-border focus:border-success/20 font-medium"
             placeholder="Ví dụ: React Native Masterclass 2026..."
             {...register("title")}
           />
           {errors.title && (
-            <p className="text-xs font-bold text-red-500 mt-1.5 pl-1">
+            <p className="text-xs font-bold text-error mt-1.5 pl-1">
               {errors.title.message}
             </p>
           )}
         </div>
 
         <div className="space-y-2">
-          <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
-            Slug <span className="text-red-500">*</span>
+          <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
+            Slug <span className="text-error">*</span>
           </label>
           <Input
-            className="h-11 border-slate-200 bg-slate-50 font-medium cursor-not-allowed"
+            className="h-11 border-border bg-muted font-medium cursor-not-allowed"
             placeholder="react-native-masterclass-2026"
             {...register("slug")}
             readOnly
           />
           {errors.slug && (
-            <p className="text-xs font-bold text-red-500 mt-1.5 pl-1">
+            <p className="text-xs font-bold text-error mt-1.5 pl-1">
               {errors.slug.message}
             </p>
           )}
@@ -1372,8 +1371,8 @@ function BasicInfoTab({ categories }) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
-          <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
-            Danh Mục <span className="text-red-500">*</span>
+          <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
+            Danh Mục <span className="text-error">*</span>
           </label>
           <Controller
             name="categoryId"
@@ -1387,22 +1386,22 @@ function BasicInfoTab({ categories }) {
             )}
           />
           {errors.categoryId && (
-            <p className="text-xs font-bold text-red-500 mt-1.5 pl-1">
+            <p className="text-xs font-bold text-error mt-1.5 pl-1">
               {errors.categoryId.message}
             </p>
           )}
         </div>
 
         <div className="space-y-2">
-          <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
-            Cấp Độ <span className="text-red-500">*</span>
+          <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
+            Cấp Độ <span className="text-error">*</span>
           </label>
           <Controller
             name="level"
             control={control}
             render={({ field }) => (
               <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
-                <SelectTrigger className="w-full !h-11 border-slate-200 focus:border-green-500 font-medium bg-white data-[state=open]:ring-1 data-[state=open]:ring-green-500">
+                <SelectTrigger className="w-full !h-11 border-border focus:border-success/20 font-medium bg-white data-[state=open]:ring-1 data-[state=open]:ring-green-500">
                   <SelectValue placeholder="Chọn cấp độ" />
                 </SelectTrigger>
                 <SelectContent className="bg-white">
@@ -1415,14 +1414,14 @@ function BasicInfoTab({ categories }) {
             )}
           />
           {errors.level && (
-            <p className="text-xs font-bold text-red-500 mt-1.5 pl-1">
+            <p className="text-xs font-bold text-error mt-1.5 pl-1">
               {errors.level.message}
             </p>
           )}
         </div>
         <div className="space-y-2">
-          <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
-            Trạng Thái <span className="text-red-500">*</span>
+          <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
+            Trạng Thái <span className="text-error">*</span>
           </label>
           <Controller
             name="status"
@@ -1459,7 +1458,7 @@ function BasicInfoTab({ categories }) {
                 value={(field.value ?? 1).toString()}
                 disabled={isCategoryHidden}
               >
-                <SelectTrigger className={`w-full !h-11 border-slate-200 focus:border-green-500 font-medium ${isCategoryHidden ? 'bg-slate-50 opacity-80' : 'bg-white'}`}>
+                <SelectTrigger className={`w-full !h-11 border-border focus:border-success/20 font-medium ${isCategoryHidden ? 'bg-muted opacity-80' : 'bg-white'}`}>
                   <SelectValue placeholder="Chọn trạng thái" />
                 </SelectTrigger>
                 <SelectContent className="bg-white">
@@ -1473,10 +1472,10 @@ function BasicInfoTab({ categories }) {
       </div>
 
       <div className="space-y-2">
-        <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
+        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
           Mô Tả Khóa Học (Tuỳ chọn)
         </label>
-        <div className="rounded-lg border border-slate-200 overflow-hidden focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50 transition-all bg-white">
+        <div className="rounded-lg border border-border overflow-hidden focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50 transition-all bg-white">
           <Controller
             name="description"
             control={control}
@@ -1487,13 +1486,13 @@ function BasicInfoTab({ categories }) {
                 onChange={field.onChange}
                 modules={quillModules}
                 placeholder="Mô tả về lợi ích và mục tiêu của khóa học dành cho học viên..."
-                className="[&_.ql-toolbar.ql-snow]:!border-0 [&_.ql-toolbar.ql-snow]:!border-b [&_.ql-toolbar.ql-snow]:!border-slate-200 [&_.ql-toolbar]:bg-slate-50/50 [&_.ql-container.ql-snow]:!border-0 [&_.ql-container]:min-h-[120px] [&_.ql-editor]:min-h-[120px] [&_.ql-editor]:text-sm [&_.ql-editor]:text-slate-700 font-sans"
+                className="[&_.ql-toolbar.ql-snow]:!border-0 [&_.ql-toolbar.ql-snow]:!border-b [&_.ql-toolbar.ql-snow]:!border-border [&_.ql-toolbar]:bg-muted [&_.ql-container.ql-snow]:!border-0 [&_.ql-container]:min-h-[120px] [&_.ql-editor]:min-h-[120px] [&_.ql-editor]:text-sm [&_.ql-editor]:text-foreground font-sans"
               />
             )}
           />
         </div>
         {errors.description && (
-          <p className="text-xs font-bold text-red-500 mt-1.5 pl-1">{errors.description.message}</p>
+          <p className="text-xs font-bold text-error mt-1.5 pl-1">{errors.description.message}</p>
         )}
       </div>
     </div>
@@ -1504,7 +1503,7 @@ function SettingsTab({ uploadVideoToBunny, setActiveUploads }) {
   return (
     <div className="space-y-12">
       <MediaTab uploadVideoToBunny={uploadVideoToBunny} setActiveUploads={setActiveUploads} />
-      <div className="border-t border-slate-100"></div>
+      <div className="border-t border-border"></div>
       <PricingTab />
     </div>
   );
@@ -1743,19 +1742,19 @@ function QuizTab({ courseId }) {
   return (
     <div className="space-y-10 py-4 w-full">
       <div>
-        <h3 className="text-xl font-bold text-slate-900 border-b border-slate-100 pb-3 mb-4 flex items-center gap-2">
+        <h3 className="text-xl font-bold text-foreground border-b border-border pb-3 mb-4 flex items-center gap-2">
           <Database className="w-5 h-5 text-indigo-500" />
           Tạo Ngân Hàng Câu Hỏi
         </h3>
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-muted-foreground">
           Sử dụng AI để phân tích tài liệu bài giảng và tự động tạo ra ngân hàng câu hỏi.
         </p>
       </div>
 
-      <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 relative overflow-hidden shadow-sm">
+      <div className="bg-muted border border-border rounded-2xl p-6 relative overflow-hidden shadow-sm">
         <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-full blur-3xl opacity-50 pointer-events-none" />
 
-        <h4 className="text-md font-bold text-slate-800 mb-5 flex items-center gap-2">
+        <h4 className="text-md font-bold text-foreground mb-5 flex items-center gap-2">
           <div className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-bold">1</div>
           Tạo Question Bank bằng AI
         </h4>
@@ -1763,7 +1762,7 @@ function QuizTab({ courseId }) {
         <div className="relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
             <div className="lg:col-span-3 space-y-3">
-              <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-widest pl-1">
+              <label className="block text-[11px] font-bold text-muted-foreground uppercase tracking-widest pl-1">
                 Upload tài liệu (PDF, DOCX,...)
               </label>
               <div
@@ -1790,7 +1789,7 @@ function QuizTab({ courseId }) {
                       <CheckCircle2 className="w-6 h-6" />
                     </div>
                     <p className="text-sm font-bold text-emerald-700">{aiFile.name}</p>
-                    <p className="text-xs text-slate-500 mt-1">{(aiFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                    <p className="text-xs text-muted-foreground mt-1">{(aiFile.size / 1024 / 1024).toFixed(2)} MB</p>
                   </div>
                 ) : (
                   <>
@@ -1798,7 +1797,7 @@ function QuizTab({ courseId }) {
                       <FileText className="w-6 h-6" />
                     </div>
                     <p className="text-sm font-bold text-indigo-900">Kéo thả file vào đây hoặc nhấn để chọn</p>
-                    <p className="text-xs text-slate-500 mt-2 max-w-[280px]">
+                    <p className="text-xs text-muted-foreground mt-2 max-w-[280px]">
                       AI sẽ đọc và phân tích nội dung để tạo câu hỏi bám sát tài liệu bài giảng của bạn.
                     </p>
                   </>
@@ -1807,7 +1806,7 @@ function QuizTab({ courseId }) {
             </div>
 
             <div className="lg:col-span-2 space-y-3">
-              <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-widest pl-1">
+              <label className="block text-[11px] font-bold text-muted-foreground uppercase tracking-widest pl-1">
                 Số lượng câu hỏi (Tối đa 100)
               </label>
               <div className="h-[220px] flex flex-col justify-between">
@@ -1817,15 +1816,15 @@ function QuizTab({ courseId }) {
                   onChange={(e) => setAiQuestionCount(Math.max(1, Math.min(100, Number(e.target.value))))}
                   min={1}
                   max={100}
-                  className="h-11 border-slate-200 bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 font-bold"
+                  className="h-11 border-border bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 font-bold"
                 />
 
                 <div className="space-y-1.5 w-full">
-                  <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-widest pl-1">
+                  <label className="block text-[11px] font-bold text-muted-foreground uppercase tracking-widest pl-1">
                     Chọn cấp độ
                   </label>
                   <Select value={aiLevel} onValueChange={setAiLevel}>
-                    <SelectTrigger className="w-full h-11 border-slate-200 bg-white text-xs font-bold focus:ring-indigo-500 focus:border-indigo-500">
+                    <SelectTrigger className="w-full h-11 border-border bg-white text-xs font-bold focus:ring-indigo-500 focus:border-indigo-500">
                       <SelectValue placeholder="Chọn cấp độ" />
                     </SelectTrigger>
                     <SelectContent className="bg-white">
@@ -1861,10 +1860,10 @@ function QuizTab({ courseId }) {
         </div>
       </div>
 
-      <div id="manual-question-form" className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm mt-8">
-        <h4 className="text-md font-bold text-slate-800 mb-6 flex items-center justify-between w-full">
+      <div id="manual-question-form" className="bg-white border border-border rounded-2xl p-6 shadow-sm mt-8">
+        <h4 className="text-md font-bold text-foreground mb-6 flex items-center justify-between w-full">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold">2</div>
+            <div className="w-6 h-6 rounded-full bg-info/10 text-info text-info flex items-center justify-center text-xs font-bold">2</div>
             {editingQuestionId !== null ? "Hiệu Chỉnh Câu Hỏi" : "Thêm Câu Hỏi Thủ Công"}
           </div>
           {editingQuestionId !== null && (
@@ -1873,28 +1872,28 @@ function QuizTab({ courseId }) {
             </span>
           )}
         </h4>
-        <div className="space-y-5 border-b border-slate-100 pb-6">
+        <div className="space-y-5 border-b border-border pb-6">
           <div className="space-y-2">
-            <label className="block text-xs font-bold text-slate-600 uppercase tracking-widest pl-1">
-              Nội dung câu hỏi <span className="text-red-500">*</span>
+            <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
+              Nội dung câu hỏi <span className="text-error">*</span>
             </label>
-            <div className="rounded-xl border border-slate-200 overflow-hidden focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500 transition-all bg-white">
+            <div className="rounded-xl border border-border overflow-hidden focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500 transition-all bg-white">
               <ReactQuill
                 theme="snow"
                 value={manualText}
                 onChange={setManualText}
                 modules={quillModules}
                 placeholder="Nhập nội dung câu hỏi (hỗ trợ định dạng và chèn ảnh)..."
-                className="[&_.ql-toolbar.ql-snow]:!border-0 [&_.ql-toolbar.ql-snow]:!border-b [&_.ql-toolbar.ql-snow]:!border-slate-200 [&_.ql-toolbar]:bg-slate-50/50 [&_.ql-container.ql-snow]:!border-0 [&_.ql-container]:min-h-[100px] [&_.ql-editor]:min-h-[100px] [&_.ql-editor]:text-sm [&_.ql-editor]:text-slate-700 font-sans"
+                className="[&_.ql-toolbar.ql-snow]:!border-0 [&_.ql-toolbar.ql-snow]:!border-b [&_.ql-toolbar.ql-snow]:!border-border [&_.ql-toolbar]:bg-muted [&_.ql-container.ql-snow]:!border-0 [&_.ql-container]:min-h-[100px] [&_.ql-editor]:min-h-[100px] [&_.ql-editor]:text-sm [&_.ql-editor]:text-foreground font-sans"
               />
             </div>
           </div>
           <div className="space-y-2">
-            <label className="block text-xs font-bold text-slate-600 uppercase tracking-widest pl-1">
+            <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
               Độ khó câu hỏi
             </label>
             <Select value={manualLevel} onValueChange={setManualLevel}>
-              <SelectTrigger className="w-[180px] h-10 border-slate-200 bg-white text-xs font-bold focus:ring-indigo-500 focus:border-indigo-500">
+              <SelectTrigger className="w-[180px] h-10 border-border bg-white text-xs font-bold focus:ring-indigo-500 focus:border-indigo-500">
                 <SelectValue placeholder="Chọn độ khó" />
               </SelectTrigger>
               <SelectContent className="bg-white">
@@ -1905,23 +1904,23 @@ function QuizTab({ courseId }) {
             </Select>
           </div>
           <div className="space-y-3">
-            <label className="block text-xs font-bold text-slate-600 uppercase tracking-widest pl-1">
-              Các đáp án & Chọn đáp án đúng <span className="text-red-500">*</span>
+            <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
+              Các đáp án & Chọn đáp án đúng <span className="text-error">*</span>
             </label>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {['A', 'B', 'C', 'D'].map((opt) => (
-                <div key={opt} className={`flex items-start gap-3 p-3 rounded-xl border transition-all ${manualCorrect === opt ? 'border-emerald-200 bg-emerald-50/30' : 'border-slate-200 bg-slate-50/50'}`}>
+                <div key={opt} className={`flex items-start gap-3 p-3 rounded-xl border transition-all ${manualCorrect === opt ? 'border-emerald-200 bg-emerald-50/30' : 'border-border bg-muted'}`}>
                   <div className="pt-2.5">
                     <input
                       type="radio"
                       name="correctAnswer"
-                      className="w-4 h-4 text-emerald-500 focus:ring-emerald-500 border-slate-300 cursor-pointer"
+                      className="w-4 h-4 text-emerald-500 focus:ring-emerald-500 border-border cursor-pointer"
                       checked={manualCorrect === opt}
                       onChange={() => setManualCorrect(opt)}
                     />
                   </div>
                   <div className="flex-1 relative">
-                    <span className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-md flex items-center justify-center font-bold text-[10px] ${manualCorrect === opt ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}`}>
+                    <span className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-md flex items-center justify-center font-bold text-[10px] ${manualCorrect === opt ? 'bg-emerald-100 text-emerald-700' : 'bg-muted text-muted-foreground'}`}>
                       {opt}
                     </span>
                     <Input
@@ -1936,14 +1935,14 @@ function QuizTab({ courseId }) {
             </div>
           </div>
           <div className="space-y-2">
-            <label className="block text-xs font-bold text-slate-600 uppercase tracking-widest pl-1">
+            <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
               Giải thích câu hỏi (Không bắt buộc)
             </label>
             <textarea
               value={manualExplanation}
               onChange={(e) => setManualExplanation(e.target.value)}
               rows={3}
-              className="w-full rounded-xl border border-slate-200 p-3 bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none text-sm text-slate-700 transition-all font-sans placeholder:text-slate-400"
+              className="w-full rounded-xl border border-border p-3 bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none text-sm text-foreground transition-all font-sans placeholder:text-muted-foreground"
               placeholder="Nhập giải thích chi tiết tại sao đáp án đúng là chính xác..."
             />
           </div>
@@ -1953,7 +1952,7 @@ function QuizTab({ courseId }) {
                 type="button"
                 onClick={handleCancelEdit}
                 variant="outline"
-                className="h-11 px-6 font-bold border-slate-200 text-slate-600 rounded-xl"
+                className="h-11 px-6 font-bold border-border text-muted-foreground rounded-xl"
               >
                 Hủy Chỉnh Sửa
               </Button>
@@ -1963,7 +1962,7 @@ function QuizTab({ courseId }) {
               onClick={handleAddManual}
               className={`h-11 px-8 font-bold text-white rounded-xl gap-2 shadow-md ${editingQuestionId !== null
                   ? 'bg-amber-600 hover:bg-amber-700 shadow-amber-100'
-                  : 'bg-blue-600 hover:bg-blue-700 shadow-blue-100'
+                  : 'bg-info/10 text-info hover:bg-info/10 text-info shadow-blue-100'
                 }`}
             >
               {editingQuestionId !== null ? (
@@ -1980,23 +1979,23 @@ function QuizTab({ courseId }) {
         </div>
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm mt-8">
-        <h4 className="text-md font-bold text-slate-800 mb-6 flex items-center justify-between w-full">
+      <div className="bg-white border border-border rounded-2xl p-6 shadow-sm mt-8">
+        <h4 className="text-md font-bold text-foreground mb-6 flex items-center justify-between w-full">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs font-bold">3</div>
             Question Bank Preview
           </div>
-          <span className="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1.5 rounded-full border border-slate-200 flex items-center gap-1.5">
+          <span className="text-xs font-bold text-muted-foreground bg-secondary px-3 py-1.5 rounded-full border border-border flex items-center gap-1.5">
             Tổng số câu hỏi: <span className="text-indigo-600 font-extrabold">{draftQuestions.length}</span> / 300 câu
           </span>
         </h4>
 
-        <div className="bg-white rounded-xl border border-slate-200 p-5 flex flex-col shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4 mb-4">
+        <div className="bg-white rounded-xl border border-border p-5 flex flex-col shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-4 mb-4">
             <div>
-              <h5 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+              <h5 className="text-sm font-bold text-foreground flex items-center gap-2">
                 Danh sách câu hỏi
-                <span className="bg-yellow-100 text-yellow-700 text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider flex items-center gap-1">
+                <span className="bg-warning/10 text-warning text-warning text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider flex items-center gap-1">
                   <Clock className="w-3 h-3" />
                   Draft
                 </span>
@@ -2004,16 +2003,16 @@ function QuizTab({ courseId }) {
             </div>
             <div className="flex items-center gap-2 w-full sm:w-auto">
               <div className="relative flex-1 sm:w-64">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   placeholder="Tìm kiếm câu hỏi..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-9 h-9 border-slate-200 text-sm focus:ring-indigo-500 focus:border-indigo-500 bg-slate-50"
+                  className="pl-9 h-9 border-border text-sm focus:ring-indigo-500 focus:border-indigo-500 bg-muted"
                 />
               </div>
               <Select value={filterLevel} onValueChange={setFilterLevel}>
-                <SelectTrigger className="w-[110px] h-9 border-slate-200 bg-slate-50 text-xs font-bold focus:ring-indigo-500 focus:border-indigo-500">
+                <SelectTrigger className="w-[110px] h-9 border-border bg-muted text-xs font-bold focus:ring-indigo-500 focus:border-indigo-500">
                   <SelectValue placeholder="Độ khó" />
                 </SelectTrigger>
                 <SelectContent className="bg-white">
@@ -2028,19 +2027,19 @@ function QuizTab({ courseId }) {
 
           <div className="flex-1 overflow-y-auto space-y-3 pr-2 custom-scrollbar min-h-[500px] max-h-[800px]">
             {filteredQuestions.length === 0 ? (
-              <div className="h-full py-20 flex flex-col justify-center items-center text-slate-400">
+              <div className="h-full py-20 flex flex-col justify-center items-center text-muted-foreground">
                 <p className="text-sm font-bold">Không tìm thấy câu hỏi nào phù hợp!</p>
               </div>
             ) : (
               filteredQuestions.map((q, idx) => (
-                <div key={q.id} className="border border-slate-100 rounded-lg p-4 hover:border-indigo-200 transition-colors bg-slate-50/50">
-                  <p className="text-sm font-bold text-slate-700 leading-relaxed" dangerouslySetInnerHTML={{ __html: `Câu ${idx + 1}: ${q.text}` }} />
+                <div key={q.id} className="border border-border rounded-lg p-4 hover:border-indigo-200 transition-colors bg-muted">
+                  <p className="text-sm font-bold text-foreground leading-relaxed" dangerouslySetInnerHTML={{ __html: `Câu ${idx + 1}: ${q.text}` }} />
 
                   <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-2">
                     {['A', 'B', 'C', 'D'].map((opt) => {
                       const isCorrect = q.correct === opt;
                       return (
-                        <div key={opt} className={`flex items-start gap-2 px-3 py-2 rounded-md ${isCorrect ? 'bg-emerald-50 border border-emerald-200' : 'bg-white border border-slate-200'}`}>
+                        <div key={opt} className={`flex items-start gap-2 px-3 py-2 rounded-md ${isCorrect ? 'bg-emerald-50 border border-emerald-200' : 'bg-white border border-border'}`}>
                           {isCorrect ? (
                             <span className="w-5 h-5 rounded bg-emerald-500 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
                               <Check size={12} strokeWidth={3} />
@@ -2050,7 +2049,7 @@ function QuizTab({ courseId }) {
                               {opt}
                             </span>
                           )}
-                          <span className={`text-xs ${isCorrect ? 'text-emerald-700 font-bold' : 'text-slate-600'}`}>{q.options[opt]}</span>
+                          <span className={`text-xs ${isCorrect ? 'text-emerald-700 font-bold' : 'text-muted-foreground'}`}>{q.options[opt]}</span>
                         </div>
                       );
                     })}
@@ -2077,7 +2076,7 @@ function QuizTab({ courseId }) {
                       <button
                         type="button"
                         onClick={() => handleStartEdit(q)}
-                        className={`w-8 h-8 flex items-center justify-center rounded-md bg-white border text-slate-400 hover:text-amber-600 hover:border-amber-200 transition-colors ${editingQuestionId === q.id ? 'border-amber-500 bg-amber-50 text-amber-600 ring-1 ring-amber-500' : 'border-slate-200'
+                        className={`w-8 h-8 flex items-center justify-center rounded-md bg-white border text-muted-foreground hover:text-amber-600 hover:border-amber-200 transition-colors ${editingQuestionId === q.id ? 'border-amber-500 bg-amber-50 text-amber-600 ring-1 ring-amber-500' : 'border-border'
                           }`}
                       >
                         <Pencil size={14} />
@@ -2085,7 +2084,7 @@ function QuizTab({ courseId }) {
                       <button
                         type="button"
                         onClick={() => handleDeleteQuestion(q.id)}
-                        className="w-8 h-8 flex items-center justify-center rounded-md bg-white border border-slate-200 text-slate-400 hover:text-red-500 hover:border-red-200 transition-colors"
+                        className="w-8 h-8 flex items-center justify-center rounded-md bg-white border border-border text-muted-foreground hover:text-error hover:border-error/20 transition-colors"
                       >
                         <Trash2 size={14} />
                       </button>
@@ -2095,11 +2094,11 @@ function QuizTab({ courseId }) {
               ))
             )}
             <div className="text-center pt-2 pb-2">
-              <p className="text-[11px] text-slate-400 font-medium">Bạn có thể xem lại và chỉnh sửa trước khi xác nhận.</p>
+              <p className="text-[11px] text-muted-foreground font-medium">Bạn có thể xem lại và chỉnh sửa trước khi xác nhận.</p>
             </div>
           </div>
 
-          <div className="pt-4 mt-4 border-t border-slate-100">
+          <div className="pt-4 mt-4 border-t border-border">
             <Button
               type="button"
               onClick={handleConfirmBank}
@@ -2107,8 +2106,8 @@ function QuizTab({ courseId }) {
               variant="outline"
               className={`w-full h-11 font-bold gap-2 disabled:opacity-75 disabled:cursor-not-allowed transition-all ${
                 isBankConfirmed 
-                  ? "border-slate-200 bg-slate-50 text-slate-400" 
-                  : "border-green-200 bg-green-50/50 text-green-700 hover:bg-green-100 hover:text-green-800"
+                  ? "border-border bg-muted text-muted-foreground" 
+                  : "border-success/20 bg-green-50/50 text-success hover:bg-success/10 text-success hover:text-success"
               }`}
             >
               {isBankConfirmed ? <Check size={18} /> : <CheckCircle2 size={18} />}
@@ -2129,18 +2128,18 @@ function MediaTab({ uploadVideoToBunny, setActiveUploads }) {
   return (
     <div className="space-y-8 w-full">
       <div>
-        <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2 mb-4">
+        <h3 className="text-lg font-bold text-foreground border-b border-border pb-2 mb-4">
           Hình Ảnh & Media
         </h3>
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-muted-foreground">
           Giới thiệu khóa học một cách trực quan để thu hút học viên.
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="space-y-3">
-          <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1 text-center">
-            Ảnh đại diện khóa học (Thumbnail) <span className="text-red-500">*</span>
+          <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1 text-center">
+            Ảnh đại diện khóa học (Thumbnail) <span className="text-error">*</span>
           </label>
           <input
             type="file"
@@ -2154,7 +2153,7 @@ function MediaTab({ uploadVideoToBunny, setActiveUploads }) {
           />
           <div
             onClick={() => document.getElementById("thumbnail-upload").click()}
-            className={`aspect-video rounded-xl bg-slate-50 border-2 border-dashed flex flex-col items-center justify-center p-4 transition-all cursor-pointer group ${thumbnail ? "border-green-500 bg-green-50" : "border-slate-200 hover:bg-slate-100/50 hover:border-green-200"}`}
+            className={`aspect-video rounded-xl bg-muted border-2 border-dashed flex flex-col items-center justify-center p-4 transition-all cursor-pointer group ${thumbnail ? "border-success/20 bg-green-50" : "border-border hover:bg-secondary hover:border-success/20"}`}
           >
             {thumbnail && (thumbnail instanceof File || typeof thumbnail === "string") ? (
               <div className="relative w-full h-full rounded-lg overflow-hidden">
@@ -2164,13 +2163,13 @@ function MediaTab({ uploadVideoToBunny, setActiveUploads }) {
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                  <p className="text-white text-xs font-bold px-3 py-1.5 bg-green-600 rounded-full">Đổi ảnh</p>
+                  <p className="text-white text-xs font-bold px-3 py-1.5 bg-success/10 text-success rounded-full">Đổi ảnh</p>
                 </div>
               </div>
             ) : (
               <>
                 <div
-                  className={`w-12 h-12 rounded-full bg-white flex items-center justify-center text-slate-400 group-hover:text-green-500 shadow-sm border border-slate-100 mb-2 ${thumbnail ? "text-green-500" : ""}`}
+                  className={`w-12 h-12 rounded-full bg-white flex items-center justify-center text-muted-foreground group-hover:text-success shadow-sm border border-border mb-2 ${thumbnail ? "text-success" : ""}`}
                 >
                   {thumbnail ? (
                     <Check className="w-6 h-6" />
@@ -2178,11 +2177,11 @@ function MediaTab({ uploadVideoToBunny, setActiveUploads }) {
                     <Plus className="w-6 h-6" />
                   )}
                 </div>
-                <p className="text-[11px] font-bold text-slate-500">
+                <p className="text-[11px] font-bold text-muted-foreground">
                   {thumbnail ? "Đã chọn ảnh" : "Nhấn để tải lên (1280x720)"}
                 </p>
                 {thumbnail && (
-                  <p className="text-[9px] text-slate-400 mt-1 truncate max-w-[200px]">
+                  <p className="text-[9px] text-muted-foreground mt-1 truncate max-w-[200px]">
                     {thumbnail.name || (typeof thumbnail === 'string' ? "Đã có ảnh" : "")}
                   </p>
                 )}
@@ -2190,12 +2189,12 @@ function MediaTab({ uploadVideoToBunny, setActiveUploads }) {
             )}
           </div>
           {errors.thumbnail && (
-            <p className="text-xs font-bold text-red-500 mt-1.5 pl-1 text-center">{errors.thumbnail.message}</p>
+            <p className="text-xs font-bold text-error mt-1.5 pl-1 text-center">{errors.thumbnail.message}</p>
           )}
         </div>
 
         <div className="space-y-3">
-          <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1 text-center">
+          <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1 text-center">
             Video giới thiệu (Promo Video) (Nếu có)
           </label>
           <Controller
@@ -2213,7 +2212,7 @@ function MediaTab({ uploadVideoToBunny, setActiveUploads }) {
             )}
           />
           {errors.promoVideo && (
-            <p className="text-xs font-bold text-red-500 mt-1.5 pl-1 text-center">{errors.promoVideo.message}</p>
+            <p className="text-xs font-bold text-error mt-1.5 pl-1 text-center">{errors.promoVideo.message}</p>
           )}
         </div>
       </div>
@@ -2235,10 +2234,10 @@ function PricingTab() {
   return (
     <div className="space-y-8 py-4 w-full">
       <div>
-        <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2 mb-4">
+        <h3 className="text-lg font-bold text-foreground border-b border-border pb-2 mb-4">
           Định giá & Cài đặt
         </h3>
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-muted-foreground">
           Thiết lập giá bán và các chương trình ưu đãi cho học viên.
         </p>
       </div>
@@ -2247,8 +2246,8 @@ function PricingTab() {
         <div className="space-y-6">
           {/* Ô nhập giá gốc - Format TRỰC TIẾP */}
           <div className="space-y-2">
-            <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
-              Giá bán thực tế (VNĐ) <span className="text-red-500">*</span>
+            <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
+              Giá bán thực tế (VNĐ) <span className="text-error">*</span>
             </label>
             <div className="relative">
               <Controller
@@ -2256,7 +2255,7 @@ function PricingTab() {
                 control={useFormContext().control}
                 render={({ field }) => (
                   <Input
-                    className="h-11 border-slate-200 focus:border-green-500 font-bold pl-10"
+                    className="h-11 border-border focus:border-success/20 font-bold pl-10"
                     placeholder="Ví dụ: 500.000"
                     value={field.value ? new Intl.NumberFormat("vi-VN").format(field.value) : ""}
                     onChange={(e) => {
@@ -2267,25 +2266,25 @@ function PricingTab() {
                   />
                 )}
               />
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">₫</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-sm">₫</span>
             </div>
             {errors.price && (
-              <p className="text-xs font-bold text-red-500 mt-1.5 pl-1">{errors.price.message}</p>
+              <p className="text-xs font-bold text-error mt-1.5 pl-1">{errors.price.message}</p>
             )}
           </div>
 
           {/* Ô hiển thị tổng tiền sau khi giảm */}
           <div className="space-y-2">
-            <label className="block text-xs font-bold text-green-600 uppercase tracking-widest pl-1">
+            <label className="block text-xs font-bold text-success uppercase tracking-widest pl-1">
               Tổng tiền sau giảm (Hiển thị cho học viên)
             </label>
             <div className="relative">
               <Input
-                className="h-11 border-green-100 bg-green-50/30 text-green-700 font-bold text-lg pl-10 cursor-not-allowed"
+                className="h-11 border-success/20 bg-green-50/30 text-success font-bold text-lg pl-10 cursor-not-allowed"
                 value={new Intl.NumberFormat("vi-VN").format(finalPrice)}
                 readOnly
               />
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-green-500 font-bold text-sm">₫</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-success font-bold text-sm">₫</span>
             </div>
           </div>
         </div>
@@ -2293,23 +2292,23 @@ function PricingTab() {
         <div className="space-y-6">
           {/* Ô nhập % giảm giá */}
           <div className="space-y-2">
-            <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
+            <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
               Phần trăm giảm giá (%)
             </label>
             <div className="relative">
               <Input
                 type="number"
-                className="h-11 border-slate-200 focus:border-green-500 font-bold pl-10 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                className="h-11 border-border focus:border-success/20 font-bold pl-10 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 placeholder="0 - 100"
                 {...register("discount")}
               />
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">%</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-sm">%</span>
             </div>
-            <p className="text-[10px] text-slate-400 font-medium pl-1 italic">
+            <p className="text-[10px] text-muted-foreground font-medium pl-1 italic">
               Giảm {discount}% tương đương giảm {new Intl.NumberFormat("vi-VN").format(price * discount / 100)}₫
             </p>
             {errors.discount && (
-              <p className="text-xs font-bold text-red-500 mt-1.5 pl-1">{errors.discount.message}</p>
+              <p className="text-xs font-bold text-error mt-1.5 pl-1">{errors.discount.message}</p>
             )}
           </div>
         </div>
@@ -2346,12 +2345,12 @@ function CurriculumTab({ uploadVideoToBunny, setActiveUploads, fields, append, r
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center border-b border-slate-100 pb-4">
+      <div className="flex justify-between items-center border-b border-border pb-4">
         <div>
-          <h3 className="text-lg font-bold text-slate-900">
+          <h3 className="text-lg font-bold text-foreground">
             Khung Chương Trình
           </h3>
-          <p className="text-xs font-medium text-slate-500 mt-1">
+          <p className="text-xs font-medium text-muted-foreground mt-1">
             Xây dựng kiến trúc bài giảng rõ ràng, rành mạch.
           </p>
         </div>
@@ -2374,14 +2373,14 @@ function CurriculumTab({ uploadVideoToBunny, setActiveUploads, fields, append, r
               updatedAt: null,
             })
           }
-          className="flex items-center gap-1.5 text-sm font-bold border border-slate-200 px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors"
+          className="flex items-center gap-1.5 text-sm font-bold border border-border px-3 py-1.5 rounded-lg bg-muted hover:bg-secondary transition-colors"
         >
-          <Plus size={16} className="text-slate-600" /> Thêm Chương
+          <Plus size={16} className="text-muted-foreground" /> Thêm Chương
         </button>
       </div>
 
       {errors.sections?.root && (
-        <div className="text-sm font-bold text-red-600 bg-red-50 border border-red-100 p-3 rounded-lg">
+        <div className="text-sm font-bold text-error bg-red-50 border border-error/20 p-3 rounded-lg">
           {errors.sections.root.message}
         </div>
       )}
@@ -2397,15 +2396,15 @@ function CurriculumTab({ uploadVideoToBunny, setActiveUploads, fields, append, r
             <AccordionItem
               value={section.id}
               key={section.id}
-              className="border border-slate-200 rounded-xl bg-slate-50 overflow-hidden shadow-sm"
+              className="border border-border rounded-xl bg-muted overflow-hidden shadow-sm"
             >
-              <AccordionTrigger className="px-5 py-4 hover:bg-slate-100/50 hover:no-underline border-b border-transparent data-[state=open]:border-slate-200">
+              <AccordionTrigger className="px-5 py-4 hover:bg-secondary hover:no-underline border-b border-transparent data-[state=open]:border-border">
                 <div className="flex items-center w-full pr-4 text-left">
                   <div className="flex flex-col gap-0.5 flex-1">
-                    <span className="text-xs font-bold text-green-600 uppercase tracking-widest">
+                    <span className="text-xs font-bold text-success uppercase tracking-widest">
                       Chương {sectionIdx + 1}
                     </span>
-                    <span className="font-bold text-slate-900 line-clamp-1">
+                    <span className="font-bold text-foreground line-clamp-1">
                       {/* Dùng UseWatch nếu muốn real-time title display, hiện tại dùng static or watch context. Để UX tối ưu nhất chúng ta cứ giữ tĩnh. */}
                       Nội dung chương
                     </span>
@@ -2428,7 +2427,7 @@ function CurriculumTab({ uploadVideoToBunny, setActiveUploads, fields, append, r
                         }
                       }
                     }}
-                    className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                    className="p-2 text-muted-foreground hover:text-error hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
                   >
                     <Trash2 size={16} />
                   </div>
@@ -2546,17 +2545,17 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
       <div className="h-2" /> {/* Spacer extra giúp né Header Accordion */}
       {/* Tên Chương */}
       <div className="space-y-2">
-        <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
-          Tiêu đề chương <span className="text-red-500">*</span>
+        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
+          Tiêu đề chương <span className="text-error">*</span>
         </label>
         <Input
-          className="h-10 border-slate-200 focus:border-green-500 font-bold shadow-sm"
+          className="h-10 border-border focus:border-success/20 font-bold shadow-sm"
           placeholder="Vd: Chương 1: Giới thiệu tổng quan"
           {...register(`sections.${sectionIndex}.title`)}
           autoComplete="off"
         />
         {errors.sections?.[sectionIndex]?.title && (
-          <p className="text-xs font-bold text-red-500 mt-1 pl-1">
+          <p className="text-xs font-bold text-error mt-1 pl-1">
             {errors.sections[sectionIndex].title.message}
           </p>
         )}
@@ -2565,7 +2564,7 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
       {/* Attachments & Status */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
-          <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
+          <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
             Tài liệu đính kèm (PDF, ZIP,...) (Nếu có)
           </label>
           <div className="flex flex-col gap-3">
@@ -2574,12 +2573,12 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
               control={control}
               render={({ field }) => (
                 field.value && typeof field.value === "string" ? (
-                  <div className="flex items-center gap-2 p-2 border border-green-200 rounded-md bg-green-50/50 h-10">
-                    <span className="text-xs text-green-700 font-bold flex-1 truncate">Đã có tài liệu</span>
-                    <a href={field.value} target="_blank" rel="noreferrer" className="text-xs text-blue-600 hover:underline px-2 border-r border-green-200">Xem file</a>
+                  <div className="flex items-center gap-2 p-2 border border-success/20 rounded-md bg-green-50/50 h-10">
+                    <span className="text-xs text-success font-bold flex-1 truncate">Đã có tài liệu</span>
+                    <a href={field.value} target="_blank" rel="noreferrer" className="text-xs text-info hover:underline px-2 border-r border-success/20">Xem file</a>
                     <button
                       type="button"
-                      className="text-xs font-bold text-red-500 hover:text-red-700 px-2"
+                      className="text-xs font-bold text-error hover:text-error px-2"
                       onClick={() => field.onChange(null)}
                     >
                       Đổi file khác
@@ -2618,8 +2617,8 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
           </div>
         </div>
         <div className="space-y-2">
-          <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
-            Trạng thái chương <span className="text-red-500">*</span>
+          <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
+            Trạng thái chương <span className="text-error">*</span>
           </label>
           <Controller
             name={`sections.${sectionIndex}.status`}
@@ -2648,7 +2647,7 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
                 }}
                 value={(field.value ?? 1).toString()}
               >
-                <SelectTrigger className="h-10 border-slate-200 focus:border-green-500 font-medium bg-white">
+                <SelectTrigger className="h-10 border-border focus:border-success/20 font-medium bg-white">
                   <SelectValue placeholder="Chọn trạng thái" />
                 </SelectTrigger>
                 <SelectContent className="bg-white">
@@ -2664,12 +2663,12 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
       {/* Danh sách Bài học */}
       <div className="pt-2">
         <div className="flex items-center justify-between mb-3">
-          <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
+          <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
             Danh Sách Bài Học ({fields.length})
           </label>
           <button
             type="button"
-            className="flex items-center gap-1.5 text-xs font-bold text-green-600 hover:text-green-700 bg-green-50 hover:bg-green-100 px-2 py-1.5 rounded-md transition-colors"
+            className="flex items-center gap-1.5 text-xs font-bold text-success hover:text-success bg-green-50 hover:bg-success/10 text-success px-2 py-1.5 rounded-md transition-colors"
             onClick={() => append({
               title: "",
               content: "",
@@ -2687,11 +2686,11 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
           {fields.map((lesson, lessonIdx) => (
             <div
               key={lesson.id}
-              className="group flex gap-4 p-5 border border-slate-200 rounded-2xl bg-white hover:border-green-300 hover:shadow-lg transition-all duration-300 relative"
+              className="group flex gap-4 p-5 border border-border rounded-2xl bg-white hover:border-success/20 hover:shadow-lg transition-all duration-300 relative"
             >
 
 
-              <div className="pt-1 text-slate-300 cursor-grab active:cursor-grabbing hover:text-slate-500">
+              <div className="pt-1 text-slate-300 cursor-grab active:cursor-grabbing hover:text-muted-foreground">
                 <GripVertical size={20} />
               </div>
 
@@ -2699,37 +2698,37 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
                 {/* Left side: Information (Title + Description + Dates) */}
                 <div className="space-y-4">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-1">
-                      Tiêu đề bài học <span className="text-red-500">*</span>
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1">
+                      Tiêu đề bài học <span className="text-error">*</span>
                     </label>
                     <Input
-                      className="h-10 font-bold border-slate-200 focus:ring-0 focus:border-green-500 transition-all text-slate-800"
+                      className="h-10 font-bold border-border focus:ring-0 focus:border-success/20 transition-all text-foreground"
                       placeholder={`Ví dụ: Bài giảng số ${lessonIdx + 1}: Giới thiệu ngôn ngữ`}
                       {...register(`sections.${sectionIndex}.lessons.${lessonIdx}.title`)}
                       autoComplete="off"
                     />
                     {errors.sections?.[sectionIndex]?.lessons?.[lessonIdx]?.title && (
-                      <p className="text-[10px] font-bold text-red-500 pl-1">{errors.sections[sectionIndex].lessons[lessonIdx].title.message}</p>
+                      <p className="text-[10px] font-bold text-error pl-1">{errors.sections[sectionIndex].lessons[lessonIdx].title.message}</p>
                     )}
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-1">
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1">
                       Mô tả nội dung bài học
                     </label>
                     <Textarea
-                      className="min-h-[80px] text-xs resize-none border-slate-200 focus:ring-0 focus:border-green-500"
+                      className="min-h-[80px] text-xs resize-none border-border focus:ring-0 focus:border-success/20"
                       placeholder="Một đoạn mô tả ngắn về những gì học viên sẽ được học trong bài này..."
                       {...register(`sections.${sectionIndex}.lessons.${lessonIdx}.content`)}
                     />
                     {errors.sections?.[sectionIndex]?.lessons?.[lessonIdx]?.content && (
-                      <p className="text-[10px] font-bold text-red-500 pl-1">{errors.sections[sectionIndex].lessons[lessonIdx].content.message}</p>
+                      <p className="text-[10px] font-bold text-error pl-1">{errors.sections[sectionIndex].lessons[lessonIdx].content.message}</p>
                     )}
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-1">
-                      Trạng thái bài học <span className="text-red-500">*</span>
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1">
+                      Trạng thái bài học <span className="text-error">*</span>
                     </label>
                     <Controller
                       name={`sections.${sectionIndex}.lessons.${lessonIdx}.status`}
@@ -2749,7 +2748,7 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
                           }}
                           value={(field.value ?? 1).toString()}
                         >
-                          <SelectTrigger className="h-9 border-slate-200 focus:border-green-500 font-medium bg-white text-xs">
+                          <SelectTrigger className="h-9 border-border focus:border-success/20 font-medium bg-white text-xs">
                             <SelectValue placeholder="Chọn trạng thái" />
                           </SelectTrigger>
                           <SelectContent className="bg-white">
@@ -2764,7 +2763,7 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
 
                 {/* Right side: Video Upload Box */}
                 <div className="space-y-1.5 flex flex-col justify-between">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-1">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1">
                     Video bài học
                   </label>
                   <Controller
@@ -2786,7 +2785,7 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
                     )}
                   />
                   {errors.sections?.[sectionIndex]?.lessons?.[lessonIdx]?.videoFile && (
-                    <p className="text-[10px] font-bold text-red-500 pl-1">{errors.sections[sectionIndex].lessons[lessonIdx].videoFile.message}</p>
+                    <p className="text-[10px] font-bold text-error pl-1">{errors.sections[sectionIndex].lessons[lessonIdx].videoFile.message}</p>
                   )}
                 </div>
               </div>
@@ -2795,7 +2794,7 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
               <button
                 type="button"
                 onClick={() => remove(lessonIdx)}
-                className="absolute -top-2 -right-2 w-8 h-8 flex items-center justify-center bg-white border border-slate-200 text-slate-400 hover:text-red-500 hover:border-red-300 hover:bg-red-50 rounded-full transition-all opacity-0 group-hover:opacity-100 shadow-md z-30"
+                className="absolute -top-2 -right-2 w-8 h-8 flex items-center justify-center bg-white border border-border text-muted-foreground hover:text-error hover:border-error/20 hover:bg-red-50 rounded-full transition-all opacity-0 group-hover:opacity-100 shadow-md z-30"
                 title="Xóa bài học"
               >
                 <Trash2 size={14} />
@@ -2807,24 +2806,24 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
 
       {/* Error level Section */}
       {errors.sections?.[sectionIndex]?.lessons?.root && (
-        <p className="text-xs font-bold text-red-500 bg-red-50 p-2 rounded-md mt-2">
+        <p className="text-xs font-bold text-error bg-red-50 p-2 rounded-md mt-2">
           {errors.sections[sectionIndex].lessons.root.message}
         </p>
       )}
 
       {/* Quiz Modal */}
       {isQuizModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-muted/50 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-7xl max-h-[95vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
-            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-              <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+            <div className="px-6 py-4 border-b border-border flex items-center justify-between bg-muted">
+              <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
                 <Database className="w-5 h-5 text-indigo-500" />
                 Tạo Bài Quiz - Chương {sectionIndex + 1}
               </h3>
               <button
                 type="button"
                 onClick={() => setIsQuizModalOpen(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-colors"
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-secondary text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
               >
                 <Plus className="w-5 h-5 rotate-45" />
               </button>
@@ -2835,51 +2834,51 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
                 {/* L Pane: Bài Quiz */}
                 <div className="flex flex-col gap-4 overflow-hidden h-full">
                   <div className="space-y-2 shrink-0">
-                    <label className="block text-xs font-bold text-slate-600 uppercase tracking-widest pl-1">
-                      Tên bài Quiz <span className="text-red-500">*</span>
+                    <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
+                      Tên bài Quiz <span className="text-error">*</span>
                     </label>
                     <Input
                       value={quizTitle}
                       onChange={(e) => setQuizTitle(e.target.value)}
                       placeholder="Ví dụ: Kiểm tra kiến thức chương"
-                      className="h-11 border-slate-200 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 font-bold bg-white"
+                      className="h-11 border-border focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 font-bold bg-white"
                     />
                   </div>
 
-                  <div className="border border-slate-200 rounded-xl flex flex-col flex-1 overflow-hidden bg-white shadow-sm">
+                  <div className="border border-border rounded-xl flex flex-col flex-1 overflow-hidden bg-white shadow-sm">
                     <div className="bg-indigo-50/50 px-4 py-3 border-b border-indigo-100 flex items-center justify-between">
                       <div>
                         <span className="text-sm font-bold text-indigo-900 block">Nội dung bài Quiz</span>
                         <span className="text-[11px] text-indigo-600 font-bold">{selectedQuizQuestions.length} câu hỏi được chọn</span>
                       </div>
                     </div>
-                    <div className="p-4 flex-1 overflow-y-auto custom-scrollbar bg-slate-50/50">
+                    <div className="p-4 flex-1 overflow-y-auto custom-scrollbar bg-muted">
                       {selectedQuizQuestions.length === 0 ? (
-                        <div className="h-full flex flex-col justify-center items-center text-slate-400 border-dashed border-2 border-slate-200 rounded-xl p-8 bg-white">
-                          <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mb-3">
+                        <div className="h-full flex flex-col justify-center items-center text-muted-foreground border-dashed border-2 border-border rounded-xl p-8 bg-white">
+                          <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center mb-3">
                             <ListOrdered className="w-6 h-6 text-slate-300" />
                           </div>
-                          <p className="text-sm font-bold text-slate-600">Chưa có câu hỏi nào</p>
-                          <p className="text-xs mt-1 text-slate-400 text-center">Hãy tick chọn câu hỏi từ Ngân hàng bên phải.</p>
+                          <p className="text-sm font-bold text-muted-foreground">Chưa có câu hỏi nào</p>
+                          <p className="text-xs mt-1 text-muted-foreground text-center">Hãy tick chọn câu hỏi từ Ngân hàng bên phải.</p>
                         </div>
                       ) : (
                         <div className="space-y-2">
                           {selectedQuizQuestions.map((qId, idx) => {
                             const qDetails = bankQuestions.find(item => item.id === qId);
                             return (
-                              <div key={qId} className="border border-indigo-500/20 rounded-lg p-3 bg-white shadow-sm flex items-center justify-between gap-3 hover:border-red-200 transition-colors">
+                              <div key={qId} className="border border-indigo-500/20 rounded-lg p-3 bg-white shadow-sm flex items-center justify-between gap-3 hover:border-error/20 transition-colors">
                                 <div className="flex gap-3 items-start flex-1">
                                   <div className="pt-0.5 shrink-0">
                                     <div className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-[10px] font-bold">{idx + 1}</div>
                                   </div>
                                   <div className="flex-1">
-                                    <p className="text-xs font-bold text-slate-700 leading-relaxed">{qDetails?.text || "Đang tải câu hỏi..."}</p>
+                                    <p className="text-xs font-bold text-foreground leading-relaxed">{qDetails?.text || "Đang tải câu hỏi..."}</p>
                                   </div>
                                 </div>
                                 <button
                                   type="button"
                                   onClick={() => setSelectedQuizQuestions(selectedQuizQuestions.filter(id => id !== qId))}
-                                  className="w-7 h-7 flex items-center justify-center rounded-full text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all shrink-0"
+                                  className="w-7 h-7 flex items-center justify-center rounded-full text-muted-foreground hover:text-error hover:bg-red-50 transition-all shrink-0"
                                   title="Xóa khỏi bài Quiz"
                                 >
                                   <Trash2 size={13} />
@@ -2896,28 +2895,28 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
                 {/* R Pane: Question Bank */}
                 <div className="flex flex-col h-full overflow-hidden">
                   <div className="h-[24px] shrink-0"></div>
-                  <div className="border border-slate-200 rounded-xl flex flex-col flex-1 overflow-hidden bg-white shadow-sm">
-                    <div className="bg-slate-50 px-4 py-3 border-b border-slate-200 flex flex-col gap-3">
+                  <div className="border border-border rounded-xl flex flex-col flex-1 overflow-hidden bg-white shadow-sm">
+                    <div className="bg-muted px-4 py-3 border-b border-border flex flex-col gap-3">
                       <div className="flex items-center justify-between">
                         <div>
-                          <span className="text-sm font-bold text-slate-800 block">Ngân Hàng Câu Hỏi</span>
-                          <span className="text-[11px] text-slate-500 font-medium">Chọn câu hỏi để thêm</span>
+                          <span className="text-sm font-bold text-foreground block">Ngân Hàng Câu Hỏi</span>
+                          <span className="text-[11px] text-muted-foreground font-medium">Chọn câu hỏi để thêm</span>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="relative flex-1">
-                          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                           <Input 
                             placeholder="Tìm kiếm theo từ khóa..." 
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="pl-8 h-8 text-xs border-slate-200 bg-white focus:ring-indigo-500 focus:border-indigo-500" 
+                            className="pl-8 h-8 text-xs border-border bg-white focus:ring-indigo-500 focus:border-indigo-500" 
                           />
                         </div>
                         <select 
                           value={filterLevel} 
                           onChange={(e) => setFilterLevel(e.target.value)}
-                          className="w-[110px] h-8 border border-slate-200 bg-white text-xs font-bold rounded-md px-2 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer shadow-sm text-slate-700"
+                          className="w-[110px] h-8 border border-border bg-white text-xs font-bold rounded-md px-2 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer shadow-sm text-foreground"
                         >
                           <option value="all">Tất cả độ khó</option>
                           <option value="easy">Dễ</option>
@@ -2928,10 +2927,10 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
                     </div>
                     <div className="p-3 flex-1 overflow-y-auto custom-scrollbar space-y-2">
                       {filteredQuestions.length === 0 ? (
-                        <div className="text-center py-8 text-xs text-slate-400">Không tìm thấy câu hỏi phù hợp trong ngân hàng.</div>
+                        <div className="text-center py-8 text-xs text-muted-foreground">Không tìm thấy câu hỏi phù hợp trong ngân hàng.</div>
                       ) : (
                         filteredQuestions.map((q) => (
-                          <div key={q.id} className="border border-slate-100 rounded-lg p-3 hover:border-indigo-200 transition-colors flex gap-3 cursor-pointer group bg-white">
+                          <div key={q.id} className="border border-border rounded-lg p-3 hover:border-indigo-200 transition-colors flex gap-3 cursor-pointer group bg-white">
                             <div className="pt-0.5">
                               <input
                                 type="checkbox"
@@ -2943,18 +2942,18 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
                                     setSelectedQuizQuestions(selectedQuizQuestions.filter(id => id !== q.id));
                                   }
                                 }}
-                                className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-600 cursor-pointer"
+                                className="w-4 h-4 rounded border-border text-indigo-600 focus:ring-indigo-600 cursor-pointer"
                               />
                             </div>
                             <div className="flex-1">
-                              <p className="text-xs font-bold text-slate-700 leading-relaxed">{q.text}</p>
+                              <p className="text-xs font-bold text-foreground leading-relaxed">{q.text}</p>
 
                               <div className="mt-3 grid grid-cols-1 gap-2">
                                 {["A", "B", "C", "D"].map((opt) => {
                                   const isCorrect = q.correct === opt;
                                   return (
                                     <div key={opt} className={`flex items-start gap-2 px-2.5 py-1.5 rounded border ${
-                                      isCorrect ? "bg-emerald-50 border-emerald-200 text-emerald-700 font-bold" : "bg-slate-50 border-slate-100 text-slate-600"
+                                      isCorrect ? "bg-emerald-50 border-emerald-200 text-emerald-700 font-bold" : "bg-muted border-border text-muted-foreground"
                                     }`}>
                                       <span className={`w-4 h-4 rounded flex items-center justify-center font-bold text-[9px] shrink-0 mt-0.5 ${
                                         isCorrect ? "bg-emerald-500 text-white" : "bg-indigo-50 text-indigo-600"
@@ -2969,9 +2968,9 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
 
                               <div className="flex items-center gap-2 mt-3">
                                 <span className={`text-[10px] border px-2 py-0.5 rounded font-bold uppercase ${
-                                  q.level === "hard" ? "text-red-600 bg-red-50 border-red-100" :
+                                  q.level === "hard" ? "text-error bg-red-50 border-error/20" :
                                   q.level === "medium" ? "text-amber-600 bg-amber-50 border-amber-100" :
-                                  "text-green-600 bg-green-50 border-green-100"
+                                  "text-success bg-green-50 border-success/20"
                                 }`}>
                                   {q.level === "hard" ? "Khó" : q.level === "medium" ? "Trung bình" : "Dễ"}
                                 </span>
@@ -2986,8 +2985,8 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
               </div>
             </div>
 
-            <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex justify-end gap-3">
-              <Button type="button" variant="outline" onClick={handleCancelQuiz} className="h-11 px-6 font-bold border-slate-200 hover:bg-slate-100 text-slate-600">
+            <div className="px-6 py-4 border-t border-border bg-muted flex justify-end gap-3">
+              <Button type="button" variant="outline" onClick={handleCancelQuiz} className="h-11 px-6 font-bold border-border hover:bg-secondary text-muted-foreground">
                 Hủy
               </Button>
               <Button type="button" onClick={handleSaveQuiz} className="h-11 px-8 font-bold bg-indigo-600 hover:bg-indigo-700 text-white gap-2 shadow-md shadow-indigo-100">
@@ -3036,7 +3035,7 @@ function VideoProgressCircle({ progress, size = 60 }) {
           cy={size / 2}
         />
       </svg>
-      <span className="absolute text-[10px] font-bold text-green-700">{progress}%</span>
+      <span className="absolute text-[10px] font-bold text-success">{progress}%</span>
     </div>
   );
 }
@@ -3175,7 +3174,7 @@ function BackgroundVideoUploader({ label, value, onChange, onUploadStart, onUplo
     <div
       onClick={() => !isUploading && document.getElementById(id).click()}
       className={`relative aspect-video rounded-xl border-2 border-dashed flex flex-col items-center justify-center p-4 transition-all cursor-pointer group/upload
-        ${isCompleted ? "border-green-500 bg-green-50/30" : isCurrentlyUploading ? "border-green-300 bg-green-50/10" : "border-slate-200 bg-slate-50/50 hover:bg-slate-100/50 hover:border-green-300"}`}
+        ${isCompleted ? "border-success/20 bg-green-50/30" : isCurrentlyUploading ? "border-success/20 bg-green-50/10" : "border-border bg-muted hover:bg-secondary hover:border-success/20"}`}
     >
       <input
         type="file"
@@ -3193,31 +3192,31 @@ function BackgroundVideoUploader({ label, value, onChange, onUploadStart, onUplo
               progress={uploadPhase === "uploading" ? uploadProgress : processingProgress} 
               size={80} 
            />
-           <p className={`text-[10px] font-bold text-center leading-tight animate-pulse ${uploadPhase === "uploading" ? "text-slate-500" : "text-green-600"}`}>
+           <p className={`text-[10px] font-bold text-center leading-tight animate-pulse ${uploadPhase === "uploading" ? "text-muted-foreground" : "text-success"}`}>
              {uploadPhase === "uploading" ? "ĐANG TIẾN HÀNH UPLOAD VIDEO..." : "AI ĐANG XỬ LÍ PHỤ ĐỀ..."}
            </p>
         </div>
       ) : isCompleted ? (
         <div className="flex flex-col items-center">
-          <div className="w-10 h-10 rounded-full bg-green-500 text-white flex items-center justify-center mb-2 shadow-sm">
+          <div className="w-10 h-10 rounded-full bg-success/10 text-success text-white flex items-center justify-center mb-2 shadow-sm">
             <Check className="w-6 h-6" />
           </div>
-          <p className="text-[10px] font-bold text-green-700 uppercase tracking-tight">Tải lên hoàn tất</p>
-          <p className="text-[9px] text-slate-400 mt-1 truncate max-w-[150px]">ID: {value.substring(0, 12)}...</p>
+          <p className="text-[10px] font-bold text-success uppercase tracking-tight">Tải lên hoàn tất</p>
+          <p className="text-[9px] text-muted-foreground mt-1 truncate max-w-[150px]">ID: {value.substring(0, 12)}...</p>
         </div>
       ) : (
         <>
-          <div className="w-10 h-10 rounded-full bg-white text-slate-300 group-hover/upload:text-green-500 flex items-center justify-center mb-2 shadow-sm border border-slate-100 transition-all">
+          <div className="w-10 h-10 rounded-full bg-white text-slate-300 group-hover/upload:text-success flex items-center justify-center mb-2 shadow-sm border border-border transition-all">
             <Video size={20} />
           </div>
-          <p className="text-[10px] font-bold text-slate-400 group-hover/upload:text-green-600 transition-colors uppercase tracking-tight">
+          <p className="text-[10px] font-bold text-muted-foreground group-hover/upload:text-success transition-colors uppercase tracking-tight">
             Chạm để tải {label}
           </p>
-          <p className="text-[9px] text-slate-400 mt-0.5">MP4, MOV hoặc AVI</p>
+          <p className="text-[9px] text-muted-foreground mt-0.5">MP4, MOV hoặc AVI</p>
         </>
       )}
 
-      {error && <p className="absolute bottom-2 text-[9px] font-bold text-red-500">{error}</p>}
+      {error && <p className="absolute bottom-2 text-[9px] font-bold text-error">{error}</p>}
     </div>
   );
 }

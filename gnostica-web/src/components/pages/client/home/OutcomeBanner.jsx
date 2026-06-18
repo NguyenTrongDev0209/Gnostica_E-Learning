@@ -12,7 +12,7 @@ const OutcomeBanner = () => {
                 <h2 className="text-2xl md:text-3xl font-bold text-white leading-tight">
                     95% học viên đạt được mục tiêu nghề nghiệp
                 </h2>
-                <p className="text-slate-400 text-sm md:text-base leading-relaxed">
+                <p className="text-muted-foreground text-sm md:text-base leading-relaxed">
                     Học viên ghi nhận những cơ hội việc làm mới và kiến thức chuyên môn được nâng cao rõ rệt sau khóa học tại Gnostica.
                 </p>
                 <div className="mt-2">

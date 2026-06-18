@@ -93,8 +93,8 @@ export default function InstructorRevenue() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
         <div className="space-y-1">
-          <h1 className="text-h1 font-black text-slate-900 tracking-tight leading-none">Doanh Thu & Thanh Toán</h1>
-          <p className="text-sm font-medium text-slate-500">
+          <h1 className="text-h1 font-black text-foreground tracking-tight leading-none">Doanh Thu & Thanh Toán</h1>
+          <p className="text-sm font-medium text-muted-foreground">
             Theo dõi dòng tiền, sao kê giao dịch và yêu cầu rút tiền của bạn.
           </p>
         </div>
@@ -105,7 +105,7 @@ export default function InstructorRevenue() {
           </Button>
           <Button
             onClick={() => setIsWithdrawOpen(true)}
-            className="btn-md bg-green-600 hover:bg-green-700 text-white shadow-lg shadow-green-100 font-bold rounded-xl transition-all hover:scale-[1.02]"
+            className="btn-md bg-success/10 text-success hover:bg-success/10 text-success text-white shadow-lg shadow-green-100 font-bold rounded-xl transition-all hover:scale-[1.02]"
           >
             <WalletIcon className="w-4 h-4 mr-2" />
             Rút Tiền
@@ -138,7 +138,7 @@ export default function InstructorRevenue() {
             color: "blue"
           },
         ].map((stat, i) => (
-          <Card key={i} className={`group hover-lift border-border shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden relative rounded-2xl ${stat.dark ? 'bg-slate-900 text-white' : 'bg-white'}`}>
+          <Card key={i} className={`group hover-lift border-border shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden relative rounded-2xl ${stat.dark ? 'bg-muted text-white' : 'bg-white'}`}>
             <div className={`absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 rounded-full ${stat.dark ? 'bg-white/5' : `bg-${stat.color}-50/50 group-hover:bg-${stat.color}-100/50`} transition-colors duration-500`} />
             <CardContent className="p-6 flex items-center gap-4 relative z-10">
               <div className={`w-12 h-12 rounded-2xl ${stat.dark ? 'bg-white/10 text-white' : `bg-${stat.color}-50 text-${stat.color}-600 border border-${stat.color}-100`} flex items-center justify-center group-hover:scale-110 transition-transform duration-500 shadow-sm`}>
@@ -146,16 +146,16 @@ export default function InstructorRevenue() {
               </div>
               <div className="flex flex-col flex-1">
                 <div className="flex justify-between items-center">
-                  <span className={`text-[10px] font-black uppercase tracking-widest ${stat.dark ? 'text-slate-400' : 'text-muted-foreground'}`}>{stat.label}</span>
+                  <span className={`text-[10px] font-black uppercase tracking-widest ${stat.dark ? 'text-muted-foreground' : 'text-muted-foreground'}`}>{stat.label}</span>
                   {stat.trend && (
-                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-green-50 text-green-600 flex items-center gap-0.5">
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-green-50 text-success flex items-center gap-0.5">
                       <ArrowUpRight className="w-2.5 h-2.5" /> {stat.trend}
                     </span>
                   )}
                 </div>
                 <span className={`text-2xl font-black tracking-tight ${stat.dark ? 'text-white' : 'text-foreground'}`}>{stat.value}</span>
                 {stat.sub && (
-                  <span className="text-[10px] font-bold text-slate-400 mt-0.5">{stat.sub}</span>
+                  <span className="text-[10px] font-bold text-muted-foreground mt-0.5">{stat.sub}</span>
                 )}
               </div>
             </CardContent>
@@ -171,8 +171,8 @@ export default function InstructorRevenue() {
               <Activity className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-lg font-black text-slate-900 tracking-tight">Lịch Sử Giao Dịch</h2>
-              <p className="text-xs font-bold text-slate-500">Danh sách các giao dịch phát sinh trong ví của bạn.</p>
+              <h2 className="text-lg font-black text-foreground tracking-tight">Lịch Sử Giao Dịch</h2>
+              <p className="text-xs font-bold text-muted-foreground">Danh sách các giao dịch phát sinh trong ví của bạn.</p>
             </div>
           </div>
 

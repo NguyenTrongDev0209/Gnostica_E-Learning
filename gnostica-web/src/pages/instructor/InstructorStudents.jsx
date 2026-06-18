@@ -67,13 +67,13 @@ export default function InstructorStudents() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
         <div className="space-y-1">
-          <h1 className="text-h1 font-black text-slate-900 tracking-tight leading-none">Học Viên Của Tôi</h1>
-          <p className="text-sm font-medium text-slate-500">
+          <h1 className="text-h1 font-black text-foreground tracking-tight leading-none">Học Viên Của Tôi</h1>
+          <p className="text-sm font-medium text-muted-foreground">
             Quản lý và theo dõi tiến độ của học viên trong các khóa học bạn đang giảng dạy.
           </p>
         </div>
         <div className="flex items-center gap-3 w-full sm:w-auto">
-          <Button variant="outline" className="btn-md bg-white border-slate-200 font-bold hover:shadow-sm rounded-xl">
+          <Button variant="outline" className="btn-md bg-white border-border font-bold hover:shadow-sm rounded-xl">
             <Download className="w-4 h-4 mr-2" /> Xuất dữ liệu
           </Button>
           <Button className="btn-md bg-primary hover:primary/90 text-white shadow-lg shadow-primary/20 font-bold rounded-xl transition-all hover:scale-[1.02]">

@@ -122,7 +122,7 @@ export default function Settings() {
 
       {/* Page Title */}
       <div className="flex flex-col gap-4 mb-8">
-        <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-3">
+        <h1 className="text-2xl font-extrabold text-foreground flex items-center gap-3">
           <UserCog className="w-7 h-7 text-primary" />
           Hồ sơ cá nhân
         </h1>
@@ -131,12 +131,12 @@ export default function Settings() {
         </p>
       </div>
 
-      <Card className="border-slate-100 shadow-sm overflow-hidden">
+      <Card className="border-border shadow-sm overflow-hidden">
         <CardContent className="p-6 sm:p-10">
           <form onSubmit={handleSubmit} className="space-y-8 max-w-2xl">
             
             {/* Avatar Section */}
-            <div className="flex flex-col sm:flex-row items-center gap-6 pb-8 border-b border-slate-100">
+            <div className="flex flex-col sm:flex-row items-center gap-6 pb-8 border-b border-border">
               <div className="relative group">
                 <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-lg bg-primary/10 flex items-center justify-center text-primary text-2xl font-bold relative">
                   {formData.avatar ? (
@@ -166,8 +166,8 @@ export default function Settings() {
                 />
               </div>
               <div className="text-center sm:text-left">
-                <h3 className="font-bold text-slate-900 text-lg mb-1">Ảnh đại diện</h3>
-                <p className="text-sm text-slate-500 max-w-xs">
+                <h3 className="font-bold text-foreground text-lg mb-1">Ảnh đại diện</h3>
+                <p className="text-sm text-muted-foreground max-w-xs">
                   Sử dụng ảnh vuông, kích thước khuyên dùng 500x500px. Hệ thống sẽ tự động căn chỉnh và tối ưu chất lượng.
                 </p>
               </div>
@@ -176,48 +176,48 @@ export default function Settings() {
             {/* Form Fields */}
             <div className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="fullName" className="text-sm font-bold text-slate-700">Họ và tên</Label>
+                <Label htmlFor="fullName" className="text-sm font-bold text-foreground">Họ và tên</Label>
                 <Input 
                   id="fullName" 
                   value={formData.fullName} 
                   onChange={handleChange}
-                  className="h-12 border-slate-200 focus-visible:ring-primary focus-visible:bg-white bg-slate-50 font-medium" 
+                  className="h-12 border-border focus-visible:ring-primary focus-visible:bg-white bg-muted font-medium" 
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-sm font-bold text-slate-700">Email</Label>
+                  <Label htmlFor="email" className="text-sm font-bold text-foreground">Email</Label>
                   <Input 
                     id="email" 
                     type="email" 
                     value={formData.email} 
                     onChange={handleChange}
                     disabled
-                    className="h-12 border-slate-200 bg-slate-100 text-slate-500 font-medium cursor-not-allowed" 
+                    className="h-12 border-border bg-secondary text-muted-foreground font-medium cursor-not-allowed" 
                   />
-                  <p className="text-[11px] text-slate-400 font-semibold">* Email không thể thay đổi</p>
+                  <p className="text-[11px] text-muted-foreground font-semibold">* Email không thể thay đổi</p>
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="phone" className="text-sm font-bold text-slate-700">Số điện thoại</Label>
+                  <Label htmlFor="phone" className="text-sm font-bold text-foreground">Số điện thoại</Label>
                   <Input 
                     id="phone" 
                     value={formData.phone} 
                     onChange={handleChange}
-                    className="h-12 border-slate-200 focus-visible:ring-primary focus-visible:bg-white bg-slate-50 font-medium" 
+                    className="h-12 border-border focus-visible:ring-primary focus-visible:bg-white bg-muted font-medium" 
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="bio" className="text-sm font-bold text-slate-700">Giới thiệu ngắn (Bio)</Label>
+                <Label htmlFor="bio" className="text-sm font-bold text-foreground">Giới thiệu ngắn (Bio)</Label>
                 <Textarea 
                   id="bio" 
                   value={formData.bio} 
                   onChange={handleChange}
                   placeholder="Giới thiệu đôi nét về bản thân và mục tiêu học tập của bạn..."
-                  className="min-h-[120px] resize-y border-slate-200 focus-visible:ring-primary focus-visible:bg-white bg-slate-50 font-medium p-4 leading-relaxed" 
+                  className="min-h-[120px] resize-y border-border focus-visible:ring-primary focus-visible:bg-white bg-muted font-medium p-4 leading-relaxed" 
                 />
               </div>
             </div>

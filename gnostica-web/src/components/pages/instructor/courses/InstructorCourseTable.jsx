@@ -66,7 +66,7 @@ export default function InstructorCourseTable({
                                     {/* Cột: Khóa học */}
                                     <TableCell>
                                         <div className="flex gap-4 items-center">
-                                            <div className="w-24 h-16 rounded-md overflow-hidden shrink-0 border border-slate-200 relative bg-slate-50 flex items-center justify-center">
+                                            <div className="w-24 h-16 rounded-md overflow-hidden shrink-0 border border-border relative bg-muted flex items-center justify-center">
                                                 {course.thumbnail ? (
                                                     <img
                                                         src={course.thumbnail}
@@ -88,13 +88,13 @@ export default function InstructorCourseTable({
                                                 )}
                                             </div>
                                             <div className="flex flex-col">
-                                                <span className="font-bold text-slate-900 line-clamp-2" title={course.title}>
-                                                    {course.title || <span className="italic text-slate-400">Chưa đặt tên</span>}
+                                                <span className="font-bold text-foreground line-clamp-2" title={course.title}>
+                                                    {course.title || <span className="italic text-muted-foreground">Chưa đặt tên</span>}
                                                 </span>
                                                 {course.isVirtualDraft ? (
                                                     <span className="text-xs text-amber-600 font-medium mt-1">Bản nháp chưa lưu</span>
                                                 ) : (
-                                                    <span className="text-xs text-slate-500 font-medium mt-1">ID: #{course.id}</span>
+                                                    <span className="text-xs text-muted-foreground font-medium mt-1">ID: #{course.id}</span>
                                                 )}
                                             </div>
                                         </div>
@@ -104,23 +104,23 @@ export default function InstructorCourseTable({
                                     <TableCell>
                                         <div className="flex flex-col gap-1">
                                             {course.isVirtualDraft ? (
-                                                <span className="text-sm text-slate-400 italic">—</span>
+                                                <span className="text-sm text-muted-foreground italic">—</span>
                                             ) : course.discount > 0 ? (
                                                 <>
-                                                    <span className="font-black text-slate-900 leading-none">
+                                                    <span className="font-black text-foreground leading-none">
                                                         {formatPrice(course.salePrice)}
                                                     </span>
                                                     <div className="flex items-center gap-1.5 mt-0.5">
-                                                        <span className="text-[10px] text-slate-400 line-through decoration-slate-300">
+                                                        <span className="text-[10px] text-muted-foreground line-through decoration-slate-300">
                                                             {formatPrice(course.price)}
                                                         </span>
-                                                        <span className="text-[9px] font-bold text-red-500 bg-red-50 px-1 rounded">
+                                                        <span className="text-[9px] font-bold text-error bg-red-50 px-1 rounded">
                                                             -{course.discount}%
                                                         </span>
                                                     </div>
                                                 </>
                                             ) : (
-                                                <span className="font-black text-slate-900">
+                                                <span className="font-black text-foreground">
                                                     {formatPrice(course.price)}
                                                 </span>
                                             )}
@@ -132,7 +132,7 @@ export default function InstructorCourseTable({
                                                 ) : (
                                                     <>
                                                         {course.status === 1 ? (
-                                                            <span className="inline-flex items-center gap-1 text-[10px] text-green-600 font-bold bg-green-50 px-1.5 py-0 rounded border border-green-200">
+                                                            <span className="inline-flex items-center gap-1 text-[10px] text-success font-bold bg-green-50 px-1.5 py-0 rounded border border-success/20">
                                                                 Đang bán
                                                             </span>
                                                         ) : course.status === 3 || course.status === "rejected" ? (
@@ -144,14 +144,14 @@ export default function InstructorCourseTable({
                                                                 Chờ duyệt
                                                             </span>
                                                         ) : (
-                                                            <span className="inline-flex items-center gap-1 text-[10px] text-slate-600 font-bold bg-slate-100 px-1.5 py-0 rounded border border-slate-200">
+                                                            <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground font-bold bg-secondary px-1.5 py-0 rounded border border-border">
                                                                 Ẩn
                                                             </span>
                                                         )}
                                                         {course.hasUnsavedDraft && (
-                                                            <span className="inline-flex items-center gap-1 text-[10px] text-orange-600 font-bold bg-orange-50 px-1.5 py-0 rounded border border-orange-200">
+                                                            <span className="inline-flex items-center gap-1 text-[10px] text-warning font-bold bg-orange-50 px-1.5 py-0 rounded border border-warning/20">
                                                                 Có bản nháp
-                                                                <span className="w-1 h-1 rounded-full bg-orange-400 animate-pulse ml-1" />
+                                                                <span className="w-1 h-1 rounded-full bg-warning/10 text-warning animate-pulse ml-1" />
                                                             </span>
                                                         )}
                                                     </>
@@ -179,12 +179,12 @@ export default function InstructorCourseTable({
                                                 <span className="text-slate-300 text-sm">—</span>
                                             </div>
                                         ) : (
-                                            <div className="flex justify-center gap-4 text-xs font-bold text-slate-700">
-                                                <div className="flex flex-col items-center gap-1 bg-slate-50 p-1.5 rounded-md border border-slate-100 min-w-[50px]">
-                                                    <Users className="w-3.5 h-3.5 text-blue-500" />
+                                            <div className="flex justify-center gap-4 text-xs font-bold text-foreground">
+                                                <div className="flex flex-col items-center gap-1 bg-muted p-1.5 rounded-md border border-border min-w-[50px]">
+                                                    <Users className="w-3.5 h-3.5 text-info" />
                                                     0
                                                 </div>
-                                                <div className="flex flex-col items-center gap-1 bg-slate-50 p-1.5 rounded-md border border-slate-100 min-w-[50px]">
+                                                <div className="flex flex-col items-center gap-1 bg-muted p-1.5 rounded-md border border-border min-w-[50px]">
                                                     <Star className="w-3.5 h-3.5 text-slate-300" />
                                                     --
                                                 </div>
@@ -199,8 +199,8 @@ export default function InstructorCourseTable({
                                                 variant="ghost"
                                                 size="icon"
                                                 className={`h-9 w-9 rounded-lg transition-all mx-auto ${course.status === 1
-                                                    ? "bg-green-50 text-green-600 hover:bg-green-100 hover:text-green-700"
-                                                    : "bg-slate-50 text-slate-400 hover:bg-slate-100 hover:text-slate-500"
+                                                    ? "bg-green-50 text-success hover:bg-success/10 text-success hover:text-success"
+                                                    : "bg-muted text-muted-foreground hover:bg-secondary hover:text-muted-foreground"
                                                     }`}
                                                 onClick={() => onToggleStatus?.(course.id, course.status)}
                                                 title={course.status === 1 ? "Đang hiển thị (Nhấn để ẩn)" : "Đang ẩn (Nhấn để hiện)"}
@@ -238,7 +238,7 @@ export default function InstructorCourseTable({
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
-                                                className="h-9 w-9 bg-red-50 text-red-500 hover:bg-red-100 hover:text-red-600 rounded-lg transition-all"
+                                                className="h-9 w-9 bg-red-50 text-error hover:bg-error/10 text-error hover:text-error rounded-lg transition-all"
                                                 onClick={() => onDelete?.(course)}
                                                 title="Xóa"
                                             >
@@ -254,7 +254,7 @@ export default function InstructorCourseTable({
             </div>
 
             {/* Phân trang - Đồng bộ với DataTable style */}
-            <div className="flex items-center justify-between px-6 py-4 border-t border-border/50 bg-slate-50/30">
+            <div className="flex items-center justify-between px-6 py-4 border-t border-border/50 bg-muted/30">
                 <p className="text-sm font-medium text-muted-foreground">
                     Hiển thị {courses.length} / {(pagination.totalElements || 0).toLocaleString()} khóa học
                 </p>

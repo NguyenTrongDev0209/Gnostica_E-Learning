@@ -5,7 +5,6 @@ import { Separator } from "@/components/ui/separator";
 import { AppBreadcrumb } from "@/components/common/AppSection";
 import courseService from "@/services/courseService";
 import wishlistService from "@/services/wishlistService";
-import axios from "axios";
 import { 
   CourseDetailHeader, 
   CourseDetailVideo, 
@@ -90,8 +89,8 @@ export default function CourseDetail() {
         // Fetch instructor profile nếu có instructorId
         if (data.instructorId) {
           try {
-            const profileRes = await axios.get(`http://localhost:8080/api/instructors/${data.instructorId}/profile`);
-            setInstructorProfile(profileRes.data);
+            const profileRes = await instructorService.getInstructorProfile(data.instructorId);
+            setInstructorProfile(profileRes);
           } catch (profileErr) {
             console.warn("Không thể tải thông tin giảng viên:", profileErr);
           }
@@ -120,7 +119,7 @@ export default function CourseDetail() {
   if (error || !course) {
     return (
       <div className="bg-background min-h-screen pt-24 text-center">
-        <h2 className="text-2xl font-bold text-slate-800 mb-4">{error || "Khóa học không tồn tại"}</h2>
+        <h2 className="text-2xl font-bold text-foreground mb-4">{error || "Khóa học không tồn tại"}</h2>
         <a href="/courses" className="text-primary hover:underline font-medium">Quay lại danh sách khóa học</a>
       </div>
     );
@@ -149,9 +148,9 @@ export default function CourseDetail() {
         <div className="mb-6">
           <AppBreadcrumb
             items={breadcrumbItems}
-            linkClassName="text-slate-500 hover:text-primary transition-colors"
-            activeClassName="font-bold text-slate-800"
-            separatorClassName="text-slate-400"
+            linkClassName="text-muted-foreground hover:text-primary transition-colors"
+            activeClassName="font-bold text-foreground"
+            separatorClassName="text-muted-foreground"
           />
         </div>
 
@@ -169,7 +168,7 @@ export default function CourseDetail() {
 
             <CourseDetailCurriculum curriculum={course.curriculum || []} />
 
-            <Separator className="bg-slate-200/60" />
+            <Separator className="bg-muted/60" />
 
             <CourseDetailInstructor instructor={instructorData} />
           </div>

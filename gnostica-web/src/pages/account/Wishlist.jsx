@@ -94,8 +94,8 @@ export default function Wishlist() {
       {/* Page Title */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-3">
-            <Heart className="w-7 h-7 text-red-500 fill-red-100/50" />
+          <h1 className="text-2xl font-extrabold text-foreground flex items-center gap-3">
+            <Heart className="w-7 h-7 text-error fill-red-100/50" />
             Danh sách yêu thích
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
@@ -134,17 +134,17 @@ export default function Wishlist() {
                   className="w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center hover:bg-red-50 group/btn transition-colors"
                   aria-label="Bỏ yêu thích"
                 >
-                  <Heart className="w-5 h-5 text-red-500 fill-red-500 group-hover/btn:scale-110 transition-transform" />
+                  <Heart className="w-5 h-5 text-error fill-red-500 group-hover/btn:scale-110 transition-transform" />
                 </button>
               </div>
             </div>
           ))}
         </div>
       ) : (
-        <div className="text-center py-20 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+        <div className="text-center py-20 bg-muted rounded-2xl border border-dashed border-border">
           <Heart className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-          <h3 className="text-lg font-bold text-slate-900 mb-2">Chưa có khóa học nào</h3>
-          <p className="text-slate-500 mb-6">Bạn chưa lưu khóa học nào vào danh sách yêu thích.</p>
+          <h3 className="text-lg font-bold text-foreground mb-2">Chưa có khóa học nào</h3>
+          <p className="text-muted-foreground mb-6">Bạn chưa lưu khóa học nào vào danh sách yêu thích.</p>
           <Link to="/courses">
             <button className="px-6 py-2.5 rounded-xl border-2 border-primary text-primary font-bold hover:bg-primary/5 transition-colors">
               Khám phám khóa học mới

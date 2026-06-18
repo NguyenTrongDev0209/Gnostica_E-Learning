@@ -8,7 +8,7 @@ const AuthLayout = () => {
       className="flex flex-col min-h-screen relative bg-cover bg-center bg-no-repeat"
       style={{ backgroundImage: "url('/bg_auth.webp')" }}
     >
-      <div className="absolute inset-0 bg-slate-900/50 z-0"></div>
+      <div className="absolute inset-0 bg-muted/50 z-0"></div>
 
       <div className="absolute top-0 left-0 p-4 sm:p-6 lg:p-8 z-50">
         <AppLogo src="/Gnostica_Mark.webp" />

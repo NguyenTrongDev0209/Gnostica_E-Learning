@@ -6,8 +6,8 @@ import ChartDateFilters from "@/components/common/ChartDateFilters";
 export default function StudentGrowthChart({ data, onFilterChange }) {
     const subtitle = (
         <>
-            <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">Tổng học viên:</span>
-            <span className="text-2xl font-bold text-slate-900">4.330</span>
+            <span className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Tổng học viên:</span>
+            <span className="text-2xl font-bold text-foreground">4.330</span>
         </>
     );
 
