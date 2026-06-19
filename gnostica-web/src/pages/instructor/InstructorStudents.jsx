@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Users,
   Mail,
@@ -15,18 +15,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import InstructorStudentTable from "@/components/pages/instructor/students/InstructorStudentTable";
 import StudentCoursesModal from "@/components/pages/instructor/students/StudentCoursesModal";
-import instructorService from "@/services/instructorService";
+import { useInstructorStudents } from "@/hooks/instructor/useInstructorStudents";
 import { toast } from "sonner";
 
 export default function InstructorStudents() {
-  const [students, setStudents] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({
-    total: 0,
-    completed: 0,
-    learning: 0,
-    active: 0
-  });
+  const { students, stats, loading } = useInstructorStudents();
 
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -36,32 +29,6 @@ export default function InstructorStudents() {
     setSelectedStudent(student);
     setIsModalOpen(true);
   };
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const responseData = await instructorService.getMyStudents();
-        const data = responseData.data || responseData || [];
-        setStudents(data);
-
-        // Calculate basic stats from real data
-        const total = data.length;
-        const completed = data.filter(s => s.progress === 100).length;
-        const learning = data.filter(s => s.progress < 100 && s.progress > 0).length;
-        const active = data.filter(s => !s.lastActive.includes("ngày") && !s.lastActive.includes("/")).length;
-
-        setStats({ total, completed, learning, active });
-      } catch (error) {
-        console.error("Failed to fetch students:", error);
-        toast.error("Không thể tải danh sách học viên");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
 
   return (
     <div className="py-8 space-y-8 animate-fade-up">

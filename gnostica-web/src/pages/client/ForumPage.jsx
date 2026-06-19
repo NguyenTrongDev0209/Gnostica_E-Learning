@@ -1,6 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import threadService from '@/services/threadService';
-import forumCategoryService from '@/services/forumCategoryService';
+import React, { useState } from 'react';
 import SectionContainer, { PageHeader } from '@/components/common/AppSection';
 import { ForumPostCard } from "@/components/common/AppCard";
 import { Button } from "@/components/ui/button";
@@ -19,65 +17,21 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { useForumPage } from '@/hooks/client/useForumPage';
+import useAuthStore from '@/store/useAuthStore';
 
 const ForumPage = () => {
   const navigate = useNavigate();
-  const [threads, setThreads] = useState([]);
-  const [categories, setCategories] = useState([]);
+  const currentUser = useAuthStore(state => state.user);
+  
+  const { threads, categories, topContributors, isLoading } = useForumPage();
+  
   const [activeCategory, setActiveCategory] = useState("Tất cả");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-  const [topContributors, setTopContributors] = useState([]);
-  const [currentUser, setCurrentUser] = useState(null);
-
-  useEffect(() => {
-    const userData = JSON.parse(localStorage.getItem('user'));
-    setCurrentUser(userData);
-  }, []);
-
-  useEffect(() => {
-    const fetchTopContributors = async () => {
-      try {
-        const data = await threadService.getTopContributors();
-        setTopContributors(data);
-      } catch (error) {
-        console.error("Failed to load top contributors", error);
-      }
-    };
-    fetchTopContributors();
-  }, []);
-
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const data = await forumCategoryService.getAllCategories();
-        const activeCategories = res.data.filter(cat => cat.status === true);
-        setCategories(activeCategories);
-      } catch (error) {
-        console.error("Failed to load forum categories", error);
-      }
-    };
-    fetchCategories();
-  }, []);
-
-  useEffect(() => {
-    const fetchThreads = async () => {
-      setIsLoading(true);
-      try {
-        const data = await threadService.getThreads(0, 1000);
-        setThreads(res.data.content);
-      } catch (error) {
-        console.error("Failed to fetch threads", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchThreads();
-  }, []);
 
   // Đặt lại trang đầu tiên khi thay đổi bộ lọc
-  useEffect(() => {
+  React.useEffect(() => {
     setCurrentPage(0);
   }, [activeCategory, searchQuery]);
 
@@ -92,7 +46,7 @@ const ForumPage = () => {
       status: "online"
     },
     category: thread.category?.name || "",
-    tags: [], // Tháo luận removed
+    tags: [],
     createdAt: new Date(thread.createdAt).toLocaleDateString('vi-VN', {
       day: '2-digit',
       month: '2-digit',

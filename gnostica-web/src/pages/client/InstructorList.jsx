@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Users, BookOpen, Star, Award, ArrowRight, ChevronRight, GraduationCap } from 'lucide-react';
-import authService from '@/services/authService';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useInstructorList } from '@/hooks/client/useInstructorList';
 
 const fallbackAvatars = [
     "https://i.pravatar.cc/150?u=1",
@@ -13,24 +13,10 @@ const fallbackAvatars = [
 ];
 
 const InstructorList = () => {
-    const [instructors, setInstructors] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const { instructors, loading } = useInstructorList();
 
     useEffect(() => {
         window.scrollTo(0, 0);
-        const fetchInstructors = async () => {
-            try {
-                const data = await instructorService.getInstructorList();
-                if (response) {
-                    setInstructors(response);
-                }
-            } catch (error) {
-                console.error("Lỗi khi tải danh sách giảng viên", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchInstructors();
     }, []);
 
     return (
@@ -94,26 +80,26 @@ const InstructorList = () => {
                     ) : instructors.length > 0 ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                             {instructors.map((instructor, idx) => {
-                const avatar = instructor.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(instructor.fullName)}&background=random&color=fff`;
-                
-                return (
-                    <div 
-                        key={instructor.id}
-                        className="group relative bg-white border border-border rounded-[28px] overflow-hidden hover:shadow-2xl hover:shadow-primary/5 transition-all duration-500 flex flex-col hover:-translate-y-2 animate-in fade-in slide-in-from-bottom-8"
-                        style={{ animationFillMode: 'both', animationDelay: `${idx * 100}ms` }}
-                    >
-                        <div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-br from-slate-100 to-slate-200/50 -z-10 group-hover:from-primary/10 group-hover:to-orange-50 transition-colors duration-500"></div>
-                        
-                        <div className="flex justify-center pt-10 pb-6 relative">
-                            <div className="relative">
-                                <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-lg relative z-10 group-hover:scale-105 transition-transform duration-500 flex items-center justify-center bg-muted">
-                                    <img 
-                                        src={avatar} 
-                                        alt={instructor.fullName} 
-                                        className="w-full h-full object-cover"
-                                        onError={(e) => { e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(instructor.fullName)}&background=random&color=fff` }}
-                                    />
-                                </div>
+                                const avatar = instructor.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(instructor.fullName)}&background=random&color=fff`;
+                                
+                                return (
+                                    <div 
+                                        key={instructor.id}
+                                        className="group relative bg-white border border-border rounded-[28px] overflow-hidden hover:shadow-2xl hover:shadow-primary/5 transition-all duration-500 flex flex-col hover:-translate-y-2 animate-in fade-in slide-in-from-bottom-8"
+                                        style={{ animationFillMode: 'both', animationDelay: `${idx * 100}ms` }}
+                                    >
+                                        <div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-br from-slate-100 to-slate-200/50 -z-10 group-hover:from-primary/10 group-hover:to-orange-50 transition-colors duration-500"></div>
+                                        
+                                        <div className="flex justify-center pt-10 pb-6 relative">
+                                            <div className="relative">
+                                                <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-lg relative z-10 group-hover:scale-105 transition-transform duration-500 flex items-center justify-center bg-muted">
+                                                    <img 
+                                                        src={avatar} 
+                                                        alt={instructor.fullName} 
+                                                        className="w-full h-full object-cover"
+                                                        onError={(e) => { e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(instructor.fullName)}&background=random&color=fff` }}
+                                                    />
+                                                </div>
                                                 <div className="absolute bottom-0 right-0 w-8 h-8 bg-info/10 text-info text-white rounded-full flex items-center justify-center border-2 border-white z-20 shadow-md">
                                                     <Award className="w-4 h-4" />
                                                 </div>

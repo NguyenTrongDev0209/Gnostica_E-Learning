@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Download,
   TrendingUp,
@@ -12,50 +12,20 @@ import {
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import walletService from "@/services/walletService";
+import { useInstructorRevenue } from "@/hooks/instructor/useInstructorRevenue";
 import { toast } from "sonner";
 import WithdrawModal from "./WithdrawModal";
 import InstructorRevenueTable from "@/components/pages/instructor/revenue/InstructorRevenueTable";
 
 export default function InstructorRevenue() {
-  const [wallet, setWallet] = useState(null);
-  const [transactions, setTransactions] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { wallet, transactions, loading } = useInstructorRevenue();
+  
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
   const [pagination, setPagination] = useState({
     currentPage: 0,
     totalPages: 1,
-    totalElements: 0,
     size: 10
   });
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const [walletData, transactionsData] = await Promise.all([
-          walletService.getMyWallet(),
-          walletService.getMyTransactions()
-        ]);
-        setWallet(walletData);
-        const trxs = Array.isArray(transactionsData) ? transactionsData : [];
-        setTransactions(trxs);
-        setPagination(prev => ({
-          ...prev,
-          totalElements: trxs.length,
-          totalPages: Math.ceil(trxs.length / prev.size) || 1
-        }));
-      } catch (error) {
-        console.error("Error fetching revenue data:", error);
-        toast.error("Không thể tải dữ liệu doanh thu");
-        setTransactions([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
 
   const formatVND = (amount) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
@@ -75,8 +45,6 @@ export default function InstructorRevenue() {
 
   const handlePageChange = (newPage) => {
     setPagination(prev => ({ ...prev, currentPage: newPage }));
-    // Note: Backend currently doesn't support pagination for transactions, 
-    // so this is a UI placeholder for future integration.
   };
 
   if (loading) {
@@ -184,7 +152,7 @@ export default function InstructorRevenue() {
 
         <InstructorRevenueTable
           transactions={transactions}
-          pagination={pagination}
+          pagination={{...pagination, totalElements: transactions.length, totalPages: Math.ceil(transactions.length / pagination.size) || 1}}
           onPageChange={handlePageChange}
         />
       </div>
@@ -198,4 +166,3 @@ export default function InstructorRevenue() {
     </div>
   );
 }
-

@@ -1,84 +1,39 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { AppBreadcrumb, PageHeader } from "@/components/common/AppSection";
 import CourseListSection from "@/components/pages/client/shared/CourseListSection";
 import { Home } from "lucide-react";
-import courseService from "@/services/courseService";
-import categoryService from "@/services/categoryService";
+import { useSearch } from "@/hooks/client/useSearch";
 
 const SearchPage = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const query = searchParams.get("q") || "";
 
-  const [courses, setCourses] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
     level: "all",
     categorySlug: null,
     categoryId: null
   });
-  const [pagination, setPagination] = useState({
-    page: 0,
-    size: 9,
-    totalElements: 0,
-    totalPages: 0
-  });
+  
+  const [page, setPage] = useState(0);
+  const size = 9;
 
-  // Fetch categories for sidebar
-  useEffect(() => {
-    categoryService.getAllCategories(1, 100).then(data => {
-      if (data && data.content) {
-        setCategories(data.content);
-      }
-    }).catch(err => console.error("Error fetching categories:", err));
-  }, []);
+  const { courses, categories, loading, totalElements, totalPages } = useSearch(query, filters, { page, size });
 
-  // Fetch courses when query, filters, or page changes
-  useEffect(() => {
-    const fetchCourses = async () => {
-      setLoading(true);
-      try {
-        const response = await courseService.getPublicCourses({
-          search: query,
-          level: filters.level,
-          categorySlug: filters.categorySlug,
-          categoryId: filters.categoryId,
-          page: pagination.page,
-          size: pagination.size
-        });
-
-        if (response) {
-          setCourses(response.content || []);
-          setPagination(prev => ({
-            ...prev,
-            totalElements: response.totalElements || 0,
-            totalPages: response.totalPages || 0
-          }));
-        }
-      } catch (error) {
-        console.error("Error searching courses:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCourses();
-  }, [query, filters, pagination.page]);
+  const paginationInfo = { page, size, totalElements, totalPages };
 
   const handleFilterChange = (key, value) => {
     setFilters(prev => {
       const newFilters = { ...prev, [key]: value };
-      // Nếu set categorySlug thì xoá categoryId và ngược lại để tránh xung đột
       if (key === 'categorySlug' && value) newFilters.categoryId = null;
       if (key === 'categoryId' && value) newFilters.categorySlug = null;
       return newFilters;
     });
-    setPagination(prev => ({ ...prev, page: 0 })); // Reset page when filters change
+    setPage(0);
   };
 
   const handlePageChange = (newPage) => {
-    setPagination(prev => ({ ...prev, page: newPage }));
+    setPage(newPage);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -94,7 +49,7 @@ const SearchPage = () => {
 
         <PageHeader
           title={`Kết quả tìm kiếm ${query ? `cho "${query}"` : ""}`}
-          description={loading ? "Đang tìm kiếm khóa học..." : `Tìm thấy ${pagination.totalElements} khóa học phù hợp với yêu cầu của bạn.`}
+          description={loading ? "Đang tìm kiếm khóa học..." : `Tìm thấy ${totalElements} khóa học phù hợp với yêu cầu của bạn.`}
         />
 
         <CourseListSection
@@ -103,7 +58,7 @@ const SearchPage = () => {
           categories={categories}
           filters={filters}
           onFilterChange={handleFilterChange}
-          pagination={pagination}
+          pagination={paginationInfo}
           onPageChange={handlePageChange}
           emptyMessage="Rất tiếc, chúng tôi không tìm thấy khóa học nào phù hợp với từ khóa của bạn."
           sectionTitle="Kết quả tìm kiếm"
