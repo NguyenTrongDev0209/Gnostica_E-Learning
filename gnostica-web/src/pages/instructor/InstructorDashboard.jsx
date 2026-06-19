@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
-import useInstructorDashboard from "@/hooks/admin/useInstructorDashboard";
+import useInstructorDashboard from "@/hooks/instructor/useInstructorDashboard";
 
 // Components
 import StatsGrid from "@/components/pages/instructor/dashboard/StatsGrid";

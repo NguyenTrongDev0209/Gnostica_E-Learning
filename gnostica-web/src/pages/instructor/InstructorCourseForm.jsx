@@ -1,5 +1,5 @@
 import React from "react";
-import useInstructorCourseForm from "@/hooks/admin/useInstructorCourseForm";
+import useInstructorCourseForm from "@/hooks/instructor/useInstructorCourseForm";
 import {
   useForm,
   FormProvider,

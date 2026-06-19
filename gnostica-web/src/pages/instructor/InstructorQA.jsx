@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import useInstructorQA from "@/hooks/admin/useInstructorQA";
+import useInstructorQA from "@/hooks/instructor/useInstructorQA";
 
 export default function InstructorQA() {
   const { questions, reviews, loading } = useInstructorQA();
