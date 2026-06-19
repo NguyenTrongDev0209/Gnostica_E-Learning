@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate, useParams } from "react-router-dom";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axiosClient from "@/lib/axiosClient";
 import { toast } from "sonner";
 import courseService from "@/services/courseService";
@@ -9,7 +10,7 @@ import categoryService from "@/services/categoryService";
 
 /**
  * Hook quản lý toàn bộ logic cho InstructorCourseForm.
- * Bao gồm: Form state, Autosave, Draft management, Media Uploads.
+ * Đã áp dụng React Query cho các mutation lớn (Save Draft) và Load Dữ Liệu Danh Mục.
  */
 export default function useInstructorCourseForm(courseSchema, viErrorMap) {
   const navigate = useNavigate();
@@ -19,15 +20,14 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
   const lastDraftRef = useRef(null);
   const draftLoadedRef = useRef(false);
   const originalDataRef = useRef(null);
+  const queryClient = useQueryClient();
 
   const [activeTab, setActiveTab] = useState("basic");
   const [isUploading, setIsUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState("");
   const [activeUploads, setActiveUploads] = useState(0);
-  const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [showDraftModal, setShowDraftModal] = useState(false);
   const [pendingDraft, setPendingDraft] = useState(null);
-  const [categories, setCategories] = useState([]);
 
   const methods = useForm({
     resolver: zodResolver(courseSchema, { errorMap: viErrorMap }),
@@ -132,14 +132,11 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
             if (onProgress) onProgress(percentComplete);
           },
           onSuccess: function () {
-            // Return a composite libraryId/videoId string so the player can dynamically stream from correct library bucket!
             resolve(`${libraryId}/${videoId}`);
           }
         });
 
-        // Check if there are any previous uploads to continue.
         upload.findPreviousUploads().then(function (previousUploads) {
-          // Found previous uploads so we select the first one. 
           if (previousUploads.length) {
             upload.resumeFromPreviousUpload(previousUploads[0]);
           }
@@ -152,15 +149,9 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
     });
   };
 
-  // --- DRAFT LOGIC ---
-  const saveDraft = useCallback(async (formData, showNotification = false) => {
-    if (isUploading) return;
-    const currentString = JSON.stringify(formData);
-    if (!showNotification && lastDraftRef.current === currentString) return;
-    
-    try {
-      if (showNotification) setIsSavingDraft(true);
-      
+  // --- DRAFT LOGIC WITH REACT QUERY MUTATION ---
+  const saveDraftMutation = useMutation({
+    mutationFn: async (formData) => {
       const dataToSave = {
         ...formData,
         thumbnail: formData.thumbnail instanceof File ? null : formData.thumbnail,
@@ -175,10 +166,18 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
       };
 
       const url = isEditMode ? `/api/courses/draft?courseId=${formData.id || ""}&slug=${slug || ""}` : `/api/courses/draft`;
+      return await axiosClient.post(url, dataToSave);
+    }
+  });
 
-      await axiosClient.post(url, dataToSave);
-      
+  const saveDraft = useCallback(async (formData, showNotification = false) => {
+    if (isUploading) return;
+    const currentString = JSON.stringify(formData);
+    if (!showNotification && lastDraftRef.current === currentString) return;
+    
+    try {
       lastDraftRef.current = currentString;
+      await saveDraftMutation.mutateAsync(formData);
       
       if (showNotification) {
         toast.success("Lưu bản nháp thành công! Bản nháp này có hiệu lực 24h.");
@@ -188,10 +187,8 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
       if (showNotification) {
         toast.error("Không thể lưu bản nháp");
       }
-    } finally {
-      setIsSavingDraft(false);
     }
-  }, [isUploading, isEditMode, slug, getAuthHeaders, navigate]);
+  }, [isUploading, saveDraftMutation, navigate]);
 
   const restoreDraft = useCallback(() => {
     if (pendingDraft) {
@@ -219,24 +216,25 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
     setShowDraftModal(false);
   }, [pendingDraft, methods]);
 
-  // --- INITIALIZATION ---
-  useEffect(() => {
-    categoryService.getAllCategories(1, 1000, "", "active").then((res) => {
-      setCategories(res?.data?.content || []);
-    }).catch(err => console.error("useCourseForm: Load categories error", err));
-  }, []);
+  // --- REACT QUERY FOR DATA FETCHING ---
+  const { data: categories = [] } = useQuery({
+    queryKey: ['categories_active'],
+    queryFn: async () => {
+      const res = await categoryService.getAllCategories(1, 1000, "", "active");
+      return res?.data?.content || [];
+    },
+    staleTime: 1000 * 60 * 10
+  });
 
   useEffect(() => {
     const checkDraft = async () => {
       try {
         const url = isEditMode ? `/api/courses/draft?slug=${slug}` : `/api/courses/draft`;
-          
         const res = { data: await axiosClient.get(url) };
         if (res.data) {
           const draftData = (res.data.data && res.data.error !== undefined) ? res.data.data : res.data;
           if (draftData) {
             if (isEditMode) {
-                // Auto-restore for existing courses
                 const rawCategoryId = draftData.categoryId || draftData.category?.id;
                 const mappedDraft = {
                   ...draftData,
@@ -265,7 +263,7 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
       } catch (error) {}
     };
     checkDraft();
-  }, [isEditMode, slug, getAuthHeaders, methods]);
+  }, [isEditMode, slug, methods]);
 
   useEffect(() => {
     const loadCourseData = async () => {
@@ -274,7 +272,6 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
           const data = await courseService.getCourseBySlug(slug);
           if (draftLoadedRef.current) return;
 
-          // Eagerly load questions bank so it is available immediately for onSubmit
           let bankQuestions = [];
           try {
             if (data && data.id) {
@@ -283,9 +280,7 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
                 bankQuestions = qs;
               }
             }
-          } catch (qErr) {
-            console.error("Không thể tải trước ngân hàng câu hỏi:", qErr);
-          }
+          } catch (qErr) {}
 
           const mappedData = {
             ...data,
@@ -307,9 +302,7 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
           methods.reset(mappedData);
           lastDraftRef.current = JSON.stringify(methods.getValues());
           originalDataRef.current = lastDraftRef.current;
-        } catch (err) {
-          console.error("Lỗi khi tải dữ liệu khóa học:", err);
-        }
+        } catch (err) {}
       } else if (!isEditMode && !originalDataRef.current) {
           originalDataRef.current = JSON.stringify(methods.getValues());
       }
@@ -319,7 +312,6 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
 
   // --- EXIT LOGIC ---
   const handleExitWithConfirmation = useCallback(async () => {
-    
     const isDirty = methods.formState.isDirty;
 
     if (isDirty) {
@@ -356,7 +348,7 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
     setUploadStatus,
     activeUploads,
     setActiveUploads,
-    isSavingDraft,
+    isSavingDraft: saveDraftMutation.isPending,
     showDraftModal,
     setShowDraftModal,
     categories,

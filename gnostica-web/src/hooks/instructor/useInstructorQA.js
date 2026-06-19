@@ -1,28 +1,25 @@
-import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { instructorDashboardService } from "@/services/instructorDashboardService";
 
 export default function useInstructorQA() {
-  const [questions, setQuestions] = useState([]);
-  const [reviews, setReviews] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
+  const { data, isLoading } = useQuery({
+    queryKey: ['instructor_qa'],
+    queryFn: async () => {
         const [qData, rData] = await Promise.all([
           instructorDashboardService.getQuestions(),
           instructorDashboardService.getReviews()
         ]);
-        setQuestions(qData || []);
-        setReviews(rData || []);
-      } catch (error) {
-        console.error("Error fetching QA data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
+        return {
+            questions: qData || [],
+            reviews: rData || []
+        };
+    },
+    staleTime: 1000 * 60 * 2, // 2 mins cache
+  });
 
-  return { questions, reviews, loading };
+  return { 
+      questions: data?.questions || [], 
+      reviews: data?.reviews || [], 
+      loading: isLoading 
+  };
 }

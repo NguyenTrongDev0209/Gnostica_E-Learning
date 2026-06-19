@@ -1,34 +1,33 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import courseService from "@/services/courseService";
 
 /**
- * Hook quản lý danh sách khóa học của giảng viên.
- * Bao gồm: Lấy dữ liệu (DB + Drafts), Gộp bản nháp, CRUD operations.
+ * Hook quản lý danh sách khóa học của giảng viên bằng React Query.
  */
 export default function useInstructorCourses(pageSize = 10) {
-  const [courses, setCourses] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [pagination, setPagination] = useState({
+  const queryClient = useQueryClient();
+  
+  const [paginationState, setPaginationState] = useState({
     currentPage: 0,
     totalPages: 0,
     totalElements: 0,
     size: pageSize
   });
 
-  // Store filter states to survive component render cycles and share seamlessly
   const [filters, setFilters] = useState({
     search: "",
     categoryId: null,
-    status: "" // Use empty string for all, numeric/string for specific
+    status: ""
   });
 
-  const fetchCourses = async (page = 0) => {
-    try {
-      setLoading(true);
+  const { data, isLoading: loading } = useQuery({
+    queryKey: ['instructor_courses', paginationState.currentPage, filters],
+    queryFn: async () => {
       const response = await courseService.getInstructorCourses(
-        page, 
-        pagination.size, 
+        paginationState.currentPage, 
+        paginationState.size, 
         filters.search, 
         filters.categoryId, 
         filters.status
@@ -56,7 +55,7 @@ export default function useInstructorCourses(pageSize = 10) {
               if (draft.thumbnail) courseInDb.thumbnail = draft.thumbnail;
             }
           } 
-          else if (page === 0) {
+          else if (paginationState.currentPage === 0) {
             const virtualDraft = {
               ...draft,
               id: `draft-${draft.slug || 'new'}`,
@@ -68,82 +67,96 @@ export default function useInstructorCourses(pageSize = 10) {
         });
       }
 
-      setCourses(dbCourses);
-      setPagination(prev => ({
-        ...prev,
+      return {
+        courses: dbCourses,
         currentPage: dbData.number || 0,
         totalPages: dbData.totalPages || 0,
         totalElements: dbData.totalElements || 0,
-      }));
-    } catch (error) {
-      console.error("Lỗi khi tải danh sách khóa học:", error);
-      toast.error("Không thể tải danh sách khóa học");
-    } finally {
-      setLoading(false);
-    }
+      };
+    },
+    staleTime: 1000 * 60 * 1, // Cache 1 minute
+  });
+
+  const courses = data?.courses || [];
+  const pagination = {
+    ...paginationState,
+    currentPage: data?.currentPage ?? paginationState.currentPage,
+    totalPages: data?.totalPages ?? paginationState.totalPages,
+    totalElements: data?.totalElements ?? paginationState.totalElements,
   };
 
-  useEffect(() => {
-    fetchCourses(0);
-  }, [filters]); // Re-trigger fetch when filters change
+  const fetchCourses = (page = 0) => {
+    setPaginationState(prev => ({ ...prev, currentPage: page }));
+  };
+
+  const toggleStatusMutation = useMutation({
+    mutationFn: async ({ courseId, newStatus }) => {
+      return await courseService.updateCourseStatus(courseId, newStatus);
+    },
+    onSuccess: (res, variables) => {
+      toast.success(variables.newStatus === 1 ? "Đã hiển thị khóa học" : "Đã ẩn khóa học");
+      queryClient.invalidateQueries({ queryKey: ['instructor_courses'] });
+    },
+    onError: () => {
+      toast.error("Không thể thay đổi trạng thái khóa học");
+    }
+  });
 
   const handleToggleStatus = async (courseId, currentStatus) => {
-    try {
-      const newStatus = currentStatus === 1 ? 2 : 1; 
-      await courseService.updateCourseStatus(courseId, newStatus);
-      toast.success(newStatus === 1 ? "Đã hiển thị khóa học" : "Đã ẩn khóa học");
-      
-      setCourses(prev => prev.map(c => 
-        c.id === courseId ? { ...c, status: newStatus } : c
-      ));
-      return true;
-    } catch (error) {
-      console.error("Lỗi thay đổi trạng thái:", error);
-      toast.error("Không thể thay đổi trạng thái khóa học");
-      return false;
-    }
+    const newStatus = currentStatus === 1 ? 2 : 1;
+    await toggleStatusMutation.mutateAsync({ courseId, newStatus });
+    return true;
   };
+
+  const deleteMutation = useMutation({
+    mutationFn: async (courseId) => {
+      return await courseService.deleteCourse(courseId);
+    },
+    onSuccess: () => {
+      toast.success("Đã xóa khóa học thành công");
+      queryClient.invalidateQueries({ queryKey: ['instructor_courses'] });
+    },
+    onError: () => {
+      toast.error("Không thể xóa khóa học này");
+    }
+  });
 
   const handleDelete = async (courseId, title) => {
     if (!window.confirm(`Bạn có chắc chắn muốn xóa khóa học "${title}"? Khóa học sẽ bị ẩn khỏi mọi học viên mới, nhưng những học viên đã mua vẫn có thể tiếp tục học nội dung này.`)) {
       return false;
     }
-    
-    try {
-      await courseService.deleteCourse(courseId);
-      toast.success("Đã xóa khóa học thành công");
-      fetchCourses(pagination.currentPage);
-      return true;
-    } catch (error) {
-      console.error("Lỗi khi xóa khóa học:", error);
-      toast.error("Không thể xóa khóa học này");
-      return false;
-    }
+    await deleteMutation.mutateAsync(courseId);
+    return true;
   };
+
+  const deleteDraftMutation = useMutation({
+    mutationFn: async ({ courseId, slug }) => {
+      return await courseService.deleteDraft({ courseId, slug });
+    },
+    onSuccess: () => {
+      toast.success("Đã xóa bản nháp");
+      queryClient.invalidateQueries({ queryKey: ['instructor_courses'] });
+    },
+    onError: () => {
+      toast.error("Không thể xóa bản nháp");
+    }
+  });
 
   const handleDeleteDraft = async (course) => {
     if (!window.confirm("Bạn có chắc chắn muốn xóa bản nháp này? Dữ liệu chưa lưu sẽ bị mất vĩnh viễn.")) return false;
     
-    try {
-      let courseId = null;
-      let slug = null;
+    let courseId = null;
+    let slug = null;
 
-      if (course.isVirtualDraft) {
-        const rawSlug = String(course.id).replace('draft-', '');
-        slug = rawSlug === 'new' ? null : rawSlug;
-      } else {
-        courseId = String(course.id);
-      }
-
-      await courseService.deleteDraft({ courseId, slug });
-      toast.success("Đã xóa bản nháp");
-      fetchCourses(pagination.currentPage);
-      return true;
-    } catch (error) {
-      console.error("Lỗi xóa bản nháp:", error);
-      toast.error("Không thể xóa bản nháp");
-      return false;
+    if (course.isVirtualDraft) {
+      const rawSlug = String(course.id).replace('draft-', '');
+      slug = rawSlug === 'new' ? null : rawSlug;
+    } else {
+      courseId = String(course.id);
     }
+
+    await deleteDraftMutation.mutateAsync({ courseId, slug });
+    return true;
   };
 
   return {
