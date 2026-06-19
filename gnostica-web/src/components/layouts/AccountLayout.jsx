@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import authService from "@/services/authService";
+import useAuthStore from '@/store/useAuthStore';
 
 const MENU_GROUPS = [
   {
@@ -51,7 +51,7 @@ const MENU_GROUPS = [
 const AccountLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const currentUser = authService.getCurrentUser();
+  const currentUser = useAuthStore(state => state.user);
 
   const user = currentUser ? {
     name: currentUser.fullName || currentUser.username || "Học viên",

@@ -71,12 +71,12 @@ const ADMIN_MENU_GROUPS = [
 ];
 
 
-import authService from "@/services/authService";
+import useAuthStore from "@/store/useAuthStore";
 
 export default function AdminLayout() {
   const navigate = useNavigate();
   const location = useLocation();
-  const user = authService.getCurrentUser();
+  const user = useAuthStore(state => state.user);
 
   const handleLogout = async () => {
     await authService.logout();

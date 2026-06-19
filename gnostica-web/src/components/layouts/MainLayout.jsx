@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
-import authService from '@/services/authService'
+import useAuthStore from '@/store/useAuthStore';
 import useCategories from "@/hooks/admin/useCategories"
 import AiChatBot from '@/components/common/AiChatBot'
 import MainHeader from '@/components/fragments/MainHeader'
@@ -9,7 +9,7 @@ import MainFooter from '@/components/fragments/MainFooter'
 const MainLayout = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isCoursesMobileOpen, setIsCoursesMobileOpen] = useState(false)
-  const currentUser = authService.getCurrentUser()
+  const currentUser = useAuthStore(state => state.user);
   const { categories: flatCategories } = useCategories()
 
   const handleLogout = async () => {
