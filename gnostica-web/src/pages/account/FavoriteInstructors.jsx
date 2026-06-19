@@ -13,13 +13,13 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Home, Users, ArrowRight, UserMinus, Star } from "lucide-react";
 import followingService from '@/services/followingService';
-import authService from '@/services/authService';
+import useAuthStore from "@/store/useAuthStore";
 import { toast } from 'sonner';
 
 export default function FavoriteInstructors() {
     const [instructors, setInstructors] = useState([]);
     const [loading, setLoading] = useState(true);
-    const user = authService.getCurrentUser();
+    const user = useAuthStore(state => state.user);
 
     useEffect(() => {
         fetchFollowedInstructors();

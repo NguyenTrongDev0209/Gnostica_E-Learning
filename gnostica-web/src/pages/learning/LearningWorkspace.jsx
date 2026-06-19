@@ -36,7 +36,7 @@ import { Separator } from "@/components/ui/separator";
 import courseService from "@/services/courseService";
 import enrollmentService from "@/services/enrollmentService";
 import commentService from "@/services/commentService";
-import authService from "@/services/authService";
+import useAuthStore from "@/store/useAuthStore";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 // ── Component Hỗ Trợ: Giao Diện Làm Bài Quiz Cho Học Viên ──
@@ -313,7 +313,7 @@ function LessonQA({ lesson }) {
   const [replyContent, setReplyContent] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [collapsedComments, setCollapsedComments] = useState(new Set());
-  const currentUser = authService.getCurrentUser();
+  const currentUser = useAuthStore(state => state.user);
 
   const toggleCollapse = (id) => {
     setCollapsedComments(prev => {

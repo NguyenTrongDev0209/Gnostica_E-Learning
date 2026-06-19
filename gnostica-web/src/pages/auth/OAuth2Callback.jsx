@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import axiosClient from '@/lib/axiosClient';
+import authService from '@/services/authService';
+import useAuthStore from '@/store/useAuthStore';
 
 const OAuth2Callback = () => {
     const [searchParams] = useSearchParams();
@@ -16,7 +17,7 @@ const OAuth2Callback = () => {
         if (email) {
             const fetchUserInfo = async () => {
                 try {
-                    const response = await axiosClient.get(`/auth/user?email=${encodeURIComponent(email)}`);
+                    const response = await authService.getOAuth2User(email);
                     console.log("Fetch user response:", response.data);
                     
                     if (response.data.status === 200 || response.data.status === 'success') {
@@ -33,7 +34,8 @@ const OAuth2Callback = () => {
                         };
                         
                         localStorage.setItem('user', JSON.stringify(normalizedUser));
-                        console.log("OAuth2Callback: User normalized and saved to localStorage");
+                        useAuthStore.getState().setUser(normalizedUser);
+                        console.log("OAuth2Callback: User normalized and saved to localStorage and Zustand");
                         
                         toast.success('Đăng nhập thành công!');
                         

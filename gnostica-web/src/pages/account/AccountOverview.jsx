@@ -22,12 +22,12 @@ import {
   Trophy,
 } from "lucide-react";
 import { SimpleButton } from "@/components/common/AppButton";
-import authService from "@/services/authService";
+import useAuthStore from "@/store/useAuthStore";
 import enrollmentService from "@/services/enrollmentService";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function AccountOverview() {
-  const user = authService.getCurrentUser();
+  const user = useAuthStore(state => state.user);
   const navigate = useNavigate();
   const isInstructor = (user?.role || '').toUpperCase() === 'INSTRUCTOR';
 

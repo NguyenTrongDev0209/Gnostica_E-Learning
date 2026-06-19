@@ -13,10 +13,10 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Home, KeyRound, ShieldCheck, Eye, EyeOff, CheckCircle2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
-import authService from "@/services/authService";
+import useAuthStore from "@/store/useAuthStore";
 
 export default function ChangePassword() {
-  const user = authService.getCurrentUser();
+  const user = useAuthStore(state => state.user);
   const isGoogleUser = user?.provider === "GOOGLE";
 
   const [formData, setFormData] = useState({

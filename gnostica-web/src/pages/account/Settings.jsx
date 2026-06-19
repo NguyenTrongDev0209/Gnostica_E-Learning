@@ -14,12 +14,12 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Home, UserCog, Camera, Save, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import authService from "@/services/authService";
+import useAuthStore from "@/store/useAuthStore";
 import accountService from "@/services/accountService";
 import ImageCropModal from "@/components/modals/ImageCropModal";
 
 export default function Settings() {
-  const user = authService.getCurrentUser();
+  const user = useAuthStore(state => state.user);
 
   const [formData, setFormData] = useState({
     fullName: user?.fullName || "",

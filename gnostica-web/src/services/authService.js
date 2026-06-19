@@ -99,6 +99,10 @@ const becomeInstructor = async (email) => {
     }
 };
 
+const getOAuth2User = async (email) => {
+    return await axiosClient.get(`${API_URL}/user?email=${encodeURIComponent(email)}`);
+};
+
 const getAllAccounts = async () => {
     try {
         const response = await axiosClient.get(`${API_URL}/accounts`);
@@ -145,6 +149,7 @@ const authService = {
     forgotPassword,
     resetPassword,
     becomeInstructor,
+    getOAuth2User,
     getAllAccounts,
     getAccountsByRole,
     lockAccount,
