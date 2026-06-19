@@ -29,43 +29,18 @@ import {
 import enrollmentService from "@/services/enrollmentService";
 import { toast } from "sonner";
 
+import useMyCourses from "@/hooks/client/useMyCourses";
+
 export default function MyCourses() {
-  const [courses, setCourses] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-
-  useEffect(() => {
-    fetchMyCourses();
-  }, []);
-
-  const fetchMyCourses = async () => {
-    try {
-      setLoading(true);
-      const response = await enrollmentService.getMyCourses();
-      if (response && response.data) {
-        setCourses(response.data);
-      }
-    } catch (error) {
-      console.error("Failed to fetch courses:", error);
-      toast.error("Không thể tải danh sách khóa học của bạn");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getStatus = (progress) => {
-    if (progress === 100) return "completed";
-    if (progress > 0) return "in_progress";
-    return "not_started";
-  };
-
-  const filteredCourses = courses.filter((course) => {
-    const matchesSearch = course.courseTitle.toLowerCase().includes(searchQuery.toLowerCase());
-    const status = getStatus(course.progressPercent);
-    const matchesStatus = statusFilter === "all" || status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  const {
+    courses,
+    loading,
+    searchQuery,
+    setSearchQuery,
+    statusFilter,
+    setStatusFilter,
+    totalCourses
+  } = useMyCourses();
 
   return (
     <div>

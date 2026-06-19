@@ -29,108 +29,23 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 
+import useMyForumPosts from "@/hooks/client/useMyForumPosts";
+
 const MyForumPosts = () => {
     const navigate = useNavigate();
-    const [threads, setThreads] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [currentPage, setCurrentPage] = useState(0);
-    const [userStats, setUserStats] = useState({ threadCount: 0, totalLikes: 0 });
-    const [currentUser, setCurrentUser] = useState(null);
-    const [threadToDelete, setThreadToDelete] = useState(null);
-
-    useEffect(() => {
-        const userData = JSON.parse(localStorage.getItem('user'));
-        setCurrentUser(userData);
-    }, []);
-
-    useEffect(() => {
-        const fetchMyThreads = async () => {
-            if (!currentUser?.email) return;
-
-            setIsLoading(true);
-            try {
-                // Fetch all threads to handle pagination on frontend like ForumPage.jsx
-                const res = await threadService.getMyThreads(currentUser.email);
-                setThreads(res.data.content);
-            } catch (error) {
-                console.error("Failed to fetch your threads", error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        const fetchMyStats = async () => {
-             if (!currentUser?.email) return;
-             try {
-                const res = await threadService.getMyThreadStats(currentUser.email);
-                setUserStats(res.data);
-             } catch (error) {
-                console.error("Failed to fetch statistics", error);
-             }
-        };
-
-        fetchMyThreads();
-        fetchMyStats();
-    }, [currentUser]); // Remove currentPage to handle it locally
-
-    const handleDelete = async () => {
-        if (!threadToDelete) return;
-
-        try {
-            await threadService.deleteThread(threadToDelete);
-            // Xóa khỏi danh sách cục bộ
-            setThreads(prev => prev.filter(t => t.id !== threadToDelete));
-            // Cập nhật lại stats
-            setUserStats(prev => ({
-                ...prev,
-                threadCount: Math.max(0, prev.threadCount - 1)
-            }));
-            toast.success("Đã xóa bài viết thành công!");
-        } catch (error) {
-            console.error("Failed to delete thread", error);
-            toast.error("Có lỗi xảy ra khi xóa bài viết.");
-        } finally {
-            setThreadToDelete(null);
-        }
-    };
-
-    const mappedPosts = threads.map(thread => ({
-        id: thread.id,
-        title: thread.content.substring(0, 100) + (thread.content.length > 100 ? "..." : ""),
-        content: thread.content,
-        author: {
-            name: thread.account?.fullName || "Ẩn danh",
-            avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${thread.account?.email || 'default'}`,
-            status: "online"
-        },
-        category: thread.category?.name || "Thảo luận",
-        tags: [],
-        createdAt: new Date(thread.createdAt).toLocaleDateString('vi-VN', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        }),
-        stats: {
-            likes: thread.likes || 0,
-            views: thread.views || 0,
-            replies: thread.commentCount || 0
-        },
-        images: thread.images || [],
-        isHot: (thread.views || 0) > 50,
-        status: thread.status,
-        pendingModeration: thread.pendingModeration
-    }));
-
-    const postsPerPage = 5;
-    const totalPages = Math.ceil(mappedPosts.length / postsPerPage);
-    const currentPosts = mappedPosts.slice(currentPage * postsPerPage, (currentPage + 1) * postsPerPage);
-
-    // Reset page if data changes
-    useEffect(() => {
-        setCurrentPage(0);
-    }, [threads.length]);
+    
+    const {
+        currentUser,
+        userStats,
+        isLoading,
+        currentPosts,
+        totalPages,
+        currentPage,
+        setCurrentPage,
+        threadToDelete,
+        setThreadToDelete,
+        handleDelete
+    } = useMyForumPosts(5);
 
     const breadcrumbItems = [
         { component: <Link to="/">Trang chủ</Link> },

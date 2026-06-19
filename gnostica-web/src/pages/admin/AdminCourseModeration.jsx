@@ -37,156 +37,39 @@ import { toast } from "sonner";
 import CourseRejectModal from "@/components/modals/CourseRejectModal";
 import InstructorProfileModal from "@/components/modals/InstructorProfileModal";
 
-export default function AdminCourseModeration() {
-  const [activeTab, setActiveTab] = useState("all");
-  const [courses, setCourses] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [pagination, setPagination] = useState({
-    currentPage: 0,
-    totalPages: 0,
-    totalElements: 0,
-  });
-  const [searchTerm, setSearchTerm] = useState("");
-  const [stats, setStats] = useState({ pending: 0, approved: 0, rejected: 0 });
+import useAdminCourseModeration from "@/hooks/admin/useAdminCourseModeration";
 
+export default function AdminCourseModeration() {
   const navigate = useNavigate();
 
-  // Reject Modal State
-  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
-  const [selectedCourse, setSelectedCourse] = useState(null);
-  const [rejectReason, setRejectReason] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Instructor Profile State
-  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-  const [activeInstructor, setActiveInstructor] = useState(null);
-
-  // Safe extraction function to support standard Page, ResponseDTO, or ApiResponse
-  const extractPageData = (res) => {
-    if (!res) return null;
-    if (res.data !== undefined) {
-      // Wrapped inside ResponseDTO or ApiResponse
-      return res.data;
-    }
-    return res; // Raw Page object
-  };
-
-  // Load real data based on current active tab and page
-  const loadCourses = async (page = 0) => {
-    try {
-      setLoading(true);
-      let statusParam = null;
-      if (activeTab === "pending") statusParam = 4;
-      else if (activeTab === "approved") statusParam = 1;
-      else if (activeTab === "rejected") statusParam = 3;
-
-      const resRaw = await courseService.getModerationCourses(statusParam, page, 10);
-      const res = extractPageData(resRaw) || {};
-      
-      setCourses(res.content || []);
-      setPagination({
-        currentPage: res.number || 0,
-        totalPages: res.totalPages || 0,
-        totalElements: res.totalElements || 0,
-      });
-    } catch (err) {
-      console.error("Fetch courses error:", err);
-      toast.error("Không thể kết nối đến máy chủ dữ liệu");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Fetch general counts for statistics cards (Runs once on component mount)
-  const loadStats = async () => {
-    try {
-      const res = await courseService.getModerationStats();
-      // Safely handle wrapper if present
-      const statsData = res?.data !== undefined ? res.data : res;
-      
-      if (statsData) {
-        setStats({
-          pending: statsData.pending || 0,
-          approved: statsData.approved || 0,
-          rejected: statsData.rejected || 0,
-        });
-      }
-    } catch (e) {
-      console.error("Load Stats Error:", e);
-    }
-  };
-
-  useEffect(() => {
-    loadCourses(0);
-    loadStats();
-  }, [activeTab]);
-
-  const handleOpenInstructorProfile = (course) => {
-     if (!course.instructorId && !course.instructorName) return;
-     setActiveInstructor({
-        name: course.instructorName || "Chưa cập nhật",
-        avatar: course.instructorAvatar,
-        email: course.instructorEmail || "---",
-        phone: course.instructorPhone || "---",
-        cccd: "---",
-        address: "Việt Nam",
-        joinedDate: formatFriendlyDate(course.instructorCreatedAt),
-        job: "Giảng viên Gnostica",
-        bio: "Thông tin chi tiết về kinh nghiệm giảng dạy của tác giả khóa học.",
-        bankName: "Ngân hàng liên kết",
-        bankNumber: "---",
-        bankHolder: (course.instructorName || "").toUpperCase(),
-        courses: 1,
-        students: "--",
-        rating: "4.8"
-     });
-     setIsProfileModalOpen(true);
-  };
+  const {
+    activeTab,
+    setActiveTab,
+    courses,
+    loading,
+    pagination,
+    searchTerm,
+    setSearchTerm,
+    stats,
+    loadCourses,
+    isRejectModalOpen,
+    setIsRejectModalOpen,
+    selectedCourse,
+    rejectReason,
+    setRejectReason,
+    isProfileModalOpen,
+    setIsProfileModalOpen,
+    activeInstructor,
+    handleApprove,
+    handleOpenRejectModal,
+    handleConfirmReject,
+    handleOpenInstructorProfile,
+    formatFriendlyDate,
+    isSubmitting
+  } = useAdminCourseModeration();
 
   const handleOpenPreview = (course) => {
-    // Navigation relies strictly on SLUG requested by user
     navigate(`/admin/course-moderation/${course.slug}`);
-  };
-
-  const handleApprove = async (course) => {
-    if (!window.confirm(`Bạn có chắc chắn phê duyệt công khai khóa học "${course.title}"?`)) return;
-    try {
-      setIsSubmitting(true);
-      await courseService.approveCourse(course.slug);
-      toast.success("Phê duyệt và xuất bản khóa học thành công!");
-      loadCourses(pagination.currentPage);
-      loadStats();
-    } catch (err) {
-      toast.error(err.response?.data?.error || "Không thể phê duyệt khóa học này.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleOpenRejectModal = (course) => {
-    setSelectedCourse(course);
-    setRejectReason("");
-    setIsRejectModalOpen(true);
-  };
-
-  const handleConfirmReject = async () => {
-    if (!rejectReason.trim()) {
-      toast.warning("Vui lòng điền lý do từ chối kiểm duyệt.");
-      return;
-    }
-    try {
-      setIsSubmitting(true);
-      await courseService.rejectCourse(selectedCourse.slug, rejectReason);
-      toast.success("Đã gửi lý do từ chối phê duyệt khóa học.");
-      setIsRejectModalOpen(false);
-      setSelectedCourse(null);
-      loadCourses(pagination.currentPage);
-      loadStats();
-    } catch (err) {
-      toast.error(err.response?.data?.error || "Lỗi khi từ chối khóa học.");
-    } finally {
-      setIsSubmitting(false);
-    }
   };
 
   const getStatusBadge = (status) => {
@@ -235,17 +118,7 @@ export default function AdminCourseModeration() {
     }).format(price);
   };
 
-  const formatFriendlyDate = (dateStr) => {
-    if (!dateStr) return "--";
-    const d = new Date(dateStr);
-    return `${d.toLocaleDateString("vi-VN")} ${d.toLocaleTimeString("vi-VN", { hour: '2-digit', minute: '2-digit' })}`;
-  };
-
-  // Client-side search filtering over current page data
-  const filteredCourses = courses.filter(c => 
-    c.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.instructorName?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredCourses = courses;
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">

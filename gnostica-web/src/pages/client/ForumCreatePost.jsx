@@ -5,131 +5,24 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { ImagePlus, X, Send } from 'lucide-react';
-import { toast } from "sonner";
-import threadService from '@/services/threadService';
-import forumCategoryService from '@/services/forumCategoryService';
-import { useEffect } from 'react';
+import useForumCreatePost from "@/hooks/client/useForumCreatePost";
 
 const ForumCreatePost = () => {
     const navigate = useNavigate();
-    const [content, setContent] = useState('');
-    const [categoryId, setCategoryId] = useState('');
-    const [images, setImages] = useState([]);
-    const [previewUrls, setPreviewUrls] = useState([]);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [categories, setCategories] = useState([]);
-    const [errors, setErrors] = useState({});
-
-    useEffect(() => {
-        const fetchCategories = async () => {
-            try {
-                const data = await forumCategoryService.getAllCategories();
-                const activeCategories = res.data.filter(cat => cat.status === true);
-                setCategories(activeCategories);
-            } catch (error) {
-                console.error("Failed to load forum categories", error);
-                toast.error("Không thể tải danh sách chủ đề.");
-            }
-        };
-        fetchCategories();
-    }, []);
-    
-
-    const handleImageChange = (e) => {
-        const files = Array.from(e.target.files);
-        if (files.length === 0) return;
-
-        // Add to images state
-        setImages(prev => [...prev, ...files]);
-
-        // Create preview URLs
-        const newPreviewUrls = files.map(file => URL.createObjectURL(file));
-        setPreviewUrls(prev => [...prev, ...newPreviewUrls]);
-    };
-
-    const removeImage = (indexToRemove) => {
-        setImages(prev => prev.filter((_, index) => index !== indexToRemove));
-        setPreviewUrls(prev => {
-            const newUrls = prev.filter((_, index) => index !== indexToRemove);
-            // Optionally revoke the object URL to avoid memory leaks
-            URL.revokeObjectURL(prev[indexToRemove]);
-            return newUrls;
-        });
-    };
-
-    const validateForm = () => {
-        const newErrors = {};
-        if (!categoryId) {
-            newErrors.categoryId = "Vui lòng chọn chủ đề.";
-        }
-        if (!content.trim()) {
-            newErrors.content = "Vui lòng nhập nội dung bài viết.";
-        }
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        
-        if (!validateForm()) {
-            toast.error("Vui lòng điền đầy đủ thông tin bắt buộc.");
-            return;
-        }
-
-        setIsSubmitting(true);
-
-        try {
-            const formData = new FormData();
-            formData.append('content', content);
-            formData.append('categoryId', categoryId);
-            
-            images.forEach(image => {
-                formData.append('images', image);
-            });
-
-            // Get user from localStorage
-            const userStr = localStorage.getItem('user');
-            if (!userStr) {
-                toast.error("Vui lòng đăng nhập để tạo bài viết.");
-                navigate('/login');
-                setIsSubmitting(false);
-                return;
-            }
-            const user = JSON.parse(userStr);
-            console.log("Current user from localStorage:", user);
-            formData.append('authorEmail', user.email || user.username || ""); 
-
-            console.log("--- FormData Debug ---");
-            for (let pair of formData.entries()) {
-                console.log(pair[0] + ': ' + (pair[1] instanceof File ? `File: ${pair[1].name}` : pair[1]));
-            }
-
-            const headers = {
-                'Content-Type': 'multipart/form-data',
-            };
-
-            const data = await threadService.createThread(formData);
-
-            if (data) {
-                toast.success("Tạo bài viết thành công!");
-                // Navigate back to forum or to the new thread detail (if response returns ID)
-                navigate('/forum');
-            }
-        } catch (error) {
-            console.error("Error creating post:", error);
-            // Example of handling unauthorized 
-            if (error.response && error.response.status === 401) {
-                toast.error("Vui lòng đăng nhập để tạo bài viết.");
-                navigate('/login');
-            } else {
-                const errorMsg = error.response?.data || "Có lỗi xảy ra khi tạo bài viết.";
-                toast.error(typeof errorMsg === 'string' ? errorMsg : JSON.stringify(errorMsg));
-            }
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
+    const {
+        content,
+        setContent,
+        categoryId,
+        setCategoryId,
+        previewUrls,
+        categories,
+        errors,
+        setErrors,
+        handleImageChange,
+        removeImage,
+        handleSubmit,
+        isSubmitting
+    } = useForumCreatePost();
 
     return (
         <div className="min-h-screen bg-muted pb-16 pt-8">

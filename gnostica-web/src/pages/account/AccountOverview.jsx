@@ -26,55 +26,14 @@ import useAuthStore from "@/store/useAuthStore";
 import enrollmentService from "@/services/enrollmentService";
 import { Skeleton } from "@/components/ui/skeleton";
 
+import useAccountOverview from "@/hooks/client/useAccountOverview";
+
 export default function AccountOverview() {
   const user = useAuthStore(state => state.user);
   const navigate = useNavigate();
   const isInstructor = (user?.role || '').toUpperCase() === 'INSTRUCTOR';
 
-  const [stats, setStats] = useState(null);
-  const [recentCourses, setRecentCourses] = useState([]);
-  const [recentCertificates, setRecentCertificates] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const [statsRes, coursesRes] = await Promise.all([
-          enrollmentService.getMyStats(),
-          enrollmentService.getMyCourses()
-        ]);
-
-        if (statsRes.success) {
-          setStats(statsRes.data);
-        }
-
-        if (coursesRes.success) {
-          const courses = coursesRes.data;
-          setRecentCourses(courses.slice(0, 3));
-          
-          const certificates = courses
-            .filter(c => c.progressPercent === 100)
-            .map(c => ({
-              id: c.id,
-              title: c.courseTitle,
-              date: c.completedAt ? new Date(c.completedAt).toLocaleDateString('vi-VN') : "N/A",
-              color: "from-blue-500 to-cyan-500", 
-            }))
-            .slice(0, 2);
-          
-          setRecentCertificates(certificates);
-        }
-      } catch (error) {
-        console.error("Error fetching account data:", error);
-        toast.error("Không thể tải thông tin tài khoản");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
+  const { stats, recentCourses, recentCertificates, loading } = useAccountOverview();
 
   const handleBecomeInstructor = () => {
     navigate('/apply-instructor');

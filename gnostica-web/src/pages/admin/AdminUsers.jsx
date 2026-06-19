@@ -32,134 +32,34 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import authService from "@/services/authService";
-import { toast } from "sonner";
-import { useEffect, useState } from "react";
-import instructorService from '@/services/instructorService';
-import { Lock, Unlock } from "lucide-react";
-
-const USERS_DATA = [
-  { id: "USR-001", name: "Nguyễn Văn A", email: "nguyenvana@gmail.com", role: "user", status: "active", joinDate: "12/03/2026", courses: 3 },
-  { id: "USR-002", name: "Trần Thị B", email: "tranthib.dev@yahoo.com", role: "user", status: "inactive", joinDate: "10/03/2026", courses: 0 },
-  { id: "USR-003", name: "Lê Quốc Minh", email: "minhle.admin@techone.vn", role: "admin", status: "active", joinDate: "01/01/2026", courses: 14 },
-  { id: "USR-004", name: "Phạm Minh C", email: "phamc99@edu.com.vn", role: "instructor", status: "active", joinDate: "15/02/2026", courses: 5 },
-  { id: "USR-005", name: "Hoàng Ngọc D", email: "ngocd.hoang@gmail.com", role: "user", status: "banned", joinDate: "20/02/2026", courses: 1 },
-];
+import useAdminUsers from "@/hooks/admin/useAdminUsers";
 
 export default function AdminUsers() {
-  const [activeTab, setActiveTab] = useState("USER");
-  const [accounts, setAccounts] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [lockDialogOpen, setLockDialogOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [lockReason, setLockReason] = useState("");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [applications, setApplications] = useState([]);
-  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
-  const [rejectReason, setRejectReason] = useState("");
-  const [selectedApp, setSelectedApp] = useState(null);
+  const {
+    activeTab,
+    setActiveTab,
+    accounts,
+    applications,
+    loading,
+    searchTerm,
+    setSearchTerm,
+    lockDialogOpen,
+    setLockDialogOpen,
+    selectedUser,
+    lockReason,
+    setLockReason,
+    rejectDialogOpen,
+    setRejectDialogOpen,
+    rejectReason,
+    setRejectReason,
+    setSelectedApp,
+    handleApprove,
+    handleReject,
+    handleToggleLock,
+    confirmLock
+  } = useAdminUsers();
 
-  const fetchAccounts = async (role) => {
-    if (role === 'PENDING_APP') {
-       fetchApplications();
-       return;
-    }
-    setLoading(true);
-    try {
-      const response = await authService.getAccountsByRole(role);
-      setAccounts(response.data || []);
-    } catch (error) {
-      toast.error(error.toString());
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchApplications = async () => {
-    setLoading(true);
-    try {
-      const user = JSON.parse(localStorage.getItem('user'));
-      const token = user?.token;
-      const data = await instructorService.getApplications('PENDING');
-      setApplications(data.content || data || []);
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Lỗi tải đơn đăng ký");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchAccounts(activeTab);
-  }, [activeTab]);
-
-  const handleApprove = async (id) => {
-    try {
-      const user = JSON.parse(localStorage.getItem('user'));
-      const token = user?.token;
-      await instructorService.approveApplication(id);
-      toast.success("Đã phê duyệt đơn đăng ký");
-      fetchApplications();
-    } catch (error) {
-      toast.error("Lỗi khi phê duyệt");
-    }
-  };
-
-  const handleReject = async () => {
-    if (!rejectReason.trim()) {
-      toast.error("Vui lòng nhập lý do từ chối");
-      return;
-    }
-    try {
-      const user = JSON.parse(localStorage.getItem('user'));
-      const token = user?.token;
-      await instructorService.rejectApplication(selectedApp, rejectReason);
-      toast.success("Đã từ chối đơn đăng ký");
-      setRejectDialogOpen(false);
-      fetchApplications();
-    } catch (error) {
-      toast.error("Lỗi khi từ chối");
-    }
-  };
-
-  const handleToggleLock = async (user) => {
-    if (user.locked) {
-      // Mở khóa luôn
-      try {
-        await authService.unlockAccount(user.id);
-        toast.success("Đã mở khóa tài khoản.");
-        fetchAccounts(activeTab);
-      } catch (error) {
-        toast.error(error.toString());
-      }
-    } else {
-      // Hiện dialog để nhập lý do
-      setSelectedUser(user);
-      setLockReason("");
-      setLockDialogOpen(true);
-    }
-  };
-
-  const confirmLock = async () => {
-    if (!lockReason.trim()) {
-      toast.error("Vui lòng nhập lý do khóa.");
-      return;
-    }
-
-    try {
-      await authService.lockAccount(selectedUser.id, lockReason);
-      toast.success(`Đã khóa tài khoản ${selectedUser.fullName}.`);
-      setLockDialogOpen(false);
-      fetchAccounts(activeTab);
-    } catch (error) {
-      toast.error(error.toString());
-    }
-  };
-
-  const filteredAccounts = accounts.filter(acc => 
-    acc.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    acc.email?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredAccounts = accounts;
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-10">
