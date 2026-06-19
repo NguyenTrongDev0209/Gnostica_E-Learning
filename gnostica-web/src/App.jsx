@@ -11,6 +11,7 @@ import { publicRoutes, privateRoutes } from "@/routers";
 import ErrorPage from "@/pages/ErrorPage";
 import ProtectedRoute from "@/components/common/ProtectedRoute";
 import CertificatePage from "@/pages/learning/CertificatePage";
+import { ROLES } from "@/utils/constants";
 
 function App() {
   return (
@@ -63,7 +64,7 @@ function App() {
           </Route>
 
           <Route element={
-            <ProtectedRoute roles={['admin', 'ADMIN']}>
+            <ProtectedRoute roles={[ROLES.ADMIN]}>
               <AdminLayout />
             </ProtectedRoute>
           }>
@@ -83,7 +84,7 @@ function App() {
           </Route>
 
           <Route element={
-            <ProtectedRoute roles={['instructor', 'teacher', 'TEACHER', 'INSTRUCTOR']}>
+            <ProtectedRoute roles={[ROLES.INSTRUCTOR]}>
               <InstructorLayout />
             </ProtectedRoute>
           }>

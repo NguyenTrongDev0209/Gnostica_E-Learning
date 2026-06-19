@@ -1,4 +1,5 @@
 import axios from 'axios';
+import useAuthStore from '@/store/useAuthStore';
 
 const axiosClient = axios.create({
     baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080/api',
@@ -36,6 +37,10 @@ axiosClient.interceptors.response.use(
         return response;
     },
     function (error) {
+        if (error.response && error.response.status === 401) {
+            // Lỗi 401: Unauthorized (Token hết hạn hoặc không hợp lệ)
+            useAuthStore.getState().logout();
+        }
         return Promise.reject(error);
     }
 );
