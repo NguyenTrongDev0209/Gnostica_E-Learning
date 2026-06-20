@@ -40,11 +40,11 @@ const LoginScreen = () => {
             behavior={Platform.OS === "ios" ? "padding" : undefined}
             className="flex-1 bg-slate-50"
         >
-            <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 20, justifyContent: 'center' }}>
+            <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 20, paddingTop: 60, paddingBottom: 40 }}>
                 <View className="items-center mb-8">
                     <Image
                         source={require('../../assets/images/Gnostica_Mark.webp')}
-                        className="w-24 h-24"
+                        className="w-56 h-24"
                         resizeMode="contain"
                     />
                 </View>
