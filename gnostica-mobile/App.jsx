@@ -23,6 +23,8 @@ import ChangePasswordScreen from './src/screens/client/ChangePasswordScreen';
 import ForgotPasswordScreen from './src/screens/auth/ForgotPasswordScreen';
 import ConfirmCodeScreen from './src/screens/auth/ConfirmCodeScreen';
 import ResetPasswordScreen from './src/screens/auth/ResetPasswordScreen';
+import PhoneLoginScreen from './src/screens/auth/PhoneLoginScreen';
+import PhoneOTPScreen from './src/screens/auth/PhoneOTPScreen';
 import WishlistScreen from './src/screens/client/WishlistScreen';
 import CertificatesScreen from './src/screens/client/CertificatesScreen';
 import VouchersScreen from './src/screens/client/VouchersScreen';
@@ -87,6 +89,8 @@ export default function App() {
             <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
             <Stack.Screen name="ConfirmCode" component={ConfirmCodeScreen} />
             <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
+            <Stack.Screen name="PhoneLogin" component={PhoneLoginScreen} />
+            <Stack.Screen name="PhoneOTP" component={PhoneOTPScreen} />
             <Stack.Screen name="Wishlist" component={WishlistScreen} />
             <Stack.Screen name="Certificates" component={CertificatesScreen} />
             <Stack.Screen name="Vouchers" component={VouchersScreen} />
