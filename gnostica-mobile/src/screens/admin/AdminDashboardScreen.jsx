@@ -49,9 +49,19 @@ const AdminDashboardScreen = () => {
                 <Text className="text-slate-800 font-bold text-base mb-4">Quản lý hệ thống</Text>
 
                 {[
-                    { label: 'Quản lý người dùng', icon: Users, target: 'UserManagement', desc: '4,500 người dùng hoạt động' },
-                    { label: 'Duyệt đơn hàng', icon: ShoppingBag, target: 'OrderModeration', desc: '12 đơn hàng đang chờ duyệt' },
-                    { label: 'Kiểm duyệt khóa học', icon: BookOpen, target: 'AdminDashboard', desc: '3 khóa học mới cần kiểm tra' },
+                    { label: 'Quản lý khóa học', icon: BookOpen, target: 'AdminCourses', desc: 'Danh sách toàn bộ khóa học' },
+                    { label: 'Duyệt khóa học', icon: AlertCircle, target: 'AdminCourseModeration', desc: 'Khóa học chờ duyệt' },
+                    { label: 'Danh mục', icon: BookOpen, target: 'AdminCategories', desc: 'Quản lý thể loại' },
+                    { label: 'Quản lý người dùng', icon: Users, target: 'UserManagement', desc: 'Học viên & Giảng viên' },
+                    { label: 'Giao dịch', icon: ShoppingBag, target: 'AdminTransactions', desc: 'Lịch sử thanh toán' },
+                    { label: 'Duyệt đơn hàng', icon: ShoppingBag, target: 'OrderModeration', desc: 'Đơn hàng mua thủ công' },
+                    { label: 'Tài khoản ngân hàng', icon: Settings, target: 'AdminBanks', desc: 'Cấu hình thanh toán' },
+                    { label: 'Mã giảm giá', icon: ShoppingBag, target: 'AdminCoupons', desc: 'Mã giảm giá hệ thống' },
+                    { label: 'Báo cáo vi phạm', icon: AlertCircle, target: 'AdminReports', desc: 'Xử lý báo cáo' },
+                    { label: 'Quản lý đánh giá', icon: AlertCircle, target: 'AdminReviews', desc: 'Review khóa học' },
+                    { label: 'Danh mục diễn đàn', icon: Users, target: 'AdminForumCategory', desc: 'Chủ đề forum' },
+                    { label: 'Duyệt bài diễn đàn', icon: AlertCircle, target: 'AdminThreadModeration', desc: 'Bài viết chờ duyệt' },
+                    { label: 'Cài đặt hệ thống', icon: Settings, target: 'AdminSettings', desc: 'Cấu hình nền tảng' },
                 ].map((item, i) => (
                     <TouchableOpacity
                         key={i}

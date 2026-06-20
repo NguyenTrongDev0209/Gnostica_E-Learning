@@ -50,8 +50,13 @@ const InstructorDashboardScreen = () => {
 
                 {[
                     { label: 'Khóa học của tôi', icon: BookOpen, target: 'InstructorCourses', desc: 'Quản lý bài giảng và nội dung' },
-                    { label: 'Báo cáo doanh thu', icon: DollarSign, target: 'InstructorRevenue', desc: 'Xem chi tiết thu nhập & rút tiền' },
-                    { label: 'Hỏi đáp học viên', icon: MessageSquare, target: 'InstructorQA', desc: '4 câu hỏi mới chưa trả lời' },
+                    { label: 'Học viên của tôi', icon: Users, target: 'InstructorStudents', desc: 'Quản lý danh sách học viên' },
+                    { label: 'Mã giảm giá', icon: DollarSign, target: 'InstructorCoupons', desc: 'Quản lý voucher khuyến mãi' },
+                    { label: 'Báo cáo doanh thu', icon: DollarSign, target: 'InstructorRevenue', desc: 'Xem chi tiết thu nhập' },
+                    { label: 'Yêu cầu rút tiền', icon: DollarSign, target: 'Withdraw', desc: 'Rút tiền về tài khoản' },
+                    { label: 'Hỏi đáp học viên', icon: MessageSquare, target: 'InstructorQA', desc: 'Trả lời Q&A' },
+                    { label: 'Báo cáo & Đánh giá', icon: TrendingUp, target: 'InstructorReports', desc: 'Xử lý phản hồi' },
+                    { label: 'Cài đặt', icon: TrendingUp, target: 'InstructorSettings', desc: 'Thiết lập tài khoản' },
                 ].map((item, i) => (
                     <TouchableOpacity
                         key={i}

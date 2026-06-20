@@ -3,7 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
     User, CreditCard, Settings, LogOut,
-    ChevronRight, Bell, HelpCircle, Shield, Smile, Star, TrendingUp,
+    ChevronRight, Bell, HelpCircle, Shield, Smile, Star, TrendingUp, MessageSquare,
 } from 'lucide-react-native';
 import Avatar from '../../components/ui/Avatar';
 import Button from '../../components/ui/Button';
@@ -14,7 +14,10 @@ const MENU_GROUPS = [
         title: 'Tài khoản',
         items: [
             { label: 'Thông tin cá nhân', icon: User,       color: '#3B82F6', target: 'Profile' },
+            { label: 'Tiến độ học tập',  icon: TrendingUp, color: '#10B981', target: 'LearningProgress' },
             { label: 'Khóa học đã lưu',  icon: Star,       color: '#EC4899', target: 'Wishlist' },
+            { label: 'Giảng viên yêu thích', icon: Star, color: '#F59E0B', target: 'FavoriteInstructors' },
+            { label: 'Bài viết của tôi', icon: MessageSquare, color: '#8B5CF6', target: 'MyForumPosts' },
             { label: 'Chứng chỉ của tôi', icon: CreditCard, color: '#10B981', target: 'Certificates' },
             { label: 'Mã giảm giá',      icon: Bell,       color: '#F59E0B', target: 'Vouchers' },
             { label: 'Thông báo',        icon: Bell,       color: '#3B82F6', target: 'Notifications' },
@@ -32,6 +35,7 @@ const MENU_GROUPS = [
     {
         title: 'Dành cho giảng viên',
         items: [
+            { label: 'Đăng ký giảng viên', icon: TrendingUp, color: '#10B981', target: 'ApplyInstructor' },
             { label: 'Bảng điều khiển giảng viên', icon: TrendingUp, color: '#2563EB', target: 'InstructorDashboard' },
         ],
     },
