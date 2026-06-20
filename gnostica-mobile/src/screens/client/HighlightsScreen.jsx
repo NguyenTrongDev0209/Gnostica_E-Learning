@@ -17,7 +17,7 @@ const HighlightsScreen = () => {
     const topCourses = [...courses].sort((a, b) => (b.studentCount || 0) - (a.studentCount || 0)).slice(0, 3);
 
     return (
-        <ScrollView className="flex-1 bg-slate-50" showsVerticalScrollIndicator={false}>
+        <ScrollView className="flex-1 bg-slate-50" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 80 }}>
             {/* Hero Banner */}
             <ImageBackground
                 source={{ uri: 'https://picsum.photos/seed/highlights/800/400' }}

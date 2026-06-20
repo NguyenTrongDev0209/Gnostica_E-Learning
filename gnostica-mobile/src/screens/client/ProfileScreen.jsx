@@ -101,7 +101,7 @@ const ProfileScreen = () => {
     };
 
     return (
-        <ScrollView className="flex-1 bg-slate-50" showsVerticalScrollIndicator={false}>
+        <ScrollView className="flex-1 bg-slate-50" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 80 }}>
             {/* Header */}
             <View className="bg-white pt-[52px] px-5 pb-7 items-center border-b border-slate-100">
                 <Text className="text-[22px] font-extrabold text-slate-800 self-start mb-5">

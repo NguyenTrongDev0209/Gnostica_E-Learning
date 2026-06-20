@@ -17,7 +17,11 @@ const HomeScreen = () => {
     const { cartItems } = useCart();
 
     return (
-        <ScrollView className="flex-1 bg-slate-50" showsVerticalScrollIndicator={false}>
+        <ScrollView 
+            className="flex-1 bg-slate-50" 
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 80 }}
+        >
             {/* Header */}
             <View className="flex-row items-center px-4 pt-10 pb-4 bg-white gap-3">
                 <TouchableOpacity className="p-1">

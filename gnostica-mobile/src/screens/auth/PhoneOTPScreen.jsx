@@ -3,11 +3,13 @@ import { View, Text, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platf
 import { ChevronLeft } from 'lucide-react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useAuth } from '../../context/AuthContext';
+import { useLoading } from '../../context/LoadingContext';
 
 const PhoneOTPScreen = () => {
     const navigation = useNavigation();
     const route = useRoute();
     const { login } = useAuth();
+    const { showLoading, hideLoading } = useLoading();
     const { phoneNumber = '' } = route.params || {};
 
     const [otp, setOtp] = useState('');
@@ -15,9 +17,13 @@ const PhoneOTPScreen = () => {
 
     const handleVerify = () => {
         if (otp.length === 6) {
-            // Mock verify and login
-            login({ name: 'Phone User', email: phoneNumber });
-            navigation.navigate('Main', { screen: 'Home' });
+            showLoading('Đang xác thực...');
+            // Mock API delay
+            setTimeout(() => {
+                hideLoading();
+                login({ name: 'Phone User', email: phoneNumber });
+                navigation.navigate('Main', { screen: 'Home' });
+            }, 1500);
         }
     };
 

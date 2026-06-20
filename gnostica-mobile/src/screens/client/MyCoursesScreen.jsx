@@ -106,7 +106,7 @@ const MyCoursesScreen = () => {
                     data={data}
                     keyExtractor={item => item.id.toString()}
                     renderItem={({ item }) => <CourseProgressCard course={item} />}
-                    contentContainerStyle={{ padding: 20 }}
+                    contentContainerStyle={{ padding: 20, paddingBottom: 80 }}
                     showsVerticalScrollIndicator={false}
                 />
             )}

@@ -5,6 +5,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { enableScreens } from 'react-native-screens';
 import { AuthProvider } from './src/context/AuthContext';
 import { CartProvider } from './src/context/CartContext';
+import { LoadingProvider } from './src/context/LoadingContext';
 
 enableScreens(false);
 
@@ -72,67 +73,69 @@ export default function App() {
   return (
     <AuthProvider>
       <CartProvider>
-        <NavigationContainer>
-          <Stack.Navigator screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
-            <Stack.Screen name="Main" component={AppNavigator} options={{ animation: 'none' }} />
-            <Stack.Screen name="Login" component={LoginScreen} />
-            <Stack.Screen name="Register" component={RegisterScreen} />
-            <Stack.Screen name="CourseDetail" component={CourseDetailScreen} />
-            <Stack.Screen name="Cart" component={CartScreen} />
-            <Stack.Screen name="Learning" component={LearningScreen} />
-            <Stack.Screen name="CourseCatalog" component={CourseCatalogScreen} />
-            <Stack.Screen name="Checkout" component={CheckoutScreen} />
-            <Stack.Screen name="CheckoutResult" component={CheckoutResultScreen} />
-            <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
-            <Stack.Screen name="Orders" component={OrdersScreen} />
-            <Stack.Screen name="Settings" component={SettingsScreen} />
-            <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-            <Stack.Screen name="ConfirmCode" component={ConfirmCodeScreen} />
-            <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
-            <Stack.Screen name="PhoneLogin" component={PhoneLoginScreen} />
-            <Stack.Screen name="PhoneOTP" component={PhoneOTPScreen} />
-            <Stack.Screen name="Wishlist" component={WishlistScreen} />
-            <Stack.Screen name="Certificates" component={CertificatesScreen} />
-            <Stack.Screen name="Vouchers" component={VouchersScreen} />
-            <Stack.Screen name="Notifications" component={NotificationsScreen} />
-            <Stack.Screen name="LegalInfo" component={LegalInfoScreen} />
-            <Stack.Screen name="Forum" component={ForumScreen} />
-            <Stack.Screen name="ForumDetail" component={ForumDetailScreen} />
-            <Stack.Screen name="CreatePost" component={CreatePostScreen} />
-            <Stack.Screen name="CategoryBrowse" component={CategoryBrowseScreen} />
-            <Stack.Screen name="InstructorList" component={InstructorListScreen} />
-            <Stack.Screen name="FavoriteInstructors" component={FavoriteInstructorsScreen} />
-            <Stack.Screen name="LearningProgress" component={LearningProgressScreen} />
-            <Stack.Screen name="ApplyInstructor" component={ApplyInstructorScreen} />
-            <Stack.Screen name="MyForumPosts" component={MyForumPostsScreen} />
-            <Stack.Screen name="PaymentQRCode" component={PaymentQRCodeScreen} />
-            <Stack.Screen name="InstructorDashboard" component={InstructorDashboardScreen} />
-            <Stack.Screen name="InstructorCourses" component={InstructorCoursesScreen} />
-            <Stack.Screen name="InstructorRevenue" component={InstructorRevenueScreen} />
-            <Stack.Screen name="InstructorQA" component={InstructorQAScreen} />
-            <Stack.Screen name="InstructorCoupons" component={InstructorCouponsScreen} />
-            <Stack.Screen name="InstructorStudents" component={InstructorStudentsScreen} />
-            <Stack.Screen name="InstructorReports" component={InstructorReportsScreen} />
-            <Stack.Screen name="Withdraw" component={WithdrawScreen} />
-            <Stack.Screen name="InstructorSettings" component={InstructorSettingsScreen} />
+        <LoadingProvider>
+          <NavigationContainer>
+            <Stack.Navigator screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
+              <Stack.Screen name="Main" component={AppNavigator} options={{ animation: 'none' }} />
+              <Stack.Screen name="Login" component={LoginScreen} />
+              <Stack.Screen name="Register" component={RegisterScreen} />
+              <Stack.Screen name="CourseDetail" component={CourseDetailScreen} />
+              <Stack.Screen name="Cart" component={CartScreen} />
+              <Stack.Screen name="Learning" component={LearningScreen} />
+              <Stack.Screen name="CourseCatalog" component={CourseCatalogScreen} />
+              <Stack.Screen name="Checkout" component={CheckoutScreen} />
+              <Stack.Screen name="CheckoutResult" component={CheckoutResultScreen} />
+              <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
+              <Stack.Screen name="Orders" component={OrdersScreen} />
+              <Stack.Screen name="Settings" component={SettingsScreen} />
+              <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+              <Stack.Screen name="ConfirmCode" component={ConfirmCodeScreen} />
+              <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
+              <Stack.Screen name="PhoneLogin" component={PhoneLoginScreen} />
+              <Stack.Screen name="PhoneOTP" component={PhoneOTPScreen} />
+              <Stack.Screen name="Wishlist" component={WishlistScreen} />
+              <Stack.Screen name="Certificates" component={CertificatesScreen} />
+              <Stack.Screen name="Vouchers" component={VouchersScreen} />
+              <Stack.Screen name="Notifications" component={NotificationsScreen} />
+              <Stack.Screen name="LegalInfo" component={LegalInfoScreen} />
+              <Stack.Screen name="Forum" component={ForumScreen} />
+              <Stack.Screen name="ForumDetail" component={ForumDetailScreen} />
+              <Stack.Screen name="CreatePost" component={CreatePostScreen} />
+              <Stack.Screen name="CategoryBrowse" component={CategoryBrowseScreen} />
+              <Stack.Screen name="InstructorList" component={InstructorListScreen} />
+              <Stack.Screen name="FavoriteInstructors" component={FavoriteInstructorsScreen} />
+              <Stack.Screen name="LearningProgress" component={LearningProgressScreen} />
+              <Stack.Screen name="ApplyInstructor" component={ApplyInstructorScreen} />
+              <Stack.Screen name="MyForumPosts" component={MyForumPostsScreen} />
+              <Stack.Screen name="PaymentQRCode" component={PaymentQRCodeScreen} />
+              <Stack.Screen name="InstructorDashboard" component={InstructorDashboardScreen} />
+              <Stack.Screen name="InstructorCourses" component={InstructorCoursesScreen} />
+              <Stack.Screen name="InstructorRevenue" component={InstructorRevenueScreen} />
+              <Stack.Screen name="InstructorQA" component={InstructorQAScreen} />
+              <Stack.Screen name="InstructorCoupons" component={InstructorCouponsScreen} />
+              <Stack.Screen name="InstructorStudents" component={InstructorStudentsScreen} />
+              <Stack.Screen name="InstructorReports" component={InstructorReportsScreen} />
+              <Stack.Screen name="Withdraw" component={WithdrawScreen} />
+              <Stack.Screen name="InstructorSettings" component={InstructorSettingsScreen} />
 
-            <Stack.Screen name="AdminDashboard" component={AdminDashboardScreen} />
-            <Stack.Screen name="OrderModeration" component={OrderModerationScreen} />
-            <Stack.Screen name="UserManagement" component={UserManagementScreen} />
-            <Stack.Screen name="AdminCourses" component={AdminCoursesScreen} />
-            <Stack.Screen name="AdminCourseModeration" component={AdminCourseModerationScreen} />
-            <Stack.Screen name="AdminCourseDetailModeration" component={AdminCourseDetailModerationScreen} />
-            <Stack.Screen name="AdminCategories" component={AdminCategoriesScreen} />
-            <Stack.Screen name="AdminTransactions" component={AdminTransactionsScreen} />
-            <Stack.Screen name="AdminBanks" component={AdminBanksScreen} />
-            <Stack.Screen name="AdminCoupons" component={AdminCouponsScreen} />
-            <Stack.Screen name="AdminReports" component={AdminReportsScreen} />
-            <Stack.Screen name="AdminReviews" component={AdminReviewsScreen} />
-            <Stack.Screen name="AdminForumCategory" component={AdminForumCategoryScreen} />
-            <Stack.Screen name="AdminThreadModeration" component={AdminThreadModerationScreen} />
-            <Stack.Screen name="AdminSettings" component={AdminSettingsScreen} />
-          </Stack.Navigator>
-        </NavigationContainer>
+              <Stack.Screen name="AdminDashboard" component={AdminDashboardScreen} />
+              <Stack.Screen name="OrderModeration" component={OrderModerationScreen} />
+              <Stack.Screen name="UserManagement" component={UserManagementScreen} />
+              <Stack.Screen name="AdminCourses" component={AdminCoursesScreen} />
+              <Stack.Screen name="AdminCourseModeration" component={AdminCourseModerationScreen} />
+              <Stack.Screen name="AdminCourseDetailModeration" component={AdminCourseDetailModerationScreen} />
+              <Stack.Screen name="AdminCategories" component={AdminCategoriesScreen} />
+              <Stack.Screen name="AdminTransactions" component={AdminTransactionsScreen} />
+              <Stack.Screen name="AdminBanks" component={AdminBanksScreen} />
+              <Stack.Screen name="AdminCoupons" component={AdminCouponsScreen} />
+              <Stack.Screen name="AdminReports" component={AdminReportsScreen} />
+              <Stack.Screen name="AdminReviews" component={AdminReviewsScreen} />
+              <Stack.Screen name="AdminForumCategory" component={AdminForumCategoryScreen} />
+              <Stack.Screen name="AdminThreadModeration" component={AdminThreadModerationScreen} />
+              <Stack.Screen name="AdminSettings" component={AdminSettingsScreen} />
+            </Stack.Navigator>
+          </NavigationContainer>
+        </LoadingProvider>
       </CartProvider>
     </AuthProvider>
   );
