@@ -86,9 +86,9 @@ export default function AdminLayout() {
   return (
     <div className="min-h-screen bg-muted flex">
       {/* Sidebar - Fixed */}
-      <aside className="w-64 bg-muted min-h-screen fixed left-0 top-0 bottom-0 text-slate-300 flex flex-col z-50">
+      <aside className="w-64 bg-slate-50 border-r border-border min-h-screen fixed left-0 top-0 bottom-0 flex flex-col z-50">
         {/* Brand */}
-        <div className="h-16 flex items-center justify-center px-0 border-b border-border bg-slate-950/50">
+        <div className="h-16 flex items-center justify-center px-0 border-b border-border bg-white">
           <AppLogo className="h-12 md:h-12" />
         </div>
 
@@ -113,14 +113,14 @@ export default function AdminLayout() {
                         key={item.href}
                         to={item.href}
                         className={`
-                          flex items-center gap-3 px-3 py-3 rounded-lg text-base font-medium transition-all
+                          flex items-center gap-3 px-3 py-3 rounded-lg text-base font-medium transition-all group
                           ${isActive
-                            ? "bg-primary text-primary-foreground font-bold shadow-md shadow-primary/20"
-                            : "hover:bg-muted hover:text-white"
+                            ? "bg-primary text-white font-bold shadow-md shadow-primary/20"
+                            : "text-muted-foreground hover:bg-muted hover:text-foreground"
                           }
                         `}
                       >
-                        <Icon className={`w-5 h-5 shrink-0 ${isActive ? "text-primary-foreground" : "text-muted-foreground"}`} />
+                        <Icon className={`w-5 h-5 shrink-0 ${isActive ? "text-white" : "text-muted-foreground group-hover:text-foreground"}`} />
                         {item.label}
                       </Link>
                     );
@@ -132,7 +132,7 @@ export default function AdminLayout() {
         </div>
 
         {/* User / Logout */}
-        <div className="p-4 border-t border-border bg-slate-950/30 font-bold">
+        <div className="p-4 border-t border-border bg-white font-bold">
           <div className="flex items-center justify-between px-2">
             <div className="flex items-center gap-3 min-w-0">
               <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center font-bold text-primary-foreground shrink-0 border border-border overflow-hidden">
@@ -143,7 +143,7 @@ export default function AdminLayout() {
                 )}
               </div>
               <div className="min-w-0">
-                <p className="text-sm font-bold text-white truncate">{user?.fullName || "Administrator"}</p>
+                <p className="text-sm font-bold text-foreground truncate">{user?.fullName || "Administrator"}</p>
                 <p className="text-[11px] text-muted-foreground truncate">{user?.email || "admin@system.com"}</p>
               </div>
             </div>
@@ -161,7 +161,8 @@ export default function AdminLayout() {
       {/* Main Content Area */}
       <div className="flex-1 ml-64 flex flex-col min-h-screen">
         {/* Top Header */}
-        <header className="h-16 bg-white border-b border-border flex items-center justify-between px-6 sticky top-0 z-40">
+        <header className="px-6 pt-4 pb-2 sticky top-0 z-40 bg-muted/80 backdrop-blur-sm">
+          <div className="h-16 bg-white border border-border rounded-xl flex items-center justify-between px-6 shadow-sm">
           <div className="flex items-center gap-4 flex-1">
             {/* Search Bar */}
             <div className="relative w-full max-w-[340px] hidden md:block">
@@ -191,6 +192,7 @@ export default function AdminLayout() {
                 user?.fullName?.substring(0, 2).toUpperCase() || "AD"
               )}
             </div>
+          </div>
           </div>
         </header>
 

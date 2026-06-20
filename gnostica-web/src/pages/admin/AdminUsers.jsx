@@ -7,8 +7,11 @@ import {
   Edit, 
   Trash2, 
   ShieldCheck,
-  BookOpen
+  BookOpen,
+  Lock,
+  Unlock
 } from "lucide-react";
+import DataTable from "@/components/common/DataTable";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,

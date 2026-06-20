@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import threadService from "@/services/threadService";
 import { 
   ShieldCheck, 
   Trash2, 
@@ -27,8 +28,8 @@ export default function AdminThreadModeration() {
   const fetchPendingThreads = async () => {
     setIsLoading(true);
     try {
-      const data = await threadService.getPendingThreads(0, 100);
-      setPendingThreads(res.data.content || []);
+      const res = await threadService.getPendingThreads(0, 100);
+      setPendingThreads(res.data?.content || res.data || []);
     } catch (error) {
       console.error("Error fetching pending threads:", error);
       toast.error("Không thể tải danh sách bài viết chờ duyệt");

@@ -63,9 +63,9 @@ export default function InstructorLayout() {
   return (
     <div className="min-h-screen bg-muted flex">
       {/* Sidebar - Fixed */}
-      <aside className="w-64 bg-muted min-h-screen fixed left-0 top-0 bottom-0 text-slate-300 flex flex-col z-50">
+      <aside className="w-64 bg-slate-50 border-r border-border min-h-screen fixed left-0 top-0 bottom-0 flex flex-col z-50">
         {/* Brand */}
-        <div className="h-16 flex items-center justify-center px-0 border-b border-border bg-slate-950/50">
+        <div className="h-16 flex items-center justify-center px-0 border-b border-border bg-white">
           <AppLogo className="h-12 md:h-12" />
         </div>
 
@@ -90,14 +90,14 @@ export default function InstructorLayout() {
                         key={item.href}
                         to={item.href}
                         className={`
-                          flex items-center gap-3 px-3 py-3 rounded-lg text-base font-medium transition-all
+                          flex items-center gap-3 px-3 py-3 rounded-lg text-base font-medium transition-all group
                           ${isActive
-                            ? "bg-success/10 text-success text-white font-bold shadow-md shadow-green-900/20"
-                            : "hover:bg-muted hover:text-white"
+                            ? "bg-success text-white font-bold shadow-md shadow-success/20"
+                            : "text-muted-foreground hover:bg-muted hover:text-foreground"
                           }
                         `}
                       >
-                        <Icon className={`w-5 h-5 shrink-0 ${isActive ? "text-white" : "text-muted-foreground"}`} />
+                        <Icon className={`w-5 h-5 shrink-0 ${isActive ? "text-white" : "text-muted-foreground group-hover:text-foreground"}`} />
                         {item.label}
                       </Link>
                     );
@@ -109,10 +109,10 @@ export default function InstructorLayout() {
         </div>
 
         {/* User / Logout */}
-        <div className="p-4 border-t border-border bg-slate-950/30 font-bold">
+        <div className="p-4 border-t border-border bg-white font-bold">
           <div className="flex items-center justify-between px-2">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-10 h-10 rounded-full bg-success/10 text-success flex items-center justify-center font-bold text-white shrink-0 border border-border overflow-hidden">
+              <div className="w-10 h-10 rounded-full bg-success/10 text-success flex items-center justify-center font-bold text-success shrink-0 border border-border overflow-hidden">
                 {user?.avatar ? (
                   <img src={user.avatar} alt="Avatar" className="w-full h-full object-cover" />
                 ) : (
@@ -120,7 +120,7 @@ export default function InstructorLayout() {
                 )}
               </div>
               <div className="min-w-0">
-                <p className="text-sm font-bold text-white truncate">{user?.fullName || "Giảng viên"}</p>
+                <p className="text-sm font-bold text-foreground truncate">{user?.fullName || "Giảng viên"}</p>
                 <p className="text-[11px] text-muted-foreground truncate uppercase tracking-wider">{user?.role || "Instructor"}</p>
               </div>
             </div>
