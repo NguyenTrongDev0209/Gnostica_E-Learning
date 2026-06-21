@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, ScrollView, Image, TouchableOpacity } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import AppText from '../ui/AppText';
 import { Users, BookOpen } from 'lucide-react-native';
 
@@ -11,12 +12,16 @@ const mockInstructors = [
 ];
 
 const InstructorSection = () => {
+    const navigation = useNavigation();
     return (
         <View className="mt-4 mb-2">
-            <View className="px-5 mb-4">
+            <View className="px-5 mb-4 flex-row justify-between items-center">
                 <AppText className="text-xl font-extrabold text-slate-800">
                     Giảng viên tiêu biểu
                 </AppText>
+                <TouchableOpacity onPress={() => navigation.navigate('InstructorList')}>
+                    <AppText className="text-[13px] text-blue-600 font-semibold">Xem tất cả</AppText>
+                </TouchableOpacity>
             </View>
 
             <ScrollView
@@ -28,6 +33,7 @@ const InstructorSection = () => {
                     <TouchableOpacity 
                         key={instructor.id} 
                         activeOpacity={0.8}
+                        onPress={() => navigation.navigate('InstructorList')}
                         className="bg-white mx-2 w-[160px] rounded-2xl p-4 border border-slate-100 shadow-sm items-center flex-col"
                     >
                         <Image 

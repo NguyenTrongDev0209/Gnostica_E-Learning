@@ -1,7 +1,7 @@
 import AppText from '../../components/ui/AppText';
 import React from 'react';
-import { View, ScrollView, TouchableOpacity } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { View, ScrollView, TouchableOpacity, Modal } from 'react-native';
+import { useNavigation, useIsFocused } from '@react-navigation/native';
 import {
     User, CreditCard, Settings, LogOut,
     ChevronRight, Bell, HelpCircle, Shield, Smile, Star, TrendingUp, MessageSquare,
@@ -71,29 +71,52 @@ const MenuItem = ({ item }) => {
 
 const ProfileScreen = () => {
     const navigation = useNavigation();
+    const isFocused = useIsFocused();
     const { isAuthenticated, user, logout } = useAuth();
     const insets = useSafeAreaInsets();
 
     // Unauthenticated state
     if (!isAuthenticated) {
         return (
-            <View className="flex-1 bg-slate-50 justify-center items-center p-5">
-                <View className="mb-4">
-                    <Smile size={64} color="#2563EB" />
-                </View>
-                <AppText className="text-[22px] font-extrabold text-slate-800 mb-2 text-center">
-                    Chào bạn mới
-                </AppText>
-                <AppText className="text-sm text-slate-500 text-center mb-8 leading-[22px]">
-                    Đăng nhập để xem thông tin cá nhân, cập nhật cài đặt và theo dõi chứng chỉ của bạn.
-                </AppText>
-                <Button
-                    variant="primary"
-                    className="w-full max-w-[300px] py-3.5"
-                    onPress={() => navigation.navigate('Login')}
+            <View className="flex-1 bg-slate-50">
+                <Modal
+                    visible={isFocused}
+                    transparent={true}
+                    animationType="fade"
+                    statusBarTranslucent
                 >
-                    Đăng nhập hoặc Đăng ký
-                </Button>
+                    <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 24 }}>
+                        <View style={{ backgroundColor: '#fff', borderRadius: 24, padding: 24, width: '100%', maxWidth: 340, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.1, shadowRadius: 20, elevation: 10 }}>
+                            <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: '#eff6ff', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+                                <Smile size={32} color="#2563EB" />
+                            </View>
+                            <AppText style={{ fontSize: 20, fontFamily: 'Inter_700Bold', color: '#1e293b', marginBottom: 8, textAlign: 'center' }}>
+                                Yêu cầu đăng nhập
+                            </AppText>
+                            <AppText style={{ fontSize: 14, color: '#64748b', textAlign: 'center', marginBottom: 24, lineHeight: 22, fontFamily: 'Inter_400Regular' }}>
+                                Vui lòng đăng nhập để xem thông tin cá nhân, lưu khóa học yêu thích và theo dõi tiến độ học tập.
+                            </AppText>
+                            <View style={{ flexDirection: 'row', gap: 12, width: '100%' }}>
+                                <Button
+                                    variant="outline"
+                                    className="flex-1 py-3.5 rounded-xl border-slate-200"
+                                    textClassName="text-slate-600 font-semibold"
+                                    onPress={() => navigation.navigate('Home')}
+                                >
+                                    Từ chối
+                                </Button>
+                                <Button
+                                    variant="primary"
+                                    className="flex-1 py-3.5 rounded-xl"
+                                    textClassName="font-semibold"
+                                    onPress={() => navigation.navigate('Login')}
+                                >
+                                    Đăng nhập
+                                </Button>
+                            </View>
+                        </View>
+                    </View>
+                </Modal>
             </View>
         );
     }
