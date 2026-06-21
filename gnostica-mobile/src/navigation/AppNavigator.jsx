@@ -1,13 +1,13 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Home, Compass, BookOpen, User, Zap, MessageSquare } from 'lucide-react-native';
+import { Home, Compass, BookOpen, User, Zap, MessageSquare, Settings } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import HomeScreen from '../screens/client/HomeScreen';
 import SearchScreen from '../screens/client/SearchScreen';
 import MyCoursesScreen from '../screens/client/MyCoursesScreen';
-import ProfileScreen from '../screens/client/ProfileScreen';
+import SettingsScreen from '../screens/client/SettingsScreen';
 import HighlightsScreen from '../screens/client/HighlightsScreen';
 import ForumScreen from '../screens/client/ForumScreen';
 
@@ -119,11 +119,11 @@ const AppNavigator = () => {
                 }}
             />
             <Tab.Screen
-                name="Profile"
-                component={ProfileScreen}
+                name="Settings"
+                component={SettingsScreen}
                 options={{
-                    tabBarLabel: 'Cá nhân',
-                    tabBarIcon: ({ focused }) => <TabIcon Icon={User} focused={focused} />,
+                    tabBarLabel: 'Cài đặt',
+                    tabBarIcon: ({ focused }) => <TabIcon Icon={Settings} focused={focused} />,
                 }}
             />
         </Tab.Navigator>

@@ -50,7 +50,7 @@ const HomeScreen = () => {
 
                     <TouchableOpacity
                         className="w-[38px] h-[38px] rounded-[19px] bg-blue-50 border border-blue-200 items-center justify-center"
-                        onPress={() => navigation.navigate('Login')}
+                        onPress={() => navigation.navigate('Profile')}
                     >
                         <User size={22} color="#2563EB" />
                     </TouchableOpacity>

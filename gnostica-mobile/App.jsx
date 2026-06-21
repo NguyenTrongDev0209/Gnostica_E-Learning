@@ -42,6 +42,8 @@ import CertificatesScreen from './src/screens/client/CertificatesScreen';
 import VouchersScreen from './src/screens/client/VouchersScreen';
 import NotificationsScreen from './src/screens/client/NotificationsScreen';
 import LegalInfoScreen from './src/screens/client/LegalInfoScreen';
+import ProfileScreen from './src/screens/client/ProfileScreen';
+import SupportScreen from './src/screens/client/SupportScreen';
 import ForumScreen from './src/screens/client/ForumScreen';
 import ForumDetailScreen from './src/screens/client/ForumDetailScreen';
 import CreatePostScreen from './src/screens/client/CreatePostScreen';
@@ -152,6 +154,8 @@ export default function App() {
               <Stack.Screen name="Vouchers" component={VouchersScreen} />
               <Stack.Screen name="Notifications" component={NotificationsScreen} />
               <Stack.Screen name="LegalInfo" component={LegalInfoScreen} />
+              <Stack.Screen name="Profile" component={ProfileScreen} />
+              <Stack.Screen name="Support" component={SupportScreen} />
               <Stack.Screen name="Forum" component={ForumScreen} />
               <Stack.Screen name="ForumDetail" component={ForumDetailScreen} />
               <Stack.Screen name="CreatePost" component={CreatePostScreen} />
