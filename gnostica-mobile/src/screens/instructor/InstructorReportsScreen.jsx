@@ -1,5 +1,6 @@
+import AppText from '../../components/ui/AppText';
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { View, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ArrowLeft, AlertTriangle, MessageCircle, Star } from 'lucide-react-native';
 
@@ -17,7 +18,7 @@ export default function InstructorReportsScreen() {
                 <TouchableOpacity onPress={() => navigation.goBack()} className="mr-3 p-1">
                     <ArrowLeft size={24} color="#334155" />
                 </TouchableOpacity>
-                <Text className="text-[18px] font-extrabold text-slate-800">Báo cáo & Đánh giá</Text>
+                <AppText className="text-[18px] font-extrabold text-slate-800">Báo cáo & Đánh giá</AppText>
             </View>
 
             <ScrollView className="flex-1 p-5" showsVerticalScrollIndicator={false}>
@@ -28,8 +29,8 @@ export default function InstructorReportsScreen() {
                         </View>
                         <View className="flex-1">
                             <View className="flex-row items-center justify-between mb-1">
-                                <Text className="text-sm font-bold text-slate-800">{item.user}</Text>
-                                <Text className="text-[10px] text-slate-400">{item.date}</Text>
+                                <AppText className="text-sm font-bold text-slate-800">{item.user}</AppText>
+                                <AppText className="text-[10px] text-slate-400">{item.date}</AppText>
                             </View>
                             {item.rating && (
                                 <View className="flex-row mb-1">
@@ -38,12 +39,12 @@ export default function InstructorReportsScreen() {
                                     ))}
                                 </View>
                             )}
-                            <Text className="text-sm text-slate-600 leading-5">{item.content}</Text>
+                            <AppText className="text-sm text-slate-600 leading-5">{item.content}</AppText>
                             
                             {item.type === 'review' && (
                                 <TouchableOpacity className="flex-row items-center mt-3 pt-3 border-t border-slate-50">
                                     <MessageCircle size={14} color="#2563EB" />
-                                    <Text className="text-xs font-bold text-blue-600 ml-1.5">Phản hồi</Text>
+                                    <AppText className="text-xs font-bold text-blue-600 ml-1.5">Phản hồi</AppText>
                                 </TouchableOpacity>
                             )}
                         </View>

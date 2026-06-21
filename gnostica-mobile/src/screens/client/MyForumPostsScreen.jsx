@@ -1,5 +1,6 @@
+import AppText from '../../components/ui/AppText';
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { View, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ArrowLeft, MessageSquare, ThumbsUp, Eye, Clock } from 'lucide-react-native';
 
@@ -19,10 +20,10 @@ export default function MyForumPostsScreen() {
                     <TouchableOpacity onPress={() => navigation.goBack()} className="mr-3 p-1">
                         <ArrowLeft size={24} color="#334155" />
                     </TouchableOpacity>
-                    <Text className="text-[18px] font-extrabold text-slate-800">Bài viết của tôi</Text>
+                    <AppText className="text-[18px] font-extrabold text-slate-800">Bài viết của tôi</AppText>
                 </View>
                 <TouchableOpacity onPress={() => navigation.navigate('CreatePost')} className="bg-blue-50 px-3 py-1.5 rounded-lg">
-                    <Text className="text-blue-600 font-bold text-xs">Viết bài</Text>
+                    <AppText className="text-blue-600 font-bold text-xs">Viết bài</AppText>
                 </TouchableOpacity>
             </View>
 
@@ -33,26 +34,26 @@ export default function MyForumPostsScreen() {
                         className="bg-white p-4 rounded-2xl mb-4 border border-slate-100 shadow-sm"
                         activeOpacity={0.8}
                     >
-                        <Text className="text-base font-bold text-slate-800 mb-1.5">{post.title}</Text>
-                        <Text className="text-sm text-slate-500 mb-3" numberOfLines={2}>{post.content}</Text>
+                        <AppText className="text-base font-bold text-slate-800 mb-1.5">{post.title}</AppText>
+                        <AppText className="text-sm text-slate-500 mb-3" numberOfLines={2}>{post.content}</AppText>
                         
                         <View className="flex-row items-center justify-between mt-2 pt-3 border-t border-slate-50">
                             <View className="flex-row items-center gap-1">
                                 <Clock size={12} color="#94A3B8" />
-                                <Text className="text-[11px] text-slate-400">{post.time}</Text>
+                                <AppText className="text-[11px] text-slate-400">{post.time}</AppText>
                             </View>
                             <View className="flex-row items-center gap-4">
                                 <View className="flex-row items-center gap-1">
                                     <ThumbsUp size={12} color="#64748B" />
-                                    <Text className="text-[11px] text-slate-500 font-medium">{post.likes}</Text>
+                                    <AppText className="text-[11px] text-slate-500 font-medium">{post.likes}</AppText>
                                 </View>
                                 <View className="flex-row items-center gap-1">
                                     <Eye size={12} color="#64748B" />
-                                    <Text className="text-[11px] text-slate-500 font-medium">{post.views}</Text>
+                                    <AppText className="text-[11px] text-slate-500 font-medium">{post.views}</AppText>
                                 </View>
                                 <View className="flex-row items-center gap-1">
                                     <MessageSquare size={12} color="#64748B" />
-                                    <Text className="text-[11px] text-slate-500 font-medium">{post.comments}</Text>
+                                    <AppText className="text-[11px] text-slate-500 font-medium">{post.comments}</AppText>
                                 </View>
                             </View>
                         </View>
@@ -62,7 +63,7 @@ export default function MyForumPostsScreen() {
                 {mockPosts.length === 0 && (
                     <View className="items-center justify-center py-20">
                         <MessageSquare size={48} color="#CBD5E1" strokeWidth={1} />
-                        <Text className="text-slate-500 mt-4 text-center">Bạn chưa có bài đăng nào.</Text>
+                        <AppText className="text-slate-500 mt-4 text-center">Bạn chưa có bài đăng nào.</AppText>
                     </View>
                 )}
             </ScrollView>

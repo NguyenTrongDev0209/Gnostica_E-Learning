@@ -1,5 +1,6 @@
+import AppText from './AppText';
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View } from 'react-native';
 import { Star } from 'lucide-react-native';
 
 const RatingStars = ({ rating = 0, reviewCount, size = 14, showCount = true }) => {
@@ -24,9 +25,9 @@ const RatingStars = ({ rating = 0, reviewCount, size = 14, showCount = true }) =
                 <Star key={`empty-${i}`} size={size} color="#E2E8F0" fill="#E2E8F0" strokeWidth={0} />
             ))}
             {showCount && (
-                <Text className="text-slate-500 font-medium ml-1" style={{ fontSize: size - 1 }}>
+                <AppText className="text-slate-500 font-medium ml-1" style={{ fontSize: size - 1 }}>
                     {rating.toFixed(1)}{reviewCount ? ` (${reviewCount.toLocaleString()})` : ''}
-                </Text>
+                </AppText>
             )}
         </View>
     );

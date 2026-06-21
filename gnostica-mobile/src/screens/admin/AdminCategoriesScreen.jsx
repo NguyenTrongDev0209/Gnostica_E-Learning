@@ -1,5 +1,6 @@
+import AppText from '../../components/ui/AppText';
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { View, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ArrowLeft, LayoutGrid, Plus, MoreVertical } from 'lucide-react-native';
 
@@ -13,7 +14,7 @@ export default function AdminCategoriesScreen() {
                     <TouchableOpacity onPress={() => navigation.goBack()} className="mr-3 p-1">
                         <ArrowLeft size={24} color="#334155" />
                     </TouchableOpacity>
-                    <Text className="text-[18px] font-extrabold text-slate-800">Quản lý danh mục</Text>
+                    <AppText className="text-[18px] font-extrabold text-slate-800">Quản lý danh mục</AppText>
                 </View>
                 <TouchableOpacity className="p-1">
                     <Plus size={24} color="#2563EB" />
@@ -27,8 +28,8 @@ export default function AdminCategoriesScreen() {
                             <LayoutGrid size={20} color="#2563EB" />
                         </View>
                         <View className="flex-1">
-                            <Text className="text-sm font-bold text-slate-800">{item}</Text>
-                            <Text className="text-[11px] text-slate-400">12 khóa học</Text>
+                            <AppText className="text-sm font-bold text-slate-800">{item}</AppText>
+                            <AppText className="text-[11px] text-slate-400">12 khóa học</AppText>
                         </View>
                         <TouchableOpacity className="p-2">
                             <MoreVertical size={16} color="#94A3B8" />

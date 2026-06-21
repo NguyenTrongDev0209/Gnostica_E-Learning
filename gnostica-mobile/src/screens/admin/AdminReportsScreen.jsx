@@ -1,5 +1,6 @@
+import AppText from '../../components/ui/AppText';
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { View, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ArrowLeft, Flag, ShieldAlert, Check } from 'lucide-react-native';
 
@@ -12,7 +13,7 @@ export default function AdminReportsScreen() {
                 <TouchableOpacity onPress={() => navigation.goBack()} className="mr-3 p-1">
                     <ArrowLeft size={24} color="#334155" />
                 </TouchableOpacity>
-                <Text className="text-[18px] font-extrabold text-slate-800">Xử lý báo cáo</Text>
+                <AppText className="text-[18px] font-extrabold text-slate-800">Xử lý báo cáo</AppText>
             </View>
 
             <ScrollView className="flex-1 p-5" showsVerticalScrollIndicator={false}>
@@ -21,21 +22,21 @@ export default function AdminReportsScreen() {
                         <View className="flex-row items-center justify-between mb-2">
                             <View className="flex-row items-center">
                                 <Flag size={14} color="#EF4444" />
-                                <Text className="text-xs font-bold text-red-500 ml-1">Báo cáo khóa học</Text>
+                                <AppText className="text-xs font-bold text-red-500 ml-1">Báo cáo khóa học</AppText>
                             </View>
-                            <Text className="text-[10px] text-slate-400">10:00 - Hôm qua</Text>
+                            <AppText className="text-[10px] text-slate-400">10:00 - Hôm qua</AppText>
                         </View>
                         
-                        <Text className="text-sm font-bold text-slate-800 mb-1">Khóa học Lập trình C++</Text>
-                        <Text className="text-sm text-slate-600 mb-3">Người dùng phản ánh khóa học chứa nội dung không phù hợp.</Text>
+                        <AppText className="text-sm font-bold text-slate-800 mb-1">Khóa học Lập trình C++</AppText>
+                        <AppText className="text-sm text-slate-600 mb-3">Người dùng phản ánh khóa học chứa nội dung không phù hợp.</AppText>
 
                         <View className="flex-row gap-2">
                             <TouchableOpacity className="flex-1 bg-slate-100 py-2 rounded-lg items-center">
-                                <Text className="text-slate-600 font-bold text-xs">Bỏ qua</Text>
+                                <AppText className="text-slate-600 font-bold text-xs">Bỏ qua</AppText>
                             </TouchableOpacity>
                             <TouchableOpacity className="flex-1 bg-red-500 py-2 rounded-lg flex-row items-center justify-center">
                                 <ShieldAlert size={14} color="#fff" />
-                                <Text className="text-white font-bold text-xs ml-1">Cảnh cáo</Text>
+                                <AppText className="text-white font-bold text-xs ml-1">Cảnh cáo</AppText>
                             </TouchableOpacity>
                         </View>
                     </View>

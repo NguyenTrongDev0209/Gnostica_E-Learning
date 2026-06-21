@@ -1,5 +1,6 @@
+import AppText from './AppText';
 import React, { useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, Modal, Animated, Dimensions, TouchableWithoutFeedback, ScrollView } from 'react-native';
+import { View, TouchableOpacity, Modal, Animated, Dimensions, TouchableWithoutFeedback, ScrollView } from 'react-native';
 import { X, BookOpen, MessageSquare, Compass, Settings, LogOut, ChevronRight, User } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../context/AuthContext';
@@ -16,7 +17,7 @@ const MenuItem = ({ icon: Icon, label, onPress, color = "#475569" }) => (
         activeOpacity={0.7}
     >
         <Icon size={22} color={color} />
-        <Text className="flex-1 ml-4 font-semibold text-[15px]" style={{ color }}>{label}</Text>
+        <AppText className="flex-1 ml-4 font-semibold text-[15px]" style={{ color }}>{label}</AppText>
         <ChevronRight size={18} color="#cbd5e1" />
     </TouchableOpacity>
 );
@@ -125,13 +126,13 @@ const SideMenu = ({ visible, onClose }) => {
                         </View>
                         {user ? (
                             <View>
-                                <Text className="text-white font-bold text-lg">{user.name}</Text>
-                                <Text className="text-blue-100 text-sm mt-0.5">{user.email}</Text>
+                                <AppText className="text-white font-bold text-lg">{user.name}</AppText>
+                                <AppText className="text-blue-100 text-sm mt-0.5">{user.email}</AppText>
                             </View>
                         ) : (
                             <TouchableOpacity onPress={() => handleNavigate('Login')}>
-                                <Text className="text-white font-bold text-lg">Đăng nhập / Đăng ký</Text>
-                                <Text className="text-blue-100 text-sm mt-0.5">Vui lòng đăng nhập để tiếp tục</Text>
+                                <AppText className="text-white font-bold text-lg">Đăng nhập / Đăng ký</AppText>
+                                <AppText className="text-blue-100 text-sm mt-0.5">Vui lòng đăng nhập để tiếp tục</AppText>
                             </TouchableOpacity>
                         )}
                     </View>

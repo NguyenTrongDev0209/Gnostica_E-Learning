@@ -1,5 +1,6 @@
+import AppText from '../../components/ui/AppText';
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import { View, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ArrowLeft, MessageCircle, Send } from 'lucide-react-native';
 
@@ -32,33 +33,33 @@ const InstructorQAScreen = () => {
                 <TouchableOpacity onPress={() => navigation.goBack()} className="p-2">
                     <ArrowLeft size={24} color="#1e293b" />
                 </TouchableOpacity>
-                <Text className="text-xl font-bold text-slate-800 ml-2">Hỏi đáp học viên</Text>
+                <AppText className="text-xl font-bold text-slate-800 ml-2">Hỏi đáp học viên</AppText>
             </View>
 
             <ScrollView className="flex-1 p-4">
                 <View className="bg-blue-50 p-4 rounded-2xl mb-6 flex-row items-center">
                     <MessageCircle size={20} color="#2563eb" />
-                    <Text className="text-blue-600 text-xs font-bold ml-3 italic">
+                    <AppText className="text-blue-600 text-xs font-bold ml-3 italic">
                         Bạn đang có 4 câu hỏi mới cần giải đáp trong hôm nay.
-                    </Text>
+                    </AppText>
                 </View>
 
                 {MOCK_QUESTIONS.map(q => (
                     <View key={q.id} className="bg-white rounded-3xl p-5 mb-5 shadow-sm border border-slate-100">
                         <View className="flex-row items-center mb-3">
                             <View className="w-8 h-8 rounded-full bg-slate-100 items-center justify-center">
-                                <Text className="text-slate-600 font-bold text-[10px]">{q.avatar}</Text>
+                                <AppText className="text-slate-600 font-bold text-[10px]">{q.avatar}</AppText>
                             </View>
                             <View className="ml-2">
-                                <Text className="text-slate-900 font-bold text-xs">{q.student}</Text>
-                                <Text className="text-slate-400 text-[10px]">{q.time}</Text>
+                                <AppText className="text-slate-900 font-bold text-xs">{q.student}</AppText>
+                                <AppText className="text-slate-400 text-[10px]">{q.time}</AppText>
                             </View>
                             <View className="ml-auto bg-blue-50 px-2 py-0.5 rounded">
-                                <Text className="text-primary text-[9px] font-bold" numberOfLines={1}>{q.course}</Text>
+                                <AppText className="text-primary text-[9px] font-bold" numberOfLines={1}>{q.course}</AppText>
                             </View>
                         </View>
 
-                        <Text className="text-slate-700 text-sm mb-6 leading-5">"{q.question}"</Text>
+                        <AppText className="text-slate-700 text-sm mb-6 leading-5">"{q.question}"</AppText>
 
                         <View className="flex-row gap-3">
                             <TextInput

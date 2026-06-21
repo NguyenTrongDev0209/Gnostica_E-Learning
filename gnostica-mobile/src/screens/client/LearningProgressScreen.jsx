@@ -1,5 +1,6 @@
+import AppText from '../../components/ui/AppText';
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { View, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ArrowLeft, BookOpen, Trophy, Clock, Activity, CheckCircle2 } from 'lucide-react-native';
 
@@ -18,7 +19,7 @@ export default function LearningProgressScreen() {
                 <TouchableOpacity onPress={() => navigation.goBack()} className="mr-3 p-1">
                     <ArrowLeft size={24} color="#334155" />
                 </TouchableOpacity>
-                <Text className="text-[18px] font-extrabold text-slate-800">Tiến độ học tập</Text>
+                <AppText className="text-[18px] font-extrabold text-slate-800">Tiến độ học tập</AppText>
             </View>
 
             <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
@@ -31,24 +32,24 @@ export default function LearningProgressScreen() {
                     ].map(stat => (
                         <View key={stat.label} className={`flex-1 ${stat.bg} p-4 rounded-2xl border border-slate-100 items-center`}>
                             <stat.icon size={24} color={stat.color} />
-                            <Text className="text-[22px] font-extrabold mt-2 text-slate-800">{stat.value}</Text>
-                            <Text className="text-xs text-slate-500 mt-1 font-medium">{stat.label}</Text>
+                            <AppText className="text-[22px] font-extrabold mt-2 text-slate-800">{stat.value}</AppText>
+                            <AppText className="text-xs text-slate-500 mt-1 font-medium">{stat.label}</AppText>
                         </View>
                     ))}
                 </View>
 
                 {/* Course List */}
                 <View className="px-5 pb-10">
-                    <Text className="text-base font-extrabold text-slate-800 mb-4 flex-row items-center">
+                    <AppText className="text-base font-extrabold text-slate-800 mb-4 flex-row items-center">
                         <Activity size={18} color="#334155" /> Chi tiết khóa học
-                    </Text>
+                    </AppText>
 
                     {mockCourses.map(course => (
                         <View key={course.id} className="bg-white p-4 rounded-2xl border border-slate-100 mb-3 shadow-sm">
-                            <Text className="text-sm font-bold text-slate-800 mb-3" numberOfLines={2}>{course.title}</Text>
+                            <AppText className="text-sm font-bold text-slate-800 mb-3" numberOfLines={2}>{course.title}</AppText>
                             <View className="flex-row justify-between mb-1.5 items-end">
-                                <Text className="text-xs text-slate-500 font-medium">Tiến độ {course.progress}%</Text>
-                                <Text className="text-[10px] text-slate-400">{course.completedLessons}/{course.totalLessons} bài</Text>
+                                <AppText className="text-xs text-slate-500 font-medium">Tiến độ {course.progress}%</AppText>
+                                <AppText className="text-[10px] text-slate-400">{course.completedLessons}/{course.totalLessons} bài</AppText>
                             </View>
                             <View className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
                                 <View 
@@ -59,7 +60,7 @@ export default function LearningProgressScreen() {
                             {course.progress === 100 && (
                                 <View className="flex-row items-center mt-3 gap-1">
                                     <CheckCircle2 size={14} color="#10B981" />
-                                    <Text className="text-xs font-semibold text-emerald-500">Đã hoàn thành</Text>
+                                    <AppText className="text-xs font-semibold text-emerald-500">Đã hoàn thành</AppText>
                                 </View>
                             )}
                         </View>

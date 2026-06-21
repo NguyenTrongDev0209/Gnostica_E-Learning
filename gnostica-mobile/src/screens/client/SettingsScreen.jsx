@@ -1,5 +1,6 @@
+import AppText from '../../components/ui/AppText';
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Switch, Alert } from 'react-native';
+import { View, ScrollView, TouchableOpacity, Switch, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
     ArrowLeft, ChevronRight, Lock, Package, Compass, Bell,
@@ -67,15 +68,15 @@ const SettingsScreen = () => {
                 <TouchableOpacity onPress={() => navigation.goBack()} className="p-2">
                     <ArrowLeft size={24} color="#1e293b" />
                 </TouchableOpacity>
-                <Text className="text-xl font-bold text-slate-800 ml-2">Cài đặt</Text>
+                <AppText className="text-xl font-bold text-slate-800 ml-2">Cài đặt</AppText>
             </View>
 
             <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
                 {SETTINGS_GROUPS.map(group => (
                     <View key={group.title} className="mt-4">
-                        <Text className="text-xs font-bold text-slate-400 px-5 mb-2 tracking-[0.8px] uppercase">
+                        <AppText className="text-xs font-bold text-slate-400 px-5 mb-2 tracking-[0.8px] uppercase">
                             {group.title}
-                        </Text>
+                        </AppText>
                         <View className="bg-white border-y border-slate-100">
                             {group.items.map((item, idx) => (
                                 <TouchableOpacity
@@ -90,9 +91,9 @@ const SettingsScreen = () => {
                                     >
                                         <item.icon size={18} color={item.color} strokeWidth={2} />
                                     </View>
-                                    <Text className={`flex-1 text-[15px] font-medium ${item.type === 'danger' ? 'text-red-500' : 'text-slate-800'}`}>
+                                    <AppText className={`flex-1 text-[15px] font-medium ${item.type === 'danger' ? 'text-red-500' : 'text-slate-800'}`}>
                                         {item.label}
-                                    </Text>
+                                    </AppText>
 
                                     {/* Right side */}
                                     {item.type === 'toggle' ? (
@@ -103,7 +104,7 @@ const SettingsScreen = () => {
                                             thumbColor={toggleStates[item.key] ? '#2563EB' : '#f4f4f5'}
                                         />
                                     ) : item.type === 'info' ? (
-                                        <Text className="text-sm text-slate-400 font-medium">{item.info}</Text>
+                                        <AppText className="text-sm text-slate-400 font-medium">{item.info}</AppText>
                                     ) : (
                                         <ChevronRight size={16} color="#CBD5E1" />
                                     )}
@@ -115,7 +116,7 @@ const SettingsScreen = () => {
 
                 {/* App Version */}
                 <View className="items-center py-8">
-                    <Text className="text-slate-300 text-xs">Gnostica Mobile v1.0.0</Text>
+                    <AppText className="text-slate-300 text-xs">Gnostica Mobile v1.0.0</AppText>
                 </View>
             </ScrollView>
         </View>

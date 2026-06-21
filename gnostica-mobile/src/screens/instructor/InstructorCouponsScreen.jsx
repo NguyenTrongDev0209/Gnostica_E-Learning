@@ -1,5 +1,6 @@
+import AppText from '../../components/ui/AppText';
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { View, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ArrowLeft, Ticket, Plus, Tag, Clock } from 'lucide-react-native';
 
@@ -18,11 +19,11 @@ export default function InstructorCouponsScreen() {
                     <TouchableOpacity onPress={() => navigation.goBack()} className="mr-3 p-1">
                         <ArrowLeft size={24} color="#334155" />
                     </TouchableOpacity>
-                    <Text className="text-[18px] font-extrabold text-slate-800">Quản lý mã giảm giá</Text>
+                    <AppText className="text-[18px] font-extrabold text-slate-800">Quản lý mã giảm giá</AppText>
                 </View>
                 <TouchableOpacity className="bg-blue-50 px-3 py-1.5 rounded-lg flex-row items-center">
                     <Plus size={16} color="#2563EB" />
-                    <Text className="text-blue-600 font-bold text-xs ml-1">Tạo mới</Text>
+                    <AppText className="text-blue-600 font-bold text-xs ml-1">Tạo mới</AppText>
                 </TouchableOpacity>
             </View>
 
@@ -34,24 +35,24 @@ export default function InstructorCouponsScreen() {
                         </View>
                         <View className="flex-1">
                             <View className="flex-row items-center justify-between mb-1">
-                                <Text className="text-base font-bold text-slate-800">{coupon.code}</Text>
+                                <AppText className="text-base font-bold text-slate-800">{coupon.code}</AppText>
                                 <View className={`px-2 py-0.5 rounded-full ${coupon.status === 'active' ? 'bg-emerald-100' : 'bg-slate-200'}`}>
-                                    <Text className={`text-[10px] font-bold ${coupon.status === 'active' ? 'text-emerald-700' : 'text-slate-500'}`}>
+                                    <AppText className={`text-[10px] font-bold ${coupon.status === 'active' ? 'text-emerald-700' : 'text-slate-500'}`}>
                                         {coupon.status === 'active' ? 'Đang kích hoạt' : 'Hết hạn'}
-                                    </Text>
+                                    </AppText>
                                 </View>
                             </View>
                             <View className="flex-row items-center gap-4">
                                 <View className="flex-row items-center gap-1">
                                     <Tag size={12} color="#64748B" />
-                                    <Text className="text-xs text-slate-500 font-medium">Giảm {coupon.discount}</Text>
+                                    <AppText className="text-xs text-slate-500 font-medium">Giảm {coupon.discount}</AppText>
                                 </View>
                                 <View className="flex-row items-center gap-1">
                                     <Clock size={12} color="#64748B" />
-                                    <Text className="text-xs text-slate-500 font-medium">HSD: {coupon.expiry}</Text>
+                                    <AppText className="text-xs text-slate-500 font-medium">HSD: {coupon.expiry}</AppText>
                                 </View>
                             </View>
-                            <Text className="text-[11px] text-slate-400 mt-2">Đã dùng: {coupon.usage}</Text>
+                            <AppText className="text-[11px] text-slate-400 mt-2">Đã dùng: {coupon.usage}</AppText>
                         </View>
                     </View>
                 ))}

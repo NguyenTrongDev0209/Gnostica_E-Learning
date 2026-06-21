@@ -1,5 +1,6 @@
+import AppText from '../../components/ui/AppText';
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
+import { View, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ArrowLeft, BookOpen, Users, DollarSign, MessageSquare, TrendingUp, ChevronRight } from 'lucide-react-native';
 
@@ -21,10 +22,10 @@ const InstructorDashboardScreen = () => {
                     <TouchableOpacity onPress={() => navigation.goBack()} className="p-2">
                         <ArrowLeft size={24} color="#1e293b" />
                     </TouchableOpacity>
-                    <Text className="text-xl font-bold text-slate-800 ml-2">Bảng điều khiển GD</Text>
+                    <AppText className="text-xl font-bold text-slate-800 ml-2">Bảng điều khiển GD</AppText>
                 </View>
                 <View className="bg-blue-100 px-3 py-1 rounded-full">
-                    <Text className="text-blue-600 text-[10px] font-bold uppercase">Giảng viên</Text>
+                    <AppText className="text-blue-600 text-[10px] font-bold uppercase">Giảng viên</AppText>
                 </View>
             </View>
 
@@ -39,14 +40,14 @@ const InstructorDashboardScreen = () => {
                             >
                                 <stat.icon size={20} color={stat.color} />
                             </View>
-                            <Text className="text-slate-400 text-[10px] font-medium uppercase tracking-wider">{stat.label}</Text>
-                            <Text className="text-slate-900 font-bold text-lg mt-1">{stat.value}</Text>
+                            <AppText className="text-slate-400 text-[10px] font-medium uppercase tracking-wider">{stat.label}</AppText>
+                            <AppText className="text-slate-900 font-bold text-lg mt-1">{stat.value}</AppText>
                         </View>
                     ))}
                 </View>
 
                 {/* Quick Actions */}
-                <Text className="text-slate-800 font-bold text-base mb-4">Quản lý nhanh</Text>
+                <AppText className="text-slate-800 font-bold text-base mb-4">Quản lý nhanh</AppText>
 
                 {[
                     { label: 'Khóa học của tôi', icon: BookOpen, target: 'InstructorCourses', desc: 'Quản lý bài giảng và nội dung' },
@@ -67,8 +68,8 @@ const InstructorDashboardScreen = () => {
                             <item.icon size={22} color="#475569" />
                         </View>
                         <View className="ml-4 flex-1">
-                            <Text className="text-slate-900 font-bold text-sm">{item.label}</Text>
-                            <Text className="text-slate-400 text-xs mt-0.5">{item.desc}</Text>
+                            <AppText className="text-slate-900 font-bold text-sm">{item.label}</AppText>
+                            <AppText className="text-slate-400 text-xs mt-0.5">{item.desc}</AppText>
                         </View>
                         <ChevronRight size={18} color="#cbd5e1" />
                     </TouchableOpacity>
@@ -76,8 +77,8 @@ const InstructorDashboardScreen = () => {
 
                 {/* Performance Chart Placeholder */}
                 <View className="bg-white p-6 rounded-3xl mt-4 mb-10 shadow-sm border border-slate-100">
-                    <Text className="text-slate-800 font-bold text-base mb-2">Hiệu suất học tập</Text>
-                    <Text className="text-slate-400 text-xs mb-6">Thống kê học viên mới trong 7 ngày qua</Text>
+                    <AppText className="text-slate-800 font-bold text-base mb-2">Hiệu suất học tập</AppText>
+                    <AppText className="text-slate-400 text-xs mb-6">Thống kê học viên mới trong 7 ngày qua</AppText>
 
                     <View className="h-40 flex-row items-end justify-between px-2">
                         {[40, 70, 45, 90, 65, 80, 50].map((h, i) => (
@@ -86,7 +87,7 @@ const InstructorDashboardScreen = () => {
                                     className="w-4 bg-blue-500 rounded-t-full"
                                     style={{ height: h + '%' }}
                                 />
-                                <Text className="text-[8px] text-slate-400 mt-2">T{i + 2}</Text>
+                                <AppText className="text-[8px] text-slate-400 mt-2">T{i + 2}</AppText>
                             </View>
                         ))}
                     </View>

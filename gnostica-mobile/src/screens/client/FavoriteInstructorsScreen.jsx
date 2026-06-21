@@ -1,5 +1,6 @@
+import AppText from '../../components/ui/AppText';
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { View, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ArrowLeft, Star, Users, BookOpen } from 'lucide-react-native';
 
@@ -18,7 +19,7 @@ export default function FavoriteInstructorsScreen() {
                 <TouchableOpacity onPress={() => navigation.goBack()} className="mr-3 p-1">
                     <ArrowLeft size={24} color="#334155" />
                 </TouchableOpacity>
-                <Text className="text-[18px] font-extrabold text-slate-800">Giảng viên yêu thích</Text>
+                <AppText className="text-[18px] font-extrabold text-slate-800">Giảng viên yêu thích</AppText>
             </View>
 
             <ScrollView className="flex-1 p-5">
@@ -30,19 +31,19 @@ export default function FavoriteInstructorsScreen() {
                     >
                         <Image source={{ uri: instructor.avatar }} className="w-16 h-16 rounded-full bg-slate-200 mr-4" />
                         <View className="flex-1">
-                            <Text className="text-base font-extrabold text-slate-800 mb-1">{instructor.name}</Text>
+                            <AppText className="text-base font-extrabold text-slate-800 mb-1">{instructor.name}</AppText>
                             <View className="flex-row items-center gap-3">
                                 <View className="flex-row items-center gap-1">
                                     <Star size={12} color="#F59E0B" fill="#F59E0B" />
-                                    <Text className="text-xs text-slate-500 font-medium">{instructor.rating}</Text>
+                                    <AppText className="text-xs text-slate-500 font-medium">{instructor.rating}</AppText>
                                 </View>
                                 <View className="flex-row items-center gap-1">
                                     <Users size={12} color="#64748B" />
-                                    <Text className="text-xs text-slate-500">{instructor.students}</Text>
+                                    <AppText className="text-xs text-slate-500">{instructor.students}</AppText>
                                 </View>
                                 <View className="flex-row items-center gap-1">
                                     <BookOpen size={12} color="#64748B" />
-                                    <Text className="text-xs text-slate-500">{instructor.courses}</Text>
+                                    <AppText className="text-xs text-slate-500">{instructor.courses}</AppText>
                                 </View>
                             </View>
                         </View>
@@ -55,7 +56,7 @@ export default function FavoriteInstructorsScreen() {
                 {mockInstructors.length === 0 && (
                     <View className="items-center justify-center py-20">
                         <Star size={48} color="#CBD5E1" strokeWidth={1} />
-                        <Text className="text-slate-500 mt-4 text-center">Bạn chưa có giảng viên yêu thích nào.</Text>
+                        <AppText className="text-slate-500 mt-4 text-center">Bạn chưa có giảng viên yêu thích nào.</AppText>
                     </View>
                 )}
             </ScrollView>

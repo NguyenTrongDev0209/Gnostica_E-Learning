@@ -1,11 +1,19 @@
 import "./global.css";
-import React from 'react';
+import React, { useEffect } from 'react';
+import { View, ActivityIndicator } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { enableScreens } from 'react-native-screens';
 import { AuthProvider } from './src/context/AuthContext';
 import { CartProvider } from './src/context/CartContext';
 import { LoadingProvider } from './src/context/LoadingContext';
+import { 
+  useFonts, 
+  Inter_400Regular, 
+  Inter_500Medium, 
+  Inter_600SemiBold, 
+  Inter_700Bold 
+} from '@expo-google-fonts/inter';
 
 enableScreens(false);
 
@@ -70,6 +78,21 @@ import AdminSettingsScreen from './src/screens/admin/AdminSettingsScreen';
 const Stack = createNativeStackNavigator();
 
 export default function App() {
+  const [fontsLoaded] = useFonts({
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
+  });
+
+  if (!fontsLoaded) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#2563eb" />
+      </View>
+    );
+  }
+
   return (
     <AuthProvider>
       <CartProvider>

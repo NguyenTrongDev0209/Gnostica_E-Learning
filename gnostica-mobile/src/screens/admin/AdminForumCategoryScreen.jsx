@@ -1,5 +1,6 @@
+import AppText from '../../components/ui/AppText';
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { View, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ArrowLeft, MessageSquare, Plus, Edit2 } from 'lucide-react-native';
 
@@ -13,7 +14,7 @@ export default function AdminForumCategoryScreen() {
                     <TouchableOpacity onPress={() => navigation.goBack()} className="mr-3 p-1">
                         <ArrowLeft size={24} color="#334155" />
                     </TouchableOpacity>
-                    <Text className="text-[18px] font-extrabold text-slate-800">Danh mục diễn đàn</Text>
+                    <AppText className="text-[18px] font-extrabold text-slate-800">Danh mục diễn đàn</AppText>
                 </View>
                 <TouchableOpacity className="p-1">
                     <Plus size={24} color="#2563EB" />
@@ -27,8 +28,8 @@ export default function AdminForumCategoryScreen() {
                             <MessageSquare size={20} color="#4F46E5" />
                         </View>
                         <View className="flex-1">
-                            <Text className="text-sm font-bold text-slate-800">{item}</Text>
-                            <Text className="text-[11px] text-slate-400">1,250 bài viết</Text>
+                            <AppText className="text-sm font-bold text-slate-800">{item}</AppText>
+                            <AppText className="text-[11px] text-slate-400">1,250 bài viết</AppText>
                         </View>
                         <TouchableOpacity className="p-2 bg-slate-50 rounded-lg">
                             <Edit2 size={16} color="#64748B" />

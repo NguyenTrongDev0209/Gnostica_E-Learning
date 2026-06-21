@@ -1,5 +1,6 @@
+import AppText from '../../components/ui/AppText';
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { View, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ArrowLeft, ChevronRight, Package } from 'lucide-react-native';
 import { myCourses } from '../../constants/mockData';
@@ -27,18 +28,18 @@ const OrdersScreen = () => {
                 <TouchableOpacity onPress={() => navigation.goBack()} className="p-2">
                     <ArrowLeft size={24} color="#1e293b" />
                 </TouchableOpacity>
-                <Text className="text-xl font-bold text-slate-800 ml-2">Đơn hàng của tôi</Text>
-                <Text className="text-slate-400 text-sm ml-auto">{MOCK_ORDERS.length} đơn</Text>
+                <AppText className="text-xl font-bold text-slate-800 ml-2">Đơn hàng của tôi</AppText>
+                <AppText className="text-slate-400 text-sm ml-auto">{MOCK_ORDERS.length} đơn</AppText>
             </View>
 
             <ScrollView className="flex-1 p-4" showsVerticalScrollIndicator={false}>
                 {MOCK_ORDERS.length === 0 ? (
                     <View className="items-center justify-center mt-20">
                         <Package size={64} color="#CBD5E1" />
-                        <Text className="text-lg font-bold text-slate-800 mt-4">Chưa có đơn hàng</Text>
-                        <Text className="text-slate-500 text-center mt-2 text-sm">
+                        <AppText className="text-lg font-bold text-slate-800 mt-4">Chưa có đơn hàng</AppText>
+                        <AppText className="text-slate-500 text-center mt-2 text-sm">
                             Khi bạn mua khóa học, đơn hàng sẽ xuất hiện ở đây.
-                        </Text>
+                        </AppText>
                     </View>
                 ) : (
                     MOCK_ORDERS.map(order => {
@@ -52,11 +53,11 @@ const OrdersScreen = () => {
                             >
                                 {/* Top: Order ID + Status */}
                                 <View className="flex-row justify-between items-center mb-3">
-                                    <Text className="text-xs text-slate-400 font-medium">#{order.orderId}</Text>
+                                    <AppText className="text-xs text-slate-400 font-medium">#{order.orderId}</AppText>
                                     <View className={`px-2.5 py-1 rounded-lg ${status.bg} border ${status.border}`}>
-                                        <Text className={`text-[10px] font-bold uppercase ${status.text}`}>
+                                        <AppText className={`text-[10px] font-bold uppercase ${status.text}`}>
                                             {status.label}
-                                        </Text>
+                                        </AppText>
                                     </View>
                                 </View>
 
@@ -67,20 +68,20 @@ const OrdersScreen = () => {
                                         className="w-14 h-14 rounded-xl bg-slate-200"
                                     />
                                     <View className="flex-1 ml-3">
-                                        <Text className="text-sm font-bold text-slate-800" numberOfLines={2}>
+                                        <AppText className="text-sm font-bold text-slate-800" numberOfLines={2}>
                                             {order.title}
-                                        </Text>
-                                        <Text className="text-xs text-slate-400 mt-1">
+                                        </AppText>
+                                        <AppText className="text-xs text-slate-400 mt-1">
                                             {order.instructor}
-                                        </Text>
+                                        </AppText>
                                     </View>
                                     <ChevronRight size={16} color="#cbd5e1" />
                                 </View>
 
                                 {/* Bottom: Date + Price */}
                                 <View className="flex-row justify-between items-center mt-3 pt-3 border-t border-slate-50">
-                                    <Text className="text-xs text-slate-400">{order.orderDate}</Text>
-                                    <Text className="text-sm font-extrabold text-blue-600">{order.price}</Text>
+                                    <AppText className="text-xs text-slate-400">{order.orderDate}</AppText>
+                                    <AppText className="text-sm font-extrabold text-blue-600">{order.price}</AppText>
                                 </View>
                             </TouchableOpacity>
                         );

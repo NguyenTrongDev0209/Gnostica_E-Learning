@@ -1,5 +1,6 @@
+import AppText from '../../components/ui/AppText';
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import { View, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ArrowLeft, Building, Save } from 'lucide-react-native';
 
@@ -12,7 +13,7 @@ export default function AdminBanksScreen() {
                 <TouchableOpacity onPress={() => navigation.goBack()} className="mr-3 p-1">
                     <ArrowLeft size={24} color="#334155" />
                 </TouchableOpacity>
-                <Text className="text-[18px] font-extrabold text-slate-800">Tài khoản ngân hàng</Text>
+                <AppText className="text-[18px] font-extrabold text-slate-800">Tài khoản ngân hàng</AppText>
             </View>
 
             <ScrollView className="flex-1 p-5" showsVerticalScrollIndicator={false}>
@@ -22,7 +23,7 @@ export default function AdminBanksScreen() {
                     </View>
                     
                     <View className="mb-4">
-                        <Text className="text-sm font-bold text-slate-700 mb-2">Tên ngân hàng</Text>
+                        <AppText className="text-sm font-bold text-slate-700 mb-2">Tên ngân hàng</AppText>
                         <TextInput 
                             className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800"
                             value="Vietcombank"
@@ -30,7 +31,7 @@ export default function AdminBanksScreen() {
                     </View>
 
                     <View className="mb-4">
-                        <Text className="text-sm font-bold text-slate-700 mb-2">Chủ tài khoản</Text>
+                        <AppText className="text-sm font-bold text-slate-700 mb-2">Chủ tài khoản</AppText>
                         <TextInput 
                             className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800"
                             value="CONG TY TNHH GNOSTICA"
@@ -38,7 +39,7 @@ export default function AdminBanksScreen() {
                     </View>
 
                     <View className="mb-4">
-                        <Text className="text-sm font-bold text-slate-700 mb-2">Số tài khoản</Text>
+                        <AppText className="text-sm font-bold text-slate-700 mb-2">Số tài khoản</AppText>
                         <TextInput 
                             className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800"
                             value="1903123456789"
@@ -48,7 +49,7 @@ export default function AdminBanksScreen() {
 
                     <TouchableOpacity className="bg-blue-600 py-3.5 rounded-xl items-center flex-row justify-center mt-2 shadow-sm shadow-blue-200">
                         <Save size={18} color="#fff" />
-                        <Text className="text-white font-extrabold ml-2">Lưu thông tin</Text>
+                        <AppText className="text-white font-extrabold ml-2">Lưu thông tin</AppText>
                     </TouchableOpacity>
                 </View>
             </ScrollView>

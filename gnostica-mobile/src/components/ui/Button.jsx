@@ -1,5 +1,6 @@
+import AppText from './AppText';
 import React from 'react';
-import { TouchableOpacity, Text, View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import { clsx } from 'clsx';
 
 // Variant className maps
@@ -63,12 +64,12 @@ const Button = ({
                 </View>
             )}
             {children && (
-                <Text
+                <AppText
                     className={clsx('font-semibold', textVariantClass[variant], textClassName)}
                     style={textStyle}
                 >
                     {children}
-                </Text>
+                </AppText>
             )}
         </TouchableOpacity>
     );

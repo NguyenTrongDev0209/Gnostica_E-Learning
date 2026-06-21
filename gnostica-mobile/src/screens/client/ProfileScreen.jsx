@@ -1,5 +1,6 @@
+import AppText from '../../components/ui/AppText';
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { View, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
     User, CreditCard, Settings, LogOut,
@@ -61,7 +62,7 @@ const MenuItem = ({ item }) => {
             >
                 <item.icon size={18} color={item.color} strokeWidth={2} />
             </View>
-            <Text className="flex-1 text-[15px] text-slate-800 font-medium">{item.label}</Text>
+            <AppText className="flex-1 text-[15px] text-slate-800 font-medium">{item.label}</AppText>
             <ChevronRight size={16} color="#CBD5E1" />
         </TouchableOpacity>
     );
@@ -78,12 +79,12 @@ const ProfileScreen = () => {
                 <View className="mb-4">
                     <Smile size={64} color="#2563EB" />
                 </View>
-                <Text className="text-[22px] font-extrabold text-slate-800 mb-2 text-center">
+                <AppText className="text-[22px] font-extrabold text-slate-800 mb-2 text-center">
                     Chào bạn mới
-                </Text>
-                <Text className="text-sm text-slate-500 text-center mb-8 leading-[22px]">
+                </AppText>
+                <AppText className="text-sm text-slate-500 text-center mb-8 leading-[22px]">
                     Đăng nhập để xem thông tin cá nhân, cập nhật cài đặt và theo dõi chứng chỉ của bạn.
-                </Text>
+                </AppText>
                 <Button
                     variant="primary"
                     className="w-full max-w-[300px] py-3.5"
@@ -104,16 +105,16 @@ const ProfileScreen = () => {
         <ScrollView className="flex-1 bg-slate-50" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 80 }}>
             {/* Header */}
             <View className="bg-white pt-[52px] px-5 pb-7 items-center border-b border-slate-100">
-                <Text className="text-[22px] font-extrabold text-slate-800 self-start mb-5">
+                <AppText className="text-[22px] font-extrabold text-slate-800 self-start mb-5">
                     Cá nhân
-                </Text>
+                </AppText>
                 <Avatar name={user?.name || 'Học viên'} size={80} />
-                <Text className="text-[20px] font-extrabold text-slate-800 mt-3.5">
+                <AppText className="text-[20px] font-extrabold text-slate-800 mt-3.5">
                     {user?.name || 'Học viên E-Learning'}
-                </Text>
-                <Text className="text-sm text-slate-500 mt-1">
+                </AppText>
+                <AppText className="text-sm text-slate-500 mt-1">
                     {user?.email || 'Chưa cập nhật email'}
-                </Text>
+                </AppText>
 
                 {/* Stats row */}
                 <View className="flex-row mt-5 bg-slate-50 rounded-2xl border border-slate-100 overflow-hidden">
@@ -127,8 +128,8 @@ const ProfileScreen = () => {
                             className="flex-1 items-center py-3.5"
                             style={{ borderRightWidth: i < 2 ? 1 : 0, borderRightColor: '#E2E8F0' }}
                         >
-                            <Text className="text-[20px] font-extrabold text-blue-600">{stat.value}</Text>
-                            <Text className="text-[11px] text-slate-500 mt-0.5 font-medium">{stat.label}</Text>
+                            <AppText className="text-[20px] font-extrabold text-blue-600">{stat.value}</AppText>
+                            <AppText className="text-[11px] text-slate-500 mt-0.5 font-medium">{stat.label}</AppText>
                         </View>
                     ))}
                 </View>
@@ -137,9 +138,9 @@ const ProfileScreen = () => {
             {/* Menu Groups */}
             {MENU_GROUPS.map(group => (
                 <View key={group.title} className="mt-4 bg-white">
-                    <Text className="text-xs font-bold text-slate-400 px-5 pt-3.5 pb-1.5 tracking-[0.8px] uppercase">
+                    <AppText className="text-xs font-bold text-slate-400 px-5 pt-3.5 pb-1.5 tracking-[0.8px] uppercase">
                         {group.title}
-                    </Text>
+                    </AppText>
                     {group.items.map(item => <MenuItem key={item.label} item={item} />)}
                 </View>
             ))}
@@ -151,7 +152,7 @@ const ProfileScreen = () => {
                 className="mx-5 mt-5 mb-10 py-[15px] rounded-[14px] bg-red-50 border border-red-200 flex-row items-center justify-center gap-2.5"
             >
                 <LogOut size={18} color="#EF4444" />
-                <Text className="text-[15px] font-bold text-red-500">Đăng xuất</Text>
+                <AppText className="text-[15px] font-bold text-red-500">Đăng xuất</AppText>
             </TouchableOpacity>
         </ScrollView>
     );

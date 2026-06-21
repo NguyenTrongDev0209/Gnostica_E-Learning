@@ -1,5 +1,6 @@
+import AppText from '../../components/ui/AppText';
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import { View, ScrollView, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ArrowLeft, Image as ImageIcon, ChevronDown } from 'lucide-react-native';
 import Button from '../../components/ui/Button';
@@ -31,18 +32,18 @@ const CreatePostScreen = () => {
                     <TouchableOpacity onPress={() => navigation.goBack()} className="p-2">
                         <ArrowLeft size={24} color="#1e293b" />
                     </TouchableOpacity>
-                    <Text className="text-xl font-bold text-slate-800 ml-2">Đăng bài thảo luận</Text>
+                    <AppText className="text-xl font-bold text-slate-800 ml-2">Đăng bài thảo luận</AppText>
                 </View>
                 <TouchableOpacity onPress={handleCreate}>
-                    <Text className="text-blue-600 font-bold text-base">Đăng</Text>
+                    <AppText className="text-blue-600 font-bold text-base">Đăng</AppText>
                 </TouchableOpacity>
             </View>
 
             <ScrollView className="flex-1 p-4">
                 {/* Category Selector */}
-                <Text className="text-slate-500 font-bold text-xs uppercase tracking-wider mb-2">Chuyên mục</Text>
+                <AppText className="text-slate-500 font-bold text-xs uppercase tracking-wider mb-2">Chuyên mục</AppText>
                 <TouchableOpacity className="flex-row items-center justify-between bg-slate-50 p-4 rounded-2xl mb-6 border border-slate-100">
-                    <Text className="text-slate-800 font-medium">{category}</Text>
+                    <AppText className="text-slate-800 font-medium">{category}</AppText>
                     <ChevronDown size={18} color="#64748b" />
                 </TouchableOpacity>
 
@@ -67,7 +68,7 @@ const CreatePostScreen = () => {
 
                 <TouchableOpacity className="flex-row items-center bg-slate-50 p-4 rounded-2xl border border-dashed border-slate-300">
                     <ImageIcon size={20} color="#64748b" />
-                    <Text className="ml-3 text-slate-500 font-medium">Thêm hình ảnh minh họa</Text>
+                    <AppText className="ml-3 text-slate-500 font-medium">Thêm hình ảnh minh họa</AppText>
                 </TouchableOpacity>
 
                 <View className="h-20" />

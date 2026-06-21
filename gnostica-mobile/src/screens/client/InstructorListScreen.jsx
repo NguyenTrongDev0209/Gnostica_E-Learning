@@ -1,5 +1,6 @@
+import AppText from '../../components/ui/AppText';
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { View, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ArrowLeft, Star, Users, BookOpen } from 'lucide-react-native';
 
@@ -43,13 +44,13 @@ const InstructorListScreen = () => {
                 <TouchableOpacity onPress={() => navigation.goBack()} className="p-2">
                     <ArrowLeft size={24} color="#1e293b" />
                 </TouchableOpacity>
-                <Text className="text-xl font-bold text-slate-800 ml-2">Giảng viên tiêu biểu</Text>
+                <AppText className="text-xl font-bold text-slate-800 ml-2">Giảng viên tiêu biểu</AppText>
             </View>
 
             <ScrollView className="flex-1 p-4">
-                <Text className="text-slate-500 text-sm mb-6 leading-5">
+                <AppText className="text-slate-500 text-sm mb-6 leading-5">
                     Học hỏi từ những chuyên gia hàng đầu trong ngành với kinh nghiệm thực chiến phong phú.
-                </Text>
+                </AppText>
 
                 {MOCK_INSTRUCTORS.map(instructor => (
                     <TouchableOpacity
@@ -63,12 +64,12 @@ const InstructorListScreen = () => {
                                 className="w-16 h-16 rounded-2xl"
                             />
                             <View className="ml-4 flex-1">
-                                <Text className="text-slate-900 font-bold text-lg">{instructor.name}</Text>
-                                <Text className="text-slate-500 text-sm mt-0.5">{instructor.specialty}</Text>
+                                <AppText className="text-slate-900 font-bold text-lg">{instructor.name}</AppText>
+                                <AppText className="text-slate-500 text-sm mt-0.5">{instructor.specialty}</AppText>
                                 <View className="flex-row items-center mt-2">
                                     <Star size={14} color="#fbbf24" fill="#fbbf24" />
-                                    <Text className="text-slate-700 text-xs font-bold ml-1">{instructor.rating}</Text>
-                                    <Text className="text-slate-400 text-xs ml-3">Phản hồi tốt</Text>
+                                    <AppText className="text-slate-700 text-xs font-bold ml-1">{instructor.rating}</AppText>
+                                    <AppText className="text-slate-400 text-xs ml-3">Phản hồi tốt</AppText>
                                 </View>
                             </View>
                         </View>
@@ -76,11 +77,11 @@ const InstructorListScreen = () => {
                         <View className="flex-row items-center border-t border-slate-50 pt-4 gap-6">
                             <View className="flex-row items-center px-1">
                                 <Users size={16} color="#64748b" />
-                                <Text className="text-slate-600 text-xs font-medium ml-2">{instructor.students} Học viên</Text>
+                                <AppText className="text-slate-600 text-xs font-medium ml-2">{instructor.students} Học viên</AppText>
                             </View>
                             <View className="flex-row items-center px-1">
                                 <BookOpen size={16} color="#64748b" />
-                                <Text className="text-slate-600 text-xs font-medium ml-2">{instructor.courses} Khóa học</Text>
+                                <AppText className="text-slate-600 text-xs font-medium ml-2">{instructor.courses} Khóa học</AppText>
                             </View>
                         </View>
 
@@ -88,7 +89,7 @@ const InstructorListScreen = () => {
                             className="mt-6 bg-slate-900 py-3 rounded-2xl items-center"
                             onPress={() => { }}
                         >
-                            <Text className="text-white font-bold text-sm">Xem hồ sơ</Text>
+                            <AppText className="text-white font-bold text-sm">Xem hồ sơ</AppText>
                         </TouchableOpacity>
                     </TouchableOpacity>
                 ))}

@@ -1,5 +1,6 @@
+import AppText from '../../components/ui/AppText';
 import React, { useState, useRef } from 'react';
-import { View, Text, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, TextInput } from 'react-native';
+import { View, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, TextInput } from 'react-native';
 import { ChevronLeft } from 'lucide-react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useAuth } from '../../context/AuthContext';
@@ -43,10 +44,10 @@ const PhoneOTPScreen = () => {
                         </View>
 
                         {/* Title */}
-                        <Text className="text-2xl font-bold text-slate-900 mb-2">Nhập mã xác thực</Text>
-                        <Text className="text-slate-500 mb-8 text-base leading-6">
-                            Mã xác thực gồm 6 chữ số đã được gửi tới số điện thoại <Text className="font-semibold text-slate-800">{phoneNumber}</Text>
-                        </Text>
+                        <AppText className="text-2xl font-bold text-slate-900 mb-2">Nhập mã xác thực</AppText>
+                        <AppText className="text-slate-500 mb-8 text-base leading-6">
+                            Mã xác thực gồm 6 chữ số đã được gửi tới số điện thoại <AppText className="font-semibold text-slate-800">{phoneNumber}</AppText>
+                        </AppText>
 
                         {/* OTP Input UI */}
                         <View className="flex-row justify-between mb-8 relative" onTouchEnd={() => inputRef.current?.focus()}>
@@ -59,9 +60,9 @@ const PhoneOTPScreen = () => {
                                         className={`w-12 h-14 border-2 rounded-lg items-center justify-center 
                                             ${isFocused ? 'border-blue-600 bg-blue-50' : isFilled ? 'border-slate-300 bg-white' : 'border-slate-200 bg-slate-50'}`}
                                     >
-                                        <Text className="text-2xl font-bold text-slate-900">
+                                        <AppText className="text-2xl font-bold text-slate-900">
                                             {otp[index] || ''}
-                                        </Text>
+                                        </AppText>
                                     </View>
                                 );
                             })}
@@ -82,9 +83,9 @@ const PhoneOTPScreen = () => {
 
                         {/* Resend */}
                         <View className="flex-row justify-center mb-8">
-                            <Text className="text-slate-500 text-base">Chưa nhận được mã? </Text>
+                            <AppText className="text-slate-500 text-base">Chưa nhận được mã? </AppText>
                             <TouchableOpacity>
-                                <Text className="text-blue-600 font-semibold text-base">Gửi lại</Text>
+                                <AppText className="text-blue-600 font-semibold text-base">Gửi lại</AppText>
                             </TouchableOpacity>
                         </View>
 
@@ -94,7 +95,7 @@ const PhoneOTPScreen = () => {
                             onPress={handleVerify}
                             disabled={otp.length !== 6}
                         >
-                            <Text className="text-white font-bold text-base">Xác nhận</Text>
+                            <AppText className="text-white font-bold text-base">Xác nhận</AppText>
                         </TouchableOpacity>
                     </View>
                 </TouchableWithoutFeedback>

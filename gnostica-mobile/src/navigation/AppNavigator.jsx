@@ -1,48 +1,26 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Home, Compass, BookOpen, User, Zap } from 'lucide-react-native';
+import { Home, Compass, BookOpen, User, Zap, MessageSquare } from 'lucide-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 
 import HomeScreen from '../screens/client/HomeScreen';
 import SearchScreen from '../screens/client/SearchScreen';
 import MyCoursesScreen from '../screens/client/MyCoursesScreen';
 import ProfileScreen from '../screens/client/ProfileScreen';
 import HighlightsScreen from '../screens/client/HighlightsScreen';
+import ForumScreen from '../screens/client/ForumScreen';
 
 const Tab = createBottomTabNavigator();
 
 const PRIMARY = '#2563eb';
 const INACTIVE = '#94a3b8';
-const HIGHLIGHT = '#e32f45';
+const HIGHLIGHT = '#f97316';
 
 const TabIcon = ({ Icon, focused, color }) => (
     <View style={{ alignItems: 'center', justifyContent: 'center' }}>
         <Icon size={24} color={color || (focused ? PRIMARY : INACTIVE)} strokeWidth={focused ? 2.5 : 1.8} />
     </View>
-);
-
-const CustomTabBarButton = ({ children, onPress }) => (
-    <TouchableOpacity
-        style={{
-            top: -20,
-            justifyContent: 'center',
-            alignItems: 'center',
-            ...styles.shadow
-        }}
-        onPress={onPress}
-        activeOpacity={0.8}
-    >
-        <View style={{
-            width: 58,
-            height: 58,
-            borderRadius: 29,
-            backgroundColor: HIGHLIGHT,
-            borderWidth: 4,
-            borderColor: '#fff',
-        }}>
-            {children}
-        </View>
-    </TouchableOpacity>
 );
 
 const AppNavigator = () => {
@@ -68,11 +46,12 @@ const AppNavigator = () => {
                 },
                 tabBarLabelStyle: {
                     fontSize: 11,
-                    fontWeight: '600',
+                    fontFamily: 'Inter_600SemiBold',
                 },
                 tabBarItemStyle: {
                     height: 55,
                     marginTop: 0,
+                    paddingTop: 5,
                 }
             })}
         >
@@ -85,11 +64,11 @@ const AppNavigator = () => {
                 }}
             />
             <Tab.Screen
-                name="Search"
-                component={SearchScreen}
+                name="MyCourses"
+                component={MyCoursesScreen}
                 options={{
-                    tabBarLabel: 'Khám phá',
-                    tabBarIcon: ({ focused }) => <TabIcon Icon={Compass} focused={focused} />,
+                    tabBarLabel: 'Khóa học',
+                    tabBarIcon: ({ focused }) => <TabIcon Icon={BookOpen} focused={focused} />,
                 }}
             />
             <Tab.Screen
@@ -97,25 +76,46 @@ const AppNavigator = () => {
                 component={HighlightsScreen}
                 options={{
                     tabBarLabel: 'Nổi bật',
-                    tabBarIcon: ({ focused }) => (
-                        <Zap size={24} color="#fff" fill="#fff" />
-                    ),
-                    tabBarButton: (props) => (
-                        <CustomTabBarButton {...props} />
-                    ),
                     tabBarLabelStyle: {
                         color: HIGHLIGHT,
-                        fontWeight: 'bold',
-                        marginTop: 25,
-                    }
+                        fontSize: 11,
+                        fontFamily: 'Inter_600SemiBold',
+                    },
+                    tabBarIcon: () => (
+                        <View style={{ width: 24, height: 24, alignItems: 'center', justifyContent: 'center' }}>
+                            <LinearGradient
+                                colors={['#fb923c', '#ea580c']}
+                                style={{
+                                    position: 'absolute',
+                                    bottom: 0,
+                                    width: 58,
+                                    height: 58,
+                                    borderRadius: 29,
+                                    borderWidth: 4,
+                                    borderColor: '#fff',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                }}
+                            >
+                                <Zap size={24} color="#fff" fill="#fff" />
+                            </LinearGradient>
+                        </View>
+                    ),
+                    tabBarButton: (props) => (
+                        <TouchableOpacity
+                            {...props}
+                            activeOpacity={0.8}
+                            hitSlop={{ top: 30, left: 10, right: 10 }}
+                        />
+                    )
                 }}
             />
             <Tab.Screen
-                name="MyCourses"
-                component={MyCoursesScreen}
+                name="Forum"
+                component={ForumScreen}
                 options={{
-                    tabBarLabel: 'Khóa học',
-                    tabBarIcon: ({ focused }) => <TabIcon Icon={BookOpen} focused={focused} />,
+                    tabBarLabel: 'Diễn đàn',
+                    tabBarIcon: ({ focused }) => <TabIcon Icon={MessageSquare} focused={focused} />,
                 }}
             />
             <Tab.Screen
@@ -129,18 +129,5 @@ const AppNavigator = () => {
         </Tab.Navigator>
     );
 };
-
-const styles = StyleSheet.create({
-    shadow: {
-        shadowColor: HIGHLIGHT,
-        shadowOffset: {
-            width: 0,
-            height: 10,
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.5,
-        elevation: 10
-    }
-});
 
 export default AppNavigator;

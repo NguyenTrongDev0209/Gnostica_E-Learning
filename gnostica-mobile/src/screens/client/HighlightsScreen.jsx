@@ -1,5 +1,6 @@
+import AppText from '../../components/ui/AppText';
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Image, ImageBackground } from 'react-native';
+import { View, ScrollView, TouchableOpacity, Image, ImageBackground } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Flame, TrendingUp, Award, Star, Users, ChevronRight } from 'lucide-react-native';
 import CourseCard from '../../components/home/CourseCard';
@@ -30,19 +31,19 @@ const HighlightsScreen = () => {
                 <View className="relative z-10">
                     <View className="flex-row items-center mb-3">
                         <Flame size={28} color="#fff" fill="#fff" />
-                        <Text className="text-white text-2xl font-extrabold ml-2">Nổi bật</Text>
+                        <AppText className="text-white text-2xl font-extrabold ml-2">Nổi bật</AppText>
                     </View>
-                    <Text className="text-white/80 text-sm leading-5">
+                    <AppText className="text-white/80 text-sm leading-5">
                         Khám phá những khóa học được yêu thích nhất và trending trên Gnostica.
-                    </Text>
+                    </AppText>
 
                     {/* Stats Row */}
                     <View className="flex-row mt-5 gap-3">
                         {STATS.map(stat => (
                             <View key={stat.label} className="flex-1 bg-white/15 rounded-2xl py-3 items-center">
                                 <stat.icon size={18} color="#fff" />
-                                <Text className="text-white font-extrabold text-lg mt-1">{stat.value}</Text>
-                                <Text className="text-white/60 text-[10px] font-medium">{stat.label}</Text>
+                                <AppText className="text-white font-extrabold text-lg mt-1">{stat.value}</AppText>
+                                <AppText className="text-white/60 text-[10px] font-medium">{stat.label}</AppText>
                             </View>
                         ))}
                     </View>
@@ -54,10 +55,10 @@ const HighlightsScreen = () => {
                 <View className="flex-row items-center justify-between mb-4">
                     <View className="flex-row items-center gap-2">
                         <TrendingUp size={20} color="#e32f45" />
-                        <Text className="text-lg font-extrabold text-slate-800">Trending ngay bây giờ</Text>
+                        <AppText className="text-lg font-extrabold text-slate-800">Trending ngay bây giờ</AppText>
                     </View>
                     <TouchableOpacity onPress={() => navigation.navigate('CourseCatalog')}>
-                        <Text className="text-sm text-blue-600 font-semibold">Xem tất cả</Text>
+                        <AppText className="text-sm text-blue-600 font-semibold">Xem tất cả</AppText>
                     </TouchableOpacity>
                 </View>
 
@@ -72,11 +73,11 @@ const HighlightsScreen = () => {
                         <View className="w-8 h-8 rounded-full items-center justify-center mr-3"
                             style={{ backgroundColor: index === 0 ? '#FEF3C7' : index === 1 ? '#F1F5F9' : '#FFF7ED' }}
                         >
-                            <Text className="font-extrabold text-sm"
+                            <AppText className="font-extrabold text-sm"
                                 style={{ color: index === 0 ? '#B45309' : index === 1 ? '#475569' : '#C2410C' }}
                             >
                                 {index + 1}
-                            </Text>
+                            </AppText>
                         </View>
 
                         <Image
@@ -85,21 +86,21 @@ const HighlightsScreen = () => {
                         />
 
                         <View className="flex-1 ml-3">
-                            <Text className="text-[13px] font-bold text-slate-800" numberOfLines={1}>
+                            <AppText className="text-[13px] font-bold text-slate-800" numberOfLines={1}>
                                 {course.title}
-                            </Text>
-                            <Text className="text-xs text-slate-400 mt-0.5">{course.instructor}</Text>
+                            </AppText>
+                            <AppText className="text-xs text-slate-400 mt-0.5">{course.instructor}</AppText>
                             <View className="flex-row items-center mt-1 gap-2">
                                 <View className="flex-row items-center">
                                     <Star size={10} color="#F59E0B" fill="#F59E0B" />
-                                    <Text className="text-[10px] text-slate-500 font-medium ml-0.5">{course.rating}</Text>
+                                    <AppText className="text-[10px] text-slate-500 font-medium ml-0.5">{course.rating}</AppText>
                                 </View>
-                                <Text className="text-[10px] text-slate-300">•</Text>
-                                <Text className="text-[10px] text-slate-400">{course.studentCount?.toLocaleString()} học viên</Text>
+                                <AppText className="text-[10px] text-slate-300">•</AppText>
+                                <AppText className="text-[10px] text-slate-400">{course.studentCount?.toLocaleString()} học viên</AppText>
                             </View>
                         </View>
 
-                        <Text className="text-sm font-extrabold text-blue-600">{course.price}</Text>
+                        <AppText className="text-sm font-extrabold text-blue-600">{course.price}</AppText>
                     </TouchableOpacity>
                 ))}
             </View>
@@ -107,7 +108,7 @@ const HighlightsScreen = () => {
             {/* Featured Courses Horizontal */}
             <View className="mt-6">
                 <View className="flex-row items-center justify-between px-5 mb-4">
-                    <Text className="text-lg font-extrabold text-slate-800">⭐ Được đề xuất</Text>
+                    <AppText className="text-lg font-extrabold text-slate-800">⭐ Được đề xuất</AppText>
                 </View>
                 <ScrollView
                     horizontal
@@ -125,16 +126,16 @@ const HighlightsScreen = () => {
             {/* CTA Banner */}
             <View className="mx-5 mt-6 mb-24 bg-slate-900 rounded-2xl p-5 flex-row items-center">
                 <View className="flex-1 pr-4">
-                    <Text className="text-white font-bold text-base mb-1">Bạn là giảng viên?</Text>
-                    <Text className="text-slate-400 text-xs leading-4">
+                    <AppText className="text-white font-bold text-base mb-1">Bạn là giảng viên?</AppText>
+                    <AppText className="text-slate-400 text-xs leading-4">
                         Chia sẻ kiến thức và tạo thu nhập cùng Gnostica.
-                    </Text>
+                    </AppText>
                 </View>
                 <TouchableOpacity
                     className="bg-white px-4 py-2.5 rounded-xl"
                     onPress={() => navigation.navigate('InstructorDashboard')}
                 >
-                    <Text className="text-slate-900 font-bold text-xs">Tìm hiểu</Text>
+                    <AppText className="text-slate-900 font-bold text-xs">Tìm hiểu</AppText>
                 </TouchableOpacity>
             </View>
         </ScrollView>

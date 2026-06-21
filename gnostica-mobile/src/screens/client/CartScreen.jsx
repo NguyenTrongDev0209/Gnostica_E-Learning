@@ -1,5 +1,6 @@
+import AppText from '../../components/ui/AppText';
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { View, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ArrowLeft, Trash2, ShoppingBag } from 'lucide-react-native';
 import { useCart } from '../../context/CartContext';
@@ -28,7 +29,7 @@ const CartScreen = () => {
                 <TouchableOpacity onPress={() => navigation.goBack()} className="p-1">
                     <ArrowLeft size={24} color="#1E293B" />
                 </TouchableOpacity>
-                <Text className="text-lg font-bold text-slate-800">Giỏ hàng</Text>
+                <AppText className="text-lg font-bold text-slate-800">Giỏ hàng</AppText>
                 <View className="w-8" />
             </View>
 
@@ -38,10 +39,10 @@ const CartScreen = () => {
                     <View className="w-20 h-20 rounded-full bg-blue-50 items-center justify-center mb-5">
                         <ShoppingBag size={40} color="#2563EB" />
                     </View>
-                    <Text className="text-lg font-bold text-slate-800 mb-2">Giỏ hàng trống</Text>
-                    <Text className="text-sm text-slate-500 text-center mb-8">
+                    <AppText className="text-lg font-bold text-slate-800 mb-2">Giỏ hàng trống</AppText>
+                    <AppText className="text-sm text-slate-500 text-center mb-8">
                         Bạn chưa thêm khóa học nào vào giỏ. Hãy quay lại trang chủ để khám phá khóa học!
-                    </Text>
+                    </AppText>
                     <Button
                         variant="primary"
                         onPress={() => navigation.navigate('Main', { screen: 'Home' })}
@@ -54,11 +55,11 @@ const CartScreen = () => {
                 <>
                     <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 20 }}>
                         <View className="flex-row justify-between mb-4 items-center">
-                            <Text className="text-base font-bold text-slate-800">
+                            <AppText className="text-base font-bold text-slate-800">
                                 {cartItems.length} khóa học
-                            </Text>
+                            </AppText>
                             <TouchableOpacity onPress={clearCart}>
-                                <Text className="text-[13px] text-red-500 font-semibold">Xóa tất cả</Text>
+                                <AppText className="text-[13px] text-red-500 font-semibold">Xóa tất cả</AppText>
                             </TouchableOpacity>
                         </View>
 
@@ -70,17 +71,17 @@ const CartScreen = () => {
                                 />
                                 <View className="flex-1 ml-3 justify-between">
                                     <View>
-                                        <Text className="text-sm font-bold text-slate-800" numberOfLines={2}>
+                                        <AppText className="text-sm font-bold text-slate-800" numberOfLines={2}>
                                             {item.title}
-                                        </Text>
-                                        <Text className="text-xs text-slate-500 mt-1">
+                                        </AppText>
+                                        <AppText className="text-xs text-slate-500 mt-1">
                                             {item.instructor}
-                                        </Text>
+                                        </AppText>
                                     </View>
                                     <View className="flex-row justify-between items-center">
-                                        <Text className="text-base font-extrabold text-blue-600">
+                                        <AppText className="text-base font-extrabold text-blue-600">
                                             {item.price}
-                                        </Text>
+                                        </AppText>
                                         <TouchableOpacity onPress={() => removeFromCart(item.id)} className="p-1">
                                             <Trash2 size={18} color="#EF4444" />
                                         </TouchableOpacity>
@@ -93,10 +94,10 @@ const CartScreen = () => {
                     {/* Checkout Footer */}
                     <View className="bg-white px-5 py-4 pb-8 border-t border-slate-100">
                         <View className="flex-row justify-between mb-4">
-                            <Text className="text-[15px] text-slate-500">Tổng cộng:</Text>
-                            <Text className="text-[22px] font-extrabold text-slate-800">
+                            <AppText className="text-[15px] text-slate-500">Tổng cộng:</AppText>
+                            <AppText className="text-[22px] font-extrabold text-slate-800">
                                 {formatPrice(totalPrice)}
-                            </Text>
+                            </AppText>
                         </View>
                         <Button
                             variant="primary"

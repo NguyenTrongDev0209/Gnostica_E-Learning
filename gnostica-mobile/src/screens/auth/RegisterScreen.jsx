@@ -1,5 +1,6 @@
+import AppText from '../../components/ui/AppText';
 import React from 'react';
-import { View, Text, TouchableOpacity, Image, SafeAreaView } from 'react-native';
+import { View, TouchableOpacity, Image, SafeAreaView } from 'react-native';
 import { ChevronLeft, Phone } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../context/AuthContext';
@@ -26,9 +27,9 @@ const RegisterScreen = () => {
                         resizeMode="contain"
                         style={{ tintColor: 'white' }}
                     />
-                    <Text className="text-white text-lg text-center px-6 font-medium">
+                    <AppText className="text-white text-lg text-center px-6 font-medium">
                         Nền tảng e-learning hàng đầu đáp ứng mọi nhu cầu học tập
-                    </Text>
+                    </AppText>
                 </View>
 
                 {/* Action Buttons */}
@@ -44,12 +45,12 @@ const RegisterScreen = () => {
                         <View className="absolute left-6 w-6 h-6 items-center justify-center">
                             <Image source={{ uri: "https://img.icons8.com/color/48/000000/google-logo.png" }} className="w-6 h-6" />
                         </View>
-                        <Text className="text-slate-800 font-bold text-base">Đăng ký bằng Google</Text>
+                        <AppText className="text-slate-800 font-bold text-base">Đăng ký bằng Google</AppText>
                     </TouchableOpacity>
 
                     <View className="flex-row items-center mb-4">
                         <View className="flex-1 h-[1px] bg-white/40" />
-                        <Text className="text-sm text-white font-medium px-4">hoặc</Text>
+                        <AppText className="text-sm text-white font-medium px-4">hoặc</AppText>
                         <View className="flex-1 h-[1px] bg-white/40" />
                     </View>
 
@@ -62,7 +63,7 @@ const RegisterScreen = () => {
                         <View className="absolute left-6 w-6 h-6 items-center justify-center">
                             <Phone color="#0f172a" size={24} />
                         </View>
-                        <Text className="text-slate-800 font-bold text-base">Đăng ký bằng số điện thoại</Text>
+                        <AppText className="text-slate-800 font-bold text-base">Đăng ký bằng số điện thoại</AppText>
                     </TouchableOpacity>
                 </View>
             </View>

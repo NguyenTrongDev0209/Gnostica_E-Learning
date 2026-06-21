@@ -1,5 +1,6 @@
+import AppText from '../../components/ui/AppText';
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import { View, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ArrowLeft, Lock, Eye, EyeOff, ShieldCheck } from 'lucide-react-native';
 import Input from '../../components/ui/Input';
@@ -44,7 +45,7 @@ const ChangePasswordScreen = () => {
                 <TouchableOpacity onPress={() => navigation.goBack()} className="p-2">
                     <ArrowLeft size={24} color="#1e293b" />
                 </TouchableOpacity>
-                <Text className="text-xl font-bold text-slate-800 ml-2">Đổi mật khẩu</Text>
+                <AppText className="text-xl font-bold text-slate-800 ml-2">Đổi mật khẩu</AppText>
             </View>
 
             <ScrollView
@@ -57,9 +58,9 @@ const ChangePasswordScreen = () => {
                     <View className="w-16 h-16 rounded-2xl bg-blue-50 items-center justify-center mb-3">
                         <ShieldCheck size={32} color="#2563EB" />
                     </View>
-                    <Text className="text-slate-500 text-sm text-center leading-5">
+                    <AppText className="text-slate-500 text-sm text-center leading-5">
                         Để bảo mật tài khoản, hãy chọn{'\n'}mật khẩu mạnh và không chia sẻ.
-                    </Text>
+                    </AppText>
                 </View>
 
                 {/* Form */}
@@ -115,12 +116,12 @@ const ChangePasswordScreen = () => {
 
                 {/* Password Tips */}
                 <View className="mt-5 bg-amber-50 p-4 rounded-2xl border border-amber-100">
-                    <Text className="text-amber-800 font-bold text-[13px] mb-2">💡 Lời khuyên bảo mật</Text>
-                    <Text className="text-amber-700 text-xs leading-[18px]">
+                    <AppText className="text-amber-800 font-bold text-[13px] mb-2">💡 Lời khuyên bảo mật</AppText>
+                    <AppText className="text-amber-700 text-xs leading-[18px]">
                         • Sử dụng ít nhất 8 ký tự{'\n'}
                         • Kết hợp chữ hoa, chữ thường và số{'\n'}
                         • Không dùng thông tin cá nhân làm mật khẩu
-                    </Text>
+                    </AppText>
                 </View>
 
                 {/* Save Button */}

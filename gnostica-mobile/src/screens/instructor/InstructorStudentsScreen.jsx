@@ -1,5 +1,6 @@
+import AppText from '../../components/ui/AppText';
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { View, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ArrowLeft, Users, Search, Book } from 'lucide-react-native';
 
@@ -18,39 +19,39 @@ export default function InstructorStudentsScreen() {
                     <TouchableOpacity onPress={() => navigation.goBack()} className="mr-3 p-1">
                         <ArrowLeft size={24} color="#334155" />
                     </TouchableOpacity>
-                    <Text className="text-[18px] font-extrabold text-slate-800">Danh sách học viên</Text>
+                    <AppText className="text-[18px] font-extrabold text-slate-800">Danh sách học viên</AppText>
                 </View>
                 
                 {/* Search Bar */}
                 <View className="flex-row items-center bg-slate-100 rounded-xl px-4 py-2.5">
                     <Search size={18} color="#94A3B8" />
-                    <Text className="text-slate-400 ml-2 text-sm flex-1">Tìm kiếm học viên...</Text>
+                    <AppText className="text-slate-400 ml-2 text-sm flex-1">Tìm kiếm học viên...</AppText>
                 </View>
             </View>
 
             <ScrollView className="flex-1 p-5" showsVerticalScrollIndicator={false}>
                 <View className="flex-row items-center justify-between mb-4">
-                    <Text className="text-sm font-bold text-slate-800">Tổng số: 245 học viên</Text>
+                    <AppText className="text-sm font-bold text-slate-800">Tổng số: 245 học viên</AppText>
                 </View>
 
                 {mockStudents.map(student => (
                     <View key={student.id} className="bg-white p-4 rounded-2xl mb-3 border border-slate-100 shadow-sm flex-row items-center">
                         <Image source={{ uri: student.avatar }} className="w-12 h-12 rounded-full mr-3 bg-slate-200" />
                         <View className="flex-1">
-                            <Text className="text-sm font-bold text-slate-800 mb-1">{student.name}</Text>
+                            <AppText className="text-sm font-bold text-slate-800 mb-1">{student.name}</AppText>
                             <View className="flex-row items-center gap-3">
-                                <Text className="text-[11px] text-slate-500">Tham gia: {student.enrolledAt}</Text>
+                                <AppText className="text-[11px] text-slate-500">Tham gia: {student.enrolledAt}</AppText>
                                 <View className="flex-row items-center gap-1">
                                     <Book size={10} color="#94A3B8" />
-                                    <Text className="text-[11px] text-slate-500">{student.courses} khóa</Text>
+                                    <AppText className="text-[11px] text-slate-500">{student.courses} khóa</AppText>
                                 </View>
                             </View>
                         </View>
                         <View className="items-end">
-                            <Text className={`text-sm font-bold ${student.progress === 100 ? 'text-emerald-500' : 'text-blue-500'}`}>
+                            <AppText className={`text-sm font-bold ${student.progress === 100 ? 'text-emerald-500' : 'text-blue-500'}`}>
                                 {student.progress}%
-                            </Text>
-                            <Text className="text-[10px] text-slate-400">Tiến độ</Text>
+                            </AppText>
+                            <AppText className="text-[10px] text-slate-400">Tiến độ</AppText>
                         </View>
                     </View>
                 ))}

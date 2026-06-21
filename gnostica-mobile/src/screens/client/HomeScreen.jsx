@@ -1,11 +1,7 @@
+import AppText from '../../components/ui/AppText';
 import React, { useState } from 'react';
-import {
-    Text,
-    View,
-    ScrollView,
-    TouchableOpacity,
-} from 'react-native';
-import { Menu, Bell, User, MessageSquare, Users } from 'lucide-react-native';
+import { View, ScrollView, TouchableOpacity,  } from 'react-native';
+import { Menu, Bell, User } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useCart } from '../../context/CartContext';
 import SearchBar from '../../components/ui/SearchBar';
@@ -66,35 +62,6 @@ const HomeScreen = () => {
 
                 {/* Course Sections */}
                 <CourseSection title="Khóa học thịnh hành" variant="trending" />
-
-                {/* Discovery Section */}
-                <View className="px-5 mt-6 gap-4">
-                    <View className="flex-row gap-3">
-                        <TouchableOpacity
-                            className="flex-1 bg-white p-4 rounded-[20px] border border-slate-100"
-                            style={{ elevation: 2, shadowColor: '#000', shadowOpacity: 0.05, shadowOffset: { width: 0, height: 2 } }}
-                            onPress={() => navigation.navigate('Forum')}
-                        >
-                            <View className="w-10 h-10 rounded-xl bg-blue-50 items-center justify-center mb-3">
-                                <MessageSquare size={22} color="#2563EB" />
-                            </View>
-                            <Text className="text-[15px] font-extrabold text-slate-800">Diễn đàn</Text>
-                            <Text className="text-[11px] text-slate-500 mt-0.5">Cùng thảo luận</Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                            className="flex-1 bg-white p-4 rounded-[20px] border border-slate-100"
-                            style={{ elevation: 2, shadowColor: '#000', shadowOpacity: 0.05, shadowOffset: { width: 0, height: 2 } }}
-                            onPress={() => navigation.navigate('InstructorList')}
-                        >
-                            <View className="w-10 h-10 rounded-xl bg-green-50 items-center justify-center mb-3">
-                                <Users size={22} color="#10B981" />
-                            </View>
-                            <Text className="text-[15px] font-extrabold text-slate-800">Giảng viên</Text>
-                            <Text className="text-[11px] text-slate-500 mt-0.5">Tìm chuyên gia</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
 
                 <CourseSection title="Khóa học nổi bật" variant="featured" />
 

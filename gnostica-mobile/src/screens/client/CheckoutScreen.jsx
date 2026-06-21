@@ -1,5 +1,6 @@
+import AppText from '../../components/ui/AppText';
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Image, TextInput, Alert } from 'react-native';
+import { View, ScrollView, TouchableOpacity, Image, TextInput, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ArrowLeft, Trash2, Ticket, ChevronRight } from 'lucide-react-native';
 import { useCart } from '../../context/CartContext';
@@ -54,15 +55,15 @@ const CheckoutScreen = () => {
                 <TouchableOpacity onPress={() => navigation.goBack()} className="p-2">
                     <ArrowLeft size={24} color="#1e293b" />
                 </TouchableOpacity>
-                <Text className="text-xl font-bold text-slate-800 ml-2">Thanh toán</Text>
-                <Text className="text-slate-400 text-sm ml-auto">{cartItems.length} mục</Text>
+                <AppText className="text-xl font-bold text-slate-800 ml-2">Thanh toán</AppText>
+                <AppText className="text-slate-400 text-sm ml-auto">{cartItems.length} mục</AppText>
             </View>
 
             {cartItems.length === 0 ? (
                 <View className="flex-1 items-center justify-center p-5">
-                    <Text className="text-5xl mb-4">🛒</Text>
-                    <Text className="text-lg font-bold text-slate-800 mb-2">Không có gì để thanh toán</Text>
-                    <Text className="text-sm text-slate-500 text-center mb-8">Hãy thêm khóa học vào giỏ hàng trước nhé.</Text>
+                    <AppText className="text-5xl mb-4">🛒</AppText>
+                    <AppText className="text-lg font-bold text-slate-800 mb-2">Không có gì để thanh toán</AppText>
+                    <AppText className="text-sm text-slate-500 text-center mb-8">Hãy thêm khóa học vào giỏ hàng trước nhé.</AppText>
                     <Button variant="primary" onPress={() => navigation.navigate('Main', { screen: 'Home' })}>
                         Khám phá khóa học
                     </Button>
@@ -72,9 +73,9 @@ const CheckoutScreen = () => {
                     <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
                         {/* Cart Items */}
                         <View className="p-4">
-                            <Text className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
+                            <AppText className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
                                 Khóa học đã chọn
-                            </Text>
+                            </AppText>
                             {cartItems.map((item) => (
                                 <View key={item.id} className="flex-row bg-white rounded-2xl p-3 mb-3 border border-slate-100 shadow-sm">
                                     <Image
@@ -82,11 +83,11 @@ const CheckoutScreen = () => {
                                         className="w-[72px] h-[72px] rounded-xl bg-slate-200"
                                     />
                                     <View className="flex-1 ml-3 justify-between">
-                                        <Text className="text-[13px] font-bold text-slate-800" numberOfLines={2}>
+                                        <AppText className="text-[13px] font-bold text-slate-800" numberOfLines={2}>
                                             {item.title}
-                                        </Text>
+                                        </AppText>
                                         <View className="flex-row justify-between items-center">
-                                            <Text className="text-sm font-extrabold text-blue-600">{item.price}</Text>
+                                            <AppText className="text-sm font-extrabold text-blue-600">{item.price}</AppText>
                                             <TouchableOpacity onPress={() => removeFromCart(item.id)} className="p-1">
                                                 <Trash2 size={16} color="#ef4444" />
                                             </TouchableOpacity>
@@ -98,9 +99,9 @@ const CheckoutScreen = () => {
 
                         {/* Voucher Section */}
                         <View className="px-4 mb-4">
-                            <Text className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
+                            <AppText className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
                                 Mã giảm giá
-                            </Text>
+                            </AppText>
                             <View className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm">
                                 <View className="flex-row items-center gap-2">
                                     <View className="flex-1 flex-row items-center bg-slate-50 rounded-xl px-3 py-2.5 border border-slate-200">
@@ -127,9 +128,9 @@ const CheckoutScreen = () => {
                                 </View>
                                 {voucherApplied && (
                                     <View className="flex-row items-center mt-3 bg-green-50 p-2.5 rounded-xl">
-                                        <Text className="text-green-700 text-xs font-semibold">
+                                        <AppText className="text-green-700 text-xs font-semibold">
                                             ✓ Đã áp dụng mã {voucherCode.toUpperCase()} — Giảm {formatPrice(discount)}
-                                        </Text>
+                                        </AppText>
                                     </View>
                                 )}
                             </View>
@@ -137,24 +138,24 @@ const CheckoutScreen = () => {
 
                         {/* Order Summary */}
                         <View className="px-4 mb-6">
-                            <Text className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
+                            <AppText className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
                                 Tóm tắt đơn hàng
-                            </Text>
+                            </AppText>
                             <View className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm">
                                 <View className="flex-row justify-between mb-3">
-                                    <Text className="text-sm text-slate-500">Tạm tính ({cartItems.length} khóa học)</Text>
-                                    <Text className="text-sm font-semibold text-slate-700">{formatPrice(subtotal)}</Text>
+                                    <AppText className="text-sm text-slate-500">Tạm tính ({cartItems.length} khóa học)</AppText>
+                                    <AppText className="text-sm font-semibold text-slate-700">{formatPrice(subtotal)}</AppText>
                                 </View>
                                 {discount > 0 && (
                                     <View className="flex-row justify-between mb-3">
-                                        <Text className="text-sm text-green-600">Giảm giá</Text>
-                                        <Text className="text-sm font-semibold text-green-600">-{formatPrice(discount)}</Text>
+                                        <AppText className="text-sm text-green-600">Giảm giá</AppText>
+                                        <AppText className="text-sm font-semibold text-green-600">-{formatPrice(discount)}</AppText>
                                     </View>
                                 )}
                                 <View className="h-px bg-slate-100 my-2" />
                                 <View className="flex-row justify-between mt-2">
-                                    <Text className="text-base font-bold text-slate-800">Tổng cộng</Text>
-                                    <Text className="text-xl font-extrabold text-blue-600">{formatPrice(total)}</Text>
+                                    <AppText className="text-base font-bold text-slate-800">Tổng cộng</AppText>
+                                    <AppText className="text-xl font-extrabold text-blue-600">{formatPrice(total)}</AppText>
                                 </View>
                             </View>
                         </View>

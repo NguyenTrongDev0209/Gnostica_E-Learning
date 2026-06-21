@@ -1,5 +1,6 @@
+import AppText from '../ui/AppText';
 import React from 'react';
-import { View, Text, Image, TouchableOpacity } from 'react-native';
+import { View, Image, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 const CourseProgressCard = ({ course }) => {
@@ -23,12 +24,12 @@ const CourseProgressCard = ({ course }) => {
 
             {/* Content */}
             <View className="flex-1 p-3">
-                <Text numberOfLines={2} className="text-[13px] font-bold text-slate-800 leading-[18px]">
+                <AppText numberOfLines={2} className="text-[13px] font-bold text-slate-800 leading-[18px]">
                     {course?.title}
-                </Text>
-                <Text className="text-[11px] text-slate-500 mt-[3px] mb-2.5" numberOfLines={1}>
+                </AppText>
+                <AppText className="text-[11px] text-slate-500 mt-[3px] mb-2.5" numberOfLines={1}>
                     {course?.lastLesson}
-                </Text>
+                </AppText>
 
                 {/* Progress Bar */}
                 <View>
@@ -42,14 +43,14 @@ const CourseProgressCard = ({ course }) => {
                         />
                     </View>
                     <View className="flex-row justify-between mt-[5px]">
-                        <Text
+                        <AppText
                             className="text-[11px] font-bold"
                             style={{ color: isCompleted ? '#10B981' : '#2563EB' }}
                         >
                             {isCompleted ? '✓ Hoàn thành' : `${progress}% hoàn thành`}
-                        </Text>
+                        </AppText>
                         {!isCompleted && (
-                            <Text className="text-[11px] text-slate-400 font-medium">Tiếp tục</Text>
+                            <AppText className="text-[11px] text-slate-400 font-medium">Tiếp tục</AppText>
                         )}
                     </View>
                 </View>

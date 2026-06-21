@@ -1,5 +1,6 @@
+import AppText from '../ui/AppText';
 import React from 'react';
-import { Text, View, TouchableOpacity } from 'react-native';
+import { View, TouchableOpacity } from 'react-native';
 import { MonitorPlay, PenTool, Lightbulb, Briefcase, Languages, Sparkles, TrendingUp, Camera } from 'lucide-react-native';
 import { categories } from '../../constants/mockData';
 import { useNavigation } from '@react-navigation/native';
@@ -13,9 +14,9 @@ const CategorySection = () => {
     return (
         <View className="mt-6">
             <View className="flex-row justify-between items-center px-5 mb-4">
-                <Text className="text-[18px] font-extrabold text-slate-800">Danh mục</Text>
+                <AppText className="text-[18px] font-extrabold text-slate-800">Danh mục</AppText>
                 <TouchableOpacity onPress={() => navigation.navigate('CategoryBrowse')}>
-                    <Text className="text-[13px] text-blue-600 font-semibold">Tất cả</Text>
+                    <AppText className="text-[13px] text-blue-600 font-semibold">Tất cả</AppText>
                 </TouchableOpacity>
             </View>
             <View className="flex-row flex-wrap px-2">
@@ -37,9 +38,9 @@ const CategorySection = () => {
                             >
                                 {IconComponent && <IconComponent size={26} color={cat.color} strokeWidth={1.8} />}
                             </View>
-                            <Text className="text-[11px] text-slate-600 text-center font-semibold" numberOfLines={1}>
+                            <AppText className="text-[11px] text-slate-600 text-center font-semibold" numberOfLines={1}>
                                 {cat.name}
-                            </Text>
+                            </AppText>
                         </TouchableOpacity>
                     );
                 })}

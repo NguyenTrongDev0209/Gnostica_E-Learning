@@ -1,5 +1,6 @@
+import AppText from '../../components/ui/AppText';
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { View, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ArrowLeft, Ticket, Plus } from 'lucide-react-native';
 
@@ -13,7 +14,7 @@ export default function AdminCouponsScreen() {
                     <TouchableOpacity onPress={() => navigation.goBack()} className="mr-3 p-1">
                         <ArrowLeft size={24} color="#334155" />
                     </TouchableOpacity>
-                    <Text className="text-[18px] font-extrabold text-slate-800">Mã giảm giá (Global)</Text>
+                    <AppText className="text-[18px] font-extrabold text-slate-800">Mã giảm giá (Global)</AppText>
                 </View>
                 <TouchableOpacity className="p-1">
                     <Plus size={24} color="#2563EB" />
@@ -27,11 +28,11 @@ export default function AdminCouponsScreen() {
                             <Ticket size={20} color="#F59E0B" />
                         </View>
                         <View className="flex-1">
-                            <Text className="text-sm font-bold text-slate-800">GNOSTICA2026</Text>
-                            <Text className="text-xs text-slate-500">Giảm 20% toàn hệ thống</Text>
+                            <AppText className="text-sm font-bold text-slate-800">GNOSTICA2026</AppText>
+                            <AppText className="text-xs text-slate-500">Giảm 20% toàn hệ thống</AppText>
                         </View>
                         <View className="items-end">
-                            <Text className="text-xs font-bold text-emerald-500">Còn hiệu lực</Text>
+                            <AppText className="text-xs font-bold text-emerald-500">Còn hiệu lực</AppText>
                         </View>
                     </View>
                 ))}

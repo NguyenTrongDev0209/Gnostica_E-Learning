@@ -1,5 +1,6 @@
+import AppText from '../../components/ui/AppText';
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
+import { View, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { ArrowLeft, Play, CheckCircle2, Circle, FileText, MessageCircle } from 'lucide-react-native';
 import { clsx } from 'clsx';
@@ -29,9 +30,9 @@ const LearningScreen = () => {
                     <TouchableOpacity onPress={() => navigation.goBack()} className="p-1">
                         <ArrowLeft size={24} color="#ffffff" />
                     </TouchableOpacity>
-                    <Text className="flex-1 text-white text-base font-bold ml-3" numberOfLines={1}>
+                    <AppText className="flex-1 text-white text-base font-bold ml-3" numberOfLines={1}>
                         {course.title}
-                    </Text>
+                    </AppText>
                 </View>
 
                 {/* Video Player */}
@@ -46,7 +47,7 @@ const LearningScreen = () => {
                         </View>
                     </TouchableOpacity>
                     <View className="absolute bottom-3 right-3 bg-black/60 px-2 py-1 rounded">
-                        <Text className="text-white text-xs font-semibold">12:45</Text>
+                        <AppText className="text-white text-xs font-semibold">12:45</AppText>
                     </View>
                 </View>
             </View>
@@ -62,12 +63,12 @@ const LearningScreen = () => {
                         )}
                         onPress={() => setActiveTab(tab.key)}
                     >
-                        <Text className={clsx(
+                        <AppText className={clsx(
                             'text-sm font-semibold',
                             activeTab === tab.key ? 'text-blue-600' : 'text-slate-500',
                         )}>
                             {tab.label}
-                        </Text>
+                        </AppText>
                     </TouchableOpacity>
                 ))}
             </View>
@@ -79,12 +80,12 @@ const LearningScreen = () => {
                         {course.curriculum?.map((section, secIdx) => (
                             <View key={secIdx} className="bg-white mb-2 border-b border-slate-100">
                                 <View className="p-4 bg-slate-50">
-                                    <Text className="text-[13px] text-slate-500 font-medium mb-1">
+                                    <AppText className="text-[13px] text-slate-500 font-medium mb-1">
                                         Chương {secIdx + 1}
-                                    </Text>
-                                    <Text className="text-[15px] font-bold text-slate-800">
+                                    </AppText>
+                                    <AppText className="text-[15px] font-bold text-slate-800">
                                         {section.section}
-                                    </Text>
+                                    </AppText>
                                 </View>
                                 {[1, 2, 3].map((lesson, lessIdx) => {
                                     const isCompleted = secIdx === 0 && lessIdx < 2;
@@ -106,15 +107,15 @@ const LearningScreen = () => {
                                                 }
                                             </View>
                                             <View className="flex-1">
-                                                <Text className={clsx(
+                                                <AppText className={clsx(
                                                     'text-sm text-slate-800',
                                                     isCurrent ? 'font-bold' : 'font-medium',
                                                 )}>
                                                     {lesson}. Bài học mô phỏng {secIdx + 1}.{lessIdx + 1}
-                                                </Text>
-                                                <Text className="text-xs text-slate-500 mt-1">
+                                                </AppText>
+                                                <AppText className="text-xs text-slate-500 mt-1">
                                                     Video • 12:45
-                                                </Text>
+                                                </AppText>
                                             </View>
                                         </TouchableOpacity>
                                     );
@@ -126,17 +127,17 @@ const LearningScreen = () => {
 
                 {activeTab === 'materials' && (
                     <View className="p-5">
-                        <Text className="text-sm text-slate-500">
+                        <AppText className="text-sm text-slate-500">
                             Tài liệu tham khảo và mã nguồn của khóa học sẽ được hiển thị ở đây.
-                        </Text>
+                        </AppText>
                     </View>
                 )}
 
                 {activeTab === 'qa' && (
                     <View className="p-5">
-                        <Text className="text-sm text-slate-500">
+                        <AppText className="text-sm text-slate-500">
                             Chưa có câu hỏi nào. Tương tác với giảng viên và các bạn học viên khác tại đây.
-                        </Text>
+                        </AppText>
                     </View>
                 )}
             </ScrollView>

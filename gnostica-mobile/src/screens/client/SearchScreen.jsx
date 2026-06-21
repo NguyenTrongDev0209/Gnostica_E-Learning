@@ -1,7 +1,6 @@
+import AppText from '../../components/ui/AppText';
 import React, { useState } from 'react';
-import {
-    View, Text, ScrollView, TouchableOpacity, FlatList,
-} from 'react-native';
+import { View, ScrollView, TouchableOpacity, FlatList,  } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { clsx } from 'clsx';
 import SearchBar from '../../components/ui/SearchBar';
@@ -26,9 +25,9 @@ const SearchScreen = () => {
         <View className="flex-1 bg-slate-50">
             {/* Header */}
             <View className="bg-white pt-10 px-5 pb-4">
-                <Text className="text-2xl font-extrabold text-slate-800 mb-3.5">
+                <AppText className="text-2xl font-extrabold text-slate-800 mb-3.5">
                     Tìm kiếm
-                </Text>
+                </AppText>
                 <SearchBar
                     value={query}
                     onChangeText={setQuery}
@@ -55,12 +54,12 @@ const SearchScreen = () => {
                                     : 'bg-slate-50 border-slate-200',
                             )}
                         >
-                            <Text className={clsx(
+                            <AppText className={clsx(
                                 'text-[13px] font-bold',
                                 activeFilter === f ? 'text-white' : 'text-slate-500',
                             )}>
                                 {f}
-                            </Text>
+                            </AppText>
                         </TouchableOpacity>
                     ))}
                 </ScrollView>
@@ -69,13 +68,13 @@ const SearchScreen = () => {
             {/* Results */}
             {filtered.length === 0 ? (
                 <View className="flex-1 items-center justify-center pb-24">
-                    <Text className="text-5xl mb-3">🔍</Text>
-                    <Text className="text-[17px] font-bold text-slate-800 mb-1.5">
+                    <AppText className="text-5xl mb-3">🔍</AppText>
+                    <AppText className="text-[17px] font-bold text-slate-800 mb-1.5">
                         Không tìm thấy kết quả
-                    </Text>
-                    <Text className="text-[13px] text-slate-500 text-center px-10">
+                    </AppText>
+                    <AppText className="text-[13px] text-slate-500 text-center px-10">
                         Hãy thử từ khóa khác hoặc thay đổi bộ lọc
-                    </Text>
+                    </AppText>
                 </View>
             ) : (
                 <FlatList

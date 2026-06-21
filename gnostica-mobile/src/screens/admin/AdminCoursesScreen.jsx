@@ -1,5 +1,6 @@
+import AppText from '../../components/ui/AppText';
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { View, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ArrowLeft, BookOpen, Search, MoreVertical } from 'lucide-react-native';
 
@@ -14,12 +15,12 @@ export default function AdminCoursesScreen() {
                         <TouchableOpacity onPress={() => navigation.goBack()} className="mr-3 p-1">
                             <ArrowLeft size={24} color="#334155" />
                         </TouchableOpacity>
-                        <Text className="text-[18px] font-extrabold text-slate-800">Quản lý khóa học</Text>
+                        <AppText className="text-[18px] font-extrabold text-slate-800">Quản lý khóa học</AppText>
                     </View>
                 </View>
                 <View className="flex-row items-center bg-slate-100 rounded-xl px-4 py-2.5">
                     <Search size={18} color="#94A3B8" />
-                    <Text className="text-slate-400 ml-2 text-sm flex-1">Tìm kiếm khóa học...</Text>
+                    <AppText className="text-slate-400 ml-2 text-sm flex-1">Tìm kiếm khóa học...</AppText>
                 </View>
             </View>
 
@@ -30,13 +31,13 @@ export default function AdminCoursesScreen() {
                             <BookOpen size={24} color="#94A3B8" />
                         </View>
                         <View className="flex-1">
-                            <Text className="text-sm font-bold text-slate-800 mb-1">Khoá học Lập trình React Native {item}</Text>
-                            <Text className="text-xs text-slate-500 mb-2">Giảng viên: Nguyễn Văn A</Text>
+                            <AppText className="text-sm font-bold text-slate-800 mb-1">Khoá học Lập trình React Native {item}</AppText>
+                            <AppText className="text-xs text-slate-500 mb-2">Giảng viên: Nguyễn Văn A</AppText>
                             <View className="flex-row items-center">
                                 <View className="bg-emerald-100 px-2 py-0.5 rounded-full mr-2">
-                                    <Text className="text-[10px] font-bold text-emerald-700">Đã xuất bản</Text>
+                                    <AppText className="text-[10px] font-bold text-emerald-700">Đã xuất bản</AppText>
                                 </View>
-                                <Text className="text-[11px] font-bold text-blue-600">1,500,000đ</Text>
+                                <AppText className="text-[11px] font-bold text-blue-600">1,500,000đ</AppText>
                             </View>
                         </View>
                         <TouchableOpacity className="p-1">

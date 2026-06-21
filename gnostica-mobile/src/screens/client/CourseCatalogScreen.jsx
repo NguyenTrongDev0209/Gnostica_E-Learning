@@ -1,5 +1,6 @@
+import AppText from '../../components/ui/AppText';
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, FlatList } from 'react-native';
+import { View, TouchableOpacity, FlatList } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { ArrowLeft, SlidersHorizontal, TrendingUp, Clock, DollarSign } from 'lucide-react-native';
 import { clsx } from 'clsx';
@@ -42,12 +43,12 @@ const CourseCatalogScreen = () => {
                             <ArrowLeft size={24} color="#1e293b" />
                         </TouchableOpacity>
                         <View className="ml-2">
-                            <Text className="text-xl font-bold text-slate-800">
+                            <AppText className="text-xl font-bold text-slate-800">
                                 {categoryName || 'Tất cả khóa học'}
-                            </Text>
-                            <Text className="text-xs text-slate-400 mt-0.5">
+                            </AppText>
+                            <AppText className="text-xs text-slate-400 mt-0.5">
                                 {sortedCourses.length} khóa học
-                            </Text>
+                            </AppText>
                         </View>
                     </View>
                     <TouchableOpacity className="w-10 h-10 bg-slate-50 rounded-xl items-center justify-center border border-slate-200">
@@ -72,12 +73,12 @@ const CourseCatalogScreen = () => {
                                 size={14}
                                 color={activeSort === option.key ? '#fff' : '#64748b'}
                             />
-                            <Text className={clsx(
+                            <AppText className={clsx(
                                 'text-xs font-bold',
                                 activeSort === option.key ? 'text-white' : 'text-slate-500',
                             )}>
                                 {option.label}
-                            </Text>
+                            </AppText>
                         </TouchableOpacity>
                     ))}
                 </View>
@@ -99,9 +100,9 @@ const CourseCatalogScreen = () => {
                 )}
                 ListEmptyComponent={
                     <View className="items-center justify-center py-20">
-                        <Text className="text-5xl mb-4">📚</Text>
-                        <Text className="text-lg font-bold text-slate-800">Chưa có khóa học</Text>
-                        <Text className="text-sm text-slate-500 mt-1">Danh mục này đang được cập nhật.</Text>
+                        <AppText className="text-5xl mb-4">📚</AppText>
+                        <AppText className="text-lg font-bold text-slate-800">Chưa có khóa học</AppText>
+                        <AppText className="text-sm text-slate-500 mt-1">Danh mục này đang được cập nhật.</AppText>
                     </View>
                 }
             />

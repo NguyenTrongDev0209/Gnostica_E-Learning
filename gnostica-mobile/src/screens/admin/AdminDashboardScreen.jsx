@@ -1,5 +1,6 @@
+import AppText from '../../components/ui/AppText';
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { View, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ArrowLeft, Users, ShoppingBag, BookOpen, AlertCircle, TrendingUp, ChevronRight, Settings } from 'lucide-react-native';
 
@@ -21,7 +22,7 @@ const AdminDashboardScreen = () => {
                     <TouchableOpacity onPress={() => navigation.goBack()} className="p-2">
                         <ArrowLeft size={24} color="#fff" />
                     </TouchableOpacity>
-                    <Text className="text-xl font-bold text-white ml-2">Quản trị viên</Text>
+                    <AppText className="text-xl font-bold text-white ml-2">Quản trị viên</AppText>
                 </View>
                 <TouchableOpacity className="p-2 bg-slate-800 rounded-full">
                     <Settings size={20} color="#fff" />
@@ -39,14 +40,14 @@ const AdminDashboardScreen = () => {
                             >
                                 <stat.icon size={20} color={stat.color} />
                             </View>
-                            <Text className="text-slate-400 text-[10px] font-bold uppercase tracking-wider">{stat.label}</Text>
-                            <Text className="text-slate-900 font-bold text-lg mt-1">{stat.value}</Text>
+                            <AppText className="text-slate-400 text-[10px] font-bold uppercase tracking-wider">{stat.label}</AppText>
+                            <AppText className="text-slate-900 font-bold text-lg mt-1">{stat.value}</AppText>
                         </View>
                     ))}
                 </View>
 
                 {/* System Management */}
-                <Text className="text-slate-800 font-bold text-base mb-4">Quản lý hệ thống</Text>
+                <AppText className="text-slate-800 font-bold text-base mb-4">Quản lý hệ thống</AppText>
 
                 {[
                     { label: 'Quản lý khóa học', icon: BookOpen, target: 'AdminCourses', desc: 'Danh sách toàn bộ khóa học' },
@@ -72,8 +73,8 @@ const AdminDashboardScreen = () => {
                             <item.icon size={22} color="#475569" />
                         </View>
                         <View className="ml-4 flex-1">
-                            <Text className="text-slate-900 font-bold text-sm">{item.label}</Text>
-                            <Text className="text-slate-400 text-xs mt-0.5">{item.desc}</Text>
+                            <AppText className="text-slate-900 font-bold text-sm">{item.label}</AppText>
+                            <AppText className="text-slate-400 text-xs mt-0.5">{item.desc}</AppText>
                         </View>
                         <ChevronRight size={18} color="#cbd5e1" />
                     </TouchableOpacity>
@@ -82,8 +83,8 @@ const AdminDashboardScreen = () => {
                 {/* Real-time Logs Placeholder */}
                 <View className="bg-white p-5 rounded-3xl mt-4 mb-10 shadow-sm border border-slate-100">
                     <View className="flex-row justify-between items-center mb-4">
-                        <Text className="text-slate-800 font-bold text-base">Hoạt động gần đây</Text>
-                        <TouchableOpacity><Text className="text-blue-600 text-xs font-bold">Xem tất cả</Text></TouchableOpacity>
+                        <AppText className="text-slate-800 font-bold text-base">Hoạt động gần đây</AppText>
+                        <TouchableOpacity><AppText className="text-blue-600 text-xs font-bold">Xem tất cả</AppText></TouchableOpacity>
                     </View>
 
                     {[
@@ -94,8 +95,8 @@ const AdminDashboardScreen = () => {
                         <View key={i} className="flex-row items-start mb-4 gap-3">
                             <View className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1.5" />
                             <View className="flex-1">
-                                <Text className="text-slate-700 text-xs leading-5">{log.text}</Text>
-                                <Text className="text-slate-400 text-[10px] mt-0.5">{log.time}</Text>
+                                <AppText className="text-slate-700 text-xs leading-5">{log.text}</AppText>
+                                <AppText className="text-slate-400 text-[10px] mt-0.5">{log.time}</AppText>
                             </View>
                         </View>
                     ))}

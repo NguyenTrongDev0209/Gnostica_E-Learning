@@ -1,5 +1,6 @@
+import AppText from '../../components/ui/AppText';
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Image, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import { View, TouchableOpacity, ScrollView, Image, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { Mail, ArrowLeft } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import Input from '../../components/ui/Input';
@@ -42,10 +43,10 @@ const ForgotPasswordScreen = () => {
 
                 <View className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
                     <View className="items-center mb-6">
-                        <Text className="text-2xl font-bold text-gray-900 tracking-tight text-center">Quên mật khẩu?</Text>
-                        <Text className="text-gray-500 mt-2 text-center text-sm">
+                        <AppText className="text-2xl font-bold text-gray-900 tracking-tight text-center">Quên mật khẩu?</AppText>
+                        <AppText className="text-gray-500 mt-2 text-center text-sm">
                             Đừng lo lắng! Nhập địa chỉ email của bạn để chúng tôi gửi mã xác thực khôi phục mật khẩu.
-                        </Text>
+                        </AppText>
                     </View>
 
                     <Input
@@ -58,15 +59,15 @@ const ForgotPasswordScreen = () => {
                         keyboardType="email-address"
                         autoCapitalize="none"
                     />
-                    {errors.email && <Text className="text-red-500 text-xs mb-6">{errors.email}</Text>}
+                    {errors.email && <AppText className="text-red-500 text-xs mb-6">{errors.email}</AppText>}
                     {!errors.email && <View className="mb-6" />}
 
                     <Button variant="primary" className="w-full mb-6" onPress={handleSendCode}>Gửi mã xác thực</Button>
 
                     <View className="flex-row justify-center">
-                        <Text className="text-sm text-gray-500">Nhớ mật khẩu? </Text>
+                        <AppText className="text-sm text-gray-500">Nhớ mật khẩu? </AppText>
                         <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-                            <Text className="text-sm text-primary font-semibold">Đăng nhập ngay</Text>
+                            <AppText className="text-sm text-primary font-semibold">Đăng nhập ngay</AppText>
                         </TouchableOpacity>
                     </View>
                 </View>

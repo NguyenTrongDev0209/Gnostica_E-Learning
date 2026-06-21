@@ -1,5 +1,6 @@
+import AppText from '../../components/ui/AppText';
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { View, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ArrowLeft, RefreshCw, CreditCard, ArrowDownLeft, ArrowUpRight } from 'lucide-react-native';
 
@@ -12,7 +13,7 @@ export default function AdminTransactionsScreen() {
                 <TouchableOpacity onPress={() => navigation.goBack()} className="mr-3 p-1">
                     <ArrowLeft size={24} color="#334155" />
                 </TouchableOpacity>
-                <Text className="text-[18px] font-extrabold text-slate-800">Lịch sử giao dịch</Text>
+                <AppText className="text-[18px] font-extrabold text-slate-800">Lịch sử giao dịch</AppText>
             </View>
 
             <ScrollView className="flex-1 p-5" showsVerticalScrollIndicator={false}>
@@ -25,18 +26,18 @@ export default function AdminTransactionsScreen() {
                             {item.type === 'in' ? <ArrowDownLeft size={20} color="#10B981" /> : <ArrowUpRight size={20} color="#EF4444" />}
                         </View>
                         <View className="flex-1">
-                            <Text className={`text-sm font-black ${item.type === 'in' ? 'text-emerald-500' : 'text-red-500'}`}>
+                            <AppText className={`text-sm font-black ${item.type === 'in' ? 'text-emerald-500' : 'text-red-500'}`}>
                                 {item.amount}
-                            </Text>
-                            <Text className="text-xs text-slate-500 mt-0.5">{item.user} • {item.method}</Text>
+                            </AppText>
+                            <AppText className="text-xs text-slate-500 mt-0.5">{item.user} • {item.method}</AppText>
                         </View>
                         <View className="items-end">
                             <View className={`px-2 py-0.5 rounded-md ${item.status === 'Thành công' ? 'bg-emerald-100' : 'bg-amber-100'}`}>
-                                <Text className={`text-[10px] font-bold ${item.status === 'Thành công' ? 'text-emerald-700' : 'text-amber-700'}`}>
+                                <AppText className={`text-[10px] font-bold ${item.status === 'Thành công' ? 'text-emerald-700' : 'text-amber-700'}`}>
                                     {item.status}
-                                </Text>
+                                </AppText>
                             </View>
-                            <Text className="text-[10px] text-slate-400 mt-1">10:30, 20/06</Text>
+                            <AppText className="text-[10px] text-slate-400 mt-1">10:30, 20/06</AppText>
                         </View>
                     </View>
                 ))}

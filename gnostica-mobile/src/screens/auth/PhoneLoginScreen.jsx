@@ -1,5 +1,6 @@
+import AppText from '../../components/ui/AppText';
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, TextInput } from 'react-native';
+import { View, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, TextInput } from 'react-native';
 import { ChevronLeft, Phone } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import Input from '../../components/ui/Input';
@@ -35,8 +36,8 @@ const PhoneLoginScreen = () => {
                         </View>
 
                         {/* Title */}
-                        <Text className="text-2xl font-bold text-slate-900 mb-2">Nhập số điện thoại</Text>
-                        <Text className="text-slate-500 mb-8 text-base">Chúng tôi sẽ gửi mã OTP để xác thực số điện thoại của bạn.</Text>
+                        <AppText className="text-2xl font-bold text-slate-900 mb-2">Nhập số điện thoại</AppText>
+                        <AppText className="text-slate-500 mb-8 text-base">Chúng tôi sẽ gửi mã OTP để xác thực số điện thoại của bạn.</AppText>
 
                         {/* Input Field */}
                         <View className="relative justify-center mb-2 mt-4">
@@ -64,14 +65,14 @@ const PhoneLoginScreen = () => {
                                 maxLength={12}
                             />
                         </View>
-                        {error ? <Text className="text-red-500 text-sm mb-4">{error}</Text> : <View className="mb-6" />}
+                        {error ? <AppText className="text-red-500 text-sm mb-4">{error}</AppText> : <View className="mb-6" />}
 
                         {/* Continue Button */}
                         <TouchableOpacity 
                             className="w-full bg-blue-600 flex-row items-center justify-center py-4 rounded-lg mt-auto shadow-sm" 
                             onPress={handleContinue}
                         >
-                            <Text className="text-white font-bold text-base">Tiếp tục</Text>
+                            <AppText className="text-white font-bold text-base">Tiếp tục</AppText>
                         </TouchableOpacity>
                     </View>
                 </TouchableWithoutFeedback>
