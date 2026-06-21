@@ -73,7 +73,7 @@ export default function PaymentQRCodeScreen() {
                     className="bg-blue-600 py-4 rounded-xl items-center mb-10 shadow-sm shadow-blue-200"
                     onPress={() => navigation.navigate('CheckoutResult')}
                 >
-                    <AppText className="text-white font-extrabold text-base">Đã thanh toán (Test)</AppText>
+                    <AppText className="text-white font-extrabold text-base">Xác nhận OK</AppText>
                 </TouchableOpacity>
             </ScrollView>
         </View>

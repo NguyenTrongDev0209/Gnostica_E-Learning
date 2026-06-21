@@ -1,15 +1,16 @@
 import AppText from '../../components/ui/AppText';
 import React, { useState } from 'react';
 import { View, ScrollView, TouchableOpacity, Image, TextInput, Alert } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { Trash2, Ticket, ChevronRight } from 'lucide-react-native';
-import { useCart } from '../../context/CartContext';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { Ticket, ChevronRight } from 'lucide-react-native';
+// import { useCart } from '../../context/CartContext'; // Cart hidden temporarily
 import AppHeader from '../../components/ui/AppHeader';
 import Button from '../../components/ui/Button';
 
 const CheckoutScreen = () => {
     const navigation = useNavigation();
-    const { cartItems, removeFromCart, clearCart } = useCart();
+    const route = useRoute();
+    const { course } = route.params || {};
     const [voucherCode, setVoucherCode] = useState('');
     const [discount, setDiscount] = useState(0);
     const [voucherApplied, setVoucherApplied] = useState(false);
@@ -24,7 +25,7 @@ const CheckoutScreen = () => {
         return priceNum.toLocaleString('vi-VN') + 'đ';
     };
 
-    const subtotal = cartItems.reduce((sum, item) => sum + parsePrice(item.price), 0);
+    const subtotal = course ? parsePrice(course.price) : 0;
     const total = Math.max(0, subtotal - discount);
 
     const handleApplyVoucher = () => {
@@ -43,25 +44,21 @@ const CheckoutScreen = () => {
     };
 
     const handlePay = () => {
-        clearCart();
         setDiscount(0);
         setVoucherApplied(false);
-        navigation.navigate('CheckoutResult');
+        navigation.navigate('PaymentQRCode');
     };
 
     return (
         <View className="flex-1 bg-slate-50">
             {/* Header */}
-            <AppHeader 
-                title="Thanh toán" 
-                rightComponent={<AppText className="text-slate-400 text-sm">{cartItems.length} mục</AppText>}
-            />
+            <AppHeader title="Thanh toán" />
 
-            {cartItems.length === 0 ? (
+            {!course ? (
                 <View className="flex-1 items-center justify-center p-5">
                     <AppText className="text-5xl mb-4">🛒</AppText>
                     <AppText className="text-lg font-bold text-slate-800 mb-2">Không có gì để thanh toán</AppText>
-                    <AppText className="text-sm text-slate-500 text-center mb-8">Hãy thêm khóa học vào giỏ hàng trước nhé.</AppText>
+                    <AppText className="text-sm text-slate-500 text-center mb-8">Hãy chọn một khóa học để mua ngay.</AppText>
                     <Button variant="primary" onPress={() => navigation.navigate('Main', { screen: 'Home' })}>
                         Khám phá khóa học
                     </Button>
@@ -69,30 +66,25 @@ const CheckoutScreen = () => {
             ) : (
                 <>
                     <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-                        {/* Cart Items */}
+                        {/* Course Item */}
                         <View className="p-4">
                             <AppText className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
                                 Khóa học đã chọn
                             </AppText>
-                            {cartItems.map((item) => (
-                                <View key={item.id} className="flex-row bg-white rounded-2xl p-3 mb-3 border border-slate-100 shadow-sm">
-                                    <Image
-                                        source={{ uri: item.thumbnail }}
-                                        className="w-[72px] h-[72px] rounded-xl bg-slate-200"
-                                    />
-                                    <View className="flex-1 ml-3 justify-between">
-                                        <AppText className="text-[13px] font-bold text-slate-800" numberOfLines={2}>
-                                            {item.title}
-                                        </AppText>
-                                        <View className="flex-row justify-between items-center">
-                                            <AppText className="text-sm font-extrabold text-blue-600">{item.price}</AppText>
-                                            <TouchableOpacity onPress={() => removeFromCart(item.id)} className="p-1">
-                                                <Trash2 size={16} color="#ef4444" />
-                                            </TouchableOpacity>
-                                        </View>
+                            <View className="flex-row bg-white rounded-2xl p-3 mb-3 border border-slate-100 shadow-sm">
+                                <Image
+                                    source={{ uri: course.thumbnail }}
+                                    className="w-[72px] h-[72px] rounded-xl bg-slate-200"
+                                />
+                                <View className="flex-1 ml-3 justify-between">
+                                    <AppText className="text-[13px] font-bold text-slate-800" numberOfLines={2}>
+                                        {course.title}
+                                    </AppText>
+                                    <View className="flex-row justify-between items-center">
+                                        <AppText className="text-sm font-extrabold text-blue-600">{course.price}</AppText>
                                     </View>
                                 </View>
-                            ))}
+                            </View>
                         </View>
 
                         {/* Voucher Section */}
@@ -141,7 +133,7 @@ const CheckoutScreen = () => {
                             </AppText>
                             <View className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm">
                                 <View className="flex-row justify-between mb-3">
-                                    <AppText className="text-sm text-slate-500">Tạm tính ({cartItems.length} khóa học)</AppText>
+                                    <AppText className="text-sm text-slate-500">Tạm tính (1 khóa học)</AppText>
                                     <AppText className="text-sm font-semibold text-slate-700">{formatPrice(subtotal)}</AppText>
                                 </View>
                                 {discount > 0 && (

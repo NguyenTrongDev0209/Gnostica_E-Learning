@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { View, ScrollView, TouchableOpacity,  } from 'react-native';
 import { Menu, Bell, User } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useCart } from '../../context/CartContext';
+
 import SearchBar from '../../components/ui/SearchBar';
 import HeroSection from '../../components/home/HeroSection';
 import CategorySection from '../../components/home/CategorySection';
@@ -15,7 +15,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const HomeScreen = () => {
     const navigation = useNavigation();
-    const { cartItems } = useCart();
     const [isMenuVisible, setIsMenuVisible] = useState(false);
     const insets = useSafeAreaInsets();
 

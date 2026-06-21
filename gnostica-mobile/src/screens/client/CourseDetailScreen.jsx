@@ -376,7 +376,7 @@ const CourseDetailScreen = () => {
             <View style={{
                 position: 'absolute', bottom: 0, left: 0, right: 0,
                 backgroundColor: '#fff',
-                paddingHorizontal: 20, paddingTop: 14,
+                paddingHorizontal: 20, paddingTop: 16,
                 paddingBottom: Math.max(insets.bottom, 16),
                 borderTopWidth: 1, borderTopColor: '#f1f5f9',
                 flexDirection: 'row', alignItems: 'center', gap: 16,
@@ -397,13 +397,12 @@ const CourseDetailScreen = () => {
                     )}
                 </View>
                 <Button
-                    variant={isInCart ? 'outline' : 'primary'}
+                    variant="primary"
                     className="flex-[1.5] py-3.5 rounded-xl"
                     textClassName="text-[15px] font-bold"
-                    icon={isInCart ? ShoppingBag : null}
-                    onPress={handleCtaPress}
+                    onPress={() => navigation.navigate('Checkout', { course })}
                 >
-                    {isInCart ? ' Đi đến giỏ hàng' : 'Thêm vào giỏ hàng'}
+                    Mua ngay
                 </Button>
             </View>
         </View>
