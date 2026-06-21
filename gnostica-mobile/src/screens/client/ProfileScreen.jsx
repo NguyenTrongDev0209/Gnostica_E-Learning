@@ -9,6 +9,7 @@ import {
 import Avatar from '../../components/ui/Avatar';
 import Button from '../../components/ui/Button';
 import { useAuth } from '../../context/AuthContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const MENU_GROUPS = [
     {
@@ -71,6 +72,7 @@ const MenuItem = ({ item }) => {
 const ProfileScreen = () => {
     const navigation = useNavigation();
     const { isAuthenticated, user, logout } = useAuth();
+    const insets = useSafeAreaInsets();
 
     // Unauthenticated state
     if (!isAuthenticated) {
@@ -104,7 +106,7 @@ const ProfileScreen = () => {
     return (
         <ScrollView className="flex-1 bg-slate-50" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 80 }}>
             {/* Header */}
-            <View className="bg-white pt-[52px] px-5 pb-7 items-center border-b border-slate-100">
+            <View className="bg-white px-5 pb-7 items-center border-b border-slate-100" style={{ paddingTop: Math.max(insets.top, 20) + 12 }}>
                 <AppText className="text-[22px] font-extrabold text-slate-800 self-start mb-5">
                     Cá nhân
                 </AppText>

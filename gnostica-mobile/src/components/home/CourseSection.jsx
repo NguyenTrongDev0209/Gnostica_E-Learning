@@ -5,7 +5,7 @@ import CourseCard from './CourseCard';
 import { courses, featuredCourses } from '../../constants/mockData';
 
 const CourseSection = ({ title, variant = 'trending' }) => {
-    const data = variant === 'featured' ? featuredCourses : courses;
+    const data = variant === 'featured' ? featuredCourses : variant === 'foryou' ? [...courses].reverse() : courses;
 
     return (
         <View className="mt-7">

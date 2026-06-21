@@ -2,19 +2,17 @@ import AppText from '../../components/ui/AppText';
 import React from 'react';
 import { View, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { ArrowLeft, Wallet, Building, CheckCircle2 } from 'lucide-react-native';
+import { Wallet, Building, CheckCircle2 } from 'lucide-react-native';
+import AppHeader from '../../components/ui/AppHeader';
+
 
 export default function WithdrawScreen() {
     const navigation = useNavigation();
 
     return (
         <View className="flex-1 bg-slate-50">
-            <View className="pt-[52px] pb-4 px-5 bg-white flex-row items-center border-b border-slate-100">
-                <TouchableOpacity onPress={() => navigation.goBack()} className="mr-3 p-1">
-                    <ArrowLeft size={24} color="#334155" />
-                </TouchableOpacity>
-                <AppText className="text-[18px] font-extrabold text-slate-800">Rút tiền doanh thu</AppText>
-            </View>
+            {/* Header */}
+            <AppHeader title="Rút tiền" />
 
             <ScrollView className="flex-1 p-5" showsVerticalScrollIndicator={false}>
                 <View className="bg-blue-600 rounded-3xl p-6 mb-6 shadow-sm shadow-blue-200">

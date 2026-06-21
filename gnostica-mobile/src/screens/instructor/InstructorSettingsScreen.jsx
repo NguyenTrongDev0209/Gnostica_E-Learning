@@ -2,19 +2,17 @@ import AppText from '../../components/ui/AppText';
 import React from 'react';
 import { View, ScrollView, TouchableOpacity, Switch } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { ArrowLeft, User, Bell, Shield, Wallet } from 'lucide-react-native';
+import { User, Bell, Shield, Wallet } from 'lucide-react-native';
+import AppHeader from '../../components/ui/AppHeader';
+
 
 export default function InstructorSettingsScreen() {
     const navigation = useNavigation();
 
     return (
         <View className="flex-1 bg-slate-50">
-            <View className="pt-[52px] pb-4 px-5 bg-white flex-row items-center border-b border-slate-100">
-                <TouchableOpacity onPress={() => navigation.goBack()} className="mr-3 p-1">
-                    <ArrowLeft size={24} color="#334155" />
-                </TouchableOpacity>
-                <AppText className="text-[18px] font-extrabold text-slate-800">Cài đặt giảng viên</AppText>
-            </View>
+            {/* Header */}
+            <AppHeader title="Cài đặt giảng viên" />
 
             <ScrollView className="flex-1 p-5" showsVerticalScrollIndicator={false}>
                 <View className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-6">

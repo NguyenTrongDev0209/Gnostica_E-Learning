@@ -2,7 +2,9 @@ import AppText from '../../components/ui/AppText';
 import React from 'react';
 import { View, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { ArrowLeft, Check, X, Clock, ExternalLink } from 'lucide-react-native';
+import { Check, X, Clock, ExternalLink } from 'lucide-react-native';
+import AppHeader from '../../components/ui/AppHeader';
+
 
 const MOCK_PENDING_ORDERS = [
     { id: 'ORD-8821', user: 'kha_tran', amount: '450.000đ', time: '5 phút trước', bank: 'Techcombank' },
@@ -16,15 +18,7 @@ const OrderModerationScreen = () => {
     return (
         <View className="flex-1 bg-slate-50">
             {/* Header */}
-            <View className="bg-white pt-12 pb-4 px-4 border-b border-slate-100 flex-row items-center">
-                <TouchableOpacity onPress={() => navigation.goBack()} className="p-2">
-                    <ArrowLeft size={24} color="#1e293b" />
-                </TouchableOpacity>
-                <AppText className="text-xl font-bold text-slate-800 ml-2">Duyệt đơn hàng</AppText>
-                <View className="ml-auto bg-amber-100 px-2 py-1 rounded">
-                    <AppText className="text-amber-600 text-[10px] font-bold">12 Chờ duyệt</AppText>
-                </View>
-            </View>
+            <AppHeader title="Duyệt đơn hàng" />
 
             <ScrollView className="flex-1 p-4">
                 {MOCK_PENDING_ORDERS.map(order => (

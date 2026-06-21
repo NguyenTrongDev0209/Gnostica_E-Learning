@@ -2,8 +2,10 @@ import AppText from '../../components/ui/AppText';
 import React, { useState } from 'react';
 import { View, ScrollView, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { ArrowLeft, Image as ImageIcon, ChevronDown } from 'lucide-react-native';
+import { Image as ImageIcon, ChevronDown } from 'lucide-react-native';
 import Button from '../../components/ui/Button';
+import AppHeader from '../../components/ui/AppHeader';
+
 
 const CreatePostScreen = () => {
     const navigation = useNavigation();
@@ -27,17 +29,7 @@ const CreatePostScreen = () => {
             className="flex-1 bg-white"
         >
             {/* Header */}
-            <View className="pt-12 pb-4 px-4 border-b border-slate-100 flex-row items-center justify-between">
-                <View className="flex-row items-center">
-                    <TouchableOpacity onPress={() => navigation.goBack()} className="p-2">
-                        <ArrowLeft size={24} color="#1e293b" />
-                    </TouchableOpacity>
-                    <AppText className="text-xl font-bold text-slate-800 ml-2">Đăng bài thảo luận</AppText>
-                </View>
-                <TouchableOpacity onPress={handleCreate}>
-                    <AppText className="text-blue-600 font-bold text-base">Đăng</AppText>
-                </TouchableOpacity>
-            </View>
+            <AppHeader title="Đăng bài thảo luận" />
 
             <ScrollView className="flex-1 p-4">
                 {/* Category Selector */}

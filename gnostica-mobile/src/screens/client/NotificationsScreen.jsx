@@ -2,7 +2,8 @@ import AppText from '../../components/ui/AppText';
 import React from 'react';
 import { View, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { ArrowLeft, Bell, BookOpen, CreditCard, Star } from 'lucide-react-native';
+import { Bell, BookOpen, CreditCard, Star } from 'lucide-react-native';
+import AppHeader from '../../components/ui/AppHeader';
 
 const MOCK_NOTIFICATIONS = [
     {
@@ -40,17 +41,14 @@ const NotificationsScreen = () => {
     return (
         <View className="flex-1 bg-slate-50">
             {/* Header */}
-            <View className="bg-white pt-12 pb-4 px-4 border-b border-slate-100 flex-row items-center justify-between">
-                <View className="flex-row items-center">
-                    <TouchableOpacity onPress={() => navigation.goBack()} className="p-2">
-                        <ArrowLeft size={24} color="#1e293b" />
+            <AppHeader 
+                title="Thông báo" 
+                rightComponent={
+                    <TouchableOpacity>
+                        <AppText className="text-primary font-medium text-sm">Đánh dấu đã đọc</AppText>
                     </TouchableOpacity>
-                    <AppText className="text-xl font-bold text-slate-800 ml-2">Thông báo</AppText>
-                </View>
-                <TouchableOpacity>
-                    <AppText className="text-primary font-medium text-sm">Đánh dấu đã đọc</AppText>
-                </TouchableOpacity>
-            </View>
+                }
+            />
 
             <ScrollView className="flex-1">
                 {MOCK_NOTIFICATIONS.map(item => (

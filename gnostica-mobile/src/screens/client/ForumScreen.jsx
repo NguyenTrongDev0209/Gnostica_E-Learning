@@ -2,7 +2,9 @@ import AppText from '../../components/ui/AppText';
 import React, { useState } from 'react';
 import { View, ScrollView, TouchableOpacity, TextInput, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { ArrowLeft, Search, MessageSquare, Plus, Filter, MessageCircle, Heart } from 'lucide-react-native';
+import { Search, MessageSquare, Plus, Filter, MessageCircle, Heart } from 'lucide-react-native';
+import AppHeader from '../../components/ui/AppHeader';
+
 
 const MOCK_POSTS = [
     {
@@ -36,49 +38,7 @@ const ForumScreen = () => {
     return (
         <View className="flex-1 bg-slate-50">
             {/* Header */}
-            <View className="bg-white pt-12 pb-4 px-4 border-b border-slate-100">
-                <View className="flex-row items-center justify-between mb-4">
-                    <View className="flex-row items-center">
-                        <TouchableOpacity onPress={() => navigation.goBack()} className="p-2">
-                            <ArrowLeft size={24} color="#1e293b" />
-                        </TouchableOpacity>
-                        <AppText className="text-xl font-bold text-slate-800 ml-2">Diễn đàn thảo luận</AppText>
-                    </View>
-                    <TouchableOpacity
-                        className="bg-blue-600 w-10 h-10 rounded-full items-center justify-center shadow-lg"
-                        onPress={() => navigation.navigate('CreatePost')}
-                    >
-                        <Plus size={24} color="#fff" />
-                    </TouchableOpacity>
-                </View>
-
-                <View className="flex-row gap-2">
-                    <View className="flex-1 flex-row items-center bg-slate-100 rounded-xl px-3 py-2">
-                        <Search size={18} color="#64748b" />
-                        <TextInput
-                            placeholder="Tìm kiếm bài viết..."
-                            className="flex-1 ml-2 text-slate-700"
-                            value={searchQuery}
-                            onChangeText={setSearchQuery}
-                        />
-                    </View>
-                    <TouchableOpacity className="bg-slate-100 w-10 h-10 rounded-xl items-center justify-center">
-                        <Filter size={18} color="#64748b" />
-                    </TouchableOpacity>
-                </View>
-
-                {/* Categories Scroll */}
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-4 -mx-4 px-4">
-                    {['Tất cả', 'Lập trình', 'Thiết kế', 'Kinh doanh', 'Marketing', 'Kỹ năng mềm'].map((cat, i) => (
-                        <TouchableOpacity
-                            key={cat}
-                            className={`px-4 py-2 rounded-full mr-2 ${i === 0 ? 'bg-blue-600' : 'bg-white border border-slate-200'}`}
-                        >
-                            <AppText className={`text-xs font-bold ${i === 0 ? 'text-white' : 'text-slate-600'}`}>{cat}</AppText>
-                        </TouchableOpacity>
-                    ))}
-                </ScrollView>
-            </View>
+            <AppHeader title="Diễn đàn thảo luận" />
 
             <ScrollView className="flex-1 p-4">
                 {MOCK_POSTS.map(post => (

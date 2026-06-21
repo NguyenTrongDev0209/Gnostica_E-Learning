@@ -2,7 +2,9 @@ import AppText from '../../components/ui/AppText';
 import React from 'react';
 import { View, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { ArrowLeft, Search, User, ShieldAlert, Ban, Mail } from 'lucide-react-native';
+import { Search, User, ShieldAlert, Ban, Mail } from 'lucide-react-native';
+import AppHeader from '../../components/ui/AppHeader';
+
 
 const MOCK_USERS = [
     { id: '1', name: 'Kha Trần', email: 'kha@example.com', role: 'Student', status: 'Active' },
@@ -16,22 +18,7 @@ const UserManagementScreen = () => {
     return (
         <View className="flex-1 bg-slate-50">
             {/* Header */}
-            <View className="bg-white pt-12 pb-4 px-4 border-b border-slate-100">
-                <View className="flex-row items-center mb-4">
-                    <TouchableOpacity onPress={() => navigation.goBack()} className="p-2">
-                        <ArrowLeft size={24} color="#1e293b" />
-                    </TouchableOpacity>
-                    <AppText className="text-xl font-bold text-slate-800 ml-2">Quản lý người dùng</AppText>
-                </View>
-
-                <View className="flex-row items-center bg-slate-100 rounded-2xl px-4 py-2.5 mb-2">
-                    <Search size={20} color="#94a3b8" />
-                    <TextInput
-                        placeholder="Tìm theo tên, email hoặc ID..."
-                        className="flex-1 ml-2 text-slate-700 text-sm"
-                    />
-                </View>
-            </View>
+            <AppHeader title="Quản lý người dùng" />
 
             <ScrollView className="flex-1 p-4">
                 {MOCK_USERS.map(user => (

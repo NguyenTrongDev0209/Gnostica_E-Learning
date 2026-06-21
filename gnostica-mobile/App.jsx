@@ -1,6 +1,7 @@
 import "./global.css";
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, ActivityIndicator } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { enableScreens } from 'react-native-screens';
@@ -18,6 +19,8 @@ import {
 enableScreens(false);
 
 import AppNavigator from './src/navigation/AppNavigator';
+import SplashScreen from './src/screens/client/SplashScreen';
+import OnboardingScreen from './src/screens/client/OnboardingScreen';
 import LoginScreen from './src/screens/auth/LoginScreen';
 import RegisterScreen from './src/screens/auth/RegisterScreen';
 import CourseDetailScreen from './src/screens/client/CourseDetailScreen';
@@ -85,12 +88,40 @@ export default function App() {
     Inter_700Bold,
   });
 
+  const [showSplash, setShowSplash] = useState(true);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  const handleSplashFinish = async () => {
+    try {
+      const seen = await AsyncStorage.getItem('onboarding_seen');
+      if (!seen) {
+        setShowOnboarding(true);
+      }
+    } catch (_) {}
+    setShowSplash(false);
+  };
+
+  const handleOnboardingFinish = async () => {
+    try {
+      await AsyncStorage.setItem('onboarding_seen', 'true');
+    } catch (_) {}
+    setShowOnboarding(false);
+  };
+
   if (!fontsLoaded) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator size="large" color="#2563eb" />
       </View>
     );
+  }
+
+  if (showSplash) {
+    return <SplashScreen onFinish={handleSplashFinish} />;
+  }
+
+  if (showOnboarding) {
+    return <OnboardingScreen onFinish={handleOnboardingFinish} />;
   }
 
   return (

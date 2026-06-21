@@ -2,9 +2,11 @@ import AppText from '../../components/ui/AppText';
 import React, { useState } from 'react';
 import { View, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { ArrowLeft, Lock, Eye, EyeOff, ShieldCheck } from 'lucide-react-native';
+import { Lock, Eye, EyeOff, ShieldCheck } from 'lucide-react-native';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
+import AppHeader from '../../components/ui/AppHeader';
+
 
 const ChangePasswordScreen = () => {
     const navigation = useNavigation();
@@ -41,12 +43,7 @@ const ChangePasswordScreen = () => {
             className="flex-1 bg-slate-50"
         >
             {/* Header */}
-            <View className="bg-white pt-12 pb-4 px-4 border-b border-slate-100 flex-row items-center">
-                <TouchableOpacity onPress={() => navigation.goBack()} className="p-2">
-                    <ArrowLeft size={24} color="#1e293b" />
-                </TouchableOpacity>
-                <AppText className="text-xl font-bold text-slate-800 ml-2">Đổi mật khẩu</AppText>
-            </View>
+            <AppHeader title="Đổi mật khẩu" />
 
             <ScrollView
                 className="flex-1"

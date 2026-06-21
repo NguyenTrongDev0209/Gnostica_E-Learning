@@ -2,7 +2,9 @@ import AppText from '../../components/ui/AppText';
 import React from 'react';
 import { View, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { ArrowLeft, Ticket, Plus, Tag, Clock } from 'lucide-react-native';
+import { Ticket, Plus, Tag, Clock } from 'lucide-react-native';
+import AppHeader from '../../components/ui/AppHeader';
+
 
 const mockCoupons = [
     { id: 1, code: 'REACT_2026', discount: '30%', usage: '15/50', expiry: '31/12/2026', status: 'active' },
@@ -14,18 +16,8 @@ export default function InstructorCouponsScreen() {
 
     return (
         <View className="flex-1 bg-slate-50">
-            <View className="pt-[52px] pb-4 px-5 bg-white flex-row items-center justify-between border-b border-slate-100">
-                <View className="flex-row items-center">
-                    <TouchableOpacity onPress={() => navigation.goBack()} className="mr-3 p-1">
-                        <ArrowLeft size={24} color="#334155" />
-                    </TouchableOpacity>
-                    <AppText className="text-[18px] font-extrabold text-slate-800">Quản lý mã giảm giá</AppText>
-                </View>
-                <TouchableOpacity className="bg-blue-50 px-3 py-1.5 rounded-lg flex-row items-center">
-                    <Plus size={16} color="#2563EB" />
-                    <AppText className="text-blue-600 font-bold text-xs ml-1">Tạo mới</AppText>
-                </TouchableOpacity>
-            </View>
+            {/* Header */}
+            <AppHeader title="Mã giảm giá" />
 
             <ScrollView className="flex-1 p-5" showsVerticalScrollIndicator={false}>
                 {mockCoupons.map(coupon => (

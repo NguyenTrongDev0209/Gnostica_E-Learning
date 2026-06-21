@@ -2,7 +2,9 @@ import AppText from '../../components/ui/AppText';
 import React, { useState } from 'react';
 import { View, ScrollView, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { ArrowLeft, MessageCircle, Heart, Share2, Send } from 'lucide-react-native';
+import { MessageCircle, Heart, Share2, Send } from 'lucide-react-native';
+import AppHeader from '../../components/ui/AppHeader';
+
 
 const MOCK_COMMENTS = [
     {
@@ -31,15 +33,7 @@ const ForumDetailScreen = () => {
             className="flex-1 bg-white"
         >
             {/* Header */}
-            <View className="pt-12 pb-4 px-4 border-b border-slate-100 flex-row items-center justify-between">
-                <TouchableOpacity onPress={() => navigation.goBack()} className="p-2">
-                    <ArrowLeft size={24} color="#1e293b" />
-                </TouchableOpacity>
-                <AppText className="text-lg font-bold text-slate-800">Chi tiết bài viết</AppText>
-                <TouchableOpacity className="p-2">
-                    <Share2 size={20} color="#64748b" />
-                </TouchableOpacity>
-            </View>
+            <AppHeader title="Chi tiết bài đăng" />
 
             <ScrollView className="flex-1 px-4 pt-4">
                 {/* Main Post */}

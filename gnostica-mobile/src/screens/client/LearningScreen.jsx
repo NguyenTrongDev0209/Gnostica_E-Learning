@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { View, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { ArrowLeft, Play, CheckCircle2, Circle, FileText, MessageCircle } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { clsx } from 'clsx';
 
 const { width } = Dimensions.get('window');
@@ -10,6 +11,7 @@ const { width } = Dimensions.get('window');
 const LearningScreen = () => {
     const navigation = useNavigation();
     const route = useRoute();
+    const insets = useSafeAreaInsets();
     const course = route.params?.course;
     const [activeTab, setActiveTab] = useState('curriculum');
 
@@ -24,7 +26,7 @@ const LearningScreen = () => {
     return (
         <View className="flex-1 bg-white">
             {/* Header + Video Player */}
-            <View className="bg-slate-900 pt-12 pb-0">
+            <View className="bg-slate-900 pb-0" style={{ paddingTop: Math.max(insets.top, 20) + 12 }}>
                 {/* Navbar */}
                 <View className="flex-row items-center px-5 mb-3">
                     <TouchableOpacity onPress={() => navigation.goBack()} className="p-1">

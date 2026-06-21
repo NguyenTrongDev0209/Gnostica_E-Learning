@@ -2,7 +2,9 @@ import AppText from '../../components/ui/AppText';
 import React from 'react';
 import { View, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { ArrowLeft, Users, Search, Book } from 'lucide-react-native';
+import { Users, Search, Book } from 'lucide-react-native';
+import AppHeader from '../../components/ui/AppHeader';
+
 
 const mockStudents = [
     { id: 1, name: 'Lê Văn C', avatar: 'https://picsum.photos/seed/stu1/100/100', enrolledAt: '12/06/2026', courses: 2, progress: 45 },
@@ -14,20 +16,8 @@ export default function InstructorStudentsScreen() {
 
     return (
         <View className="flex-1 bg-slate-50">
-            <View className="pt-[52px] pb-4 px-5 bg-white border-b border-slate-100">
-                <View className="flex-row items-center mb-4">
-                    <TouchableOpacity onPress={() => navigation.goBack()} className="mr-3 p-1">
-                        <ArrowLeft size={24} color="#334155" />
-                    </TouchableOpacity>
-                    <AppText className="text-[18px] font-extrabold text-slate-800">Danh sách học viên</AppText>
-                </View>
-                
-                {/* Search Bar */}
-                <View className="flex-row items-center bg-slate-100 rounded-xl px-4 py-2.5">
-                    <Search size={18} color="#94A3B8" />
-                    <AppText className="text-slate-400 ml-2 text-sm flex-1">Tìm kiếm học viên...</AppText>
-                </View>
-            </View>
+            {/* Header */}
+            <AppHeader title="Học viên" />
 
             <ScrollView className="flex-1 p-5" showsVerticalScrollIndicator={false}>
                 <View className="flex-row items-center justify-between mb-4">

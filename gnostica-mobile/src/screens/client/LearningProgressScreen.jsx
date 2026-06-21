@@ -2,7 +2,9 @@ import AppText from '../../components/ui/AppText';
 import React from 'react';
 import { View, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { ArrowLeft, BookOpen, Trophy, Clock, Activity, CheckCircle2 } from 'lucide-react-native';
+import { BookOpen, Trophy, Clock, Activity, CheckCircle2 } from 'lucide-react-native';
+import AppHeader from '../../components/ui/AppHeader';
+
 
 const mockCourses = [
     { id: 1, title: 'React Native Masterclass 2026', progress: 75, completedLessons: 30, totalLessons: 40 },
@@ -15,12 +17,7 @@ export default function LearningProgressScreen() {
     return (
         <View className="flex-1 bg-slate-50">
             {/* Header */}
-            <View className="pt-[52px] pb-4 px-5 bg-white flex-row items-center border-b border-slate-100">
-                <TouchableOpacity onPress={() => navigation.goBack()} className="mr-3 p-1">
-                    <ArrowLeft size={24} color="#334155" />
-                </TouchableOpacity>
-                <AppText className="text-[18px] font-extrabold text-slate-800">Tiến độ học tập</AppText>
-            </View>
+            <AppHeader title="Tiến trình học tập" />
 
             <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
                 {/* Stats row */}

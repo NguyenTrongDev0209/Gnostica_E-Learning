@@ -2,7 +2,9 @@ import AppText from '../../components/ui/AppText';
 import React from 'react';
 import { View, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { ArrowLeft, MessageSquare, ThumbsUp, Eye, Clock } from 'lucide-react-native';
+import { MessageSquare, ThumbsUp, Eye, Clock } from 'lucide-react-native';
+import AppHeader from '../../components/ui/AppHeader';
+
 
 const mockPosts = [
     { id: 1, title: 'Hỏi về lỗi React Navigation', content: 'Khi mình dùng BottomTabNavigator thì bị che mất phần dưới...', time: '2 giờ trước', likes: 5, views: 120, comments: 3 },
@@ -15,17 +17,7 @@ export default function MyForumPostsScreen() {
     return (
         <View className="flex-1 bg-slate-50">
             {/* Header */}
-            <View className="pt-[52px] pb-4 px-5 bg-white flex-row items-center justify-between border-b border-slate-100">
-                <View className="flex-row items-center">
-                    <TouchableOpacity onPress={() => navigation.goBack()} className="mr-3 p-1">
-                        <ArrowLeft size={24} color="#334155" />
-                    </TouchableOpacity>
-                    <AppText className="text-[18px] font-extrabold text-slate-800">Bài viết của tôi</AppText>
-                </View>
-                <TouchableOpacity onPress={() => navigation.navigate('CreatePost')} className="bg-blue-50 px-3 py-1.5 rounded-lg">
-                    <AppText className="text-blue-600 font-bold text-xs">Viết bài</AppText>
-                </TouchableOpacity>
-            </View>
+            <AppHeader title="Bài đăng của tôi" />
 
             <ScrollView className="flex-1 p-5" showsVerticalScrollIndicator={false}>
                 {mockPosts.map(post => (

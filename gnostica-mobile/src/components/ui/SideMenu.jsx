@@ -113,7 +113,7 @@ const SideMenu = ({ visible, onClose }) => {
                 >
                     {/* Header */}
                     <View 
-                        className="bg-blue-600 pb-6 px-5 rounded-br-[40px]"
+                        className="bg-blue-600 pb-6 px-5"
                         style={{ paddingTop: Math.max(insets.top, 24) + 16 }}
                     >
                         <View className="flex-row justify-between items-start mb-4">

@@ -2,7 +2,9 @@ import AppText from '../../components/ui/AppText';
 import React from 'react';
 import { View, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { ArrowLeft, MessageCircle, Send } from 'lucide-react-native';
+import { MessageCircle, Send } from 'lucide-react-native';
+import AppHeader from '../../components/ui/AppHeader';
+
 
 const MOCK_QUESTIONS = [
     {
@@ -29,12 +31,7 @@ const InstructorQAScreen = () => {
     return (
         <View className="flex-1 bg-slate-50">
             {/* Header */}
-            <View className="bg-white pt-12 pb-4 px-4 border-b border-slate-100 flex-row items-center">
-                <TouchableOpacity onPress={() => navigation.goBack()} className="p-2">
-                    <ArrowLeft size={24} color="#1e293b" />
-                </TouchableOpacity>
-                <AppText className="text-xl font-bold text-slate-800 ml-2">Hỏi đáp học viên</AppText>
-            </View>
+            <AppHeader title="Hỏi đáp học viên" />
 
             <ScrollView className="flex-1 p-4">
                 <View className="bg-blue-50 p-4 rounded-2xl mb-6 flex-row items-center">

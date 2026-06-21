@@ -2,7 +2,9 @@ import AppText from '../../components/ui/AppText';
 import React from 'react';
 import { View, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { ArrowLeft, Users, ShoppingBag, BookOpen, AlertCircle, TrendingUp, ChevronRight, Settings } from 'lucide-react-native';
+import { Users, ShoppingBag, BookOpen, AlertCircle, TrendingUp, ChevronRight, Settings } from 'lucide-react-native';
+import AppHeader from '../../components/ui/AppHeader';
+
 
 const AdminDashboardScreen = () => {
     const navigation = useNavigation();
@@ -17,17 +19,7 @@ const AdminDashboardScreen = () => {
     return (
         <View className="flex-1 bg-slate-50">
             {/* Header */}
-            <View className="bg-slate-900 pt-12 pb-6 px-4 border-b border-slate-800 flex-row items-center justify-between">
-                <View className="flex-row items-center">
-                    <TouchableOpacity onPress={() => navigation.goBack()} className="p-2">
-                        <ArrowLeft size={24} color="#fff" />
-                    </TouchableOpacity>
-                    <AppText className="text-xl font-bold text-white ml-2">Quản trị viên</AppText>
-                </View>
-                <TouchableOpacity className="p-2 bg-slate-800 rounded-full">
-                    <Settings size={20} color="#fff" />
-                </TouchableOpacity>
-            </View>
+            <AppHeader title="Quản trị viên" />
 
             <ScrollView className="flex-1 p-4" showsVerticalScrollIndicator={false}>
                 {/* Stats Grid */}

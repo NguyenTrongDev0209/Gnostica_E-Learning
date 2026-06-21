@@ -8,6 +8,8 @@ import SearchBar from '../../components/ui/SearchBar';
 import HeroSection from '../../components/home/HeroSection';
 import CategorySection from '../../components/home/CategorySection';
 import CourseSection from '../../components/home/CourseSection';
+import InstructorSection from '../../components/home/InstructorSection';
+import FAQSection from '../../components/home/FAQSection';
 import SideMenu from '../../components/ui/SideMenu';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -42,7 +44,7 @@ const HomeScreen = () => {
                         />
                     </View>
 
-                    <TouchableOpacity className="p-1">
+                    <TouchableOpacity className="p-1" onPress={() => navigation.navigate('Notifications')}>
                         <Bell size={24} color="#1e293b" />
                     </TouchableOpacity>
 
@@ -61,9 +63,32 @@ const HomeScreen = () => {
                 <CategorySection />
 
                 {/* Course Sections */}
+                <CourseSection title="Dành cho bạn" variant="foryou" />
+
                 <CourseSection title="Khóa học thịnh hành" variant="trending" />
 
+                <InstructorSection />
+
                 <CourseSection title="Khóa học nổi bật" variant="featured" />
+
+                {/* FAQ Section */}
+                <FAQSection />
+
+                {/* CTA Banner */}
+                <View className="mx-5 mt-6 mb-6 bg-slate-900 rounded-2xl p-5 flex-row items-center">
+                    <View className="flex-1 pr-4">
+                        <AppText className="text-white font-bold text-base mb-1">Bạn là giảng viên?</AppText>
+                        <AppText className="text-slate-400 text-xs leading-4">
+                            Chia sẻ kiến thức và tạo thu nhập cùng Gnostica.
+                        </AppText>
+                    </View>
+                    <TouchableOpacity
+                        className="bg-white px-4 py-2.5 rounded-xl"
+                        onPress={() => navigation.navigate('InstructorDashboard')}
+                    >
+                        <AppText className="text-slate-900 font-bold text-xs">Tìm hiểu</AppText>
+                    </TouchableOpacity>
+                </View>
 
                 <View className="h-5" />
             </ScrollView>

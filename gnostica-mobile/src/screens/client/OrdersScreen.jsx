@@ -2,7 +2,8 @@ import AppText from '../../components/ui/AppText';
 import React from 'react';
 import { View, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { ArrowLeft, ChevronRight, Package } from 'lucide-react-native';
+import { Package, ChevronRight } from 'lucide-react-native';
+import AppHeader from '../../components/ui/AppHeader';
 import { myCourses } from '../../constants/mockData';
 
 const STATUS_MAP = {
@@ -23,14 +24,10 @@ const OrdersScreen = () => {
 
     return (
         <View className="flex-1 bg-slate-50">
-            {/* Header */}
-            <View className="bg-white pt-12 pb-4 px-4 border-b border-slate-100 flex-row items-center">
-                <TouchableOpacity onPress={() => navigation.goBack()} className="p-2">
-                    <ArrowLeft size={24} color="#1e293b" />
-                </TouchableOpacity>
-                <AppText className="text-xl font-bold text-slate-800 ml-2">Đơn hàng của tôi</AppText>
-                <AppText className="text-slate-400 text-sm ml-auto">{MOCK_ORDERS.length} đơn</AppText>
-            </View>
+            <AppHeader 
+                title="Đơn hàng của tôi" 
+                rightComponent={<AppText className="text-slate-400 text-sm">{MOCK_ORDERS.length} đơn</AppText>}
+            />
 
             <ScrollView className="flex-1 p-4" showsVerticalScrollIndicator={false}>
                 {MOCK_ORDERS.length === 0 ? (

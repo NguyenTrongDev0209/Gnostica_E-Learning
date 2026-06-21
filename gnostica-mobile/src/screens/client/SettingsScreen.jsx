@@ -3,9 +3,10 @@ import React from 'react';
 import { View, ScrollView, TouchableOpacity, Switch, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
-    ArrowLeft, ChevronRight, Lock, Package, Compass, Bell,
+    ChevronRight, Lock, Package, Compass, Bell,
     Moon, Globe, Trash2, CircleHelp,
 } from 'lucide-react-native';
+import AppHeader from '../../components/ui/AppHeader';
 
 const SETTINGS_GROUPS = [
     {
@@ -64,12 +65,7 @@ const SettingsScreen = () => {
     return (
         <View className="flex-1 bg-slate-50">
             {/* Header */}
-            <View className="bg-white pt-12 pb-4 px-4 border-b border-slate-100 flex-row items-center">
-                <TouchableOpacity onPress={() => navigation.goBack()} className="p-2">
-                    <ArrowLeft size={24} color="#1e293b" />
-                </TouchableOpacity>
-                <AppText className="text-xl font-bold text-slate-800 ml-2">Cài đặt</AppText>
-            </View>
+            <AppHeader title="Cài đặt" />
 
             <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
                 {SETTINGS_GROUPS.map(group => (

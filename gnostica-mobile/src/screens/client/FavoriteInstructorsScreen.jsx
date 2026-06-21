@@ -2,7 +2,9 @@ import AppText from '../../components/ui/AppText';
 import React from 'react';
 import { View, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { ArrowLeft, Star, Users, BookOpen } from 'lucide-react-native';
+import { Star, Users, BookOpen } from 'lucide-react-native';
+import AppHeader from '../../components/ui/AppHeader';
+
 
 const mockInstructors = [
     { id: 1, name: 'Nguyễn Văn A', avatar: 'https://picsum.photos/seed/inst1/100/100', students: 12500, courses: 8, rating: 4.8 },
@@ -15,12 +17,7 @@ export default function FavoriteInstructorsScreen() {
     return (
         <View className="flex-1 bg-slate-50">
             {/* Header */}
-            <View className="pt-[52px] pb-4 px-5 bg-white flex-row items-center border-b border-slate-100">
-                <TouchableOpacity onPress={() => navigation.goBack()} className="mr-3 p-1">
-                    <ArrowLeft size={24} color="#334155" />
-                </TouchableOpacity>
-                <AppText className="text-[18px] font-extrabold text-slate-800">Giảng viên yêu thích</AppText>
-            </View>
+            <AppHeader title="Giảng viên yêu thích" />
 
             <ScrollView className="flex-1 p-5">
                 {mockInstructors.map(instructor => (

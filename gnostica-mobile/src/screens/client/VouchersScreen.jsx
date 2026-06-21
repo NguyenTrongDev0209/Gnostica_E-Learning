@@ -2,7 +2,8 @@ import AppText from '../../components/ui/AppText';
 import React from 'react';
 import { View, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { ArrowLeft, Ticket, Clock, Info } from 'lucide-react-native';
+import { Ticket, Clock, Info } from 'lucide-react-native';
+import AppHeader from '../../components/ui/AppHeader';
 
 const MOCK_VOUCHERS = [
     {
@@ -29,12 +30,7 @@ const VouchersScreen = () => {
     return (
         <View className="flex-1 bg-slate-50">
             {/* Header */}
-            <View className="bg-white pt-12 pb-4 px-4 border-b border-slate-100 flex-row items-center">
-                <TouchableOpacity onPress={() => navigation.goBack()} className="p-2">
-                    <ArrowLeft size={24} color="#1e293b" />
-                </TouchableOpacity>
-                <AppText className="text-xl font-bold text-slate-800 ml-2">Ưu đãi của tôi</AppText>
-            </View>
+            <AppHeader title="Ưu đãi của tôi" />
 
             <ScrollView className="flex-1 p-4">
                 {MOCK_VOUCHERS.map(item => (

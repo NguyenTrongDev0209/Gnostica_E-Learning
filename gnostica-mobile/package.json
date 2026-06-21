@@ -12,6 +12,7 @@
     "@expo-google-fonts/inter": "^0.4.2",
     "@gluestack-ui/nativewind": "^0.0.2",
     "@gluestack-ui/overlay": "^0.1.22",
+    "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-masked-view/masked-view": "^0.3.2",
     "@react-navigation/bottom-tabs": "^7.16.1",
     "@react-navigation/native": "^7.2.2",

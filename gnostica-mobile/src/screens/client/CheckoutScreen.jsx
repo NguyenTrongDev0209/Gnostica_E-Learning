@@ -2,8 +2,9 @@ import AppText from '../../components/ui/AppText';
 import React, { useState } from 'react';
 import { View, ScrollView, TouchableOpacity, Image, TextInput, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { ArrowLeft, Trash2, Ticket, ChevronRight } from 'lucide-react-native';
+import { Trash2, Ticket, ChevronRight } from 'lucide-react-native';
 import { useCart } from '../../context/CartContext';
+import AppHeader from '../../components/ui/AppHeader';
 import Button from '../../components/ui/Button';
 
 const CheckoutScreen = () => {
@@ -51,13 +52,10 @@ const CheckoutScreen = () => {
     return (
         <View className="flex-1 bg-slate-50">
             {/* Header */}
-            <View className="bg-white pt-12 pb-4 px-4 border-b border-slate-100 flex-row items-center">
-                <TouchableOpacity onPress={() => navigation.goBack()} className="p-2">
-                    <ArrowLeft size={24} color="#1e293b" />
-                </TouchableOpacity>
-                <AppText className="text-xl font-bold text-slate-800 ml-2">Thanh toán</AppText>
-                <AppText className="text-slate-400 text-sm ml-auto">{cartItems.length} mục</AppText>
-            </View>
+            <AppHeader 
+                title="Thanh toán" 
+                rightComponent={<AppText className="text-slate-400 text-sm">{cartItems.length} mục</AppText>}
+            />
 
             {cartItems.length === 0 ? (
                 <View className="flex-1 items-center justify-center p-5">

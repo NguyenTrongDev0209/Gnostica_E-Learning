@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { View, ScrollView, TouchableOpacity, FlatList } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { clsx } from 'clsx';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import CourseProgressCard from '../../components/home/CourseProgressCard';
 import Button from '../../components/ui/Button';
 import { myCourses } from '../../constants/mockData';
@@ -13,6 +14,7 @@ const TABS = ['Đang học', 'Hoàn thành'];
 const MyCoursesScreen = () => {
     const navigation = useNavigation();
     const { isAuthenticated } = useAuth();
+    const insets = useSafeAreaInsets();
     const [activeTab, setActiveTab] = useState(0);
 
     // Unauthenticated state
@@ -44,7 +46,7 @@ const MyCoursesScreen = () => {
     return (
         <View className="flex-1 bg-slate-50">
             {/* Header */}
-            <View className="bg-white pt-[52px] px-5 pb-0 border-b border-slate-100">
+            <View className="bg-white px-5 pb-0 border-b border-slate-100" style={{ paddingTop: Math.max(insets.top, 20) + 12 }}>
                 <AppText className="text-[22px] font-extrabold text-slate-800 mb-4">
                     Khóa học của tôi
                 </AppText>

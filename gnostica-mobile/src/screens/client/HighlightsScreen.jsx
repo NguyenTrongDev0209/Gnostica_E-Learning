@@ -123,21 +123,6 @@ const HighlightsScreen = () => {
                 </ScrollView>
             </View>
 
-            {/* CTA Banner */}
-            <View className="mx-5 mt-6 mb-24 bg-slate-900 rounded-2xl p-5 flex-row items-center">
-                <View className="flex-1 pr-4">
-                    <AppText className="text-white font-bold text-base mb-1">Bạn là giảng viên?</AppText>
-                    <AppText className="text-slate-400 text-xs leading-4">
-                        Chia sẻ kiến thức và tạo thu nhập cùng Gnostica.
-                    </AppText>
-                </View>
-                <TouchableOpacity
-                    className="bg-white px-4 py-2.5 rounded-xl"
-                    onPress={() => navigation.navigate('InstructorDashboard')}
-                >
-                    <AppText className="text-slate-900 font-bold text-xs">Tìm hiểu</AppText>
-                </TouchableOpacity>
-            </View>
         </ScrollView>
     );
 };

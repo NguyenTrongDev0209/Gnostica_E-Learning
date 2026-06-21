@@ -2,7 +2,9 @@ import AppText from '../../components/ui/AppText';
 import React from 'react';
 import { View, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { ArrowLeft, Search, Star, Globe, Smartphone, Cpu, BarChart3, Target, Briefcase, Monitor } from 'lucide-react-native';
+import { Search, Star, Globe, Smartphone, Cpu, BarChart3, Target, Briefcase, Monitor } from 'lucide-react-native';
+import AppHeader from '../../components/ui/AppHeader';
+
 
 const CATEGORIES = [
     { id: '1', name: 'Lập trình Web', courses: 24, icon: Globe, color: '#3b82f6' },
@@ -19,12 +21,7 @@ const CategoryBrowseScreen = () => {
     return (
         <View className="flex-1 bg-slate-50">
             {/* Header */}
-            <View className="bg-white pt-12 pb-4 px-4 border-b border-slate-100 flex-row items-center">
-                <TouchableOpacity onPress={() => navigation.goBack()} className="p-2">
-                    <ArrowLeft size={24} color="#1e293b" />
-                </TouchableOpacity>
-                <AppText className="text-xl font-bold text-slate-800 ml-2">Khám phá danh mục</AppText>
-            </View>
+            <AppHeader title="Khám phá danh mục" />
 
             <ScrollView className="flex-1 p-4">
                 <View className="flex-row flex-wrap justify-between">

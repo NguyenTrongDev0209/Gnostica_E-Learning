@@ -2,19 +2,17 @@ import AppText from '../../components/ui/AppText';
 import React from 'react';
 import { View, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { ArrowLeft, CheckCircle2, ShieldOff } from 'lucide-react-native';
+import { CheckCircle2, ShieldOff } from 'lucide-react-native';
+import AppHeader from '../../components/ui/AppHeader';
+
 
 export default function AdminThreadModerationScreen() {
     const navigation = useNavigation();
 
     return (
         <View className="flex-1 bg-slate-50">
-            <View className="pt-[52px] pb-4 px-5 bg-white flex-row items-center border-b border-slate-100">
-                <TouchableOpacity onPress={() => navigation.goBack()} className="mr-3 p-1">
-                    <ArrowLeft size={24} color="#334155" />
-                </TouchableOpacity>
-                <AppText className="text-[18px] font-extrabold text-slate-800">Kiểm duyệt bài viết</AppText>
-            </View>
+            {/* Header */}
+            <AppHeader title="Kiểm duyệt bài viết" />
 
             <ScrollView className="flex-1 p-5" showsVerticalScrollIndicator={false}>
                 {[1, 2].map((item) => (

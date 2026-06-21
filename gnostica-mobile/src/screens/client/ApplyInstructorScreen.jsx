@@ -2,7 +2,9 @@ import AppText from '../../components/ui/AppText';
 import React from 'react';
 import { View, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { ArrowLeft, Upload, CheckCircle2 } from 'lucide-react-native';
+import { Upload, CheckCircle2 } from 'lucide-react-native';
+import AppHeader from '../../components/ui/AppHeader';
+
 
 export default function ApplyInstructorScreen() {
     const navigation = useNavigation();
@@ -10,12 +12,7 @@ export default function ApplyInstructorScreen() {
     return (
         <View className="flex-1 bg-slate-50">
             {/* Header */}
-            <View className="pt-[52px] pb-4 px-5 bg-white flex-row items-center border-b border-slate-100">
-                <TouchableOpacity onPress={() => navigation.goBack()} className="mr-3 p-1">
-                    <ArrowLeft size={24} color="#334155" />
-                </TouchableOpacity>
-                <AppText className="text-[18px] font-extrabold text-slate-800">Đăng ký giảng viên</AppText>
-            </View>
+            <AppHeader title="Đăng ký giảng viên" />
 
             <ScrollView className="flex-1 p-5" showsVerticalScrollIndicator={false}>
                 <View className="bg-blue-50 p-4 rounded-2xl mb-6 border border-blue-100">

@@ -2,19 +2,17 @@ import AppText from '../../components/ui/AppText';
 import React from 'react';
 import { View, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { ArrowLeft, Check, X } from 'lucide-react-native';
+import { Check, X } from 'lucide-react-native';
+import AppHeader from '../../components/ui/AppHeader';
+
 
 export default function AdminCourseDetailModerationScreen() {
     const navigation = useNavigation();
 
     return (
         <View className="flex-1 bg-slate-50">
-            <View className="pt-[52px] pb-4 px-5 bg-white flex-row items-center border-b border-slate-100">
-                <TouchableOpacity onPress={() => navigation.goBack()} className="mr-3 p-1">
-                    <ArrowLeft size={24} color="#334155" />
-                </TouchableOpacity>
-                <AppText className="text-[18px] font-extrabold text-slate-800">Chi tiết kiểm duyệt</AppText>
-            </View>
+            {/* Header */}
+            <AppHeader title="Chi tiết khóa học" />
 
             <ScrollView className="flex-1 p-5" showsVerticalScrollIndicator={false}>
                 <View className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm mb-6">

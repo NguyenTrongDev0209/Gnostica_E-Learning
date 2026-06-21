@@ -2,9 +2,10 @@ import AppText from '../../components/ui/AppText';
 import React from 'react';
 import { View, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { ArrowLeft, Trash2, ShoppingBag } from 'lucide-react-native';
+import { Trash2, ShoppingBag } from 'lucide-react-native';
 import { useCart } from '../../context/CartContext';
 import Button from '../../components/ui/Button';
+import AppHeader from '../../components/ui/AppHeader';
 
 const CartScreen = () => {
     const navigation = useNavigation();
@@ -25,13 +26,7 @@ const CartScreen = () => {
     return (
         <View className="flex-1 bg-slate-50">
             {/* Header */}
-            <View className="flex-row items-center justify-between pt-[52px] px-5 pb-4 bg-white border-b border-slate-100">
-                <TouchableOpacity onPress={() => navigation.goBack()} className="p-1">
-                    <ArrowLeft size={24} color="#1E293B" />
-                </TouchableOpacity>
-                <AppText className="text-lg font-bold text-slate-800">Giỏ hàng</AppText>
-                <View className="w-8" />
-            </View>
+            <AppHeader title="Giỏ hàng" />
 
             {cartItems.length === 0 ? (
                 /* Empty state */
