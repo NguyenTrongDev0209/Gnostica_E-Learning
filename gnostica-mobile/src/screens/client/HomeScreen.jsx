@@ -13,11 +13,13 @@ import HeroSection from '../../components/home/HeroSection';
 import CategorySection from '../../components/home/CategorySection';
 import CourseSection from '../../components/home/CourseSection';
 import SideMenu from '../../components/ui/SideMenu';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const HomeScreen = () => {
     const navigation = useNavigation();
     const { cartItems } = useCart();
     const [isMenuVisible, setIsMenuVisible] = useState(false);
+    const insets = useSafeAreaInsets();
 
     return (
         <View className="flex-1 bg-slate-50">
@@ -29,7 +31,10 @@ const HomeScreen = () => {
                 contentContainerStyle={{ paddingBottom: 80 }}
             >
                 {/* Header */}
-                <View className="flex-row items-center px-4 pt-10 pb-4 bg-white gap-3">
+                <View 
+                    className="flex-row items-center px-4 pb-4 bg-white gap-3"
+                    style={{ paddingTop: Math.max(insets.top, 20) + 12 }}
+                >
                     <TouchableOpacity className="p-1" onPress={() => setIsMenuVisible(true)}>
                         <Menu size={26} color="#1e293b" />
                     </TouchableOpacity>

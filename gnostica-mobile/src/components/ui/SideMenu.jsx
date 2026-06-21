@@ -4,6 +4,8 @@ import { X, BookOpen, MessageSquare, Compass, Settings, LogOut, ChevronRight, Us
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../context/AuthContext';
 
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 const { width } = Dimensions.get('window');
 const DRAWER_WIDTH = width * 0.75;
 
@@ -24,6 +26,7 @@ const SideMenu = ({ visible, onClose }) => {
     const { user, logout } = useAuth();
     const slideAnim = useRef(new Animated.Value(-DRAWER_WIDTH)).current;
     const fadeAnim = useRef(new Animated.Value(0)).current;
+    const insets = useSafeAreaInsets();
 
     useEffect(() => {
         if (visible) {
@@ -108,7 +111,10 @@ const SideMenu = ({ visible, onClose }) => {
                     className="bg-white h-full shadow-2xl absolute top-0 bottom-0 left-0"
                 >
                     {/* Header */}
-                    <View className="bg-blue-600 pt-14 pb-6 px-5 rounded-br-[40px]">
+                    <View 
+                        className="bg-blue-600 pb-6 px-5 rounded-br-[40px]"
+                        style={{ paddingTop: Math.max(insets.top, 24) + 16 }}
+                    >
                         <View className="flex-row justify-between items-start mb-4">
                             <View className="w-14 h-14 bg-white rounded-full items-center justify-center shadow-sm">
                                 <User size={28} color="#2563eb" />
