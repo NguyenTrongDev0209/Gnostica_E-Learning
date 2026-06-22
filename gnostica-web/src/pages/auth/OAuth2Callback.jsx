@@ -19,26 +19,27 @@ const OAuth2Callback = () => {
                 try {
                     const response = await authService.getOAuth2User(email);
                     console.log("Fetch user response:", response.data);
-                    
+
                     if (response.data.status === 200 || response.data.status === 'success') {
                         const user = response.data.data;
                         // Chuẩn hóa dữ liệu user để đồng nhất với LoginResponse (chỉ lưu các thông tin cần thiết)
                         const roleName = (user.role?.name || user.role || 'USER').toUpperCase();
-                        const normalizedUser = { 
+                        const normalizedUser = {
+                            id: user.id || user.id, // Ensure id is preserved
                             fullName: user.fullName,
                             email: user.email,
-                            role: roleName, 
+                            role: roleName,
                             token: tokenFromParams || user.token,
                             avatar: user.avatar,
-                            provider: user.provider
+                            provider: user.provider,
+                            onboardingCompleted: user.onboardingCompleted // Important for personalization popup
                         };
-                        
+
                         localStorage.setItem('user', JSON.stringify(normalizedUser));
-                        useAuthStore.getState().setUser(normalizedUser);
-                        console.log("OAuth2Callback: User normalized and saved to localStorage and Zustand");
-                        
+                        console.log("OAuth2Callback: User normalized and saved to localStorage", normalizedUser);
+
                         toast.success('Đăng nhập thành công!');
-                        
+
                         setTimeout(() => {
                             if (roleName === 'ADMIN') {
                                 navigate('/admin');

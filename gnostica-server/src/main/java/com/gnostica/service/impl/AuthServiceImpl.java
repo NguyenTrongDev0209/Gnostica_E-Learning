@@ -7,11 +7,9 @@ import com.gnostica.dto.response.LoginResponse;
 import com.gnostica.event.LogEvent;
 import com.gnostica.model.Account;
 import com.gnostica.model.Instructor;
-import com.gnostica.model.Password;
 import com.gnostica.model.Role;
 import com.gnostica.repository.AccountRepository;
 import com.gnostica.repository.InstructorRepository;
-import com.gnostica.repository.PasswordRepository;
 import com.gnostica.repository.RoleRepository;
 import com.gnostica.security.JwtProvider;
 import com.gnostica.service.AuthService;
@@ -37,13 +35,13 @@ public class AuthServiceImpl implements AuthService {
     private final AccountRepository accountRepository;
     private final InstructorRepository instructorRepository;
     private final RoleRepository roleRepository;
-    private final PasswordRepository passwordRepository;
     private final PasswordEncoder passwordEncoder;
     private final MailService mailService;
     private final AuthenticationManager authenticationManager;
     private final JwtProvider tokenProvider;
     private final ApplicationEventPublisher eventPublisher;
     private final ObjectMapper objectMapper;
+    private final com.gnostica.repository.CategoryRepository categoryRepository;
 
     @Override
     public Account register(RegisterRequest request) {
@@ -65,6 +63,7 @@ public class AuthServiceImpl implements AuthService {
 
         account.setRole(defaultRole);
         account.setActive(false); // Wait for verification
+        account.setPassword(passwordEncoder.encode(request.getPassword()));
 
         // Generate OTP
         String otp = String.format("%06d", new SecureRandom().nextInt(999999));
@@ -73,19 +72,11 @@ public class AuthServiceImpl implements AuthService {
 
         Account savedAccount = accountRepository.save(account);
 
-        // Lưu mật khẩu vào bảng mới
-        Password password = new Password();
-        password.setPassword(passwordEncoder.encode(request.getPassword()));
-        password.setStatus(1); // 1 = Active
-        password.setAccount(savedAccount);
-        passwordRepository.save(password);
-
         // Send Email
         try {
             mailService.sendVerificationEmail(account.getEmail(), otp);
         } catch (Exception e) {
-            // Log error but the account is saved. User can resend later.
-            System.err.println("Error sending email: " + e.getMessage());
+            log.error("CRITICAL: Failed to send verification email to {}. Error: {}", account.getEmail(), e.getMessage(), e);
         }
 
         return savedAccount;
@@ -119,6 +110,8 @@ public class AuthServiceImpl implements AuthService {
                 .role(account.getRole().getName())
                 .avatar(account.getAvatar())
                 .provider(account.getProvider())
+                .onboardingCompleted(account.getOnboardingCompleted())
+                .id(account.getId())
                 .build();
 
         // Publish audit log event (async)
@@ -218,19 +211,8 @@ public class AuthServiceImpl implements AuthService {
             throw new RuntimeException("Mã xác thực đã hết hạn.");
         }
 
-        // Hợp lệ, tiến hành đổi mật khẩu theo cơ chế lưu lịch sử
-        // 1. Tìm mật khẩu đang hoạt động (nếu có) và chuyển sang inactive (status = 0)
-        passwordRepository.findByAccountAndStatus(account, 1).ifPresent(p -> {
-            p.setStatus(0);
-            passwordRepository.save(p);
-        });
-
-        // 2. Tạo bản ghi mật khẩu mới (status = 1)
-        Password newPasswordEntity = new Password();
-        newPasswordEntity.setPassword(passwordEncoder.encode(newPassword));
-        newPasswordEntity.setStatus(1); // Active
-        newPasswordEntity.setAccount(account);
-        passwordRepository.save(newPasswordEntity);
+        // Hợp lệ, tiến hành đổi mật khẩu trực tiếp vào Account
+        account.setPassword(passwordEncoder.encode(newPassword));
 
         // Clear OTP
         account.setVerificationCode(null);
@@ -302,6 +284,22 @@ public class AuthServiceImpl implements AuthService {
         Account account = accountRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại."));
         account.setAvatar(avatarUrl);
+        accountRepository.save(account);
+    }
+
+    @Override
+    public void updatePersonalization(String email, com.gnostica.dto.PersonalizationDTO dto) {
+        Account account = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại."));
+        
+        account.setLevel(dto.getLevel());
+        account.setOnboardingCompleted(true);
+        
+        if (dto.getCategoryIds() != null && !dto.getCategoryIds().isEmpty()) {
+            java.util.List<com.gnostica.model.Category> categories = categoryRepository.findAllById(dto.getCategoryIds());
+            account.setInterests(categories);
+        }
+        
         accountRepository.save(account);
     }
 }

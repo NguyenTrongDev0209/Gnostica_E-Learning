@@ -35,6 +35,28 @@ const updateAvatar = async (email, file) => {
 
 const accountService = {
     updateAvatar,
+    updatePersonalization: async (email, data) => {
+        try {
+            const user = JSON.parse(localStorage.getItem('user'));
+            const token = user?.token;
+            const response = await axios.put(`${API_URL}/personalization?email=${email}`, data, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (response.data.status === 200) {
+                // Update local user state
+                if (user) {
+                    user.onboardingCompleted = true;
+                    // You might want to save level/categories too if needed in frontend
+                    localStorage.setItem('user', JSON.stringify(user));
+                }
+            }
+            return response.data;
+        } catch (error) {
+            throw error.response?.data?.message || 'Không thể cập nhật thông tin cá nhân hóa!';
+        }
+    }
 };
 
 export default accountService;

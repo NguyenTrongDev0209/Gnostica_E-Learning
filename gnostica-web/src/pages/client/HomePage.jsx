@@ -7,6 +7,7 @@ import FeaturedCourses from "@/components/pages/client/home/FeaturedCourses"
 import InstructorGrid from "@/components/pages/client/home/InstructorGrid"
 import FAQSection from "@/components/pages/client/home/FAQSection"
 import OutcomeBanner from "@/components/pages/client/home/OutcomeBanner"
+import RecommendedCourses from "@/components/pages/client/home/RecommendedCourses"
 
 
 function HomePage() {
@@ -18,6 +19,10 @@ function HomePage() {
 
         <div className="app-container">
           <SubBannerCarousel />
+        </div>
+
+        <div className="app-container">
+          <RecommendedCourses />
         </div>
 
         <AppSection title="Danh mục nổi bật" containerClassName="w-full">

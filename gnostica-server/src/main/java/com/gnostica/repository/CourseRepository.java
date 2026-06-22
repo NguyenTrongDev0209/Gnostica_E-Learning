@@ -99,4 +99,13 @@ public interface CourseRepository extends JpaRepository<Course, Integer> {
         "GROUP BY c.status"
     )
     java.util.List<Object[]> countModerationStats();
+    @org.springframework.data.jpa.repository.Query(
+        "SELECT c FROM Course c WHERE c.status = 1 AND (c.deleted = false OR c.deleted IS NULL) " +
+        "AND (:level IS NULL OR c.level = :level) " +
+        "AND (CAST(:categoryIds AS integer) IS NULL OR c.category.id IN :categoryIds OR c.category.parent.id IN :categoryIds)"
+    )
+    org.springframework.data.domain.Page<Course> findRecommendedCourses(
+            @org.springframework.data.repository.query.Param("level") String level,
+            @org.springframework.data.repository.query.Param("categoryIds") java.util.Collection<Integer> categoryIds,
+            org.springframework.data.domain.Pageable pageable);
 }

@@ -11,7 +11,7 @@ public interface MailService {
 
     void sendResetPasswordEmail(String to, String code) throws MessagingException;
 
-    void sendEmail(String to, String subject, String body);
+    void sendEmail(String to, String subject, String body) throws MessagingException;
     
     void sendCourseCompletionEmail(Enrollment enrollment);
 }
