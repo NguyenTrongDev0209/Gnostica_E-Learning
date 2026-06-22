@@ -56,7 +56,7 @@ const CheckoutScreen = () => {
             });
 
             // api.post tự ném lỗi nếu status != 2xx nên response ở đây chắc chắn là thành công
-            if (response.status === 'success' && response.data) {
+            if (response.error === 0 && response.data) {
                 setDiscount(0);
                 setVoucherApplied(false);
                 navigation.navigate('PaymentQRCode', { paymentData: response.data });
