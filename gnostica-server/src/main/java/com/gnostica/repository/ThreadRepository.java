@@ -24,6 +24,8 @@ public interface ThreadRepository extends JpaRepository<Thread, Integer> {
 
     List<Thread> findTop3ByCategoryIdAndIdNotAndStatusTrueOrderByLikesDesc(Integer categoryId, Integer id);
 
+    List<Thread> findTop5ByCategoryIdAndStatusTrueOrderByLikesDesc(Integer categoryId);
+
     Page<Thread> findByAccountEmailOrderByCreatedAtDesc(String email, Pageable pageable);
 
     @Query("SELECT COUNT(t), COALESCE(SUM(t.likes), 0) FROM Thread t WHERE t.account.email = :email")

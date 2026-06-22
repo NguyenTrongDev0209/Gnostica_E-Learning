@@ -65,10 +65,10 @@ public class AiService {
             systemMap.put("role", "system");
             systemMap.put("content", "Bạn là một trợ lý ảo của Gnostica E-Learning. Bạn có thể truy cập DB để tìm bài viết và khóa học. " +
                     "\nQUY TẮC BẮT BUỘC:" +
-                    "\n1. CHỈ lấy dữ liệu thực tế từ việc gọi hàm (tools) kết nối Database. Tuyệt đối không tự bịa ra thông tin khóa học, bài viết, chuyên mục, giảng viên, hay bất kỳ số liệu nào nếu database không có." +
+                    "\n1. TUYỆT ĐỐI KHÔNG LẤY DỮ LIỆU GIẢ, ẢO HOẶC DỮ LIỆU DO AI TỰ PHÁT SINH/TỰ BỊA RA. Chỉ lấy dữ liệu thực tế tồn tại trong cơ sở dữ liệu thông qua việc gọi hàm (tools) kết nối Database. Nếu Database trống hoặc không tìm thấy, bạn bắt buộc phải báo là không có kết quả thực tế, tuyệt đối không được tự ý điền thông tin giả mạo vào các thẻ CARD." +
                     "\n2. KHÔNG ĐƯỢC trả lời bằng danh sách thuần văn bản thô (bullet points, plain text, hyphens, v.v.). Khi hiển thị bất kỳ danh sách nào (khóa học, bài viết, chuyên mục, hay người đóng góp), bạn BẮT BUỘC phải chuyển đổi từng phần tử trong danh sách thành định dạng thẻ Card sau để giao diện hiển thị đẹp mắt: `[[CARD:TYPE|id|title|info|author|category|imageUrl]]`." +
                     "\n3. KHÔNG trả lời bằng khoảng trắng hoặc tin nhắn trống. Nếu không có hoặc không tìm thấy dữ liệu, hãy phản hồi rõ ràng bằng câu chữ lịch sự." +
-                    "\n4. NẾU kết quả từ database (gọi hàm/tool) trả về chứa cụm từ 'DATABASE_EMPTY' hoặc báo không tìm thấy kết quả, bạn BẮT BUỘC phải thông báo lại trực tiếp và lịch sự với người dùng rằng không có kết quả phù hợp (ví dụ: 'Rất tiếc, hiện tại không có khóa học nào dưới mức giá đó.'). CẤM TUYỆT ĐỐI việc tự bịa ra thông tin giả mạo để điền vào thẻ CARD." +
+                    "\n4. NẾU kết quả từ database (gọi hàm/tool) trả về chứa cụm từ 'DATABASE_EMPTY' hoặc báo không tìm thấy kết quả, bạn BẮT BUỘC phải thông báo lại trực tiếp và lịch sự với người dùng rằng không có kết quả phù hợp trong hệ thống (ví dụ: 'Rất tiếc, hiện tại hệ thống chưa có khóa học nào như vậy.'). CẤM TUYỆT ĐỐI việc tự bịa ra thông tin giả mạo để điền vào thẻ CARD." +
                     "\n\nChi tiết định dạng thẻ Card:" +
                     "\n- TYPE: 'course' (Khóa học), 'forum' (Bài viết/Thread), 'category' (Chuyên mục diễn đàn), 'contributor' (Thành viên đóng góp)." +
                     "\n- id: SLUG khóa học (nếu là course), ID bài viết (nếu là forum), ID chuyên mục (nếu là category), ID tài khoản thành viên (nếu là contributor)." +
@@ -173,6 +173,26 @@ public class AiService {
                     }
                     return catSb.toString();
 
+                case "get_threads_by_category":
+                    Map<String, Object> threadArgs = objectMapper.readValue(arguments, Map.class);
+                    String categoryName = (String) threadArgs.get("categoryName");
+                    if (categoryName == null || categoryName.trim().isEmpty()) {
+                        return "Lỗi: categoryName không hợp lệ.";
+                    }
+                    List<ForumCategory> allCats = forumCategoryRepository.findAll();
+                    ForumCategory matchedCat = null;
+                    for (ForumCategory fc : allCats) {
+                        if (fc.getName().toLowerCase().contains(categoryName.toLowerCase()) ||
+                            categoryName.toLowerCase().contains(fc.getName().toLowerCase())) {
+                            matchedCat = fc;
+                            break;
+                        }
+                    }
+                    if (matchedCat == null) {
+                        return "DATABASE_EMPTY: Không tìm thấy chủ đề nào phù hợp với tên: " + categoryName;
+                    }
+                    List<Thread> categoryThreads = threadRepository.findTop5ByCategoryIdAndStatusTrueOrderByLikesDesc(matchedCat.getId());
+                    return buildThreadResponse(categoryThreads);
 
                 case "search_courses":
                     Map<String, Object> courseArgs = objectMapper.readValue(arguments, Map.class);
@@ -246,6 +266,17 @@ public class AiService {
             createTool("get_top_liked_threads", "Lấy top 5 bài viết có nhiều lượt thích (like) nhất trong diễn đàn.", Collections.emptyMap()),
             createTool("get_top_contributors", "Lấy thông tin những người dùng đăng bài nhiều nhất hoặc nhận được tổng số like cao nhất.", Collections.emptyMap()),
             createTool("get_forum_categories", "Xem danh sách các chủ đề (categories) của diễn đàn hiện đang có để biết người dùng đang quan tâm điều gì.", Collections.emptyMap()),
+            createTool(
+                "get_threads_by_category", 
+                "Lấy danh sách tối đa 5 bài viết mới nhất thuộc một chuyên mục (category) cụ thể bằng tên chuyên mục (ví dụ: 'Hỏi đáp lập trình', 'Chia sẻ kinh nghiệm').", 
+                Map.of(
+                    "type", "object",
+                    "properties", Map.of(
+                        "categoryName", Map.of("type", "string", "description", "Tên của chuyên mục cần lấy bài viết (ví dụ: 'Hỏi đáp lập trình', 'Chia sẻ kinh nghiệm').")
+                    ),
+                    "required", List.of("categoryName")
+                )
+            ),
 
             createTool(
                 "search_courses", 

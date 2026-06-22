@@ -26,13 +26,17 @@ const AiChatBot = () => {
     const renderMessageContent = (content) => {
         if (!content) return null;
         
-        const parts = content.split(/(\[\[CARD:[^\]]+\]\])/g);
+        // Clean any system/tool logs block if it starts with /* and ends with */
+        const cleanedContent = content.replace(/\/\*[\s\S]*?\*\//g, '').trim();
+        
+        const parts = cleanedContent.split(/(\[\[CARD:[^\]]+\]\])/g);
         
         return parts.map((part, index) => {
             const cardMatch = part.match(/\[\[CARD:(.*?)\|(.*?)\|(.*?)\|(.*?)\|(.*?)\|(.*?)\|(.*?)\]\]/);
             if (cardMatch) {
                 const [, type, id, title, info, author, category, imgUrl] = cardMatch;
                 
+                const isCourse = type === 'course';
                 let linkTo = '#';
                 let icon = <Folder className="w-3.5 h-3.5" />;
                 let infoText = info;
@@ -76,7 +80,7 @@ const AiChatBot = () => {
                         <div className="flex items-start gap-3">
                             <div className="shrink-0 mt-0.5">
                                 <div className="w-8 h-8 rounded-full overflow-hidden border border-border bg-muted ring-2 ring-transparent group-hover:ring-primary/20 transition-all">
-                                   <img src={isCourse ? imgUrl : `https://api.dicebear.com/7.x/avataaars/svg?seed=${author}`} alt={author} className="w-full h-full object-cover" />
+                                   <img src={avatarUrl} alt={author} className="w-full h-full object-cover" />
                                 </div>
                             </div>
                             

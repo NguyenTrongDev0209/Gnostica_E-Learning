@@ -18,7 +18,7 @@ export default function useMyForumPosts(postsPerPage = 5) {
     queryKey: ['my_threads', currentUser?.email],
     queryFn: async () => {
       const res = await threadService.getMyThreads(currentUser.email);
-      return res.data.content;
+      return res?.content || res?.data?.content || [];
     },
     enabled: !!currentUser?.email,
     staleTime: 1000 * 60 * 2, // 2 mins cache
@@ -28,7 +28,7 @@ export default function useMyForumPosts(postsPerPage = 5) {
     queryKey: ['my_thread_stats', currentUser?.email],
     queryFn: async () => {
       const res = await threadService.getMyThreadStats(currentUser.email);
-      return res.data;
+      return res?.data || res || { threadCount: 0, totalLikes: 0 };
     },
     enabled: !!currentUser?.email,
     staleTime: 1000 * 60 * 5,

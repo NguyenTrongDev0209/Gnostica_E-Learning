@@ -27,7 +27,7 @@ export function useForumPage() {
     queryKey: ['forum_threads'],
     queryFn: async () => {
       const res = await threadService.getThreads(0, 1000);
-      return res?.data?.content || [];
+      return res?.content || res?.data?.content || [];
     },
     staleTime: 1000 * 60 * 2,
   });
