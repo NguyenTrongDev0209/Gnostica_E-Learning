@@ -10,11 +10,11 @@ const MainLayout = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isCoursesMobileOpen, setIsCoursesMobileOpen] = useState(false)
   const currentUser = useAuthStore(state => state.user);
+  const logout = useAuthStore(state => state.logout);
   const { categories: flatCategories } = useCategories()
 
   const handleLogout = async () => {
-    await authService.logout();
-    window.location.reload();
+    await logout();
   };
 
   // Lọc chỉ giữ lại những danh mục có khóa học

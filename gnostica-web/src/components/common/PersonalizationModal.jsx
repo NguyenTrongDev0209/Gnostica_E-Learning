@@ -41,9 +41,14 @@ const PersonalizationModal = ({ forceOpen, onClose }) => {
             return;
         }
 
-        // Chỉ hiện popup ở trang chủ hoặc khi mới login xong
+        // Chỉ hiện popup ở trang chủ hoặc khi mới login xong đối với USER bình thường
         const user = authService.getCurrentUser();
         if (user && user.onboardingCompleted === false && !isOpen) {
+            // Không hiển thị cho Admin và Giảng viên
+            if (user.role === 'ADMIN' || user.role === 'INSTRUCTOR' || user.role === 'TEACHER') {
+                return;
+            }
+
             setIsOpen(true);
             fetchCategories();
         }
@@ -57,12 +62,20 @@ const PersonalizationModal = ({ forceOpen, onClose }) => {
     const fetchCategories = async () => {
         setLoading(true);
         try {
-            const data = await categoryService.getAllCategories();
-            // Only show top-level categories or all? User asked for dynamic from categories.
-            // Usually we show main specializations.
-            setCategories(data.filter(c => c.status));
+            const response = await categoryService.getAllCategories();
+            // Xử lý linh hoạt theo cấu trúc trả về của API (có phân trang hoặc không)
+            let categoriesList = [];
+            if (response?.data?.content && Array.isArray(response.data.content)) {
+                categoriesList = response.data.content;
+            } else if (response?.data && Array.isArray(response.data)) {
+                categoriesList = response.data;
+            } else if (Array.isArray(response)) {
+                categoriesList = response;
+            }
+
+            setCategories(categoriesList.filter(c => c.status));
         } catch (error) {
-            console.error(error);
+            console.error("Lỗi khi tải danh mục:", error);
         } finally {
             setLoading(false);
         }
@@ -103,8 +116,8 @@ const PersonalizationModal = ({ forceOpen, onClose }) => {
 
     return (
         <Dialog open={isOpen} onOpenChange={handleClose}>
-            <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden rounded-2xl border-none shadow-2xl">
-                <div className="bg-gradient-to-br from-indigo-600 to-violet-700 p-8 text-white relative">
+            <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden rounded-2xl border-none shadow-2xl flex flex-col max-h-[90vh]">
+                <div className="bg-gradient-to-br from-indigo-600 to-violet-700 p-8 text-white relative shrink-0">
                     <div className="relative z-10">
                         <DialogTitle className="text-3xl font-bold mb-2">Chào mừng bạn đến với Gnostica!</DialogTitle>
                         <DialogDescription className="text-indigo-100 text-lg">
@@ -116,7 +129,7 @@ const PersonalizationModal = ({ forceOpen, onClose }) => {
                     <div className="absolute bottom-[-10px] left-[10%] w-24 h-24 bg-indigo-400/20 rounded-full blur-xl"></div>
                 </div>
 
-                <div className="p-8 bg-white">
+                <div className="p-6 sm:p-8 bg-white overflow-y-auto flex-1">
                     {step === 1 ? (
                         <div className="space-y-6">
                             <div className="flex justify-between items-center">
