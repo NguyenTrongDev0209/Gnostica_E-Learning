@@ -39,7 +39,7 @@ const accountService = {
         try {
             const user = JSON.parse(localStorage.getItem('user'));
             const token = user?.token;
-            const response = await axios.put(`${API_URL}/personalization?email=${email}`, data, {
+            const response = await axiosClient.put(`${API_URL}/personalization?email=${email}`, data, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }

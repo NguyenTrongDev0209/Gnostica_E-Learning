@@ -8,12 +8,12 @@ import { enableScreens } from 'react-native-screens';
 import { AuthProvider } from './src/context/AuthContext';
 import { CartProvider } from './src/context/CartContext';
 import { LoadingProvider } from './src/context/LoadingContext';
-import { 
-  useFonts, 
-  Inter_400Regular, 
-  Inter_500Medium, 
-  Inter_600SemiBold, 
-  Inter_700Bold 
+import {
+  useFonts,
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_700Bold
 } from '@expo-google-fonts/inter';
 
 enableScreens(false);
@@ -35,6 +35,8 @@ import ChangePasswordScreen from './src/screens/client/ChangePasswordScreen';
 import ForgotPasswordScreen from './src/screens/auth/ForgotPasswordScreen';
 import ConfirmCodeScreen from './src/screens/auth/ConfirmCodeScreen';
 import ResetPasswordScreen from './src/screens/auth/ResetPasswordScreen';
+import EmailRegisterScreen from './src/screens/auth/EmailRegisterScreen';
+import EmailLoginScreen from './src/screens/auth/EmailLoginScreen';
 import PhoneLoginScreen from './src/screens/auth/PhoneLoginScreen';
 import PhoneOTPScreen from './src/screens/auth/PhoneOTPScreen';
 import WishlistScreen from './src/screens/client/WishlistScreen';
@@ -99,14 +101,14 @@ export default function App() {
       if (!seen) {
         setShowOnboarding(true);
       }
-    } catch (_) {}
+    } catch (_) { }
     setShowSplash(false);
   };
 
   const handleOnboardingFinish = async () => {
     try {
       await AsyncStorage.setItem('onboarding_seen', 'true');
-    } catch (_) {}
+    } catch (_) { }
     setShowOnboarding(false);
   };
 
@@ -134,7 +136,9 @@ export default function App() {
             <Stack.Navigator screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
               <Stack.Screen name="Main" component={AppNavigator} options={{ animation: 'none' }} />
               <Stack.Screen name="Login" component={LoginScreen} />
+              <Stack.Screen name="EmailLogin" component={EmailLoginScreen} />
               <Stack.Screen name="Register" component={RegisterScreen} />
+              <Stack.Screen name="EmailRegister" component={EmailRegisterScreen} />
               <Stack.Screen name="CourseDetail" component={CourseDetailScreen} />
               <Stack.Screen name="Cart" component={CartScreen} />
               <Stack.Screen name="Learning" component={LearningScreen} />

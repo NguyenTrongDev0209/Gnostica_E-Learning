@@ -54,10 +54,10 @@ export default function InstructorLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const user = useAuthStore(state => state.user);
+  const logout = useAuthStore(state => state.logout);
 
   const handleLogout = async () => {
-    await authService.logout();
-    navigate("/login");
+    await logout();
   };
 
   return (
