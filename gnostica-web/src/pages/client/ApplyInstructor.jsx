@@ -37,9 +37,9 @@ const ApplyInstructor = () => {
                 const formData = new FormData();
                 formData.append('file', file);
                 
-                let endpoint = '/api/upload/image';
+                let endpoint = '/upload/image';
                 if (file.type === 'application/pdf') {
-                    endpoint = '/api/upload/document';
+                    endpoint = '/upload/document';
                 }
 
                 try {
@@ -81,9 +81,9 @@ const ApplyInstructor = () => {
         const formData = new FormData();
         formData.append('file', file);
 
-        let endpoint = '/api/upload/image';
+        let endpoint = '/upload/image';
         if (field === 'cvUrl') {
-            endpoint = '/api/upload/document';
+            endpoint = '/upload/document';
         }
 
         try {

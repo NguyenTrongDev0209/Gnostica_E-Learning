@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Download, Loader2 } from "lucide-react";
 import * as htmlToImage from "html-to-image";
 import { jsPDF } from "jspdf";
+import certificateService from "@/services/certificateService";
 
 export default function CertificatePage() {
     const { certifiUrl } = useParams();
@@ -16,8 +17,8 @@ export default function CertificatePage() {
     useEffect(() => {
         const fetchCertificate = async () => {
             try {
-                const response = await certificateService.getCertificateByUrl(certifiUrl);
-                setCertificate(response.data);
+                const data = await certificateService.getCertificateByUrl(certifiUrl);
+                setCertificate(data);
             } catch (err) {
                 setError(true);
             } finally {
