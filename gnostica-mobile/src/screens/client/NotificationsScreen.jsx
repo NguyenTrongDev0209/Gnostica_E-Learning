@@ -1,7 +1,9 @@
+import AppText from '../../components/ui/AppText';
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { View, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { ArrowLeft, Bell, BookOpen, CreditCard, Star } from 'lucide-react-native';
+import { Bell, BookOpen, CreditCard, Star } from 'lucide-react-native';
+import AppHeader from '../../components/ui/AppHeader';
 
 const MOCK_NOTIFICATIONS = [
     {
@@ -39,17 +41,14 @@ const NotificationsScreen = () => {
     return (
         <View className="flex-1 bg-slate-50">
             {/* Header */}
-            <View className="bg-white pt-12 pb-4 px-4 border-b border-slate-100 flex-row items-center justify-between">
-                <View className="flex-row items-center">
-                    <TouchableOpacity onPress={() => navigation.goBack()} className="p-2">
-                        <ArrowLeft size={24} color="#1e293b" />
+            <AppHeader 
+                title="Thông báo" 
+                rightComponent={
+                    <TouchableOpacity>
+                        <AppText className="text-primary font-medium text-sm">Đánh dấu đã đọc</AppText>
                     </TouchableOpacity>
-                    <Text className="text-xl font-bold text-slate-800 ml-2">Thông báo</Text>
-                </View>
-                <TouchableOpacity>
-                    <Text className="text-primary font-medium text-sm">Đánh dấu đã đọc</Text>
-                </TouchableOpacity>
-            </View>
+                }
+            />
 
             <ScrollView className="flex-1">
                 {MOCK_NOTIFICATIONS.map(item => (
@@ -65,22 +64,22 @@ const NotificationsScreen = () => {
                         </View>
                         <View className="flex-1 ml-4">
                             <View className="flex-row justify-between items-start">
-                                <Text className={`text-sm ${item.read ? 'font-semibold text-slate-700' : 'font-bold text-slate-900'}`}>
+                                <AppText className={`text-sm ${item.read ? 'font-semibold text-slate-700' : 'font-bold text-slate-900'}`}>
                                     {item.title}
-                                </Text>
+                                </AppText>
                                 {!item.read && <View className="w-2 h-2 rounded-full bg-blue-600 mt-1" />}
                             </View>
-                            <Text className="text-slate-500 text-xs mt-1 leading-4">{item.message}</Text>
-                            <Text className="text-slate-400 text-[10px] mt-2">{item.time}</Text>
+                            <AppText className="text-slate-500 text-xs mt-1 leading-4">{item.message}</AppText>
+                            <AppText className="text-slate-400 text-[10px] mt-2">{item.time}</AppText>
                         </View>
                     </TouchableOpacity>
                 ))}
 
                 <View className="items-center py-8">
-                    <Text className="text-slate-400 text-xs text-center">
+                    <AppText className="text-slate-400 text-xs text-center">
                         Bạn đã xem hết tất cả thông báo hiện có.{"\n"}
                         Chúng tôi sẽ gửi thêm khi có tin mới!
-                    </Text>
+                    </AppText>
                 </View>
             </ScrollView>
         </View>

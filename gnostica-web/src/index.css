@@ -46,6 +46,22 @@
   /* --- Other Configurations --- */
   --radius: 0.625rem;
   --container-max: 1536px;
+  /* 2xl - Toàn trang */
+  --container-xl: 1280px;
+  /* xl  - Nội dung chính */
+  --container-lg: 1024px;
+  /* lg  - Blog, article */
+  --container-md: 768px;
+  /* md  - Form, modal content */
+  --container-sm: 640px;
+  /* sm  - Narrow content */
+  --container-px: 1rem;
+  /* Padding mặc định mobile */
+  --container-px-md: 2rem;
+  /* Padding tablet */
+  --container-px-lg: 4rem;
+  /* Padding desktop */
+
   --header-bg: #fcf1e7;
   --header-text: #4a4a4a;
 
@@ -70,6 +86,65 @@
   --btn-sm-fz: 14px;
   --btn-sm-icon: 16px;
   --btn-sm-gap: 6px;
+
+  /* --- Typography & Shadows --- */
+  --text-2xs: 0.625rem;
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-4xl: 2.25rem;
+  --text-5xl: 3rem;
+  --text-display: 3.75rem;
+
+  --gnostica-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --gnostica-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --gnostica-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --gnostica-shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --gnostica-shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  --gnostica-shadow-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
+
+  /* --- Z-Index Scale --- */
+  --z-below: -1;
+  --z-base: 0;
+  --z-above: 1;
+  --z-dropdown: 1000;
+  --z-sticky: 1100;
+  --z-fixed: 1200;
+  --z-modal: 1300;
+  --z-popover: 1400;
+  --z-toast: 1500;
+  --z-tooltip: 1600;
+
+  /* --- Layout & Spacing --- */
+  --header-height: 80px;
+  --section-gap-lg: 5rem;
+  --section-gap-md: 3rem;
+  --section-gap-sm: 2rem;
+
+  /* --- Avatar System --- */
+  --avatar-xs: 24px;
+  --avatar-sm: 32px;
+  --avatar-md: 40px;
+  --avatar-lg: 48px;
+  --avatar-xl: 64px;
+  --avatar-2xl: 96px;
+
+  /* --- Motion & Timings --- */
+  --ease-in-out-back: cubic-bezier(0.68, -0.6, 0.32, 1.6);
+  --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+  --transition-fast: 150ms;
+  --transition-base: 300ms;
+  --transition-slow: 500ms;
+
+  /* --- Soft Semantic Group --- */
+  --success-soft: oklch(98% 0.05 149);
+  --warning-soft: oklch(98% 0.05 70);
+  --error-soft: oklch(98% 0.05 27);
+  --info-soft: oklch(98% 0.05 254);
 }
 
 .dark {
@@ -108,14 +183,103 @@
   --font-sans: 'Inter Variable', sans-serif;
 
   /* --- Typography --- */
-  --font-size-display: 3.75rem;
-  --font-size-h1: 2.25rem;
-  --font-size-h2: 1.875rem;
-  --font-size-h3: 1.5rem;
-  --font-size-lg: 1.125rem;
-  --font-size-base: 1rem;
-  --font-size-sm: 0.875rem;
-  --font-size-xs: 0.75rem;
+  --font-size-2xs: var(--text-2xs);
+  --font-size-xs: var(--text-xs);
+  --font-size-sm: var(--text-sm);
+  --font-size-base: var(--text-base);
+  --font-size-lg: var(--text-lg);
+  --font-size-xl: var(--text-xl);
+  --font-size-2xl: var(--text-2xl);
+  --font-size-3xl: var(--text-3xl);
+  --font-size-4xl: var(--text-4xl);
+  --font-size-5xl: var(--text-5xl);
+  --font-size-display: var(--text-display);
+
+  /* Semantic aliases */
+  --font-size-h1: var(--text-4xl);
+  --font-size-h2: var(--text-3xl);
+  --font-size-h3: var(--text-2xl);
+
+  /* --- Shadows --- */
+  --shadow-sm: var(--gnostica-shadow-sm);
+  --shadow-md: var(--gnostica-shadow-md);
+  --shadow-lg: var(--gnostica-shadow-lg);
+  --shadow-xl: var(--gnostica-shadow-xl);
+  --shadow-2xl: var(--gnostica-shadow-2xl);
+  --shadow-inner: var(--gnostica-shadow-inner);
+
+  /* --- Z-Index --- */
+  --z-index-below: var(--z-below);
+  --z-index-base: var(--z-base);
+  --z-index-above: var(--z-above);
+  --z-index-dropdown: var(--z-dropdown);
+  --z-index-sticky: var(--z-sticky);
+  --z-index-fixed: var(--z-fixed);
+  --z-index-modal: var(--z-modal);
+  --z-index-popover: var(--z-popover);
+  --z-index-toast: var(--z-toast);
+  --z-index-tooltip: var(--z-tooltip);
+
+  /* --- Spacing & Layout --- */
+  --spacing-header: var(--header-height);
+  --spacing-section-lg: var(--section-gap-lg);
+  --spacing-section-md: var(--section-gap-md);
+  --spacing-section-sm: var(--section-gap-sm);
+
+  /* --- Avatar Spacing --- */
+  --spacing-avatar-xs: var(--avatar-xs);
+  --spacing-avatar-sm: var(--avatar-sm);
+  --spacing-avatar-md: var(--avatar-md);
+  --spacing-avatar-lg: var(--avatar-lg);
+  --spacing-avatar-xl: var(--avatar-xl);
+  --spacing-avatar-2xl: var(--avatar-2xl);
+
+  /* --- Transitions --- */
+  --transition-timing-function-in-out-back: var(--ease-in-out-back);
+  --transition-timing-function-out-expo: var(--ease-out-expo);
+  --transition-duration-fast: var(--transition-fast);
+  --transition-duration-base: var(--transition-base);
+  --transition-duration-slow: var(--transition-slow);
+
+  /* --- Keyframes --- */
+  @keyframes fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(1rem);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes float {
+
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+
+    50% {
+      transform: translateY(-5px);
+    }
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  /* --- Animations --- */
+  --animate-fade-in-up: fade-in-up 0.5s ease-out;
+  --animate-float: float 3s ease-in-out infinite;
+  --animate-shimmer: shimmer 2s infinite linear;
 
   /* --- Primary Group (Thương hiệu) --- */
   --color-primary: var(--primary);
@@ -152,6 +316,12 @@
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
 
+  /* Soft Variants */
+  --color-success-soft: var(--success-soft);
+  --color-warning-soft: var(--warning-soft);
+  --color-error-soft: var(--error-soft);
+  --color-info-soft: var(--info-soft);
+
   /* --- Radius --- */
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
@@ -178,6 +348,21 @@
 
   html {
     @apply font-sans;
+    scroll-behavior: smooth;
+    scroll-padding-top: var(--header-height);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    scroll-margin-top: var(--header-height);
+  }
+
+  ::selection {
+    @apply bg-primary/20 text-primary;
   }
 
   .btn-outline-gradient {
@@ -192,10 +377,63 @@
     @apply bg-button-gradient bg-clip-text text-transparent;
   }
 
+  /* Container System */
+  .container-base {
+    @apply w-full mx-auto;
+    padding-left: var(--container-px);
+    padding-right: var(--container-px);
+  }
+
+  @media (min-width: 768px) {
+    .container-base {
+      padding-left: var(--container-px-md);
+      padding-right: var(--container-px-md);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .container-base {
+      padding-left: var(--container-px-lg);
+      padding-right: var(--container-px-lg);
+    }
+  }
+
+  /* Các kích thước container */
   .app-container {
-    @apply w-full mx-auto px-16;
+    @apply w-full mx-auto;
+    padding-left: var(--container-px);
+    padding-right: var(--container-px);
     max-width: var(--container-max);
   }
+
+  .container-xl {
+    @apply w-full mx-auto;
+    padding-left: var(--container-px);
+    padding-right: var(--container-px);
+    max-width: var(--container-xl);
+  }
+
+  .container-lg {
+    @apply w-full mx-auto;
+    padding-left: var(--container-px);
+    padding-right: var(--container-px);
+    max-width: var(--container-lg);
+  }
+
+  .container-md {
+    @apply w-full mx-auto;
+    padding-left: var(--container-px);
+    padding-right: var(--container-px);
+    max-width: var(--container-md);
+  }
+
+  .container-sm {
+    @apply w-full mx-auto;
+    padding-left: var(--container-px);
+    padding-right: var(--container-px);
+    max-width: var(--container-sm);
+  }
+
 
   /* Header Utility Classes */
   .header-icon-box {
@@ -276,6 +514,111 @@
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
+  }
+
+  /* Glassmorphism Utilities */
+  .glass {
+    @apply bg-white/70 backdrop-blur-md border border-white/20 shadow-sm;
+  }
+
+  .glass-dark {
+    @apply bg-black/40 backdrop-blur-md border border-white/10 shadow-lg;
+  }
+
+  /* Loading State Utilities */
+  .skeleton {
+    @apply bg-muted relative overflow-hidden rounded-md;
+  }
+
+  .skeleton::after {
+    content: "";
+    @apply absolute inset-0 bg-linear-to-r from-transparent via-white/20 to-transparent;
+    animation: shimmer 2s infinite linear;
+    background-size: 200% 100%;
+  }
+
+  /* Animation Utility Classes */
+  .animate-fade-up {
+    animation: fade-in-up 0.5s ease-out forwards;
+  }
+
+  .animate-subtle-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  /* Premium Hover Effects */
+  .hover-lift {
+    @apply transition-transform duration-300 ease-out hover:-translate-y-1;
+  }
+
+  .hover-glow {
+    @apply transition-shadow duration-300 ease-out;
+  }
+
+  .hover-glow:hover {
+    box-shadow: 0 0 20px color-mix(in srgb, var(--primary), transparent 70%);
+  }
+
+  /* Custom Scrollbar Utility */
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/20 rounded-full hover:bg-muted-foreground/40 transition-colors;
+  }
+
+  /* Line Clamping Utilities */
+  .clamp-1 {
+    @apply line-clamp-1;
+  }
+
+  .clamp-2 {
+    @apply line-clamp-2;
+  }
+
+  .clamp-3 {
+    @apply line-clamp-3;
+  }
+
+  /* Advanced Border Utilities */
+  .border-glow {
+    @apply border border-primary/30;
+    box-shadow: 0 0 10px color-mix(in srgb, var(--primary), transparent 90%);
+  }
+
+  /* Avatar System Utilities */
+  .avatar-base {
+    @apply relative inline-block rounded-full overflow-hidden flex-shrink-0 bg-muted;
+  }
+
+  .avatar-ring {
+    @apply ring-2 ring-background ring-offset-2 ring-primary/20;
+  }
+
+  .status-indicator {
+    @apply absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-background;
+  }
+
+  /* Background Textures */
+  .bg-noise {
+    position: relative;
+  }
+
+  .bg-noise::before {
+    content: "";
+    @apply absolute inset-0 opacity-[0.03] pointer-events-none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  }
+
+  .bg-dot-pattern {
+    background-image: radial-gradient(circle, var(--border) 1px, transparent 1px);
+    background-size: 20px 20px;
   }
 }
 

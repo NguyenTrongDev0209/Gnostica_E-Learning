@@ -1,6 +1,6 @@
-import axios from 'axios';
+import axiosClient from '@/lib/axiosClient';
 
-const API_URL = 'http://localhost:8080/api/categories';
+const API_URL = '/categories';
 
 // Hàm lấy token từ localStorage để gắn vào Header
 const getAuthHeaders = () => {
@@ -26,7 +26,7 @@ const getAllCategories = async (page = 1, limit = 10, search = "", status = "all
     if (status !== "all") {
         params.append("status", status === "active" ? "true" : "false");
     }
-    const response = await axios.get(API_URL, { 
+    const response = await axiosClient.get(API_URL, { 
         params,
         headers: getAuthHeaders() 
     });
@@ -34,28 +34,28 @@ const getAllCategories = async (page = 1, limit = 10, search = "", status = "all
 };
 
 const createCategory = async (data) => {
-    const response = await axios.post(API_URL, data, { 
+    const response = await axiosClient.post(API_URL, data, { 
         headers: getAuthHeaders() 
     });
     return response.data;
 };
 
 const updateCategory = async (id, data) => {
-    const response = await axios.put(`${API_URL}/${id}`, data, { 
+    const response = await axiosClient.put(`${API_URL}/${id}`, data, { 
         headers: getAuthHeaders() 
     });
     return response.data;
 };
 
 const updateStatus = async (id, status) => {
-    const response = await axios.patch(`${API_URL}/${id}/status?status=${status}`, null, { 
+    const response = await axiosClient.patch(`${API_URL}/${id}/status?status=${status}`, null, { 
         headers: getAuthHeaders() 
     });
     return response.data;
 };
 
 const deleteCategory = async (id) => {
-    const response = await axios.delete(`${API_URL}/${id}`, { 
+    const response = await axiosClient.delete(`${API_URL}/${id}`, { 
         headers: getAuthHeaders() 
     });
     return response.data;

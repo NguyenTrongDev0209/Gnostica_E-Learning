@@ -22,13 +22,12 @@ import ApplyInstructor from "@/pages/client/ApplyInstructor";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminUsers from "@/pages/admin/AdminUsers";
 import AdminCourses from "@/pages/admin/AdminCourses";
-import AdminCategories from "@/pages/admin/AdminCategories";
+import AdminCategoryManagement from "@/pages/admin/AdminCategoryManagement";
 import AdminOrders from "@/pages/admin/AdminOrders";
 import AdminCoupons from "@/pages/admin/AdminCoupons";
 import AdminReviews from "@/pages/admin/AdminReviews";
 import AdminReports from "@/pages/admin/AdminReports";
 import AdminSettings from "@/pages/admin/AdminSettings";
-import AdminForumCategory from "@/pages/admin/AdminForumCategory";
 import AdminBanks from "@/pages/admin/AdminBanks";
 import AdminTransactions from "@/pages/admin/AdminTransactions";
 import AdminCourseModeration from "@/pages/admin/AdminCourseModeration";
@@ -41,8 +40,6 @@ import InstructorCourses from "@/pages/instructor/InstructorCourses";
 import InstructorRevenue from "@/pages/instructor/InstructorRevenue";
 import InstructorCoupons from "@/pages/instructor/InstructorCoupons";
 import InstructorStudents from "@/pages/instructor/InstructorStudents";
-import InstructorReports from "@/pages/instructor/InstructorReports";
-import InstructorQA from "@/pages/instructor/InstructorQA";
 import InstructorSettings from "@/pages/instructor/InstructorSettings";
 import InstructorCourseForm from "@/pages/instructor/InstructorCourseForm";
 
@@ -64,13 +61,12 @@ export const privateRoutes = {
     { path: "/admin", component: AdminDashboard },
     { path: "/admin/users", component: AdminUsers },
     { path: "/admin/courses", component: AdminCourses },
-    { path: "/admin/categories", component: AdminCategories },
+    { path: "/admin/categories", component: AdminCategoryManagement },
     { path: "/admin/orders", component: AdminOrders },
     { path: "/admin/coupons", component: AdminCoupons },
     { path: "/admin/reviews", component: AdminReviews },
     { path: "/admin/reports", component: AdminReports },
     { path: "/admin/settings", component: AdminSettings },
-    { path: "/admin/forum-categories", component: AdminForumCategory },
     { path: "/admin/banks", component: AdminBanks },
     { path: "/admin/transactions", component: AdminTransactions },
     { path: "/admin/course-moderation", component: AdminCourseModeration },
@@ -86,8 +82,6 @@ export const privateRoutes = {
     { path: "/instructor/revenue", component: InstructorRevenue },
     { path: "/instructor/coupons", component: InstructorCoupons },
     { path: "/instructor/students", component: InstructorStudents },
-    { path: "/instructor/reports", component: InstructorReports },
-    { path: "/instructor/qa", component: InstructorQA },
     { path: "/instructor/settings", component: InstructorSettings },
   ],
   learning: [

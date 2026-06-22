@@ -1,5 +1,6 @@
+import AppText from './AppText';
 import React from 'react';
-import { TextInput, View, Text } from 'react-native';
+import { TextInput, View } from 'react-native';
 
 const Input = ({
     label,
@@ -12,7 +13,7 @@ const Input = ({
 }) => {
     return (
         <View className={`flex-col gap-1.5 ${containerClassName}`}>
-            {label && <Text className="text-sm font-medium text-slate-700">{label}</Text>}
+            {label && <AppText className="text-sm font-medium text-slate-700">{label}</AppText>}
             <View className="relative justify-center">
                 {Icon && (
                     <View className="absolute left-3 z-10">
@@ -30,7 +31,7 @@ const Input = ({
                     </View>
                 )}
             </View>
-            {error && <Text className="text-red-500 text-xs mt-1">{error}</Text>}
+            {error && <AppText className="text-red-500 text-xs mt-1">{error}</AppText>}
         </View>
     );
 };

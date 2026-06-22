@@ -23,6 +23,9 @@ public class MailServiceImpl implements MailService {
     private final JavaMailSender mailSender;
     private final SpringTemplateEngine templateEngine;
 
+    @org.springframework.beans.factory.annotation.Value("${spring.mail.username}")
+    private String fromEmail;
+
     @Override
     public void sendPaymentSuccessEmail(Order order) {
         try {
@@ -40,6 +43,7 @@ public class MailServiceImpl implements MailService {
 
             String html = templateEngine.process("payment-success", context);
 
+            helper.setFrom(fromEmail);
             helper.setTo(order.getAccount().getEmail());
             helper.setSubject("Xác nhận thanh toán thành công - Gnostica E-Learning");
             helper.setText(html, true);
@@ -53,18 +57,15 @@ public class MailServiceImpl implements MailService {
     }
 
     @Override
-    public void sendEmail(String to, String subject, String htmlContent) {
-        try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+    public void sendEmail(String to, String subject, String htmlContent) throws MessagingException {
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-            helper.setTo(to);
-            helper.setSubject(subject);
-            helper.setText(htmlContent, true);
-            mailSender.send(message);
-        } catch (MessagingException e) {
-            log.error("Failed to send email to {}", to, e);
-        }
+        helper.setFrom(fromEmail);
+        helper.setTo(to);
+        helper.setSubject(subject);
+        helper.setText(htmlContent, true);
+        mailSender.send(message);
     }
 
     @Override
@@ -130,7 +131,11 @@ public class MailServiceImpl implements MailService {
                 + "<p style='font-size: 12px; color: #999; text-align: center;'>© Gnostica E-Learning.</p>"
                 + "</div>";
 
-        sendEmail(to, subject, htmlContent);
-        log.info("Sent course completion email to {}", to);
+        try {
+            sendEmail(to, subject, htmlContent);
+            log.info("Sent course completion email to {}", to);
+        } catch (MessagingException e) {
+            log.error("Failed to send course completion email to {}", to, e);
+        }
     }
 }

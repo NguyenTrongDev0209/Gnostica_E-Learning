@@ -3,8 +3,8 @@ import couponService from "@/services/couponService";
 import { Home } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { checkoutOrderItemsMock } from "@/mocks/cart";
-import { paymentMethodsMock } from "@/mocks/checkout";
+import { checkoutOrderItemsMock } from "@/apiMocks/cart";
+import { paymentMethodsMock } from "@/apiMocks/checkout";
 import {
   CheckoutOrderHeader,
   CheckoutOrderItemList,

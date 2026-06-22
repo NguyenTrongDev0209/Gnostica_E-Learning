@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { AppBreadcrumb } from "@/components/common/AppSection";
 import { toast } from "sonner";
-import { payosPaymentMock } from "@/mocks/payment";
+import { payosPaymentMock } from "@/apiMocks/payment";
 import orderService from "@/services/orderService";
 
 export default function PayosQR() {
@@ -126,18 +126,18 @@ export default function PayosQR() {
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
-      <section className="bg-slate-900 py-12 text-white">
+      <section className="bg-muted py-12 text-white">
         <div className="app-container">
           <AppBreadcrumb
             items={breadcrumbItems}
-            linkClassName="text-slate-400 hover:text-slate-100"
+            linkClassName="text-muted-foreground hover:text-slate-100"
             activeClassName="font-semibold text-slate-200"
-            separatorClassName="text-slate-500"
+            separatorClassName="text-muted-foreground"
           />
           <h1 className="text-3xl md:text-4xl font-extrabold uppercase tracking-tight">
             Thanh toán đơn hàng {paymentData?.orderCode ? `#${paymentData.orderCode}` : ""}
           </h1>
-          <p className="text-slate-400 mt-2 font-medium">
+          <p className="text-muted-foreground mt-2 font-medium">
             Quét mã QR hoặc chuyển khoản theo thông tin bên dưới để hoàn tất đơn hàng.
           </p>
         </div>
@@ -149,9 +149,9 @@ export default function PayosQR() {
           <CardContent className="p-0">
             <div className="grid grid-cols-1 md:grid-cols-5">
               {/* Left: QR Code */}
-              <div className="md:col-span-2 p-6 sm:p-8 flex flex-col items-center justify-center bg-slate-50/50 border-b md:border-b-0 md:border-r border-slate-100">
+              <div className="md:col-span-2 p-6 sm:p-8 flex flex-col items-center justify-center bg-muted border-b md:border-b-0 md:border-r border-border">
                 {/* QR Image */}
-                <div className="w-56 h-56 sm:w-60 sm:h-60 bg-white rounded-2xl shadow-lg p-3 border border-slate-100">
+                <div className="w-56 h-56 sm:w-60 sm:h-60 bg-white rounded-2xl shadow-lg p-3 border border-border">
                   <img
                     src={dynamicQrCodeUrl}
                     alt="QR Code thanh toán"
@@ -160,9 +160,9 @@ export default function PayosQR() {
                 </div>
 
                 {/* Instructions */}
-                <p className="text-sm text-slate-600 text-center mt-5 max-w-[220px] leading-relaxed">
-                  Mở App <span className="font-bold text-slate-800">Ngân hàng</span> hoặc{" "}
-                  <span className="font-bold text-slate-800">Ví điện tử</span> để quét mã QR
+                <p className="text-sm text-muted-foreground text-center mt-5 max-w-[220px] leading-relaxed">
+                  Mở App <span className="font-bold text-foreground">Ngân hàng</span> hoặc{" "}
+                  <span className="font-bold text-foreground">Ví điện tử</span> để quét mã QR
                 </p>
 
                 {/* Browser link */}
@@ -178,9 +178,9 @@ export default function PayosQR() {
 
                 {/* Countdown */}
                 <div className="flex items-center gap-2 mt-5">
-                  <Clock className={`w-4 h-4 ${timeLeft <= 60 ? "text-red-500" : "text-orange-500"}`} />
+                  <Clock className={`w-4 h-4 ${timeLeft <= 60 ? "text-error" : "text-warning"}`} />
                   <span
-                    className={`text-lg font-bold tabular-nums ${timeLeft <= 60 ? "text-red-500" : "text-orange-500"
+                    className={`text-lg font-bold tabular-nums ${timeLeft <= 60 ? "text-error" : "text-warning"
                       }`}
                   >
                     {formatTime(timeLeft)}
@@ -190,7 +190,7 @@ export default function PayosQR() {
 
               {/* Right: Payment Info */}
               <div className="md:col-span-3 p-6 sm:p-8">
-                <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 mb-6">
+                <h2 className="text-xl sm:text-2xl font-extrabold text-foreground mb-6">
                   Thanh toán đơn hàng
                 </h2>
 
@@ -198,61 +198,61 @@ export default function PayosQR() {
                 <div className="space-y-4">
                   {/* Ngân hàng */}
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-slate-500 font-medium">Ngân hàng</span>
-                    <span className="text-sm font-bold text-slate-800">{paymentData?.bin === "970422" ? "MB Bank" : "Ngân hàng đối tác"}</span>
+                    <span className="text-sm text-muted-foreground font-medium">Ngân hàng</span>
+                    <span className="text-sm font-bold text-foreground">{paymentData?.bin === "970422" ? "MB Bank" : "Ngân hàng đối tác"}</span>
                   </div>
 
-                  <Separator className="bg-slate-100" />
+                  <Separator className="bg-secondary" />
 
                   {/* Số tài khoản */}
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-slate-500 font-medium">Số tài khoản</span>
+                    <span className="text-sm text-muted-foreground font-medium">Số tài khoản</span>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold text-slate-800 tracking-wide">
+                      <span className="text-sm font-bold text-foreground tracking-wide">
                         {paymentData?.accountNumber || payosPaymentMock.accountNumber}
                       </span>
                       <button
                         onClick={() => copyToClipboard(paymentData?.accountNumber || payosPaymentMock.accountNumber, "số tài khoản")}
-                        className="text-slate-400 hover:text-primary transition-colors p-1 rounded hover:bg-primary/5"
+                        className="text-muted-foreground hover:text-primary transition-colors p-1 rounded hover:bg-primary/5"
                       >
                         <Copy className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
 
-                  <Separator className="bg-slate-100" />
+                  <Separator className="bg-secondary" />
 
                   {/* Chủ tài khoản */}
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-slate-500 font-medium">Chủ tài khoản</span>
-                    <span className="text-sm font-bold text-slate-800">
+                    <span className="text-sm text-muted-foreground font-medium">Chủ tài khoản</span>
+                    <span className="text-sm font-bold text-foreground">
                       {paymentData?.accountName || payosPaymentMock.accountHolder}
                     </span>
                   </div>
 
-                  <Separator className="bg-slate-100" />
+                  <Separator className="bg-secondary" />
 
                   {/* Số tiền */}
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-slate-500 font-medium">Số tiền</span>
+                    <span className="text-sm text-muted-foreground font-medium">Số tiền</span>
                     <span className="text-lg font-black text-primary">
                       {totalAmount.toLocaleString()}{" "}
                       <span className="text-sm font-bold">VNĐ</span>
                     </span>
                   </div>
 
-                  <Separator className="bg-slate-100" />
+                  <Separator className="bg-secondary" />
 
                   {/* Nội dung */}
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-slate-500 font-medium">Nội dung</span>
+                    <span className="text-sm text-muted-foreground font-medium">Nội dung</span>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold text-slate-800">
+                      <span className="text-sm font-bold text-foreground">
                         {paymentData?.description || payosPaymentMock.transferContent}
                       </span>
                       <button
                         onClick={() => copyToClipboard(paymentData?.description || payosPaymentMock.transferContent, "nội dung")}
-                        className="text-slate-400 hover:text-primary transition-colors p-1 rounded hover:bg-primary/5"
+                        className="text-muted-foreground hover:text-primary transition-colors p-1 rounded hover:bg-primary/5"
                       >
                         <Copy className="w-4 h-4" />
                       </button>
@@ -275,16 +275,16 @@ export default function PayosQR() {
                   <Button
                     variant="outline"
                     onClick={handleCancel}
-                    className="flex-1 h-12 text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600 font-bold rounded-xl"
+                    className="flex-1 h-12 text-error border-error/20 hover:bg-red-50 hover:text-error font-bold rounded-xl"
                   >
                     Hủy thanh toán
                   </Button>
                   <Button
                     variant="outline"
                     disabled
-                    className="flex-1 h-12 font-bold rounded-xl border-orange-200 text-orange-500 bg-orange-50/50 gap-2"
+                    className="flex-1 h-12 font-bold rounded-xl border-warning/20 text-warning bg-orange-50/50 gap-2"
                   >
-                    <span className="w-2.5 h-2.5 rounded-full bg-orange-400 animate-pulse" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-warning/10 text-warning animate-pulse" />
                     Đang chờ thanh toán
                   </Button>
                 </div>

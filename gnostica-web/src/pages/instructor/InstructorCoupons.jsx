@@ -4,40 +4,33 @@ import {
   Search,
   Ticket,
   Calendar,
-  Tag,
-  Trash2,
-  Edit,
-  MoreHorizontal,
+  Slash,
   CircleCheck,
   CircleOff,
-  Clock
+  Clock,
+  Filter,
+  Activity
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCoupons } from "@/hooks/admin/useCoupons";
 import { CouponFormModal } from "@/components/pages/admin/coupons/CouponFormModal";
+import InstructorCouponTable from "@/components/pages/instructor/coupons/InstructorCouponTable";
 
 export default function InstructorCoupons() {
   const { coupons, isLoading, addCoupon, removeCoupon, toggleCouponStatus } = useCoupons({ mine: true });
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [pagination, setPagination] = useState({
+    currentPage: 0,
+    totalPages: 1,
+    totalElements: 0,
+    size: 10
+  });
 
-  const formatVND = (amount) => {
-    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
-  };
-
-  const filteredCoupons = coupons.filter((coupon) => {
+  const filteredCoupons = (Array.isArray(coupons) ? coupons : []).filter((coupon) => {
     const matchesSearch = coupon.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
       coupon.name.toLowerCase().includes(searchTerm.toLowerCase());
 
@@ -50,220 +43,129 @@ export default function InstructorCoupons() {
   });
 
   const stats = {
-    total: coupons.length,
-    active: coupons.filter(c => c.status === 1).length,
-    scheduled: coupons.filter(c => c.status === 0).length,
-    expired: coupons.filter(c => c.status === 2).length
+    total: coupons?.length || 0,
+    active: coupons?.filter(c => c.status === 1).length || 0,
+    scheduled: coupons?.filter(c => c.status === 0).length || 0,
+    expired: coupons?.filter(c => c.status === 2).length || 0
+  };
+
+  const handlePageChange = (newPage) => {
+    setPagination(prev => ({ ...prev, currentPage: newPage }));
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="py-8 space-y-8 animate-fade-up">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Phiếu Giảm Giá</h1>
-          <p className="text-sm text-slate-500 mt-1">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 text-foreground">
+        <div className="space-y-1">
+          <h1 className="text-h1 font-black text-foreground tracking-tight leading-none">Phiếu Giảm Giá</h1>
+          <p className="text-sm font-medium text-muted-foreground">
             Tạo và quản lý các mã giảm giá để thúc đẩy doanh số bán khóa học của bạn.
           </p>
         </div>
         <Button
           onClick={() => setIsModalOpen(true)}
-          className="font-bold flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white shadow-none"
+          className="btn-md bg-primary hover:scale-[1.02] transition-all text-white font-bold rounded-xl shadow-lg shadow-primary/20 flex items-center gap-2"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-5 h-5" />
           Tạo Mã Giảm Giá Mới
         </Button>
       </div>
 
-      {/* Stats Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="border-slate-200 shadow-sm bg-blue-50/30">
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600">
-              <Ticket className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-xs font-bold text-slate-500 mb-0.5">Tổng số mã</p>
-              <p className="text-xl font-black text-slate-900">{stats.total}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-slate-200 shadow-sm bg-green-50/30">
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center text-green-600">
-              <CircleCheck className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-xs font-bold text-slate-500 mb-0.5">Đang hoạt động</p>
-              <p className="text-xl font-black text-slate-900">{stats.active}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-slate-200 shadow-sm bg-amber-50/30">
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center text-amber-600">
-              <Clock className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-xs font-bold text-slate-500 mb-0.5">Sắp diễn ra</p>
-              <p className="text-xl font-black text-slate-900">{stats.scheduled}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-slate-200 shadow-sm bg-slate-50/30">
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="w-10 h-10 rounded-lg bg-slate-200 flex items-center justify-center text-slate-600">
-              <CircleOff className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-xs font-bold text-slate-500 mb-0.5">Đã hết hạn</p>
-              <p className="text-xl font-black text-slate-900">{stats.expired}</p>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Stats Summary (Standardized) */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        {[
+          { label: "Tổng số mã", value: stats.total, icon: Ticket, color: "slate" },
+          { label: "Đang hoạt động", value: stats.active, icon: CircleCheck, color: "green" },
+          { label: "Sắp diễn ra", value: stats.scheduled, icon: Clock, color: "amber" },
+          { label: "Đã hết hạn", value: stats.expired, icon: CircleOff, color: "rose" },
+        ].map((stat, i) => (
+          <Card key={i} className="group hover-lift border-border shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden relative bg-white rounded-2xl">
+            <div className={`absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 rounded-full bg-${stat.color}-50/50 group-hover:bg-${stat.color}-100/50 transition-colors duration-500`} />
+            <CardContent className="p-6 flex items-center gap-4 relative z-10">
+              <div className={`w-12 h-12 rounded-2xl bg-${stat.color}-50 text-${stat.color}-600 border border-${stat.color}-100 flex items-center justify-center group-hover:scale-110 transition-transform duration-500 shadow-sm`}>
+                <stat.icon className="w-6 h-6" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">{stat.label}</span>
+                <span className="text-2xl font-black text-foreground tracking-tight">{stat.value}</span>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
-      {/* Filters & Actions */}
-      <Card className="border-slate-200 shadow-sm">
-        <CardContent className="p-4 flex flex-col md:flex-row gap-4 items-center justify-between">
-          <div className="flex w-full md:w-auto items-center gap-3">
-            <div className="relative w-full md:w-80 border-slate-200">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <Input
-                placeholder="Tìm mã giảm giá..."
-                className="pl-9 h-10 border-slate-200 focus:bg-white focus:border-green-500 focus:ring-green-500/20"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+      {/* Filters & Actions (Glassmorphism) */}
+      <div className="glass p-4 rounded-2xl border border-border flex flex-col md:flex-row gap-6 items-center justify-between shadow-sm">
+        <div className="flex w-full md:w-auto items-center gap-4">
+          <div className="relative w-full md:w-96 group">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+            <Input
+              placeholder="Tìm theo mã hoặc tên..."
+              className="pl-11 h-11 border-border bg-white/50 backdrop-blur-sm focus:bg-white focus:ring-4 focus:ring-primary/10 transition-all rounded-xl font-medium shadow-inner"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <div className="h-10 w-px bg-border/60 hidden md:block" />
+          <div className="flex items-center gap-2 text-xs font-black text-muted-foreground uppercase tracking-widest">
+            <Filter className="w-3.5 h-3.5" />
+            Bộ lọc
+          </div>
+        </div>
+
+        <div className="flex bg-secondary/80 backdrop-blur-sm p-1.5 rounded-[14px] border border-border/50 shadow-inner w-full md:w-auto">
+          {[
+            { id: "all", label: "Tất cả" },
+            { id: "1", label: "Đang hoạt động" },
+            { id: "2", label: "Đã hết hạn" }
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setStatusFilter(tab.id)}
+              className={`flex-1 md:flex-none px-6 py-2 rounded-xl text-xs font-black transition-all duration-200 uppercase tracking-tight ${statusFilter === tab.id
+                ? "bg-white text-primary shadow-sm ring-1 ring-black/5"
+                : "text-muted-foreground hover:text-foreground"
+                }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Coupons Table Section */}
+      <div className="space-y-6">
+        <div className="flex items-center justify-between glass p-4 rounded-2xl border border-border shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
+              <Activity className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-lg font-black text-foreground tracking-tight">Danh Sách Mã Giảm Giá</h2>
+              <p className="text-xs font-bold text-muted-foreground">Quản lý các chương trình ưu đãi và chiến dịch của bạn.</p>
             </div>
           </div>
 
-          <div className="flex text-sm font-medium text-slate-500 bg-slate-100 p-1 rounded-lg">
-            <button
-              onClick={() => setStatusFilter("all")}
-              className={`px-3 py-1.5 rounded-md ${statusFilter === "all" ? "bg-white text-slate-900 shadow-sm" : "hover:text-slate-900"}`}
-            >
-              Tất cả
-            </button>
-            <button
-              onClick={() => setStatusFilter("1")}
-              className={`px-3 py-1.5 rounded-md ${statusFilter === "1" ? "bg-white text-slate-900 shadow-sm" : "hover:text-slate-900"}`}
-            >
-              Đang hoạt động
-            </button>
-            <button
-              onClick={() => setStatusFilter("2")}
-              className={`px-3 py-1.5 rounded-md ${statusFilter === "2" ? "bg-white text-slate-900 shadow-sm" : "hover:text-slate-900"}`}
-            >
-              Đã hết hạn
-            </button>
+          <div className="flex items-center gap-2 text-xs font-black text-muted-foreground bg-muted/80 p-2 rounded-xl border border-border/50">
+            <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
+            {new Date().toLocaleDateString('vi-VN', { month: 'long', year: 'numeric' })}
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Coupons Table */}
-      <Card className="border-slate-200 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader className="bg-slate-50">
-              <TableRow>
-                <TableHead className="py-4 font-semibold text-slate-700">Mã & Giảm giá</TableHead>
-                <TableHead className="py-4 font-semibold text-slate-700">Điều kiện</TableHead>
-                <TableHead className="py-4 font-semibold text-slate-700">Hạn dùng</TableHead>
-                <TableHead className="py-4 font-semibold text-slate-700">Sử dụng</TableHead>
-                <TableHead className="py-4 font-semibold text-slate-700">Trạng thái</TableHead>
-                <TableHead className="py-4 font-semibold text-slate-700 text-right">Thao tác</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-slate-500">Đang tải dữ liệu...</TableCell>
-                </TableRow>
-              ) : filteredCoupons.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-slate-500">Chưa có mã giảm giá nào</TableCell>
-                </TableRow>
-              ) : (
-                filteredCoupons.map((coupon) => (
-                  <TableRow key={coupon.id} className="hover:bg-slate-50/50">
-                    <TableCell>
-                      <div className="flex flex-col gap-1">
-                        <span className="font-black text-slate-900 tracking-wider text-base">{coupon.code}</span>
-                        <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded border border-green-100 w-fit">
-                          Giảm {coupon.discountPercent}%
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-col gap-1 text-xs text-slate-600 font-medium">
-                        <span>Đơn tối thiểu: <span className="font-bold text-slate-900">{formatVND(coupon.minDiscount)}</span></span>
-                        <span>Giảm tối đa: <span className="font-bold text-slate-900">{formatVND(coupon.maxDiscount)}</span></span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
-                        <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                        {new Date(coupon.expiryDate).toLocaleDateString('vi-VN')}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-col gap-1.5 w-32">
-                        <div className="flex justify-between text-[10px] font-bold text-slate-500 uppercase">
-                          <span>Đã dùng</span>
-                          <span>{coupon.usedCount || 0}/{coupon.quantity}</span>
-                        </div>
-                        <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                          <div
-                            className={`h-full rounded-full ${((coupon.usedCount || 0) / coupon.quantity) > 0.8 ? 'bg-amber-500' : 'bg-green-500'
-                              }`}
-                            style={{ width: `${((coupon.usedCount || 0) / coupon.quantity) * 100}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {coupon.status === 1 && (
-                        <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-none font-bold">Hoạt động</Badge>
-                      )}
-                      {coupon.status === 2 && (
-                        <Badge className="bg-slate-100 text-slate-500 hover:bg-slate-100 border-none font-bold">Hết hạn</Badge>
-                      )}
-                      {coupon.status === 0 && (
-                        <Badge className="bg-blue-100 text-blue-600 hover:bg-blue-100 border-none font-bold">Tạm ẩn</Badge>
-                      )}
-                      {coupon.status === 3 && (
-                        <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 border-none font-bold">Hết lượt</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-8 font-medium border-slate-200"
-                          onClick={() => toggleCouponStatus && toggleCouponStatus(coupon)}
-                          title="Đổi trạng thái"
-                        >
-                          Đổi Trạng Thái
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-slate-400 hover:text-red-600 bg-slate-50 hover:bg-red-50"
-                          onClick={() => removeCoupon(coupon.id)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
         </div>
-      </Card>
+
+        <InstructorCouponTable
+          coupons={filteredCoupons}
+          isLoading={isLoading}
+          onToggleStatus={toggleCouponStatus}
+          onDelete={removeCoupon}
+          pagination={{
+            ...pagination,
+            totalElements: filteredCoupons.length,
+            totalPages: Math.ceil(filteredCoupons.length / pagination.size) || 1
+          }}
+          onPageChange={handlePageChange}
+        />
+      </div>
 
       <CouponFormModal
         isOpen={isModalOpen}

@@ -75,8 +75,8 @@ const AiChatBot = () => {
                     >
                         <div className="flex items-start gap-3">
                             <div className="shrink-0 mt-0.5">
-                                <div className="w-8 h-8 rounded-full overflow-hidden border border-slate-100 bg-slate-50 ring-2 ring-transparent group-hover:ring-primary/20 transition-all">
-                                   <img src={avatarUrl} alt={author} className="w-full h-full object-cover" />
+                                <div className="w-8 h-8 rounded-full overflow-hidden border border-border bg-muted ring-2 ring-transparent group-hover:ring-primary/20 transition-all">
+                                   <img src={isCourse ? imgUrl : `https://api.dicebear.com/7.x/avataaars/svg?seed=${author}`} alt={author} className="w-full h-full object-cover" />
                                 </div>
                             </div>
                             
@@ -84,14 +84,14 @@ const AiChatBot = () => {
                                  <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground mb-1">
                                       <span className="font-semibold text-primary">{category}</span>
                                       <span>•</span>
-                                      <span className="truncate text-slate-600 font-medium">{author}</span>
+                                      <span className="truncate text-muted-foreground font-medium">{author}</span>
                                  </div>
                                  
-                                 <h3 className="font-bold text-[13px] leading-tight line-clamp-2 group-hover:text-primary transition-colors text-slate-800 mb-2">
+                                 <h3 className="font-bold text-[13px] leading-tight line-clamp-2 group-hover:text-primary transition-colors text-foreground mb-2">
                                      {title}
                                  </h3>
                                  
-                                 <div className="flex items-center gap-3 text-[11px] font-medium text-slate-500">
+                                 <div className="flex items-center gap-3 text-[11px] font-medium text-muted-foreground">
                                       <div className="flex items-center gap-1 hover:text-primary transition-colors">
                                            {icon}
                                            <span>{infoText}</span>
@@ -99,8 +99,8 @@ const AiChatBot = () => {
                                  </div>
                             </div>
                             
-                            {type === 'forum' && imgUrl && imgUrl !== 'none' && (
-                                <div className="w-16 h-16 shrink-0 rounded-md overflow-hidden border border-slate-100 mt-0.5 hidden sm:block">
+                            {imgUrl && imgUrl !== 'none' && !isCourse && (
+                                <div className="w-16 h-16 shrink-0 rounded-md overflow-hidden border border-border mt-0.5 hidden sm:block">
                                     <img src={imgUrl} alt="preview" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                                 </div>
                             )}

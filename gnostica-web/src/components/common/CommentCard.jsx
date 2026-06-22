@@ -3,7 +3,7 @@ import { Avatar, AvatarImage, AvatarFallback, AvatarBadge } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { Clock, CornerDownRight, Send } from 'lucide-react';
 import RenderContent from './RenderContent';
-import axios from 'axios';
+import commentService from '@/services/commentService';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
@@ -29,7 +29,7 @@ export default function CommentCard({ comment, isNested = false, threadId, onCom
       const userData = JSON.parse(localStorage.getItem('user'));
       const userEmail = userData?.email;
       
-      const res = await axios.post('http://localhost:8080/api/comments', {
+      const newComment = await commentService.addComment({
         content: replyContent,
         objectId: threadId,
         userEmail: userEmail, // Gửi email thay vì dùng token
@@ -37,7 +37,7 @@ export default function CommentCard({ comment, isNested = false, threadId, onCom
       });
       
       if (onCommentAdded) {
-          onCommentAdded(res.data);
+          onCommentAdded(newComment);
           toast.success("Đã gửi câu trả lời");
       }
       setReplyContent('');
@@ -54,7 +54,7 @@ export default function CommentCard({ comment, isNested = false, threadId, onCom
       const userData = JSON.parse(localStorage.getItem('user'));
       const userEmail = userData?.email;
       
-      await axios.delete(`http://localhost:8080/api/comments/${comment.id}?userEmail=${userEmail}`);
+      await commentService.deleteComment(comment.id, userEmail);
       
       if (onCommentDeleted) {
           onCommentDeleted(comment.id);
@@ -71,7 +71,7 @@ export default function CommentCard({ comment, isNested = false, threadId, onCom
   const isOwner = currentUser?.email === comment.account?.email;
 
   return (
-    <div className={`flex gap-3 ${isNested ? 'ml-8 sm:ml-12 mt-4 border-l-2 border-slate-100 pl-4' : ''}`}>
+    <div className={`flex gap-3 ${isNested ? 'ml-8 sm:ml-12 mt-4 border-l-2 border-border pl-4' : ''}`}>
       <div className="shrink-0 mt-1">
         <Avatar className="w-9 h-9 ring-2 ring-transparent hover:ring-primary/20 transition-all">
           <AvatarImage src={comment.author.avatar} alt={comment.author.name} />
@@ -81,12 +81,12 @@ export default function CommentCard({ comment, isNested = false, threadId, onCom
         </Avatar>
       </div>
       <div className="flex-1 min-w-0">
-        <div className={`rounded-xl p-4 ${comment.isAccepted ? 'bg-primary/5 border border-primary/20' : 'bg-slate-50 border border-slate-100'}`}>
+        <div className={`rounded-xl p-4 ${comment.isAccepted ? 'bg-primary/5 border border-primary/20' : 'bg-muted border border-border'}`}>
           <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
             <div className="flex items-center gap-2">
-              <span className="font-semibold text-sm text-slate-800">{comment.author.name}</span>
+              <span className="font-semibold text-sm text-foreground">{comment.author.name}</span>
               {comment.author.role && (
-                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-slate-100 border-none text-slate-500">
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-secondary border-none text-muted-foreground">
                   {comment.author.role}
                 </Badge>
               )}
@@ -103,7 +103,7 @@ export default function CommentCard({ comment, isNested = false, threadId, onCom
           {!isNested && ( // Hỗ trợ trả lời 1 cấp cho đơn giản
             <button 
               onClick={() => setShowReply(!showReply)}
-              className="text-xs font-medium text-slate-400 hover:text-primary transition-colors flex items-center gap-1"
+              className="text-xs font-medium text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
             >
               <CornerDownRight className="w-3.5 h-3.5" /> Trả lời
             </button>
@@ -113,7 +113,7 @@ export default function CommentCard({ comment, isNested = false, threadId, onCom
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <button 
-                  className="text-xs font-medium text-slate-400 hover:text-red-500 transition-colors"
+                  className="text-xs font-medium text-muted-foreground hover:text-error transition-colors"
                 >
                   Xóa
                 </button>
@@ -126,10 +126,10 @@ export default function CommentCard({ comment, isNested = false, threadId, onCom
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel className="border-slate-200">Hủy</AlertDialogCancel>
+                  <AlertDialogCancel className="border-border">Hủy</AlertDialogCancel>
                   <AlertDialogAction 
                     onClick={handleDelete}
-                    className="bg-red-500 hover:bg-red-600 text-white font-bold"
+                    className="bg-error/10 text-error hover:bg-error/10 text-error text-white font-bold"
                   >
                     Xóa bình luận
                   </AlertDialogAction>
@@ -141,7 +141,7 @@ export default function CommentCard({ comment, isNested = false, threadId, onCom
 
         {/* Reply Input Box */}
         {showReply && (
-          <div className="mt-3 bg-white p-3 rounded-lg border border-slate-200 shadow-sm">
+          <div className="mt-3 bg-white p-3 rounded-lg border border-border shadow-sm">
             <Textarea
               placeholder="Viết câu trả lời của bạn..."
               className="min-h-[80px] text-sm resize-none mb-2"

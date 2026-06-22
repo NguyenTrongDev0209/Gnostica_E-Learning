@@ -1,81 +1,76 @@
+import AppText from '../../components/ui/AppText';
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
+import { View, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { ArrowLeft, Play, CheckCircle2, Circle, FileText, MessageCircle } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { clsx } from 'clsx';
 
 const { width } = Dimensions.get('window');
 
 const LearningScreen = () => {
     const navigation = useNavigation();
     const route = useRoute();
+    const insets = useSafeAreaInsets();
     const course = route.params?.course;
     const [activeTab, setActiveTab] = useState('curriculum');
 
     if (!course) return null;
 
+    const TABS = [
+        { key: 'curriculum', label: 'Nội dung' },
+        { key: 'materials', label: 'Tài liệu' },
+        { key: 'qa',         label: 'Hỏi đáp' },
+    ];
+
     return (
-        <View style={{ flex: 1, backgroundColor: '#ffffff' }}>
-            {/* Header + Video Player Placeholder */}
-            <View style={{ backgroundColor: '#0f172a', paddingTop: 48, paddingBottom: 0 }}>
-                {/* Header Navbar */}
-                <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, marginBottom: 12 }}>
-                    <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 4 }}>
+        <View className="flex-1 bg-white">
+            {/* Header + Video Player */}
+            <View className="bg-slate-900 pb-0" style={{ paddingTop: Math.max(insets.top, 20) + 12 }}>
+                {/* Navbar */}
+                <View className="flex-row items-center px-5 mb-3">
+                    <TouchableOpacity onPress={() => navigation.goBack()} className="p-1">
                         <ArrowLeft size={24} color="#ffffff" />
                     </TouchableOpacity>
-                    <Text style={{ flex: 1, color: '#ffffff', fontSize: 16, fontWeight: '700', marginLeft: 12 }} numberOfLines={1}>
+                    <AppText className="flex-1 text-white text-base font-bold ml-3" numberOfLines={1}>
                         {course.title}
-                    </Text>
+                    </AppText>
                 </View>
 
                 {/* Video Player */}
-                <View style={{
-                    width: width, height: width * 0.5625, // 16:9 ratio
-                    backgroundColor: '#000000',
-                    justifyContent: 'center', alignItems: 'center',
-                }}>
-                    {/* Fake play button overlay */}
-                    <TouchableOpacity style={{
-                        width: 64, height: 64, borderRadius: 32,
-                        backgroundColor: 'rgba(255,255,255,0.2)',
-                        alignItems: 'center', justifyContent: 'center',
-                    }}>
-                        <View style={{
-                            width: 48, height: 48, borderRadius: 24,
-                            backgroundColor: '#2563EB',
-                            alignItems: 'center', justifyContent: 'center',
-                            paddingLeft: 4, // center play icon visually
-                        }}>
+                <View
+                    className="bg-black items-center justify-center"
+                    style={{ width, height: width * 0.5625 }}
+                >
+                    {/* Play button overlay */}
+                    <TouchableOpacity className="w-16 h-16 rounded-full bg-white/20 items-center justify-center">
+                        <View className="w-12 h-12 rounded-full bg-blue-600 items-center justify-center pl-1">
                             <Play size={24} color="#ffffff" fill="#ffffff" />
                         </View>
                     </TouchableOpacity>
-                    <View style={{ position: 'absolute', bottom: 12, right: 12, backgroundColor: 'rgba(0,0,0,0.6)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4 }}>
-                        <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>12:45</Text>
+                    <View className="absolute bottom-3 right-3 bg-black/60 px-2 py-1 rounded">
+                        <AppText className="text-white text-xs font-semibold">12:45</AppText>
                     </View>
                 </View>
             </View>
 
             {/* Content Tabs */}
-            <View style={{ flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#F1F5F9' }}>
-                {[
-                    { key: 'curriculum', label: 'Nội dung' },
-                    { key: 'materials', label: 'Tài liệu' },
-                    { key: 'qa', label: 'Hỏi đáp' }
-                ].map(tab => (
+            <View className="flex-row border-b border-slate-100">
+                {TABS.map(tab => (
                     <TouchableOpacity
                         key={tab.key}
-                        style={{
-                            flex: 1, alignItems: 'center', paddingVertical: 14,
-                            borderBottomWidth: activeTab === tab.key ? 2 : 0,
-                            borderBottomColor: '#2563EB',
-                        }}
+                        className={clsx(
+                            'flex-1 items-center py-3.5 border-b-2',
+                            activeTab === tab.key ? 'border-blue-600' : 'border-transparent',
+                        )}
                         onPress={() => setActiveTab(tab.key)}
                     >
-                        <Text style={{
-                            fontSize: 14, fontWeight: '600',
-                            color: activeTab === tab.key ? '#2563EB' : '#64748B'
-                        }}>
+                        <AppText className={clsx(
+                            'text-sm font-semibold',
+                            activeTab === tab.key ? 'text-blue-600' : 'text-slate-500',
+                        )}>
                             {tab.label}
-                        </Text>
+                        </AppText>
                     </TouchableOpacity>
                 ))}
             </View>
@@ -83,45 +78,49 @@ const LearningScreen = () => {
             {/* Tab Views */}
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1, backgroundColor: '#F8FAFC' }}>
                 {activeTab === 'curriculum' && (
-                    <View style={{ paddingBottom: 40 }}>
+                    <View className="pb-10">
                         {course.curriculum?.map((section, secIdx) => (
-                            <View key={secIdx} style={{ backgroundColor: '#ffffff', marginBottom: 8, borderBottomWidth: 1, borderBottomColor: '#f1f5f9' }}>
-                                <View style={{ padding: 16, backgroundColor: '#F8FAFC' }}>
-                                    <Text style={{ fontSize: 13, color: '#64748B', fontWeight: '500', marginBottom: 4 }}>
+                            <View key={secIdx} className="bg-white mb-2 border-b border-slate-100">
+                                <View className="p-4 bg-slate-50">
+                                    <AppText className="text-[13px] text-slate-500 font-medium mb-1">
                                         Chương {secIdx + 1}
-                                    </Text>
-                                    <Text style={{ fontSize: 15, fontWeight: '700', color: '#1E293B' }}>
+                                    </AppText>
+                                    <AppText className="text-[15px] font-bold text-slate-800">
                                         {section.section}
-                                    </Text>
+                                    </AppText>
                                 </View>
-                                {/* Simulate lessons */}
                                 {[1, 2, 3].map((lesson, lessIdx) => {
-                                    // Mock state: chapter 1 is completed, chapter 2 is current, chapter 3 is locked
                                     const isCompleted = secIdx === 0 && lessIdx < 2;
-                                    const isCurrent = secIdx === 0 && lessIdx === 2;
-
+                                    const isCurrent   = secIdx === 0 && lessIdx === 2;
                                     return (
                                         <TouchableOpacity
                                             key={lessIdx}
-                                            style={{
-                                                flexDirection: 'row', alignItems: 'center',
-                                                padding: 16, borderBottomWidth: 1, borderBottomColor: '#f1f5f9',
-                                                backgroundColor: isCurrent ? '#EFF6FF' : '#ffffff'
-                                            }}
+                                            className={clsx(
+                                                'flex-row items-center p-4 border-b border-slate-100',
+                                                isCurrent ? 'bg-blue-50' : 'bg-white',
+                                            )}
                                         >
-                                            <View style={{ marginRight: 12 }}>
-                                                {isCompleted ? <CheckCircle2 size={24} color="#10B981" /> : (isCurrent ? <Play size={24} color="#2563EB" /> : <Circle size={24} color="#CBD5E1" />)}
+                                            <View className="mr-3">
+                                                {isCompleted
+                                                    ? <CheckCircle2 size={24} color="#10B981" />
+                                                    : isCurrent
+                                                        ? <Play size={24} color="#2563EB" />
+                                                        : <Circle size={24} color="#CBD5E1" />
+                                                }
                                             </View>
-                                            <View style={{ flex: 1 }}>
-                                                <Text style={{ fontSize: 14, fontWeight: isCurrent ? '700' : '500', color: '#1E293B' }}>
+                                            <View className="flex-1">
+                                                <AppText className={clsx(
+                                                    'text-sm text-slate-800',
+                                                    isCurrent ? 'font-bold' : 'font-medium',
+                                                )}>
                                                     {lesson}. Bài học mô phỏng {secIdx + 1}.{lessIdx + 1}
-                                                </Text>
-                                                <Text style={{ fontSize: 12, color: '#64748B', marginTop: 4 }}>
+                                                </AppText>
+                                                <AppText className="text-xs text-slate-500 mt-1">
                                                     Video • 12:45
-                                                </Text>
+                                                </AppText>
                                             </View>
                                         </TouchableOpacity>
-                                    )
+                                    );
                                 })}
                             </View>
                         ))}
@@ -129,14 +128,18 @@ const LearningScreen = () => {
                 )}
 
                 {activeTab === 'materials' && (
-                    <View style={{ padding: 20 }}>
-                        <Text style={{ color: '#64748b', fontSize: 14 }}>Tài liệu tham khảo và mã nguồn của khóa học sẽ được hiển thị ở đây.</Text>
+                    <View className="p-5">
+                        <AppText className="text-sm text-slate-500">
+                            Tài liệu tham khảo và mã nguồn của khóa học sẽ được hiển thị ở đây.
+                        </AppText>
                     </View>
                 )}
 
                 {activeTab === 'qa' && (
-                    <View style={{ padding: 20 }}>
-                        <Text style={{ color: '#64748b', fontSize: 14 }}>Chưa có câu hỏi nào. Tương tác với giảng viên và các bạn học viên khác tại đây.</Text>
+                    <View className="p-5">
+                        <AppText className="text-sm text-slate-500">
+                            Chưa có câu hỏi nào. Tương tác với giảng viên và các bạn học viên khác tại đây.
+                        </AppText>
                     </View>
                 )}
             </ScrollView>

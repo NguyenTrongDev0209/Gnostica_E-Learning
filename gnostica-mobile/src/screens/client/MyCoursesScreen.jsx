@@ -1,6 +1,9 @@
+import AppText from '../../components/ui/AppText';
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, FlatList } from 'react-native';
+import { View, ScrollView, TouchableOpacity, FlatList } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { clsx } from 'clsx';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import CourseProgressCard from '../../components/home/CourseProgressCard';
 import Button from '../../components/ui/Button';
 import { myCourses } from '../../constants/mockData';
@@ -11,22 +14,23 @@ const TABS = ['Đang học', 'Hoàn thành'];
 const MyCoursesScreen = () => {
     const navigation = useNavigation();
     const { isAuthenticated } = useAuth();
+    const insets = useSafeAreaInsets();
     const [activeTab, setActiveTab] = useState(0);
 
     // Unauthenticated state
     if (!isAuthenticated) {
         return (
-            <View style={{ flex: 1, backgroundColor: '#F8FAFC', justifyContent: 'center', alignItems: 'center', padding: 20 }}>
-                <Text style={{ fontSize: 64, marginBottom: 16 }}>🔒</Text>
-                <Text style={{ fontSize: 22, fontWeight: '800', color: '#1E293B', marginBottom: 8, textAlign: 'center' }}>
+            <View className="flex-1 bg-slate-50 justify-center items-center p-5">
+                <AppText className="text-6xl mb-4">🔒</AppText>
+                <AppText className="text-[22px] font-extrabold text-slate-800 mb-2 text-center">
                     Yêu cầu đăng nhập
-                </Text>
-                <Text style={{ fontSize: 14, color: '#64748B', textAlign: 'center', marginBottom: 32, lineHeight: 22 }}>
+                </AppText>
+                <AppText className="text-sm text-slate-500 text-center mb-8 leading-[22px]">
                     Vui lòng đăng nhập để xem danh sách khóa học và tiến độ học tập của bạn.
-                </Text>
+                </AppText>
                 <Button
                     variant="primary"
-                    style={{ width: '100%', maxWidth: 300, paddingVertical: 14 }}
+                    className="w-full max-w-[300px] py-3.5"
                     onPress={() => navigation.navigate('Login')}
                 >
                     Đăng nhập ngay
@@ -40,38 +44,30 @@ const MyCoursesScreen = () => {
         : myCourses.filter(c => c.completed);
 
     return (
-        <View style={{ flex: 1, backgroundColor: '#F8FAFC' }}>
+        <View className="flex-1 bg-slate-50">
             {/* Header */}
-            <View style={{
-                backgroundColor: '#ffffff',
-                paddingTop: 52,
-                paddingHorizontal: 20,
-                paddingBottom: 0,
-                borderBottomWidth: 1,
-                borderBottomColor: '#F1F5F9',
-            }}>
-                <Text style={{ fontSize: 22, fontWeight: '800', color: '#1E293B', marginBottom: 16 }}>
+            <View className="bg-white px-5 pb-0 border-b border-slate-100" style={{ paddingTop: Math.max(insets.top, 20) + 12 }}>
+                <AppText className="text-[22px] font-extrabold text-slate-800 mb-4">
                     Khóa học của tôi
-                </Text>
+                </AppText>
 
                 {/* Tab selector */}
-                <View style={{ flexDirection: 'row' }}>
+                <View className="flex-row">
                     {TABS.map((tab, idx) => (
                         <TouchableOpacity
                             key={tab}
                             onPress={() => setActiveTab(idx)}
-                            style={{
-                                paddingBottom: 12, marginRight: 24,
-                                borderBottomWidth: 2.5,
-                                borderBottomColor: activeTab === idx ? '#2563EB' : 'transparent',
-                            }}
+                            className={clsx(
+                                'pb-3 mr-6',
+                                activeTab === idx ? 'border-b-[2.5px] border-blue-600' : 'border-b-[2.5px] border-transparent',
+                            )}
                         >
-                            <Text style={{
-                                fontSize: 15, fontWeight: '700',
-                                color: activeTab === idx ? '#2563EB' : '#94A3B8',
-                            }}>
+                            <AppText className={clsx(
+                                'text-[15px] font-bold',
+                                activeTab === idx ? 'text-blue-600' : 'text-slate-400',
+                            )}>
                                 {tab}
-                            </Text>
+                            </AppText>
                         </TouchableOpacity>
                     ))}
                 </View>
@@ -79,46 +75,41 @@ const MyCoursesScreen = () => {
 
             {/* Progress Summary */}
             {activeTab === 0 && data.length > 0 && (
-                <View style={{
-                    backgroundColor: '#EFF6FF',
-                    marginHorizontal: 20, marginTop: 16,
-                    borderRadius: 14, padding: 16,
-                    flexDirection: 'row', alignItems: 'center', gap: 12,
-                }}>
-                    <Text style={{ fontSize: 32 }}>📚</Text>
+                <View className="bg-blue-50 mx-5 mt-4 rounded-[14px] p-4 flex-row items-center gap-3">
+                    <AppText className="text-4xl">📚</AppText>
                     <View>
-                        <Text style={{ fontSize: 15, fontWeight: '800', color: '#1E3A8A' }}>
+                        <AppText className="text-[15px] font-extrabold text-blue-900">
                             Bạn đang học {data.length} khóa
-                        </Text>
-                        <Text style={{ fontSize: 13, color: '#3B82F6', marginTop: 2 }}>
+                        </AppText>
+                        <AppText className="text-[13px] text-blue-500 mt-0.5">
                             Tiếp tục học để hoàn thành mục tiêu!
-                        </Text>
+                        </AppText>
                     </View>
                 </View>
             )}
 
             {/* List */}
             {data.length === 0 ? (
-                <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingBottom: 80 }}>
-                    <Text style={{ fontSize: 48, marginBottom: 12 }}>
+                <View className="flex-1 items-center justify-center pb-20">
+                    <AppText className="text-5xl mb-3">
                         {activeTab === 0 ? '📖' : '🏆'}
-                    </Text>
-                    <Text style={{ fontSize: 17, fontWeight: '700', color: '#1E293B', marginBottom: 6 }}>
+                    </AppText>
+                    <AppText className="text-[17px] font-bold text-slate-800 mb-1.5">
                         {activeTab === 0 ? 'Chưa có khóa học nào' : 'Chưa hoàn thành khóa nào'}
-                    </Text>
-                    <Text style={{ fontSize: 13, color: '#64748B', textAlign: 'center', paddingHorizontal: 40 }}>
+                    </AppText>
+                    <AppText className="text-[13px] text-slate-500 text-center px-10">
                         {activeTab === 0
                             ? 'Hãy khám phá và đăng ký khóa học đầu tiên của bạn'
                             : 'Hãy kiên trì học và hoàn thành các khóa học đang học'
                         }
-                    </Text>
+                    </AppText>
                 </View>
             ) : (
                 <FlatList
                     data={data}
                     keyExtractor={item => item.id.toString()}
                     renderItem={({ item }) => <CourseProgressCard course={item} />}
-                    contentContainerStyle={{ padding: 20 }}
+                    contentContainerStyle={{ padding: 20, paddingBottom: 80 }}
                     showsVerticalScrollIndicator={false}
                 />
             )}

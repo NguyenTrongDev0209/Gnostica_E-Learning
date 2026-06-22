@@ -58,7 +58,7 @@ const categorySchema = z.object({
   status: z.boolean().default(true),
 });
 
-export default function AdminForumCategory() {
+export default function AdminForumCategory({ hideHeader = false }) {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editId, setEditId] = useState(null);
   const [categories, setCategories] = useState([]);
@@ -184,16 +184,19 @@ export default function AdminForumCategory() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      {/* Page Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-            Quản Lý Danh Mục Diễn Đàn
-          </h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Thêm mới, chỉnh sửa danh mục bài viết trên diễn đàn.
-          </p>
-        </div>
+        {!hideHeader ? (
+          <div>
+            <h1 className="text-2xl font-bold text-foreground tracking-tight">
+              Quản Lý Danh Mục Diễn Đàn
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Thêm mới, chỉnh sửa danh mục bài viết trên diễn đàn.
+            </p>
+          </div>
+        ) : (
+          <div />
+        )}
         <Button
           className="font-bold flex items-center gap-2"
           onClick={() => setIsAddModalOpen(true)}
@@ -204,33 +207,33 @@ export default function AdminForumCategory() {
       </div>
 
       {/* Filter */}
-      <Card className="border-slate-200 shadow-sm">
+      <Card className="border-border shadow-sm">
         <CardContent className="p-4 flex flex-col md:flex-row gap-4 items-center justify-between">
           <div className="relative w-full md:w-80">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder="Tìm danh mục..."
-              className="pl-9 h-10 border-slate-200 focus:bg-white"
+              className="pl-9 h-10 border-border focus:bg-white"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <div className="flex text-sm font-medium text-slate-500 bg-slate-100 p-1 rounded-lg transition-all">
+          <div className="flex text-sm font-medium text-muted-foreground bg-secondary p-1 rounded-lg transition-all">
             <button
               onClick={() => setFilterStatus("all")}
-              className={`px-3 py-1.5 rounded-md transition-colors ${filterStatus === "all" ? "bg-white text-slate-900 shadow-sm" : "hover:text-slate-900"}`}
+              className={`px-3 py-1.5 rounded-md transition-colors ${filterStatus === "all" ? "bg-white text-foreground shadow-sm" : "hover:text-foreground"}`}
             >
               Tất cả
             </button>
             <button
               onClick={() => setFilterStatus("active")}
-              className={`px-3 py-1.5 rounded-md transition-colors ${filterStatus === "active" ? "bg-white text-slate-900 shadow-sm" : "hover:text-slate-900"}`}
+              className={`px-3 py-1.5 rounded-md transition-colors ${filterStatus === "active" ? "bg-white text-foreground shadow-sm" : "hover:text-foreground"}`}
             >
               Hoạt động
             </button>
             <button
               onClick={() => setFilterStatus("inactive")}
-              className={`px-3 py-1.5 rounded-md transition-colors ${filterStatus === "inactive" ? "bg-white text-slate-900 shadow-sm" : "hover:text-slate-900"}`}
+              className={`px-3 py-1.5 rounded-md transition-colors ${filterStatus === "inactive" ? "bg-white text-foreground shadow-sm" : "hover:text-foreground"}`}
             >
               Tạm ẩn
             </button>
@@ -239,24 +242,24 @@ export default function AdminForumCategory() {
       </Card>
 
       {/* Categories Table */}
-      <Card className="border-slate-200 shadow-sm overflow-hidden">
+      <Card className="border-border shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <Table>
-            <TableHeader className="bg-slate-50">
+            <TableHeader className="bg-muted">
               <TableRow>
-                <TableHead className="py-4 font-semibold text-slate-900 w-[40%] min-w-[200px]">
+                <TableHead className="py-4 font-semibold text-foreground w-[40%] min-w-[200px]">
                   Danh mục
                 </TableHead>
-                <TableHead className="py-4 font-semibold text-slate-900 w-[30%] min-w-[150px]">
+                <TableHead className="py-4 font-semibold text-foreground w-[30%] min-w-[150px]">
                   Slug
                 </TableHead>
-                <TableHead className="py-4 font-semibold text-slate-700 text-center w-32 whitespace-nowrap">
+                <TableHead className="py-4 font-semibold text-foreground text-center w-32 whitespace-nowrap">
                   Số bài viết
                 </TableHead>
-                <TableHead className="py-4 font-semibold text-slate-700 w-32 whitespace-nowrap">
+                <TableHead className="py-4 font-semibold text-foreground w-32 whitespace-nowrap">
                   Trạng thái
                 </TableHead>
-                <TableHead className="py-4 font-semibold text-slate-700 text-center w-24 min-w-[100px]">
+                <TableHead className="py-4 font-semibold text-foreground text-center w-24 min-w-[100px]">
                   Thao tác
                 </TableHead>
               </TableRow>
@@ -264,30 +267,30 @@ export default function AdminForumCategory() {
             <TableBody>
               {filteredCategories.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-32 text-center text-slate-500 font-medium">
+                  <TableCell colSpan={5} className="h-32 text-center text-muted-foreground font-medium">
                     Không tìm thấy danh mục nào phù hợp.
                   </TableCell>
                 </TableRow>
               ) : (
                 filteredCategories.map((cat) => (
-                  <TableRow key={cat.id} className="hover:bg-slate-50/50">
+                  <TableRow key={cat.id} className="hover:bg-muted">
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
                           <MessageSquare className="w-4 h-4 text-primary" />
                         </div>
                         <div>
-                          <p className="font-bold text-slate-900">{cat.name}</p>
+                          <p className="font-bold text-foreground">{cat.name}</p>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <code className="text-xs bg-slate-100 px-2 py-1 rounded text-slate-600 font-mono">
+                      <code className="text-xs bg-secondary px-2 py-1 rounded text-muted-foreground font-mono">
                         {cat.slug}
                       </code>
                     </TableCell>
                     <TableCell className="text-center">
-                      <span className="text-sm text-slate-600 font-bold bg-slate-100 px-2.5 py-1 rounded-full">
+                      <span className="text-sm text-muted-foreground font-bold bg-secondary px-2.5 py-1 rounded-full">
                         {cat.threadCount || 0}
                       </span>
                     </TableCell>
@@ -295,17 +298,17 @@ export default function AdminForumCategory() {
                       {cat.status === true ? (
                         <span
                           onClick={() => toggleStatus(cat.id, false)}
-                          className="inline-flex items-center gap-1.5 text-sm text-green-600 font-medium cursor-pointer hover:underline"
+                          className="inline-flex items-center gap-1.5 text-sm text-success font-medium cursor-pointer hover:underline"
                         >
-                          <span className="w-2 h-2 rounded-full bg-green-500" />{" "}
+                          <span className="w-2 h-2 rounded-full bg-success/10 text-success" />{" "}
                           Hoạt động
                         </span>
                       ) : (
                         <span
                           onClick={() => toggleStatus(cat.id, true)}
-                          className="inline-flex items-center gap-1.5 text-sm text-slate-500 font-medium cursor-pointer hover:underline"
+                          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground font-medium cursor-pointer hover:underline"
                         >
-                          <span className="w-2 h-2 rounded-full bg-slate-400" />{" "}
+                          <span className="w-2 h-2 rounded-full bg-muted" />{" "}
                           Tạm ẩn
                         </span>
                       )}
@@ -315,7 +318,7 @@ export default function AdminForumCategory() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-slate-400 hover:text-primary"
+                          className="h-8 w-8 text-muted-foreground hover:text-primary"
                           onClick={() => handleEdit(cat)}
                         >
                           <Edit className="w-4 h-4" />
@@ -323,7 +326,7 @@ export default function AdminForumCategory() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-slate-400 hover:text-red-500"
+                          className="h-8 w-8 text-muted-foreground hover:text-error"
                           onClick={() => handleDelete(cat.id)}
                         >
                           <Trash2 className="w-4 h-4" />
@@ -371,7 +374,7 @@ export default function AdminForumCategory() {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-slate-700 font-semibold">
+                    <FormLabel className="text-foreground font-semibold">
                       Tên danh mục
                     </FormLabel>
                     <FormControl>
@@ -381,7 +384,7 @@ export default function AdminForumCategory() {
                           field.onChange(e);
                           onNameChange(e);
                         }}
-                        className="h-10 border-slate-200 focus-visible:ring-primary focus-visible:border-primary"
+                        className="h-10 border-border focus-visible:ring-primary focus-visible:border-primary"
                       />
                     </FormControl>
                     <FormMessage />
@@ -394,7 +397,7 @@ export default function AdminForumCategory() {
                 name="slug"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-slate-700 font-semibold text-xs opacity-70">
+                    <FormLabel className="text-foreground font-semibold text-xs opacity-70">
                       Slug
                     </FormLabel>
                     <FormControl>
@@ -402,7 +405,7 @@ export default function AdminForumCategory() {
                         {...field}
                         readOnly
                         placeholder="Duong-dan-tinh"
-                        className="h-10 border-slate-200 bg-slate-50 font-mono text-xs cursor-not-allowed"
+                        className="h-10 border-border bg-muted font-mono text-xs cursor-not-allowed"
                       />
                     </FormControl>
                     <FormMessage />
@@ -415,7 +418,7 @@ export default function AdminForumCategory() {
                 name="status"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-slate-700 font-semibold">
+                    <FormLabel className="text-foreground font-semibold">
                       Trạng thái
                     </FormLabel>
                     <Select
@@ -423,7 +426,7 @@ export default function AdminForumCategory() {
                       value={field.value ? 'true' : 'false'}
                     >
                       <FormControl>
-                        <SelectTrigger className="h-10 border-slate-200 w-full">
+                        <SelectTrigger className="h-10 border-border w-full">
                           <SelectValue placeholder="Chọn Trạng thái" />
                         </SelectTrigger>
                       </FormControl>
@@ -446,7 +449,7 @@ export default function AdminForumCategory() {
                     setEditId(null);
                     form.reset({ name: "", slug: "", status: true });
                   }}
-                  className="border-slate-200"
+                  className="border-border"
                 >
                   Hủy bỏ
                 </Button>

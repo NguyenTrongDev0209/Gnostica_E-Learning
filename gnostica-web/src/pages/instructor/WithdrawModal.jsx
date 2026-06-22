@@ -17,11 +17,11 @@ const formatVND = (amount) =>
 // ─── InputField — đặt NGOÀI component để tránh mất focus khi re-render ──────
 const InputField = ({ icon: Icon, label, ...props }) => (
     <div className="space-y-1.5">
-        <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
-            <Icon className="w-4 h-4 text-slate-400" /> {label}
+        <label className="text-sm font-medium text-foreground flex items-center gap-2">
+            <Icon className="w-4 h-4 text-muted-foreground" /> {label}
         </label>
         <input
-            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 outline-none transition-all"
+            className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:border-success/20 focus:ring-1 focus:ring-green-500 outline-none transition-all"
             {...props}
         />
     </div>
@@ -150,42 +150,42 @@ export default function WithdrawModal({ isOpen, onClose, wallet, onSuccess }) {
                     {/* Header */}
                     <div className="flex justify-between items-center border-b pb-4">
                         <div>
-                            <h2 className="text-xl font-bold text-slate-800">
+                            <h2 className="text-xl font-bold text-foreground">
                                 {step === "setup" && "Thiết lập tài khoản ngân hàng"}
                                 {step === "withdraw" && "Yêu cầu rút tiền"}
                                 {step === "remove" && "Xóa tài khoản ngân hàng"}
                             </h2>
                             {step === "setup" && (
-                                <p className="text-xs text-slate-400 mt-0.5">
+                                <p className="text-xs text-muted-foreground mt-0.5">
                                     Thiết lập một lần, dùng mãi về sau
                                 </p>
                             )}
                         </div>
                         <button
                             onClick={onClose}
-                            className="p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition"
+                            className="p-2 text-muted-foreground hover:text-muted-foreground rounded-full hover:bg-secondary transition"
                         >
                             <X className="w-5 h-5" />
                         </button>
                     </div>
 
                     {/* Balance */}
-                    <div className="bg-slate-50 border border-slate-100 px-4 py-3 rounded-lg flex justify-between items-center">
-                        <span className="text-sm font-medium text-slate-500">Số dư khả dụng:</span>
-                        <span className="text-lg font-black text-green-600">{formatVND(wallet?.remain)}</span>
+                    <div className="bg-muted border border-border px-4 py-3 rounded-lg flex justify-between items-center">
+                        <span className="text-sm font-medium text-muted-foreground">Số dư khả dụng:</span>
+                        <span className="text-lg font-black text-success">{formatVND(wallet?.remain)}</span>
                     </div>
 
                     {/* ── STEP: SETUP ─────────────────────────────────────── */}
                     {step === "setup" && (
                         <form onSubmit={handleSetup} className="space-y-4">
                             <div className="space-y-1.5">
-                                <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
-                                    <Building2 className="w-4 h-4 text-slate-400" /> Ngân hàng
+                                <label className="text-sm font-medium text-foreground flex items-center gap-2">
+                                    <Building2 className="w-4 h-4 text-muted-foreground" /> Ngân hàng
                                 </label>
                                 <select
                                     value={setupForm.bin}
                                     onChange={e => setSetupForm(p => ({ ...p, bin: e.target.value }))}
-                                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 outline-none transition-all"
+                                    className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:border-success/20 focus:ring-1 focus:ring-green-500 outline-none transition-all"
                                     required
                                 >
                                     <option value="">-- Chọn ngân hàng --</option>
@@ -223,7 +223,7 @@ export default function WithdrawModal({ isOpen, onClose, wallet, onSuccess }) {
                             />
                             <div className="pt-2 flex gap-3">
                                 <Button type="button" variant="outline" onClick={onClose} className="flex-1">Hủy</Button>
-                                <Button type="submit" disabled={loading} className="flex-1 bg-green-600 hover:bg-green-700 text-white shadow-none">
+                                <Button type="submit" disabled={loading} className="flex-1 bg-success/10 text-success hover:bg-success/10 text-success text-white shadow-none">
                                     {loading ? "Đang lưu..." : "Lưu tài khoản"}
                                 </Button>
                             </div>
@@ -234,33 +234,33 @@ export default function WithdrawModal({ isOpen, onClose, wallet, onSuccess }) {
                     {step === "withdraw" && (
                         <form onSubmit={handleWithdraw} className="space-y-4">
                             {/* Saved bank info */}
-                            <div className="border border-slate-200 rounded-lg p-3 flex items-center justify-between bg-slate-50">
+                            <div className="border border-border rounded-lg p-3 flex items-center justify-between bg-muted">
                                 <div className="flex items-center gap-3">
-                                    <div className="bg-green-100 p-2 rounded-lg">
-                                        <CreditCard className="w-4 h-4 text-green-600" />
+                                    <div className="bg-success/10 text-success p-2 rounded-lg">
+                                        <CreditCard className="w-4 h-4 text-success" />
                                     </div>
                                     <div>
-                                        <p className="text-sm font-semibold text-slate-700">{bankName || "Ngân hàng"}</p>
-                                        <p className="text-xs text-slate-400 font-mono">{maskAccount(wallet?.accountNumber)}</p>
+                                        <p className="text-sm font-semibold text-foreground">{bankName || "Ngân hàng"}</p>
+                                        <p className="text-xs text-muted-foreground font-mono">{maskAccount(wallet?.accountNumber)}</p>
                                     </div>
                                 </div>
                                 <button
                                     type="button"
                                     onClick={() => setStep("remove")}
-                                    className="text-xs text-red-500 hover:text-red-700 flex items-center gap-1 transition"
+                                    className="text-xs text-error hover:text-error flex items-center gap-1 transition"
                                 >
                                     <Trash2 className="w-3.5 h-3.5" /> Đổi
                                 </button>
                             </div>
 
                             <div className="space-y-1.5">
-                                <label className="text-sm font-medium text-slate-700 flex justify-between items-center">
+                                <label className="text-sm font-medium text-foreground flex justify-between items-center">
                                     <span className="flex items-center gap-2">
-                                        <DollarSign className="w-4 h-4 text-slate-400" /> Số tiền rút (VND)
+                                        <DollarSign className="w-4 h-4 text-muted-foreground" /> Số tiền rút (VND)
                                     </span>
                                     <span
                                         onClick={() => setWithdrawForm(p => ({ ...p, amount: wallet?.remain || 0 }))}
-                                        className="text-xs text-green-600 hover:text-green-700 font-bold cursor-pointer"
+                                        className="text-xs text-success hover:text-success font-bold cursor-pointer"
                                     >
                                         Rút tối đa
                                     </span>
@@ -272,7 +272,7 @@ export default function WithdrawModal({ isOpen, onClose, wallet, onSuccess }) {
                                     max={wallet?.remain || 0}
                                     value={withdrawForm.amount}
                                     onChange={e => setWithdrawForm(p => ({ ...p, amount: e.target.value }))}
-                                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 outline-none transition-all font-mono"
+                                    className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:border-success/20 focus:ring-1 focus:ring-green-500 outline-none transition-all font-mono"
                                     required
                                 />
                             </div>
@@ -289,7 +289,7 @@ export default function WithdrawModal({ isOpen, onClose, wallet, onSuccess }) {
 
                             <div className="pt-2 flex gap-3">
                                 <Button type="button" variant="outline" onClick={onClose} className="flex-1">Hủy</Button>
-                                <Button type="submit" disabled={loading} className="flex-1 bg-green-600 hover:bg-green-700 text-white shadow-none">
+                                <Button type="submit" disabled={loading} className="flex-1 bg-success/10 text-success hover:bg-success/10 text-success text-white shadow-none">
                                     {loading ? "Đang xử lý..." : "Xác nhận rút tiền"}
                                 </Button>
                             </div>
@@ -299,7 +299,7 @@ export default function WithdrawModal({ isOpen, onClose, wallet, onSuccess }) {
                     {/* ── STEP: REMOVE ─────────────────────────────────────── */}
                     {step === "remove" && (
                         <form onSubmit={handleRemove} className="space-y-4">
-                            <div className="bg-red-50 border border-red-100 rounded-lg p-3 text-sm text-red-600">
+                            <div className="bg-red-50 border border-error/20 rounded-lg p-3 text-sm text-error">
                                 Nhập mã PIN để xác nhận xóa tài khoản ngân hàng hiện tại.
                                 Sau khi xóa, bạn có thể thiết lập tài khoản mới.
                             </div>
@@ -326,7 +326,7 @@ export default function WithdrawModal({ isOpen, onClose, wallet, onSuccess }) {
                                 <Button
                                     type="submit"
                                     disabled={loading}
-                                    className="flex-1 bg-red-500 hover:bg-red-600 text-white shadow-none"
+                                    className="flex-1 bg-error/10 text-error hover:bg-error/10 text-error text-white shadow-none"
                                 >
                                     {loading ? "Đang xử lý..." : "Xác nhận xóa"}
                                 </Button>

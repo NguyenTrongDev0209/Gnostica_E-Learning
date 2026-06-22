@@ -60,7 +60,7 @@ export default function LearningProgress() {
       label: "Khóa học đăng ký", 
       value: stats?.enrolledCourses || "0", 
       icon: BookOpen, 
-      color: "text-blue-500 bg-blue-50" 
+      color: "text-info bg-blue-50" 
     },
     { 
       label: "Khóa hoàn thành", 
@@ -101,7 +101,7 @@ export default function LearningProgress() {
 
       {/* Page Title */}
       <div className="mb-8">
-        <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-3">
+        <h1 className="text-2xl font-extrabold text-foreground flex items-center gap-3">
           <Activity className="w-7 h-7 text-primary" />
           Tiến độ học tập
         </h1>
@@ -135,7 +135,7 @@ export default function LearningProgress() {
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">{stat.label}</p>
-                    <p className="text-2xl font-black text-slate-900 mt-0.5">{stat.value}</p>
+                    <p className="text-2xl font-black text-foreground mt-0.5">{stat.value}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -148,7 +148,7 @@ export default function LearningProgress() {
       <div className="space-y-4">
         {loading ? (
           Array(2).fill(0).map((_, i) => (
-            <Card key={i} className="border-slate-100 shadow-sm">
+            <Card key={i} className="border-border shadow-sm">
               <CardContent className="p-6">
                 <div className="flex flex-col md:flex-row justify-between gap-6">
                   <div className="flex-1 space-y-4">
@@ -168,26 +168,26 @@ export default function LearningProgress() {
           ))
         ) : courses.length > 0 ? (
           courses.map((course) => (
-            <Card key={course.id} className="border-slate-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+            <Card key={course.id} className="border-border shadow-sm overflow-hidden hover:shadow-md transition-shadow">
               <CardContent className="p-6">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                   
                   {/* Info Section */}
                   <div className="flex-1">
-                    <h3 className="text-lg font-bold text-slate-900 mb-2">{course.courseTitle}</h3>
-                    <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-slate-500 mb-4">
+                    <h3 className="text-lg font-bold text-foreground mb-2">{course.courseTitle}</h3>
+                    <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground mb-4">
                       <span className="flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-slate-300"></span>
-                        Bài viết: <strong className="text-slate-700">{course.completedLessons}/{course.totalLessons}</strong>
+                        <span className="w-2 h-2 rounded-full bg-muted"></span>
+                        Bài viết: <strong className="text-foreground">{course.completedLessons}/{course.totalLessons}</strong>
                       </span>
                       <span className="flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-slate-300"></span>
-                        Tham gia: <strong className="text-slate-700">{new Date(course.joinedAt).toLocaleDateString('vi-VN')}</strong>
+                        <span className="w-2 h-2 rounded-full bg-muted"></span>
+                        Tham gia: <strong className="text-foreground">{new Date(course.joinedAt).toLocaleDateString('vi-VN')}</strong>
                       </span>
                       {course.completedAt && (
                         <span className="flex items-center gap-1.5">
                           <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                          Hoàn thành: <strong className="text-slate-700">{new Date(course.completedAt).toLocaleDateString('vi-VN')}</strong>
+                          Hoàn thành: <strong className="text-foreground">{new Date(course.completedAt).toLocaleDateString('vi-VN')}</strong>
                         </span>
                       )}
                     </div>
@@ -195,22 +195,22 @@ export default function LearningProgress() {
                     {/* Progress Bar */}
                     <div>
                       <div className="flex justify-between items-end mb-2">
-                        <span className="text-xs font-semibold text-slate-500">Tiến độ tổng thể</span>
+                        <span className="text-xs font-semibold text-muted-foreground">Tiến độ tổng thể</span>
                         <span className={`text-lg font-black ${course.progressPercent === 100 ? "text-emerald-500" : "text-primary"}`}>
                           {course.progressPercent}%
                         </span>
                       </div>
                       <Progress 
                         value={course.progressPercent} 
-                        className={`h-3 bg-slate-100 ${course.progressPercent === 100 ? "[&>div]:bg-emerald-500" : ""}`} 
+                        className={`h-3 bg-secondary ${course.progressPercent === 100 ? "[&>div]:bg-emerald-500" : ""}`} 
                       />
                     </div>
                   </div>
 
                   {/* Actions */}
-                  <div className="shrink-0 flex md:flex-col gap-3 justify-end items-end border-t border-slate-100 pt-4 md:border-0 md:pt-0">
+                  <div className="shrink-0 flex md:flex-col gap-3 justify-end items-end border-t border-border pt-4 md:border-0 md:pt-0">
                     <Link to={`/learning/${course.courseId}`}>
-                      <button className="px-6 py-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold text-sm rounded-lg transition-colors">
+                      <button className="px-6 py-2 bg-muted hover:bg-secondary border border-border text-foreground font-bold text-sm rounded-lg transition-colors">
                         {course.progressPercent === 100 ? "Xem lại bài" : "Học ngay"}
                       </button>
                     </Link>
@@ -220,8 +220,8 @@ export default function LearningProgress() {
             </Card>
           ))
         ) : (
-          <Card className="border-dashed border-2 bg-slate-50/50 shadow-none text-center p-10">
-            <p className="text-slate-500">Bạn chưa đăng ký khóa học nào.</p>
+          <Card className="border-dashed border-2 bg-muted shadow-none text-center p-10">
+            <p className="text-muted-foreground">Bạn chưa đăng ký khóa học nào.</p>
             <Link to="/courses" className="text-primary font-bold hover:underline mt-2 inline-block">
               Khám phá khóa học ngay
             </Link>

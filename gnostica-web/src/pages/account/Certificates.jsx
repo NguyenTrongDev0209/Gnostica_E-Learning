@@ -72,7 +72,7 @@ export default function Certificates() {
       {/* Page Title */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-3">
+          <h1 className="text-2xl font-extrabold text-foreground flex items-center gap-3">
             <Award className="w-7 h-7 text-primary" />
             Chứng chỉ của tôi
           </h1>
@@ -86,7 +86,7 @@ export default function Certificates() {
       {CERTIFICATES_DATA.length > 0 ? (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           {CERTIFICATES_DATA.map((cert) => (
-            <Card key={cert.id} className="border-slate-100 shadow-sm overflow-hidden hover:shadow-lg transition-all group">
+            <Card key={cert.id} className="border-border shadow-sm overflow-hidden hover:shadow-lg transition-all group">
               <CardContent className="p-0 flex flex-col sm:flex-row">
                 {/* Left Side: Thumbnail/Design */}
                 <div className={`relative w-full sm:w-48 h-48 sm:h-auto bg-gradient-to-br ${cert.color} overflow-hidden shrink-0 flex flex-col items-center justify-center text-white p-6`}>
@@ -100,43 +100,43 @@ export default function Certificates() {
                 <div className="p-6 flex-1 flex flex-col justify-between">
                   <div>
                     <div className="flex justify-between items-start gap-4 mb-2">
-                      <h3 className="font-bold text-lg text-slate-900 line-clamp-2">{cert.title}</h3>
+                      <h3 className="font-bold text-lg text-foreground line-clamp-2">{cert.title}</h3>
                       <Link to={`/courses/${cert.courseId}`} title="Xem khóa học">
-                        <ExternalLink className="w-4 h-4 text-slate-400 hover:text-primary transition-colors cursor-pointer" />
+                        <ExternalLink className="w-4 h-4 text-muted-foreground hover:text-primary transition-colors cursor-pointer" />
                       </Link>
                     </div>
                     
-                    <div className="space-y-1.5 text-sm text-slate-600">
+                    <div className="space-y-1.5 text-sm text-muted-foreground">
                       <p className="flex justify-between">
-                        <span className="text-slate-400">Giảng viên:</span>
-                        <span className="font-semibold text-slate-800">{cert.instructor}</span>
+                        <span className="text-muted-foreground">Giảng viên:</span>
+                        <span className="font-semibold text-foreground">{cert.instructor}</span>
                       </p>
                       <p className="flex justify-between">
-                        <span className="text-slate-400">Thời lượng:</span>
-                        <strong className="text-slate-800">{cert.hours}</strong>
+                        <span className="text-muted-foreground">Thời lượng:</span>
+                        <strong className="text-foreground">{cert.hours}</strong>
                       </p>
                       <p className="flex justify-between">
-                        <span className="text-slate-400">Xếp loại:</span>
+                        <span className="text-muted-foreground">Xếp loại:</span>
                         <strong className="text-primary">{cert.grade}</strong>
                       </p>
                       <p className="flex justify-between">
-                        <span className="text-slate-400">Cấp ngày:</span>
-                        <span className="font-medium text-slate-800">{cert.issueDate}</span>
+                        <span className="text-muted-foreground">Cấp ngày:</span>
+                        <span className="font-medium text-foreground">{cert.issueDate}</span>
                       </p>
                       <p className="flex justify-between">
-                        <span className="text-slate-400">Mã CC:</span>
-                        <span className="text-xs font-mono font-medium bg-slate-100 px-1.5 py-0.5 rounded text-slate-700">{cert.id}</span>
+                        <span className="text-muted-foreground">Mã CC:</span>
+                        <span className="text-xs font-mono font-medium bg-secondary px-1.5 py-0.5 rounded text-foreground">{cert.id}</span>
                       </p>
                     </div>
                   </div>
 
                   {/* Actions */}
-                  <div className="flex items-center gap-3 mt-6 pt-4 border-t border-slate-100">
+                  <div className="flex items-center gap-3 mt-6 pt-4 border-t border-border">
                     <Button className="flex-1 bg-primary text-white hover:bg-primary/90 font-bold text-sm gap-2">
                       <Download className="w-4 h-4" />
                       Tải PDF
                     </Button>
-                    <Button variant="outline" className="px-4 text-slate-600 hover:text-primary hover:bg-primary/5 transition-colors border-slate-200">
+                    <Button variant="outline" className="px-4 text-muted-foreground hover:text-primary hover:bg-primary/5 transition-colors border-border">
                       <Share2 className="w-4 h-4" />
                     </Button>
                   </div>
@@ -146,13 +146,13 @@ export default function Certificates() {
           ))}
         </div>
       ) : (
-        <Card className="border-dashed border-2 bg-slate-50 shadow-none border-slate-200">
+        <Card className="border-dashed border-2 bg-muted shadow-none border-border">
           <CardContent className="p-16 flex flex-col items-center justify-center text-center">
-            <div className="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center text-primary/40 mb-6">
+            <div className="w-20 h-20 rounded-full bg-secondary flex items-center justify-center text-primary/40 mb-6">
               <Trophy className="w-10 h-10" />
             </div>
-            <h3 className="text-xl font-extrabold text-slate-900 mb-2">Bạn chưa có chứng chỉ nào</h3>
-            <p className="text-sm text-slate-500 max-w-sm leading-relaxed mb-6">
+            <h3 className="text-xl font-extrabold text-foreground mb-2">Bạn chưa có chứng chỉ nào</h3>
+            <p className="text-sm text-muted-foreground max-w-sm leading-relaxed mb-6">
               Hãy cố gắng hoàn thành 100% bài giảng và bài tập trong khóa học để mở khóa chứng chỉ của bạn nhé!
             </p>
             <Link to="/account/my-courses">

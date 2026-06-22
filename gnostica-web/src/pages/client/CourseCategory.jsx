@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { CourseCardHorizontal } from "@/components/common/AppCard";
 import AppSection, { PageHeader, AppBreadcrumb } from "@/components/common/AppSection";
 import { Home } from "lucide-react";
-import { popularCoursesMock } from "@/mocks/courses";
+import { popularCoursesMock } from "@/apiMocks/courses";
 
 export default function CourseCategory() {
   const { categoryName } = useParams();

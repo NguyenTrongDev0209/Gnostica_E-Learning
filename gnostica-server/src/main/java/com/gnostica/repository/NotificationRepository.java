@@ -7,4 +7,5 @@ import com.gnostica.model.Account;
 
 public interface NotificationRepository extends JpaRepository<Notification, Integer> {
     List<Notification> findByAccountOrderByCreatedAtDesc(Account account);
+    int countByAccountAndIsReadFalse(Account account);
 }

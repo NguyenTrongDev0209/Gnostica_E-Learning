@@ -5,6 +5,8 @@ export const categories = [
     { id: 4, name: 'Kinh doanh', icon: 'Briefcase', color: '#10B981', bgColor: '#ECFDF5' },
     { id: 5, name: 'Ngoại ngữ', icon: 'Languages', color: '#EF4444', bgColor: '#FEF2F2' },
     { id: 6, name: 'Bản thân', icon: 'Sparkles', color: '#EC4899', bgColor: '#FDF2F8' },
+    { id: 7, name: 'Tài chính', icon: 'TrendingUp', color: '#06B6D4', bgColor: '#CFFAFE' },
+    { id: 8, name: 'Nhiếp ảnh', icon: 'Camera', color: '#F97316', bgColor: '#FFEDD5' },
 ];
 
 export const courses = [

@@ -62,7 +62,7 @@ const ForgotPassword = () => {
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
             {/* Email or Phone */}
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="contact" className="text-sm font-medium text-slate-700">
+              <Label htmlFor="contact" className="text-sm font-medium text-foreground">
                 Email hoặc Số điện thoại
               </Label>
               <div className="relative">
@@ -71,7 +71,7 @@ const ForgotPassword = () => {
                   id="contact"
                   type="text"
                   placeholder="you@example.com hoặc 0912 345 678"
-                  className={`pl-9 h-11 bg-slate-50 border-slate-200 focus:bg-white transition-colors ${error ? 'border-red-500 focus:ring-red-500' : ''}`}
+                  className={`pl-9 h-11 bg-muted border-border focus:bg-white transition-colors ${error ? 'border-error/20 focus:ring-red-500' : ''}`}
                   value={contact}
                   onChange={(e) => {
                     setContact(e.target.value);
@@ -79,12 +79,12 @@ const ForgotPassword = () => {
                   }}
                 />
               </div>
-              {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
+              {error && <p className="text-error text-xs mt-1">{error}</p>}
             </div>
 
             {/* Success message */}
             {sent && (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-sm text-green-700 animate-in fade-in duration-300">
+              <div className="bg-green-50 border border-success/20 rounded-lg p-3 text-sm text-success animate-in fade-in duration-300">
                 Mã xác nhận đã được gửi! Đang chuyển hướng...
               </div>
             )}

@@ -273,7 +273,7 @@ export default function AdminCourseDetailModeration() {
         );
       default:
         return (
-          <Badge className="bg-slate-50 text-slate-600 hover:bg-slate-50 border-slate-200 font-bold text-[11px] shadow-sm">
+          <Badge className="bg-muted text-muted-foreground hover:bg-muted border-border font-bold text-[11px] shadow-sm">
             Khác
           </Badge>
         );
@@ -311,7 +311,7 @@ export default function AdminCourseDetailModeration() {
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center space-y-3">
         <Loader2 className="w-10 h-10 animate-spin text-primary" />
-        <p className="text-slate-500 font-bold">Đang biên dịch dữ liệu khóa học...</p>
+        <p className="text-muted-foreground font-bold">Đang biên dịch dữ liệu khóa học...</p>
       </div>
     );
   }
@@ -392,24 +392,24 @@ export default function AdminCourseDetailModeration() {
   return (
     <div className="max-w-[1400px] mx-auto space-y-6 animate-in fade-in duration-500 pb-10">
       {/* Header Toolbar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/60 shadow-sm sticky top-4 z-20 backdrop-blur-md bg-white/95">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-border/60 shadow-sm sticky top-4 z-20 backdrop-blur-md bg-white/95">
         <div className="flex items-center gap-4 min-w-0">
           <Button
             variant="outline"
             size="icon"
             onClick={() => navigate("/admin/course-moderation")}
-            className="h-10 w-10 rounded-xl shrink-0 border-slate-200 hover:bg-slate-50 hover:text-primary transition-colors"
+            className="h-10 w-10 rounded-xl shrink-0 border-border hover:bg-muted hover:text-primary transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div className="min-w-0">
             <div className="flex items-center gap-2 mb-0.5">
-              <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider">
+              <span className="text-[11px] font-black text-muted-foreground uppercase tracking-wider">
                 ID: {course.id}
               </span>
               {getStatusBadge(course.status)}
             </div>
-            <h1 className="text-xl font-black text-slate-900 tracking-tight truncate leading-tight">
+            <h1 className="text-xl font-black text-foreground tracking-tight truncate leading-tight">
               {course.title || "Chưa đặt tên"}
             </h1>
           </div>
@@ -443,13 +443,13 @@ export default function AdminCourseDetailModeration() {
         {/* CỘT TRÁI: Course detail, description, active video preview */}
         <div className="lg:col-span-8 space-y-6">
           {/* Media Content Preview Window */}
-          <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden">
-            <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-              <h2 className="font-extrabold text-slate-800 flex items-center gap-2">
+          <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+            <div className="p-5 border-b border-border flex items-center justify-between bg-muted">
+              <h2 className="font-extrabold text-foreground flex items-center gap-2">
                 {activePreview ? (
                   <>
                     {activePreview.type === "lesson" && (
-                      <Video className="w-5 h-5 text-blue-500" />
+                      <Video className="w-5 h-5 text-info" />
                     )}
                     {activePreview.type === "quiz" && (
                       <Trophy className="w-5 h-5 text-violet-500" />
@@ -480,7 +480,7 @@ export default function AdminCourseDetailModeration() {
                   {activePreview.type === "lesson" ? (
                     <div className="space-y-4">
                       {activePreview.data.videoUrl ? (
-                        <div className="aspect-video rounded-xl bg-slate-950 overflow-hidden shadow-lg border border-slate-200 relative">
+                        <div className="aspect-video rounded-xl bg-slate-950 overflow-hidden shadow-lg border border-border relative">
                           {/* Video Player Integration supporting IFrame and Native */}
                           {isEmbedLink(activePreview.data.videoUrl) ? (
                             <iframe
@@ -505,12 +505,12 @@ export default function AdminCourseDetailModeration() {
                           )}
                         </div>
                       ) : (
-                        <div className="min-h-[300px] bg-slate-100 flex items-center justify-center rounded-xl text-slate-400">
+                        <div className="min-h-[300px] bg-secondary flex items-center justify-center rounded-xl text-muted-foreground">
                            Chưa upload video cho bài học này
                         </div>
                       )}
                       <Tabs defaultValue="content" className="w-full mt-2">
-                        <TabsList className="grid w-full grid-cols-2 mb-4 bg-slate-100 p-1 rounded-xl h-11">
+                        <TabsList className="grid w-full grid-cols-2 mb-4 bg-secondary p-1 rounded-xl h-11">
                           <TabsTrigger value="content" className="font-bold text-xs data-[state=active]:bg-white data-[state=active]:shadow-sm">
                             Tóm tắt bài giảng
                           </TabsTrigger>
@@ -526,13 +526,13 @@ export default function AdminCourseDetailModeration() {
                         </TabsList>
 
                         <TabsContent value="content" className="mt-0 focus-visible:ring-0 focus-visible:outline-none">
-                          <div className="p-5 bg-slate-50 border border-slate-200/60 rounded-xl min-h-[120px]">
-                             <h4 className="font-black text-slate-900 text-[13px] uppercase tracking-wider mb-2.5 flex items-center gap-2">
-                                <BookOpen className="w-4 h-4 text-blue-500" /> Chi tiết bài giảng:
+                          <div className="p-5 bg-muted border border-border/60 rounded-xl min-h-[120px]">
+                             <h4 className="font-black text-foreground text-[13px] uppercase tracking-wider mb-2.5 flex items-center gap-2">
+                                <BookOpen className="w-4 h-4 text-info" /> Chi tiết bài giảng:
                              </h4>
                              <div 
-                               className="text-slate-600 text-sm leading-relaxed prose prose-slate max-w-none prose-sm" 
-                               dangerouslySetInnerHTML={{__html: activePreview.data.content || "<p className='italic text-slate-400'>Không có tóm tắt mô tả kèm theo.</p>"}} 
+                               className="text-muted-foreground text-sm leading-relaxed prose prose-slate max-w-none prose-sm" 
+                               dangerouslySetInnerHTML={{__html: activePreview.data.content || "<p className='italic text-muted-foreground'>Không có tóm tắt mô tả kèm theo.</p>"}} 
                              />
                           </div>
                         </TabsContent>
@@ -543,17 +543,17 @@ export default function AdminCourseDetailModeration() {
                               {activePreview.moduleAttachments.map((file, i) => (
                                 <div 
                                   key={file.id || i} 
-                                  className="flex items-center justify-between p-4 bg-white border border-slate-200 rounded-xl shadow-sm hover:border-indigo-200 hover:shadow-md transition-all group"
+                                  className="flex items-center justify-between p-4 bg-white border border-border rounded-xl shadow-sm hover:border-indigo-200 hover:shadow-md transition-all group"
                                 >
                                   <div className="flex items-center gap-3 min-w-0">
                                     <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 border border-amber-100 shrink-0 group-hover:bg-amber-500 group-hover:text-white transition-all duration-300">
                                       <FileText className="w-5 h-5" />
                                     </div>
                                     <div className="min-w-0">
-                                      <p className="text-[13px] font-bold text-slate-900 truncate leading-tight">
+                                      <p className="text-[13px] font-bold text-foreground truncate leading-tight">
                                         {file.fileUrl?.split('/').pop()?.split('_').slice(1).join('_') || file.fileUrl?.split('/').pop() || `Tài liệu đính kèm #${i + 1}`}
                                       </p>
-                                      <p className="text-[10px] text-slate-500 font-medium uppercase tracking-widest mt-0.5">
+                                      <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest mt-0.5">
                                         {file.fileType || "DOCUMENT"}
                                       </p>
                                     </div>
@@ -561,7 +561,7 @@ export default function AdminCourseDetailModeration() {
                                   <Button 
                                     variant="ghost" 
                                     size="icon" 
-                                    className="h-8 w-8 rounded-lg border border-slate-100 bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 shrink-0"
+                                    className="h-8 w-8 rounded-lg border border-border bg-muted hover:bg-indigo-50 hover:text-indigo-600 shrink-0"
                                     onClick={() => window.open(file.fileUrl, '_blank')}
                                   >
                                     <Download className="w-4 h-4" />
@@ -570,9 +570,9 @@ export default function AdminCourseDetailModeration() {
                               ))}
                             </div>
                           ) : (
-                            <div className="p-10 text-center border border-dashed border-slate-200/80 bg-slate-50/40 rounded-xl flex flex-col items-center justify-center animate-in fade-in duration-200">
+                            <div className="p-10 text-center border border-dashed border-border/80 bg-muted/40 rounded-xl flex flex-col items-center justify-center animate-in fade-in duration-200">
                               <FileText className="w-8 h-8 text-slate-300 mb-2" />
-                              <p className="text-slate-400 text-xs font-bold italic">
+                              <p className="text-muted-foreground text-xs font-bold italic">
                                 Chương này hiện chưa đính kèm tài liệu tham khảo nào.
                               </p>
                             </div>
@@ -588,10 +588,10 @@ export default function AdminCourseDetailModeration() {
                           <Trophy className="w-5 h-5" />
                         </div>
                         <div>
-                          <h3 className="font-black text-slate-900 leading-tight">
+                          <h3 className="font-black text-foreground leading-tight">
                             Bài kiểm tra Trắc nghiệm: {activePreview.data.title}
                           </h3>
-                          <p className="text-[11px] text-slate-500 font-bold mt-0.5">
+                          <p className="text-[11px] text-muted-foreground font-bold mt-0.5">
                             Bao gồm {activePreview.data.questions?.length || 0} câu hỏi trắc nghiệm
                           </p>
                         </div>
@@ -600,12 +600,12 @@ export default function AdminCourseDetailModeration() {
                       <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 scrollbar-thin">
                          {activePreview.data.questions && activePreview.data.questions.length > 0 ? (
                             activePreview.data.questions.map((q, idx) => (
-                               <div key={q.id || idx} className="p-4 bg-white border border-slate-200 rounded-xl text-sm">
-                                  <p className="font-bold text-slate-800">Câu {idx + 1}: {q.content}</p>
+                               <div key={q.id || idx} className="p-4 bg-white border border-border rounded-xl text-sm">
+                                  <p className="font-bold text-foreground">Câu {idx + 1}: {q.content}</p>
                                   {/* Rendering choices safely using standard answerText field */}
                                   <div className="mt-3 space-y-2 opacity-80">
                                      {q.answers && q.answers.map((ans, aIdx) => (
-                                        <div key={ans.id || aIdx} className={`px-3 py-1.5 rounded-lg border text-xs font-medium flex justify-between items-center ${ans.isCorrect ? 'bg-emerald-50 border-emerald-200 text-emerald-700 font-bold' : 'bg-slate-50 border-slate-100 text-slate-600'}`}>
+                                        <div key={ans.id || aIdx} className={`px-3 py-1.5 rounded-lg border text-xs font-medium flex justify-between items-center ${ans.isCorrect ? 'bg-emerald-50 border-emerald-200 text-emerald-700 font-bold' : 'bg-muted border-border text-muted-foreground'}`}>
                                            <span>{ans.optionLabel ? `${ans.optionLabel}. ` : ""}{ans.answerText || ans.content}</span>
                                            {ans.isCorrect && <CheckCircle2 className="w-3 h-3" />}
                                         </div>
@@ -614,7 +614,7 @@ export default function AdminCourseDetailModeration() {
                                </div>
                             ))
                          ) : (
-                            <p className="text-center italic text-slate-400 py-10 font-medium">Bài trắc nghiệm này hiện chưa được cấu hình câu hỏi.</p>
+                            <p className="text-center italic text-muted-foreground py-10 font-medium">Bài trắc nghiệm này hiện chưa được cấu hình câu hỏi.</p>
                          )}
                       </div>
                     </div>
@@ -622,7 +622,7 @@ export default function AdminCourseDetailModeration() {
                 </div>
               ) : (
                 /* PROMO INTRO VIDEO VIEW */
-                <div className="aspect-video rounded-xl bg-slate-950 overflow-hidden shadow-lg border border-slate-200 relative group">
+                <div className="aspect-video rounded-xl bg-slate-950 overflow-hidden shadow-lg border border-border relative group">
                    {course.promoVideo ? (
                       isEmbedLink(course.promoVideo) ? (
                         <iframe
@@ -655,7 +655,7 @@ export default function AdminCourseDetailModeration() {
                         </div>
                       </>
                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-slate-500 bg-slate-100">
+                      <div className="w-full h-full flex items-center justify-center text-muted-foreground bg-secondary">
                          Không có tài nguyên Media đại diện
                       </div>
                    )}
@@ -666,39 +666,39 @@ export default function AdminCourseDetailModeration() {
 
           {/* Course Stats Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow">
+            <div className="bg-white p-5 rounded-2xl border border-border/60 shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow">
               <div className="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0">
                 <Tag className="w-6 h-6" />
               </div>
               <div>
-                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">
                   Giá Niêm yết
                 </p>
-                <p className="text-xl font-black text-slate-900">
+                <p className="text-xl font-black text-foreground">
                   {formatCurrency(course.price || 0)}
                 </p>
               </div>
             </div>
-            <div className="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow">
+            <div className="bg-white p-5 rounded-2xl border border-border/60 shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow">
               <div className="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 shrink-0">
                 <Layers className="w-6 h-6" />
               </div>
               <div>
-                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">
                   Cấp độ
                 </p>
-                <p className="text-lg font-extrabold text-slate-900">{formatCourseLevel(course.level)}</p>
+                <p className="text-lg font-extrabold text-foreground">{formatCourseLevel(course.level)}</p>
               </div>
             </div>
-            <div className="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow">
+            <div className="bg-white p-5 rounded-2xl border border-border/60 shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow">
               <div className="w-12 h-12 rounded-xl bg-teal-50 flex items-center justify-center text-teal-600 shrink-0">
                 <BookOpen className="w-6 h-6" />
               </div>
               <div>
-                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">
                   Danh mục
                 </p>
-                <p className="text-base font-bold text-slate-900 line-clamp-1">
+                <p className="text-base font-bold text-foreground line-clamp-1">
                   {course.categoryName || "Chưa phân loại"}
                 </p>
               </div>
@@ -706,34 +706,34 @@ export default function AdminCourseDetailModeration() {
           </div>
 
           {/* Detail Description Content */}
-          <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden">
-            <div className="p-5 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2">
+          <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+            <div className="p-5 border-b border-border bg-muted flex items-center gap-2">
               <Globe className="w-5 h-5 text-indigo-500" />
-              <h2 className="font-extrabold text-slate-800">
+              <h2 className="font-extrabold text-foreground">
                 Nội dung & Mô tả chi tiết khóa học
               </h2>
             </div>
-            <div className="p-6 font-medium text-slate-600 leading-relaxed">
+            <div className="p-6 font-medium text-muted-foreground leading-relaxed">
               {course.description ? (
                  <div 
                    className="prose max-w-none prose-slate" 
                    dangerouslySetInnerHTML={{__html: course.description}} 
                  />
               ) : (
-                 <p className="italic text-slate-400 text-sm">Tác giả chưa cập nhật mô tả bằng chữ cho khóa học này.</p>
+                 <p className="italic text-muted-foreground text-sm">Tác giả chưa cập nhật mô tả bằng chữ cho khóa học này.</p>
               )}
             </div>
           </div>
 
           {/* --- CENTER FOR AI SURVEILLANCE AND INSIGHTS (MASTER DASHBOARD) --- */}
-          <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="p-5 border-b border-indigo-100 bg-gradient-to-r from-indigo-50/40 to-violet-50/40 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-md shadow-indigo-100">
                   <Sparkles className="w-5 h-5 animate-pulse" />
                 </div>
                 <div>
-                  <h2 className="font-black text-slate-900 text-[15px] tracking-tight uppercase">
+                  <h2 className="font-black text-foreground text-[15px] tracking-tight uppercase">
                     AI hỗ trợ duyệt bài nhanh chống
                   </h2>
                   <p className="text-[10px] font-extrabold text-indigo-600 uppercase tracking-widest mt-0.5">
@@ -763,7 +763,7 @@ export default function AdminCourseDetailModeration() {
                           </div>
                           <div className="space-y-2">
                             <h4 className="font-black text-lg text-indigo-900 uppercase tracking-tight">Đang kiểm duyệt toàn diện...</h4>
-                            <p className="text-sm text-slate-500 max-w-[450px] font-medium leading-relaxed">
+                            <p className="text-sm text-muted-foreground max-w-[450px] font-medium leading-relaxed">
                               Hệ thống AI đang đọc toàn bộ nội dung, nghe video và phân tích các bài trắc nghiệm. 
                               Bạn có thể làm việc khác, kết quả sẽ tự động cập nhật khi hoàn tất.
                             </p>
@@ -774,13 +774,13 @@ export default function AdminCourseDetailModeration() {
 
                     if (!report) {
                       return (
-                        <div className="p-10 border border-dashed border-slate-200 bg-slate-50/30 rounded-2xl flex flex-col items-center justify-center text-center gap-4 animate-in fade-in duration-300">
+                        <div className="p-10 border border-dashed border-border bg-muted/30 rounded-2xl flex flex-col items-center justify-center text-center gap-4 animate-in fade-in duration-300">
                           <div className="p-4.5 rounded-full bg-violet-50 text-violet-600 border border-violet-100 animate-pulse shadow-inner">
                             <Sparkles className="w-8 h-8" />
                           </div>
                           <div className="space-y-1">
-                            <h4 className="font-black text-sm text-slate-900 uppercase tracking-wide">Chưa có báo cáo AI tổng quát</h4>
-                            <p className="text-[12px] text-slate-500 max-w-[420px] font-medium leading-relaxed">
+                            <h4 className="font-black text-sm text-foreground uppercase tracking-wide">Chưa có báo cáo AI tổng quát</h4>
+                            <p className="text-[12px] text-muted-foreground max-w-[420px] font-medium leading-relaxed">
                               Kích hoạt AI để thẩm định toàn bộ khóa học: từ tiêu đề, mô tả, nội dung bài giảng đến cả các bài trắc nghiệm tréo ngoe.
                             </p>
                           </div>
@@ -815,17 +815,17 @@ export default function AdminCourseDetailModeration() {
 
                     return (
                       <div className="space-y-5 animate-in fade-in duration-300 mt-0">
-                        <div className="flex flex-col sm:flex-row gap-5 p-5 bg-white border border-slate-200/80 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300">
+                        <div className="flex flex-col sm:flex-row gap-5 p-5 bg-white border border-border/80 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300">
                           <div className={`flex-shrink-0 w-full sm:w-36 h-28 rounded-2xl flex flex-col items-center justify-center border shadow-inner ${scoreBg}`}>
                             <span className="text-4xl font-black tracking-tighter leading-none">{score}%</span>
                             <span className="text-[9px] font-black uppercase tracking-widest mt-2 opacity-85">CHỈ SỐ AN TOÀN</span>
                           </div>
                           <div className="flex-1 flex flex-col justify-center min-w-0">
-                            <div className="flex items-center gap-1.5 text-slate-900 font-extrabold text-[13px] uppercase tracking-wider">
+                            <div className="flex items-center gap-1.5 text-foreground font-extrabold text-[13px] uppercase tracking-wider">
                               <ShieldIcon className="w-4.5 h-4.5 text-indigo-600" />
                               Đánh giá văn bản: <span className="text-indigo-700 font-black">{scoreText}</span>
                             </div>
-                            <p className="text-xs text-slate-600 leading-relaxed font-medium mt-2.5 bg-slate-50 p-3 rounded-xl border border-slate-100 italic shadow-sm">
+                            <p className="text-xs text-muted-foreground leading-relaxed font-medium mt-2.5 bg-muted p-3 rounded-xl border border-border italic shadow-sm">
                               "{report.assessment}"
                             </p>
                           </div>
@@ -844,7 +844,7 @@ export default function AdminCourseDetailModeration() {
                         {/* Text Violations Details */}
                         {report.violations && report.violations.length > 0 ? (
                           <div className="space-y-2.5 mt-4">
-                            <h5 className="text-[11px] font-black text-slate-900 uppercase tracking-widest px-1 flex items-center gap-1.5">
+                            <h5 className="text-[11px] font-black text-foreground uppercase tracking-widest px-1 flex items-center gap-1.5">
                               ⚠️ Chi tiết phát hiện vi phạm ({report.violations.length})
                             </h5>
                             <div className="space-y-2">
@@ -869,13 +869,13 @@ export default function AdminCourseDetailModeration() {
                                     </div>
                                     <div className="mt-1 relative">
                                       <div className="absolute left-0 top-0 bottom-0 w-1 bg-rose-500 rounded-full opacity-20"></div>
-                                      <p className="text-[13px] font-bold text-slate-800 pl-4 py-1 leading-relaxed italic">
+                                      <p className="text-[13px] font-bold text-foreground pl-4 py-1 leading-relaxed italic">
                                         "{v.content}"
                                       </p>
                                     </div>
-                                    <p className="text-xs text-slate-800 font-bold leading-relaxed mt-1 flex items-start gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                    <p className="text-xs text-foreground font-bold leading-relaxed mt-1 flex items-start gap-2 bg-muted p-3 rounded-xl border border-border">
                                       <span className="shrink-0 text-rose-500 mt-0.5">📌</span> 
-                                      <span>Giải thích: <span className="font-medium text-slate-600">{v.explanation}</span></span>
+                                      <span>Giải thích: <span className="font-medium text-muted-foreground">{v.explanation}</span></span>
                                     </p>
                                   </div>
                                 );
@@ -886,7 +886,7 @@ export default function AdminCourseDetailModeration() {
                           <div className="p-6 text-center border border-emerald-100 bg-emerald-50/5 rounded-2xl flex flex-col items-center justify-center gap-1 mt-2 shadow-inner">
                             <CheckCircle2 className="w-7 h-7 text-emerald-500 animate-bounce" />
                             <p className="text-emerald-800 text-xs font-black uppercase tracking-wide mt-1">Nội dung chữ sạch & an toàn</p>
-                            <p className="text-slate-500 text-[10px] font-medium">Không phát hiện quảng cáo ngoài, số điện thoại hay ngôn từ nhạy cảm trong Tiêu đề & Mô tả.</p>
+                            <p className="text-muted-foreground text-[10px] font-medium">Không phát hiện quảng cáo ngoài, số điện thoại hay ngôn từ nhạy cảm trong Tiêu đề & Mô tả.</p>
                           </div>
                         )}
                       </div>
@@ -900,7 +900,7 @@ export default function AdminCourseDetailModeration() {
         {/* CỘT PHẢI: Sticky Curriculum Sidebar */}
         <div className="lg:col-span-4 space-y-6 lg:sticky lg:top-[100px]">
           {/* Instructor Contact Info Profile */}
-          <div className="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-sm flex items-center gap-4">
+          <div className="bg-white p-5 rounded-2xl border border-border/60 shadow-sm flex items-center gap-4">
             <div className="relative shrink-0 flex items-center justify-center">
               {course.instructorAvatar ? (
                 <img
@@ -909,7 +909,7 @@ export default function AdminCourseDetailModeration() {
                   className="w-14 h-14 rounded-full object-cover ring-4 ring-slate-50 shadow-sm"
                 />
               ) : (
-                <div className="w-14 h-14 bg-slate-100 rounded-full flex items-center justify-center text-slate-500 font-bold shadow-sm">
+                <div className="w-14 h-14 bg-secondary rounded-full flex items-center justify-center text-muted-foreground font-bold shadow-sm">
                    GV
                 </div>
               )}
@@ -918,10 +918,10 @@ export default function AdminCourseDetailModeration() {
               </div>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">
+              <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-0.5">
                 Tác giả học liệu
               </p>
-              <p className="text-[15px] font-black text-slate-900 truncate">
+              <p className="text-[15px] font-black text-foreground truncate">
                 {course.instructorName || "Giảng viên Gnostica"}
               </p>
             </div>
@@ -936,16 +936,16 @@ export default function AdminCourseDetailModeration() {
           </div>
 
           {/* Dynamic Curriculum Component Area */}
-          <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm flex flex-col overflow-hidden max-h-[calc(100vh-200px)]">
-            <div className="p-5 bg-slate-900 text-white flex-shrink-0">
+          <div className="bg-white rounded-2xl border border-border/60 shadow-sm flex flex-col overflow-hidden max-h-[calc(100vh-200px)]">
+            <div className="p-5 bg-muted text-white flex-shrink-0">
               <h3 className="font-black flex items-center gap-2.5 tracking-tight text-[17px]">
                 <BookOpen className="w-5 h-5 text-indigo-400" /> Chương trình đào tạo
               </h3>
-              <p className="text-slate-400 text-xs font-bold mt-1 flex items-center gap-2">
+              <p className="text-muted-foreground text-xs font-bold mt-1 flex items-center gap-2">
                 <Layers className="w-3.5 h-3.5" /> {validModules.length} Chương • {totalLessons} Bài giảng
               </p>
             </div>
-            <div className="overflow-y-auto p-4 space-y-3 bg-slate-50/50 scrollbar-thin">
+            <div className="overflow-y-auto p-4 space-y-3 bg-muted scrollbar-thin">
               {validModules.length > 0 ? (
                 <Accordion
                   type="multiple"
@@ -958,9 +958,9 @@ export default function AdminCourseDetailModeration() {
                         <AccordionItem
                           key={mod.id}
                           value={`mod-${mod.id}`}
-                          className="border border-slate-200 rounded-xl overflow-hidden shadow-sm bg-white transition-all duration-200"
+                          className="border border-border rounded-xl overflow-hidden shadow-sm bg-white transition-all duration-200"
                         >
-                          <AccordionTrigger className="px-4 py-3.5 hover:no-underline hover:bg-slate-50 font-extrabold text-slate-800 text-left text-sm leading-tight">
+                          <AccordionTrigger className="px-4 py-3.5 hover:no-underline hover:bg-muted font-extrabold text-foreground text-left text-sm leading-tight">
                             <span className="truncate max-w-[90%]">
                               {mod.title}
                             </span>
@@ -978,11 +978,11 @@ export default function AdminCourseDetailModeration() {
                                      });
                                      window.scrollTo({ top: 0, behavior: "smooth" });
                                   }}
-                                  className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-all group/item border ${activePreview?.type === "lesson" && activePreview.data.id === les.id ? 'bg-indigo-50 border-indigo-200 text-indigo-900' : 'border-transparent hover:bg-slate-50 text-slate-600'}`}
+                                  className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-all group/item border ${activePreview?.type === "lesson" && activePreview.data.id === les.id ? 'bg-indigo-50 border-indigo-200 text-indigo-900' : 'border-transparent hover:bg-muted text-muted-foreground'}`}
                                 >
                                    <div className="flex items-center gap-2 min-w-0">
-                                      <Video className={`w-3.5 h-3.5 shrink-0 ${activePreview?.type === "lesson" && activePreview.data.id === les.id ? 'text-indigo-600' : 'text-blue-500 opacity-70'}`} />
-                                      <span className={`text-xs truncate font-bold ${activePreview?.type === "lesson" && activePreview.data.id === les.id ? 'text-indigo-950' : 'text-slate-700'}`}>
+                                      <Video className={`w-3.5 h-3.5 shrink-0 ${activePreview?.type === "lesson" && activePreview.data.id === les.id ? 'text-indigo-600' : 'text-info opacity-70'}`} />
+                                      <span className={`text-xs truncate font-bold ${activePreview?.type === "lesson" && activePreview.data.id === les.id ? 'text-indigo-950' : 'text-foreground'}`}>
                                          {lIdx + 1}. {les.title}
                                       </span>
                                    </div>
@@ -997,7 +997,7 @@ export default function AdminCourseDetailModeration() {
                                      setActivePreview({ type: "quiz", data: mod.quiz });
                                      window.scrollTo({ top: 0, behavior: "smooth" });
                                   }}
-                                  className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-all group/item border ${activePreview?.type === "quiz" && activePreview.data.id === mod.quiz.id ? 'bg-violet-50 border-violet-200 text-violet-900' : 'border-transparent hover:bg-slate-50 text-slate-600'}`}
+                                  className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-all group/item border ${activePreview?.type === "quiz" && activePreview.data.id === mod.quiz.id ? 'bg-violet-50 border-violet-200 text-violet-900' : 'border-transparent hover:bg-muted text-muted-foreground'}`}
                                 >
                                    <div className="flex items-center gap-2 min-w-0">
                                       <Trophy className="w-3.5 h-3.5 text-violet-600 opacity-80 shrink-0" />
@@ -1014,7 +1014,7 @@ export default function AdminCourseDetailModeration() {
                   })}
                 </Accordion>
               ) : (
-                <p className="text-center text-slate-400 italic text-xs font-medium py-10">Khóa học này hiện chưa có chương trình học nào.</p>
+                <p className="text-center text-muted-foreground italic text-xs font-medium py-10">Khóa học này hiện chưa có chương trình học nào.</p>
               )}
             </div>
           </div>

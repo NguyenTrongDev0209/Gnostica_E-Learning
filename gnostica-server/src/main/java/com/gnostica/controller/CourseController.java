@@ -167,4 +167,17 @@ public class CourseController {
         response.put("transcript", transcript);
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/recommendations")
+    public ResponseEntity<?> getRecommendedCourses(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            Authentication authentication
+    ) {
+        if (authentication == null) {
+            return ResponseEntity.status(401).body(Map.of("error", "Vui lòng đăng nhập để nhận gợi ý"));
+        }
+        String email = authentication.getName();
+        return ResponseEntity.ok(courseService.getRecommendedCourses(email, page, size));
+    }
 }

@@ -28,7 +28,7 @@ import { SimpleButton } from "@/components/common/AppButton";
 import { AppBreadcrumb, PageHeader } from "@/components/common/AppSection";
 import CartItemTableRow from "@/components/common/CartItemTableRow";
 import { Home } from "lucide-react";
-import { cartItemsMock } from "@/mocks/cart";
+import { cartItemsMock } from "@/apiMocks/cart";
 
 export default function CourseCart() {
   const [cart, setCart] = useState(cartItemsMock);
@@ -77,8 +77,8 @@ export default function CourseCart() {
         <div className="mb-0">
           <AppBreadcrumb
             items={breadcrumbItems}
-            linkClassName="text-slate-400 hover:text-primary"
-            activeClassName="font-semibold text-slate-900"
+            linkClassName="text-muted-foreground hover:text-primary"
+            activeClassName="font-semibold text-foreground"
             separatorClassName="text-slate-300"
           />
           <PageHeader
@@ -93,7 +93,7 @@ export default function CourseCart() {
           <div className="lg:col-span-8">
             <Card className="border-none shadow-xl shadow-slate-200/50 overflow-hidden bg-white/80 backdrop-blur-sm px-3">
               <Table>
-                <TableHeader className="bg-slate-50/80">
+                <TableHeader className="bg-muted/80">
                   <TableRow className="hover:bg-transparent">
                     <TableHead className="w-[50px] py-4">
                       <Checkbox
@@ -102,14 +102,14 @@ export default function CourseCart() {
                         onCheckedChange={handleSelectAll}
                       />
                     </TableHead>
-                    <TableHead colSpan={2} className="font-bold text-slate-900 py-4">
+                    <TableHead colSpan={2} className="font-bold text-foreground py-4">
                       <div className="flex items-center">
                         <div className="w-[96px] md:w-[128px]" />
                         <div className="px-4">Khóa học</div>
                       </div>
                     </TableHead>
-                    <TableHead className="w-[120px] font-bold text-slate-900 py-4 text-center">Số lượng</TableHead>
-                    <TableHead className="w-[80px] text-right font-bold text-slate-900 py-4"></TableHead>
+                    <TableHead className="w-[120px] font-bold text-foreground py-4 text-center">Số lượng</TableHead>
+                    <TableHead className="w-[80px] text-right font-bold text-foreground py-4"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -126,7 +126,7 @@ export default function CourseCart() {
                   ) : (
                     <TableRow>
                       <TableCell colSpan={5} className="h-64 text-center">
-                        <div className="flex flex-col items-center gap-4 text-slate-400">
+                        <div className="flex flex-col items-center gap-4 text-muted-foreground">
                           <ShoppingBag className="w-16 h-16 opacity-20" />
                           <p className="font-medium">Giỏ hàng rỗng</p>
                           <Link to="/courses">
@@ -139,10 +139,10 @@ export default function CourseCart() {
                 </TableBody>
               </Table>
 
-              <div className="p-6 bg-slate-50/30 border-t border-slate-100">
+              <div className="p-6 bg-muted/30 border-t border-border">
                 <Link
                   to="/courses"
-                  className="inline-flex items-center gap-2 text-sm font-bold text-slate-600 hover:text-primary transition-colors group"
+                  className="inline-flex items-center gap-2 text-sm font-bold text-muted-foreground hover:text-primary transition-colors group"
                 >
                   <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                   Tiếp tục chọn khóa học
@@ -151,31 +151,31 @@ export default function CourseCart() {
             </Card>
 
             <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="flex items-center gap-3 p-4 bg-white rounded-xl shadow-sm border border-slate-100">
-                <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center text-green-600">
+              <div className="flex items-center gap-3 p-4 bg-white rounded-xl shadow-sm border border-border">
+                <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center text-success">
                   <ShieldCheck className="w-6 h-6" />
                 </div>
                 <div className="text-xs">
-                  <p className="font-bold text-slate-900">Thanh toán bảo mật</p>
-                  <p className="text-slate-500">100% an toàn & bảo mật</p>
+                  <p className="font-bold text-foreground">Thanh toán bảo mật</p>
+                  <p className="text-muted-foreground">100% an toàn & bảo mật</p>
                 </div>
               </div>
-              <div className="flex items-center gap-3 p-4 bg-white rounded-xl shadow-sm border border-slate-100">
-                <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
+              <div className="flex items-center gap-3 p-4 bg-white rounded-xl shadow-sm border border-border">
+                <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-info">
                   <CreditCard className="w-6 h-6" />
                 </div>
                 <div className="text-xs">
-                  <p className="font-bold text-slate-900">Trả phí một lần</p>
-                  <p className="text-slate-500">Truy cập trọn đời khóa học</p>
+                  <p className="font-bold text-foreground">Trả phí một lần</p>
+                  <p className="text-muted-foreground">Truy cập trọn đời khóa học</p>
                 </div>
               </div>
-              <div className="flex items-center gap-3 p-4 bg-white rounded-xl shadow-sm border border-slate-100">
-                <div className="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center text-orange-600">
+              <div className="flex items-center gap-3 p-4 bg-white rounded-xl shadow-sm border border-border">
+                <div className="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center text-warning">
                   <Gift className="w-6 h-6" />
                 </div>
                 <div className="text-xs">
-                  <p className="font-bold text-slate-900">Mã ưu đãi</p>
-                  <p className="text-slate-500">Dùng mã để được giảm giá</p>
+                  <p className="font-bold text-foreground">Mã ưu đãi</p>
+                  <p className="text-muted-foreground">Dùng mã để được giảm giá</p>
                 </div>
               </div>
             </div>
@@ -184,28 +184,28 @@ export default function CourseCart() {
           <div className="lg:col-span-4">
             <div className="sticky top-10 space-y-6">
               <Card className="border-none shadow-2xl shadow-orange-500/10 overflow-hidden bg-white">
-                <CardHeader className="bg-slate-50/50 border-b border-slate-100 py-5">
-                  <CardTitle className="text-xl font-bold text-slate-900 text-center uppercase tracking-tight">Xác nhận đơn hàng</CardTitle>
+                <CardHeader className="bg-muted border-b border-border py-5">
+                  <CardTitle className="text-xl font-bold text-foreground text-center uppercase tracking-tight">Xác nhận đơn hàng</CardTitle>
                 </CardHeader>
                 <CardContent className="px-8 py-6 space-y-4">
-                  <div className="flex justify-between text-sm font-medium text-slate-500">
+                  <div className="flex justify-between text-sm font-medium text-muted-foreground">
                     <span>Giá gốc:</span>
                     <span className="line-through">{currentOriginalTotal.toLocaleString()}đ</span>
                   </div>
-                  <div className="flex justify-between text-sm font-medium text-slate-500">
+                  <div className="flex justify-between text-sm font-medium text-muted-foreground">
                     <span>Giảm giá:</span>
-                    <span className="text-red-500">-{(currentOriginalTotal - currentSubtotal).toLocaleString()}đ</span>
+                    <span className="text-error">-{(currentOriginalTotal - currentSubtotal).toLocaleString()}đ</span>
                   </div>
 
-                  <Separator className="bg-slate-100" />
+                  <Separator className="bg-secondary" />
 
                   <div className="flex justify-between items-center pt-2">
-                    <span className="font-bold text-slate-900">Tổng cộng:</span>
+                    <span className="font-bold text-foreground">Tổng cộng:</span>
                     <div className="text-right">
                       <div className="text-3xl font-bold text-gradient-button font-extrabold leading-none">
                         {currentSubtotal.toLocaleString()}đ
                       </div>
-                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1.5 px-0.5">đã bao gồm thuế</p>
+                      <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider mt-1.5 px-0.5">đã bao gồm thuế</p>
                     </div>
                   </div>
 
@@ -213,7 +213,7 @@ export default function CourseCart() {
                     <div className="relative mb-3">
                       <Input
                         placeholder="Nhập mã giảm giá..."
-                        className="pr-20 h-11 border-slate-200 focus-visible:ring-primary focus-visible:border-primary"
+                        className="pr-20 h-11 border-border focus-visible:ring-primary focus-visible:border-primary"
                       />
                       <Button
                         variant="ghost"
@@ -223,7 +223,7 @@ export default function CourseCart() {
                         Áp dụng
                       </Button>
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-slate-500">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <Tag className="w-3 h-3" />
                       <span>Các thẻ quà tặng hiện có sẽ được áp dụng khi thanh toán</span>
                     </div>

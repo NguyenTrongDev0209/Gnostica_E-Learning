@@ -17,8 +17,8 @@ export const CheckoutOrderHeader = ({ breadcrumbItems }) => {
     <div className="mb-0">
       <AppBreadcrumb
         items={breadcrumbItems}
-        linkClassName="text-slate-400 hover:text-primary"
-        activeClassName="font-semibold text-slate-900"
+        linkClassName="text-muted-foreground hover:text-primary"
+        activeClassName="font-semibold text-foreground"
         separatorClassName="text-slate-300"
       />
       <PageHeader
@@ -36,8 +36,8 @@ export const CheckoutOrderHeader = ({ breadcrumbItems }) => {
 export const CheckoutOrderItemList = ({ orderItems }) => {
   return (
     <Card className="border-none shadow-xl shadow-slate-200/50 bg-white/80 backdrop-blur-sm overflow-hidden">
-      <CardHeader className="bg-slate-50/50 border-b border-slate-100">
-        <CardTitle className="text-lg font-bold text-slate-900 flex items-center gap-2">
+      <CardHeader className="bg-muted border-b border-border">
+        <CardTitle className="text-lg font-bold text-foreground flex items-center gap-2">
           <span className="w-7 h-7 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">
             1
           </span>
@@ -49,9 +49,9 @@ export const CheckoutOrderItemList = ({ orderItems }) => {
           {orderItems.map((item) => (
             <div
               key={item.id}
-              className="p-6 flex items-center gap-4 hover:bg-slate-50/50 transition-colors"
+              className="p-6 flex items-center gap-4 hover:bg-muted transition-colors"
             >
-              <div className="w-24 h-16 md:w-32 md:h-20 shrink-0 rounded-lg overflow-hidden border border-slate-100 shadow-sm">
+              <div className="w-24 h-16 md:w-32 md:h-20 shrink-0 rounded-lg overflow-hidden border border-border shadow-sm">
                 <img
                   src={item.image}
                   alt={item.title}
@@ -59,10 +59,10 @@ export const CheckoutOrderItemList = ({ orderItems }) => {
                 />
               </div>
               <div className="flex-1 min-w-0 space-y-1">
-                <h3 className="font-bold text-slate-900 line-clamp-2 leading-snug">
+                <h3 className="font-bold text-foreground line-clamp-2 leading-snug">
                   {item.title}
                 </h3>
-                <p className="text-xs text-slate-500 font-medium italic truncate">
+                <p className="text-xs text-muted-foreground font-medium italic truncate">
                   Giảng viên: {item.instructor}
                 </p>
                 <div className="flex items-center gap-1">
@@ -70,7 +70,7 @@ export const CheckoutOrderItemList = ({ orderItems }) => {
                     <Star
                       key={i}
                       className={`w-3 h-3 ${i < Math.floor(item.rating)
-                          ? "text-yellow-400 fill-yellow-400"
+                          ? "text-warning fill-yellow-400"
                           : "text-slate-200 fill-slate-100"
                         }`}
                     />
@@ -82,7 +82,7 @@ export const CheckoutOrderItemList = ({ orderItems }) => {
                   {item.price.toLocaleString()}đ
                 </p>
                 {item.originalPrice && (
-                  <p className="text-xs text-slate-400 line-through font-medium">
+                  <p className="text-xs text-muted-foreground line-through font-medium">
                     {item.originalPrice.toLocaleString()}đ
                   </p>
                 )}
@@ -101,8 +101,8 @@ export const CheckoutOrderItemList = ({ orderItems }) => {
 export const CheckoutPaymentMethod = ({ paymentMethods, paymentMethod, setPaymentMethod }) => {
   return (
     <Card className="border-none shadow-xl shadow-slate-200/50 bg-white/80 backdrop-blur-sm">
-      <CardHeader className="bg-slate-50/50 border-b border-slate-100">
-        <CardTitle className="text-lg font-bold text-slate-900 flex items-center gap-2">
+      <CardHeader className="bg-muted border-b border-border">
+        <CardTitle className="text-lg font-bold text-foreground flex items-center gap-2">
           <span className="w-7 h-7 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">
             2
           </span>
@@ -126,7 +126,7 @@ export const CheckoutPaymentMethod = ({ paymentMethods, paymentMethod, setPaymen
                   relative flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200
                   ${isSelected
                     ? "border-primary bg-primary/5 shadow-sm"
-                    : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+                    : "border-border hover:border-border hover:bg-muted"
                   }
                 `}
               >
@@ -137,7 +137,7 @@ export const CheckoutPaymentMethod = ({ paymentMethods, paymentMethod, setPaymen
                   <Icon className="w-5 h-5" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-slate-800">{method.label}</p>
+                  <p className="text-sm font-bold text-foreground">{method.label}</p>
                   <p className="text-xs text-muted-foreground">{method.description}</p>
                 </div>
                 {isSelected && <CheckCircle2 className="w-5 h-5 text-primary shrink-0" />}
@@ -156,31 +156,31 @@ export const CheckoutPaymentMethod = ({ paymentMethods, paymentMethod, setPaymen
 export const CheckoutTrustBadges = () => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pb-2">
-      <div className="flex items-center gap-3 p-4 bg-white rounded-xl shadow-sm border border-slate-100">
-        <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center text-green-600">
+      <div className="flex items-center gap-3 p-4 bg-white rounded-xl shadow-sm border border-border">
+        <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center text-success">
           <ShieldCheck className="w-6 h-6" />
         </div>
         <div className="text-xs">
-          <p className="font-bold text-slate-900">SSL bảo mật</p>
-          <p className="text-slate-500">Mã hóa 256-bit</p>
+          <p className="font-bold text-foreground">SSL bảo mật</p>
+          <p className="text-muted-foreground">Mã hóa 256-bit</p>
         </div>
       </div>
-      <div className="flex items-center gap-3 p-4 bg-white rounded-xl shadow-sm border border-slate-100">
-        <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
+      <div className="flex items-center gap-3 p-4 bg-white rounded-xl shadow-sm border border-border">
+        <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-info">
           <Lock className="w-6 h-6" />
         </div>
         <div className="text-xs">
-          <p className="font-bold text-slate-900">Bảo vệ dữ liệu</p>
-          <p className="text-slate-500">Không lưu thông tin thẻ</p>
+          <p className="font-bold text-foreground">Bảo vệ dữ liệu</p>
+          <p className="text-muted-foreground">Không lưu thông tin thẻ</p>
         </div>
       </div>
-      <div className="flex items-center gap-3 p-4 bg-white rounded-xl shadow-sm border border-slate-100">
-        <div className="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center text-orange-600">
+      <div className="flex items-center gap-3 p-4 bg-white rounded-xl shadow-sm border border-border">
+        <div className="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center text-warning">
           <CheckCircle2 className="w-6 h-6" />
         </div>
         <div className="text-xs">
-          <p className="font-bold text-slate-900">Hoàn tiền 30 ngày</p>
-          <p className="text-slate-500">Đảm bảo chất lượng</p>
+          <p className="font-bold text-foreground">Hoàn tiền 30 ngày</p>
+          <p className="text-muted-foreground">Đảm bảo chất lượng</p>
         </div>
       </div>
     </div>
@@ -196,41 +196,41 @@ export const CheckoutOrderSummary = ({
 }) => {
   return (
     <Card className="border-none shadow-2xl shadow-orange-500/10 overflow-hidden bg-white">
-      <CardHeader className="bg-slate-50/50 border-b border-slate-100 py-5">
-        <CardTitle className="text-xl font-bold text-slate-900 text-center uppercase tracking-tight">
+      <CardHeader className="bg-muted border-b border-border py-5">
+        <CardTitle className="text-xl font-bold text-foreground text-center uppercase tracking-tight">
           Tổng kết đơn hàng
         </CardTitle>
       </CardHeader>
       <CardContent className="px-8 py-6 space-y-4">
         <div className="space-y-2.5">
-          <div className="flex justify-between text-sm font-medium text-slate-500">
+          <div className="flex justify-between text-sm font-medium text-muted-foreground">
             <span>Tạm tính ({orderItems.length} khóa học)</span>
             <span>{totalOriginal.toLocaleString()}đ</span>
           </div>
           <div className="flex justify-between text-sm font-medium">
-            <span className="text-slate-500">Giảm giá</span>
-            <span className="text-red-500">-{discount.toLocaleString()}đ</span>
+            <span className="text-muted-foreground">Giảm giá</span>
+            <span className="text-error">-{discount.toLocaleString()}đ</span>
           </div>
-          <div className="flex justify-between text-sm font-medium text-slate-500">
+          <div className="flex justify-between text-sm font-medium text-muted-foreground">
             <span>Phí xử lý</span>
             <Badge
               variant="outline"
-              className="text-[10px] text-green-600 border-green-200 bg-green-50 font-bold"
+              className="text-[10px] text-success border-success/20 bg-green-50 font-bold"
             >
               MIỄN PHÍ
             </Badge>
           </div>
         </div>
 
-        <Separator className="bg-slate-100" />
+        <Separator className="bg-secondary" />
 
         <div className="flex justify-between items-center pt-2">
-          <span className="font-bold text-slate-900">Tổng thanh toán</span>
+          <span className="font-bold text-foreground">Tổng thanh toán</span>
           <div className="text-right">
             <div className="text-3xl font-bold text-gradient-button font-extrabold leading-none">
               {subtotal.toLocaleString()}đ
             </div>
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1.5 px-0.5">
+            <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider mt-1.5 px-0.5">
               đã bao gồm thuế
             </p>
           </div>
@@ -240,7 +240,7 @@ export const CheckoutOrderSummary = ({
           <div className="flex gap-2">
             <div className="relative flex-1">
               {appliedCoupon && (
-                <CheckCircle2 className="w-4 h-4 text-green-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                <CheckCircle2 className="w-4 h-4 text-success absolute left-3 top-1/2 -translate-y-1/2" />
               )}
               <input
                 type="text"
@@ -248,13 +248,13 @@ export const CheckoutOrderSummary = ({
                 value={couponCode}
                 onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
                 disabled={isCouponLoading || appliedCoupon != null}
-                className={`w-full border rounded-lg text-sm px-3 py-2.5 outline-none focus:border-primary transition-all ${appliedCoupon ? 'pl-9 bg-green-50/50 border-green-200 text-green-700 font-bold' : 'border-slate-200'}`}
+                className={`w-full border rounded-lg text-sm px-3 py-2.5 outline-none focus:border-primary transition-all ${appliedCoupon ? 'pl-9 bg-green-50/50 border-success/20 text-success font-bold' : 'border-border'}`}
               />
             </div>
             <Button
               type="button"
               variant={appliedCoupon ? "outline" : "default"}
-              className={appliedCoupon ? "text-red-500 hover:text-red-600 hover:bg-red-50 border-red-200" : "bg-slate-900 border-none"}
+              className={appliedCoupon ? "text-error hover:text-error hover:bg-red-50 border-error/20" : "bg-muted border-none"}
               onClick={appliedCoupon ? removeCoupon : applyCoupon}
               disabled={isCouponLoading || (!couponCode && !appliedCoupon)}
             >
@@ -262,7 +262,7 @@ export const CheckoutOrderSummary = ({
             </Button>
           </div>
           {couponMessage && (
-            <p className={`text-xs ml-1 font-medium ${appliedCoupon ? 'text-green-600' : 'text-red-500'}`}>{couponMessage}</p>
+            <p className={`text-xs ml-1 font-medium ${appliedCoupon ? 'text-success' : 'text-error'}`}>{couponMessage}</p>
           )}
         </div>
 

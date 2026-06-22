@@ -22,9 +22,9 @@ const userGrowthConfig = {
 
 export default function MemberGrowthChart({ data }) {
     return (
-        <Card className="lg:col-span-2 border-slate-200 shadow-sm flex flex-col">
-            <CardHeader className="pb-2 border-b border-slate-100">
-                <CardTitle className="text-lg font-bold text-slate-900">Tăng Trưởng Thành Viên</CardTitle>
+        <Card className="lg:col-span-2 border-border shadow-sm flex flex-col">
+            <CardHeader className="pb-2 border-b border-border">
+                <CardTitle className="text-lg font-bold text-foreground">Tăng Trưởng Thành Viên</CardTitle>
                 <CardDescription>Lượng đăng ký mới của Học viên và Giảng viên theo tháng</CardDescription>
             </CardHeader>
             <CardContent className="pt-4 flex-1">

@@ -83,9 +83,9 @@ export default function AdminBanks() {
       />
 
       {totalPages > 1 && (
-        <div className="p-4 border-t border-slate-100 flex flex-col sm:flex-row shadow-sm bg-white rounded-b-xl items-center justify-between gap-4 text-sm text-slate-500">
+        <div className="p-4 border-t border-border flex flex-col sm:flex-row shadow-sm bg-white rounded-b-xl items-center justify-between gap-4 text-sm text-muted-foreground">
           <div>
-            Hiển thị <span className="font-bold text-slate-900">{startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredBanks.length)}</span> trong số <span className="font-bold text-slate-900">{filteredBanks.length}</span> ngân hàng
+            Hiển thị <span className="font-bold text-foreground">{startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredBanks.length)}</span> trong số <span className="font-bold text-foreground">{filteredBanks.length}</span> ngân hàng
           </div>
           <div className="flex gap-1">
             <Button 

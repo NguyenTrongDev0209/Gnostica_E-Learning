@@ -1,5 +1,6 @@
+import AppText from './AppText';
 import React from 'react';
-import { View, Text, Image } from 'react-native';
+import { View, Image } from 'react-native';
 
 const Avatar = ({ uri, name = '', size = 48, style }) => {
     const initials = name
@@ -24,18 +25,12 @@ const Avatar = ({ uri, name = '', size = 48, style }) => {
 
     return (
         <View
-            style={[{
-                width: size,
-                height: size,
-                borderRadius: size / 2,
-                backgroundColor: bgColor,
-                alignItems: 'center',
-                justifyContent: 'center',
-            }, style]}
+            className="items-center justify-center"
+            style={[{ width: size, height: size, borderRadius: size / 2, backgroundColor: bgColor }, style]}
         >
-            <Text style={{ color: 'white', fontSize: size * 0.36, fontWeight: '700' }}>
+            <AppText className="text-white font-bold" style={{ fontSize: size * 0.36 }}>
                 {initials || '?'}
-            </Text>
+            </AppText>
         </View>
     );
 };

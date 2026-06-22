@@ -89,7 +89,7 @@ export function CouponFormModal({ isOpen, onOpenChange, onSave }) {
                       <Input
                         {...field}
                         placeholder="Nhập tên chương trình giảm giá..."
-                        className="h-11 border-slate-200 bg-white"
+                        className="h-11 border-border bg-white"
                       />
                     </FormControl>
                     <div className="min-h-[20px]">
@@ -111,7 +111,7 @@ export function CouponFormModal({ isOpen, onOpenChange, onSave }) {
                       <Input
                         {...field}
                         placeholder="NHẬP MÃ TẠI ĐÂY"
-                        className="h-11 border-slate-200 bg-white font-bold tracking-widest uppercase focus-visible:ring-primary"
+                        className="h-11 border-border bg-white font-bold tracking-widest uppercase focus-visible:ring-primary"
                       />
                     </FormControl>
                     <div className="min-h-[20px]">
@@ -133,14 +133,14 @@ export function CouponFormModal({ isOpen, onOpenChange, onSave }) {
                       <div className="relative">
                         <Input
                           type="text"
-                          className="h-11 border-slate-200 bg-white pr-8 text-right font-medium"
+                          className="h-11 border-border bg-white pr-8 text-right font-medium"
                           value={field.value}
                           onChange={(e) => {
                             const clean = e.target.value.replace(/[^0-9]/g, '');
                             field.onChange(clean === '' ? 0 : Number(clean));
                           }}
                         />
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 font-bold pointer-events-none">
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold pointer-events-none">
                           %
                         </span>
                       </div>
@@ -163,7 +163,7 @@ export function CouponFormModal({ isOpen, onOpenChange, onSave }) {
                     <FormControl>
                       <Input
                         type="text"
-                        className="h-11 border-slate-200 bg-white text-right font-medium"
+                        className="h-11 border-border bg-white text-right font-medium"
                         value={formatVNNumber(field.value)}
                         onChange={(e) => {
                           const clean = e.target.value.replace(/[^0-9]/g, '');
@@ -190,14 +190,14 @@ export function CouponFormModal({ isOpen, onOpenChange, onSave }) {
                       <div className="relative">
                         <Input
                           type="text"
-                          className="h-11 border-slate-200 bg-white pr-8 text-right font-medium"
+                          className="h-11 border-border bg-white pr-8 text-right font-medium"
                           value={formatVNNumber(field.value)}
                           onChange={(e) => {
                             const clean = e.target.value.replace(/[^0-9]/g, '');
                             field.onChange(clean === '' ? 0 : Number(clean));
                           }}
                         />
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 font-bold pointer-events-none">
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold pointer-events-none">
                           đ
                         </span>
                       </div>
@@ -221,14 +221,14 @@ export function CouponFormModal({ isOpen, onOpenChange, onSave }) {
                       <div className="relative">
                         <Input
                           type="text"
-                          className="h-11 border-slate-200 bg-white pr-8 text-right font-medium"
+                          className="h-11 border-border bg-white pr-8 text-right font-medium"
                           value={formatVNNumber(field.value)}
                           onChange={(e) => {
                             const clean = e.target.value.replace(/[^0-9]/g, '');
                             field.onChange(clean === '' ? 0 : Number(clean));
                           }}
                         />
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 font-bold pointer-events-none">
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold pointer-events-none">
                           đ
                         </span>
                       </div>
@@ -252,7 +252,7 @@ export function CouponFormModal({ isOpen, onOpenChange, onSave }) {
                       <Input
                         type="datetime-local"
                         {...field}
-                        className="h-11 border-slate-200 bg-white"
+                        className="h-11 border-border bg-white"
                       />
                     </FormControl>
                     <div className="min-h-[20px]">
@@ -274,7 +274,7 @@ export function CouponFormModal({ isOpen, onOpenChange, onSave }) {
                       <Input
                         type="datetime-local"
                         {...field}
-                        className="h-11 border-slate-200 bg-white"
+                        className="h-11 border-border bg-white"
                       />
                     </FormControl>
                     <div className="min-h-[20px]">
@@ -290,7 +290,7 @@ export function CouponFormModal({ isOpen, onOpenChange, onSave }) {
                 type="button"
                 variant="outline"
                 onClick={() => form.reset()}
-                className="px-6 border-slate-200 hover:bg-slate-100"
+                className="px-6 border-border hover:bg-secondary"
               >
                 Tạo lại
               </Button>

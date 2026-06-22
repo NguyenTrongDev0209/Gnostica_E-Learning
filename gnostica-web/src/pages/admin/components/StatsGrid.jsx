@@ -17,7 +17,7 @@ export default function StatsGrid({ stats }) {
             trend: stats?.revenueTrend ? `+${stats.revenueTrend}%` : "+0%",
             isPositive: true,
             icon: TrendingUp,
-            color: "text-blue-600 bg-blue-50 border-blue-100"
+            color: "text-info bg-blue-50 border-info/20"
         },
         {
             title: "Học Viên Mới",
@@ -25,7 +25,7 @@ export default function StatsGrid({ stats }) {
             trend: stats?.studentTrend ? `+${stats.studentTrend}%` : "+0%",
             isPositive: true,
             icon: Users,
-            color: "text-green-600 bg-green-50 border-green-100"
+            color: "text-success bg-green-50 border-success/20"
         },
         {
             title: "Khóa Học Đang Bán",
@@ -33,7 +33,7 @@ export default function StatsGrid({ stats }) {
             trend: stats?.courseTrend ? `+${stats.courseTrend}%` : "0%",
             isPositive: true,
             icon: BookOpen,
-            color: "text-orange-600 bg-orange-50 border-orange-100"
+            color: "text-warning bg-orange-50 border-warning/20"
         },
         {
             title: "Đơn Hàng Hôm Nay",
@@ -50,20 +50,20 @@ export default function StatsGrid({ stats }) {
             {dynamicStats.map((stat, i) => {
                 const Icon = stat.icon;
                 return (
-                    <Card key={i} className="border-slate-200 shadow-sm hover:shadow-md transition-all duration-300">
+                    <Card key={i} className="border-border shadow-sm hover:shadow-md transition-all duration-300">
                         <CardContent className="p-5 flex flex-col gap-4">
                             <div className="flex justify-between items-start">
                                 <div className={`w-12 h-12 rounded-xl flex items-center justify-center border ${stat.color}`}>
                                     <Icon className="w-6 h-6" />
                                 </div>
-                                <div className={`flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full ${stat.isPositive ? 'text-green-700 bg-green-50/80 border border-green-100' : 'text-red-700 bg-red-50/80 border border-red-100'}`}>
+                                <div className={`flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full ${stat.isPositive ? 'text-success bg-green-50/80 border border-success/20' : 'text-error bg-red-50/80 border border-error/20'}`}>
                                     {stat.isPositive ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
                                     {stat.trend}
                                 </div>
                             </div>
                             <div>
-                                <h3 className="text-sm font-medium text-slate-500 mb-1.5">{stat.title}</h3>
-                                <div className="text-3xl font-black text-slate-900 tracking-tight">{stat.value}</div>
+                                <h3 className="text-sm font-medium text-muted-foreground mb-1.5">{stat.title}</h3>
+                                <div className="text-3xl font-black text-foreground tracking-tight">{stat.value}</div>
                             </div>
                         </CardContent>
                     </Card>

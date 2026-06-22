@@ -1,8 +1,10 @@
+import AppText from '../../components/ui/AppText';
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { View, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { ArrowLeft, Trash2, ShoppingCart, Star } from 'lucide-react-native';
+import { Trash2, ShoppingCart, Star } from 'lucide-react-native';
 import Button from '../../components/ui/Button';
+import AppHeader from '../../components/ui/AppHeader';
 
 const MOCK_WISHLIST = [
     {
@@ -29,19 +31,14 @@ const WishlistScreen = () => {
     return (
         <View className="flex-1 bg-slate-50">
             {/* Header */}
-            <View className="bg-white pt-12 pb-4 px-4 border-b border-slate-100 flex-row items-center">
-                <TouchableOpacity onPress={() => navigation.goBack()} className="p-2">
-                    <ArrowLeft size={24} color="#1e293b" />
-                </TouchableOpacity>
-                <Text className="text-xl font-bold text-slate-800 ml-2">Danh sách yêu thích</Text>
-            </View>
+            <AppHeader title="Danh sách yêu thích" />
 
             <ScrollView className="flex-1 p-4">
                 {MOCK_WISHLIST.length === 0 ? (
                     <View className="items-center justify-center mt-20">
-                        <Text className="text-6xl mb-4">💔</Text>
-                        <Text className="text-lg font-bold text-slate-800">Trống trải quá...</Text>
-                        <Text className="text-slate-500 text-center mt-2">Hãy lưu lại những khóa học bạn yêu thích nhé!</Text>
+                        <AppText className="text-6xl mb-4">💔</AppText>
+                        <AppText className="text-lg font-bold text-slate-800">Trống trải quá...</AppText>
+                        <AppText className="text-slate-500 text-center mt-2">Hãy lưu lại những khóa học bạn yêu thích nhé!</AppText>
                         <Button
                             variant="primary"
                             className="mt-6 px-8"
@@ -59,15 +56,15 @@ const WishlistScreen = () => {
                             />
                             <View className="flex-1 ml-4 justify-between">
                                 <View>
-                                    <Text className="text-slate-900 font-bold text-base" numberOfLines={2}>{item.title}</Text>
-                                    <Text className="text-slate-500 text-xs mt-1">{item.instructor}</Text>
+                                    <AppText className="text-slate-900 font-bold text-base" numberOfLines={2}>{item.title}</AppText>
+                                    <AppText className="text-slate-500 text-xs mt-1">{item.instructor}</AppText>
                                     <View className="flex-row items-center mt-1">
                                         <Star size={12} color="#fbbf24" fill="#fbbf24" />
-                                        <Text className="text-slate-700 text-xs font-medium ml-1">{item.rating}</Text>
+                                        <AppText className="text-slate-700 text-xs font-medium ml-1">{item.rating}</AppText>
                                     </View>
                                 </View>
                                 <View className="flex-row justify-between items-center">
-                                    <Text className="text-primary font-bold text-base">{item.price}</Text>
+                                    <AppText className="text-primary font-bold text-base">{item.price}</AppText>
                                     <View className="flex-row gap-2">
                                         <TouchableOpacity className="p-2 bg-slate-50 rounded-full">
                                             <Trash2 size={16} color="#ef4444" />

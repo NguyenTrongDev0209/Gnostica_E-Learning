@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import authService from "@/services/authService";
+import useAuthStore from '@/store/useAuthStore';
 
 const MENU_GROUPS = [
   {
@@ -51,7 +51,7 @@ const MENU_GROUPS = [
 const AccountLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const currentUser = authService.getCurrentUser();
+  const currentUser = useAuthStore(state => state.user);
 
   const user = currentUser ? {
     name: currentUser.fullName || currentUser.username || "Học viên",
@@ -72,7 +72,7 @@ const AccountLayout = () => {
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Sidebar */}
           <aside className="w-full lg:w-1/4 lg:max-w-[320px] shrink-0">
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden sticky top-24">
+            <div className="bg-white rounded-2xl shadow-sm border border-border overflow-hidden sticky top-24">
               {/* User Info */}
               <div className="p-5 flex items-center gap-3">
                 <Avatar className="w-12 h-12 ring-2 ring-primary/10">
@@ -83,7 +83,7 @@ const AccountLayout = () => {
                 </Avatar>
                 <div>
                   <p className="text-xs text-muted-foreground">Tài khoản của</p>
-                  <p className="font-bold text-slate-900">{user.name}</p>
+                  <p className="font-bold text-foreground">{user.name}</p>
                 </div>
               </div>
 
@@ -104,7 +104,7 @@ const AccountLayout = () => {
 
                   return (
                     <div key={group.title}>
-                      <h3 className="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
+                      <h3 className="px-4 text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2">
                         {group.title}
                       </h3>
                       <div className="space-y-1">
@@ -123,11 +123,11 @@ const AccountLayout = () => {
                                 flex items-center gap-3 px-4 py-3 rounded-xl text-[15px] font-semibold transition-all
                                 ${isActive
                                   ? "bg-primary/5 text-primary font-bold shadow-sm ring-1 ring-primary/10"
-                                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
                                 }
                               `}
                             >
-                              <Icon className={`w-5 h-5 ${isActive ? "text-primary" : "text-slate-400"}`} />
+                              <Icon className={`w-5 h-5 ${isActive ? "text-primary" : "text-muted-foreground"}`} />
                               <span className="flex-1">{item.label}</span>
                               {item.badge && (
                                 <Badge className="bg-primary/10 text-primary text-[10px] font-bold px-1.5 py-0 hover:bg-primary/10">
@@ -149,7 +149,7 @@ const AccountLayout = () => {
               <div className="p-2">
                 <button 
                   onClick={handleLogout}
-                  className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-base font-semibold text-red-500 hover:bg-red-50 transition-all font-bold"
+                  className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-base font-semibold text-error hover:bg-red-50 transition-all font-bold"
                 >
                   <LogOut className="w-5 h-5" />
                   Đăng xuất

@@ -12,8 +12,8 @@ import {
 export const AppBreadcrumb = ({ 
   items, 
   className = "",
-  linkClassName = "text-slate-500 hover:text-slate-900",
-  activeClassName = "text-slate-800 font-semibold",
+  linkClassName = "text-muted-foreground hover:text-foreground",
+  activeClassName = "text-foreground font-semibold",
   separatorClassName = ""
 }) => {
   return (
@@ -71,7 +71,7 @@ const SectionContainer = ({
           centered ? "items-center text-center w-full" : "items-start text-left w-full"
         )}>
           <h2 className={cn(
-            "text-2xl md:text-3xl font-bold text-slate-900 font-sans w-full",
+            "text-2xl md:text-3xl font-bold text-foreground font-sans w-full",
             centered ? "" : "border-b border-border pb-2"
           )}>
             {title}
@@ -116,7 +116,7 @@ export const PageHeader = ({
         )}
       </h1>
       {description && (
-        <p className="text-slate-500 max-w-2xl text-sm sm:text-base leading-relaxed font-sans">
+        <p className="text-muted-foreground max-w-2xl text-sm sm:text-base leading-relaxed font-sans">
           {description}
         </p>
       )}

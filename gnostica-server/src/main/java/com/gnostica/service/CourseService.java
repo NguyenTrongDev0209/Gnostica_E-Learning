@@ -17,6 +17,7 @@ import com.gnostica.repository.AccountRepository;
 import com.gnostica.repository.CategoryRepository;
 import com.gnostica.repository.CourseRepository;
 import com.gnostica.repository.LessonRepository;
+import com.gnostica.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,6 +41,7 @@ public class CourseService {
     private final AiModerationService aiModerationService;
     private final LessonRepository lessonRepository;
     private final BunnyNetService bunnyNetService;
+    private final NotificationService notificationService;
 
     @Transactional
     public Course createCourse(CourseRequest request, String email) {
@@ -657,7 +659,11 @@ public class CourseService {
                 }
             }
         }
-        return mapToCourseDetailResponse(courseRepository.save(course));
+        
+        notificationService.createNotification(course.getAccount(), "Khóa học được phê duyệt",
+                "Khóa học '" + course.getTitle() + "' của bạn đã được Admin phê duyệt và xuất bản.", "SYSTEM");
+        
+        return courseRepository.save(course);
     }
 
     @Transactional
@@ -668,7 +674,10 @@ public class CourseService {
         course.setStatus(3); // Bị từ chối
         course.setRejectReason(rejectReason != null && !rejectReason.trim().isEmpty() ? rejectReason.trim() : "Nội dung khóa học chưa đáp ứng chuẩn kiểm duyệt.");
         
-        return mapToCourseDetailResponse(courseRepository.save(course));
+        notificationService.createNotification(course.getAccount(), "Khóa học bị từ chối",
+                "Khóa học '" + course.getTitle() + "' của bạn bị từ chối phê duyệt. Lý do: " + course.getRejectReason(), "SYSTEM");
+        
+        return courseRepository.save(course);
     }
 
     private String generateUniqueSlug(String baseSlug, Integer id) {
@@ -728,177 +737,19 @@ public class CourseService {
         return courseRepository.findDistinctPublicLevels();
     }
 
-    public CourseResponse mapToCourseResponse(Course course) {
-        if (course == null) return null;
-        return CourseResponse.builder()
-                .id(course.getId())
-                .title(course.getTitle())
-                .slug(course.getSlug())
-                .description(course.getDescription())
-                .thumbnail(course.getThumbnail())
-                .price(course.getPrice())
-                .discount(course.getDiscount())
-                .salePrice(course.getSalePrice())
-                .level(course.getLevel())
-                .status(course.getStatus())
-                .deleted(course.getDeleted())
-                .rejectReason(course.getRejectReason())
-                .aiModerationReport(course.getAiModerationReport())
-                .aiModerationStatus(course.getAiModerationStatus())
-                .aiModerationLastContentHash(course.getAiModerationLastContentHash())
-                .createdAt(course.getCreatedAt())
-                .updatedAt(course.getUpdatedAt())
-                .isEnrolled(course.getIsEnrolled())
-                .categoryId(course.getCategoryId())
-                .categoryName(course.getCategoryName())
-                .instructorId(course.getInstructorId())
-                .instructorName(course.getInstructorName())
-                .instructorAvatar(course.getInstructorAvatar())
-                .instructorEmail(course.getInstructorEmail())
-                .instructorPhone(course.getInstructorPhone())
-                .instructorCreatedAt(course.getInstructorCreatedAt())
-                .classes(course.getClassesCount())
-                .students(course.getStudentsCount())
-                .build();
-    }
+    @Transactional(readOnly = true)
+    public org.springframework.data.domain.Page<Course> getRecommendedCourses(String email, int page, int size) {
+        Account account = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại"));
 
-    public CourseDetailResponse mapToCourseDetailResponse(Course course) {
-        if (course == null) return null;
-        
-        List<ModuleResponse> moduleResponses = null;
-        if (course.getModules() != null) {
-            moduleResponses = course.getModules().stream()
-                    .map(this::mapToModuleResponse)
-                    .collect(Collectors.toList());
+        java.util.List<Integer> categoryIds = null;
+        if (account.getInterests() != null && !account.getInterests().isEmpty()) {
+            categoryIds = account.getInterests().stream().map(Category::getId).collect(Collectors.toList());
         }
 
-        return CourseDetailResponse.builder()
-                .id(course.getId())
-                .title(course.getTitle())
-                .slug(course.getSlug())
-                .description(course.getDescription())
-                .thumbnail(course.getThumbnail())
-                .price(course.getPrice())
-                .discount(course.getDiscount())
-                .salePrice(course.getSalePrice())
-                .level(course.getLevel())
-                .status(course.getStatus())
-                .deleted(course.getDeleted())
-                .rejectReason(course.getRejectReason())
-                .aiModerationReport(course.getAiModerationReport())
-                .aiModerationStatus(course.getAiModerationStatus())
-                .aiModerationLastContentHash(course.getAiModerationLastContentHash())
-                .createdAt(course.getCreatedAt())
-                .updatedAt(course.getUpdatedAt())
-                .isEnrolled(course.getIsEnrolled())
-                .categoryId(course.getCategoryId())
-                .categoryName(course.getCategoryName())
-                .instructorId(course.getInstructorId())
-                .instructorName(course.getInstructorName())
-                .instructorAvatar(course.getInstructorAvatar())
-                .instructorEmail(course.getInstructorEmail())
-                .instructorPhone(course.getInstructorPhone())
-                .instructorCreatedAt(course.getInstructorCreatedAt())
-                .classes(course.getClassesCount())
-                .students(course.getStudentsCount())
-                .modules(moduleResponses)
-                .build();
-    }
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size,
+                org.springframework.data.domain.Sort.by("id").descending());
 
-    public ModuleResponse mapToModuleResponse(Module module) {
-        if (module == null) return null;
-        
-        List<AttachmentResponse> attachmentResponses = null;
-        if (module.getAttachments() != null) {
-            attachmentResponses = module.getAttachments().stream()
-                    .map(this::mapToAttachmentResponse)
-                    .collect(Collectors.toList());
-        }
-        
-        List<LessonResponse> lessonResponses = null;
-        if (module.getLessons() != null) {
-            lessonResponses = module.getLessons().stream()
-                    .map(this::mapToLessonResponse)
-                    .collect(Collectors.toList());
-        }
-
-        return ModuleResponse.builder()
-                .id(module.getId())
-                .title(module.getTitle())
-                .createdAt(module.getCreatedAt())
-                .status(module.getStatus())
-                .deleted(module.getDeleted())
-                .updatedAt(module.getUpdatedAt())
-                .attachments(attachmentResponses)
-                .lessons(lessonResponses)
-                .quiz(mapToQuizResponse(module.getQuiz()))
-                .build();
-    }
-
-    public LessonResponse mapToLessonResponse(Lesson lesson) {
-        if (lesson == null) return null;
-        return LessonResponse.builder()
-                .id(lesson.getId())
-                .title(lesson.getTitle())
-                .content(lesson.getContent())
-                .videoUrl(lesson.getVideoUrl())
-                .aiModerationReport(lesson.getAiModerationReport())
-                .status(lesson.getStatus())
-                .deleted(lesson.getDeleted())
-                .createdAt(lesson.getCreatedAt())
-                .updatedAt(lesson.getUpdatedAt())
-                .build();
-    }
-
-    public AttachmentResponse mapToAttachmentResponse(Attachment attachment) {
-        if (attachment == null) return null;
-        return AttachmentResponse.builder()
-                .id(attachment.getId())
-                .fileUrl(attachment.getFileUrl())
-                .fileType(attachment.getFileType())
-                .createdAt(attachment.getCreatedAt())
-                .build();
-    }
-
-    public QuizResponse mapToQuizResponse(Quiz quiz) {
-        if (quiz == null) return null;
-        
-        List<QuestionDto> questionDtos = null;
-        if (quiz.getQuestions() != null) {
-            questionDtos = quiz.getQuestions().stream()
-                    .map(this::mapToQuestionDto)
-                    .collect(Collectors.toList());
-        }
-
-        return QuizResponse.builder()
-                .id(quiz.getId())
-                .title(quiz.getTitle())
-                .createdAt(quiz.getCreatedAt())
-                .questionIds(quiz.getQuestionIds())
-                .questions(questionDtos)
-                .build();
-    }
-
-    public QuestionDto mapToQuestionDto(Question question) {
-        if (question == null) return null;
-        QuestionDto dto = new QuestionDto();
-        dto.setId(question.getId());
-        dto.setText(question.getContent());
-        dto.setLevel(question.getLevel());
-        dto.setExplanation(question.getExplanation());
-        
-        Map<String, String> options = new HashMap<>();
-        if (question.getAnswers() != null) {
-            for (Answer a : question.getAnswers()) {
-                if (a.getOptionLabel() != null) {
-                    options.put(a.getOptionLabel(), a.getAnswerText());
-                    if (Boolean.TRUE.equals(a.getIsCorrect())) {
-                        dto.setCorrect(a.getOptionLabel());
-                    }
-                }
-            }
-        }
-        dto.setOptions(options);
-        return dto;
+        return courseRepository.findRecommendedCourses(account.getLevel(), categoryIds, pageable);
     }
 }

@@ -2,42 +2,42 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Home, Shield } from "lucide-react";
 import { AppBreadcrumb } from "@/components/common/AppSection";
-import { privacySectionsMock } from "@/mocks/staticPages";
+import { privacySectionsMock } from "@/apiMocks/staticPages";
 
 export default function PrivacyPage() {
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
-      <section className="bg-slate-900 py-12 text-white">
+      <section className="bg-muted py-12 text-white">
         <div className="app-container">
           <AppBreadcrumb 
             items={[
               { label: "Trang chủ", href: "/", icon: Home },
               { label: "Chính sách bảo mật", isLast: true }
             ]} 
-            linkClassName="text-slate-400 hover:text-slate-100"
+            linkClassName="text-muted-foreground hover:text-slate-100"
             activeClassName="font-semibold text-slate-200"
-            separatorClassName="text-slate-500"
+            separatorClassName="text-muted-foreground"
           />
           <h1 className="text-3xl md:text-4xl font-extrabold flex items-center gap-3">
             <Shield className="w-8 h-8 text-primary" />
             Chính sách bảo mật
           </h1>
-          <p className="text-slate-400 mt-2 font-medium">Cập nhật lần cuối: 24 tháng 3, 2026</p>
+          <p className="text-muted-foreground mt-2 font-medium">Cập nhật lần cuối: 24 tháng 3, 2026</p>
         </div>
       </section>
 
       {/* Main */}
       <main className="app-container max-w-3xl mt-10">
-        <div className="bg-white rounded-2xl shadow-lg border border-slate-100 p-6 sm:p-10 space-y-8">
+        <div className="bg-white rounded-2xl shadow-lg border border-border p-6 sm:p-10 space-y-8">
           {privacySectionsMock.map((section, i) => (
             <div key={i}>
-              <h2 className="text-lg font-bold text-slate-900 mb-3">{section.title}</h2>
+              <h2 className="text-lg font-bold text-foreground mb-3">{section.title}</h2>
               {section.content && (
-                <p className="text-sm text-slate-600 leading-relaxed">{section.content}</p>
+                <p className="text-sm text-muted-foreground leading-relaxed">{section.content}</p>
               )}
               {section.items && (
-                <ul className="list-disc list-inside space-y-2 text-sm text-slate-600 leading-relaxed">
+                <ul className="list-disc list-inside space-y-2 text-sm text-muted-foreground leading-relaxed">
                   {section.items.map((item, j) => (
                     <li key={j}>{item}</li>
                   ))}
