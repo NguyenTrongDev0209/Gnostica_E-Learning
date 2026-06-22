@@ -7,6 +7,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import RatingStars from '../../components/ui/RatingStars';
 import Button from '../../components/ui/Button';
 import { useCart } from '../../context/CartContext';
+import RenderHtml from 'react-native-render-html';
+import MaskedView from '@react-native-masked-view/masked-view';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const { width } = Dimensions.get('window');
 
@@ -43,10 +46,40 @@ const CourseDetailScreen = () => {
     const insets = useSafeAreaInsets();
     const { cartItems, addToCart } = useCart();
 
-    const course = route.params?.course;
+    const courseParams = route.params?.course;
+    const [courseDetail, setCourseDetail] = useState(null);
     const [activeTab, setActiveTab] = useState('desc');
     const [expandedSection, setExpandedSection] = useState(null);
+    
+    const formatPrice = (value) => {
+        if (!value) return '0 đ';
+        return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") + ' đ';
+    };
+
+    // Lấy thông tin cơ bản từ màn Home, ghi đè bằng chi tiết từ API (nếu có)
+    const course = courseDetail ? { 
+        ...courseParams, 
+        ...courseDetail,
+        price: courseDetail.salePrice ? formatPrice(courseDetail.salePrice) : formatPrice(courseDetail.price),
+        originalPrice: courseDetail.discount > 0 ? formatPrice(courseDetail.price) : null
+    } : courseParams;
     const badge = course?.badge ? BADGE_COLORS[course.badge] : null;
+
+    React.useEffect(() => {
+        if (courseParams?.slug) {
+            const fetchDetail = async () => {
+                try {
+                    const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.1.97:8080/api';
+                    const response = await fetch(`${apiUrl}/courses/${courseParams.slug}`);
+                    const data = await response.json();
+                    setCourseDetail(data);
+                } catch (e) {
+                    console.error('Error fetching course detail:', e);
+                }
+            };
+            fetchDetail();
+        }
+    }, [courseParams?.slug]);
 
     if (!course) return null;
 
@@ -184,13 +217,16 @@ const CourseDetailScreen = () => {
                 {/* Tab: Mô tả */}
                 {activeTab === 'desc' && (
                     <View style={{ backgroundColor: '#fff', padding: 20 }}>
-                        <AppText style={{
-                            fontSize: 14, color: '#475569',
-                            fontFamily: 'Inter_400Regular',
-                            lineHeight: 24,
-                        }}>
-                            {course.description}
-                        </AppText>
+                        <RenderHtml
+                            contentWidth={width - 40}
+                            source={{ html: course.description || '<p>Chưa có mô tả khóa học</p>' }}
+                            baseStyle={{
+                                fontSize: 14, color: '#475569',
+                                fontFamily: 'Inter_400Regular',
+                                lineHeight: 24,
+                            }}
+                            systemFonts={['Inter_400Regular', 'Inter_700Bold', 'Inter_500Medium', 'Inter_600SemiBold']}
+                        />
 
                         {/* What you'll learn */}
                         <AppText style={{
@@ -229,9 +265,9 @@ const CourseDetailScreen = () => {
                             fontSize: 13, color: '#64748b',
                             fontFamily: 'Inter_400Regular', marginBottom: 16,
                         }}>
-                            {course.curriculum?.length} chương • {course.curriculum?.reduce((s, c) => s + c.lessons, 0)} bài học
+                            {course.modules?.length || 0} chương • {course.modules?.reduce((sum, m) => sum + (m.lessons?.length || 0), 0)} bài học
                         </AppText>
-                        {course.curriculum?.map((section, i) => (
+                        {course.modules?.map((module, i) => (
                             <View key={i} style={{ borderBottomWidth: 1, borderBottomColor: '#f1f5f9' }}>
                                 <TouchableOpacity
                                     onPress={() => setExpandedSection(expandedSection === i ? null : i)}
@@ -243,11 +279,11 @@ const CourseDetailScreen = () => {
                                 >
                                     <View style={{ flex: 1 }}>
                                         <AppText style={{ fontSize: 14, fontFamily: 'Inter_600SemiBold', color: '#1e293b' }}>
-                                            Chương {i + 1}: {section.section}
+                                            Chương {i + 1}: {module.title}
                                         </AppText>
                                         {expandedSection !== i && (
                                             <AppText style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}>
-                                                {section.lessons} bài học
+                                                {module.lessons?.length || 0} bài học
                                             </AppText>
                                         )}
                                     </View>
@@ -259,9 +295,9 @@ const CourseDetailScreen = () => {
 
                                 {expandedSection === i && (
                                     <View style={{ paddingBottom: 16 }}>
-                                        {Array.from({ length: Math.min(section.lessons, 6) }).map((_, idx) => {
-                                            const isVideo = idx % 3 !== 2;
-                                            const isFree = i === 0 && idx === 0; // First lesson is free preview
+                                        {module.lessons?.map((lesson, idx) => {
+                                            const isVideo = !!lesson.videoUrl;
+                                            const isFree = i === 0 && idx === 0; // Bài học đầu tiên học thử
                                             return (
                                                 <TouchableOpacity key={idx} style={{ 
                                                     flexDirection: 'row', alignItems: 'center', 
@@ -278,7 +314,7 @@ const CourseDetailScreen = () => {
                                                             color: isFree ? '#1e293b' : '#475569', 
                                                             fontFamily: isFree ? 'Inter_600SemiBold' : 'Inter_500Medium' 
                                                         }}>
-                                                            {idx + 1}. {isVideo ? 'Video bài giảng' : 'Tài liệu đọc'}
+                                                            {idx + 1}. {lesson.title}
                                                         </AppText>
                                                     </View>
                                                     <AppText style={{ 
@@ -286,18 +322,11 @@ const CourseDetailScreen = () => {
                                                         color: isFree ? '#2563eb' : '#94a3b8',
                                                         fontFamily: isFree ? 'Inter_600SemiBold' : 'Inter_400Regular'
                                                     }}>
-                                                        {isFree ? 'Học thử' : (isVideo ? `0${idx + 2}:${idx * 15 + 10}` : '2 trang')}
+                                                        {isFree ? 'Học thử' : (isVideo ? 'Video' : 'Tài liệu')}
                                                     </AppText>
                                                 </TouchableOpacity>
                                             );
                                         })}
-                                        {section.lessons > 6 && (
-                                            <TouchableOpacity style={{ paddingVertical: 8, alignItems: 'center' }}>
-                                                <AppText style={{ fontSize: 12, color: '#2563eb', fontFamily: 'Inter_600SemiBold' }}>
-                                                    Xem thêm {section.lessons - 6} bài học
-                                                </AppText>
-                                            </TouchableOpacity>
-                                        )}
                                     </View>
                                 )}
                             </View>
@@ -376,30 +405,44 @@ const CourseDetailScreen = () => {
             <View style={{
                 position: 'absolute', bottom: 0, left: 0, right: 0,
                 backgroundColor: '#fff',
-                paddingHorizontal: 20, paddingTop: 16,
-                paddingBottom: Math.max(insets.bottom, 16),
+                paddingHorizontal: 20, paddingTop: 8,
+                paddingBottom: (insets.bottom || 0) + 8,
                 borderTopWidth: 1, borderTopColor: '#f1f5f9',
-                flexDirection: 'row', alignItems: 'center', gap: 16,
+                flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 16,
                 shadowColor: '#000',
                 shadowOffset: { width: 0, height: -3 },
                 shadowOpacity: 0.06,
                 shadowRadius: 8,
                 elevation: 8,
             }}>
-                <View style={{ flex: 1 }}>
-                    <AppText style={{ fontSize: 20, fontFamily: 'Inter_700Bold', color: '#2563eb' }}>
-                        {course.price}
-                    </AppText>
+                <View style={{ flex: 1, justifyContent: 'center' }}>
+                    <MaskedView
+                        maskElement={
+                            <AppText style={{ fontSize: 24, fontFamily: 'Inter_700Bold', backgroundColor: 'transparent' }}>
+                                {course.price}
+                            </AppText>
+                        }
+                    >
+                        <LinearGradient
+                            colors={['#fb923c', '#ea580c']}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 0 }}
+                        >
+                            <AppText style={{ fontSize: 24, fontFamily: 'Inter_700Bold', opacity: 0 }}>
+                                {course.price}
+                            </AppText>
+                        </LinearGradient>
+                    </MaskedView>
                     {course.originalPrice && (
-                        <AppText style={{ fontSize: 12, color: '#94a3b8', textDecorationLine: 'line-through' }}>
+                        <AppText style={{ fontSize: 13, color: '#94a3b8', textDecorationLine: 'line-through', marginTop: -4 }}>
                             {course.originalPrice}
                         </AppText>
                     )}
                 </View>
                 <Button
                     variant="primary"
-                    className="flex-[1.5] py-3.5 rounded-xl"
-                    textClassName="text-[15px] font-bold"
+                    className="flex-[1.2] py-3.5 rounded-xl"
+                    textClassName="text-[16px] font-bold"
                     onPress={() => navigation.navigate('Checkout', { course })}
                 >
                     Mua ngay

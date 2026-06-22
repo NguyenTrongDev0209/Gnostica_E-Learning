@@ -1,5 +1,5 @@
 import AppText from '../../components/ui/AppText';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, ScrollView, TouchableOpacity,  } from 'react-native';
 import { Menu, Bell, User } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -17,6 +17,35 @@ const HomeScreen = () => {
     const navigation = useNavigation();
     const [isMenuVisible, setIsMenuVisible] = useState(false);
     const insets = useSafeAreaInsets();
+    const [trendingCourses, setTrendingCourses] = useState([]);
+
+    useEffect(() => {
+        const fetchTrendingCourses = async () => {
+            try {
+                const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.1.97:8080/api';
+                const response = await fetch(`${apiUrl}/courses?size=10`);
+                const result = await response.json();
+                if (result.content) {
+                    const formatted = result.content.map(course => ({
+                        id: course.id.toString(),
+                        slug: course.slug,
+                        title: course.title,
+                        thumbnail: course.thumbnail,
+                        instructor: course.instructorName || 'Giảng viên',
+                        rating: 4.5, 
+                        category: course.categoryName,
+                        studentCount: course.students || 0,
+                        price: new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(course.salePrice),
+                        originalPrice: course.discount > 0 ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(course.price) : null
+                    }));
+                    setTrendingCourses(formatted);
+                }
+            } catch (error) {
+                console.error('Error fetching trending courses:', error);
+            }
+        };
+        fetchTrendingCourses();
+    }, []);
 
     return (
         <View className="flex-1 bg-slate-50">
@@ -64,7 +93,7 @@ const HomeScreen = () => {
                 {/* Course Sections */}
                 <CourseSection title="Dành cho bạn" variant="foryou" />
 
-                <CourseSection title="Khóa học thịnh hành" variant="trending" />
+                <CourseSection title="Khóa học thịnh hành" variant="trending" customData={trendingCourses.length > 0 ? trendingCourses : undefined} />
 
                 <InstructorSection />
 
