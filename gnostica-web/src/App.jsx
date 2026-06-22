@@ -11,12 +11,14 @@ import { publicRoutes, privateRoutes } from "@/routers";
 import ErrorPage from "@/pages/ErrorPage";
 import ProtectedRoute from "@/components/common/ProtectedRoute";
 import CertificatePage from "@/pages/learning/CertificatePage";
+import PersonalizationModal from "@/components/common/PersonalizationModal";
 
 function App() {
   return (
     <TooltipProvider>
       <Toaster />
       <Router>
+        <PersonalizationModal />
         <Routes>
 
           <Route element={<MainLayout />}>

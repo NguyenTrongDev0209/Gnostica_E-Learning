@@ -42,9 +42,8 @@ const LoginPage = () => {
       newErrors.email = 'Vui lòng nhập email';
     } else {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      const phoneRegex = /^(0|84)(3|5|7|8|9)([0-9]{8})$/;
-      if (!emailRegex.test(email) && !phoneRegex.test(email)) {
-        newErrors.email = 'Email  không hợp lệ';
+      if (!emailRegex.test(email)) {
+        newErrors.email = 'Email không hợp lệ';
       }
     }
     if (!password) {
@@ -100,13 +99,13 @@ const LoginPage = () => {
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
             {/* Email */}
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="email" className="text-sm font-medium text-slate-700">Email hoặc Số điện thoại</Label>
+              <Label htmlFor="email" className="text-sm font-medium text-slate-700">Email</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   id="email"
-                  type="text"
-                  placeholder="you@example.com hoặc số điện thoại"
+                  type="email"
+                  placeholder="you@example.com"
                   className={`pl-9 h-11 bg-slate-50 border-slate-200 focus:bg-white transition-colors ${errors.email ? 'border-red-500 focus:ring-red-500' : ''}`}
                   value={email}
                   onChange={(e) => {

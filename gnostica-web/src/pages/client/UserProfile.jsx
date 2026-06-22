@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AppCard, { ForumPostCard } from "@/components/common/AppCard";
 import {
   MessageSquare, ThumbsUp, Eye, Clock, MapPin, Link as LinkIcon,
-  Calendar, Star, Award, BookOpen, Flame, UserPlus, Send, Users
+  Calendar, Star, Award, BookOpen, Flame, UserPlus, Send, Users, Sparkles
 } from 'lucide-react';
 import StatItem from '@/components/common/StatItem';
 import {
@@ -26,6 +26,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import authService from '@/services/authService';
 import followingService from '@/services/followingService';
 import { toast } from 'sonner';
+import PersonalizationModal from '@/components/common/PersonalizationModal';
 
 // ── Mock Data ──────────────────────────────────────────────
 const MOCK_USER = {
@@ -98,6 +99,7 @@ const UserProfile = () => {
   const [loading, setLoading] = useState(true);
   const [instructorCourses, setInstructorCourses] = useState([]);
   const [loadingCourses, setLoadingCourses] = useState(false);
+  const [isPersonalizationOpen, setIsPersonalizationOpen] = useState(false);
   const navigate = useNavigate();
 
   const currentUser = JSON.parse(localStorage.getItem('user'));
@@ -106,88 +108,88 @@ const UserProfile = () => {
   // Check following status
   useEffect(() => {
     const checkStatus = async () => {
-        if (currentUser && id && !isOwnProfile) {
-            try {
-                const res = await followingService.checkFollowing(id);
-                setFollowing(res.data.isFollowing);
-            } catch (err) {
-                console.error("Lỗi kiểm tra trạng thái theo dõi", err);
-            }
+      if (currentUser && id && !isOwnProfile) {
+        try {
+          const res = await followingService.checkFollowing(id);
+          setFollowing(res.data.isFollowing);
+        } catch (err) {
+          console.error("Lỗi kiểm tra trạng thái theo dõi", err);
         }
+      }
     };
     checkStatus();
   }, [id, currentUser, isOwnProfile]);
 
   const handleToggleFollow = async () => {
     if (!currentUser) {
-        toast.error("Vui lòng đăng nhập để theo dõi giảng viên!");
-        return;
+      toast.error("Vui lòng đăng nhập để theo dõi giảng viên!");
+      return;
     }
     try {
-        setFollowLoading(true);
-        const res = await followingService.toggleFollow(id);
-        setFollowing(res.data.isFollowing);
-        toast.success(res.data.message);
+      setFollowLoading(true);
+      const res = await followingService.toggleFollow(id);
+      setFollowing(res.data.isFollowing);
+      toast.success(res.data.message);
     } catch (err) {
-        toast.error("Không thể thực hiện thao tác này!");
+      toast.error("Không thể thực hiện thao tác này!");
     } finally {
-        setFollowLoading(false);
+      setFollowLoading(false);
     }
   };
 
-  const [userData, setUserData] = useState(() => 
+  const [userData, setUserData] = useState(() =>
     isOwnProfile ? { ...MOCK_USER, ...currentUser, name: currentUser.fullName, role: currentUser.role } : MOCK_USER
   );
 
   useEffect(() => {
     // Nếu là chính mình, đã set ở trạng thái khởi tạo, nhưng vẫn có thể fetch mới, tạm bọc trong loading để render
     if (isOwnProfile) {
-        setLoading(false);
-        return;
+      setLoading(false);
+      return;
     }
-    
+
     // Nếu là xem user khác, tải dữ liệu
     const fetchUserData = async () => {
-        setLoading(true);
-        try {
-            // Thử gọi api dành cho public profile
-            const response = await axios.get(`http://localhost:8080/api/instructors/${id}/profile`);
-            const data = response.data;
-            setUserData(prev => ({
-                ...prev,
-                id: data.id,
-                name: data.name,
-                avatar: data.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name)}&background=random&color=fff`,
-                email: data.email,
-                role: "INSTRUCTOR",
-                stats: {
-                    ...prev.stats,
-                    courses: data.coursesCount || 0,
-                    students: data.studentsCount || 0,
-                }
-            }));
-            
-            // Xử lý load khóa học nếu là INSTRUCTOR
-            setLoadingCourses(true);
-            try {
-                const coursesResp = await axios.get(`http://localhost:8080/api/instructors/${id}/courses`);
-                setInstructorCourses(coursesResp.data || []);
-            } catch (err) {
-                console.error("Không thể lấy danh sách khóa học của giảng viên", err);
-            } finally {
-                setLoadingCourses(false);
-            }
+      setLoading(true);
+      try {
+        // Thử gọi api dành cho public profile
+        const response = await axios.get(`http://localhost:8080/api/instructors/${id}/profile`);
+        const data = response.data;
+        setUserData(prev => ({
+          ...prev,
+          id: data.id,
+          name: data.name,
+          avatar: data.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name)}&background=random&color=fff`,
+          email: data.email,
+          role: "INSTRUCTOR",
+          stats: {
+            ...prev.stats,
+            courses: data.coursesCount || 0,
+            students: data.studentsCount || 0,
+          }
+        }));
 
-        } catch (error) {
-            console.error("Không thể lấy thông tin chi tiết user", error);
-            // Fallback back to MOCK with id if error
+        // Xử lý load khóa học nếu là INSTRUCTOR
+        setLoadingCourses(true);
+        try {
+          const coursesResp = await axios.get(`http://localhost:8080/api/instructors/${id}/courses`);
+          setInstructorCourses(coursesResp.data || []);
+        } catch (err) {
+          console.error("Không thể lấy danh sách khóa học của giảng viên", err);
         } finally {
-            setLoading(false);
+          setLoadingCourses(false);
         }
+
+      } catch (error) {
+        console.error("Không thể lấy thông tin chi tiết user", error);
+        // Fallback back to MOCK with id if error
+      } finally {
+        setLoading(false);
+      }
     };
     if (id) fetchUserData();
   }, [id, isOwnProfile]);
-  
+
   const user = userData;
   const isInstructor = (user.role || '').toUpperCase() === 'INSTRUCTOR';
 
@@ -196,7 +198,7 @@ const UserProfile = () => {
   };
 
   if (loading) {
-     return <div className="min-h-screen flex items-center justify-center">Đang tải hồ sơ...</div>;
+    return <div className="min-h-screen flex items-center justify-center">Đang tải hồ sơ...</div>;
   }
 
   return (
@@ -249,27 +251,27 @@ const UserProfile = () => {
                     <div className="flex items-center gap-2 shrink-0">
                       {!isOwnProfile && (
                         <Button
-                            variant="outline"
-                            size="sm"
-                            disabled={followLoading}
-                            className={`gap-1.5 h-9 font-semibold transition-all ${following ? 'border-primary text-primary bg-primary/5' : ''}`}
-                            onClick={handleToggleFollow}
+                          variant="outline"
+                          size="sm"
+                          disabled={followLoading}
+                          className={`gap-1.5 h-9 font-semibold transition-all ${following ? 'border-primary text-primary bg-primary/5' : ''}`}
+                          onClick={handleToggleFollow}
                         >
-                            {followLoading ? (
-                                <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-                            ) : (
-                                <UserPlus className="w-4 h-4" />
-                            )}
-                            {following ? 'Đang theo dõi' : 'Theo dõi'}
+                          {followLoading ? (
+                            <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                          ) : (
+                            <UserPlus className="w-4 h-4" />
+                          )}
+                          {following ? 'Đang theo dõi' : 'Theo dõi'}
                         </Button>
                       )}
                       <Button variant="outline" size="sm" className="gap-1.5 h-9">
                         <Send className="w-4 h-4" /> Nhắn tin
                       </Button>
-                      
+
                       {isOwnProfile && !isInstructor && (
-                        <Button 
-                          className="gap-1.5 h-9 font-bold bg-orange-500 hover:bg-orange-600 border-none" 
+                        <Button
+                          className="gap-1.5 h-9 font-bold bg-orange-500 hover:bg-orange-600 border-none"
                           size="sm"
                           onClick={handleBecomeInstructor}
                         >
@@ -341,21 +343,21 @@ const UserProfile = () => {
                   {loadingCourses ? (
                     <div className="text-center py-10 text-muted-foreground">Đang tải danh sách khóa học...</div>
                   ) : instructorCourses.length > 0 ? (
-                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {instructorCourses.map(course => (
-                          <AppCard 
-                            key={course.id} 
-                            title={course.title} 
-                            image={course.thumbnail} 
-                            price={course.price} 
-                            category={course.category?.name} 
-                            students={course.enrollments ? course.enrollments.length : 0}
-                            classes={course.modules ? course.modules.length : 0}
-                            instructor={{name: user.name, avatar: user.avatar, status: user.status}}
-                            link={`/courses/${course.slug}`}
-                          />
-                        ))}
-                     </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {instructorCourses.map(course => (
+                        <AppCard
+                          key={course.id}
+                          title={course.title}
+                          image={course.thumbnail}
+                          price={course.price}
+                          category={course.category?.name}
+                          students={course.enrollments ? course.enrollments.length : 0}
+                          classes={course.modules ? course.modules.length : 0}
+                          instructor={{ name: user.name, avatar: user.avatar, status: user.status }}
+                          link={`/courses/${course.slug}`}
+                        />
+                      ))}
+                    </div>
                   ) : (
                     <div className="text-center py-10 text-muted-foreground">Giảng viên này chưa có khóa học nào.</div>
                   )}
@@ -382,6 +384,44 @@ const UserProfile = () => {
 
           {/* Sidebar */}
           <div className="w-full lg:w-64 xl:w-72 shrink-0 flex flex-col gap-5">
+            {/* Personalization Info */}
+            {isOwnProfile && (
+              <Card className="bg-white shadow-sm border-border">
+                <CardContent className="p-5">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-amber-500" /> Cá nhân hóa
+                    </h3>
+                    <Button variant="ghost" size="icon" className="h-6 w-6 text-indigo-600" onClick={() => setIsPersonalizationOpen(true)}>
+                      <LinkIcon className="w-3 h-3" />
+                    </Button>
+                  </div>
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">Trình độ</p>
+                      <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-100">
+                        {userData.level || "Chưa thiết lập"}
+                      </Badge>
+                    </div>
+                    <div>
+                      <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">Chuyên ngành</p>
+                      <div className="flex flex-wrap gap-1">
+                        {userData.interests && userData.interests.length > 0 ? (
+                          userData.interests.map(cat => (
+                            <Badge key={cat.id} variant="secondary" className="text-[11px]">
+                              {cat.name}
+                            </Badge>
+                          ))
+                        ) : (
+                          <span className="text-xs text-slate-400 italic">Chưa thiết lập</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Achievements */}
             <Card className="bg-white shadow-sm border-border">
               <CardContent className="p-5">
@@ -412,6 +452,11 @@ const UserProfile = () => {
           </div>
         </div>
       </SectionContainer>
+
+      <PersonalizationModal
+        forceOpen={isPersonalizationOpen}
+        onClose={() => setIsPersonalizationOpen(false)}
+      />
     </div>
   );
 };

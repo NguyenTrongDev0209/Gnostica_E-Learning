@@ -712,4 +712,20 @@ public class CourseService {
     public List<String> getPublicLevels() {
         return courseRepository.findDistinctPublicLevels();
     }
+
+    @Transactional(readOnly = true)
+    public org.springframework.data.domain.Page<Course> getRecommendedCourses(String email, int page, int size) {
+        Account account = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại"));
+
+        java.util.List<Integer> categoryIds = null;
+        if (account.getInterests() != null && !account.getInterests().isEmpty()) {
+            categoryIds = account.getInterests().stream().map(Category::getId).collect(Collectors.toList());
+        }
+
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size,
+                org.springframework.data.domain.Sort.by("id").descending());
+
+        return courseRepository.findRecommendedCourses(account.getLevel(), categoryIds, pageable);
+    }
 }

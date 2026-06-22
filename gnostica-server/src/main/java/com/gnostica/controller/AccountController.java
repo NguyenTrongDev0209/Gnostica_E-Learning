@@ -40,4 +40,20 @@ public class AccountController {
                     .build());
         }
     }
+
+    @PutMapping("/personalization")
+    public ResponseEntity<?> updatePersonalization(@RequestBody com.gnostica.dto.PersonalizationDTO dto, @RequestParam("email") String email) {
+        try {
+            authService.updatePersonalization(email, dto);
+            return ResponseEntity.ok(ResponseDTO.builder()
+                    .status(200)
+                    .message("Cập nhật thông tin cá nhân hóa thành công!")
+                    .build());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ResponseDTO.builder()
+                    .status(400)
+                    .message("Cập nhật thất bại: " + e.getMessage())
+                    .build());
+        }
+    }
 }

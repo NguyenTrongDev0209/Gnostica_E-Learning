@@ -338,7 +338,14 @@ const courseService = {
     rejectCourse,
     triggerAiScan,
     triggerAiScanInfo,
-    triggerAiScanFull
+    triggerAiScanFull,
+    getRecommendedCourses: async (page = 0, size = 10) => {
+        const response = await axios.get(`${API_URL}/recommendations`, {
+            params: { page, size },
+            headers: getAuthHeaders()
+        });
+        return response.data;
+    }
 };
 
 export default courseService;

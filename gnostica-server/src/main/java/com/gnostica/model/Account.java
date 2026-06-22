@@ -72,16 +72,21 @@ public class Account {
 	@JoinColumn(name = "role_id")
 	Role role;
 
-	@OneToMany(mappedBy = "account", cascade = CascadeType.ALL)
-	@JsonIgnore
-	private List<Password> passwords;
+	@Column(name = "level")
+	private String level;
 
-	public String getPassword() {
-		if (passwords == null) return null;
-		return passwords.stream()
-				.filter(p -> p.getStatus() == 1)
-				.map(Password::getPassword)
-				.findFirst()
-				.orElse(null);
-	}
+	@Column(name = "onboarding_completed")
+	private Boolean onboardingCompleted = false;
+
+	@jakarta.persistence.ManyToMany
+	@jakarta.persistence.JoinTable(
+		name = "account_categories",
+		joinColumns = @jakarta.persistence.JoinColumn(name = "account_id"),
+		inverseJoinColumns = @jakarta.persistence.JoinColumn(name = "category_id")
+	)
+	private List<Category> interests;
+
+	@Column(name = "password")
+	@JsonIgnore
+	private String password;
 }
