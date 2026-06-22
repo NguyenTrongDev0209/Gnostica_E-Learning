@@ -109,9 +109,9 @@ export default function MyCourses() {
             <div key={n} className="h-80 bg-secondary animate-pulse rounded-lg" />
           ))}
         </div>
-      ) : filteredCourses.length > 0 ? (
+      ) : courses.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-6">
-          {filteredCourses.map((course) => (
+          {courses.map((course) => (
             <Card key={course.id} className="overflow-hidden border-border shadow-sm hover:shadow-xl transition-all group active:scale-[0.98] rounded-xl bg-white">
               <div className="relative h-52 sm:h-60 w-full p-4 pb-0">
                 <div className="w-full h-full overflow-hidden rounded-lg relative shadow-inner bg-muted">

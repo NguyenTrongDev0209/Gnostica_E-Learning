@@ -167,16 +167,16 @@ export default function LearningWorkspace() {
   // === Sync quiz results callbacks ===
   const onQuizCompleted = (quizId, point, correctAnswers, totalQuestions) => {
       setQuizProgress(prev => {
-          const exists = prev.some(q => q.quizId === quizId);
+          const exists = prev.some(q => q.quizId == quizId);
           if (exists) {
-              return prev.map(q => q.quizId === quizId ? { ...q, point, correctAnswers, totalQuestions } : q);
+              return prev.map(q => q.quizId == quizId ? { ...q, point, correctAnswers, totalQuestions } : q);
           }
           return [...prev, { quizId, point, correctAnswers, totalQuestions, completedAt: new Date().toISOString() }];
       });
   };
 
   const onQuizReset = (quizId) => {
-      setQuizProgress(prev => prev.filter(q => q.quizId !== quizId));
+      setQuizProgress(prev => prev.filter(q => q.quizId != quizId));
   };
 
   // === Đồng bộ refs mỗi khi giá trị thay đổi ===
@@ -485,6 +485,17 @@ export default function LearningWorkspace() {
   if (!course) return null;
 
   const allLessons = course.modules.flatMap((section) => section.lessons);
+  // Auto fetch certificate URL when progress reaches 100%
+  useEffect(() => {
+      if (progressValue === 100 && !certifiUrl) {
+          courseService.getCourseProgress(slug).then(res => {
+              if (res?.data?.certifiUrl) {
+                  setCertifiUrl(res.data.certifiUrl);
+              }
+          }).catch(console.error);
+      }
+  }, [progressValue, certifiUrl, slug]);
+
   const totalLessonsCount = allLessons.length;
   const progressValue = totalLessonsCount > 0 
     ? Math.round((completedLessonIds.length / totalLessonsCount) * 100) 
@@ -726,7 +737,7 @@ export default function LearningWorkspace() {
               ) : (
                 <QuizArea 
                    quiz={currentSection?.quiz} 
-                   existingResult={quizProgress.find(qp => qp.quizId === currentSection?.quiz?.id)}
+                   existingResult={quizProgress.find(qp => qp.quizId == currentSection?.quiz?.id)}
                    onQuizCompleted={onQuizCompleted}
                    onQuizReset={onQuizReset}
                    onBack={() => setActiveViewMode("video")} 

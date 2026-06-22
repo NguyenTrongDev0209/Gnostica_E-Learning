@@ -24,6 +24,13 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
 
   const [activeTab, setActiveTab] = useState("basic");
   const [isUploading, setIsUploading] = useState(false);
+  const isUploadingRef = useRef(false);
+  
+  const handleSetIsUploading = useCallback((val) => {
+    isUploadingRef.current = val;
+    setIsUploading(val);
+  }, []);
+
   const [uploadStatus, setUploadStatus] = useState("");
   const [activeUploads, setActiveUploads] = useState(0);
   const [showDraftModal, setShowDraftModal] = useState(false);
@@ -81,29 +88,37 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
   }, []);
 
   // --- UPLOAD HELPERS ---
-  const uploadImageToCloudinary = async (file) => {
+  const uploadImageToCloudinary = useCallback(async (file) => {
     if (typeof file === "string") return file;
     if (!file || file === "mock-url") return file;
     const formData = new FormData();
     formData.append("file", file);
-    const jsonData = await axiosClient.post("/api/upload/image", formData);
-    return jsonData.url;
-  };
+    const response = await axiosClient.post("/upload/image", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data"
+      }
+    });
+    return response.data?.url || response.data;
+  }, []);
 
-  const uploadDocumentToCloudinary = async (file) => {
+  const uploadDocumentToCloudinary = useCallback(async (file) => {
     if (typeof file === "string") return file;
     if (!file) return null;
     const formData = new FormData();
     formData.append("file", file);
-    const jsonData = await axiosClient.post("/api/upload/document", formData);
-    return jsonData.url;
-  };
+    const response = await axiosClient.post("/upload/document", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data"
+      }
+    });
+    return response.data?.url || response.data;
+  }, []);
 
-  const uploadVideoToBunny = async (file, title, onProgress) => {
+  const uploadVideoToBunny = useCallback(async (file, title, onProgress) => {
     if (typeof file === "string") return file;
     if (!file || file === "mock-url") return file;
 
-    const initRes = { data: await axiosClient.post("/api/upload/video/init", { title }) };
+    const initRes = await axiosClient.post("/upload/video/init", { title });
     const { videoId, libraryId, authorizationSignature, authorizationExpire } = initRes.data;
     if (!videoId) throw new Error("Could not initialize video on Bunny.net");
 
@@ -147,7 +162,7 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
         reject(err);
       });
     });
-  };
+  }, []);
 
   // --- DRAFT LOGIC WITH REACT QUERY MUTATION ---
   const saveDraftMutation = useMutation({
@@ -165,13 +180,13 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
         })) || []
       };
 
-      const url = isEditMode ? `/api/courses/draft?courseId=${formData.id || ""}&slug=${slug || ""}` : `/api/courses/draft`;
+      const url = isEditMode ? `/courses/draft?courseId=${formData.id || ""}&slug=${slug || ""}` : `/courses/draft`;
       return await axiosClient.post(url, dataToSave);
     }
   });
 
   const saveDraft = useCallback(async (formData, showNotification = false) => {
-    if (isUploading) return;
+    if (isUploadingRef.current) return;
     const currentString = JSON.stringify(formData);
     if (!showNotification && lastDraftRef.current === currentString) return;
     
@@ -188,7 +203,7 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
         toast.error("Không thể lưu bản nháp");
       }
     }
-  }, [isUploading, saveDraftMutation, navigate]);
+  }, [saveDraftMutation, navigate]);
 
   const restoreDraft = useCallback(() => {
     if (pendingDraft) {
@@ -229,11 +244,11 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
   useEffect(() => {
     const checkDraft = async () => {
       try {
-        const url = isEditMode ? `/api/courses/draft?slug=${slug}` : `/api/courses/draft`;
-        const res = { data: await axiosClient.get(url) };
-        if (res.data) {
-          const draftData = (res.data.data && res.data.error !== undefined) ? res.data.data : res.data;
-          if (draftData) {
+        const url = isEditMode ? `/courses/draft?slug=${slug}` : `/courses/draft`;
+        const res = await axiosClient.get(url);
+        if (res && res.data) {
+          const draftData = res.data;
+          if (draftData && Object.keys(draftData).length > 0) {
             if (isEditMode) {
                 const rawCategoryId = draftData.categoryId || draftData.category?.id;
                 const mappedDraft = {
@@ -258,9 +273,15 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
                 setPendingDraft(draftData);
                 setShowDraftModal(true);
             }
+          } else {
+            if (!isEditMode) localStorage.removeItem("course_questions_new");
           }
+        } else {
+          if (!isEditMode) localStorage.removeItem("course_questions_new");
         }
-      } catch (error) {}
+      } catch (error) {
+        if (!isEditMode) localStorage.removeItem("course_questions_new");
+      }
     };
     checkDraft();
   }, [isEditMode, slug, methods]);
@@ -343,7 +364,7 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
     activeTab,
     setActiveTab,
     isUploading,
-    setIsUploading,
+    setIsUploading: handleSetIsUploading,
     uploadStatus,
     setUploadStatus,
     activeUploads,

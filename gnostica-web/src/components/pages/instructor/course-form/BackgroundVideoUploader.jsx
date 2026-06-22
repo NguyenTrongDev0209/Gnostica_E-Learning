@@ -19,6 +19,9 @@ import { Badge } from "@/components/ui/badge";
 import VideoProgressCircle from "./VideoProgressCircle";
 import { CheckIcon } from "./CheckIcon";
 
+const globalUploadProgress = {};
+const uploadCallbacks = {};
+
 export default function BackgroundVideoUploader({ label, value, onChange, onUploadStart, onUploadEnd, uploadVideoToBunny, id = "v-upload" }) {
   const [uploadProgress, setUploadProgress] = React.useState(0);
   const [processingProgress, setProcessingProgress] = React.useState(0);
@@ -99,35 +102,7 @@ export default function BackgroundVideoUploader({ label, value, onChange, onUplo
       setUploadPhase("processing");
       updateGlobalState(100, 0, "processing");
 
-      // Bước 2: Đợi sinh phụ đề tự động từ Bunny Stream AI
-      let captionReady = false;
-      let attempts = 0;
-      const maxAttempts = 40; // Tối đa ~3.5 phút (40 lần * 5 giây)
-
-      while (!captionReady && attempts < maxAttempts) {
-        // Nghỉ 5 giây giữa mỗi nhịp thăm dò
-        await new Promise(resolve => setTimeout(resolve, 5000));
-        attempts++;
-
-        // Nhích đều đặn từ 0% lên 99%
-        const step = 99 / maxAttempts; 
-        const progressBoost = Math.min(99, Math.round(attempts * step));
-        
-        setProcessingProgress(progressBoost);
-        updateGlobalState(100, progressBoost, "processing");
-
-        try {
-          // Gọi API kiểm tra trạng thái VTT của videoId
-          const status = await courseService.checkSubtitleStatus(videoId);
-          if (status && status.ready) {
-            captionReady = true;
-          }
-        } catch (err) {
-          console.warn("Lỗi kiểm tra phụ đề, thử lại...", err);
-        }
-      }
-
-      // Hoàn tất mỹ mãn
+      // Bước 2: Bỏ qua tạo phụ đề tự động theo yêu cầu của user, hoàn thành luôn
       setProcessingProgress(100);
       setUploadPhase("completed");
       updateGlobalState(100, 100, "completed");
@@ -172,7 +147,7 @@ export default function BackgroundVideoUploader({ label, value, onChange, onUplo
               size={80} 
            />
            <p className={`text-[10px] font-bold text-center leading-tight animate-pulse ${uploadPhase === "uploading" ? "text-muted-foreground" : "text-success"}`}>
-             {uploadPhase === "uploading" ? "ĐANG TIẾN HÀNH UPLOAD VIDEO..." : "AI ĐANG XỬ LÍ PHỤ ĐỀ..."}
+             {uploadPhase === "uploading" ? "ĐANG TIẾN HÀNH UPLOAD VIDEO..." : "ĐANG HOÀN TẤT..."}
            </p>
         </div>
       ) : isCompleted ? (

@@ -1,3 +1,4 @@
+import axiosClient from "@/lib/axiosClient";
 
 const API_URL = "/enrollments";
 

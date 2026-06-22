@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
-import { Trophy, Clock, Target, AlertTriangle, RefreshCw, XCircle, CheckCircle2, ChevronRight, Loader2, Info, User, Trash, CornerDownRight, ChevronDown, ChevronUp, Send, MessageSquare } from "lucide-react";
+import { Trophy, Clock, Target, AlertTriangle, RefreshCw, XCircle, CheckCircle2, ChevronRight, ChevronLeft, Loader2, Info, User, Trash, CornerDownRight, ChevronDown, ChevronUp, Send, MessageSquare, HelpCircle, Award } from "lucide-react";
 import courseService from "@/services/courseService";
 import commentService from "@/services/commentService";
 import useAuthStore from "@/store/useAuthStore";
@@ -28,12 +28,21 @@ export default function QuizArea({ quiz, existingResult, onBack, onQuizCompleted
           setIsSubmitted(true);
           setScorePercent(existingResult.point || 0);
           setCorrectCount(existingResult.correctAnswers || 0);
+          if (quiz?.id) {
+              const saved = localStorage.getItem(`quiz_answers_${quiz.id}`);
+              if (saved) {
+                  try {
+                      setUserAnswers(JSON.parse(saved));
+                  } catch (e) {}
+              }
+          }
       } else {
           setIsSubmitted(false);
           setScorePercent(0);
           setCorrectCount(0);
+          setUserAnswers({});
       }
-  }, [existingResult]);
+  }, [existingResult, quiz?.id]);
 
   if (!quiz || questions.length === 0) {
     return (
@@ -83,6 +92,7 @@ export default function QuizArea({ quiz, existingResult, onBack, onQuizCompleted
         setCorrectCount(correct);
         setScorePercent(finalScore);
         setIsSubmitted(true);
+        localStorage.setItem(`quiz_answers_${quiz.id}`, JSON.stringify(userAnswers));
 
         // 3. Thông báo cho cha để update UI sidebar dấu tick & tổng %
         if (onQuizCompleted) {
@@ -110,6 +120,7 @@ export default function QuizArea({ quiz, existingResult, onBack, onQuizCompleted
           setUserAnswers({});
           setScorePercent(0);
           setCorrectCount(0);
+          localStorage.removeItem(`quiz_answers_${quiz.id}`);
 
           // 3. Thông báo cho cha để gỡ dấu tick ở Sidebar
           if (onQuizReset) {

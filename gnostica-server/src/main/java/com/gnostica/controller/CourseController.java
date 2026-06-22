@@ -133,13 +133,6 @@ public class CourseController {
         }
     }
 
-    @GetMapping("/lessons/check-subtitle/{videoId}")
-    public ResponseEntity<Map<String, Object>> checkSubtitleStatus(@PathVariable String videoId) {
-        String subtitle = bunnyTranscriptionService.fetchSubtitleVtt(videoId);
-        Map<String, Object> response = new HashMap<>();
-        response.put("ready", subtitle != null);
-        return ResponseEntity.ok(response);
-    }
 
     @PostMapping("/ai-pre-scan-text")
     public ResponseEntity<String> preScanText(@RequestBody Map<String, String> body) {
