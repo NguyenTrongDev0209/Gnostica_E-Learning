@@ -23,7 +23,7 @@ const EmailRegisterScreen = () => {
         else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = 'Email không hợp lệ';
 
         if (!password) newErrors.password = 'Vui lòng nhập mật khẩu';
-        else if (password.length < 6) newErrors.password = 'Mật khẩu phải có ít nhất 6 ký tự';
+        else if (password.length < 8) newErrors.password = 'Mật khẩu phải có ít nhất 8 ký tự';
 
         if (password !== confirmPassword) newErrors.confirmPassword = 'Mật khẩu xác nhận không khớp';
 
