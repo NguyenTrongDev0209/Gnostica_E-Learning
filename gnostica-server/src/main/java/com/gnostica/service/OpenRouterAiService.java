@@ -74,6 +74,7 @@ public class OpenRouterAiService {
         body.put("messages", messages);
         // Using low temperature for consistent JSON structure
         body.put("temperature", 0.3);
+        body.put("max_tokens", 3000);
 
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
 
@@ -152,6 +153,7 @@ public class OpenRouterAiService {
         body.put("model", model);
         body.put("messages", messages);
         body.put("temperature", 0.2); // Lower temperature for strictly deterministic JSON output
+        body.put("max_tokens", 3000);
 
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
 

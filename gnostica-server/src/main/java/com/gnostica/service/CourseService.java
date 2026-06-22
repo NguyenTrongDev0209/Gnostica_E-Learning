@@ -3,12 +3,16 @@ package com.gnostica.service;
 import com.gnostica.dto.request.CourseRequest;
 import com.gnostica.dto.request.LessonRequest;
 import com.gnostica.dto.request.ModuleRequest;
+import com.gnostica.dto.response.*;
 import com.gnostica.model.Account;
 import com.gnostica.model.Attachment;
 import com.gnostica.model.Category;
 import com.gnostica.model.Course;
 import com.gnostica.model.Lesson;
 import com.gnostica.model.Module;
+import com.gnostica.model.Quiz;
+import com.gnostica.model.Question;
+import com.gnostica.model.Answer;
 import com.gnostica.repository.AccountRepository;
 import com.gnostica.repository.CategoryRepository;
 import com.gnostica.repository.CourseRepository;
@@ -19,6 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.stream.Collectors;
 
 @Service
@@ -164,7 +170,7 @@ public class CourseService {
     }
 
     @Transactional(readOnly = true)
-    public Course getCourseBySlug(String slug, String email) {
+    public CourseDetailResponse getCourseBySlug(String slug, String email) {
         Course course = courseRepository.findFirstBySlugAndDeletedFalseOrderByIdDesc(slug)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học"));
 
@@ -214,7 +220,7 @@ public class CourseService {
             }
         }
 
-        return course;
+        return mapToCourseDetailResponse(course);
     }
 
     @Transactional
@@ -245,7 +251,7 @@ public class CourseService {
     }
 
     @Transactional
-    public Course updateCourseBySlug(String slug, CourseRequest request, String email) {
+    public CourseDetailResponse updateCourseBySlug(String slug, CourseRequest request, String email) {
         Course course = courseRepository.findFirstBySlugAndDeletedFalseOrderByIdDesc(slug)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học"));
 
@@ -518,22 +524,23 @@ public class CourseService {
         // Việc quét AI chỉ thực hiện thủ công khi giảng viên bấm "Quét thử" trên giao diện.
         // executeAiFirewall(updatedCourse);
 
-        return updatedCourse;
+        return mapToCourseDetailResponse(updatedCourse);
     }
 
     @Transactional(readOnly = true)
-    public org.springframework.data.domain.Page<Course> getPublicCourses(Integer categoryId, String categorySlug,
+    public org.springframework.data.domain.Page<CourseResponse> getPublicCourses(Integer categoryId, String categorySlug,
             String level, int page, int size) {
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size,
                 org.springframework.data.domain.Sort.by("id").descending());
         // Chuyển level sang lowercase hoặc xử lý null
         String levelFilter = (level != null && !level.trim().isEmpty() && !level.equalsIgnoreCase("all")) ? level
                 : null;
-        return courseRepository.findPublicCourses(categoryId, categorySlug, levelFilter, pageable);
+        org.springframework.data.domain.Page<Course> coursesPage = courseRepository.findPublicCourses(categoryId, categorySlug, levelFilter, pageable);
+        return coursesPage.map(this::mapToCourseResponse);
     }
 
     @Transactional(readOnly = true)
-    public org.springframework.data.domain.Page<Course> getInstructorCourses(String email, String search, Integer categoryId, Integer status, int page, int size) {
+    public org.springframework.data.domain.Page<CourseResponse> getInstructorCourses(String email, String search, Integer categoryId, Integer status, int page, int size) {
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size,
                 org.springframework.data.domain.Sort.by("id").descending());
         
@@ -543,18 +550,19 @@ public class CourseService {
             formattedSearch = "%" + search.trim().toLowerCase() + "%";
         }
         
-        return courseRepository.findInstructorCourses(email, formattedSearch, categoryId, status, pageable);
+        org.springframework.data.domain.Page<Course> coursesPage = courseRepository.findInstructorCourses(email, formattedSearch, categoryId, status, pageable);
+        return coursesPage.map(this::mapToCourseResponse);
     }
 
     @Transactional(readOnly = true)
-    public org.springframework.data.domain.Page<Course> getAllActiveCourses(int page, int size) {
+    public org.springframework.data.domain.Page<CourseResponse> getAllActiveCourses(int page, int size) {
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size,
                 org.springframework.data.domain.Sort.by("id").descending());
-        return courseRepository.findByStatusAndDeletedFalse(1, pageable);
+        return courseRepository.findByStatusAndDeletedFalse(1, pageable).map(this::mapToCourseResponse);
     }
 
     @Transactional
-    public Course patchCourseStatus(Integer id, Integer status, String email) {
+    public CourseDetailResponse patchCourseStatus(Integer id, Integer status, String email) {
         Course course = courseRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học"));
 
@@ -581,14 +589,14 @@ public class CourseService {
             }
         }
 
-        return courseRepository.save(course);
+        return mapToCourseDetailResponse(courseRepository.save(course));
     }
 
     @Transactional(readOnly = true)
-    public org.springframework.data.domain.Page<Course> getModerationCourses(Integer status, int page, int size) {
+    public org.springframework.data.domain.Page<CourseResponse> getModerationCourses(Integer status, int page, int size) {
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size,
                 org.springframework.data.domain.Sort.by("updatedAt").descending());
-        return courseRepository.findModerationCourses(status, pageable);
+        return courseRepository.findModerationCourses(status, pageable).map(this::mapToCourseResponse);
     }
 
     @Transactional(readOnly = true)
@@ -614,13 +622,20 @@ public class CourseService {
     }
 
     @Transactional(readOnly = true)
-    public Course getCourseForModerationBySlug(String slug) {
+    public CourseDetailResponse getCourseForModerationBySlug(String slug) {
+        Course course = courseRepository.findFirstBySlugAndDeletedFalseOrderByIdDesc(slug)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học để kiểm duyệt"));
+        return mapToCourseDetailResponse(course);
+    }
+
+    @Transactional(readOnly = true)
+    public Course getCourseEntityForModerationBySlug(String slug) {
         return courseRepository.findFirstBySlugAndDeletedFalseOrderByIdDesc(slug)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học để kiểm duyệt"));
     }
 
     @Transactional
-    public Course approveCourseBySlug(String slug) {
+    public CourseDetailResponse approveCourseBySlug(String slug) {
         Course course = courseRepository.findFirstBySlugAndDeletedFalseOrderByIdDesc(slug)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học để phê duyệt"));
         
@@ -642,18 +657,18 @@ public class CourseService {
                 }
             }
         }
-        return courseRepository.save(course);
+        return mapToCourseDetailResponse(courseRepository.save(course));
     }
 
     @Transactional
-    public Course rejectCourseBySlug(String slug, String rejectReason) {
+    public CourseDetailResponse rejectCourseBySlug(String slug, String rejectReason) {
         Course course = courseRepository.findFirstBySlugAndDeletedFalseOrderByIdDesc(slug)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học"));
         
         course.setStatus(3); // Bị từ chối
         course.setRejectReason(rejectReason != null && !rejectReason.trim().isEmpty() ? rejectReason.trim() : "Nội dung khóa học chưa đáp ứng chuẩn kiểm duyệt.");
         
-        return courseRepository.save(course);
+        return mapToCourseDetailResponse(courseRepository.save(course));
     }
 
     private String generateUniqueSlug(String baseSlug, Integer id) {
@@ -711,5 +726,179 @@ public class CourseService {
     @Transactional(readOnly = true)
     public List<String> getPublicLevels() {
         return courseRepository.findDistinctPublicLevels();
+    }
+
+    public CourseResponse mapToCourseResponse(Course course) {
+        if (course == null) return null;
+        return CourseResponse.builder()
+                .id(course.getId())
+                .title(course.getTitle())
+                .slug(course.getSlug())
+                .description(course.getDescription())
+                .thumbnail(course.getThumbnail())
+                .price(course.getPrice())
+                .discount(course.getDiscount())
+                .salePrice(course.getSalePrice())
+                .level(course.getLevel())
+                .status(course.getStatus())
+                .deleted(course.getDeleted())
+                .rejectReason(course.getRejectReason())
+                .aiModerationReport(course.getAiModerationReport())
+                .aiModerationStatus(course.getAiModerationStatus())
+                .aiModerationLastContentHash(course.getAiModerationLastContentHash())
+                .createdAt(course.getCreatedAt())
+                .updatedAt(course.getUpdatedAt())
+                .isEnrolled(course.getIsEnrolled())
+                .categoryId(course.getCategoryId())
+                .categoryName(course.getCategoryName())
+                .instructorId(course.getInstructorId())
+                .instructorName(course.getInstructorName())
+                .instructorAvatar(course.getInstructorAvatar())
+                .instructorEmail(course.getInstructorEmail())
+                .instructorPhone(course.getInstructorPhone())
+                .instructorCreatedAt(course.getInstructorCreatedAt())
+                .classes(course.getClassesCount())
+                .students(course.getStudentsCount())
+                .build();
+    }
+
+    public CourseDetailResponse mapToCourseDetailResponse(Course course) {
+        if (course == null) return null;
+        
+        List<ModuleResponse> moduleResponses = null;
+        if (course.getModules() != null) {
+            moduleResponses = course.getModules().stream()
+                    .map(this::mapToModuleResponse)
+                    .collect(Collectors.toList());
+        }
+
+        return CourseDetailResponse.builder()
+                .id(course.getId())
+                .title(course.getTitle())
+                .slug(course.getSlug())
+                .description(course.getDescription())
+                .thumbnail(course.getThumbnail())
+                .price(course.getPrice())
+                .discount(course.getDiscount())
+                .salePrice(course.getSalePrice())
+                .level(course.getLevel())
+                .status(course.getStatus())
+                .deleted(course.getDeleted())
+                .rejectReason(course.getRejectReason())
+                .aiModerationReport(course.getAiModerationReport())
+                .aiModerationStatus(course.getAiModerationStatus())
+                .aiModerationLastContentHash(course.getAiModerationLastContentHash())
+                .createdAt(course.getCreatedAt())
+                .updatedAt(course.getUpdatedAt())
+                .isEnrolled(course.getIsEnrolled())
+                .categoryId(course.getCategoryId())
+                .categoryName(course.getCategoryName())
+                .instructorId(course.getInstructorId())
+                .instructorName(course.getInstructorName())
+                .instructorAvatar(course.getInstructorAvatar())
+                .instructorEmail(course.getInstructorEmail())
+                .instructorPhone(course.getInstructorPhone())
+                .instructorCreatedAt(course.getInstructorCreatedAt())
+                .classes(course.getClassesCount())
+                .students(course.getStudentsCount())
+                .modules(moduleResponses)
+                .build();
+    }
+
+    public ModuleResponse mapToModuleResponse(Module module) {
+        if (module == null) return null;
+        
+        List<AttachmentResponse> attachmentResponses = null;
+        if (module.getAttachments() != null) {
+            attachmentResponses = module.getAttachments().stream()
+                    .map(this::mapToAttachmentResponse)
+                    .collect(Collectors.toList());
+        }
+        
+        List<LessonResponse> lessonResponses = null;
+        if (module.getLessons() != null) {
+            lessonResponses = module.getLessons().stream()
+                    .map(this::mapToLessonResponse)
+                    .collect(Collectors.toList());
+        }
+
+        return ModuleResponse.builder()
+                .id(module.getId())
+                .title(module.getTitle())
+                .createdAt(module.getCreatedAt())
+                .status(module.getStatus())
+                .deleted(module.getDeleted())
+                .updatedAt(module.getUpdatedAt())
+                .attachments(attachmentResponses)
+                .lessons(lessonResponses)
+                .quiz(mapToQuizResponse(module.getQuiz()))
+                .build();
+    }
+
+    public LessonResponse mapToLessonResponse(Lesson lesson) {
+        if (lesson == null) return null;
+        return LessonResponse.builder()
+                .id(lesson.getId())
+                .title(lesson.getTitle())
+                .content(lesson.getContent())
+                .videoUrl(lesson.getVideoUrl())
+                .aiModerationReport(lesson.getAiModerationReport())
+                .status(lesson.getStatus())
+                .deleted(lesson.getDeleted())
+                .createdAt(lesson.getCreatedAt())
+                .updatedAt(lesson.getUpdatedAt())
+                .build();
+    }
+
+    public AttachmentResponse mapToAttachmentResponse(Attachment attachment) {
+        if (attachment == null) return null;
+        return AttachmentResponse.builder()
+                .id(attachment.getId())
+                .fileUrl(attachment.getFileUrl())
+                .fileType(attachment.getFileType())
+                .createdAt(attachment.getCreatedAt())
+                .build();
+    }
+
+    public QuizResponse mapToQuizResponse(Quiz quiz) {
+        if (quiz == null) return null;
+        
+        List<QuestionDto> questionDtos = null;
+        if (quiz.getQuestions() != null) {
+            questionDtos = quiz.getQuestions().stream()
+                    .map(this::mapToQuestionDto)
+                    .collect(Collectors.toList());
+        }
+
+        return QuizResponse.builder()
+                .id(quiz.getId())
+                .title(quiz.getTitle())
+                .createdAt(quiz.getCreatedAt())
+                .questionIds(quiz.getQuestionIds())
+                .questions(questionDtos)
+                .build();
+    }
+
+    public QuestionDto mapToQuestionDto(Question question) {
+        if (question == null) return null;
+        QuestionDto dto = new QuestionDto();
+        dto.setId(question.getId());
+        dto.setText(question.getContent());
+        dto.setLevel(question.getLevel());
+        dto.setExplanation(question.getExplanation());
+        
+        Map<String, String> options = new HashMap<>();
+        if (question.getAnswers() != null) {
+            for (Answer a : question.getAnswers()) {
+                if (a.getOptionLabel() != null) {
+                    options.put(a.getOptionLabel(), a.getAnswerText());
+                    if (Boolean.TRUE.equals(a.getIsCorrect())) {
+                        dto.setCorrect(a.getOptionLabel());
+                    }
+                }
+            }
+        }
+        dto.setOptions(options);
+        return dto;
     }
 }

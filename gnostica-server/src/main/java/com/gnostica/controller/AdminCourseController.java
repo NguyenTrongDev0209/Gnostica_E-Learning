@@ -1,5 +1,6 @@
 package com.gnostica.controller;
 
+import com.gnostica.dto.response.*;
 import com.gnostica.model.Course;
 import com.gnostica.model.Lesson;
 import com.gnostica.service.CourseService;
@@ -29,7 +30,7 @@ public class AdminCourseController {
      * Endpoint Lấy danh sách khóa học theo trạng thái (Pending, Approved, Rejected) dành cho Admin
      */
     @GetMapping("/moderation")
-    public ResponseEntity<Page<Course>> getModerationCourses(
+    public ResponseEntity<Page<CourseResponse>> getModerationCourses(
             @RequestParam(required = false) Integer status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
@@ -49,7 +50,7 @@ public class AdminCourseController {
      * Endpoint Xem chi tiết khóa học để kiểm duyệt thông qua Slug
      */
     @GetMapping("/{slug}")
-    public ResponseEntity<Course> getCourseForModeration(@PathVariable String slug) {
+    public ResponseEntity<CourseDetailResponse> getCourseForModeration(@PathVariable String slug) {
         return ResponseEntity.ok(courseService.getCourseForModerationBySlug(slug));
     }
 
@@ -59,7 +60,7 @@ public class AdminCourseController {
     @PostMapping("/{slug}/approve")
     public ResponseEntity<Map<String, Object>> approveCourse(@PathVariable String slug) {
         try {
-            Course approved = courseService.approveCourseBySlug(slug);
+            CourseDetailResponse approved = courseService.approveCourseBySlug(slug);
             Map<String, Object> response = new HashMap<>();
             response.put("message", "Phê duyệt và công khai khóa học thành công!");
             response.put("slug", approved.getSlug());
@@ -80,7 +81,7 @@ public class AdminCourseController {
     ) {
         try {
             String rejectReason = requestBody.get("rejectReason");
-            Course rejected = courseService.rejectCourseBySlug(slug, rejectReason);
+            CourseDetailResponse rejected = courseService.rejectCourseBySlug(slug, rejectReason);
             Map<String, Object> response = new HashMap<>();
             response.put("message", "Đã từ chối phê duyệt khóa học thành công!");
             response.put("slug", rejected.getSlug());
@@ -119,7 +120,7 @@ public class AdminCourseController {
     @PostMapping("/{slug}/ai-scan-info")
     public ResponseEntity<Map<String, Object>> scanCourseInfo(@PathVariable String slug) {
         try {
-            Course course = courseService.getCourseForModerationBySlug(slug);
+            Course course = courseService.getCourseEntityForModerationBySlug(slug);
             Course scanned = aiModerationService.scanCourseInfo(course);
             
             Map<String, Object> response = new HashMap<>();
@@ -138,7 +139,7 @@ public class AdminCourseController {
     @PostMapping("/{slug}/ai-scan-full")
     public ResponseEntity<Map<String, Object>> scanCourseFull(@PathVariable String slug) {
         try {
-            Course course = courseService.getCourseForModerationBySlug(slug);
+            Course course = courseService.getCourseEntityForModerationBySlug(slug);
             // Hiện tại scanCourseInfo đã được nâng cấp để quét toàn bộ dữ liệu aggregated
             Course scanned = aiModerationService.scanCourseInfo(course);
             

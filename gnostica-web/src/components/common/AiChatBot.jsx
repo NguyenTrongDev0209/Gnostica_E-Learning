@@ -32,15 +32,51 @@ const AiChatBot = () => {
             const cardMatch = part.match(/\[\[CARD:(.*?)\|(.*?)\|(.*?)\|(.*?)\|(.*?)\|(.*?)\|(.*?)\]\]/);
             if (cardMatch) {
                 const [, type, id, title, info, author, category, imgUrl] = cardMatch;
-                const isCourse = type === 'course';
-                const linkTo = isCourse ? `/courses/${id}` : `/forum/${id}`;
+                
+                let linkTo = '#';
+                let icon = <Folder className="w-3.5 h-3.5" />;
+                let infoText = info;
+                let avatarUrl = imgUrl;
+
+                if (type === 'course') {
+                    linkTo = `/courses/${id}`;
+                    icon = <Folder className="w-3.5 h-3.5" />;
+                    infoText = `Giá: ${info}`;
+                    avatarUrl = imgUrl && imgUrl !== 'none' ? imgUrl : 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=150';
+                } else if (type === 'forum') {
+                    linkTo = `/forum/${id}`;
+                    icon = <ThumbsUp className="w-3.5 h-3.5" />;
+                    infoText = info.includes('likes') ? info : `${info === 'null' ? '0' : info} likes`;
+                    avatarUrl = imgUrl && imgUrl !== 'none' ? imgUrl : `https://api.dicebear.com/7.x/avataaars/svg?seed=${author}`;
+                } else if (type === 'category') {
+                    linkTo = `/forum?category=${encodeURIComponent(title)}`;
+                    icon = <Folder className="w-3.5 h-3.5" />;
+                    infoText = info;
+                    avatarUrl = `https://api.dicebear.com/7.x/identicon/svg?seed=${title}`;
+                } else if (type === 'contributor') {
+                    linkTo = `/profile/${id}`;
+                    icon = <ThumbsUp className="w-3.5 h-3.5" />;
+                    infoText = info;
+                    avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${author}`;
+                }
+
+                const handleLinkClick = (e) => {
+                    if (linkTo === '#') {
+                        e.preventDefault();
+                    }
+                };
                 
                 return (
-                    <Link key={index} to={linkTo} className="block mt-2 mb-3 bg-white border border-border/50 hover:border-primary/50 transition-colors rounded-xl p-3 shadow-sm hover:shadow-md group no-underline text-card-foreground">
+                    <Link 
+                        key={index} 
+                        to={linkTo} 
+                        onClick={handleLinkClick}
+                        className="block mt-2 mb-3 bg-white border border-border/50 hover:border-primary/50 transition-colors rounded-xl p-3 shadow-sm hover:shadow-md group no-underline text-card-foreground"
+                    >
                         <div className="flex items-start gap-3">
                             <div className="shrink-0 mt-0.5">
                                 <div className="w-8 h-8 rounded-full overflow-hidden border border-slate-100 bg-slate-50 ring-2 ring-transparent group-hover:ring-primary/20 transition-all">
-                                   <img src={isCourse ? imgUrl : `https://api.dicebear.com/7.x/avataaars/svg?seed=${author}`} alt={author} className="w-full h-full object-cover" />
+                                   <img src={avatarUrl} alt={author} className="w-full h-full object-cover" />
                                 </div>
                             </div>
                             
@@ -57,17 +93,13 @@ const AiChatBot = () => {
                                  
                                  <div className="flex items-center gap-3 text-[11px] font-medium text-slate-500">
                                       <div className="flex items-center gap-1 hover:text-primary transition-colors">
-                                          {isCourse ? (
-                                              <Folder className="w-3.5 h-3.5" />
-                                          ) : (
-                                              <ThumbsUp className="w-3.5 h-3.5" />
-                                          )}
-                                          <span>{isCourse ? `Giá: ${info}` : `${info === 'null' ? '0' : info} likes`}</span>
+                                           {icon}
+                                           <span>{infoText}</span>
                                       </div>
                                  </div>
                             </div>
                             
-                            {imgUrl && imgUrl !== 'none' && !isCourse && (
+                            {type === 'forum' && imgUrl && imgUrl !== 'none' && (
                                 <div className="w-16 h-16 shrink-0 rounded-md overflow-hidden border border-slate-100 mt-0.5 hidden sm:block">
                                     <img src={imgUrl} alt="preview" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                                 </div>

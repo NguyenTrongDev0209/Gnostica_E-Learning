@@ -7,7 +7,7 @@ import { Search, Menu, Star, Tag } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import {
   Pagination,
@@ -31,10 +31,22 @@ const ForumPage = () => {
   const [topContributors, setTopContributors] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
 
+  const location = useLocation();
+
   useEffect(() => {
     const userData = JSON.parse(localStorage.getItem('user'));
     setCurrentUser(userData);
   }, []);
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const catParam = searchParams.get('category');
+    if (catParam) {
+      setActiveCategory(catParam);
+    } else {
+      setActiveCategory("Tất cả");
+    }
+  }, [location]);
 
   useEffect(() => {
     const fetchTopContributors = async () => {
