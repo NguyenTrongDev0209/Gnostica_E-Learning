@@ -36,7 +36,7 @@ public class OrderController {
 			return ApiResponse.success(data);
 		} catch (Exception e) {
 			log.error("Lỗi khi tạo link thanh toán", e);
-			return ApiResponse.error("Lỗi khi tạo link thanh toán");
+			return ApiResponse.error("Lỗi khi tạo link thanh toán: " + e.getMessage());
 		}
 	}
 
