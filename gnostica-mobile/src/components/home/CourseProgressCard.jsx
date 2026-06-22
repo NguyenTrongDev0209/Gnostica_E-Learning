@@ -1,5 +1,6 @@
+import AppText from '../ui/AppText';
 import React from 'react';
-import { View, Text, Image, TouchableOpacity } from 'react-native';
+import { View, Image, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 const CourseProgressCard = ({ course }) => {
@@ -11,58 +12,45 @@ const CourseProgressCard = ({ course }) => {
         <TouchableOpacity
             onPress={() => navigation.navigate('Learning', { course })}
             activeOpacity={0.85}
-            style={{
-                flexDirection: 'row',
-                backgroundColor: '#ffffff',
-                borderRadius: 14,
-                marginBottom: 12,
-                overflow: 'hidden',
-                borderWidth: 1,
-                borderColor: '#F1F5F9',
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 1 },
-                shadowOpacity: 0.06,
-                shadowRadius: 6,
-                elevation: 2,
-            }}
+            className="flex-row bg-white rounded-[14px] mb-3 overflow-hidden border border-slate-100 shadow-sm"
         >
             {/* Thumbnail */}
             <Image
                 source={{ uri: course?.thumbnail }}
-                style={{ width: 96, height: 'auto', backgroundColor: '#E2E8F0', minHeight: 96 }}
+                className="bg-slate-200"
+                style={{ width: 96, minHeight: 96 }}
                 resizeMode="cover"
             />
 
             {/* Content */}
-            <View style={{ flex: 1, padding: 12 }}>
-                <Text numberOfLines={2} style={{ fontSize: 13, fontWeight: '700', color: '#1E293B', lineHeight: 18 }}>
+            <View className="flex-1 p-3">
+                <AppText numberOfLines={2} className="text-[13px] font-bold text-slate-800 leading-[18px]">
                     {course?.title}
-                </Text>
-                <Text style={{ fontSize: 11, color: '#64748B', marginTop: 3, marginBottom: 10 }} numberOfLines={1}>
+                </AppText>
+                <AppText className="text-[11px] text-slate-500 mt-[3px] mb-2.5" numberOfLines={1}>
                     {course?.lastLesson}
-                </Text>
+                </AppText>
 
                 {/* Progress Bar */}
                 <View>
-                    <View style={{
-                        height: 6,
-                        backgroundColor: '#E2E8F0',
-                        borderRadius: 99,
-                        overflow: 'hidden',
-                    }}>
-                        <View style={{
-                            height: '100%',
-                            width: `${progress}%`,
-                            backgroundColor: isCompleted ? '#10B981' : '#2563EB',
-                            borderRadius: 99,
-                        }} />
+                    <View className="h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                        <View
+                            className="h-full rounded-full"
+                            style={{
+                                width: `${progress}%`,
+                                backgroundColor: isCompleted ? '#10B981' : '#2563EB',
+                            }}
+                        />
                     </View>
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 5 }}>
-                        <Text style={{ fontSize: 11, color: isCompleted ? '#10B981' : '#2563EB', fontWeight: '700' }}>
+                    <View className="flex-row justify-between mt-[5px]">
+                        <AppText
+                            className="text-[11px] font-bold"
+                            style={{ color: isCompleted ? '#10B981' : '#2563EB' }}
+                        >
                             {isCompleted ? '✓ Hoàn thành' : `${progress}% hoàn thành`}
-                        </Text>
+                        </AppText>
                         {!isCompleted && (
-                            <Text style={{ fontSize: 11, color: '#94A3B8', fontWeight: '500' }}>Tiếp tục</Text>
+                            <AppText className="text-[11px] text-slate-400 font-medium">Tiếp tục</AppText>
                         )}
                     </View>
                 </View>

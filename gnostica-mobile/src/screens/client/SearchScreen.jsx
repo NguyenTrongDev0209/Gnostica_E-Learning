@@ -1,8 +1,8 @@
+import AppText from '../../components/ui/AppText';
 import React, { useState } from 'react';
-import {
-    View, Text, ScrollView, TouchableOpacity, FlatList,
-} from 'react-native';
+import { View, ScrollView, TouchableOpacity, FlatList,  } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { clsx } from 'clsx';
 import SearchBar from '../../components/ui/SearchBar';
 import CourseCard from '../../components/home/CourseCard';
 import { courses } from '../../constants/mockData';
@@ -22,17 +22,12 @@ const SearchScreen = () => {
     });
 
     return (
-        <View style={{ flex: 1, backgroundColor: '#F8FAFC' }}>
+        <View className="flex-1 bg-slate-50">
             {/* Header */}
-            <View style={{
-                backgroundColor: '#ffffff',
-                paddingTop: 40,
-                paddingHorizontal: 20,
-                paddingBottom: 16,
-            }}>
-                <Text style={{ fontSize: 24, fontWeight: '800', color: '#1E293B', marginBottom: 14 }}>
+            <View className="bg-white pt-10 px-5 pb-4">
+                <AppText className="text-2xl font-extrabold text-slate-800 mb-3.5">
                     Tìm kiếm
-                </Text>
+                </AppText>
                 <SearchBar
                     value={query}
                     onChangeText={setQuery}
@@ -42,7 +37,7 @@ const SearchScreen = () => {
             </View>
 
             {/* Filter Chips */}
-            <View style={{ backgroundColor: '#ffffff', borderBottomWidth: 1, borderBottomColor: '#F1F5F9' }}>
+            <View className="bg-white border-b border-slate-100">
                 <ScrollView
                     horizontal
                     showsHorizontalScrollIndicator={false}
@@ -52,21 +47,19 @@ const SearchScreen = () => {
                         <TouchableOpacity
                             key={f}
                             onPress={() => setActiveFilter(f)}
-                            style={{
-                                paddingHorizontal: 18,
-                                paddingVertical: 8,
-                                borderRadius: 10,
-                                backgroundColor: activeFilter === f ? '#2563EB' : '#F8FAFC',
-                                borderWidth: 1,
-                                borderColor: activeFilter === f ? '#2563EB' : '#E2E8F0',
-                            }}
+                            className={clsx(
+                                'px-[18px] py-2 rounded-[10px] border',
+                                activeFilter === f
+                                    ? 'bg-blue-600 border-blue-600'
+                                    : 'bg-slate-50 border-slate-200',
+                            )}
                         >
-                            <Text style={{
-                                fontSize: 13, fontWeight: '700',
-                                color: activeFilter === f ? '#ffffff' : '#64748B',
-                            }}>
+                            <AppText className={clsx(
+                                'text-[13px] font-bold',
+                                activeFilter === f ? 'text-white' : 'text-slate-500',
+                            )}>
                                 {f}
-                            </Text>
+                            </AppText>
                         </TouchableOpacity>
                     ))}
                 </ScrollView>
@@ -74,14 +67,14 @@ const SearchScreen = () => {
 
             {/* Results */}
             {filtered.length === 0 ? (
-                <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingBottom: 100 }}>
-                    <Text style={{ fontSize: 48, marginBottom: 12 }}>🔍</Text>
-                    <Text style={{ fontSize: 17, fontWeight: '700', color: '#1E293B', marginBottom: 6 }}>
+                <View className="flex-1 items-center justify-center pb-24">
+                    <AppText className="text-5xl mb-3">🔍</AppText>
+                    <AppText className="text-[17px] font-bold text-slate-800 mb-1.5">
                         Không tìm thấy kết quả
-                    </Text>
-                    <Text style={{ fontSize: 13, color: '#64748B', textAlign: 'center', paddingHorizontal: 40 }}>
+                    </AppText>
+                    <AppText className="text-[13px] text-slate-500 text-center px-10">
                         Hãy thử từ khóa khác hoặc thay đổi bộ lọc
-                    </Text>
+                    </AppText>
                 </View>
             ) : (
                 <FlatList
@@ -92,7 +85,7 @@ const SearchScreen = () => {
                     columnWrapperStyle={{ gap: 12 }}
                     showsVerticalScrollIndicator={false}
                     renderItem={({ item }) => (
-                        <View style={{ flex: 1 }}>
+                        <View className="flex-1">
                             <CourseCard course={item} />
                         </View>
                     )}

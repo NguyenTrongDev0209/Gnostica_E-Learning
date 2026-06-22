@@ -1,6 +1,6 @@
 import React from 'react';
 import * as LucideIcons from 'lucide-react';
-import { mockPlatformStats } from '@/mocks/home';
+import { mockPlatformStats } from '@/apiMocks/home';
 
 const PlatformStats = () => {
   return (

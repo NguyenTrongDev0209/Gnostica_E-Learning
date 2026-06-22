@@ -67,14 +67,14 @@ export default function CourseListSection({
           <h3 className="text-lg font-bold">{sectionTitle || 'Danh sách khóa học'}</h3>
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="outline" className="h-10 px-4 flex items-center gap-2 bg-white shadow-sm border-slate-200">
+              <Button variant="outline" className="h-10 px-4 flex items-center gap-2 bg-white shadow-sm border-border">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
                 </svg>
                 Lọc
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-[300px] sm:w-[400px] overflow-y-auto p-4 bg-slate-50 border-l-slate-200">
+            <SheetContent side="right" className="w-[300px] sm:w-[400px] overflow-y-auto p-4 bg-muted border-l-slate-200">
               <FilterOptions
                 categories={categories}
                 selectedFilters={filters}
@@ -86,8 +86,8 @@ export default function CourseListSection({
 
         {/* Content (Loading or Cards) */}
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-32 text-slate-400">
-            <Loader2 className="w-10 h-10 animate-spin mb-4 text-orange-500" />
+          <div className="flex flex-col items-center justify-center py-32 text-muted-foreground">
+            <Loader2 className="w-10 h-10 animate-spin mb-4 text-warning" />
             <p className="font-medium animate-pulse">Đang tải danh sách khóa học...</p>
           </div>
         ) : courses.length > 0 ? (
@@ -144,15 +144,15 @@ export default function CourseListSection({
             )}
           </>
         ) : (
-          <div className="flex flex-col items-center justify-center py-20 text-center bg-white rounded-2xl border border-dashed border-slate-200">
-            <div className="bg-slate-50 rounded-full p-6 mb-4">
+          <div className="flex flex-col items-center justify-center py-20 text-center bg-white rounded-2xl border border-dashed border-border">
+            <div className="bg-muted rounded-full p-6 mb-4">
               <SearchX className="w-12 h-12 text-slate-300" />
             </div>
-            <h3 className="text-xl font-bold text-slate-900 mb-2">Không tìm thấy kết quả</h3>
-            <p className="text-slate-500 max-w-xs mx-auto">{emptyMessage}</p>
+            <h3 className="text-xl font-bold text-foreground mb-2">Không tìm thấy kết quả</h3>
+            <p className="text-muted-foreground max-w-xs mx-auto">{emptyMessage}</p>
             <Button
               variant="outline"
-              className="mt-6 font-bold border-slate-200"
+              className="mt-6 font-bold border-border"
               onClick={() => {
                 onFilterChange("categoryId", null);
                 onFilterChange("level", "all");

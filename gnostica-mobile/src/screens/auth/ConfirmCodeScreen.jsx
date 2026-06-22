@@ -1,5 +1,6 @@
+import AppText from '../../components/ui/AppText';
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import { View, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { ShieldCheck, ArrowLeft } from 'lucide-react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Input from '../../components/ui/Input';
@@ -47,11 +48,11 @@ const ConfirmCodeScreen = () => {
                         <View className="w-16 h-16 bg-blue-50 rounded-full items-center justify-center mb-4">
                             <ShieldCheck size={32} color="#2563eb" />
                         </View>
-                        <Text className="text-2xl font-bold text-gray-900 tracking-tight text-center">Xác thực OTP</Text>
-                        <Text className="text-gray-500 mt-2 text-center text-sm">
+                        <AppText className="text-2xl font-bold text-gray-900 tracking-tight text-center">Xác thực OTP</AppText>
+                        <AppText className="text-gray-500 mt-2 text-center text-sm">
                             Vui lòng nhập mã xác thực đã được gửi tới {"\n"}
-                            <Text className="font-semibold text-slate-900">{email}</Text>
-                        </Text>
+                            <AppText className="font-semibold text-slate-900">{email}</AppText>
+                        </AppText>
                     </View>
 
                     <Input
@@ -64,15 +65,15 @@ const ConfirmCodeScreen = () => {
                         textAlign="center"
                         style={{ fontSize: 24, letterSpacing: 8, fontWeight: 'bold' }}
                     />
-                    {errors.code && <Text className="text-red-500 text-xs mb-6 text-center">{errors.code}</Text>}
+                    {errors.code && <AppText className="text-red-500 text-xs mb-6 text-center">{errors.code}</AppText>}
                     {!errors.code && <View className="mb-6" />}
 
                     <Button variant="primary" className="w-full mb-6" onPress={handleVerify}>Xác nhận</Button>
 
                     <View className="items-center">
-                        <Text className="text-sm text-gray-500 mb-2">Chưa nhận được mã?</Text>
+                        <AppText className="text-sm text-gray-500 mb-2">Chưa nhận được mã?</AppText>
                         <TouchableOpacity onPress={() => Alert.alert('Thông báo', 'Đã gửi lại mã xác thực.')}>
-                            <Text className="text-sm text-primary font-semibold">Gửi lại mã</Text>
+                            <AppText className="text-sm text-primary font-semibold">Gửi lại mã</AppText>
                         </TouchableOpacity>
                     </View>
                 </View>

@@ -48,7 +48,7 @@ const AppCard = ({
                 <AvatarImage src={instructor.avatar} alt={instructor.name} />
                 <AvatarFallback>{instructor.name.charAt(0)}</AvatarFallback>
                 {instructor.status === 'online' && (
-                  <AvatarBadge className="bg-green-500 border-2 border-white ring-0" />
+                  <AvatarBadge className="bg-success/10 text-success border-2 border-white ring-0" />
                 )}
               </Avatar>
               <span className="text-[11px] sm:text-sm font-semibold text-primary whitespace-nowrap">
@@ -57,7 +57,7 @@ const AppCard = ({
             </div>
 
             <Badge variant="secondary" className="bg-primary text-primary-foreground hover:bg-primary border-none px-1.5 py-0.5 sm:px-2 sm:py-1 flex items-center gap-0.5 sm:gap-1 text-[9px] sm:text-xs font-bold">
-              <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-yellow-400 text-yellow-400" />
+              <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-yellow-400 text-warning" />
               {rating.toFixed(1)}
             </Badge>
           </div>
@@ -101,7 +101,7 @@ const AppCard = ({
             </div>
 
             {discountPercentage > 0 && (
-              <Badge variant="destructive" className="bg-red-500 hover:bg-red-600 text-white border-none px-1 sm:px-2 py-0.5 text-[9px] sm:text-xs font-bold rounded-sm">
+              <Badge variant="destructive" className="bg-error/10 text-error hover:bg-error/10 text-error text-white border-none px-1 sm:px-2 py-0.5 text-[9px] sm:text-xs font-bold rounded-sm">
                 -{discountPercentage}%
               </Badge>
             )}
@@ -161,7 +161,7 @@ export const CourseCardHorizontal = ({
                 <AvatarImage src={instructor.avatar} alt={instructor.name} />
                 <AvatarFallback>{instructor.name.charAt(0)}</AvatarFallback>
                 {instructor.status === 'online' && (
-                  <AvatarBadge className="bg-green-500 border-2 border-white ring-0" />
+                  <AvatarBadge className="bg-success/10 text-success border-2 border-white ring-0" />
                 )}
               </Avatar>
               <span className="text-sm font-semibold text-primary whitespace-nowrap truncate max-w-[140px]">
@@ -169,7 +169,7 @@ export const CourseCardHorizontal = ({
               </span>
             </div>
             <Badge variant="secondary" className="bg-primary text-primary-foreground hover:bg-primary border-none px-2 py-0.5 flex items-center gap-1 text-xs font-bold shrink-0">
-              <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+              <Star className="w-3 h-3 fill-yellow-400 text-warning" />
               {rating.toFixed(1)}
             </Badge>
           </div>
@@ -211,7 +211,7 @@ export const CourseCardHorizontal = ({
               </div>
             )}
             {discountPercentage > 0 && (
-              <Badge variant="destructive" className="bg-red-500 hover:bg-red-600 text-white border-none px-2 py-0.5 text-xs font-bold rounded-sm">
+              <Badge variant="destructive" className="bg-error/10 text-error hover:bg-error/10 text-error text-white border-none px-2 py-0.5 text-xs font-bold rounded-sm">
                 -{discountPercentage}%
               </Badge>
             )}
@@ -243,7 +243,7 @@ export const ForumPostCard = ({ post, className }) => {
                   {post.author.name.substring(0, 2).toUpperCase()}
                 </AvatarFallback>
                 {post.author.status === 'online' && (
-                  <AvatarBadge className="bg-green-500 border-2 border-white ring-0" />
+                  <AvatarBadge className="bg-success/10 text-success border-2 border-white ring-0" />
                 )}
               </Avatar>
             </div>
@@ -259,7 +259,7 @@ export const ForumPostCard = ({ post, className }) => {
                     <AvatarImage src={post.author.avatar} />
                     <AvatarFallback className="text-[8px]">{post.author.name[0]}</AvatarFallback>
                   </Avatar>
-                  <span className="font-medium text-slate-700">{post.author.name}</span>
+                  <span className="font-medium text-foreground">{post.author.name}</span>
                 </span>
                 <span>•</span>
                 <span className="flex items-center gap-1">
@@ -270,27 +270,27 @@ export const ForumPostCard = ({ post, className }) => {
 
               {/* Title */}
               <h3 className="text-lg font-bold text-foreground mb-1 group-hover:text-primary transition-colors flex items-center gap-2">
-                {post.isHot && <Flame className="w-4 h-4 text-orange-500 fill-orange-500 shrink-0" />}
-                {post.status === false && post.pendingModeration === true && <Badge variant="secondary" className="bg-yellow-100 text-yellow-700 border-none text-[10px] h-5 shrink-0">Chờ duyệt</Badge>}
-                {post.status === false && post.pendingModeration !== true && <Badge variant="destructive" className="bg-red-500 text-white border-none text-[10px] h-5 shrink-0">Vi phạm</Badge>}
+                {post.isHot && <Flame className="w-4 h-4 text-warning fill-orange-500 shrink-0" />}
+                {post.status === false && post.pendingModeration === true && <Badge variant="secondary" className="bg-warning/10 text-warning text-warning border-none text-[10px] h-5 shrink-0">Chờ duyệt</Badge>}
+                {post.status === false && post.pendingModeration !== true && <Badge variant="destructive" className="bg-error/10 text-error text-white border-none text-[10px] h-5 shrink-0">Vi phạm</Badge>}
                 <span className="line-clamp-2">{post.title}</span>
               </h3>
 
               {/* Snippet */}
-              <p className="text-sm text-slate-500 line-clamp-2 mb-3">{post.content}</p>
+              <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{post.content}</p>
 
               {/* Tags & Stats */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-auto">
                 {post.tags && post.tags.length > 0 && (
                   <div className="flex items-center gap-1.5 flex-wrap">
                     {post.tags.map(tag => (
-                      <Badge key={tag} variant="secondary" className="bg-slate-100 text-slate-600 hover:bg-slate-200 text-[10px] px-1.5 py-0 font-medium border-none shadow-none">
+                      <Badge key={tag} variant="secondary" className="bg-secondary text-muted-foreground hover:bg-muted text-[10px] px-1.5 py-0 font-medium border-none shadow-none">
                         {tag}
                       </Badge>
                     ))}
                   </div>
                 )}
-                <div className="flex items-center gap-4 text-xs font-medium text-slate-500 shrink-0">
+                <div className="flex items-center gap-4 text-xs font-medium text-muted-foreground shrink-0">
                   <div className="flex items-center gap-1.5 hover:text-primary transition-colors">
                     <ThumbsUp className="w-4 h-4" /><span>{post.stats.likes}</span>
                   </div>
@@ -306,7 +306,7 @@ export const ForumPostCard = ({ post, className }) => {
 
             {/* Right Image Thumbnail */}
             {post.images && post.images.length > 0 && (
-              <div className="hidden md:block w-32 h-24 shrink-0 rounded-md overflow-hidden border border-slate-100 mt-1">
+              <div className="hidden md:block w-32 h-24 shrink-0 rounded-md overflow-hidden border border-border mt-1">
                 <img
                   src={post.images[0].imageUrl}
                   alt="preview"

@@ -1,0 +1,34 @@
+import axiosClient from '@/lib/axiosClient';
+
+const API_URL = '/instructor-dashboard';
+
+export const instructorDashboardService = {
+  getStats: async () => {
+    const response = await axiosClient.get(`${API_URL}/stats`);
+    return response.data;
+  },
+  getRevenueChart: async () => {
+    const response = await axiosClient.get(`${API_URL}/revenue-chart`);
+    return response.data;
+  },
+  getRatingDistribution: async () => {
+    const response = await axiosClient.get(`${API_URL}/rating-distribution`);
+    return response.data;
+  },
+  getStudentGrowthChart: async () => {
+    const response = await axiosClient.get(`${API_URL}/student-growth`);
+    return response.data;
+  },
+  getCoursePerformance: async () => {
+    const response = await axiosClient.get(`${API_URL}/course-performance`);
+    return response.data;
+  },
+  getQuestions: async () => {
+    const response = await axiosClient.get(`${API_URL}/questions`);
+    return response.data;
+  },
+  getReviews: async () => {
+    const response = await axiosClient.get(`${API_URL}/reviews`);
+    return response.data;
+  }
+};

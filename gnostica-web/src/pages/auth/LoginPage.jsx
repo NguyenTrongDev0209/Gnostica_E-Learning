@@ -114,13 +114,13 @@ const LoginPage = () => {
                   }}
                 />
               </div>
-              {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
+              {errors.email && <p className="text-error text-xs mt-1">{errors.email}</p>}
             </div>
 
             {/* Password */}
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="text-sm font-medium text-slate-700">Mật khẩu</Label>
+                <Label htmlFor="password" className="text-sm font-medium text-foreground">Mật khẩu</Label>
                 <Link
                   to="/forgot-password"
                   className="text-xs text-primary hover:underline font-medium"
@@ -134,7 +134,7 @@ const LoginPage = () => {
                   id="password"
                   type={showPassword ? 'text' : 'password'}
                   placeholder="••••••••"
-                  className={`pl-9 pr-10 h-11 bg-slate-50 border-slate-200 focus:bg-white transition-colors ${errors.password ? 'border-red-500 focus:ring-red-500' : ''}`}
+                  className={`pl-9 pr-10 h-11 bg-muted border-border focus:bg-white transition-colors ${errors.password ? 'border-error/20 focus:ring-red-500' : ''}`}
                   value={password}
                   onChange={(e) => {
                     setPassword(e.target.value);
@@ -152,7 +152,7 @@ const LoginPage = () => {
                   }
                 </button>
               </div>
-              {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
+              {errors.password && <p className="text-error text-xs mt-1">{errors.password}</p>}
             </div>
 
             {/* Remember Me */}
@@ -161,9 +161,9 @@ const LoginPage = () => {
                 id="remember"
                 checked={remember}
                 onCheckedChange={setRemember}
-                className="border-slate-900"
+                className="border-border"
               />
-              <Label htmlFor="remember" className="text-sm text-slate-600 cursor-pointer font-normal">
+              <Label htmlFor="remember" className="text-sm text-muted-foreground cursor-pointer font-normal">
                 Ghi nhớ đăng nhập
               </Label>
             </div>
@@ -186,9 +186,9 @@ const LoginPage = () => {
 
           {/* Divider */}
           <div className="flex items-center gap-3 my-6">
-            <div className="flex-1 h-[1px] bg-slate-500"></div>
-            <span className="text-xs text-slate-500 font-medium px-1">Hoặc đăng nhập với</span>
-            <div className="flex-1 h-[1px] bg-slate-500"></div>
+            <div className="flex-1 h-[1px] bg-muted"></div>
+            <span className="text-xs text-muted-foreground font-medium px-1">Hoặc đăng nhập với</span>
+            <div className="flex-1 h-[1px] bg-muted"></div>
           </div>
 
           {/* Social Login */}
@@ -196,8 +196,8 @@ const LoginPage = () => {
             <Button
               type="button"
               variant="outline"
-              className="w-full h-11 gap-2 font-medium bg-white/90 text-slate-700 hover:bg-white border-slate-200"
-              onClick={() => window.location.href = 'http://localhost:8080/oauth2/authorization/google'}
+              className="w-full h-11 gap-2 font-medium bg-white/90 text-foreground hover:bg-white border-border"
+              onClick={() => window.location.href = import.meta.env.VITE_OAUTH2_URL}
             >
               <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />

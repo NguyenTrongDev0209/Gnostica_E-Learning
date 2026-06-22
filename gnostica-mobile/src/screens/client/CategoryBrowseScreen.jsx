@@ -1,7 +1,10 @@
+import AppText from '../../components/ui/AppText';
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { View, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { ArrowLeft, Search, Star, Globe, Smartphone, Cpu, BarChart3, Target, Briefcase, Monitor } from 'lucide-react-native';
+import { Search, Star, Globe, Smartphone, Cpu, BarChart3, Target, Briefcase, Monitor } from 'lucide-react-native';
+import AppHeader from '../../components/ui/AppHeader';
+
 
 const CATEGORIES = [
     { id: '1', name: 'Lập trình Web', courses: 24, icon: Globe, color: '#3b82f6' },
@@ -18,12 +21,7 @@ const CategoryBrowseScreen = () => {
     return (
         <View className="flex-1 bg-slate-50">
             {/* Header */}
-            <View className="bg-white pt-12 pb-4 px-4 border-b border-slate-100 flex-row items-center">
-                <TouchableOpacity onPress={() => navigation.goBack()} className="p-2">
-                    <ArrowLeft size={24} color="#1e293b" />
-                </TouchableOpacity>
-                <Text className="text-xl font-bold text-slate-800 ml-2">Khám phá danh mục</Text>
-            </View>
+            <AppHeader title="Khám phá danh mục" />
 
             <ScrollView className="flex-1 p-4">
                 <View className="flex-row flex-wrap justify-between">
@@ -39,21 +37,21 @@ const CategoryBrowseScreen = () => {
                             >
                                 <cat.icon size={28} color={cat.color} />
                             </View>
-                            <Text className="text-slate-900 font-bold text-center text-sm">{cat.name}</Text>
-                            <Text className="text-slate-400 text-[10px] mt-1">{cat.courses} Khóa học</Text>
+                            <AppText className="text-slate-900 font-bold text-center text-sm">{cat.name}</AppText>
+                            <AppText className="text-slate-400 text-[10px] mt-1">{cat.courses} Khóa học</AppText>
                         </TouchableOpacity>
                     ))}
                 </View>
 
                 {/* Featured Section in Category */}
                 <View className="mt-4">
-                    <Text className="text-lg font-bold text-slate-800 mb-4">Danh mục phổ biến</Text>
+                    <AppText className="text-lg font-bold text-slate-800 mb-4">Danh mục phổ biến</AppText>
                     <View className="bg-blue-600 rounded-3xl p-6 flex-row items-center justify-between overflow-hidden">
                         <View className="flex-1 pr-4">
-                            <Text className="text-white font-bold text-xl mb-2">Ưu đãi hè - Lập trình</Text>
-                            <Text className="text-blue-100 text-xs">Giảm tới 70% các khóa học lập trình web và di động duy nhất trong tháng này.</Text>
+                            <AppText className="text-white font-bold text-xl mb-2">Ưu đãi hè - Lập trình</AppText>
+                            <AppText className="text-blue-100 text-xs">Giảm tới 70% các khóa học lập trình web và di động duy nhất trong tháng này.</AppText>
                             <TouchableOpacity className="bg-white px-4 py-2 rounded-xl mt-4 self-start">
-                                <Text className="text-blue-600 font-bold text-xs">Xem ngay</Text>
+                                <AppText className="text-blue-600 font-bold text-xs">Xem ngay</AppText>
                             </TouchableOpacity>
                         </View>
                         <View className="opacity-20 -mr-6">

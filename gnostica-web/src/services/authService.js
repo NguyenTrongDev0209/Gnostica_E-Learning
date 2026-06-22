@@ -1,10 +1,10 @@
-import axios from 'axios';
+import axiosClient from '@/lib/axiosClient';
 
-const API_URL = 'http://localhost:8080/api/auth';
+const API_URL = '/auth';
 
 const register = async (fullName, email, password) => {
     try {
-        const response = await axios.post(`${API_URL}/register`, {
+        const response = await axiosClient.post(`${API_URL}/register`, {
             fullName,
             email,
             password
@@ -17,7 +17,7 @@ const register = async (fullName, email, password) => {
 
 const login = async (email, password) => {
     try {
-        const response = await axios.post(`${API_URL}/login`, {
+        const response = await axiosClient.post(`${API_URL}/login`, {
             email,
             password
         });
@@ -32,7 +32,7 @@ const login = async (email, password) => {
 
 const logout = async () => {
     try {
-        await axios.post(`${API_URL}/logout`);
+        await axiosClient.post(`${API_URL}/logout`);
     } catch (error) {
         // Bỏ qua lỗi nếu backend chưa kịp xử lý
     }
@@ -45,7 +45,7 @@ const getCurrentUser = () => {
 
 const verify = async (email, code) => {
     try {
-        const response = await axios.post(`${API_URL}/verify?email=${email}&code=${code}`);
+        const response = await axiosClient.post(`${API_URL}/verify?email=${email}&code=${code}`);
         return response.data;
     } catch (error) {
         throw error.response?.data?.message || 'Có lỗi xảy ra khi xác thực!';
@@ -54,7 +54,7 @@ const verify = async (email, code) => {
 
 const resendOTP = async (email) => {
     try {
-        const response = await axios.post(`${API_URL}/resend-otp?email=${email}`);
+        const response = await axiosClient.post(`${API_URL}/resend-otp?email=${email}`);
         return response.data;
     } catch (error) {
         throw error.response?.data?.message || 'Có lỗi xảy ra khi gửi lại mã!';
@@ -63,7 +63,7 @@ const resendOTP = async (email) => {
 
 const forgotPassword = async (email) => {
     try {
-        const response = await axios.post(`${API_URL}/forgot-password?email=${email}`);
+        const response = await axiosClient.post(`${API_URL}/forgot-password?email=${email}`);
         return response.data;
     } catch (error) {
         throw error.response?.data?.message || 'Có lỗi xảy ra khi yêu cầu khôi phục mật khẩu!';
@@ -72,7 +72,7 @@ const forgotPassword = async (email) => {
 
 const resetPassword = async (email, code, newPassword) => {
     try {
-        const response = await axios.post(`${API_URL}/reset-password`, {
+        const response = await axiosClient.post(`${API_URL}/reset-password`, {
             email,
             code,
             newPassword
@@ -85,7 +85,7 @@ const resetPassword = async (email, code, newPassword) => {
 
 const becomeInstructor = async (email) => {
     try {
-        const response = await axios.post(`${API_URL}/become-instructor?email=${email}`);
+        const response = await axiosClient.post(`${API_URL}/become-instructor?email=${email}`);
         if (response.data.status === 200) {
             const user = JSON.parse(localStorage.getItem('user'));
             if (user) {
@@ -99,9 +99,13 @@ const becomeInstructor = async (email) => {
     }
 };
 
+const getOAuth2User = async (email) => {
+    return await axiosClient.get(`${API_URL}/user?email=${encodeURIComponent(email)}`);
+};
+
 const getAllAccounts = async () => {
     try {
-        const response = await axios.get(`${API_URL}/accounts`);
+        const response = await axiosClient.get(`${API_URL}/accounts`);
         return response.data;
     } catch (error) {
         throw error.response?.data?.message || 'Không thể lấy danh sách tài khoản!';
@@ -110,7 +114,7 @@ const getAllAccounts = async () => {
 
 const getAccountsByRole = async (role) => {
     try {
-        const response = await axios.get(`${API_URL}/accounts/role/${role}`);
+        const response = await axiosClient.get(`${API_URL}/accounts/role/${role}`);
         return response.data;
     } catch (error) {
         throw error.response?.data?.message || 'Không thể lấy danh sách tài khoản theo role!';
@@ -119,7 +123,7 @@ const getAccountsByRole = async (role) => {
 
 const lockAccount = async (id, reason) => {
     try {
-        const response = await axios.post(`${API_URL}/accounts/${id}/lock?reason=${encodeURIComponent(reason)}`);
+        const response = await axiosClient.post(`${API_URL}/accounts/${id}/lock?reason=${encodeURIComponent(reason)}`);
         return response.data;
     } catch (error) {
         throw error.response?.data?.message || 'Không thể khóa tài khoản!';
@@ -128,7 +132,7 @@ const lockAccount = async (id, reason) => {
 
 const unlockAccount = async (id) => {
     try {
-        const response = await axios.post(`${API_URL}/accounts/${id}/unlock`);
+        const response = await axiosClient.post(`${API_URL}/accounts/${id}/unlock`);
         return response.data;
     } catch (error) {
         throw error.response?.data?.message || 'Không thể mở khóa tài khoản!';
@@ -145,6 +149,7 @@ const authService = {
     forgotPassword,
     resetPassword,
     becomeInstructor,
+    getOAuth2User,
     getAllAccounts,
     getAccountsByRole,
     lockAccount,

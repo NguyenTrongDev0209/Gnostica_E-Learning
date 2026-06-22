@@ -1,6 +1,6 @@
-import axios from 'axios';
+import axiosClient from '@/lib/axiosClient';
 
-const API_URL = 'http://localhost:8080/api/account';
+const API_URL = '/account';
 
 const updateAvatar = async (email, file) => {
     try {
@@ -11,7 +11,7 @@ const updateAvatar = async (email, file) => {
         const user = JSON.parse(localStorage.getItem('user'));
         const token = user?.token;
 
-        const response = await axios.post(`${API_URL}/avatar`, formData, {
+        const response = await axiosClient.post(`${API_URL}/avatar`, formData, {
             headers: {
                 'Content-Type': 'multipart/form-data',
                 'Authorization': `Bearer ${token}`

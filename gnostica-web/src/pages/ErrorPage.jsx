@@ -36,18 +36,18 @@ const ErrorPage = () => {
         </h1>
 
         {/* Heading */}
-        <h2 className="text-3xl md:text-4xl font-semibold text-slate-900 mt-4 tracking-tight">
+        <h2 className="text-3xl md:text-4xl font-semibold text-foreground mt-4 tracking-tight">
           Oops! Không tìm thấy trang này.
         </h2>
 
         {/* Subtext */}
-        <p className="text-slate-500 mt-4 max-w-md mx-auto text-lg">
+        <p className="text-muted-foreground mt-4 max-w-md mx-auto text-lg">
           Trang bạn đang tìm kiếm không tồn tại hoặc đã được di chuyển.
         </p>
 
         {/* Back Button */}
         <div className="mt-10">
-          <Button asChild className="px-8 py-6 text-lg rounded-xl bg-slate-900 hover:bg-slate-800 transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-1">
+          <Button asChild className="px-8 py-6 text-lg rounded-xl bg-muted hover:bg-muted transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-1">
             <Link to="/">Quay về trang chủ</Link>
           </Button>
         </div>

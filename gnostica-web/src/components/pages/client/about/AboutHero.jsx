@@ -21,17 +21,17 @@ export default function AboutHero({ data }) {
           <Badge variant="secondary" className="w-fit bg-primary/10 text-primary hover:bg-primary/20 transition-colors">
             {data.badge}
           </Badge>
-          <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-slate-900 leading-tight">
+          <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-foreground leading-tight">
             {data.title} <span className="bg-button-gradient bg-clip-text text-transparent italic">{data.highlight}</span>
           </h1>
-          <p className="text-lg text-slate-600 max-w-lg leading-relaxed">
+          <p className="text-lg text-muted-foreground max-w-lg leading-relaxed">
             {data.description}
           </p>
           <div className="flex items-center gap-4 mt-2">
             <SimpleButton size="lg" className="min-w-[120px] shadow-lg shadow-orange-500/20">
               {data.primaryCta}
             </SimpleButton>
-            <SimpleButton size="lg" variant="outline" className="min-w-[120px] bg-transparent border-orange-500 text-orange-500 hover:bg-orange-50">
+            <SimpleButton size="lg" variant="outline" className="min-w-[120px] bg-transparent border-warning/20 text-warning hover:bg-orange-50">
               {data.secondaryCta}
             </SimpleButton>
           </div>

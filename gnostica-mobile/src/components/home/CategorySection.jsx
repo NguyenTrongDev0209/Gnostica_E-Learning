@@ -1,56 +1,50 @@
+import AppText from '../ui/AppText';
 import React from 'react';
-import { Text, View, ScrollView, TouchableOpacity } from 'react-native';
-import { MonitorPlay, PenTool, Lightbulb, Briefcase, Languages, Sparkles } from 'lucide-react-native';
+import { View, TouchableOpacity } from 'react-native';
+import { MonitorPlay, PenTool, Lightbulb, Briefcase, Languages, Sparkles, TrendingUp, Camera } from 'lucide-react-native';
 import { categories } from '../../constants/mockData';
 import { useNavigation } from '@react-navigation/native';
 
 const ICONS = {
-    MonitorPlay, PenTool, Lightbulb, Briefcase, Languages, Sparkles,
+    MonitorPlay, PenTool, Lightbulb, Briefcase, Languages, Sparkles, TrendingUp, Camera
 };
 
 const CategorySection = () => {
     const navigation = useNavigation();
     return (
-        <View style={{ marginTop: 24 }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginBottom: 14 }}>
-                <Text style={{ fontSize: 18, fontWeight: '800', color: '#1E293B' }}>Danh mục</Text>
+        <View className="mt-6">
+            <View className="flex-row justify-between items-center px-5 mb-4">
+                <AppText className="text-[18px] font-extrabold text-slate-800">Danh mục</AppText>
                 <TouchableOpacity onPress={() => navigation.navigate('CategoryBrowse')}>
-                    <Text style={{ fontSize: 13, color: '#2563EB', fontWeight: '600' }}>Tất cả</Text>
+                    <AppText className="text-[13px] text-blue-600 font-semibold">Tất cả</AppText>
                 </TouchableOpacity>
             </View>
-            <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ paddingHorizontal: 16, gap: 10 }}
-            >
+            <View className="flex-row flex-wrap px-2">
                 {categories.map((cat) => {
                     const IconComponent = ICONS[cat.icon];
                     return (
                         <TouchableOpacity
                             key={cat.id}
                             activeOpacity={0.75}
-                            style={{ alignItems: 'center', width: 74 }}
+                            className="items-center w-[25%] mb-4"
                         >
-                            <View style={{
-                                width: 58,
-                                height: 58,
-                                borderRadius: 18,
-                                backgroundColor: cat.bgColor,
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                marginBottom: 7,
-                                borderWidth: 1,
-                                borderColor: cat.color + '30',
-                            }}>
+                            <View
+                                className="w-[58px] h-[58px] rounded-[18px] items-center justify-center mb-[7px]"
+                                style={{
+                                    backgroundColor: cat.bgColor,
+                                    borderWidth: 1,
+                                    borderColor: cat.color + '30',
+                                }}
+                            >
                                 {IconComponent && <IconComponent size={26} color={cat.color} strokeWidth={1.8} />}
                             </View>
-                            <Text style={{ fontSize: 11, color: '#475569', textAlign: 'center', fontWeight: '600' }} numberOfLines={1}>
+                            <AppText className="text-[11px] text-slate-600 text-center font-semibold" numberOfLines={1}>
                                 {cat.name}
-                            </Text>
+                            </AppText>
                         </TouchableOpacity>
                     );
                 })}
-            </ScrollView>
+            </View>
         </View>
     );
 };

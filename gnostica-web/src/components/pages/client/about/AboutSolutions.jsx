@@ -17,7 +17,7 @@ export default function AboutSolutions({ steps }) {
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
             <span className="bg-button-gradient bg-clip-text text-transparent font-bold tracking-widest text-xs uppercase">CÁCH CHÚNG TÔI LÀM VIỆC</span>
-            <h2 className="text-3xl md:text-5xl font-bold text-slate-900">Giải pháp Học tập Đơn giản!</h2>
+            <h2 className="text-3xl md:text-5xl font-bold text-foreground">Giải pháp Học tập Đơn giản!</h2>
           </div>
           <div className="flex flex-col gap-6">
             {steps.map((step, index) => (
@@ -26,15 +26,15 @@ export default function AboutSolutions({ steps }) {
                   {index + 1}
                 </div>
                 <div className="flex flex-col">
-                  <h4 className="font-bold text-slate-900">{step.title}</h4>
-                  <p className="text-slate-500 text-sm">{step.description}</p>
+                  <h4 className="font-bold text-foreground">{step.title}</h4>
+                  <p className="text-muted-foreground text-sm">{step.description}</p>
                 </div>
               </div>
             ))}
           </div>
           <div className="flex items-center gap-4 pt-4">
             <SimpleButton size="lg" className="min-w-[120px]">Tìm hiểu thêm</SimpleButton>
-            <SimpleButton size="lg" variant="outline" className="min-w-[120px] bg-transparent border-orange-500 text-orange-500 hover:bg-orange-50">Triết lý của Chúng tôi</SimpleButton>
+            <SimpleButton size="lg" variant="outline" className="min-w-[120px] bg-transparent border-warning/20 text-warning hover:bg-orange-50">Triết lý của Chúng tôi</SimpleButton>
           </div>
         </div>
       </div>

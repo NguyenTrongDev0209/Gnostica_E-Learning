@@ -1,7 +1,9 @@
+import AppText from '../../components/ui/AppText';
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { View, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { ArrowLeft, Ticket, Clock, Info } from 'lucide-react-native';
+import { Ticket, Clock, Info } from 'lucide-react-native';
+import AppHeader from '../../components/ui/AppHeader';
 
 const MOCK_VOUCHERS = [
     {
@@ -28,12 +30,7 @@ const VouchersScreen = () => {
     return (
         <View className="flex-1 bg-slate-50">
             {/* Header */}
-            <View className="bg-white pt-12 pb-4 px-4 border-b border-slate-100 flex-row items-center">
-                <TouchableOpacity onPress={() => navigation.goBack()} className="p-2">
-                    <ArrowLeft size={24} color="#1e293b" />
-                </TouchableOpacity>
-                <Text className="text-xl font-bold text-slate-800 ml-2">Ưu đãi của tôi</Text>
-            </View>
+            <AppHeader title="Ưu đãi của tôi" />
 
             <ScrollView className="flex-1 p-4">
                 {MOCK_VOUCHERS.map(item => (
@@ -42,11 +39,11 @@ const VouchersScreen = () => {
                         <View className="flex-1 p-4">
                             <View className="flex-row justify-between items-start mb-2">
                                 <View className="flex-1 pr-4">
-                                    <Text className="text-slate-900 font-bold text-base">{item.title}</Text>
-                                    <Text className="text-slate-500 text-xs mt-1">{item.description}</Text>
+                                    <AppText className="text-slate-900 font-bold text-base">{item.title}</AppText>
+                                    <AppText className="text-slate-500 text-xs mt-1">{item.description}</AppText>
                                 </View>
                                 <View className="bg-blue-50 px-2 py-1 rounded">
-                                    <Text className="text-primary text-[10px] font-bold uppercase">{item.type}</Text>
+                                    <AppText className="text-primary text-[10px] font-bold uppercase">{item.type}</AppText>
                                 </View>
                             </View>
 
@@ -55,10 +52,10 @@ const VouchersScreen = () => {
                             <View className="flex-row justify-between items-center">
                                 <View className="flex-row items-center gap-1.5">
                                     <Clock size={12} color="#94a3b8" />
-                                    <Text className="text-slate-400 text-xs">Hết hạn: {item.expiry}</Text>
+                                    <AppText className="text-slate-400 text-xs">Hết hạn: {item.expiry}</AppText>
                                 </View>
                                 <TouchableOpacity className="bg-slate-50 px-4 py-2 rounded-lg border border-slate-100">
-                                    <Text className="text-primary font-bold text-sm">{item.code}</Text>
+                                    <AppText className="text-primary font-bold text-sm">{item.code}</AppText>
                                 </TouchableOpacity>
                             </View>
                         </View>
@@ -67,7 +64,7 @@ const VouchersScreen = () => {
 
                 <TouchableOpacity className="mt-4 flex-row items-center justify-center p-4 bg-white rounded-2xl border border-dashed border-slate-300">
                     <Ticket size={20} color="#64748b" />
-                    <Text className="ml-2 text-slate-500 font-medium">Nhập mã ưu đãi khác</Text>
+                    <AppText className="ml-2 text-slate-500 font-medium">Nhập mã ưu đãi khác</AppText>
                 </TouchableOpacity>
             </ScrollView>
         </View>

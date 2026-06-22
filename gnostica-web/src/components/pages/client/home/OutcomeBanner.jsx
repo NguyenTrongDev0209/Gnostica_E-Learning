@@ -3,7 +3,7 @@ import { ArrowRight } from 'lucide-react';
 
 const OutcomeBanner = () => {
     return (
-        <div className="w-full mt-12 bg-[#001E3C] rounded-[2rem] overflow-hidden flex flex-col md:flex-row items-center justify-between p-8 md:p-10 relative">
+        <div className="w-full mt-12 bg-[#001E3C] rounded-2xl overflow-hidden flex flex-col md:flex-row items-center justify-between p-8 md:p-10 relative">
             {/* Background decoration */}
             <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-primary/5 to-transparent pointer-events-none"></div>
 
@@ -12,7 +12,7 @@ const OutcomeBanner = () => {
                 <h2 className="text-2xl md:text-3xl font-bold text-white leading-tight">
                     95% học viên đạt được mục tiêu nghề nghiệp
                 </h2>
-                <p className="text-slate-400 text-sm md:text-base leading-relaxed">
+                <p className="text-muted-foreground text-sm md:text-base leading-relaxed">
                     Học viên ghi nhận những cơ hội việc làm mới và kiến thức chuyên môn được nâng cao rõ rệt sau khóa học tại Gnostica.
                 </p>
                 <div className="mt-2">

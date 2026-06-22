@@ -1,7 +1,10 @@
+import AppText from '../../components/ui/AppText';
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { View, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { ArrowLeft, Shield, Info, FileText } from 'lucide-react-native';
+import { Shield, Info, FileText } from 'lucide-react-native';
+import AppHeader from '../../components/ui/AppHeader';
+
 
 const LegalInfoScreen = () => {
     const navigation = useNavigation();
@@ -39,12 +42,7 @@ const LegalInfoScreen = () => {
     return (
         <View className="flex-1 bg-white">
             {/* Header */}
-            <View className="pt-12 pb-4 px-4 border-b border-slate-100 flex-row items-center">
-                <TouchableOpacity onPress={() => navigation.goBack()} className="p-2">
-                    <ArrowLeft size={24} color="#1e293b" />
-                </TouchableOpacity>
-                <Text className="text-xl font-bold text-slate-800 ml-2">{content.title}</Text>
-            </View>
+            <AppHeader title="Thông tin pháp lý" />
 
             <ScrollView className="flex-1 p-6" showsVerticalScrollIndicator={false}>
                 <View className="items-center mb-8">
@@ -56,13 +54,13 @@ const LegalInfoScreen = () => {
                     </View>
                 </View>
 
-                <Text className="text-slate-700 text-base leading-7 text-justify">
+                <AppText className="text-slate-700 text-base leading-7 text-justify">
                     {content.text}
-                </Text>
+                </AppText>
 
                 <View className="mt-12 mb-20 items-center">
-                    <Text className="text-slate-400 text-xs">Cập nhật lần cuối: 25/05/2026</Text>
-                    <Text className="text-slate-300 text-[10px] mt-1">© 2026 Gnostica Team. All rights reserved.</Text>
+                    <AppText className="text-slate-400 text-xs">Cập nhật lần cuối: 25/05/2026</AppText>
+                    <AppText className="text-slate-300 text-[10px] mt-1">© 2026 Gnostica Team. All rights reserved.</AppText>
                 </View>
             </ScrollView>
         </View>

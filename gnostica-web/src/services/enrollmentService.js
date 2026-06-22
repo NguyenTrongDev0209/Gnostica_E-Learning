@@ -1,6 +1,5 @@
-import axios from "axios";
 
-const API_URL = "http://localhost:8080/api/enrollments";
+const API_URL = "/enrollments";
 
 const getAuthHeaders = () => {
   const userStr = localStorage.getItem("user");
@@ -19,21 +18,21 @@ const getAuthHeaders = () => {
 
 const enrollmentService = {
   getMyCourses: async () => {
-    const response = await axios.get(`${API_URL}/my-courses`, {
+    const response = await axiosClient.get(`${API_URL}/my-courses`, {
       headers: getAuthHeaders(),
     });
     return response.data;
   },
 
   checkEnrollment: async (courseSlug) => {
-    const response = await axios.get(`${API_URL}/check/${courseSlug}`, {
+    const response = await axiosClient.get(`${API_URL}/check/${courseSlug}`, {
       headers: getAuthHeaders(),
     });
     return response.data;
   },
 
   getMyStats: async () => {
-    const response = await axios.get(`${API_URL}/stats`, {
+    const response = await axiosClient.get(`${API_URL}/stats`, {
       headers: getAuthHeaders(),
     });
     return response.data;

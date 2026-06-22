@@ -1,32 +1,19 @@
-import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import categoryService from "@/services/categoryService";
 
 /**
- * Hook để lấy danh sách danh mục cha từ API.
+ * Hook để lấy danh sách danh mục cha từ API (sử dụng React Query)
  * @returns {Object} { categories, loading, error }
  */
 export default function useCategories() {
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["categories", "active"],
+    queryFn: async () => {
+      const res = await categoryService.getAllCategories(1, 100, "", "active");
+      return res?.content || res?.data?.content || [];
+    },
+    staleTime: 1000 * 60 * 5, // Cache dữ liệu trong 5 phút
+  });
 
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        setLoading(true);
-        const res = await categoryService.getAllCategories(1, 100, "", "active");
-        const cats = res?.content || res?.data?.content || [];
-        setCategories(cats);
-      } catch (err) {
-        console.error("Lỗi load danh mục:", err);
-        setError(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCategories();
-  }, []);
-
-  return { categories, loading, error };
+  return { categories: data || [], loading: isLoading, error };
 }

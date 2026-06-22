@@ -1,5 +1,6 @@
+import AppText from '../../components/ui/AppText';
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import { View, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { Lock, Eye, EyeOff, ArrowLeft, CheckCircle2 } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import Input from '../../components/ui/Input';
@@ -37,10 +38,10 @@ const ResetPasswordScreen = () => {
             <View className="flex-1 bg-slate-50 items-center justify-center p-6">
                 <View className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 items-center w-full">
                     <CheckCircle2 size={64} color="#22c55e" className="mb-6" />
-                    <Text className="text-2xl font-bold text-gray-900 text-center mb-2">Thành công!</Text>
-                    <Text className="text-gray-500 text-center mb-8">
+                    <AppText className="text-2xl font-bold text-gray-900 text-center mb-2">Thành công!</AppText>
+                    <AppText className="text-gray-500 text-center mb-8">
                         Mật khẩu của bạn đã được thay đổi thành công. Giờ đây bạn có thể đăng nhập bằng mật khẩu mới.
-                    </Text>
+                    </AppText>
                     <Button variant="primary" className="w-full" onPress={() => navigation.navigate('Login')}>
                         Đăng nhập ngay
                     </Button>
@@ -64,10 +65,10 @@ const ResetPasswordScreen = () => {
 
                 <View className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
                     <View className="items-center mb-6">
-                        <Text className="text-2xl font-bold text-gray-900 tracking-tight text-center">Đặt lại mật khẩu</Text>
-                        <Text className="text-gray-500 mt-2 text-center text-sm">
+                        <AppText className="text-2xl font-bold text-gray-900 tracking-tight text-center">Đặt lại mật khẩu</AppText>
+                        <AppText className="text-gray-500 mt-2 text-center text-sm">
                             Vui lòng tạo một mật khẩu mới an toàn và dễ nhớ nhé.
-                        </Text>
+                        </AppText>
                     </View>
 
                     <View className="mb-4">
@@ -84,7 +85,7 @@ const ResetPasswordScreen = () => {
                                 </TouchableOpacity>
                             }
                         />
-                        {errors.password && <Text className="text-red-500 text-xs mt-1">{errors.password}</Text>}
+                        {errors.password && <AppText className="text-red-500 text-xs mt-1">{errors.password}</AppText>}
                     </View>
 
                     <View className="mb-8">
@@ -101,7 +102,7 @@ const ResetPasswordScreen = () => {
                                 </TouchableOpacity>
                             }
                         />
-                        {errors.confirmPassword && <Text className="text-red-500 text-xs mt-1">{errors.confirmPassword}</Text>}
+                        {errors.confirmPassword && <AppText className="text-red-500 text-xs mt-1">{errors.confirmPassword}</AppText>}
                     </View>
 
                     <Button variant="primary" className="w-full" onPress={handleReset}>Cập nhật mật khẩu</Button>

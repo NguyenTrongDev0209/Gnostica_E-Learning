@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import SectionContainer from '@/components/common/AppSection';
 import { Card, CardContent } from "@/components/ui/card";
@@ -48,8 +47,8 @@ const MOCK_USER = {
     comments: 95,
   },
   badges: [
-    { label: "Người mới tích cực", color: "bg-blue-100 text-blue-700" },
-    { label: "Hot Poster", color: "bg-orange-100 text-orange-600" },
+    { label: "Người mới tích cực", color: "bg-info/10 text-info text-info" },
+    { label: "Hot Poster", color: "bg-warning/10 text-warning text-warning" },
   ],
 };
 
@@ -202,7 +201,7 @@ const UserProfile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50/50 pb-16">
+    <div className="min-h-screen bg-muted pb-16">
 
       {/* Cover Banner */}
       <div className={`w-full h-40 sm:h-52 bg-gradient-to-r ${user.coverColor} relative`}>
@@ -223,7 +222,7 @@ const UserProfile = () => {
                       {user.name.substring(0, 2).toUpperCase()}
                     </AvatarFallback>
                     {user.status === 'online' && (
-                      <AvatarBadge className="bg-green-500 border-[3px] border-white ring-0 w-5 h-5" />
+                      <AvatarBadge className="bg-success/10 text-success border-[3px] border-white ring-0 w-5 h-5" />
                     )}
                   </Avatar>
                 </div>
@@ -232,7 +231,7 @@ const UserProfile = () => {
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 flex-wrap">
                     <div>
-                      <h1 className="text-2xl font-bold text-slate-900 leading-tight">{user.name}</h1>
+                      <h1 className="text-2xl font-bold text-foreground leading-tight">{user.name}</h1>
                       <p className="text-sm text-muted-foreground font-medium">@{user.username}</p>
                       {/* Badges */}
                       <div className="flex gap-2 flex-wrap mt-2">
@@ -282,7 +281,7 @@ const UserProfile = () => {
                   </div>
 
                   {/* Bio & Meta */}
-                  <p className="text-sm text-slate-600 mt-3 leading-relaxed max-w-2xl">{user.bio}</p>
+                  <p className="text-sm text-muted-foreground mt-3 leading-relaxed max-w-2xl">{user.bio}</p>
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3 text-xs text-muted-foreground">
                     {user.location && (
                       <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" />{user.location}</span>
@@ -303,16 +302,16 @@ const UserProfile = () => {
                 {isInstructor ? (
                   <>
                     <StatItem icon={BookOpen} value={user.stats.courses || 0} label="Khóa học" />
-                    <StatItem icon={Users} value={user.stats.students || 0} label="Học viên" color="text-orange-500" />
+                    <StatItem icon={Users} value={user.stats.students || 0} label="Học viên" color="text-warning" />
                   </>
                 ) : (
                   <>
                     <StatItem icon={BookOpen} value={user.stats.posts} label="Bài đăng" />
-                    <StatItem icon={ThumbsUp} value={user.stats.likes} label="Lượt thích" color="text-orange-500" />
+                    <StatItem icon={ThumbsUp} value={user.stats.likes} label="Lượt thích" color="text-warning" />
                   </>
                 )}
-                <StatItem icon={Eye} value={user.stats.views} label="Lượt xem" color="text-blue-500" />
-                <StatItem icon={MessageSquare} value={user.stats.comments} label="Bình luận" color="text-green-500" />
+                <StatItem icon={Eye} value={user.stats.views} label="Lượt xem" color="text-info" />
+                <StatItem icon={MessageSquare} value={user.stats.comments} label="Bình luận" color="text-success" />
               </div>
             </CardContent>
           </Card>
@@ -425,18 +424,18 @@ const UserProfile = () => {
             {/* Achievements */}
             <Card className="bg-white shadow-sm border-border">
               <CardContent className="p-5">
-                <h3 className="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">
+                <h3 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
                   <Award className="w-4 h-4 text-primary" /> Thành tích
                 </h3>
                 <div className="flex flex-col gap-3">
                   {[
-                    { icon: Flame, label: "5 bài đang hot", color: "text-orange-500 bg-orange-50" },
-                    { icon: Star, label: "Top 10 tuần này", color: "text-yellow-600 bg-yellow-50" },
-                    { icon: MessageSquare, label: "50+ bình luận", color: "text-blue-600 bg-blue-50" },
+                    { icon: Flame, label: "5 bài đang hot", color: "text-warning bg-orange-50" },
+                    { icon: Star, label: "Top 10 tuần này", color: "text-warning bg-yellow-50" },
+                    { icon: MessageSquare, label: "50+ bình luận", color: "text-info bg-blue-50" },
                   ].map(({ icon: Icon, label, color }) => (
                     <div key={label} className={`flex items-center gap-3 rounded-lg px-3 py-2.5 ${color.split(' ')[1]}`}>
                       <Icon className={`w-4 h-4 shrink-0 ${color.split(' ')[0]}`} />
-                      <span className="text-xs font-medium text-slate-700">{label}</span>
+                      <span className="text-xs font-medium text-foreground">{label}</span>
                     </div>
                   ))}
                 </div>

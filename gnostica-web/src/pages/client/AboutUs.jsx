@@ -15,7 +15,7 @@ import {
   aboutHeroMock,
   aboutVisionMock,
   aboutCTAMock
-} from "@/mocks/staticPages";
+} from "@/apiMocks/staticPages";
 
 export default function AboutUs() {
   return (

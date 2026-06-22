@@ -1,6 +1,5 @@
-import axios from "axios";
 
-const API_URL = "http://localhost:8080/api/favourites";
+const API_URL = "/favourites";
 
 const getAuthHeaders = () => {
   const userStr = localStorage.getItem("user");
@@ -19,21 +18,21 @@ const getAuthHeaders = () => {
 
 const wishlistService = {
   getMyWishlist: async () => {
-    const response = await axios.get(API_URL, {
+    const response = await axiosClient.get(API_URL, {
       headers: getAuthHeaders(),
     });
     return response.data;
   },
 
   toggleWishlist: async (courseId) => {
-    const response = await axios.post(`${API_URL}/toggle/${courseId}`, {}, {
+    const response = await axiosClient.post(`${API_URL}/toggle/${courseId}`, {}, {
       headers: getAuthHeaders(),
     });
     return response.data;
   },
 
   checkWishlist: async (courseId) => {
-    const response = await axios.get(`${API_URL}/check/${courseId}`, {
+    const response = await axiosClient.get(`${API_URL}/check/${courseId}`, {
       headers: getAuthHeaders(),
     });
     return response.data;

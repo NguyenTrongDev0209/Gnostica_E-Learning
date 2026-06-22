@@ -1,6 +1,6 @@
-import axios from 'axios';
+import axiosClient from '@/lib/axiosClient';
 
-const API_URL = 'http://localhost:8080/api/order';
+const API_URL = '/order';
 
 const getAuthHeaders = () => {
     const userStr = localStorage.getItem('user');
@@ -23,7 +23,7 @@ const getAuthHeaders = () => {
  */
 const getOrders = async () => {
     try {
-        const response = await axios.get(`${API_URL}/all`, {
+        const response = await axiosClient.get(`${API_URL}/all`, {
             headers: getAuthHeaders()
         });
         return response.data.data;
@@ -39,7 +39,7 @@ const getOrders = async () => {
  */
 const createOrder = async (data) => {
     try {
-        const response = await axios.post(`${API_URL}/create`, data, {
+        const response = await axiosClient.post(`${API_URL}/create`, data, {
             headers: getAuthHeaders()
         });
         return response.data;
@@ -55,7 +55,7 @@ const createOrder = async (data) => {
  */
 const getOrderById = async (orderId) => {
     try {
-        const response = await axios.get(`${API_URL}/${orderId}`, {
+        const response = await axiosClient.get(`${API_URL}/${orderId}`, {
             headers: getAuthHeaders()
         });
         return response.data;
@@ -71,7 +71,7 @@ const getOrderById = async (orderId) => {
  */
 const cancelOrder = async (orderId) => {
     try {
-        const response = await axios.put(`${API_URL}/${orderId}`, null, {
+        const response = await axiosClient.put(`${API_URL}/${orderId}`, null, {
             headers: getAuthHeaders()
         });
         return response.data;
@@ -87,7 +87,7 @@ const cancelOrder = async (orderId) => {
  */
 const getInvoices = async (orderId) => {
     try {
-        const response = await axios.get(`${API_URL}/${orderId}/invoices`, {
+        const response = await axiosClient.get(`${API_URL}/${orderId}/invoices`, {
             headers: getAuthHeaders()
         });
         return response.data;
@@ -104,7 +104,7 @@ const getInvoices = async (orderId) => {
  */
 const downloadInvoice = async (orderId, invoiceId) => {
     try {
-        const response = await axios.get(`${API_URL}/${orderId}/invoices/${invoiceId}/download`, {
+        const response = await axiosClient.get(`${API_URL}/${orderId}/invoices/${invoiceId}/download`, {
             headers: getAuthHeaders(),
             responseType: 'blob'
         });

@@ -13,6 +13,7 @@ import com.gnostica.repository.AccountRepository;
 import com.gnostica.repository.CategoryRepository;
 import com.gnostica.repository.CourseRepository;
 import com.gnostica.repository.LessonRepository;
+import com.gnostica.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +35,7 @@ public class CourseService {
     private final AiModerationService aiModerationService;
     private final LessonRepository lessonRepository;
     private final BunnyNetService bunnyNetService;
+    private final NotificationService notificationService;
 
     @Transactional
     public Course createCourse(CourseRequest request, String email) {
@@ -642,6 +644,10 @@ public class CourseService {
                 }
             }
         }
+        
+        notificationService.createNotification(course.getAccount(), "Khóa học được phê duyệt",
+                "Khóa học '" + course.getTitle() + "' của bạn đã được Admin phê duyệt và xuất bản.", "SYSTEM");
+        
         return courseRepository.save(course);
     }
 
@@ -652,6 +658,9 @@ public class CourseService {
         
         course.setStatus(3); // Bị từ chối
         course.setRejectReason(rejectReason != null && !rejectReason.trim().isEmpty() ? rejectReason.trim() : "Nội dung khóa học chưa đáp ứng chuẩn kiểm duyệt.");
+        
+        notificationService.createNotification(course.getAccount(), "Khóa học bị từ chối",
+                "Khóa học '" + course.getTitle() + "' của bạn bị từ chối phê duyệt. Lý do: " + course.getRejectReason(), "SYSTEM");
         
         return courseRepository.save(course);
     }

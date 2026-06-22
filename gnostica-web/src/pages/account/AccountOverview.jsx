@@ -22,59 +22,18 @@ import {
   Trophy,
 } from "lucide-react";
 import { SimpleButton } from "@/components/common/AppButton";
-import authService from "@/services/authService";
+import useAuthStore from "@/store/useAuthStore";
 import enrollmentService from "@/services/enrollmentService";
 import { Skeleton } from "@/components/ui/skeleton";
 
+import useAccountOverview from "@/hooks/client/useAccountOverview";
+
 export default function AccountOverview() {
-  const user = authService.getCurrentUser();
+  const user = useAuthStore(state => state.user);
   const navigate = useNavigate();
   const isInstructor = (user?.role || '').toUpperCase() === 'INSTRUCTOR';
 
-  const [stats, setStats] = useState(null);
-  const [recentCourses, setRecentCourses] = useState([]);
-  const [recentCertificates, setRecentCertificates] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const [statsRes, coursesRes] = await Promise.all([
-          enrollmentService.getMyStats(),
-          enrollmentService.getMyCourses()
-        ]);
-
-        if (statsRes.success) {
-          setStats(statsRes.data);
-        }
-
-        if (coursesRes.success) {
-          const courses = coursesRes.data;
-          setRecentCourses(courses.slice(0, 3));
-          
-          const certificates = courses
-            .filter(c => c.progressPercent === 100)
-            .map(c => ({
-              id: c.id,
-              title: c.courseTitle,
-              date: c.completedAt ? new Date(c.completedAt).toLocaleDateString('vi-VN') : "N/A",
-              color: "from-blue-500 to-cyan-500", 
-            }))
-            .slice(0, 2);
-          
-          setRecentCertificates(certificates);
-        }
-      } catch (error) {
-        console.error("Error fetching account data:", error);
-        toast.error("Không thể tải thông tin tài khoản");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
+  const { stats, recentCourses, recentCertificates, loading } = useAccountOverview();
 
   const handleBecomeInstructor = () => {
     navigate('/apply-instructor');
@@ -85,7 +44,7 @@ export default function AccountOverview() {
       label: "Khóa học đang học", 
       value: stats?.enrolledCourses || "0", 
       icon: BookOpen, 
-      color: "text-blue-500 bg-blue-50" 
+      color: "text-info bg-blue-50" 
     },
     { 
       label: "Chứng chỉ đạt được", 
@@ -120,7 +79,7 @@ export default function AccountOverview() {
 
       {/* Page Title */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <h1 className="text-2xl font-extrabold text-slate-900">Tổng quan học tập</h1>
+        <h1 className="text-2xl font-extrabold text-foreground">Tổng quan học tập</h1>
         <Link to="/courses">
           <SimpleButton className="w-full sm:w-auto font-bold gap-2">
             Khám phá khóa học mới
@@ -145,18 +104,18 @@ export default function AccountOverview() {
 
       {/* Instructor Promotion Banner */}
       {!isInstructor && (
-        <Card className="border-2 border-dashed border-orange-200 bg-orange-50/50 mb-6 group cursor-pointer hover:bg-orange-50 transition-colors" onClick={handleBecomeInstructor}>
+        <Card className="border-2 border-dashed border-warning/20 bg-orange-50/50 mb-6 group cursor-pointer hover:bg-orange-50 transition-colors" onClick={handleBecomeInstructor}>
           <CardContent className="p-5 flex items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 shrink-0">
+              <div className="w-12 h-12 rounded-full bg-warning/10 text-warning flex items-center justify-center text-warning shrink-0">
                 <Trophy className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="font-bold text-slate-900">Chia sẻ kiến thức, tạo nguồn thu nhập</h3>
-                <p className="text-xs text-slate-600 mt-0.5 font-medium">Đăng ký trở thành giảng viên trên Gnostica ngay hôm nay.</p>
+                <h3 className="font-bold text-foreground">Chia sẻ kiến thức, tạo nguồn thu nhập</h3>
+                <p className="text-xs text-muted-foreground mt-0.5 font-medium">Đăng ký trở thành giảng viên trên Gnostica ngay hôm nay.</p>
               </div>
             </div>
-            <SimpleButton variant="outline" className="border-orange-500 text-orange-600 hover:bg-orange-500 hover:text-white shrink-0 font-bold hidden sm:flex">
+            <SimpleButton variant="outline" className="border-warning/20 text-warning hover:bg-warning/10 text-warning hover:text-white shrink-0 font-bold hidden sm:flex">
               Đăng ký ngay
             </SimpleButton>
           </CardContent>
@@ -167,7 +126,7 @@ export default function AccountOverview() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
         {loading ? (
           Array(3).fill(0).map((_, i) => (
-            <Card key={i} className="border-slate-100 shadow-sm">
+            <Card key={i} className="border-border shadow-sm">
               <CardContent className="p-5 flex items-center gap-4">
                 <Skeleton className="w-12 h-12 rounded-xl" />
                 <div className="space-y-2">
@@ -181,13 +140,13 @@ export default function AccountOverview() {
           statItems.map((stat) => {
             const Icon = stat.icon;
             return (
-              <Card key={stat.label} className="border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+              <Card key={stat.label} className="border-border shadow-sm hover:shadow-md transition-shadow">
                 <CardContent className="p-5 flex flex-col md:flex-row items-start md:items-center gap-4">
                   <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${stat.color}`}>
                     <Icon className="w-6 h-6" />
                   </div>
                   <div>
-                    <p className="text-2xl font-black text-slate-900">{stat.value}</p>
+                    <p className="text-2xl font-black text-foreground">{stat.value}</p>
                     <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mt-0.5">{stat.label}</p>
                   </div>
                 </CardContent>
@@ -203,7 +162,7 @@ export default function AccountOverview() {
         {/* Left Column: Recent Courses */}
         <div className="lg:col-span-2 space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-slate-900">Tiếp tục học tập</h2>
+            <h2 className="text-lg font-bold text-foreground">Tiếp tục học tập</h2>
             <Link to="/account/my-courses" className="text-sm font-semibold text-primary flex items-center gap-1 hover:underline">
               Xem tất cả <ChevronRight className="w-4 h-4" />
             </Link>
@@ -212,7 +171,7 @@ export default function AccountOverview() {
           <div className="space-y-4">
             {loading ? (
               Array(2).fill(0).map((_, i) => (
-                <Card key={i} className="border-slate-100 shadow-sm">
+                <Card key={i} className="border-border shadow-sm">
                   <CardContent className="p-4 sm:p-5 flex flex-col sm:flex-row gap-5">
                     <Skeleton className="w-full sm:w-40 h-28 sm:h-24 rounded-xl" />
                     <div className="flex-1 space-y-3">
@@ -228,15 +187,15 @@ export default function AccountOverview() {
               ))
             ) : recentCourses.length > 0 ? (
               recentCourses.map((course) => (
-                <Card key={course.id} className="border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                <Card key={course.id} className="border-border shadow-sm hover:shadow-md transition-shadow">
                   <CardContent className="p-4 sm:p-5 flex flex-col sm:flex-row gap-5">
-                    <div className="w-full sm:w-40 h-28 sm:h-24 rounded-xl overflow-hidden shrink-0 border border-slate-100">
+                    <div className="w-full sm:w-40 h-28 sm:h-24 rounded-xl overflow-hidden shrink-0 border border-border">
                       <img src={course.courseThumbnail} alt={course.courseTitle} className="w-full h-full object-cover" />
                     </div>
                     
                     <div className="flex-1 min-w-0 flex flex-col justify-center">
                       <div className="flex items-start justify-between gap-4 mb-1">
-                        <h3 className="font-bold text-slate-900 line-clamp-2">{course.courseTitle}</h3>
+                        <h3 className="font-bold text-foreground line-clamp-2">{course.courseTitle}</h3>
                         {course.progressPercent === 100 && (
                           <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-none shrink-0">Hoàn thành</Badge>
                         )}
@@ -253,7 +212,7 @@ export default function AccountOverview() {
                           <Progress value={course.progressPercent} className={`h-2 ${course.progressPercent === 100 ? "[&>div]:bg-emerald-500" : ""}`} />
                         </div>
                         <Link to={`/courses/${course.courseSlug}/learn`}>
-                          <button className="w-10 h-10 rounded-full flex items-center justify-center bg-slate-100 hover:bg-primary hover:text-white text-slate-600 transition-colors shrink-0">
+                          <button className="w-10 h-10 rounded-full flex items-center justify-center bg-secondary hover:bg-primary hover:text-white text-muted-foreground transition-colors shrink-0">
                             <PlayCircle className="w-5 h-5" />
                           </button>
                         </Link>
@@ -263,14 +222,14 @@ export default function AccountOverview() {
                 </Card>
               ))
             ) : (
-              <Card className="border-dashed border-2 bg-slate-50/50 shadow-none">
+              <Card className="border-dashed border-2 bg-muted shadow-none">
                 <CardContent className="p-10 text-center space-y-4">
-                  <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
+                  <div className="w-16 h-16 rounded-full bg-secondary flex items-center justify-center mx-auto text-muted-foreground">
                     <BookOpen className="w-8 h-8" />
                   </div>
                   <div>
-                    <p className="font-bold text-slate-900">Bạn chưa đăng ký khóa học nào</p>
-                    <p className="text-sm text-slate-500 mt-1">Hãy khám phá các khóa học hấp dẫn trên Gnostica</p>
+                    <p className="font-bold text-foreground">Bạn chưa đăng ký khóa học nào</p>
+                    <p className="text-sm text-muted-foreground mt-1">Hãy khám phá các khóa học hấp dẫn trên Gnostica</p>
                   </div>
                   <Link to="/courses">
                     <SimpleButton variant="outline" className="mt-2 font-bold">Khám phá ngay</SimpleButton>
@@ -284,7 +243,7 @@ export default function AccountOverview() {
         {/* Right Column: Certificates */}
         <div className="space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-slate-900">Chứng chỉ mới nhất</h2>
+            <h2 className="text-lg font-bold text-foreground">Chứng chỉ mới nhất</h2>
             <Link to="/account/certificates" className="text-sm font-semibold text-primary flex items-center gap-1 hover:underline">
               Tất cả <ChevronRight className="w-4 h-4" />
             </Link>
@@ -313,12 +272,12 @@ export default function AccountOverview() {
                 </div>
               ))
             ) : (
-              <Card className="border-dashed border-2 bg-transparent shadow-none border-slate-200">
+              <Card className="border-dashed border-2 bg-transparent shadow-none border-border">
                 <CardContent className="p-6 text-center space-y-3">
-                  <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
+                  <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center mx-auto text-muted-foreground">
                     <Trophy className="w-6 h-6" />
                   </div>
-                  <p className="text-sm font-medium text-slate-500">
+                  <p className="text-sm font-medium text-muted-foreground">
                     Hoàn thành thêm khóa học để nhận chứng chỉ
                   </p>
                 </CardContent>

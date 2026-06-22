@@ -12,6 +12,7 @@ import {
     CategoryButton
 } from "@/components/common/AppButton"
 import AppSearchInput from "@/components/common/AppSearchInput"
+import NotificationBell from "@/components/common/NotificationBell"
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -41,7 +42,7 @@ const MainHeader = ({
             if (hasSub) {
                 return (
                     <DropdownMenuSub key={category.id}>
-                        <DropdownMenuSubTrigger className="px-4 py-2.5 hover:bg-header-bg hover:text-header-orange cursor-pointer font-bold text-sm">
+                        <DropdownMenuSubTrigger className="px-4 py-2.5 hover:bg-header-bg hover:text-header-orange focus:bg-header-bg focus:text-header-orange cursor-pointer font-bold text-sm">
                             <Link to={`/courses/category/${category.slug}`} className="flex-1">{category.name}</Link>
                         </DropdownMenuSubTrigger>
                         <DropdownMenuPortal>
@@ -58,7 +59,7 @@ const MainHeader = ({
             }
 
             return (
-                <DropdownMenuItem key={category.id} asChild className="px-4 py-2.5 hover:bg-header-bg hover:text-header-orange cursor-pointer font-bold text-sm">
+                <DropdownMenuItem key={category.id} asChild className="px-4 py-2.5 hover:bg-header-bg hover:text-header-orange focus:bg-header-bg focus:text-header-orange cursor-pointer font-bold text-sm">
                     <Link to={`/courses/category/${category.slug}`}>{category.name}</Link>
                 </DropdownMenuItem>
             );
@@ -90,13 +91,16 @@ const MainHeader = ({
                     {/* User Actions */}
                     <div className="flex-1 flex items-center justify-end gap-1 md:gap-4">
                         {currentUser ? (
-                            <AppUserMenu
-                                user={{
-                                    name: currentUser.fullName || currentUser.username || "Người dùng",
-                                    avatar: currentUser.avatar || "https://github.com/shadcn.png"
-                                }}
-                                onLogout={handleLogout}
-                            />
+                            <div className="flex items-center gap-2 md:gap-4">
+                                <NotificationBell isDark={true} />
+                                <AppUserMenu
+                                    user={{
+                                        name: currentUser.fullName || currentUser.username || "Người dùng",
+                                        avatar: currentUser.avatar || "https://github.com/shadcn.png"
+                                    }}
+                                    onLogout={handleLogout}
+                                />
+                            </div>
                         ) : (
                             <Link
                                 to="/login"
@@ -123,7 +127,7 @@ const MainHeader = ({
                             {isCoursesMobileOpen && (
                                 <div className="grid grid-cols-1 gap-1 ml-4 py-2">
                                     {flatCategories.filter(c => !c.parentId && !c.parent_id).slice(0, 10).map(c => (
-                                        <Link key={c.id} to={`/courses/category/${c.slug}`} className="py-2 text-xs text-slate-600 font-bold">{c.name}</Link>
+                                        <Link key={c.id} to={`/courses/category/${c.slug}`} className="py-2 text-xs text-muted-foreground font-bold">{c.name}</Link>
                                     ))}
                                 </div>
                             )}
@@ -156,28 +160,28 @@ const MainHeader = ({
                     {/* Center: Navigation Links */}
                     <nav className="hidden lg:flex items-center h-full gap-2">
                         <Link to="/" className="h-full flex items-center relative group px-4">
-                            <span className="font-bold text-slate-700 group-hover:text-[#f15e2c] transition-colors">
+                            <span className="font-bold text-foreground group-hover:text-[#f15e2c] transition-colors">
                                 Trang chủ
                             </span>
                             <div className="absolute bottom-0 left-0 w-full h-[3px] bg-[#f15e2c] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center" />
                         </Link>
 
                         <Link to="/about" className="h-full flex items-center relative group px-4">
-                            <span className="font-bold text-slate-700 group-hover:text-[#f15e2c] transition-colors">
+                            <span className="font-bold text-foreground group-hover:text-[#f15e2c] transition-colors">
                                 Giới thiệu
                             </span>
                             <div className="absolute bottom-0 left-0 w-full h-[3px] bg-[#f15e2c] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center" />
                         </Link>
 
                         <Link to="/instructors" className="h-full flex items-center relative group px-4">
-                            <span className="font-bold text-slate-700 group-hover:text-[#f15e2c] transition-colors">
+                            <span className="font-bold text-foreground group-hover:text-[#f15e2c] transition-colors">
                                 Giảng viên
                             </span>
                             <div className="absolute bottom-0 left-0 w-full h-[3px] bg-[#f15e2c] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center" />
                         </Link>
 
                         <Link to="/forum" className="h-full flex items-center relative group px-4">
-                            <span className="font-bold text-slate-700 group-hover:text-[#f15e2c] transition-colors">
+                            <span className="font-bold text-foreground group-hover:text-[#f15e2c] transition-colors">
                                 Diễn đàn
                             </span>
                             <div className="absolute bottom-0 left-0 w-full h-[3px] bg-[#f15e2c] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center" />

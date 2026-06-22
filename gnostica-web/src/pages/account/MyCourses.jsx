@@ -29,43 +29,18 @@ import {
 import enrollmentService from "@/services/enrollmentService";
 import { toast } from "sonner";
 
+import useMyCourses from "@/hooks/client/useMyCourses";
+
 export default function MyCourses() {
-  const [courses, setCourses] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-
-  useEffect(() => {
-    fetchMyCourses();
-  }, []);
-
-  const fetchMyCourses = async () => {
-    try {
-      setLoading(true);
-      const response = await enrollmentService.getMyCourses();
-      if (response && response.data) {
-        setCourses(response.data);
-      }
-    } catch (error) {
-      console.error("Failed to fetch courses:", error);
-      toast.error("Không thể tải danh sách khóa học của bạn");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getStatus = (progress) => {
-    if (progress === 100) return "completed";
-    if (progress > 0) return "in_progress";
-    return "not_started";
-  };
-
-  const filteredCourses = courses.filter((course) => {
-    const matchesSearch = course.courseTitle.toLowerCase().includes(searchQuery.toLowerCase());
-    const status = getStatus(course.progressPercent);
-    const matchesStatus = statusFilter === "all" || status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  const {
+    courses,
+    loading,
+    searchQuery,
+    setSearchQuery,
+    statusFilter,
+    setStatusFilter,
+    totalCourses
+  } = useMyCourses();
 
   return (
     <div>
@@ -93,7 +68,7 @@ export default function MyCourses() {
       {/* Page Title */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-3">
+          <h1 className="text-2xl font-extrabold text-foreground flex items-center gap-3">
             <BookOpen className="w-7 h-7 text-primary" />
             Khóa học của tôi
           </h1>
@@ -104,18 +79,18 @@ export default function MyCourses() {
       </div>
 
       {/* Filters Bar */}
-      <div className="flex flex-col sm:flex-row gap-4 mb-8 bg-white p-4 rounded-lg border border-slate-100 shadow-sm">
+      <div className="flex flex-col sm:flex-row gap-4 mb-8 bg-white p-4 rounded-lg border border-border shadow-sm">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input 
             placeholder="Tìm kiếm khóa học của bạn..." 
-            className="pl-9 h-11 border-slate-200 focus-visible:ring-primary bg-slate-50 focus-visible:bg-white"
+            className="pl-9 h-11 border-border focus-visible:ring-primary bg-muted focus-visible:bg-white"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-full sm:w-[200px] h-11 border-slate-200 bg-slate-50 min-w-40 font-semibold focus:ring-primary focus:bg-white">
+          <SelectTrigger className="w-full sm:w-[200px] h-11 border-border bg-muted min-w-40 font-semibold focus:ring-primary focus:bg-white">
             <SelectValue placeholder="Trạng thái" />
           </SelectTrigger>
           <SelectContent>
@@ -131,15 +106,15 @@ export default function MyCourses() {
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {[1,2,3,4].map(n => (
-            <div key={n} className="h-80 bg-slate-100 animate-pulse rounded-lg" />
+            <div key={n} className="h-80 bg-secondary animate-pulse rounded-lg" />
           ))}
         </div>
       ) : filteredCourses.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-6">
           {filteredCourses.map((course) => (
-            <Card key={course.id} className="overflow-hidden border-slate-100 shadow-sm hover:shadow-xl transition-all group active:scale-[0.98] rounded-xl bg-white">
+            <Card key={course.id} className="overflow-hidden border-border shadow-sm hover:shadow-xl transition-all group active:scale-[0.98] rounded-xl bg-white">
               <div className="relative h-52 sm:h-60 w-full p-4 pb-0">
-                <div className="w-full h-full overflow-hidden rounded-lg relative shadow-inner bg-slate-50">
+                <div className="w-full h-full overflow-hidden rounded-lg relative shadow-inner bg-muted">
                   <img 
                     src={course.courseThumbnail || "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=600&auto=format&fit=crop"} 
                     alt={course.courseTitle} 
@@ -166,7 +141,7 @@ export default function MyCourses() {
               
               <CardContent className="p-5 flex flex-col justify-between">
                 <div>
-                  <h3 className="font-bold text-lg text-slate-900 line-clamp-2 leading-snug group-hover:text-primary transition-colors mb-2">
+                  <h3 className="font-bold text-lg text-foreground line-clamp-2 leading-snug group-hover:text-primary transition-colors mb-2">
                     {course.courseTitle}
                   </h3>
                   <p className="text-sm text-muted-foreground mb-4">Giảng viên: {course.instructorName}</p>
@@ -175,7 +150,7 @@ export default function MyCourses() {
                 <div className="mt-2 space-y-4">
                   <div>
                     <div className="flex justify-between items-end mb-1.5">
-                      <span className="text-xs font-semibold text-slate-600">
+                      <span className="text-xs font-semibold text-muted-foreground">
                         {course.progressPercent === 100 ? "Hoàn thành khóa học" : "Tiến độ học tập"}
                       </span>
                       <span className={`text-sm font-bold ${course.progressPercent === 100 ? "text-emerald-500" : "text-primary"}`}>
@@ -184,7 +159,7 @@ export default function MyCourses() {
                     </div>
                     <Progress 
                       value={course.progressPercent} 
-                      className={`h-2 bg-slate-100 ${course.progressPercent === 100 ? "[&>div]:bg-emerald-500" : ""}`} 
+                      className={`h-2 bg-secondary ${course.progressPercent === 100 ? "[&>div]:bg-emerald-500" : ""}`} 
                     />
                   </div>
                   
@@ -197,7 +172,7 @@ export default function MyCourses() {
                     <button 
                       className={`w-full py-2.5 rounded-lg text-sm font-bold transition-colors
                         ${course.progressPercent === 100 
-                          ? "bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200" 
+                          ? "bg-muted text-muted-foreground hover:bg-secondary border border-border" 
                           : course.progressPercent === 0 
                             ? "bg-primary text-white hover:bg-primary/90 shadow-sm shadow-primary/20" 
                             : "bg-primary/10 text-primary hover:bg-primary/20"}
@@ -219,10 +194,10 @@ export default function MyCourses() {
           ))}
         </div>
       ) : (
-        <div className="text-center py-20 bg-slate-50 rounded-lg border border-dashed border-slate-200">
+        <div className="text-center py-20 bg-muted rounded-lg border border-dashed border-border">
           <BookOpen className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-          <h3 className="text-lg font-bold text-slate-900 mb-2">Không tìm thấy khóa học nào</h3>
-          <p className="text-slate-500 mb-6">Bạn chưa sở hữu khóa học nào phù hợp với bộ lọc hiện tại.</p>
+          <h3 className="text-lg font-bold text-foreground mb-2">Không tìm thấy khóa học nào</h3>
+          <p className="text-muted-foreground mb-6">Bạn chưa sở hữu khóa học nào phù hợp với bộ lọc hiện tại.</p>
           <Link to="/courses">
             <button className="px-6 py-2.5 rounded-lg border-2 border-primary text-primary font-bold hover:bg-primary/5 transition-colors">
               Khám phá khóa học
