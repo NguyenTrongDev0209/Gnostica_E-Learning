@@ -4,8 +4,9 @@ import { View, ScrollView, TouchableOpacity } from 'react-native';
 import CourseCard from './CourseCard';
 import { courses, featuredCourses } from '../../constants/mockData';
 
-const CourseSection = ({ title, variant = 'trending' }) => {
-    const data = variant === 'featured' ? featuredCourses : variant === 'foryou' ? [...courses].reverse() : courses;
+const CourseSection = ({ title, variant = 'trending', customData }) => {
+    const defaultData = variant === 'featured' ? featuredCourses : variant === 'foryou' ? [...courses].reverse() : courses;
+    const data = customData || defaultData;
 
     return (
         <View className="mt-7">

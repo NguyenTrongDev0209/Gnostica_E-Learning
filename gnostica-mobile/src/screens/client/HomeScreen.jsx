@@ -1,6 +1,6 @@
 import AppText from '../../components/ui/AppText';
-import React, { useState } from 'react';
-import { View, ScrollView, TouchableOpacity,  } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, ScrollView, TouchableOpacity, } from 'react-native';
 import { Menu, Bell, User } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 
@@ -13,22 +13,54 @@ import FAQSection from '../../components/home/FAQSection';
 import SideMenu from '../../components/ui/SideMenu';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { useAuth } from '../../context/AuthContext';
+
+import api from '../../services/api';
+
 const HomeScreen = () => {
     const navigation = useNavigation();
+    const { isAuthenticated } = useAuth();
     const [isMenuVisible, setIsMenuVisible] = useState(false);
     const insets = useSafeAreaInsets();
+    const [trendingCourses, setTrendingCourses] = useState([]);
+
+    useEffect(() => {
+        const fetchTrendingCourses = async () => {
+            try {
+                const result = await api.get('/courses?size=10');
+                if (result.content) {
+                    const formatted = result.content.map(course => ({
+                        id: course.id.toString(),
+                        slug: course.slug,
+                        title: course.title,
+                        thumbnail: course.thumbnail,
+                        instructor: course.instructorName || 'Giảng viên',
+                        rating: 4.5,
+                        category: course.categoryName,
+                        studentCount: course.students || 0,
+                        price: new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(course.salePrice),
+                        originalPrice: course.discount > 0 ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(course.price) : null
+                    }));
+                    setTrendingCourses(formatted);
+                }
+            } catch (error) {
+                console.error('Error fetching trending courses:', error);
+            }
+        };
+        fetchTrendingCourses();
+    }, []);
 
     return (
         <View className="flex-1 bg-slate-50">
             <SideMenu visible={isMenuVisible} onClose={() => setIsMenuVisible(false)} />
-            
-            <ScrollView 
-                className="flex-1" 
+
+            <ScrollView
+                className="flex-1"
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{ paddingBottom: 80 }}
             >
                 {/* Header */}
-                <View 
+                <View
                     className="flex-row items-center px-4 pb-4 bg-white gap-3"
                     style={{ paddingTop: Math.max(insets.top, 20) + 12 }}
                 >
@@ -49,7 +81,7 @@ const HomeScreen = () => {
 
                     <TouchableOpacity
                         className="w-[38px] h-[38px] rounded-[19px] bg-blue-50 border border-blue-200 items-center justify-center"
-                        onPress={() => navigation.navigate('Profile')}
+                        onPress={() => navigation.navigate(isAuthenticated ? 'Profile' : 'Register')}
                     >
                         <User size={22} color="#2563EB" />
                     </TouchableOpacity>
@@ -64,7 +96,7 @@ const HomeScreen = () => {
                 {/* Course Sections */}
                 <CourseSection title="Dành cho bạn" variant="foryou" />
 
-                <CourseSection title="Khóa học thịnh hành" variant="trending" />
+                <CourseSection title="Khóa học thịnh hành" variant="trending" customData={trendingCourses.length > 0 ? trendingCourses : undefined} />
 
                 <InstructorSection />
 

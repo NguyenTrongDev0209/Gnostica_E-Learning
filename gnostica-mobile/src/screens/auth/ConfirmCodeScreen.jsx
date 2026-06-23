@@ -1,18 +1,20 @@
 import AppText from '../../components/ui/AppText';
 import React, { useState } from 'react';
-import { View, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import { View, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Alert, ActivityIndicator } from 'react-native';
 import { ShieldCheck, ArrowLeft } from 'lucide-react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
+import authService from '../../services/authService';
 
 const ConfirmCodeScreen = () => {
     const navigation = useNavigation();
     const route = useRoute();
-    const { email } = route.params || { email: 'your email' };
+    const { email, mode } = route.params || { email: 'your email', mode: 'verify' };
 
     const [code, setCode] = useState('');
     const [errors, setErrors] = useState({});
+    const [isLoading, setIsLoading] = useState(false);
 
     const validate = () => {
         const newErrors = {};
@@ -23,10 +25,30 @@ const ConfirmCodeScreen = () => {
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleVerify = () => {
-        if (validate()) {
-            // Mock API verification
-            navigation.navigate('ResetPassword', { email, code });
+    const handleVerify = async () => {
+        if (!validate()) return;
+
+        setIsLoading(true);
+        try {
+            await authService.verifyOTP(email, code);
+            setIsLoading(false);
+            Alert.alert(
+                'Thành công',
+                'Xác thực tài khoản thành công! Bây giờ bạn có thể đăng nhập.',
+                [{ text: 'Đăng nhập ngay', onPress: () => navigation.navigate('Login') }]
+            );
+        } catch (error) {
+            setIsLoading(false);
+            Alert.alert('Lỗi', error.message || 'Xác thực không thành công. Vui lòng thử lại.');
+        }
+    };
+
+    const handleResendOTP = async () => {
+        try {
+            await authService.resendOTP(email);
+            Alert.alert('Thông báo', 'Mã xác thực mới đã được gửi lại.');
+        } catch (error) {
+            Alert.alert('Lỗi', error.message || 'Không thể gửi lại mã.');
         }
     };
 
@@ -68,11 +90,18 @@ const ConfirmCodeScreen = () => {
                     {errors.code && <AppText className="text-red-500 text-xs mb-6 text-center">{errors.code}</AppText>}
                     {!errors.code && <View className="mb-6" />}
 
-                    <Button variant="primary" className="w-full mb-6" onPress={handleVerify}>Xác nhận</Button>
+                    <Button
+                        variant="primary"
+                        className="w-full mb-6 py-4"
+                        onPress={handleVerify}
+                        disabled={isLoading}
+                    >
+                        {isLoading ? <ActivityIndicator color="white" /> : 'Xác nhận'}
+                    </Button>
 
                     <View className="items-center">
                         <AppText className="text-sm text-gray-500 mb-2">Chưa nhận được mã?</AppText>
-                        <TouchableOpacity onPress={() => Alert.alert('Thông báo', 'Đã gửi lại mã xác thực.')}>
+                        <TouchableOpacity onPress={handleResendOTP}>
                             <AppText className="text-sm text-primary font-semibold">Gửi lại mã</AppText>
                         </TouchableOpacity>
                     </View>

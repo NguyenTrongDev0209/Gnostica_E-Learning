@@ -94,12 +94,12 @@ const CheckoutScreen = () => {
                             </AppText>
                             <View className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm">
                                 <View className="flex-row items-center gap-2">
-                                    <View className="flex-1 flex-row items-center bg-slate-50 rounded-xl px-3 py-2.5 border border-slate-200">
+                                    <View className="flex-1 flex-row items-center bg-slate-50 rounded-xl px-3 h-[46px] border border-slate-200">
                                         <Ticket size={18} color="#64748b" />
                                         <TextInput
                                             placeholder="Nhập mã giảm giá..."
                                             placeholderTextColor="#94a3b8"
-                                            className="flex-1 ml-2 text-sm text-slate-800"
+                                            className="flex-1 ml-2 text-sm text-slate-800 p-0 m-0"
                                             value={voucherCode}
                                             onChangeText={setVoucherCode}
                                             autoCapitalize="characters"
@@ -108,7 +108,7 @@ const CheckoutScreen = () => {
                                     </View>
                                     <Button
                                         variant={voucherApplied ? 'secondary' : 'primary'}
-                                        className="px-4 py-2.5 rounded-xl"
+                                        className="px-4 h-[46px] py-0 rounded-xl"
                                         textClassName="text-sm"
                                         onPress={voucherApplied ? () => { setDiscount(0); setVoucherApplied(false); setVoucherCode(''); } : handleApplyVoucher}
                                         disabled={!voucherCode && !voucherApplied}

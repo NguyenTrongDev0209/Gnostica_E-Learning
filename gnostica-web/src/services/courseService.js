@@ -263,12 +263,7 @@ const triggerAiScanFull = async (slug) => {
     return response.data;
 };
 
-const checkSubtitleStatus = async (videoId) => {
-    const response = await axiosClient.get(`${API_URL}/lessons/check-subtitle/${videoId}`, {
-        headers: getAuthHeaders()
-    });
-    return response.data;
-};
+
 
 const preScanCourseText = async (title, description) => {
     const response = await axiosClient.post(`${API_URL}/ai-pre-scan-text`, { title, description }, {
@@ -329,7 +324,7 @@ const courseService = {
     saveDraftQuestions,
     getDraftQuestions,
     saveQuestionBank,
-    checkSubtitleStatus,
+
     deleteVideoFromBunny,
     // Admin specific APIs
     getModerationCourses,
@@ -341,7 +336,7 @@ const courseService = {
     triggerAiScanInfo,
     triggerAiScanFull,
     getRecommendedCourses: async (page = 0, size = 10) => {
-        const response = await axios.get(`${API_URL}/recommendations`, {
+        const response = await axiosClient.get(`${API_URL}/recommendations`, {
             params: { page, size },
             headers: getAuthHeaders()
         });

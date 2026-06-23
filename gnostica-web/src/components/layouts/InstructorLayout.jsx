@@ -54,10 +54,10 @@ export default function InstructorLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const user = useAuthStore(state => state.user);
+  const logout = useAuthStore(state => state.logout);
 
   const handleLogout = async () => {
-    await authService.logout();
-    navigate("/login");
+    await logout();
   };
 
   return (
@@ -156,7 +156,7 @@ export default function InstructorLayout() {
             <div className="flex items-center gap-4 shrink-0">
               <Button
                 onClick={() => navigate("/instructor/courses/courses-form")}
-                className="h-9 font-bold bg-success/10 text-success hover:bg-success/10 text-success text-white flex items-center gap-1.5 shadow-none hidden lg:flex"
+                className="h-9 font-bold bg-success text-white hover:bg-success/90 flex items-center gap-1.5 shadow-none hidden lg:flex"
               >
                 <Plus className="w-4 h-4" />
                 Tạo khóa học mới

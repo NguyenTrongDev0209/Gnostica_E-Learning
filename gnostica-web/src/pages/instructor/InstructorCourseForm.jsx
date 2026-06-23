@@ -536,7 +536,7 @@ export default function InstructorCourseForm() {
 
       localStorage.removeItem(`course_questions_${slug || 'new'}`);
 
-      toast.success(isEditMode ? "Cập nhật khóa học thành công!" : "Đã tải lên và lưu khóa học thành công!");
+      toast.success(isEditMode && slug !== "new" ? "Cập nhật khóa học thành công!" : "Lưu khóa học thành công!");
       setTimeout(() => navigate("/instructor/courses"), 1500);
     } catch (error) {
       console.error("Submit Error:", error);
@@ -730,7 +730,7 @@ export default function InstructorCourseForm() {
                       setActiveTab(sequence[currentIdx + 1]);
                     window.scrollTo({ top: 0, behavior: "smooth" });
                   }}
-                  className="flex items-center gap-2 h-11 px-8 rounded-lg font-bold bg-muted text-white hover:bg-muted transition-all shadow-md shadow-slate-100"
+                  className="flex items-center gap-2 h-11 px-8 rounded-lg font-bold bg-success text-white hover:bg-success/90 transition-all shadow-lg shadow-green-100"
                 >
                   Tiếp theo <ArrowRight size={18} />
                 </button>
@@ -761,7 +761,7 @@ export default function InstructorCourseForm() {
                   type="button"
                   disabled={activeUploads > 0}
                   onClick={methods.handleSubmit(onSubmit, onError)}
-                  className="flex items-center gap-2 h-11 px-8 rounded-lg font-bold bg-success/10 text-success text-white hover:bg-success/10 text-success transition-all shadow-lg shadow-green-100 disabled:opacity-50"
+                  className="flex items-center gap-2 h-11 px-8 rounded-lg font-bold bg-success text-white hover:bg-success/90 transition-all shadow-lg shadow-green-100 disabled:opacity-50"
                 >
                   <CircleFadingArrowUp size={18} /> {activeUploads > 0 ? "Đang tải video..." : "Xuất bản"}
                 </button>
@@ -810,12 +810,15 @@ export default function InstructorCourseForm() {
                   <Button
                     variant="outline"
                     className="h-11 font-bold border-border"
-                    onClick={() => setShowDraftModal(false)}
+                    onClick={() => {
+                      setShowDraftModal(false);
+                      localStorage.removeItem(`course_questions_${slug || 'new'}`);
+                    }}
                   >
                     Bỏ qua
                   </Button>
                   <Button
-                    className="h-11 font-bold bg-info/10 text-info hover:bg-info/10 text-info text-white"
+                    className="h-11 font-bold bg-info text-white hover:bg-info/90"
                     onClick={restoreDraft}
                   >
                     Khôi phục ngay
