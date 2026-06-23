@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :root {
+        /* Main App Colors */
+        --background: #f8fafc;
+        --foreground: #0f172a;
+        --primary: #2563eb;
+
+        /* Gnostica Custom Colors (From Web) */
+        --header-bg: #fcf1e7;
+        --header-orange: #f15e2c;
+        --header-text: #4a4a4a;
+
+        /* System Colors */
+        --border: #e2e8f0;
+        --input: #e2e8f0;
+        --ring: #2563eb;
+    }
+}

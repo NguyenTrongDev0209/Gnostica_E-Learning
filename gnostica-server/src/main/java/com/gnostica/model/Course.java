@@ -54,9 +54,6 @@ public class Course {
     @Column
     private Integer discount;
 
-    @Column(name = "final_price")
-    private Double finalPrice;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "account_id")
     @JsonIgnore
@@ -73,6 +70,18 @@ public class Course {
 
     @Column(columnDefinition = "boolean default false")
     private Boolean deleted = false;
+
+    @Column(name = "reject_reason", columnDefinition = "text")
+    private String rejectReason;
+
+    @Column(name = "ai_moderation_report", columnDefinition = "text")
+    private String aiModerationReport;
+
+    @Column(name = "ai_moderation_status")
+    private String aiModerationStatus; // PENDING, SCANNING, COMPLETED, FAILED
+
+    @Column(name = "ai_moderation_last_content_hash")
+    private String aiModerationLastContentHash;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -94,6 +103,12 @@ public class Course {
     @OneToMany(mappedBy = "course")
     @JsonIgnore
     private List<Enrollment> enrollments;
+
+    @org.hibernate.annotations.Formula("(SELECT COUNT(l.id) FROM modules m JOIN lessons l ON l.module_id = m.id WHERE m.course_id = id AND (m.deleted = false OR m.deleted IS NULL) AND (l.deleted = false OR l.deleted IS NULL))")
+    private Integer classesCountFormula;
+
+    @org.hibernate.annotations.Formula("(SELECT COUNT(e.id) FROM enrollments e WHERE e.course_id = id)")
+    private Integer studentsCountFormula;
 
     @Transient
     @com.fasterxml.jackson.annotation.JsonProperty("isEnrolled")
@@ -119,23 +134,27 @@ public class Course {
         return account != null ? account.getId() : null;
     }
 
-    @PrePersist
-    @PreUpdate
-    private void calculateFinalPrice() {
-        if (this.price == null) {
-            this.finalPrice = 0.0;
-            return;
-        }
-        int disc = (this.discount != null) ? this.discount : 0;
-        this.finalPrice = this.price * (1 - disc / 100.0);
+    @com.fasterxml.jackson.annotation.JsonProperty("instructorEmail")
+    public String getInstructorEmail() {
+        return account != null ? account.getEmail() : null;
+    }
+
+    @com.fasterxml.jackson.annotation.JsonProperty("instructorPhone")
+    public String getInstructorPhone() {
+        return account != null ? account.getPhone() : null;
+    }
+
+    @com.fasterxml.jackson.annotation.JsonProperty("instructorCreatedAt")
+    public java.time.LocalDateTime getInstructorCreatedAt() {
+        return account != null ? account.getCreatedAt() : null;
     }
 
     @com.fasterxml.jackson.annotation.JsonProperty("salePrice")
     public Double getSalePrice() {
-        if (finalPrice != null) return finalPrice;
-        // Fallback cho dữ liệu cũ chưa có finalPrice trong DB
-        if (price == null) return 0.0;
-        if (discount == null || discount <= 0) return price;
+        if (price == null)
+            return 0.0;
+        if (discount == null || discount <= 0)
+            return price;
         return price * (1 - discount / 100.0);
     }
 
@@ -146,15 +165,20 @@ public class Course {
 
     @com.fasterxml.jackson.annotation.JsonProperty("classes")
     public Integer getClassesCount() {
-        if (modules == null) return 0;
-        return modules.stream()
-                .mapToInt(m -> m.getLessons() != null ? m.getLessons().size() : 0)
-                .sum();
+        if (org.hibernate.Hibernate.isInitialized(modules) && modules != null) {
+            return modules.stream()
+                    .filter(m -> !Boolean.TRUE.equals(m.getDeleted()))
+                    .mapToInt(m -> m.getLessons() != null ? (int) m.getLessons().stream().filter(l -> !Boolean.TRUE.equals(l.getDeleted())).count() : 0)
+                    .sum();
+        }
+        return classesCountFormula != null ? classesCountFormula : 0;
     }
 
     @com.fasterxml.jackson.annotation.JsonProperty("students")
     public Integer getStudentsCount() {
-        // Hiện tại chưa có bảng đăng ký học, trả về số giả lập dựa trên ID để có sự khác biệt
-        return (id != null ? id * 15 + 100 : 0);
+        if (org.hibernate.Hibernate.isInitialized(enrollments) && enrollments != null) {
+            return enrollments.size();
+        }
+        return studentsCountFormula != null ? studentsCountFormula : 0;
     }
 }

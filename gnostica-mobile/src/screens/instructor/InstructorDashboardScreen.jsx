@@ -1,0 +1,92 @@
+import AppText from '../../components/ui/AppText';
+import React from 'react';
+import { View, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { BookOpen, Users, DollarSign, MessageSquare, TrendingUp, ChevronRight } from 'lucide-react-native';
+import AppHeader from '../../components/ui/AppHeader';
+
+
+const InstructorDashboardScreen = () => {
+    const navigation = useNavigation();
+
+    const stats = [
+        { label: 'Tổng doanh thu', value: '12.5Mđ', icon: DollarSign, color: '#10b981' },
+        { label: 'Học viên', value: '1,240', icon: Users, color: '#3b82f6' },
+        { label: 'Khóa học', value: '8', icon: BookOpen, color: '#8b5cf6' },
+        { label: 'Đánh giá', value: '4.8', icon: TrendingUp, color: '#f59e0b' },
+    ];
+
+    return (
+        <View className="flex-1 bg-slate-50">
+            {/* Header */}
+            <AppHeader title="Bảng điều khiển GV" />
+
+            <ScrollView className="flex-1 p-4" showsVerticalScrollIndicator={false}>
+                {/* Stats Grid */}
+                <View className="flex-row flex-wrap justify-between mb-6">
+                    {stats.map((stat, i) => (
+                        <View key={i} className="w-[48%] bg-white p-4 rounded-3xl mb-4 shadow-sm border border-slate-100">
+                            <View
+                                className="w-10 h-10 rounded-xl items-center justify-center mb-3"
+                                style={{ backgroundColor: stat.color + '15' }}
+                            >
+                                <stat.icon size={20} color={stat.color} />
+                            </View>
+                            <AppText className="text-slate-400 text-[10px] font-medium uppercase tracking-wider">{stat.label}</AppText>
+                            <AppText className="text-slate-900 font-bold text-lg mt-1">{stat.value}</AppText>
+                        </View>
+                    ))}
+                </View>
+
+                {/* Quick Actions */}
+                <AppText className="text-slate-800 font-bold text-base mb-4">Quản lý nhanh</AppText>
+
+                {[
+                    { label: 'Khóa học của tôi', icon: BookOpen, target: 'InstructorCourses', desc: 'Quản lý bài giảng và nội dung' },
+                    { label: 'Học viên của tôi', icon: Users, target: 'InstructorStudents', desc: 'Quản lý danh sách học viên' },
+                    { label: 'Mã giảm giá', icon: DollarSign, target: 'InstructorCoupons', desc: 'Quản lý voucher khuyến mãi' },
+                    { label: 'Báo cáo doanh thu', icon: DollarSign, target: 'InstructorRevenue', desc: 'Xem chi tiết thu nhập' },
+                    { label: 'Yêu cầu rút tiền', icon: DollarSign, target: 'Withdraw', desc: 'Rút tiền về tài khoản' },
+                    { label: 'Hỏi đáp học viên', icon: MessageSquare, target: 'InstructorQA', desc: 'Trả lời Q&A' },
+                    { label: 'Báo cáo & Đánh giá', icon: TrendingUp, target: 'InstructorReports', desc: 'Xử lý phản hồi' },
+                    { label: 'Cài đặt', icon: TrendingUp, target: 'InstructorSettings', desc: 'Thiết lập tài khoản' },
+                ].map((item, i) => (
+                    <TouchableOpacity
+                        key={i}
+                        className="bg-white p-4 rounded-2xl mb-3 shadow-sm border border-slate-100 flex-row items-center"
+                        onPress={() => navigation.navigate(item.target)}
+                    >
+                        <View className="w-12 h-12 bg-slate-50 rounded-xl items-center justify-center">
+                            <item.icon size={22} color="#475569" />
+                        </View>
+                        <View className="ml-4 flex-1">
+                            <AppText className="text-slate-900 font-bold text-sm">{item.label}</AppText>
+                            <AppText className="text-slate-400 text-xs mt-0.5">{item.desc}</AppText>
+                        </View>
+                        <ChevronRight size={18} color="#cbd5e1" />
+                    </TouchableOpacity>
+                ))}
+
+                {/* Performance Chart Placeholder */}
+                <View className="bg-white p-6 rounded-3xl mt-4 mb-10 shadow-sm border border-slate-100">
+                    <AppText className="text-slate-800 font-bold text-base mb-2">Hiệu suất học tập</AppText>
+                    <AppText className="text-slate-400 text-xs mb-6">Thống kê học viên mới trong 7 ngày qua</AppText>
+
+                    <View className="h-40 flex-row items-end justify-between px-2">
+                        {[40, 70, 45, 90, 65, 80, 50].map((h, i) => (
+                            <View key={i} className="items-center">
+                                <View
+                                    className="w-4 bg-blue-500 rounded-t-full"
+                                    style={{ height: h + '%' }}
+                                />
+                                <AppText className="text-[8px] text-slate-400 mt-2">T{i + 2}</AppText>
+                            </View>
+                        ))}
+                    </View>
+                </View>
+            </ScrollView>
+        </View>
+    );
+};
+
+export default InstructorDashboardScreen;

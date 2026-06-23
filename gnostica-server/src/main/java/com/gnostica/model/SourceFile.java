@@ -24,4 +24,8 @@ public class SourceFile {
     @ManyToOne
     @JoinColumn(name = "account_id")
     private Account account;
+
+    @ManyToOne
+    @JoinColumn(name = "course_id")
+    private Course course;
 }

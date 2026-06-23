@@ -1,5 +1,5 @@
 import React from 'react';
-import { mockCategories } from '@/mocks/home';
+import { mockCategories } from '@/apiMocks/home';
 import * as LucideIcons from 'lucide-react';
 
 const CategoryGrid = () => {

@@ -22,4 +22,6 @@ public class ModuleRequest {
     @Valid
     @NotEmpty(message = "Chương này phải có ít nhất 1 bài học")
     private List<LessonRequest> lessons;
+
+    private QuizRequest quiz;
 }

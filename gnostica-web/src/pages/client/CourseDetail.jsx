@@ -4,7 +4,7 @@ import { Home, Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { AppBreadcrumb } from "@/components/common/AppSection";
 import courseService from "@/services/courseService";
-import axios from "axios";
+import wishlistService from "@/services/wishlistService";
 import { 
   CourseDetailHeader, 
   CourseDetailVideo, 
@@ -34,6 +34,7 @@ export default function CourseDetail() {
           title: data.title,
           promoVideo: data.promoVideo,
           image: data.thumbnail,
+          thumbnail: data.thumbnail, // Added thumbnail for consistency
           description: data.description ? data.description.replace(/&nbsp;/g, ' ') : "Chưa có mô tả chi tiết.",
           price: data.price || 0,
           salePrice: data.salePrice || data.price || 0,
@@ -43,6 +44,7 @@ export default function CourseDetail() {
           rating: 5.0,
           reviews: 0,
           isEnrolled: data.isEnrolled || false,
+          isFavourite: false, // Default
           students: data.students || 0,
           lastUpdated: "Mới đây",
           language: "Tiếng Việt",
@@ -72,13 +74,23 @@ export default function CourseDetail() {
           }
         };
 
+        // Check if favorite
+        try {
+          const wishRes = await wishlistService.checkWishlist(data.id);
+          if (wishRes.success) {
+            formattedCourse.isFavourite = wishRes.data.isFavourite;
+          }
+        } catch (e) {
+          console.warn("Could not check wishlist status");
+        }
+
         setCourse(formattedCourse);
 
         // Fetch instructor profile nếu có instructorId
         if (data.instructorId) {
           try {
-            const profileRes = await axios.get(`http://localhost:8080/api/instructors/${data.instructorId}/profile`);
-            setInstructorProfile(profileRes.data);
+            const profileRes = await instructorService.getInstructorProfile(data.instructorId);
+            setInstructorProfile(profileRes);
           } catch (profileErr) {
             console.warn("Không thể tải thông tin giảng viên:", profileErr);
           }
@@ -107,7 +119,7 @@ export default function CourseDetail() {
   if (error || !course) {
     return (
       <div className="bg-background min-h-screen pt-24 text-center">
-        <h2 className="text-2xl font-bold text-slate-800 mb-4">{error || "Khóa học không tồn tại"}</h2>
+        <h2 className="text-2xl font-bold text-foreground mb-4">{error || "Khóa học không tồn tại"}</h2>
         <a href="/courses" className="text-primary hover:underline font-medium">Quay lại danh sách khóa học</a>
       </div>
     );
@@ -136,9 +148,9 @@ export default function CourseDetail() {
         <div className="mb-6">
           <AppBreadcrumb
             items={breadcrumbItems}
-            linkClassName="text-slate-500 hover:text-primary transition-colors"
-            activeClassName="font-bold text-slate-800"
-            separatorClassName="text-slate-400"
+            linkClassName="text-muted-foreground hover:text-primary transition-colors"
+            activeClassName="font-bold text-foreground"
+            separatorClassName="text-muted-foreground"
           />
         </div>
 
@@ -156,7 +168,7 @@ export default function CourseDetail() {
 
             <CourseDetailCurriculum curriculum={course.curriculum || []} />
 
-            <Separator className="bg-slate-200/60" />
+            <Separator className="bg-muted/60" />
 
             <CourseDetailInstructor instructor={instructorData} />
           </div>

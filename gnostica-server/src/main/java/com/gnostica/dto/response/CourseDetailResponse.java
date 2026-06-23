@@ -1,0 +1,50 @@
+package com.gnostica.dto.response;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class CourseDetailResponse {
+    private Integer id;
+    private String title;
+    private String slug;
+    private String description;
+    private String thumbnail;
+    private Double price;
+    private Integer discount;
+    private Double salePrice;
+    private String level;
+    private Integer status;
+    private Boolean deleted;
+    private String rejectReason;
+    private String aiModerationReport;
+    private String aiModerationStatus;
+    private String aiModerationLastContentHash;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+
+    @com.fasterxml.jackson.annotation.JsonProperty("isEnrolled")
+    private Boolean isEnrolled;
+
+    private Integer categoryId;
+    private String categoryName;
+    
+    private Integer instructorId;
+    private String instructorName;
+    private String instructorAvatar;
+    private String instructorEmail;
+    private String instructorPhone;
+    private LocalDateTime instructorCreatedAt;
+
+    private Integer classes;
+    private Integer students;
+
+    private List<ModuleResponse> modules;
+}

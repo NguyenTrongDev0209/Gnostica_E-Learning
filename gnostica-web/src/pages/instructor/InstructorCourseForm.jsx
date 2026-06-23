@@ -1,5 +1,5 @@
 import React from "react";
-import useInstructorCourseForm from "@/hooks/useInstructorCourseForm";
+import useInstructorCourseForm from "@/hooks/instructor/useInstructorCourseForm";
 import {
   useForm,
   FormProvider,
@@ -30,10 +30,19 @@ import {
   Clock,
   AlertCircle,
   Check,
-  Loader2
+  Loader2,
+  Sparkles,
+  FileText,
+  Database,
+  CheckCircle2,
+  ListOrdered,
+  Search,
+  Pencil,
+  ShieldCheck,
+  ShieldAlert,
+  AlertTriangle
 } from "lucide-react";
 import { toast } from "sonner";
-import axios from "axios";
 import courseService from "../../services/courseService";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -57,14 +66,29 @@ import {
 } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Card } from "@/components/ui/card";
 import categoryService from "@/services/categoryService";
+
+import CourseStepper from "@/components/pages/instructor/course-form/CourseStepper";
+import BasicInfoTab from "@/components/pages/instructor/course-form/BasicInfoTab";
+import QuizTab from "@/components/pages/instructor/course-form/QuizTab";
+import CurriculumTab from "@/components/pages/instructor/course-form/CurriculumTab";
+import SettingsTab from "@/components/pages/instructor/course-form/SettingsTab";
+
 
 // ==========================================
 // CẤU CẤU HÌNH ĐỂ DUY TRÌ TIẾN TRÌNH TẢI VIDEO KHI CHUYỂN TAB
 // ==========================================
-const globalUploadProgress = {}; 
-const uploadCallbacks = {}; 
+const globalUploadProgress = {};
+const uploadCallbacks = {};
 
 // ==========================================
 // THIẾT LẬP ZOD SCHEMA & ERROR MAP (VIỆT HÓA)
@@ -83,8 +107,8 @@ const viErrorMap = (issue, ctx) => {
       array: "danh sách",
       object: "đối tượng",
     };
-    return { 
-      message: `Dữ liệu không hợp lệ (Mong đợi ${typeMap[issue.expected] || issue.expected}, nhưng nhận được ${typeMap[issue.received] || issue.received})` 
+    return {
+      message: `Dữ liệu không hợp lệ (Mong đợi ${typeMap[issue.expected] || issue.expected}, nhưng nhận được ${typeMap[issue.received] || issue.received})`
     };
   }
 
@@ -133,6 +157,7 @@ const sectionSchema = z.object({
   status: z.coerce.number().default(1),
   createdAt: z.any().nullable().optional(),
   updatedAt: z.any().nullable().optional(),
+  quiz: z.any().nullable().optional(),
 });
 
 export const courseSchema = z.object({
@@ -150,12 +175,12 @@ export const courseSchema = z.object({
   ),
   description: z.preprocess((val) => (val === null || val === undefined ? "" : String(val)),
     z.string({ required_error: "Mô tả khóa học không được để trống" })
-     .min(1, "Mô tả khóa học không được để trống")
-     .refine(val => val.replace(/<[^>]*>?/gm, '').trim().length > 0, "Mô tả khóa học không được để trống")
+      .min(1, "Mô tả khóa học không được để trống")
+      .refine(val => val.replace(/<[^>]*>?/gm, '').trim().length > 0, "Mô tả khóa học không được để trống")
   ),
-  price: z.preprocess((val) => (val === "" || val === null || val === undefined ? undefined : Number(val)), 
+  price: z.preprocess((val) => (val === "" || val === null || val === undefined ? undefined : Number(val)),
     z.number({ required_error: "Giá bán không được để trống" })
-     .min(0, "Giá phải lớn hơn hoặc bằng 0")
+      .min(0, "Giá phải lớn hơn hoặc bằng 0")
   ),
   discount: z.coerce.number({ invalid_type_error: "Giảm giá phải là số" })
     .min(0, "Giảm giá không được nhỏ hơn 0")
@@ -171,6 +196,8 @@ export const courseSchema = z.object({
   promoVideo: z.any().nullable().optional(),
   createdAt: z.any().nullable().optional(),
   updatedAt: z.any().nullable().optional(),
+  questionBank: z.any().nullable().optional(),
+  aiModerationReport: z.any().nullable().optional(),
 });
 
 // ==========================================
@@ -178,6 +205,8 @@ export const courseSchema = z.object({
 // ==========================================
 export default function InstructorCourseForm() {
   const navigate = useNavigate();
+  const [showAiReportModal, setShowAiReportModal] = React.useState(false);
+  const [isPreScanning, setIsPreScanning] = React.useState(false);
   const {
     methods,
     isEditMode,
@@ -205,6 +234,124 @@ export default function InstructorCourseForm() {
     getAuthHeaders
   } = useInstructorCourseForm(courseSchema, viErrorMap);
 
+  const overallAiReport = methods.watch("aiModerationReport");
+
+  const handlePreScanWholeCourse = async () => {
+    const curTitle = methods.getValues("title");
+    const curDesc = methods.getValues("description");
+    const sections = methods.getValues("sections") || [];
+    
+    if (!curTitle || curTitle.trim() === "") {
+      toast.warning("Vui lòng nhập ít nhất tiêu đề khóa học trước khi quét thử!");
+      return;
+    }
+    
+    try {
+      setIsPreScanning(true);
+      toast.info("🚀 Đang trích xuất lời thoại video và tổng hợp dữ liệu...");
+
+      // 1. Trích xuất trước lời thoại cho toàn bộ video (chạy song song để tối ưu tốc độ)
+      const videoTranscriptMap = {};
+      const transcriptPromises = [];
+
+      sections.forEach((sect, sIdx) => {
+        if (sect.lessons) {
+          sect.lessons.forEach((less, lIdx) => {
+            if (less.videoUrl) {
+              const key = `${sIdx}-${lIdx}`;
+              const p = courseService.getVideoTranscriptText(less.videoUrl)
+                .then((res) => {
+                  videoTranscriptMap[key] = res?.transcript || "[Không lấy được lời thoại]";
+                })
+                .catch(() => {
+                  videoTranscriptMap[key] = "[Lỗi kết nối trích xuất lời thoại]";
+                });
+              transcriptPromises.push(p);
+            }
+          });
+        }
+      });
+
+      // Chờ toàn bộ request trích xuất transcript hoàn tất
+      if (transcriptPromises.length > 0) {
+        await Promise.all(transcriptPromises);
+      }
+
+      // 2. Gom nhóm toàn bộ văn bản (Khóa học, Chương, Bài học, Quiz & Ngân hàng câu hỏi)
+      let aggregatedText = "";
+      aggregatedText += `[MÔ TẢ KHÓA HỌC]: ${curDesc || ""}\n\n`;
+      
+      sections.forEach((sect, sIdx) => {
+        const sectTitle = sect.title || "";
+        aggregatedText += `[CHƯƠNG ${sIdx + 1}]: ${sectTitle}\n`;
+        
+        if (sect.lessons) {
+          sect.lessons.forEach((less, lIdx) => {
+            const lessTitle = less.title || "";
+            const lessContent = less.content || "";
+            const videoKey = `${sIdx}-${lIdx}`;
+            const videoTranscript = videoTranscriptMap[videoKey];
+
+            aggregatedText += `  - [BÀI HỌC ${lIdx + 1}]: ${lessTitle}\n`;
+            if (lessContent) {
+              aggregatedText += `    [MÔ TẢ NỘI DUNG]: ${lessContent}\n`;
+            }
+            if (videoTranscript) {
+              aggregatedText += `    [LỜI THOẠI CỦA VIDEO BÀI HỌC NÀY]:\n${videoTranscript}\n`;
+            }
+          });
+        }
+
+        // Thêm nội dung Quiz của chương (nếu có)
+        if (sect.quiz) {
+          aggregatedText += `  - [BÀI TRẮC NGHIỆM CHƯƠNG]: ${sect.quiz.title || "Chưa đặt tên"}\n`;
+          if (sect.quiz.questions && sect.quiz.questions.length > 0) {
+            sect.quiz.questions.forEach((q, qIdx) => {
+              aggregatedText += `    + Câu hỏi ${qIdx + 1}: ${q.content}\n`;
+              if (q.answers) {
+                q.answers.forEach(a => {
+                  aggregatedText += `      * ${a.content}${a.isCorrect ? " (Đúng)" : ""}\n`;
+                });
+              }
+            });
+          }
+        }
+        aggregatedText += "\n";
+      });
+
+      // Thêm nội dung Ngân hàng câu hỏi tổng thể
+      const questionBank = methods.getValues("questionBank") || [];
+      if (questionBank.length > 0) {
+        aggregatedText += `[NGÂN HÀNG CÂU HỎI TỔNG THỂ]:\n`;
+        questionBank.forEach((q, qIdx) => {
+          aggregatedText += `  + Câu hỏi ${qIdx + 1}: ${q.content}\n`;
+          if (q.answers) {
+            q.answers.forEach(a => {
+              aggregatedText += `    * ${a.content}${a.isCorrect ? " (Đúng)" : ""}\n`;
+            });
+          }
+          if (q.explanation) {
+            aggregatedText += `    * Giải thích: ${q.explanation}\n`;
+          }
+        });
+      }
+
+      toast.info("🧠 Đang kích hoạt AI phân tích toàn diện văn bản & lời thoại video...");
+
+      // 3. Gửi một yêu cầu quét duy nhất cho AI đánh giá toàn bộ khóa học
+      const res = await courseService.preScanCourseText(curTitle, aggregatedText);
+      const reportString = typeof res === "string" ? res : JSON.stringify(res);
+      methods.setValue("aiModerationReport", reportString, { shouldDirty: true });
+      
+      toast.success("🎉 Đã hoàn tất quét thử AI toàn bộ khóa học bao gồm cả lời thoại video!");
+    } catch (e) {
+      console.error("Pre-scan simulation failure:", e);
+      toast.error("Gặp sự cố khi kết nối hệ thống quét AI.");
+    } finally {
+      setIsPreScanning(false);
+    }
+  };
+
   const {
     fields,
     append,
@@ -227,11 +374,11 @@ export default function InstructorCourseForm() {
       // Tìm các thành phần có khả năng gây chuyển hướng
       const anchor = e.target.closest('a');
       const button = e.target.closest('button');
-      
-      const isNavAction = 
-        (anchor && anchor.getAttribute('href')) || 
+
+      const isNavAction =
+        (anchor && anchor.getAttribute('href')) ||
         (button && (
-          button.title === "Đăng xuất" || 
+          button.title === "Đăng xuất" ||
           button.title?.includes("Về trang chủ") ||
           button.innerText.includes("Tạo khóa học mới") ||
           button.closest('aside')
@@ -239,14 +386,14 @@ export default function InstructorCourseForm() {
 
       if (!isNavAction) return;
 
-      const currentData = methods.getValues();
-      const isDirty = originalDataRef.current && JSON.stringify(currentData) !== originalDataRef.current;
+      
+      const isDirty = methods.formState.isDirty;
 
       if (isDirty) {
-        const confirmMsg = isEditMode 
-          ? "Bạn có các thay đổi chưa lưu. Bạn có chắc chắn muốn thoát và HỦY BỎ toàn bộ các thay đổi mới này để quay lại dữ liệu gốc không?" 
+        const confirmMsg = isEditMode
+          ? "Bạn có các thay đổi chưa lưu. Bạn có chắc chắn muốn thoát và HỦY BỎ toàn bộ các thay đổi mới này để quay lại dữ liệu gốc không?"
           : "Bạn đang tạo khóa học mới nhưng chưa xuất bản. Bạn có chắc chắn muốn thoát và xóa bỏ bản nháp hiện tại không?";
-          
+
         if (!window.confirm(confirmMsg)) {
           e.preventDefault();
           e.stopPropagation();
@@ -270,10 +417,10 @@ export default function InstructorCourseForm() {
   // Cảnh báo khi đóng tab trình duyệt
   React.useEffect(() => {
     const handleBeforeUnload = (e) => {
-      const currentData = methods.getValues();
-      const isDirty = originalDataRef.current && JSON.stringify(currentData) !== originalDataRef.current;
+      
+      const isDirty = methods.formState.isDirty;
       if (isDirty) {
-        saveDraft(currentData, false);
+        saveDraft(methods.getValues(), false);
         e.preventDefault();
         e.returnValue = '';
       }
@@ -366,6 +513,7 @@ export default function InstructorCourseForm() {
         ...data,
         categoryId: Number(data.categoryId),
         price: Number(data.price),
+        questionBank: data.questionBank || [],
         sections: data.sections?.map(s => ({
           ...s,
           id: sanitizeId(s.id),
@@ -377,11 +525,16 @@ export default function InstructorCourseForm() {
         }))
       };
 
+      let savedCourseId = finalData.id;
       if (isEditMode && slug !== "new") {
-        await courseService.updateCourse(slug, finalData);
+        const res = await courseService.updateCourse(slug, finalData);
+        savedCourseId = res?.data?.id || res?.id || savedCourseId;
       } else {
-        await courseService.createCourse(finalData);
+        const res = await courseService.createCourse(finalData);
+        savedCourseId = res?.data?.id || res?.id;
       }
+
+      localStorage.removeItem(`course_questions_${slug || 'new'}`);
 
       toast.success(isEditMode ? "Cập nhật khóa học thành công!" : "Đã tải lên và lưu khóa học thành công!");
       setTimeout(() => navigate("/instructor/courses"), 1500);
@@ -408,15 +561,15 @@ export default function InstructorCourseForm() {
           <button
             type="button"
             onClick={handleExitWithConfirmation}
-            className="w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-900 transition-colors"
+            className="w-10 h-10 flex items-center justify-center rounded-full bg-secondary text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+            <h1 className="text-2xl font-bold text-foreground tracking-tight">
               {isEditMode ? "Chỉnh Sửa Khóa Học" : "Tạo Mới Khóa Học"}
             </h1>
-            <p className="text-sm text-slate-500 mt-0.5">
+            <p className="text-sm text-muted-foreground mt-0.5">
               Thiết lập thông tin nền tảng, thiết kế nội dung và định giá
             </p>
           </div>
@@ -424,25 +577,47 @@ export default function InstructorCourseForm() {
         <div className="flex items-center gap-3 transition-all">
           {(isUploading || activeUploads > 0) && (
             <div className="flex flex-col items-end mr-4">
-              <span className="text-sm font-bold text-green-600 animate-pulse mb-1">
+              <span className="text-sm font-bold text-success animate-pulse mb-1">
                 {activeUploads > 0 ? `Đang tải ${activeUploads} video...` : uploadStatus}
               </span>
             </div>
           )}
-          
+
           {/* Right Buttons Section */}
           <div className="flex items-center gap-2 sm:gap-3">
             {isSavingDraft && (
-              <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium animate-pulse mr-2">
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium animate-pulse mr-2">
                 <Save className="w-3.5 h-3.5" />
                 <span>Đang lưu...</span>
               </div>
             )}
-            
+
             <Button
               type="button"
               variant="outline"
-              className="h-9 sm:h-10 px-3 sm:px-5 font-bold border-slate-200 text-slate-600 hover:bg-slate-50 shadow-none text-xs sm:text-sm"
+              onClick={() => setShowAiReportModal(true)}
+              className={`h-9 sm:h-10 px-3 sm:px-5 rounded-xl font-bold border shadow-sm text-xs sm:text-sm flex items-center gap-2 transition-all duration-300 hover:-translate-y-0.5 shrink-0 ${
+                (() => {
+                  try {
+                    const rep = overallAiReport ? JSON.parse(overallAiReport) : null;
+                    if (!rep) return "text-muted-foreground bg-muted border-border border-dashed";
+                    const sc = rep.safetyScore ?? 100;
+                    const hasV = rep.violations && rep.violations.length > 0;
+                    if (sc < 70 || hasV) return "bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200 animate-pulse shadow-rose-100/40 shadow-lg";
+                    return "bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-200";
+                  } catch(e) { return "text-muted-foreground border-border"; }
+                })()
+              }`}
+            >
+              <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span className="hidden md:inline">Kết quả kiểm duyệt AI</span>
+              <span className="md:hidden">AI Report</span>
+            </Button>
+
+            <Button
+              type="button"
+              variant="outline"
+              className="h-9 sm:h-10 px-3 sm:px-5 font-bold border-border text-muted-foreground hover:bg-muted shadow-none text-xs sm:text-sm"
               onClick={handleExitWithConfirmation}
             >
               Hủy
@@ -452,17 +627,17 @@ export default function InstructorCourseForm() {
               type="button"
               variant="outline"
               disabled={isSavingDraft || isUploading}
-              className="h-9 sm:h-10 px-3 sm:px-5 font-bold border-blue-200 text-blue-600 hover:bg-blue-50 shadow-none text-xs sm:text-sm flex items-center gap-2"
+              className="h-9 sm:h-10 px-3 sm:px-5 font-bold border-info/20 text-info hover:bg-blue-50 shadow-none text-xs sm:text-sm flex items-center gap-2"
               onClick={() => saveDraft(methods.getValues(), true)}
             >
               {isSavingDraft ? (
-                <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                <div className="w-4 h-4 border-2 border-info/20 border-t-transparent rounded-full animate-spin"></div>
               ) : (
                 <Save size={16} />
               )}
               Lưu bản nháp
             </Button>
-            
+
           </div>
         </div>
       </div>
@@ -480,18 +655,25 @@ export default function InstructorCourseForm() {
           >
             <TabsContent
               value="basic"
-              className="bg-white p-6 md:p-8 rounded-xl border border-slate-200 shadow-sm focus-visible:outline-none focus-visible:ring-0 mt-0"
+              className="bg-white p-6 md:p-8 rounded-xl border border-border shadow-sm focus-visible:outline-none focus-visible:ring-0 mt-0"
             >
               <BasicInfoTab categories={categories} />
             </TabsContent>
 
             <TabsContent
-              value="curriculum"
-              className="bg-white p-6 md:p-8 rounded-xl border border-slate-200 shadow-sm focus-visible:outline-none focus-visible:ring-0 mt-0"
+              value="quiz"
+              className="bg-white p-6 md:p-8 rounded-xl border border-border shadow-sm focus-visible:outline-none focus-visible:ring-0 mt-0"
             >
-              <CurriculumTab 
-                uploadVideoToBunny={uploadVideoToBunny} 
-                setActiveUploads={setActiveUploads} 
+              <QuizTab courseId={methods.watch("id")} />
+            </TabsContent>
+
+            <TabsContent
+              value="curriculum"
+              className="bg-white p-6 md:p-8 rounded-xl border border-border shadow-sm focus-visible:outline-none focus-visible:ring-0 mt-0"
+            >
+              <CurriculumTab
+                uploadVideoToBunny={uploadVideoToBunny}
+                setActiveUploads={setActiveUploads}
                 fields={fields}
                 append={append}
                 remove={remove}
@@ -499,25 +681,18 @@ export default function InstructorCourseForm() {
             </TabsContent>
 
             <TabsContent
-              value="media"
-              className="bg-white p-6 md:p-8 rounded-xl border border-slate-200 shadow-sm focus-visible:outline-none focus-visible:ring-0 mt-0"
+              value="settings"
+              className="bg-white p-6 md:p-8 rounded-xl border border-border shadow-sm focus-visible:outline-none focus-visible:ring-0 mt-0"
             >
-              <MediaTab 
-                uploadVideoToBunny={uploadVideoToBunny} 
-                setActiveUploads={setActiveUploads} 
+              <SettingsTab
+                uploadVideoToBunny={uploadVideoToBunny}
+                setActiveUploads={setActiveUploads}
               />
-            </TabsContent>
-
-            <TabsContent
-              value="pricing"
-              className="bg-white p-6 md:p-8 rounded-xl border border-slate-200 shadow-sm focus-visible:outline-none focus-visible:ring-0 mt-0"
-            >
-              <PricingTab />
             </TabsContent>
           </Tabs>
 
           {/* Navigation Footer */}
-          <div className="mt-10 pt-6 border-t border-slate-100 flex items-center justify-between">
+          <div className="mt-10 pt-6 border-t border-border flex items-center justify-between">
             <div className="flex items-center gap-2">
               {activeTab !== "basic" && (
                 <button
@@ -525,14 +700,14 @@ export default function InstructorCourseForm() {
                   onClick={() => {
                     const sequence = [
                       "basic",
+                      "quiz",
                       "curriculum",
-                      "media",
-                      "pricing",
+                      "settings",
                     ];
                     const currentIdx = sequence.indexOf(activeTab);
                     if (currentIdx > 0) setActiveTab(sequence[currentIdx - 1]);
                   }}
-                  className="flex items-center gap-2 h-11 px-5 rounded-lg font-bold text-slate-500 hover:bg-slate-100 transition-all"
+                  className="flex items-center gap-2 h-11 px-5 rounded-lg font-bold text-muted-foreground hover:bg-secondary transition-all"
                 >
                   <ArrowLeft size={18} /> Quay lại
                 </button>
@@ -540,34 +715,57 @@ export default function InstructorCourseForm() {
             </div>
 
             <div className="flex items-center gap-3">
-              {activeTab !== "pricing" ? (
+              {activeTab !== "settings" ? (
                 <button
                   type="button"
                   onClick={() => {
                     const sequence = [
                       "basic",
+                      "quiz",
                       "curriculum",
-                      "media",
-                      "pricing",
+                      "settings",
                     ];
                     const currentIdx = sequence.indexOf(activeTab);
                     if (currentIdx < sequence.length - 1)
                       setActiveTab(sequence[currentIdx + 1]);
                     window.scrollTo({ top: 0, behavior: "smooth" });
                   }}
-                  className="flex items-center gap-2 h-11 px-8 rounded-lg font-bold bg-slate-900 text-white hover:bg-slate-800 transition-all shadow-md shadow-slate-100"
+                  className="flex items-center gap-2 h-11 px-8 rounded-lg font-bold bg-muted text-white hover:bg-muted transition-all shadow-md shadow-slate-100"
                 >
                   Tiếp theo <ArrowRight size={18} />
                 </button>
               ) : (
-                <button
+                <>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowAiReportModal(true)}
+                    className={`h-11 px-6 rounded-xl font-bold border shadow-sm text-xs sm:text-sm flex items-center gap-2 transition-all duration-300 hover:-translate-y-0.5 ${
+                      (() => {
+                        try {
+                          const rep = overallAiReport ? JSON.parse(overallAiReport) : null;
+                          if (!rep) return "text-muted-foreground bg-muted border-border border-dashed";
+                          const sc = rep.safetyScore ?? 100;
+                          const hasV = rep.violations && rep.violations.length > 0;
+                          if (sc < 70 || hasV) return "bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200 animate-pulse shadow-rose-100/40 shadow-lg";
+                          return "bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-200";
+                        } catch(e) { return "text-muted-foreground border-border"; }
+                      })()
+                    }`}
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    Kết quả kiểm duyệt AI
+                  </Button>
+
+                  <button
                   type="button"
                   disabled={activeUploads > 0}
                   onClick={methods.handleSubmit(onSubmit, onError)}
-                  className="flex items-center gap-2 h-11 px-8 rounded-lg font-bold bg-green-600 text-white hover:bg-green-700 transition-all shadow-lg shadow-green-100 disabled:opacity-50"
+                  className="flex items-center gap-2 h-11 px-8 rounded-lg font-bold bg-success/10 text-success text-white hover:bg-success/10 text-success transition-all shadow-lg shadow-green-100 disabled:opacity-50"
                 >
                   <CircleFadingArrowUp size={18} /> {activeUploads > 0 ? "Đang tải video..." : "Xuất bản"}
                 </button>
+                </>
               )}
             </div>
           </div>
@@ -576,19 +774,19 @@ export default function InstructorCourseForm() {
         {/* Upload Progress Overlay - Khôi phục tính năng hiển thị trạng thái xử lý */}
         {isUploading && (
           <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] w-full max-w-md px-4">
-            <div className="bg-slate-900 text-white p-4 rounded-xl shadow-2xl flex items-center gap-4 animate-in slide-in-from-bottom-10">
-              <Loader2 className="w-6 h-6 animate-spin text-green-400" />
+            <div className="bg-muted text-white p-4 rounded-xl shadow-2xl flex items-center gap-4 animate-in slide-in-from-bottom-10">
+              <Loader2 className="w-6 h-6 animate-spin text-success" />
               <div className="flex-1">
                 <p className="text-sm font-bold">{uploadStatus}</p>
-                <div className="w-full bg-slate-700 h-1.5 rounded-full mt-2 overflow-hidden">
-                  <div 
-                    className="bg-green-400 h-full transition-all duration-300"
+                <div className="w-full bg-muted h-1.5 rounded-full mt-2 overflow-hidden">
+                  <div
+                    className="bg-success/10 text-success h-full transition-all duration-300"
                     style={{ width: '45%' }} // Tạm thời để tĩnh vì ta k tính tổng %, quan trọng là nhãn text
                   />
                 </div>
               </div>
               {activeUploads > 0 && (
-                <div className="bg-slate-800 px-2 py-1 rounded text-[10px] font-bold text-slate-400 uppercase">
+                <div className="bg-muted px-2 py-1 rounded text-[10px] font-bold text-muted-foreground uppercase">
                   {activeUploads} Files
                 </div>
               )}
@@ -601,23 +799,23 @@ export default function InstructorCourseForm() {
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
             <Card className="w-full max-w-md shadow-2xl border-none overflow-hidden">
               <div className="p-6 text-center">
-                <div className="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-16 h-16 bg-blue-50 text-info rounded-full flex items-center justify-center mx-auto mb-4">
                   <Clock className="w-8 h-8" />
                 </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-2">Phát hiện bản nháp!</h3>
-                <p className="text-slate-500 text-sm mb-6 leading-relaxed">
+                <h3 className="text-xl font-bold text-foreground mb-2">Phát hiện bản nháp!</h3>
+                <p className="text-muted-foreground text-sm mb-6 leading-relaxed">
                   Bạn có một bản lưu nháp chưa hoàn thành từ phiên làm việc trước. Bạn có muốn khôi phục lại dữ liệu này không?
                 </p>
                 <div className="grid grid-cols-2 gap-3">
-                  <Button 
-                    variant="outline" 
-                    className="h-11 font-bold border-slate-200"
+                  <Button
+                    variant="outline"
+                    className="h-11 font-bold border-border"
                     onClick={() => setShowDraftModal(false)}
                   >
                     Bỏ qua
                   </Button>
-                  <Button 
-                    className="h-11 font-bold bg-blue-600 hover:bg-blue-700 text-white"
+                  <Button
+                    className="h-11 font-bold bg-info/10 text-info hover:bg-info/10 text-info text-white"
                     onClick={restoreDraft}
                   >
                     Khôi phục ngay
@@ -627,1270 +825,146 @@ export default function InstructorCourseForm() {
             </Card>
           </div>
         )}
+        {/* --- Elegant AI Audit Report Modal for Instructors --- */}
+        <Dialog open={showAiReportModal} onOpenChange={setShowAiReportModal}>
+          <DialogContent className="sm:max-w-[600px] rounded-2xl border border-border p-0 overflow-hidden shadow-2xl bg-white focus-visible:outline-none z-[9999]">
+            {(() => {
+              let report = null;
+              try {
+                if (overallAiReport) report = JSON.parse(overallAiReport);
+              } catch(e) {}
+
+              const score = report?.safetyScore ?? 100;
+              const hasViolations = report?.violations && report.violations.length > 0;
+              const isCritical = score < 70 || report?.violations?.some(v => v.severity === 'CRITICAL' || v.severity === 'HIGH');
+              
+              let headerBg = "bg-gradient-to-br from-emerald-600 to-emerald-500 text-white";
+              let ShieldIcon = ShieldCheck;
+              let statusText = "Nội Dung Đạt Chuẩn An Toàn";
+
+              if (isCritical) {
+                headerBg = "bg-gradient-to-br from-rose-600 to-rose-500 text-white";
+                ShieldIcon = ShieldAlert;
+                statusText = "Phát Hiện Vi Phạm Tường Lửa";
+              } else if (hasViolations || score < 90) {
+                headerBg = "bg-gradient-to-br from-amber-500 to-orange-500 text-white";
+                ShieldIcon = AlertTriangle;
+                statusText = "Cần Xem Lại Nội Dung Nghi Vấn";
+              }
+
+              return (
+                <div className="flex flex-col h-full animate-in fade-in zoom-in-95 duration-300">
+                  <div className={`p-6 flex items-center gap-4 border-b border-white/10 shadow-sm shrink-0 ${headerBg}`}>
+                    <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-white backdrop-blur-md shadow-inner shrink-0">
+                      <ShieldIcon className="w-7 h-7" />
+                    </div>
+                    <div>
+                      <h3 className="font-black text-lg tracking-tight leading-none flex items-center gap-2">
+                        {statusText}
+                      </h3>
+                      <p className="text-[10px] font-extrabold tracking-widest uppercase mt-2 opacity-90 flex items-center gap-1">
+                        <Sparkles className="w-3.5 h-3.5 animate-pulse" /> CHỈ SỐ AN TOÀN AI: {score}%
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="p-6 space-y-5 max-h-[60vh] overflow-y-auto scrollbar-thin bg-muted/30">
+                    {!report ? (
+                      <div className="text-center py-12 px-6 flex flex-col items-center">
+                        <div className="w-16 h-16 bg-violet-50 border border-violet-100 text-violet-600 rounded-full flex items-center justify-center mb-4 shadow-inner">
+                          <Sparkles className="w-8 h-8 animate-bounce" />
+                        </div>
+                        <p className="font-black text-foreground text-[15px] uppercase tracking-wide">Chưa có dữ liệu quét AI</p>
+                        <p className="text-muted-foreground text-xs mt-1.5 max-w-[320px] font-medium leading-relaxed">
+                          Hệ thống Tường lửa AI sẽ tự động thẩm định Tiêu đề & Mô tả khóa học ngay khi bạn bấm nút <span className="font-bold text-info">"Lưu khóa học"</span> lần đầu tiên.
+                        </p>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="bg-white p-4 rounded-2xl border border-border/60 shadow-sm">
+                          <p className="text-[10px] font-black text-muted-foreground tracking-widest uppercase mb-2.5 pl-1">📝 Nhận xét tổng hợp từ Trợ lý AI</p>
+                          <p className="text-xs text-foreground font-bold italic bg-muted p-3.5 rounded-xl border border-border leading-relaxed shadow-inner">
+                            "{report.assessment}"
+                          </p>
+                        </div>
+
+                        {report.violations && report.violations.length > 0 ? (
+                          <div className="space-y-3">
+                            <p className="text-[10px] font-black text-muted-foreground tracking-widest uppercase pl-1 flex items-center gap-1.5">
+                              ⚠️ Danh sách điểm cần sửa đổi ({report.violations.length})
+                            </p>
+                            <div className="space-y-3">
+                              {report.violations.map((v, i) => (
+                                <div key={i} className="p-4 bg-white rounded-2xl border border-border shadow-sm space-y-2.5 hover:shadow-md transition-all duration-300 group">
+                                  <div className="flex items-center justify-between">
+                                    <span className={`text-[11px] font-black uppercase flex items-center gap-1 ${isCritical ? 'text-rose-700' : 'text-amber-700'}`}>
+                                      {v.type === 'EXTERNAL_MARKETING' ? '📢 Quảng cáo / Kéo khách ngoài' : '🗣️ Từ ngữ vi phạm'}
+                                    </span>
+                                    <Badge className={`h-4.5 px-2 py-0 text-[9px] font-black border-none uppercase tracking-wider ${v.severity === 'CRITICAL' || v.severity === 'HIGH' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'}`}>
+                                      {v.severity}
+                                    </Badge>
+                                  </div>
+                                  <p className="text-xs font-bold text-foreground italic bg-muted p-2.5 rounded-xl border border-border leading-relaxed group-hover:bg-secondary transition-colors">
+                                    "{v.content}"
+                                  </p>
+                                  <p className="text-[11px] text-muted-foreground leading-relaxed mt-1.5 flex items-start gap-1 pl-0.5">
+                                    <span className="font-extrabold text-foreground shrink-0">📌 Giải thích:</span> 
+                                    <span className="font-medium">{v.explanation}</span>
+                                  </p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="p-8 text-center bg-white rounded-2xl border border-emerald-100 flex flex-col items-center shadow-sm">
+                            <div className="w-14 h-14 rounded-full bg-emerald-50 flex items-center justify-center mb-3 border border-emerald-100 shadow-inner">
+                              <CheckCircle2 className="w-8 h-8 text-emerald-500 animate-pulse" />
+                            </div>
+                            <p className="font-black text-emerald-800 uppercase tracking-wide text-[13px]">Văn bản sạch tuyệt đối!</p>
+                            <p className="text-muted-foreground text-xs mt-1.5 font-medium max-w-[340px] leading-relaxed">
+                              Trợ lý AI không phát hiện bất kỳ lỗi ngôn từ, kéo khách ngoài hay vi phạm chính sách nào. Bạn đã sẵn sàng gửi duyệt!
+                            </p>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+
+                  <div className="p-4 bg-white border-t border-border flex items-center justify-between gap-3 shrink-0">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={isPreScanning}
+                      onClick={handlePreScanWholeCourse}
+                      className="h-10 px-4 border-violet-200 text-violet-700 hover:bg-violet-50 hover:text-violet-800 font-bold rounded-xl shadow-sm text-xs flex items-center gap-1.5 active:scale-95 transition-all"
+                    >
+                      {isPreScanning ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          <span>Đang quét toàn khóa...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-3.5 h-3.5 text-violet-500" />
+                          <span>Quét thử toàn bộ khóa học</span>
+                        </>
+                      )}
+                    </Button>
+                    <Button 
+                      onClick={() => setShowAiReportModal(false)}
+                      className="h-10 px-5 bg-muted hover:bg-muted text-white font-bold rounded-xl shadow-md text-xs select-none active:scale-95 transition-transform"
+                    >
+                      Đóng báo cáo
+                    </Button>
+                  </div>
+                </div>
+              );
+            })()}
+          </DialogContent>
+        </Dialog>
+
       </FormProvider>
     </div>
   );
 }
-
-function CourseStepper({ activeTab, onTabChange }) {
-  const { control } = useFormContext();
-
-  // Watch only necessary fields for performance
-  const formValues =
-    useWatch({
-      control,
-      name: [
-        "title",
-        "description",
-        "sections",
-        "thumbnail",
-        "promoVideo",
-        "price",
-      ],
-    }) || [];
-
-  const steps = React.useMemo(() => {
-    // Basic Info Progress
-    const basicFields = [formValues[0], formValues[1]];
-    const basicFilled = basicFields.filter((f) => f && f.length > 0).length;
-    const basicPercent = (basicFilled / 2) * 100;
-
-    // Curriculum Progress (at least one section with title)
-    const sections = formValues[2] || [];
-    const curriculumPercent = sections.some(
-      (s) => s.title && s.title.length > 0,
-    )
-      ? 100
-      : 0;
-
-    // Media Progress (thumbnail and promoVideo)
-    const mediaFields = [formValues[3], formValues[4]];
-    const mediaFilled = mediaFields.filter(
-      (f) => f !== null && f !== undefined,
-    ).length;
-    const mediaPercent = (mediaFilled / 2) * 100;
-
-    // Pricing Progress
-    const price = formValues[5];
-    const pricingPercent = price && price > 0 ? 100 : 0;
-
-    return [
-      {
-        id: "basic",
-        label: "Thông tin cơ bản",
-        step: 1,
-        progress: basicPercent,
-      },
-      {
-        id: "curriculum",
-        label: "Nội dung bài học",
-        step: 2,
-        progress: curriculumPercent,
-      },
-      {
-        id: "media",
-        label: "Hình ảnh & Media",
-        step: 3,
-        progress: mediaPercent,
-      },
-      {
-        id: "pricing",
-        label: "Định giá & Cài đặt",
-        step: 4,
-        progress: pricingPercent,
-      },
-    ];
-  }, [formValues]);
-
-  const currentStepNum = steps.find((s) => s.id === activeTab)?.step || 1;
-
-  return (
-    <div className="flex items-center justify-between w-full max-w-4xl mx-auto h-20">
-      {steps.map((s, idx) => {
-        const isActive = s.id === activeTab;
-        const isCompleted = s.progress === 100;
-        const isLast = idx === steps.length - 1;
-
-        // SVG Circle properties
-        const radius = 18;
-        const circumference = 2 * Math.PI * radius;
-        // Map 0-100 progress to stroke offset
-        const offset = circumference - (s.progress / 100) * circumference;
-
-        return (
-          <React.Fragment key={s.id}>
-            {/* Step Node with Circular Progress */}
-            <div
-              className="relative flex flex-col items-center justify-center group cursor-pointer"
-              onClick={() => onTabChange(s.id)}
-            >
-              <div className="relative w-12 h-12 flex items-center justify-center">
-                {/* SVG Progress Ring */}
-                <svg className="absolute inset-0 w-full h-full -rotate-90 transform group-hover:scale-105 transition-transform duration-300">
-                  <circle
-                    cx="24"
-                    cy="24"
-                    r={radius}
-                    stroke="currentColor"
-                    strokeWidth="3"
-                    fill="transparent"
-                    className="text-slate-100"
-                  />
-                  <circle
-                    cx="24"
-                    cy="24"
-                    r={radius}
-                    stroke="currentColor"
-                    strokeWidth="3"
-                    fill="transparent"
-                    strokeDasharray={circumference}
-                    strokeDashoffset={offset}
-                    className="text-green-500 transition-all duration-500 ease-out"
-                    strokeLinecap="round"
-                  />
-                </svg>
-
-                {/* Inner Circle Content */}
-                <div
-                  className={`
-                    w-[28px] h-[28px] rounded-full flex items-center justify-center font-bold text-sm z-10 transition-all duration-300
-                    ${isActive
-                      ? "bg-green-600 text-white shadow-lg shadow-green-100 scale-105"
-                      : isCompleted
-                        ? "bg-green-500 text-white"
-                        : "bg-white text-slate-300"
-                    }
-                  `}
-                >
-                  {isCompleted ? (
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="3"
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                  ) : (
-                    s.step
-                  )}
-                </div>
-              </div>
-
-              {/* Label */}
-              <div className="absolute -bottom-6 whitespace-nowrap text-[11px] font-bold transition-all duration-300 text-center uppercase tracking-tighter">
-                <p
-                  className={`${isActive ? "text-green-700 scale-110" : isCompleted ? "text-green-600" : "text-slate-400 opacity-60"}`}
-                >
-                  {s.label}
-                </p>
-              </div>
-            </div>
-
-            {/* Connection Line Segment */}
-            {!isLast && (
-              <div className="flex-1 mx-2 h-[2px] bg-slate-100 relative rounded-full overflow-hidden">
-                <div
-                  className={`
-                    absolute inset-0 bg-green-500 transition-all duration-1000 ease-out
-                    ${currentStepNum > idx + 1 ? "w-full" : "w-0"}
-                  `}
-                />
-              </div>
-            )}
-          </React.Fragment>
-        );
-      })}
-    </div>
-  );
-}
-
-// ==========================================
-// SUB-COMPONENTS CHO TỪNG TAB
-// ==========================================
-
-const quillModules = {
-  toolbar: [
-    ["bold", "italic", "underline"],
-    [{ list: "ordered" }, { list: "bullet" }],
-    ["clean"],
-  ],
-};
-
-function CategoryCascader({ categories, value, onChange }) {
-  const [open, setOpen] = React.useState(false);
-  const [activeParent, setActiveParent] = React.useState(null);
-
-  let selectedName = "";
-  if (value) {
-    const valStr = value.toString();
-    for (const p of categories) {
-      if (p.id.toString() === valStr) { selectedName = p.name; break; }
-      const child = p.subcategories?.find(c => c.id.toString() === valStr);
-      if (child) {
-        selectedName = child.name;
-        break;
-      }
-    }
-  }
-
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <button
-          type="button"
-          onClick={() => {
-            if (!open) setActiveParent(null);
-          }}
-          className="flex h-11 w-full items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-medium focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 disabled:cursor-not-allowed disabled:opacity-50 data-[state=open]:border-orange-500 data-[state=open]:ring-1 data-[state=open]:ring-orange-500 transition-all font-sans"
-        >
-          <span className={value ? "text-slate-900" : "text-slate-500"}>
-            {selectedName || "Chọn danh mục khóa học"}
-          </span>
-          <ChevronDown className="h-4 w-4 opacity-50" />
-        </button>
-      </PopoverTrigger>
-      <PopoverContent className="w-auto p-0 flex flex-row items-start gap-1.5 border-none bg-transparent shadow-none" align="start" sideOffset={8}>
-        {/* Cấp 1 */}
-        <div className="w-[240px] max-h-[300px] overflow-y-auto py-2 bg-white rounded-md shadow-lg border border-slate-200">
-          {categories.map(parent => {
-            const hasChildren = parent.subcategories && parent.subcategories.filter(c => c.status).length > 0;
-            const isActive = activeParent?.id === parent.id;
-            return (
-              <div
-                key={parent.id}
-                className={`flex items-center justify-between px-4 py-2.5 text-sm cursor-pointer transition-colors ${isActive ? "text-orange-500 bg-orange-50/50" : "text-slate-700 hover:text-orange-500 hover:bg-orange-50/50"}`}
-                onMouseEnter={() => setActiveParent(parent)}
-                onClick={() => {
-                  if (!hasChildren) {
-                    onChange(parent.id.toString());
-                    setOpen(false);
-                  } else {
-                    setActiveParent(parent);
-                  }
-                }}
-              >
-                <span>{parent.name}</span>
-                {hasChildren && <ChevronRight className="h-4 w-4 opacity-70" />}
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Cấp 2 */}
-        {activeParent && activeParent.subcategories && activeParent.subcategories.filter(c => c.status).length > 0 && (
-          <div className="w-[240px] max-h-[300px] overflow-y-auto py-2 bg-white rounded-md shadow-lg border border-slate-200">
-            {activeParent.subcategories.filter(c => c.status).map(child => (
-              <div
-                key={child.id}
-                className="px-4 py-2.5 text-sm cursor-pointer text-slate-700 hover:text-orange-500 hover:bg-orange-50/50 transition-colors"
-                onClick={() => {
-                  onChange(child.id.toString());
-                  setOpen(false);
-                }}
-              >
-                {child.name}
-              </div>
-            ))}
-          </div>
-        )}
-      </PopoverContent>
-    </Popover>
-  );
-}
-
-function BasicInfoTab({ categories }) {
-  const {
-    register,
-    control,
-    setValue,
-    getValues,
-    replace,
-    formState: { errors },
-  } = useFormContext();
-
-  const title = useWatch({ control, name: "title" });
-  const categoryId = useWatch({ control, name: "categoryId" });
-  const currentStatus = useWatch({ control, name: "status" });
-
-  // Logic tìm danh mục được chọn (bao gồm đệ quy cấp 2)
-  const selectedCategory = React.useMemo(() => {
-    if (!categoryId || !categories) return null;
-    const searchId = categoryId.toString();
-    for (const cat of categories) {
-      if (cat.id.toString() === searchId) return cat;
-      if (cat.subcategories) {
-        const sub = cat.subcategories.find(s => s.id.toString() === searchId);
-        if (sub) return sub;
-      }
-    }
-    return null;
-  }, [categoryId, categories]);
-
-  const isCategoryHidden = selectedCategory && selectedCategory.status === false;
-
-  // Nếu danh mục bị ẩn, ép buộc khóa học phải ẩn theo
-  React.useEffect(() => {
-    if (isCategoryHidden && currentStatus !== 2) {
-      setValue("status", 2);
-      
-      // Đồng bộ xuống chương và bài học ngay lập tức
-      const currentSections = getValues("sections") || [];
-      const updatedSections = currentSections.map(s => ({
-        ...s,
-        status: 2,
-        lessons: s.lessons?.map(l => ({ ...l, status: 2 })) || []
-      }));
-      setValue("sections", updatedSections, { shouldDirty: true });
-      if (replace) replace(updatedSections);
-
-      toast.info(`Danh mục "${selectedCategory.name}" đang ẩn, khóa học đã được chuyển sang trạng thái Ẩn để đồng bộ.`);
-    }
-  }, [isCategoryHidden, currentStatus, setValue, getValues, replace, selectedCategory]);
-
-  React.useEffect(() => {
-    // Chỉ thực hiện tạo slug và validate nếu title CÓ giá trị
-    // Nếu title chưa được nhập lần nào hoặc bị xóa sạch, ta chỉ truyền giá trị "" mà KHÔNG validate
-    if (title && typeof title === "string" && title.trim() !== "") {
-      const generatedSlug = title.toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .replace(/[đĐ]/g, "d")
-        .replace(/[^a-z0-9\s-]/g, "")
-        .trim()
-        .replace(/\s+/g, "-")
-        .replace(/-+/g, "-");
-
-      setValue("slug", generatedSlug, {
-        shouldValidate: true,
-        shouldDirty: true
-      });
-    } else {
-      // Khi title rỗng, chỉ cập nhật giá trị slug về rỗng, không ép validate
-      // Lỗi "bắt buộc" sẽ chỉ hiện ra khi người dùng bấm Lưu khóa học (Submit)
-      setValue("slug", "", {
-        shouldValidate: false,
-        shouldDirty: true
-      });
-    }
-  }, [title, setValue]);
-
-  return (
-    <div className="space-y-6 w-full">
-      <div>
-        <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2 mb-4">
-          THÔNG TIN CƠ BẢN
-        </h3>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-2">
-          <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
-            Tên Khóa Học <span className="text-red-500">*</span>
-          </label>
-          <Input
-            className="h-11 border-slate-200 focus:border-green-500 font-medium"
-            placeholder="Ví dụ: React Native Masterclass 2026..."
-            {...register("title")}
-          />
-          {errors.title && (
-            <p className="text-xs font-bold text-red-500 mt-1.5 pl-1">
-              {errors.title.message}
-            </p>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
-            Slug <span className="text-red-500">*</span>
-          </label>
-          <Input
-            className="h-11 border-slate-200 bg-slate-50 font-medium cursor-not-allowed"
-            placeholder="react-native-masterclass-2026"
-            {...register("slug")}
-            readOnly
-          />
-          {errors.slug && (
-            <p className="text-xs font-bold text-red-500 mt-1.5 pl-1">
-              {errors.slug.message}
-            </p>
-          )}
-        </div>
-      </div>
-
-
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-2">
-          <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
-            Danh Mục <span className="text-red-500">*</span>
-          </label>
-          <Controller
-            name="categoryId"
-            control={control}
-            render={({ field }) => (
-              <CategoryCascader
-                categories={categories}
-                value={field.value}
-                onChange={field.onChange}
-              />
-            )}
-          />
-          {errors.categoryId && (
-            <p className="text-xs font-bold text-red-500 mt-1.5 pl-1">
-              {errors.categoryId.message}
-            </p>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
-            Cấp Độ <span className="text-red-500">*</span>
-          </label>
-          <Controller
-            name="level"
-            control={control}
-            render={({ field }) => (
-              <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
-                <SelectTrigger className="w-full !h-11 border-slate-200 focus:border-green-500 font-medium bg-white data-[state=open]:ring-1 data-[state=open]:ring-green-500">
-                  <SelectValue placeholder="Chọn cấp độ" />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  <SelectItem value="beginner">Người mới bắt đầu</SelectItem>
-                  <SelectItem value="intermediate">Trung bình</SelectItem>
-                  <SelectItem value="advanced">Nâng cao</SelectItem>
-                  <SelectItem value="all">Dành cho mọi đối tượng</SelectItem>
-                </SelectContent>
-              </Select>
-            )}
-          />
-          {errors.level && (
-            <p className="text-xs font-bold text-red-500 mt-1.5 pl-1">
-              {errors.level.message}
-            </p>
-          )}
-        </div>
-        <div className="space-y-2">
-          <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
-            Trạng Thái <span className="text-red-500">*</span>
-          </label>
-          <Controller
-            name="status"
-            control={control}
-            render={({ field }) => (
-              <Select 
-                onValueChange={(val) => {
-                  const newStatus = Number(val);
-                  
-                  // Chặn bật hoạt động nếu danh mục đang ẩn
-                  if (isCategoryHidden && newStatus === 1) {
-                    toast.warning("Danh mục của khóa học đang ẩn, không thể bật trạng thái Hoạt động.");
-                    return;
-                  }
-
-                  field.onChange(newStatus);
-                  
-                  // Logic Đồng bộ trạng thái: Course -> Module -> Lesson
-                  const currentSections = getValues("sections") || [];
-                  const updatedSections = currentSections.map(s => ({
-                    ...s,
-                    status: newStatus,
-                    lessons: s.lessons?.map(l => ({
-                      ...l,
-                      status: newStatus
-                    })) || []
-                  }));
-                  
-                  // setValue với shouldDirty giúp các Controller cấp sâu (lessons) nhận diện thay đổi
-                  setValue("sections", updatedSections, { shouldDirty: true });
-                  // replace giúp cập nhật ngay lập tức giao diện Accordion/FieldArray của chương
-                  if (replace) replace(updatedSections);
-                }} 
-                value={(field.value ?? 1).toString()}
-                disabled={isCategoryHidden}
-              >
-                <SelectTrigger className={`w-full !h-11 border-slate-200 focus:border-green-500 font-medium ${isCategoryHidden ? 'bg-slate-50 opacity-80' : 'bg-white'}`}>
-                  <SelectValue placeholder="Chọn trạng thái" />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  <SelectItem value="1" disabled={isCategoryHidden}>Hoạt động {isCategoryHidden && "(Danh mục cha đang ẩn)"}</SelectItem>
-                  <SelectItem value="2">Ẩn</SelectItem>
-                </SelectContent>
-              </Select>
-            )}
-          />
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
-          Mô Tả Khóa Học (Tuỳ chọn)
-        </label>
-        <div className="rounded-lg border border-slate-200 overflow-hidden focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50 transition-all bg-white">
-          <Controller
-            name="description"
-            control={control}
-            render={({ field }) => (
-              <ReactQuill
-                theme="snow"
-                value={field.value || ""}
-                onChange={field.onChange}
-                modules={quillModules}
-                placeholder="Mô tả về lợi ích và mục tiêu của khóa học dành cho học viên..."
-                className="[&_.ql-toolbar.ql-snow]:!border-0 [&_.ql-toolbar.ql-snow]:!border-b [&_.ql-toolbar.ql-snow]:!border-slate-200 [&_.ql-toolbar]:bg-slate-50/50 [&_.ql-container.ql-snow]:!border-0 [&_.ql-container]:min-h-[120px] [&_.ql-editor]:min-h-[120px] [&_.ql-editor]:text-sm [&_.ql-editor]:text-slate-700 font-sans"
-              />
-            )}
-          />
-        </div>
-        {errors.description && (
-          <p className="text-xs font-bold text-red-500 mt-1.5 pl-1">{errors.description.message}</p>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function MediaTab({ uploadVideoToBunny, setActiveUploads }) {
-  const { setValue, watch, formState: { errors } } = useFormContext();
-  const thumbnail = watch("thumbnail");
-  const promoVideo = watch("promoVideo");
-
-  return (
-    <div className="space-y-8 max-w-4xl mx-auto">
-      <div>
-        <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2 mb-4">
-          Hình Ảnh & Media
-        </h3>
-        <p className="text-xs text-slate-500">
-          Giới thiệu khóa học một cách trực quan để thu hút học viên.
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="space-y-3">
-          <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1 text-center">
-            Ảnh đại diện khóa học (Thumbnail) <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="file"
-            id="thumbnail-upload"
-            className="hidden"
-            accept="image/*"
-            onChange={(e) => {
-              const file = e.target.files[0];
-              if (file) setValue("thumbnail", file, { shouldValidate: true });
-            }}
-          />
-          <div
-            onClick={() => document.getElementById("thumbnail-upload").click()}
-            className={`aspect-video rounded-xl bg-slate-50 border-2 border-dashed flex flex-col items-center justify-center p-4 transition-all cursor-pointer group ${thumbnail ? "border-green-500 bg-green-50" : "border-slate-200 hover:bg-slate-100/50 hover:border-green-200"}`}
-          >
-            {thumbnail && (thumbnail instanceof File || typeof thumbnail === "string") ? (
-              <div className="relative w-full h-full rounded-lg overflow-hidden">
-                <img
-                  src={typeof thumbnail === "string" ? thumbnail : URL.createObjectURL(thumbnail)}
-                  alt="Thumbnail preview"
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                  <p className="text-white text-xs font-bold px-3 py-1.5 bg-green-600 rounded-full">Đổi ảnh</p>
-                </div>
-              </div>
-            ) : (
-              <>
-                <div
-                  className={`w-12 h-12 rounded-full bg-white flex items-center justify-center text-slate-400 group-hover:text-green-500 shadow-sm border border-slate-100 mb-2 ${thumbnail ? "text-green-500" : ""}`}
-                >
-                  {thumbnail ? (
-                    <Check className="w-6 h-6" />
-                  ) : (
-                    <Plus className="w-6 h-6" />
-                  )}
-                </div>
-                <p className="text-[11px] font-bold text-slate-500">
-                  {thumbnail ? "Đã chọn ảnh" : "Nhấn để tải lên (1280x720)"}
-                </p>
-                {thumbnail && (
-                  <p className="text-[9px] text-slate-400 mt-1 truncate max-w-[200px]">
-                    {thumbnail.name || (typeof thumbnail === 'string' ? "Đã có ảnh" : "")}
-                  </p>
-                )}
-              </>
-            )}
-          </div>
-          {errors.thumbnail && (
-            <p className="text-xs font-bold text-red-500 mt-1.5 pl-1 text-center">{errors.thumbnail.message}</p>
-          )}
-        </div>
-
-        <div className="space-y-3">
-          <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1 text-center">
-            Video giới thiệu (Promo Video) (Nếu có)*
-          </label>
-          <Controller
-            name="promoVideo"
-            render={({ field }) => (
-              <BackgroundVideoUploader
-                label="video giới thiệu"
-                value={field.value}
-                onChange={field.onChange}
-                onUploadStart={() => setActiveUploads(prev => prev + 1)}
-                onUploadEnd={() => setActiveUploads(prev => prev - 1)}
-                uploadVideoToBunny={uploadVideoToBunny}
-                id="promo-video-uploader"
-              />
-            )}
-          />
-          {errors.promoVideo && (
-            <p className="text-xs font-bold text-red-500 mt-1.5 pl-1 text-center">{errors.promoVideo.message}</p>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function PricingTab() {
-  const {
-    register,
-    watch,
-    formState: { errors },
-  } = useFormContext();
-
-  const price = watch("price") || 0;
-  const discount = watch("discount") || 0;
-  const finalPrice = price - (price * discount) / 100;
-
-  return (
-    <div className="space-y-8 py-4">
-      <div>
-        <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2 mb-4">
-          Định giá & Cài đặt
-        </h3>
-        <p className="text-xs text-slate-500">
-          Thiết lập giá bán và các chương trình ưu đãi cho học viên.
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl">
-        <div className="space-y-6">
-          {/* Ô nhập giá gốc - Format TRỰC TIẾP */}
-          <div className="space-y-2">
-            <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
-              Giá bán thực tế (VNĐ) <span className="text-red-500">*</span>
-            </label>
-            <div className="relative">
-              <Controller
-                name="price"
-                control={useFormContext().control}
-                render={({ field }) => (
-                  <Input
-                    className="h-11 border-slate-200 focus:border-green-500 font-bold pl-10"
-                    placeholder="Ví dụ: 500.000"
-                    value={field.value ? new Intl.NumberFormat("vi-VN").format(field.value) : ""}
-                    onChange={(e) => {
-                      // Chỉ lấy số từ chuỗi nhập vào
-                      const rawValue = e.target.value.replace(/\D/g, "");
-                      field.onChange(rawValue ? Number(rawValue) : "");
-                    }}
-                  />
-                )}
-              />
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">₫</span>
-            </div>
-            {errors.price && (
-              <p className="text-xs font-bold text-red-500 mt-1.5 pl-1">{errors.price.message}</p>
-            )}
-          </div>
-
-          {/* Ô hiển thị tổng tiền sau khi giảm */}
-          <div className="space-y-2">
-            <label className="block text-xs font-bold text-green-600 uppercase tracking-widest pl-1">
-              Tổng tiền sau giảm (Hiển thị cho học viên)
-            </label>
-            <div className="relative">
-              <Input
-                className="h-11 border-green-100 bg-green-50/30 text-green-700 font-bold text-lg pl-10 cursor-not-allowed"
-                value={new Intl.NumberFormat("vi-VN").format(finalPrice)}
-                readOnly
-              />
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-green-500 font-bold text-sm">₫</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-6">
-          {/* Ô nhập % giảm giá */}
-          <div className="space-y-2">
-            <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
-              Phần trăm giảm giá (%)
-            </label>
-            <div className="relative">
-              <Input
-                type="number"
-                className="h-11 border-slate-200 focus:border-green-500 font-bold pl-10 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                placeholder="0 - 100"
-                {...register("discount")}
-              />
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">%</span>
-            </div>
-            <p className="text-[10px] text-slate-400 font-medium pl-1 italic">
-              Giảm {discount}% tương đương giảm {new Intl.NumberFormat("vi-VN").format(price * discount / 100)}₫
-            </p>
-            {errors.discount && (
-              <p className="text-xs font-bold text-red-500 mt-1.5 pl-1">{errors.discount.message}</p>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function CheckIcon({ className = "w-6 h-6" }) {
-  return (
-    <svg
-      className={className}
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="3"
-        d="M5 13l4 4L19 7"
-      />
-    </svg>
-  );
-}
-
-// ------------------------------------------
-// XỬ LÝ NESTED TAB CHO CURRICULUM
-// ------------------------------------------
-
-function CurriculumTab({ uploadVideoToBunny, setActiveUploads, fields, append, remove }) {
-  const { control, watch, formState: { errors } } = useFormContext();
-  const currentCourseStatus = watch("status") ?? 1;
-
-  return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center border-b border-slate-100 pb-4">
-        <div>
-          <h3 className="text-lg font-bold text-slate-900">
-            Khung Chương Trình
-          </h3>
-          <p className="text-xs font-medium text-slate-500 mt-1">
-            Xây dựng kiến trúc bài giảng rõ ràng, rành mạch.
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={() =>
-            append({
-              title: "",
-              status: currentCourseStatus,
-              lessons: [{
-                title: "",
-                content: "",
-                videoFile: null,
-                status: currentCourseStatus,
-                createdAt: new Date().toISOString(),
-                updatedAt: null
-              }],
-              attachments: null,
-              createdAt: new Date().toISOString(),
-              updatedAt: null,
-            })
-          }
-          className="flex items-center gap-1.5 text-sm font-bold border border-slate-200 px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors"
-        >
-          <Plus size={16} className="text-slate-600" /> Thêm Chương
-        </button>
-      </div>
-
-      {errors.sections?.root && (
-        <div className="text-sm font-bold text-red-600 bg-red-50 border border-red-100 p-3 rounded-lg">
-          {errors.sections.root.message}
-        </div>
-      )}
-
-      {/* Dùng div với overflow-y-auto đơn giản để đảm bảo cuộn luôn hoạt động */}
-      <div className="max-h-[850px] overflow-y-auto pr-2 custom-scrollbar scroll-smooth">
-        <Accordion
-          type="multiple"
-          defaultValue={[fields[0]?.id]}
-          className="space-y-4 pb-24"
-        >
-          {fields.map((section, sectionIdx) => (
-            <AccordionItem
-              value={section.id}
-              key={section.id}
-              className="border border-slate-200 rounded-xl bg-slate-50 overflow-hidden shadow-sm"
-            >
-              <AccordionTrigger className="px-5 py-4 hover:bg-slate-100/50 hover:no-underline border-b border-transparent data-[state=open]:border-slate-200">
-                <div className="flex items-center w-full pr-4 text-left">
-                  <div className="flex flex-col gap-0.5 flex-1">
-                    <span className="text-xs font-bold text-green-600 uppercase tracking-widest">
-                      Chương {sectionIdx + 1}
-                    </span>
-                    <span className="font-bold text-slate-900 line-clamp-1">
-                      {/* Dùng UseWatch nếu muốn real-time title display, hiện tại dùng static or watch context. Để UX tối ưu nhất chúng ta cứ giữ tĩnh. */}
-                      Nội dung chương
-                    </span>
-                  </div>
-                  <div
-                    role="button"
-                    tabIndex={0}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      e.preventDefault(); // Extra safety for accordion
-                      if (confirm("Bạn chắc chắn muốn xóa chương này?")) {
-                        remove(sectionIdx);
-                      }
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.stopPropagation();
-                        if (confirm("Bạn chắc chắn muốn xóa chương này?")) {
-                          remove(sectionIdx);
-                        }
-                      }
-                    }}
-                    className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
-                  >
-                    <Trash2 size={16} />
-                  </div>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="p-0 bg-white border-t border-slate-50">
-                <SectionItem 
-                  sectionIndex={sectionIdx} 
-                  control={control} 
-                  uploadVideoToBunny={uploadVideoToBunny} 
-                  setActiveUploads={setActiveUploads} 
-                />
-              </AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
-      </div>
-    </div>
-  );
-}
-
-// ------------------------------------------
-// COMPONENT LESSON QUẢN LÝ ITEM CON
-// ------------------------------------------
-function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploads }) {
-  const {
-    register,
-    setValue,
-    getValues,
-    watch,
-    formState: { errors },
-  } = useFormContext();
-  
-  const currentCourseStatus = watch("status") ?? 1;
-  const currentSectionStatus = watch(`sections.${sectionIndex}.status`) ?? 1;
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: `sections.${sectionIndex}.lessons`,
-  });
-
-  return (
-    /* Vùng cuộn cho TOÀN BỘ nội dung của một chương - pt-12 đảm bảo không bị Header che mất Label */
-    <div className="max-h-[650px] overflow-y-auto px-6 pt-12 pb-12 custom-scrollbar space-y-7 overscroll-contain">
-      <div className="h-2" /> {/* Spacer extra giúp né Header Accordion */}
-      {/* Tên Chương */}
-      <div className="space-y-2">
-        <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
-          Tiêu đề chương <span className="text-red-500">*</span>
-        </label>
-        <Input
-          className="h-10 border-slate-200 focus:border-green-500 font-bold shadow-sm"
-          placeholder="Vd: Chương 1: Giới thiệu tổng quan"
-          {...register(`sections.${sectionIndex}.title`)}
-          autoComplete="off"
-        />
-        {errors.sections?.[sectionIndex]?.title && (
-          <p className="text-xs font-bold text-red-500 mt-1 pl-1">
-            {errors.sections[sectionIndex].title.message}
-          </p>
-        )}
-      </div>
-
-      {/* Attachments & Status */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-2">
-          <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
-            Tài liệu đính kèm (PDF, ZIP,...) (Nếu có)*
-          </label>
-          <Controller
-            name={`sections.${sectionIndex}.attachments`}
-            control={control}
-            render={({ field }) => (
-              field.value && typeof field.value === "string" ? (
-                <div className="flex items-center gap-2 p-2 border border-green-200 rounded-md bg-green-50/50 h-10">
-                  <span className="text-xs text-green-700 font-bold flex-1 truncate">Đã có tài liệu</span>
-                  <a href={field.value} target="_blank" rel="noreferrer" className="text-xs text-blue-600 hover:underline px-2 border-r border-green-200">Xem file</a>
-                  <button
-                    type="button"
-                    className="text-xs font-bold text-red-500 hover:text-red-700 px-2"
-                    onClick={() => field.onChange(null)}
-                  >
-                    Đổi file khác
-                  </button>
-                </div>
-              ) : (
-                <Input
-                  type="file"
-                  className="h-10 text-xs pt-2 cursor-pointer w-full"
-                  onChange={(e) => field.onChange(e.target.files[0])}
-                />
-              )
-            )}
-          />
-        </div>
-        <div className="space-y-2">
-          <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
-            Trạng thái chương <span className="text-red-500">*</span>
-          </label>
-          <Controller
-            name={`sections.${sectionIndex}.status`}
-            control={control}
-            render={({ field }) => (
-              <Select 
-                onValueChange={(val) => {
-                  const newStatus = Number(val);
-                  
-                  // Ràng buộc Business: Nếu khóa học đang ẩn, không cho phép bật chương hoạt động
-                  if (currentCourseStatus === 2 && newStatus === 1) {
-                    toast.warning("Khóa học đang Ẩn, không thể bật trạng thái Hoạt động cho chương.");
-                    return;
-                  }
-
-                  field.onChange(newStatus);
-                  
-                  // Đồng bộ trạng thái từ Chương -> Bài học
-                  const currentLessons = getValues(`sections.${sectionIndex}.lessons`) || [];
-                  const updatedLessons = currentLessons.map(l => ({
-                    ...l,
-                    status: newStatus
-                  }));
-                  
-                  setValue(`sections.${sectionIndex}.lessons`, updatedLessons, { shouldDirty: true });
-                }} 
-                value={(field.value ?? 1).toString()}
-              >
-                <SelectTrigger className="h-10 border-slate-200 focus:border-green-500 font-medium bg-white">
-                  <SelectValue placeholder="Chọn trạng thái" />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  <SelectItem value="1" disabled={currentCourseStatus === 2}>Hoạt động {currentCourseStatus === 2 && "(Bị khóa)"}</SelectItem>
-                  <SelectItem value="2">Ẩn</SelectItem>
-                </SelectContent>
-              </Select>
-            )}
-          />
-        </div>
-      </div>
-
-      {/* Danh sách Bài học */}
-      <div className="pt-2">
-        <div className="flex items-center justify-between mb-3">
-          <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
-            Danh Sách Bài Học ({fields.length})
-          </label>
-          <button
-            type="button"
-            className="flex items-center gap-1.5 text-xs font-bold text-green-600 hover:text-green-700 bg-green-50 hover:bg-green-100 px-2 py-1.5 rounded-md transition-colors"
-            onClick={() => append({
-              title: "",
-              content: "",
-              videoFile: null,
-              status: currentSectionStatus,
-              createdAt: new Date().toISOString(),
-              updatedAt: null
-            })}
-          >
-            <Plus size={14} /> Bài học mới
-          </button>
-        </div>
-
-        <div className="space-y-6 pb-4 pt-2 border-t border-slate-50 mt-3">
-          {fields.map((lesson, lessonIdx) => (
-            <div
-              key={lesson.id}
-              className="group flex gap-4 p-5 border border-slate-200 rounded-2xl bg-white hover:border-green-300 hover:shadow-lg transition-all duration-300 relative"
-            >
-              <div className="pt-1 text-slate-300 cursor-grab active:cursor-grabbing hover:text-slate-500">
-                <GripVertical size={20} />
-              </div>
-
-              <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Left side: Information (Title + Description + Dates) */}
-                <div className="space-y-4">
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-1">
-                      Tiêu đề bài học <span className="text-red-500">*</span>
-                    </label>
-                    <Input
-                      className="h-10 font-bold border-slate-200 focus:ring-0 focus:border-green-500 transition-all text-slate-800"
-                      placeholder={`Ví dụ: Bài giảng số ${lessonIdx + 1}: Giới thiệu ngôn ngữ`}
-                      {...register(`sections.${sectionIndex}.lessons.${lessonIdx}.title`)}
-                      autoComplete="off"
-                    />
-                    {errors.sections?.[sectionIndex]?.lessons?.[lessonIdx]?.title && (
-                      <p className="text-[10px] font-bold text-red-500 pl-1">{errors.sections[sectionIndex].lessons[lessonIdx].title.message}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-1">
-                      Mô tả nội dung bài học
-                    </label>
-                    <Textarea
-                      className="min-h-[80px] text-xs resize-none border-slate-200 focus:ring-0 focus:border-green-500"
-                      placeholder="Một đoạn mô tả ngắn về những gì học viên sẽ được học trong bài này..."
-                      {...register(`sections.${sectionIndex}.lessons.${lessonIdx}.content`)}
-                    />
-                    {errors.sections?.[sectionIndex]?.lessons?.[lessonIdx]?.content && (
-                      <p className="text-[10px] font-bold text-red-500 pl-1">{errors.sections[sectionIndex].lessons[lessonIdx].content.message}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-1">
-                      Trạng thái bài học <span className="text-red-500">*</span>
-                    </label>
-                    <Controller
-                      name={`sections.${sectionIndex}.lessons.${lessonIdx}.status`}
-                      control={control}
-                      render={({ field }) => (
-                        <Select 
-                          onValueChange={(val) => {
-                            const newStatus = Number(val);
-                            
-                            // Ràng buộc Business: Nếu chương đang ẩn, không cho phép bật bài học hoạt động
-                            if (currentSectionStatus === 2 && newStatus === 1) {
-                              toast.warning("Chương đang Ẩn, không thể bật trạng thái Hoạt động cho bài học.");
-                              return;
-                            }
-
-                            field.onChange(newStatus);
-                          }} 
-                          value={(field.value ?? 1).toString()}
-                        >
-                          <SelectTrigger className="h-9 border-slate-200 focus:border-green-500 font-medium bg-white text-xs">
-                            <SelectValue placeholder="Chọn trạng thái" />
-                          </SelectTrigger>
-                          <SelectContent className="bg-white">
-                            <SelectItem value="1" disabled={currentSectionStatus === 2}>Hoạt động {currentSectionStatus === 2 && "(Bị khóa)"}</SelectItem>
-                            <SelectItem value="2">Ẩn</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      )}
-                    />
-                  </div>
-                </div>
-
-                {/* Right side: Video Upload Box */}
-                <div className="space-y-1.5 flex flex-col justify-between">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-1">
-                    Video bài học
-                  </label>
-                  <Controller
-                    name={`sections.${sectionIndex}.lessons.${lessonIdx}.videoFile`}
-                    control={control}
-                    render={({ field }) => (
-                      <BackgroundVideoUploader
-                        label="video bài học"
-                        value={field.value}
-                        onChange={(val) => {
-                          field.onChange(val);
-                          setValue(`sections.${sectionIndex}.lessons.${lessonIdx}.videoUrl`, val);
-                        }}
-                        onUploadStart={() => setActiveUploads(prev => prev + 1)}
-                        onUploadEnd={() => setActiveUploads(prev => prev - 1)}
-                        uploadVideoToBunny={uploadVideoToBunny}
-                        id={`lesson-v-${sectionIndex}-${lessonIdx}`}
-                      />
-                    )}
-                  />
-                  {errors.sections?.[sectionIndex]?.lessons?.[lessonIdx]?.videoFile && (
-                    <p className="text-[10px] font-bold text-red-500 pl-1">{errors.sections[sectionIndex].lessons[lessonIdx].videoFile.message}</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Nút Xóa bài học */}
-              <button
-                type="button"
-                onClick={() => remove(lessonIdx)}
-                className="absolute -top-2 -right-2 w-8 h-8 flex items-center justify-center bg-white border border-slate-200 text-slate-400 hover:text-red-500 hover:border-red-300 hover:bg-red-50 rounded-full transition-all opacity-0 group-hover:opacity-100 shadow-md z-30"
-                title="Xóa bài học"
-              >
-                <Trash2 size={14} />
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Error level Section */}
-      {errors.sections?.[sectionIndex]?.lessons?.root && (
-        <p className="text-xs font-bold text-red-500 bg-red-50 p-2 rounded-md mt-2">
-          {errors.sections[sectionIndex].lessons.root.message}
-        </p>
-      )}
-    </div>
-  );
-}
-
-function VideoProgressCircle({ progress, size = 60 }) {
-  const radius = size * 0.4;
-  const stroke = size * 0.08;
-  const normalizedRadius = radius - stroke * 2;
-  const circumference = normalizedRadius * 2 * Math.PI;
-  const strokeDashoffset = circumference - (progress / 100) * circumference;
-
-  return (
-    <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
-      <svg
-        height={size}
-        width={size}
-        className="transform -rotate-90"
-      >
-        <circle
-          stroke="#f1f5f9"
-          fill="transparent"
-          strokeWidth={stroke}
-          r={normalizedRadius}
-          cx={size / 2}
-          cy={size / 2}
-        />
-        <circle
-          stroke="#22c55e"
-          fill="transparent"
-          strokeWidth={stroke}
-          strokeDasharray={circumference + ' ' + circumference}
-          style={{ strokeDashoffset, transition: 'stroke-dashoffset 0.35s' }}
-          strokeLinecap="round"
-          r={normalizedRadius}
-          cx={size / 2}
-          cy={size / 2}
-        />
-      </svg>
-      <span className="absolute text-[10px] font-bold text-green-700">{progress}%</span>
-    </div>
-  );
-}
-
-function BackgroundVideoUploader({ label, value, onChange, onUploadStart, onUploadEnd, uploadVideoToBunny, id = "v-upload" }) {
-  const [localProgress, setLocalProgress] = React.useState(0);
-  const [isUploading, setIsUploading] = React.useState(false);
-  const [error, setError] = React.useState(null);
-
-  // Effect để "kết nối" lại với tiến trình tải lên nếu có (khi quay lại tab)
-  React.useEffect(() => {
-    // Đăng ký callback để nhận cập nhật tiến trình mới nhất
-    uploadCallbacks[id] = (pct) => setLocalProgress(pct);
-    
-    // Nếu đang có tiến trình chạy ngầm, lấy giá trị hiện tại ngay lập tức
-    if (globalUploadProgress[id] !== undefined) {
-      setLocalProgress(globalUploadProgress[id]);
-    }
-
-    return () => {
-      delete uploadCallbacks[id];
-    };
-  }, [id]);
-
-  const handleFileChange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    try {
-      onChange(file);
-      
-      setIsUploading(true);
-      setError(null);
-      setLocalProgress(0);
-      globalUploadProgress[id] = 0;
-      onUploadStart();
-
-      const videoId = await uploadVideoToBunny(file, file.name, (pct) => {
-        // Cập nhật state cục bộ (nếu component còn mount)
-        setLocalProgress(pct);
-        // Lưu vào biến toàn cục để các lần mount sau có thể lấy được
-        globalUploadProgress[id] = pct;
-        // Nếu có component nào đang mount với ID này, gọi callback của nó
-        if (uploadCallbacks[id]) {
-          uploadCallbacks[id](pct);
-        }
-      });
-
-      onChange(videoId);
-    } catch (err) {
-      console.error("Upload error:", err);
-      setError("Lỗi tải lên");
-      toast.error(`Không thể tải lên ${label}`);
-    } finally {
-      setIsUploading(false);
-      delete globalUploadProgress[id];
-      onUploadEnd();
-    }
-  };
-
-  const isCompleted = value && typeof value === 'string' && !isUploading;
-  const isCurrentlyUploading = isUploading || (value instanceof File);
-
-  return (
-    <div
-      onClick={() => !isUploading && document.getElementById(id).click()}
-      className={`relative aspect-video rounded-xl border-2 border-dashed flex flex-col items-center justify-center p-4 transition-all cursor-pointer group/upload
-        ${isCompleted ? "border-green-500 bg-green-50/30" : isCurrentlyUploading ? "border-green-300 bg-green-50/10" : "border-slate-200 bg-slate-50/50 hover:bg-slate-100/50 hover:border-green-300"}`}
-    >
-      <input
-        type="file"
-        id={id}
-        className="hidden"
-        accept="video/*"
-        onChange={handleFileChange}
-        disabled={isUploading}
-      />
-
-      {isCurrentlyUploading ? (
-        <div className="flex flex-col items-center">
-          <VideoProgressCircle progress={localProgress} size={80} />
-        </div>
-      ) : isCompleted ? (
-        <div className="flex flex-col items-center">
-          <div className="w-10 h-10 rounded-full bg-green-500 text-white flex items-center justify-center mb-2 shadow-sm">
-            <Check className="w-6 h-6" />
-          </div>
-          <p className="text-[10px] font-bold text-green-700 uppercase tracking-tight">Tải lên hoàn tất</p>
-          <p className="text-[9px] text-slate-400 mt-1 truncate max-w-[150px]">ID: {value.substring(0, 12)}...</p>
-        </div>
-      ) : (
-        <>
-          <div className="w-10 h-10 rounded-full bg-white text-slate-300 group-hover/upload:text-green-500 flex items-center justify-center mb-2 shadow-sm border border-slate-100 transition-all">
-            <Video size={20} />
-          </div>
-          <p className="text-[10px] font-bold text-slate-400 group-hover/upload:text-green-600 transition-colors uppercase tracking-tight">
-            Chạm để tải {label}
-          </p>
-          <p className="text-[9px] text-slate-400 mt-0.5">MP4, MOV hoặc AVI</p>
-        </>
-      )}
-
-      {error && <p className="absolute bottom-2 text-[9px] font-bold text-red-500">{error}</p>}
-    </div>
-  );
-}
+

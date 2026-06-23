@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import useAdminCategories from "@/hooks/useAdminCategories";
+import useAdminCategories from "@/hooks/admin/useAdminCategories";
 import {
   Plus,
   Search,
@@ -66,7 +66,7 @@ const categorySchema = z.object({
   status: z.boolean().default(true),
 });
 
-export default function AdminCategories() {
+export default function AdminCategories({ hideHeader = false }) {
   const {
     categories,
     loading,
@@ -129,16 +129,19 @@ export default function AdminCategories() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      {/* Page Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-            Quản Lý Danh Mục
-          </h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Thêm mới, chỉnh sửa và sắp xếp danh mục khóa học.
-          </p>
-        </div>
+        {!hideHeader ? (
+          <div>
+            <h1 className="text-2xl font-bold text-foreground tracking-tight">
+              Quản Lý Danh Mục
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Thêm mới, chỉnh sửa và sắp xếp danh mục khóa học.
+            </p>
+          </div>
+        ) : (
+          <div />
+        )}
         <Button
           className="font-bold flex items-center gap-2"
           onClick={() => setIsAddModalOpen(true)}
@@ -149,33 +152,33 @@ export default function AdminCategories() {
       </div>
 
       {/* Filter */}
-      <Card className="border-slate-200 shadow-sm">
+      <Card className="border-border shadow-sm">
         <CardContent className="p-4 flex flex-col md:flex-row gap-4 items-center justify-between">
           <div className="relative w-full md:w-80">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder="Tìm danh mục..."
-              className="pl-9 h-10 border-slate-200 focus:bg-white"
+              className="pl-9 h-10 border-border focus:bg-white"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <div className="flex text-sm font-medium text-slate-500 bg-slate-100 p-1 rounded-lg transition-all">
+          <div className="flex text-sm font-medium text-muted-foreground bg-secondary p-1 rounded-lg transition-all">
             <button
               onClick={() => setFilterStatus("all")}
-              className={`px-3 py-1.5 rounded-md transition-colors ${filterStatus === "all" ? "bg-white text-slate-900 shadow-sm" : "hover:text-slate-900"}`}
+              className={`px-3 py-1.5 rounded-md transition-colors ${filterStatus === "all" ? "bg-white text-foreground shadow-sm" : "hover:text-foreground"}`}
             >
               Tất cả
             </button>
             <button
               onClick={() => setFilterStatus("active")}
-              className={`px-3 py-1.5 rounded-md transition-colors ${filterStatus === "active" ? "bg-white text-slate-900 shadow-sm" : "hover:text-slate-900"}`}
+              className={`px-3 py-1.5 rounded-md transition-colors ${filterStatus === "active" ? "bg-white text-foreground shadow-sm" : "hover:text-foreground"}`}
             >
               Đang hoạt động
             </button>
             <button
               onClick={() => setFilterStatus("inactive")}
-              className={`px-3 py-1.5 rounded-md transition-colors ${filterStatus === "inactive" ? "bg-white text-slate-900 shadow-sm" : "hover:text-slate-900"}`}
+              className={`px-3 py-1.5 rounded-md transition-colors ${filterStatus === "inactive" ? "bg-white text-foreground shadow-sm" : "hover:text-foreground"}`}
             >
               Tạm ẩn
             </button>
@@ -184,28 +187,28 @@ export default function AdminCategories() {
       </Card>
 
       {/* Categories Table */}
-      <Card className="border-slate-200 shadow-sm overflow-hidden">
+      <Card className="border-border shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <Table>
-            <TableHeader className="bg-slate-50">
+            <TableHeader className="bg-muted">
               <TableRow>
-                <TableHead className="py-4 font-semibold text-slate-700 w-10 mx-auto" />
-                <TableHead className="py-4 font-semibold text-slate-900 w-[25%] min-w-[200px]">
+                <TableHead className="py-4 font-semibold text-foreground w-10 mx-auto" />
+                <TableHead className="py-4 font-semibold text-foreground w-[25%] min-w-[200px]">
                   Danh mục
                 </TableHead>
-                <TableHead className="py-4 font-semibold text-slate-900 w-[20%] min-w-[150px]">
+                <TableHead className="py-4 font-semibold text-foreground w-[20%] min-w-[150px]">
                   Slug
                 </TableHead>
-                <TableHead className="py-4 font-semibold text-slate-700 text-center w-32 whitespace-nowrap">
+                <TableHead className="py-4 font-semibold text-foreground text-center w-32 whitespace-nowrap">
                   Danh mục con
                 </TableHead>
-                <TableHead className="py-4 font-semibold text-slate-700 text-center w-24 whitespace-nowrap">
+                <TableHead className="py-4 font-semibold text-foreground text-center w-24 whitespace-nowrap">
                   Khóa học
                 </TableHead>
-                <TableHead className="py-4 font-semibold text-slate-700 w-32 whitespace-nowrap">
+                <TableHead className="py-4 font-semibold text-foreground w-32 whitespace-nowrap">
                   Trạng thái
                 </TableHead>
-                <TableHead className="py-4 font-semibold text-slate-700 text-center w-24 min-w-[100px]">
+                <TableHead className="py-4 font-semibold text-foreground text-center w-24 min-w-[100px]">
                   Thao tác
                 </TableHead>
               </TableRow>
@@ -213,7 +216,7 @@ export default function AdminCategories() {
             <TableBody>
               {categories.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="h-32 text-center text-slate-500 font-medium">
+                  <TableCell colSpan={7} className="h-32 text-center text-muted-foreground font-medium">
                     Không tìm thấy danh mục nào phù hợp.
                   </TableCell>
                 </TableRow>
@@ -222,34 +225,34 @@ export default function AdminCategories() {
                   <React.Fragment key={cat.id}>
                     <TableRow
                       key={cat.id}
-                      className="hover:bg-slate-50/50 cursor-pointer"
+                      className="hover:bg-muted cursor-pointer"
                       onClick={() =>
                         setExpanded(expanded === cat.id ? null : cat.id)
                       }
                     >
                       <TableCell className="w-8 pl-4">
                         <ChevronRight
-                          className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${expanded === cat.id ? "rotate-90" : ""}`}
+                          className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${expanded === cat.id ? "rotate-90" : ""}`}
                         />
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <div>
-                            <p className="font-bold text-slate-900">{cat.name}</p>
+                            <p className="font-bold text-foreground">{cat.name}</p>
                           </div>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <code className="text-xs bg-slate-100 px-2 py-1 rounded text-slate-600 font-mono">
+                        <code className="text-xs bg-secondary px-2 py-1 rounded text-muted-foreground font-mono">
                           {cat.slug}
                         </code>
                       </TableCell>
                       <TableCell className="text-center">
-                        <span className="text-sm text-slate-600 font-medium bg-slate-100 px-2.5 py-1 rounded-full">
+                        <span className="text-sm text-muted-foreground font-medium bg-secondary px-2.5 py-1 rounded-full">
                           {cat.subcategories ? cat.subcategories.length : 0}
                         </span>
                       </TableCell>
-                      <TableCell className="text-center font-bold text-slate-900">
+                      <TableCell className="text-center font-bold text-foreground">
                         {cat.courses}
                       </TableCell>
                       <TableCell>
@@ -259,9 +262,9 @@ export default function AdminCategories() {
                               e.stopPropagation();
                               toggleStatus(cat.id, false);
                             }}
-                            className="inline-flex items-center gap-1.5 text-sm text-green-600 font-medium cursor-pointer hover:underline"
+                            className="inline-flex items-center gap-1.5 text-sm text-success font-medium cursor-pointer hover:underline"
                           >
-                            <span className="w-2 h-2 rounded-full bg-green-500" />{" "}
+                            <span className="w-2 h-2 rounded-full bg-success/10 text-success" />{" "}
                             Hoạt động
                           </span>
                         ) : (
@@ -270,9 +273,9 @@ export default function AdminCategories() {
                               e.stopPropagation();
                               toggleStatus(cat.id, true);
                             }}
-                            className="inline-flex items-center gap-1.5 text-sm text-slate-500 font-medium cursor-pointer hover:underline"
+                            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground font-medium cursor-pointer hover:underline"
                           >
-                            <span className="w-2 h-2 rounded-full bg-slate-400" />{" "}
+                            <span className="w-2 h-2 rounded-full bg-muted" />{" "}
                             Tạm ẩn
                           </span>
                         )}
@@ -285,7 +288,7 @@ export default function AdminCategories() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 text-slate-400 hover:text-primary"
+                            className="h-8 w-8 text-muted-foreground hover:text-primary"
                             onClick={(e) => handleEdit(e, cat)}
                           >
                             <Edit className="w-4 h-4" />
@@ -293,7 +296,7 @@ export default function AdminCategories() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 text-slate-400 hover:text-red-500"
+                            className="h-8 w-8 text-muted-foreground hover:text-error"
                             onClick={(e) => {
                               e.stopPropagation();
                               handleDelete(cat.id);
@@ -312,28 +315,28 @@ export default function AdminCategories() {
                       cat.subcategories.map((sub) => (
                         <TableRow
                           key={sub.id}
-                          className="bg-slate-50/60 hover:bg-slate-100/50"
+                          className="bg-muted/60 hover:bg-secondary"
                         >
                           <TableCell className="w-8" />
                           <TableCell className="pl-12">
                             <div className="flex items-center gap-3">
-                              <div className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+                              <div className="w-1.5 h-1.5 rounded-full bg-muted" />
                               <div>
-                                <p className="font-bold text-slate-800">
+                                <p className="font-bold text-foreground">
                                   {sub.name}
                                 </p>
                               </div>
                             </div>
                           </TableCell>
                           <TableCell>
-                            <code className="text-xs bg-white px-2 py-1 rounded border border-slate-200 text-slate-600 font-mono">
+                            <code className="text-xs bg-white px-2 py-1 rounded border border-border text-muted-foreground font-mono">
                               {sub.slug}
                             </code>
                           </TableCell>
                           <TableCell className="text-center">
-                            <span className="text-sm text-slate-400 font-medium block w-full">-</span>
+                            <span className="text-sm text-muted-foreground font-medium block w-full">-</span>
                           </TableCell>
-                          <TableCell className="text-center font-bold text-slate-800">
+                          <TableCell className="text-center font-bold text-foreground">
                             {sub.courses}
                           </TableCell>
                           <TableCell>
@@ -343,9 +346,9 @@ export default function AdminCategories() {
                                   e.stopPropagation();
                                   toggleStatus(sub.id, false);
                                 }}
-                                className="inline-flex items-center gap-1.5 text-sm text-green-600 font-medium cursor-pointer hover:underline"
+                                className="inline-flex items-center gap-1.5 text-sm text-success font-medium cursor-pointer hover:underline"
                               >
-                                <span className="w-2 h-2 rounded-full bg-green-500" />{" "}
+                                <span className="w-2 h-2 rounded-full bg-success/10 text-success" />{" "}
                                 Hoạt động
                               </span>
                             ) : (
@@ -354,9 +357,9 @@ export default function AdminCategories() {
                                   e.stopPropagation();
                                   toggleStatus(sub.id, true);
                                 }}
-                                className="inline-flex items-center gap-1.5 text-sm text-slate-500 font-medium cursor-pointer hover:underline"
+                                className="inline-flex items-center gap-1.5 text-sm text-muted-foreground font-medium cursor-pointer hover:underline"
                               >
-                                <span className="w-2 h-2 rounded-full bg-slate-400" />{" "}
+                                <span className="w-2 h-2 rounded-full bg-muted" />{" "}
                                 Tạm ẩn
                               </span>
                             )}
@@ -369,7 +372,7 @@ export default function AdminCategories() {
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-8 w-8 text-slate-400 hover:text-primary"
+                                className="h-8 w-8 text-muted-foreground hover:text-primary"
                                 onClick={(e) => handleEdit(e, sub, cat.id)}
                               >
                                 <Edit className="w-4 h-4" />
@@ -377,7 +380,7 @@ export default function AdminCategories() {
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-8 w-8 text-slate-400 hover:text-red-500"
+                                className="h-8 w-8 text-muted-foreground hover:text-error"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleDelete(sub.id);
@@ -395,8 +398,8 @@ export default function AdminCategories() {
             </TableBody>
           </Table>
           {totalPages > 1 && (
-            <div className="flex flex-col sm:flex-row justify-between items-center py-4 px-4 bg-white border-t border-slate-200 gap-4">
-              <span className="text-sm font-medium text-slate-500">
+            <div className="flex flex-col sm:flex-row justify-between items-center py-4 px-4 bg-white border-t border-border gap-4">
+              <span className="text-sm font-medium text-muted-foreground">
                 Hiển thị {(currentPage - 1) * ITEMS_PER_PAGE + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, totalElements)} của {totalElements} danh mục
               </span>
               <div className="flex gap-2">
@@ -452,8 +455,8 @@ export default function AdminCategories() {
               {editId ? "Cập Nhật Danh Mục" : "Thêm Danh Mục Mới"}
             </DialogTitle>
             <DialogDescription>
-              {editId 
-                ? "Chỉnh sửa thông tin danh mục hiện có." 
+              {editId
+                ? "Chỉnh sửa thông tin danh mục hiện có."
                 : "Tạo một danh mục mới để phân loại các khóa học của bạn."}
             </DialogDescription>
           </DialogHeader>
@@ -468,7 +471,7 @@ export default function AdminCategories() {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-slate-700 font-semibold">
+                    <FormLabel className="text-foreground font-semibold">
                       Tên danh mục
                     </FormLabel>
                     <FormControl>
@@ -478,7 +481,7 @@ export default function AdminCategories() {
                           field.onChange(e);
                           onNameChange(e);
                         }}
-                        className="h-10 border-slate-200 focus-visible:ring-primary focus-visible:border-primary"
+                        className="h-10 border-border focus-visible:ring-primary focus-visible:border-primary"
                       />
                     </FormControl>
                     <FormMessage />
@@ -491,7 +494,7 @@ export default function AdminCategories() {
                 name="slug"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-slate-700 font-semibold text-xs opacity-70">
+                    <FormLabel className="text-foreground font-semibold text-xs opacity-70">
                       Slug
                     </FormLabel>
                     <FormControl>
@@ -499,7 +502,7 @@ export default function AdminCategories() {
                         {...field}
                         readOnly
                         placeholder="Duong-dan-tinh"
-                        className="h-10 border-slate-200 bg-slate-50 font-mono text-xs cursor-not-allowed"
+                        className="h-10 border-border bg-muted font-mono text-xs cursor-not-allowed"
                       />
                     </FormControl>
                     <FormMessage />
@@ -512,7 +515,7 @@ export default function AdminCategories() {
                 name="parent_id"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-slate-700 font-semibold">
+                    <FormLabel className="text-foreground font-semibold">
                       Danh mục cha
                     </FormLabel>
                     <Select
@@ -520,7 +523,7 @@ export default function AdminCategories() {
                       defaultValue={field.value}
                     >
                       <FormControl>
-                        <SelectTrigger className="h-10 border-slate-200 w-full">
+                        <SelectTrigger className="h-10 border-border w-full">
                           <SelectValue placeholder="Chọn danh mục cha" />
                         </SelectTrigger>
                       </FormControl>
@@ -545,7 +548,7 @@ export default function AdminCategories() {
                 name="status"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-slate-700 font-semibold">
+                    <FormLabel className="text-foreground font-semibold">
                       Trạng thái
                     </FormLabel>
                     <Select
@@ -553,7 +556,7 @@ export default function AdminCategories() {
                       value={field.value ? 'true' : 'false'}
                     >
                       <FormControl>
-                        <SelectTrigger className="h-10 border-slate-200 w-full">
+                        <SelectTrigger className="h-10 border-border w-full">
                           <SelectValue placeholder="Chọn Trạng thái" />
                         </SelectTrigger>
                       </FormControl>
@@ -576,7 +579,7 @@ export default function AdminCategories() {
                     setEditId(null);
                     form.reset({ name: "", slug: "", parent_id: "none", status: true });
                   }}
-                  className="border-slate-200"
+                  className="border-border"
                 >
                   Hủy bỏ
                 </Button>

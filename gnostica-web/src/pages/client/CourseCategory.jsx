@@ -1,9 +1,9 @@
 import React from "react";
 import { useParams } from "react-router-dom";
-import AppCard from "@/components/common/AppCard";
+import { CourseCardHorizontal } from "@/components/common/AppCard";
 import AppSection, { PageHeader, AppBreadcrumb } from "@/components/common/AppSection";
 import { Home } from "lucide-react";
-import { popularCoursesMock } from "@/mocks/courses";
+import { popularCoursesMock } from "@/apiMocks/courses";
 
 export default function CourseCategory() {
   const { categoryName } = useParams();
@@ -15,7 +15,7 @@ export default function CourseCategory() {
 
   const breadcrumbItems = [
     { label: "Trang chủ", href: "/", icon: Home },
-    { label: "Khoá học", href: "/courses" },
+    { label: "Khóa học", href: "/courses" },
     { label: displayTitle, isLast: true }
   ];
 
@@ -25,19 +25,19 @@ export default function CourseCategory() {
         <AppBreadcrumb items={breadcrumbItems} />
 
         <PageHeader
-          title="Danh mục"
-          highlightedTitle={displayTitle}
+          title={displayTitle}
+          description={`Khám phá các khóa học đa dạng được thiết kế để giúp bạn nắm vững ${displayTitle} và thăng tiến trong sự nghiệp.`}
         />
       </div>
 
-      {/* Phổ biến Section using AppSection component */}
+      {/* Danh sách khóa học Section */}
       <AppSection
-        title="Phổ biến"
-        description={`Những khóa học được học viên yêu thích nhất trong danh mục ${displayTitle}`}
+        title={`Tất cả khóa học ${displayTitle}`}
         className="py-0"
+        containerClassName="flex flex-col gap-4"
       >
         {popularCoursesMock.map((course) => (
-          <AppCard key={course.id} {...course} />
+          <CourseCardHorizontal key={course.id} {...course} />
         ))}
       </AppSection>
     </div>

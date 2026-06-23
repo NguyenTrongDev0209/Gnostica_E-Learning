@@ -36,7 +36,7 @@ public class InstructorApplication {
     @Column(name = "cv_url", nullable = false, columnDefinition = "TEXT")
     private String cvUrl;
 
-    @Column(name = "degree_urls", columnDefinition = "TEXT")
+    @Column(name = "degree_urls", nullable = false, columnDefinition = "TEXT")
     private String degreeUrls; // Can store comma-separated URLs or JSON array
 
     @Column(name = "sample_video_url", columnDefinition = "TEXT")

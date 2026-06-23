@@ -1,254 +1,131 @@
-import React from "react";
-import { 
-  Plus, 
-  Search, 
-  Users, 
-  Mail, 
-  MoreHorizontal, 
+import React, { useState } from "react";
+import {
+  Users,
+  Mail,
   Download,
-  Filter,
   CheckCircle2,
   Clock,
-  ArrowUpDown,
-  Activity
+  Activity,
+  Search,
+  Filter,
+  Loader2
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-
-const MOCK_STUDENTS = [
-  {
-    id: "STU-001",
-    name: "Lê Văn Minh",
-    email: "minhle.dev@gmail.com",
-    course: "Fullstack Next.js Masterclass",
-    progress: 85,
-    joinedDate: "12/03/2026",
-    lastActive: "2 giờ trước",
-    status: "active",
-    avatar: "https://i.pravatar.cc/150?u=stu1"
-  },
-  {
-    id: "STU-002",
-    name: "Trần Thế Quang",
-    email: "quangtran99@yahoo.com",
-    course: "React Native cho người mới",
-    progress: 42,
-    joinedDate: "15/03/2026",
-    lastActive: "5 giờ trước",
-    status: "active",
-    avatar: "https://i.pravatar.cc/150?u=stu2"
-  },
-  {
-    id: "STU-003",
-    name: "Nguyễn Thu Huyền",
-    email: "huyenkute@hotmail.com",
-    course: "Tailwind CSS Thực chiến",
-    progress: 100,
-    joinedDate: "05/02/2026",
-    lastActive: "1 ngày trước",
-    status: "completed",
-    avatar: "https://i.pravatar.cc/150?u=stu3"
-  },
-  {
-    id: "STU-004",
-    name: "Phạm Anh Khoa",
-    email: "khoapham@gmail.com",
-    course: "Fullstack Next.js Masterclass",
-    progress: 12,
-    joinedDate: "20/03/2026",
-    lastActive: "30 phút trước",
-    status: "active",
-    avatar: "https://i.pravatar.cc/150?u=stu4"
-  },
-  {
-    id: "STU-005",
-    name: "Hoàng Minh Chế",
-    email: "chehm@outlook.com",
-    course: "Figma UI/UX Design",
-    progress: 0,
-    joinedDate: "24/03/2026",
-    lastActive: "Mới đăng ký",
-    status: "inactive",
-    avatar: "https://i.pravatar.cc/150?u=stu5"
-  }
-];
+import InstructorStudentTable from "@/components/pages/instructor/students/InstructorStudentTable";
+import StudentCoursesModal from "@/components/pages/instructor/students/StudentCoursesModal";
+import { useInstructorStudents } from "@/hooks/instructor/useInstructorStudents";
+import { toast } from "sonner";
 
 export default function InstructorStudents() {
+  const { students, stats, loading } = useInstructorStudents();
+
+  // Modal state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState(null);
+
+  const handleOpenCoursesModal = (student) => {
+    setSelectedStudent(student);
+    setIsModalOpen(true);
+  };
+
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="py-8 space-y-8 animate-fade-up">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Học Viên Của Tôi</h1>
-          <p className="text-sm text-slate-500 mt-1">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+        <div className="space-y-1">
+          <h1 className="text-h1 font-black text-foreground tracking-tight leading-none">Học Viên Của Tôi</h1>
+          <p className="text-sm font-medium text-muted-foreground">
             Quản lý và theo dõi tiến độ của học viên trong các khóa học bạn đang giảng dạy.
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" className="border-slate-200">
-            <Download className="w-4 h-4 mr-2" /> Xuất danh sách
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <Button variant="outline" className="btn-md bg-white border-border font-bold hover:shadow-sm rounded-xl">
+            <Download className="w-4 h-4 mr-2" /> Xuất dữ liệu
           </Button>
-          <Button className="bg-green-600 hover:bg-green-700 text-white shadow-none font-bold">
+          <Button className="btn-md bg-primary hover:primary/90 text-white shadow-lg shadow-primary/20 font-bold rounded-xl transition-all hover:scale-[1.02]">
             <Mail className="w-4 h-4 mr-2" /> Gửi thông báo
           </Button>
         </div>
       </div>
 
       {/* Stats Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="border-slate-200 shadow-sm">
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 border border-blue-100">
-              <Users className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-xs font-bold text-slate-400 uppercase">Tổng học viên</p>
-              <p className="text-xl font-black text-slate-900">8,942</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-slate-200 shadow-sm">
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center text-green-600 border border-green-100">
-              <CheckCircle2 className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-xs font-bold text-slate-400 uppercase">Hoàn thành</p>
-              <p className="text-xl font-black text-slate-900">1,245</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-slate-200 shadow-sm">
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600 border border-amber-100">
-              <Clock className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-xs font-bold text-slate-400 uppercase">Đang tiến hành</p>
-              <p className="text-xl font-black text-slate-900">7,180</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-slate-200 shadow-sm">
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="w-10 h-10 rounded-lg bg-slate-50 flex items-center justify-center text-slate-600 border border-slate-200">
-              <Activity className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-xs font-bold text-slate-400 uppercase">Hoạt động mới</p>
-              <p className="text-xl font-black text-slate-900">245</p>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          { label: "Tổng học viên", value: stats.total.toLocaleString(), icon: Users, color: "blue", trend: "+0%" },
+          { label: "Hoàn thành", value: stats.completed.toLocaleString(), icon: CheckCircle2, color: "green", trend: "+0%" },
+          { label: "Đang học", value: stats.learning.toLocaleString(), icon: Clock, color: "amber", trend: "+0%" },
+          { label: "Hoạt động", value: stats.active.toLocaleString(), icon: Activity, color: "purple", trend: "+0%" },
+        ].map((stat, i) => (
+          <Card key={i} className="group hover-lift border-border shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden relative rounded-2xl">
+            <div className={`absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 rounded-full bg-${stat.color}-50/50 group-hover:bg-${stat.color}-100/50 transition-colors duration-500`} />
+            <CardContent className="p-5 flex items-center gap-4 relative z-10">
+              <div className={`w-12 h-12 rounded-2xl bg-${stat.color}-50 flex items-center justify-center text-${stat.color}-600 border border-${stat.color}-100 group-hover:scale-110 transition-transform duration-500 shadow-sm`}>
+                <stat.icon className="w-6 h-6" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">{stat.label}</span>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-2xl font-black text-foreground tracking-tight">{stat.value}</span>
+                  <span className={`text-[10px] font-bold text-${stat.color}-600 bg-${stat.color}-50 px-1.5 rounded-full border border-${stat.color}-100/50`}>{stat.trend}</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
-      {/* Filters & Search */}
-      <Card className="border-slate-200 shadow-sm">
-        <CardContent className="p-4 flex flex-col md:flex-row gap-4 items-center justify-between">
-          <div className="flex w-full md:w-auto items-center gap-3">
-            <div className="relative w-full md:w-80">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <Input 
-                placeholder="Tìm kiếm theo tên hoặc email..." 
-                className="pl-9 h-10 border-slate-200 focus:bg-white focus:border-green-500"
+      {/* Filters & Content */}
+      <div className="space-y-6">
+        <div className="flex flex-col lg:flex-row gap-4 items-center justify-between glass p-4 rounded-2xl border border-border">
+          <div className="flex flex-col sm:flex-row w-full lg:w-auto items-center gap-3">
+            <div className="relative w-full sm:w-80 group">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+              <Input
+                placeholder="Tìm kiếm theo tên hoặc email..."
+                className="pl-9 h-11 bg-white border-border focus:ring-2 focus:ring-primary/10 transition-all rounded-xl shadow-none"
               />
             </div>
-            <select className="h-10 px-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-600 font-medium focus:outline-none focus:border-green-500">
-              <option>Tất cả khóa học</option>
-              {Array.from(new Set(MOCK_STUDENTS.map(s => s.course))).map(course => (
-                <option key={course}>{course}</option>
-              ))}
-            </select>
+            <div className="flex items-center gap-2 bg-muted/80 p-1 rounded-xl w-full sm:w-auto border border-border/50">
+              <select className="h-9 px-3 bg-transparent border-none rounded-lg text-sm text-foreground font-bold focus:outline-none appearance-none min-w-[160px] cursor-pointer">
+                <option>Tất cả khóa học</option>
+              </select>
+            </div>
           </div>
-          
-          <div className="flex text-sm font-bold text-slate-500 bg-slate-100 p-1 rounded-lg">
-            <button className="px-3 py-1.5 rounded-md bg-white text-slate-900 shadow-sm">Tất cả</button>
-            <button className="px-3 py-1.5 rounded-md hover:text-slate-900 transition-colors">Đang học</button>
-            <button className="px-3 py-1.5 rounded-md hover:text-slate-900 transition-colors">Hoàn thành</button>
-          </div>
-        </CardContent>
-      </Card>
 
-      {/* Students Table */}
-      <Card className="border-slate-200 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader className="bg-slate-50">
-              <TableRow>
-                <TableHead className="py-4 font-bold text-slate-700">Học viên</TableHead>
-                <TableHead className="py-4 font-bold text-slate-700">Khóa học</TableHead>
-                <TableHead className="py-4 font-bold text-slate-700">
-                  <div className="flex items-center gap-1 cursor-pointer hover:text-slate-900">
-                    Tiến độ <ArrowUpDown className="w-3 h-3" />
-                  </div>
-                </TableHead>
-                <TableHead className="py-4 font-bold text-slate-700">Ngày tham gia</TableHead>
-                <TableHead className="py-4 font-bold text-slate-700">Thao tác</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {MOCK_STUDENTS.map((student) => (
-                <TableRow key={student.id} className="hover:bg-slate-50/50 transition-colors">
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full overflow-hidden border border-slate-200 shrink-0">
-                        <img src={student.avatar} alt={student.name} className="w-full h-full object-cover" />
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="font-bold text-slate-900 leading-tight">{student.name}</span>
-                        <span className="text-xs text-slate-500">{student.email}</span>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <span className="text-sm font-medium text-slate-700">{student.course}</span>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col gap-1.5 w-32">
-                      <div className="flex justify-between text-[10px] font-black text-slate-500 uppercase tracking-tighter">
-                        <span>Hoàn thành</span>
-                        <span>{student.progress}%</span>
-                      </div>
-                      <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                        <div 
-                          className={`h-full rounded-full transition-all duration-1000 ${
-                            student.progress === 100 ? 'bg-green-500' : 'bg-primary/80'
-                          }`}
-                          style={{ width: `${student.progress}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col">
-                      <span className="text-sm font-bold text-slate-700">{student.joinedDate}</span>
-                      <span className="text-[10px] font-bold text-slate-400 uppercase">{student.lastActive}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                       <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-slate-900 bg-slate-50 hover:bg-slate-200">
-                        <MoreHorizontal className="w-4 h-4" />
-                       </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <div className="flex items-center gap-1.5 text-xs font-black text-muted-foreground bg-muted/80 p-1.5 rounded-xl border border-border/50 shadow-inner">
+            <button className="px-5 py-2 rounded-lg bg-white text-primary shadow-sm hover:shadow-md transition-all font-black uppercase tracking-tight">Tất cả</button>
+            <button className="px-5 py-2 rounded-lg hover:text-foreground transition-all hover:bg-white/50 font-bold uppercase tracking-tight">Đang học</button>
+            <button className="px-5 py-2 rounded-lg hover:text-foreground transition-all hover:bg-white/50 font-bold uppercase tracking-tight">Hoàn thành</button>
+          </div>
         </div>
-      </Card>
+
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20 gap-4 bg-white rounded-2xl border border-border shadow-sm">
+            <Loader2 className="w-10 h-10 text-primary animate-spin" />
+            <p className="text-sm font-bold text-muted-foreground animate-pulse">Đang tải danh sách học viên...</p>
+          </div>
+        ) : (
+          <InstructorStudentTable
+            students={students}
+            onCoursesClick={handleOpenCoursesModal}
+            pagination={{
+              currentPage: 1,
+              totalPages: 1,
+              totalItems: students.length,
+              itemsPerPage: 50
+            }}
+            onPageChange={(page) => console.log("Page changed to:", page)}
+          />
+        )}
+      </div>
+
+      <StudentCoursesModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        student={selectedStudent}
+      />
     </div>
   );
 }
-

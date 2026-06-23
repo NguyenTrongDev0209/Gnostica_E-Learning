@@ -1,6 +1,6 @@
-import axios from 'axios';
+import axiosClient from '@/lib/axiosClient';
 
-const API_URL = 'http://localhost:8080/api/banks';
+const API_URL = '/banks';
 
 const getAuthHeaders = () => {
     const userStr = localStorage.getItem('user');
@@ -18,35 +18,35 @@ const getAuthHeaders = () => {
 };
 
 const createBank = async (data) => {
-    const response = await axios.post(API_URL, data, {
+    const response = await axiosClient.post(API_URL, data, {
         headers: getAuthHeaders()
     });
     return response.data;
 };
 
 const getBanks = async () => {
-    const response = await axios.get(API_URL, {
+    const response = await axiosClient.get(API_URL, {
         headers: getAuthHeaders()
     });
     return response.data;
 };
 
 const updateBank = async (id, data) => {
-    const response = await axios.put(`${API_URL}/${id}`, data, {
+    const response = await axiosClient.put(`${API_URL}/${id}`, data, {
         headers: getAuthHeaders()
     });
     return response.data;
 };
 
 const deleteBank = async (id) => {
-    const response = await axios.delete(`${API_URL}/${id}`, {
+    const response = await axiosClient.delete(`${API_URL}/${id}`, {
         headers: getAuthHeaders()
     });
     return response.data;
 };
 
 const syncBanks = async () => {
-    const response = await axios.post(`${API_URL}/sync`, {}, {
+    const response = await axiosClient.post(`${API_URL}/sync`, {}, {
         headers: getAuthHeaders()
     });
     return response.data;

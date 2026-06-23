@@ -23,12 +23,12 @@ export default function InstructorSettings() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Cài Đặt Tài Khoản</h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <h1 className="text-2xl font-bold text-foreground tracking-tight">Cài Đặt Tài Khoản</h1>
+          <p className="text-sm text-muted-foreground mt-1">
             Quản lý thông tin cá nhân, cài đặt thanh toán và bảo mật tài khoản.
           </p>
         </div>
-        <Button className="bg-green-600 hover:bg-green-700 text-white font-bold shadow-none">
+        <Button className="bg-success/10 text-success hover:bg-success/10 text-success text-white font-bold shadow-none">
           <Save className="w-4 h-4 mr-2" /> Lưu thay đổi
         </Button>
       </div>
@@ -46,8 +46,8 @@ export default function InstructorSettings() {
             <button
               key={i}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${nav.active
-                  ? "bg-green-600 text-white shadow-md shadow-green-900/20"
-                  : "text-slate-500 hover:bg-slate-100"
+                  ? "bg-success/10 text-success text-white shadow-md shadow-green-900/20"
+                  : "text-muted-foreground hover:bg-secondary"
                 }`}
             >
               <nav.icon className="w-4 h-4" />
@@ -59,54 +59,54 @@ export default function InstructorSettings() {
         {/* Content Area */}
         <div className="lg:col-span-3 space-y-6">
           {/* Profile Section */}
-          <Card className="border-slate-200 shadow-sm">
-            <CardHeader className="border-b border-slate-100">
+          <Card className="border-border shadow-sm">
+            <CardHeader className="border-b border-border">
               <CardTitle className="text-lg font-bold">Thông Tin Cá Nhân</CardTitle>
               <CardDescription>Cập nhật ảnh đại diện và các thông tin cơ bản của bạn.</CardDescription>
             </CardHeader>
             <CardContent className="p-6 space-y-6">
               <div className="flex items-center gap-6">
                 <div className="relative group">
-                  <div className="w-24 h-24 rounded-2xl overflow-hidden border-2 border-slate-100 shadow-sm transition-transform group-hover:scale-105">
+                  <div className="w-24 h-24 rounded-2xl overflow-hidden border-2 border-border shadow-sm transition-transform group-hover:scale-105">
                     <img src="https://i.pravatar.cc/300?u=instructor" alt="Profile" className="w-full h-full object-cover" />
                   </div>
-                  <button className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center border-4 border-white shadow-lg hover:bg-green-700 transition-colors">
+                  <button className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-success/10 text-success text-white flex items-center justify-center border-4 border-white shadow-lg hover:bg-success/10 text-success transition-colors">
                     <Camera className="w-4 h-4" />
                   </button>
                 </div>
                 <div className="flex-1">
-                  <h4 className="font-bold text-slate-800 text-base">Sonny Sangha</h4>
-                  <p className="text-sm text-slate-500 mb-2">Giảng viên xuất sắc • Tham gia từ 2024</p>
+                  <h4 className="font-bold text-foreground text-base">Sonny Sangha</h4>
+                  <p className="text-sm text-muted-foreground mb-2">Giảng viên xuất sắc • Tham gia từ 2024</p>
                   <div className="flex gap-2">
-                    <Button size="sm" variant="outline" className="text-xs h-8 border-slate-200">Thay đổi ảnh</Button>
-                    <Button size="sm" variant="ghost" className="text-xs h-8 text-red-500 hover:bg-red-50">Xóa ảnh</Button>
+                    <Button size="sm" variant="outline" className="text-xs h-8 border-border">Thay đổi ảnh</Button>
+                    <Button size="sm" variant="ghost" className="text-xs h-8 text-error hover:bg-red-50">Xóa ảnh</Button>
                   </div>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
                 <div className="space-y-2">
-                  <label className="text-xs font-black text-slate-400 uppercase tracking-widest pl-1">Họ và tên</label>
-                  <Input defaultValue="Sonny Sangha" className="h-11 border-slate-200 focus:border-green-500" />
+                  <label className="text-xs font-black text-muted-foreground uppercase tracking-widest pl-1">Họ và tên</label>
+                  <Input defaultValue="Sonny Sangha" className="h-11 border-border focus:border-success/20" />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-black text-slate-400 uppercase tracking-widest pl-1">Email</label>
-                  <Input defaultValue="sonny@gnostica.edu.vn" className="h-11 border-slate-200 focus:border-green-500" />
+                  <label className="text-xs font-black text-muted-foreground uppercase tracking-widest pl-1">Email</label>
+                  <Input defaultValue="sonny@gnostica.edu.vn" className="h-11 border-border focus:border-success/20" />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-black text-slate-400 uppercase tracking-widest pl-1">Chức danh / Tiêu đề</label>
-                  <Input defaultValue="Fullstack Developer & Instructor" className="h-11 border-slate-200 focus:border-green-500" />
+                  <label className="text-xs font-black text-muted-foreground uppercase tracking-widest pl-1">Chức danh / Tiêu đề</label>
+                  <Input defaultValue="Fullstack Developer & Instructor" className="h-11 border-border focus:border-success/20" />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-black text-slate-400 uppercase tracking-widest pl-1">Số điện thoại</label>
-                  <Input defaultValue="+84 987 654 321" className="h-11 border-slate-200 focus:border-green-500" />
+                  <label className="text-xs font-black text-muted-foreground uppercase tracking-widest pl-1">Số điện thoại</label>
+                  <Input defaultValue="+84 987 654 321" className="h-11 border-border focus:border-success/20" />
                 </div>
                 <div className="md:col-span-2 space-y-2">
-                  <label className="text-xs font-black text-slate-400 uppercase tracking-widest pl-1">Giới thiệu ngắn (Bio)</label>
+                  <label className="text-xs font-black text-muted-foreground uppercase tracking-widest pl-1">Giới thiệu ngắn (Bio)</label>
                   <Textarea
                     rows={4}
                     defaultValue="Xin chào, tôi là Sonny. Tôi có hơn 10 năm kinh nghiệm trong lĩnh vực lập trình và đã đào tạo hơn 100,000 học viên trên toàn cầu."
-                    className="border-slate-200 focus:border-green-500 resize-none"
+                    className="border-border focus:border-success/20 resize-none"
                   />
                 </div>
               </div>
@@ -114,19 +114,19 @@ export default function InstructorSettings() {
           </Card>
 
           {/* Social Presence */}
-          <Card className="border-slate-200 shadow-sm">
-            <CardHeader className="border-b border-slate-100">
+          <Card className="border-border shadow-sm">
+            <CardHeader className="border-b border-border">
               <CardTitle className="text-lg font-bold">Mạng Xã Hội</CardTitle>
               <CardDescription>Các liên kết hiển thị trên hồ sơ công khai của bạn.</CardDescription>
             </CardHeader>
             <CardContent className="p-6 space-y-4">
               <div className="flex items-center gap-4">
-                <div className="p-3 rounded-lg bg-slate-100 text-slate-600"><Globe className="w-5 h-5" /></div>
-                <Input placeholder="Website cá nhân" className="h-11 border-slate-200" />
+                <div className="p-3 rounded-lg bg-secondary text-muted-foreground"><Globe className="w-5 h-5" /></div>
+                <Input placeholder="Website cá nhân" className="h-11 border-border" />
               </div>
               <div className="flex items-center gap-4">
-                <div className="p-3 rounded-lg bg-blue-50 text-blue-600"><ExternalLink className="w-5 h-5" /></div>
-                <Input placeholder="LinkedIn Profile" className="h-11 border-slate-200" />
+                <div className="p-3 rounded-lg bg-blue-50 text-info"><ExternalLink className="w-5 h-5" /></div>
+                <Input placeholder="LinkedIn Profile" className="h-11 border-border" />
               </div>
             </CardContent>
           </Card>

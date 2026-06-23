@@ -1,6 +1,6 @@
-import axios from 'axios';
+import axiosClient from '@/lib/axiosClient';
 
-const API_URL = 'http://localhost:8080/api/dashboard';
+const API_URL = '/dashboard';
 
 const getAuthHeaders = () => {
     const userStr = localStorage.getItem('user');
@@ -18,35 +18,35 @@ const getAuthHeaders = () => {
 };
 
 const getStats = async () => {
-    const response = await axios.get(`${API_URL}/stats`, {
+    const response = await axiosClient.get(`${API_URL}/stats`, {
         headers: getAuthHeaders()
     });
     return response.data.data;
 };
 
 const getMemberGrowth = async () => {
-    const response = await axios.get(`${API_URL}/member-growth`, {
+    const response = await axiosClient.get(`${API_URL}/member-growth`, {
         headers: getAuthHeaders()
     });
     return response.data.data;
 };
 
 const getRevenue = async () => {
-    const response = await axios.get(`${API_URL}/revenue`, {
+    const response = await axiosClient.get(`${API_URL}/revenue`, {
         headers: getAuthHeaders()
     });
     return response.data.data;
 };
 
 const getRecentOrders = async () => {
-    const response = await axios.get(`${API_URL}/recent-orders`, {
+    const response = await axiosClient.get(`${API_URL}/recent-orders`, {
         headers: getAuthHeaders()
     });
     return response.data.data;
 };
 
 const getTopCourses = async () => {
-    const response = await axios.get(`${API_URL}/top-courses`, {
+    const response = await axiosClient.get(`${API_URL}/top-courses`, {
         headers: getAuthHeaders()
     });
     return response.data.data;

@@ -16,4 +16,7 @@ public class LoginResponse {
     private String fullName;
     private String role;
     private String avatar;
+    private String provider;
+    private Boolean onboardingCompleted;
+    private Integer id;
 }

@@ -24,7 +24,7 @@ export default function AdminSettings() {
       <SettingsHeader onSave={handleSave} isSaving={isSaving} />
 
       <Tabs defaultValue="general" className="w-full">
-        <TabsList className="bg-slate-100/50 border border-slate-200 p-1 mb-6">
+        <TabsList className="bg-secondary border border-border p-1 mb-6">
           <TabsTrigger value="general" className="gap-2 data-active:bg-white data-active:shadow-sm">
             <Globe className="w-4 h-4" />
             Cài đặt chung

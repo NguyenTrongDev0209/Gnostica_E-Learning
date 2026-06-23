@@ -36,7 +36,7 @@ export default function InfrastructureMonitor() {
     const stompClientRef = useRef(null);
 
     useEffect(() => {
-        const socket = new SockJS("http://localhost:8080/ws");
+        const socket = new SockJS(import.meta.env.VITE_WS_URL || "http://localhost:8080/ws");
         const stompClient = Stomp.over(socket);
         stompClient.debug = null; // Disable logging to console
 
@@ -85,21 +85,21 @@ export default function InfrastructureMonitor() {
     return (
         <div className="space-y-4 pt-10">
             <div>
-                <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                    <span className="w-1.5 h-6 bg-slate-800 rounded-full"></span>
+                <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
+                    <span className="w-1.5 h-6 bg-muted rounded-full"></span>
                     Giám Sát Cơ Sở Hạ Tầng (Live)
                 </h2>
-                <p className="text-sm text-slate-500 mt-1 pl-3.5">Quản lý sức khỏe máy chủ và lượng truy cập thực tế qua WebSocket</p>
+                <p className="text-sm text-muted-foreground mt-1 pl-3.5">Quản lý sức khỏe máy chủ và lượng truy cập thực tế qua WebSocket</p>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pb-2">
-                <Card className="lg:col-span-2 border-slate-200 shadow-sm flex flex-col">
-                    <CardHeader className="pb-2 border-b border-slate-100 flex flex-row items-center justify-between">
+                <Card className="lg:col-span-2 border-border shadow-sm flex flex-col">
+                    <CardHeader className="pb-2 border-b border-border flex flex-row items-center justify-between">
                         <div>
-                            <CardTitle className="text-lg font-bold text-slate-900">Tài Nguyên Máy Chủ</CardTitle>
+                            <CardTitle className="text-lg font-bold text-foreground">Tài Nguyên Máy Chủ</CardTitle>
                             <CardDescription>Tiêu thụ CPU và RAM (Cập nhật thời gian thực)</CardDescription>
                         </div>
-                        <Server className="w-5 h-5 text-slate-400" />
+                        <Server className="w-5 h-5 text-muted-foreground" />
                     </CardHeader>
                     <CardContent className="pt-4 flex-1">
                         <ChartContainer config={resourceConfig} className="h-[240px] w-full">
@@ -126,44 +126,44 @@ export default function InfrastructureMonitor() {
                     </CardContent>
                 </Card>
 
-                <Card className="lg:col-span-1 border-slate-200 shadow-sm flex flex-col">
-                    <CardHeader className="flex flex-row items-center justify-between pb-2 border-b border-slate-100">
-                        <CardTitle className="text-lg font-bold text-slate-900">Chi Tiết Hạ Tầng</CardTitle>
-                        <Activity className="w-5 h-5 text-slate-400" />
+                <Card className="lg:col-span-1 border-border shadow-sm flex flex-col">
+                    <CardHeader className="flex flex-row items-center justify-between pb-2 border-b border-border">
+                        <CardTitle className="text-lg font-bold text-foreground">Chi Tiết Hạ Tầng</CardTitle>
+                        <Activity className="w-5 h-5 text-muted-foreground" />
                     </CardHeader>
                     <CardContent className="pt-6 flex-1 flex flex-col gap-6">
                         <div className="space-y-5">
                             {[
-                                { label: "CPU Usage Hiện Tại", value: liveMetrics.cpu, color: "bg-blue-500" },
+                                { label: "CPU Usage Hiện Tại", value: liveMetrics.cpu, color: "bg-info/10 text-info" },
                                 { label: "RAM Usage Hiện Tại", value: liveMetrics.ram, color: "bg-amber-500" },
                             ].map((item) => (
                                 <div key={item.label} className="space-y-1.5">
                                     <div className="flex justify-between text-sm">
-                                        <span className="font-medium text-slate-600">{item.label}</span>
-                                        <span className="font-bold text-slate-900">{item.value}%</span>
+                                        <span className="font-medium text-muted-foreground">{item.label}</span>
+                                        <span className="font-bold text-foreground">{item.value}%</span>
                                     </div>
-                                    <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                                    <div className="h-2 bg-secondary rounded-full overflow-hidden">
                                         <div className={`h-full ${item.color} rounded-full transition-all duration-500`} style={{ width: `${item.value}%` }} />
                                     </div>
                                 </div>
                             ))}
                             <div className="space-y-1.5">
                                 <div className="flex justify-between text-sm">
-                                    <span className="font-medium text-slate-600">CCU (Online)</span>
-                                    <span className="font-bold text-slate-900">{liveMetrics.ccu}</span>
+                                    <span className="font-medium text-muted-foreground">CCU (Online)</span>
+                                    <span className="font-bold text-foreground">{liveMetrics.ccu}</span>
                                 </div>
-                                <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                                <div className="h-2 bg-secondary rounded-full overflow-hidden">
                                     <div className={`h-full bg-indigo-500 rounded-full transition-all duration-500`} style={{ width: `${(liveMetrics.ccu / 5000) * 100}%` }} />
                                 </div>
                             </div>
                         </div>
 
-                        <div className="mt-auto p-4 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
+                        <div className="mt-auto p-4 bg-muted rounded-xl border border-border flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                                <div className={`w-3 h-3 rounded-full ${status === "OK" ? "bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]" : "bg-red-500"}`} />
+                                <div className={`w-3 h-3 rounded-full ${status === "OK" ? "bg-success/10 text-success animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]" : "bg-error/10 text-error"}`} />
                                 <div>
-                                    <p className="text-sm font-bold text-slate-900">System Status: {status}</p>
-                                    <p className="text-xs text-slate-500 mt-0.5">WebSocket Live Stream</p>
+                                    <p className="text-sm font-bold text-foreground">System Status: {status}</p>
+                                    <p className="text-xs text-muted-foreground mt-0.5">WebSocket Live Stream</p>
                                 </div>
                             </div>
                         </div>
@@ -171,9 +171,9 @@ export default function InfrastructureMonitor() {
                 </Card>
             </div>
 
-            <Card className="border-slate-200 shadow-sm flex flex-col">
-                <CardHeader className="pb-2 border-b border-slate-100">
-                    <CardTitle className="text-lg font-bold text-slate-900">CCU (Concurrent Users) - Realtime</CardTitle>
+            <Card className="border-border shadow-sm flex flex-col">
+                <CardHeader className="pb-2 border-b border-border">
+                    <CardTitle className="text-lg font-bold text-foreground">CCU (Concurrent Users) - Realtime</CardTitle>
                 </CardHeader>
                 <CardContent className="pt-4 flex-1">
                     <ChartContainer config={ccuConfig} className="h-[240px] w-full">

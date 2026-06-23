@@ -6,13 +6,17 @@ import com.gnostica.model.Role;
 import com.gnostica.payload.request.InstructorApplicationRequest;
 import com.gnostica.payload.request.RejectApplicationRequest;
 import com.gnostica.payload.response.InstructorApplicationResponse;
+import com.gnostica.model.Instructor;
 import com.gnostica.repository.AccountRepository;
 import com.gnostica.repository.InstructorApplicationRepository;
+import com.gnostica.repository.InstructorRepository;
 import com.gnostica.repository.RoleRepository;
 import com.gnostica.service.InstructorApplicationService;
 import com.gnostica.service.MailService;
+import com.gnostica.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -24,8 +28,10 @@ public class InstructorApplicationServiceImpl implements InstructorApplicationSe
 
     private final InstructorApplicationRepository applicationRepository;
     private final AccountRepository accountRepository;
+    private final InstructorRepository instructorRepository;
     private final RoleRepository roleRepository;
     private final MailService mailService;
+    private final NotificationService notificationService;
 
     @Override
     public void submitApplication(String email, InstructorApplicationRequest request) {
@@ -35,7 +41,7 @@ public class InstructorApplicationServiceImpl implements InstructorApplicationSe
         // Check if there is already a pending or approved application
         applicationRepository.findByAccount_Id(account.getId()).ifPresent(app -> {
             if ("PENDING".equals(app.getStatus())) {
-                throw new RuntimeException("You already have a pending application.");
+                throw new RuntimeException("Bạn đã gửi yêu cầu xét duyệt rồi.");
             } else if ("APPROVED".equals(app.getStatus())) {
                 throw new RuntimeException("You are already an approved instructor.");
             }
@@ -88,9 +94,26 @@ public class InstructorApplicationServiceImpl implements InstructorApplicationSe
         account.setRole(role);
         accountRepository.save(account);
 
+        // Create or Update Instructor record
+        Instructor instructor = instructorRepository.findByAccountId(account.getId())
+                .orElse(new Instructor());
+        
+        instructor.setAccount(account);
+        instructor.setFullName(account.getFullName());
+        instructor.setEmail(account.getEmail());
+        instructor.setPhone(application.getContactPhone());
+        instructor.setStatus(1); // Active
+        instructor.setCreatedAt(LocalDateTime.now());
+        instructor.setTicked(false);
+        // Bio can be default or empty for now, or extracted from somewhere if available
+        
+        instructorRepository.save(instructor);
+
         try {
             mailService.sendEmail(account.getEmail(), "Đơn đăng ký giảng viên được chấp thuận",
                     "Chúc mừng! Đơn đăng ký giảng viên của bạn đã được chấp thuận. Bạn có thể bắt đầu tạo khóa học ngay bây giờ.");
+            notificationService.createNotification(account, "Đơn đăng ký được phê duyệt", 
+                    "Chúc mừng! Đơn đăng ký giảng viên của bạn đã được chấp thuận.", "SYSTEM");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -112,6 +135,8 @@ public class InstructorApplicationServiceImpl implements InstructorApplicationSe
         try {
             mailService.sendEmail(application.getAccount().getEmail(), "Thông báo về đơn đăng ký giảng viên",
                     "Rất tiếc, đơn đăng ký làm giảng viên của bạn đã bị từ chối.<br/><strong>Lý do:</strong> " + request.getReason());
+            notificationService.createNotification(application.getAccount(), "Đơn đăng ký bị từ chối", 
+                    "Rất tiếc, đơn đăng ký làm giảng viên của bạn đã bị từ chối. Lý do: " + request.getReason(), "SYSTEM");
         } catch (Exception e) {
             e.printStackTrace();
         }

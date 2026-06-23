@@ -29,6 +29,15 @@ public class EnrollmentController {
         return ResponseEntity.ok(ApiResponse.success(myCourses));
     }
 
+    @GetMapping("/stats")
+    public ResponseEntity<?> getMyStats(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).body(Map.of("error", "Vui lòng đăng nhập để xem thống kê học tập"));
+        }
+        String email = authentication.getName();
+        return ResponseEntity.ok(ApiResponse.success(enrollmentService.getStudentStats(email)));
+    }
+
     @GetMapping("/check/{courseSlug}")
     public ResponseEntity<?> checkEnrollment(@PathVariable String courseSlug, Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {

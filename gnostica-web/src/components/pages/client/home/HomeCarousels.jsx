@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Star } from "lucide-react";
 import AppCard from "@/components/common/AppCard";
 import AppSection from "@/components/common/AppSection";
-import { featuredCoursesMock } from "@/mocks/courses";
+import { featuredCoursesMock } from "@/apiMocks/courses";
 
 // Dữ liệu slide kèm theo class màu gradient riêng cho từng ảnh
 const slides = [
@@ -281,7 +281,7 @@ export function TestimonialCarousel() {
 
   const titleNode = (
     <span>
-      <span className="text-orange-500">Học viên</span> nói gì!
+      <span className="text-warning">Học viên</span> nói gì!
     </span>
   );
 
@@ -290,7 +290,7 @@ export function TestimonialCarousel() {
       title={titleNode}
       description="Khám phá hành trình thay đổi của những học viên đã tin tưởng và đồng hành cùng Gnostica."
       centered={true}
-      className="py-8 md:py-12 bg-slate-50/50 dark:bg-transparent"
+      className="py-8 md:py-12 bg-muted dark:bg-transparent"
       containerClassName="relative w-full px-2 md:px-12 pt-4"
     >
       <Carousel
@@ -323,7 +323,7 @@ export function TestimonialCarousel() {
                           className="w-14 h-14 rounded-full object-cover border-2 border-white shadow-sm"
                         />
                         <div>
-                          <h4 className={`text-base font-bold mb-0.5 ${isActive ? 'text-orange-500' : 'text-neutral-800 dark:text-neutral-200'}`}>
+                          <h4 className={`text-base font-bold mb-0.5 ${isActive ? 'text-warning' : 'text-neutral-800 dark:text-neutral-200'}`}>
                             {testimonial.name}
                           </h4>
                           <p className="text-xs text-neutral-500">{testimonial.role}</p>
@@ -340,7 +340,7 @@ export function TestimonialCarousel() {
                             key={i}
                             size={16}
                             strokeWidth={i < testimonial.rating ? 0 : 2}
-                            className={i < testimonial.rating ? "fill-orange-400 text-orange-400" : "text-neutral-300"}
+                            className={i < testimonial.rating ? "fill-orange-400 text-warning" : "text-neutral-300"}
                           />
                         ))}
                       </div>
@@ -352,8 +352,8 @@ export function TestimonialCarousel() {
           })}
         </CarouselContent>
 
-        <CarouselPrevious className="hidden md:flex -left-2 lg:left-4 bg-white shadow-xl border-none hover:bg-orange-50 hover:text-orange-500 hover:scale-110 transition-all w-12 h-12 z-40 text-neutral-400" />
-        <CarouselNext className="hidden md:flex -right-2 lg:right-4 bg-white shadow-xl border-none hover:bg-orange-50 hover:text-orange-500 hover:scale-110 transition-all w-12 h-12 z-40 text-neutral-400" />
+        <CarouselPrevious className="hidden md:flex -left-2 lg:left-4 bg-white shadow-xl border-none hover:bg-orange-50 hover:text-warning hover:scale-110 transition-all w-12 h-12 z-40 text-neutral-400" />
+        <CarouselNext className="hidden md:flex -right-2 lg:right-4 bg-white shadow-xl border-none hover:bg-orange-50 hover:text-warning hover:scale-110 transition-all w-12 h-12 z-40 text-neutral-400" />
       </Carousel>
     </AppSection>
   );

@@ -1,6 +1,6 @@
-import axios from 'axios';
+import axiosClient from '@/lib/axiosClient';
 
-const API_URL = 'http://localhost:8080/api/coupons';
+const API_URL = '/coupons';
 
 const getAuthHeaders = () => {
     const userStr = localStorage.getItem('user');
@@ -18,42 +18,42 @@ const getAuthHeaders = () => {
 };
 
 const createCoupon = async (data) => {
-    const response = await axios.post(API_URL, data, {
+    const response = await axiosClient.post(API_URL, data, {
         headers: getAuthHeaders()
     });
     return response.data;
 };
 
 const getCoupons = async () => {
-    const response = await axios.get(API_URL, {
+    const response = await axiosClient.get(API_URL, {
         headers: getAuthHeaders()
     });
     return response.data;
 };
 
 const getMyCoupons = async () => {
-    const response = await axios.get(`${API_URL}/me`, {
+    const response = await axiosClient.get(`${API_URL}/me`, {
         headers: getAuthHeaders()
     });
     return response.data;
 };
 
 const deleteCoupon = async (id) => {
-    const response = await axios.delete(`${API_URL}/${id}`, {
+    const response = await axiosClient.delete(`${API_URL}/${id}`, {
         headers: getAuthHeaders()
     });
     return response.data;
 };
 
 const validateCoupon = async (code) => {
-    const response = await axios.get(`${API_URL}/validate/${code}`, {
+    const response = await axiosClient.get(`${API_URL}/validate/${code}`, {
         headers: getAuthHeaders()
     });
     return response.data;
 };
 
 const updateCouponStatus = async (id, status) => {
-    const response = await axios.put(`${API_URL}/${id}/status`, null, {
+    const response = await axiosClient.put(`${API_URL}/${id}/status`, null, {
         params: { status },
         headers: getAuthHeaders()
     });

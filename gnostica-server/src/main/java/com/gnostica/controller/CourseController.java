@@ -1,8 +1,11 @@
 package com.gnostica.controller;
 
 import com.gnostica.dto.request.CourseRequest;
+import com.gnostica.dto.response.*;
 import com.gnostica.model.Course;
 import com.gnostica.service.CourseService;
+import com.gnostica.service.BunnyTranscriptionService;
+import com.gnostica.service.AiModerationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +22,8 @@ import java.util.Map;
 public class CourseController {
 
     private final CourseService courseService;
+    private final BunnyTranscriptionService bunnyTranscriptionService;
+    private final AiModerationService aiModerationService;
     
     @GetMapping
     public ResponseEntity<?> getPublicCourses(
@@ -29,6 +34,11 @@ public class CourseController {
             @RequestParam(defaultValue = "9") int size
     ) {
         return ResponseEntity.ok(courseService.getPublicCourses(categoryId, categorySlug, level, page, size));
+    }
+
+    @GetMapping("/public-levels")
+    public ResponseEntity<java.util.List<String>> getPublicLevels() {
+        return ResponseEntity.ok(courseService.getPublicLevels());
     }
 
     @PostMapping
@@ -52,7 +62,7 @@ public class CourseController {
         }
     }
     @GetMapping("/{slug}")
-    public ResponseEntity<Course> getCourseDetail(
+    public ResponseEntity<CourseDetailResponse> getCourseDetail(
             @PathVariable String slug,
             Authentication authentication
     ) {
@@ -68,7 +78,7 @@ public class CourseController {
     ) {
         String email = authentication.getName();
         try {
-            Course updatedCourse = courseService.updateCourseBySlug(slug, request, email);
+            CourseDetailResponse updatedCourse = courseService.updateCourseBySlug(slug, request, email);
             return ResponseEntity.ok(updatedCourse);
         } catch (Exception e) {
             Map<String, Object> error = new HashMap<>();
@@ -94,12 +104,15 @@ public class CourseController {
 
     @GetMapping("/instructor")
     public ResponseEntity<?> getInstructorCourses(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) Integer categoryId,
+            @RequestParam(required = false) Integer status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             Authentication authentication
     ) {
         String email = authentication.getName();
-        return ResponseEntity.ok(courseService.getInstructorCourses(email, page, size));
+        return ResponseEntity.ok(courseService.getInstructorCourses(email, search, categoryId, status, page, size));
     }
 
     @PatchMapping("/{id}/status")
@@ -114,10 +127,57 @@ public class CourseController {
             return ResponseEntity.badRequest().body(Map.of("error", "Vui lòng cung cấp trạng thái mới"));
         }
         try {
-            Course updated = courseService.patchCourseStatus(id, newStatus, email);
+            CourseDetailResponse updated = courseService.patchCourseStatus(id, newStatus, email);
             return ResponseEntity.ok(updated);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
+    }
+
+    @GetMapping("/lessons/check-subtitle/{videoId}")
+    public ResponseEntity<Map<String, Object>> checkSubtitleStatus(@PathVariable String videoId) {
+        String subtitle = bunnyTranscriptionService.fetchSubtitleVtt(videoId);
+        Map<String, Object> response = new HashMap<>();
+        response.put("ready", subtitle != null);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/ai-pre-scan-text")
+    public ResponseEntity<String> preScanText(@RequestBody Map<String, String> body) {
+        String title = body.get("title");
+        String description = body.get("description");
+        
+        String resultJson = aiModerationService.preScanCourseText(title, description);
+        return ResponseEntity.ok(resultJson);
+    }
+
+    @PostMapping("/ai-pre-scan-video")
+    public ResponseEntity<String> preScanVideo(@RequestBody Map<String, String> body) {
+        String videoUrl = body.get("videoUrl");
+        String resultJson = aiModerationService.preScanVideoContent(videoUrl);
+        return ResponseEntity.ok(resultJson);
+    }
+
+    @PostMapping("/get-video-transcript")
+    public ResponseEntity<Map<String, String>> getVideoTranscript(@RequestBody Map<String, String> body) {
+        String videoUrl = body.get("videoUrl");
+        String transcript = aiModerationService.getVideoTranscriptText(videoUrl);
+        
+        Map<String, String> response = new HashMap<>();
+        response.put("transcript", transcript);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/recommendations")
+    public ResponseEntity<?> getRecommendedCourses(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            Authentication authentication
+    ) {
+        if (authentication == null) {
+            return ResponseEntity.status(401).body(Map.of("error", "Vui lòng đăng nhập để nhận gợi ý"));
+        }
+        String email = authentication.getName();
+        return ResponseEntity.ok(courseService.getRecommendedCourses(email, page, size));
     }
 }

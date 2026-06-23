@@ -35,7 +35,24 @@ public class CloudinaryService {
 
         return uploadResult.get("secure_url").toString();
     }
-    
+
+    public String uploadAvatar(MultipartFile file) throws IOException {
+        String uniqueIdentifier = UUID.randomUUID().toString();
+        
+        Map<?, ?> uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap(
+                "folder", "gnostica_avatars",
+                "public_id", "avatar_" + uniqueIdentifier,
+                "gravity", "face",
+                "height", 500,
+                "width", 500,
+                "crop", "thumb",
+                "quality", "auto",
+                "fetch_format", "auto"
+        ));
+
+        return uploadResult.get("secure_url").toString();
+    }
+
     public String uploadDocument(MultipartFile file) throws IOException {
         String uniqueIdentifier = UUID.randomUUID().toString();
         String originalFilename = file.getOriginalFilename();

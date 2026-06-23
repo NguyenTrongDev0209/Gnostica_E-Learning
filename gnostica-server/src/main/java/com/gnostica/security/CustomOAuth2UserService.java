@@ -1,10 +1,15 @@
 package com.gnostica.security;
 
 import java.util.Optional;
+import java.util.Set;
+import java.util.HashSet;
 
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
@@ -37,9 +42,10 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             System.out.println("DEBUG: Looking for account with email: " + email);
             Optional<Account> accountOptional = accountRepository.findByEmail(email);
             
+            Account account;
             if (accountOptional.isEmpty()) {
                 System.out.println("DEBUG: Account not found, creating new one...");
-                Account account = new Account();
+                account = new Account();
                 account.setEmail(email);
                 account.setFullName(name);
                 account.setProvider(provider);
@@ -57,11 +63,11 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                            });
                         });
                 account.setRole(defaultRole);
-                accountRepository.save(account);
+                account = accountRepository.save(account);
                 System.out.println("SUCCESS: New account saved to DB for: " + email);
             } else {
                 System.out.println("DEBUG: Account already exists, checking linkage and updating meta...");
-                Account account = accountOptional.get();
+                account = accountOptional.get();
                 
                 // Kiểm tra khóa tài khoản
                 if (Boolean.TRUE.equals(account.getLocked())) {
@@ -87,11 +93,23 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 }
 
                 account.setActive(true);
-                accountRepository.save(account);
+                account = accountRepository.save(account);
                 System.out.println("SUCCESS: Existing account verified for: " + email);
             }
             
-            return oAuth2User;
+            // Map roles from database to authorities
+            Set<GrantedAuthority> authorities = new HashSet<>(oAuth2User.getAuthorities());
+            if (account.getRole() != null) {
+                String roleName = account.getRole().getName().toUpperCase();
+                authorities.add(new SimpleGrantedAuthority(roleName));
+                authorities.add(new SimpleGrantedAuthority("ROLE_" + roleName));
+            }
+
+            return new DefaultOAuth2User(
+                authorities, 
+                oAuth2User.getAttributes(), 
+                userRequest.getClientRegistration().getProviderDetails().getUserInfoEndpoint().getUserNameAttributeName()
+            );
         } catch (org.springframework.security.core.AuthenticationException e) {
             throw e;
         } catch (Exception e) {

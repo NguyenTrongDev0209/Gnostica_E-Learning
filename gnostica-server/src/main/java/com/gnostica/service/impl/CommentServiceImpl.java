@@ -3,9 +3,14 @@ package com.gnostica.service.impl;
 import com.gnostica.model.Account;
 import com.gnostica.model.Comment;
 import com.gnostica.model.Thread;
+import com.gnostica.model.Lesson;
+import com.gnostica.model.Course;
+import com.gnostica.model.Enrollment;
 import com.gnostica.repository.AccountRepository;
 import com.gnostica.repository.CommentRepository;
 import com.gnostica.repository.ThreadRepository;
+import com.gnostica.repository.LessonRepository;
+import com.gnostica.repository.EnrollmentRepository;
 import com.gnostica.service.CommentService;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +31,12 @@ public class CommentServiceImpl implements CommentService {
     @Autowired
     private ThreadRepository threadRepository;
 
+    @Autowired
+    private LessonRepository lessonRepository;
+
+    @Autowired
+    private EnrollmentRepository enrollmentRepository;
+
     @Override
     public List<Comment> getCommentsByObjectId(String objectId) {
         return commentRepository.findByObjectIdAndParentIsNullOrderByCreatedAtDesc(objectId);
@@ -36,6 +47,30 @@ public class CommentServiceImpl implements CommentService {
     public Comment addComment(String content, String objectId, String userEmail, Integer parentId) {
         Account account = accountRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException("Account not found"));
+
+        // Backend Security: Bắt buộc học viên đã mua khóa học mới được comment vào "lesson_xxx"
+        if (objectId != null && objectId.startsWith("lesson_")) {
+            try {
+                Integer lessonId = Integer.parseInt(objectId.replace("lesson_", ""));
+                Lesson lesson = lessonRepository.findById(lessonId)
+                        .orElseThrow(() -> new RuntimeException("Không tìm thấy bài học"));
+                
+                Course course = lesson.getModule().getCourse();
+                
+                boolean isInstructor = course.getAccount().getId().equals(account.getId());
+                boolean isAdmin = "ADMIN".equals(account.getRole().getName());
+                
+                if (!isInstructor && !isAdmin) {
+                    Optional<Enrollment> enrollment = enrollmentRepository.findByAccountAndCourse(account, course);
+                    if (enrollment.isEmpty()) {
+                        throw new RuntimeException("Bạn phải mua khóa học để được bình luận trong bài học này.");
+                    }
+                }
+            } catch (NumberFormatException e) {
+                // Invalid lesson ID format
+                throw new RuntimeException("ID bài học không hợp lệ.");
+            }
+        }
 
         Comment comment = new Comment();
         comment.setContent(content);

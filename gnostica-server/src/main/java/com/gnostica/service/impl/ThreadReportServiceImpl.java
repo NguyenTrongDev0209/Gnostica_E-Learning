@@ -59,14 +59,16 @@ public class ThreadReportServiceImpl implements ThreadReportService {
     public ThreadReportResponse updateReportStatus(Integer id, String status) {
         ThreadReport report = threadReportRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Report not found"));
+        
         report.setStatus(status);
         
-        // Nếu duyệt báo cáo là đúng (RESOLVED), ẩn bài viết liên quan
+        Thread thread = report.getThread();
         if ("RESOLVED".equals(status)) {
-            Thread thread = report.getThread();
             thread.setStatus(false);
-            threadRepository.save(thread);
+        } else {
+            thread.setStatus(true);
         }
+        threadRepository.save(thread);
         
         ThreadReport savedReport = threadReportRepository.save(report);
         return mapToResponse(savedReport);

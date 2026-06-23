@@ -97,6 +97,9 @@ public class ThreadController {
         try {
             String userEmail = payload.get("userEmail");
             if (userEmail == null || userEmail.isEmpty()) {
+                userEmail = payload.get("email");
+            }
+            if (userEmail == null || userEmail.isEmpty()) {
                 return ResponseEntity.badRequest().body("Lỗi: Yêu cầu cung cấp Email người dùng!");
             }
             return ResponseEntity.ok(threadService.likeThread(id, userEmail));
@@ -174,6 +177,29 @@ public class ThreadController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error deleting thread: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/pending")
+    public ResponseEntity<?> getPendingThreads(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "15") int size) {
+        try {
+            Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+            return ResponseEntity.ok(threadService.getPendingThreads(pageable));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error fetching pending threads: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/{id}/approve")
+    public ResponseEntity<?> approveThread(@PathVariable Integer id) {
+        try {
+            return ResponseEntity.ok(threadService.approveThread(id));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error approving thread: " + e.getMessage());
         }
     }
 }

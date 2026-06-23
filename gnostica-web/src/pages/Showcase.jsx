@@ -377,10 +377,10 @@ const Showcase = () => {
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-50/50">
+    <div className="flex min-h-screen bg-muted">
       <aside className="fixed left-0 top-0 hidden h-full w-64 border-r bg-white p-6 md:block">
         <div className="mb-8 flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900 text-white">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted text-white">
             <LayoutDashboard className="h-5 w-5" />
           </div>
           <span className="text-xl font-bold tracking-tight">UI Showcase</span>
@@ -392,8 +392,8 @@ const Showcase = () => {
                 key={section.id}
                 onClick={() => scrollToSection(section.id)}
                 className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${activeSection === section.id
-                  ? "bg-slate-900 text-white shadow-lg"
-                  : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+                  ? "bg-muted text-white shadow-lg"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
                   }`}
               >
                 {section.icon}
@@ -416,10 +416,10 @@ const Showcase = () => {
         <div className="container mx-auto max-w-5xl px-6 py-12">
           <header className="mb-16">
             <Badge variant="secondary" className="mb-4">Full Shadcn UI</Badge>
-            <h1 className="text-4xl font-extrabold tracking-tight text-slate-900">
+            <h1 className="text-4xl font-extrabold tracking-tight text-foreground">
               Complete Component Showcase
             </h1>
-            <p className="mt-4 text-lg text-slate-500">
+            <p className="mt-4 text-lg text-muted-foreground">
               Tất cả các thành phần Shadcn UI đã được khôi phục và tổ chức lại một cách khoa học.
             </p>
           </header>
@@ -744,8 +744,8 @@ const Showcase = () => {
                           <NavigationMenuTrigger>Resources</NavigationMenuTrigger>
                           <NavigationMenuContent>
                             <ul className="grid w-[400px] gap-3 p-4">
-                              <li className="p-3 hover:bg-slate-50 rounded-md">Installation Guide</li>
-                              <li className="p-3 hover:bg-slate-50 rounded-md">Theming docs</li>
+                              <li className="p-3 hover:bg-muted rounded-md">Installation Guide</li>
+                              <li className="p-3 hover:bg-muted rounded-md">Theming docs</li>
                             </ul>
                           </NavigationMenuContent>
                         </NavigationMenuItem>
@@ -771,7 +771,7 @@ const Showcase = () => {
                   <TabsTrigger value="t2">Technical Details</TabsTrigger>
                 </TabsList>
                 <TabsContent value="t1" className="pt-4">
-                  <Card className="border-none bg-slate-50"><CardContent className="pt-6">Product overview and key benefits showing here.</CardContent></Card>
+                  <Card className="border-none bg-muted"><CardContent className="pt-6">Product overview and key benefits showing here.</CardContent></Card>
                 </TabsContent>
               </Tabs>
               
@@ -825,7 +825,7 @@ const Showcase = () => {
                 <Card className="p-6 space-y-4">
                   <div className="flex items-center gap-4">
                     <Avatar><AvatarImage src="https://github.com/shadcn.png" /><AvatarFallback>CN</AvatarFallback></Avatar>
-                    <div><div className="font-bold text-sm">Design System</div><div className="text-xs text-slate-400">@shadcn</div></div>
+                    <div><div className="font-bold text-sm">Design System</div><div className="text-xs text-muted-foreground">@shadcn</div></div>
                   </div>
                   <Progress value={78} />
                   <div className="flex gap-2"><Skeleton className="h-10 w-full" /><Skeleton className="h-10 w-24" /></div>
@@ -951,9 +951,9 @@ const Showcase = () => {
                     <CarouselContent>
                       {[1, 2, 3].map((i) => (
                         <CarouselItem key={i}>
-                          <div className="aspect-video bg-slate-100 flex items-center justify-center rounded-xl">
+                          <div className="aspect-video bg-secondary flex items-center justify-center rounded-xl">
                             <ImageIcon className="w-12 h-12 text-slate-300 mr-2" />
-                            <span className="text-xl font-bold text-slate-400">Slide {i}</span>
+                            <span className="text-xl font-bold text-muted-foreground">Slide {i}</span>
                           </div>
                         </CarouselItem>
                       ))}
@@ -975,7 +975,7 @@ const Showcase = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="w-full overflow-hidden rounded-md border">
-                    <AspectRatio ratio={16 / 9} className="bg-slate-100 flex items-center justify-center">
+                    <AspectRatio ratio={16 / 9} className="bg-secondary flex items-center justify-center">
                       <ImageIcon className="h-12 w-12 text-slate-300" />
                     </AspectRatio>
                   </div>
@@ -1040,7 +1040,7 @@ const Showcase = () => {
                   <CardHeader><CardTitle>Resizable Layout</CardTitle></CardHeader>
                   <CardContent>
                     <ResizablePanelGroup direction="horizontal" className="min-h-[150px] w-full rounded-lg border">
-                      <ResizablePanel defaultSize={25}><div className="flex h-full items-center justify-center p-6 bg-slate-50 text-xs">Side</div></ResizablePanel>
+                      <ResizablePanel defaultSize={25}><div className="flex h-full items-center justify-center p-6 bg-muted text-xs">Side</div></ResizablePanel>
                       <ResizableHandle withHandle /><ResizablePanel defaultSize={75}><div className="flex h-full items-center justify-center p-6 text-xs">Main</div></ResizablePanel>
                     </ResizablePanelGroup>
                   </CardContent>
@@ -1053,7 +1053,7 @@ const Showcase = () => {
                       <HoverCardContent className="w-80">
                          <div className="flex justify-between space-x-4">
                             <Avatar><AvatarFallback>VC</AvatarFallback></Avatar>
-                            <div className="space-y-1"><h4 className="text-sm font-semibold">@shadcn</h4><p className="text-sm text-slate-500 underline">Radix-UI and Tailwind.</p></div>
+                            <div className="space-y-1"><h4 className="text-sm font-semibold">@shadcn</h4><p className="text-sm text-muted-foreground underline">Radix-UI and Tailwind.</p></div>
                           </div>
                       </HoverCardContent>
                     </HoverCard>

@@ -7,9 +7,31 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface CourseRepository extends JpaRepository<Course, Integer> {
     org.springframework.data.domain.Page<Course> findByAccountEmailAndDeletedFalse(String email, org.springframework.data.domain.Pageable pageable);
-    java.util.Optional<Course> findBySlug(String slug);
-    boolean existsBySlug(String slug);
-    boolean existsBySlugAndIdNot(String slug, Integer id);
+    java.util.Optional<Course> findFirstBySlugAndDeletedFalseOrderByIdDesc(String slug);
+    boolean existsBySlugAndDeletedFalse(String slug);
+    boolean existsBySlugAndIdNotAndDeletedFalse(String slug, Integer id);
+    
+    @org.springframework.data.jpa.repository.Query("SELECT COUNT(c) > 0 FROM Course c WHERE c.promoVideo = :promoVideo AND (c.deleted = false OR c.deleted IS NULL)")
+    boolean existsByPromoVideo(@org.springframework.data.repository.query.Param("promoVideo") String promoVideo);
+    
+    @org.springframework.data.jpa.repository.Query(
+        value = "SELECT c FROM Course c LEFT JOIN c.category cat LEFT JOIN cat.parent p WHERE c.account.email = :email " +
+                "AND (CAST(:search AS String) IS NULL OR LOWER(c.title) LIKE :search) " +
+                "AND (:categoryId IS NULL OR cat.id = :categoryId OR p.id = :categoryId) " +
+                "AND (:status IS NULL OR c.status = :status) " +
+                "AND (c.deleted = false OR c.deleted IS NULL)",
+        countQuery = "SELECT COUNT(c) FROM Course c LEFT JOIN c.category cat LEFT JOIN cat.parent p WHERE c.account.email = :email " +
+                     "AND (CAST(:search AS String) IS NULL OR LOWER(c.title) LIKE :search) " +
+                     "AND (:categoryId IS NULL OR cat.id = :categoryId OR p.id = :categoryId) " +
+                     "AND (:status IS NULL OR c.status = :status) " +
+                     "AND (c.deleted = false OR c.deleted IS NULL)"
+    )
+    org.springframework.data.domain.Page<Course> findInstructorCourses(
+            @org.springframework.data.repository.query.Param("email") String email,
+            @org.springframework.data.repository.query.Param("search") String search,
+            @org.springframework.data.repository.query.Param("categoryId") Integer categoryId,
+            @org.springframework.data.repository.query.Param("status") Integer status,
+            org.springframework.data.domain.Pageable pageable);
     
     long countByAccountIdAndStatus(Integer accountId, Integer status);
     java.util.List<Course> findByAccountIdAndStatus(Integer accountId, Integer status);
@@ -42,6 +64,9 @@ public interface CourseRepository extends JpaRepository<Course, Integer> {
             @org.springframework.data.repository.query.Param("level") String level,
             org.springframework.data.domain.Pageable pageable);
 
+    @org.springframework.data.jpa.repository.Query("SELECT DISTINCT c.level FROM Course c WHERE c.status = 1 AND (c.deleted = false OR c.deleted IS NULL) AND c.level IS NOT NULL")
+    java.util.List<String> findDistinctPublicLevels();
+
     @org.springframework.data.jpa.repository.Query("SELECT c.category.id, COUNT(c) FROM Course c WHERE c.category.id IN :categoryIds GROUP BY c.category.id")
     java.util.List<Object[]> countCoursesByCategoryIdIn(@org.springframework.data.repository.query.Param("categoryIds") java.util.Collection<Integer> categoryIds);
 
@@ -54,5 +79,33 @@ public interface CourseRepository extends JpaRepository<Course, Integer> {
     java.util.List<Course> findCoursesByCategoryAndPrice(
             @org.springframework.data.repository.query.Param("categoryName") String categoryName, 
             @org.springframework.data.repository.query.Param("maxPrice") Double maxPrice, 
+            org.springframework.data.domain.Pageable pageable);
+
+    @org.springframework.data.jpa.repository.Query(
+        value = "SELECT DISTINCT c FROM Course c LEFT JOIN FETCH c.account LEFT JOIN FETCH c.category " +
+                "WHERE (:status IS NULL OR c.status = :status) " +
+                "AND (c.deleted = false OR c.deleted IS NULL)",
+        countQuery = "SELECT COUNT(c) FROM Course c " +
+                     "WHERE (:status IS NULL OR c.status = :status) " +
+                     "AND (c.deleted = false OR c.deleted IS NULL)"
+    )
+    org.springframework.data.domain.Page<Course> findModerationCourses(
+            @org.springframework.data.repository.query.Param("status") Integer status,
+            org.springframework.data.domain.Pageable pageable);
+
+    @org.springframework.data.jpa.repository.Query(
+        "SELECT c.status, COUNT(c) FROM Course c " +
+        "WHERE (c.deleted = false OR c.deleted IS NULL) " +
+        "GROUP BY c.status"
+    )
+    java.util.List<Object[]> countModerationStats();
+    @org.springframework.data.jpa.repository.Query(
+        "SELECT c FROM Course c WHERE c.status = 1 AND (c.deleted = false OR c.deleted IS NULL) " +
+        "AND (:level IS NULL OR c.level = :level) " +
+        "AND (CAST(:categoryIds AS integer) IS NULL OR c.category.id IN :categoryIds OR c.category.parent.id IN :categoryIds)"
+    )
+    org.springframework.data.domain.Page<Course> findRecommendedCourses(
+            @org.springframework.data.repository.query.Param("level") String level,
+            @org.springframework.data.repository.query.Param("categoryIds") java.util.Collection<Integer> categoryIds,
             org.springframework.data.domain.Pageable pageable);
 }

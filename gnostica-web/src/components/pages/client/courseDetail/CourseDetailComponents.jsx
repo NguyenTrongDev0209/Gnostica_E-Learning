@@ -1,5 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import wishlistService from "@/services/wishlistService";
+import { toast } from "sonner";
 import { Star, Users, Calendar, Globe, PlayCircle, CheckCircle2, Heart, Clock, FileText, Infinity as InfinityIcon, Smartphone, Trophy, Gift } from "lucide-react";
 import {
   Accordion,
@@ -27,33 +29,33 @@ import {
 export const CourseDetailHeader = ({ course }) => {
   return (
     <div>
-      <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-slate-900 mb-5 leading-tight">
+      <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-foreground mb-5 leading-tight">
         {course.title}
       </h1>
       {/* Tạm thời ẩn phần mô tả
       <div 
-        className="text-lg md:text-xl text-slate-600 mb-6 leading-relaxed prose prose-slate max-w-none [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:mb-4 [&_p]:mb-4"
+        className="text-lg md:text-xl text-muted-foreground mb-6 leading-relaxed prose prose-slate max-w-none [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:mb-4 [&_p]:mb-4"
         dangerouslySetInnerHTML={{ __html: course.description }}
       />
       */}
 
       <div className="flex flex-wrap items-center gap-y-3 gap-x-6 text-sm font-medium">
-        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-yellow-50 rounded-lg text-yellow-700">
-          <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
+        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-yellow-50 rounded-lg text-warning">
+          <Star className="w-4 h-4 fill-yellow-500 text-warning" />
           <span className="font-bold">{course.rating || "4.8"}</span>
           <span className="opacity-80 underline decoration-yellow-600/30 hover:decoration-yellow-600 cursor-pointer">
             ({course.reviews || "120"} đánh giá)
           </span>
         </div>
-        <div className="flex items-center gap-2 text-slate-600">
+        <div className="flex items-center gap-2 text-muted-foreground">
           <Users className="w-4 h-4" />
           <span>{(course.studentsCount || 0).toLocaleString()} học viên đã tham gia</span>
         </div>
-        <div className="flex items-center gap-2 text-slate-600">
+        <div className="flex items-center gap-2 text-muted-foreground">
           <Calendar className="w-4 h-4" />
           <span>Cập nhật lần cuối {course.updatedAt ? new Date(course.updatedAt).toLocaleDateString('vi-VN') : 'Gần đây'}</span>
         </div>
-        <div className="flex items-center gap-2 text-slate-600">
+        <div className="flex items-center gap-2 text-muted-foreground">
           <Globe className="w-4 h-4" />
           <span>Tiếng Việt</span>
         </div>
@@ -122,7 +124,7 @@ export const CourseDetailVideo = ({ courseImage, courseTitle, promoVideo }) => {
 
   return (
     <div 
-      className="relative aspect-video overflow-hidden shadow-2xl shadow-slate-200 group cursor-pointer border border-slate-100/50 bg-slate-900"
+      className="relative aspect-video overflow-hidden shadow-2xl shadow-slate-200 group cursor-pointer border border-border/50 bg-muted"
       onClick={() => promoVideo && setIsPlaying(true)}
     >
       <img
@@ -190,10 +192,10 @@ export const CourseDetailVideo = ({ courseImage, courseTitle, promoVideo }) => {
  */
 export const CourseDetailOutcomes = ({ course }) => {
   return (
-    <section className="bg-slate-50/80 border border-slate-200/60 rounded-[24px] p-6 md:p-10">
-      <h2 className="text-2xl font-extrabold mb-6 text-slate-900">Nội dung bài học</h2>
+    <section className="bg-muted/80 border border-border/60 rounded-[24px] p-6 md:p-10">
+      <h2 className="text-2xl font-extrabold mb-6 text-foreground">Nội dung bài học</h2>
       <div 
-        className="text-slate-700 text-[15px] leading-relaxed prose prose-slate max-w-none"
+        className="text-foreground text-[15px] leading-relaxed prose prose-slate max-w-none"
         dangerouslySetInnerHTML={{ __html: course.description }}
       />
     </section>
@@ -209,51 +211,51 @@ export const CourseDetailCurriculum = ({ curriculum }) => {
   return (
     <section>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <h2 className="text-2xl font-extrabold text-slate-900">Nội dung bài giảng</h2>
-        <div className="text-sm text-slate-600 font-semibold bg-slate-100 px-4 py-2 rounded-full">
+        <h2 className="text-2xl font-extrabold text-foreground">Nội dung bài giảng</h2>
+        <div className="text-sm text-muted-foreground font-semibold bg-secondary px-4 py-2 rounded-full">
           {curriculum.length} chương • {totalLessons} bài học
         </div>
       </div>
 
       <Accordion
         type="multiple"
-        className="w-full bg-white border border-slate-200 rounded-[20px] overflow-hidden shadow-sm"
+        className="w-full bg-white border border-border rounded-[20px] overflow-hidden shadow-sm"
       >
         {curriculum.map((section, idx) => (
           <AccordionItem
             key={idx}
             value={`item-${idx}`}
-            className="border-b border-slate-100 last:border-b-0"
+            className="border-b border-border last:border-b-0"
           >
-            <AccordionTrigger className="px-6 py-5 hover:bg-slate-50 hover:no-underline [&[data-state=open]]:bg-slate-50/80 transition-colors">
+            <AccordionTrigger className="px-6 py-5 hover:bg-muted hover:no-underline [&[data-state=open]]:bg-muted/80 transition-colors">
               <div className="flex items-center gap-3 text-left">
-                <div className="font-extrabold text-lg text-slate-900">{section.title}</div>
+                <div className="font-extrabold text-lg text-foreground">{section.title}</div>
               </div>
             </AccordionTrigger>
             <AccordionContent className="bg-white pb-0">
-              <div className="divide-y divide-slate-100/80 border-t border-slate-100">
+              <div className="divide-y divide-slate-100/80 border-t border-border">
                 {section.lessons.map((lesson, lIdx) => (
                   <div
                     key={lIdx}
-                    className="flex items-center justify-between px-6 py-4 group hover:bg-slate-50 transition-colors"
+                    className="flex items-center justify-between px-6 py-4 group hover:bg-muted transition-colors"
                   >
                     <div className="flex items-center gap-4">
                       <div
                         className={`w-8 h-8 rounded-full flex items-center justify-center ${
                           lesson.preview
                             ? "bg-primary/10 text-primary"
-                            : "bg-slate-100 text-slate-400"
+                            : "bg-secondary text-muted-foreground"
                         }`}
                       >
                         <PlayCircle className="w-4 h-4" />
                       </div>
                       <span
-                        className="text-[15px] font-semibold text-slate-600"
+                        className="text-[15px] font-semibold text-muted-foreground"
                       >
                         {lesson.title}
                       </span>
                     </div>
-                    <div className="flex items-center gap-4 text-sm text-slate-500 font-medium">
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground font-medium">
                       <span>{lesson.duration || ""}</span>
                     </div>
                   </div>
@@ -273,27 +275,27 @@ export const CourseDetailCurriculum = ({ curriculum }) => {
 export const CourseDetailInstructor = ({ instructor }) => {
   return (
     <section>
-      <h2 className="text-2xl font-extrabold mb-8 text-slate-900">Giảng viên của bạn</h2>
-      <div className="flex flex-col sm:flex-row gap-8 items-start p-8 rounded-[24px] bg-white border border-slate-200 shadow-sm">
+      <h2 className="text-2xl font-extrabold mb-8 text-foreground">Giảng viên của bạn</h2>
+      <div className="flex flex-col sm:flex-row gap-8 items-start p-8 rounded-[24px] bg-white border border-border shadow-sm">
         <div className="flex flex-col items-center gap-4 shrink-0">
           <Avatar className="w-32 h-32 ring-4 ring-primary/10 border-4 border-white shadow-xl">
             <AvatarImage src={instructor.avatar} />
             <AvatarFallback>{instructor.name.charAt(0)}</AvatarFallback>
           </Avatar>
           <div className="space-y-3 text-sm mt-2">
-            <div className="flex items-center gap-3 text-slate-700">
+            <div className="flex items-center gap-3 text-foreground">
               <div className="w-8 h-8 rounded-full bg-yellow-50 flex items-center justify-center shrink-0">
-                <Star className="w-4 h-4 text-yellow-600 fill-yellow-600" />
+                <Star className="w-4 h-4 text-warning fill-yellow-600" />
               </div>
               <span className="font-bold">{instructor.reviewsCount} Đánh giá</span>
             </div>
-            <div className="flex items-center gap-3 text-slate-700">
+            <div className="flex items-center gap-3 text-foreground">
               <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
-                <Users className="w-4 h-4 text-blue-600" />
+                <Users className="w-4 h-4 text-info" />
               </div>
               <span className="font-bold">{instructor.studentsCount} Học viên</span>
             </div>
-            <div className="flex items-center gap-3 text-slate-700">
+            <div className="flex items-center gap-3 text-foreground">
               <div className="w-8 h-8 rounded-full bg-purple-50 flex items-center justify-center shrink-0">
                 <PlayCircle className="w-4 h-4 text-purple-600" />
               </div>
@@ -304,20 +306,20 @@ export const CourseDetailInstructor = ({ instructor }) => {
 
         <div className="flex-1 space-y-5">
           <div>
-            <h3 className="text-2xl font-extrabold text-slate-900 mb-1.5 flex items-center gap-2">
+            <h3 className="text-2xl font-extrabold text-foreground mb-1.5 flex items-center gap-2">
               {instructor.name}
               <span className="bg-primary/10 text-primary text-[10px] uppercase font-black px-2 py-1 rounded-md">
                 Pro Mentor
               </span>
             </h3>
-            <p className="text-slate-500 font-medium">{instructor.role}</p>
+            <p className="text-muted-foreground font-medium">{instructor.role}</p>
           </div>
-          <p className="text-slate-700 leading-relaxed text-[15px]">
+          <p className="text-foreground leading-relaxed text-[15px]">
             {instructor.bio}
           </p>
           <Button
             variant="outline"
-            className="mt-2 font-bold border-slate-300 text-slate-700 hover:text-primary hover:border-primary"
+            className="mt-2 font-bold border-border text-foreground hover:text-primary hover:border-primary"
           >
             Xem hồ sơ giảng viên
           </Button>
@@ -330,9 +332,12 @@ export const CourseDetailInstructor = ({ instructor }) => {
 /**
  * Sticky pricing card for Course Detail.
  */
-export const CourseDetailPricingCard = ({ course }) => {
+export const CourseDetailPricingCard = ({ course: initialCourse }) => {
   const navigate = useNavigate();
-  const totalLessons = course.curriculum?.reduce((acc, section) => acc + (section.lessons?.length || 0), 0) || 0;
+  const [isFavourite, setIsFavourite] = React.useState(initialCourse?.isFavourite || false);
+  const [isToggling, setIsToggling] = React.useState(false);
+  
+  const totalLessons = initialCourse?.curriculum?.reduce((acc, section) => acc + (section.lessons?.length || 0), 0) || 0;
 
   const handleCheckout = () => {
     // Chuyển đổi giá từ chuỗi có dấu phẩy sang số nguyên
@@ -342,41 +347,69 @@ export const CourseDetailPricingCard = ({ course }) => {
     };
 
     const orderItem = {
-      id: course.id,
-      title: course.title,
-      instructor: course.instructor?.name || 'Ẩn danh',
-      price: parsePrice(course.salePrice),
-      originalPrice: parsePrice(course.originalPrice) || parsePrice(course.price),
-      image: course.image,
-      rating: course.rating,
-      slug: course.slug,
+      id: initialCourse.id,
+      title: initialCourse.title,
+      instructor: initialCourse.instructor?.name || 'Ẩn danh',
+      price: parsePrice(initialCourse.salePrice),
+      originalPrice: parsePrice(initialCourse.originalPrice) || parsePrice(initialCourse.price),
+      image: initialCourse.image,
+      rating: initialCourse.rating,
+      slug: initialCourse.slug,
     };
 
     navigate('/checkout', { state: { orderItems: [orderItem] } });
   };
 
+  const handleToggleWishlist = async () => {
+    if (isToggling) return;
+    try {
+      setIsToggling(true);
+      const res = await wishlistService.toggleWishlist(initialCourse.id);
+      if (res.success) {
+        setIsFavourite(res.data.isFavourite);
+        if (res.data.isFavourite) {
+          toast.success("Đã thêm vào danh sách yêu thích");
+        } else {
+          toast.info("Đã xóa khỏi danh sách yêu thích");
+        }
+      }
+    } catch (error) {
+      toast.error("Vui lòng đăng nhập để thực hiện chức năng này");
+    } finally {
+      setIsToggling(false);
+    }
+  };
+
   return (
-    <Card className="border-slate-200/80 shadow-2xl shadow-slate-200/50 rounded-[28px] overflow-hidden bg-white">
+    <Card className="border-border/80 shadow-2xl shadow-slate-200/50 rounded-[28px] overflow-hidden bg-white">
       <CardContent className="p-7 md:p-8">
         <div className="flex items-start justify-between mb-2">
           <Badge
             variant="destructive"
-            className="bg-red-100 text-red-600 hover:bg-red-100 border-none font-bold px-3 py-1"
+            className="bg-error/10 text-error text-error hover:bg-error/10 text-error border-none font-bold px-3 py-1"
           >
-            Giảm giá {course.discount}%
+            Giảm giá {initialCourse.discount}%
           </Badge>
-          <button className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors">
-            <Heart className="w-5 h-5" />
+          <button 
+            onClick={handleToggleWishlist}
+            disabled={isToggling}
+            className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
+              isFavourite 
+                ? "bg-red-50 text-error shadow-sm" 
+                : "bg-muted text-muted-foreground hover:text-error hover:bg-red-50"
+            }`}
+          >
+            <Heart className={`w-5 h-5 ${isFavourite ? "fill-red-500" : ""}`} />
           </button>
         </div>
 
         <div className="flex items-end gap-3 mb-8 mt-4">
-          <span className="text-[40px] leading-none font-black text-slate-900 tracking-tight">
-            {new Intl.NumberFormat("vi-VN").format(course.salePrice)}đ
+          <span className="text-[40px] leading-none font-black text-foreground tracking-tight">
+            {new Intl.NumberFormat("vi-VN").format(initialCourse.salePrice)}đ
           </span>
-          {course.discount > 0 && (
-            <span className="text-lg text-slate-400 line-through font-semibold mb-1">
-              {new Intl.NumberFormat("vi-VN").format(course.price)}đ
+          {initialCourse.discount > 0 && (
+            <span className="text-lg text-muted-foreground line-through font-semibold mb-1">
+              {new Intl.NumberFormat("vi-VN").format(initialCourse.price)}đ
             </span>
           )}
         </div>
@@ -386,56 +419,56 @@ export const CourseDetailPricingCard = ({ course }) => {
             size="lg"
             className="flex-1 py-7 text-lg font-bold rounded-2xl"
             onClick={handleCheckout}
-            disabled={course.isEnrolled}
+            disabled={initialCourse.isEnrolled}
           >
-            {course.isEnrolled ? "Đã đăng ký" : "Đăng ký học ngay"}
+            {initialCourse.isEnrolled ? "Đã đăng ký" : "Đăng ký học ngay"}
           </SimpleButton>
           <button
-            className="flex-none p-4 rounded-2xl border-2 border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-primary hover:border-primary transition-all flex items-center justify-center cursor-pointer"
+            className="flex-none p-4 rounded-2xl border-2 border-border text-foreground hover:bg-muted hover:text-primary hover:border-primary transition-all flex items-center justify-center cursor-pointer"
           >
             <Gift className="size-6" />
           </button>
         </div>
 
-        <p className="text-center text-[13px] font-semibold text-slate-500 mb-8">
+        <p className="text-center text-[13px] font-semibold text-muted-foreground mb-8">
           Cam kết hoàn tiền trong 30 ngày nếu không hài lòng.
         </p>
 
         <div>
-          <h4 className="font-extrabold mb-5 text-slate-900 text-[15px] uppercase tracking-wider">
+          <h4 className="font-extrabold mb-5 text-foreground text-[15px] uppercase tracking-wider">
             Khóa học này bao gồm:
           </h4>
           <ul className="space-y-4">
-            <li className="flex items-start gap-4 text-[15px] text-slate-700 font-medium">
+            <li className="flex items-start gap-4 text-[15px] text-foreground font-medium">
               <PlayCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
               <span>{totalLessons} bài học trực tuyến</span>
             </li>
-            <li className="flex items-start gap-4 text-[15px] text-slate-700 font-medium">
+            <li className="flex items-start gap-4 text-[15px] text-foreground font-medium">
               <FileText className="w-5 h-5 text-primary shrink-0 mt-0.5" />
               <span>Tài liệu tham khảo chuyên sâu</span>
             </li>
-            <li className="flex items-start gap-4 text-[15px] text-slate-700 font-medium">
+            <li className="flex items-start gap-4 text-[15px] text-foreground font-medium">
               <InfinityIcon className="w-5 h-5 text-primary shrink-0 mt-0.5" />
               <span>Truy cập và học tập trọn đời</span>
             </li>
-            <li className="flex items-start gap-4 text-[15px] text-slate-700 font-medium">
+            <li className="flex items-start gap-4 text-[15px] text-foreground font-medium">
               <Smartphone className="w-5 h-5 text-primary shrink-0 mt-0.5" />
               <span>Hỗ trợ học trên điện thoại và TV</span>
             </li>
-            <li className="flex items-start gap-4 text-[15px] text-slate-700 font-medium">
+            <li className="flex items-start gap-4 text-[15px] text-foreground font-medium">
               <Trophy className="w-5 h-5 text-primary shrink-0 mt-0.5" />
               <span>Nhận chứng chỉ chuyên môn sau khi hoàn thành</span>
             </li>
           </ul>
         </div>
 
-        <Separator className="my-8 bg-slate-100" />
+        <Separator className="my-8 bg-secondary" />
 
         <div className="flex flex-col gap-3">
-          <button className="text-[13px] font-bold text-slate-500 hover:text-primary transition-colors text-left flex items-center justify-between">
+          <button className="text-[13px] font-bold text-muted-foreground hover:text-primary transition-colors text-left flex items-center justify-between">
             Áp dụng mã giảm giá <span>+</span>
           </button>
-          <button className="text-[13px] font-bold text-slate-500 hover:text-primary transition-colors text-left flex items-center justify-between">
+          <button className="text-[13px] font-bold text-muted-foreground hover:text-primary transition-colors text-left flex items-center justify-between">
             Tôi muốn mua khóa học cho doanh nghiệp <span>→</span>
           </button>
         </div>

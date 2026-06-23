@@ -79,7 +79,7 @@ export default function Vouchers() {
       {/* Page Title */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-3">
+          <h1 className="text-2xl font-extrabold text-foreground flex items-center gap-3">
             <Ticket className="w-7 h-7 text-primary" />
             Kho Voucher của bạn
           </h1>
@@ -97,14 +97,14 @@ export default function Vouchers() {
           return (
             <div 
               key={voucher.id} 
-              className={`flex border rounded-2xl overflow-hidden shadow-sm transition-transform hover:shadow-md ${isExpired ? 'border-slate-200 opacity-60' : 'border-slate-100 hover:scale-[1.01]'}`}
+              className={`flex border rounded-2xl overflow-hidden shadow-sm transition-transform hover:shadow-md ${isExpired ? 'border-border opacity-60' : 'border-border hover:scale-[1.01]'}`}
             >
               {/* Left Side: Ticket Stub & Value */}
               <div className={`w-32 sm:w-40 flex items-center justify-center p-4 relative shrink-0 bg-gradient-to-br ${voucher.color} text-white`}>
                 {/* Dashed edge */}
                 <div className="absolute right-0 top-0 bottom-0 w-2 flex flex-col justify-between overflow-hidden">
                   {[...Array(12)].map((_, i) => (
-                    <div key={i} className={`w-2 h-2 rounded-full -mr-1 ${isExpired ? 'bg-slate-50' : 'bg-white'}`}></div>
+                    <div key={i} className={`w-2 h-2 rounded-full -mr-1 ${isExpired ? 'bg-muted' : 'bg-white'}`}></div>
                   ))}
                 </div>
                 
@@ -118,11 +118,11 @@ export default function Vouchers() {
               {/* Right Side: Info & Coupon Code */}
               <div className="flex-1 p-5 sm:p-6 bg-white relative">
                 <div className="flex justify-between items-start gap-3 mb-2">
-                  <h3 className="font-bold text-lg text-slate-900 leading-tight">
+                  <h3 className="font-bold text-lg text-foreground leading-tight">
                     {voucher.title}
                   </h3>
                   {isExpired ? (
-                    <Badge className="bg-slate-100 text-slate-600 border-none shrink-0 pointer-events-none text-[10px] font-bold">Hết hạn</Badge>
+                    <Badge className="bg-secondary text-muted-foreground border-none shrink-0 pointer-events-none text-[10px] font-bold">Hết hạn</Badge>
                   ) : (
                     <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-none shrink-0 text-[10px] font-bold flex items-center gap-1">
                       <CheckCircle2 className="w-3 h-3" />
@@ -131,20 +131,20 @@ export default function Vouchers() {
                   )}
                 </div>
                 
-                <p className="text-sm text-slate-500 mb-6 leading-relaxed line-clamp-2">
+                <p className="text-sm text-muted-foreground mb-6 leading-relaxed line-clamp-2">
                   {voucher.desc}
                 </p>
 
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-auto">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Mã code:</span>
+                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Mã code:</span>
                     <span className="font-mono font-black text-lg text-primary tracking-wider">{voucher.code}</span>
                   </div>
                   
                   {!isExpired && (
                     <button 
                       onClick={() => handleCopyCode(voucher.code)}
-                      className="flex items-center justify-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold rounded-xl transition-colors shrink-0"
+                      className="flex items-center justify-center gap-2 px-4 py-2 bg-secondary hover:bg-muted text-foreground text-sm font-bold rounded-xl transition-colors shrink-0"
                       aria-label="Sao chép mã"
                     >
                       <Scissors className="w-4 h-4" />
@@ -153,8 +153,8 @@ export default function Vouchers() {
                   )}
                 </div>
 
-                <div className="mt-4 pt-4 border-t border-slate-100 border-dashed">
-                  <p className={`text-xs font-medium ${isExpired ? 'text-red-400' : 'text-slate-400'}`}>
+                <div className="mt-4 pt-4 border-t border-border border-dashed">
+                  <p className={`text-xs font-medium ${isExpired ? 'text-error' : 'text-muted-foreground'}`}>
                     {isExpired ? 'Đã hết hạn: ' : 'HSD: '}{voucher.expiry}
                   </p>
                 </div>

@@ -25,9 +25,9 @@ const revenueConfig = {
 export default function RevenueCharts({ revenueData }) {
     return (
         <div className="grid grid-cols-1 xl:grid-cols-1 gap-6 pb-2">
-            <Card className="border-slate-200 shadow-sm flex flex-col">
-                <CardHeader className="pb-2 border-b border-slate-100">
-                    <CardTitle className="text-lg font-bold text-slate-900">Doanh Thu & Đơn Hàng</CardTitle>
+            <Card className="border-border shadow-sm flex flex-col">
+                <CardHeader className="pb-2 border-b border-border">
+                    <CardTitle className="text-lg font-bold text-foreground">Doanh Thu & Đơn Hàng</CardTitle>
                     <CardDescription>Biến động doanh thu theo từng tháng trong năm</CardDescription>
                 </CardHeader>
                 <CardContent className="pt-4 flex-1">

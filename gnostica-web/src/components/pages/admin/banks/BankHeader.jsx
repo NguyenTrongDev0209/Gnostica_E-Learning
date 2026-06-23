@@ -6,11 +6,11 @@ export function BankHeader({ onAddClick, onSyncClick, isSyncing }) {
   return (
     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+        <h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
           <Building2 className="w-6 h-6 text-primary" />
           Quản lý Ngân hàng
         </h1>
-        <p className="text-sm text-slate-500 mt-1">
+        <p className="text-sm text-muted-foreground mt-1">
           Quản lý danh sách ngân hàng hỗ trợ thanh toán và đồng bộ từ VietQR.
         </p>
       </div>
