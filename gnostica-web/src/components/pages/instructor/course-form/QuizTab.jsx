@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { ArrowLeft, ArrowRight, Video, GripVertical, Trash2, Plus, PlayCircle, FileText, Check, Loader2, Sparkles, Database, CheckCircle2, ListOrdered, Search, Pencil } from "lucide-react";
+import { ArrowLeft, ArrowRight, Video, GripVertical, Trash2, Plus, PlayCircle, FileText, Check, Loader2, Sparkles, Database, CheckCircle2, ListOrdered, Search, Pencil, Clock, Save } from "lucide-react";
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import courseService from "@/services/courseService";
@@ -16,7 +16,13 @@ import { useParams } from "react-router-dom";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
-
+const quillModules = {
+  toolbar: [
+    ["bold", "italic", "underline"],
+    [{ list: "ordered" }, { list: "bullet" }],
+    ["clean"],
+  ],
+};
 export default function QuizTab({ courseId }) {
   const { slug } = useParams();
   const { setValue, getValues } = useFormContext();
@@ -541,7 +547,7 @@ export default function QuizTab({ courseId }) {
             ) : (
               filteredQuestions.map((q, idx) => (
                 <div key={q.id} className="border border-border rounded-lg p-4 hover:border-indigo-200 transition-colors bg-muted">
-                  <p className="text-sm font-bold text-foreground leading-relaxed" dangerouslySetInnerHTML={{ __html: `Câu ${idx + 1}: ${q.text}` }} />
+                  <div className="text-sm font-bold text-foreground leading-relaxed prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: `Câu ${idx + 1}: ${q.text}` }} />
 
                   <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-2">
                     {['A', 'B', 'C', 'D'].map((opt) => {

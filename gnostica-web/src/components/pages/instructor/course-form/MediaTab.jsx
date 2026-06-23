@@ -15,7 +15,7 @@ import courseService from "@/services/courseService";
 import { useParams } from "react-router-dom";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-
+import BackgroundVideoUploader from "./BackgroundVideoUploader";
 
 export default function MediaTab({ uploadVideoToBunny, setActiveUploads }) {
   const { setValue, watch, formState: { errors } } = useFormContext();

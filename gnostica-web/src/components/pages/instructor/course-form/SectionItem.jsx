@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { ArrowLeft, ArrowRight, Video, GripVertical, Trash2, Plus, PlayCircle, FileText, Check, Loader2, Sparkles, Database, CheckCircle2, ListOrdered, Search, Pencil } from "lucide-react";
+import { ArrowLeft, ArrowRight, Video, GripVertical, Trash2, Plus, PlayCircle, FileText, Check, Loader2, Sparkles, Database, CheckCircle2, ListOrdered, Search, Pencil, Save } from "lucide-react";
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import courseService from "@/services/courseService";
@@ -438,7 +438,7 @@ export default function SectionItem({ sectionIndex, control, uploadVideoToBunny,
                                     <div className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-[10px] font-bold">{idx + 1}</div>
                                   </div>
                                   <div className="flex-1">
-                                    <p className="text-xs font-bold text-foreground leading-relaxed">{qDetails?.text || "Đang tải câu hỏi..."}</p>
+                                    <div className="text-xs font-bold text-foreground leading-relaxed prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: qDetails?.text || "Đang tải câu hỏi..." }} />
                                   </div>
                                 </div>
                                 <button
@@ -512,7 +512,7 @@ export default function SectionItem({ sectionIndex, control, uploadVideoToBunny,
                               />
                             </div>
                             <div className="flex-1">
-                              <p className="text-xs font-bold text-foreground leading-relaxed">{q.text}</p>
+                              <div className="text-xs font-bold text-foreground leading-relaxed prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: q.text }} />
 
                               <div className="mt-3 grid grid-cols-1 gap-2">
                                 {["A", "B", "C", "D"].map((opt) => {
