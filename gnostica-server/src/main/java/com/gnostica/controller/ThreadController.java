@@ -97,6 +97,9 @@ public class ThreadController {
         try {
             String userEmail = payload.get("userEmail");
             if (userEmail == null || userEmail.isEmpty()) {
+                userEmail = payload.get("email");
+            }
+            if (userEmail == null || userEmail.isEmpty()) {
                 return ResponseEntity.badRequest().body("Lỗi: Yêu cầu cung cấp Email người dùng!");
             }
             return ResponseEntity.ok(threadService.likeThread(id, userEmail));

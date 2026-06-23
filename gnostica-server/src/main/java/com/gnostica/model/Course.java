@@ -104,6 +104,12 @@ public class Course {
     @JsonIgnore
     private List<Enrollment> enrollments;
 
+    @org.hibernate.annotations.Formula("(SELECT COUNT(l.id) FROM modules m JOIN lessons l ON l.module_id = m.id WHERE m.course_id = id AND (m.deleted = false OR m.deleted IS NULL) AND (l.deleted = false OR l.deleted IS NULL))")
+    private Integer classesCountFormula;
+
+    @org.hibernate.annotations.Formula("(SELECT COUNT(e.id) FROM enrollments e WHERE e.course_id = id)")
+    private Integer studentsCountFormula;
+
     @Transient
     @com.fasterxml.jackson.annotation.JsonProperty("isEnrolled")
     private Boolean isEnrolled;
@@ -159,16 +165,20 @@ public class Course {
 
     @com.fasterxml.jackson.annotation.JsonProperty("classes")
     public Integer getClassesCount() {
-        if (modules == null)
-            return 0;
-        return modules.stream()
-                .mapToInt(m -> m.getLessons() != null ? m.getLessons().size() : 0)
-                .sum();
+        if (org.hibernate.Hibernate.isInitialized(modules) && modules != null) {
+            return modules.stream()
+                    .filter(m -> !Boolean.TRUE.equals(m.getDeleted()))
+                    .mapToInt(m -> m.getLessons() != null ? (int) m.getLessons().stream().filter(l -> !Boolean.TRUE.equals(l.getDeleted())).count() : 0)
+                    .sum();
+        }
+        return classesCountFormula != null ? classesCountFormula : 0;
     }
 
     @com.fasterxml.jackson.annotation.JsonProperty("students")
     public Integer getStudentsCount() {
-        if (enrollments == null) return 0;
-        return enrollments.size();
+        if (org.hibernate.Hibernate.isInitialized(enrollments) && enrollments != null) {
+            return enrollments.size();
+        }
+        return studentsCountFormula != null ? studentsCountFormula : 0;
     }
 }

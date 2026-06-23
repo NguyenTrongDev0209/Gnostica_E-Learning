@@ -64,12 +64,24 @@ public class AiService {
             Map<String, Object> systemMap = new HashMap<>();
             systemMap.put("role", "system");
             systemMap.put("content", "Bạn là một trợ lý ảo của Gnostica E-Learning. Bạn có thể truy cập DB để tìm bài viết và khóa học. " +
-                    "QUAN TRỌNG: Khi gợi ý danh sách (bài viết hoặc khóa học) cho người dùng, hãy LUÔN luôn sử dụng định dạng chuỗi sau để UI có thể vẽ thành Thẻ Card: `[[CARD:TYPE|id|title|info|author|category|imageUrl]]`. " +
-                    "\n- TYPE: 'forum' (nếu là bài viết/thread) hoặc 'course' (nếu là khóa học)." +
-                    "\n- id: ID của bài viết (nếu là forum) hoặc SLUG của khóa học (nếu là course)." +
-                    "\n- info: Số lượt thích (nếu là forum) hoặc Giá tiền kèm đơn vị (nếu là khóa học)." +
-                    "\nVí dụ bài viết: `[[CARD:forum|3|Hướng dẫn Spring|54|Tuấn|Lập trình|none]]`." +
-                    "\nVí dụ khóa học: `[[CARD:course|java-co-ban-101|Java Cơ Bản|500.000đ|Thầy Nam|Lập trình|http://...]]`." +
+                    "\nQUY TẮC BẮT BUỘC:" +
+                    "\n1. TUYỆT ĐỐI KHÔNG LẤY DỮ LIỆU GIẢ, ẢO HOẶC DỮ LIỆU DO AI TỰ PHÁT SINH/TỰ BỊA RA. Chỉ lấy dữ liệu thực tế tồn tại trong cơ sở dữ liệu thông qua việc gọi hàm (tools) kết nối Database. Nếu Database trống hoặc không tìm thấy, bạn bắt buộc phải báo là không có kết quả thực tế, tuyệt đối không được tự ý điền thông tin giả mạo vào các thẻ CARD." +
+                    "\n2. KHÔNG ĐƯỢC trả lời bằng danh sách thuần văn bản thô (bullet points, plain text, hyphens, v.v.). Khi hiển thị bất kỳ danh sách nào (khóa học, bài viết, chuyên mục, hay người đóng góp), bạn BẮT BUỘC phải chuyển đổi từng phần tử trong danh sách thành định dạng thẻ Card sau để giao diện hiển thị đẹp mắt: `[[CARD:TYPE|id|title|info|author|category|imageUrl]]`." +
+                    "\n3. KHÔNG trả lời bằng khoảng trắng hoặc tin nhắn trống. Nếu không có hoặc không tìm thấy dữ liệu, hãy phản hồi rõ ràng bằng câu chữ lịch sự." +
+                    "\n4. NẾU kết quả từ database (gọi hàm/tool) trả về chứa cụm từ 'DATABASE_EMPTY' hoặc báo không tìm thấy kết quả, bạn BẮT BUỘC phải thông báo lại trực tiếp và lịch sự với người dùng rằng không có kết quả phù hợp trong hệ thống (ví dụ: 'Rất tiếc, hiện tại hệ thống chưa có khóa học nào như vậy.'). CẤM TUYỆT ĐỐI việc tự bịa ra thông tin giả mạo để điền vào thẻ CARD." +
+                    "\n\nChi tiết định dạng thẻ Card:" +
+                    "\n- TYPE: 'course' (Khóa học), 'forum' (Bài viết/Thread), 'category' (Chuyên mục diễn đàn), 'contributor' (Thành viên đóng góp)." +
+                    "\n- id: SLUG khóa học (nếu là course), ID bài viết (nếu là forum), ID chuyên mục (nếu là category), ID tài khoản thành viên (nếu là contributor)." +
+                    "\n- title: Tiêu đề khóa học, tiêu đề bài viết, tên chuyên mục, hoặc tên đầy đủ thành viên." +
+                    "\n- info: Giá tiền kèm đơn vị (nếu là course), số lượt thích (nếu là forum, ví dụ: '15 likes'), tên 'Diễn đàn' (nếu là category), tổng số lượt thích (nếu là contributor, ví dụ: '45 likes')." +
+                    "\n- author: Giảng viên (nếu là course), tên tác giả (nếu là forum), 'Gnostica' (nếu là category), email thành viên (nếu là contributor)." +
+                    "\n- category: Tên danh mục (ví dụ: 'Lập trình', 'Diễn đàn', 'Thành viên nổi bật')." +
+                    "\n- imageUrl: Ảnh thumbnail (nếu là course/forum, nếu không có ảnh thì để chữ 'none'). Với category và contributor, luôn để là 'none'." +
+                    "\n\nVí dụ định dạng:" +
+                    "\n- Khóa học: `[[CARD:course|<slug_khóa_học>|<tiêu_đề_khóa_học>|<giá_tiền>|<giảng_viên>|<danh_mục>|<link_ảnh_thumbnail>]]`" +
+                    "\n- Bài viết: `[[CARD:forum|<id_bài_viết>|<tiêu_đề_bài_viết>|<số_lượt_thích>|<tên_tác_giả>|<chuyên_mục>|<link_ảnh>]]`" +
+                    "\n- Chuyên mục: `[[CARD:category|<id_chuyên_mục>|<tên_chuyên_mục>|Diễn đàn|Gnostica|Chuyên mục|none]]`" +
+                    "\n- Người đóng góp: `[[CARD:contributor|<id_thành_viên>|<tên_thành_viên>|<số_likes>|<email_thành_viên>|Thành viên nổi bật|none]]`" +
                     "\nNếu không có link ảnh thì để là chữ `none` ở trường imageUrl. Không được tự ý viết text thông thường cho danh sách.");
             currentMessages.add(0, systemMap);
         }
@@ -81,6 +93,7 @@ public class AiService {
             body.put("model", model);
             body.put("messages", currentMessages);
             body.put("tools", getAiTools());
+            body.put("max_tokens", 2000);
 
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
 
@@ -118,6 +131,9 @@ public class AiService {
                         // Nếu không gọi hàm, đọc tin nhắn text trả về
                         String content = (String) message.get("content");
                         String role = (String) message.get("role");
+                        if (content == null || content.trim().isEmpty()) {
+                            content = "Tôi xin lỗi, tôi không nhận được phản hồi từ máy chủ AI lúc này. Vui lòng thử hỏi lại.";
+                        }
                         return new AiChatResponse(content, role);
                     }
                 }
@@ -145,7 +161,7 @@ public class AiService {
                     for (Object[] row : contributors) {
                         com.gnostica.model.Account account = (com.gnostica.model.Account) row[0];
                         Long totalLikes = (Long) row[1]; // SUM returns Long
-                        sb.append(String.format("- Tác giả: %s (Email: %s) có tổng %d likes\n", account.getFullName(), account.getEmail(), totalLikes));
+                        sb.append(String.format("- Tác giả: %s (Email: %s, ID: %d) có tổng %d likes\n", account.getFullName(), account.getEmail(), account.getId(), totalLikes));
                     }
                     return sb.toString();
 
@@ -157,9 +173,26 @@ public class AiService {
                     }
                     return catSb.toString();
 
-                case "get_top_rated_courses":
-                    List<Course> topCourses = courseRepository.findTop5ByAverageRating(PageRequest.of(0, 5));
-                    return buildCourseResponse(topCourses);
+                case "get_threads_by_category":
+                    Map<String, Object> threadArgs = objectMapper.readValue(arguments, Map.class);
+                    String categoryName = (String) threadArgs.get("categoryName");
+                    if (categoryName == null || categoryName.trim().isEmpty()) {
+                        return "Lỗi: categoryName không hợp lệ.";
+                    }
+                    List<ForumCategory> allCats = forumCategoryRepository.findAll();
+                    ForumCategory matchedCat = null;
+                    for (ForumCategory fc : allCats) {
+                        if (fc.getName().toLowerCase().contains(categoryName.toLowerCase()) ||
+                            categoryName.toLowerCase().contains(fc.getName().toLowerCase())) {
+                            matchedCat = fc;
+                            break;
+                        }
+                    }
+                    if (matchedCat == null) {
+                        return "DATABASE_EMPTY: Không tìm thấy chủ đề nào phù hợp với tên: " + categoryName;
+                    }
+                    List<Thread> categoryThreads = threadRepository.findTop5ByCategoryIdAndStatusTrueOrderByLikesDesc(matchedCat.getId());
+                    return buildThreadResponse(categoryThreads);
 
                 case "search_courses":
                     Map<String, Object> courseArgs = objectMapper.readValue(arguments, Map.class);
@@ -178,7 +211,7 @@ public class AiService {
     }
 
     private String buildThreadResponse(List<Thread> threads) {
-        if (threads.isEmpty()) return "Không tìm thấy bài viết nào phù hợp.";
+        if (threads.isEmpty()) return "DATABASE_EMPTY: Không tìm thấy bài viết nào phù hợp trong diễn đàn.";
         StringBuilder sb = new StringBuilder();
         for (Thread t : threads) {
             // Clean content: remove HTML tags and normalize spaces
@@ -214,7 +247,7 @@ public class AiService {
     }
 
     private String buildCourseResponse(List<Course> courses) {
-        if (courses.isEmpty()) return "Không tìm thấy khóa học nào phù hợp.";
+        if (courses.isEmpty()) return "DATABASE_EMPTY: Không tìm thấy khóa học nào phù hợp trong hệ thống.";
         StringBuilder sb = new StringBuilder();
         for (Course c : courses) {
             sb.append(String.format("Khóa học Slug: %s\n", c.getSlug()));
@@ -233,7 +266,18 @@ public class AiService {
             createTool("get_top_liked_threads", "Lấy top 5 bài viết có nhiều lượt thích (like) nhất trong diễn đàn.", Collections.emptyMap()),
             createTool("get_top_contributors", "Lấy thông tin những người dùng đăng bài nhiều nhất hoặc nhận được tổng số like cao nhất.", Collections.emptyMap()),
             createTool("get_forum_categories", "Xem danh sách các chủ đề (categories) của diễn đàn hiện đang có để biết người dùng đang quan tâm điều gì.", Collections.emptyMap()),
-            createTool("get_top_rated_courses", "Lấy danh sách 5 khóa học có điểm đánh giá trung bình cao nhất.", Collections.emptyMap()),
+            createTool(
+                "get_threads_by_category", 
+                "Lấy danh sách tối đa 5 bài viết mới nhất thuộc một chuyên mục (category) cụ thể bằng tên chuyên mục (ví dụ: 'Hỏi đáp lập trình', 'Chia sẻ kinh nghiệm').", 
+                Map.of(
+                    "type", "object",
+                    "properties", Map.of(
+                        "categoryName", Map.of("type", "string", "description", "Tên của chuyên mục cần lấy bài viết (ví dụ: 'Hỏi đáp lập trình', 'Chia sẻ kinh nghiệm').")
+                    ),
+                    "required", List.of("categoryName")
+                )
+            ),
+
             createTool(
                 "search_courses", 
                 "Tìm kiếm khóa học theo tên danh mục (ví dụ: Java, Web,...) và/hoặc theo giá tối đa.", 

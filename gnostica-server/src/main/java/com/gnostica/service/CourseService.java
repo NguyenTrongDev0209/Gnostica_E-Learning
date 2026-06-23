@@ -3,12 +3,16 @@ package com.gnostica.service;
 import com.gnostica.dto.request.CourseRequest;
 import com.gnostica.dto.request.LessonRequest;
 import com.gnostica.dto.request.ModuleRequest;
+import com.gnostica.dto.response.*;
 import com.gnostica.model.Account;
 import com.gnostica.model.Attachment;
 import com.gnostica.model.Category;
 import com.gnostica.model.Course;
 import com.gnostica.model.Lesson;
 import com.gnostica.model.Module;
+import com.gnostica.model.Quiz;
+import com.gnostica.model.Question;
+import com.gnostica.model.Answer;
 import com.gnostica.repository.AccountRepository;
 import com.gnostica.repository.CategoryRepository;
 import com.gnostica.repository.CourseRepository;
@@ -20,6 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.stream.Collectors;
 
 @Service
@@ -166,7 +172,7 @@ public class CourseService {
     }
 
     @Transactional(readOnly = true)
-    public Course getCourseBySlug(String slug, String email) {
+    public CourseDetailResponse getCourseBySlug(String slug, String email) {
         Course course = courseRepository.findFirstBySlugAndDeletedFalseOrderByIdDesc(slug)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học"));
 
@@ -216,7 +222,7 @@ public class CourseService {
             }
         }
 
-        return course;
+        return mapToCourseDetailResponse(course);
     }
 
     @Transactional
@@ -247,7 +253,7 @@ public class CourseService {
     }
 
     @Transactional
-    public Course updateCourseBySlug(String slug, CourseRequest request, String email) {
+    public CourseDetailResponse updateCourseBySlug(String slug, CourseRequest request, String email) {
         Course course = courseRepository.findFirstBySlugAndDeletedFalseOrderByIdDesc(slug)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học"));
 
@@ -520,22 +526,23 @@ public class CourseService {
         // Việc quét AI chỉ thực hiện thủ công khi giảng viên bấm "Quét thử" trên giao diện.
         // executeAiFirewall(updatedCourse);
 
-        return updatedCourse;
+        return mapToCourseDetailResponse(updatedCourse);
     }
 
     @Transactional(readOnly = true)
-    public org.springframework.data.domain.Page<Course> getPublicCourses(Integer categoryId, String categorySlug,
+    public org.springframework.data.domain.Page<CourseResponse> getPublicCourses(Integer categoryId, String categorySlug,
             String level, int page, int size) {
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size,
                 org.springframework.data.domain.Sort.by("id").descending());
         // Chuyển level sang lowercase hoặc xử lý null
         String levelFilter = (level != null && !level.trim().isEmpty() && !level.equalsIgnoreCase("all")) ? level
                 : null;
-        return courseRepository.findPublicCourses(categoryId, categorySlug, levelFilter, pageable);
+        org.springframework.data.domain.Page<Course> coursesPage = courseRepository.findPublicCourses(categoryId, categorySlug, levelFilter, pageable);
+        return coursesPage.map(this::mapToCourseResponse);
     }
 
     @Transactional(readOnly = true)
-    public org.springframework.data.domain.Page<Course> getInstructorCourses(String email, String search, Integer categoryId, Integer status, int page, int size) {
+    public org.springframework.data.domain.Page<CourseResponse> getInstructorCourses(String email, String search, Integer categoryId, Integer status, int page, int size) {
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size,
                 org.springframework.data.domain.Sort.by("id").descending());
         
@@ -545,18 +552,19 @@ public class CourseService {
             formattedSearch = "%" + search.trim().toLowerCase() + "%";
         }
         
-        return courseRepository.findInstructorCourses(email, formattedSearch, categoryId, status, pageable);
+        org.springframework.data.domain.Page<Course> coursesPage = courseRepository.findInstructorCourses(email, formattedSearch, categoryId, status, pageable);
+        return coursesPage.map(this::mapToCourseResponse);
     }
 
     @Transactional(readOnly = true)
-    public org.springframework.data.domain.Page<Course> getAllActiveCourses(int page, int size) {
+    public org.springframework.data.domain.Page<CourseResponse> getAllActiveCourses(int page, int size) {
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size,
                 org.springframework.data.domain.Sort.by("id").descending());
-        return courseRepository.findByStatusAndDeletedFalse(1, pageable);
+        return courseRepository.findByStatusAndDeletedFalse(1, pageable).map(this::mapToCourseResponse);
     }
 
     @Transactional
-    public Course patchCourseStatus(Integer id, Integer status, String email) {
+    public CourseDetailResponse patchCourseStatus(Integer id, Integer status, String email) {
         Course course = courseRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học"));
 
@@ -583,14 +591,14 @@ public class CourseService {
             }
         }
 
-        return courseRepository.save(course);
+        return mapToCourseDetailResponse(courseRepository.save(course));
     }
 
     @Transactional(readOnly = true)
-    public org.springframework.data.domain.Page<Course> getModerationCourses(Integer status, int page, int size) {
+    public org.springframework.data.domain.Page<CourseResponse> getModerationCourses(Integer status, int page, int size) {
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size,
                 org.springframework.data.domain.Sort.by("updatedAt").descending());
-        return courseRepository.findModerationCourses(status, pageable);
+        return courseRepository.findModerationCourses(status, pageable).map(this::mapToCourseResponse);
     }
 
     @Transactional(readOnly = true)
@@ -616,13 +624,20 @@ public class CourseService {
     }
 
     @Transactional(readOnly = true)
-    public Course getCourseForModerationBySlug(String slug) {
+    public CourseDetailResponse getCourseForModerationBySlug(String slug) {
+        Course course = courseRepository.findFirstBySlugAndDeletedFalseOrderByIdDesc(slug)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học để kiểm duyệt"));
+        return mapToCourseDetailResponse(course);
+    }
+
+    @Transactional(readOnly = true)
+    public Course getCourseEntityForModerationBySlug(String slug) {
         return courseRepository.findFirstBySlugAndDeletedFalseOrderByIdDesc(slug)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học để kiểm duyệt"));
     }
 
     @Transactional
-    public Course approveCourseBySlug(String slug) {
+    public CourseDetailResponse approveCourseBySlug(String slug) {
         Course course = courseRepository.findFirstBySlugAndDeletedFalseOrderByIdDesc(slug)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học để phê duyệt"));
         
@@ -652,7 +667,7 @@ public class CourseService {
     }
 
     @Transactional
-    public Course rejectCourseBySlug(String slug, String rejectReason) {
+    public CourseDetailResponse rejectCourseBySlug(String slug, String rejectReason) {
         Course course = courseRepository.findFirstBySlugAndDeletedFalseOrderByIdDesc(slug)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học"));
         

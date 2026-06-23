@@ -19,17 +19,34 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function AdminThreadModeration() {
   const [pendingThreads, setPendingThreads] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [expandedThreads, setExpandedThreads] = useState({});
+  const [confirmState, setConfirmState] = useState({
+    isOpen: false,
+    threadId: null,
+    type: "", // "approve" | "delete"
+    title: "",
+    description: "",
+  });
 
   const fetchPendingThreads = async () => {
     setIsLoading(true);
     try {
       const res = await threadService.getPendingThreads(0, 100);
-      setPendingThreads(res.data?.content || res.data || []);
+      setPendingThreads(res?.content || res?.data?.content || res?.data || res || []);
     } catch (error) {
       console.error("Error fetching pending threads:", error);
       toast.error("Không thể tải danh sách bài viết chờ duyệt");
@@ -42,27 +59,49 @@ export default function AdminThreadModeration() {
     fetchPendingThreads();
   }, []);
 
-  const handleApprove = async (id) => {
-    try {
-      await threadService.approveThread(id);
-      toast.success("Duyệt bài viết thành công!");
-      // Smoothly remove approved thread from local state
-      setPendingThreads(prev => prev.filter(t => t.id !== id));
-    } catch (error) {
-      console.error("Error approving thread:", error);
-      toast.error("Phê duyệt bài viết thất bại");
+  const openConfirm = (id, type) => {
+    if (type === "approve") {
+      setConfirmState({
+        isOpen: true,
+        threadId: id,
+        type: "approve",
+        title: "Xác nhận duyệt bài viết",
+        description: "Bạn có chắc chắn muốn phê duyệt bài viết này hiển thị trên cộng đồng?",
+      });
+    } else if (type === "delete") {
+      setConfirmState({
+        isOpen: true,
+        threadId: id,
+        type: "delete",
+        title: "Xác nhận từ chối bài viết",
+        description: "Hành động này sẽ từ chối và xóa bài viết khỏi danh sách chờ. Bạn không thể hoàn tác hành động này.",
+      });
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Bạn có chắc chắn muốn xóa/từ chối bài viết này?")) return;
-    try {
-      await threadService.deleteThread(id);
-      toast.success("Đã từ chối và xóa bài viết!");
-      setPendingThreads(prev => prev.filter(t => t.id !== id));
-    } catch (error) {
-      console.error("Error deleting thread:", error);
-      toast.error("Xóa bài viết thất bại");
+  const handleConfirmAction = async () => {
+    const { threadId, type } = confirmState;
+    setConfirmState(prev => ({ ...prev, isOpen: false }));
+    if (!threadId) return;
+
+    if (type === "approve") {
+      try {
+        await threadService.approveThread(threadId);
+        toast.success("Duyệt bài viết thành công!");
+        setPendingThreads(prev => prev.filter(t => t.id !== threadId));
+      } catch (error) {
+        console.error("Error approving thread:", error);
+        toast.error("Phê duyệt bài viết thất bại");
+      }
+    } else if (type === "delete") {
+      try {
+        await threadService.deleteThread(threadId);
+        toast.success("Đã từ chối và xóa bài viết!");
+        setPendingThreads(prev => prev.filter(t => t.id !== threadId));
+      } catch (error) {
+        console.error("Error deleting thread:", error);
+        toast.error("Xóa bài viết thất bại");
+      }
     }
   };
 
@@ -244,16 +283,16 @@ export default function AdminThreadModeration() {
                       <div className="md:w-36 shrink-0 flex md:flex-col items-center justify-end md:justify-start gap-2 pt-2 md:pt-0">
                         <Button
                           size="sm"
-                          className="w-full md:w-full bg-success/10 text-success hover:bg-success/10 text-success text-white font-bold h-9 gap-1.5 shadow-sm shadow-green-600/10"
-                          onClick={() => handleApprove(thread.id)}
+                          className="w-full md:w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-9 gap-1.5 shadow-md transition-all"
+                          onClick={() => openConfirm(thread.id, "approve")}
                         >
                           <CheckCircle2 className="w-4 h-4" /> Duyệt bài
                         </Button>
                         <Button
                           size="sm"
                           variant="outline"
-                          className="w-full md:w-full border-error/20 text-error hover:bg-red-50 hover:text-error font-bold h-9 gap-1.5"
-                          onClick={() => handleDelete(thread.id)}
+                          className="w-full md:w-full border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 font-bold h-9 gap-1.5 transition-all"
+                          onClick={() => openConfirm(thread.id, "delete")}
                         >
                           <Trash2 className="w-4 h-4" /> Từ chối
                         </Button>
@@ -266,6 +305,34 @@ export default function AdminThreadModeration() {
           )}
         </CardContent>
       </Card>
+
+      {/* Confirmation Alert Dialog */}
+      <AlertDialog open={confirmState.isOpen} onOpenChange={(open) => setConfirmState(prev => ({ ...prev, isOpen: open }))}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <div className="flex items-center gap-2">
+              <AlertCircle className={`w-5 h-5 ${confirmState.type === "approve" ? "text-emerald-500" : "text-rose-500"}`} />
+              <AlertDialogTitle className="text-lg font-bold">{confirmState.title}</AlertDialogTitle>
+            </div>
+            <AlertDialogDescription className="mt-2 text-sm text-muted-foreground leading-relaxed">
+              {confirmState.description}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="mt-4">
+            <AlertDialogCancel className="h-9 font-semibold">Hủy</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmAction}
+              className={`h-9 font-bold text-white transition-all ${
+                confirmState.type === "approve"
+                  ? "bg-emerald-600 hover:bg-emerald-700"
+                  : "bg-rose-600 hover:bg-rose-700"
+              }`}
+            >
+              Xác nhận
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

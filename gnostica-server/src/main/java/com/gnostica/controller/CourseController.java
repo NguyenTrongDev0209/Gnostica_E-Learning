@@ -1,6 +1,7 @@
 package com.gnostica.controller;
 
 import com.gnostica.dto.request.CourseRequest;
+import com.gnostica.dto.response.*;
 import com.gnostica.model.Course;
 import com.gnostica.service.CourseService;
 import com.gnostica.service.BunnyTranscriptionService;
@@ -61,7 +62,7 @@ public class CourseController {
         }
     }
     @GetMapping("/{slug}")
-    public ResponseEntity<Course> getCourseDetail(
+    public ResponseEntity<CourseDetailResponse> getCourseDetail(
             @PathVariable String slug,
             Authentication authentication
     ) {
@@ -77,7 +78,7 @@ public class CourseController {
     ) {
         String email = authentication.getName();
         try {
-            Course updatedCourse = courseService.updateCourseBySlug(slug, request, email);
+            CourseDetailResponse updatedCourse = courseService.updateCourseBySlug(slug, request, email);
             return ResponseEntity.ok(updatedCourse);
         } catch (Exception e) {
             Map<String, Object> error = new HashMap<>();
@@ -126,7 +127,7 @@ public class CourseController {
             return ResponseEntity.badRequest().body(Map.of("error", "Vui lòng cung cấp trạng thái mới"));
         }
         try {
-            Course updated = courseService.patchCourseStatus(id, newStatus, email);
+            CourseDetailResponse updated = courseService.patchCourseStatus(id, newStatus, email);
             return ResponseEntity.ok(updated);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
