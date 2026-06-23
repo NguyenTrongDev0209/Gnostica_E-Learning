@@ -77,9 +77,10 @@ public class OrderService {
     @Transactional
     public PaymentLinkResponse createPaymentLink(CreatePaymentLinkRequestBody requestBody) throws Exception {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
+        if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
             throw new RuntimeException("User not authenticated");
         }
+
         String email = authentication.getName();
 
         Account account = accountRepository.findByEmail(email)

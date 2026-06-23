@@ -53,7 +53,7 @@ const CourseDetailScreen = () => {
     
     const formatPrice = (value) => {
         if (!value) return '0 đ';
-        return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") + ' đ';
+        return Math.round(value).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") + ' đ';
     };
 
     // Lấy thông tin cơ bản từ màn Home, ghi đè bằng chi tiết từ API (nếu có)
@@ -415,10 +415,14 @@ const CourseDetailScreen = () => {
                 shadowRadius: 8,
                 elevation: 8,
             }}>
-                <View style={{ flex: 1, justifyContent: 'center' }}>
+                <View style={{ flex: 1, justifyContent: 'center', marginRight: 12 }}>
                     <MaskedView
                         maskElement={
-                            <AppText style={{ fontSize: 24, fontFamily: 'Inter_700Bold', backgroundColor: 'transparent' }}>
+                            <AppText 
+                                numberOfLines={1} 
+                                adjustsFontSizeToFit
+                                style={{ fontSize: 24, fontFamily: 'Inter_700Bold', backgroundColor: 'transparent' }}
+                            >
                                 {course.price}
                             </AppText>
                         }
@@ -428,7 +432,11 @@ const CourseDetailScreen = () => {
                             start={{ x: 0, y: 0 }}
                             end={{ x: 1, y: 0 }}
                         >
-                            <AppText style={{ fontSize: 24, fontFamily: 'Inter_700Bold', opacity: 0 }}>
+                            <AppText 
+                                numberOfLines={1} 
+                                adjustsFontSizeToFit
+                                style={{ fontSize: 24, fontFamily: 'Inter_700Bold', opacity: 0 }}
+                            >
                                 {course.price}
                             </AppText>
                         </LinearGradient>

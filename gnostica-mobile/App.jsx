@@ -56,6 +56,7 @@ import LearningProgressScreen from './src/screens/client/LearningProgressScreen'
 import ApplyInstructorScreen from './src/screens/client/ApplyInstructorScreen';
 import MyForumPostsScreen from './src/screens/client/MyForumPostsScreen';
 import PaymentQRCodeScreen from './src/screens/client/PaymentQRCodeScreen';
+import PaymentSuccessScreen from './src/screens/client/PaymentSuccessScreen';
 import InstructorDashboardScreen from './src/screens/instructor/InstructorDashboardScreen';
 import InstructorCoursesScreen from './src/screens/instructor/InstructorCoursesScreen';
 import InstructorRevenueScreen from './src/screens/instructor/InstructorRevenueScreen';
@@ -170,6 +171,7 @@ export default function App() {
               <Stack.Screen name="ApplyInstructor" component={ApplyInstructorScreen} />
               <Stack.Screen name="MyForumPosts" component={MyForumPostsScreen} />
               <Stack.Screen name="PaymentQRCode" component={PaymentQRCodeScreen} />
+              <Stack.Screen name="PaymentSuccess" component={PaymentSuccessScreen} />
               <Stack.Screen name="InstructorDashboard" component={InstructorDashboardScreen} />
               <Stack.Screen name="InstructorCourses" component={InstructorCoursesScreen} />
               <Stack.Screen name="InstructorRevenue" component={InstructorRevenueScreen} />
