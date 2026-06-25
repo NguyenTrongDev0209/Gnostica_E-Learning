@@ -211,4 +211,7 @@ public class AiModerationService {
         return "{\"safetyScore\":100,\"assessment\":\"Tính năng quét AI cho Video đã được vô hiệu hóa. Chuyển sang quét văn bản.\",\"violations\":[]}";
     }
 
+    public String getVideoTranscriptText(String videoUrl) {
+        return "Video transcript extraction is currently disabled.";
+    }
 }
