@@ -5,6 +5,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { Ticket, ChevronRight } from 'lucide-react-native';
 // import { useCart } from '../../context/CartContext'; // Cart hidden temporarily
 import AppHeader from '../../components/ui/AppHeader';
+import api from '../../services/api';
 import Button from '../../components/ui/Button';
 
 const CheckoutScreen = () => {
@@ -43,10 +44,29 @@ const CheckoutScreen = () => {
         }
     };
 
-    const handlePay = () => {
-        setDiscount(0);
-        setVoucherApplied(false);
-        navigation.navigate('PaymentQRCode');
+    const handlePay = async () => {
+        try {
+            const response = await api.post(`/order/create`, {
+                courseId: course.id,
+                productName: course.title,
+                description: 'Thanh toan don hang',
+                price: total,
+                returnUrl: 'gnostica://payment-result',
+                cancelUrl: 'gnostica://payment-cancel'
+            });
+
+            // api.post tự ném lỗi nếu status != 2xx nên response ở đây chắc chắn là thành công
+            if (response.error === 0 && response.data) {
+                setDiscount(0);
+                setVoucherApplied(false);
+                navigation.navigate('PaymentQRCode', { paymentData: response.data });
+            } else {
+                Alert.alert('Lỗi', response.message || 'Không thể tạo đơn hàng PayOS');
+            }
+        } catch (error) {
+            console.error('Lỗi khi tạo payment link:', error);
+            Alert.alert('Lỗi mạng', error?.message || 'Không thể kết nối đến server để tạo mã thanh toán.');
+        }
     };
 
     return (
