@@ -663,7 +663,7 @@ public class CourseService {
         notificationService.createNotification(course.getAccount(), "Khóa học được phê duyệt",
                 "Khóa học '" + course.getTitle() + "' của bạn đã được Admin phê duyệt và xuất bản.", "SYSTEM");
         
-        return courseRepository.save(course);
+        return mapToCourseDetailResponse(courseRepository.save(course));
     }
 
     @Transactional
@@ -677,7 +677,7 @@ public class CourseService {
         notificationService.createNotification(course.getAccount(), "Khóa học bị từ chối",
                 "Khóa học '" + course.getTitle() + "' của bạn bị từ chối phê duyệt. Lý do: " + course.getRejectReason(), "SYSTEM");
         
-        return courseRepository.save(course);
+        return mapToCourseDetailResponse(courseRepository.save(course));
     }
 
     private String generateUniqueSlug(String baseSlug, Integer id) {
@@ -751,5 +751,88 @@ public class CourseService {
                 org.springframework.data.domain.Sort.by("id").descending());
 
         return courseRepository.findRecommendedCourses(account.getLevel(), categoryIds, pageable);
+    }
+
+    public CourseResponse mapToCourseResponse(Course course) {
+        if (course == null) return null;
+        CourseResponse response = new CourseResponse();
+        response.setId(course.getId());
+        response.setTitle(course.getTitle());
+        response.setSlug(course.getSlug());
+        response.setDescription(course.getDescription());
+        response.setThumbnail(course.getThumbnail());
+        response.setPrice(course.getPrice());
+        response.setDiscount(course.getDiscount());
+        response.setSalePrice(course.getSalePrice());
+        response.setLevel(course.getLevel());
+        response.setStatus(course.getStatus());
+        response.setDeleted(course.getDeleted());
+        response.setRejectReason(course.getRejectReason());
+        response.setAiModerationReport(course.getAiModerationReport());
+        response.setAiModerationStatus(course.getAiModerationStatus());
+        response.setAiModerationLastContentHash(course.getAiModerationLastContentHash());
+        response.setCreatedAt(course.getCreatedAt());
+        response.setUpdatedAt(course.getUpdatedAt());
+        response.setIsEnrolled(course.getIsEnrolled());
+
+        if (course.getCategory() != null) {
+            response.setCategoryId(course.getCategory().getId());
+            response.setCategoryName(course.getCategory().getName());
+        }
+
+        if (course.getAccount() != null) {
+            response.setInstructorId(course.getAccount().getId());
+            response.setInstructorName(course.getAccount().getFullName());
+            response.setInstructorAvatar(course.getAccount().getAvatar());
+            response.setInstructorEmail(course.getAccount().getEmail());
+            response.setInstructorPhone(course.getAccount().getPhone());
+            response.setInstructorCreatedAt(course.getAccount().getCreatedAt());
+        }
+
+        response.setClasses(course.getModules() != null ? course.getModules().size() : 0);
+        response.setStudents(course.getEnrollments() != null ? course.getEnrollments().size() : 0);
+        return response;
+    }
+
+    public CourseDetailResponse mapToCourseDetailResponse(Course course) {
+        if (course == null) return null;
+        CourseDetailResponse response = new CourseDetailResponse();
+        response.setId(course.getId());
+        response.setTitle(course.getTitle());
+        response.setSlug(course.getSlug());
+        response.setDescription(course.getDescription());
+        response.setThumbnail(course.getThumbnail());
+        response.setPrice(course.getPrice());
+        response.setDiscount(course.getDiscount());
+        response.setSalePrice(course.getSalePrice());
+        response.setLevel(course.getLevel());
+        response.setStatus(course.getStatus());
+        response.setDeleted(course.getDeleted());
+        response.setRejectReason(course.getRejectReason());
+        response.setAiModerationReport(course.getAiModerationReport());
+        response.setAiModerationStatus(course.getAiModerationStatus());
+        response.setAiModerationLastContentHash(course.getAiModerationLastContentHash());
+        response.setCreatedAt(course.getCreatedAt());
+        response.setUpdatedAt(course.getUpdatedAt());
+        response.setIsEnrolled(course.getIsEnrolled());
+
+        if (course.getCategory() != null) {
+            response.setCategoryId(course.getCategory().getId());
+            response.setCategoryName(course.getCategory().getName());
+        }
+
+        if (course.getAccount() != null) {
+            response.setInstructorId(course.getAccount().getId());
+            response.setInstructorName(course.getAccount().getFullName());
+            response.setInstructorAvatar(course.getAccount().getAvatar());
+            response.setInstructorEmail(course.getAccount().getEmail());
+            response.setInstructorPhone(course.getAccount().getPhone());
+            response.setInstructorCreatedAt(course.getAccount().getCreatedAt());
+        }
+
+        response.setClasses(course.getModules() != null ? course.getModules().size() : 0);
+        response.setStudents(course.getEnrollments() != null ? course.getEnrollments().size() : 0);
+        
+        return response;
     }
 }
