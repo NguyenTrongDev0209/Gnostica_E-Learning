@@ -9,12 +9,14 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Eye, EyeOff, Mail, Lock, ArrowRight, Facebook } from 'lucide-react';
 import { SimpleButton } from '@/components/common/AppButton';
 import authService from '@/services/authService';
+import useAuthStore from '@/store/useAuthStore';
 import { toast } from 'sonner';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useEffect } from 'react';
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const setUser = useAuthStore(state => state.setUser);
   const [searchParams] = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
@@ -61,12 +63,15 @@ const LoginPage = () => {
     try {
       const response = await authService.login(email, password);
       toast.success('Đăng nhập thành công!');
-
-      // Điều hướng dựa trên vai trò
+      // authService.login trả về ResponseDTO, trong đó dữ liệu nằm ở trường .data
       const user = response.data;
       const roleName = (typeof user.role === 'object' ? user.role.name : user.role)?.toUpperCase() || 'USER';
 
       console.log("LOGIN SUCCESS: User confirmed as role:", roleName);
+
+      // Cập nhật store toàn cục
+      setUser(user);
+
       console.log("Redirecting to:", roleName === 'ADMIN' ? '/admin' : (roleName === 'INSTRUCTOR' || roleName === 'TEACHER' ? '/instructor' : '/'));
 
       if (roleName === 'ADMIN') {
