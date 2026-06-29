@@ -10,6 +10,8 @@ const OAuth2Callback = () => {
     const email = searchParams.get('email');
     const tokenFromParams = searchParams.get('token'); // Lấy token từ URL
 
+    const setUser = useAuthStore(state => state.setUser);
+
     useEffect(() => {
         console.log("OAuth2 Callback received email:", email);
         console.log("OAuth2 Callback received token:", tokenFromParams ? "Yes" : "No");
@@ -36,7 +38,8 @@ const OAuth2Callback = () => {
                         };
 
                         localStorage.setItem('user', JSON.stringify(normalizedUser));
-                        console.log("OAuth2Callback: User normalized and saved to localStorage", normalizedUser);
+                        setUser(normalizedUser); // Cập nhật state toàn cục để UI (Header) nhận diện ngay
+                        console.log("OAuth2Callback: User normalized and saved to localStorage & store", normalizedUser);
 
                         toast.success('Đăng nhập thành công!');
 
@@ -64,7 +67,7 @@ const OAuth2Callback = () => {
             console.log("No email found in URL, redirecting to login");
             navigate('/login');
         }
-    }, [email, tokenFromParams, navigate]);
+    }, [email, tokenFromParams, navigate, setUser]);
 
     return (
         <div className="flex items-center justify-center min-h-screen">
