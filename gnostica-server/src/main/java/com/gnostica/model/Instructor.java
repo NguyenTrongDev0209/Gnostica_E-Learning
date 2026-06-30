@@ -20,10 +20,10 @@ public class Instructor {
     @Column(name = "full_name", columnDefinition = "varchar(255)")
     private String fullName;
 
-    @Column(columnDefinition = "varchar(50)")
+    @Column(length = 255)
     private String email;
-
-    @Column(columnDefinition = "varchar(12)")
+ 
+    @Column(length = 20)
     private String phone;
 
     @OneToOne

@@ -46,10 +46,12 @@ public class Category {
    // Cha
     @ManyToOne
     @JoinColumn(name = "parent_id")
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties("children")
     private Category parent;
-
+ 
     // Con
     @OneToMany(mappedBy = "parent")
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties("parent")
     private List<Category> children;
 
     // Tự động set thời gian khi tạo

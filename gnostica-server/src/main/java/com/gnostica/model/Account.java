@@ -38,7 +38,7 @@ public class Account {
 	@Column(columnDefinition = "varchar(255)", unique = true)
 	public String email;
 	
-	@Column(columnDefinition = "varchar(12)")
+	@Column(length = 20)
 	public String phone;
 
     @CreationTimestamp
