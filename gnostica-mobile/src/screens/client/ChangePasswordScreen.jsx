@@ -6,10 +6,12 @@ import { Lock, Eye, EyeOff, ShieldCheck } from 'lucide-react-native';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import AppHeader from '../../components/ui/AppHeader';
-
+import accountService from '../../services/accountService';
+import { useAuth } from '../../context/AuthContext';
 
 const ChangePasswordScreen = () => {
     const navigation = useNavigation();
+    const { user } = useAuth();
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -17,6 +19,7 @@ const ChangePasswordScreen = () => {
     const [showNew, setShowNew] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
     const [errors, setErrors] = useState({});
+    const [loading, setLoading] = useState(false);
 
     const validate = () => {
         const newErrors = {};
@@ -29,11 +32,20 @@ const ChangePasswordScreen = () => {
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSave = () => {
-        if (validate()) {
-            Alert.alert('Thành công', 'Mật khẩu đã được thay đổi thành công!', [
-                { text: 'OK', onPress: () => navigation.goBack() }
-            ]);
+    const handleSave = async () => {
+        if (validate() && user?.email) {
+            setLoading(true);
+            try {
+                await accountService.changePassword(user.email, currentPassword, newPassword);
+                Alert.alert('Thành công', 'Mật khẩu đã được thay đổi thành công!', [
+                    { text: 'OK', onPress: () => navigation.goBack() }
+                ]);
+            } catch (error) {
+                console.error(error);
+                Alert.alert('Lỗi', error?.message || 'Có lỗi xảy ra khi đổi mật khẩu.');
+            } finally {
+                setLoading(false);
+            }
         }
     };
 
@@ -42,7 +54,6 @@ const ChangePasswordScreen = () => {
             behavior={Platform.OS === 'ios' ? 'padding' : undefined}
             className="flex-1 bg-slate-50"
         >
-            {/* Header */}
             <AppHeader title="Đổi mật khẩu" />
 
             <ScrollView
@@ -127,8 +138,9 @@ const ChangePasswordScreen = () => {
                     className="mt-6 py-3.5 rounded-xl"
                     textClassName="text-base font-bold"
                     onPress={handleSave}
+                    disabled={loading}
                 >
-                    Lưu thay đổi
+                    {loading ? 'Đang lưu...' : 'Lưu thay đổi'}
                 </Button>
 
                 <View className="h-10" />

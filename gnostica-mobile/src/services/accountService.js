@@ -42,6 +42,20 @@ const accountService = {
             params: { email },
         });
     },
+
+    /**
+     * Thay đổi mật khẩu
+     * @param {string} email
+     * @param {string} currentPassword
+     * @param {string} newPassword
+     */
+    changePassword: (email, currentPassword, newPassword) => {
+        return api.put('/account/change-password', {
+            email,
+            currentPassword,
+            newPassword
+        });
+    },
 };
 
 export default accountService;

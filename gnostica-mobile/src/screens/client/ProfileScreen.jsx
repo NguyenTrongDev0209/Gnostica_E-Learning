@@ -1,17 +1,17 @@
 import AppText from '../../components/ui/AppText';
-import React from 'react';
-import { View, ScrollView, TouchableOpacity, Modal, Image } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, ScrollView, TouchableOpacity, Modal, Image, ActivityIndicator } from 'react-native';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 import {
     User, CreditCard, Settings, LogOut,
     ChevronRight, Bell, HelpCircle, Shield, Smile, Star, TrendingUp, MessageSquare, Edit3,
     BookOpen, Target, Award, Crown, Headset,
 } from 'lucide-react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import Avatar from '../../components/ui/Avatar';
 import Button from '../../components/ui/Button';
 import { useAuth } from '../../context/AuthContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import enrollmentService from '../../services/enrollmentService';
 
 const MENU_GROUPS = [
     {
@@ -76,6 +76,22 @@ const ProfileScreen = () => {
     const isFocused = useIsFocused();
     const { isAuthenticated, user, logout } = useAuth();
     const insets = useSafeAreaInsets();
+    const [stats, setStats] = useState({ courses: 0, completed: 0, certificates: 0 });
+
+    useEffect(() => {
+        if (isAuthenticated && isFocused) {
+            enrollmentService.getStats()
+                .then(res => {
+                    const data = res.data || res;
+                    setStats({
+                        courses: (data.active || 0) + (data.completed || 0),
+                        completed: data.completed || 0,
+                        certificates: data.certificates || 0
+                    });
+                })
+                .catch(console.error);
+        }
+    }, [isAuthenticated, isFocused]);
 
     // Unauthenticated state
     if (!isAuthenticated) {
@@ -131,7 +147,6 @@ const ProfileScreen = () => {
     return (
         <ScrollView className="flex-1 bg-slate-50" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 80 }}>
             {/* Header with Cover Image */}
-            {/* Header with Cover Image */}
             <View style={{ height: 200, width: '100%' }}>
                 <Image 
                     source={{ uri: 'https://images.unsplash.com/photo-1557683316-973673baf926?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' }} 
@@ -161,7 +176,7 @@ const ProfileScreen = () => {
                     borderColor: '#F1F5F9'
                 }}
             >
-                {/* Avatar (overlapping the top of the card) */}
+                {/* Avatar */}
                 <View style={{ alignSelf: 'center', marginTop: -44 }}>
                     <View style={{ 
                         borderRadius: 50, padding: 4, backgroundColor: '#fff', 
@@ -190,9 +205,9 @@ const ProfileScreen = () => {
                 {/* Stats row with icons */}
                 <View className="flex-row mt-6 pt-6 border-t border-slate-100 w-full">
                     {[
-                        { label: 'Khóa học',  value: '3', icon: BookOpen, color: '#3B82F6', bg: '#EFF6FF' },
-                        { label: 'Hoàn thành', value: '1', icon: Target, color: '#10B981', bg: '#ECFDF5' },
-                        { label: 'Chứng chỉ', value: '1', icon: Award, color: '#F59E0B', bg: '#FFFBEB' },
+                        { label: 'Khóa học',  value: stats.courses, icon: BookOpen, color: '#3B82F6', bg: '#EFF6FF' },
+                        { label: 'Hoàn thành', value: stats.completed, icon: Target, color: '#10B981', bg: '#ECFDF5' },
+                        { label: 'Chứng chỉ', value: stats.certificates, icon: Award, color: '#F59E0B', bg: '#FFFBEB' },
                     ].map((stat, i) => (
                         <View
                             key={stat.label}

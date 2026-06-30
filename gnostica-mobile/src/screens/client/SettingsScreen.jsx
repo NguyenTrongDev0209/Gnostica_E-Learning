@@ -1,7 +1,8 @@
 import AppText from '../../components/ui/AppText';
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, ScrollView, TouchableOpacity, Switch, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
     ChevronRight, Lock, Package, Compass, Bell,
     Moon, Globe, Trash2, CircleHelp,
@@ -41,13 +42,34 @@ const SETTINGS_GROUPS = [
 
 const SettingsScreen = () => {
     const navigation = useNavigation();
-    const [toggleStates, setToggleStates] = React.useState({
+    const [toggleStates, setToggleStates] = useState({
         notifications: true,
         darkMode: false,
     });
 
-    const handleToggle = (key) => {
-        setToggleStates(prev => ({ ...prev, [key]: !prev[key] }));
+    // Load settings from AsyncStorage on mount
+    useEffect(() => {
+        const loadSettings = async () => {
+            try {
+                const settingsStr = await AsyncStorage.getItem('@gnostica_settings');
+                if (settingsStr) {
+                    setToggleStates(JSON.parse(settingsStr));
+                }
+            } catch (error) {
+                console.error('Error loading settings', error);
+            }
+        };
+        loadSettings();
+    }, []);
+
+    const handleToggle = async (key) => {
+        const newStates = { ...toggleStates, [key]: !toggleStates[key] };
+        setToggleStates(newStates);
+        try {
+            await AsyncStorage.setItem('@gnostica_settings', JSON.stringify(newStates));
+        } catch (error) {
+            console.error('Error saving settings', error);
+        }
     };
 
     const handlePress = (item) => {
