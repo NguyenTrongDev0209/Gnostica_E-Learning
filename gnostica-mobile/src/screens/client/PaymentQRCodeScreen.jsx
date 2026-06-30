@@ -10,15 +10,8 @@ export default function PaymentQRCodeScreen() {
     const navigation = useNavigation();
     const route = useRoute();
 
-    // Dữ liệu từ API truyền sang, fallback nếu chạy độc lập
-    const paymentData = route.params?.paymentData || {
-        amount: 1500000,
-        orderCode: 'ORD-123456789',
-        description: 'Thanh toan don hang',
-        qrCode: 'mock-qr-code-data',
-        accountName: 'GNOSTICA',
-        accountNumber: '123456789'
-    };
+    // Dữ liệu từ API truyền sang
+    const paymentData = route.params?.paymentData || {};
 
     const qrUrl = paymentData.qrCode 
         ? `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(paymentData.qrCode)}`
@@ -31,7 +24,7 @@ export default function PaymentQRCodeScreen() {
 
     React.useEffect(() => {
         let interval;
-        if (paymentData.orderCode && paymentData.orderCode !== 'ORD-123456789') {
+        if (paymentData.orderCode) {
             interval = setInterval(async () => {
                 try {
                     const response = await api.get(`/order/${paymentData.orderCode}`);
@@ -48,7 +41,7 @@ export default function PaymentQRCodeScreen() {
         return () => {
             if (interval) clearInterval(interval);
         };
-    }, [paymentData.orderCode]);
+    }, [paymentData.orderCode, navigation]);
 
     return (
         <View className="flex-1 bg-slate-50">
@@ -101,13 +94,6 @@ export default function PaymentQRCodeScreen() {
                     <ShieldCheck size={16} color="#10B981" />
                     <AppText className="text-xs text-slate-500 font-medium">Giao dịch được bảo mật bởi PayOS</AppText>
                 </View>
-
-                <TouchableOpacity 
-                    className="bg-blue-600 py-4 rounded-xl items-center mb-10 shadow-sm shadow-blue-200"
-                    onPress={() => navigation.navigate('PaymentSuccess')}
-                >
-                    <AppText className="text-white font-extrabold text-base">Đã thanh toán (Test)</AppText>
-                </TouchableOpacity>
             </ScrollView>
         </View>
     );
