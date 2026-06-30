@@ -23,7 +23,10 @@ export default function useAdminUsers() {
     queryKey: ['admin_accounts', activeTab],
     queryFn: async () => {
       const response = await authService.getAccountsByRole(activeTab);
-      return response.data || [];
+      console.log('API getAccountsByRole:', response);
+      if (response && response.data) return response.data;
+      if (Array.isArray(response)) return response;
+      return [];
     },
     enabled: activeTab !== 'PENDING_APP',
     staleTime: 1000 * 60, // 1 min
@@ -126,8 +129,8 @@ export default function useAdminUsers() {
   };
 
   const filteredAccounts = accounts.filter(acc => 
-    acc.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    acc.email?.toLowerCase().includes(searchTerm.toLowerCase())
+    (acc.fullName || "").toLowerCase().includes(searchTerm.toLowerCase()) || 
+    (acc.email || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return {
