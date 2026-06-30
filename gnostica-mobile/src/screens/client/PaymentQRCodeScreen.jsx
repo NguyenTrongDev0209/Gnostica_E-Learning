@@ -4,7 +4,7 @@ import { View, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Copy, QrCode, ShieldCheck } from 'lucide-react-native';
 import AppHeader from '../../components/ui/AppHeader';
-import api from '../../services/api';
+import api from '../../config/api';
 
 export default function PaymentQRCodeScreen() {
     const navigation = useNavigation();
