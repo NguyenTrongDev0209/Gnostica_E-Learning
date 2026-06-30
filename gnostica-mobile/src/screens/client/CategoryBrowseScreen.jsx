@@ -1,47 +1,73 @@
 import AppText from '../../components/ui/AppText';
-import React from 'react';
-import { View, ScrollView, TouchableOpacity, Image } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import { Search, Star, Globe, Smartphone, Cpu, BarChart3, Target, Briefcase, Monitor } from 'lucide-react-native';
+import React, { useState, useEffect } from 'react';
+import { View, ScrollView, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { Search, Star, Globe, Smartphone, Cpu, BarChart3, Target, Briefcase, Monitor, LayoutGrid } from 'lucide-react-native';
 import AppHeader from '../../components/ui/AppHeader';
+import categoryService from '../../services/categoryService';
 
-
-const CATEGORIES = [
-    { id: '1', name: 'Lập trình Web', courses: 24, icon: Globe, color: '#3b82f6' },
-    { id: '2', name: 'Thiết kế Mobile', courses: 15, icon: Smartphone, color: '#ec4899' },
-    { id: '3', name: 'Trí tuệ nhân tạo', courses: 8, icon: Cpu, color: '#8b5cf6' },
-    { id: '4', name: 'Data Science', courses: 12, icon: BarChart3, color: '#10b981' },
-    { id: '5', name: 'Digital Marketing', courses: 20, icon: Target, color: '#f59e0b' },
-    { id: '6', name: 'Kỹ năng lãnh đạo', courses: 10, icon: Briefcase, color: '#6366f1' },
-];
+const ICONS = {
+    Globe, Smartphone, Cpu, BarChart3, Target, Briefcase, Monitor
+};
+const iconNames = ['Globe', 'Smartphone', 'Cpu', 'BarChart3', 'Target', 'Briefcase', 'Monitor'];
+const colors = ['#3b82f6', '#ec4899', '#8b5cf6', '#10b981', '#f59e0b', '#6366f1', '#06b6d4'];
 
 const CategoryBrowseScreen = () => {
     const navigation = useNavigation();
+    const [categories, setCategories] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const response = await categoryService.getAll();
+                let data = response.data?.content || response.content || response.data || response;
+                if (Array.isArray(data)) {
+                    setCategories(data);
+                }
+            } catch (error) {
+                console.error('Error fetching categories:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchCategories();
+    }, []);
 
     return (
         <View className="flex-1 bg-slate-50">
             {/* Header */}
             <AppHeader title="Khám phá danh mục" />
 
-            <ScrollView className="flex-1 p-4">
-                <View className="flex-row flex-wrap justify-between">
-                    {CATEGORIES.map(cat => (
-                        <TouchableOpacity
-                            key={cat.id}
-                            className="w-[48%] bg-white rounded-3xl p-5 mb-4 shadow-sm border border-slate-100 items-center"
-                            onPress={() => navigation.navigate('CourseCatalog', { category: cat.name })}
-                        >
-                            <View
-                                className="w-14 h-14 rounded-2xl items-center justify-center mb-3"
-                                style={{ backgroundColor: cat.color + '15' }}
-                            >
-                                <cat.icon size={28} color={cat.color} />
-                            </View>
-                            <AppText className="text-slate-900 font-bold text-center text-sm">{cat.name}</AppText>
-                            <AppText className="text-slate-400 text-[10px] mt-1">{cat.courses} Khóa học</AppText>
-                        </TouchableOpacity>
-                    ))}
-                </View>
+            <ScrollView className="flex-1 p-4" showsVerticalScrollIndicator={false}>
+                {loading ? (
+                    <ActivityIndicator size="large" color="#2563EB" style={{ marginTop: 40 }} />
+                ) : (
+                    <View className="flex-row flex-wrap justify-between">
+                        {categories.map((cat, index) => {
+                            const IconName = cat.icon || iconNames[index % iconNames.length];
+                            const IconComponent = ICONS[IconName] || LayoutGrid;
+                            const catColor = cat.color || colors[index % colors.length];
+
+                            return (
+                                <TouchableOpacity
+                                    key={cat.id}
+                                    className="w-[48%] bg-white rounded-3xl p-5 mb-4 shadow-sm border border-slate-100 items-center"
+                                    onPress={() => navigation.navigate('CourseCatalog', { categoryId: cat.id, categoryName: cat.name })}
+                                >
+                                    <View
+                                        className="w-14 h-14 rounded-2xl items-center justify-center mb-3"
+                                        style={{ backgroundColor: catColor + '15' }}
+                                    >
+                                        <IconComponent size={28} color={catColor} />
+                                    </View>
+                                    <AppText className="text-slate-900 font-bold text-center text-sm">{cat.name}</AppText>
+                                    <AppText className="text-slate-400 text-[10px] mt-1">{cat.courseCount || 0} Khóa học</AppText>
+                                </TouchableOpacity>
+                            )
+                        })}
+                    </View>
+                )}
 
                 {/* Featured Section in Category */}
                 <View className="mt-4">

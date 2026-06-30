@@ -1,10 +1,10 @@
 import AppText from '../../components/ui/AppText';
-import React from 'react';
-import { View, ScrollView, TouchableOpacity, Image, ImageBackground } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, ScrollView, TouchableOpacity, Image, ImageBackground, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { Flame, TrendingUp, Award, Star, Users, ChevronRight } from 'lucide-react-native';
+import { Flame, TrendingUp, Award, Star, Users } from 'lucide-react-native';
 import CourseCard from '../../components/home/CourseCard';
-import { courses, featuredCourses } from '../../constants/mockData';
+import courseService from '../../services/courseService';
 
 const STATS = [
     { label: 'Khóa học', value: '200+', icon: Award, color: '#3B82F6' },
@@ -14,8 +14,54 @@ const STATS = [
 
 const HighlightsScreen = () => {
     const navigation = useNavigation();
+    const [topCourses, setTopCourses] = useState([]);
+    const [featuredCourses, setFeaturedCourses] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    const topCourses = [...courses].sort((a, b) => (b.studentCount || 0) - (a.studentCount || 0)).slice(0, 3);
+    useEffect(() => {
+        const fetchHighlights = async () => {
+            try {
+                // Giả lập 2 call API cho Top courses (ví dụ sortBy = students) và Featured
+                const [topRes, featRes] = await Promise.all([
+                    courseService.getAll({ sortBy: 'students', sortDir: 'desc', size: 3 }),
+                    courseService.getAll({ size: 5 }) // Tạm dùng getAll cho featured
+                ]);
+                
+                const formatCourse = (course) => ({
+                    id: course.id.toString(),
+                    slug: course.slug,
+                    title: course.title,
+                    thumbnail: course.thumbnail,
+                    instructor: course.instructorName || 'Giảng viên',
+                    rating: 4.5,
+                    category: course.categoryName,
+                    studentCount: course.students || 0,
+                    price: new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(course.salePrice),
+                    originalPrice: course.discount > 0 ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(course.price) : null
+                });
+
+                if (topRes.content) {
+                    setTopCourses(topRes.content.map(formatCourse));
+                }
+                if (featRes.content) {
+                    setFeaturedCourses(featRes.content.map(formatCourse));
+                }
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchHighlights();
+    }, []);
+
+    if (loading) {
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <ActivityIndicator size="large" color="#2563EB" />
+            </View>
+        );
+    }
 
     return (
         <ScrollView className="flex-1 bg-slate-50" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 80 }}>
@@ -122,7 +168,6 @@ const HighlightsScreen = () => {
                     ))}
                 </ScrollView>
             </View>
-
         </ScrollView>
     );
 };

@@ -1,18 +1,41 @@
-import React from 'react';
-import { View, ScrollView, Image, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, ScrollView, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import AppText from '../ui/AppText';
 import { Users, BookOpen } from 'lucide-react-native';
-
-const mockInstructors = [
-  { id: 1, name: "Nguyễn Văn An", role: "Giảng viên Lập trình", avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=100&auto=format&fit=crop", students: "8.5k", courses: 12 },
-  { id: 2, name: "Trần Thị Bích", role: "Chuyên gia UI/UX", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=100&auto=format&fit=crop", students: "6.2k", courses: 8 },
-  { id: 3, name: "Lê Hoàng Nam", role: "Chuyên gia Marketing", avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=100&auto=format&fit=crop", students: "4.3k", courses: 5 },
-  { id: 4, name: "Phạm Minh Tuấn", role: "Data Scientist", avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=100&auto=format&fit=crop", students: "12k", courses: 15 },
-];
+import instructorService from '../../services/instructorService';
 
 const InstructorSection = () => {
     const navigation = useNavigation();
+    const [instructors, setInstructors] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchInstructors = async () => {
+            try {
+                const response = await instructorService.getAll();
+                if (response && Array.isArray(response)) {
+                    setInstructors(response.slice(0, 5));
+                }
+            } catch (error) {
+                console.error('Error fetching instructors:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchInstructors();
+    }, []);
+
+    if (loading) {
+        return (
+            <View className="mt-4 mb-2 px-5 py-6 items-center justify-center">
+                <ActivityIndicator size="small" color="#2563EB" />
+            </View>
+        );
+    }
+
+    if (!instructors.length) return null;
+
     return (
         <View className="mt-4 mb-2">
             <View className="px-5 mb-4 flex-row justify-between items-center">
@@ -29,7 +52,7 @@ const InstructorSection = () => {
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={{ paddingHorizontal: 12 }}
             >
-                {mockInstructors.map((instructor) => (
+                {instructors.map((instructor) => (
                     <TouchableOpacity 
                         key={instructor.id} 
                         activeOpacity={0.8}
@@ -37,15 +60,15 @@ const InstructorSection = () => {
                         className="bg-white mx-2 w-[160px] rounded-2xl p-4 border border-slate-100 shadow-sm items-center flex-col"
                     >
                         <Image 
-                            source={{ uri: instructor.avatar }} 
+                            source={{ uri: instructor.avatar || 'https://via.placeholder.com/100' }} 
                             className="w-16 h-16 rounded-full mb-3"
                             resizeMode="cover"
                         />
                         <AppText className="font-bold text-[14px] text-slate-800 text-center mb-1" numberOfLines={1}>
-                            {instructor.name}
+                            {instructor.fullName}
                         </AppText>
                         <AppText className="text-[11px] text-blue-600 font-medium text-center mb-3" numberOfLines={1}>
-                            {instructor.role}
+                            {instructor.email}
                         </AppText>
                         
                         <View className="w-full h-[1px] bg-slate-100 mb-3" />
@@ -53,11 +76,15 @@ const InstructorSection = () => {
                         <View className="flex-row items-center justify-between w-full px-1">
                             <View className="flex-row items-center gap-1.5">
                                 <Users size={12} color="#64748B" />
-                                <AppText className="text-[11px] text-slate-500 font-medium">{instructor.students}</AppText>
+                                <AppText className="text-[11px] text-slate-500 font-medium">
+                                    {instructor.studentsCount || 0}
+                                </AppText>
                             </View>
                             <View className="flex-row items-center gap-1.5">
                                 <BookOpen size={12} color="#64748B" />
-                                <AppText className="text-[11px] text-slate-500 font-medium">{instructor.courses}</AppText>
+                                <AppText className="text-[11px] text-slate-500 font-medium">
+                                    {instructor.coursesCount || 0}
+                                </AppText>
                             </View>
                         </View>
                     </TouchableOpacity>

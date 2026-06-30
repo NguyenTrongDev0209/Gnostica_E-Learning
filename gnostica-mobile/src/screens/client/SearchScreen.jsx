@@ -1,25 +1,65 @@
 import AppText from '../../components/ui/AppText';
-import React, { useState } from 'react';
-import { View, ScrollView, TouchableOpacity, FlatList,  } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, ScrollView, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { clsx } from 'clsx';
 import SearchBar from '../../components/ui/SearchBar';
 import CourseCard from '../../components/home/CourseCard';
-import { courses } from '../../constants/mockData';
+import courseService from '../../services/courseService';
 
 const FILTERS = ['Tất cả', 'Miễn phí', 'Lập trình', 'Thiết kế', 'Marketing', 'Ngoại ngữ'];
 
 const SearchScreen = () => {
     const [query, setQuery] = useState('');
     const [activeFilter, setActiveFilter] = useState('Tất cả');
+    const [courses, setCourses] = useState([]);
+    const [loading, setLoading] = useState(false);
 
-    const filtered = courses.filter(c => {
-        const matchQuery = c.title.toLowerCase().includes(query.toLowerCase()) ||
-            c.instructor.toLowerCase().includes(query.toLowerCase());
-        const matchFilter = activeFilter === 'Tất cả' ||
-            (activeFilter === 'Miễn phí' ? c.price === 'Miễn phí' : c.category === activeFilter);
-        return matchQuery && matchFilter;
-    });
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            const searchCourses = async () => {
+                setLoading(true);
+                try {
+                    const response = await courseService.getAll({ 
+                        title: query !== '' ? query : undefined 
+                    });
+                    
+                    let results = [];
+                    if (response.content) {
+                        results = response.content.map(course => ({
+                            id: course.id.toString(),
+                            slug: course.slug,
+                            title: course.title,
+                            thumbnail: course.thumbnail,
+                            instructor: course.instructorName || 'Giảng viên',
+                            rating: 4.5,
+                            category: course.categoryName,
+                            studentCount: course.students || 0,
+                            price: new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(course.salePrice),
+                            originalPrice: course.discount > 0 ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(course.price) : null
+                        }));
+                    }
+                    
+                    // Local filtering if needed since backend might not support complex filters
+                    if (activeFilter !== 'Tất cả') {
+                        results = results.filter(c => {
+                            if (activeFilter === 'Miễn phí') return c.price === '0 ₫' || c.price === '0 đ';
+                            return c.category === activeFilter;
+                        });
+                    }
+                    
+                    setCourses(results);
+                } catch (err) {
+                    console.error(err);
+                } finally {
+                    setLoading(false);
+                }
+            };
+            searchCourses();
+        }, 500); // debounce 500ms
+        
+        return () => clearTimeout(timer);
+    }, [query, activeFilter]);
 
     return (
         <View className="flex-1 bg-slate-50">
@@ -66,7 +106,11 @@ const SearchScreen = () => {
             </View>
 
             {/* Results */}
-            {filtered.length === 0 ? (
+            {loading ? (
+                <View className="flex-1 items-center justify-center">
+                    <ActivityIndicator size="large" color="#2563EB" />
+                </View>
+            ) : courses.length === 0 ? (
                 <View className="flex-1 items-center justify-center pb-24">
                     <AppText className="text-5xl mb-3">🔍</AppText>
                     <AppText className="text-[17px] font-bold text-slate-800 mb-1.5">
@@ -78,7 +122,7 @@ const SearchScreen = () => {
                 </View>
             ) : (
                 <FlatList
-                    data={filtered}
+                    data={courses}
                     keyExtractor={item => item.id.toString()}
                     numColumns={2}
                     contentContainerStyle={{ padding: 16, paddingBottom: 120, gap: 12 }}

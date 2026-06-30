@@ -1,6 +1,6 @@
 import AppText from '../../components/ui/AppText';
-import React, { useState, useEffect } from 'react';
-import { View, ScrollView, TouchableOpacity, } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { Menu, Bell, User } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 
@@ -15,39 +15,20 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAuth } from '../../context/AuthContext';
 
-import api from '../../services/api';
-
 const HomeScreen = () => {
     const navigation = useNavigation();
     const { isAuthenticated } = useAuth();
     const [isMenuVisible, setIsMenuVisible] = useState(false);
     const insets = useSafeAreaInsets();
-    const [trendingCourses, setTrendingCourses] = useState([]);
+    const [refreshing, setRefreshing] = useState(false);
+    const [refreshKey, setRefreshKey] = useState(0);
 
-    useEffect(() => {
-        const fetchTrendingCourses = async () => {
-            try {
-                const result = await api.get('/courses?size=10');
-                if (result.content) {
-                    const formatted = result.content.map(course => ({
-                        id: course.id.toString(),
-                        slug: course.slug,
-                        title: course.title,
-                        thumbnail: course.thumbnail,
-                        instructor: course.instructorName || 'Giảng viên',
-                        rating: 4.5,
-                        category: course.categoryName,
-                        studentCount: course.students || 0,
-                        price: new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(course.salePrice),
-                        originalPrice: course.discount > 0 ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(course.price) : null
-                    }));
-                    setTrendingCourses(formatted);
-                }
-            } catch (error) {
-                console.error('Error fetching trending courses:', error);
-            }
-        };
-        fetchTrendingCourses();
+    const onRefresh = useCallback(() => {
+        setRefreshing(true);
+        setRefreshKey(prev => prev + 1);
+        setTimeout(() => {
+            setRefreshing(false);
+        }, 1500);
     }, []);
 
     return (
@@ -58,6 +39,9 @@ const HomeScreen = () => {
                 className="flex-1"
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{ paddingBottom: 80 }}
+                refreshControl={
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#2563EB']} />
+                }
             >
                 {/* Header */}
                 <View
@@ -68,12 +52,14 @@ const HomeScreen = () => {
                         <Menu size={26} color="#1e293b" />
                     </TouchableOpacity>
 
-                    <View className="flex-1">
-                        <SearchBar
-                            placeholder="Tìm kiếm"
-                            style={{ backgroundColor: '#F1F5F9', borderRadius: 12, borderWidth: 0 }}
-                        />
-                    </View>
+                    <TouchableOpacity className="flex-1" onPress={() => navigation.navigate('Search')}>
+                        <View pointerEvents="none">
+                            <SearchBar
+                                placeholder="Tìm kiếm"
+                                style={{ backgroundColor: '#F1F5F9', borderRadius: 12, borderWidth: 0 }}
+                            />
+                        </View>
+                    </TouchableOpacity>
 
                     <TouchableOpacity className="p-1" onPress={() => navigation.navigate('Notifications')}>
                         <Bell size={24} color="#1e293b" />
@@ -91,35 +77,39 @@ const HomeScreen = () => {
                 <HeroSection />
 
                 {/* Categories */}
-                <CategorySection />
+                <CategorySection key={`cat-${refreshKey}`} />
 
                 {/* Course Sections */}
-                <CourseSection title="Dành cho bạn" variant="foryou" />
+                {isAuthenticated && (
+                    <CourseSection key={`foryou-${refreshKey}`} title="Dành cho bạn" variant="foryou" />
+                )}
 
-                <CourseSection title="Khóa học thịnh hành" variant="trending" customData={trendingCourses.length > 0 ? trendingCourses : undefined} />
+                <CourseSection key={`trending-${refreshKey}`} title="Khóa học thịnh hành" variant="trending" />
 
-                <InstructorSection />
+                <InstructorSection key={`inst-${refreshKey}`} />
 
-                <CourseSection title="Khóa học nổi bật" variant="featured" />
+                <CourseSection key={`featured-${refreshKey}`} title="Khóa học nổi bật" variant="featured" />
 
                 {/* FAQ Section */}
                 <FAQSection />
 
                 {/* CTA Banner */}
-                <View className="mx-5 mt-6 mb-6 bg-slate-900 rounded-2xl p-5 flex-row items-center">
-                    <View className="flex-1 pr-4">
-                        <AppText className="text-white font-bold text-base mb-1">Bạn là giảng viên?</AppText>
-                        <AppText className="text-slate-400 text-xs leading-4">
-                            Chia sẻ kiến thức và tạo thu nhập cùng Gnostica.
-                        </AppText>
+                {!isAuthenticated && (
+                    <View className="mx-5 mt-6 mb-6 bg-slate-900 rounded-2xl p-5 flex-row items-center">
+                        <View className="flex-1 pr-4">
+                            <AppText className="text-white font-bold text-base mb-1">Bạn là giảng viên?</AppText>
+                            <AppText className="text-slate-400 text-xs leading-4">
+                                Chia sẻ kiến thức và tạo thu nhập cùng Gnostica.
+                            </AppText>
+                        </View>
+                        <TouchableOpacity
+                            className="bg-white px-4 py-2.5 rounded-xl"
+                            onPress={() => navigation.navigate('Register')}
+                        >
+                            <AppText className="text-slate-900 font-bold text-xs">Tìm hiểu</AppText>
+                        </TouchableOpacity>
                     </View>
-                    <TouchableOpacity
-                        className="bg-white px-4 py-2.5 rounded-xl"
-                        onPress={() => navigation.navigate('InstructorDashboard')}
-                    >
-                        <AppText className="text-slate-900 font-bold text-xs">Tìm hiểu</AppText>
-                    </TouchableOpacity>
-                </View>
+                )}
 
                 <View className="h-5" />
             </ScrollView>
