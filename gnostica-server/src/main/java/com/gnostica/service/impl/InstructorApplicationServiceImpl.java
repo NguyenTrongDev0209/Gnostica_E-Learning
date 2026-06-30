@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class InstructorApplicationServiceImpl implements InstructorApplicationService {
 
     private final InstructorApplicationRepository applicationRepository;

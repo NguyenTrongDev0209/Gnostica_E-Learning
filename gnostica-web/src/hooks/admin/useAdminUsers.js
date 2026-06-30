@@ -17,6 +17,8 @@ export default function useAdminUsers() {
   const [rejectReason, setRejectReason] = useState("");
   const [selectedApp, setSelectedApp] = useState(null);
 
+  const [previewDocument, setPreviewDocument] = useState({ url: null, title: "" });
+
   const { data: accounts = [], isLoading: isAccountsLoading } = useQuery({
     queryKey: ['admin_accounts', activeTab],
     queryFn: async () => {
@@ -149,6 +151,8 @@ export default function useAdminUsers() {
     handleApprove,
     handleReject,
     handleToggleLock,
-    confirmLock
+    confirmLock,
+    previewDocument,
+    setPreviewDocument
   };
 }

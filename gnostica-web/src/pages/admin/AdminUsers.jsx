@@ -1,11 +1,11 @@
 import React from "react";
-import { 
-  Plus, 
-  Search, 
-  Filter, 
-  MoreHorizontal, 
-  Edit, 
-  Trash2, 
+import {
+  Plus,
+  Search,
+  Filter,
+  MoreHorizontal,
+  Edit,
+  Trash2,
   ShieldCheck,
   BookOpen,
   Lock,
@@ -59,7 +59,9 @@ export default function AdminUsers() {
     handleApprove,
     handleReject,
     handleToggleLock,
-    confirmLock
+    confirmLock,
+    previewDocument,
+    setPreviewDocument
   } = useAdminUsers();
 
   const filteredAccounts = accounts;
@@ -87,8 +89,8 @@ export default function AdminUsers() {
           <div className="flex w-full md:w-auto items-center gap-3">
             <div className="relative w-full md:w-80">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input 
-                placeholder="Tìm kiếm..." 
+              <Input
+                placeholder="Tìm kiếm..."
                 className="pl-9 h-10 border-border"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -161,9 +163,9 @@ export default function AdminUsers() {
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end items-center gap-2">
-                            <Button 
-                              variant={acc.locked ? "default" : "outline"} 
-                              size="sm" 
+                            <Button
+                              variant={acc.locked ? "default" : "outline"}
+                              size="sm"
                               className={`h-9 font-bold gap-2 ${acc.locked ? 'bg-emerald-600 hover:bg-emerald-700' : 'border-error/20 text-error hover:bg-red-50 hover:text-error'}`}
                               onClick={() => handleToggleLock(acc)}
                             >
@@ -185,7 +187,7 @@ export default function AdminUsers() {
                 </TableBody>
               </Table>
             </div>
-            
+
             <div className="p-4 border-t border-border flex items-center justify-between text-sm text-muted-foreground">
               <div>Hiển thị <span className="font-bold text-foreground">{filteredAccounts.length}</span> kết quả</div>
             </div>
@@ -252,9 +254,9 @@ export default function AdminUsers() {
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end items-center gap-2">
-                            <Button 
-                              variant={acc.locked ? "default" : "outline"} 
-                              size="sm" 
+                            <Button
+                              variant={acc.locked ? "default" : "outline"}
+                              size="sm"
                               className={`h-9 font-bold gap-2 ${acc.locked ? 'bg-emerald-600 hover:bg-emerald-700' : 'border-error/20 text-error hover:bg-red-50 hover:text-error'}`}
                               onClick={() => handleToggleLock(acc)}
                             >
@@ -276,7 +278,7 @@ export default function AdminUsers() {
                 </TableBody>
               </Table>
             </div>
-            
+
             <div className="p-4 border-t border-border flex items-center justify-between text-sm text-muted-foreground">
               <div>Hiển thị <span className="font-bold text-foreground">{filteredAccounts.length}</span> kết quả</div>
             </div>
@@ -322,35 +324,35 @@ export default function AdminUsers() {
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">
                           <div className="flex gap-2 mb-1">
-                             <a href={app.idCardFront} target="_blank" rel="noreferrer" className="text-info underline">CCCD Trước</a>
-                             <a href={app.idCardBack} target="_blank" rel="noreferrer" className="text-info underline">CCCD Sau</a>
+                            <button type="button" onClick={() => setPreviewDocument({ url: app.idCardFront, title: "CCCD Mặt trước" })} className="text-info underline hover:text-blue-700 transition-colors">CCCD Trước</button>
+                            <button type="button" onClick={() => setPreviewDocument({ url: app.idCardBack, title: "CCCD Mặt sau" })} className="text-info underline hover:text-blue-700 transition-colors">CCCD Sau</button>
                           </div>
                           <div>
-                             <a href={app.cvUrl} target="_blank" rel="noreferrer" className="text-info underline">CV PDF</a>
+                            <button type="button" onClick={() => setPreviewDocument({ url: app.cvUrl, title: "CV/Resume (PDF)" })} className="text-info underline hover:text-blue-700 transition-colors">CV PDF</button>
                           </div>
                           {app.degreeUrls && (
                             <div className="flex flex-wrap gap-x-2 mt-1 italic">
                               {app.degreeUrls.split(',').filter(u => u).map((url, i) => (
-                                <a key={i} href={url} target="_blank" rel="noreferrer" className="text-emerald-600 underline">
+                                <button key={i} type="button" onClick={() => setPreviewDocument({ url: url, title: `Bằng cấp/Chứng chỉ ${i + 1}` })} className="text-emerald-600 underline hover:text-emerald-800 transition-colors">
                                   Bằng cấp {i + 1}
-                                </a>
+                                </button>
                               ))}
                             </div>
                           )}
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end items-center gap-2">
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
+                            <Button
+                              variant="outline"
+                              size="sm"
                               className="border-success/20 text-success hover:bg-green-50"
                               onClick={() => handleApprove(app.id)}
                             >
                               Phê duyệt
                             </Button>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
+                            <Button
+                              variant="outline"
+                              size="sm"
                               className="border-error/20 text-error hover:bg-red-50"
                               onClick={() => {
                                 setSelectedApp(app.id);
@@ -420,6 +422,30 @@ export default function AdminUsers() {
               Xác nhận từ chối
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Document Preview Dialog */}
+      <Dialog open={!!previewDocument?.url} onOpenChange={(open) => !open && setPreviewDocument({ url: null, title: "" })}>
+        <DialogContent className="sm:max-w-[900px] h-[85vh] flex flex-col p-4 sm:p-6">
+          <DialogHeader className="mb-2 shrink-0">
+            <DialogTitle className="text-xl font-bold flex justify-between items-center pr-6 text-slate-800">
+              {previewDocument?.title || "Xem trước tài liệu"}
+              <Button size="sm" variant="outline" className="h-8" onClick={() => window.open(previewDocument?.url, '_blank')}>
+                Mở trong tab mới
+              </Button>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 w-full bg-slate-100/50 rounded-lg overflow-hidden border border-border flex items-center justify-center relative">
+            {previewDocument?.url && (
+              <iframe
+                src={previewDocument.url}
+                className="w-full h-full border-0 rounded-md absolute inset-0 bg-white"
+                title={previewDocument.title}
+                loading="lazy"
+              />
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </div>
