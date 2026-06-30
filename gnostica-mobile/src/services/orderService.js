@@ -1,8 +1,8 @@
-import api from './api';
+﻿import api from '../config/api';
 
 const orderService = {
     /**
-     * Lấy tất cả đơn hàng
+     * Láº¥y táº¥t cáº£ Ä‘Æ¡n hÃ ng
      * Response: ApiResponse<List<Order>>
      */
     getAll: () => {
@@ -10,7 +10,7 @@ const orderService = {
     },
 
     /**
-     * Lấy đơn hàng phân trang
+     * Láº¥y Ä‘Æ¡n hÃ ng phÃ¢n trang
      * @param {Object} params - { page, size }
      */
     getPaginated: (params = {}) => {
@@ -22,7 +22,7 @@ const orderService = {
     },
 
     /**
-     * Lấy thông tin đơn hàng theo ID hoặc transactionId
+     * Láº¥y thÃ´ng tin Ä‘Æ¡n hÃ ng theo ID hoáº·c transactionId
      * @param {string} idOrCode
      */
     getById: (idOrCode) => {
@@ -30,7 +30,7 @@ const orderService = {
     },
 
     /**
-     * Tạo link thanh toán PayOS
+     * Táº¡o link thanh toÃ¡n PayOS
      * @param {Object} body - CreatePaymentLinkRequestBody
      */
     createPaymentLink: (body) => {
@@ -39,3 +39,4 @@ const orderService = {
 };
 
 export default orderService;
+

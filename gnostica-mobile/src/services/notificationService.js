@@ -1,16 +1,16 @@
-import api from './api';
+﻿import api from '../config/api';
 
 const notificationService = {
     /**
-     * Lấy danh sách thông báo của user
-     * Response: List<Notification> (trả trực tiếp, không qua ApiResponse wrapper)
+     * Láº¥y danh sÃ¡ch thÃ´ng bÃ¡o cá»§a user
+     * Response: List<Notification> (tráº£ trá»±c tiáº¿p, khÃ´ng qua ApiResponse wrapper)
      */
     getAll: () => {
         return api.get('/notifications');
     },
 
     /**
-     * Lấy số thông báo chưa đọc
+     * Láº¥y sá»‘ thÃ´ng bÃ¡o chÆ°a Ä‘á»c
      * @returns {number}
      */
     getUnreadCount: () => {
@@ -18,7 +18,7 @@ const notificationService = {
     },
 
     /**
-     * Đánh dấu 1 thông báo đã đọc
+     * ÄÃ¡nh dáº¥u 1 thÃ´ng bÃ¡o Ä‘Ã£ Ä‘á»c
      * @param {number} id
      */
     markAsRead: (id) => {
@@ -26,7 +26,7 @@ const notificationService = {
     },
 
     /**
-     * Đánh dấu tất cả đã đọc
+     * ÄÃ¡nh dáº¥u táº¥t cáº£ Ä‘Ã£ Ä‘á»c
      */
     markAllAsRead: () => {
         return api.put('/notifications/read-all');
@@ -34,3 +34,4 @@ const notificationService = {
 };
 
 export default notificationService;
+

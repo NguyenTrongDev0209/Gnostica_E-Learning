@@ -1,8 +1,8 @@
-import api from './api';
+﻿import api from '../config/api';
 
 const instructorService = {
     /**
-     * Lấy danh sách giảng viên kèm thống kê
+     * Láº¥y danh sÃ¡ch giáº£ng viÃªn kÃ¨m thá»‘ng kÃª
      * Response: List<InstructorStatsResponse>
      */
     getAll: () => {
@@ -10,7 +10,7 @@ const instructorService = {
     },
 
     /**
-     * Lấy hồ sơ công khai của giảng viên
+     * Láº¥y há»“ sÆ¡ cÃ´ng khai cá»§a giáº£ng viÃªn
      * @param {number} id - Account ID
      */
     getProfile: (id) => {
@@ -18,7 +18,7 @@ const instructorService = {
     },
 
     /**
-     * Lấy khóa học của giảng viên
+     * Láº¥y khÃ³a há»c cá»§a giáº£ng viÃªn
      * @param {number} id - Account ID
      */
     getCourses: (id) => {
@@ -26,7 +26,7 @@ const instructorService = {
     },
 
     /**
-     * Gửi đơn đăng ký làm giảng viên
+     * Gá»­i Ä‘Æ¡n Ä‘Äƒng kÃ½ lÃ m giáº£ng viÃªn
      * @param {Object} body - InstructorApplicationRequest { fullName, phone, bio, ... }
      */
     apply: (body) => {
@@ -35,3 +35,4 @@ const instructorService = {
 };
 
 export default instructorService;
+

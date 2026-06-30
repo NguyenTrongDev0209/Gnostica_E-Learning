@@ -1,8 +1,8 @@
-import api from './api';
+﻿import api from '../config/api';
 
 const categoryService = {
     /**
-     * Lấy danh sách danh mục (phân trang)
+     * Láº¥y danh sÃ¡ch danh má»¥c (phÃ¢n trang)
      * Response format: { status, message, data: { content: [...], totalPages, ... } }
      * @param {Object} params - { page, limit, search, status }
      */
@@ -18,3 +18,4 @@ const categoryService = {
 };
 
 export default categoryService;
+

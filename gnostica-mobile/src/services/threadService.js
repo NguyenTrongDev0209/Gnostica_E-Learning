@@ -1,8 +1,8 @@
-import api from './api';
+﻿import api from '../config/api';
 
 const threadService = {
     /**
-     * Lấy danh sách threads (phân trang)
+     * Láº¥y danh sÃ¡ch threads (phÃ¢n trang)
      * @param {Object} params - { page, size, sortBy }
      */
     getAll: (params = {}) => {
@@ -15,7 +15,7 @@ const threadService = {
     },
 
     /**
-     * Lấy chi tiết thread theo ID
+     * Láº¥y chi tiáº¿t thread theo ID
      * @param {number} id
      */
     getById: (id) => {
@@ -23,7 +23,7 @@ const threadService = {
     },
 
     /**
-     * Tăng lượt xem thread
+     * TÄƒng lÆ°á»£t xem thread
      * @param {number} id
      */
     incrementView: (id) => {
@@ -31,7 +31,7 @@ const threadService = {
     },
 
     /**
-     * Tạo thread mới (multipart/form-data)
+     * Táº¡o thread má»›i (multipart/form-data)
      * @param {FormData} formData - { content, authorEmail, categoryId, images[] }
      */
     create: async (formData) => {
@@ -43,13 +43,13 @@ const threadService = {
             method: 'POST',
             headers: {
                 ...(token && { 'Authorization': `Bearer ${token}` }),
-                // Không set Content-Type, để browser tự xử lý multipart boundary
+                // KhÃ´ng set Content-Type, Ä‘á»ƒ browser tá»± xá»­ lÃ½ multipart boundary
             },
             body: formData,
         });
 
         const data = await response.json();
-        if (!response.ok) throw data || { message: 'Tạo bài viết thất bại' };
+        if (!response.ok) throw data || { message: 'Táº¡o bÃ i viáº¿t tháº¥t báº¡i' };
         return data;
     },
 
@@ -63,7 +63,7 @@ const threadService = {
     },
 
     /**
-     * Kiểm tra trạng thái like
+     * Kiá»ƒm tra tráº¡ng thÃ¡i like
      * @param {number} id
      * @param {string} email
      */
@@ -72,7 +72,7 @@ const threadService = {
     },
 
     /**
-     * Lấy bài đăng của chính mình (phân trang)
+     * Láº¥y bÃ i Ä‘Äƒng cá»§a chÃ­nh mÃ¬nh (phÃ¢n trang)
      * @param {string} email
      * @param {Object} params - { page, size }
      */
@@ -86,7 +86,7 @@ const threadService = {
     },
 
     /**
-     * Lấy thống kê forum cá nhân
+     * Láº¥y thá»‘ng kÃª forum cÃ¡ nhÃ¢n
      * @param {string} email
      */
     getMyStats: (email) => {
@@ -94,14 +94,14 @@ const threadService = {
     },
 
     /**
-     * Lấy top contributors
+     * Láº¥y top contributors
      */
     getTopContributors: () => {
         return api.get('/threads/top-contributors');
     },
 
     /**
-     * Lấy threads liên quan
+     * Láº¥y threads liÃªn quan
      * @param {number} id
      */
     getRelated: (id) => {
@@ -109,7 +109,7 @@ const threadService = {
     },
 
     /**
-     * Xoá thread
+     * XoÃ¡ thread
      * @param {number} id
      */
     delete: (id) => {
@@ -118,3 +118,4 @@ const threadService = {
 };
 
 export default threadService;
+

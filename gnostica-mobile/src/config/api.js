@@ -1,7 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { DeviceEventEmitter } from 'react-native';
 
-// Sử dụng IP của máy từ file .env
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.1.34:8080/api';
+// Sử dụng biến môi trường từ file .env
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
 const api = {
     request: async (endpoint, options = {}) => {
@@ -32,6 +33,11 @@ const api = {
             const response = await fetch(url, config);
             const data = await response.json();
             
+            if (response.status === 401) {
+                DeviceEventEmitter.emit('auth.logout');
+                throw data || { message: 'Phiên đăng nhập đã hết hạn' };
+            }
+
             if (!response.ok) {
                 throw data || { message: 'Something went wrong' };
             }
@@ -54,6 +60,34 @@ const api = {
         body: JSON.stringify(body) 
     }),
     delete: (endpoint, options = {}) => api.request(endpoint, { ...options, method: 'DELETE' }),
+    upload: async (endpoint, formData, options = {}) => {
+        const token = await AsyncStorage.getItem('token');
+        let url = `${BASE_URL}${endpoint}`;
+        
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    ...(token && { 'Authorization': `Bearer ${token}` }),
+                    ...options.headers,
+                },
+                body: formData,
+            });
+            const data = await response.json();
+            
+            if (response.status === 401) {
+                DeviceEventEmitter.emit('auth.logout');
+                throw data || { message: 'Phiên đăng nhập đã hết hạn' };
+            }
+
+            if (!response.ok) {
+                throw data || { message: 'Upload failed' };
+            }
+            return data;
+        } catch (error) {
+            throw error;
+        }
+    }
 };
 
 export default api;

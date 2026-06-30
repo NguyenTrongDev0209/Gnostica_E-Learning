@@ -1,15 +1,15 @@
-import api from './api';
+﻿import api from '../config/api';
 
 const certificateService = {
     /**
-     * Lấy tất cả chứng chỉ của user
+     * Láº¥y táº¥t cáº£ chá»©ng chá»‰ cá»§a user
      */
     getAll: () => {
         return api.get('/certificates/my-certificates');
     },
 
     /**
-     * Lấy thông tin chứng chỉ theo certifiUrl
+     * Láº¥y thÃ´ng tin chá»©ng chá»‰ theo certifiUrl
      * Response: CertificateDTO { certifiUrl, courseTitle, studentName, instructorName, completedAt }
      * @param {string} certifiUrl
      */
@@ -19,3 +19,4 @@ const certificateService = {
 };
 
 export default certificateService;
+

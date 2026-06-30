@@ -1,8 +1,8 @@
-import api from './api';
+﻿import api from '../config/api';
 
 const favouriteService = {
     /**
-     * Lấy danh sách khóa học yêu thích
+     * Láº¥y danh sÃ¡ch khÃ³a há»c yÃªu thÃ­ch
      * Response: ApiResponse<List<...>>
      */
     getWishlist: () => {
@@ -10,7 +10,7 @@ const favouriteService = {
     },
 
     /**
-     * Toggle yêu thích (thêm/xoá)
+     * Toggle yÃªu thÃ­ch (thÃªm/xoÃ¡)
      * @param {number} courseId
      * @returns {{ data: { isFavourite: boolean, message: string } }}
      */
@@ -19,7 +19,7 @@ const favouriteService = {
     },
 
     /**
-     * Kiểm tra khóa học có trong danh sách yêu thích không
+     * Kiá»ƒm tra khÃ³a há»c cÃ³ trong danh sÃ¡ch yÃªu thÃ­ch khÃ´ng
      * @param {number} courseId
      * @returns {{ data: { isFavourite: boolean } }}
      */
@@ -29,3 +29,4 @@ const favouriteService = {
 };
 
 export default favouriteService;
+

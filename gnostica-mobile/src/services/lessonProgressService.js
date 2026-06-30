@@ -1,8 +1,8 @@
-import api from './api';
+﻿import api from '../config/api';
 
 const lessonProgressService = {
     /**
-     * Lấy tiến độ học tập của khóa học theo slug
+     * Láº¥y tiáº¿n Ä‘á»™ há»c táº­p cá»§a khÃ³a há»c theo slug
      * @param {string} slug
      */
     getCourseProgress: (slug) => {
@@ -10,7 +10,7 @@ const lessonProgressService = {
     },
 
     /**
-     * Cập nhật thời gian xem cuối cùng
+     * Cáº­p nháº­t thá»i gian xem cuá»‘i cÃ¹ng
      * @param {number} lessonId
      * @param {number} time - seconds
      */
@@ -21,7 +21,7 @@ const lessonProgressService = {
     },
 
     /**
-     * Đánh dấu bài học hoàn thành
+     * ÄÃ¡nh dáº¥u bÃ i há»c hoÃ n thÃ nh
      * @param {number} lessonId
      */
     markComplete: (lessonId) => {
@@ -29,7 +29,7 @@ const lessonProgressService = {
     },
 
     /**
-     * Submit kết quả quiz
+     * Submit káº¿t quáº£ quiz
      * @param {number} quizId
      * @param {Object} body - QuizSubmitRequest
      */
@@ -38,7 +38,7 @@ const lessonProgressService = {
     },
 
     /**
-     * Reset kết quả quiz (cho phép làm lại)
+     * Reset káº¿t quáº£ quiz (cho phÃ©p lÃ m láº¡i)
      * @param {number} quizId
      */
     resetQuiz: (quizId) => {
@@ -47,3 +47,4 @@ const lessonProgressService = {
 };
 
 export default lessonProgressService;
+

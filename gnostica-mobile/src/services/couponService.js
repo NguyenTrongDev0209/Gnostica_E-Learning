@@ -1,8 +1,8 @@
-import api from './api';
+﻿import api from '../config/api';
 
 const couponService = {
     /**
-     * Lấy tất cả mã giảm giá (admin)
+     * Láº¥y táº¥t cáº£ mÃ£ giáº£m giÃ¡ (admin)
      * Response: ResponseDTO<List<CouponResponse>>
      */
     getAll: () => {
@@ -10,7 +10,7 @@ const couponService = {
     },
 
     /**
-     * Lấy mã giảm giá khả dụng cho user hiện tại
+     * Láº¥y mÃ£ giáº£m giÃ¡ kháº£ dá»¥ng cho user hiá»‡n táº¡i
      * Response: ResponseDTO<List<CouponResponse>>
      */
     getMyCoupons: () => {
@@ -18,8 +18,8 @@ const couponService = {
     },
 
     /**
-     * Kiểm tra tính hợp lệ của mã giảm giá
-     * Response: ResponseDTO<CouponResponse> (status 200 nếu hợp lệ, 400 nếu không)
+     * Kiá»ƒm tra tÃ­nh há»£p lá»‡ cá»§a mÃ£ giáº£m giÃ¡
+     * Response: ResponseDTO<CouponResponse> (status 200 náº¿u há»£p lá»‡, 400 náº¿u khÃ´ng)
      * @param {string} code
      */
     validate: (code) => {
@@ -28,3 +28,4 @@ const couponService = {
 };
 
 export default couponService;
+

@@ -1,8 +1,8 @@
-import api from './api';
+﻿import api from '../config/api';
 
 const followingService = {
     /**
-     * Lấy danh sách giảng viên đang theo dõi
+     * Láº¥y danh sÃ¡ch giáº£ng viÃªn Ä‘ang theo dÃµi
      * Response: ApiResponse<List<...>>
      */
     getFollowedInstructors: () => {
@@ -10,7 +10,7 @@ const followingService = {
     },
 
     /**
-     * Toggle theo dõi giảng viên (follow/unfollow)
+     * Toggle theo dÃµi giáº£ng viÃªn (follow/unfollow)
      * @param {number} instructorId
      * @returns {{ data: { isFollowing: boolean, message: string } }}
      */
@@ -19,7 +19,7 @@ const followingService = {
     },
 
     /**
-     * Kiểm tra đang theo dõi giảng viên không
+     * Kiá»ƒm tra Ä‘ang theo dÃµi giáº£ng viÃªn khÃ´ng
      * @param {number} instructorId
      * @returns {{ data: { isFollowing: boolean } }}
      */
@@ -29,3 +29,4 @@ const followingService = {
 };
 
 export default followingService;
+

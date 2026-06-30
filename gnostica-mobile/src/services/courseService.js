@@ -1,8 +1,8 @@
-import api from './api';
+﻿import api from '../config/api';
 
 const courseService = {
     /**
-     * Lấy danh sách khóa học public (phân trang + filter)
+     * Láº¥y danh sÃ¡ch khÃ³a há»c public (phÃ¢n trang + filter)
      * @param {Object} params - { categoryId, categorySlug, level, page, size }
      */
     getAll: (params = {}) => {
@@ -17,7 +17,7 @@ const courseService = {
     },
 
     /**
-     * Lấy chi tiết khóa học theo slug
+     * Láº¥y chi tiáº¿t khÃ³a há»c theo slug
      * @param {string} slug
      */
     getBySlug: (slug) => {
@@ -25,7 +25,7 @@ const courseService = {
     },
 
     /**
-     * Lấy khóa học gợi ý cho user (cần đăng nhập)
+     * Láº¥y khÃ³a há»c gá»£i Ã½ cho user (cáº§n Ä‘Äƒng nháº­p)
      * @param {Object} params - { page, size }
      */
     getRecommendations: (params = {}) => {
@@ -37,7 +37,7 @@ const courseService = {
     },
 
     /**
-     * Lấy danh sách các level khóa học public
+     * Láº¥y danh sÃ¡ch cÃ¡c level khÃ³a há»c public
      */
     getPublicLevels: () => {
         return api.get('/courses/public-levels');
@@ -45,3 +45,4 @@ const courseService = {
 };
 
 export default courseService;
+

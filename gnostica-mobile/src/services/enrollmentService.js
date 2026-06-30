@@ -1,8 +1,8 @@
-import api from './api';
+﻿import api from '../config/api';
 
 const enrollmentService = {
     /**
-     * Lấy danh sách khóa học đã đăng ký
+     * Láº¥y danh sÃ¡ch khÃ³a há»c Ä‘Ã£ Ä‘Äƒng kÃ½
      * Response: ApiResponse<List<EnrollmentDTO>>
      */
     getMyCourses: () => {
@@ -10,14 +10,14 @@ const enrollmentService = {
     },
 
     /**
-     * Lấy thống kê học tập (số khóa đang học, hoàn thành, giờ học...)
+     * Láº¥y thá»‘ng kÃª há»c táº­p (sá»‘ khÃ³a Ä‘ang há»c, hoÃ n thÃ nh, giá» há»c...)
      */
     getStats: () => {
         return api.get('/enrollments/stats');
     },
 
     /**
-     * Kiểm tra user đã enroll khóa học chưa
+     * Kiá»ƒm tra user Ä‘Ã£ enroll khÃ³a há»c chÆ°a
      * @param {string} courseSlug
      * @returns {{ isEnrolled: boolean }}
      */
@@ -27,3 +27,4 @@ const enrollmentService = {
 };
 
 export default enrollmentService;
+

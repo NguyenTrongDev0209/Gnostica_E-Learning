@@ -1,8 +1,8 @@
-import api from './api';
+﻿import api from '../config/api';
 
 const commentService = {
     /**
-     * Lấy comments theo thread ID
+     * Láº¥y comments theo thread ID
      * @param {string} threadId
      */
     getByThreadId: (threadId) => {
@@ -10,7 +10,7 @@ const commentService = {
     },
 
     /**
-     * Thêm comment mới
+     * ThÃªm comment má»›i
      * @param {Object} body - { content, objectId, userEmail, parentId? }
      */
     create: (body) => {
@@ -18,7 +18,7 @@ const commentService = {
     },
 
     /**
-     * Xoá comment
+     * XoÃ¡ comment
      * @param {number} id
      * @param {string} userEmail
      */
@@ -28,3 +28,4 @@ const commentService = {
 };
 
 export default commentService;
+

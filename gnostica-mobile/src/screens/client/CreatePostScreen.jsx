@@ -1,26 +1,75 @@
 import AppText from '../../components/ui/AppText';
-import React, { useState } from 'react';
-import { View, ScrollView, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, ScrollView, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, Alert, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Image as ImageIcon, ChevronDown } from 'lucide-react-native';
 import Button from '../../components/ui/Button';
 import AppHeader from '../../components/ui/AppHeader';
-
+import forumCategoryService from '../../services/forumCategoryService';
+import threadService from '../../services/threadService';
+import { useAuth } from '../../context/AuthContext';
 
 const CreatePostScreen = () => {
     const navigation = useNavigation();
+    const { user } = useAuth();
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
-    const [category, setCategory] = useState('Lập trình');
+    const [categories, setCategories] = useState([]);
+    const [selectedCategory, setSelectedCategory] = useState(null);
+    const [loadingCategories, setLoadingCategories] = useState(true);
+    const [submitting, setSubmitting] = useState(false);
 
-    const handleCreate = () => {
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const response = await forumCategoryService.getAll();
+                const data = response.data || response.content || response;
+                if (Array.isArray(data)) {
+                    setCategories(data);
+                    if (data.length > 0) setSelectedCategory(data[0]);
+                }
+            } catch (error) {
+                console.error('Error fetching categories:', error);
+            } finally {
+                setLoadingCategories(false);
+            }
+        };
+        fetchCategories();
+    }, []);
+
+    const handleCreate = async () => {
+        if (!user) {
+            Alert.alert('Thông báo', 'Vui lòng đăng nhập để đăng bài.');
+            return;
+        }
         if (!title.trim() || !content.trim()) {
             Alert.alert('Lỗi', 'Vui lòng nhập đầy đủ tiêu đề và nội dung.');
             return;
         }
-        Alert.alert('Thành công', 'Bài viết của bạn đã được đăng!', [
-            { text: 'OK', onPress: () => navigation.goBack() }
-        ]);
+        if (!selectedCategory) {
+            Alert.alert('Lỗi', 'Vui lòng chọn chuyên mục.');
+            return;
+        }
+
+        setSubmitting(true);
+        try {
+            const formData = new FormData();
+            formData.append('title', title.trim());
+            formData.append('content', content.trim());
+            formData.append('authorEmail', user.email);
+            formData.append('categoryId', selectedCategory.id);
+            // Optionally handle images here if implemented later
+
+            await threadService.create(formData);
+            Alert.alert('Thành công', 'Bài viết của bạn đã được đăng!', [
+                { text: 'OK', onPress: () => navigation.goBack() }
+            ]);
+        } catch (error) {
+            console.error('Error creating post:', error);
+            Alert.alert('Lỗi', 'Không thể tạo bài đăng lúc này.');
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     return (
@@ -28,16 +77,35 @@ const CreatePostScreen = () => {
             behavior={Platform.OS === "ios" ? "padding" : undefined}
             className="flex-1 bg-white"
         >
-            {/* Header */}
-            <AppHeader title="Đăng bài thảo luận" />
+            <AppHeader title="Đăng bài thảo luận" rightComponent={
+                <TouchableOpacity onPress={handleCreate} disabled={submitting}>
+                    {submitting ? (
+                        <ActivityIndicator size="small" color="#2563EB" />
+                    ) : (
+                        <AppText className="text-blue-600 font-bold">Đăng</AppText>
+                    )}
+                </TouchableOpacity>
+            } />
 
-            <ScrollView className="flex-1 p-4">
+            <ScrollView className="flex-1 p-4" showsVerticalScrollIndicator={false}>
                 {/* Category Selector */}
                 <AppText className="text-slate-500 font-bold text-xs uppercase tracking-wider mb-2">Chuyên mục</AppText>
-                <TouchableOpacity className="flex-row items-center justify-between bg-slate-50 p-4 rounded-2xl mb-6 border border-slate-100">
-                    <AppText className="text-slate-800 font-medium">{category}</AppText>
-                    <ChevronDown size={18} color="#64748b" />
-                </TouchableOpacity>
+                
+                {loadingCategories ? (
+                    <ActivityIndicator size="small" color="#64748b" className="self-start mb-6" />
+                ) : (
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-6">
+                        {categories.map(cat => (
+                            <TouchableOpacity
+                                key={cat.id}
+                                className={`mr-2 px-4 py-2 rounded-xl border ${selectedCategory?.id === cat.id ? 'border-blue-600 bg-blue-50' : 'border-slate-200 bg-slate-50'}`}
+                                onPress={() => setSelectedCategory(cat)}
+                            >
+                                <AppText className={`font-medium ${selectedCategory?.id === cat.id ? 'text-blue-700' : 'text-slate-600'}`}>{cat.name}</AppText>
+                            </TouchableOpacity>
+                        ))}
+                    </ScrollView>
+                )}
 
                 <TextInput
                     placeholder="Tiêu đề bài viết"

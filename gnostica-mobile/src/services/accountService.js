@@ -1,4 +1,4 @@
-import api from './api';
+﻿import api from '../config/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const accountService = {
@@ -28,12 +28,12 @@ const accountService = {
         });
 
         const data = await response.json();
-        if (!response.ok) throw data || { message: 'Upload avatar thất bại' };
+        if (!response.ok) throw data || { message: 'Upload avatar tháº¥t báº¡i' };
         return data;
     },
 
     /**
-     * Cập nhật thông tin cá nhân hóa
+     * Cáº­p nháº­t thÃ´ng tin cÃ¡ nhÃ¢n hÃ³a
      * @param {Object} dto - PersonalizationDTO
      * @param {string} email
      */
@@ -44,7 +44,7 @@ const accountService = {
     },
 
     /**
-     * Thay đổi mật khẩu
+     * Thay Ä‘á»•i máº­t kháº©u
      * @param {string} email
      * @param {string} currentPassword
      * @param {string} newPassword
@@ -59,3 +59,4 @@ const accountService = {
 };
 
 export default accountService;
+

@@ -1,8 +1,8 @@
-import api from './api';
+﻿import api from '../config/api';
 
 const forumCategoryService = {
     /**
-     * Lấy tất cả chuyên mục diễn đàn (kèm số thread)
+     * Láº¥y táº¥t cáº£ chuyÃªn má»¥c diá»…n Ä‘Ã n (kÃ¨m sá»‘ thread)
      * Response: List<{ id, name, slug, status, threadCount }>
      */
     getAll: () => {
@@ -11,3 +11,4 @@ const forumCategoryService = {
 };
 
 export default forumCategoryService;
+
