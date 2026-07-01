@@ -57,31 +57,7 @@ import ApplyInstructorScreen from './src/screens/client/ApplyInstructorScreen';
 import MyForumPostsScreen from './src/screens/client/MyForumPostsScreen';
 import PaymentQRCodeScreen from './src/screens/client/PaymentQRCodeScreen';
 import PaymentSuccessScreen from './src/screens/client/PaymentSuccessScreen';
-import InstructorDashboardScreen from './src/screens/instructor/InstructorDashboardScreen';
-import InstructorCoursesScreen from './src/screens/instructor/InstructorCoursesScreen';
-import InstructorRevenueScreen from './src/screens/instructor/InstructorRevenueScreen';
-import InstructorQAScreen from './src/screens/instructor/InstructorQAScreen';
-import InstructorCouponsScreen from './src/screens/instructor/InstructorCouponsScreen';
-import InstructorStudentsScreen from './src/screens/instructor/InstructorStudentsScreen';
-import InstructorReportsScreen from './src/screens/instructor/InstructorReportsScreen';
-import WithdrawScreen from './src/screens/instructor/WithdrawScreen';
-import InstructorSettingsScreen from './src/screens/instructor/InstructorSettingsScreen';
-
-import AdminDashboardScreen from './src/screens/admin/AdminDashboardScreen';
-import OrderModerationScreen from './src/screens/admin/OrderModerationScreen';
-import UserManagementScreen from './src/screens/admin/UserManagementScreen';
-import AdminCoursesScreen from './src/screens/admin/AdminCoursesScreen';
-import AdminCourseModerationScreen from './src/screens/admin/AdminCourseModerationScreen';
-import AdminCourseDetailModerationScreen from './src/screens/admin/AdminCourseDetailModerationScreen';
-import AdminCategoriesScreen from './src/screens/admin/AdminCategoriesScreen';
-import AdminTransactionsScreen from './src/screens/admin/AdminTransactionsScreen';
-import AdminBanksScreen from './src/screens/admin/AdminBanksScreen';
-import AdminCouponsScreen from './src/screens/admin/AdminCouponsScreen';
-import AdminReportsScreen from './src/screens/admin/AdminReportsScreen';
-import AdminReviewsScreen from './src/screens/admin/AdminReviewsScreen';
-import AdminForumCategoryScreen from './src/screens/admin/AdminForumCategoryScreen';
-import AdminThreadModerationScreen from './src/screens/admin/AdminThreadModerationScreen';
-import AdminSettingsScreen from './src/screens/admin/AdminSettingsScreen';
+// Removed Admin & Instructor Imports
 
 const Stack = createNativeStackNavigator();
 
@@ -172,31 +148,7 @@ export default function App() {
               <Stack.Screen name="MyForumPosts" component={MyForumPostsScreen} />
               <Stack.Screen name="PaymentQRCode" component={PaymentQRCodeScreen} />
               <Stack.Screen name="PaymentSuccess" component={PaymentSuccessScreen} />
-              <Stack.Screen name="InstructorDashboard" component={InstructorDashboardScreen} />
-              <Stack.Screen name="InstructorCourses" component={InstructorCoursesScreen} />
-              <Stack.Screen name="InstructorRevenue" component={InstructorRevenueScreen} />
-              <Stack.Screen name="InstructorQA" component={InstructorQAScreen} />
-              <Stack.Screen name="InstructorCoupons" component={InstructorCouponsScreen} />
-              <Stack.Screen name="InstructorStudents" component={InstructorStudentsScreen} />
-              <Stack.Screen name="InstructorReports" component={InstructorReportsScreen} />
-              <Stack.Screen name="Withdraw" component={WithdrawScreen} />
-              <Stack.Screen name="InstructorSettings" component={InstructorSettingsScreen} />
-
-              <Stack.Screen name="AdminDashboard" component={AdminDashboardScreen} />
-              <Stack.Screen name="OrderModeration" component={OrderModerationScreen} />
-              <Stack.Screen name="UserManagement" component={UserManagementScreen} />
-              <Stack.Screen name="AdminCourses" component={AdminCoursesScreen} />
-              <Stack.Screen name="AdminCourseModeration" component={AdminCourseModerationScreen} />
-              <Stack.Screen name="AdminCourseDetailModeration" component={AdminCourseDetailModerationScreen} />
-              <Stack.Screen name="AdminCategories" component={AdminCategoriesScreen} />
-              <Stack.Screen name="AdminTransactions" component={AdminTransactionsScreen} />
-              <Stack.Screen name="AdminBanks" component={AdminBanksScreen} />
-              <Stack.Screen name="AdminCoupons" component={AdminCouponsScreen} />
-              <Stack.Screen name="AdminReports" component={AdminReportsScreen} />
-              <Stack.Screen name="AdminReviews" component={AdminReviewsScreen} />
-              <Stack.Screen name="AdminForumCategory" component={AdminForumCategoryScreen} />
-              <Stack.Screen name="AdminThreadModeration" component={AdminThreadModerationScreen} />
-              <Stack.Screen name="AdminSettings" component={AdminSettingsScreen} />
+              {/* Removed Admin & Instructor Screens */}
             </Stack.Navigator>
           </NavigationContainer>
         </LoadingProvider>

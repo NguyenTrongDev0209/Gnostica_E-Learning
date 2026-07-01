@@ -1,13 +1,39 @@
 import AppText from '../../components/ui/AppText';
-import React from 'react';
-import { View, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import React, { useState } from 'react';
+import { View, ScrollView, TouchableOpacity, TextInput, Alert, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Upload, CheckCircle2 } from 'lucide-react-native';
 import AppHeader from '../../components/ui/AppHeader';
-
+import instructorService from '../../services/instructorService';
 
 export default function ApplyInstructorScreen() {
     const navigation = useNavigation();
+    const [formData, setFormData] = useState({
+        fullName: '',
+        phone: '',
+        bio: ''
+    });
+    const [loading, setLoading] = useState(false);
+
+    const handleSubmit = async () => {
+        if (!formData.fullName || !formData.phone || !formData.bio) {
+            Alert.alert('Thiếu thông tin', 'Vui lòng nhập đầy đủ họ tên, số điện thoại và giới thiệu bản thân.');
+            return;
+        }
+
+        setLoading(true);
+        try {
+            await instructorService.apply(formData);
+            Alert.alert('Thành công', 'Đơn đăng ký của bạn đã được gửi. Chúng tôi sẽ liên hệ trong thời gian sớm nhất!', [
+                { text: 'OK', onPress: () => navigation.goBack() }
+            ]);
+        } catch (error) {
+            console.error('Error applying for instructor:', error);
+            Alert.alert('Lỗi', error?.message || 'Có lỗi xảy ra khi gửi đơn đăng ký.');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <View className="flex-1 bg-slate-50">
@@ -25,6 +51,8 @@ export default function ApplyInstructorScreen() {
                     <TextInput 
                         className="bg-white border border-slate-200 rounded-xl px-4 py-3.5 text-sm text-slate-800"
                         placeholder="Nhập họ và tên thật"
+                        value={formData.fullName}
+                        onChangeText={t => setFormData({...formData, fullName: t})}
                     />
                 </View>
 
@@ -34,6 +62,8 @@ export default function ApplyInstructorScreen() {
                         className="bg-white border border-slate-200 rounded-xl px-4 py-3.5 text-sm text-slate-800"
                         placeholder="Nhập số điện thoại liên hệ"
                         keyboardType="phone-pad"
+                        value={formData.phone}
+                        onChangeText={t => setFormData({...formData, phone: t})}
                     />
                 </View>
 
@@ -45,6 +75,8 @@ export default function ApplyInstructorScreen() {
                         multiline
                         numberOfLines={4}
                         style={{ textAlignVertical: 'top', height: 100 }}
+                        value={formData.bio}
+                        onChangeText={t => setFormData({...formData, bio: t})}
                     />
                 </View>
 
@@ -56,8 +88,16 @@ export default function ApplyInstructorScreen() {
                     </TouchableOpacity>
                 </View>
 
-                <TouchableOpacity className="bg-blue-600 rounded-xl py-4 items-center justify-center mb-10 shadow-sm shadow-blue-200">
-                    <AppText className="text-white font-extrabold text-base">Gửi yêu cầu đăng ký</AppText>
+                <TouchableOpacity 
+                    className="bg-blue-600 rounded-xl py-4 items-center justify-center mb-10 shadow-sm shadow-blue-200"
+                    onPress={handleSubmit}
+                    disabled={loading}
+                >
+                    {loading ? (
+                        <ActivityIndicator color="#fff" />
+                    ) : (
+                        <AppText className="text-white font-extrabold text-base">Gửi yêu cầu đăng ký</AppText>
+                    )}
                 </TouchableOpacity>
             </ScrollView>
         </View>

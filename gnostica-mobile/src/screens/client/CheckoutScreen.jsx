@@ -3,9 +3,9 @@ import React, { useState } from 'react';
 import { View, ScrollView, TouchableOpacity, Image, TextInput, Alert } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Ticket, ChevronRight } from 'lucide-react-native';
-// import { useCart } from '../../context/CartContext'; // Cart hidden temporarily
 import AppHeader from '../../components/ui/AppHeader';
-import api from '../../services/api';
+import orderService from '../../services/orderService';
+import couponService from '../../services/couponService';
 import Button from '../../components/ui/Button';
 
 const CheckoutScreen = () => {
@@ -15,6 +15,7 @@ const CheckoutScreen = () => {
     const [voucherCode, setVoucherCode] = useState('');
     const [discount, setDiscount] = useState(0);
     const [voucherApplied, setVoucherApplied] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     const parsePrice = (priceStr) => {
         if (!priceStr || priceStr === 'Miễn phí') return 0;
@@ -29,24 +30,41 @@ const CheckoutScreen = () => {
     const subtotal = course ? parsePrice(course.price) : 0;
     const total = Math.max(0, subtotal - discount);
 
-    const handleApplyVoucher = () => {
-        if (voucherCode.toUpperCase() === 'WELCOME50') {
-            const discountAmount = Math.round(subtotal * 0.5);
-            setDiscount(discountAmount);
-            setVoucherApplied(true);
-            Alert.alert('Thành công', `Đã áp dụng mã giảm giá -${formatPrice(discountAmount)}`);
-        } else if (voucherCode.toUpperCase() === 'HE2026') {
-            setDiscount(100000);
-            setVoucherApplied(true);
-            Alert.alert('Thành công', 'Đã áp dụng mã giảm 100.000đ');
-        } else {
-            Alert.alert('Lỗi', 'Mã giảm giá không hợp lệ hoặc đã hết hạn.');
+    const handleApplyVoucher = async () => {
+        if (!voucherCode) return;
+        try {
+            const response = await couponService.validate(voucherCode);
+            // Dựa theo response backend, thường là ApiResponse<Coupon> hoặc ném lỗi nếu sai
+            const coupon = response.data || response;
+            if (coupon) {
+                let discountAmount = 0;
+                if (coupon.discountType === 'PERCENTAGE' || coupon.discountType === 'PERCENT') {
+                    discountAmount = Math.round(subtotal * (coupon.discountValue || coupon.value) / 100);
+                } else {
+                    discountAmount = coupon.discountValue || coupon.value || 0;
+                }
+                
+                if (coupon.maxDiscount && discountAmount > coupon.maxDiscount) {
+                    discountAmount = coupon.maxDiscount;
+                }
+
+                setDiscount(discountAmount);
+                setVoucherApplied(true);
+                Alert.alert('Thành công', `Đã áp dụng mã giảm giá -${formatPrice(discountAmount)}`);
+            } else {
+                Alert.alert('Lỗi', 'Mã giảm giá không hợp lệ hoặc đã hết hạn.');
+            }
+        } catch (error) {
+            console.error('Lỗi khi kiểm tra mã giảm giá:', error);
+            Alert.alert('Lỗi', error?.message || 'Mã giảm giá không hợp lệ hoặc đã hết hạn.');
         }
     };
 
     const handlePay = async () => {
+        if (isLoading) return;
+        setIsLoading(true);
         try {
-            const response = await api.post(`/order/create`, {
+            const response = await orderService.createPaymentLink({
                 courseId: course.id,
                 productName: course.title,
                 description: 'Thanh toan don hang',
@@ -55,17 +73,25 @@ const CheckoutScreen = () => {
                 cancelUrl: 'gnostica://payment-cancel'
             });
 
-            // api.post tự ném lỗi nếu status != 2xx nên response ở đây chắc chắn là thành công
             if (response.error === 0 && response.data) {
                 setDiscount(0);
                 setVoucherApplied(false);
+                setVoucherCode('');
                 navigation.navigate('PaymentQRCode', { paymentData: response.data });
+            } else if (response.data && response.data.qrCode) {
+                 // Trường hợp response trả thẳng data
+                 setDiscount(0);
+                 setVoucherApplied(false);
+                 setVoucherCode('');
+                 navigation.navigate('PaymentQRCode', { paymentData: response.data });
             } else {
                 Alert.alert('Lỗi', response.message || 'Không thể tạo đơn hàng PayOS');
             }
         } catch (error) {
             console.error('Lỗi khi tạo payment link:', error);
             Alert.alert('Lỗi mạng', error?.message || 'Không thể kết nối đến server để tạo mã thanh toán.');
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -180,8 +206,9 @@ const CheckoutScreen = () => {
                             className="py-4 rounded-xl"
                             textClassName="text-base font-bold"
                             onPress={handlePay}
+                            disabled={isLoading}
                         >
-                            Thanh toán {formatPrice(total)}
+                            {isLoading ? 'Đang tạo thanh toán...' : `Thanh toán ${formatPrice(total)}`}
                         </Button>
                     </View>
                 </>

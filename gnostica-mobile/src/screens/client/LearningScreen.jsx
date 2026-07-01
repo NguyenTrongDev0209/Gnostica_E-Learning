@@ -1,10 +1,12 @@
 import AppText from '../../components/ui/AppText';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { ArrowLeft, Play, CheckCircle2, Circle, FileText, MessageCircle } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { clsx } from 'clsx';
+import Video from 'react-native-video';
+import lessonProgressService from '../../services/lessonProgressService';
 
 const { width } = Dimensions.get('window');
 
@@ -13,15 +15,38 @@ const LearningScreen = () => {
     const route = useRoute();
     const insets = useSafeAreaInsets();
     const course = route.params?.course;
+    
     const [activeTab, setActiveTab] = useState('curriculum');
-
-    if (!course) return null;
+    const [activeLesson, setActiveLesson] = useState(null);
 
     const TABS = [
         { key: 'curriculum', label: 'Nội dung' },
         { key: 'materials', label: 'Tài liệu' },
         { key: 'qa',         label: 'Hỏi đáp' },
     ];
+
+    useEffect(() => {
+        if (course?.curriculum?.length > 0) {
+            const firstSection = course.curriculum[0];
+            // Mock lessons array if backend didn't return
+            const lessons = firstSection.lessons || [
+                { id: 1, title: 'Bài 1: Giới thiệu', videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4', duration: '12:45' },
+                { id: 2, title: 'Bài 2: Cài đặt môi trường', videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4', duration: '15:20' }
+            ];
+            setActiveLesson(lessons[0]);
+        } else {
+             // Fallback mock if curriculum is missing
+            setActiveLesson({ id: 1, title: 'Bài 1: Giới thiệu khóa học', videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4', duration: '12:45' });
+        }
+    }, [course]);
+
+    const handleLessonEnd = () => {
+        if (activeLesson) {
+            lessonProgressService.markComplete(activeLesson.id).catch(console.error);
+        }
+    };
+
+    if (!course) return null;
 
     return (
         <View className="flex-1 bg-white">
@@ -33,7 +58,7 @@ const LearningScreen = () => {
                         <ArrowLeft size={24} color="#ffffff" />
                     </TouchableOpacity>
                     <AppText className="flex-1 text-white text-base font-bold ml-3" numberOfLines={1}>
-                        {course.title}
+                        {course.title || course.courseTitle}
                     </AppText>
                 </View>
 
@@ -42,16 +67,26 @@ const LearningScreen = () => {
                     className="bg-black items-center justify-center"
                     style={{ width, height: width * 0.5625 }}
                 >
-                    {/* Play button overlay */}
-                    <TouchableOpacity className="w-16 h-16 rounded-full bg-white/20 items-center justify-center">
-                        <View className="w-12 h-12 rounded-full bg-blue-600 items-center justify-center pl-1">
-                            <Play size={24} color="#ffffff" fill="#ffffff" />
+                    {activeLesson?.videoUrl ? (
+                        <Video 
+                            source={{ uri: activeLesson.videoUrl }} 
+                            style={{ width: '100%', height: '100%' }}
+                            controls={true}
+                            resizeMode="contain"
+                            onEnd={handleLessonEnd}
+                        />
+                    ) : (
+                        <View className="items-center">
+                            <AppText className="text-white text-sm">Video không khả dụng</AppText>
                         </View>
-                    </TouchableOpacity>
-                    <View className="absolute bottom-3 right-3 bg-black/60 px-2 py-1 rounded">
-                        <AppText className="text-white text-xs font-semibold">12:45</AppText>
-                    </View>
+                    )}
                 </View>
+                
+                {activeLesson && (
+                    <View className="px-5 py-3">
+                        <AppText className="text-white text-lg font-bold">{activeLesson.title}</AppText>
+                    </View>
+                )}
             </View>
 
             {/* Content Tabs */}
@@ -79,22 +114,30 @@ const LearningScreen = () => {
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1, backgroundColor: '#F8FAFC' }}>
                 {activeTab === 'curriculum' && (
                     <View className="pb-10">
-                        {course.curriculum?.map((section, secIdx) => (
+                        {/* Fallback to 1 section if course.curriculum is empty */}
+                        {(course.curriculum || [{ section: 'Phần 1: Bắt đầu' }]).map((section, secIdx) => (
                             <View key={secIdx} className="bg-white mb-2 border-b border-slate-100">
                                 <View className="p-4 bg-slate-50">
                                     <AppText className="text-[13px] text-slate-500 font-medium mb-1">
                                         Chương {secIdx + 1}
                                     </AppText>
                                     <AppText className="text-[15px] font-bold text-slate-800">
-                                        {section.section}
+                                        {section.section || section.title}
                                     </AppText>
                                 </View>
-                                {[1, 2, 3].map((lesson, lessIdx) => {
-                                    const isCompleted = secIdx === 0 && lessIdx < 2;
-                                    const isCurrent   = secIdx === 0 && lessIdx === 2;
+                                
+                                {/* Fallback lessons */}
+                                {(section.lessons || [
+                                    { id: secIdx*10+1, title: `Bài học 1`, videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4', duration: '12:45' },
+                                    { id: secIdx*10+2, title: `Bài học 2`, videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4', duration: '15:00' }
+                                ]).map((lesson, lessIdx) => {
+                                    const isCurrent = activeLesson?.id === lesson.id;
+                                    const isCompleted = false; // Need to map from progress data
+
                                     return (
                                         <TouchableOpacity
-                                            key={lessIdx}
+                                            key={lesson.id || lessIdx}
+                                            onPress={() => setActiveLesson(lesson)}
                                             className={clsx(
                                                 'flex-row items-center p-4 border-b border-slate-100',
                                                 isCurrent ? 'bg-blue-50' : 'bg-white',
@@ -113,10 +156,10 @@ const LearningScreen = () => {
                                                     'text-sm text-slate-800',
                                                     isCurrent ? 'font-bold' : 'font-medium',
                                                 )}>
-                                                    {lesson}. Bài học mô phỏng {secIdx + 1}.{lessIdx + 1}
+                                                    {lesson.title}
                                                 </AppText>
                                                 <AppText className="text-xs text-slate-500 mt-1">
-                                                    Video • 12:45
+                                                    Video • {lesson.duration || '12:45'}
                                                 </AppText>
                                             </View>
                                         </TouchableOpacity>

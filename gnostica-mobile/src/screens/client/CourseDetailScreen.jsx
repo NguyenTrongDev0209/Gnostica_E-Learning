@@ -10,6 +10,7 @@ import { useCart } from '../../context/CartContext';
 import RenderHtml from 'react-native-render-html';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { LinearGradient } from 'expo-linear-gradient';
+import courseService from '../../services/courseService';
 
 const { width } = Dimensions.get('window');
 
@@ -69,10 +70,8 @@ const CourseDetailScreen = () => {
         if (courseParams?.slug) {
             const fetchDetail = async () => {
                 try {
-                    const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.1.97:8080/api';
-                    const response = await fetch(`${apiUrl}/courses/${courseParams.slug}`);
-                    const data = await response.json();
-                    setCourseDetail(data);
+                    const data = await courseService.getBySlug(courseParams.slug);
+                    setCourseDetail(data.data || data); // Wrapper ResponseDTO hoặc ApiResponse
                 } catch (e) {
                     console.error('Error fetching course detail:', e);
                 }
@@ -369,7 +368,7 @@ const CourseDetailScreen = () => {
                         </View>
 
                         {/* Reviews list */}
-                        {MOCK_REVIEWS.map(review => (
+                        {(courseDetail?.reviews || MOCK_REVIEWS).map(review => (
                             <View key={review.id} style={{
                                 paddingVertical: 16,
                                 borderBottomWidth: 1, borderBottomColor: '#f1f5f9',
@@ -380,20 +379,20 @@ const CourseDetailScreen = () => {
                                         backgroundColor: '#f1f5f9',
                                         alignItems: 'center', justifyContent: 'center',
                                     }}>
-                                        <AppText style={{ fontSize: 18 }}>{review.avatar}</AppText>
+                                        <AppText style={{ fontSize: 18 }}>{review.avatar || '👨‍🎓'}</AppText>
                                     </View>
                                     <View style={{ flex: 1 }}>
                                         <AppText style={{ fontSize: 13, fontFamily: 'Inter_700Bold', color: '#1e293b' }}>
-                                            {review.name}
+                                            {review.name || review.userName || 'Học viên'}
                                         </AppText>
                                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 }}>
                                             <StarRow rating={review.rating} />
-                                            <AppText style={{ fontSize: 11, color: '#94a3b8' }}>{review.date}</AppText>
+                                            <AppText style={{ fontSize: 11, color: '#94a3b8' }}>{review.date || 'Gần đây'}</AppText>
                                         </View>
                                     </View>
                                 </View>
                                 <AppText style={{ fontSize: 13, color: '#475569', fontFamily: 'Inter_400Regular', lineHeight: 20 }}>
-                                    {review.comment}
+                                    {review.comment || review.content}
                                 </AppText>
                             </View>
                         ))}
