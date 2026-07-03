@@ -1,8 +1,8 @@
 package com.gnostica.service;
 
-import com.gnostica.payload.request.InstructorApplicationRequest;
-import com.gnostica.payload.request.RejectApplicationRequest;
-import com.gnostica.payload.response.InstructorApplicationResponse;
+import com.gnostica.dto.request.InstructorApplicationRequest;
+import com.gnostica.dto.request.RejectApplicationRequest;
+import com.gnostica.dto.response.InstructorApplicationResponse;
 
 import java.util.List;
 

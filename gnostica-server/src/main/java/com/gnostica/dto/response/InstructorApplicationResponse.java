@@ -1,4 +1,4 @@
-package com.gnostica.payload.response;
+package com.gnostica.dto.response;
 
 import lombok.Data;
 import java.time.LocalDateTime;

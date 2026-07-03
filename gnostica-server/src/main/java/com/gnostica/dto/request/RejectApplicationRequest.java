@@ -1,4 +1,4 @@
-package com.gnostica.payload.request;
+package com.gnostica.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
