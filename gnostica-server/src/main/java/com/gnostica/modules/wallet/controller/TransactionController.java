@@ -1,7 +1,6 @@
 package com.gnostica.modules.wallet.controller;
 import com.gnostica.modules.wallet.service.*;
 import com.gnostica.modules.wallet.dto.response.*;
-import com.gnostica.service.*;
 
 import com.gnostica.core.model.Transaction;
 import com.gnostica.modules.wallet.service.TransactionService;

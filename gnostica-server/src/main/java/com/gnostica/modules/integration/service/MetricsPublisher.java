@@ -1,4 +1,4 @@
-package com.gnostica.service;
+package com.gnostica.modules.integration.service;
 
 import java.lang.management.ManagementFactory;
 import java.time.LocalTime;

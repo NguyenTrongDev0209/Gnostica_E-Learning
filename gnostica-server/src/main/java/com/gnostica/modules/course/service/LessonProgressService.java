@@ -1,7 +1,7 @@
 package com.gnostica.modules.course.service;
 
 
-import com.gnostica.service.AiModerationService;
+import com.gnostica.modules.integration.service.AiModerationService;
 
 import com.gnostica.modules.course.dto.response.LessonProgressDTO;
 import com.gnostica.core.model.Account;

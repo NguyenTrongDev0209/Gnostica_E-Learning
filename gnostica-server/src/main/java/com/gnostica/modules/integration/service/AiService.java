@@ -1,7 +1,7 @@
-package com.gnostica.service;
+package com.gnostica.modules.integration.service;
 
-import com.gnostica.dto.request.AiChatRequest;
-import com.gnostica.dto.response.AiChatResponse;
+import com.gnostica.modules.integration.dto.request.AiChatRequest;
+import com.gnostica.modules.integration.dto.response.AiChatResponse;
 import com.gnostica.core.model.Course;
 import com.gnostica.core.model.ForumCategory;
 import com.gnostica.core.model.Thread;

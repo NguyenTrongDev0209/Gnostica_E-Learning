@@ -1,13 +1,12 @@
 package com.gnostica.modules.course.service;
-import com.gnostica.service.*;
+import com.gnostica.modules.integration.service.BunnyNetService;
 
 
-import com.gnostica.service.AiModerationService;
+import com.gnostica.modules.integration.service.AiModerationService;
 
 import com.gnostica.modules.course.dto.request.CourseRequest;
 import com.gnostica.modules.course.dto.request.LessonRequest;
 import com.gnostica.modules.course.dto.request.ModuleRequest;
-import com.gnostica.dto.response.*;
 import com.gnostica.modules.forum.dto.response.*;
 import com.gnostica.modules.wallet.dto.response.*;
 import com.gnostica.modules.dashboard.dto.response.*;

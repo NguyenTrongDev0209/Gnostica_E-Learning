@@ -1,10 +1,9 @@
 package com.gnostica.modules.wallet.controller;
 import com.gnostica.modules.wallet.service.*;
 import com.gnostica.modules.wallet.dto.response.*;
-import com.gnostica.service.*;
 
-import com.gnostica.dto.SetBankAccountRequest;
-import com.gnostica.dto.WithdrawRequest;
+import com.gnostica.modules.wallet.dto.request.SetBankAccountRequest;
+import com.gnostica.modules.wallet.dto.request.WithdrawRequest;
 import com.gnostica.core.model.Wallet;
 import com.gnostica.core.model.Transaction;
 import com.gnostica.modules.wallet.service.WalletService;

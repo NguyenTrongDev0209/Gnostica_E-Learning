@@ -1,8 +1,8 @@
 package com.gnostica.modules.course.service;
-import com.gnostica.service.*;
+import com.gnostica.modules.integration.service.MailService;
 
 
-import com.gnostica.service.AiModerationService;
+import com.gnostica.modules.integration.service.AiModerationService;
 
 import com.gnostica.modules.course.dto.response.EnrollmentDTO;
 import com.gnostica.core.model.Account;

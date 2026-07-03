@@ -1,5 +1,4 @@
 package com.gnostica.modules.forum.dto.response;
-import com.gnostica.service.*;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

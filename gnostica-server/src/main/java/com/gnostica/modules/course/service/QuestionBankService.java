@@ -1,5 +1,4 @@
 package com.gnostica.modules.course.service;
-import com.gnostica.service.*;
 
 import com.gnostica.modules.course.dto.response.QuestionDto;
 import com.gnostica.core.model.Answer;

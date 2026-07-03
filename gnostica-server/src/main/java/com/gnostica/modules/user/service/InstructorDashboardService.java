@@ -1,7 +1,5 @@
 package com.gnostica.modules.user.service;
-import com.gnostica.service.*;
 
-import com.gnostica.dto.response.*;
 import com.gnostica.modules.forum.dto.response.*;
 import com.gnostica.modules.wallet.dto.response.*;
 import com.gnostica.modules.dashboard.dto.response.*;

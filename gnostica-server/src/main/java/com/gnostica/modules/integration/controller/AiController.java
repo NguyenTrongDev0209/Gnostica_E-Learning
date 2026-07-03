@@ -1,8 +1,8 @@
-package com.gnostica.controller;
+package com.gnostica.modules.integration.controller;
 
-import com.gnostica.dto.request.AiChatRequest;
-import com.gnostica.dto.response.AiChatResponse;
-import com.gnostica.service.AiService;
+import com.gnostica.modules.integration.dto.request.AiChatRequest;
+import com.gnostica.modules.integration.dto.response.AiChatResponse;
+import com.gnostica.modules.integration.service.AiService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

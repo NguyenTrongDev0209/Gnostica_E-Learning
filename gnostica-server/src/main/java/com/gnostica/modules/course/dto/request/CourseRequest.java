@@ -1,7 +1,6 @@
 package com.gnostica.modules.course.dto.request;
 
 
-import com.gnostica.dto.request.*;
 import com.gnostica.modules.forum.dto.request.*;
 import com.gnostica.modules.order.dto.request.*;
 import com.gnostica.modules.payment.dto.request.*;

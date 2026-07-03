@@ -1,7 +1,6 @@
 package com.gnostica.modules.course.controller;
 
 import com.gnostica.modules.course.dto.request.CourseRequest;
-import com.gnostica.dto.response.*;
 import com.gnostica.modules.forum.dto.response.*;
 import com.gnostica.modules.wallet.dto.response.*;
 import com.gnostica.modules.dashboard.dto.response.*;
@@ -10,8 +9,8 @@ import com.gnostica.modules.payment.dto.response.*;
 import com.gnostica.modules.course.dto.response.*;
 import com.gnostica.core.model.Course;
 import com.gnostica.modules.course.service.CourseService;
-import com.gnostica.service.BunnyTranscriptionService;
-import com.gnostica.service.AiModerationService;
+import com.gnostica.modules.integration.service.BunnyTranscriptionService;
+import com.gnostica.modules.integration.service.AiModerationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

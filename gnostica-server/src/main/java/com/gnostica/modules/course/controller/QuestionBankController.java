@@ -1,10 +1,9 @@
 package com.gnostica.modules.course.controller;
-import com.gnostica.service.*;
 
 import com.gnostica.modules.course.dto.response.QuestionDto;
 import com.gnostica.core.dto.response.ResponseDTO;
-import com.gnostica.service.DocumentExtractionService;
-import com.gnostica.service.OpenRouterAiService;
+import com.gnostica.modules.integration.service.DocumentExtractionService;
+import com.gnostica.modules.integration.service.OpenRouterAiService;
 import com.gnostica.modules.course.service.QuestionBankService;
 import com.gnostica.modules.course.service.RedisDraftService;
 import lombok.RequiredArgsConstructor;

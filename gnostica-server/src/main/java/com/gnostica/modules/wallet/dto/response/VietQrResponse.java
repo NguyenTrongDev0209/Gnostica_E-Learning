@@ -1,5 +1,4 @@
 package com.gnostica.modules.wallet.dto.response;
-import com.gnostica.service.*;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;

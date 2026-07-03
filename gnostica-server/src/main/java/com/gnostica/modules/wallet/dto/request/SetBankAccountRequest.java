@@ -1,4 +1,4 @@
-package com.gnostica.dto;
+package com.gnostica.modules.wallet.dto.request;
 
 import lombok.Data;
 

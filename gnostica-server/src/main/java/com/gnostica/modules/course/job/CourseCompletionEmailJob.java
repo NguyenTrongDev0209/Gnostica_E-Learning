@@ -1,8 +1,9 @@
-package com.gnostica.service.job;
+package com.gnostica.modules.course.job;
+import com.gnostica.modules.integration.service.MailService;
 
 import com.gnostica.core.model.Enrollment;
 import com.gnostica.core.repository.EnrollmentRepository;
-import com.gnostica.service.MailService;
+import com.gnostica.modules.integration.service.MailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;

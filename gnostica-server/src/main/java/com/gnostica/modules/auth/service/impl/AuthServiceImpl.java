@@ -13,7 +13,7 @@ import com.gnostica.core.repository.InstructorRepository;
 import com.gnostica.core.repository.RoleRepository;
 import com.gnostica.core.security.JwtProvider;
 import com.gnostica.modules.auth.service.AuthService;
-import com.gnostica.service.MailService;
+import com.gnostica.modules.integration.service.MailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;

@@ -1,5 +1,4 @@
 package com.gnostica.modules.wallet.service;
-import com.gnostica.service.*;
 
 import com.gnostica.core.model.Bank;
 import com.gnostica.core.repository.BankRepository;

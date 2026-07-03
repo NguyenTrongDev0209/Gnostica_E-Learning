@@ -1,5 +1,4 @@
 package com.gnostica.modules.forum.controller;
-import com.gnostica.service.*;
 
 import com.gnostica.core.model.ForumCategory;
 import com.gnostica.core.repository.ForumCategoryRepository;

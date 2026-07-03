@@ -12,7 +12,7 @@ import com.gnostica.core.repository.InstructorApplicationRepository;
 import com.gnostica.core.repository.InstructorRepository;
 import com.gnostica.core.repository.RoleRepository;
 import com.gnostica.modules.user.service.InstructorApplicationService;
-import com.gnostica.service.MailService;
+import com.gnostica.modules.integration.service.MailService;
 import com.gnostica.modules.user.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

@@ -1,9 +1,9 @@
-package com.gnostica.controller;
+package com.gnostica.modules.integration.controller;
 
 import com.gnostica.core.config.BunnyNetConfig;
-import com.gnostica.service.BunnyNetService;
-import com.gnostica.service.BunnyStorageService;
-import com.gnostica.service.CloudinaryService;
+import com.gnostica.modules.integration.service.BunnyNetService;
+import com.gnostica.modules.integration.service.BunnyStorageService;
+import com.gnostica.modules.integration.service.CloudinaryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

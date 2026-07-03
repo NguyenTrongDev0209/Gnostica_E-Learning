@@ -1,5 +1,4 @@
 package com.gnostica.modules.wallet.service;
-import com.gnostica.service.*;
 
 import java.util.ArrayList;
 import java.util.List;

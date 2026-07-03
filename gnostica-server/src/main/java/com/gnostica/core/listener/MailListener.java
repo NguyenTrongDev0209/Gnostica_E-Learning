@@ -1,7 +1,7 @@
 package com.gnostica.core.listener;
 
 import com.gnostica.core.event.PaymentSuccessEvent;
-import com.gnostica.service.MailService;
+import com.gnostica.modules.integration.service.MailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;

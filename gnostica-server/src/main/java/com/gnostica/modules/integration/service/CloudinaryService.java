@@ -1,4 +1,4 @@
-package com.gnostica.service;
+package com.gnostica.modules.integration.service;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;

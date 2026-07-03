@@ -1,4 +1,4 @@
-package com.gnostica.service;
+package com.gnostica.modules.integration.service;
 
 import com.gnostica.core.model.Order;
 import com.gnostica.core.model.Enrollment;

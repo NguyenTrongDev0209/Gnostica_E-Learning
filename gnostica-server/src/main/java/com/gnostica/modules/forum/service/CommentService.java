@@ -1,5 +1,4 @@
 package com.gnostica.modules.forum.service;
-import com.gnostica.service.*;
 
 import com.gnostica.core.model.Comment;
 import java.util.List;

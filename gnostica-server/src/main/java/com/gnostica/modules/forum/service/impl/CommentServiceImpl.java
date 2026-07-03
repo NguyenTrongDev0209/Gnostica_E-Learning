@@ -1,5 +1,4 @@
 package com.gnostica.modules.forum.service.impl;
-import com.gnostica.service.*;
 
 import com.gnostica.core.model.Account;
 import com.gnostica.core.model.Comment;

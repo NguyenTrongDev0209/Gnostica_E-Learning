@@ -1,4 +1,4 @@
-package com.gnostica.dto.request;
+package com.gnostica.modules.integration.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

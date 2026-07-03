@@ -1,5 +1,4 @@
 package com.gnostica.modules.forum.controller;
-import com.gnostica.service.*;
 
 import com.gnostica.modules.forum.dto.request.ThreadReportRequest;
 import com.gnostica.modules.forum.dto.response.ThreadReportResponse;

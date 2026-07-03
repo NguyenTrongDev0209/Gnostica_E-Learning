@@ -1,7 +1,6 @@
 package com.gnostica.modules.wallet.controller;
 import com.gnostica.modules.wallet.service.*;
 import com.gnostica.modules.wallet.dto.response.*;
-import com.gnostica.service.*;
 
 import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;

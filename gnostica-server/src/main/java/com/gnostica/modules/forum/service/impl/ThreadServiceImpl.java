@@ -1,5 +1,4 @@
 package com.gnostica.modules.forum.service.impl;
-import com.gnostica.service.*;
 
 import com.gnostica.core.model.Account;
 import com.gnostica.core.model.ForumCategory;
@@ -12,7 +11,7 @@ import com.gnostica.core.repository.ThreadRepository;
 import com.gnostica.core.repository.ThreadLikeRepository;
 import com.gnostica.core.repository.CommentRepository;
 import com.gnostica.core.repository.ThreadReportRepository;
-import com.gnostica.service.CloudinaryService;
+import com.gnostica.modules.integration.service.CloudinaryService;
 import com.gnostica.modules.forum.service.ThreadService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

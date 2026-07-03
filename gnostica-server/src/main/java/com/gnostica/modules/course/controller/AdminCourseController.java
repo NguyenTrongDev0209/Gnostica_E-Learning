@@ -1,6 +1,5 @@
 package com.gnostica.modules.course.controller;
 
-import com.gnostica.dto.response.*;
 import com.gnostica.modules.forum.dto.response.*;
 import com.gnostica.modules.wallet.dto.response.*;
 import com.gnostica.modules.dashboard.dto.response.*;
@@ -10,7 +9,7 @@ import com.gnostica.modules.course.dto.response.*;
 import com.gnostica.core.model.Course;
 import com.gnostica.core.model.Lesson;
 import com.gnostica.modules.course.service.CourseService;
-import com.gnostica.service.AiModerationService;
+import com.gnostica.modules.integration.service.AiModerationService;
 import com.gnostica.core.repository.LessonRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

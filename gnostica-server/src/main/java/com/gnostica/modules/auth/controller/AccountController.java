@@ -2,7 +2,7 @@ package com.gnostica.modules.auth.controller;
 
 import com.gnostica.core.dto.response.ResponseDTO;
 import com.gnostica.modules.auth.service.AuthService;
-import com.gnostica.service.CloudinaryService;
+import com.gnostica.modules.integration.service.CloudinaryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
