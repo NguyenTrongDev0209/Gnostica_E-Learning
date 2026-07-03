@@ -55,34 +55,42 @@ export default function useMyForumPosts(postsPerPage = 5) {
     await deleteMutation.mutateAsync(threadToDelete);
   };
 
-  const mappedPosts = threads.map(thread => ({
-    id: thread.id,
-    title: thread.content.substring(0, 100) + (thread.content.length > 100 ? "..." : ""),
-    content: thread.content,
-    author: {
-      name: thread.account?.fullName || "Ẩn danh",
-      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${thread.account?.email || 'default'}`,
-      status: "online"
-    },
-    category: thread.category?.name || "Thảo luận",
-    tags: [],
-    createdAt: new Date(thread.createdAt).toLocaleDateString('vi-VN', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    }),
-    stats: {
-      likes: thread.likes || 0,
-      views: thread.views || 0,
-      replies: thread.commentCount || 0
-    },
-    images: thread.images || [],
-    isHot: (thread.views || 0) > 50,
-    status: thread.status,
-    pendingModeration: thread.pendingModeration
-  }));
+  const stripHtml = (html) => {
+    if (!html) return '';
+    return html.replace(/<[^>]*>/g, '').trim();
+  };
+
+  const mappedPosts = threads.map(thread => {
+    const plainText = stripHtml(thread.content);
+    return {
+      id: thread.id,
+      title: plainText.substring(0, 100) + (plainText.length > 100 ? "..." : ""),
+      content: plainText,
+      author: {
+        name: thread.account?.fullName || "Ẩn danh",
+        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${thread.account?.email || 'default'}`,
+        status: "online"
+      },
+      category: thread.category?.name || "Thảo luận",
+      tags: [],
+      createdAt: new Date(thread.createdAt).toLocaleDateString('vi-VN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      }),
+      stats: {
+        likes: thread.likes || 0,
+        views: thread.views || 0,
+        replies: thread.commentCount || 0
+      },
+      images: thread.images || [],
+      isHot: (thread.views || 0) > 50,
+      status: thread.status,
+      pendingModeration: thread.pendingModeration
+    };
+  });
 
   const totalPages = Math.ceil(mappedPosts.length / postsPerPage);
   const currentPosts = mappedPosts.slice(currentPage * postsPerPage, (currentPage + 1) * postsPerPage);

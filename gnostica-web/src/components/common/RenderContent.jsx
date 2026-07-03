@@ -1,7 +1,21 @@
 import React from 'react';
 
-// Helper: simple markdown-like renderer
+// Helper: simple markdown-like renderer or direct HTML renderer
 export default function RenderContent({ text }) {
+  if (!text) return null;
+
+  // Check if content is HTML (from Quill Editor)
+  const isHtml = /<[a-z][\s\S]*>/i.test(text);
+
+  if (isHtml) {
+    return (
+      <div 
+        className="text-foreground text-sm sm:text-base leading-relaxed quill-content html-content" 
+        dangerouslySetInnerHTML={{ __html: text }} 
+      />
+    );
+  }
+
   return (
     <div className="text-foreground text-sm sm:text-base leading-relaxed whitespace-pre-wrap">
       {text.split('\n').map((line, i) => {

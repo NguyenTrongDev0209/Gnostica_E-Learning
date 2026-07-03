@@ -35,34 +35,42 @@ const ForumPage = () => {
     setCurrentPage(0);
   }, [activeCategory, searchQuery]);
 
+  const stripHtml = (html) => {
+    if (!html) return '';
+    return html.replace(/<[^>]*>/g, '').trim();
+  };
+
   // Map backend data to ForumPostCard format
-  const mappedPosts = threads.map(thread => ({
-    id: thread.id,
-    title: thread.content.substring(0, 25) + (thread.content.length > 25 ? "..." : ""),
-    content: thread.content,
-    author: {
-      name: thread.account?.fullName || "Ẩn danh",
-      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${thread.account?.email || 'default'}`,
-      status: "online"
-    },
-    category: thread.category?.name || "",
-    tags: [],
-    createdAt: new Date(thread.createdAt).toLocaleDateString('vi-VN', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    }),
-    stats: {
-      likes: thread.likes || 0,
-      views: thread.views || 0,
-      replies: thread.commentCount || 0
-    },
-    images: thread.images || [],
-    isHot: (thread.views || 0) > 50,
-    status: thread.status
-  }));
+  const mappedPosts = threads.map(thread => {
+    const plainText = stripHtml(thread.content);
+    return {
+      id: thread.id,
+      title: plainText.substring(0, 60) + (plainText.length > 60 ? "..." : ""),
+      content: plainText,
+      author: {
+        name: thread.account?.fullName || "Ẩn danh",
+        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${thread.account?.email || 'default'}`,
+        status: "online"
+      },
+      category: thread.category?.name || "",
+      tags: [],
+      createdAt: new Date(thread.createdAt).toLocaleDateString('vi-VN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      }),
+      stats: {
+        likes: thread.likes || 0,
+        views: thread.views || 0,
+        replies: thread.commentCount || 0
+      },
+      images: thread.images || [],
+      isHot: (thread.views || 0) > 50,
+      status: thread.status
+    };
+  });
 
   const filteredPosts = mappedPosts.filter(post => {
     const matchesCategory = activeCategory === "Tất cả" || post.category === activeCategory;

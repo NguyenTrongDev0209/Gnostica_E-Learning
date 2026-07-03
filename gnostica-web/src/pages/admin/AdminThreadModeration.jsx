@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import RenderContent from "@/components/common/RenderContent";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -237,9 +238,9 @@ export default function AdminThreadModeration() {
 
                         {/* Content text */}
                         <div className="relative text-sm text-muted-foreground leading-relaxed font-normal">
-                          <p className={`whitespace-pre-line ${(!isExpanded && hasLongContent) ? "line-clamp-4" : ""}`}>
-                            {thread.content}
-                          </p>
+                          <div className={(!isExpanded && hasLongContent) ? "line-clamp-4 max-h-[120px] overflow-hidden" : ""}>
+                            <RenderContent text={thread.content} />
+                          </div>
                           {hasLongContent && (
                             <button
                               onClick={() => toggleExpand(thread.id)}

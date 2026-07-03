@@ -9,44 +9,28 @@ export default function useForumCreatePost() {
   const navigate = useNavigate();
   const [content, setContent] = useState('');
   const [categoryId, setCategoryId] = useState('');
-  const [images, setImages] = useState([]);
-  const [previewUrls, setPreviewUrls] = useState([]);
   const [errors, setErrors] = useState({});
 
   const { data: categories = [] } = useQuery({
     queryKey: ['forum_categories_active'],
     queryFn: async () => {
       const res = await forumCategoryService.getAllCategories();
-      return res.data.filter(cat => cat.status === true);
+      const data = res?.data || res || [];
+      return Array.isArray(data) ? data.filter(cat => cat.status === true) : [];
     },
     staleTime: 1000 * 60 * 30, // 30 min cache
   });
-
-  const handleImageChange = (e) => {
-    const files = Array.from(e.target.files);
-    if (files.length === 0) return;
-
-    setImages(prev => [...prev, ...files]);
-
-    const newPreviewUrls = files.map(file => URL.createObjectURL(file));
-    setPreviewUrls(prev => [...prev, ...newPreviewUrls]);
-  };
-
-  const removeImage = (indexToRemove) => {
-    setImages(prev => prev.filter((_, index) => index !== indexToRemove));
-    setPreviewUrls(prev => {
-      const newUrls = prev.filter((_, index) => index !== indexToRemove);
-      URL.revokeObjectURL(prev[indexToRemove]);
-      return newUrls;
-    });
-  };
 
   const validateForm = () => {
     const newErrors = {};
     if (!categoryId) {
         newErrors.categoryId = "Vui lòng chọn chủ đề.";
     }
-    if (!content.trim()) {
+    
+    // Clean up content HTML to see if it actually has text or images
+    const textOnly = content.replace(/<[^>]*>/g, '').trim();
+    const hasImages = content.includes('<img');
+    if (!textOnly && !hasImages) {
         newErrors.content = "Vui lòng nhập nội dung bài viết.";
     }
     setErrors(newErrors);
@@ -94,10 +78,6 @@ export default function useForumCreatePost() {
     formData.append('content', content);
     formData.append('categoryId', categoryId);
     formData.append('authorEmail', user.email || user.username || ""); 
-    
-    images.forEach(image => {
-        formData.append('images', image);
-    });
 
     await createMutation.mutateAsync(formData);
   };
@@ -107,12 +87,9 @@ export default function useForumCreatePost() {
     setContent,
     categoryId,
     setCategoryId,
-    previewUrls,
     categories,
     errors,
     setErrors,
-    handleImageChange,
-    removeImage,
     handleSubmit,
     isSubmitting: createMutation.isPending
   };
