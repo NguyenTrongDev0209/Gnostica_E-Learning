@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.gnostica.dto.request.CouponRequest;
 import com.gnostica.dto.response.CouponResponse;
-import com.gnostica.dto.response.ResponseDTO;
+import com.gnostica.core.dto.response.ResponseDTO;
 import com.gnostica.service.CouponService;
 
 import jakarta.validation.Valid;

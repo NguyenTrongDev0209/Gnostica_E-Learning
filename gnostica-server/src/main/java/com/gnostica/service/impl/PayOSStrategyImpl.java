@@ -1,9 +1,9 @@
 package com.gnostica.service.impl;
 
 import com.gnostica.dto.response.PaymentLinkResponse;
-import com.gnostica.model.Order;
-import com.gnostica.model.OrderDetail;
-import com.gnostica.repository.OrderDetailRepository;
+import com.gnostica.core.model.Order;
+import com.gnostica.core.model.OrderDetail;
+import com.gnostica.core.repository.OrderDetailRepository;
 import com.gnostica.service.PaymentStrategyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

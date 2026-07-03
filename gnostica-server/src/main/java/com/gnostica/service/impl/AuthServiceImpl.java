@@ -4,14 +4,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gnostica.dto.request.LoginRequest;
 import com.gnostica.dto.request.RegisterRequest;
 import com.gnostica.dto.response.LoginResponse;
-import com.gnostica.event.LogEvent;
-import com.gnostica.model.Account;
-import com.gnostica.model.Instructor;
-import com.gnostica.model.Role;
-import com.gnostica.repository.AccountRepository;
-import com.gnostica.repository.InstructorRepository;
-import com.gnostica.repository.RoleRepository;
-import com.gnostica.security.JwtProvider;
+import com.gnostica.core.event.LogEvent;
+import com.gnostica.core.model.Account;
+import com.gnostica.core.model.Instructor;
+import com.gnostica.core.model.Role;
+import com.gnostica.core.repository.AccountRepository;
+import com.gnostica.core.repository.InstructorRepository;
+import com.gnostica.core.repository.RoleRepository;
+import com.gnostica.core.security.JwtProvider;
 import com.gnostica.service.AuthService;
 import com.gnostica.service.MailService;
 import lombok.RequiredArgsConstructor;
@@ -41,7 +41,7 @@ public class AuthServiceImpl implements AuthService {
     private final JwtProvider tokenProvider;
     private final ApplicationEventPublisher eventPublisher;
     private final ObjectMapper objectMapper;
-    private final com.gnostica.repository.CategoryRepository categoryRepository;
+    private final com.gnostica.core.repository.CategoryRepository categoryRepository;
 
     @Override
     public Account register(RegisterRequest request) {
@@ -296,7 +296,7 @@ public class AuthServiceImpl implements AuthService {
         account.setOnboardingCompleted(true);
         
         if (dto.getCategoryIds() != null && !dto.getCategoryIds().isEmpty()) {
-            java.util.List<com.gnostica.model.Category> categories = categoryRepository.findAllById(dto.getCategoryIds());
+            java.util.List<com.gnostica.core.model.Category> categories = categoryRepository.findAllById(dto.getCategoryIds());
             account.setInterests(categories);
         }
         

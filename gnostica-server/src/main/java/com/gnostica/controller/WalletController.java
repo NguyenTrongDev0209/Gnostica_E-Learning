@@ -2,8 +2,8 @@ package com.gnostica.controller;
 
 import com.gnostica.dto.SetBankAccountRequest;
 import com.gnostica.dto.WithdrawRequest;
-import com.gnostica.model.Wallet;
-import com.gnostica.model.Transaction;
+import com.gnostica.core.model.Wallet;
+import com.gnostica.core.model.Transaction;
 import com.gnostica.service.WalletService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

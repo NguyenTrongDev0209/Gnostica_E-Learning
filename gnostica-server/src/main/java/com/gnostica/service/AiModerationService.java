@@ -2,10 +2,10 @@ package com.gnostica.service;
  
 import java.util.List;
 
-import com.gnostica.model.*;
-import com.gnostica.repository.LessonRepository;
-import com.gnostica.repository.CourseRepository;
-import com.gnostica.util.VttParserUtil;
+import com.gnostica.core.model.*;
+import com.gnostica.core.repository.LessonRepository;
+import com.gnostica.core.repository.CourseRepository;
+import com.gnostica.core.util.VttParserUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -129,7 +129,7 @@ public class AiModerationService {
 
         if (course.getModules() != null) {
             for (int i = 0; i < course.getModules().size(); i++) {
-                com.gnostica.model.Module module = course.getModules().get(i);
+                com.gnostica.core.model.Module module = course.getModules().get(i);
                 if (Boolean.TRUE.equals(module.getDeleted())) continue;
 
                 sb.append("[CHƯƠNG ").append(i + 1).append("]: ").append(module.getTitle()).append("\n");

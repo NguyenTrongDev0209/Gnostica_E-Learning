@@ -1,6 +1,6 @@
 package com.gnostica.controller;
 
-import com.gnostica.model.Transaction;
+import com.gnostica.core.model.Transaction;
 import com.gnostica.service.TransactionService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

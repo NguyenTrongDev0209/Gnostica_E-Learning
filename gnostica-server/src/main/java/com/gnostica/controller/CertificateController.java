@@ -1,8 +1,8 @@
 package com.gnostica.controller;
 
 import com.gnostica.dto.response.CertificateDTO;
-import com.gnostica.model.Enrollment;
-import com.gnostica.repository.EnrollmentRepository;
+import com.gnostica.core.model.Enrollment;
+import com.gnostica.core.repository.EnrollmentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

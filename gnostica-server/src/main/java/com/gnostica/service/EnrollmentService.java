@@ -1,15 +1,15 @@
 package com.gnostica.service;
 
 import com.gnostica.dto.response.EnrollmentDTO;
-import com.gnostica.model.Account;
-import com.gnostica.model.Course;
-import com.gnostica.model.Enrollment;
-import com.gnostica.model.Lesson;
-import com.gnostica.model.Module;
-import com.gnostica.model.LessonProgress;
-import com.gnostica.repository.AccountRepository;
-import com.gnostica.repository.EnrollmentRepository;
-import com.gnostica.repository.LessonProgressRepository;
+import com.gnostica.core.model.Account;
+import com.gnostica.core.model.Course;
+import com.gnostica.core.model.Enrollment;
+import com.gnostica.core.model.Lesson;
+import com.gnostica.core.model.Module;
+import com.gnostica.core.model.LessonProgress;
+import com.gnostica.core.repository.AccountRepository;
+import com.gnostica.core.repository.EnrollmentRepository;
+import com.gnostica.core.repository.LessonProgressRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,7 +24,7 @@ public class EnrollmentService {
         private final EnrollmentRepository enrollmentRepository;
         private final AccountRepository accountRepository;
         private final LessonProgressRepository lessonProgressRepository;
-        private final com.gnostica.repository.QuizResultRepository quizResultRepository; // Inject Quiz Repo
+        private final com.gnostica.core.repository.QuizResultRepository quizResultRepository; // Inject Quiz Repo
         private final MailService mailService;
 
         @Transactional

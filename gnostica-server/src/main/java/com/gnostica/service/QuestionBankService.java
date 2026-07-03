@@ -1,13 +1,13 @@
 package com.gnostica.service;
 
 import com.gnostica.dto.response.QuestionDto;
-import com.gnostica.model.Answer;
-import com.gnostica.model.Course;
-import com.gnostica.model.Question;
-import com.gnostica.repository.AnswerRepository;
-import com.gnostica.repository.CourseRepository;
-import com.gnostica.repository.QuestionRepository;
-import com.gnostica.repository.QuizQuestionRepository;
+import com.gnostica.core.model.Answer;
+import com.gnostica.core.model.Course;
+import com.gnostica.core.model.Question;
+import com.gnostica.core.repository.AnswerRepository;
+import com.gnostica.core.repository.CourseRepository;
+import com.gnostica.core.repository.QuestionRepository;
+import com.gnostica.core.repository.QuizQuestionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

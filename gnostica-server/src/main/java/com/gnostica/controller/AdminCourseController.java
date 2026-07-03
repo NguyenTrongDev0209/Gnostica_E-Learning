@@ -1,11 +1,11 @@
 package com.gnostica.controller;
 
 import com.gnostica.dto.response.*;
-import com.gnostica.model.Course;
-import com.gnostica.model.Lesson;
+import com.gnostica.core.model.Course;
+import com.gnostica.core.model.Lesson;
 import com.gnostica.service.CourseService;
 import com.gnostica.service.AiModerationService;
-import com.gnostica.repository.LessonRepository;
+import com.gnostica.core.repository.LessonRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;

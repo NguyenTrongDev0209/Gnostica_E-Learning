@@ -3,7 +3,7 @@ package com.gnostica.service;
 import com.gnostica.dto.request.LoginRequest;
 import com.gnostica.dto.response.LoginResponse;
 import com.gnostica.dto.request.RegisterRequest;
-import com.gnostica.model.Account;
+import com.gnostica.core.model.Account;
 
 public interface AuthService {
     Account register(RegisterRequest request);

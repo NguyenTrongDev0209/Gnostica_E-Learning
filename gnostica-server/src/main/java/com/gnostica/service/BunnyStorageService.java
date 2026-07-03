@@ -1,6 +1,6 @@
 package com.gnostica.service;
 
-import com.gnostica.config.BunnyStorageConfig;
+import com.gnostica.core.config.BunnyStorageConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;

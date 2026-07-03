@@ -1,6 +1,6 @@
 package com.gnostica.controller;
 
-import com.gnostica.dto.response.ApiResponse;
+import com.gnostica.core.dto.response.ApiResponse;
 import com.gnostica.dto.response.EnrollmentDTO;
 import com.gnostica.service.EnrollmentService;
 import lombok.RequiredArgsConstructor;

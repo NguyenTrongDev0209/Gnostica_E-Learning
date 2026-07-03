@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.gnostica.model.Notification;
+import com.gnostica.core.model.Notification;
 import com.gnostica.service.NotificationService;
 
 import lombok.RequiredArgsConstructor;

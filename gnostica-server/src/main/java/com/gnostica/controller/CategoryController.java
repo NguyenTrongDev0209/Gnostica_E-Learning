@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.gnostica.dto.request.CategoryRequest;
-import com.gnostica.dto.response.ResponseDTO;
+import com.gnostica.core.dto.response.ResponseDTO;
 import com.gnostica.dto.response.CategoryResponseDTO;
 import com.gnostica.service.CategoryService;
 

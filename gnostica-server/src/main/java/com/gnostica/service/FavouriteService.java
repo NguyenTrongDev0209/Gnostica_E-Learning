@@ -1,11 +1,11 @@
 package com.gnostica.service;
 
-import com.gnostica.model.Account;
-import com.gnostica.model.Course;
-import com.gnostica.model.Favourite;
-import com.gnostica.repository.AccountRepository;
-import com.gnostica.repository.CourseRepository;
-import com.gnostica.repository.FavouriteRepository;
+import com.gnostica.core.model.Account;
+import com.gnostica.core.model.Course;
+import com.gnostica.core.model.Favourite;
+import com.gnostica.core.repository.AccountRepository;
+import com.gnostica.core.repository.CourseRepository;
+import com.gnostica.core.repository.FavouriteRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

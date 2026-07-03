@@ -2,12 +2,12 @@ package com.gnostica.service;
 
 import com.gnostica.dto.SetBankAccountRequest;
 import com.gnostica.dto.WithdrawRequest;
-import com.gnostica.model.Account;
-import com.gnostica.model.Wallet;
-import com.gnostica.model.Transaction;
-import com.gnostica.repository.AccountRepository;
-import com.gnostica.repository.WalletRepository;
-import com.gnostica.repository.TransactionRepository;
+import com.gnostica.core.model.Account;
+import com.gnostica.core.model.Wallet;
+import com.gnostica.core.model.Transaction;
+import com.gnostica.core.repository.AccountRepository;
+import com.gnostica.core.repository.WalletRepository;
+import com.gnostica.core.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -26,7 +26,7 @@ public class WalletService {
     private final TransactionRepository transactionRepository;
     private final AccountRepository accountRepository;
     private final PayoutsService payoutsService;
-    private final com.gnostica.repository.PayoutRepository payoutRepository;
+    private final com.gnostica.core.repository.PayoutRepository payoutRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
 
     public Account getCurrentAccount() {
@@ -164,7 +164,7 @@ public class WalletService {
 
         transactionRepository.save(transaction);
 
-        com.gnostica.model.Payout localPayout = new com.gnostica.model.Payout();
+        com.gnostica.core.model.Payout localPayout = new com.gnostica.core.model.Payout();
         localPayout.setAmount(amount);
         localPayout.setStatus(1);
         localPayout.setTransaction(transaction);

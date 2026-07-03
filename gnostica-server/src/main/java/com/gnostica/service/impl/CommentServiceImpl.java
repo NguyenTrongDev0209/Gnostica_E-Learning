@@ -1,16 +1,16 @@
 package com.gnostica.service.impl;
 
-import com.gnostica.model.Account;
-import com.gnostica.model.Comment;
-import com.gnostica.model.Thread;
-import com.gnostica.model.Lesson;
-import com.gnostica.model.Course;
-import com.gnostica.model.Enrollment;
-import com.gnostica.repository.AccountRepository;
-import com.gnostica.repository.CommentRepository;
-import com.gnostica.repository.ThreadRepository;
-import com.gnostica.repository.LessonRepository;
-import com.gnostica.repository.EnrollmentRepository;
+import com.gnostica.core.model.Account;
+import com.gnostica.core.model.Comment;
+import com.gnostica.core.model.Thread;
+import com.gnostica.core.model.Lesson;
+import com.gnostica.core.model.Course;
+import com.gnostica.core.model.Enrollment;
+import com.gnostica.core.repository.AccountRepository;
+import com.gnostica.core.repository.CommentRepository;
+import com.gnostica.core.repository.ThreadRepository;
+import com.gnostica.core.repository.LessonRepository;
+import com.gnostica.core.repository.EnrollmentRepository;
 import com.gnostica.service.CommentService;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;

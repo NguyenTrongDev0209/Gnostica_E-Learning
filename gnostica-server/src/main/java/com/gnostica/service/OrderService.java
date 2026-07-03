@@ -2,14 +2,14 @@ package com.gnostica.service;
 
 import com.gnostica.dto.response.PaymentLinkResponse;
 import com.gnostica.dto.request.CreatePaymentLinkRequestBody;
-import com.gnostica.model.Account;
-import com.gnostica.model.Course;
-import com.gnostica.model.Order;
-import com.gnostica.model.OrderDetail;
-import com.gnostica.repository.AccountRepository;
-import com.gnostica.repository.CourseRepository;
-import com.gnostica.repository.OrderDetailRepository;
-import com.gnostica.repository.OrderRepository;
+import com.gnostica.core.model.Account;
+import com.gnostica.core.model.Course;
+import com.gnostica.core.model.Order;
+import com.gnostica.core.model.OrderDetail;
+import com.gnostica.core.repository.AccountRepository;
+import com.gnostica.core.repository.CourseRepository;
+import com.gnostica.core.repository.OrderDetailRepository;
+import com.gnostica.core.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

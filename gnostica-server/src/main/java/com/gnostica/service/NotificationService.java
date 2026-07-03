@@ -5,10 +5,10 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.gnostica.model.Account;
-import com.gnostica.model.Notification;
-import com.gnostica.repository.AccountRepository;
-import com.gnostica.repository.NotificationRepository;
+import com.gnostica.core.model.Account;
+import com.gnostica.core.model.Notification;
+import com.gnostica.core.repository.AccountRepository;
+import com.gnostica.core.repository.NotificationRepository;
 
 import lombok.RequiredArgsConstructor;
 

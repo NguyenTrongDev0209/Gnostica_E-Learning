@@ -1,7 +1,7 @@
 package com.gnostica.service.job;
 
-import com.gnostica.model.Enrollment;
-import com.gnostica.repository.EnrollmentRepository;
+import com.gnostica.core.model.Enrollment;
+import com.gnostica.core.repository.EnrollmentRepository;
 import com.gnostica.service.MailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

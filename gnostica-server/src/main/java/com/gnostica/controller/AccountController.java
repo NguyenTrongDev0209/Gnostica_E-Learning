@@ -1,6 +1,6 @@
 package com.gnostica.controller;
 
-import com.gnostica.dto.response.ResponseDTO;
+import com.gnostica.core.dto.response.ResponseDTO;
 import com.gnostica.service.AuthService;
 import com.gnostica.service.CloudinaryService;
 import lombok.RequiredArgsConstructor;

@@ -18,8 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.gnostica.dto.request.CategoryRequest;
 import com.gnostica.dto.response.CategoryResponseDTO;
-import com.gnostica.model.Category;
-import com.gnostica.repository.CategoryRepository;
+import com.gnostica.core.model.Category;
+import com.gnostica.core.repository.CategoryRepository;
 
 @Service
 public class CategoryService {
@@ -28,7 +28,7 @@ public class CategoryService {
     private CategoryRepository categoryRepository;
 
     @Autowired
-    private com.gnostica.repository.CourseRepository courseRepository;
+    private com.gnostica.core.repository.CourseRepository courseRepository;
 
 
     @Transactional(readOnly = true)

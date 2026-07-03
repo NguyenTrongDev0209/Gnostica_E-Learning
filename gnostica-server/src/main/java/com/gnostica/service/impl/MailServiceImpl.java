@@ -1,7 +1,7 @@
 package com.gnostica.service.impl;
 
-import com.gnostica.model.Order;
-import com.gnostica.model.Enrollment;
+import com.gnostica.core.model.Order;
+import com.gnostica.core.model.Enrollment;
 import com.gnostica.service.MailService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;

@@ -1,11 +1,11 @@
 package com.gnostica.service.impl;
 
 import com.gnostica.dto.response.PaymentLinkResponse;
-import com.gnostica.event.PaymentSuccessEvent;
-import com.gnostica.model.Order;
-import com.gnostica.model.Transaction;
-import com.gnostica.repository.OrderRepository;
-import com.gnostica.repository.TransactionRepository;
+import com.gnostica.core.event.PaymentSuccessEvent;
+import com.gnostica.core.model.Order;
+import com.gnostica.core.model.Transaction;
+import com.gnostica.core.repository.OrderRepository;
+import com.gnostica.core.repository.TransactionRepository;
 import com.gnostica.service.PaymentService;
 import com.gnostica.service.PaymentStrategyService;
 import com.gnostica.service.PaymentStrategyFactoryService;

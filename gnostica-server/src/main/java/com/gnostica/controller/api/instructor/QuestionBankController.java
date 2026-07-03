@@ -1,7 +1,7 @@
 package com.gnostica.controller.api.instructor;
 
 import com.gnostica.dto.response.QuestionDto;
-import com.gnostica.dto.response.ResponseDTO;
+import com.gnostica.core.dto.response.ResponseDTO;
 import com.gnostica.service.DocumentExtractionService;
 import com.gnostica.service.OpenRouterAiService;
 import com.gnostica.service.QuestionBankService;

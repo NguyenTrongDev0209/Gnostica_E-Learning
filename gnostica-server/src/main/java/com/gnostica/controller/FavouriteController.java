@@ -1,6 +1,6 @@
 package com.gnostica.controller;
 
-import com.gnostica.dto.response.ApiResponse;
+import com.gnostica.core.dto.response.ApiResponse;
 import com.gnostica.service.FavouriteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

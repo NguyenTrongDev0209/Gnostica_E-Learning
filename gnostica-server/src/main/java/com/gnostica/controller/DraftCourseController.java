@@ -1,8 +1,8 @@
 package com.gnostica.controller;
 
 import com.gnostica.dto.request.CourseRequest;
-import com.gnostica.model.Course;
-import com.gnostica.repository.CourseRepository;
+import com.gnostica.core.model.Course;
+import com.gnostica.core.repository.CourseRepository;
 import com.gnostica.service.DraftCourseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

@@ -2,8 +2,8 @@ package com.gnostica.controller;
 
 import com.gnostica.dto.response.PaymentLinkResponse;
 import com.gnostica.dto.request.CreatePaymentLinkRequestBody;
-import com.gnostica.dto.response.ApiResponse;
-import com.gnostica.model.Order;
+import com.gnostica.core.dto.response.ApiResponse;
+import com.gnostica.core.model.Order;
 import com.gnostica.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

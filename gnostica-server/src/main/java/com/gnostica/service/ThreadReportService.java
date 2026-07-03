@@ -2,7 +2,7 @@ package com.gnostica.service;
 
 import com.gnostica.dto.request.ThreadReportRequest;
 import com.gnostica.dto.response.ThreadReportResponse;
-import com.gnostica.model.ThreadReport;
+import com.gnostica.core.model.ThreadReport;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

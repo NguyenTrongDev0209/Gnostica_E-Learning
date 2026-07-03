@@ -1,6 +1,6 @@
 package com.gnostica.service;
 
-import com.gnostica.model.Thread;
+import com.gnostica.core.model.Thread;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

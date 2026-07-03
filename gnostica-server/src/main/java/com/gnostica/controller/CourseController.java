@@ -2,7 +2,7 @@ package com.gnostica.controller;
 
 import com.gnostica.dto.request.CourseRequest;
 import com.gnostica.dto.response.*;
-import com.gnostica.model.Course;
+import com.gnostica.core.model.Course;
 import com.gnostica.service.CourseService;
 import com.gnostica.service.BunnyTranscriptionService;
 import com.gnostica.service.AiModerationService;

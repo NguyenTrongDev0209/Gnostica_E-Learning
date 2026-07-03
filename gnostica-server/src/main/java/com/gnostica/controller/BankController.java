@@ -1,6 +1,6 @@
 package com.gnostica.controller;
 
-import com.gnostica.model.Bank;
+import com.gnostica.core.model.Bank;
 import com.gnostica.service.BankService;
 import com.gnostica.service.BankSyncService;
 import org.springframework.http.ResponseEntity;

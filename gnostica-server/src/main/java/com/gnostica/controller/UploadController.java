@@ -1,6 +1,6 @@
 package com.gnostica.controller;
 
-import com.gnostica.config.BunnyNetConfig;
+import com.gnostica.core.config.BunnyNetConfig;
 import com.gnostica.service.BunnyNetService;
 import com.gnostica.service.BunnyStorageService;
 import com.gnostica.service.CloudinaryService;

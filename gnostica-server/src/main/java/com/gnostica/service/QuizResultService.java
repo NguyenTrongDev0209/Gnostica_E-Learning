@@ -1,12 +1,12 @@
 package com.gnostica.service;
 
 import com.gnostica.dto.request.QuizSubmitRequest;
-import com.gnostica.model.Account;
-import com.gnostica.model.Quiz;
-import com.gnostica.model.QuizResult;
-import com.gnostica.repository.AccountRepository;
-import com.gnostica.repository.QuizRepository;
-import com.gnostica.repository.QuizResultRepository;
+import com.gnostica.core.model.Account;
+import com.gnostica.core.model.Quiz;
+import com.gnostica.core.model.QuizResult;
+import com.gnostica.core.repository.AccountRepository;
+import com.gnostica.core.repository.QuizRepository;
+import com.gnostica.core.repository.QuizResultRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

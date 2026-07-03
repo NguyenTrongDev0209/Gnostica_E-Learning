@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.gnostica.dto.response.ApiResponse;
+import com.gnostica.core.dto.response.ApiResponse;
 import com.gnostica.service.DashboardService;
 
 import lombok.RequiredArgsConstructor;

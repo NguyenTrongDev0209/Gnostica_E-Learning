@@ -14,12 +14,12 @@ import com.gnostica.dto.response.MemberGrowthDTO;
 import com.gnostica.dto.response.RecentOrderDTO;
 import com.gnostica.dto.response.RevenueMonthDTO;
 import com.gnostica.dto.response.TopCourseDTO;
-import com.gnostica.model.Account;
-import com.gnostica.model.Transaction;
-import com.gnostica.repository.AccountRepository;
-import com.gnostica.repository.CourseRepository;
-import com.gnostica.repository.OrderRepository;
-import com.gnostica.repository.TransactionRepository;
+import com.gnostica.core.model.Account;
+import com.gnostica.core.model.Transaction;
+import com.gnostica.core.repository.AccountRepository;
+import com.gnostica.core.repository.CourseRepository;
+import com.gnostica.core.repository.OrderRepository;
+import com.gnostica.core.repository.TransactionRepository;
 import com.gnostica.service.DashboardService;
 
 import lombok.RequiredArgsConstructor;

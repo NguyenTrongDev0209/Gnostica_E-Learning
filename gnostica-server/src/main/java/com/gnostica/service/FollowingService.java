@@ -1,6 +1,6 @@
 package com.gnostica.service;
 
-import com.gnostica.model.Account;
+import com.gnostica.core.model.Account;
 import java.util.List;
 
 public interface FollowingService {

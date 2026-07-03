@@ -1,9 +1,9 @@
 package com.gnostica.service.impl;
 
 import com.gnostica.dto.response.*;
-import com.gnostica.model.*;
-import com.gnostica.model.Module;
-import com.gnostica.repository.*;
+import com.gnostica.core.model.*;
+import com.gnostica.core.model.Module;
+import com.gnostica.core.repository.*;
 import com.gnostica.service.InstructorDashboardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

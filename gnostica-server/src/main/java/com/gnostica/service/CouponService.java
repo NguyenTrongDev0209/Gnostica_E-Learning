@@ -10,11 +10,11 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gnostica.dto.request.CouponRequest;
 import com.gnostica.dto.response.CouponResponse;
-import com.gnostica.event.LogEvent;
-import com.gnostica.model.Account;
-import com.gnostica.model.Coupon;
-import com.gnostica.repository.AccountRepository;
-import com.gnostica.repository.CouponRepository;
+import com.gnostica.core.event.LogEvent;
+import com.gnostica.core.model.Account;
+import com.gnostica.core.model.Coupon;
+import com.gnostica.core.repository.AccountRepository;
+import com.gnostica.core.repository.CouponRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

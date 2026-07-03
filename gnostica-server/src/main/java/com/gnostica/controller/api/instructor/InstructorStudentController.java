@@ -1,6 +1,6 @@
 package com.gnostica.controller.api.instructor;
 
-import com.gnostica.dto.response.ApiResponse;
+import com.gnostica.core.dto.response.ApiResponse;
 import com.gnostica.dto.response.EnrollmentDTO;
 import com.gnostica.dto.response.InstructorStudentDTO;
 import com.gnostica.service.EnrollmentService;

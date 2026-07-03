@@ -1,6 +1,6 @@
 package com.gnostica.controller;
 
-import com.gnostica.model.Comment;
+import com.gnostica.core.model.Comment;
 import com.gnostica.service.CommentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

@@ -1,6 +1,6 @@
 package com.gnostica.service;
 
-import com.gnostica.config.BunnyNetConfig;
+import com.gnostica.core.config.BunnyNetConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;

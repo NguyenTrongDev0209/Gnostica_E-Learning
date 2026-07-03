@@ -1,6 +1,6 @@
 package com.gnostica.service;
 
-import com.gnostica.config.BunnyNetConfig;
+import com.gnostica.core.config.BunnyNetConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;

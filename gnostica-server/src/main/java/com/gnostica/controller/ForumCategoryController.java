@@ -1,8 +1,8 @@
 package com.gnostica.controller;
 
-import com.gnostica.model.ForumCategory;
-import com.gnostica.repository.ForumCategoryRepository;
-import com.gnostica.repository.ThreadRepository;
+import com.gnostica.core.model.ForumCategory;
+import com.gnostica.core.repository.ForumCategoryRepository;
+import com.gnostica.core.repository.ThreadRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

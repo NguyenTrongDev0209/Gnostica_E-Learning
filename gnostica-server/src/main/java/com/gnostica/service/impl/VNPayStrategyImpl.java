@@ -1,7 +1,7 @@
 package com.gnostica.service.impl;
 
 import com.gnostica.dto.response.PaymentLinkResponse;
-import com.gnostica.model.Order;
+import com.gnostica.core.model.Order;
 import com.gnostica.service.PaymentStrategyService;
 import vn.payos.model.v2.paymentRequests.PaymentLink;
 import vn.payos.model.webhooks.WebhookData;

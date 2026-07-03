@@ -1,16 +1,16 @@
 package com.gnostica.service.impl;
 
-import com.gnostica.model.Account;
-import com.gnostica.model.ForumCategory;
-import com.gnostica.model.Thread;
-import com.gnostica.model.ThreadImage;
-import com.gnostica.model.ThreadLike;
-import com.gnostica.repository.AccountRepository;
-import com.gnostica.repository.ForumCategoryRepository;
-import com.gnostica.repository.ThreadRepository;
-import com.gnostica.repository.ThreadLikeRepository;
-import com.gnostica.repository.CommentRepository;
-import com.gnostica.repository.ThreadReportRepository;
+import com.gnostica.core.model.Account;
+import com.gnostica.core.model.ForumCategory;
+import com.gnostica.core.model.Thread;
+import com.gnostica.core.model.ThreadImage;
+import com.gnostica.core.model.ThreadLike;
+import com.gnostica.core.repository.AccountRepository;
+import com.gnostica.core.repository.ForumCategoryRepository;
+import com.gnostica.core.repository.ThreadRepository;
+import com.gnostica.core.repository.ThreadLikeRepository;
+import com.gnostica.core.repository.CommentRepository;
+import com.gnostica.core.repository.ThreadReportRepository;
 import com.gnostica.service.CloudinaryService;
 import com.gnostica.service.ThreadService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -160,7 +160,7 @@ public class ThreadServiceImpl implements ThreadService {
     public List<Map<String, Object>> getTopContributors() {
         List<Object[]> results = threadRepository.findTopContributors(PageRequest.of(0, 3));
         return results.stream().map(result -> {
-            com.gnostica.model.Account account = (com.gnostica.model.Account) result[0];
+            com.gnostica.core.model.Account account = (com.gnostica.core.model.Account) result[0];
             Long totalLikes = (Long) result[1];
             Long threadCount = (Long) result[2];
             Map<String, Object> map = new HashMap<>();

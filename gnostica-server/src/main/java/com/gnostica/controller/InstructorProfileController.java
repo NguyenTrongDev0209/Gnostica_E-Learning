@@ -2,12 +2,12 @@ package com.gnostica.controller;
 
 import com.gnostica.dto.response.InstructorStatsResponse;
 import com.gnostica.dto.response.CourseResponse;
-import com.gnostica.model.Account;
-import com.gnostica.model.Instructor;
-import com.gnostica.model.Course;
-import com.gnostica.repository.AccountRepository;
-import com.gnostica.repository.CourseRepository;
-import com.gnostica.repository.InstructorRepository;
+import com.gnostica.core.model.Account;
+import com.gnostica.core.model.Instructor;
+import com.gnostica.core.model.Course;
+import com.gnostica.core.repository.AccountRepository;
+import com.gnostica.core.repository.CourseRepository;
+import com.gnostica.core.repository.InstructorRepository;
 import com.gnostica.service.AuthService;
 import com.gnostica.service.CourseService;
 import lombok.RequiredArgsConstructor;

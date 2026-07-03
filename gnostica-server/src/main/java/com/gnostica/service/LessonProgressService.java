@@ -1,12 +1,12 @@
 package com.gnostica.service;
 
 import com.gnostica.dto.response.LessonProgressDTO;
-import com.gnostica.model.Account;
-import com.gnostica.model.Lesson;
-import com.gnostica.model.LessonProgress;
-import com.gnostica.repository.AccountRepository;
-import com.gnostica.repository.LessonProgressRepository;
-import com.gnostica.repository.LessonRepository;
+import com.gnostica.core.model.Account;
+import com.gnostica.core.model.Lesson;
+import com.gnostica.core.model.LessonProgress;
+import com.gnostica.core.repository.AccountRepository;
+import com.gnostica.core.repository.LessonProgressRepository;
+import com.gnostica.core.repository.LessonRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,8 +23,8 @@ public class LessonProgressService {
     private final LessonRepository lessonRepository;
     private final AccountRepository accountRepository;
     private final EnrollmentService enrollmentService;
-    private final com.gnostica.repository.QuizResultRepository quizResultRepository; // Inject Quiz Repo
-    private final com.gnostica.repository.EnrollmentRepository enrollmentRepository; // Inject Enrollment Repo
+    private final com.gnostica.core.repository.QuizResultRepository quizResultRepository; // Inject Quiz Repo
+    private final com.gnostica.core.repository.EnrollmentRepository enrollmentRepository; // Inject Enrollment Repo
 
     @Transactional
     public void markLessonAsCompleted(Integer lessonId, String email) {
@@ -80,7 +80,7 @@ public class LessonProgressService {
                 .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại"));
 
         // 0. Lấy Enrollment
-        com.gnostica.model.Enrollment enrollment = enrollmentRepository.findByAccount(account).stream()
+        com.gnostica.core.model.Enrollment enrollment = enrollmentRepository.findByAccount(account).stream()
                 .filter(e -> e.getCourse().getSlug().equals(slug))
                 .findFirst()
                 .orElse(null);

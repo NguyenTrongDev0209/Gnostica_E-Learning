@@ -7,8 +7,8 @@ import com.gnostica.dto.request.LoginRequest;
 import com.gnostica.dto.response.LoginResponse;
 import com.gnostica.dto.request.RegisterRequest;
 import com.gnostica.dto.request.ResetPasswordRequest;
-import com.gnostica.dto.response.ResponseDTO;
-import com.gnostica.model.Account;
+import com.gnostica.core.dto.response.ResponseDTO;
+import com.gnostica.core.model.Account;
 import com.gnostica.service.AuthService;
 
 import jakarta.validation.Valid;

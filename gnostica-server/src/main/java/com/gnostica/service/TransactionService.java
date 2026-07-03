@@ -1,7 +1,7 @@
 package com.gnostica.service;
 
-import com.gnostica.model.Transaction;
-import com.gnostica.repository.TransactionRepository;
+import com.gnostica.core.model.Transaction;
+import com.gnostica.core.repository.TransactionRepository;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;

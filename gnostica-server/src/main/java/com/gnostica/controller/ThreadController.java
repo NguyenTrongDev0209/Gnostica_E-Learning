@@ -1,6 +1,6 @@
 package com.gnostica.controller;
 
-import com.gnostica.model.Thread;
+import com.gnostica.core.model.Thread;
 import com.gnostica.service.ThreadService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

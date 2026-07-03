@@ -2,12 +2,12 @@ package com.gnostica.service.impl;
 
 import com.gnostica.dto.request.ThreadReportRequest;
 import com.gnostica.dto.response.ThreadReportResponse;
-import com.gnostica.model.Account;
-import com.gnostica.model.ThreadReport;
-import com.gnostica.model.Thread;
-import com.gnostica.repository.AccountRepository;
-import com.gnostica.repository.ThreadReportRepository;
-import com.gnostica.repository.ThreadRepository;
+import com.gnostica.core.model.Account;
+import com.gnostica.core.model.ThreadReport;
+import com.gnostica.core.model.Thread;
+import com.gnostica.core.repository.AccountRepository;
+import com.gnostica.core.repository.ThreadReportRepository;
+import com.gnostica.core.repository.ThreadRepository;
 import com.gnostica.service.ThreadReportService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;

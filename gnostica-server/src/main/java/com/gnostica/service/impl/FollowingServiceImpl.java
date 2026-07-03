@@ -1,9 +1,9 @@
 package com.gnostica.service.impl;
 
-import com.gnostica.model.Account;
-import com.gnostica.model.Following;
-import com.gnostica.repository.AccountRepository;
-import com.gnostica.repository.FollowingRepository;
+import com.gnostica.core.model.Account;
+import com.gnostica.core.model.Following;
+import com.gnostica.core.repository.AccountRepository;
+import com.gnostica.core.repository.FollowingRepository;
 import com.gnostica.service.FollowingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

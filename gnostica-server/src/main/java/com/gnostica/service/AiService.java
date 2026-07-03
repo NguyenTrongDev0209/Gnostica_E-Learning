@@ -2,12 +2,12 @@ package com.gnostica.service;
 
 import com.gnostica.dto.request.AiChatRequest;
 import com.gnostica.dto.response.AiChatResponse;
-import com.gnostica.model.Course;
-import com.gnostica.model.ForumCategory;
-import com.gnostica.model.Thread;
-import com.gnostica.repository.CourseRepository;
-import com.gnostica.repository.ForumCategoryRepository;
-import com.gnostica.repository.ThreadRepository;
+import com.gnostica.core.model.Course;
+import com.gnostica.core.model.ForumCategory;
+import com.gnostica.core.model.Thread;
+import com.gnostica.core.repository.CourseRepository;
+import com.gnostica.core.repository.ForumCategoryRepository;
+import com.gnostica.core.repository.ThreadRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -180,7 +180,7 @@ public class AiService {
                     List<Object[]> contributors = threadRepository.findTopContributors(PageRequest.of(0, 5));
                     StringBuilder sb = new StringBuilder("Top 5 người đóng góp (đăng nhiều lượt tương tác nhất):\n");
                     for (Object[] row : contributors) {
-                        com.gnostica.model.Account account = (com.gnostica.model.Account) row[0];
+                        com.gnostica.core.model.Account account = (com.gnostica.core.model.Account) row[0];
                         Long totalLikes = (Long) row[1]; // SUM returns Long
                         sb.append(String.format("- Tác giả: %s (Email: %s, ID: %d) có tổng %d likes\n", account.getFullName(), account.getEmail(), account.getId(), totalLikes));
                     }
