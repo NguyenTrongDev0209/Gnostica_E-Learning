@@ -1,4 +1,4 @@
-package com.gnostica.controller;
+package com.gnostica.modules.course.controller;
 
 import com.gnostica.core.model.ForumCategory;
 import com.gnostica.core.repository.ForumCategoryRepository;

@@ -1,7 +1,7 @@
 package com.gnostica.modules.user.controller;
 
 import com.gnostica.modules.user.dto.response.InstructorStatsResponse;
-import com.gnostica.dto.response.CourseResponse;
+import com.gnostica.modules.course.dto.response.CourseResponse;
 import com.gnostica.core.model.Account;
 import com.gnostica.core.model.Instructor;
 import com.gnostica.core.model.Course;
@@ -9,7 +9,7 @@ import com.gnostica.core.repository.AccountRepository;
 import com.gnostica.core.repository.CourseRepository;
 import com.gnostica.core.repository.InstructorRepository;
 import com.gnostica.modules.auth.service.AuthService;
-import com.gnostica.service.CourseService;
+import com.gnostica.modules.course.service.CourseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

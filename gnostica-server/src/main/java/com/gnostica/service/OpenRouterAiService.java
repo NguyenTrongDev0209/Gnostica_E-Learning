@@ -2,7 +2,7 @@ package com.gnostica.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.gnostica.dto.response.QuestionDto;
+import com.gnostica.modules.course.dto.response.QuestionDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

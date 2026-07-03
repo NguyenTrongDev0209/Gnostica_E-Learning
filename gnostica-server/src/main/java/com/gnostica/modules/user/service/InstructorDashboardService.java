@@ -1,6 +1,7 @@
 package com.gnostica.modules.user.service;
 
 import com.gnostica.dto.response.*;
+import com.gnostica.modules.course.dto.response.*;
 import com.gnostica.modules.user.dto.response.*;
 
 import java.util.List;
