@@ -14,7 +14,7 @@ import lombok.RequiredArgsConstructor;
 
 import com.gnostica.dto.response.DashboardStatsResponse;
 import com.gnostica.dto.response.MemberGrowthDTO;
-import com.gnostica.dto.response.RecentOrderDTO;
+import com.gnostica.modules.order.dto.response.RecentOrderDTO;
 import com.gnostica.dto.response.RevenueMonthDTO;
 import com.gnostica.dto.response.TopCourseDTO;
 

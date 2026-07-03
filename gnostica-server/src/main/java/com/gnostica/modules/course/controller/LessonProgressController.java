@@ -3,6 +3,8 @@ import com.gnostica.service.*;
 
 
 import com.gnostica.dto.request.*;
+import com.gnostica.modules.order.dto.request.*;
+import com.gnostica.modules.payment.dto.request.*;
 
 import com.gnostica.modules.course.service.LessonProgressService;
 import lombok.RequiredArgsConstructor;

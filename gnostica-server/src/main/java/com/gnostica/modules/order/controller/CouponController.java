@@ -1,4 +1,5 @@
-package com.gnostica.controller;
+package com.gnostica.modules.order.controller;
+import com.gnostica.service.*;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -12,10 +13,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.gnostica.dto.request.CouponRequest;
-import com.gnostica.dto.response.CouponResponse;
+import com.gnostica.modules.order.dto.request.CouponRequest;
+import com.gnostica.modules.order.dto.response.CouponResponse;
 import com.gnostica.core.dto.response.ResponseDTO;
-import com.gnostica.service.CouponService;
+import com.gnostica.modules.order.service.CouponService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

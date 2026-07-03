@@ -1,4 +1,5 @@
-package com.gnostica.service;
+package com.gnostica.modules.order.service;
+import com.gnostica.service.*;
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -8,8 +9,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.gnostica.dto.request.CouponRequest;
-import com.gnostica.dto.response.CouponResponse;
+import com.gnostica.modules.order.dto.request.CouponRequest;
+import com.gnostica.modules.order.dto.response.CouponResponse;
 import com.gnostica.core.event.LogEvent;
 import com.gnostica.core.model.Account;
 import com.gnostica.core.model.Coupon;

@@ -8,6 +8,8 @@ import com.gnostica.modules.course.dto.request.CourseRequest;
 import com.gnostica.modules.course.dto.request.LessonRequest;
 import com.gnostica.modules.course.dto.request.ModuleRequest;
 import com.gnostica.dto.response.*;
+import com.gnostica.modules.order.dto.response.*;
+import com.gnostica.modules.payment.dto.response.*;
 import com.gnostica.modules.course.dto.response.*;
 import com.gnostica.core.model.Account;
 import com.gnostica.core.model.Attachment;

@@ -1,7 +1,8 @@
-package com.gnostica.service.impl;
+package com.gnostica.modules.payment.service.impl;
+import com.gnostica.service.*;
 
-import com.gnostica.service.PaymentStrategyFactoryService;
-import com.gnostica.service.PaymentStrategyService;
+import com.gnostica.modules.payment.service.PaymentStrategyFactoryService;
+import com.gnostica.modules.payment.service.PaymentStrategyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

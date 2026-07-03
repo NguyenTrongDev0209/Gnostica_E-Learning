@@ -1,6 +1,8 @@
 package com.gnostica.modules.user.service;
 
 import com.gnostica.dto.response.*;
+import com.gnostica.modules.order.dto.response.*;
+import com.gnostica.modules.payment.dto.response.*;
 import com.gnostica.modules.course.dto.response.*;
 import com.gnostica.modules.user.dto.response.*;
 

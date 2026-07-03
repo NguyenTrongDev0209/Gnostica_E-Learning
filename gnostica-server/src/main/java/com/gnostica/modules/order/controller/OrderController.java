@@ -1,10 +1,11 @@
-package com.gnostica.controller;
+package com.gnostica.modules.order.controller;
+import com.gnostica.service.*;
 
-import com.gnostica.dto.response.PaymentLinkResponse;
-import com.gnostica.dto.request.CreatePaymentLinkRequestBody;
+import com.gnostica.modules.payment.dto.response.PaymentLinkResponse;
+import com.gnostica.modules.payment.dto.request.CreatePaymentLinkRequestBody;
 import com.gnostica.core.dto.response.ApiResponse;
 import com.gnostica.core.model.Order;
-import com.gnostica.service.OrderService;
+import com.gnostica.modules.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;

@@ -1,7 +1,10 @@
-package com.gnostica.dto.response;
+package com.gnostica.modules.order.dto.request;
+import com.gnostica.service.*;
 
 import java.time.LocalDateTime;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,18 +14,25 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CouponResponse {
-    private Integer id;
+public class CouponRequest {
+    
+    @NotBlank(message = "Tên phiếu giảm giá không được để trống")
     private String name;
+
+    @NotBlank(message = "Mã giảm giá không được để trống")
     private String code;
+
     private Integer discountPercent;
+
     private Integer maxDiscount;
+
     private Integer minDiscount;
+
     private LocalDateTime startDate;
+
     private LocalDateTime expiryDate;
+
     private Integer quantity;
+
     private Integer status;
-    private LocalDateTime createdAt;
-    private Integer accountId;
-    private String accountName;
 }

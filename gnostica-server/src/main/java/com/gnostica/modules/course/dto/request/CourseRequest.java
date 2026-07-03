@@ -2,6 +2,8 @@ package com.gnostica.modules.course.dto.request;
 
 
 import com.gnostica.dto.request.*;
+import com.gnostica.modules.order.dto.request.*;
+import com.gnostica.modules.payment.dto.request.*;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;

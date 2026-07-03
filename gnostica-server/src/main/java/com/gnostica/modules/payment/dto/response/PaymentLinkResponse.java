@@ -1,4 +1,5 @@
-package com.gnostica.dto.response;
+package com.gnostica.modules.payment.dto.response;
+import com.gnostica.service.*;
 
 import lombok.Builder;
 import lombok.Data;

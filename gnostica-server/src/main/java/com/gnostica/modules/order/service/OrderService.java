@@ -1,7 +1,9 @@
-package com.gnostica.service;
+package com.gnostica.modules.order.service;
+import com.gnostica.modules.payment.service.PaymentService;
+import com.gnostica.service.*;
 
-import com.gnostica.dto.response.PaymentLinkResponse;
-import com.gnostica.dto.request.CreatePaymentLinkRequestBody;
+import com.gnostica.modules.payment.dto.response.PaymentLinkResponse;
+import com.gnostica.modules.payment.dto.request.CreatePaymentLinkRequestBody;
 import com.gnostica.core.model.Account;
 import com.gnostica.core.model.Course;
 import com.gnostica.core.model.Order;

@@ -2,6 +2,8 @@ package com.gnostica.modules.course.controller;
 
 import com.gnostica.modules.course.dto.request.CourseRequest;
 import com.gnostica.dto.response.*;
+import com.gnostica.modules.order.dto.response.*;
+import com.gnostica.modules.payment.dto.response.*;
 import com.gnostica.modules.course.dto.response.*;
 import com.gnostica.core.model.Course;
 import com.gnostica.modules.course.service.CourseService;
