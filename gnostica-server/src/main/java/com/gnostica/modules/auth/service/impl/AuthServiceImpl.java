@@ -1,9 +1,9 @@
-package com.gnostica.service.impl;
+package com.gnostica.modules.auth.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.gnostica.dto.request.LoginRequest;
-import com.gnostica.dto.request.RegisterRequest;
-import com.gnostica.dto.response.LoginResponse;
+import com.gnostica.modules.auth.dto.request.LoginRequest;
+import com.gnostica.modules.auth.dto.request.RegisterRequest;
+import com.gnostica.modules.auth.dto.response.LoginResponse;
 import com.gnostica.core.event.LogEvent;
 import com.gnostica.core.model.Account;
 import com.gnostica.core.model.Instructor;
@@ -12,7 +12,7 @@ import com.gnostica.core.repository.AccountRepository;
 import com.gnostica.core.repository.InstructorRepository;
 import com.gnostica.core.repository.RoleRepository;
 import com.gnostica.core.security.JwtProvider;
-import com.gnostica.service.AuthService;
+import com.gnostica.modules.auth.service.AuthService;
 import com.gnostica.service.MailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

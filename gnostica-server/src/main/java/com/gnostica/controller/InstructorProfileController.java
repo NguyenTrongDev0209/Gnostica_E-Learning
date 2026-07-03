@@ -8,7 +8,7 @@ import com.gnostica.core.model.Course;
 import com.gnostica.core.repository.AccountRepository;
 import com.gnostica.core.repository.CourseRepository;
 import com.gnostica.core.repository.InstructorRepository;
-import com.gnostica.service.AuthService;
+import com.gnostica.modules.auth.service.AuthService;
 import com.gnostica.service.CourseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

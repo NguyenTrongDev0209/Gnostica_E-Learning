@@ -1,8 +1,8 @@
-package com.gnostica.service;
+package com.gnostica.modules.auth.service;
 
-import com.gnostica.dto.request.LoginRequest;
-import com.gnostica.dto.response.LoginResponse;
-import com.gnostica.dto.request.RegisterRequest;
+import com.gnostica.modules.auth.dto.request.LoginRequest;
+import com.gnostica.modules.auth.dto.response.LoginResponse;
+import com.gnostica.modules.auth.dto.request.RegisterRequest;
 import com.gnostica.core.model.Account;
 
 public interface AuthService {

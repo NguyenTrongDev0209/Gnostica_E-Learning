@@ -1,4 +1,4 @@
-package com.gnostica.dto.request;
+package com.gnostica.modules.auth.dto.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
