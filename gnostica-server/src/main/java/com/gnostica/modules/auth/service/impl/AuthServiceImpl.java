@@ -288,7 +288,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public void updatePersonalization(String email, com.gnostica.dto.PersonalizationDTO dto) {
+    public void updatePersonalization(String email, com.gnostica.modules.user.dto.request.PersonalizationDTO dto) {
         Account account = accountRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại."));
         

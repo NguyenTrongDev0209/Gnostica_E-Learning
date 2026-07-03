@@ -1,10 +1,11 @@
-package com.gnostica.service.impl;
+package com.gnostica.modules.user.service.impl;
 
 import com.gnostica.dto.response.*;
+import com.gnostica.modules.user.dto.response.*;
 import com.gnostica.core.model.*;
 import com.gnostica.core.model.Module;
 import com.gnostica.core.repository.*;
-import com.gnostica.service.InstructorDashboardService;
+import com.gnostica.modules.user.service.InstructorDashboardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

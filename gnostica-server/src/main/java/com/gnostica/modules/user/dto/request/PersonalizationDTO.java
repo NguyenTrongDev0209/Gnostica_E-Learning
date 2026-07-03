@@ -1,4 +1,4 @@
-package com.gnostica.dto;
+package com.gnostica.modules.user.dto.request;
 
 import lombok.Data;
 import java.util.List;

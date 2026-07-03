@@ -65,7 +65,7 @@ public class EnrollmentService {
         }
 
         @Transactional(readOnly = true)
-        public com.gnostica.dto.response.StudentStatsResponse getStudentStats(String email) {
+        public com.gnostica.modules.user.dto.response.StudentStatsResponse getStudentStats(String email) {
                 Account account = accountRepository.findByEmail(email.toLowerCase().trim())
                                 .orElseGet(() -> accountRepository.findByEmail(email).orElse(null));
 
@@ -92,7 +92,7 @@ public class EnrollmentService {
 
                 double hoursStudied = completedLessons * 0.5;
 
-                return com.gnostica.dto.response.StudentStatsResponse.builder()
+                return com.gnostica.modules.user.dto.response.StudentStatsResponse.builder()
                                 .enrolledCourses(enrolledCourses)
                                 .completedCourses(completedCourses)
                                 .hoursStudied(hoursStudied)
@@ -250,7 +250,7 @@ public class EnrollmentService {
         }
 
         @Transactional(readOnly = true)
-        public List<com.gnostica.dto.response.InstructorStudentDTO> getInstructorStudents(String instructorEmail) {
+        public List<com.gnostica.modules.user.dto.response.InstructorStudentDTO> getInstructorStudents(String instructorEmail) {
                 List<Enrollment> enrollments = enrollmentRepository.findStudentsByInstructorEmail(instructorEmail);
 
                 // Nhóm theo tài khoản học viên
@@ -285,7 +285,7 @@ public class EnrollmentService {
                         // Chuyển đổi sang chuỗi thân thiện (ví dụ: "2 giờ trước")
                         String lastActive = formatLastActive(lastActiveTime);
 
-                        return com.gnostica.dto.response.InstructorStudentDTO.builder()
+                        return com.gnostica.modules.user.dto.response.InstructorStudentDTO.builder()
                                         .id(student.getId())
                                         .name(student.getFullName())
                                         .email(student.getEmail())

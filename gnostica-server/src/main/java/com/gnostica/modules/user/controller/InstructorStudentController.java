@@ -1,8 +1,8 @@
-package com.gnostica.controller.api.instructor;
+package com.gnostica.modules.user.controller;
 
 import com.gnostica.core.dto.response.ApiResponse;
 import com.gnostica.dto.response.EnrollmentDTO;
-import com.gnostica.dto.response.InstructorStudentDTO;
+import com.gnostica.modules.user.dto.response.InstructorStudentDTO;
 import com.gnostica.service.EnrollmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

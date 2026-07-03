@@ -1,9 +1,9 @@
-package com.gnostica.controller;
+package com.gnostica.modules.user.controller;
 
-import com.gnostica.dto.request.InstructorApplicationRequest;
-import com.gnostica.dto.request.RejectApplicationRequest;
-import com.gnostica.dto.response.InstructorApplicationResponse;
-import com.gnostica.service.InstructorApplicationService;
+import com.gnostica.modules.user.dto.request.InstructorApplicationRequest;
+import com.gnostica.modules.user.dto.request.RejectApplicationRequest;
+import com.gnostica.modules.user.dto.response.InstructorApplicationResponse;
+import com.gnostica.modules.user.service.InstructorApplicationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

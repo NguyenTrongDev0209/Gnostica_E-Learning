@@ -42,7 +42,7 @@ public class AccountController {
     }
 
     @PutMapping("/personalization")
-    public ResponseEntity<?> updatePersonalization(@RequestBody com.gnostica.dto.PersonalizationDTO dto, @RequestParam("email") String email) {
+    public ResponseEntity<?> updatePersonalization(@RequestBody com.gnostica.modules.user.dto.request.PersonalizationDTO dto, @RequestParam("email") String email) {
         try {
             authService.updatePersonalization(email, dto);
             return ResponseEntity.ok(ResponseDTO.builder()

@@ -22,6 +22,6 @@ public interface AuthService {
     void unlockAccount(Integer id);
     void updateAvatar(String email, String avatarUrl);
 
-    void updatePersonalization(String email, com.gnostica.dto.PersonalizationDTO dto);
+    void updatePersonalization(String email, com.gnostica.modules.user.dto.request.PersonalizationDTO dto);
 }
 

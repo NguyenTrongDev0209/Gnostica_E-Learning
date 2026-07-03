@@ -1,4 +1,4 @@
-package com.gnostica.dto.response;
+package com.gnostica.modules.user.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

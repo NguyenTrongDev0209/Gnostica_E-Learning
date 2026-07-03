@@ -1,4 +1,4 @@
-package com.gnostica.controller;
+package com.gnostica.modules.user.controller;
 
 import java.util.List;
 
@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.gnostica.core.model.Notification;
-import com.gnostica.service.NotificationService;
+import com.gnostica.modules.user.service.NotificationService;
 
 import lombok.RequiredArgsConstructor;
 

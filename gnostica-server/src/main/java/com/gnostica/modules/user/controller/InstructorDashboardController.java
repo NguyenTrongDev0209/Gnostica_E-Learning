@@ -1,6 +1,6 @@
-package com.gnostica.controller;
+package com.gnostica.modules.user.controller;
 
-import com.gnostica.service.InstructorDashboardService;
+import com.gnostica.modules.user.service.InstructorDashboardService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;

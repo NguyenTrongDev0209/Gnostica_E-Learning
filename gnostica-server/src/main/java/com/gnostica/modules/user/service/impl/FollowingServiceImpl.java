@@ -1,10 +1,10 @@
-package com.gnostica.service.impl;
+package com.gnostica.modules.user.service.impl;
 
 import com.gnostica.core.model.Account;
 import com.gnostica.core.model.Following;
 import com.gnostica.core.repository.AccountRepository;
 import com.gnostica.core.repository.FollowingRepository;
-import com.gnostica.service.FollowingService;
+import com.gnostica.modules.user.service.FollowingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

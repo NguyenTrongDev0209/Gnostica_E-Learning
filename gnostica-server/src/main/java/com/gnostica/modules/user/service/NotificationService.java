@@ -1,4 +1,4 @@
-package com.gnostica.service;
+package com.gnostica.modules.user.service;
 
 import java.util.List;
 

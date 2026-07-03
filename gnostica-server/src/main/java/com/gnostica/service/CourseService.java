@@ -17,7 +17,7 @@ import com.gnostica.core.repository.AccountRepository;
 import com.gnostica.core.repository.CategoryRepository;
 import com.gnostica.core.repository.CourseRepository;
 import com.gnostica.core.repository.LessonRepository;
-import com.gnostica.service.NotificationService;
+import com.gnostica.modules.user.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

@@ -1,7 +1,7 @@
-package com.gnostica.controller;
+package com.gnostica.modules.user.controller;
 
 import com.gnostica.core.dto.response.ApiResponse;
-import com.gnostica.service.FollowingService;
+import com.gnostica.modules.user.service.FollowingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;

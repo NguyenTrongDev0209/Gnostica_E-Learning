@@ -1,6 +1,6 @@
-package com.gnostica.controller;
+package com.gnostica.modules.user.controller;
 
-import com.gnostica.dto.response.InstructorStatsResponse;
+import com.gnostica.modules.user.dto.response.InstructorStatsResponse;
 import com.gnostica.dto.response.CourseResponse;
 import com.gnostica.core.model.Account;
 import com.gnostica.core.model.Instructor;

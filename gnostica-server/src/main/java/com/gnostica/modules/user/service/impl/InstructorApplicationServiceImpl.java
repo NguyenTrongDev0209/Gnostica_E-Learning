@@ -1,19 +1,19 @@
-package com.gnostica.service.impl;
+package com.gnostica.modules.user.service.impl;
 
 import com.gnostica.core.model.Account;
 import com.gnostica.core.model.InstructorApplication;
 import com.gnostica.core.model.Role;
-import com.gnostica.dto.request.InstructorApplicationRequest;
-import com.gnostica.dto.request.RejectApplicationRequest;
-import com.gnostica.dto.response.InstructorApplicationResponse;
+import com.gnostica.modules.user.dto.request.InstructorApplicationRequest;
+import com.gnostica.modules.user.dto.request.RejectApplicationRequest;
+import com.gnostica.modules.user.dto.response.InstructorApplicationResponse;
 import com.gnostica.core.model.Instructor;
 import com.gnostica.core.repository.AccountRepository;
 import com.gnostica.core.repository.InstructorApplicationRepository;
 import com.gnostica.core.repository.InstructorRepository;
 import com.gnostica.core.repository.RoleRepository;
-import com.gnostica.service.InstructorApplicationService;
+import com.gnostica.modules.user.service.InstructorApplicationService;
 import com.gnostica.service.MailService;
-import com.gnostica.service.NotificationService;
+import com.gnostica.modules.user.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

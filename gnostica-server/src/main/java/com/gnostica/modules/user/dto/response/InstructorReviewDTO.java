@@ -1,4 +1,4 @@
-package com.gnostica.dto.response;
+package com.gnostica.modules.user.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,14 +10,13 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class InstructorQuestionDTO {
+public class InstructorReviewDTO {
     private Integer id;
     private String studentName;
     private String studentAvatar;
     private String courseName;
-    private String lessonName;
+    private Integer rating;
     private String content;
     private LocalDateTime createdAt;
-    private String status; // answered | unanswered
-    private Integer likes;
+    private String status; // responded | not_responded
 }

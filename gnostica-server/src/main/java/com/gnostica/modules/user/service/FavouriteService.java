@@ -1,4 +1,4 @@
-package com.gnostica.service;
+package com.gnostica.modules.user.service;
 
 import com.gnostica.core.model.Account;
 import com.gnostica.core.model.Course;

@@ -6,7 +6,7 @@ import com.gnostica.core.model.Order;
 import com.gnostica.core.model.OrderDetail;
 import com.gnostica.core.repository.EnrollmentRepository;
 import com.gnostica.core.repository.OrderDetailRepository;
-import com.gnostica.service.NotificationService;
+import com.gnostica.modules.user.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
