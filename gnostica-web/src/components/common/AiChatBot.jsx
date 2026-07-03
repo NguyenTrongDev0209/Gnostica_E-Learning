@@ -132,7 +132,8 @@ const AiChatBot = () => {
             const response = await sendChatMessage(chatHistory);
             setMessages(prev => [...prev, { role: 'assistant', content: response.content }]);
         } catch (error) {
-            toast.error('Có lỗi xảy ra khi gửi tin nhắn.');
+            toast.error('Dịch vụ đang gặp sự cố, vui lòng thử lại trong ít phút.');
+            setMessages(prev => [...prev, { role: 'assistant', content: 'Dịch vụ đang gặp sự cố, vui lòng thử lại trong ít phút.' }]);
             console.error(error);
         } finally {
             setIsLoading(false);

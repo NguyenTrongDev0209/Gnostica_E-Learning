@@ -22,6 +22,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 import org.springframework.data.domain.PageRequest;
 import java.util.stream.Collectors;
 import java.util.Map;
@@ -73,23 +75,68 @@ public class ThreadServiceImpl implements ThreadService {
         thread.setAccount(account);
         thread.setCategory(category);
         thread.setStatus(false); // Pending moderation by default
-        
-        // Handle image uploads
+
+        List<ThreadImage> threadImages = new ArrayList<>();
+
+        // 1. Process base64 images inside HTML content, upload to Cloudinary, and replace in content
+        if (content != null && !content.isEmpty()) {
+            Pattern pattern = Pattern.compile("data:image/(jpeg|png|gif|webp|jpg);base64,([^\"']*)", Pattern.CASE_INSENSITIVE);
+            Matcher matcher = pattern.matcher(content);
+            StringBuffer sb = new StringBuffer();
+            while (matcher.find()) {
+                String base64Data = matcher.group(2).replaceAll("\\s", "");
+                try {
+                    byte[] imageBytes = java.util.Base64.getDecoder().decode(base64Data);
+                    String uploadedUrl = cloudinaryService.uploadImage(imageBytes);
+                    matcher.appendReplacement(sb, Matcher.quoteReplacement(uploadedUrl));
+
+                    // Add to thread images
+                    ThreadImage threadImage = new ThreadImage();
+                    threadImage.setImageUrl(uploadedUrl);
+                    threadImage.setThread(thread);
+                    threadImages.add(threadImage);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            matcher.appendTail(sb);
+            thread.setContent(sb.toString());
+        }
+
+        // 2. If no base64 images were found, check if there are any external image URLs in the content
+        // and register the first one as a ThreadImage.
+        if (threadImages.isEmpty() && thread.getContent() != null && !thread.getContent().isEmpty()) {
+            Pattern imgUrlPattern = Pattern.compile("<img[^>]+src\\s*=\\s*['\"]([^'\"]+)['\"]", Pattern.CASE_INSENSITIVE);
+            Matcher imgUrlMatcher = imgUrlPattern.matcher(thread.getContent());
+            if (imgUrlMatcher.find()) {
+                String url = imgUrlMatcher.group(1);
+                if (!url.startsWith("data:")) {
+                    ThreadImage threadImage = new ThreadImage();
+                    threadImage.setImageUrl(url);
+                    threadImage.setThread(thread);
+                    threadImages.add(threadImage);
+                }
+            }
+        }
+
+        // 3. Handle manual image uploads via parameter if any
         if (images != null && !images.isEmpty()) {
-            List<ThreadImage> threadImages = new ArrayList<>();
             for (MultipartFile file : images) {
                 if (file != null && !file.isEmpty()) {
                     try {
                         String imageUrl = cloudinaryService.uploadImage(file);
                         ThreadImage threadImage = new ThreadImage();
                         threadImage.setImageUrl(imageUrl);
-                        threadImage.setThread(thread); // Set bidirectional relationship
+                        threadImage.setThread(thread);
                         threadImages.add(threadImage);
                     } catch (IOException e) {
                         throw new RuntimeException("Failed to upload image to Cloudinary", e);
                     }
                 }
             }
+        }
+
+        if (!threadImages.isEmpty()) {
             thread.setImages(threadImages);
         }
 
