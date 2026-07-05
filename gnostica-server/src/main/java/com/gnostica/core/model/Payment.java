@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import java.util.UUID;
+import java.math.BigDecimal;
 import jakarta.validation.constraints.*;
 
 @Data
@@ -13,26 +14,37 @@ import jakarta.validation.constraints.*;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "lesson_progress")
-public class LessonProgress {
+@Table(name = "payments")
+public class Payment {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @NotNull
     @Column(updatable = false)
-    private UUID accountId;
+    private UUID orderId;
+
+    @NotBlank
+    @Size(max = 255)
+    @Column(unique = true)
+    private String transactionCode;
 
     @NotNull
-    @Column(updatable = false)
-    private Integer lessonId;
+    @Min(0)
+    private BigDecimal amount;
 
     @Size(max = 255)
-    private String lastWatchedAt;
+    private String accountNumber;
+
+    @Size(max = 255)
+    private String senderBankBin;
+
+    @Size(max = 255)
+    private String senderAccountNumber;
 
     /**
-     * Status: 1: In Progress (Đang học), 2: Completed (Hoàn thành)
+     * Status: 1: Pending (Chờ xử lý), 2: Success (Thành công), 3: Failed (Thất bại), 4: Refunded (Đã hoàn tiền)
      */
     @NotNull
     private Integer status;
@@ -43,7 +55,5 @@ public class LessonProgress {
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
-
-    private LocalDateTime completedAt;
 
 }

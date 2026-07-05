@@ -1,29 +1,54 @@
 package com.gnostica.core.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import lombok.Data;
+import jakarta.persistence.*;
+import lombok.*;
+import java.time.LocalDateTime;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+import java.util.UUID;
+import java.math.BigDecimal;
+import jakarta.validation.constraints.*;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Entity
 @Table(name = "order_details")
 public class OrderDetail {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
-    private Double price;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+
+    @NotNull
+    @Column(updatable = false)
+    private UUID orderId;
+
+    @NotNull
+    @Column(updatable = false)
+    private UUID courseId;
+
+    @NotNull
+    @Min(0)
+    private BigDecimal price;
+
+    @NotNull
+    @Min(0)
+    @Max(100)
     private Integer discount;
-    @ManyToOne
-    @JoinColumn(name = "order_id")
-    @JsonIgnore
-    private Order order;
-    @ManyToOne
-    @JoinColumn(name = "course_id")
-    private Course course;
+
+    /**
+     * Status: 0: Refunded (Đã hoàn tiền), 1: Valid (Hợp lệ)
+     */
+    @NotNull
+    private Integer status;
+
+    @CreationTimestamp
+    @Column(updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
+
 }

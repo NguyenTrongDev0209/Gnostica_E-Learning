@@ -1,55 +1,73 @@
 package com.gnostica.core.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-
+import lombok.*;
 import java.time.LocalDateTime;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+import java.util.UUID;
+import java.math.BigDecimal;
+import jakarta.validation.constraints.*;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @Entity
 @Table(name = "coupons")
 public class Coupon {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
-    @Column(nullable = false)
-    private String name;
+    @NotNull
+    @Column(updatable = false)
+    private UUID accountId;
 
-    @Column(columnDefinition = "varchar(255)", nullable = false, unique = true)
+    @NotBlank
+    @Size(max = 255)
+    @Column(unique = true)
     private String code;
 
-    @Column(name = "discount_percent")
-    private Integer discountPercent;
+    @NotBlank
+    @Size(max = 255)
+    private String name;
 
-    @Column(name = "max_discount")
-    private Integer maxDiscount;
+    @NotNull
+    private Integer discountType;
 
-    @Column(name = "min_discount")
-    private Integer minDiscount;
+    @NotNull
+    private BigDecimal discountValue;
 
-    @Column(name = "start_date")
-    private LocalDateTime startDate;
+    @Min(0)
+    private BigDecimal minDiscount;
 
-    @Column(name = "expiry_date")
-    private LocalDateTime expiryDate;
+    @Min(0)
+    private BigDecimal maxDiscount;
 
+    @Min(0)
     private Integer quantity;
 
-    @Column(name = "status")
-    private Integer status; // (0: Tạm ẩn, 1: Hoạt động, 2: Hết hạn, 3: Hết lượt)
+    @NotNull
+    private LocalDateTime validFrom;
+
+    @NotNull
+    private LocalDateTime validUntil;
+
+    /**
+     * Status: 0: Inactive (Tạm dừng), 1: Active (Đang áp dụng), 2: Expired (Hết hạn)
+     */
+    @NotNull
+    private Integer status;
 
     @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
+    @Column(updatable = false)
     private LocalDateTime createdAt;
 
-    @ManyToOne
-    @JoinColumn(name = "account_id")
-    private Account account;
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
+
+    private LocalDateTime deletedAt;
+
 }

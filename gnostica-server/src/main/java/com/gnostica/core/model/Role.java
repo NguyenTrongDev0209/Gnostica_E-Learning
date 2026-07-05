@@ -1,32 +1,43 @@
 package com.gnostica.core.model;
 
-import java.util.List;
-
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.persistence.*;
+import lombok.*;
+import java.time.LocalDateTime;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+import jakarta.validation.constraints.*;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @Entity
 @Table(name = "roles")
 public class Role {
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	public Integer id;
 
-	@NotBlank(message = "Role không được để trống")
-	public String name;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
 
-	@OneToMany(mappedBy = "role")
-	@com.fasterxml.jackson.annotation.JsonIgnore
-	List<Account> accounts;
+    @NotBlank
+    @Size(max = 255)
+    @Column(unique = true)
+    private String name;
+
+    @Size(max = 255)
+    private String description;
+
+    /**
+     * Status: 0: Inactive (Tạm khoá), 1: Active (Hoạt động)
+     */
+    @NotNull
+    private Integer status;
+
+    @CreationTimestamp
+    @Column(updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
+
 }

@@ -1,61 +1,58 @@
 package com.gnostica.core.model;
 
+import jakarta.persistence.*;
+import lombok.*;
 import java.time.LocalDateTime;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.gnostica.core.listener.AuditListener;
-
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotBlank;
-import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+import jakarta.validation.constraints.*;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Entity
-@EntityListeners(AuditListener.class)
 @Table(name = "lessons")
 public class Lesson {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @NotNull
+    private Integer moduleId;
+
+    private Integer originalLessonId;
+
+    @NotBlank
+    @Size(max = 255)
     private String title;
 
-    @NotBlank(message = "Mô tả nội dung bài học không được để trống")
     @Column(columnDefinition = "TEXT")
     private String content;
 
-    @NotBlank(message = "Video bài học không được để trống")
-    @Column(name = "video_url")
+    @Size(max = 255)
     private String videoUrl;
 
-    @Column(name = "ai_moderation_report", columnDefinition = "TEXT")
-    private String aiModerationReport;
+    @NotNull
+    private Integer versionNumber;
 
-    @Column(columnDefinition = "integer default 1")
+    @Min(0)
+    private Integer sortOrder;
+
+    /**
+     * Status: 0: Hidden (Ẩn), 1: Draft (Bản nháp), 2: Published (Đã xuất bản)
+     */
+    @NotNull
     private Integer status;
 
-    @Column(columnDefinition = "boolean default false")
-    private Boolean deleted = false;
-
+    @CreationTimestamp
+    @Column(updatable = false)
     private LocalDateTime createdAt;
 
+    @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    @ManyToOne
-    @JoinColumn(name = "module_id")
-    @JsonIgnore
-    private Module module;
+    private LocalDateTime deletedAt;
 
-    @JsonIgnore
-    @OneToMany(mappedBy = "lesson", cascade = CascadeType.ALL, orphanRemoval = true)
-    private java.util.List<LessonProgress> progresses;
 }

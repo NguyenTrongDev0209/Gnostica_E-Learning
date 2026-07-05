@@ -5,7 +5,6 @@ import lombok.*;
 import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import java.util.UUID;
 import jakarta.validation.constraints.*;
 
 @Data
@@ -13,26 +12,37 @@ import jakarta.validation.constraints.*;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "lesson_progress")
-public class LessonProgress {
+@Table(name = "banners")
+public class Banner {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @NotNull
-    @Column(updatable = false)
-    private UUID accountId;
+    @NotBlank
+    @Size(max = 255)
+    private String title;
 
-    @NotNull
-    @Column(updatable = false)
-    private Integer lessonId;
+    @NotBlank
+    @Size(max = 255)
+    private String imageUrl;
 
     @Size(max = 255)
-    private String lastWatchedAt;
+    private String linkUrl;
+
+    @Size(max = 50)
+    @Column(length = 50)
+    private String targetType;
+
+    @Size(max = 50)
+    @Column(length = 50)
+    private String position;
+
+    @Min(0)
+    private Integer sortOrder;
 
     /**
-     * Status: 1: In Progress (Đang học), 2: Completed (Hoàn thành)
+     * Status: 0: Hidden (Ẩn), 1: Active (Hiển thị)
      */
     @NotNull
     private Integer status;
@@ -43,7 +53,5 @@ public class LessonProgress {
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
-
-    private LocalDateTime completedAt;
 
 }

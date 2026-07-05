@@ -1,39 +1,51 @@
 package com.gnostica.core.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import lombok.Data;
+import jakarta.persistence.*;
+import lombok.*;
+import java.time.LocalDateTime;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+import java.util.UUID;
+import java.math.BigDecimal;
+import jakarta.validation.constraints.*;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Entity
 @Table(name = "orders")
 public class Order {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
-    @org.hibernate.annotations.CreationTimestamp
-    private java.time.LocalDateTime createdAt;
+    @NotNull
+    @Column(updatable = false)
+    private UUID accountId;
 
-    @org.hibernate.annotations.UpdateTimestamp
-    private java.time.LocalDateTime updatedAt;
-    private Double totalPrice;
-    private String transactionId;
+    private UUID couponId;
+
+    @NotNull
+    @Min(0)
+    private BigDecimal totalPrice;
+
+    @NotBlank
+    @Size(max = 255)
+    private String paymentMethod;
+
+    /**
+     * Status: 1: Pending (Chờ thanh toán), 2: Paid (Đã thanh toán), 3: Cancelled (Đã huỷ), 4: Refunded (Đã hoàn tiền)
+     */
+    @NotNull
     private Integer status;
-    @ManyToOne
-    @JoinColumn(name = "account_id")
-    private Account account;
-    @ManyToOne
-    @JoinColumn(name = "coupon_id")
-    private Coupon coupon;
 
-    @jakarta.persistence.OneToMany(mappedBy = "order", cascade = jakarta.persistence.CascadeType.ALL)
-    @JsonIgnore
-    private java.util.List<OrderDetail> details;
+    @CreationTimestamp
+    @Column(updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
+
 }

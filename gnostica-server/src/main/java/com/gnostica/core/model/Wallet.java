@@ -1,48 +1,50 @@
 package com.gnostica.core.model;
 
+import jakarta.persistence.*;
+import lombok.*;
 import java.time.LocalDateTime;
-
 import org.hibernate.annotations.CreationTimestamp;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
-import lombok.Data;
+import java.util.UUID;
+import java.math.BigDecimal;
+import jakarta.validation.constraints.*;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Entity
 @Table(name = "wallets")
 public class Wallet {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
-    private Double remain;
+    @NotNull
+    @Column(updatable = false)
+    private UUID accountId;
 
+    @NotNull
+    @Min(0)
+    private BigDecimal remain;
+
+    @NotNull
+    @Min(0)
+    private Integer dailyWithdrawalCount;
+
+    @NotNull
+    private Integer type;
+
+    /**
+     * Status: 0: Locked/Frozen (Đóng băng), 1: Active (Hoạt động)
+     */
+    @NotNull
     private Integer status;
 
-    @Column(name = "bank_bin")
-    private String bankBin;
-
-    @Column(name = "account_number")
-    private String accountNumber;
-
-    @Column(name = "pin_hash")
-    private String pinHash;
-
     @CreationTimestamp
+    @Column(updatable = false)
     private LocalDateTime createdAt;
 
-    @OneToOne
-    @JoinColumn(name = "account_id")
-    private Account account;
+    private LocalDateTime availableAt;
 
-    @Transient
-    private Long withdrawalsToday;
 }

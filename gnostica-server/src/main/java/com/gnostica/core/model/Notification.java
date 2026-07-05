@@ -1,39 +1,44 @@
 package com.gnostica.core.model;
 
+import jakarta.persistence.*;
+import lombok.*;
 import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
-import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.hibernate.annotations.UpdateTimestamp;
+import java.util.UUID;
+import jakarta.validation.constraints.*;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @Entity
 @Table(name = "notifications")
 public class Notification {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(columnDefinition = "varchar(255)")
+    @NotNull
+    @Column(updatable = false)
+    private UUID accountId;
+
+    @NotBlank
+    @Size(max = 255)
     private String title;
 
-    @Column(columnDefinition = "text")
-    private String content;
+    @NotBlank
+    @Column(columnDefinition = "TEXT")
+    private String message;
 
-    @Column
-    private Boolean isRead = false;
-
-    @Column(columnDefinition = "varchar(50)")
-    private String type; // SYSTEM, ENROLLMENT, PROMOTION, etc.
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "account_id")
-    private Account account;
+    private Boolean isRead;
 
     @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
+    @Column(updatable = false)
     private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
+
 }

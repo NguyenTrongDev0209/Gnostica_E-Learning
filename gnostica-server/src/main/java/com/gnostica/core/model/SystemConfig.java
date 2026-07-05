@@ -5,7 +5,6 @@ import lombok.*;
 import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import java.util.UUID;
 import jakarta.validation.constraints.*;
 
 @Data
@@ -13,29 +12,28 @@ import jakarta.validation.constraints.*;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "lesson_progress")
-public class LessonProgress {
+@Table(name = "system_configs")
+public class SystemConfig {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @NotNull
-    @Column(updatable = false)
-    private UUID accountId;
+    @NotBlank
+    @Size(max = 255)
+    @Column(unique = true)
+    private String configKey;
 
-    @NotNull
-    @Column(updatable = false)
-    private Integer lessonId;
+    @Column(columnDefinition = "TEXT")
+    private String configValue;
+
+    @NotBlank
+    @Size(max = 50)
+    @Column(length = 50)
+    private String configType;
 
     @Size(max = 255)
-    private String lastWatchedAt;
-
-    /**
-     * Status: 1: In Progress (Đang học), 2: Completed (Hoàn thành)
-     */
-    @NotNull
-    private Integer status;
+    private String description;
 
     @CreationTimestamp
     @Column(updatable = false)
@@ -43,7 +41,5 @@ public class LessonProgress {
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
-
-    private LocalDateTime completedAt;
 
 }

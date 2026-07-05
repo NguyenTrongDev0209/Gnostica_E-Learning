@@ -1,54 +1,69 @@
 package com.gnostica.core.model;
 
+import jakarta.persistence.*;
+import lombok.*;
 import java.time.LocalDateTime;
-
 import org.hibernate.annotations.CreationTimestamp;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Table;
-import lombok.Data;
-import java.util.List;
-import java.util.ArrayList;
+import org.hibernate.annotations.UpdateTimestamp;
+import java.util.UUID;
+import jakarta.validation.constraints.*;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Entity
 @Table(name = "threads")
 public class Thread {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+
+    @NotNull
+    @Column(updatable = false)
+    private UUID accountId;
+
+    @NotNull
+    @Column(updatable = false)
+    private Integer topicId;
+
+    @NotBlank
+    @Size(max = 255)
+    private String title;
+
+    @NotBlank
+    @Size(max = 255)
+    @Column(unique = true)
+    private String slug;
+
+    @NotBlank
     @Column(columnDefinition = "TEXT")
     private String content;
-    private Boolean status;
-    @Column(columnDefinition = "boolean default true")
-    private Boolean pendingModeration = true;
+
+    @Min(0)
+    private Integer viewCount;
+
+    @Min(0)
+    private Integer sharedCount;
+
+    private Boolean isLocked;
+
+    private Boolean isPinned;
+
+    /**
+     * Status: 0: Hidden (Ẩn), 1: Draft (Bản nháp), 2: Published (Đã xuất bản), 3: Banned (Vi phạm)
+     */
+    @NotNull
+    private Integer status;
+
     @CreationTimestamp
+    @Column(updatable = false)
     private LocalDateTime createdAt;
-    @ManyToOne
-    @JoinColumn(name = "account_id")
-    private Account account;
 
-    @ManyToOne
-    @JoinColumn(name = "category_id")
-    private ForumCategory category;
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
 
-    @Column(columnDefinition = "integer default 0")
-    private Integer views = 0;
-    
-    @Column(columnDefinition = "integer default 0")
-    private Integer likes = 0;
-    
-    @Column(columnDefinition = "integer default 0")
-    private Integer commentCount = 0;
+    private LocalDateTime deletedAt;
 
-    @OneToMany(mappedBy = "thread", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ThreadImage> images = new ArrayList<>();
 }

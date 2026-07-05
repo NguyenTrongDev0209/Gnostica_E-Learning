@@ -13,12 +13,12 @@ import jakarta.validation.constraints.*;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "lesson_progress")
-public class LessonProgress {
+@Table(name = "account_banks")
+public class AccountBank {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @NotNull
     @Column(updatable = false)
@@ -26,13 +26,17 @@ public class LessonProgress {
 
     @NotNull
     @Column(updatable = false)
-    private Integer lessonId;
+    private Integer bankId;
+
+    @NotBlank
+    @Size(max = 255)
+    private String accountNumber;
 
     @Size(max = 255)
-    private String lastWatchedAt;
+    private String pin;
 
     /**
-     * Status: 1: In Progress (Đang học), 2: Completed (Hoàn thành)
+     * Status: 0: Inactive (Ngừng dùng), 1: Active (Đang sử dụng)
      */
     @NotNull
     private Integer status;
@@ -44,6 +48,6 @@ public class LessonProgress {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    private LocalDateTime completedAt;
+    private LocalDateTime deletedAt;
 
 }

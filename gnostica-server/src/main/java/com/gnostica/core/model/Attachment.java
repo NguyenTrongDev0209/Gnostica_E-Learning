@@ -1,37 +1,45 @@
 package com.gnostica.core.model;
 
+import jakarta.persistence.*;
+import lombok.*;
 import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.hibernate.annotations.UpdateTimestamp;
+import jakarta.validation.constraints.*;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @Entity
 @Table(name = "attachments")
 public class Attachment {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "module_id")
-    @JsonIgnore
-    private Module module;
+    @NotNull
+    private Integer moduleId;
 
-    @Column(name = "file_url", columnDefinition = "varchar(255)")
+    @Size(max = 255)
     private String fileUrl;
 
-    @Column(name = "file_type", columnDefinition = "varchar(255)")
+    @Size(max = 255)
     private String fileType;
 
+    /**
+     * Status: 0: Hidden (Ẩn), 1: Available (Có sẵn)
+     */
+    @NotNull
+    private Integer status;
+
     @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
+
+    private LocalDateTime deletedAt;
+
 }

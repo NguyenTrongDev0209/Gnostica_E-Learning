@@ -1,33 +1,53 @@
 package com.gnostica.core.model;
 
+import jakarta.persistence.*;
+import lombok.*;
 import java.time.LocalDateTime;
-
 import org.hibernate.annotations.CreationTimestamp;
-
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import lombok.Data;
+import org.hibernate.annotations.UpdateTimestamp;
+import java.util.UUID;
+import java.math.BigDecimal;
+import jakarta.validation.constraints.*;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Entity
 @Table(name = "payouts")
 public class Payout {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
-    private Double amount;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+
+    @NotNull
+    @Column(updatable = false)
+    private UUID accountId;
+
+    @NotNull
+    @Column(updatable = false)
+    private UUID walletId;
+
+    @NotNull
+    @Column(updatable = false)
+    private UUID accountBankId;
+
+    @NotNull
+    @Min(0)
+    private BigDecimal amount;
+
+    /**
+     * Status: 1: Pending (Chờ duyệt), 2: Processing (Đang chuyển), 3: Completed (Hoàn tất), 4: Failed (Lỗi), 5: Rejected (Từ chối)
+     */
+    @NotNull
     private Integer status;
+
     @CreationTimestamp
+    @Column(updatable = false)
     private LocalDateTime createdAt;
-    @ManyToOne
-    @JoinColumn(name = "account_id")
-    private Account account;
-    @ManyToOne
-    @JoinColumn(name = "transaction_id")
-    private Transaction transaction;
+
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
+
 }

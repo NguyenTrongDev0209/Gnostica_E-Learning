@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 import java.util.UUID;
 import jakarta.validation.constraints.*;
 
@@ -13,8 +12,8 @@ import jakarta.validation.constraints.*;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "lesson_progress")
-public class LessonProgress {
+@Table(name = "favorites")
+public class Favorite {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,13 +25,10 @@ public class LessonProgress {
 
     @NotNull
     @Column(updatable = false)
-    private Integer lessonId;
-
-    @Size(max = 255)
-    private String lastWatchedAt;
+    private UUID courseId;
 
     /**
-     * Status: 1: In Progress (Đang học), 2: Completed (Hoàn thành)
+     * Status: 0: Removed (Đã bỏ), 1: Active (Yêu thích)
      */
     @NotNull
     private Integer status;
@@ -40,10 +36,5 @@ public class LessonProgress {
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    private LocalDateTime updatedAt;
-
-    private LocalDateTime completedAt;
 
 }

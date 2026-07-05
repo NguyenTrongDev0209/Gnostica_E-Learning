@@ -1,92 +1,74 @@
 package com.gnostica.core.model;
 
-import java.util.List;
-import java.time.LocalDate;
+import jakarta.persistence.*;
+import lombok.*;
 import java.time.LocalDateTime;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import jakarta.persistence.CascadeType;
+import java.time.LocalDate;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+import java.util.UUID;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+import jakarta.validation.constraints.*;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Entity
 @Table(name = "accounts")
 public class Account {
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	public Integer id;
-	
-	public String fullName;
-	
-	@Column(columnDefinition = "varchar(255)", unique = true)
-	public String email;
-	
-	@Column(length = 20)
-	public String phone;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+
+    @NotNull
+    private Integer roleId;
+
+    @NotBlank
+    @Email
+    @Size(max = 255)
+    @Column(unique = true)
+    private String email;
+
+    @NotBlank
+    @Size(max = 255)
+    private String fullName;
+
+    @Size(max = 12)
+    @Column(length = 12)
+    private String phone;
+
+    @NotBlank
+    @Size(max = 255)
+    private String password;
+
+    @Size(max = 255)
+    private String avatar;
+
+    @Size(max = 255)
+    private String provider;
+
+    private LocalDate birthDay;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "JSONB")
+    private String metadata;
+
+    /**
+     * Status: 0: Unverified (Chưa xác thực), 1: Active (Hoạt động), 2: Banned (Bị khoá), 3: Deleted (Chờ xoá)
+     */
+    @NotNull
+    private Integer status;
 
     @CreationTimestamp
+    @Column(updatable = false)
     private LocalDateTime createdAt;
-	
-	@Column(columnDefinition = "varchar(255)")
-	public String provider;
 
-	@Column(columnDefinition = "varchar(255)")
-	private String avatar;
-	
-	@Column(name = "birth_day")
-    private LocalDate birthDay;
-	
-	@Column
-	private Boolean active = false; // Mặc định là false để đợi xác thực
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
 
-	@Column
-	private Boolean locked = false; // Mặc định là không khóa
+    private LocalDateTime deletedAt;
 
-	@Column(columnDefinition = "TEXT")
-	private String lockReason;
-	
-	@Column(length = 6)
-	private String verificationCode;
-	
-	@Column
-	private LocalDateTime verificationExpiry;
-	
-	@ManyToOne
-	@JoinColumn(name = "role_id")
-	Role role;
-
-	@Column(name = "level")
-	private String level;
-
-	@Column(name = "onboarding_completed")
-	private Boolean onboardingCompleted = false;
-
-	@jakarta.persistence.ManyToMany
-	@jakarta.persistence.JoinTable(
-		name = "account_categories",
-		joinColumns = @jakarta.persistence.JoinColumn(name = "account_id"),
-		inverseJoinColumns = @jakarta.persistence.JoinColumn(name = "category_id")
-	)
-	private List<Category> interests;
-
-	@Column(name = "password")
-	@JsonIgnore
-	private String password;
 }

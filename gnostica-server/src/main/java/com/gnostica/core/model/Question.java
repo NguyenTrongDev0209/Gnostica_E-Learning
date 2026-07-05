@@ -1,48 +1,62 @@
 package com.gnostica.core.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import lombok.Data;
-import java.util.List;
+import lombok.*;
+import java.time.LocalDateTime;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+import java.util.UUID;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+import jakarta.validation.constraints.*;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Entity
 @Table(name = "questions")
 public class Question {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @NotBlank(message = "Nội dung câu hỏi không được để trống")
+    @NotNull
+    @Column(updatable = false)
+    private UUID courseId;
+
+    private Integer originalQuestionId;
+
+    @NotBlank
     @Column(columnDefinition = "TEXT")
     private String content;
 
-    @Column(length = 20)
+    @Size(max = 255)
     private String level;
 
     @Column(columnDefinition = "TEXT")
     private String explanation;
-    
-    @JsonManagedReference(value = "question-answers")
-    @OneToMany(mappedBy = "question", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    private List<Answer> answers;
-    
-    @JsonIgnore
-    @ManyToOne
-    @JoinColumn(name = "source_file_id") // Quan hệ với SourceFiles trong ERD
-    private SourceFile sourceFile;
 
-    @JsonIgnore
-    @ManyToOne
-    @JoinColumn(name = "course_id")
-    private Course course;
+    @NotBlank
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "JSONB")
+    private String answer;
+
+    @NotNull
+    private Integer versionNumber;
+
+    /**
+     * Status: 0: Inactive (Không dùng), 1: Active (Sử dụng)
+     */
+    @NotNull
+    private Integer status;
+
+    @CreationTimestamp
+    @Column(updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
+
 }

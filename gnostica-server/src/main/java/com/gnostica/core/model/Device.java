@@ -13,26 +13,37 @@ import jakarta.validation.constraints.*;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "lesson_progress")
-public class LessonProgress {
+@Table(name = "devices")
+public class Device {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @NotNull
     @Column(updatable = false)
     private UUID accountId;
 
-    @NotNull
-    @Column(updatable = false)
-    private Integer lessonId;
+    @Size(max = 255)
+    private String deviceToken;
+
+    @Size(max = 50)
+    @Column(length = 50)
+    private String deviceType;
 
     @Size(max = 255)
-    private String lastWatchedAt;
+    private String deviceName;
+
+    @Size(max = 50)
+    @Column(length = 50)
+    private String ipAddress;
+
+    private Boolean isTrusted;
+
+    private LocalDateTime lastLogin;
 
     /**
-     * Status: 1: In Progress (Đang học), 2: Completed (Hoàn thành)
+     * Status: 0: Revoked (Đã đăng xuất), 1: Active (Đang đăng nhập)
      */
     @NotNull
     private Integer status;
@@ -44,6 +55,6 @@ public class LessonProgress {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    private LocalDateTime completedAt;
+    private LocalDateTime deletedAt;
 
 }

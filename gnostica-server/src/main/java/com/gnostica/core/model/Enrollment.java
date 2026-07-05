@@ -1,48 +1,55 @@
 package com.gnostica.core.model;
 
+import jakarta.persistence.*;
+import lombok.*;
 import java.time.LocalDateTime;
-
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
+import java.util.UUID;
+import jakarta.validation.constraints.*;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Entity
 @Table(name = "enrollments")
 public class Enrollment {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    private Integer progressPercent;
-    @jakarta.persistence.Column(columnDefinition = "integer default 1")
-    private Integer status;
+
+    @NotNull
+    @Column(updatable = false)
+    private UUID accountId;
+
+    @NotNull
+    @Column(updatable = false)
+    private UUID courseId;
+
+    @NotNull
+    @Column(updatable = false)
+    private UUID orderDetailId;
+
+    @NotNull
+    @Min(0)
+    @Max(100)
+    private Integer progress;
+
+    @Size(max = 255)
     private String certifiUrl;
-    private LocalDateTime completedAt;
-    @jakarta.persistence.Column(columnDefinition = "boolean default false")
-    private Boolean certificateEmailSent = false;
-    @ManyToOne
-    @JoinColumn(name = "account_id")
-    private Account account;
-    @ManyToOne
-    @JoinColumn(name = "course_id")
-    private Course course;
 
+    /**
+     * Status: 0: Dropped/Refunded (Đã huỷ/Hoàn tiền), 1: In Progress (Đang học), 2:
+     * Completed (Hoàn thành)
+     */
+    @NotNull
+    private Integer status;
+
+    @CreationTimestamp
+    @Column(updatable = false)
     private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 
-    @jakarta.persistence.PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-    }
+    private LocalDateTime completedAt;
 
-    @jakarta.persistence.PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
 }

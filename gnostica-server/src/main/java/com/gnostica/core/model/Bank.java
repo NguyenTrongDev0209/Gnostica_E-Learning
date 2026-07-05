@@ -1,38 +1,56 @@
 package com.gnostica.core.model;
 
+import jakarta.persistence.*;
+import lombok.*;
 import java.time.LocalDateTime;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+import jakarta.validation.constraints.*;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Data
+@Builder
 @Entity
 @Table(name = "banks")
 public class Bank {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
+    @Column(unique = true)
     private Integer externalId;
 
+    @NotBlank
+    @Size(max = 255)
     private String bankCode;
 
+    @NotBlank
+    @Size(max = 255)
+    @Column(unique = true)
     private String bin;
 
+    @NotBlank
+    @Size(max = 255)
     private String shortName;
 
+    @Size(max = 255)
     private String logoUrl;
 
-    private Integer status; //0: Tạm ngưng, 1: Hoạt động
+    /**
+     * Status: 0: Maintenance (Bảo trì), 1: Active (Hoạt động)
+     */
+    @NotNull
+    private Integer status;
 
+    @CreationTimestamp
+    @Column(updatable = false)
     private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
+
+    private LocalDateTime deletedAt;
+
 }

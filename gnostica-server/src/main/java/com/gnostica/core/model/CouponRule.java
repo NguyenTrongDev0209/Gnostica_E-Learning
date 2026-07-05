@@ -13,8 +13,8 @@ import jakarta.validation.constraints.*;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "lesson_progress")
-public class LessonProgress {
+@Table(name = "coupon_rules")
+public class CouponRule {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,20 +22,18 @@ public class LessonProgress {
 
     @NotNull
     @Column(updatable = false)
-    private UUID accountId;
+    private UUID couponId;
 
-    @NotNull
-    @Column(updatable = false)
-    private Integer lessonId;
-
+    @NotBlank
     @Size(max = 255)
-    private String lastWatchedAt;
+    private String ruleType;
 
-    /**
-     * Status: 1: In Progress (Đang học), 2: Completed (Hoàn thành)
-     */
+    @NotBlank
+    @Size(max = 255)
+    private String ruleValue;
+
     @NotNull
-    private Integer status;
+    private LocalDateTime startDate;
 
     @CreationTimestamp
     @Column(updatable = false)
@@ -44,6 +42,6 @@ public class LessonProgress {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    private LocalDateTime completedAt;
+    private LocalDateTime deletedAt;
 
 }

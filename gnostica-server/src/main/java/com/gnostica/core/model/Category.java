@@ -1,61 +1,65 @@
 package com.gnostica.core.model;
 
+import jakarta.persistence.*;
+import lombok.*;
 import java.time.LocalDateTime;
-import java.util.List;
-
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+import java.util.UUID;
+import jakarta.validation.constraints.*;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.SequenceGenerator;
-import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Entity
 @Table(name = "categories")
 public class Category {
+
     @Id
-    //SEQUENCE để tối ưu hiệu năng, allocationSize=1 ID tăng liên tục
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "category_seq")
-    @SequenceGenerator(name = "category_seq", sequenceName = "categories_id_seq", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @NotBlank(message = "Tên danh mục không được để trống")
-    @Column(nullable = false, length = 255)
+    @NotNull
+    @Column(updatable = false)
+    private UUID accountId;
+
+    private Integer parentId;
+
+    @NotBlank
+    @Size(max = 255)
     private String name;
 
-    @NotBlank(message = "Slug không được để trống")
-    @Column(nullable = false, length = 255)
+    @NotBlank
+    @Size(max = 255)
+    @Column(unique = true)
     private String slug;
 
-    @Column(nullable = false, columnDefinition = "boolean default true")
-    private Boolean status = true;
+    @Size(max = 255)
+    private String description;
 
-   // Cha
-    @ManyToOne
-    @JoinColumn(name = "parent_id")
-    @com.fasterxml.jackson.annotation.JsonIgnoreProperties("children")
-    private Category parent;
- 
-    // Con
-    @OneToMany(mappedBy = "parent")
-    @com.fasterxml.jackson.annotation.JsonIgnoreProperties("parent")
-    private List<Category> children;
+    @Size(max = 255)
+    private String thumbnail;
 
-    // Tự động set thời gian khi tạo
+    @Size(max = 255)
+    private String color;
+
+    @Min(0)
+    private Integer sortOrder;
+
+    /**
+     * Status: 0: Hidden (Ẩn), 1: Active (Hiển thị)
+     */
+    @NotNull
+    private Integer status;
+
     @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
+    @Column(updatable = false)
     private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
+
+    private LocalDateTime deletedAt;
+
 }
