@@ -7,6 +7,6 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface BankRepository extends JpaRepository<Bank, Long> {
+public interface BankRepository extends JpaRepository<Bank, Integer> {
     Optional<Bank> findByExternalId(Integer externalId);
 }

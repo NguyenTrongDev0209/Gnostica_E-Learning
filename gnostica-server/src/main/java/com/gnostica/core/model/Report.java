@@ -1,11 +1,10 @@
-package com.gnostica.core.model;
+﻿package com.gnostica.core.model;
 
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import java.util.UUID;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import jakarta.validation.constraints.*;
@@ -44,7 +43,7 @@ public class Report {
     private String description;
 
     /**
-     * Status: 1: Pending (Chờ xử lý), 2: Processing (Đang xử lý), 3: Resolved (Đã giải quyết), 4: Dismissed (Bỏ qua)
+     * Status: 1: Pending (Chá» xá»­ lÃ½), 2: Processing (Äang xá»­ lÃ½), 3: Resolved (ÄÃ£ giáº£i quyáº¿t), 4: Dismissed (Bá» qua)
      */
     @NotNull
     private Integer status;

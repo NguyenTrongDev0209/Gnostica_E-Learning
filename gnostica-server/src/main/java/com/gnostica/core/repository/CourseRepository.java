@@ -3,9 +3,10 @@ package com.gnostica.core.repository;
 import com.gnostica.core.model.Course;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+import java.util.UUID;
 
 @Repository
-public interface CourseRepository extends JpaRepository<Course, Integer> {
+public interface CourseRepository extends JpaRepository<Course, UUID> {
     org.springframework.data.domain.Page<Course> findByAccountEmailAndDeletedFalse(String email, org.springframework.data.domain.Pageable pageable);
     java.util.Optional<Course> findFirstBySlugAndDeletedFalseOrderByIdDesc(String slug);
     boolean existsBySlugAndDeletedFalse(String slug);
@@ -33,11 +34,11 @@ public interface CourseRepository extends JpaRepository<Course, Integer> {
             @org.springframework.data.repository.query.Param("status") Integer status,
             org.springframework.data.domain.Pageable pageable);
     
-    long countByAccountIdAndStatus(Integer accountId, Integer status);
-    java.util.List<Course> findByAccountIdAndStatus(Integer accountId, Integer status);
+    long countByAccount_IdAndStatus(UUID accountId, Integer status);
+    java.util.List<Course> findByAccount_IdAndStatus(UUID accountId, Integer status);
 
     @org.springframework.data.jpa.repository.Query("SELECT COALESCE(SUM(SIZE(c.enrollments)), 0) FROM Course c WHERE c.account.id = :accountId")
-    long countStudentsByInstructorId(@org.springframework.data.repository.query.Param("accountId") Integer accountId);
+    long countStudentsByInstructorId(@org.springframework.data.repository.query.Param("accountId") UUID accountId);
 
     org.springframework.data.domain.Page<Course> findByStatusAndDeletedFalse(Integer status, org.springframework.data.domain.Pageable pageable);
     
@@ -51,7 +52,7 @@ public interface CourseRepository extends JpaRepository<Course, Integer> {
     @org.springframework.data.jpa.repository.Query("UPDATE Course c SET c.status = :status WHERE c.category.id = :categoryId OR c.category.parent.id = :categoryId")
     void syncCourseStatusWithCategory(@org.springframework.data.repository.query.Param("categoryId") Integer categoryId, @org.springframework.data.repository.query.Param("status") Integer status);
     
-    boolean existsByCategoryId(Integer categoryId);
+    boolean existsByCategory_Id(Integer categoryId);
 
     @org.springframework.data.jpa.repository.Query("SELECT c FROM Course c JOIN FETCH c.account JOIN FETCH c.category WHERE c.status = 1 " +
             "AND (:categoryId IS NULL OR c.category.id = :categoryId OR c.category.parent.id = :categoryId) " +

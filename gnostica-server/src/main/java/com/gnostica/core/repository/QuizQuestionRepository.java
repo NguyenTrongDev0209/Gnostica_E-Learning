@@ -12,8 +12,8 @@ import java.util.List;
 
 @Repository
 public interface QuizQuestionRepository extends JpaRepository<QuizQuestion, Integer> {
-    void deleteByQuizId(Integer quizId);
-    List<QuizQuestion> findByQuizId(Integer quizId);
+    void deleteByQuiz_Id(Integer quizId);
+    List<QuizQuestion> findByQuiz_Id(Integer quizId);
 
     @Modifying
     @Query("DELETE FROM QuizQuestion qq WHERE qq.question IN :questions")

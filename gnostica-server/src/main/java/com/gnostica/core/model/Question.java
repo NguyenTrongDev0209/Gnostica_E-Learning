@@ -1,11 +1,10 @@
-package com.gnostica.core.model;
+﻿package com.gnostica.core.model;
 
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import java.util.UUID;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import jakarta.validation.constraints.*;
@@ -50,7 +49,7 @@ public class Question {
     private Integer versionNumber;
 
     /**
-     * Status: 0: Inactive (Không dùng), 1: Active (Sử dụng)
+     * Status: 0: Inactive (KhÃ´ng dÃ¹ng), 1: Active (Sá»­ dá»¥ng)
      */
     @NotNull
     private Integer status;

@@ -6,9 +6,9 @@ import com.gnostica.core.model.Order;
 import java.util.List;
 import java.util.Optional;
 
-public interface OrderDetailRepository extends JpaRepository<OrderDetail, Integer> {
+public interface OrderDetailRepository extends JpaRepository<OrderDetail, java.util.UUID> {
     List<OrderDetail> findByOrder(Order order);
-    Optional<OrderDetail> findByOrderId(Long orderId);
+    Optional<OrderDetail> findByOrder_Id(java.util.UUID orderId);
 
     @org.springframework.data.jpa.repository.Query("SELECT COALESCE(SUM(od.price * (1 - COALESCE(od.discount, 0) / 100.0)), 0.0) FROM OrderDetail od WHERE od.course.account.email = :instructorEmail AND od.order.status = 1 AND od.order.createdAt >= :startDate AND od.order.createdAt < :endDate")
     Double sumRevenueByInstructorEmailAndDateRange(
@@ -21,5 +21,5 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, Intege
             @org.springframework.data.repository.query.Param("instructorEmail") String instructorEmail);
 
     @org.springframework.data.jpa.repository.Query("SELECT COALESCE(SUM(od.price * (1 - COALESCE(od.discount, 0) / 100.0)), 0.0) FROM OrderDetail od WHERE od.course.id = :courseId AND od.order.status = 1")
-    Double sumTotalRevenueByCourseId(@org.springframework.data.repository.query.Param("courseId") Integer courseId);
+    Double sumTotalRevenueByCourseId(@org.springframework.data.repository.query.Param("courseId") java.util.UUID courseId);
 }

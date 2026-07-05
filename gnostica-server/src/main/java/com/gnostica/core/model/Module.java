@@ -1,11 +1,10 @@
-package com.gnostica.core.model;
+﻿package com.gnostica.core.model;
 
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import java.util.UUID;
 import jakarta.validation.constraints.*;
 
 @Data
@@ -40,7 +39,7 @@ public class Module {
     private Integer sortOrder;
 
     /**
-     * Status: 0: Hidden (Ẩn), 1: Draft (Bản nháp), 2: Published (Đã xuất bản)
+     * Status: 0: Hidden (áº¨n), 1: Draft (Báº£n nhÃ¡p), 2: Published (ÄÃ£ xuáº¥t báº£n)
      */
     @NotNull
     private Integer status;

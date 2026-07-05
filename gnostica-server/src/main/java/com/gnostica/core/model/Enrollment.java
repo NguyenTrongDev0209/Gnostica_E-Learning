@@ -1,10 +1,9 @@
-package com.gnostica.core.model;
+﻿package com.gnostica.core.model;
 
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
-import java.util.UUID;
 import jakarta.validation.constraints.*;
 
 @Data
@@ -43,8 +42,8 @@ public class Enrollment {
     private String certifiUrl;
 
     /**
-     * Status: 0: Dropped/Refunded (Đã huỷ/Hoàn tiền), 1: In Progress (Đang học), 2:
-     * Completed (Hoàn thành)
+     * Status: 0: Dropped/Refunded (ÄÃ£ huá»·/HoÃ n tiá»n), 1: In Progress (Äang há»c), 2:
+     * Completed (HoÃ n thÃ nh)
      */
     @NotNull
     private Integer status;

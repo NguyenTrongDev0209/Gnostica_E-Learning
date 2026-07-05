@@ -23,7 +23,7 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Integer>
 
     @org.springframework.data.jpa.repository.Query("SELECT e FROM Enrollment e JOIN e.course c WHERE e.account.id = :studentId AND c.account.email = :instructorEmail AND (c.deleted = false OR c.deleted IS NULL)")
     List<Enrollment> findByAccountIdAndInstructorEmail(
-            @org.springframework.data.repository.query.Param("studentId") Integer studentId,
+            @org.springframework.data.repository.query.Param("studentId") java.util.UUID studentId,
             @org.springframework.data.repository.query.Param("instructorEmail") String instructorEmail);
 
     @org.springframework.data.jpa.repository.Query("SELECT COUNT(e) FROM Enrollment e JOIN e.course c WHERE c.account.email = :instructorEmail AND (c.deleted = false OR c.deleted IS NULL) AND e.createdAt >= :startDate AND e.createdAt < :endDate")

@@ -1,10 +1,9 @@
-package com.gnostica.core.model;
+﻿package com.gnostica.core.model;
 
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
-import java.util.UUID;
 import jakarta.validation.constraints.*;
 
 @Data

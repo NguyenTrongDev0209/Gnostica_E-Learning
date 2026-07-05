@@ -1,11 +1,10 @@
-package com.gnostica.core.model;
+﻿package com.gnostica.core.model;
 
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import java.util.UUID;
 import jakarta.validation.constraints.*;
 
 @Data
@@ -43,7 +42,7 @@ public class Comment {
     private String content;
 
     /**
-     * Status: 0: Hidden (Ẩn), 1: Published (Hiển thị), 2: Spam/Reported (Vi phạm)
+     * Status: 0: Hidden (áº¨n), 1: Published (Hiá»ƒn thá»‹), 2: Spam/Reported (Vi pháº¡m)
      */
     @NotNull
     private Integer status;

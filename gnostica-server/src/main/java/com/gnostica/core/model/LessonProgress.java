@@ -1,11 +1,10 @@
-package com.gnostica.core.model;
+﻿package com.gnostica.core.model;
 
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import java.util.UUID;
 import jakarta.validation.constraints.*;
 
 @Data
@@ -34,7 +33,7 @@ public class LessonProgress {
     private String lastWatchedAt;
 
     /**
-     * Status: 1: In Progress (Đang học), 2: Completed (Hoàn thành)
+     * Status: 1: In Progress (Äang há»c), 2: Completed (HoÃ n thÃ nh)
      */
     @NotNull
     private Integer status;

@@ -1,10 +1,9 @@
-package com.gnostica.core.model;
+﻿package com.gnostica.core.model;
 
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
-import java.util.UUID;
 import jakarta.validation.constraints.*;
 
 @Data
@@ -30,7 +29,7 @@ public class Favorite {
     private Course course;
 
     /**
-     * Status: 0: Removed (Đã bỏ), 1: Active (Yêu thích)
+     * Status: 0: Removed (ÄÃ£ bá»), 1: Active (YÃªu thÃ­ch)
      */
     @NotNull
     private Integer status;

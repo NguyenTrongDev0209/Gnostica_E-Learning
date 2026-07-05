@@ -1,11 +1,10 @@
-package com.gnostica.core.model;
+﻿package com.gnostica.core.model;
 
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import java.util.UUID;
 import jakarta.validation.constraints.*;
 
 @Data
@@ -51,7 +50,7 @@ public class Category {
     private Integer sortOrder;
 
     /**
-     * Status: 0: Hidden (Ẩn), 1: Active (Hiển thị)
+     * Status: 0: Hidden (áº¨n), 1: Active (Hiá»ƒn thá»‹)
      */
     @NotNull
     private Integer status;

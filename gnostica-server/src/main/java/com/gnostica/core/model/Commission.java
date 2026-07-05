@@ -1,11 +1,10 @@
-package com.gnostica.core.model;
+﻿package com.gnostica.core.model;
 
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import java.util.UUID;
 import java.math.BigDecimal;
 import jakarta.validation.constraints.*;
 
@@ -41,7 +40,7 @@ public class Commission {
     private LocalDateTime validUntil;
 
     /**
-     * Status: 0: Inactive (Đã cũ), 1: Active (Đang áp dụng)
+     * Status: 0: Inactive (ÄÃ£ cÅ©), 1: Active (Äang Ã¡p dá»¥ng)
      */
     @NotNull
     private Integer status;

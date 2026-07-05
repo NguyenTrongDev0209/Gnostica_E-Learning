@@ -9,6 +9,6 @@ import com.gnostica.core.model.Wallet;
 import java.util.Optional;
 
 @Repository
-public interface WalletRepository extends JpaRepository<Wallet, Integer> {
+public interface WalletRepository extends JpaRepository<Wallet, java.util.UUID> {
     Optional<Wallet> findByAccount(Account account);
 }

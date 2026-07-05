@@ -8,5 +8,5 @@ import java.util.Optional;
 
 @Repository
 public interface QuizRepository extends JpaRepository<Quiz, Integer> {
-    Optional<Quiz> findByModuleId(Integer moduleId);
+    Optional<Quiz> findByModule_Id(Integer moduleId);
 }

@@ -5,7 +5,7 @@ import com.gnostica.core.model.Order;
 import com.gnostica.core.model.Account;
 import java.util.List;
 
-public interface OrderRepository extends JpaRepository<Order, Integer> {
+public interface OrderRepository extends JpaRepository<Order, java.util.UUID> {
     List<Order> findByAccountOrderByIdDesc(Account account);
     List<Order> findAllByOrderByIdDesc();
     java.util.Optional<Order> findByTransactionId(String transactionId);

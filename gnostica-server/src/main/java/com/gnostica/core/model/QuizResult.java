@@ -1,10 +1,9 @@
-package com.gnostica.core.model;
+﻿package com.gnostica.core.model;
 
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
-import java.util.UUID;
 import java.math.BigDecimal;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -49,7 +48,7 @@ public class QuizResult {
     private String responseDetail;
 
     /**
-     * Status: 1: In Progress (Đang làm), 2: Submitted (Đã nộp/Chấm điểm)
+     * Status: 1: In Progress (Äang lÃ m), 2: Submitted (ÄÃ£ ná»™p/Cháº¥m Ä‘iá»ƒm)
      */
     @NotNull
     private Integer status;
