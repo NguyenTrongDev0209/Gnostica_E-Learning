@@ -21,8 +21,9 @@ public class Wallet {
     private UUID id;
 
     @NotNull
-    @Column(updatable = false)
-    private UUID accountId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "account_id", updatable = false)
+    private Account account;
 
     @NotNull
     @Min(0)

@@ -20,10 +20,13 @@ public class Quiz {
     private Integer id;
 
     @NotNull
-    @Column(updatable = false)
-    private Integer moduleId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "module_id", updatable = false)
+    private Module module;
 
-    private Integer originalQuizId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "original_quiz_id")
+    private Quiz originalQuiz;
 
     @NotBlank
     @Size(max = 255)

@@ -20,7 +20,9 @@ public class Attachment {
     private Integer id;
 
     @NotNull
-    private Integer moduleId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "module_id")
+    private Module module;
 
     @Size(max = 255)
     private String fileUrl;

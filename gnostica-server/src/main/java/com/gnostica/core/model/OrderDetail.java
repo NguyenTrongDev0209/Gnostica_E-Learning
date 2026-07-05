@@ -22,12 +22,14 @@ public class OrderDetail {
     private UUID id;
 
     @NotNull
-    @Column(updatable = false)
-    private UUID orderId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id", updatable = false)
+    private Order order;
 
     @NotNull
-    @Column(updatable = false)
-    private UUID courseId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "course_id", updatable = false)
+    private Course course;
 
     @NotNull
     @Min(0)

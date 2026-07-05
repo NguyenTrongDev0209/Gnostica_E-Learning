@@ -22,16 +22,19 @@ public class Payout {
     private UUID id;
 
     @NotNull
-    @Column(updatable = false)
-    private UUID accountId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "account_id", updatable = false)
+    private Account account;
 
     @NotNull
-    @Column(updatable = false)
-    private UUID walletId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "wallet_id", updatable = false)
+    private Wallet wallet;
 
     @NotNull
-    @Column(updatable = false)
-    private UUID accountBankId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "account_bank_id", updatable = false)
+    private AccountBank accountBank;
 
     @NotNull
     @Min(0)

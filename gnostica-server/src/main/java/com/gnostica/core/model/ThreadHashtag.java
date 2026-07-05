@@ -19,12 +19,14 @@ public class ThreadHashtag {
     private Integer id;
 
     @NotNull
-    @Column(updatable = false)
-    private Integer threadId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "thread_id", updatable = false)
+    private Thread thread;
 
     @NotNull
-    @Column(updatable = false)
-    private Integer hashtagId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "hashtag_id", updatable = false)
+    private Hashtag hashtag;
 
     @CreationTimestamp
     @Column(updatable = false)

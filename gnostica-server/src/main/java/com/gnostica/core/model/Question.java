@@ -23,10 +23,13 @@ public class Question {
     private Integer id;
 
     @NotNull
-    @Column(updatable = false)
-    private UUID courseId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "course_id", updatable = false)
+    private Course course;
 
-    private Integer originalQuestionId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "original_question_id")
+    private Question originalQuestion;
 
     @NotBlank
     @Column(columnDefinition = "TEXT")

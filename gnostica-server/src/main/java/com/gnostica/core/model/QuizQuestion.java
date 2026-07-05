@@ -20,12 +20,14 @@ public class QuizQuestion {
     private Integer id;
 
     @NotNull
-    @Column(updatable = false)
-    private Integer quizId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "quiz_id", updatable = false)
+    private Quiz quiz;
 
     @NotNull
-    @Column(updatable = false)
-    private Integer questionId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "question_id", updatable = false)
+    private Question question;
 
     @Min(0)
     private Integer sortOrder;

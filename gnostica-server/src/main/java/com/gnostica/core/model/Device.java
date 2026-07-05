@@ -21,8 +21,9 @@ public class Device {
     private UUID id;
 
     @NotNull
-    @Column(updatable = false)
-    private UUID accountId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "account_id", updatable = false)
+    private Account account;
 
     @Size(max = 255)
     private String deviceToken;

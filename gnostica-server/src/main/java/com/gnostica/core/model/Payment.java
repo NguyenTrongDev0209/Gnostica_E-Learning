@@ -22,8 +22,9 @@ public class Payment {
     private UUID id;
 
     @NotNull
-    @Column(updatable = false)
-    private UUID orderId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id", updatable = false)
+    private Order order;
 
     @NotBlank
     @Size(max = 255)

@@ -21,12 +21,14 @@ public class AccountBank {
     private UUID id;
 
     @NotNull
-    @Column(updatable = false)
-    private UUID accountId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "account_id", updatable = false)
+    private Account account;
 
     @NotNull
-    @Column(updatable = false)
-    private Integer bankId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "bank_id", updatable = false)
+    private Bank bank;
 
     @NotBlank
     @Size(max = 255)

@@ -20,16 +20,19 @@ public class Enrollment {
     private Integer id;
 
     @NotNull
-    @Column(updatable = false)
-    private UUID accountId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "account_id", updatable = false)
+    private Account account;
 
     @NotNull
-    @Column(updatable = false)
-    private UUID courseId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "course_id", updatable = false)
+    private Course course;
 
     @NotNull
-    @Column(updatable = false)
-    private UUID orderDetailId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_detail_id", updatable = false)
+    private OrderDetail orderDetail;
 
     @NotNull
     @Min(0)

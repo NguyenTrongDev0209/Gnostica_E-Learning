@@ -21,10 +21,13 @@ public class Module {
     private Integer id;
 
     @NotNull
-    @Column(updatable = false)
-    private UUID courseId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "course_id", updatable = false)
+    private Course course;
 
-    private Integer originalModuleId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "original_module_id")
+    private Module originalModule;
 
     @NotBlank
     @Size(max = 255)

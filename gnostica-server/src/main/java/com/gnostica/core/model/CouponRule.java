@@ -21,8 +21,9 @@ public class CouponRule {
     private Integer id;
 
     @NotNull
-    @Column(updatable = false)
-    private UUID couponId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "coupon_id", updatable = false)
+    private Coupon coupon;
 
     @NotBlank
     @Size(max = 255)

@@ -21,8 +21,9 @@ public class CertRequirement {
     private Integer id;
 
     @NotNull
-    @Column(unique = true, updatable = false)
-    private UUID courseId;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "course_id", unique = true, updatable = false)
+    private Course course;
 
     @Min(0)
     @Max(100)

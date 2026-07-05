@@ -21,12 +21,14 @@ public class LessonProgress {
     private Integer id;
 
     @NotNull
-    @Column(updatable = false)
-    private UUID accountId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "account_id", updatable = false)
+    private Account account;
 
     @NotNull
-    @Column(updatable = false)
-    private Integer lessonId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "lesson_id", updatable = false)
+    private Lesson lesson;
 
     @Size(max = 255)
     private String lastWatchedAt;

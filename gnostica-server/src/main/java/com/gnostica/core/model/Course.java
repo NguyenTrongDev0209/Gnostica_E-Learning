@@ -22,13 +22,18 @@ public class Course {
     private UUID id;
 
     @NotNull
-    @Column(updatable = false)
-    private UUID accountId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "account_id", updatable = false)
+    private Account account;
 
     @NotNull
-    private Integer categoryId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    private Category category;
 
-    private UUID originalCourseId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "original_course_id")
+    private Course originalCourse;
 
     @NotBlank
     @Size(max = 255)

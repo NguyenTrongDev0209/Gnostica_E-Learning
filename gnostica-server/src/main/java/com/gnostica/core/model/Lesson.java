@@ -20,9 +20,13 @@ public class Lesson {
     private Integer id;
 
     @NotNull
-    private Integer moduleId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "module_id")
+    private Module module;
 
-    private Integer originalLessonId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "original_lesson_id")
+    private Lesson originalLesson;
 
     @NotBlank
     @Size(max = 255)

@@ -20,12 +20,14 @@ public class Follow {
     private Integer id;
 
     @NotNull
-    @Column(updatable = false)
-    private UUID followerId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "follower_id", updatable = false)
+    private Account follower;
 
     @NotNull
-    @Column(updatable = false)
-    private UUID followeeId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "followee_id", updatable = false)
+    private Account followee;
 
     @CreationTimestamp
     @Column(updatable = false)

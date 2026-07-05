@@ -21,16 +21,22 @@ public class Comment {
     private Integer id;
 
     @NotNull
-    @Column(updatable = false)
-    private UUID accountId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "account_id", updatable = false)
+    private Account account;
 
     @NotNull
-    @Column(updatable = false)
-    private Integer threadId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "thread_id", updatable = false)
+    private Thread thread;
 
-    private Integer parentId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_id")
+    private Comment parent;
 
-    private UUID mentionId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "mention_id")
+    private Account mention;
 
     @NotBlank
     @Column(columnDefinition = "TEXT")
