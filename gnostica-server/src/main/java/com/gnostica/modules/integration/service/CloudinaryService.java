@@ -36,6 +36,18 @@ public class CloudinaryService {
         return uploadResult.get("secure_url").toString();
     }
 
+    public String uploadImage(byte[] imageBytes) throws IOException {
+        String uniqueIdentifier = UUID.randomUUID().toString();
+        String publicId = "extracted_" + uniqueIdentifier;
+
+        Map<?, ?> uploadResult = cloudinary.uploader().upload(imageBytes, ObjectUtils.asMap(
+                "folder", "gnostica_forum",
+                "public_id", publicId
+        ));
+
+        return uploadResult.get("secure_url").toString();
+    }
+
     public String uploadAvatar(MultipartFile file) throws IOException {
         String uniqueIdentifier = UUID.randomUUID().toString();
         

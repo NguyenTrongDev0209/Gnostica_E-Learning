@@ -1,11 +1,22 @@
-import React, { useState, useRef } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import SectionContainer, { PageHeader } from '@/components/common/AppSection';
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { ImagePlus, X, Send } from 'lucide-react';
+import { Send } from 'lucide-react';
 import useForumCreatePost from "@/hooks/client/useForumCreatePost";
+import ReactQuill from "react-quill-new";
+import "react-quill-new/dist/quill.snow.css";
+
+const quillModules = {
+    toolbar: [
+        [{ header: [1, 2, false] }],
+        ["bold", "italic", "underline", "strike"],
+        [{ list: "ordered" }, { list: "bullet" }],
+        ["link", "image"],
+        ["clean"],
+    ],
+};
 
 const ForumCreatePost = () => {
     const navigate = useNavigate();
@@ -14,12 +25,9 @@ const ForumCreatePost = () => {
         setContent,
         categoryId,
         setCategoryId,
-        previewUrls,
         categories,
         errors,
         setErrors,
-        handleImageChange,
-        removeImage,
         handleSubmit,
         isSubmitting
     } = useForumCreatePost();
@@ -63,55 +71,20 @@ const ForumCreatePost = () => {
                                 <label className="text-sm font-semibold text-foreground">
                                     Nội dung <span className="text-error">*</span>
                                 </label>
-                                <textarea
-                                    className={`flex min-h-[200px] w-full rounded-md border ${errors.content ? 'border-error/20' : 'border-input'} bg-muted px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-y`}
-                                    value={content}
-                                    onChange={(e) => {
-                                        setContent(e.target.value);
-                                        if (errors.content) setErrors(prev => ({ ...prev, content: null }));
-                                    }}
-                                    placeholder="Bạn muốn hỏi hoặc chia sẻ gì?"
-                                />
-                                {errors.content && <span className="text-xs text-error">{errors.content}</span>}
-                            </div>
-
-                            {/* Image Upload */}
-                            <div className="flex flex-col gap-4">
-                                <label className="text-sm font-semibold text-foreground flex items-center gap-2">
-                                    Đính kèm hình ảnh
-                                    <span className="text-xs font-normal text-muted-foreground">(Tùy chọn, có thể chọn nhiều ảnh)</span>
-                                </label>
-                                
-                                <div className="flex flex-wrap gap-4">
-                                    {/* Upload Button */}
-                                    <div className="relative">
-                                        <input 
-                                            type="file" 
-                                            multiple 
-                                            accept="image/*" 
-                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                            onChange={handleImageChange}
-                                        />
-                                        <div className="w-24 h-24 sm:w-32 sm:h-32 border-2 border-dashed border-border rounded-lg flex flex-col items-center justify-center text-muted-foreground hover:bg-muted hover:border-primary transition-colors bg-white">
-                                            <ImagePlus className="w-6 h-6 sm:w-8 sm:h-8 mb-2" />
-                                            <span className="text-xs px-2 text-center">Thêm ảnh</span>
-                                        </div>
-                                    </div>
-
-                                    {/* Previews */}
-                                    {previewUrls.map((url, index) => (
-                                        <div key={index} className="relative w-24 h-24 sm:w-32 sm:h-32 group rounded-lg overflow-hidden border bg-secondary">
-                                            <img src={url} alt={`preview-${index}`} className="w-full h-full object-cover" />
-                                            <button 
-                                                type="button"
-                                                onClick={() => removeImage(index)}
-                                                className="absolute top-1 right-1 bg-error/10 text-error hover:bg-error/10 text-error text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center transform scale-90"
-                                            >
-                                                <X className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    ))}
+                                <div className="rounded-lg border border-border overflow-hidden focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50 transition-all bg-white">
+                                    <ReactQuill
+                                        theme="snow"
+                                        value={content}
+                                        onChange={(val) => {
+                                            setContent(val);
+                                            if (errors.content) setErrors(prev => ({ ...prev, content: null }));
+                                        }}
+                                        modules={quillModules}
+                                        placeholder="Bạn muốn hỏi hoặc chia sẻ gì? Bạn có thể đính kèm ảnh trực tiếp trong bài viết bằng nút tải ảnh trên thanh công cụ."
+                                        className="[&_.ql-toolbar.ql-snow]:!border-0 [&_.ql-toolbar.ql-snow]:!border-b [&_.ql-toolbar.ql-snow]:!border-border [&_.ql-toolbar]:bg-muted [&_.ql-container.ql-snow]:!border-0 [&_.ql-container]:min-h-[250px] [&_.ql-editor]:min-h-[250px] [&_.ql-editor]:text-sm [&_.ql-editor]:text-foreground font-sans"
+                                    />
                                 </div>
+                                {errors.content && <span className="text-xs text-error">{errors.content}</span>}
                             </div>
 
                             {/* Submit Button */}

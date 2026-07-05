@@ -99,10 +99,10 @@ public class AiService {
                     return processChatLoop(deepseekBaseUrl, deepseekApiKey, deepseekModel, currentMessages);
                 } catch (Exception ex) {
                     log.error("DeepSeek Fallback also failed: {}", ex.getMessage(), ex);
-                    return new AiChatResponse("Xin lỗi, cả OpenRouter và DeepSeek đều gặp sự cố. " + ex.getMessage(), "assistant");
+                    return new AiChatResponse("Dịch vụ AI đang gặp sự cố, vui lòng thử lại trong ít phút.", "assistant");
                 }
             } else {
-                return new AiChatResponse("Xin lỗi, tôi gặp sự cố kết nối và chưa cấu hình DeepSeek dự phòng. Lỗi: " + e.getMessage(), "assistant");
+                return new AiChatResponse("Dịch vụ AI đang gặp sự cố, vui lòng thử lại trong ít phút.", "assistant");
             }
         }
     }
@@ -227,7 +227,7 @@ public class AiService {
             }
         } catch (Exception e) {
             log.error("Error executing tool: ", e);
-            return "Lỗi khi thực thi truy vấn DB. Hãy thông báo cho người dùng biết sự cố này.";
+            return "DATABASE_ERROR: Hiện tại hệ thống không thể truy vấn thông tin này. Hãy báo với người dùng một cách lịch sự rằng dịch vụ đang gặp sự cố.";
         }
     }
 

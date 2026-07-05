@@ -93,10 +93,12 @@ const ForumDetail = () => {
     );
   }
 
+  const plainTitle = post.content ? post.content.replace(/<[^>]*>/g, '').trim() : '';
+
   const breadcrumbItems = [
     { component: <Link to="/">Trang chủ</Link> },
     { component: <Link to="/forum">Diễn đàn</Link> },
-    { label: post.content.substring(0, 30) + '...', isLast: true }
+    { label: plainTitle.substring(0, 30) + '...', isLast: true }
   ];
 
   return (
@@ -123,7 +125,7 @@ const ForumDetail = () => {
                 </div>
 
                 <h1 className="text-xl sm:text-2xl font-bold text-foreground mb-5 leading-snug">
-                  {post.content.substring(0, 100)}{(post.content.length > 100) ? '...' : ''}
+                  {plainTitle.substring(0, 100)}{(plainTitle.length > 100) ? '...' : ''}
                 </h1>
 
                 <div className="flex items-center gap-3 mb-5 pb-5 border-b border-border">
