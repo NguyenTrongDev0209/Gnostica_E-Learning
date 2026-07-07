@@ -10,6 +10,7 @@ Thumbs.db
 .project
 .classpath
 .factorypath
+.agents
 .settings/
 *.iml
 *.nb-configuration.xml
