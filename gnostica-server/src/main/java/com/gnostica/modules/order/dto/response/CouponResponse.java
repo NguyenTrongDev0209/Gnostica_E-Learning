@@ -6,23 +6,26 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import java.util.UUID;
+import java.math.BigDecimal;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class CouponResponse {
-    private Integer id;
+    private UUID id;
     private String name;
     private String code;
-    private Integer discountPercent;
-    private Integer maxDiscount;
-    private Integer minDiscount;
-    private LocalDateTime startDate;
-    private LocalDateTime expiryDate;
+    private Integer discountType;
+    private BigDecimal discountValue;
+    private BigDecimal maxDiscount;
+    private BigDecimal minDiscount;
+    private LocalDateTime validFrom;
+    private LocalDateTime validUntil;
     private Integer quantity;
     private Integer status;
     private LocalDateTime createdAt;
-    private Integer accountId;
+    private UUID accountId;
     private String accountName;
 }
