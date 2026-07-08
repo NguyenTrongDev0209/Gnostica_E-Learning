@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { AppBreadcrumb, PageHeader } from "@/components/common/AppSection";
-import CourseListSection from "@/components/pages/client/shared/CourseListSection";
+import CourseListSection from "@/pages/client/components/shared/CourseListSection";
 import { Home } from "lucide-react";
-import { useSearch } from "@/hooks/client/useSearch";
+import { useSearch } from "@/hooks/course/useSearch";
 
 const SearchPage = () => {
   const [searchParams] = useSearchParams();

@@ -12,10 +12,10 @@ import {
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useInstructorRevenue } from "@/hooks/instructor/useInstructorRevenue";
+import { useInstructorRevenue } from "@/hooks/payment/useInstructorRevenue";
 import { toast } from "sonner";
 import WithdrawModal from "./WithdrawModal";
-import InstructorRevenueTable from "@/components/pages/instructor/revenue/InstructorRevenueTable";
+import InstructorRevenueTable from "@/pages/instructor/components/revenue/InstructorRevenueTable";
 
 export default function InstructorRevenue() {
   const { wallet, transactions, loading } = useInstructorRevenue();

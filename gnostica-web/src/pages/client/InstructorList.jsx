@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Users, BookOpen, Star, Award, ArrowRight, ChevronRight, GraduationCap } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useInstructorList } from '@/hooks/client/useInstructorList';
+import { useInstructorList } from '@/hooks/instructor/useInstructorList';
 
 const fallbackAvatars = [
     "https://i.pravatar.cc/150?u=1",

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import couponService from "@/services/couponService";
+import couponService from "@/services/order/couponService";
 import { Home } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -11,8 +11,8 @@ import {
   CheckoutPaymentMethod,
   CheckoutTrustBadges,
   CheckoutOrderSummary
-} from "@/components/pages/client/checkout/CheckoutComponents";
-import orderService from "@/services/orderService";
+} from "@/pages/client/components/checkout/CheckoutComponents";
+import orderService from "@/services/order/orderService";
 
 export default function CheckoutPage() {
   const { state } = useLocation();

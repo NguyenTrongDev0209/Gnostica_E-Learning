@@ -10,10 +10,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreatePaymentLinkRequestBody {
-  private Integer courseId;
+  private java.util.UUID courseId;
   private String productName;
   private String description;
   private String returnUrl;
   private Long price;
   private String cancelUrl;
+  private String couponCode;
 }

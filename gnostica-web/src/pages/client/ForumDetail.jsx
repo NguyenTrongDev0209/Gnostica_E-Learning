@@ -29,7 +29,7 @@ import {
 import { cn } from "@/lib/utils";
 import RenderContent from '@/components/common/RenderContent';
 import CommentCard from '@/components/common/CommentCard';
-import useForumDetail from '@/hooks/client/useForumDetail';
+import useForumDetail from '@/hooks/forum/useForumDetail';
 import { toast } from 'sonner';
 
 const ForumDetail = () => {

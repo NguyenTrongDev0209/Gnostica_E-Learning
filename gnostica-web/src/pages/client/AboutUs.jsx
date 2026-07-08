@@ -1,12 +1,12 @@
 import React from "react";
-import { TestimonialCarousel } from "@/components/pages/client/home/HomeCarousels";
+import { TestimonialCarousel } from "@/pages/client/components/home/HomeCarousels";
 
 // Components
-import AboutHero from "@/components/pages/client/about/AboutHero";
-import AboutTools from "@/components/pages/client/about/AboutTools";
-import AboutSolutions from "@/components/pages/client/about/AboutSolutions";
-import AboutVision from "@/components/pages/client/about/AboutVision";
-import AboutCTA from "@/components/pages/client/about/AboutCTA";
+import AboutHero from "@/pages/client/components/about/AboutHero";
+import AboutTools from "@/pages/client/components/about/AboutTools";
+import AboutSolutions from "@/pages/client/components/about/AboutSolutions";
+import AboutVision from "@/pages/client/components/about/AboutVision";
+import AboutCTA from "@/pages/client/components/about/AboutCTA";
 
 // Mock Data
 import {

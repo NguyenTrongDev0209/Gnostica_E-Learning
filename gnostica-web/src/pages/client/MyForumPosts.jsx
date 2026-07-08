@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import threadService from '@/services/threadService';
+import threadService from '@/services/forum/threadService';
 import SectionContainer, { PageHeader, AppBreadcrumb } from '@/components/common/AppSection';
 import { ForumPostCard } from "@/components/common/AppCard";
 import { Button } from "@/components/ui/button";
@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 
-import useMyForumPosts from "@/hooks/client/useMyForumPosts";
+import useMyForumPosts from "@/hooks/forum/useMyForumPosts";
 
 const MyForumPosts = () => {
     const navigate = useNavigate();

@@ -35,7 +35,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
-import courseService from "@/services/courseService";
+import courseService from "@/services/course/courseService";
 import { toast } from "sonner";
 
 // Shared Components

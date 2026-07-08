@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { AppBreadcrumb } from "@/components/common/AppSection";
 import { checkoutStatusConfig } from "@/apiMocks/checkout";
-import orderService from "@/services/orderService";
+import orderService from "@/services/order/orderService";
 
 export default function CheckoutResult() {
   const [searchParams] = useSearchParams();

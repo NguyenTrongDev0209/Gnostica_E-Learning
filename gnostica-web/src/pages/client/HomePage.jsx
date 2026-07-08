@@ -1,13 +1,13 @@
 import React, { Suspense } from "react";
-import { MainHeroCarousel, SubBannerCarousel, CardCarousel } from "@/components/pages/client/home/HomeCarousels"
+import { MainHeroCarousel, SubBannerCarousel, CardCarousel } from "@/pages/client/components/home/HomeCarousels"
 import AppSection from "@/components/common/AppSection"
 
-import CategoryGrid from "@/components/pages/client/home/CategoryGrid"
-import FeaturedCourses from "@/components/pages/client/home/FeaturedCourses"
-import InstructorGrid from "@/components/pages/client/home/InstructorGrid"
-import FAQSection from "@/components/pages/client/home/FAQSection"
-import OutcomeBanner from "@/components/pages/client/home/OutcomeBanner"
-import RecommendedCourses from "@/components/pages/client/home/RecommendedCourses"
+import CategoryGrid from "@/pages/client/components/home/CategoryGrid"
+import FeaturedCourses from "@/pages/client/components/home/FeaturedCourses"
+import InstructorGrid from "@/pages/client/components/home/InstructorGrid"
+import FAQSection from "@/pages/client/components/home/FAQSection"
+import OutcomeBanner from "@/pages/client/components/home/OutcomeBanner"
+import RecommendedCourses from "@/pages/client/components/home/RecommendedCourses"
 
 
 function HomePage() {

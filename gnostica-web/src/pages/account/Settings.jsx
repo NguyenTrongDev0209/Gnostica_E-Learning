@@ -15,7 +15,7 @@ import {
 import { Home, UserCog, Camera, Save, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import useAuthStore from "@/store/useAuthStore";
-import accountService from "@/services/accountService";
+import accountService from "@/services/user/accountService";
 import ImageCropModal from "@/components/modals/ImageCropModal";
 import PersonalizationModal from "@/components/common/PersonalizationModal";
 

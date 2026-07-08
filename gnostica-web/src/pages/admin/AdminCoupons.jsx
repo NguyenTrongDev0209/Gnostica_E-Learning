@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { useCoupons } from "@/hooks/admin/useCoupons";
-import { CouponHeader } from "@/components/pages/admin/coupons/CouponHeader";
-import { CouponStatsFilter } from "@/components/pages/admin/coupons/CouponStatsFilter";
-import { CouponTable } from "@/components/pages/admin/coupons/CouponTable";
-import { CouponFormModal } from "@/components/pages/admin/coupons/CouponFormModal";
+import { useCoupons } from "@/hooks/order/useCoupons";
+import { CouponHeader } from "@/pages/admin/components/coupons/CouponHeader";
+import { CouponStatsFilter } from "@/pages/admin/components/coupons/CouponStatsFilter";
+import { CouponTable } from "@/pages/admin/components/coupons/CouponTable";
+import { CouponFormModal } from "@/pages/admin/components/coupons/CouponFormModal";
 
 export default function AdminCoupons() {
   const { coupons, isLoading, addCoupon, removeCoupon, toggleCouponStatus } = useCoupons();

@@ -33,14 +33,14 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import courseService from "@/services/courseService";
-import enrollmentService from "@/services/enrollmentService";
-import commentService from "@/services/commentService";
+import courseService from "@/services/course/courseService";
+import enrollmentService from "@/services/course/enrollmentService";
+import commentService from "@/services/forum/commentService";
 import useAuthStore from "@/store/useAuthStore";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-import QuizArea from "@/components/pages/learning/QuizArea";
-import LessonQA from "@/components/pages/learning/LessonQA";
+import QuizArea from "@/pages/learning/components/QuizArea";
+import LessonQA from "@/pages/learning/components/LessonQA";
 
 
 // ── Component Hỗ Trợ: Giao Diện Làm Bài Quiz Cho Học Viên ──

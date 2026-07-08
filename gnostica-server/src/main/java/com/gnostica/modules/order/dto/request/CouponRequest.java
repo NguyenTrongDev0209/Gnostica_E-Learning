@@ -21,17 +21,12 @@ public class CouponRequest {
     @NotBlank(message = "Mã giảm giá không được để trống")
     private String code;
 
-    private Integer discountPercent;
-
-    private Integer maxDiscount;
-
-    private Integer minDiscount;
-
-    private LocalDateTime startDate;
-
-    private LocalDateTime expiryDate;
-
+    private Integer discountType; // 1: Phần trăm, 2: Số tiền cố định
+    private java.math.BigDecimal discountValue;
+    private java.math.BigDecimal maxDiscount;
+    private java.math.BigDecimal minDiscount;
+    private LocalDateTime validFrom;
+    private LocalDateTime validUntil;
     private Integer quantity;
-
     private Integer status;
 }

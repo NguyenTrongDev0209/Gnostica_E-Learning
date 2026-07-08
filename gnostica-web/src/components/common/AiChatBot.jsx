@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MessageCircle, X, Send, Bot, User, Loader2, Minimize2, Maximize2, ThumbsUp, Folder } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { sendChatMessage } from '@/services/aiService';
+import { sendChatMessage } from '@/services/admin/aiService';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 

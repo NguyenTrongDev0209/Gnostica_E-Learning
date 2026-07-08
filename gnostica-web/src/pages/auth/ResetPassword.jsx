@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Lock, Eye, EyeOff, Save } from 'lucide-react';
 import { SimpleButton } from '@/components/common/AppButton';
-import authService from '@/services/authService';
+import authService from '@/services/auth/authService';
 import { toast } from 'sonner';
 
 const ResetPassword = () => {

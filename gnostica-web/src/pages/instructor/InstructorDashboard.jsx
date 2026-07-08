@@ -2,15 +2,15 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
-import useInstructorDashboard from "@/hooks/instructor/useInstructorDashboard";
+import useInstructorDashboard from "@/hooks/dashboard/useInstructorDashboard";
 
 // Components
-import StatsGrid from "@/components/pages/instructor/dashboard/StatsGrid";
-import RevenueChart from "@/components/pages/instructor/dashboard/RevenueChart";
-import RatingDistribution from "@/components/pages/instructor/dashboard/RatingDistribution";
-import StudentGrowthChart from "@/components/pages/instructor/dashboard/StudentGrowthChart";
-import PendingTasks from "@/components/pages/instructor/dashboard/PendingTasks";
-import CoursePerformanceTable from "@/components/pages/instructor/dashboard/CoursePerformanceTable";
+import StatsGrid from "@/pages/instructor/components/dashboard/StatsGrid";
+import RevenueChart from "@/pages/instructor/components/dashboard/RevenueChart";
+import RatingDistribution from "@/pages/instructor/components/dashboard/RatingDistribution";
+import StudentGrowthChart from "@/pages/instructor/components/dashboard/StudentGrowthChart";
+import PendingTasks from "@/pages/instructor/components/dashboard/PendingTasks";
+import CoursePerformanceTable from "@/pages/instructor/components/dashboard/CoursePerformanceTable";
 
 export default function InstructorDashboard() {
   const { data, loading } = useInstructorDashboard();

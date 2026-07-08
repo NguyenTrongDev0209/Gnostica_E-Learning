@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import authService from '@/services/authService';
+import authService from '@/services/auth/authService';
 import useAuthStore from '@/store/useAuthStore';
 
 const OAuth2Callback = () => {
