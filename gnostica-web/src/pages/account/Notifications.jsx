@@ -1,49 +1,12 @@
-import React, { useState } from "react";
+import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
-import { Home, Bell, MessageSquare, BookOpen, AlertCircle, CheckCircle2 } from "lucide-react";
-import notificationService from "@/services/user/notificationService";
+import { Bell, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import AppBreadcrumb from "@/components/common/AppBreadcrumb";
+import AppPageHeader from "@/components/common/AppPageHeader";
+import useNotifications from "@/hooks/account/useNotifications";
 export default function Notifications() {
-  const [notifications, setNotifications] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  React.useEffect(() => {
-    fetchNotifications();
-  }, []);
-
-  const fetchNotifications = async () => {
-    try {
-      const res = await notificationService.getNotifications();
-      setNotifications(res.data);
-    } catch (error) {
-      console.error('Lỗi khi lấy thông báo:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const markAllAsRead = async () => {
-    try {
-      await notificationService.markAllAsRead();
-      fetchNotifications();
-    } catch (error) {
-      console.error('Lỗi khi đánh dấu tất cả đã đọc:', error);
-    }
-  };
-
-  const markAsRead = async (id) => {
-    const notif = notifications.find(n => n.id === id);
-    if (!notif || notif.isRead) return;
-    
-    try {
-      await notificationService.markAsRead(id);
-      fetchNotifications();
-    } catch (error) {
-      console.error('Lỗi khi đánh dấu đã đọc:', error);
-    }
-  };
-
-  const unreadCount = notifications.filter(n => !n.isRead).length;
+  const { notifications, loading, unreadCount, markAllAsRead, markAsRead } = useNotifications();
 
   const getNotificationIcon = (type) => {
     switch (type) {
@@ -76,58 +39,56 @@ export default function Notifications() {
   };
 
   if (loading) {
-    return <div className="p-8 text-center text-muted-foreground">Đang tải thông báo...</div>;
+    return (
+      <div>
+        <AppBreadcrumb paths={[{ label: "Tài khoản", href: "/account" }, { label: "Thông báo" }]} />
+        <div className="flex flex-col gap-4 mb-8">
+          <Skeleton className="h-8 w-1/3" />
+          <Skeleton className="h-4 w-1/4" />
+        </div>
+        <Card className="border-border shadow-sm overflow-hidden">
+          <CardContent className="p-0 divide-y divide-slate-100">
+            {[1, 2, 3, 4].map(i => (
+              <div key={i} className="p-5 flex gap-4">
+                <Skeleton className="w-12 h-12 rounded-full shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-5 w-3/4" />
+                  <Skeleton className="h-4 w-full" />
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (
     <div>
-      {/* Breadcrumb */}
-      <Breadcrumb className="mb-6">
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/" className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-              <Home className="h-3.5 w-3.5" /> Trang chủ
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/account" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-              Tài khoản
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage className="text-sm font-semibold">Thông báo</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
+      <AppBreadcrumb paths={[{ label: "Tài khoản", href: "/account" }, { label: "Thông báo" }]} />
 
-      {/* Page Title */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-2xl font-extrabold text-foreground flex items-center gap-3">
-            <div className="relative">
-              <Bell className="w-7 h-7 text-primary" />
-              {unreadCount > 0 && (
-                <span className="absolute top-0 right-0 w-2.5 h-2.5 rounded-full bg-error/10 text-error ring-2 ring-white"></span>
-              )}
-            </div>
-            Thông báo của bạn
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Bạn có {unreadCount} thông báo chưa đọc.
-          </p>
-        </div>
-        
-        {unreadCount > 0 && (
-          <button 
-            onClick={markAllAsRead}
-            className="text-sm font-bold text-primary hover:underline"
-          >
-            Đánh dấu tất cả đã đọc
-          </button>
-        )}
-      </div>
+      <AppPageHeader
+        iconNode={
+          <div className="relative">
+            <Bell className="w-7 h-7 text-primary" />
+            {unreadCount > 0 && (
+              <span className="absolute top-0 right-0 w-2.5 h-2.5 rounded-full bg-error/10 text-error ring-2 ring-white"></span>
+            )}
+          </div>
+        }
+        title="Thông báo của bạn"
+        description={`Bạn có ${unreadCount} thông báo chưa đọc.`}
+        actions={
+          unreadCount > 0 && (
+            <button 
+              onClick={markAllAsRead}
+              className="text-sm font-bold text-primary hover:underline"
+            >
+              Đánh dấu tất cả đã đọc
+            </button>
+          )
+        }
+      />
 
       {/* Notifications List */}
       <Card className="border-border shadow-sm overflow-hidden">
