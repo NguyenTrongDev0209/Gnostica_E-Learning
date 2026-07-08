@@ -57,7 +57,4 @@ public class Order {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private java.util.List<OrderDetail> details;
 
-    public String getTransactionId() {
-        return this.id != null ? this.id.toString() : null;
-    }
 }
