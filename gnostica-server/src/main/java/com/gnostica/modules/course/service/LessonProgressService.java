@@ -45,8 +45,8 @@ public class LessonProgressService {
             progress.setLesson(lesson);
         }
 
-        if (!progress.getIsCompleted()) {
-            progress.setIsCompleted(true);
+        if (progress.getStatus() == null || progress.getStatus() != 2) {
+            progress.setStatus(2);
             progress.setCompletedAt(LocalDateTime.now());
             lessonProgressRepository.save(progress);
             
@@ -56,7 +56,7 @@ public class LessonProgressService {
     }
 
     @Transactional
-    public void updateLastWatchedTime(Integer lessonId, String email, Integer time) {
+    public void updateLastWatchedTime(Integer lessonId, String email, String time) {
         Account account = accountRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại"));
 
@@ -69,11 +69,11 @@ public class LessonProgressService {
         if (progress.getId() == null) {
             progress.setAccount(account);
             progress.setLesson(lesson);
-            progress.setIsCompleted(false);
+            progress.setStatus(1);
         }
         
         // Chỉ cập nhật thời gian nếu bài học chưa hoàn thành hoặc để Resume chính xác
-        progress.setLastWatchedTime(time);
+        progress.setLastWatchedAt(time);
         lessonProgressRepository.save(progress);
     }
 
@@ -100,8 +100,8 @@ public class LessonProgressService {
                            && lp.getLesson().getModule().getCourse().getSlug().equals(slug))
                 .map(lp -> LessonProgressDTO.builder()
                         .lessonId(lp.getLesson().getId())
-                        .isCompleted(lp.getIsCompleted())
-                        .lastWatchedTime(lp.getLastWatchedTime())
+                        .isCompleted(lp.getStatus() != null && lp.getStatus() == 2)
+                        .lastWatchedTime(lp.getLastWatchedAt())
                         .updatedAt(lp.getUpdatedAt())
                         .build())
                 .collect(Collectors.toList());
@@ -138,7 +138,7 @@ public class LessonProgressService {
         return lessonProgressRepository.findAll().stream()
                 .filter(lp -> lp.getAccount().getId().equals(account.getId()) 
                            && lp.getLesson().getModule().getCourse().getSlug().equals(slug)
-                           && lp.getIsCompleted())
+                           && lp.getStatus() != null && lp.getStatus() == 2)
                 .map(lp -> lp.getLesson().getId())
                 .collect(Collectors.toList());
     }

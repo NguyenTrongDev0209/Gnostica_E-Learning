@@ -8,6 +8,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/follow")
@@ -26,7 +27,7 @@ public class FollowingController {
     }
 
     @PostMapping("/toggle/{instructorId}")
-    public ResponseEntity<?> toggleFollow(@PathVariable Integer instructorId, Authentication authentication) {
+    public ResponseEntity<?> toggleFollow(@PathVariable UUID instructorId, Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(401).body(ApiResponse.error("Vui lòng đăng nhập"));
         }
@@ -38,7 +39,7 @@ public class FollowingController {
     }
 
     @GetMapping("/check/{instructorId}")
-    public ResponseEntity<?> checkFollowing(@PathVariable Integer instructorId, Authentication authentication) {
+    public ResponseEntity<?> checkFollowing(@PathVariable UUID instructorId, Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.ok(ApiResponse.success(Map.of("isFollowing", false)));
         }

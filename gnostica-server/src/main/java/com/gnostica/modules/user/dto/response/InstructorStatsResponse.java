@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class InstructorStatsResponse {
-    private Integer id;
+    private java.util.UUID id;
     private String fullName;
     private String email;
     private String avatar;

@@ -6,10 +6,8 @@ import com.gnostica.core.model.Role;
 import com.gnostica.modules.user.dto.request.InstructorApplicationRequest;
 import com.gnostica.modules.user.dto.request.RejectApplicationRequest;
 import com.gnostica.modules.user.dto.response.InstructorApplicationResponse;
-import com.gnostica.core.model.Instructor;
 import com.gnostica.core.repository.AccountRepository;
 import com.gnostica.core.repository.InstructorApplicationRepository;
-import com.gnostica.core.repository.InstructorRepository;
 import com.gnostica.core.repository.RoleRepository;
 import com.gnostica.modules.user.service.InstructorApplicationService;
 import com.gnostica.modules.integration.service.MailService;
@@ -18,7 +16,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,10 +26,10 @@ public class InstructorApplicationServiceImpl implements InstructorApplicationSe
 
     private final InstructorApplicationRepository applicationRepository;
     private final AccountRepository accountRepository;
-    private final InstructorRepository instructorRepository;
     private final RoleRepository roleRepository;
     private final MailService mailService;
     private final NotificationService notificationService;
+    private final com.fasterxml.jackson.databind.ObjectMapper objectMapper;
 
     @Override
     public void submitApplication(String email, InstructorApplicationRequest request) {
@@ -95,25 +92,32 @@ public class InstructorApplicationServiceImpl implements InstructorApplicationSe
         account.setRole(role);
         accountRepository.save(account);
 
-        // Create or Update Instructor record
-        Instructor instructor = instructorRepository.findByAccountId(account.getId())
-                .orElse(new Instructor());
-        
-        instructor.setAccount(account);
-        instructor.setFullName(account.getFullName());
-        instructor.setEmail(account.getEmail());
-        instructor.setPhone(application.getContactPhone());
-        instructor.setStatus(1); // Active
-        instructor.setCreatedAt(LocalDateTime.now());
-        instructor.setTicked(false);
-        // Bio can be default or empty for now, or extracted from somewhere if available
-        
-        instructorRepository.save(instructor);
+        // Update phone if empty
+        if (account.getPhone() == null || account.getPhone().isEmpty()) {
+            account.setPhone(application.getContactPhone());
+        }
+
+        // Create or Update metadata for Instructor
+        try {
+            com.fasterxml.jackson.databind.node.ObjectNode metadata;
+            if (account.getMetadata() != null && !account.getMetadata().isEmpty()) {
+                metadata = (com.fasterxml.jackson.databind.node.ObjectNode) objectMapper
+                        .readTree(account.getMetadata());
+            } else {
+                metadata = objectMapper.createObjectNode();
+            }
+            metadata.put("ticked", false);
+            metadata.put("bio", "");
+            account.setMetadata(objectMapper.writeValueAsString(metadata));
+            accountRepository.save(account);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         try {
             mailService.sendEmail(account.getEmail(), "Đơn đăng ký giảng viên được chấp thuận",
                     "Chúc mừng! Đơn đăng ký giảng viên của bạn đã được chấp thuận. Bạn có thể bắt đầu tạo khóa học ngay bây giờ.");
-            notificationService.createNotification(account, "Đơn đăng ký được phê duyệt", 
+            notificationService.createNotification(account, "Đơn đăng ký được phê duyệt",
                     "Chúc mừng! Đơn đăng ký giảng viên của bạn đã được chấp thuận.", "SYSTEM");
         } catch (Exception e) {
             e.printStackTrace();
@@ -135,9 +139,11 @@ public class InstructorApplicationServiceImpl implements InstructorApplicationSe
 
         try {
             mailService.sendEmail(application.getAccount().getEmail(), "Thông báo về đơn đăng ký giảng viên",
-                    "Rất tiếc, đơn đăng ký làm giảng viên của bạn đã bị từ chối.<br/><strong>Lý do:</strong> " + request.getReason());
-            notificationService.createNotification(application.getAccount(), "Đơn đăng ký bị từ chối", 
-                    "Rất tiếc, đơn đăng ký làm giảng viên của bạn đã bị từ chối. Lý do: " + request.getReason(), "SYSTEM");
+                    "Rất tiếc, đơn đăng ký làm giảng viên của bạn đã bị từ chối.<br/><strong>Lý do:</strong> "
+                            + request.getReason());
+            notificationService.createNotification(application.getAccount(), "Đơn đăng ký bị từ chối",
+                    "Rất tiếc, đơn đăng ký làm giảng viên của bạn đã bị từ chối. Lý do: " + request.getReason(),
+                    "SYSTEM");
         } catch (Exception e) {
             e.printStackTrace();
         }

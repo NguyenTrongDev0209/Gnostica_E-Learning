@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CoursePerformanceDTO {
-    private Integer id;
+    private java.util.UUID id;
     private String title;
     private Long students;
     private Double completed;

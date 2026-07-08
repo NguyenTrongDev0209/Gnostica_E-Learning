@@ -1,13 +1,14 @@
 package com.gnostica.modules.course.service;
 
 import com.gnostica.modules.course.dto.response.QuestionDto;
-import com.gnostica.core.model.Answer;
 import com.gnostica.core.model.Course;
 import com.gnostica.core.model.Question;
-import com.gnostica.core.repository.AnswerRepository;
 import com.gnostica.core.repository.CourseRepository;
 import com.gnostica.core.repository.QuestionRepository;
 import com.gnostica.core.repository.QuizQuestionRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,14 +25,14 @@ import java.util.Map;
 public class QuestionBankService {
 
     private final QuestionRepository questionRepository;
-    private final AnswerRepository answerRepository;
     private final CourseRepository courseRepository;
     private final QuizQuestionRepository quizQuestionRepository;
     private final RedisDraftService redisDraftService;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Transactional(readOnly = true)
-    public List<QuestionDto> getQuestionsByCourseId(Integer courseId) {
-        List<Question> questions = questionRepository.findByCourseId(courseId);
+    public List<QuestionDto> getQuestionsByCourseId(java.util.UUID courseId) {
+        List<Question> questions = questionRepository.findByCourse_Id(courseId);
         List<QuestionDto> dtos = new ArrayList<>();
 
         for (Question q : questions) {
@@ -41,95 +42,80 @@ public class QuestionBankService {
             dto.setLevel(q.getLevel());
             dto.setExplanation(q.getExplanation());
 
-            List<Answer> answers = answerRepository.findByQuestionId(q.getId());
-            Map<String, String> options = new HashMap<>();
-            for (Answer a : answers) {
-                if (a.getOptionLabel() != null) {
-                    options.put(a.getOptionLabel(), a.getAnswerText());
-                    if (a.getIsCorrect() != null && a.getIsCorrect()) {
-                        dto.setCorrect(a.getOptionLabel());
+            if (q.getAnswer() != null && !q.getAnswer().isEmpty()) {
+                try {
+                    Map<String, Object> answerMap = objectMapper.readValue(q.getAnswer(), new TypeReference<Map<String, Object>>(){});
+                    
+                    if (answerMap.containsKey("options")) {
+                        Map<String, String> options = (Map<String, String>) answerMap.get("options");
+                        dto.setOptions(options);
                     }
+                    if (answerMap.containsKey("correct")) {
+                        dto.setCorrect((String) answerMap.get("correct"));
+                    }
+                } catch (Exception e) {
+                    log.error("Failed to parse JSON answer for question ID {}", q.getId(), e);
                 }
             }
-            dto.setOptions(options);
+
             dtos.add(dto);
         }
         return dtos;
     }
 
     @Transactional
-    public void saveQuestionBank(Integer courseId, List<QuestionDto> dtos) {
+    public void saveQuestionBank(java.util.UUID courseId, List<QuestionDto> dtos) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new IllegalArgumentException("Khóa học không tồn tại."));
 
-        // Chiến lược đơn giản nhất: Xóa toàn bộ câu hỏi và đáp án cũ của khóa học này, sau đó insert lại.
-        // Điều này đảm bảo trạng thái DB luôn đồng bộ chính xác 100% với Frontend state.
-        List<Question> existingQuestions = questionRepository.findByCourseId(courseId);
+        List<Question> existingQuestions = questionRepository.findByCourse_Id(courseId);
         if (existingQuestions != null && !existingQuestions.isEmpty()) {
-            // Gỡ mối nối QuizQuestion trước để tránh vỡ ràng buộc FK của Database
             quizQuestionRepository.deleteByQuestionIn(existingQuestions);
-
-            for (Question q : existingQuestions) {
-                List<Answer> oldAnswers = answerRepository.findByQuestionId(q.getId());
-                answerRepository.deleteAll(oldAnswers);
-            }
         }
         questionRepository.deleteAll(existingQuestions);
 
         if (dtos == null || dtos.isEmpty()) {
-            redisDraftService.clearDraft(courseId);
+            redisDraftService.clearDraft(courseId.toString());
             return;
         }
 
-        // Insert new
         for (QuestionDto dto : dtos) {
             Question q = new Question();
             q.setContent(dto.getText());
             q.setLevel(dto.getLevel());
             q.setExplanation(dto.getExplanation());
             q.setCourse(course);
-            // Source file is not stored permanently as per user choice (Cách 1).
-            Question savedQ = questionRepository.save(q);
+            q.setStatus(1); // Set default status
+            q.setVersionNumber(1); // Set default version number
 
-            Map<String, String> options = dto.getOptions();
-            if (options != null) {
-                for (Map.Entry<String, String> entry : options.entrySet()) {
-                    String label = entry.getKey();
-                    String text = entry.getValue();
-
-                    Answer a = new Answer();
-                    a.setOptionLabel(label);
-                    a.setAnswerText(text);
-                    a.setIsCorrect(label.equals(dto.getCorrect()));
-                    a.setQuestion(savedQ);
-
-                    answerRepository.save(a);
-                }
+            Map<String, Object> answerMap = new HashMap<>();
+            answerMap.put("options", dto.getOptions());
+            answerMap.put("correct", dto.getCorrect());
+            try {
+                String jsonAnswer = objectMapper.writeValueAsString(answerMap);
+                q.setAnswer(jsonAnswer);
+            } catch (JsonProcessingException e) {
+                log.error("Failed to serialize question answer to JSON", e);
             }
+
+            questionRepository.save(q);
         }
 
-        // Sau khi lưu thành công vào DB chính thức, xóa bản nháp khỏi Redis
-        redisDraftService.clearDraft(courseId);
+        redisDraftService.clearDraft(courseId.toString());
         log.info("Saved {} questions for course {} and cleared draft.", dtos.size(), courseId);
     }
 
     @Transactional
     public Map<Integer, Integer> saveQuestionBankAndGetMap(Course course, List<QuestionDto> dtos) {
-        List<Question> existingQuestions = questionRepository.findByCourseId(course.getId());
+        List<Question> existingQuestions = questionRepository.findByCourse_Id(course.getId());
         if (existingQuestions != null && !existingQuestions.isEmpty()) {
-            // Gỡ mối nối QuizQuestion trước để tránh vỡ ràng buộc FK của Database
             quizQuestionRepository.deleteByQuestionIn(existingQuestions);
-
-            for (Question q : existingQuestions) {
-                List<Answer> oldAnswers = answerRepository.findByQuestionId(q.getId());
-                answerRepository.deleteAll(oldAnswers);
-            }
         }
         questionRepository.deleteAll(existingQuestions);
 
         Map<Integer, Integer> idMapping = new HashMap<>();
         if (dtos == null || dtos.isEmpty()) {
-            redisDraftService.clearDraft(course.getId());
+            redisDraftService.clearDraft(course.getId().toString());
             return idMapping;
         }
 
@@ -139,30 +125,27 @@ public class QuestionBankService {
             q.setLevel(dto.getLevel());
             q.setExplanation(dto.getExplanation());
             q.setCourse(course);
+            q.setStatus(1); // Set default status
+            q.setVersionNumber(1); // Set default version number
+
+            Map<String, Object> answerMap = new HashMap<>();
+            answerMap.put("options", dto.getOptions());
+            answerMap.put("correct", dto.getCorrect());
+            try {
+                String jsonAnswer = objectMapper.writeValueAsString(answerMap);
+                q.setAnswer(jsonAnswer);
+            } catch (JsonProcessingException e) {
+                log.error("Failed to serialize question answer to JSON", e);
+            }
+
             Question savedQ = questionRepository.save(q);
 
             if (dto.getId() != null) {
                 idMapping.put(dto.getId(), savedQ.getId());
             }
-
-            Map<String, String> options = dto.getOptions();
-            if (options != null) {
-                for (Map.Entry<String, String> entry : options.entrySet()) {
-                    String label = entry.getKey();
-                    String text = entry.getValue();
-
-                    Answer a = new Answer();
-                    a.setOptionLabel(label);
-                    a.setAnswerText(text);
-                    a.setIsCorrect(label.equals(dto.getCorrect()));
-                    a.setQuestion(savedQ);
-
-                    answerRepository.save(a);
-                }
-            }
         }
 
-        redisDraftService.clearDraft(course.getId());
+        redisDraftService.clearDraft(course.getId().toString());
         return idMapping;
     }
 }

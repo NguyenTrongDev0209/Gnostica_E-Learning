@@ -38,7 +38,7 @@ public class LessonProgressController {
     @PostMapping("/lesson/{lessonId}/time")
     public ResponseEntity<?> updateLastWatchedTime(
             @PathVariable Integer lessonId,
-            @RequestParam Integer time,
+            @RequestParam String time,
             Authentication authentication
     ) {
         if (authentication == null || !authentication.isAuthenticated()) {

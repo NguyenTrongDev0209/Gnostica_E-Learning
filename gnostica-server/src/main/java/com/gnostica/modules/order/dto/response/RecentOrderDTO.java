@@ -13,7 +13,7 @@ public class RecentOrderDTO {
     private String id;
     private String user;
     private String course;
-    private Double price;
+    private java.math.BigDecimal price;
     private String status; // completed, pending, failed
     private String date; // e.g. "Vừa xong"
 }

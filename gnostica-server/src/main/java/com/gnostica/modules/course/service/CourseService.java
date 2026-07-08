@@ -2,8 +2,6 @@ package com.gnostica.modules.course.service;
 import com.gnostica.modules.integration.service.BunnyNetService;
 
 
-import com.gnostica.modules.integration.service.AiModerationService;
-
 import com.gnostica.modules.course.dto.request.CourseRequest;
 import com.gnostica.modules.course.dto.request.LessonRequest;
 import com.gnostica.modules.course.dto.request.ModuleRequest;
@@ -21,7 +19,6 @@ import com.gnostica.core.model.Lesson;
 import com.gnostica.core.model.Module;
 import com.gnostica.core.model.Quiz;
 import com.gnostica.core.model.Question;
-import com.gnostica.core.model.Answer;
 import com.gnostica.core.repository.AccountRepository;
 import com.gnostica.core.repository.CategoryRepository;
 import com.gnostica.core.repository.CourseRepository;
@@ -47,7 +44,6 @@ public class CourseService {
     private final DraftCourseService draftCourseService;
     private final QuizService quizService;
     private final QuestionBankService questionBankService;
-    private final AiModerationService aiModerationService;
     private final LessonRepository lessonRepository;
     private final BunnyNetService bunnyNetService;
     private final NotificationService notificationService;
@@ -69,7 +65,7 @@ public class CourseService {
         course.setThumbnail(request.getThumbnail());
 
         // Default values for numbers if null
-        course.setPrice(request.getPrice() != null ? request.getPrice() : 0.0);
+        course.setPrice(java.math.BigDecimal.valueOf(request.getPrice() != null ? request.getPrice() : 0.0));
         course.setDiscount(request.getDiscount() != null ? request.getDiscount() : 0);
 
         course.setLevel(request.getLevel() != null ? request.getLevel() : "Beginner");
@@ -78,8 +74,7 @@ public class CourseService {
         course.setCategory(category);
         course.setAccount(account);
 
-        // Kiểm tra danh mục trước khi cho phép gửi duyệt
-        if (!category.getStatus()) {
+        if (category.getStatus() == null || category.getStatus() == 0) {
             throw new RuntimeException("Danh mục cha đang bị ẩn, không thể tạo khóa học.");
         }
 
@@ -172,11 +167,6 @@ public class CourseService {
         // 5. Clear Redis Draft
         draftCourseService.deleteDraft(email, null); // "new" draft
 
-        // --- BỨC TƯỜNG LỬA AI (AI FIREWALL) ---
-        // User Request: Tắt tự động quét lúc Lưu để tăng tốc độ lưu khóa học.
-        // Việc quét AI chỉ thực hiện thủ công khi giảng viên bấm "Quét thử" trên giao diện.
-        // executeAiFirewall(savedCourse);
-
         return savedCourse;
     }
 
@@ -197,7 +187,7 @@ public class CourseService {
                         .anyMatch(e -> e.getAccount().getId().equals(account.getId()) && e.getStatus() == 1);
             }
         }
-        course.setIsEnrolled(isEnrolled);
+        // course.setIsEnrolled(isEnrolled);
 
         // Logic hiển thị:
         // 1. Nếu là khách (email null) hoặc chưa mua: Chỉ thấy nếu status = 1 (Hoạt
@@ -231,11 +221,13 @@ public class CourseService {
             }
         }
 
-        return mapToCourseDetailResponse(course);
+        CourseDetailResponse response = mapToCourseDetailResponse(course);
+        response.setIsEnrolled(isEnrolled);
+        return response;
     }
 
     @Transactional
-    public void deleteCourse(Integer id, String email) {
+    public void deleteCourse(java.util.UUID id, String email) {
         Course course = courseRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học"));
 
@@ -290,30 +282,24 @@ public class CourseService {
             }
         }
 
-        // Reset AI report if key textual metadata is edited
-        if (course.getTitle() == null || !course.getTitle().equals(request.getTitle()) || 
-            course.getDescription() == null || !course.getDescription().equals(request.getDescription())) {
-            course.setAiModerationReport(null);
-        }
-
         // Update basic info
         course.setTitle(request.getTitle());
         course.setSlug(generateUniqueSlug(request.getSlug(), course.getId()));
         course.setDescription(request.getDescription());
         course.setThumbnail(request.getThumbnail());
-        course.setPrice(request.getPrice());
+        course.setPrice(request.getPrice() != null ? java.math.BigDecimal.valueOf(request.getPrice()) : java.math.BigDecimal.ZERO);
         course.setDiscount(request.getDiscount());
 
         course.setLevel(request.getLevel());
         course.setCategory(category);
 
-        if (!category.getStatus()) {
+        if (category.getStatus() == null || category.getStatus() == 0) {
             throw new RuntimeException("Danh mục cha đang bị ẩn, không thể cập nhật khóa học.");
         }
 
         // Khóa học chuyển về trạng thái Chờ duyệt sau khi sửa
         course.setStatus(4);
-        course.setRejectReason(null);
+        // course.setRejectReason(null);
         course.setPromoVideo(request.getPromoVideo());
 
         // 3. Smart Update Modules
@@ -409,13 +395,7 @@ public class CourseService {
                         }
                         lesson.setTitle(lReq.getTitle());
                         lesson.setContent(lReq.getContent());
-                        
-                        String oldVideoUrl = lesson.getVideoUrl();
-                        String newVideoUrl = lReq.getVideoUrl();
-                        if (oldVideoUrl == null || !oldVideoUrl.equals(newVideoUrl)) {
-                            lesson.setAiModerationReport(null); // Clear report to trigger automatic re-scan
-                        }
-                        lesson.setVideoUrl(newVideoUrl);
+                        lesson.setVideoUrl(lReq.getVideoUrl());
 
                         // Nếu khóa học đang ẩn thì bài học buộc phải ẩn
                         int finalLessonStatus = (course.getStatus() == 2) ? 2
@@ -530,11 +510,6 @@ public class CourseService {
         // 4. Clear Redis Draft
         draftCourseService.deleteDraft(email, updatedCourse.getId().toString());
 
-        // --- BỨC TƯỜNG LỬA AI (AI FIREWALL) ---
-        // User Request: Tắt tự động quét lúc Lưu để tăng tốc độ lưu khóa học.
-        // Việc quét AI chỉ thực hiện thủ công khi giảng viên bấm "Quét thử" trên giao diện.
-        // executeAiFirewall(updatedCourse);
-
         return mapToCourseDetailResponse(updatedCourse);
     }
 
@@ -573,7 +548,7 @@ public class CourseService {
     }
 
     @Transactional
-    public CourseDetailResponse patchCourseStatus(Integer id, Integer status, String email) {
+    public CourseDetailResponse patchCourseStatus(java.util.UUID id, Integer status, String email) {
         Course course = courseRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học"));
 
@@ -581,8 +556,7 @@ public class CourseService {
             throw new RuntimeException("Bạn không có quyền chỉnh sửa khóa học này");
         }
 
-        // Rule 3: Kiểm tra trạng thái danh mục trước khi cho phép Hiện khóa học
-        if (status == 1 && course.getCategory() != null && !course.getCategory().getStatus()) {
+        if (status == 1 && course.getCategory() != null && (course.getCategory().getStatus() == null || course.getCategory().getStatus() == 0)) {
             throw new RuntimeException("Danh mục của khóa học đang ẩn, không thể chuyển trạng thái sang Hoạt động.");
         }
 
@@ -651,7 +625,7 @@ public class CourseService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học để phê duyệt"));
         
         course.setStatus(1); // Chuyển thành Hoạt động
-        course.setRejectReason(null);
+        // course.setRejectReason(null);
 
         // Phê duyệt cho cả các chương, bài học chưa bị xóa
         if (course.getModules() != null) {
@@ -681,10 +655,9 @@ public class CourseService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học"));
         
         course.setStatus(3); // Bị từ chối
-        course.setRejectReason(rejectReason != null && !rejectReason.trim().isEmpty() ? rejectReason.trim() : "Nội dung khóa học chưa đáp ứng chuẩn kiểm duyệt.");
-        
+        // course.setRejectReason(rejectReason != null && !rejectReason.trim().isEmpty() ? rejectReason.trim() : "Nội dung khóa học chưa đáp ứng chuẩn kiểm duyệt.");
         notificationService.createNotification(course.getAccount(), "Khóa học bị từ chối",
-                "Khóa học '" + course.getTitle() + "' của bạn bị từ chối phê duyệt. Lý do: " + course.getRejectReason(), "SYSTEM");
+                "Khóa học '" + course.getTitle() + "' của bạn bị từ chối phê duyệt. Lý do: " + (rejectReason != null ? rejectReason : ""), "SYSTEM");
         
         return mapToCourseDetailResponse(courseRepository.save(course));
     }
@@ -701,45 +674,6 @@ public class CourseService {
         return slug;
     }
 
-    /**
-     * Executes automated AI Moderation checks on active, unscanned lessons.
-     * Blocks further processing if explicit policy breaches are encountered.
-     */
-    private void executeAiFirewall(Course course) {
-        // Phase 1: Scan Overall Course Metadata (Title/Description)
-        if (course.getAiModerationReport() == null) {
-            aiModerationService.scanCourseInfo(course);
-        }
-
-        String courseReport = course.getAiModerationReport();
-        if (courseReport != null && (courseReport.contains("\"severity\":\"CRITICAL\"") || courseReport.contains("\"severity\":\"HIGH\""))) {
-            throw new RuntimeException("🔥 BỨC TƯỜNG LỬA AI: Phát hiện vi phạm chính sách nghiêm trọng trong phần Tiêu đề hoặc Mô tả khóa học. Vui lòng kiểm tra lại nội dung văn bản!");
-        }
-
-        // Phase 2: Scan individual lessons as before
-        if (course.getModules() != null) {
-            for (Module m : course.getModules()) {
-                if (Boolean.TRUE.equals(m.getDeleted())) continue;
-                if (m.getLessons() != null) {
-                    for (Lesson l : m.getLessons()) {
-                        if (Boolean.TRUE.equals(l.getDeleted())) continue;
-
-                        // Scan lesson automatically if it lacks an AI report
-                        if (l.getAiModerationReport() == null) {
-                            aiModerationService.scanLesson(l);
-                        }
-
-                        // Interrogate result payload for CRITICAL or HIGH severity violations
-                        String report = l.getAiModerationReport();
-                        if (report != null && (report.contains("\"severity\":\"CRITICAL\"") || report.contains("\"severity\":\"HIGH\""))) {
-                            throw new RuntimeException("🔥 BỨC TƯỜNG LỬA AI: Phát hiện vi phạm chính sách nghiêm trọng tại bài học '" 
-                                + l.getTitle() + "'. Vui lòng kiểm tra chi tiết lỗi và cập nhật lại video!");
-                        }
-                    }
-                }
-            }
-        }
-    }
 
     @Transactional(readOnly = true)
     public List<String> getPublicLevels() {
@@ -752,14 +686,11 @@ public class CourseService {
                 .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại"));
 
         java.util.List<Integer> categoryIds = null;
-        if (account.getInterests() != null && !account.getInterests().isEmpty()) {
-            categoryIds = account.getInterests().stream().map(Category::getId).collect(Collectors.toList());
-        }
 
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size,
                 org.springframework.data.domain.Sort.by("id").descending());
 
-        return courseRepository.findRecommendedCourses(account.getLevel(), categoryIds, pageable);
+        return courseRepository.findRecommendedCourses("Beginner", categoryIds, pageable);
     }
 
     public CourseResponse mapToCourseResponse(Course course) {
@@ -776,13 +707,10 @@ public class CourseService {
         response.setLevel(course.getLevel());
         response.setStatus(course.getStatus());
         response.setDeleted(course.getDeleted());
-        response.setRejectReason(course.getRejectReason());
-        response.setAiModerationReport(course.getAiModerationReport());
-        response.setAiModerationStatus(course.getAiModerationStatus());
-        response.setAiModerationLastContentHash(course.getAiModerationLastContentHash());
+        response.setRejectReason("");
         response.setCreatedAt(course.getCreatedAt());
         response.setUpdatedAt(course.getUpdatedAt());
-        response.setIsEnrolled(course.getIsEnrolled());
+        response.setIsEnrolled(false);
 
         if (course.getCategory() != null) {
             response.setCategoryId(course.getCategory().getId());
@@ -817,13 +745,10 @@ public class CourseService {
         response.setLevel(course.getLevel());
         response.setStatus(course.getStatus());
         response.setDeleted(course.getDeleted());
-        response.setRejectReason(course.getRejectReason());
-        response.setAiModerationReport(course.getAiModerationReport());
-        response.setAiModerationStatus(course.getAiModerationStatus());
-        response.setAiModerationLastContentHash(course.getAiModerationLastContentHash());
+        response.setRejectReason("");
         response.setCreatedAt(course.getCreatedAt());
         response.setUpdatedAt(course.getUpdatedAt());
-        response.setIsEnrolled(course.getIsEnrolled());
+        response.setIsEnrolled(false);
 
         if (course.getCategory() != null) {
             response.setCategoryId(course.getCategory().getId());

@@ -150,8 +150,8 @@ public class OrderService {
             // Return a dummy link or custom response
             return PaymentLinkResponse.builder()
                 .bin("N/A").accountNumber("N/A").accountName("FREE")
-                .amount(0).description("Miễn phí")
-                .orderCode(orderCode).currency("VND")
+                .amount(0L).description("Miễn phí")
+                .orderCode(orderCode)
                 .paymentLinkId("FREE-" + orderCode).status("PAID")
                 .checkoutUrl(requestBody.getReturnUrl() + "?orderCode=" + orderCode)
                 .qrCode("").build();

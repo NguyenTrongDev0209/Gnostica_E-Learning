@@ -3,9 +3,9 @@ package com.gnostica.modules.payment.service.impl;
 import com.gnostica.modules.payment.dto.response.PaymentLinkResponse;
 import com.gnostica.core.event.PaymentSuccessEvent;
 import com.gnostica.core.model.Order;
-import com.gnostica.core.model.Transaction;
+import com.gnostica.core.model.Payment;
 import com.gnostica.core.repository.OrderRepository;
-import com.gnostica.core.repository.TransactionRepository;
+import com.gnostica.core.repository.PaymentRepository;
 import com.gnostica.modules.payment.service.PaymentService;
 import com.gnostica.modules.payment.service.PaymentStrategyService;
 import com.gnostica.modules.payment.service.PaymentStrategyFactoryService;
@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.payos.model.webhooks.WebhookData;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,7 +30,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     private final PaymentStrategyFactoryService paymentStrategyFactory;
     private final OrderRepository orderRepository;
-    private final TransactionRepository transactionRepository;
+    private final PaymentRepository paymentRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final ObjectMapper objectMapper;
 
@@ -103,59 +104,38 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     @Transactional
     public void saveTransaction(WebhookData data, Order order) {
-        // Tránh tạo transaction trùng lặp khi webhook và polling cùng chạy
-        boolean payosExists = transactionRepository.findByOrder(order).stream()
-                .anyMatch(t -> "PAYOS".equals(t.getPaymentMethod()) || "PAYOS_POLLING".equals(t.getPaymentMethod()));
-        if (payosExists) {
+        // Tránh tạo transaction trùng lặp
+        boolean paymentExists = paymentRepository.existsByTransactionCode(data.getPaymentLinkId());
+        if (paymentExists) {
             return;
         }
 
-        Transaction transaction = new Transaction();
-        transaction.setTransactionCode(data.getPaymentLinkId());
-        transaction.setAmount((double) data.getAmount());
-        transaction.setStatus(1);
-        transaction.setPaymentMethod("PAYOS");
-        transaction.setRef("PayOS Order: " + data.getOrderCode());
-        transaction.setType(1);
-        transaction.setAccountNumber(data.getAccountNumber());
-        transaction.setSenderBankId(getBinFromCitad(data.getCounterAccountBankId()));
-        transaction.setSenderAccountNumber(data.getCounterAccountNumber());
-        transaction.setCreatedAt(LocalDateTime.now());
-        transaction.setOrder(order);
-        transaction.setAccount(order.getAccount());
+        Payment payment = new Payment();
+        payment.setTransactionCode(data.getPaymentLinkId());
+        payment.setAmount(BigDecimal.valueOf(data.getAmount()));
+        payment.setStatus(2); // 2: Success
+        payment.setAccountNumber(data.getAccountNumber());
+        payment.setSenderBankBin(getBinFromCitad(data.getCounterAccountBankId()));
+        payment.setSenderAccountNumber(data.getCounterAccountNumber());
+        payment.setOrder(order);
 
-        try {
-            Map<String, Object> logData = new HashMap<>();
-            logData.put("webhook_full_data", data);
-            logData.put("payer_name", data.getCounterAccountName() != null ? data.getCounterAccountName() : "N/A");
-            transaction.setLog(objectMapper.writeValueAsString(logData));
-        } catch (JsonProcessingException e) {
-            log.error("Error logging transaction data", e);
-        }
-
-        transactionRepository.save(transaction);
+        paymentRepository.save(payment);
     }
 
     @Transactional
     public void saveTransactionFromPolling(vn.payos.model.v2.paymentRequests.PaymentLink link, Order order) {
         // Tránh tạo transaction trùng lặp (bỏ qua giao dịch REVENUE)
-        boolean payosExists = transactionRepository.findByOrder(order).stream()
-                .anyMatch(t -> "PAYOS".equals(t.getPaymentMethod()) || "PAYOS_POLLING".equals(t.getPaymentMethod()));
+        boolean paymentExists = paymentRepository.existsByTransactionCode(String.valueOf(link.getOrderCode()));
 
-        if (payosExists) {
+        if (paymentExists) {
             return;
         }
 
-        Transaction transaction = new Transaction();
-        transaction.setTransactionCode(String.valueOf(link.getOrderCode()));
-        transaction.setAmount((double) link.getAmountPaid());
-        transaction.setStatus(1); // 1: Thành công
-        transaction.setPaymentMethod("PAYOS_POLLING");
-        transaction.setRef("PayOS Polling Order: " + link.getOrderCode());
-        transaction.setType(1); // 1: Cộng tiền
-        transaction.setCreatedAt(LocalDateTime.now());
-        transaction.setOrder(order);
-        transaction.setAccount(order.getAccount());
+        Payment payment = new Payment();
+        payment.setTransactionCode(String.valueOf(link.getOrderCode()));
+        payment.setAmount(BigDecimal.valueOf(link.getAmountPaid()));
+        payment.setStatus(2); // 2: Thành công
+        payment.setOrder(order);
 
         // Lấy thông tin người chuyển từ transaction cuối cùng của link (nếu có)
         if (link.getTransactions() != null && !link.getTransactions().isEmpty()) {
@@ -163,31 +143,22 @@ public class PaymentServiceImpl implements PaymentService {
             Object lastTx = link.getTransactions().get(link.getTransactions().size() - 1);
 
             try {
-                transaction.setSenderAccountNumber(
+                payment.setSenderAccountNumber(
                         (String) lastTx.getClass().getMethod("getCounterAccountNumber").invoke(lastTx));
             } catch (Exception e) {
             }
             try {
                 String citadCode = (String) lastTx.getClass().getMethod("getCounterAccountBankId").invoke(lastTx);
-                transaction.setSenderBankId(getBinFromCitad(citadCode));
+                payment.setSenderBankBin(getBinFromCitad(citadCode));
             } catch (Exception e) {
             }
             try {
-                transaction.setAccountNumber((String) lastTx.getClass().getMethod("getAccountNumber").invoke(lastTx));
+                payment.setAccountNumber((String) lastTx.getClass().getMethod("getAccountNumber").invoke(lastTx));
             } catch (Exception e) {
-            }
-
-            try {
-                Map<String, Object> logData = new HashMap<>();
-                logData.put("polling_full_data", link);
-                logData.put("last_transaction", lastTx);
-                transaction.setLog(objectMapper.writeValueAsString(logData));
-            } catch (JsonProcessingException e) {
-                log.error("Error logging polling transaction data", e);
             }
         }
 
-        transactionRepository.save(transaction);
+        paymentRepository.save(payment);
     }
 
     private String getBinFromCitad(String citad) {

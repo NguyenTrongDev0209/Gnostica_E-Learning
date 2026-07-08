@@ -7,9 +7,9 @@ import org.springframework.context.ApplicationEvent;
 @Getter
 public class PaymentSuccessEvent extends ApplicationEvent {
     private final Order order;
-    private final Double amount;
+    private final java.math.BigDecimal amount;
 
-    public PaymentSuccessEvent(Object source, Order order, Double amount) {
+    public PaymentSuccessEvent(Object source, Order order, java.math.BigDecimal amount) {
         super(source);
         this.order = order;
         this.amount = amount;
