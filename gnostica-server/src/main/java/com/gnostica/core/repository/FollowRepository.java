@@ -1,4 +1,4 @@
-﻿package com.gnostica.core.repository;
+package com.gnostica.core.repository;
 
 import com.gnostica.core.model.Follow;
 import org.springframework.data.jpa.repository.JpaRepository;

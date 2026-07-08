@@ -59,4 +59,18 @@ public class Lesson {
 
     private LocalDateTime deletedAt;
 
+    public Boolean getDeleted() {
+        return deletedAt != null;
+    }
+
+    public void setDeleted(Boolean deleted) {
+        if (Boolean.TRUE.equals(deleted)) {
+            if (this.deletedAt == null) {
+                this.deletedAt = LocalDateTime.now();
+            }
+        } else {
+            this.deletedAt = null;
+        }
+    }
+
 }

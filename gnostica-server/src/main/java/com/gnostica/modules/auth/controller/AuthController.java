@@ -174,7 +174,7 @@ public class AuthController {
     }
 
     @PostMapping("/accounts/{id}/lock")
-    public ResponseEntity<?> lockAccount(@PathVariable Integer id, @RequestParam String reason) {
+    public ResponseEntity<?> lockAccount(@PathVariable java.util.UUID id, @RequestParam String reason) {
         try {
             authService.lockAccount(id, reason);
             return ResponseEntity.ok(ResponseDTO.builder()
@@ -190,7 +190,7 @@ public class AuthController {
     }
 
     @PostMapping("/accounts/{id}/unlock")
-    public ResponseEntity<?> unlockAccount(@PathVariable Integer id) {
+    public ResponseEntity<?> unlockAccount(@PathVariable java.util.UUID id) {
         try {
             authService.unlockAccount(id);
             return ResponseEntity.ok(ResponseDTO.builder()

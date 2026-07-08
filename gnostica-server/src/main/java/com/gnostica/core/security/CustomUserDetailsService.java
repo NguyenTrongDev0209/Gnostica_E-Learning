@@ -25,8 +25,11 @@ public class CustomUserDetailsService implements UserDetailsService {
         Account account = accountRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
 
-        if (!account.getActive()) {
+        if (Integer.valueOf(0).equals(account.getStatus())) {
             throw new RuntimeException("Tài khoản chưa được xác thực.");
+        }
+        if (Integer.valueOf(2).equals(account.getStatus())) {
+            throw new RuntimeException("Tài khoản của bạn đã bị khóa.");
         }
 
         return new User(

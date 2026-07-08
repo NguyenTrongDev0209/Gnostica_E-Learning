@@ -33,7 +33,7 @@ public class InstructorStudentController {
     }
 
     @GetMapping("/{studentId}/courses")
-    public ResponseEntity<?> getStudentCourses(@PathVariable Integer studentId, Authentication authentication) {
+    public ResponseEntity<?> getStudentCourses(@PathVariable java.util.UUID studentId, Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(401).body(Map.of("error", "Vui lòng đăng nhập"));
         }

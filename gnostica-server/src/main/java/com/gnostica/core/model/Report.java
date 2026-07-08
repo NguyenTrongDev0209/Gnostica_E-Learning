@@ -1,4 +1,4 @@
-﻿package com.gnostica.core.model;
+package com.gnostica.core.model;
 
 import jakarta.persistence.*;
 import lombok.*;

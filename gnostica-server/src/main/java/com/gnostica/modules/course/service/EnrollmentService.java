@@ -49,7 +49,7 @@ public class EnrollmentService {
 
                 List<LessonProgress> allProgress = lessonProgressRepository.findByAccount(account);
 
-                Map<Integer, List<LessonProgress>> progressByCourse = allProgress.stream()
+                Map<java.util.UUID, List<LessonProgress>> progressByCourse = allProgress.stream()
                                 .filter(lp -> lp != null && lp.getLesson() != null &&
                                                 lp.getLesson().getModule() != null &&
                                                 lp.getLesson().getModule().getCourse() != null)
@@ -181,7 +181,7 @@ public class EnrollmentService {
         }
 
         @Transactional
-        public void updateProgress(Integer accountId, Integer courseId) {
+        public void updateProgress(java.util.UUID accountId, java.util.UUID courseId) {
                 Account account = accountRepository.findById(accountId).orElse(null);
                 if (account == null)
                         return;
@@ -323,7 +323,7 @@ public class EnrollmentService {
         }
 
         @Transactional(readOnly = true)
-        public List<com.gnostica.modules.course.dto.response.EnrollmentDTO> getStudentEnrollmentsForInstructor(Integer studentId,
+        public List<com.gnostica.modules.course.dto.response.EnrollmentDTO> getStudentEnrollmentsForInstructor(java.util.UUID studentId,
                         String instructorEmail) {
                 List<Enrollment> enrollments = enrollmentRepository.findByAccountIdAndInstructorEmail(studentId,
                                 instructorEmail);

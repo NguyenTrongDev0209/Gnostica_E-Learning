@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class EnrollmentDTO {
     private Integer id;
-    private Integer courseId;
+    private java.util.UUID courseId;
     private String courseTitle;
     private String courseSlug;
     private String courseThumbnail;

@@ -182,7 +182,7 @@ public class CourseService {
 
     @Transactional(readOnly = true)
     public CourseDetailResponse getCourseBySlug(String slug, String email) {
-        Course course = courseRepository.findFirstBySlugAndDeletedFalseOrderByIdDesc(slug)
+        Course course = courseRepository.findFirstBySlugAndDeletedAtIsNullOrderByIdDesc(slug)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học"));
 
         // Kiểm tra xem user có phải là Instructor của khóa này hoặc Admin không
@@ -263,7 +263,7 @@ public class CourseService {
 
     @Transactional
     public CourseDetailResponse updateCourseBySlug(String slug, CourseRequest request, String email) {
-        Course course = courseRepository.findFirstBySlugAndDeletedFalseOrderByIdDesc(slug)
+        Course course = courseRepository.findFirstBySlugAndDeletedAtIsNullOrderByIdDesc(slug)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học"));
 
         if (!course.getAccount().getEmail().equals(email)) {
@@ -569,7 +569,7 @@ public class CourseService {
     public org.springframework.data.domain.Page<CourseResponse> getAllActiveCourses(int page, int size) {
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size,
                 org.springframework.data.domain.Sort.by("id").descending());
-        return courseRepository.findByStatusAndDeletedFalse(1, pageable).map(this::mapToCourseResponse);
+        return courseRepository.findByStatusAndDeletedAtIsNull(1, pageable).map(this::mapToCourseResponse);
     }
 
     @Transactional
@@ -634,20 +634,20 @@ public class CourseService {
 
     @Transactional(readOnly = true)
     public CourseDetailResponse getCourseForModerationBySlug(String slug) {
-        Course course = courseRepository.findFirstBySlugAndDeletedFalseOrderByIdDesc(slug)
+        Course course = courseRepository.findFirstBySlugAndDeletedAtIsNullOrderByIdDesc(slug)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học để kiểm duyệt"));
         return mapToCourseDetailResponse(course);
     }
 
     @Transactional(readOnly = true)
     public Course getCourseEntityForModerationBySlug(String slug) {
-        return courseRepository.findFirstBySlugAndDeletedFalseOrderByIdDesc(slug)
+        return courseRepository.findFirstBySlugAndDeletedAtIsNullOrderByIdDesc(slug)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học để kiểm duyệt"));
     }
 
     @Transactional
     public CourseDetailResponse approveCourseBySlug(String slug) {
-        Course course = courseRepository.findFirstBySlugAndDeletedFalseOrderByIdDesc(slug)
+        Course course = courseRepository.findFirstBySlugAndDeletedAtIsNullOrderByIdDesc(slug)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học để phê duyệt"));
         
         course.setStatus(1); // Chuyển thành Hoạt động
@@ -677,7 +677,7 @@ public class CourseService {
 
     @Transactional
     public CourseDetailResponse rejectCourseBySlug(String slug, String rejectReason) {
-        Course course = courseRepository.findFirstBySlugAndDeletedFalseOrderByIdDesc(slug)
+        Course course = courseRepository.findFirstBySlugAndDeletedAtIsNullOrderByIdDesc(slug)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học"));
         
         course.setStatus(3); // Bị từ chối
@@ -689,11 +689,11 @@ public class CourseService {
         return mapToCourseDetailResponse(courseRepository.save(course));
     }
 
-    private String generateUniqueSlug(String baseSlug, Integer id) {
+    private String generateUniqueSlug(String baseSlug, java.util.UUID id) {
         String slug = baseSlug;
         int count = 1;
 
-        while (id == null ? courseRepository.existsBySlugAndDeletedFalse(slug) : courseRepository.existsBySlugAndIdNotAndDeletedFalse(slug, id)) {
+        while (id == null ? courseRepository.existsBySlugAndDeletedAtIsNull(slug) : courseRepository.existsBySlugAndIdNotAndDeletedAtIsNull(slug, id)) {
             slug = baseSlug + "-" + count;
             count++;
         }
