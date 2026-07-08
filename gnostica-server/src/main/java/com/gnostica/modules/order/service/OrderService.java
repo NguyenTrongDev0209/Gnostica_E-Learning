@@ -59,7 +59,7 @@ public class OrderService {
 
     public OrderResponse getOrderById(UUID id) throws Exception {
         Order order = orderRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Order not found with ID: " + id));
+                .orElseThrow(() -> new IllegalArgumentException("Order not found with ID: " + id));
         return mapToResponse(checkAndReturnOrder(order));
     }
 
@@ -69,7 +69,7 @@ public class OrderService {
         Order order = orderRepository.findAll().stream()
                 .filter(o -> transactionId.equals(o.getId().toString())) // Assuming transactionId might just be the order ID for now
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("Order not found with Transaction ID: " + transactionId));
+                .orElseThrow(() -> new IllegalArgumentException("Order not found with Transaction ID: " + transactionId));
         return mapToResponse(checkAndReturnOrder(order));
     }
 
@@ -78,7 +78,7 @@ public class OrderService {
         if (order.getStatus() == 0) {
             try {
                 paymentService.checkPaymentStatus(order);
-            } catch (Exception e) {
+            } catch (RuntimeException e) {
                 log.warn("Không thể kiểm tra trạng thái PayOS cho order {}: {}", order.getId(), e.getMessage());
             }
             return orderRepository.findById(order.getId()).orElse(order);
@@ -90,14 +90,14 @@ public class OrderService {
     public PaymentLinkResponse createPaymentLink(CreatePaymentLinkRequestBody requestBody) throws Exception {
         String email = AuthUtil.getCurrentUserEmail();
         if (email == null) {
-            throw new RuntimeException("User not authenticated");
+            throw new IllegalArgumentException("User not authenticated");
         }
 
         Account account = accountRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Account not found for email: " + email));
+                .orElseThrow(() -> new IllegalArgumentException("Account not found for email: " + email));
 
         Course course = courseRepository.findById(requestBody.getCourseId())
-                .orElseThrow(() -> new RuntimeException("Course not found for ID: " + requestBody.getCourseId()));
+                .orElseThrow(() -> new IllegalArgumentException("Course not found for ID: " + requestBody.getCourseId()));
 
         long orderCode = System.currentTimeMillis();
 
@@ -109,7 +109,7 @@ public class OrderService {
             couponService.validateCoupon(requestBody.getCouponCode());
             
             appliedCoupon = couponRepository.findByCode(requestBody.getCouponCode().toUpperCase())
-                    .orElseThrow(() -> new RuntimeException("Mã giảm giá không tồn tại"));
+                    .orElseThrow(() -> new IllegalArgumentException("Mã giảm giá không tồn tại"));
             
             // Deduct coupon quantity
             if (appliedCoupon.getQuantity() != null) {

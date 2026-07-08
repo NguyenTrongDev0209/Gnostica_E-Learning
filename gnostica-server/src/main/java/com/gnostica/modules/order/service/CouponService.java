@@ -34,14 +34,14 @@ public class CouponService {
 
     public CouponResponse createCoupon(CouponRequest request) {
         if (couponRepository.existsByCode(request.getCode().toUpperCase())) {
-            throw new RuntimeException("Mã giảm giá đã tồn tại");
+            throw new IllegalArgumentException("Mã giảm giá đã tồn tại");
         }
 
         String email = AuthUtil.getCurrentUserEmail();
-        if (email == null) throw new RuntimeException("User not authenticated");
+        if (email == null) throw new IllegalArgumentException("User not authenticated");
         
         Account account = accountRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại"));
+                .orElseThrow(() -> new IllegalArgumentException("Tài khoản không tồn tại"));
 
         Coupon coupon = new Coupon();
         coupon.setName(request.getName());
@@ -66,7 +66,7 @@ public class CouponService {
                     "code", savedCoupon.getCode(),
                     "discount_value", savedCoupon.getDiscountValue()));
             eventPublisher.publishEvent(new LogEvent(this, "CREATE_COUPON", payload, account.getId()));
-        } catch (Exception e) {
+        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
             log.warn("Could not publish log event for CREATE_COUPON: {}", e.getMessage());
         }
 
@@ -82,7 +82,7 @@ public class CouponService {
     public List<CouponResponse> getMyCoupons() {
         String email = AuthUtil.getCurrentUserEmail();
         Account account = accountRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại"));
+                .orElseThrow(() -> new IllegalArgumentException("Tài khoản không tồn tại"));
 
         return couponRepository.findAllByAccount(account).stream()
                 .map(this::mapToResponse)
@@ -91,7 +91,7 @@ public class CouponService {
 
     public CouponResponse updateCouponStatus(UUID id, Integer status) {
         Coupon coupon = couponRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Mã giảm giá không tồn tại"));
+                .orElseThrow(() -> new IllegalArgumentException("Mã giảm giá không tồn tại"));
         coupon.setStatus(status);
         Coupon updatedCoupon = couponRepository.save(coupon);
         return mapToResponse(updatedCoupon);
@@ -99,29 +99,29 @@ public class CouponService {
 
     public void deleteCoupon(UUID id) {
         if (!couponRepository.existsById(id)) {
-            throw new RuntimeException("Mã giảm giá không tồn tại");
+            throw new IllegalArgumentException("Mã giảm giá không tồn tại");
         }
         couponRepository.deleteById(id);
     }
 
     public CouponResponse validateCoupon(String code) {
         Coupon coupon = couponRepository.findByCode(code.toUpperCase())
-                .orElseThrow(() -> new RuntimeException("Mã giảm giá không tồn tại"));
+                .orElseThrow(() -> new IllegalArgumentException("Mã giảm giá không tồn tại"));
 
         if (coupon.getStatus() != 1) { // 1: Active
-            throw new RuntimeException("Mã giảm giá chưa được kích hoạt hoặc đã hết hạn");
+            throw new IllegalArgumentException("Mã giảm giá chưa được kích hoạt hoặc đã hết hạn");
         }
 
         if (coupon.getValidUntil() != null && coupon.getValidUntil().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("Mã giảm giá đã hết hạn");
+            throw new IllegalArgumentException("Mã giảm giá đã hết hạn");
         }
         
         if (coupon.getValidFrom() != null && coupon.getValidFrom().isAfter(LocalDateTime.now())) {
-            throw new RuntimeException("Mã giảm giá chưa đến thời gian sử dụng");
+            throw new IllegalArgumentException("Mã giảm giá chưa đến thời gian sử dụng");
         }
 
         if (coupon.getQuantity() != null && coupon.getQuantity() <= 0) {
-            throw new RuntimeException("Mã giảm giá đã hết lượt sử dụng");
+            throw new IllegalArgumentException("Mã giảm giá đã hết lượt sử dụng");
         }
 
         return mapToResponse(coupon);
