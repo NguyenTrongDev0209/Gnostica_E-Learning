@@ -3,8 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Home, Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { AppBreadcrumb } from "@/components/common/AppSection";
-import courseService from "@/services/courseService";
-import wishlistService from "@/services/wishlistService";
+import courseService from "@/services/course/courseService";
+import wishlistService from "@/services/course/wishlistService";
 import { 
   CourseDetailHeader, 
   CourseDetailVideo, 
@@ -12,7 +12,7 @@ import {
   CourseDetailCurriculum, 
   CourseDetailInstructor, 
   CourseDetailPricingCard 
-} from "@/components/pages/client/courseDetail/CourseDetailComponents";
+} from "@/pages/client/components/courseDetail/CourseDetailComponents";
 
 export default function CourseDetail() {
   const { slug } = useParams();

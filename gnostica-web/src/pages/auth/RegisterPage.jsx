@@ -8,7 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Eye, EyeOff, Mail, Lock, User, ArrowRight, Facebook } from 'lucide-react';
 import { SimpleButton } from '@/components/common/AppButton';
-import authService from '@/services/authService';
+import authService from '@/services/auth/authService';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 

@@ -22,8 +22,8 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import authService from '@/services/authService';
-import followingService from '@/services/followingService';
+import authService from '@/services/auth/authService';
+import followingService from '@/services/instructor/followingService';
 import { toast } from 'sonner';
 import PersonalizationModal from '@/components/common/PersonalizationModal';
 

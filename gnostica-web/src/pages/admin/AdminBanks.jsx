@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import { useBanks } from "@/hooks/admin/useBanks";
+import { useBanks } from "@/hooks/payment/useBanks";
 
-import { BankHeader } from "@/components/pages/admin/banks/BankHeader";
-import { BankStatsFilter } from "@/components/pages/admin/banks/BankStatsFilter";
-import { BankTable } from "@/components/pages/admin/banks/BankTable";
-import { BankFormModal } from "@/components/pages/admin/banks/BankFormModal";
+import { BankHeader } from "@/pages/admin/components/banks/BankHeader";
+import { BankStatsFilter } from "@/pages/admin/components/banks/BankStatsFilter";
+import { BankTable } from "@/pages/admin/components/banks/BankTable";
+import { BankFormModal } from "@/pages/admin/components/banks/BankFormModal";
 import { Button } from "@/components/ui/button";
 
 export default function AdminBanks() {

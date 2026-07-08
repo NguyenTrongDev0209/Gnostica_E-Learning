@@ -23,10 +23,10 @@ import {
 } from "lucide-react";
 import { SimpleButton } from "@/components/common/AppButton";
 import useAuthStore from "@/store/useAuthStore";
-import enrollmentService from "@/services/enrollmentService";
+import enrollmentService from "@/services/course/enrollmentService";
 import { Skeleton } from "@/components/ui/skeleton";
 
-import useAccountOverview from "@/hooks/client/useAccountOverview";
+import useAccountOverview from "@/hooks/user/useAccountOverview";
 
 export default function AccountOverview() {
   const user = useAuthStore(state => state.user);

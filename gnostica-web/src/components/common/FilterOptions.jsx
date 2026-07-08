@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import courseService from "@/services/courseService";
+import courseService from "@/services/course/courseService";
 
 const levels = [
   { label: "Tất cả trình độ", value: "all" },

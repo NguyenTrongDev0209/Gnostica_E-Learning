@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import threadService from "@/services/threadService";
+import threadService from "@/services/forum/threadService";
 import { 
   ShieldCheck, 
   Trash2, 

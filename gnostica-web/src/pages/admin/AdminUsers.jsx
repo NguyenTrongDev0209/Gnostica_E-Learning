@@ -35,7 +35,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import useAdminUsers from "@/hooks/admin/useAdminUsers";
+import useAdminUsers from "@/hooks/user/useAdminUsers";
 
 export default function AdminUsers() {
   const {

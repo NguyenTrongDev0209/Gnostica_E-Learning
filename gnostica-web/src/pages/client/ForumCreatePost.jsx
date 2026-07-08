@@ -4,7 +4,7 @@ import SectionContainer, { PageHeader } from '@/components/common/AppSection';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Send } from 'lucide-react';
-import useForumCreatePost from "@/hooks/client/useForumCreatePost";
+import useForumCreatePost from "@/hooks/forum/useForumCreatePost";
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 

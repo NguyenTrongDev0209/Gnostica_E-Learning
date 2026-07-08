@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import useAdminCategories from "@/hooks/admin/useAdminCategories";
+import useAdminCategories from "@/hooks/course/useAdminCategories";
 import {
   Plus,
   Search,
@@ -48,7 +48,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import Fuse from "fuse.js";
-import categoryService from "@/services/categoryService";
+import categoryService from "@/services/course/categoryService";
 import { DialogDescription } from "@/components/ui/dialog";
 
 const ITEMS_PER_PAGE = 10;

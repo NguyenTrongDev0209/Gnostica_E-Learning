@@ -11,9 +11,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import categoryService from '@/services/categoryService';
-import accountService from '@/services/accountService';
-import authService from '@/services/authService';
+import categoryService from '@/services/course/categoryService';
+import accountService from '@/services/user/accountService';
+import authService from '@/services/auth/authService';
 import { Check, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 

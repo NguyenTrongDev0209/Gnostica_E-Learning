@@ -10,7 +10,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Home, Heart, Loader2 } from "lucide-react";
-import wishlistService from "@/services/wishlistService";
+import wishlistService from "@/services/course/wishlistService";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 

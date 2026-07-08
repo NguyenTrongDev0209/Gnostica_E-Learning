@@ -44,7 +44,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import forumCategoryService from "@/services/forumCategoryService";
+import forumCategoryService from "@/services/forum/forumCategoryService";
 
 const categorySchema = z.object({
   name: z

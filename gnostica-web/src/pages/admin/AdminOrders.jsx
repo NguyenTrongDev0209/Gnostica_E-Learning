@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { useOrders } from "@/hooks/admin/useOrders";
-import { OrderHeader } from "@/components/pages/admin/orders/OrderHeader";
-import { OrderStatsFilter } from "@/components/pages/admin/orders/OrderStatsFilter";
-import { OrderTable } from "@/components/pages/admin/orders/OrderTable";
-import { OrderDetailModal } from "@/components/pages/admin/orders/OrderDetailModal";
+import { useOrders } from "@/hooks/order/useOrders";
+import { OrderHeader } from "@/pages/admin/components/orders/OrderHeader";
+import { OrderStatsFilter } from "@/pages/admin/components/orders/OrderStatsFilter";
+import { OrderTable } from "@/pages/admin/components/orders/OrderTable";
+import { OrderDetailModal } from "@/pages/admin/components/orders/OrderDetailModal";
 import { Button } from "@/components/ui/button";
 
 export default function AdminOrders() {
