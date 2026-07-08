@@ -35,7 +35,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
-import courseService from "@/services/course/courseService";
+import adminCourseService from "@/services/admin/adminCourseService";
 import { toast } from "sonner";
 
 // Shared Components
@@ -103,11 +103,11 @@ export default function AdminCourseDetailModeration() {
     if (!lessonId) return;
     try {
       setIsAiScanning(true);
-      const res = await courseService.triggerAiScan(lessonId);
+      const res = await adminCourseService.triggerAiScan(lessonId);
       toast.success("Quét kiểm duyệt AI thành công!");
       
       // Fetch latest state
-      const updatedCourse = await courseService.getCourseForModeration(slug);
+      const updatedCourse = await adminCourseService.getCourseForModeration(slug);
       setCourse(updatedCourse);
       
       // Update UI preview payload actively
@@ -131,9 +131,9 @@ export default function AdminCourseDetailModeration() {
   const handleTriggerAiScanInfo = async () => {
     try {
       setIsAiScanningInfo(true);
-      await courseService.triggerAiScanInfo(slug);
+      await adminCourseService.triggerAiScanInfo(slug);
       toast.success("Quét AI nội dung văn bản khóa học thành công!");
-      const updatedCourse = await courseService.getCourseForModeration(slug);
+      const updatedCourse = await adminCourseService.getCourseForModeration(slug);
       setCourse(updatedCourse);
     } catch (err) {
       console.error("AI Text Scan failed:", err);
@@ -146,7 +146,7 @@ export default function AdminCourseDetailModeration() {
   const handleTriggerAiScanFull = async () => {
     try {
       setIsAiScanningFull(true);
-      const res = await courseService.triggerAiScanFull(slug);
+      const res = await adminCourseService.triggerAiScanFull(slug);
       toast.info(res.message || "Đang khởi động quy trình kiểm duyệt AI toàn diện trong nền...");
       
       // Update local state to show SCANNING
@@ -165,7 +165,7 @@ export default function AdminCourseDetailModeration() {
     if (course?.aiModerationStatus === "SCANNING") {
       intervalId = setInterval(async () => {
         try {
-          const updatedCourse = await courseService.getCourseForModeration(slug);
+          const updatedCourse = await adminCourseService.getCourseForModeration(slug);
           if (updatedCourse.aiModerationStatus !== "SCANNING") {
             setCourse(updatedCourse);
             if (updatedCourse.aiModerationStatus === "COMPLETED") {
@@ -198,7 +198,7 @@ export default function AdminCourseDetailModeration() {
   const fetchCourseDetail = async () => {
     try {
       setLoading(true);
-      const res = await courseService.getCourseForModeration(slug);
+      const res = await adminCourseService.getCourseForModeration(slug);
       setCourse(res);
       setActivePreview(null); // Reset preview to introductory Promo video on load
     } catch (err) {
@@ -222,7 +222,7 @@ export default function AdminCourseDetailModeration() {
     
     try {
       setIsSubmitting(true);
-      await courseService.approveCourse(course.slug);
+      await adminCourseService.approveCourse(course.slug);
       toast.success("Phê duyệt thành công!");
       navigate("/admin/course-moderation");
     } catch (err) {
@@ -239,7 +239,7 @@ export default function AdminCourseDetailModeration() {
     }
     try {
       setIsSubmitting(true);
-      await courseService.rejectCourse(course.slug, rejectReason);
+      await adminCourseService.rejectCourse(course.slug, rejectReason);
       toast.success("Đã từ chối phê duyệt khóa học.");
       setIsRejectModalOpen(false);
       navigate("/admin/course-moderation");

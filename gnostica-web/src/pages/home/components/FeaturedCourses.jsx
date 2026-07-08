@@ -1,25 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import AppCard from '@/components/common/AppCard';
-import courseService from '@/services/course/courseService';
+import useFeaturedCourses from '@/hooks/course/useFeaturedCourses';
 
 const FeaturedCourses = () => {
-  const [courses, setCourses] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchCourses = async () => {
-      try {
-        const data = await courseService.getAllCourses(0, 8); // Fetch first 8 courses
-        setCourses(data.content || []);
-      } catch (error) {
-        console.error("Lỗi khi tải khóa học thịnh hành:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCourses();
-  }, []);
+  const { courses, loading } = useFeaturedCourses(8);
 
   if (loading) {
     return (
@@ -66,3 +50,4 @@ const FeaturedCourses = () => {
 };
 
 export default FeaturedCourses;
+

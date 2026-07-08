@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { ArrowLeft, ArrowRight, Video, GripVertical, Trash2, Plus, PlayCircle, FileText, Check, Loader2, Sparkles, Database, CheckCircle2, ListOrdered, Search, Pencil, Clock, Save } from "lucide-react";
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
-import courseService from "@/services/course/courseService";
+import questionService from "@/services/course/questionService";
 import { useParams } from "react-router-dom";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -65,7 +65,7 @@ export default function QuizTab({ courseId }) {
     const fetchQuestions = async () => {
       setIsFetchingDrafts(true);
       try {
-        const questions = await courseService.getDraftQuestions(courseId);
+        const questions = await questionService.getDraftQuestions(courseId);
         if (questions && questions.length > 0) {
           setDraftQuestions(questions);
         }
@@ -89,7 +89,7 @@ export default function QuizTab({ courseId }) {
     const saveTimer = setTimeout(async () => {
       setIsSavingDraft(true);
       try {
-        await courseService.saveDraftQuestions(courseId, draftQuestions);
+        await questionService.saveDraftQuestions(courseId, draftQuestions);
       } catch (err) {
         console.error("Lỗi tự động lưu nháp:", err);
       } finally {
@@ -127,7 +127,7 @@ export default function QuizTab({ courseId }) {
     toast.info("Đang phân tích tài liệu và sinh câu hỏi bằng AI...");
 
     try {
-      const generatedQuestions = await courseService.generateAiQuestions(courseId, aiFile, aiQuestionCount, aiLevel);
+      const generatedQuestions = await questionService.generateAiQuestions(courseId, aiFile, aiQuestionCount, aiLevel);
       if (generatedQuestions && generatedQuestions.length > 0) {
         // Find highest existing ID to continue numbering
         let highestId = draftQuestions.length > 0 ? Math.max(...draftQuestions.map(q => q.id)) : 0;

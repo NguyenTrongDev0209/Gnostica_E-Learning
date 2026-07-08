@@ -8,7 +8,7 @@ import AdminLayout from "@/components/layouts/AdminLayout";
 import InstructorLayout from "@/components/layouts/InstructorLayout";
 import LearningLayout from "@/components/layouts/LearningLayout";
 import { publicRoutes, privateRoutes } from "@/routers";
-import ErrorPage from "@/pages/ErrorPage";
+import ErrorPage from "@/pages/static/ErrorPage";
 import ProtectedRoute from "@/components/common/ProtectedRoute";
 import CertificatePage from "@/pages/learning/CertificatePage";
 import { ROLES } from "@/utils/constants";

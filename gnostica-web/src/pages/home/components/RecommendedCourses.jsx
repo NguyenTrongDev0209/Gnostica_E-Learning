@@ -1,33 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import courseService from '@/services/course/courseService';
-import authService from '@/services/auth/authService';
+import React from 'react';
 import AppCard from '@/components/common/AppCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Sparkles } from 'lucide-react';
+import useRecommendedCourses from '@/hooks/course/useRecommendedCourses';
 
 const RecommendedCourses = () => {
-    const [courses, setCourses] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const user = authService.getCurrentUser();
-
-    useEffect(() => {
-        if (user) {
-            fetchRecommendations();
-        } else {
-            setLoading(false);
-        }
-    }, []);
-
-    const fetchRecommendations = async () => {
-        try {
-            const data = await courseService.getRecommendedCourses(0, 4);
-            setCourses(data.content || []);
-        } catch (error) {
-            console.error('Error fetching recommendations:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
+    const { courses, loading, user } = useRecommendedCourses(4);
 
     if (!user || (!loading && courses.length === 0)) return null;
 
@@ -77,3 +55,4 @@ const RecommendedCourses = () => {
 };
 
 export default RecommendedCourses;
+

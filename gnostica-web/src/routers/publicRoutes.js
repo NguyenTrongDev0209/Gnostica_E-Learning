@@ -11,7 +11,7 @@ import UserProfile from "@/pages/user/UserProfile";
 import TermsPage from "@/pages/static/TermsPage";
 import PrivacyPage from "@/pages/static/PrivacyPage";
 import Showcase from "@/pages/Showcase";
-import ErrorPage from "@/pages/ErrorPage";
+import ErrorPage from "@/pages/static/ErrorPage";
 import InstructorList from "@/pages/user/InstructorList";
 
 import LoginPage from "@/pages/auth/LoginPage";

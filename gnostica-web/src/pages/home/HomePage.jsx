@@ -1,5 +1,7 @@
 import React, { Suspense } from "react";
-import { MainHeroCarousel, SubBannerCarousel, CardCarousel } from "@/pages/home/components/HomeCarousels"
+import MainHeroCarousel from "@/pages/home/components/MainHeroCarousel"
+import SubBannerCarousel from "@/pages/home/components/SubBannerCarousel"
+import CardCarousel from "@/pages/home/components/CardCarousel"
 import AppSection from "@/components/common/AppSection"
 
 import CategoryGrid from "@/pages/home/components/CategoryGrid"
