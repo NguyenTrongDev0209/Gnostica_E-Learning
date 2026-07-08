@@ -6,6 +6,6 @@ import com.gnostica.core.model.Report;
 
 @Repository
 public interface ReportRepository extends JpaRepository<Report, Integer> {
-    void deleteByTargetIdAndType(String targetId, Integer type);
+    void deleteByTargetIdAndTargetType(String targetId, String targetType);
 }
 

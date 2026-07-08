@@ -185,7 +185,7 @@ public class ThreadServiceImpl implements ThreadService {
                 .orElseThrow(() -> new RuntimeException("Thread not found with id: " + id));
 
         voteRepository.deleteByTargetIdAndType(id.toString(), 1);
-        reportRepository.deleteByTargetIdAndType(id.toString(), 1);
+        reportRepository.deleteByTargetIdAndTargetType(id.toString(), "THREAD");
         commentRepository.deleteByThreadId(id);
         threadRepository.delete(thread);
     }
