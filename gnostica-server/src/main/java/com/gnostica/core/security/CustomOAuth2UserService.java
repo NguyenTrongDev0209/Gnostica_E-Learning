@@ -50,7 +50,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 account.setFullName(name);
                 account.setProvider(provider);
                 account.setAvatar(picture);
-                account.setActive(true);
+                account.setStatus(1);
                 
                 // Cẩn thận với Role
                 Role defaultRole = roleRepository.findByName("USER")
@@ -70,9 +70,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 account = accountOptional.get();
                 
                 // Kiểm tra khóa tài khoản
-                if (Boolean.TRUE.equals(account.getLocked())) {
+                if (Integer.valueOf(2).equals(account.getStatus())) {
                     throw new org.springframework.security.authentication.InternalAuthenticationServiceException(
-                        "Tài khoản của bạn đã bị khóa. Lý do: " + account.getLockReason()
+                        "Tài khoản của bạn đã bị khóa."
                     );
                 }
 
@@ -92,7 +92,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     throw new OAuth2AuthenticationException("Tài khoản đã được liên kết với " + account.getProvider());
                 }
 
-                account.setActive(true);
+                account.setStatus(1);
                 account = accountRepository.save(account);
                 System.out.println("SUCCESS: Existing account verified for: " + email);
             }

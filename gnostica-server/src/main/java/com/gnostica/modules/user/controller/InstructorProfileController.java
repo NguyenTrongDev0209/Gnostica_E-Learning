@@ -60,7 +60,7 @@ public class InstructorProfileController {
      * Lấy thông tin hồ sơ công khai của giảng viên theo ID
      */
     @GetMapping("/{id}/profile")
-    public ResponseEntity<?> getInstructorProfile(@PathVariable Integer id) {
+    public ResponseEntity<?> getInstructorProfile(@PathVariable java.util.UUID id) {
         Account account = accountRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy giảng viên"));
 
@@ -86,7 +86,7 @@ public class InstructorProfileController {
      * Lấy các khóa học đang hoạt động của giảng viên
      */
     @GetMapping("/{id}/courses")
-    public ResponseEntity<?> getInstructorCourses(@PathVariable Integer id) {
+    public ResponseEntity<?> getInstructorCourses(@PathVariable java.util.UUID id) {
         List<Course> courses = courseRepository.findByAccountIdAndStatus(id, 1);
         List<CourseResponse> dtos = courses.stream()
                 .map(courseService::mapToCourseResponse)

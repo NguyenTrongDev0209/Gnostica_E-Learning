@@ -36,7 +36,11 @@ public class Enrollment {
     @NotNull
     @Min(0)
     @Max(100)
-    private Integer progress;
+    @Column(name = "progress")
+    private Integer progressPercent;
+
+    @Builder.Default
+    private Boolean certificateEmailSent = false;
 
     @Size(max = 255)
     private String certifiUrl;
