@@ -2,7 +2,7 @@ import React from "react";
 import { MoreHorizontal, ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import DataTable from "@/components/common/DataTable";
+import AppTable from "@/components/common/AppTable";
 import { cn } from "@/lib/utils";
 
 const formatDate = (dateValue) => {
@@ -19,9 +19,9 @@ const formatDate = (dateValue) => {
 export default function InstructorStudentTable({ students, onActionClick, onCoursesClick, pagination, onPageChange }) {
     const columns = [
         {
-            key: "stt",
             header: "STT",
             className: "w-[60px] text-center",
+            cellClassName: "text-center",
             render: (_, index) => (
                 <span className="text-2xs font-bold text-muted-foreground font-sans tracking-tighter">
                     {(index + 1).toString().padStart(2, '0')}
@@ -29,7 +29,6 @@ export default function InstructorStudentTable({ students, onActionClick, onCour
             ),
         },
         {
-            key: "name",
             header: () => <div className="text-center w-full">Học viên</div>,
             className: "min-w-[280px]",
             render: (student) => (
@@ -54,9 +53,9 @@ export default function InstructorStudentTable({ students, onActionClick, onCour
             ),
         },
         {
-            key: "course",
             header: "Khóa học tham gia",
             className: "text-center",
+            cellClassName: "text-center",
             render: (student) => (
                 <div className="flex justify-center">
                     <span
@@ -72,13 +71,13 @@ export default function InstructorStudentTable({ students, onActionClick, onCour
             )
         },
         {
-            key: "progress",
             header: () => (
                 <div className="flex items-center gap-1.5 cursor-pointer hover:text-foreground transition-colors justify-center">
                     Tiến độ học tập <ArrowUpDown className="w-3 h-3" />
                 </div>
             ),
             className: "text-center",
+            cellClassName: "text-center",
             render: (student) => (
                 <div className="w-[140px] mx-auto flex flex-col gap-2">
                     <div className="flex justify-between items-end">
@@ -105,9 +104,9 @@ export default function InstructorStudentTable({ students, onActionClick, onCour
             ),
         },
         {
-            key: "joinedDate",
             header: () => <div className="text-center w-full">Ngày tham gia</div>,
             className: "min-w-[160px]",
+            cellClassName: "text-center",
             render: (student) => (
                 <div className="flex flex-col gap-1 items-center">
                     <span className="text-xs font-bold text-foreground bg-muted border border-border px-2.5 py-1 rounded-lg tabular-nums">
@@ -124,9 +123,9 @@ export default function InstructorStudentTable({ students, onActionClick, onCour
             ),
         },
         {
-            key: "actions",
             header: "Thao tác",
             className: "w-[80px] text-center",
+            cellClassName: "text-center",
             render: (student) => (
                 <div className="flex justify-center">
                     <Button
@@ -146,12 +145,18 @@ export default function InstructorStudentTable({ students, onActionClick, onCour
     ];
 
     return (
-        <DataTable
-            columns={columns}
-            data={students}
-            className="bg-white rounded-2xl border border-border shadow-sm"
-            pagination={pagination}
-            onPageChange={onPageChange}
+        <AppTable 
+            columns={columns} 
+            data={students} 
+            pagination={{
+                currentPage: pagination.currentPage,
+                totalPages: pagination.totalPages,
+                totalElements: pagination.totalItems || pagination.totalElements,
+                onPageChange: onPageChange,
+                zeroIndexed: true
+            }}
+            emptyState="Bạn chưa có học viên nào."
+            isLoading={isLoading}
         />
     );
 }
