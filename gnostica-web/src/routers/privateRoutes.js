@@ -12,12 +12,12 @@ import Settings from "@/pages/account/Settings";
 import ChangePassword from "@/pages/account/ChangePassword";
 import FavoriteInstructors from "@/pages/account/FavoriteInstructors";
 
-import CheckoutPage from "@/pages/client/CheckoutPage";
-import PayosQR from "@/pages/client/PayosQR";
-import CheckoutResult from "@/pages/client/CheckoutResult";
-import ForumCreatePost from "@/pages/client/ForumCreatePost";
-import MyForumPosts from "@/pages/client/MyForumPosts";
-import ApplyInstructor from "@/pages/client/ApplyInstructor";
+import CheckoutPage from "@/pages/order/CheckoutPage";
+import PayosQR from "@/pages/order/PayosQR";
+import CheckoutResult from "@/pages/order/CheckoutResult";
+import ForumCreatePost from "@/pages/forum/ForumCreatePost";
+import MyForumPosts from "@/pages/forum/MyForumPosts";
+import ApplyInstructor from "@/pages/user/ApplyInstructor";
 
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminUsers from "@/pages/admin/AdminUsers";

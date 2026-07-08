@@ -1,18 +1,18 @@
-import HomePage from "@/pages/client/HomePage";
-import AboutUs from "@/pages/client/AboutUs";
-import CourseCatalog from "@/pages/client/CourseCatalog";
-import CourseCategory from "@/pages/client/CourseCategory";
-import CourseDetail from "@/pages/client/CourseDetail";
-import CourseCart from "@/pages/client/CourseCart";
-import SearchPage from "@/pages/client/SearchPage";
-import ForumPage from "@/pages/client/ForumPage";
-import ForumDetail from "@/pages/client/ForumDetail";
-import UserProfile from "@/pages/client/UserProfile";
-import TermsPage from "@/pages/client/TermsPage";
-import PrivacyPage from "@/pages/client/PrivacyPage";
+import HomePage from "@/pages/home/HomePage";
+import AboutUs from "@/pages/static/AboutUs";
+import CourseCatalog from "@/pages/course/CourseCatalog";
+import CourseCategory from "@/pages/course/CourseCategory";
+import CourseDetail from "@/pages/course/CourseDetail";
+import CourseCart from "@/pages/order/CourseCart";
+import SearchPage from "@/pages/course/SearchPage";
+import ForumPage from "@/pages/forum/ForumPage";
+import ForumDetail from "@/pages/forum/ForumDetail";
+import UserProfile from "@/pages/user/UserProfile";
+import TermsPage from "@/pages/static/TermsPage";
+import PrivacyPage from "@/pages/static/PrivacyPage";
 import Showcase from "@/pages/Showcase";
 import ErrorPage from "@/pages/ErrorPage";
-import InstructorList from "@/pages/client/InstructorList";
+import InstructorList from "@/pages/user/InstructorList";
 
 import LoginPage from "@/pages/auth/LoginPage";
 import RegisterPage from "@/pages/auth/RegisterPage";
@@ -36,6 +36,7 @@ export const publicRoutes = {
     { path: "/forum/:id", component: ForumDetail },
     { path: "/profile/:id", component: UserProfile },
     { path: "/terms", component: TermsPage },
+    { path: "/privacy", component: PrivacyPage },
     { path: "/showcase", component: Showcase },
     { path: "/instructors", component: InstructorList },
   ],

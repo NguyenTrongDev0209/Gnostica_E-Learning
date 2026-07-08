@@ -1,7 +1,7 @@
 import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import AdminCategories from "./AdminCategories";
-import AdminForumCategory from "./AdminForumCategory";
+import AdminCategories from "./components/AdminCategories";
+import AdminForumCategory from "./components/AdminForumCategory";
 import { LayoutList, MessageSquare } from "lucide-react";
 
 export default function AdminCategoryManagement() {

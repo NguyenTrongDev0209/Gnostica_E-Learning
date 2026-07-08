@@ -14,7 +14,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useInstructorRevenue } from "@/hooks/payment/useInstructorRevenue";
 import { toast } from "sonner";
-import WithdrawModal from "./WithdrawModal";
+import WithdrawModal from "./components/WithdrawModal";
 import InstructorRevenueTable from "@/pages/instructor/components/revenue/InstructorRevenueTable";
 
 export default function InstructorRevenue() {
