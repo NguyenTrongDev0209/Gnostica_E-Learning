@@ -8,15 +8,8 @@ import {
   MessageSquare,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
+import AppTable from "@/components/common/AppTable";
+import { SimpleButton, TableActionIconButton, GhostButton } from "@/components/common/AppButton";
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -78,6 +71,7 @@ export default function AdminForumCategory({ hideHeader = false }) {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchCategories();
   }, []);
 
@@ -122,7 +116,9 @@ export default function AdminForumCategory({ hideHeader = false }) {
     try {
       await forumCategoryService.updateStatus(id, newStatus);
       toast.success(newStatus ? "Đã hiển thị chủ đề thành công" : "Đã ẩn chủ đề thành công");
-      fetchCategories();
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchCategories();
+    // eslint-disable-next-line no-unused-vars
     } catch (error) {
       toast.error("Không thể cập nhật trạng thái");
     }
@@ -134,7 +130,9 @@ export default function AdminForumCategory({ hideHeader = false }) {
     try {
       await forumCategoryService.deleteCategory(id);
       toast.success("Xóa danh mục thành công!");
-      fetchCategories();
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchCategories();
+    // eslint-disable-next-line no-unused-vars
     } catch (error) {
       toast.error("Lỗi khi xóa danh mục");
     }
@@ -165,7 +163,8 @@ export default function AdminForumCategory({ hideHeader = false }) {
       setIsAddModalOpen(false);
       setEditId(null);
       form.reset({ name: "", slug: "", status: true });
-      fetchCategories();
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchCategories();
     } catch (error) {
       const errorMessage =
         error?.response?.data?.message || "Có lỗi xảy ra, vui lòng thử lại.";
@@ -197,13 +196,13 @@ export default function AdminForumCategory({ hideHeader = false }) {
         ) : (
           <div />
         )}
-        <Button
-          className="font-bold flex items-center gap-2"
+        <SimpleButton
+          className="flex items-center gap-2"
           onClick={() => setIsAddModalOpen(true)}
         >
           <Plus className="w-4 h-4" />
           Thêm Danh Mục
-        </Button>
+        </SimpleButton>
       </div>
 
       {/* Filter */}
@@ -243,102 +242,88 @@ export default function AdminForumCategory({ hideHeader = false }) {
 
       {/* Categories Table */}
       <Card className="border-border shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader className="bg-muted">
-              <TableRow>
-                <TableHead className="py-4 font-semibold text-foreground w-[40%] min-w-[200px]">
-                  Danh mục
-                </TableHead>
-                <TableHead className="py-4 font-semibold text-foreground w-[30%] min-w-[150px]">
-                  Slug
-                </TableHead>
-                <TableHead className="py-4 font-semibold text-foreground text-center w-32 whitespace-nowrap">
-                  Số bài viết
-                </TableHead>
-                <TableHead className="py-4 font-semibold text-foreground w-32 whitespace-nowrap">
-                  Trạng thái
-                </TableHead>
-                <TableHead className="py-4 font-semibold text-foreground text-center w-24 min-w-[100px]">
-                  Thao tác
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredCategories.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="h-32 text-center text-muted-foreground font-medium">
-                    Không tìm thấy danh mục nào phù hợp.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredCategories.map((cat) => (
-                  <TableRow key={cat.id} className="hover:bg-muted">
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                          <MessageSquare className="w-4 h-4 text-primary" />
-                        </div>
-                        <div>
-                          <p className="font-bold text-foreground">{cat.name}</p>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <code className="text-xs bg-secondary px-2 py-1 rounded text-muted-foreground font-mono">
-                        {cat.slug}
-                      </code>
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <span className="text-sm text-muted-foreground font-bold bg-secondary px-2.5 py-1 rounded-full">
-                        {cat.threadCount || 0}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      {cat.status === true ? (
-                        <span
-                          onClick={() => toggleStatus(cat.id, false)}
-                          className="inline-flex items-center gap-1.5 text-sm text-success font-medium cursor-pointer hover:underline"
-                        >
-                          <span className="w-2 h-2 rounded-full bg-success/10 text-success" />{" "}
-                          Hoạt động
-                        </span>
-                      ) : (
-                        <span
-                          onClick={() => toggleStatus(cat.id, true)}
-                          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground font-medium cursor-pointer hover:underline"
-                        >
-                          <span className="w-2 h-2 rounded-full bg-muted" />{" "}
-                          Tạm ẩn
-                        </span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <div className="flex justify-center items-center gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-primary"
-                          onClick={() => handleEdit(cat)}
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-error"
-                          onClick={() => handleDelete(cat.id)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
+        <AppTable
+          columns={[
+            {
+              header: "Danh mục",
+              width: "40%",
+              className: "min-w-[200px]",
+              render: (cat) => (
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <MessageSquare className="w-4 h-4 text-primary" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-foreground">{cat.name}</p>
+                  </div>
+                </div>
+              ),
+            },
+            {
+              header: "Slug",
+              width: "30%",
+              className: "min-w-[150px]",
+              render: (cat) => (
+                <code className="text-xs bg-secondary px-2 py-1 rounded text-muted-foreground font-mono">
+                  {cat.slug}
+                </code>
+              ),
+            },
+            {
+              header: "Số bài viết",
+              className: "text-center w-32 whitespace-nowrap",
+              cellClassName: "text-center",
+              render: (cat) => (
+                <span className="text-sm text-muted-foreground font-bold bg-secondary px-2.5 py-1 rounded-full">
+                  {cat.threadCount || 0}
+                </span>
+              ),
+            },
+            {
+              header: "Trạng thái",
+              className: "w-32 whitespace-nowrap",
+              render: (cat) => (
+                cat.status === true ? (
+                  <span
+                    onClick={() => toggleStatus(cat.id, false)}
+                    className="inline-flex items-center gap-1.5 text-sm text-success font-medium cursor-pointer hover:underline"
+                  >
+                    <span className="w-2 h-2 rounded-full bg-success/10 text-success" />{" "}
+                    Hoạt động
+                  </span>
+                ) : (
+                  <span
+                    onClick={() => toggleStatus(cat.id, true)}
+                    className="inline-flex items-center gap-1.5 text-sm text-muted-foreground font-medium cursor-pointer hover:underline"
+                  >
+                    <span className="w-2 h-2 rounded-full bg-muted" />{" "}
+                    Tạm ẩn
+                  </span>
+                )
+              ),
+            },
+            {
+              header: "Thao tác",
+              className: "text-center w-24 min-w-[100px]",
+              cellClassName: "text-center",
+              render: (cat) => (
+                <div className="flex justify-center items-center gap-2">
+                  <TableActionIconButton
+                    icon={Edit}
+                    onClick={() => handleEdit(cat)}
+                  />
+                  <TableActionIconButton
+                    icon={Trash2}
+                    colorVariant="error"
+                    onClick={() => handleDelete(cat.id)}
+                  />
+                </div>
+              ),
+            },
+          ]}
+          data={filteredCategories}
+          emptyState="Không tìm thấy danh mục nào phù hợp."
+        />
       </Card>
 
       {/* Add/Edit Category Modal */}
@@ -441,21 +426,20 @@ export default function AdminForumCategory({ hideHeader = false }) {
               />
 
               <DialogFooter className="pt-4 gap-2">
-                <Button
+                <GhostButton
                   type="button"
-                  variant="outline"
                   onClick={() => {
                     setIsAddModalOpen(false);
                     setEditId(null);
                     form.reset({ name: "", slug: "", status: true });
                   }}
-                  className="border-border"
+                  className="border border-border"
                 >
                   Hủy bỏ
-                </Button>
-                <Button type="submit" className="bg-primary font-bold px-6">
+                </GhostButton>
+                <SimpleButton type="submit">
                   {editId ? "Lưu Cập Nhật" : "Tạo danh mục"}
-                </Button>
+                </SimpleButton>
               </DialogFooter>
             </form>
           </Form>

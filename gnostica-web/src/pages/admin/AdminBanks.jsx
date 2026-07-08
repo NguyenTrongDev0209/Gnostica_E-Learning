@@ -1,12 +1,10 @@
 import React, { useState } from "react";
 import { useBanks } from "@/hooks/payment/useBanks";
 
-import { BankHeader } from "@/pages/admin/components/banks/BankHeader";
-import { BankStatsFilter } from "@/pages/admin/components/banks/BankStatsFilter";
-import { BankTable } from "@/pages/admin/components/banks/BankTable";
-import { BankFormModal } from "@/pages/admin/components/banks/BankFormModal";
-import { Button } from "@/components/ui/button";
-
+import { BankHeader } from "@/pages/admin/components/BankHeader";
+import { BankStatsFilter } from "@/pages/admin/components/BankStatsFilter";
+import { BankTable } from "@/pages/admin/components/BankTable";
+import { BankFormModal } from "@/pages/admin/components/BankFormModal";
 export default function AdminBanks() {
   const { banks, isLoading, addBank, updateBank, removeBank, syncBanks } = useBanks();
   const [searchTerm, setSearchTerm] = useState("");
@@ -80,52 +78,16 @@ export default function AdminBanks() {
         onEdit={handleEditClick}
         onDelete={removeBank} 
         startIndex={startIndex}
+        pagination={{
+          currentPage,
+          totalPages,
+          totalElements: filteredBanks.length,
+          onPageChange: setCurrentPage,
+          zeroIndexed: false,
+        }}
       />
 
-      {totalPages > 1 && (
-        <div className="p-4 border-t border-border flex flex-col sm:flex-row shadow-sm bg-white rounded-b-xl items-center justify-between gap-4 text-sm text-muted-foreground">
-          <div>
-            Hiển thị <span className="font-bold text-foreground">{startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredBanks.length)}</span> trong số <span className="font-bold text-foreground">{filteredBanks.length}</span> ngân hàng
-          </div>
-          <div className="flex gap-1">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="h-8" 
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage(currentPage - 1)}
-            >
-              Trước
-            </Button>
-            
-            {[...Array(totalPages)].map((_, i) => {
-              const pageNumber = i + 1;
-              return (
-                <Button 
-                  key={pageNumber}
-                  variant="outline" 
-                  size="sm" 
-                  className={`h-8 ${currentPage === pageNumber ? 'bg-primary text-white border-primary hover:bg-primary/90 hover:text-white' : ''}`}
-                  onClick={() => setCurrentPage(pageNumber)}
-                >
-                  {pageNumber}
-                </Button>
-              );
-            })}
 
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="h-8" 
-              disabled={currentPage === totalPages}
-              onClick={() => setCurrentPage(currentPage + 1)}
-            >
-              Sau
-            </Button>
-          </div>
-        </div>
-      )}
-      
       <BankFormModal 
         isOpen={isFormModalOpen} 
         onOpenChange={setIsFormModalOpen} 

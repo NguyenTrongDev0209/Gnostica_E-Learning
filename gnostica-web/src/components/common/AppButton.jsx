@@ -253,3 +253,27 @@ export const AppLogo = ({ src = "/Gnostica_Mark.webp", className }) => {
     </Link>
   )
 }
+
+// Nút thao tác trên bảng (Sửa, Xóa, Xem): Nền trong suốt, hover hiện màu tương ứng
+export const TableActionIconButton = ({ icon: Icon, colorVariant = "primary", className, ...props }) => {
+  const colorClass = colorVariant === "error" 
+    ? "text-muted-foreground hover:text-error hover:bg-error/10"
+    : colorVariant === "success"
+    ? "text-muted-foreground hover:text-success hover:bg-success/10"
+    : "text-muted-foreground hover:text-primary hover:bg-primary/10";
+
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      className={cn(
+        "h-8 w-8 transition-colors duration-200",
+        colorClass,
+        className
+      )}
+      {...props}
+    >
+      {Icon && <Icon className="w-4 h-4" />}
+    </Button>
+  )
+}

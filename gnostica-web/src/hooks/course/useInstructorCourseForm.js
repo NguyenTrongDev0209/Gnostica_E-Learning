@@ -357,6 +357,180 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
     }
   }, [isEditMode, slug, methods, navigate]);
 
+  // --- GLOBAL CLICK & UNLOAD EVENTS ---
+  useEffect(() => {
+    const handleGlobalClick = async (e) => {
+      if (isSubmittingRef.current) return;
+      const anchor = e.target.closest('a');
+      const button = e.target.closest('button');
+      const isNavAction =
+        (anchor && anchor.getAttribute('href')) ||
+        (button && (
+          button.title === "Đăng xuất" ||
+          button.title?.includes("Về trang chủ") ||
+          button.innerText.includes("Tạo khóa học mới") ||
+          button.closest('aside')
+        ));
+
+      if (!isNavAction) return;
+      
+      const isDirty = methods.formState.isDirty;
+      if (isDirty) {
+        const confirmMsg = isEditMode
+          ? "Bạn có các thay đổi chưa lưu. Bạn có chắc chắn muốn thoát và HỦY BỎ toàn bộ các thay đổi mới này để quay lại dữ liệu gốc không?"
+          : "Bạn đang tạo khóa học mới nhưng chưa xuất bản. Bạn có chắc chắn muốn thoát và xóa bỏ bản nháp hiện tại không?";
+
+        if (!window.confirm(confirmMsg)) {
+          e.preventDefault();
+          e.stopPropagation();
+        } else {
+          try {
+            let originalData = {};
+            try {
+               originalData = JSON.parse(originalDataRef.current || "{}");
+            } catch (err) {}
+            const idToUse = isEditMode ? (originalData?.id?.toString() || "") : "";
+            const slugToUse = isEditMode ? (slug || "") : null;
+            isSubmittingRef.current = true;
+            courseService.deleteDraft({ courseId: idToUse, slug: slugToUse });
+          } catch (err) {
+            isSubmittingRef.current = true;
+          }
+        }
+      }
+    };
+    document.addEventListener('click', handleGlobalClick, true);
+    return () => document.removeEventListener('click', handleGlobalClick, true);
+  }, [isEditMode, slug, methods, originalDataRef, isSubmittingRef]);
+
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      const isDirty = methods.formState.isDirty;
+      if (isDirty) {
+        saveDraft(methods.getValues(), false);
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [saveDraft, methods]);
+
+  // --- AUTO SAVE & UPLOAD LOGIC ---
+  const formData = methods.watch();
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      saveDraft(formData, false);
+    }, 10000);
+    return () => clearTimeout(timer);
+  }, [formData, saveDraft]);
+
+  const watchThumbnail = methods.watch("thumbnail");
+  useEffect(() => {
+    if (watchThumbnail instanceof File) {
+      const autoUploadThumbnail = async () => {
+        try {
+          handleSetIsUploading(true);
+          setUploadStatus("Đang tải lên ảnh đại diện...");
+          const url = await uploadImageToCloudinary(watchThumbnail);
+          methods.setValue("thumbnail", url);
+          saveDraft({ ...methods.getValues(), thumbnail: url }, false);
+        } catch (error) {
+          toast.error("Không thể tải lên ảnh đại diện tự động");
+        } finally {
+          handleSetIsUploading(false);
+          setUploadStatus("");
+        }
+      };
+      autoUploadThumbnail();
+    }
+  }, [watchThumbnail, methods, uploadImageToCloudinary, saveDraft, handleSetIsUploading, setUploadStatus]);
+
+  // --- SUBMIT ---
+  const onSubmit = async (data) => {
+    try {
+      handleSetIsUploading(true);
+      setUploadStatus("Đang kiểm tra dữ liệu...");
+
+      if (data.thumbnail && data.thumbnail instanceof File) {
+        setUploadStatus("Đang tải lên ảnh đại diện...");
+        data.thumbnail = await uploadImageToCloudinary(data.thumbnail);
+      }
+
+      if (data.promoVideo && data.promoVideo instanceof File) {
+        setUploadStatus("Đang hoàn tất tải video giới thiệu...");
+        try {
+          data.promoVideo = await uploadVideoToBunny(data.promoVideo, "Promo Video");
+        } catch (vErr) {
+          data.promoVideo = "upload-failed-promo";
+        }
+      }
+
+      for (let sIdx = 0; sIdx < data.sections.length; sIdx++) {
+        const section = data.sections[sIdx];
+        if (section.attachments && section.attachments instanceof File) {
+          setUploadStatus(`Đang xử lý tài liệu chương ${sIdx + 1}...`);
+          try {
+            section.attachments = await uploadDocumentToCloudinary(section.attachments);
+          } catch (docErr) {
+            section.attachments = null;
+          }
+        }
+
+        for (let lIdx = 0; lIdx < section.lessons.length; lIdx++) {
+          const lesson = section.lessons[lIdx];
+          if (lesson.videoFile && lesson.videoFile instanceof File) {
+            setUploadStatus(`Đang hoàn tất bài: ${lesson.title}`);
+            try {
+              lesson.videoUrl = await uploadVideoToBunny(lesson.videoFile, lesson.title);
+              lesson.videoFile = lesson.videoUrl;
+            } catch (vErr) {
+              lesson.videoUrl = "upload-failed-lesson";
+            }
+          }
+        }
+      }
+
+      setUploadStatus("Đang tiến hành xuất bản...");
+      data.updatedAt = new Date().toISOString();
+      isSubmittingRef.current = true;
+
+      const sanitizeId = (id) => (typeof id === 'number' || (!isNaN(id) && id !== "")) ? Number(id) : null;
+
+      const finalData = {
+        ...data,
+        categoryId: Number(data.categoryId),
+        price: Number(data.price),
+        questionBank: data.questionBank || [],
+        sections: data.sections?.map(s => ({
+          ...s,
+          id: sanitizeId(s.id),
+          lessons: s.lessons?.map(l => ({
+            ...l,
+            id: sanitizeId(l.id),
+            videoUrl: typeof l.videoFile === "string" ? l.videoFile : l.videoUrl
+          }))
+        }))
+      };
+
+      if (isEditMode && slug !== "new") {
+        await courseService.updateCourse(slug, finalData);
+      } else {
+        await courseService.createCourse(finalData);
+      }
+
+      localStorage.removeItem(`course_questions_${slug || 'new'}`);
+      toast.success(isEditMode && slug !== "new" ? "Cập nhật khóa học thành công!" : "Lưu khóa học thành công!");
+      setTimeout(() => navigate("/instructor/courses"), 1500);
+    } catch (error) {
+      console.error("Submit Error:", error);
+      toast.error(error.response?.data?.error || "Lỗi tải lên hoặc lưu khóa học.");
+    } finally {
+      handleSetIsUploading(false);
+      setUploadStatus("");
+    }
+  };
+
   return {
     methods,
     isEditMode,
@@ -381,6 +555,7 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
     uploadImageToCloudinary,
     uploadVideoToBunny,
     uploadDocumentToCloudinary,
-    getAuthHeaders
+    getAuthHeaders,
+    onSubmit
   };
 }

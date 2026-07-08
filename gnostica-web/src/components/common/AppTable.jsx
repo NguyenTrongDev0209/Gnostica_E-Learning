@@ -113,25 +113,29 @@ export default function AppTable({
                                     ? rowClassName(row, rowIndex) 
                                     : rowClassName || "";
 
+                                const expandedContent = props.renderExpandedRow ? props.renderExpandedRow(row, rowIndex) : null;
+
                                 return (
-                                    <TableRow
-                                        key={rowKey(row, rowIndex)}
-                                        className={cn(
-                                            "group transition-colors duration-200 hover:bg-muted/30 border-b border-border/50 last:border-0",
-                                            onRowClick && "cursor-pointer",
-                                            trClass
-                                        )}
-                                        onClick={() => onRowClick?.(row)}
-                                    >
-                                        {columns.map((column, colIndex) => (
-                                            <TableCell
-                                                key={column.key || column.accessor || colIndex}
-                                                className={cn("py-4 px-4 align-middle", column.cellClassName)}
-                                            >
-                                                {column.render ? column.render(row, rowIndex) : row[column.key || column.accessor]}
-                                            </TableCell>
-                                        ))}
-                                    </TableRow>
+                                    <React.Fragment key={rowKey(row, rowIndex)}>
+                                        <TableRow
+                                            className={cn(
+                                                "group transition-colors duration-200 hover:bg-muted/30 border-b border-border/50 last:border-0",
+                                                onRowClick && "cursor-pointer",
+                                                trClass
+                                            )}
+                                            onClick={() => onRowClick?.(row)}
+                                        >
+                                            {columns.map((column, colIndex) => (
+                                                <TableCell
+                                                    key={column.key || column.accessor || colIndex}
+                                                    className={cn("py-4 px-4 align-middle", column.cellClassName)}
+                                                >
+                                                    {column.render ? column.render(row, rowIndex) : row[column.key || column.accessor]}
+                                                </TableCell>
+                                            ))}
+                                        </TableRow>
+                                        {expandedContent}
+                                    </React.Fragment>
                                 );
                             })
                         )}

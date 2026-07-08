@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
+import React, { useState, useEffect } from "react";
 import { X, Building2, CreditCard, DollarSign, Lock, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { GhostButton, SimpleButton } from "@/components/common/AppButton";
 import walletService from "@/services/payment/walletService";
 import bankService from "@/services/payment/bankService";
 
@@ -15,6 +15,7 @@ const formatVND = (amount) =>
     new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(amount || 0);
 
 // ─── InputField — đặt NGOÀI component để tránh mất focus khi re-render ──────
+// eslint-disable-next-line no-unused-vars
 const InputField = ({ icon: Icon, label, ...props }) => (
     <div className="space-y-1.5">
         <label className="text-sm font-medium text-foreground flex items-center gap-2">
@@ -222,10 +223,10 @@ export default function WithdrawModal({ isOpen, onClose, wallet, onSuccess }) {
                                 required
                             />
                             <div className="pt-2 flex gap-3">
-                                <Button type="button" variant="outline" onClick={onClose} className="flex-1">Hủy</Button>
-                                <Button type="submit" disabled={loading} className="flex-1 bg-success/10 text-success hover:bg-success/10 text-success text-white shadow-none">
+                                <GhostButton type="button" onClick={onClose} className="flex-1 border border-border">Hủy</GhostButton>
+                                <SimpleButton type="submit" disabled={loading} className="flex-1 bg-success/10 text-success hover:bg-success/20">
                                     {loading ? "Đang lưu..." : "Lưu tài khoản"}
-                                </Button>
+                                </SimpleButton>
                             </div>
                         </form>
                     )}
@@ -288,10 +289,10 @@ export default function WithdrawModal({ isOpen, onClose, wallet, onSuccess }) {
                             />
 
                             <div className="pt-2 flex gap-3">
-                                <Button type="button" variant="outline" onClick={onClose} className="flex-1">Hủy</Button>
-                                <Button type="submit" disabled={loading} className="flex-1 bg-success/10 text-success hover:bg-success/10 text-success text-white shadow-none">
+                                <GhostButton type="button" onClick={onClose} className="flex-1 border border-border">Hủy</GhostButton>
+                                <SimpleButton type="submit" disabled={loading} className="flex-1 bg-success/10 text-success hover:bg-success/20">
                                     {loading ? "Đang xử lý..." : "Xác nhận rút tiền"}
-                                </Button>
+                                </SimpleButton>
                             </div>
                         </form>
                     )}
@@ -315,21 +316,20 @@ export default function WithdrawModal({ isOpen, onClose, wallet, onSuccess }) {
                             />
 
                             <div className="pt-2 flex gap-3">
-                                <Button
+                                <GhostButton
                                     type="button"
-                                    variant="outline"
                                     onClick={() => setStep("withdraw")}
-                                    className="flex-1"
+                                    className="flex-1 border border-border"
                                 >
                                     Quay lại
-                                </Button>
-                                <Button
+                                </GhostButton>
+                                <SimpleButton
                                     type="submit"
                                     disabled={loading}
-                                    className="flex-1 bg-error/10 text-error hover:bg-error/10 text-error text-white shadow-none"
+                                    className="flex-1 bg-error/10 text-error hover:bg-error/20"
                                 >
                                     {loading ? "Đang xử lý..." : "Xác nhận xóa"}
-                                </Button>
+                                </SimpleButton>
                             </div>
                         </form>
                     )}

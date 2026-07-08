@@ -1,25 +1,25 @@
+import { toast } from "sonner";
 import React from "react";
 import useInstructorCourseForm from "@/hooks/course/useInstructorCourseForm";
 import { FormProvider } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, CircleFadingArrowUp, Save, Sparkles, Loader2 } from "lucide-react";
-import { toast } from "sonner";
-import courseService from "@/services/course/courseService";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
+import { GhostButton, SimpleButton } from "@/components/common/AppButton";
 
-import CourseStepper from "@/pages/instructor/components/course-form/CourseStepper";
-import BasicInfoTab from "@/pages/instructor/components/course-form/BasicInfoTab";
-import QuizTab from "@/pages/instructor/components/course-form/QuizTab";
-import CurriculumTab from "@/pages/instructor/components/course-form/CurriculumTab";
-import SettingsTab from "@/pages/instructor/components/course-form/SettingsTab";
+import CourseStepper from "@/pages/instructor/components/CourseStepper";
+import BasicInfoTab from "@/pages/instructor/components/BasicInfoTab";
+import QuizTab from "@/pages/instructor/components/QuizTab";
+import CurriculumTab from "@/pages/instructor/components/CurriculumTab";
+import SettingsTab from "@/pages/instructor/components/SettingsTab";
 
 import { courseSchema, viErrorMap } from "@/utils/validations/courseSchema";
 import useCourseAiPreScan from "@/pages/instructor/components/course-form/hooks/useCourseAiPreScan";
-import CourseDraftModal from "@/pages/instructor/components/course-form/modals/CourseDraftModal";
-import CourseAiReportModal from "@/pages/instructor/components/course-form/modals/CourseAiReportModal";
+import CourseDraftModal from "@/pages/instructor/components/CourseDraftModal";
+import CourseAiReportModal from "@/pages/instructor/components/CourseAiReportModal";
 
 export default function InstructorCourseForm() {
+  // eslint-disable-next-line no-unused-vars
   const navigate = useNavigate();
   const [showAiReportModal, setShowAiReportModal] = React.useState(false);
 
@@ -30,8 +30,10 @@ export default function InstructorCourseForm() {
     activeTab,
     setActiveTab,
     isUploading,
+    // eslint-disable-next-line no-unused-vars
     setIsUploading,
     uploadStatus,
+    // eslint-disable-next-line no-unused-vars
     setUploadStatus,
     activeUploads,
     setActiveUploads,
@@ -42,183 +44,15 @@ export default function InstructorCourseForm() {
     saveDraft,
     restoreDraft,
     handleExitWithConfirmation,
+    // eslint-disable-next-line no-unused-vars
     isSubmittingRef,
-    originalDataRef,
-    uploadImageToCloudinary,
     uploadVideoToBunny,
-    uploadDocumentToCloudinary
+    onSubmit
   } = useInstructorCourseForm(courseSchema, viErrorMap);
 
   const { isPreScanning, handlePreScanWholeCourse } = useCourseAiPreScan(methods);
 
   const overallAiReport = methods.watch("aiModerationReport");
-  const formData = methods.watch();
-
-  React.useEffect(() => {
-    const handleGlobalClick = async (e) => {
-      if (isSubmittingRef.current) return;
-      const anchor = e.target.closest('a');
-      const button = e.target.closest('button');
-      const isNavAction =
-        (anchor && anchor.getAttribute('href')) ||
-        (button && (
-          button.title === "Đăng xuất" ||
-          button.title?.includes("Về trang chủ") ||
-          button.innerText.includes("Tạo khóa học mới") ||
-          button.closest('aside')
-        ));
-
-      if (!isNavAction) return;
-      
-      const isDirty = methods.formState.isDirty;
-      if (isDirty) {
-        const confirmMsg = isEditMode
-          ? "Bạn có các thay đổi chưa lưu. Bạn có chắc chắn muốn thoát và HỦY BỎ toàn bộ các thay đổi mới này để quay lại dữ liệu gốc không?"
-          : "Bạn đang tạo khóa học mới nhưng chưa xuất bản. Bạn có chắc chắn muốn thoát và xóa bỏ bản nháp hiện tại không?";
-
-        if (!window.confirm(confirmMsg)) {
-          e.preventDefault();
-          e.stopPropagation();
-        } else {
-          try {
-            const idToUse = isEditMode ? (originalDataRef.current?.id?.toString() || "") : "";
-            const slugToUse = isEditMode ? (slug || "") : null;
-            isSubmittingRef.current = true;
-            courseService.deleteDraft({ courseId: idToUse, slug: slugToUse });
-          } catch (err) {
-            isSubmittingRef.current = true;
-          }
-        }
-      }
-    };
-    document.addEventListener('click', handleGlobalClick, true);
-    return () => document.removeEventListener('click', handleGlobalClick, true);
-  }, [isEditMode, slug, methods, originalDataRef, isSubmittingRef]);
-
-  React.useEffect(() => {
-    const handleBeforeUnload = (e) => {
-      const isDirty = methods.formState.isDirty;
-      if (isDirty) {
-        saveDraft(methods.getValues(), false);
-        e.preventDefault();
-        e.returnValue = '';
-      }
-    };
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [saveDraft, methods]);
-
-  React.useEffect(() => {
-    const timer = setTimeout(() => {
-      saveDraft(formData, false);
-    }, 10000);
-    return () => clearTimeout(timer);
-  }, [formData, saveDraft]);
-
-  const watchThumbnail = methods.watch("thumbnail");
-  React.useEffect(() => {
-    if (watchThumbnail instanceof File) {
-      const autoUploadThumbnail = async () => {
-        try {
-          setIsUploading(true);
-          setUploadStatus("Đang tải lên ảnh đại diện...");
-          const url = await uploadImageToCloudinary(watchThumbnail);
-          methods.setValue("thumbnail", url);
-          saveDraft({ ...methods.getValues(), thumbnail: url }, false);
-        } catch (error) {
-          toast.error("Không thể tải lên ảnh đại diện tự động");
-        } finally {
-          setIsUploading(false);
-          setUploadStatus("");
-        }
-      };
-      autoUploadThumbnail();
-    }
-  }, [watchThumbnail, methods, uploadImageToCloudinary, saveDraft, setIsUploading, setUploadStatus]);
-
-  const onSubmit = async (data) => {
-    try {
-      setIsUploading(true);
-      setUploadStatus("Đang kiểm tra dữ liệu...");
-
-      if (data.thumbnail && data.thumbnail instanceof File) {
-        setUploadStatus("Đang tải lên ảnh đại diện...");
-        data.thumbnail = await uploadImageToCloudinary(data.thumbnail);
-      }
-
-      if (data.promoVideo && data.promoVideo instanceof File) {
-        setUploadStatus("Đang hoàn tất tải video giới thiệu...");
-        try {
-          data.promoVideo = await uploadVideoToBunny(data.promoVideo, "Promo Video");
-        } catch (vErr) {
-          data.promoVideo = "upload-failed-promo";
-        }
-      }
-
-      for (let sIdx = 0; sIdx < data.sections.length; sIdx++) {
-        const section = data.sections[sIdx];
-        if (section.attachments && section.attachments instanceof File) {
-          setUploadStatus(`Đang xử lý tài liệu chương ${sIdx + 1}...`);
-          try {
-            section.attachments = await uploadDocumentToCloudinary(section.attachments);
-          } catch (docErr) {
-            section.attachments = null;
-          }
-        }
-
-        for (let lIdx = 0; lIdx < section.lessons.length; lIdx++) {
-          const lesson = section.lessons[lIdx];
-          if (lesson.videoFile && lesson.videoFile instanceof File) {
-            setUploadStatus(`Đang hoàn tất bài: ${lesson.title}`);
-            try {
-              lesson.videoUrl = await uploadVideoToBunny(lesson.videoFile, lesson.title);
-              lesson.videoFile = lesson.videoUrl;
-            } catch (vErr) {
-              lesson.videoUrl = "upload-failed-lesson";
-            }
-          }
-        }
-      }
-
-      setUploadStatus("Đang tiến hành xuất bản...");
-      data.updatedAt = new Date().toISOString();
-      isSubmittingRef.current = true;
-
-      const sanitizeId = (id) => (typeof id === 'number' || (!isNaN(id) && id !== "")) ? Number(id) : null;
-
-      const finalData = {
-        ...data,
-        categoryId: Number(data.categoryId),
-        price: Number(data.price),
-        questionBank: data.questionBank || [],
-        sections: data.sections?.map(s => ({
-          ...s,
-          id: sanitizeId(s.id),
-          lessons: s.lessons?.map(l => ({
-            ...l,
-            id: sanitizeId(l.id),
-            videoUrl: typeof l.videoFile === "string" ? l.videoFile : l.videoUrl
-          }))
-        }))
-      };
-
-      if (isEditMode && slug !== "new") {
-        await courseService.updateCourse(slug, finalData);
-      } else {
-        await courseService.createCourse(finalData);
-      }
-
-      localStorage.removeItem(`course_questions_${slug || 'new'}`);
-      toast.success(isEditMode && slug !== "new" ? "Cập nhật khóa học thành công!" : "Lưu khóa học thành công!");
-      setTimeout(() => navigate("/instructor/courses"), 1500);
-    } catch (error) {
-      console.error("Submit Error:", error);
-      toast.error(error.response?.data?.error || "Lỗi tải lên hoặc lưu khóa học.");
-    } finally {
-      setIsUploading(false);
-      setUploadStatus("");
-    }
-  };
 
   const onError = (errors) => {
     toast.error("Vui lòng kiểm tra lại thông tin trên form!");
@@ -263,9 +97,8 @@ export default function InstructorCourseForm() {
               </div>
             )}
 
-            <Button
+            <GhostButton
               type="button"
-              variant="outline"
               onClick={() => setShowAiReportModal(true)}
               className={`h-9 sm:h-10 px-3 sm:px-5 rounded-xl font-bold border shadow-sm text-xs sm:text-sm flex items-center gap-2 transition-all duration-300 hover:-translate-y-0.5 shrink-0 ${
                 (() => {
@@ -276,6 +109,7 @@ export default function InstructorCourseForm() {
                     const hasV = rep.violations && rep.violations.length > 0;
                     if (sc < 70 || hasV) return "bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200 animate-pulse shadow-rose-100/40 shadow-lg";
                     return "bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-200";
+                  // eslint-disable-next-line no-unused-vars
                   } catch(e) { return "text-muted-foreground border-border"; }
                 })()
               }`}
@@ -283,22 +117,20 @@ export default function InstructorCourseForm() {
               <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               <span className="hidden md:inline">Kết quả kiểm duyệt AI</span>
               <span className="md:hidden">AI Report</span>
-            </Button>
+            </GhostButton>
 
-            <Button
+            <GhostButton
               type="button"
-              variant="outline"
-              className="h-9 sm:h-10 px-3 sm:px-5 font-bold border-border text-muted-foreground hover:bg-muted shadow-none text-xs sm:text-sm"
+              className="h-9 sm:h-10 px-3 sm:px-5 font-bold border border-border text-muted-foreground hover:bg-muted shadow-none text-xs sm:text-sm"
               onClick={handleExitWithConfirmation}
             >
               Hủy
-            </Button>
+            </GhostButton>
 
-            <Button
+            <GhostButton
               type="button"
-              variant="outline"
               disabled={isSavingDraft || isUploading}
-              className="h-9 sm:h-10 px-3 sm:px-5 font-bold border-info/20 text-info hover:bg-blue-50 shadow-none text-xs sm:text-sm flex items-center gap-2"
+              className="h-9 sm:h-10 px-3 sm:px-5 font-bold border border-info/20 text-info hover:bg-blue-50 shadow-none text-xs sm:text-sm flex items-center gap-2"
               onClick={() => saveDraft(methods.getValues(), true)}
             >
               {isSavingDraft ? (
@@ -307,7 +139,7 @@ export default function InstructorCourseForm() {
                 <Save size={16} />
               )}
               Lưu bản nháp
-            </Button>
+            </GhostButton>
           </div>
         </div>
       </div>
@@ -368,15 +200,14 @@ export default function InstructorCourseForm() {
                 </button>
               ) : (
                 <>
-                  <Button
+                  <GhostButton
                     type="button"
-                    variant="outline"
                     onClick={() => setShowAiReportModal(true)}
-                    className="h-11 px-6 rounded-xl font-bold border shadow-sm text-xs sm:text-sm flex items-center gap-2"
+                    className="h-11 px-6 rounded-xl font-bold border border-border shadow-sm text-xs sm:text-sm flex items-center gap-2"
                   >
                     <Sparkles className="w-4 h-4" />
                     Kết quả kiểm duyệt AI
-                  </Button>
+                  </GhostButton>
 
                   <button
                     type="button"

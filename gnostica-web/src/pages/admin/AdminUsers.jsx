@@ -14,7 +14,7 @@ import {
 import AppTable from "@/components/common/AppTable";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { SimpleButton, GhostButton } from "@/components/common/AppButton";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -31,6 +31,7 @@ import useAdminUsers from "@/hooks/user/useAdminUsers";
 
 export default function AdminUsers() {
   const {
+    // eslint-disable-next-line no-unused-vars
     activeTab,
     setActiveTab,
     accounts,
@@ -105,18 +106,23 @@ export default function AdminUsers() {
       cellClassName: "text-right",
       render: (acc) => (
         <div className="flex justify-end items-center gap-2">
-          <Button
-            variant={acc.locked ? "default" : "outline"}
-            size="sm"
-            className={`h-9 font-bold gap-2 ${acc.locked ? 'bg-emerald-600 hover:bg-emerald-700' : 'border-error/20 text-error hover:bg-red-50 hover:text-error'}`}
-            onClick={() => handleToggleLock(acc)}
-          >
-            {acc.locked ? (
-              <><Unlock className="w-4 h-4" /> Mở khóa</>
-            ) : (
-              <><Lock className="w-4 h-4" /> Khóa</>
-            )}
-          </Button>
+          {acc.locked ? (
+            <SimpleButton
+              size="sm"
+              className={`h-9 font-bold gap-2 bg-emerald-600 hover:bg-emerald-700 text-white border-none`}
+              onClick={() => handleToggleLock(acc)}
+            >
+              <Unlock className="w-4 h-4" /> Mở khóa
+            </SimpleButton>
+          ) : (
+            <GhostButton
+              size="sm"
+              className={`h-9 font-bold gap-2 border border-error/20 text-error hover:bg-red-50 hover:text-error bg-white`}
+              onClick={() => handleToggleLock(acc)}
+            >
+              <Lock className="w-4 h-4" /> Khóa
+            </GhostButton>
+          )}
         </div>
       )
     }
@@ -167,18 +173,16 @@ export default function AdminUsers() {
       cellClassName: "text-right",
       render: (app) => (
         <div className="flex justify-end items-center gap-2">
-          <Button
-            variant="outline"
+          <GhostButton
             size="sm"
-            className="border-success/20 text-success hover:bg-green-50"
+            className="border border-success/20 text-success hover:bg-green-50 bg-white font-bold"
             onClick={() => handleApprove(app.id)}
           >
             Phê duyệt
-          </Button>
-          <Button
-            variant="outline"
+          </GhostButton>
+          <GhostButton
             size="sm"
-            className="border-error/20 text-error hover:bg-red-50"
+            className="border border-error/20 text-error hover:bg-red-50 bg-white font-bold"
             onClick={() => {
               setSelectedApp(app.id);
               setRejectReason("");
@@ -186,7 +190,7 @@ export default function AdminUsers() {
             }}
           >
             Từ chối
-          </Button>
+          </GhostButton>
         </div>
       )
     }
@@ -222,10 +226,10 @@ export default function AdminUsers() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <Button variant="outline" className="h-10 px-3 flex items-center gap-2">
+            <GhostButton className="h-10 px-3 flex items-center gap-2 border border-border bg-white text-foreground hover:bg-muted font-bold">
               <Filter className="w-4 h-4" />
               Lọc
-            </Button>
+            </GhostButton>
           </div>
         </div>
 
@@ -287,10 +291,10 @@ export default function AdminUsers() {
             />
           </div>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setLockDialogOpen(false)}>Hủy</Button>
-            <Button className="bg-error/10 text-error hover:bg-error/10 text-error font-bold" onClick={confirmLock}>
+            <GhostButton className="border-none hover:bg-muted font-bold" onClick={() => setLockDialogOpen(false)}>Hủy</GhostButton>
+            <SimpleButton className="bg-error/10 text-error hover:bg-error/20 text-error font-bold border-none" onClick={confirmLock}>
               Xác nhận khóa
-            </Button>
+            </SimpleButton>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -312,10 +316,10 @@ export default function AdminUsers() {
             />
           </div>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setRejectDialogOpen(false)}>Hủy</Button>
-            <Button className="bg-error/10 text-error hover:bg-error/10 text-error font-bold" onClick={handleReject}>
+            <GhostButton className="border-none hover:bg-muted font-bold" onClick={() => setRejectDialogOpen(false)}>Hủy</GhostButton>
+            <SimpleButton className="bg-error/10 text-error hover:bg-error/20 text-error font-bold border-none" onClick={handleReject}>
               Xác nhận từ chối
-            </Button>
+            </SimpleButton>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -326,9 +330,9 @@ export default function AdminUsers() {
           <DialogHeader className="mb-2 shrink-0">
             <DialogTitle className="text-xl font-bold flex justify-between items-center pr-6 text-slate-800">
               {previewDocument?.title || "Xem trước tài liệu"}
-              <Button size="sm" variant="outline" className="h-8" onClick={() => window.open(previewDocument?.url, '_blank')}>
+              <GhostButton size="sm" className="h-8 border border-border bg-white hover:bg-muted font-bold" onClick={() => window.open(previewDocument?.url, '_blank')}>
                 Mở trong tab mới
-              </Button>
+              </GhostButton>
             </DialogTitle>
           </DialogHeader>
           <div className="flex-1 w-full bg-slate-100/50 rounded-lg overflow-hidden border border-border flex items-center justify-center relative">

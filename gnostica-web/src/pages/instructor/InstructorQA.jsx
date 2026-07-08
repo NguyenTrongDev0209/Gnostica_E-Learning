@@ -1,10 +1,8 @@
+// eslint-disable-next-line no-unused-vars
 import React, { useState } from "react";
 import { 
   MessageSquare, 
   Star, 
-  Search, 
-  Filter, 
-  MoreHorizontal, 
   Reply, 
   ThumbsUp, 
   Clock,
@@ -13,7 +11,7 @@ import {
   Loader2
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { GhostButton, SimpleButton } from "@/components/common/AppButton";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -37,6 +35,7 @@ export default function InstructorQA() {
       return date.toLocaleDateString("vi-VN", {
         day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit"
       });
+    // eslint-disable-next-line no-unused-vars
     } catch (e) {
       return timeString;
     }
@@ -111,9 +110,9 @@ export default function InstructorQA() {
                         <ThumbsUp className="w-3.5 h-3.5" /> {q.likes || 0} Hữu ích
                       </button>
                     </div>
-                    <Button size="sm" className="bg-success/10 text-success hover:bg-success/10 text-success text-white font-bold h-8 shadow-none">
+                    <SimpleButton size="sm" className="bg-success/10 text-success hover:bg-success/20 font-bold h-8">
                       <Reply className="w-3.5 h-3.5 mr-1.5" /> Phản hồi ngay
-                    </Button>
+                    </SimpleButton>
                  </div>
                </CardContent>
              </Card>
@@ -149,9 +148,9 @@ export default function InstructorQA() {
                     </div>
                  </div>
                  <div className="px-5 py-3 border-t border-border bg-muted flex justify-end">
-                    <Button variant="ghost" size="sm" className="h-8 font-bold text-amber-600 hover:bg-amber-50">
+                    <GhostButton size="sm" className="h-8 font-bold text-amber-600 hover:bg-amber-50 hover:text-amber-700">
                       Cảm ơn học viên &rarr;
-                    </Button>
+                    </GhostButton>
                  </div>
                </CardContent>
              </Card>

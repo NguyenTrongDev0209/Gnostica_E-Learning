@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-unused-vars
 import React, { useState, useEffect } from "react";
 import useAdminCategories from "@/hooks/course/useAdminCategories";
 import {
@@ -9,17 +10,11 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import AppTable from "@/components/common/AppTable";
+import { TableRow, TableCell } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { SimpleButton, TableActionIconButton, GhostButton } from "@/components/common/AppButton";
 import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -46,8 +41,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+// eslint-disable-next-line no-unused-vars
 import { toast } from "sonner";
 import Fuse from "fuse.js";
+// eslint-disable-next-line no-unused-vars
 import categoryService from "@/services/course/categoryService";
 import { DialogDescription } from "@/components/ui/dialog";
 
@@ -142,13 +139,13 @@ export default function AdminCategories({ hideHeader = false }) {
         ) : (
           <div />
         )}
-        <Button
-          className="font-bold flex items-center gap-2"
+        <SimpleButton
+          className="flex items-center gap-2"
           onClick={() => setIsAddModalOpen(true)}
         >
           <Plus className="w-4 h-4" />
           Thêm Danh Mục
-        </Button>
+        </SimpleButton>
       </div>
 
       {/* Filter */}
@@ -188,79 +185,160 @@ export default function AdminCategories({ hideHeader = false }) {
 
       {/* Categories Table */}
       <Card className="border-border shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader className="bg-muted">
-              <TableRow>
-                <TableHead className="py-4 font-semibold text-foreground w-10 mx-auto" />
-                <TableHead className="py-4 font-semibold text-foreground w-[25%] min-w-[200px]">
-                  Danh mục
-                </TableHead>
-                <TableHead className="py-4 font-semibold text-foreground w-[20%] min-w-[150px]">
-                  Slug
-                </TableHead>
-                <TableHead className="py-4 font-semibold text-foreground text-center w-32 whitespace-nowrap">
-                  Danh mục con
-                </TableHead>
-                <TableHead className="py-4 font-semibold text-foreground text-center w-24 whitespace-nowrap">
-                  Khóa học
-                </TableHead>
-                <TableHead className="py-4 font-semibold text-foreground w-32 whitespace-nowrap">
-                  Trạng thái
-                </TableHead>
-                <TableHead className="py-4 font-semibold text-foreground text-center w-24 min-w-[100px]">
-                  Thao tác
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {categories.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="h-32 text-center text-muted-foreground font-medium">
-                    Không tìm thấy danh mục nào phù hợp.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                categories.map((cat) => (
-                  <React.Fragment key={cat.id}>
+        <AppTable
+          columns={[
+            {
+              width: "40px",
+              className: "w-10 mx-auto",
+              cellClassName: "w-8 pl-4",
+              render: (cat) => (
+                <ChevronRight
+                  className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${expanded === cat.id ? "rotate-90" : ""}`}
+                />
+              ),
+            },
+            {
+              header: "Danh mục",
+              width: "25%",
+              className: "min-w-[200px]",
+              render: (cat) => (
+                <div className="flex items-center gap-3">
+                  <div>
+                    <p className="font-bold text-foreground">{cat.name}</p>
+                  </div>
+                </div>
+              ),
+            },
+            {
+              header: "Slug",
+              width: "20%",
+              className: "min-w-[150px]",
+              render: (cat) => (
+                <code className="text-xs bg-secondary px-2 py-1 rounded text-muted-foreground font-mono">
+                  {cat.slug}
+                </code>
+              ),
+            },
+            {
+              header: "Danh mục con",
+              className: "text-center w-32 whitespace-nowrap",
+              cellClassName: "text-center",
+              render: (cat) => (
+                <span className="text-sm text-muted-foreground font-medium bg-secondary px-2.5 py-1 rounded-full">
+                  {cat.subcategories ? cat.subcategories.length : 0}
+                </span>
+              ),
+            },
+            {
+              header: "Khóa học",
+              className: "text-center w-24 whitespace-nowrap",
+              cellClassName: "text-center font-bold text-foreground",
+              render: (cat) => cat.courses,
+            },
+            {
+              header: "Trạng thái",
+              className: "w-32 whitespace-nowrap",
+              render: (cat) => (
+                cat.status === true ? (
+                  <span
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleStatus(cat.id, false);
+                    }}
+                    className="inline-flex items-center gap-1.5 text-sm text-success font-medium cursor-pointer hover:underline"
+                  >
+                    <span className="w-2 h-2 rounded-full bg-success/10 text-success" />{" "}
+                    Hoạt động
+                  </span>
+                ) : (
+                  <span
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleStatus(cat.id, true);
+                    }}
+                    className="inline-flex items-center gap-1.5 text-sm text-muted-foreground font-medium cursor-pointer hover:underline"
+                  >
+                    <span className="w-2 h-2 rounded-full bg-muted" />{" "}
+                    Tạm ẩn
+                  </span>
+                )
+              ),
+            },
+            {
+              header: "Thao tác",
+              className: "text-center w-24 min-w-[100px]",
+              cellClassName: "text-center",
+              render: (cat) => (
+                <div
+                  className="flex justify-center items-center gap-2"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <TableActionIconButton
+                    icon={Edit}
+                    onClick={(e) => handleEdit(e, cat)}
+                  />
+                  <TableActionIconButton
+                    icon={Trash2}
+                    colorVariant="error"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(cat.id);
+                    }}
+                  />
+                </div>
+              ),
+            },
+          ]}
+          data={categories}
+          isLoading={loading}
+          loadingState="Đang tải danh mục..."
+          emptyState="Không tìm thấy danh mục nào phù hợp."
+          onRowClick={(cat) => setExpanded(expanded === cat.id ? null : cat.id)}
+          rowClassName="cursor-pointer"
+          pagination={{
+            currentPage,
+            totalPages,
+            totalElements,
+            onPageChange: setCurrentPage,
+            zeroIndexed: false,
+          }}
+          renderExpandedRow={(cat) => {
+            if (expanded === cat.id && cat.subcategories && cat.subcategories.length > 0) {
+              return (
+                <>
+                  {cat.subcategories.map((sub) => (
                     <TableRow
-                      key={cat.id}
-                      className="hover:bg-muted cursor-pointer"
-                      onClick={() =>
-                        setExpanded(expanded === cat.id ? null : cat.id)
-                      }
+                      key={sub.id}
+                      className="bg-muted/60 hover:bg-secondary"
                     >
-                      <TableCell className="w-8 pl-4">
-                        <ChevronRight
-                          className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${expanded === cat.id ? "rotate-90" : ""}`}
-                        />
-                      </TableCell>
-                      <TableCell>
+                      <TableCell className="w-8" />
+                      <TableCell className="pl-12">
                         <div className="flex items-center gap-3">
+                          <div className="w-1.5 h-1.5 rounded-full bg-muted" />
                           <div>
-                            <p className="font-bold text-foreground">{cat.name}</p>
+                            <p className="font-bold text-foreground">
+                              {sub.name}
+                            </p>
                           </div>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <code className="text-xs bg-secondary px-2 py-1 rounded text-muted-foreground font-mono">
-                          {cat.slug}
+                        <code className="text-xs bg-white px-2 py-1 rounded border border-border text-muted-foreground font-mono">
+                          {sub.slug}
                         </code>
                       </TableCell>
                       <TableCell className="text-center">
-                        <span className="text-sm text-muted-foreground font-medium bg-secondary px-2.5 py-1 rounded-full">
-                          {cat.subcategories ? cat.subcategories.length : 0}
-                        </span>
+                        <span className="text-sm text-muted-foreground font-medium block w-full">-</span>
                       </TableCell>
                       <TableCell className="text-center font-bold text-foreground">
-                        {cat.courses}
+                        {sub.courses}
                       </TableCell>
                       <TableCell>
-                        {cat.status === true ? (
+                        {sub.status === true ? (
                           <span
                             onClick={(e) => {
                               e.stopPropagation();
-                              toggleStatus(cat.id, false);
+                              toggleStatus(sub.id, false);
                             }}
                             className="inline-flex items-center gap-1.5 text-sm text-success font-medium cursor-pointer hover:underline"
                           >
@@ -271,7 +349,7 @@ export default function AdminCategories({ hideHeader = false }) {
                           <span
                             onClick={(e) => {
                               e.stopPropagation();
-                              toggleStatus(cat.id, true);
+                              toggleStatus(sub.id, true);
                             }}
                             className="inline-flex items-center gap-1.5 text-sm text-muted-foreground font-medium cursor-pointer hover:underline"
                           >
@@ -285,155 +363,28 @@ export default function AdminCategories({ hideHeader = false }) {
                           className="flex justify-center items-center gap-2"
                           onClick={(e) => e.stopPropagation()}
                         >
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-muted-foreground hover:text-primary"
-                            onClick={(e) => handleEdit(e, cat)}
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-muted-foreground hover:text-error"
+                          <TableActionIconButton
+                            icon={Edit}
+                            onClick={(e) => handleEdit(e, sub, cat.id)}
+                          />
+                          <TableActionIconButton
+                            icon={Trash2}
+                            colorVariant="error"
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleDelete(cat.id);
+                              handleDelete(sub.id);
                             }}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          />
                         </div>
                       </TableCell>
                     </TableRow>
-
-                    {/* Subcategories expanded row */}
-                    {expanded === cat.id &&
-                      cat.subcategories &&
-                      cat.subcategories.length > 0 &&
-                      cat.subcategories.map((sub) => (
-                        <TableRow
-                          key={sub.id}
-                          className="bg-muted/60 hover:bg-secondary"
-                        >
-                          <TableCell className="w-8" />
-                          <TableCell className="pl-12">
-                            <div className="flex items-center gap-3">
-                              <div className="w-1.5 h-1.5 rounded-full bg-muted" />
-                              <div>
-                                <p className="font-bold text-foreground">
-                                  {sub.name}
-                                </p>
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <code className="text-xs bg-white px-2 py-1 rounded border border-border text-muted-foreground font-mono">
-                              {sub.slug}
-                            </code>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <span className="text-sm text-muted-foreground font-medium block w-full">-</span>
-                          </TableCell>
-                          <TableCell className="text-center font-bold text-foreground">
-                            {sub.courses}
-                          </TableCell>
-                          <TableCell>
-                            {sub.status === true ? (
-                              <span
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  toggleStatus(sub.id, false);
-                                }}
-                                className="inline-flex items-center gap-1.5 text-sm text-success font-medium cursor-pointer hover:underline"
-                              >
-                                <span className="w-2 h-2 rounded-full bg-success/10 text-success" />{" "}
-                                Hoạt động
-                              </span>
-                            ) : (
-                              <span
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  toggleStatus(sub.id, true);
-                                }}
-                                className="inline-flex items-center gap-1.5 text-sm text-muted-foreground font-medium cursor-pointer hover:underline"
-                              >
-                                <span className="w-2 h-2 rounded-full bg-muted" />{" "}
-                                Tạm ẩn
-                              </span>
-                            )}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <div
-                              className="flex justify-center items-center gap-2"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-muted-foreground hover:text-primary"
-                                onClick={(e) => handleEdit(e, sub, cat.id)}
-                              >
-                                <Edit className="w-4 h-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-muted-foreground hover:text-error"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDelete(sub.id);
-                                }}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                  </React.Fragment>
-                ))
-              )}
-            </TableBody>
-          </Table>
-          {totalPages > 1 && (
-            <div className="flex flex-col sm:flex-row justify-between items-center py-4 px-4 bg-white border-t border-border gap-4">
-              <span className="text-sm font-medium text-muted-foreground">
-                Hiển thị {(currentPage - 1) * ITEMS_PER_PAGE + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, totalElements)} của {totalElements} danh mục
-              </span>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                  disabled={currentPage === 1}
-                >
-                  Trước
-                </Button>
-                {Array.from({ length: totalPages }).map((_, idx) => (
-                  <Button
-                    key={idx}
-                    variant={currentPage === idx + 1 ? "default" : "outline"}
-                    size="sm"
-                    className="w-8 h-8 rounded-lg p-0"
-                    onClick={() => setCurrentPage(idx + 1)}
-                  >
-                    {idx + 1}
-                  </Button>
-                ))}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-                  disabled={currentPage === totalPages}
-                >
-                  Sau
-                </Button>
-              </div>
-            </div>
-          )}
-        </div>
+                  ))}
+                </>
+              );
+            }
+            return null;
+          }}
+        />
       </Card>
       {/* Add Category Modal */}
       <Dialog
@@ -571,21 +522,20 @@ export default function AdminCategories({ hideHeader = false }) {
               />
 
               <DialogFooter className="pt-4 gap-2">
-                <Button
+                <GhostButton
                   type="button"
-                  variant="outline"
                   onClick={() => {
                     setIsAddModalOpen(false);
                     setEditId(null);
                     form.reset({ name: "", slug: "", parent_id: "none", status: true });
                   }}
-                  className="border-border"
+                  className="border border-border"
                 >
                   Hủy bỏ
-                </Button>
-                <Button type="submit" className="bg-primary font-bold px-6">
+                </GhostButton>
+                <SimpleButton type="submit">
                   {editId ? "Lưu Cập Nhật" : "Tạo danh mục"}
-                </Button>
+                </SimpleButton>
               </DialogFooter>
             </form>
           </Form>
