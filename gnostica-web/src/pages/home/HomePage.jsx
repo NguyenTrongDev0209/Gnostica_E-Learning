@@ -3,6 +3,7 @@ import MainHeroCarousel from "@/pages/home/components/MainHeroCarousel"
 import SubBannerCarousel from "@/pages/home/components/SubBannerCarousel"
 import CardCarousel from "@/pages/home/components/CardCarousel"
 import AppSection from "@/components/common/AppSection"
+import PlatformStats from "@/pages/home/components/PlatformStats"
 
 import CategoryGrid from "@/pages/home/components/CategoryGrid"
 import FeaturedCourses from "@/pages/home/components/FeaturedCourses"
@@ -18,6 +19,8 @@ function HomePage() {
     <div className={`min-h-[100dvh] transition-colors duration-700 ease-in-out bg-background`}>
       <div className="flex flex-col gap-12 sm:gap-16 pb-12 relative z-10 w-full overflow-hidden">
         <MainHeroCarousel />
+        
+        <PlatformStats />
 
         <div className="app-container">
           <SubBannerCarousel />

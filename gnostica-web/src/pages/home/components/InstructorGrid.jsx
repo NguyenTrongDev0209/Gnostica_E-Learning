@@ -1,12 +1,25 @@
 import React from 'react';
 import { Users, BookOpen } from 'lucide-react';
-import { mockInstructors } from '@/apiMocks/home';
 import { Card } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import useHomeData from '@/hooks/home/useHomeData';
 
 const InstructorGrid = () => {
+  const { instructors, loadingInstructors } = useHomeData();
+
+  if (loadingInstructors) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="flex flex-col items-center p-6 text-center w-full h-64 bg-muted animate-pulse rounded-2xl" />
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
-      {mockInstructors.map((instructor, idx) => (
+      {instructors.map((instructor, idx) => (
         <Card key={idx} className="flex flex-col items-center p-6 text-center w-full hover:shadow-lg transition-all hover:-translate-y-1 cursor-pointer">
           <img src={instructor.avatar} alt={instructor.name} className="w-24 h-24 rounded-full mb-4 object-cover border-4 border-background shadow-sm" />
           <h3 className="font-bold text-lg">{instructor.name}</h3>
