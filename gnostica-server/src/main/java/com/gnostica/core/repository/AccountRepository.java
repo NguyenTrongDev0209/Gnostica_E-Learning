@@ -12,4 +12,5 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
     long countByRoleNameAndCreatedAtAfter(String roleName, java.time.LocalDateTime date);
     java.util.List<Account> findByRoleName(String roleName);
     Optional<Account> findByIdAndRoleName(UUID id, String roleName);
+    java.util.List<Account> findByMetadataIsNotNull();
 }

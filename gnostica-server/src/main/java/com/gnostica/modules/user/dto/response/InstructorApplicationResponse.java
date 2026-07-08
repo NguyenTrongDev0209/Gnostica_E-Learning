@@ -2,10 +2,11 @@ package com.gnostica.modules.user.dto.response;
 
 import lombok.Data;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Data
 public class InstructorApplicationResponse {
-    private Integer id;
+    private UUID accountId;
     private String email;
     private String fullName;
     private String idCardFront;
@@ -17,5 +18,5 @@ public class InstructorApplicationResponse {
     private String courseOutline;
     private String status;
     private String rejectionReason;
-    private LocalDateTime createdAt;
+    private String createdAt;
 }
