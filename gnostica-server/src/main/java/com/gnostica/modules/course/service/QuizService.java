@@ -28,7 +28,7 @@ public class QuizService {
         if (quizReq == null) return;
 
         // 1. Tìm hoặc tạo mới Quiz
-        Quiz quiz = quizRepository.findByModuleId(module.getId())
+        Quiz quiz = quizRepository.findByModule_Id(module.getId())
                 .orElseGet(() -> {
                     Quiz newQuiz = new Quiz();
                     newQuiz.setModule(module);
@@ -42,7 +42,7 @@ public class QuizService {
 
         // 2. Cập nhật các câu hỏi liên kết (QuizQuestion)
         // Xóa liên kết cũ
-        quizQuestionRepository.deleteByQuizId(savedQuiz.getId());
+        quizQuestionRepository.deleteByQuiz_Id(savedQuiz.getId());
 
         // Tạo liên kết mới
         if (quizReq.getQuestionIds() != null && !quizReq.getQuestionIds().isEmpty()) {

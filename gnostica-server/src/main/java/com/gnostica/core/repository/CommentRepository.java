@@ -8,14 +8,14 @@ import java.util.List;
 
 @Repository
 public interface CommentRepository extends JpaRepository<Comment, Integer> {
-    List<Comment> findByObjectIdAndParentIsNullOrderByCreatedAtDesc(String objectId);
+    List<Comment> findByThreadIdAndParentIsNullOrderByCreatedAtDesc(Integer threadId);
     List<Comment> findByParentIdOrderByCreatedAtAsc(Integer parentId);
-    long countByObjectId(String objectId);
+    long countByThreadId(Integer threadId);
 
     @org.springframework.transaction.annotation.Transactional
     @org.springframework.data.jpa.repository.Modifying
-    void deleteByObjectId(String objectId);
+    void deleteByThreadId(Integer threadId);
 
-    @org.springframework.data.jpa.repository.Query("SELECT c FROM Comment c WHERE c.objectId IN :objectIds AND c.parent IS NULL ORDER BY c.createdAt DESC")
-    List<Comment> findByObjectIdInAndParentIsNullOrderByCreatedAtDesc(@org.springframework.data.repository.query.Param("objectIds") java.util.Collection<String> objectIds);
+    @org.springframework.data.jpa.repository.Query("SELECT c FROM Comment c WHERE c.thread.id IN :threadIds AND c.parent IS NULL ORDER BY c.createdAt DESC")
+    List<Comment> findByThreadIdInAndParentIsNullOrderByCreatedAtDesc(@org.springframework.data.repository.query.Param("threadIds") java.util.Collection<Integer> threadIds);
 }

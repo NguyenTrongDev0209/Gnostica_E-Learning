@@ -3,11 +3,9 @@ package com.gnostica.modules.user.controller;
 import com.gnostica.modules.user.dto.response.InstructorStatsResponse;
 import com.gnostica.modules.course.dto.response.CourseResponse;
 import com.gnostica.core.model.Account;
-import com.gnostica.core.model.Instructor;
 import com.gnostica.core.model.Course;
 import com.gnostica.core.repository.AccountRepository;
 import com.gnostica.core.repository.CourseRepository;
-import com.gnostica.core.repository.InstructorRepository;
 import com.gnostica.modules.auth.service.AuthService;
 import com.gnostica.modules.course.service.CourseService;
 import lombok.RequiredArgsConstructor;
@@ -27,25 +25,24 @@ public class InstructorProfileController {
 
     private final AccountRepository accountRepository;
     private final CourseRepository courseRepository;
-    private final InstructorRepository instructorRepository;
     private final AuthService authService;
     private final CourseService courseService;
+    private final com.fasterxml.jackson.databind.ObjectMapper objectMapper;
 
     /**
      * Lấy danh sách tất cả giảng viên kèm theo thống kê
      */
     @GetMapping("/list")
     public ResponseEntity<?> getAllInstructorsWithStats() {
-        List<Instructor> instructors = instructorRepository.findAll();
-        List<InstructorStatsResponse> response = instructors.stream().map(instructor -> {
-            Account account = instructor.getAccount();
+        List<Account> instructors = accountRepository.findByRoleName("INSTRUCTOR");
+        List<InstructorStatsResponse> response = instructors.stream().map(account -> {
             long coursesCount = courseRepository.countByAccountIdAndStatus(account.getId(), 1);
             long studentsCount = courseRepository.countStudentsByInstructorId(account.getId());
             
             return InstructorStatsResponse.builder()
                     .id(account.getId()) // Sử dụng Account ID cho các liên kết URL
-                    .fullName(instructor.getFullName())
-                    .email(instructor.getEmail())
+                    .fullName(account.getFullName())
+                    .email(account.getEmail())
                     .avatar(account.getAvatar())
                     .coursesCount(coursesCount)
                     .studentsCount(studentsCount)
@@ -78,6 +75,20 @@ public class InstructorProfileController {
         profile.put("coursesCount", coursesCount);
         profile.put("studentsCount", studentsCount);
         profile.put("reviewsCount", 0); // Chưa có hệ thống đánh giá
+
+        String bio = "";
+        boolean ticked = false;
+        try {
+            if (account.getMetadata() != null && !account.getMetadata().isEmpty()) {
+                com.fasterxml.jackson.databind.JsonNode metadataNode = objectMapper.readTree(account.getMetadata());
+                if (metadataNode.has("bio")) bio = metadataNode.get("bio").asText();
+                if (metadataNode.has("ticked")) ticked = metadataNode.get("ticked").asBoolean();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        profile.put("bio", bio);
+        profile.put("ticked", ticked);
 
         return ResponseEntity.ok(profile);
     }

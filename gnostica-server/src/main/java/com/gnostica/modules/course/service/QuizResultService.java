@@ -33,7 +33,7 @@ public class QuizResultService {
         
         result.setAccount(account);
         result.setQuiz(quiz);
-        result.setPoint(req.getPoint());
+        result.setPoint(java.math.BigDecimal.valueOf(req.getPoint()));
         result.setTotalQuestions(req.getTotalQuestions());
         result.setCorrectAnswers(req.getCorrectAnswers());
         result.setTime(0); // Reset time fields since user doesn't care about constraints

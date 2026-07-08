@@ -14,4 +14,7 @@ public interface ThreadRepository extends JpaRepository<Thread, Integer> {
     List<Thread> findTop5ByStatusOrderByViewCountDesc(Integer status);
     List<Thread> findTop5ByContentContainingIgnoreCaseOrderByCreatedAtDesc(String keyword);
     List<Thread> findTop5ByTopic_IdAndStatusOrderByViewCountDesc(Integer topicId, Integer status);
+    
+    @org.springframework.data.jpa.repository.Query("SELECT t.account, COUNT(t.id) FROM Thread t GROUP BY t.account ORDER BY COUNT(t.id) DESC")
+    List<Object[]> findTopContributors(Pageable pageable);
 }

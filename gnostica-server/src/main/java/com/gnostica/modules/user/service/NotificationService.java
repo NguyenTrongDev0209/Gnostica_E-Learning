@@ -25,8 +25,7 @@ public class NotificationService {
         Notification notification = new Notification();
         notification.setAccount(account);
         notification.setTitle(title);
-        notification.setContent(content);
-        notification.setType(type);
+        notification.setMessage(content);
         notification.setIsRead(false);
         notificationRepository.save(notification);
     }

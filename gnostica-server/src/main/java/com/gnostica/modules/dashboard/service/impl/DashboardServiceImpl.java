@@ -15,11 +15,11 @@ import com.gnostica.modules.order.dto.response.RecentOrderDTO;
 import com.gnostica.modules.dashboard.dto.response.RevenueMonthDTO;
 import com.gnostica.modules.dashboard.dto.response.TopCourseDTO;
 import com.gnostica.core.model.Account;
-import com.gnostica.core.model.Transaction;
+import com.gnostica.core.model.Payment;
 import com.gnostica.core.repository.AccountRepository;
 import com.gnostica.core.repository.CourseRepository;
 import com.gnostica.core.repository.OrderRepository;
-import com.gnostica.core.repository.TransactionRepository;
+import com.gnostica.core.repository.PaymentRepository;
 import com.gnostica.modules.dashboard.service.DashboardService;
 
 import lombok.RequiredArgsConstructor;
@@ -29,14 +29,15 @@ import lombok.RequiredArgsConstructor;
 public class DashboardServiceImpl implements DashboardService {
 
     private final AccountRepository accountRepository;
-    private final TransactionRepository transactionRepository;
+    private final PaymentRepository paymentRepository;
     private final CourseRepository courseRepository;
     private final OrderRepository orderRepository;
 
     @Override
     public DashboardStatsResponse getDashboardStats() {
-        // 1. Tổng doanh thu (Type 2: Thanh toán, Status 1: Thành công)
-        Double totalRevenue = transactionRepository.sumAmountByTypeAndStatus(2, 1);
+        // 1. Tổng doanh thu (Status 2: Thành công)
+        java.math.BigDecimal totalRevenueObj = paymentRepository.sumAmountByStatus(2);
+        Double totalRevenue = totalRevenueObj != null ? totalRevenueObj.doubleValue() : 0.0;
 
         // 2. Học viên mới (Trong tháng này)
         LocalDateTime monthStart = LocalDateTime.now().withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0);
@@ -93,10 +94,10 @@ public class DashboardServiceImpl implements DashboardService {
         int currentYear = LocalDateTime.now().getYear();
         LocalDateTime yearStart = LocalDateTime.of(currentYear, 1, 1, 0, 0);
 
-        // Fetch all successful payment transactions for the year
-        List<Transaction> transactions = transactionRepository.findByCreatedAtAfter(yearStart)
+        // Fetch all successful payments for the year (status 2 = success)
+        List<Payment> payments = paymentRepository.findByCreatedAtAfter(yearStart)
                 .stream()
-                .filter(t -> t.getType() == 2 && t.getStatus() == 1)
+                .filter(p -> p.getStatus() == 2)
                 .collect(Collectors.toList());
 
         List<RevenueMonthDTO> revenueData = new ArrayList<>();
@@ -104,10 +105,10 @@ public class DashboardServiceImpl implements DashboardService {
             revenueData.add(new RevenueMonthDTO("T" + i, 0.0, 0L));
         }
 
-        for (Transaction t : transactions) {
-            int monthIdx = t.getCreatedAt().getMonthValue() - 1;
+        for (Payment p : payments) {
+            int monthIdx = p.getCreatedAt().getMonthValue() - 1;
             RevenueMonthDTO data = revenueData.get(monthIdx);
-            data.setRevenue(data.getRevenue() + t.getAmount());
+            data.setRevenue(data.getRevenue() + p.getAmount().doubleValue());
             data.setOrders(data.getOrders() + 1);
         }
         return revenueData;
@@ -118,13 +119,11 @@ public class DashboardServiceImpl implements DashboardService {
         return orderRepository.findAllByOrderByIdDesc().stream()
                 .limit(5)
                 .map(order -> RecentOrderDTO.builder()
-                        .id("#ORD-" + String.format("%03d", order.getId()))
+                        .id("#ORD-" + (order.getId() != null ? order.getId().toString().substring(0, 8).toUpperCase() : "UNKNOWN"))
                         .user(order.getAccount() != null ? order.getAccount().getFullName() : "Unknown")
-                        .course(order.getDetails() != null && !order.getDetails().isEmpty()
-                                ? order.getDetails().get(0).getCourse().getTitle()
-                                : "Multiple Courses")
+                        .course("Course Purchase")
                         .price(order.getTotalPrice())
-                        .status(order.getStatus() == 1 ? "completed" : order.getStatus() == 0 ? "pending" : "failed")
+                        .status(order.getStatus() != null && order.getStatus() == 2 ? "completed" : order.getStatus() != null && order.getStatus() == 1 ? "pending" : "failed")
                         .date(formatFriendlyDate(order.getCreatedAt()))
                         .build())
                 .collect(Collectors.toList());

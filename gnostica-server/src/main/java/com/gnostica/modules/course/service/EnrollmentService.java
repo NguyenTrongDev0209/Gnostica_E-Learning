@@ -91,7 +91,7 @@ public class EnrollmentService {
                 // Tính số giờ đã học dựa trên số bài học đã hoàn thành
                 // Tạm thời giả định mỗi bài học trung bình 0.5 giờ (30 phút)
                 long completedLessons = lessonProgressRepository.findByAccount(account).stream()
-                                .filter(LessonProgress::getIsCompleted)
+                                .filter(lp -> lp.getStatus() != null && lp.getStatus() == 2)
                                 .count();
 
                 double hoursStudied = completedLessons * 0.5;
@@ -143,7 +143,7 @@ public class EnrollmentService {
                                 .count();
 
                 int completedLessons = (int) courseProgress.stream()
-                                .filter(LessonProgress::getIsCompleted)
+                                .filter(lp -> lp.getStatus() != null && lp.getStatus() == 2)
                                 .count();
 
                 // Auto generate certifiUrl if missing
@@ -198,16 +198,14 @@ public class EnrollmentService {
                                 .flatMap(m -> m.getLessons().stream())
                                 .count();
 
-                long totalQuizzes = course.getModules().stream()
-                                .filter(m -> m.getQuiz() != null)
-                                .count();
+                long totalQuizzes = 0;
 
                 long totalSteps = totalLessons + totalQuizzes;
                 if (totalSteps == 0)
                         return;
 
                 long completedLessons = lessonProgressRepository.findByAccount(account).stream()
-                                .filter(lp -> lp != null && lp.getIsCompleted() &&
+                                .filter(lp -> lp != null && lp.getStatus() != null && lp.getStatus() == 2 &&
                                                 lp.getLesson() != null &&
                                                 lp.getLesson().getModule() != null &&
                                                 lp.getLesson().getModule().getCourse() != null &&
@@ -224,8 +222,8 @@ public class EnrollmentService {
                                                 qr.getQuiz().getModule().getCourse() != null &&
                                                 Objects.equals(qr.getQuiz().getModule().getCourse().getId(), courseId))
                                 .filter(qr -> {
-                                        Double point = qr.getPoint();
-                                        return point != null && point >= 50.0;
+                                        java.math.BigDecimal point = qr.getPoint();
+                                        return point != null && point.compareTo(new java.math.BigDecimal("50.0")) >= 0;
                                 })
                                 .map(qr -> qr.getQuiz().getId())
                                 .distinct()
@@ -281,7 +279,7 @@ public class EnrollmentService {
 
                         // Lấy thời điểm hoạt động cuối cùng
                         LocalDateTime lastActiveTime = studentEnrs.stream()
-                                        .map(Enrollment::getUpdatedAt)
+                                        .map(Enrollment::getCompletedAt)
                                         .filter(Objects::nonNull)
                                         .max(LocalDateTime::compareTo)
                                         .orElse(earliestJoined);

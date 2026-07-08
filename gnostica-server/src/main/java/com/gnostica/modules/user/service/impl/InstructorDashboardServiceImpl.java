@@ -138,57 +138,9 @@ public class InstructorDashboardServiceImpl implements InstructorDashboardServic
 
     @Override
     public List<InstructorQuestionDTO> getQuestions(String instructorEmail) {
-        List<Course> courses = courseRepository.findByAccountEmailAndDeletedAtIsNull(instructorEmail, org.springframework.data.domain.Pageable.unpaged()).getContent();
-        List<String> lessonObjectIds = new ArrayList<>();
-        for (Course c : courses) {
-            if (c.getModules() != null) {
-                for (Module m : c.getModules()) {
-                    if (m.getLessons() != null) {
-                        for (Lesson l : m.getLessons()) {
-                            lessonObjectIds.add("lesson_" + l.getId());
-                        }
-                    }
-                }
-            }
-        }
-        
-        if (lessonObjectIds.isEmpty()) return new ArrayList<>();
-
-        List<Comment> comments = commentRepository.findByObjectIdInAndParentIsNullOrderByCreatedAtDesc(lessonObjectIds);
-        
-        return comments.stream().map(c -> {
-            boolean isAnswered = c.getReplies() != null && c.getReplies().stream().anyMatch(r -> r.getAccount() != null && instructorEmail.equals(r.getAccount().getEmail()));
-            
-            String lessonName = "Bài học";
-            String courseName = "Khóa học";
-            for (Course course : courses) {
-                if (course.getModules() != null) {
-                    for (Module m : course.getModules()) {
-                        if (m.getLessons() != null) {
-                            for (Lesson l : m.getLessons()) {
-                                if (("lesson_" + l.getId()).equals(c.getObjectId())) {
-                                    lessonName = l.getTitle();
-                                    courseName = course.getTitle();
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            
-            return InstructorQuestionDTO.builder()
-                    .id(c.getId())
-                    .studentName(c.getAccount() != null ? c.getAccount().getFullName() : "Người dùng")
-                    .studentAvatar(c.getAccount() != null ? c.getAccount().getAvatar() : null)
-                    .courseName(courseName)
-                    .lessonName(lessonName)
-                    .content(c.getContent())
-                    .createdAt(c.getCreatedAt())
-                    .status(isAnswered ? "answered" : "unanswered")
-                    .likes(c.getLikes())
-                    .build();
-        }).collect(Collectors.toList());
+        // Module Comment hiện đã chuyển đổi sang phục vụ Thread (Diễn đàn).
+        // Hệ thống Hỏi Đáp của bài học (Lesson Q&A) sẽ được triển khai vào module riêng.
+        return new ArrayList<>();
     }
 
     @Override
@@ -201,7 +153,7 @@ public class InstructorDashboardServiceImpl implements InstructorDashboardServic
                     .studentAvatar(r.getAccount() != null ? r.getAccount().getAvatar() : null)
                     .courseName(r.getCourse() != null ? r.getCourse().getTitle() : "")
                     .rating(r.getRating())
-                    .content(r.getContent())
+                    .content(r.getComment())
                     .createdAt(r.getCreatedAt())
                     .status("not_responded") 
                     .build();

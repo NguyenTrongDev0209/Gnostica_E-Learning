@@ -5,7 +5,7 @@ import com.gnostica.modules.wallet.dto.response.*;
 import com.gnostica.modules.wallet.dto.request.SetBankAccountRequest;
 import com.gnostica.modules.wallet.dto.request.WithdrawRequest;
 import com.gnostica.core.model.Wallet;
-import com.gnostica.core.model.Transaction;
+import com.gnostica.core.model.AccountBank;
 import com.gnostica.modules.wallet.service.WalletService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -28,24 +28,19 @@ public class WalletController {
     }
 
     @GetMapping("/transactions")
-    public ResponseEntity<List<Transaction>> getMyTransactions() {
+    public ResponseEntity<List<com.gnostica.core.model.Payout>> getMyTransactions() {
         return ResponseEntity.ok(walletService.getMyTransactions());
     }
 
     @GetMapping("/stats")
     public ResponseEntity<Map<String, Object>> getWalletStats() {
         Wallet wallet = walletService.getMyWallet();
-        List<Transaction> transactions = walletService.getMyTransactions();
-
-        double totalRevenue = transactions.stream()
-                .filter(t -> t.getType() == 1 && "REVENUE".equals(t.getPaymentMethod()))
-                .mapToDouble(Transaction::getAmount)
-                .sum();
+        List<com.gnostica.core.model.Payout> payouts = walletService.getMyTransactions();
 
         Map<String, Object> stats = new HashMap<>();
         stats.put("balance", wallet.getRemain());
-        stats.put("totalRevenue", totalRevenue);
-        stats.put("transactionCount", transactions.size());
+        stats.put("totalRevenue", 0); // TODO: Calculate from Revenue_Shares table
+        stats.put("transactionCount", payouts.size());
 
         return ResponseEntity.ok(stats);
     }
@@ -56,8 +51,8 @@ public class WalletController {
     @PostMapping("/bank-account")
     public ResponseEntity<?> setBankAccount(@RequestBody SetBankAccountRequest request) {
         try {
-            Wallet wallet = walletService.setBankAccount(request);
-            return ResponseEntity.ok(Map.of("message", "Thiết lập tài khoản ngân hàng thành công", "wallet", wallet));
+            AccountBank accountBank = walletService.setBankAccount(request);
+            return ResponseEntity.ok(Map.of("message", "Thiết lập tài khoản ngân hàng thành công", "accountBank", accountBank));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("message",
                     e.getMessage() != null ? e.getMessage() : "Lỗi hệ thống"));

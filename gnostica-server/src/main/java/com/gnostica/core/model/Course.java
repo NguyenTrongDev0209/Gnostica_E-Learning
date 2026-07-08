@@ -88,6 +88,12 @@ public class Course {
 
     private LocalDateTime deletedAt;
 
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
+    private java.util.List<Module> modules;
+
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
+    private java.util.List<Enrollment> enrollments;
+
     public Boolean getDeleted() {
         return deletedAt != null;
     }
@@ -100,6 +106,11 @@ public class Course {
         } else {
             this.deletedAt = null;
         }
+    }
+
+    public BigDecimal getSalePrice() {
+        if (discount == null || discount <= 0) return price;
+        return price.multiply(BigDecimal.valueOf(100 - discount)).divide(BigDecimal.valueOf(100));
     }
 
 }

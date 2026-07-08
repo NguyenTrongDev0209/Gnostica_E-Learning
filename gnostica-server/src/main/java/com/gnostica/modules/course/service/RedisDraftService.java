@@ -19,10 +19,10 @@ public class RedisDraftService {
     private final StringRedisTemplate redisTemplate;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    private static final String DRAFT_KEY_PREFIX = "course:%d:draft_questions";
+    private static final String DRAFT_KEY_PREFIX = "course:%s:draft_questions";
     private static final Duration DRAFT_TTL = Duration.ofDays(7); // Giữ nháp 7 ngày
 
-    public void saveDraft(Integer courseId, List<QuestionDto> questions) {
+    public void saveDraft(String courseId, List<QuestionDto> questions) {
         String key = String.format(DRAFT_KEY_PREFIX, courseId);
         try {
             String json = objectMapper.writeValueAsString(questions);
@@ -33,7 +33,7 @@ public class RedisDraftService {
         }
     }
 
-    public List<QuestionDto> getDraft(Integer courseId) {
+    public List<QuestionDto> getDraft(String courseId) {
         String key = String.format(DRAFT_KEY_PREFIX, courseId);
         try {
             String json = redisTemplate.opsForValue().get(key);
@@ -46,7 +46,7 @@ public class RedisDraftService {
         return null;
     }
 
-    public void clearDraft(Integer courseId) {
+    public void clearDraft(String courseId) {
         String key = String.format(DRAFT_KEY_PREFIX, courseId);
         try {
             redisTemplate.delete(key);

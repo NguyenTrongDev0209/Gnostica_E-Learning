@@ -82,7 +82,7 @@ public class CategoryService {
         category.setName(request.getName());
         category.setSlug(request.getSlug());
         if (request.getStatus() != null) {
-            category.setStatus(request.getStatus());
+            category.setStatus(request.getStatus() ? 1 : 0);
         }
 
         if (request.getParent_id() != null) {
@@ -90,7 +90,7 @@ public class CategoryService {
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy danh mục cha"));
             
             // Business rule: Nếu danh mục cha ẩn, danh mục con không thể để trạng thái hoạt động
-            if (!parent.getStatus() && (request.getStatus() == null || request.getStatus())) {
+            if (parent.getStatus() != 1 && (request.getStatus() == null || request.getStatus())) {
                 throw new RuntimeException("Danh mục cha đang ẩn, không thể tạo danh mục con ở trạng thái hoạt động");
             }
             
@@ -127,15 +127,15 @@ public class CategoryService {
         category.setSlug(request.getSlug());
         if (request.getStatus() != null) {
             // Business rule: Nếu danh mục cha hiện tại đang ẩn, không thể bật hoạt động cho danh mục con
-            if (request.getStatus() && category.getParent() != null && !category.getParent().getStatus()) {
+            if (request.getStatus() && category.getParent() != null && category.getParent().getStatus() != 1) {
                 throw new RuntimeException("Danh mục cha đang ẩn, không thể bật hoạt động cho danh mục con");
             }
 
-            category.setStatus(request.getStatus());
+            category.setStatus(request.getStatus() ? 1 : 0);
             // Business logic: Đồng bộ trạng thái của tất cả danh mục con theo danh mục cha
             if (category.getChildren() != null && !category.getChildren().isEmpty()) {
                 for (Category child : category.getChildren()) {
-                    child.setStatus(request.getStatus());
+                    child.setStatus(request.getStatus() ? 1 : 0);
                 }
                 categoryRepository.saveAll(category.getChildren());
             }
@@ -162,16 +162,16 @@ public class CategoryService {
                 .orElseThrow(() -> new RuntimeException("Danh mục không tồn tại"));
 
         // Business rule: Nếu danh mục cha hiện tại đang ẩn, không thể bật hoạt động cho danh mục con
-        if (status && category.getParent() != null && !category.getParent().getStatus()) {
+        if (status && category.getParent() != null && category.getParent().getStatus() != 1) {
             throw new RuntimeException("Danh mục cha đang ẩn, không thể bật hoạt động cho danh mục con");
         }
 
-        category.setStatus(status);
+        category.setStatus(status ? 1 : 0);
         
         // Business rule: Đồng bộ trạng thái của tất cả danh mục con theo danh mục cha
         if (category.getChildren() != null && !category.getChildren().isEmpty()) {
             for (Category child : category.getChildren()) {
-                child.setStatus(status);
+                child.setStatus(status ? 1 : 0);
             }
             categoryRepository.saveAll(category.getChildren());
         }
@@ -226,7 +226,7 @@ public class CategoryService {
                     .name(child.getName())
                     .slug(child.getSlug())                 
                     .courses((int) childCount)
-                    .status(child.getStatus() != null ? child.getStatus() : true)
+                    .status(child.getStatus() != null ? child.getStatus() == 1 : true)
                     .createdAt(child.getCreatedAt())
                     .subcategories(new ArrayList<>())
                     .build());
@@ -238,7 +238,7 @@ public class CategoryService {
                 .name(category.getName())
                 .slug(category.getSlug())             
                 .courses((int) recursiveTotal)
-                .status(category.getStatus() != null ? category.getStatus() : true)
+                .status(category.getStatus() != null ? category.getStatus() == 1 : true)
                 .createdAt(category.getCreatedAt())
                 .subcategories(childrenDTO)
                 .build();
