@@ -34,7 +34,7 @@ public class DraftCourseController {
         
         // Nếu không có courseId nhưng có slug, tra cứu id từ slug
         if ((idToUse == null || idToUse.isEmpty()) && (slug != null && !slug.isEmpty() && !slug.equals("new"))) {
-            Optional<Course> course = courseRepository.findFirstBySlugAndDeletedFalseOrderByIdDesc(slug);
+            Optional<Course> course = courseRepository.findFirstBySlugAndDeletedAtIsNullOrderByIdDesc(slug);
             if (course.isPresent()) {
                 idToUse = course.get().getId().toString();
             }
@@ -58,7 +58,7 @@ public class DraftCourseController {
 
         // Ưu tiên resolve slug sang id nếu id trống
         if ((idToUse == null || idToUse.isEmpty()) && (slug != null && !slug.isEmpty() && !slug.equals("new"))) {
-            Optional<Course> course = courseRepository.findFirstBySlugAndDeletedFalseOrderByIdDesc(slug);
+            Optional<Course> course = courseRepository.findFirstBySlugAndDeletedAtIsNullOrderByIdDesc(slug);
             if (course.isPresent()) {
                 idToUse = course.get().getId().toString();
             }
@@ -86,7 +86,7 @@ public class DraftCourseController {
         String idToUse = courseId;
 
         if ((idToUse == null || idToUse.isEmpty()) && (slug != null && !slug.isEmpty() && !slug.equals("new"))) {
-            Optional<Course> course = courseRepository.findFirstBySlugAndDeletedFalseOrderByIdDesc(slug);
+            Optional<Course> course = courseRepository.findFirstBySlugAndDeletedAtIsNullOrderByIdDesc(slug);
             if (course.isPresent()) {
                 idToUse = course.get().getId().toString();
             }

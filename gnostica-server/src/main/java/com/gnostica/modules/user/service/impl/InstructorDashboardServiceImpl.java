@@ -117,7 +117,7 @@ public class InstructorDashboardServiceImpl implements InstructorDashboardServic
 
     @Override
     public List<CoursePerformanceDTO> getCoursePerformance(String instructorEmail) {
-        List<Course> courses = courseRepository.findByAccountEmailAndDeletedFalse(instructorEmail, org.springframework.data.domain.Pageable.unpaged()).getContent();
+        List<Course> courses = courseRepository.findByAccountEmailAndDeletedAtIsNull(instructorEmail, org.springframework.data.domain.Pageable.unpaged()).getContent();
         return courses.stream().map(c -> {
             long students = c.getEnrollments() != null ? c.getEnrollments().size() : 0;
             long completed = c.getEnrollments() != null ? c.getEnrollments().stream().filter(e -> e.getProgressPercent() != null && e.getProgressPercent() >= 100).count() : 0;
@@ -138,7 +138,7 @@ public class InstructorDashboardServiceImpl implements InstructorDashboardServic
 
     @Override
     public List<InstructorQuestionDTO> getQuestions(String instructorEmail) {
-        List<Course> courses = courseRepository.findByAccountEmailAndDeletedFalse(instructorEmail, org.springframework.data.domain.Pageable.unpaged()).getContent();
+        List<Course> courses = courseRepository.findByAccountEmailAndDeletedAtIsNull(instructorEmail, org.springframework.data.domain.Pageable.unpaged()).getContent();
         List<String> lessonObjectIds = new ArrayList<>();
         for (Course c : courses) {
             if (c.getModules() != null) {

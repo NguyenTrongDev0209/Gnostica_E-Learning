@@ -1,5 +1,6 @@
 package com.gnostica.modules.auth.dto.response;
 
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,5 +19,5 @@ public class LoginResponse {
     private String avatar;
     private String provider;
     private Boolean onboardingCompleted;
-    private Integer id;
+    private UUID id;
 }
