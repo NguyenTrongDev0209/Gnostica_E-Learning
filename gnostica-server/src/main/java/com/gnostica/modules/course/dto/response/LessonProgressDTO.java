@@ -12,6 +12,6 @@ import lombok.NoArgsConstructor;
 public class LessonProgressDTO {
     private Integer lessonId;
     private Boolean isCompleted;
-    private Integer lastWatchedTime;
+    private String lastWatchedTime;
     private java.time.LocalDateTime updatedAt;
 }

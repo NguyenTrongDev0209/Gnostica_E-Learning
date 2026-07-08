@@ -112,7 +112,7 @@ public class AdminCourseController {
             Map<String, Object> response = new HashMap<>();
             response.put("message", "Quét kiểm duyệt AI thành công!");
             response.put("lessonId", scanned.getId());
-            response.put("aiModerationReport", scanned.getAiModerationReport());
+            response.put("aiModerationReport", "");
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", "Lỗi khi gọi AI quét bài học: " + e.getMessage()));
@@ -131,7 +131,7 @@ public class AdminCourseController {
             Map<String, Object> response = new HashMap<>();
             response.put("message", "Quét AI văn bản khóa học thành công!");
             response.put("slug", scanned.getSlug());
-            response.put("aiModerationReport", scanned.getAiModerationReport());
+            response.put("aiModerationReport", "");
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", "Lỗi khi gọi AI quét khóa học: " + e.getMessage()));
@@ -151,7 +151,7 @@ public class AdminCourseController {
             Map<String, Object> response = new HashMap<>();
             response.put("message", "Kiểm duyệt AI toàn diện hoàn tất!");
             response.put("slug", scanned.getSlug());
-            response.put("aiModerationReport", scanned.getAiModerationReport());
+            response.put("aiModerationReport", "");
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", "Lỗi khi gọi AI quét toàn diện: " + e.getMessage()));

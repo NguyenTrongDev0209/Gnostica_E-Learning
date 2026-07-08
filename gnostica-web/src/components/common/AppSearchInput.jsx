@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react"
 import { Search, Loader2 } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { Input } from "@/components/ui/input"
-import courseService from "@/services/courseService"
+import courseService from "@/services/course/courseService"
 
 // Ô tìm kiếm có icon kính lúp bên trái — nhận className từ ngoài để tuỳ chỉnh responsive/layout
 const AppSearchInput = ({ className = "" }) => {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import useInstructorCourses from "@/hooks/instructor/useInstructorCourses";
+import useInstructorCourses from "@/hooks/course/useInstructorCourses";
 import {
   Plus,
   Search,
@@ -31,8 +31,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import InstructorCourseTable from "@/components/pages/instructor/courses/InstructorCourseTable";
-import categoryService from "@/services/categoryService";
+import InstructorCourseTable from "@/pages/instructor/components/courses/InstructorCourseTable";
+import categoryService from "@/services/course/categoryService";
 
 export default function InstructorCourses() {
   const navigate = useNavigate();

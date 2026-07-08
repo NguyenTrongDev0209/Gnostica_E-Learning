@@ -53,6 +53,12 @@ public class Module {
 
     private LocalDateTime deletedAt;
 
+    @OneToMany(mappedBy = "module", cascade = CascadeType.ALL)
+    private java.util.List<Lesson> lessons;
+
+    @OneToMany(mappedBy = "module", cascade = CascadeType.ALL)
+    private java.util.List<Attachment> attachments;
+
     public Boolean getDeleted() {
         return deletedAt != null;
     }

@@ -19,7 +19,7 @@ import {
   BookOpen,
   Clock,
 } from "lucide-react";
-import enrollmentService from "@/services/enrollmentService";
+import enrollmentService from "@/services/course/enrollmentService";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 

@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { useTransactions } from "@/hooks/admin/useTransactions";
-import { TransactionHeader } from "@/components/pages/admin/transactions/TransactionHeader";
-import { TransactionStatsFilter } from "@/components/pages/admin/transactions/TransactionStatsFilter";
-import { TransactionTable } from "@/components/pages/admin/transactions/TransactionTable";
-import { TransactionDetailModal } from "@/components/pages/admin/transactions/TransactionDetailModal";
+import { useTransactions } from "@/hooks/payment/useTransactions";
+import { TransactionHeader } from "@/pages/admin/components/transactions/TransactionHeader";
+import { TransactionStatsFilter } from "@/pages/admin/components/transactions/TransactionStatsFilter";
+import { TransactionTable } from "@/pages/admin/components/transactions/TransactionTable";
+import { TransactionDetailModal } from "@/pages/admin/components/transactions/TransactionDetailModal";
 import { Button } from "@/components/ui/button";
 
 export default function AdminTransactions() {

@@ -5,7 +5,7 @@ import RecentOrders from "./components/RecentOrders";
 import MemberGrowthChart from "./components/MemberGrowthChart";
 import TopCourses from "./components/TopCourses";
 import InfrastructureMonitor from "./components/InfrastructureMonitor";
-import { useDashboard } from "@/hooks/admin/useDashboard";
+import { useDashboard } from "@/hooks/dashboard/useDashboard";
 
 export default function AdminDashboard() {
   const {

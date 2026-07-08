@@ -5,11 +5,8 @@ import com.gnostica.modules.forum.service.ThreadService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -31,7 +28,7 @@ public class ThreadController {
     public ResponseEntity<?> getAllThreads(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "15") int size,
-            @RequestParam(defaultValue = "views") String sortBy) {
+            @RequestParam(defaultValue = "viewCount") String sortBy) {
         try {
             Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).descending());
             return ResponseEntity.ok(threadService.getAllThreads(pageable));
@@ -63,18 +60,12 @@ public class ThreadController {
 
     @PostMapping(consumes = {"multipart/form-data"})
     public ResponseEntity<?> createThread(
+            @RequestParam(value = "title", required = false) String title,
             @RequestParam(value = "content", required = false) String content,
             @RequestParam(value = "authorEmail", required = false) String authorEmail,
-            @RequestParam(value = "categoryId", required = false) Integer categoryId,
+            @RequestParam(value = "topicId", required = false) Integer topicId,
             @RequestParam(value = "images", required = false) List<MultipartFile> images) {
-
         try {
-            System.out.println("--- Create Thread Debug ---");
-            System.out.println("Content: " + content);
-            System.out.println("AuthorEmail: " + authorEmail);
-            System.out.println("CategoryId: " + categoryId);
-            System.out.println("Images received: " + (images != null ? images.size() : 0));
-
             if (content == null || content.trim().isEmpty()) {
                 return ResponseEntity.badRequest().body("Missing required field: content");
             }
@@ -82,7 +73,7 @@ public class ThreadController {
                 return ResponseEntity.badRequest().body("Missing required field: authorEmail. Please make sure you are logged in.");
             }
 
-            Thread newThread = threadService.createThread(content, categoryId, authorEmail, images);
+            Thread newThread = threadService.createThread(title, content, topicId, authorEmail, images);
             return ResponseEntity.ok(newThread);
 
         } catch (Exception e) {
@@ -133,12 +124,12 @@ public class ThreadController {
     @GetMapping("/{id}/related")
     public ResponseEntity<?> getRelatedThreads(@PathVariable Integer id) {
         try {
-            Thread currentThread = (Thread) threadService.getThreadById(id);
-            if (currentThread.getCategory() == null) {
+            Thread currentThread = threadService.getThreadById(id);
+            if (currentThread.getTopic() == null) {
                 return ResponseEntity.ok(new java.util.ArrayList<>());
             }
             return ResponseEntity.ok(threadService.getRelatedThreads(
-                    currentThread.getCategory().getId(), id));
+                    currentThread.getTopic().getId(), id));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error fetching related threads: " + e.getMessage());

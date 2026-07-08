@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { X, Building2, CreditCard, DollarSign, Lock, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import walletService from "@/services/walletService";
-import bankService from "@/services/bankService";
+import walletService from "@/services/payment/walletService";
+import bankService from "@/services/payment/bankService";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 const maskAccount = (num) => {

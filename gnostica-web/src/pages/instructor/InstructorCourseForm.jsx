@@ -1,5 +1,5 @@
 import React from "react";
-import useInstructorCourseForm from "@/hooks/instructor/useInstructorCourseForm";
+import useInstructorCourseForm from "@/hooks/course/useInstructorCourseForm";
 import {
   useForm,
   FormProvider,
@@ -43,7 +43,7 @@ import {
   AlertTriangle
 } from "lucide-react";
 import { toast } from "sonner";
-import courseService from "../../services/courseService";
+import courseService from "@/services/course/courseService";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -75,13 +75,13 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Card } from "@/components/ui/card";
-import categoryService from "@/services/categoryService";
+import categoryService from "@/services/course/categoryService";
 
-import CourseStepper from "@/components/pages/instructor/course-form/CourseStepper";
-import BasicInfoTab from "@/components/pages/instructor/course-form/BasicInfoTab";
-import QuizTab from "@/components/pages/instructor/course-form/QuizTab";
-import CurriculumTab from "@/components/pages/instructor/course-form/CurriculumTab";
-import SettingsTab from "@/components/pages/instructor/course-form/SettingsTab";
+import CourseStepper from "@/pages/instructor/components/course-form/CourseStepper";
+import BasicInfoTab from "@/pages/instructor/components/course-form/BasicInfoTab";
+import QuizTab from "@/pages/instructor/components/course-form/QuizTab";
+import CurriculumTab from "@/pages/instructor/components/course-form/CurriculumTab";
+import SettingsTab from "@/pages/instructor/components/course-form/SettingsTab";
 
 
 // ==========================================
@@ -970,4 +970,4 @@ export default function InstructorCourseForm() {
     </div>
   );
 }
-
+

@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Bell, Check, ExternalLink } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import notificationService from '../../services/notificationService';
-import authService from '../../services/authService';
+import notificationService from '@/services/user/notificationService';
+import authService from '@/services/auth/authService';
 
 const NotificationBell = ({ isDark = false }) => {
   const user = authService.getCurrentUser();

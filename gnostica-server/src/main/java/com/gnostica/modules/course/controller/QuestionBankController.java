@@ -28,7 +28,7 @@ public class QuestionBankController {
 
     @PostMapping("/ai-generate")
     public ResponseEntity<?> generateQuestionsWithAi(
-            @PathVariable Integer courseId,
+            @PathVariable java.util.UUID courseId,
             @RequestParam("file") MultipartFile file,
             @RequestParam("count") int count,
             @RequestParam("level") String level) {
@@ -47,9 +47,9 @@ public class QuestionBankController {
     }
 
     @PostMapping("/drafts")
-    public ResponseEntity<?> saveDrafts(@PathVariable Integer courseId, @RequestBody List<QuestionDto> questions) {
+    public ResponseEntity<?> saveDrafts(@PathVariable java.util.UUID courseId, @RequestBody List<QuestionDto> questions) {
         try {
-            redisDraftService.saveDraft(courseId, questions);
+            redisDraftService.saveDraft(courseId.toString(), questions);
             return ResponseEntity.ok(new ResponseDTO<>(200, "Lưu nháp thành công", null));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -58,9 +58,9 @@ public class QuestionBankController {
     }
 
     @GetMapping("/drafts")
-    public ResponseEntity<?> getDrafts(@PathVariable Integer courseId) {
+    public ResponseEntity<?> getDrafts(@PathVariable java.util.UUID courseId) {
         try {
-            List<QuestionDto> draft = redisDraftService.getDraft(courseId);
+            List<QuestionDto> draft = redisDraftService.getDraft(courseId.toString());
             if (draft != null) {
                 return ResponseEntity.ok(draft);
             }
@@ -74,7 +74,7 @@ public class QuestionBankController {
     }
 
     @PutMapping
-    public ResponseEntity<?> confirmAndSaveQuestionBank(@PathVariable Integer courseId, @RequestBody List<QuestionDto> questions) {
+    public ResponseEntity<?> confirmAndSaveQuestionBank(@PathVariable java.util.UUID courseId, @RequestBody List<QuestionDto> questions) {
         try {
             questionBankService.saveQuestionBank(courseId, questions);
             return ResponseEntity.ok(new ResponseDTO<>(200, "Lưu ngân hàng câu hỏi thành công", null));

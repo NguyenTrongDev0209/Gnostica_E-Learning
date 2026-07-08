@@ -12,7 +12,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Home, Users, ArrowRight, UserMinus, Star } from "lucide-react";
-import followingService from '@/services/followingService';
+import followingService from '@/services/instructor/followingService';
 import useAuthStore from "@/store/useAuthStore";
 import { toast } from 'sonner';
 

@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/instructor-applications")
@@ -45,23 +46,23 @@ public class InstructorApplicationController {
         return ResponseEntity.ok(applicationService.getAllApplications());
     }
 
-    @PutMapping("/{id}/approve")
+    @PutMapping("/{accountId}/approve")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'ROLE_ADMIN')")
-    public ResponseEntity<?> approveApplication(@PathVariable Integer id) {
+    public ResponseEntity<?> approveApplication(@PathVariable UUID accountId) {
         try {
-            applicationService.approveApplication(id);
+            applicationService.approveApplication(accountId);
             return ResponseEntity.ok(Map.of("message", "Application approved"));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
 
-    @PutMapping("/{id}/reject")
+    @PutMapping("/{accountId}/reject")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'ROLE_ADMIN')")
-    public ResponseEntity<?> rejectApplication(@PathVariable Integer id,
+    public ResponseEntity<?> rejectApplication(@PathVariable UUID accountId,
                                                @Valid @RequestBody RejectApplicationRequest request) {
         try {
-            applicationService.rejectApplication(id, request);
+            applicationService.rejectApplication(accountId, request);
             return ResponseEntity.ok(Map.of("message", "Application rejected"));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));

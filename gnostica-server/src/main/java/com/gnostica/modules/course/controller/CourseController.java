@@ -93,7 +93,7 @@ public class CourseController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteCourse(@PathVariable Integer id, Authentication authentication) {
+    public ResponseEntity<?> deleteCourse(@PathVariable java.util.UUID id, Authentication authentication) {
         String email = authentication.getName();
         try {
             courseService.deleteCourse(id, email);
@@ -122,7 +122,7 @@ public class CourseController {
 
     @PatchMapping("/{id}/status")
     public ResponseEntity<?> updateCourseStatus(
-            @PathVariable Integer id,
+            @PathVariable java.util.UUID id,
             @RequestBody Map<String, Integer> statusUpdate,
             Authentication authentication
     ) {

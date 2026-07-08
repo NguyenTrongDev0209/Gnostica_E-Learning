@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 import { PageHeader, AppBreadcrumb } from "@/components/common/AppSection";
-import CourseListSection from "@/components/pages/client/shared/CourseListSection";
+import CourseListSection from "@/pages/client/components/shared/CourseListSection";
 import AppCard from "@/components/common/AppCard";
 import { Home } from "lucide-react";
-import useCategories from "@/hooks/admin/useCategories";
-import useCourses from "@/hooks/admin/useCourses";
+import useCategories from "@/hooks/course/useCategories";
+import useCourses from "@/hooks/course/useCourses";
 import { popularCoursesMock } from "@/apiMocks/courses";
 
 // Mock "thịnh hành" = reversed order for differentiation

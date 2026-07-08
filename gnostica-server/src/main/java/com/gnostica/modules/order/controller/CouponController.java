@@ -19,6 +19,7 @@ import com.gnostica.modules.order.service.CouponService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/coupons")
@@ -45,11 +46,15 @@ public class CouponController {
 
     @GetMapping("/me")
     public ResponseEntity<ResponseDTO<java.util.List<CouponResponse>>> getMyCoupons() {
-        return ResponseEntity.ok(new ResponseDTO<>(200, "Success", couponService.getMyCoupons()));
+        try {
+            return ResponseEntity.ok(new ResponseDTO<>(200, "Success", couponService.getMyCoupons()));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(new ResponseDTO<>(400, e.getMessage(), null));
+        }
     }
 
     @PutMapping("/{id}/status")
-    public ResponseEntity<ResponseDTO<CouponResponse>> updateCouponStatus(@PathVariable Integer id,
+    public ResponseEntity<ResponseDTO<CouponResponse>> updateCouponStatus(@PathVariable UUID id,
             @RequestParam Integer status) {
         try {
             CouponResponse response = couponService.updateCouponStatus(id, status);
@@ -60,7 +65,7 @@ public class CouponController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ResponseDTO<Void>> deleteCoupon(@PathVariable Integer id) {
+    public ResponseEntity<ResponseDTO<Void>> deleteCoupon(@PathVariable UUID id) {
         try {
             couponService.deleteCoupon(id);
             return ResponseEntity.ok(new ResponseDTO<>(200, "Coupon deleted successfully", null));

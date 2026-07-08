@@ -30,14 +30,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import courseService from "@/services/courseService";
+import courseService from "@/services/course/courseService";
 import { toast } from "sonner";
 
 // Shared Modal Imports
 import CourseRejectModal from "@/components/modals/CourseRejectModal";
 import InstructorProfileModal from "@/components/modals/InstructorProfileModal";
 
-import useAdminCourseModeration from "@/hooks/admin/useAdminCourseModeration";
+import useAdminCourseModeration from "@/hooks/course/useAdminCourseModeration";
 
 export default function AdminCourseModeration() {
   const navigate = useNavigate();

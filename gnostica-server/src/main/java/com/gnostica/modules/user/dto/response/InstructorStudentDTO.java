@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class InstructorStudentDTO {
-    private Integer id;
+    private java.util.UUID id;
     private String name;
     private String email;
     private String avatar;

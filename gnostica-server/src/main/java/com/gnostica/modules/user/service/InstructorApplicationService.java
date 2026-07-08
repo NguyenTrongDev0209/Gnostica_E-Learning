@@ -5,11 +5,12 @@ import com.gnostica.modules.user.dto.request.RejectApplicationRequest;
 import com.gnostica.modules.user.dto.response.InstructorApplicationResponse;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface InstructorApplicationService {
     void submitApplication(String email, InstructorApplicationRequest request);
     List<InstructorApplicationResponse> getAllApplications();
     List<InstructorApplicationResponse> getPendingApplications();
-    void approveApplication(Integer id);
-    void rejectApplication(Integer id, RejectApplicationRequest request);
+    void approveApplication(UUID accountId);
+    void rejectApplication(UUID accountId, RejectApplicationRequest request);
 }

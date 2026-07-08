@@ -8,6 +8,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/favourites")
@@ -26,7 +27,7 @@ public class FavouriteController {
     }
 
     @PostMapping("/toggle/{courseId}")
-    public ResponseEntity<?> toggleFavourite(@PathVariable Integer courseId, Authentication authentication) {
+    public ResponseEntity<?> toggleFavourite(@PathVariable UUID courseId, Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(401).body(ApiResponse.error("Vui lòng đăng nhập để thực hiện chức năng này"));
         }
@@ -38,7 +39,7 @@ public class FavouriteController {
     }
 
     @GetMapping("/check/{courseId}")
-    public ResponseEntity<?> checkFavourite(@PathVariable Integer courseId, Authentication authentication) {
+    public ResponseEntity<?> checkFavourite(@PathVariable UUID courseId, Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.ok(ApiResponse.success(Map.of("isFavourite", false)));
         }

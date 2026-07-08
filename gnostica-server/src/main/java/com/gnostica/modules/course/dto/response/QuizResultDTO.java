@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class QuizResultDTO {
     private Integer quizId;
-    private Double point;
+    private java.math.BigDecimal point;
     private Integer totalQuestions;
     private Integer correctAnswers;
     private java.time.LocalDateTime completedAt;

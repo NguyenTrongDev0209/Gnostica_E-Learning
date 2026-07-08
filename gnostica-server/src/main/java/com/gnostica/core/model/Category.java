@@ -64,4 +64,7 @@ public class Category {
 
     private LocalDateTime deletedAt;
 
+    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
+    private java.util.List<Category> children;
+
 }

@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent } from "@/components/ui/card";
 import { ShieldCheck, ArrowLeft } from 'lucide-react';
 import { SimpleButton } from '@/components/common/AppButton';
-import authService from '@/services/authService';
+import authService from '@/services/auth/authService';
 import { toast } from 'sonner';
 import { useSearchParams } from 'react-router-dom';
 

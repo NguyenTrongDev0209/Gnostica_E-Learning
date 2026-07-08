@@ -13,9 +13,9 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import InstructorStudentTable from "@/components/pages/instructor/students/InstructorStudentTable";
-import StudentCoursesModal from "@/components/pages/instructor/students/StudentCoursesModal";
-import { useInstructorStudents } from "@/hooks/instructor/useInstructorStudents";
+import InstructorStudentTable from "@/pages/instructor/components/students/InstructorStudentTable";
+import StudentCoursesModal from "@/pages/instructor/components/students/StudentCoursesModal";
+import { useInstructorStudents } from "@/hooks/user/useInstructorStudents";
 import { toast } from "sonner";
 
 export default function InstructorStudents() {

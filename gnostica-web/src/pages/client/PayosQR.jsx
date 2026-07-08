@@ -14,7 +14,7 @@ import {
 import { AppBreadcrumb } from "@/components/common/AppSection";
 import { toast } from "sonner";
 import { payosPaymentMock } from "@/apiMocks/payment";
-import orderService from "@/services/orderService";
+import orderService from "@/services/order/orderService";
 
 export default function PayosQR() {
   const { state } = useLocation();

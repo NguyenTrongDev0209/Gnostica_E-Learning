@@ -3,10 +3,10 @@ package com.gnostica.modules.integration.service;
 import com.gnostica.modules.integration.dto.request.AiChatRequest;
 import com.gnostica.modules.integration.dto.response.AiChatResponse;
 import com.gnostica.core.model.Course;
-import com.gnostica.core.model.ForumCategory;
+import com.gnostica.core.model.Topic;
 import com.gnostica.core.model.Thread;
 import com.gnostica.core.repository.CourseRepository;
-import com.gnostica.core.repository.ForumCategoryRepository;
+import com.gnostica.core.repository.TopicRepository;
 import com.gnostica.core.repository.ThreadRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +26,7 @@ public class AiService {
 
     private final RestTemplate restTemplate;
     private final ThreadRepository threadRepository;
-    private final ForumCategoryRepository forumCategoryRepository;
+    private final TopicRepository topicRepository;
     private final CourseRepository courseRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -173,24 +173,24 @@ public class AiService {
         try {
             switch (functionName) {
                 case "get_top_liked_threads":
-                    List<Thread> topThreads = threadRepository.findTop5ByStatusTrueOrderByLikesDesc();
+                    List<Thread> topThreads = threadRepository.findTop5ByStatusOrderByViewCountDesc(1);
                     return buildThreadResponse(topThreads);
 
                 case "get_top_contributors":
                     List<Object[]> contributors = threadRepository.findTopContributors(PageRequest.of(0, 5));
-                    StringBuilder sb = new StringBuilder("Top 5 người đóng góp (đăng nhiều lượt tương tác nhất):\n");
+                    StringBuilder sb = new StringBuilder("Top 5 người đóng góp (đăng nhiều bài viết nhất):\n");
                     for (Object[] row : contributors) {
                         com.gnostica.core.model.Account account = (com.gnostica.core.model.Account) row[0];
-                        Long totalLikes = (Long) row[1]; // SUM returns Long
-                        sb.append(String.format("- Tác giả: %s (Email: %s, ID: %d) có tổng %d likes\n", account.getFullName(), account.getEmail(), account.getId(), totalLikes));
+                        Long totalThreads = (Long) row[1];
+                        sb.append(String.format("- Tác giả: %s (Email: %s, ID: %s) có tổng %d bài viết\n", account.getFullName(), account.getEmail(), account.getId(), totalThreads));
                     }
                     return sb.toString();
 
                 case "get_forum_categories":
-                    List<ForumCategory> categories = forumCategoryRepository.findAll();
+                    List<Topic> categories = topicRepository.findAll();
                     StringBuilder catSb = new StringBuilder("Các chuyên mục trên diễn đàn:\n");
-                    for (ForumCategory fc : categories) {
-                        catSb.append(String.format("- Tên: %s (ID: %d)\n", fc.getName(), fc.getId()));
+                    for (Topic fc : categories) {
+                        catSb.append(String.format("- Tên: %s (ID: %d)\n", fc.getTitle(), fc.getId()));
                     }
                     return catSb.toString();
 
@@ -200,11 +200,11 @@ public class AiService {
                     if (categoryName == null || categoryName.trim().isEmpty()) {
                         return "Lỗi: categoryName không hợp lệ.";
                     }
-                    List<ForumCategory> allCats = forumCategoryRepository.findAll();
-                    ForumCategory matchedCat = null;
-                    for (ForumCategory fc : allCats) {
-                        if (fc.getName().toLowerCase().contains(categoryName.toLowerCase()) ||
-                            categoryName.toLowerCase().contains(fc.getName().toLowerCase())) {
+                    List<Topic> allCats = topicRepository.findAll();
+                    Topic matchedCat = null;
+                    for (Topic fc : allCats) {
+                        if (fc.getTitle().toLowerCase().contains(categoryName.toLowerCase()) ||
+                            categoryName.toLowerCase().contains(fc.getTitle().toLowerCase())) {
                             matchedCat = fc;
                             break;
                         }
@@ -212,7 +212,7 @@ public class AiService {
                     if (matchedCat == null) {
                         return "DATABASE_EMPTY: Không tìm thấy chủ đề nào phù hợp với tên: " + categoryName;
                     }
-                    List<Thread> categoryThreads = threadRepository.findTop5ByCategoryIdAndStatusTrueOrderByLikesDesc(matchedCat.getId());
+                    List<Thread> categoryThreads = threadRepository.findTop5ByTopic_IdAndStatusOrderByViewCountDesc(matchedCat.getId(), 1);
                     return buildThreadResponse(categoryThreads);
 
                 case "search_courses":
@@ -251,16 +251,13 @@ public class AiService {
                 : plainContent;
             
             String imageUrl = "none";
-            if (t.getImages() != null && !t.getImages().isEmpty()) {
-                imageUrl = t.getImages().get(0).getImageUrl();
-            }
 
             sb.append(String.format("ID Bài viết: %d\n", t.getId()));
             sb.append(String.format("Tiêu đề: %s\n", derivedTitle));
             sb.append(String.format("Nội dung tóm tắt: %s\n", contentPreview));
-            sb.append(String.format("Lượt thích (Likes): %d\n", t.getLikes()));
+            sb.append(String.format("Lượt xem (Views): %d\n", t.getViewCount()));
             sb.append(String.format("Tác giả: %s\n", t.getAccount() != null ? t.getAccount().getFullName() : "Ẩn danh"));
-            sb.append(String.format("Mục chuyên đề: %s\n", t.getCategory() != null ? t.getCategory().getName() : "Không rõ"));
+            sb.append(String.format("Mục chuyên đề: %s\n", t.getTopic() != null ? t.getTopic().getTitle() : "Không rõ"));
             sb.append(String.format("Ảnh: %s\n", imageUrl));
             sb.append("---\n");
         }
@@ -274,8 +271,8 @@ public class AiService {
             sb.append(String.format("Khóa học Slug: %s\n", c.getSlug()));
             sb.append(String.format("Tiêu đề: %s\n", c.getTitle()));
             sb.append(String.format("Giá: %.0f VNĐ (Giảm giá %d%%)\n", c.getPrice(), c.getDiscount()));
-            sb.append(String.format("Tác giả: %s\n", c.getInstructorName()));
-            sb.append(String.format("Danh mục: %s\n", c.getCategoryName()));
+            sb.append(String.format("Tác giả: %s\n", c.getAccount() != null ? c.getAccount().getFullName() : "Không rõ"));
+            sb.append(String.format("Danh mục: %s\n", c.getCategory() != null ? c.getCategory().getName() : "Không rõ"));
             sb.append(String.format("Ảnh: %s\n", c.getThumbnail()));
             sb.append("---\n");
         }

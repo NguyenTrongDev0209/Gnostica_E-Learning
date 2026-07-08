@@ -3,7 +3,7 @@ import { Avatar, AvatarImage, AvatarFallback, AvatarBadge } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { Clock, CornerDownRight, Send } from 'lucide-react';
 import RenderContent from './RenderContent';
-import commentService from '@/services/commentService';
+import commentService from '@/services/forum/commentService';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';

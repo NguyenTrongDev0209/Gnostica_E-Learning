@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Download, Loader2 } from "lucide-react";
 import * as htmlToImage from "html-to-image";
 import { jsPDF } from "jspdf";
-import certificateService from "@/services/certificateService";
+import certificateService from "@/services/course/certificateService";
 
 export default function CertificatePage() {
     const { certifiUrl } = useParams();

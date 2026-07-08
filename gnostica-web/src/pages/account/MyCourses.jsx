@@ -26,10 +26,10 @@ import {
   Award,
 } from "lucide-react";
 
-import enrollmentService from "@/services/enrollmentService";
+import enrollmentService from "@/services/course/enrollmentService";
 import { toast } from "sonner";
 
-import useMyCourses from "@/hooks/client/useMyCourses";
+import useMyCourses from "@/hooks/course/useMyCourses";
 
 export default function MyCourses() {
   const {

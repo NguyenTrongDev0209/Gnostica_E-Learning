@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import authService from '@/services/authService';
+import authService from '@/services/auth/authService';
 
 const useAuthStore = create((set) => ({
   user: JSON.parse(localStorage.getItem('user')) || null, // Khởi tạo ban đầu từ localStorage

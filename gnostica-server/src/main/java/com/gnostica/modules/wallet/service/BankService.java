@@ -22,7 +22,7 @@ public class BankService {
         return bankRepository.findAll();
     }
 
-    public Optional<Bank> getBankById(Long id) {
+    public Optional<Bank> getBankById(Integer id) {
         return bankRepository.findById(id);
     }
 
@@ -35,7 +35,7 @@ public class BankService {
     }
 
     @Transactional
-    public Optional<Bank> updateBank(Long id, Bank bankDetails) {
+    public Optional<Bank> updateBank(Integer id, Bank bankDetails) {
         return bankRepository.findById(id).map(bank -> {
             bank.setBankCode(bankDetails.getBankCode());
             bank.setBin(bankDetails.getBin());
@@ -47,7 +47,7 @@ public class BankService {
     }
 
     @Transactional
-    public boolean deleteBank(Long id) {
+    public boolean deleteBank(Integer id) {
         return bankRepository.findById(id).map(bank -> {
             bankRepository.delete(bank);
             return true;

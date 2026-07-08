@@ -3,12 +3,12 @@ package com.gnostica.modules.order.controller;
 import com.gnostica.modules.payment.dto.response.PaymentLinkResponse;
 import com.gnostica.modules.payment.dto.request.CreatePaymentLinkRequestBody;
 import com.gnostica.core.dto.response.ApiResponse;
-import com.gnostica.core.model.Order;
+import com.gnostica.modules.order.dto.response.OrderResponse;
 import com.gnostica.modules.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-
+import java.util.UUID;
 import java.util.List;
 
 @RestController
@@ -20,7 +20,7 @@ public class OrderController {
 	private final OrderService orderService;
 
 	@GetMapping(value = "/all")
-	public ApiResponse<List<Order>> getAllOrders() {
+	public ApiResponse<List<OrderResponse>> getAllOrders() {
 		try {
 			return ApiResponse.success(orderService.getAllOrders());
 		} catch (Exception e) {
@@ -41,17 +41,15 @@ public class OrderController {
 	}
 
 	@GetMapping("/{idOrCode}")
-	public ApiResponse<Order> getOrderById(@PathVariable String idOrCode) {
+	public ApiResponse<OrderResponse> getOrderById(@PathVariable String idOrCode) {
 		try {
-			Order order;
-			if (idOrCode.length() > 10) { // Likely a long transactionId
+			OrderResponse order;
+			try {
+				UUID id = UUID.fromString(idOrCode);
+				order = orderService.getOrderById(id);
+			} catch (IllegalArgumentException e) {
+				// Not a valid UUID, might be a transaction code
 				order = orderService.getOrderByTransactionId(idOrCode);
-			} else {
-				try {
-					order = orderService.getOrderById(Integer.parseInt(idOrCode));
-				} catch (NumberFormatException e) {
-					order = orderService.getOrderByTransactionId(idOrCode);
-				}
 			}
 			return ApiResponse.success(order);
 		} catch (Exception e) {
@@ -61,7 +59,7 @@ public class OrderController {
 	}
 
 	@GetMapping("/paged")
-	public ApiResponse<org.springframework.data.domain.Page<Order>> getOrdersPaginated(
+	public ApiResponse<org.springframework.data.domain.Page<OrderResponse>> getOrdersPaginated(
 			@RequestParam(defaultValue = "0") int page,
 			@RequestParam(defaultValue = "10") int size) {
 		try {

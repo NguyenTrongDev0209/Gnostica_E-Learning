@@ -14,9 +14,9 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useCoupons } from "@/hooks/admin/useCoupons";
-import { CouponFormModal } from "@/components/pages/admin/coupons/CouponFormModal";
-import InstructorCouponTable from "@/components/pages/instructor/coupons/InstructorCouponTable";
+import { useCoupons } from "@/hooks/order/useCoupons";
+import { CouponFormModal } from "@/pages/admin/components/coupons/CouponFormModal";
+import InstructorCouponTable from "@/pages/instructor/components/coupons/InstructorCouponTable";
 
 export default function InstructorCoupons() {
   const { coupons, isLoading, addCoupon, removeCoupon, toggleCouponStatus } = useCoupons({ mine: true });
