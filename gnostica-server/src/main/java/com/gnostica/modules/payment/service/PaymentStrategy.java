@@ -5,8 +5,8 @@ import com.gnostica.core.model.Order;
 import vn.payos.model.v2.paymentRequests.PaymentLink;
 import vn.payos.model.webhooks.WebhookData;
 
-public interface PaymentStrategyService {
-    PaymentLinkResponse createPaymentLink(Order order) throws Exception;
+public interface PaymentStrategy {
+    PaymentLinkResponse createPaymentLink(Order order, String returnUrl, String cancelUrl) throws Exception;
 
     WebhookData verifyWebhook(Object body) throws Exception;
 

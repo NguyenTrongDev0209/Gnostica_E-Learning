@@ -38,6 +38,9 @@ public class Order {
     @Size(max = 255)
     private String paymentMethod;
 
+    @Column(unique = true)
+    private Long orderCode;
+
     /**
      * Status: 1: Pending (Chờ thanh toán), 2: Paid (Đã thanh toán), 3: Cancelled (Đã huỷ), 4: Refunded (Đã hoàn tiền)
      */

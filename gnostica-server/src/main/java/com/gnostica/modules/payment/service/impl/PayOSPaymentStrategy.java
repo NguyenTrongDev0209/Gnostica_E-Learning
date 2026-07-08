@@ -4,7 +4,7 @@ import com.gnostica.modules.payment.dto.response.PaymentLinkResponse;
 import com.gnostica.core.model.Order;
 import com.gnostica.core.model.OrderDetail;
 import com.gnostica.core.repository.OrderDetailRepository;
-import com.gnostica.modules.payment.service.PaymentStrategyService;
+import com.gnostica.modules.payment.service.PaymentStrategy;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import vn.payos.PayOS;
@@ -19,13 +19,13 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class PayOSStrategyImpl implements PaymentStrategyService {
+public class PayOSPaymentStrategy implements PaymentStrategy {
 
     private final PayOS payOS;
     private final OrderDetailRepository orderDetailRepository;
 
     @Override
-    public PaymentLinkResponse createPaymentLink(Order order) throws Exception {
+    public PaymentLinkResponse createPaymentLink(Order order, String returnUrl, String cancelUrl) throws Exception {
         List<OrderDetail> details = orderDetailRepository.findByOrder(order);
 
         List<PaymentLinkItem> items = details.stream().map(d -> PaymentLinkItem.builder()
@@ -34,14 +34,13 @@ public class PayOSStrategyImpl implements PaymentStrategyService {
                 .price((long) d.getPrice().doubleValue())
                 .build()).collect(Collectors.toList());
 
-        String baseUrl = "http://localhost:5173";
         CreatePaymentLinkRequest paymentData = CreatePaymentLinkRequest.builder()
-                .orderCode(Long.parseLong(order.getTransactionId()))
+                .orderCode(order.getOrderCode())
                 .amount((long) order.getTotalPrice().doubleValue())
                 .description("Thanh toan don hang " + order.getId())
                 .items(items)
-                .returnUrl(baseUrl + "/payment/success")
-                .cancelUrl(baseUrl + "/payment/cancel")
+                .returnUrl(returnUrl != null && !returnUrl.isEmpty() ? returnUrl : "http://localhost:5173/payment/success")
+                .cancelUrl(cancelUrl != null && !cancelUrl.isEmpty() ? cancelUrl : "http://localhost:5173/payment/cancel")
                 .build();
 
         // Tạo link thanh toán
@@ -68,7 +67,7 @@ public class PayOSStrategyImpl implements PaymentStrategyService {
 
     @Override
     public PaymentLink getPaymentDetails(Order order) throws Exception {
-        return payOS.paymentRequests().get(Long.parseLong(order.getTransactionId()));
+        return payOS.paymentRequests().get(order.getOrderCode());
     }
 
     @Override

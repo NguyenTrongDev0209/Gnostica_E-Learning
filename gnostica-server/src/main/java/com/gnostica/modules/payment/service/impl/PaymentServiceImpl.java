@@ -7,8 +7,8 @@ import com.gnostica.core.model.Payment;
 import com.gnostica.core.repository.OrderRepository;
 import com.gnostica.core.repository.PaymentRepository;
 import com.gnostica.modules.payment.service.PaymentService;
-import com.gnostica.modules.payment.service.PaymentStrategyService;
-import com.gnostica.modules.payment.service.PaymentStrategyFactoryService;
+import com.gnostica.modules.payment.service.PaymentStrategy;
+import com.gnostica.modules.payment.service.PaymentStrategyFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -28,21 +28,29 @@ import java.util.Map;
 @Slf4j
 public class PaymentServiceImpl implements PaymentService {
 
-    private final PaymentStrategyFactoryService paymentStrategyFactory;
+    private final PaymentStrategyFactory paymentStrategyFactory;
     private final OrderRepository orderRepository;
     private final PaymentRepository paymentRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final ObjectMapper objectMapper;
 
     @Override
-    public PaymentLinkResponse createPaymentLink(Order order) throws Exception {
-        // Defaulting to PAYOS for now, can be parameterized if needed
-        return paymentStrategyFactory.getStrategy("PAYOS").createPaymentLink(order);
+    public PaymentLinkResponse createPaymentLink(Order order, String returnUrl, String cancelUrl) throws Exception {
+        String gateway = order.getPaymentMethod();
+        if (gateway == null) {
+            gateway = "PAYOS"; // Mặc định
+        }
+        
+        PaymentStrategy strategy = paymentStrategyFactory.getStrategy(gateway);
+        if (strategy == null) {
+            throw new IllegalArgumentException("Không hỗ trợ phương thức thanh toán: " + gateway);
+        }
+        return strategy.createPaymentLink(order, returnUrl, cancelUrl);
     }
 
     @Override
     public WebhookData verifyWebhook(String gateway, Object body) throws Exception {
-        PaymentStrategyService strategy = paymentStrategyFactory.getStrategy(gateway);
+        PaymentStrategy strategy = paymentStrategyFactory.getStrategy(gateway);
         return strategy.verifyWebhook(body);
     }
 
@@ -53,7 +61,7 @@ public class PaymentServiceImpl implements PaymentService {
             return;
         }
 
-        PaymentStrategyService strategy = paymentStrategyFactory.getStrategy("PAYOS");
+        PaymentStrategy strategy = paymentStrategyFactory.getStrategy("PAYOS");
         boolean isPaid = strategy.checkPaymentStatus(order);
 
         if (isPaid) {
@@ -75,10 +83,10 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     @Transactional
     public void handlePaymentWebhook(WebhookData data) {
-        String transactionId = String.valueOf(data.getOrderCode());
-        log.info("Webhook triggered for transactionId: {}", transactionId);
+        Long orderCode = data.getOrderCode();
+        log.info("Webhook triggered for orderCode: {}", orderCode);
 
-        Order order = orderRepository.findByTransactionId(transactionId)
+        Order order = orderRepository.findByOrderCode(orderCode)
                 .orElse(null);
 
         if (order != null && order.getStatus() == 0) {
