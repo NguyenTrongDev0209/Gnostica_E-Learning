@@ -12,7 +12,9 @@ import jakarta.validation.constraints.*;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "lesson_progress")
+@Table(name = "lesson_progress", uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"account_id", "lesson_id"})
+})
 public class LessonProgress {
 
     @Id
@@ -33,7 +35,7 @@ public class LessonProgress {
     private String lastWatchedAt;
 
     /**
-     * Status: 1: In Progress (Äang há»c), 2: Completed (HoÃ n thÃ nh)
+     * Status: 1: In Progress (Đang học), 2: Completed (Hoàn thành)
      */
     @NotNull
     private Integer status;

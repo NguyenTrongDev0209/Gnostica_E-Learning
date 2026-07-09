@@ -28,11 +28,13 @@ public class Commission {
     @NotNull
     @Min(0)
     @Max(100)
+    @Column(precision = 5, scale = 2)
     private BigDecimal instructorRatio;
 
     @NotNull
     @Min(0)
     @Max(100)
+    @Column(precision = 5, scale = 2)
     private BigDecimal platformRatio;
 
     private LocalDateTime validFrom;
@@ -40,7 +42,7 @@ public class Commission {
     private LocalDateTime validUntil;
 
     /**
-     * Status: 0: Inactive (ÄÃ£ cÅ©), 1: Active (Äang Ã¡p dá»¥ng)
+     * Status: 0: Inactive (Đã cũ), 1: Active (Đang áp dụng)
      */
     @NotNull
     private Integer status;

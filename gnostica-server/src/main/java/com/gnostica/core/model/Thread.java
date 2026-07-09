@@ -53,7 +53,7 @@ public class Thread {
     private Boolean isPinned;
 
     /**
-     * Status: 0: Hidden (áº¨n), 1: Draft (Báº£n nhÃ¡p), 2: Published (ÄÃ£ xuáº¥t báº£n), 3: Banned (Vi pháº¡m)
+     * Status: 0: Hidden (Ẩn), 1: Draft (Bản nháp), 2: Published (Đã xuất bản), 3: Banned (Vi phạm)
      */
     @NotNull
     private Integer status;

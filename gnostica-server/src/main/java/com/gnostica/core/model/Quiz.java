@@ -37,6 +37,7 @@ public class Quiz {
 
     @NotNull
     @Min(0)
+    @Column(precision = 5, scale = 2)
     private BigDecimal passingScore;
 
     @NotNull

@@ -32,6 +32,7 @@ public class Order {
 
     @NotNull
     @Min(0)
+    @Column(precision = 18, scale = 6)
     private BigDecimal totalPrice;
 
     @NotBlank

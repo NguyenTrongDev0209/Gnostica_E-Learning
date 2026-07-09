@@ -42,7 +42,7 @@ public class Comment {
     private String content;
 
     /**
-     * Status: 0: Hidden (áº¨n), 1: Published (Hiá»ƒn thá»‹), 2: Spam/Reported (Vi pháº¡m)
+     * Status: 0: Hidden (Ẩn), 1: Published (Hiển thị), 2: Spam/Reported (Vi phạm)
      */
     @NotNull
     private Integer status;
