@@ -31,7 +31,16 @@ public class Comment {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Comment parent;
+
+    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("createdAt ASC")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private java.util.List<Comment> replies;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mention_id")
@@ -41,9 +50,6 @@ public class Comment {
     @Column(columnDefinition = "TEXT")
     private String content;
 
-    /**
-     * Status: 0: Hidden (áº¨n), 1: Published (Hiá»ƒn thá»‹), 2: Spam/Reported (Vi pháº¡m)
-     */
     @NotNull
     private Integer status;
 

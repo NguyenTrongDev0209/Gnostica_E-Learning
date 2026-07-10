@@ -49,8 +49,8 @@ import forumCategoryService from "@/services/forum/forumCategoryService";
 const categorySchema = z.object({
   name: z
     .string()
-    .min(1, "Tên danh mục không được để trống")
-    .max(255, "Tên danh mục không vượt quá 255 ký tự"),
+    .min(1, "Tên chủ đề không được để trống")
+    .max(255, "Tên chủ đề không vượt quá 255 ký tự"),
   slug: z
     .string()
     .min(1, "Slug không được để trống")
@@ -73,7 +73,7 @@ export default function AdminForumCategory({ hideHeader = false }) {
       }
     } catch (error) {
       console.error("Failed to fetch forum categories", error);
-      toast.error("Không thể tải danh sách danh mục diễn đàn");
+      toast.error("Không thể tải danh sách chủ đề diễn đàn");
     }
   };
 
@@ -129,14 +129,14 @@ export default function AdminForumCategory({ hideHeader = false }) {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Bạn có chắc chắn muốn xóa danh mục này?")) return;
+    if (!window.confirm("Bạn có chắc chắn muốn xóa chủ đề này?")) return;
 
     try {
       await forumCategoryService.deleteCategory(id);
-      toast.success("Xóa danh mục thành công!");
+      toast.success("Xóa chủ đề thành công!");
       fetchCategories();
     } catch (error) {
-      toast.error("Lỗi khi xóa danh mục");
+      toast.error("Lỗi khi xóa chủ đề");
     }
   };
 
@@ -188,10 +188,10 @@ export default function AdminForumCategory({ hideHeader = false }) {
         {!hideHeader ? (
           <div>
             <h1 className="text-2xl font-bold text-foreground tracking-tight">
-              Quản Lý Danh Mục Diễn Đàn
+              Quản Lý Chủ Đề Diễn Đàn
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Thêm mới, chỉnh sửa danh mục bài viết trên diễn đàn.
+              Thêm mới, chỉnh sửa chủ đề bài viết trên diễn đàn.
             </p>
           </div>
         ) : (
@@ -202,7 +202,7 @@ export default function AdminForumCategory({ hideHeader = false }) {
           onClick={() => setIsAddModalOpen(true)}
         >
           <Plus className="w-4 h-4" />
-          Thêm Danh Mục
+          Thêm Chủ Đề
         </Button>
       </div>
 
@@ -212,7 +212,7 @@ export default function AdminForumCategory({ hideHeader = false }) {
           <div className="relative w-full md:w-80">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="Tìm danh mục..."
+              placeholder="Tìm chủ đề..."
               className="pl-9 h-10 border-border focus:bg-white"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -248,7 +248,7 @@ export default function AdminForumCategory({ hideHeader = false }) {
             <TableHeader className="bg-muted">
               <TableRow>
                 <TableHead className="py-4 font-semibold text-foreground w-[40%] min-w-[200px]">
-                  Danh mục
+                  Chủ đề
                 </TableHead>
                 <TableHead className="py-4 font-semibold text-foreground w-[30%] min-w-[150px]">
                   Slug
@@ -268,7 +268,7 @@ export default function AdminForumCategory({ hideHeader = false }) {
               {filteredCategories.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} className="h-32 text-center text-muted-foreground font-medium">
-                    Không tìm thấy danh mục nào phù hợp.
+                    Không tìm thấy chủ đề nào phù hợp.
                   </TableCell>
                 </TableRow>
               ) : (
@@ -358,7 +358,7 @@ export default function AdminForumCategory({ hideHeader = false }) {
               <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
                 <Plus className="w-5 h-5 text-primary" />
               </div>
-              {editId ? "Cập Nhật Danh Mục" : "Thêm Danh Mục Diễn Đàn"}
+              {editId ? "Cập Nhật Chủ Đề" : "Thêm Chủ Đề Diễn Đàn"}
             </DialogTitle>
           </DialogHeader>
 
@@ -375,7 +375,7 @@ export default function AdminForumCategory({ hideHeader = false }) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-foreground font-semibold">
-                      Tên danh mục
+                      Tên chủ đề
                     </FormLabel>
                     <FormControl>
                       <Input
@@ -454,7 +454,7 @@ export default function AdminForumCategory({ hideHeader = false }) {
                   Hủy bỏ
                 </Button>
                 <Button type="submit" className="bg-primary font-bold px-6">
-                  {editId ? "Lưu Cập Nhật" : "Tạo danh mục"}
+                  {editId ? "Lưu Cập Nhật" : "Tạo chủ đề"}
                 </Button>
               </DialogFooter>
             </form>

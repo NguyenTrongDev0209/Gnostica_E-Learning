@@ -6,5 +6,6 @@ import com.gnostica.core.model.Topic;
 
 @Repository
 public interface TopicRepository extends JpaRepository<Topic, Integer> {
+    java.util.List<Topic> findByDeletedAtIsNull();
 }
 

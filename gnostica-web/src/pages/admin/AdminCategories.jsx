@@ -56,8 +56,8 @@ const ITEMS_PER_PAGE = 10;
 const categorySchema = z.object({
   name: z
     .string()
-    .min(1, "Tên danh mục không được để trống")
-    .max(255, "Tên danh mục không vượt quá 255 ký tự"),
+    .min(1, "Tên chủ đề không được để trống")
+    .max(255, "Tên chủ đề không vượt quá 255 ký tự"),
   slug: z
     .string()
     .min(1, "Slug không được để trống")
@@ -133,10 +133,10 @@ export default function AdminCategories({ hideHeader = false }) {
         {!hideHeader ? (
           <div>
             <h1 className="text-2xl font-bold text-foreground tracking-tight">
-              Quản Lý Danh Mục
+              Quản Lý Chủ Đề
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Thêm mới, chỉnh sửa và sắp xếp danh mục khóa học.
+              Thêm mới, chỉnh sửa và sắp xếp chủ đề khóa học.
             </p>
           </div>
         ) : (
@@ -147,7 +147,7 @@ export default function AdminCategories({ hideHeader = false }) {
           onClick={() => setIsAddModalOpen(true)}
         >
           <Plus className="w-4 h-4" />
-          Thêm Danh Mục
+          Thêm Chủ Đề
         </Button>
       </div>
 
@@ -157,7 +157,7 @@ export default function AdminCategories({ hideHeader = false }) {
           <div className="relative w-full md:w-80">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="Tìm danh mục..."
+              placeholder="Tìm chủ đề..."
               className="pl-9 h-10 border-border focus:bg-white"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -194,13 +194,13 @@ export default function AdminCategories({ hideHeader = false }) {
               <TableRow>
                 <TableHead className="py-4 font-semibold text-foreground w-10 mx-auto" />
                 <TableHead className="py-4 font-semibold text-foreground w-[25%] min-w-[200px]">
-                  Danh mục
+                  Chủ đề
                 </TableHead>
                 <TableHead className="py-4 font-semibold text-foreground w-[20%] min-w-[150px]">
                   Slug
                 </TableHead>
                 <TableHead className="py-4 font-semibold text-foreground text-center w-32 whitespace-nowrap">
-                  Danh mục con
+                  Chủ đề con
                 </TableHead>
                 <TableHead className="py-4 font-semibold text-foreground text-center w-24 whitespace-nowrap">
                   Khóa học
@@ -217,7 +217,7 @@ export default function AdminCategories({ hideHeader = false }) {
               {categories.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="h-32 text-center text-muted-foreground font-medium">
-                    Không tìm thấy danh mục nào phù hợp.
+                    Không tìm thấy chủ đề nào phù hợp.
                   </TableCell>
                 </TableRow>
               ) : (
@@ -400,7 +400,7 @@ export default function AdminCategories({ hideHeader = false }) {
           {totalPages > 1 && (
             <div className="flex flex-col sm:flex-row justify-between items-center py-4 px-4 bg-white border-t border-border gap-4">
               <span className="text-sm font-medium text-muted-foreground">
-                Hiển thị {(currentPage - 1) * ITEMS_PER_PAGE + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, totalElements)} của {totalElements} danh mục
+                Hiển thị {(currentPage - 1) * ITEMS_PER_PAGE + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, totalElements)} của {totalElements} chủ đề
               </span>
               <div className="flex gap-2">
                 <Button
@@ -452,12 +452,12 @@ export default function AdminCategories({ hideHeader = false }) {
               <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
                 <Plus className="w-5 h-5 text-primary" />
               </div>
-              {editId ? "Cập Nhật Danh Mục" : "Thêm Danh Mục Mới"}
+              {editId ? "Cập Nhật Chủ Đề" : "Thêm Chủ Đề Mới"}
             </DialogTitle>
             <DialogDescription>
               {editId
-                ? "Chỉnh sửa thông tin danh mục hiện có."
-                : "Tạo một danh mục mới để phân loại các khóa học của bạn."}
+                ? "Chỉnh sửa thông tin chủ đề hiện có."
+                : "Tạo một chủ đề mới để phân loại các khóa học của bạn."}
             </DialogDescription>
           </DialogHeader>
 
@@ -472,7 +472,7 @@ export default function AdminCategories({ hideHeader = false }) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-foreground font-semibold">
-                      Tên danh mục
+                      Tên chủ đề
                     </FormLabel>
                     <FormControl>
                       <Input
@@ -516,7 +516,7 @@ export default function AdminCategories({ hideHeader = false }) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-foreground font-semibold">
-                      Danh mục cha
+                      Chủ đề cha
                     </FormLabel>
                     <Select
                       onValueChange={field.onChange}
@@ -524,12 +524,12 @@ export default function AdminCategories({ hideHeader = false }) {
                     >
                       <FormControl>
                         <SelectTrigger className="h-10 border-border w-full">
-                          <SelectValue placeholder="Chọn danh mục cha" />
+                          <SelectValue placeholder="Chọn chủ đề cha" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="none">
-                          Không có (Danh mục gốc)
+                          Không có (Chủ đề gốc)
                         </SelectItem>
                         {categories.map((cat) => (
                           <SelectItem key={cat.id} value={cat.id.toString()}>
@@ -584,7 +584,7 @@ export default function AdminCategories({ hideHeader = false }) {
                   Hủy bỏ
                 </Button>
                 <Button type="submit" className="bg-primary font-bold px-6">
-                  {editId ? "Lưu Cập Nhật" : "Tạo danh mục"}
+                  {editId ? "Lưu Cập Nhật" : "Tạo chủ đề"}
                 </Button>
               </DialogFooter>
             </form>

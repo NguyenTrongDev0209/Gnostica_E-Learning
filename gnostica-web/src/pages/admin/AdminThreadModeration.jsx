@@ -224,11 +224,11 @@ export default function AdminThreadModeration() {
                       </div>
 
                       {/* Middle: Content and Category */}
-                      <div className="flex-1 min-w-0 space-y-2.5">
+                      <div className="flex-1 min-w-0 space-y-2.5 overflow-hidden">
                         <div className="flex items-center gap-2 flex-wrap">
                           <Badge variant="secondary" className="bg-primary/10 text-primary hover:bg-primary/10 border-none font-semibold px-2 py-0.5 text-xs">
                             <Layers className="w-3 h-3 mr-1" />
-                            {thread.category?.name || "Chưa phân loại"}
+                            {thread.topic?.title || thread.category?.name || "Chưa phân loại"}
                           </Badge>
                           <span className="text-[11px] text-muted-foreground md:hidden flex items-center gap-1">
                             <Calendar className="w-3 h-3" />
@@ -238,7 +238,7 @@ export default function AdminThreadModeration() {
 
                         {/* Content text */}
                         <div className="relative text-sm text-muted-foreground leading-relaxed font-normal">
-                          <div className={(!isExpanded && hasLongContent) ? "line-clamp-4 max-h-[120px] overflow-hidden" : ""}>
+                          <div className={(!isExpanded && hasLongContent) ? "line-clamp-4 max-h-[120px] overflow-hidden" : (isExpanded ? "max-h-[500px] overflow-y-auto pr-2 scrollbar-thin" : "")}>
                             <RenderContent text={thread.content} />
                           </div>
                           {hasLongContent && (

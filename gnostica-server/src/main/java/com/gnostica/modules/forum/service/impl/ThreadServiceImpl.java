@@ -4,14 +4,19 @@ import com.gnostica.core.model.Account;
 import com.gnostica.core.model.Topic;
 import com.gnostica.core.model.Thread;
 import com.gnostica.core.model.Vote;
+import com.gnostica.core.model.Hashtag;
+import com.gnostica.core.model.ThreadHashtag;
 import com.gnostica.core.repository.AccountRepository;
 import com.gnostica.core.repository.TopicRepository;
 import com.gnostica.core.repository.ThreadRepository;
 import com.gnostica.core.repository.VoteRepository;
 import com.gnostica.core.repository.CommentRepository;
 import com.gnostica.core.repository.ReportRepository;
+import com.gnostica.core.repository.HashtagRepository;
+import com.gnostica.core.repository.ThreadHashtagRepository;
 import com.gnostica.modules.integration.service.CloudinaryService;
 import com.gnostica.modules.forum.service.ThreadService;
+import com.gnostica.core.util.AuthUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +28,8 @@ import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 import org.springframework.data.domain.PageRequest;
 import java.util.stream.Collectors;
+import java.util.Objects;
+import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
@@ -46,6 +53,10 @@ public class ThreadServiceImpl implements ThreadService {
     private CommentRepository commentRepository;
     @Autowired
     private ReportRepository reportRepository;
+    @Autowired
+    private HashtagRepository hashtagRepository;
+    @Autowired
+    private ThreadHashtagRepository threadHashtagRepository;
 
     private String toSlug(String input) {
         if (input == null) return "";
@@ -54,7 +65,7 @@ public class ThreadServiceImpl implements ThreadService {
 
     @Override
     @Transactional
-    public Thread createThread(String title, String content, Integer topicId, String authorEmail, List<MultipartFile> images) {
+    public Thread createThread(String title, String content, Integer topicId, String authorEmail, List<MultipartFile> images, List<String> hashtags) {
         Account account = accountRepository.findByEmail(authorEmail)
                 .orElseThrow(() -> new RuntimeException("Account not found with email: " + authorEmail));
 
@@ -65,7 +76,7 @@ public class ThreadServiceImpl implements ThreadService {
         }
 
         Thread thread = new Thread();
-        thread.setTitle(title != null ? title : "Untitled");
+        thread.setTitle(title != null && !title.trim().isEmpty() ? title : "Thảo luận");
         thread.setSlug(toSlug(thread.getTitle()) + "-" + System.currentTimeMillis());
         thread.setContent(content);
         thread.setAccount(account);
@@ -95,12 +106,39 @@ public class ThreadServiceImpl implements ThreadService {
             thread.setContent(sb.toString());
         }
 
-        return threadRepository.save(thread);
+        Thread savedThread = threadRepository.save(thread);
+
+        // Save hashtags
+        if (hashtags != null && !hashtags.isEmpty()) {
+            for (String tag : hashtags) {
+                String cleanTag = tag.trim().toLowerCase().replaceAll("[^a-z0-9_\\u00c0-\\u024f]", "");
+                if (cleanTag.isEmpty()) continue;
+                Hashtag hashtag = hashtagRepository.findByName(cleanTag)
+                        .orElseGet(() -> {
+                            Hashtag newTag = new Hashtag();
+                            newTag.setName(cleanTag);
+                            newTag.setUsageCount(0);
+                            newTag.setStatus(1);
+                            return hashtagRepository.save(newTag);
+                        });
+                // Increment usage count
+                hashtag.setUsageCount((hashtag.getUsageCount() == null ? 0 : hashtag.getUsageCount()) + 1);
+                hashtagRepository.save(hashtag);
+
+                ThreadHashtag threadHashtag = new ThreadHashtag();
+                threadHashtag.setThread(savedThread);
+                threadHashtag.setHashtag(hashtag);
+                threadHashtagRepository.save(threadHashtag);
+            }
+        }
+
+        populateThreadStats(savedThread);
+        return savedThread;
     }
 
     @Override
     public Page<Thread> getAllThreads(Pageable pageable) {
-        return threadRepository.findAllByStatus(2, pageable); // 2 = Published
+        return populateThreadsStats(threadRepository.findAllByStatus(2, pageable)); // 2 = Published
     }
 
     @Override
@@ -108,6 +146,16 @@ public class ThreadServiceImpl implements ThreadService {
     public Thread getThreadById(Integer id) {
         Thread thread = threadRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Thread not found with id: " + id));
+        populateThreadStats(thread);
+        return thread;
+    }
+
+    @Override
+    @Transactional
+    public Thread getThreadBySlug(String slug) {
+        Thread thread = threadRepository.findBySlug(slug)
+                .orElseThrow(() -> new RuntimeException("Thread not found with slug: " + slug));
+        populateThreadStats(thread);
         return thread;
     }
 
@@ -132,6 +180,7 @@ public class ThreadServiceImpl implements ThreadService {
             voteRepository.save(newVote);
         }
         
+        populateThreadStats(thread);
         return thread;
     }
 
@@ -151,7 +200,15 @@ public class ThreadServiceImpl implements ThreadService {
             Long threadCount = (Long) result[1];
             Map<String, Object> map = new HashMap<>();
             map.put("account", account);
-            map.put("totalLikes", 0);
+            
+            // Calculate total likes for this account
+            long totalLikes = 0;
+            List<Thread> userThreads = threadRepository.findByAccountEmailOrderByCreatedAtDesc(account.getEmail(), PageRequest.of(0, 1000)).getContent();
+            for (Thread t : userThreads) {
+                totalLikes += voteRepository.countByTargetIdAndTypeAndValue(t.getId().toString(), 1, true);
+            }
+            
+            map.put("totalLikes", totalLikes);
             map.put("threadCount", threadCount);
             return map;
         }).collect(Collectors.toList());
@@ -162,19 +219,56 @@ public class ThreadServiceImpl implements ThreadService {
         if (topicId == null) {
             return new ArrayList<>();
         }
-        return threadRepository.findTop5ByTopic_IdAndStatusOrderByViewCountDesc(topicId, 2); 
+        return populateThreadsStats(threadRepository.findTop5ByTopic_IdAndStatusOrderByViewCountDesc(topicId, 2)); 
     }
 
     @Override
     public Page<Thread> getThreadsByEmail(String email, Pageable pageable) {
-        return threadRepository.findByAccountEmailOrderByCreatedAtDesc(email, pageable);
+        return populateThreadsStats(threadRepository.findByAccountEmailOrderByCreatedAtDesc(email, pageable));
+    }
+
+    @Override
+    @Transactional
+    public Page<Thread> getLikedThreadsByEmail(String email, Pageable pageable) {
+        List<Vote> likedVotes = voteRepository.findByAccountEmailAndType(email, 1); // 1 = Like
+        List<Integer> threadIds = likedVotes.stream()
+                .map(v -> {
+                    try {
+                        return Integer.parseInt(v.getTargetId());
+                    } catch (NumberFormatException e) {
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        if (threadIds.isEmpty()) {
+            return Page.empty();
+        }
+
+        return populateThreadsStats(threadRepository.findByIdIn(threadIds, pageable));
     }
 
     @Override
     public Map<String, Object> getUserStats(String email) {
         Map<String, Object> response = new HashMap<>();
-        response.put("threadCount", 0);
-        response.put("totalLikes", 0);
+        Account account = accountRepository.findByEmail(email).orElse(null);
+        if (account == null) {
+            response.put("threadCount", 0);
+            response.put("totalLikes", 0);
+            return response;
+        }
+
+        Page<Thread> threadsPage = threadRepository.findByAccountEmailOrderByCreatedAtDesc(email, PageRequest.of(0, 1000));
+        long threadCount = threadsPage.getTotalElements();
+        
+        long totalLikes = 0;
+        for (Thread t : threadsPage.getContent()) {
+            totalLikes += voteRepository.countByTargetIdAndTypeAndValue(t.getId().toString(), 1, true);
+        }
+
+        response.put("threadCount", threadCount);
+        response.put("totalLikes", totalLikes);
         return response;
     }
 
@@ -203,7 +297,7 @@ public class ThreadServiceImpl implements ThreadService {
 
     @Override
     public Page<Thread> getPendingThreads(Pageable pageable) {
-        return threadRepository.findAllByStatus(1, pageable); // 1 = Draft/Pending
+        return populateThreadsStats(threadRepository.findAllByStatus(1, pageable)); // 1 = Draft/Pending
     }
 
     @Override
@@ -212,6 +306,129 @@ public class ThreadServiceImpl implements ThreadService {
         Thread thread = threadRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Thread not found with id: " + id));
         thread.setStatus(2); // Published
-        return threadRepository.save(thread);
+        Thread saved = threadRepository.save(thread);
+        populateThreadStats(saved);
+        return saved;
+    }
+
+    @Override
+    @Transactional
+    public Thread voteThread(Integer id, String userEmail, Integer voteValue) {
+        Thread thread = threadRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Thread not found with id: " + id));
+        Account account = accountRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("Account not found with email: " + userEmail));
+
+        String threadIdStr = id.toString();
+        Optional<Vote> existingVoteOpt = voteRepository.findByAccountAndTargetIdAndType(account, threadIdStr, 2);
+
+        if (voteValue == 1) { // Upvote
+            if (existingVoteOpt.isPresent()) {
+                Vote existingVote = existingVoteOpt.get();
+                if (existingVote.getValue()) { // already upvoted, so remove it
+                    voteRepository.delete(existingVote);
+                } else { // was downvoted, change to upvote
+                    existingVote.setValue(true);
+                    voteRepository.save(existingVote);
+                }
+            } else { // create new upvote
+                Vote newVote = new Vote();
+                newVote.setAccount(account);
+                newVote.setTargetId(threadIdStr);
+                newVote.setType(2); // 2 for Upvote/Downvote
+                newVote.setValue(true); // true for Upvote
+                voteRepository.save(newVote);
+            }
+        } else if (voteValue == -1) { // Downvote
+            if (existingVoteOpt.isPresent()) {
+                Vote existingVote = existingVoteOpt.get();
+                if (!existingVote.getValue()) { // already downvoted, so remove it
+                    voteRepository.delete(existingVote);
+                } else { // was upvoted, change to downvote
+                    existingVote.setValue(false);
+                    voteRepository.save(existingVote);
+                }
+            } else { // create new downvote
+                Vote newVote = new Vote();
+                newVote.setAccount(account);
+                newVote.setTargetId(threadIdStr);
+                newVote.setType(2); // 2 for Upvote/Downvote
+                newVote.setValue(false); // false for Downvote
+                voteRepository.save(newVote);
+            }
+        } else { // 0 or other: clear/delete vote
+            if (existingVoteOpt.isPresent()) {
+                voteRepository.delete(existingVoteOpt.get());
+            }
+        }
+
+        populateThreadStats(thread);
+        return thread;
+    }
+
+    @Override
+    public Integer getVoteStatus(Integer id, String userEmail) {
+        if (userEmail == null || userEmail.isEmpty()) return 0;
+        Account account = accountRepository.findByEmail(userEmail).orElse(null);
+        if (account == null) return 0;
+
+        Optional<Vote> currentVoteOpt = voteRepository.findByAccountAndTargetIdAndType(account, id.toString(), 2);
+        if (currentVoteOpt.isPresent()) {
+            return currentVoteOpt.get().getValue() ? 1 : -1;
+        }
+        return 0;
+    }
+
+    private void populateThreadStats(Thread thread) {
+        if (thread == null) return;
+        String threadIdStr = thread.getId().toString();
+        
+        // Count likes (type = 1, value = true)
+        long likesCount = voteRepository.countByTargetIdAndTypeAndValue(threadIdStr, 1, true);
+        thread.setLikes(likesCount);
+
+        // Count comments
+        long commentCount = commentRepository.countByThreadId(thread.getId());
+        thread.setCommentCount(commentCount);
+
+        // Count votes (type = 2)
+        long upvotes = voteRepository.countByTargetIdAndTypeAndValue(threadIdStr, 2, true);
+        long downvotes = voteRepository.countByTargetIdAndTypeAndValue(threadIdStr, 2, false);
+        thread.setVoteScore(upvotes - downvotes);
+
+        // Check current logged-in user vote status
+        String userEmail = AuthUtil.getCurrentUserEmail();
+        if (userEmail != null && !userEmail.isEmpty()) {
+            Account account = accountRepository.findByEmail(userEmail).orElse(null);
+            if (account != null) {
+                Optional<Vote> currentVoteOpt = voteRepository.findByAccountAndTargetIdAndType(account, threadIdStr, 2);
+                if (currentVoteOpt.isPresent()) {
+                    thread.setUserVote(currentVoteOpt.get().getValue() ? 1 : -1);
+                } else {
+                    thread.setUserVote(0);
+                }
+                thread.setUserLiked(voteRepository.existsByAccountAndTargetIdAndType(account, threadIdStr, 1));
+            } else {
+                thread.setUserVote(0);
+                thread.setUserLiked(false);
+            }
+        } else {
+            thread.setUserVote(0);
+            thread.setUserLiked(false);
+        }
+    }
+
+    private Page<Thread> populateThreadsStats(Page<Thread> threadsPage) {
+        if (threadsPage != null) {
+            threadsPage.forEach(this::populateThreadStats);
+        }
+        return threadsPage;
+    }
+
+    private List<Thread> populateThreadsStats(List<Thread> threadsList) {
+        if (threadsList != null) {
+            threadsList.forEach(this::populateThreadStats);
+        }
+        return threadsList;
     }
 }

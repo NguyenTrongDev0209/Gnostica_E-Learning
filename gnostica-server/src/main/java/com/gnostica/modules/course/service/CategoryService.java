@@ -35,7 +35,8 @@ public class CategoryService {
     public Page<CategoryResponseDTO> getAllCategories(int page, int size, String search, Boolean status) {
         String safeSearch = search == null ? "" : search;
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<Category> categoryPage = categoryRepository.findRootCategoriesWithFilters(safeSearch, status, pageable);
+        Integer statusInt = status == null ? null : (status ? 1 : 0);
+        Page<Category> categoryPage = categoryRepository.findRootCategoriesWithFilters(safeSearch, statusInt, pageable);
         
         // --- Tối ưu N+1: Thu thập tất cả ID cần đếm ---
         Set<Integer> allIds = new HashSet<>();

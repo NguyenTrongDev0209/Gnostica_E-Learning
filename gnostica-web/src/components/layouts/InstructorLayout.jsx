@@ -62,8 +62,8 @@ export default function InstructorLayout() {
 
   return (
     <div className="min-h-screen bg-muted flex">
-      {/* Sidebar - Fixed */}
-      <aside className="w-64 bg-slate-50 border-r border-border min-h-screen fixed left-0 top-0 bottom-0 flex flex-col z-50">
+      {/* Sidebar - Static Flex */}
+      <aside className="w-64 bg-slate-50 border-r border-border min-h-screen flex flex-col z-50">
         {/* Brand */}
         <div className="h-16 flex items-center justify-center px-0 border-b border-border bg-white">
           <AppLogo className="h-12 md:h-12" />
@@ -137,7 +137,7 @@ export default function InstructorLayout() {
       </aside>
 
       {/* Main Content Area */}
-      <div className="flex-1 ml-64 flex flex-col min-h-screen">
+      <div className="flex-1 min-w-0 flex flex-col min-h-screen">
         {/* Top Header */}
         <header className="px-6 pt-4 pb-2">
           <div className="h-16 bg-white border border-border rounded-xl flex items-center justify-between px-6 shadow-sm">

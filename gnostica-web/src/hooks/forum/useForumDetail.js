@@ -4,13 +4,17 @@ import threadReportService from '@/services/forum/threadReportService';
 import commentService from '@/services/forum/commentService';
 import { toast } from 'sonner';
 
-export default function useForumDetail(id) {
+export default function useForumDetail(slug) {
   const [post, setPost] = useState(null);
   const [comments, setComments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentUser] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('user')); } catch { return null; }
+  });
   
   const [postLiked, setPostLiked] = useState(false);
+  const [postVoteStatus, setPostVoteStatus] = useState(0);
   const [relatedPosts, setRelatedPosts] = useState([]);
   const [hasReported, setHasReported] = useState(false);
   const [isSubmittingReport, setIsSubmittingReport] = useState(false);
@@ -21,13 +25,13 @@ export default function useForumDetail(id) {
     const fetchPostData = async () => {
       setIsLoading(true);
       try {
-        const postData = await threadService.getThreadById(id);
+        const postData = await threadService.getThreadBySlug(slug);
         setPost(postData);
         
-        // Parallel requests for other data
+        // Parallel requests for other data using postData.id
         const [commentsData, relatedData] = await Promise.all([
-            commentService.getCommentsByThreadId(id).catch(() => []),
-            threadService.getRelatedThreads(id).catch(() => [])
+            commentService.getCommentsByThreadId(postData.id).catch(() => []),
+            threadService.getRelatedThreads(postData.id).catch(() => [])
         ]);
         
         setComments(commentsData);
@@ -37,17 +41,19 @@ export default function useForumDetail(id) {
         const userData = JSON.parse(localStorage.getItem('user'));
         const email = userData?.email;
         if (email) {
-            const [likeStatus, reportStatus] = await Promise.all([
-                threadService.getLikeStatus(id, email).catch(() => ({ isLiked: false })),
-                threadReportService.checkReportStatus(id, email).catch(() => false)
+            const [likeStatus, reportStatus, voteStatusRes] = await Promise.all([
+                threadService.getLikeStatus(postData.id, email).catch(() => ({ isLiked: false })),
+                threadReportService.checkReportStatus(postData.id, email).catch(() => false),
+                threadService.getVoteStatus(postData.id, email).catch(() => ({ voteType: 0 }))
             ]);
             setPostLiked(likeStatus.isLiked);
             setHasReported(reportStatus);
+            setPostVoteStatus(voteStatusRes.voteType || 0);
         }
 
         // Increment view count
         if (!hasIncrementedView.current) {
-            await threadService.viewThread(id).catch(() => {});
+            await threadService.viewThread(postData.id).catch(() => {});
             hasIncrementedView.current = true;
         }
 
@@ -59,8 +65,8 @@ export default function useForumDetail(id) {
       }
     };
 
-    if (id) fetchPostData();
-  }, [id]);
+    if (slug) fetchPostData();
+  }, [slug]);
 
   const handleSendReport = async (reportType, reportDetail, onSuccess) => {
     if (!reportType) {
@@ -78,7 +84,7 @@ export default function useForumDetail(id) {
         return;
       }
 
-      await threadReportService.createReport(id, userEmail, reportType, reportDetail);
+      await threadReportService.createReport(post.id, userEmail, reportType, reportDetail);
       
       toast.success("Đã gửi báo cáo");
       setHasReported(true);
@@ -108,7 +114,7 @@ export default function useForumDetail(id) {
 
       const newComment = await commentService.addComment({
         content: content,
-        objectId: id,
+        threadId: post.id,
         userEmail: userEmail,
         parentId: null
       });
@@ -136,7 +142,7 @@ export default function useForumDetail(id) {
             return;
         }
 
-        const updatedPost = await threadService.toggleLike(id, userEmail);
+        const updatedPost = await threadService.toggleLike(post.id, userEmail);
         setPost(updatedPost);
         
         if (!postLiked) {
@@ -149,12 +155,51 @@ export default function useForumDetail(id) {
     }
   };
 
+  const handleVote = async (voteValue) => {
+    try {
+        const userData = JSON.parse(localStorage.getItem('user'));
+        const userEmail = userData?.email;
+        if (!userEmail) {
+            toast.error("Vui lòng đăng nhập để bình chọn bài viết!");
+            return;
+        }
+
+        let newVote = 0;
+        if (voteValue === 1) { // Upvote
+          newVote = postVoteStatus === 1 ? 0 : 1;
+        } else { // Downvote
+          newVote = postVoteStatus === -1 ? 0 : -1;
+        }
+
+        const updatedPost = await threadService.voteThread(post.id, userEmail, newVote);
+        setPost(updatedPost);
+        setPostVoteStatus(newVote);
+        if (newVote === 1) {
+            toast.success("Đã bình chọn lên bài viết");
+        } else if (newVote === -1) {
+            toast.success("Đã bình chọn xuống bài viết");
+        }
+    } catch (err) {
+        console.error("Error voting thread:", err);
+        toast.error("Không thể thực hiện thao tác bình chọn");
+    }
+  };
+
   const handleCommentAdded = (newReply, parentId) => {
-      setComments(prev => prev.map(parent =>
-        parent.id === parentId
-          ? { ...parent, replies: [...(parent.replies || []), newReply] }
-          : parent
-      ));
+      setComments(prev => {
+        const addToTree = (list) => {
+          return list.map(item => {
+            if (item.id === parentId) {
+              return { ...item, replies: [...(item.replies || []), newReply] };
+            }
+            if (item.replies && item.replies.length > 0) {
+              return { ...item, replies: addToTree(item.replies) };
+            }
+            return item;
+          });
+        };
+        return addToTree(prev);
+      });
   };
 
   const handleCommentDeleted = (deletedId) => {
@@ -194,13 +239,16 @@ export default function useForumDetail(id) {
     comments,
     isLoading,
     error,
+    currentUser,
     postLiked,
+    postVoteStatus,
     relatedPosts,
     hasReported,
     isSubmittingReport,
     handleSendReport,
     handleSendComment,
     handleToggleLike,
+    handleVote,
     handleCommentAdded,
     handleCommentDeleted
   };

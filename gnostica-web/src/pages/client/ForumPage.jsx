@@ -22,6 +22,7 @@ import useAuthStore from '@/store/useAuthStore';
 
 const ForumPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const currentUser = useAuthStore(state => state.user);
   
   const { threads, categories, topContributors, isLoading } = useForumPage();
@@ -30,6 +31,17 @@ const ForumPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(0);
 
+  // Parse query parameters
+  const queryParams = new URLSearchParams(location.search);
+  const tagParam = queryParams.get('tag') || queryParams.get('search');
+
+  React.useEffect(() => {
+    if (tagParam) {
+      const cleanTag = tagParam.replace(/^#/, '');
+      setSearchQuery(cleanTag);
+    }
+  }, [tagParam]);
+
   // Đặt lại trang đầu tiên khi thay đổi bộ lọc
   React.useEffect(() => {
     setCurrentPage(0);
@@ -37,7 +49,15 @@ const ForumPage = () => {
 
   const stripHtml = (html) => {
     if (!html) return '';
-    return html.replace(/<[^>]*>/g, '').trim();
+    let text = html.replace(/<[^>]*>/g, '');
+    text = text
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'");
+    return text.trim();
   };
 
   // Map backend data to ForumPostCard format
@@ -45,15 +65,15 @@ const ForumPage = () => {
     const plainText = stripHtml(thread.content);
     return {
       id: thread.id,
-      title: plainText.substring(0, 60) + (plainText.length > 60 ? "..." : ""),
-      content: plainText,
+      title: thread.title || (stripHtml(thread.content).substring(0, 60) + (stripHtml(thread.content).length > 60 ? "..." : "")),
+      content: stripHtml(thread.content),
       author: {
         name: thread.account?.fullName || "Ẩn danh",
         avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${thread.account?.email || 'default'}`,
         status: "online"
       },
-      category: thread.category?.name || "",
-      tags: [],
+      category: thread.topic?.title || thread.category?.name || "",
+      tags: (thread.hashtags || []).map(th => th.hashtag?.name || ""),
       createdAt: new Date(thread.createdAt).toLocaleDateString('vi-VN', {
         day: '2-digit',
         month: '2-digit',
@@ -68,14 +88,19 @@ const ForumPage = () => {
       },
       images: thread.images || [],
       isHot: (thread.views || 0) > 50,
-      status: thread.status
+      status: thread.status,
+      voteScore: thread.voteScore || 0,
+      userVote: thread.userVote || 0,
+      userLiked: thread.userLiked || false,
+      slug: thread.slug
     };
   });
 
   const filteredPosts = mappedPosts.filter(post => {
     const matchesCategory = activeCategory === "Tất cả" || post.category === activeCategory;
     const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.content.toLowerCase().includes(searchQuery.toLowerCase());
+      post.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      post.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesCategory && matchesSearch;
   });
 
@@ -139,7 +164,7 @@ const ForumPage = () => {
                 <p className="text-muted-foreground text-sm max-w-sm">
                   Thử thay đổi từ khóa tìm kiếm hoặc chọn danh mục khác xem sao.
                 </p>
-                <Button variant="outline" className="mt-4" onClick={() => { setSearchQuery(""); setActiveCategory("Tất cả"); }}>
+                <Button variant="outline" className="mt-4" onClick={() => { setSearchQuery(""); setActiveCategory("Tất cả"); navigate("/forum"); }}>
                   Xóa bộ lọc
                 </Button>
               </div>

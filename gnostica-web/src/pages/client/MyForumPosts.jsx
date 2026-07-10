@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, ThumbsUp, FileText, LayoutGrid, Trash2 } from 'lucide-react';
 
 import { useNavigate, Link } from "react-router-dom";
+import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -44,13 +45,15 @@ const MyForumPosts = () => {
         setCurrentPage,
         threadToDelete,
         setThreadToDelete,
-        handleDelete
+        handleDelete,
+        activeTab,
+        setActiveTab
     } = useMyForumPosts(5);
 
     const breadcrumbItems = [
         { component: <Link to="/">Trang chủ</Link> },
         { component: <Link to="/forum">Diễn đàn</Link> },
-        { label: "Bài viết của tôi", isLast: true }
+        { label: activeTab === 'liked' ? "Bài viết đã thích" : "Bài viết của tôi", isLast: true }
     ];
 
     return (
@@ -61,8 +64,8 @@ const MyForumPosts = () => {
                 <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 sm:mb-12 gap-4">
                     <PageHeader
                         title="Bài viết"
-                        highlightedTitle="của tôi"
-                        description="Quản lý và xem lại tất cả các nội dung bạn đã chia sẻ trên diễn đàn."
+                        highlightedTitle={activeTab === 'liked' ? "đã thích" : "của tôi"}
+                        description={activeTab === 'liked' ? "Xem lại danh sách tất cả các bài viết bạn đã bày tỏ thái độ yêu thích." : "Quản lý và xem lại tất cả các nội dung bạn đã chia sẻ trên diễn đàn."}
                         className="mb-0 sm:mb-0"
                     />
                     <Link to="/forum">
@@ -113,13 +116,30 @@ const MyForumPosts = () => {
                                     Truy cập nhanh
                                 </h4>
                                 <div className="flex flex-col gap-2">
-                                    <Link to="/forum">
-                                        <Button variant="ghost" className="w-full justify-start text-sm hover:bg-muted gap-3">
-                                            <ChevronLeft className="w-4 h-4" /> Toàn bộ diễn đàn
-                                        </Button>
-                                    </Link>
-                                    <Link to="/account">
-                                        <Button variant="ghost" className="w-full justify-start text-sm hover:bg-muted gap-3">
+                                    <Button
+                                        variant="ghost"
+                                        className={cn(
+                                            "w-full justify-start text-sm gap-3 font-semibold",
+                                            activeTab === 'my-posts' ? "bg-primary/10 text-primary hover:bg-primary/20" : "hover:bg-muted text-muted-foreground hover:text-foreground"
+                                        )}
+                                        onClick={() => setActiveTab('my-posts')}
+                                    >
+                                        <FileText className="w-4 h-4" />
+                                        Bài viết của tôi
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        className={cn(
+                                            "w-full justify-start text-sm gap-3 font-semibold",
+                                            activeTab === 'liked' ? "bg-primary/10 text-primary hover:bg-primary/20" : "hover:bg-muted text-muted-foreground hover:text-foreground"
+                                        )}
+                                        onClick={() => setActiveTab('liked')}
+                                    >
+                                        <ThumbsUp className="w-4 h-4" />
+                                        Bài viết đã thích
+                                    </Button>
+                                    <Link to="/account" className="w-full">
+                                        <Button variant="ghost" className="w-full justify-start text-sm hover:bg-muted gap-3 text-muted-foreground hover:text-foreground">
                                             Tài khoản của tôi
                                         </Button>
                                     </Link>
@@ -143,17 +163,19 @@ const MyForumPosts = () => {
                                 {currentPosts.map((post) => (
                                     <div key={post.id} className="relative group">
                                         <ForumPostCard post={post} />
-                                        <button
-                                            onClick={(e) => {
-                                                e.preventDefault();
-                                                e.stopPropagation();
-                                                setThreadToDelete(post.id);
-                                            }}
-                                            className="absolute top-4 right-4 p-2 bg-red-50 text-error rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-error/10 text-error hover:text-white shadow-sm z-10"
-                                            title="Xóa bài viết"
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
+                                        {activeTab === 'my-posts' && (
+                                            <button
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    setThreadToDelete(post.id);
+                                                }}
+                                                className="absolute top-4 right-4 p-2 bg-red-50 text-error rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-error/10 text-error hover:text-white shadow-sm z-10"
+                                                title="Xóa bài viết"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        )}
                                     </div>
                                 ))}
 
@@ -216,17 +238,21 @@ const MyForumPosts = () => {
                         ) : (
                             <div className="flex flex-col items-center justify-center py-20 text-center bg-white rounded-lg border border-dashed border-border">
                                 <div className="w-16 h-16 bg-secondary rounded-full flex items-center justify-center mb-4">
-                                    <LayoutGrid className="w-8 h-8 text-muted-foreground" />
+                                    {activeTab === 'liked' ? <ThumbsUp className="w-8 h-8 text-muted-foreground" /> : <LayoutGrid className="w-8 h-8 text-muted-foreground" />}
                                 </div>
-                                <h3 className="text-lg font-bold text-foreground mb-1">Bạn chưa có bài viết nào</h3>
+                                <h3 className="text-lg font-bold text-foreground mb-1">
+                                    {activeTab === 'liked' ? "Bạn chưa thích bài viết nào" : "Bạn chưa có bài viết nào"}
+                                </h3>
                                 <p className="text-muted-foreground text-sm max-w-sm">
-                                    Hãy chia sẻ kiến thức hoặc đặt câu hỏi đầu tiên của bạn ngay hôm nay!
+                                    {activeTab === 'liked'
+                                        ? "Hãy khám phá diễn đàn và bày tỏ sự ủng hộ bằng cách thích các bài viết hữu ích nhé!"
+                                        : "Hãy chia sẻ kiến thức hoặc đặt câu hỏi đầu tiên của bạn ngay hôm nay!"}
                                 </p>
                                 <Button
                                     className="mt-6 bg-button-gradient font-bold px-8"
-                                    onClick={() => navigate('/forum/create')}
+                                    onClick={() => navigate(activeTab === 'liked' ? '/forum' : '/forum/create')}
                                 >
-                                    + Tạo bài viết đầu tiên
+                                    {activeTab === 'liked' ? "Đi tới diễn đàn" : "+ Tạo bài viết đầu tiên"}
                                 </Button>
                             </div>
                         )}

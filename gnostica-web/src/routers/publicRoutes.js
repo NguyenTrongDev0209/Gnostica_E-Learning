@@ -33,7 +33,7 @@ export const publicRoutes = {
     { path: "/cart", component: CourseCart },
     { path: "/search", component: SearchPage },
     { path: "/forum", component: ForumPage },
-    { path: "/forum/:id", component: ForumDetail },
+    { path: "/forum/:slug", component: ForumDetail },
     { path: "/profile/:id", component: UserProfile },
     { path: "/terms", component: TermsPage },
     { path: "/showcase", component: Showcase },
