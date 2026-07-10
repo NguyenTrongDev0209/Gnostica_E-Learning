@@ -6,6 +6,7 @@ export default function useRecommendedCourses(size = 4) {
     const [courses, setCourses] = useState([]);
     const [loading, setLoading] = useState(true);
     const user = authService.getCurrentUser();
+    const userEmail = user?.email;
 
     useEffect(() => {
         let isMounted = true;
@@ -28,7 +29,7 @@ export default function useRecommendedCourses(size = 4) {
             }
         };
 
-        if (user) {
+        if (userEmail) {
             fetchRecommendations();
         } else {
             setLoading(false);
@@ -37,7 +38,7 @@ export default function useRecommendedCourses(size = 4) {
         return () => {
             isMounted = false;
         };
-    }, [size, user]);
+    }, [size, userEmail]);
 
     return { courses, loading, user };
 }

@@ -37,7 +37,7 @@ public class AuthServiceImpl implements AuthService {
     private static final String VERIFY_PURPOSE = "verify";
     private static final String RESET_PASSWORD_PURPOSE = "reset-password";
     private static final Duration VERIFY_OTP_TTL = Duration.ofMinutes(3);
-    private static final Duration RESET_PASSWORD_OTP_TTL = Duration.ofMinutes(5);
+    private static final Duration RESET_PASSWORD_OTP_TTL = Duration.ofMinutes(3);
 
     private final AccountRepository accountRepository;
     private final RoleRepository roleRepository;

@@ -102,7 +102,7 @@ public class MailServiceImpl implements MailService {
                 "<span style='font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #E32D2D;'>" + code
                 + "</span>" +
                 "</div>" +
-                "<p style='color: #666;'>Mã này có hiệu lực trong vòng <b>5 phút</b>. Nếu bạn không phải là người thực hiện yêu cầu này, hãy bảo mật tài khoản của mình.</p>"
+                "<p style='color: #666;'>Mã này có hiệu lực trong vòng <b>3 phút</b>. Nếu bạn không phải là người thực hiện yêu cầu này, hãy bảo mật tài khoản của mình.</p>"
                 +
                 "<hr style='border: 0; border-top: 1px solid #eee; margin: 20px 0;'>" +
                 "<p style='font-size: 12px; color: #999; text-align: center;'>© 2026 Gnostica E-Learning. All rights reserved.</p>"

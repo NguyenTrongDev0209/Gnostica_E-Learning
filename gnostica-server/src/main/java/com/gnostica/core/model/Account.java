@@ -42,7 +42,6 @@ public class Account {
     @Column(length = 12)
     private String phone;
 
-    @NotBlank
     @Size(max = 255)
     private String password;
 
