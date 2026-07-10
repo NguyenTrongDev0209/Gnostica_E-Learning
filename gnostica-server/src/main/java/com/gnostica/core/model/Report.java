@@ -43,7 +43,7 @@ public class Report {
     private String description;
 
     /**
-     * Status: 1: Pending (Chá» xá»­ lÃ½), 2: Processing (Äang xá»­ lÃ½), 3: Resolved (ÄÃ£ giáº£i quyáº¿t), 4: Dismissed (Bá» qua)
+     * Status: 1: Pending (Chờ xử lý), 2: Processing (Đang xử lý), 3: Resolved (Đã giải quyết), 4: Dismissed (Bỏ qua)
      */
     @NotNull
     private Integer status;

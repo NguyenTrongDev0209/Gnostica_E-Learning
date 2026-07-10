@@ -157,7 +157,7 @@ public class OrderService {
                 .qrCode("").build();
         }
 
-        return paymentService.createPaymentLink(order);
+        return paymentService.createPaymentLink(order, requestBody.getReturnUrl(), requestBody.getCancelUrl());
     }
 
     private Order saveOrder(Account account, Coupon coupon, BigDecimal totalPrice, String transactionId) {
@@ -167,8 +167,11 @@ public class OrderService {
         order.setTotalPrice(totalPrice);
         order.setPaymentMethod("PAYOS"); // Default
         order.setStatus(0); // 0: PENDING
-        // Temporary solution to pass orderCode without modifying DB model too much.
-        // We will store it in paymentMethod temporarily if transactionId doesn't exist, but since it's PayOS, we might just use ID.
+        try {
+            order.setOrderCode(Long.parseLong(transactionId));
+        } catch (NumberFormatException e) {
+            log.warn("Lỗi parse transactionId sang orderCode: {}", transactionId);
+        }
         order.setCreatedAt(LocalDateTime.now());
         return orderRepository.save(order);
     }

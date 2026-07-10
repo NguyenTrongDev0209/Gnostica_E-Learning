@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.gnostica.core.dto.response.ResponseDTO;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -27,8 +29,23 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(new ResponseDTO<Map<String, String>>(400, "Validation failed", errors), HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ResponseDTO<String>> handleIllegalArgumentException(IllegalArgumentException ex) {
+        return new ResponseEntity<>(new ResponseDTO<>(400, ex.getMessage(), null), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ResponseDTO<String>> handleAccessDeniedException(AccessDeniedException ex) {
+        return new ResponseEntity<>(new ResponseDTO<>(403, "Bạn không có quyền thực hiện hành động này", null), HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ResponseDTO<String>> handleAuthenticationException(AuthenticationException ex) {
+        return new ResponseEntity<>(new ResponseDTO<>(401, "Vui lòng đăng nhập để thực hiện hành động này", null), HttpStatus.UNAUTHORIZED);
+    }
+
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ResponseDTO<String>> handleRuntimeExceptions(RuntimeException ex) {
-        return new ResponseEntity<>(new ResponseDTO<String>(500, ex.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(new ResponseDTO<>(500, "Đã xảy ra lỗi hệ thống: " + ex.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

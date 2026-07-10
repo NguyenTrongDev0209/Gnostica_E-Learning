@@ -34,6 +34,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import courseService from "@/services/course/courseService";
+import progressService from "@/services/course/progressService";
 import enrollmentService from "@/services/course/enrollmentService";
 import commentService from "@/services/forum/commentService";
 import useAuthStore from "@/store/useAuthStore";
@@ -98,7 +99,7 @@ export default function LearningWorkspace() {
       setLoading(true);
       const [courseData, progressData] = await Promise.all([
         courseService.getCourseBySlug(slug),
-        courseService.getCourseProgress(slug)
+        progressService.getCourseProgress(slug)
       ]);
       
       // Lấy tất cả Module và Lesson (kể cả ẩn hoặc xóa mềm) cho người dùng đã mua khóa học
@@ -226,7 +227,7 @@ export default function LearningWorkspace() {
   const markLessonComplete = useCallback(async (lessonId) => {
     if (completedIdsRef.current.includes(lessonId)) return;
     try {
-        await courseService.markLessonCompleted(lessonId);
+        await progressService.markLessonCompleted(lessonId);
         setLessonProgress(prev => {
             const existing = prev.find(p => p.lessonId === lessonId);
             if (existing) {
@@ -343,7 +344,7 @@ export default function LearningWorkspace() {
     // 1. Khởi tạo tiến độ ngay lập tức nếu bài học chưa có trong DB
     const hasProgress = lessonProgress.some(lp => lp.lessonId === lessonId);
     if (!hasProgress) {
-        courseService.updateLastWatchedTime(lessonId, 0);
+        progressService.updateLastWatchedTime(lessonId, 0);
         setLessonProgress(prev => [...prev, { 
             lessonId, isCompleted: false, lastWatchedTime: 0, 
             updatedAt: new Date().toISOString() 
@@ -431,7 +432,7 @@ export default function LearningWorkspace() {
     // 4. AUTO-SYNC: Mỗi 10s, gửi thời gian hiện tại lên server
     const syncInterval = setInterval(() => {
         if (currentTimeRef.current > 0) {
-            courseService.updateLastWatchedTime(lessonId, currentTimeRef.current);
+            progressService.updateLastWatchedTime(lessonId, currentTimeRef.current);
         }
     }, 10000);
 
@@ -488,7 +489,7 @@ export default function LearningWorkspace() {
   // Auto fetch certificate URL when progress reaches 100%
   useEffect(() => {
       if (progressValue === 100 && !certifiUrl) {
-          courseService.getCourseProgress(slug).then(res => {
+          progressService.getCourseProgress(slug).then(res => {
               if (res?.data?.certifiUrl) {
                   setCertifiUrl(res.data.certifiUrl);
               }

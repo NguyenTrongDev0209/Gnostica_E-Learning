@@ -14,7 +14,7 @@ import {
   Activity,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { GhostButton, SimpleButton } from "@/components/common/AppButton";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -31,7 +31,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import InstructorCourseTable from "@/pages/instructor/components/courses/InstructorCourseTable";
+import InstructorCourseTable from "@/pages/instructor/components/InstructorCourseTable";
 import categoryService from "@/services/course/categoryService";
 
 export default function InstructorCourses() {
@@ -119,12 +119,12 @@ export default function InstructorCourses() {
             Quản lý, chỉnh sửa và theo dõi hiệu suất các khóa học bạn đang giảng dạy.
           </p>
         </div>
-        <Button
+        <SimpleButton
           onClick={() => navigate("/instructor/courses/courses-form")}
-          className="btn-md bg-primary hover:primary/90 text-white shadow-lg shadow-primary/20 font-bold rounded-xl transition-all hover:scale-[1.02]"
+          className="btn-md font-bold rounded-xl transition-all hover:scale-[1.02]"
         >
           <Plus className="w-4 h-4 mr-2" /> Tạo khóa học mới
-        </Button>
+        </SimpleButton>
       </div>
 
       {/* Stats Summary (Styled like Students page) */}
@@ -272,12 +272,12 @@ export default function InstructorCourses() {
           </div>
 
           <DialogFooter className="p-4 bg-muted border-t border-border">
-            <Button
+            <SimpleButton
               onClick={() => setRejectViewModal(prev => ({ ...prev, isOpen: false }))}
-              className="w-full h-11 font-black bg-muted hover:bg-muted text-white rounded-xl shadow-lg shadow-slate-200"
+              className="w-full h-11 font-black rounded-xl"
             >
               Đã hiểu
-            </Button>
+            </SimpleButton>
           </DialogFooter>
         </DialogContent>
       </Dialog>

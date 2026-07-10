@@ -37,7 +37,7 @@ public class Topic {
     private String description;
 
     /**
-     * Status: 0: Hidden (áº¨n), 1: Active (Hiá»ƒn thá»‹)
+     * Status: 0: Hidden (Ẩn), 1: Active (Hiển thị)
      */
     @NotNull
     private Integer status;

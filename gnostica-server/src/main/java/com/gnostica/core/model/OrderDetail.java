@@ -33,6 +33,7 @@ public class OrderDetail {
 
     @NotNull
     @Min(0)
+    @Column(precision = 18, scale = 6)
     private BigDecimal price;
 
     @NotNull

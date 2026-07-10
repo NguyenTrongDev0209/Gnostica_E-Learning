@@ -13,7 +13,7 @@ import {
   ExternalLink
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { GhostButton, SimpleButton } from "@/components/common/AppButton";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -28,9 +28,9 @@ export default function InstructorSettings() {
             Quản lý thông tin cá nhân, cài đặt thanh toán và bảo mật tài khoản.
           </p>
         </div>
-        <Button className="bg-success/10 text-success hover:bg-success/10 text-success text-white font-bold shadow-none">
+        <SimpleButton className="bg-success/10 text-success hover:bg-success/20 font-bold">
           <Save className="w-4 h-4 mr-2" /> Lưu thay đổi
-        </Button>
+        </SimpleButton>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -78,8 +78,8 @@ export default function InstructorSettings() {
                   <h4 className="font-bold text-foreground text-base">Sonny Sangha</h4>
                   <p className="text-sm text-muted-foreground mb-2">Giảng viên xuất sắc • Tham gia từ 2024</p>
                   <div className="flex gap-2">
-                    <Button size="sm" variant="outline" className="text-xs h-8 border-border">Thay đổi ảnh</Button>
-                    <Button size="sm" variant="ghost" className="text-xs h-8 text-error hover:bg-red-50">Xóa ảnh</Button>
+                    <GhostButton size="sm" className="text-xs h-8 border border-border">Thay đổi ảnh</GhostButton>
+                    <GhostButton size="sm" className="text-xs h-8 text-error hover:bg-red-50 hover:text-error">Xóa ảnh</GhostButton>
                   </div>
                 </div>
               </div>

@@ -11,7 +11,9 @@ import jakarta.validation.constraints.*;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "enrollments")
+@Table(name = "enrollments", uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"account_id", "course_id"})
+})
 public class Enrollment {
 
     @Id
@@ -39,15 +41,12 @@ public class Enrollment {
     @Column(name = "progress")
     private Integer progressPercent;
 
-    @Builder.Default
-    private Boolean certificateEmailSent = false;
-
     @Size(max = 255)
     private String certifiUrl;
 
     /**
-     * Status: 0: Dropped/Refunded (ÄÃ£ huá»·/HoÃ n tiá»n), 1: In Progress (Äang há»c), 2:
-     * Completed (HoÃ n thÃ nh)
+     * Status: 0: Dropped/Refunded (Đã huỷ/Hoàn tiền), 1: In Progress (Đang học), 2:
+     * Completed (Hoàn thành)
      */
     @NotNull
     private Integer status;

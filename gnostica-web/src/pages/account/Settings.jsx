@@ -1,96 +1,34 @@
-import React, { useState } from "react";
+import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import { Home, UserCog, Camera, Save, Loader2 } from "lucide-react";
-import { toast } from "sonner";
-import useAuthStore from "@/store/useAuthStore";
-import accountService from "@/services/user/accountService";
+import AppBreadcrumb from "@/components/common/AppBreadcrumb";
+import AppPageHeader from "@/components/common/AppPageHeader";
+import { UserCog, Camera, Save, Loader2 } from "lucide-react";
+import useSettingsForm from "@/hooks/account/useSettingsForm";
 import ImageCropModal from "@/components/modals/ImageCropModal";
 import PersonalizationModal from "@/components/common/PersonalizationModal";
+import useAuthStore from "@/store/useAuthStore";
 
 export default function Settings() {
   const user = useAuthStore(state => state.user);
-
-  const [personalizationOpen, setPersonalizationOpen] = useState(false);
-
-  const [formData, setFormData] = useState({
-    fullName: user?.fullName || "",
-    email: user?.email || "",
-    phone: user?.phone || "",
-    bio: "Học viên đam mê công nghệ và lập trình. Luôn thích khám phá các kiến thức mới về Frontend Development.",
-    avatar: user?.avatar || "",
-  });
-
-  const [isLoading, setIsLoading] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-
-  // Crop state
-  const [cropModalOpen, setCropModalOpen] = useState(false);
-  const [tempImage, setTempImage] = useState(null);
-
-  const handleChange = (e) => {
-    const { id, value } = e.target;
-    setFormData((prev) => ({ ...prev, [id]: value }));
-  };
-
-  const handleAvatarChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    if (!file.type.startsWith('image/')) {
-      toast.error('Vui lòng chọn tệp hình ảnh!');
-      return;
-    }
-
-    // Read file for cropping
-    const reader = new FileReader();
-    reader.addEventListener('load', () => {
-      setTempImage(reader.result);
-      setCropModalOpen(true);
-    });
-    reader.readAsDataURL(file);
-
-    // Reset input value so same file can be selected again
-    e.target.value = '';
-  };
-
-  const handleCropComplete = async (croppedFile) => {
-    try {
-      setIsUploading(true);
-      const res = await accountService.updateAvatar(user.email, croppedFile);
-      if (res.status === 200) {
-        setFormData(prev => ({ ...prev, avatar: res.data.avatarUrl }));
-        toast.success('Cập nhật ảnh đại diện thành công!');
-        window.dispatchEvent(new Event('storage'));
-      }
-    } catch (error) {
-      toast.error(error);
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    // Simulate API call for other profile info
-    setTimeout(() => {
-      setIsLoading(false);
-      toast.success("Đã cập nhật thông tin cá nhân thành công!");
-    }, 1000);
-  };
+  
+  const {
+    formData,
+    isLoading,
+    isUploading,
+    personalizationOpen,
+    setPersonalizationOpen,
+    cropModalOpen,
+    setCropModalOpen,
+    tempImage,
+    handleChange,
+    handleAvatarChange,
+    handleCropComplete,
+    handleSubmit
+  } = useSettingsForm(user);
 
   return (
     <div>
@@ -102,37 +40,13 @@ export default function Settings() {
         onCropComplete={handleCropComplete}
       />
 
-      {/* Breadcrumb */}
-      <Breadcrumb className="mb-6">
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/" className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-              <Home className="h-3.5 w-3.5" /> Trang chủ
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/account" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-              Tài khoản
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage className="text-sm font-semibold">Thông tin cá nhân</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
+      <AppBreadcrumb paths={[{ label: "Tài khoản", href: "/account" }, { label: "Thông tin cá nhân" }]} />
 
-      {/* Page Title */}
-      <div className="flex flex-col gap-4 mb-8">
-        <h1 className="text-2xl font-extrabold text-foreground flex items-center gap-3">
-          <UserCog className="w-7 h-7 text-primary" />
-          Hồ sơ cá nhân
-        </h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Quản lý thông tin cá nhân và cách bạn hiển thị trên Gnostica.
-        </p>
-      </div>
+      <AppPageHeader
+        icon={UserCog}
+        title="Hồ sơ cá nhân"
+        description="Quản lý thông tin cá nhân và cách bạn hiển thị trên Gnostica."
+      />
 
       <Card className="border-border shadow-sm overflow-hidden">
         <CardContent className="p-6 sm:p-10">

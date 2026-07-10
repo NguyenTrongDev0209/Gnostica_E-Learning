@@ -1,30 +1,21 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import AppBreadcrumb from "@/components/common/AppBreadcrumb";
 import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import { toast } from "sonner";
-import {
-  Home,
   BookOpen,
   Award,
-  Clock,
   ChevronRight,
   PlayCircle,
   Trophy,
 } from "lucide-react";
 import { SimpleButton } from "@/components/common/AppButton";
 import useAuthStore from "@/store/useAuthStore";
-import enrollmentService from "@/services/course/enrollmentService";
 import { Skeleton } from "@/components/ui/skeleton";
+import AccountWelcomeBanner from "@/pages/account/components/AccountWelcomeBanner";
+import AccountStatsCards from "@/pages/account/components/AccountStatsCards";
 
 import useAccountOverview from "@/hooks/user/useAccountOverview";
 
@@ -39,43 +30,9 @@ export default function AccountOverview() {
     navigate('/apply-instructor');
   };
 
-  const statItems = [
-    { 
-      label: "Khóa học đang học", 
-      value: stats?.enrolledCourses || "0", 
-      icon: BookOpen, 
-      color: "text-info bg-blue-50" 
-    },
-    { 
-      label: "Chứng chỉ đạt được", 
-      value: stats?.completedCourses || "0", 
-      icon: Award, 
-      color: "text-emerald-500 bg-emerald-50" 
-    },
-    { 
-      label: "Số giờ đã học", 
-      value: stats?.hoursStudied?.toFixed(1) || "0", 
-      icon: Clock, 
-      color: "text-purple-500 bg-purple-50" 
-    },
-  ];
-
   return (
     <div>
-      {/* Breadcrumb */}
-      <Breadcrumb className="mb-6">
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/" className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-              <Home className="h-3.5 w-3.5" /> Trang chủ
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage className="text-sm font-semibold">Tổng quan</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
+      <AppBreadcrumb paths={[{ label: "Tài khoản", href: "/account" }, { label: "Tổng quan" }]} />
 
       {/* Page Title */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
@@ -87,74 +44,13 @@ export default function AccountOverview() {
         </Link>
       </div>
 
-      {/* Welcome Banner */}
-      <Card className="border-none shadow-sm bg-gradient-to-br from-slate-900 via-slate-800 to-primary/90 text-white mb-6 overflow-hidden relative">
-        <div className="absolute top-0 right-0 p-8 opacity-10">
-          <Trophy className="w-32 h-32" />
-        </div>
-        <CardContent className="p-6 md:p-8 relative z-10">
-          <h2 className="text-xl sm:text-2xl font-extrabold mb-2">
-            Chào mừng trở lại, {user?.fullName || "Học viên"}! 👋
-          </h2>
-          <p className="text-slate-200 text-sm leading-relaxed max-w-xl">
-            Tiếp tục hành trình chinh phục kiến thức mới hôm nay nhé. Mỗi phút học tập đều đưa bạn đến gần hơn với mục tiêu!
-          </p>
-        </CardContent>
-      </Card>
+      <AccountWelcomeBanner 
+        user={user} 
+        isInstructor={isInstructor} 
+        handleBecomeInstructor={handleBecomeInstructor} 
+      />
 
-      {/* Instructor Promotion Banner */}
-      {!isInstructor && (
-        <Card className="border-2 border-dashed border-warning/20 bg-orange-50/50 mb-6 group cursor-pointer hover:bg-orange-50 transition-colors" onClick={handleBecomeInstructor}>
-          <CardContent className="p-5 flex items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-warning/10 text-warning flex items-center justify-center text-warning shrink-0">
-                <Trophy className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="font-bold text-foreground">Chia sẻ kiến thức, tạo nguồn thu nhập</h3>
-                <p className="text-xs text-muted-foreground mt-0.5 font-medium">Đăng ký trở thành giảng viên trên Gnostica ngay hôm nay.</p>
-              </div>
-            </div>
-            <SimpleButton variant="outline" className="border-warning/20 text-warning hover:bg-warning/10 text-warning hover:text-white shrink-0 font-bold hidden sm:flex">
-              Đăng ký ngay
-            </SimpleButton>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        {loading ? (
-          Array(3).fill(0).map((_, i) => (
-            <Card key={i} className="border-border shadow-sm">
-              <CardContent className="p-5 flex items-center gap-4">
-                <Skeleton className="w-12 h-12 rounded-xl" />
-                <div className="space-y-2">
-                  <Skeleton className="h-6 w-12" />
-                  <Skeleton className="h-3 w-24" />
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        ) : (
-          statItems.map((stat) => {
-            const Icon = stat.icon;
-            return (
-              <Card key={stat.label} className="border-border shadow-sm hover:shadow-md transition-shadow">
-                <CardContent className="p-5 flex flex-col md:flex-row items-start md:items-center gap-4">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${stat.color}`}>
-                    <Icon className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-black text-foreground">{stat.value}</p>
-                    <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mt-0.5">{stat.label}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })
-        )}
-      </div>
+      <AccountStatsCards stats={stats} loading={loading} />
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

@@ -5,7 +5,7 @@ import { ShieldCheck, ArrowLeft } from 'lucide-react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
-import authService from '../../services/authService';
+import authService from '../../services/auth/authService';
 
 const ConfirmCodeScreen = () => {
     const navigation = useNavigation();

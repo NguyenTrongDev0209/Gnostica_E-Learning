@@ -1,73 +1,8 @@
-import React, { useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { toast } from 'sonner';
-import authService from '@/services/auth/authService';
-import useAuthStore from '@/store/useAuthStore';
+import React from 'react';
+import { useOAuth2Callback } from '@/hooks/auth/useOAuth2Callback';
 
 const OAuth2Callback = () => {
-    const [searchParams] = useSearchParams();
-    const navigate = useNavigate();
-    const email = searchParams.get('email');
-    const tokenFromParams = searchParams.get('token'); // Lấy token từ URL
-
-    const setUser = useAuthStore(state => state.setUser);
-
-    useEffect(() => {
-        console.log("OAuth2 Callback received email:", email);
-        console.log("OAuth2 Callback received token:", tokenFromParams ? "Yes" : "No");
-
-        if (email) {
-            const fetchUserInfo = async () => {
-                try {
-                    const response = await authService.getOAuth2User(email);
-                    console.log("Fetch user response:", response.data);
-
-                    if (response.data.status === 200 || response.data.status === 'success') {
-                        const user = response.data.data;
-                        // Chuẩn hóa dữ liệu user để đồng nhất với LoginResponse (chỉ lưu các thông tin cần thiết)
-                        const roleName = (user.role?.name || user.role || 'USER').toUpperCase();
-                        const normalizedUser = {
-                            id: user.id || user.id, // Ensure id is preserved
-                            fullName: user.fullName,
-                            email: user.email,
-                            role: roleName,
-                            token: tokenFromParams || user.token,
-                            avatar: user.avatar,
-                            provider: user.provider,
-                            onboardingCompleted: user.onboardingCompleted // Important for personalization popup
-                        };
-
-                        localStorage.setItem('user', JSON.stringify(normalizedUser));
-                        setUser(normalizedUser); // Cập nhật state toàn cục để UI (Header) nhận diện ngay
-                        console.log("OAuth2Callback: User normalized and saved to localStorage & store", normalizedUser);
-
-                        toast.success('Đăng nhập thành công!');
-
-                        setTimeout(() => {
-                            if (roleName === 'ADMIN') {
-                                navigate('/admin');
-                            } else if (roleName === 'INSTRUCTOR' || roleName === 'TEACHER') {
-                                navigate('/instructor');
-                            } else {
-                                navigate('/');
-                            }
-                        }, 500);
-                    } else {
-                        throw new Error(response.data.message || 'Lấy thông tin thất bại');
-                    }
-                } catch (error) {
-                    console.error("Fetch user error:", error);
-                    toast.error(error.response?.data?.message || error.message || 'Đăng nhập thất bại!');
-                    setTimeout(() => navigate('/login'), 2000);
-                }
-            };
-
-            fetchUserInfo();
-        } else {
-            console.log("No email found in URL, redirecting to login");
-            navigate('/login');
-        }
-    }, [email, tokenFromParams, navigate, setUser]);
+    useOAuth2Callback();
 
     return (
         <div className="flex items-center justify-center min-h-screen">

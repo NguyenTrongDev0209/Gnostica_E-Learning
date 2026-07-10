@@ -1,108 +1,24 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
 import AppCard from "@/components/common/AppCard";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import { Home, Heart, Loader2 } from "lucide-react";
-import wishlistService from "@/services/course/wishlistService";
-import { toast } from "sonner";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Heart } from "lucide-react";
+import AppBreadcrumb from "@/components/common/AppBreadcrumb";
+import AppPageHeader from "@/components/common/AppPageHeader";
+import useWishlist from "@/hooks/account/useWishlist";
 
 export default function Wishlist() {
-  const [courses, setCourses] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchWishlist();
-  }, []);
-
-  const fetchWishlist = async () => {
-    try {
-      setLoading(true);
-      const res = await wishlistService.getMyWishlist();
-      if (res.success) {
-        // Map backend Course model to AppCard expected props
-        const formattedCourses = res.data.map(course => ({
-          id: course.id,
-          category: course.category?.name || "Chưa phân loại",
-          rating: 5.0,
-          title: course.title,
-          classes: course.classes || 0,
-          students: course.students || 0,
-          price: course.salePrice?.toLocaleString("vi-VN") || "0",
-          originalPrice: course.price?.toLocaleString("vi-VN") || "0",
-          discountPercentage: course.discount || 0,
-          image: course.thumbnail,
-          slug: course.slug,
-          instructor: {
-            name: course.account?.fullName || "Ẩn danh",
-            avatar: course.account?.avatar || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=100&auto=format&fit=crop",
-          }
-        }));
-        setCourses(formattedCourses);
-      }
-    } catch (error) {
-      console.error("Error fetching wishlist:", error);
-      toast.error("Không thể tải danh sách yêu thích");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleToggleWishlist = async (courseId) => {
-    try {
-      const res = await wishlistService.toggleWishlist(courseId);
-      if (res.success) {
-        toast.success(res.data.message);
-        // Remove from local state
-        setCourses(prev => prev.filter(c => c.id !== courseId));
-      }
-    } catch (error) {
-      toast.error("Thao tác thất bại");
-    }
-  };
+  const { courses, loading, handleToggleWishlist } = useWishlist();
 
   return (
     <div>
       {/* Breadcrumb */}
-      <Breadcrumb className="mb-6">
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/" className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-              <Home className="h-3.5 w-3.5" /> Trang chủ
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/account" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-              Tài khoản
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage className="text-sm font-semibold">Danh sách yêu thích</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
+      <AppBreadcrumb paths={[{ label: "Tài khoản", href: "/account" }, { label: "Danh sách yêu thích" }]} />
 
-      {/* Page Title */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-2xl font-extrabold text-foreground flex items-center gap-3">
-            <Heart className="w-7 h-7 text-error fill-red-100/50" />
-            Danh sách yêu thích
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {loading ? "Đang tải..." : `Bạn đã lưu lại ${courses.length} khóa học vào danh sách quan tâm.`}
-          </p>
-        </div>
-      </div>
+      <AppPageHeader
+        iconNode={<Heart className="w-7 h-7 text-error fill-red-100/50" />}
+        title="Danh sách yêu thích"
+        description={loading ? "Đang tải..." : `Bạn đã lưu lại ${courses.length} khóa học vào danh sách quan tâm.`}
+      />
 
       {/* Courses Grid */}
       {loading ? (

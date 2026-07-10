@@ -469,9 +469,10 @@
 | 3 | coupon_id | UUID | FK | |
 | 4 | total_price | DECIMAL(18,6) | | `>= 0` |
 | 5 | payment_method | VARCHAR(255) | | |
-| 6 | status | INT | | |
-| 7 | created_at | DATETIME | C-IDX | |
-| 8 | updated_at | DATETIME | | |
+| 6 | order_code | BIGINT | UQ | |
+| 7 | status | INT | | |
+| 8 | created_at | DATETIME | C-IDX | |
+| 9 | updated_at | DATETIME | | |
 > **Status:** 1: Pending (Chờ thanh toán), 2: Paid (Đã thanh toán), 3: Cancelled (Đã huỷ), 4: Refunded (Đã hoàn tiền)
 
 

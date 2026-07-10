@@ -27,6 +27,7 @@ public class Wallet {
 
     @NotNull
     @Min(0)
+    @Column(precision = 18, scale = 6)
     private BigDecimal remain;
 
     @NotNull

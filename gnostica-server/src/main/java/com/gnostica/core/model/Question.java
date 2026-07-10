@@ -49,7 +49,7 @@ public class Question {
     private Integer versionNumber;
 
     /**
-     * Status: 0: Inactive (KhÃ´ng dÃ¹ng), 1: Active (Sá»­ dá»¥ng)
+     * Status: 0: Inactive (Không dùng), 1: Active (Sử dụng)
      */
     @NotNull
     private Integer status;

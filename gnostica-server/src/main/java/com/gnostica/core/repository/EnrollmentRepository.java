@@ -14,8 +14,8 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Integer>
 
     Optional<Enrollment> findByCertifiUrl(String certifiUrl);
 
-    @org.springframework.data.jpa.repository.Query("SELECT e FROM Enrollment e WHERE e.progressPercent = 100 AND (e.certificateEmailSent = false OR e.certificateEmailSent IS NULL)")
-    List<Enrollment> findCompletedEnrollmentsWithoutEmail();
+
+
 
     @org.springframework.data.jpa.repository.Query("SELECT e FROM Enrollment e JOIN e.course c WHERE c.account.email = :email AND c.deletedAt IS NULL")
     List<Enrollment> findStudentsByInstructorEmail(

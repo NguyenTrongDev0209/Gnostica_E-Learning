@@ -10,83 +10,24 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import { Home, ShoppingBag, Eye, Download } from "lucide-react";
-
-// Mock Data
-const ORDERS_DATA = [
-  {
-    id: "DH-10294",
-    date: "15/03/2026",
-    courses: ["Thiết kế UI/UX Thực chiến với Figma"],
-    total: "899.000đ",
-    method: "VNPay",
-    status: "Thành công",
-    statusColor: "bg-emerald-100 text-emerald-700",
-  },
-  {
-    id: "DH-10182",
-    date: "10/01/2026",
-    courses: ["Lập trình Web Frontend Bootcamp 2026", "Mastering React 18"],
-    total: "1.299.000đ",
-    method: "Thẻ tín dụng",
-    status: "Thành công",
-    statusColor: "bg-emerald-100 text-emerald-700",
-  },
-  {
-    id: "DH-09871",
-    date: "25/12/2025",
-    courses: ["Docker & Kubernetes Bootcamp"],
-    total: "749.000đ",
-    method: "Momo",
-    status: "Đã hủy",
-    statusColor: "bg-error/10 text-error text-error",
-  },
-];
+import AppBreadcrumb from "@/components/common/AppBreadcrumb";
+import AppPageHeader from "@/components/common/AppPageHeader";
+import { ShoppingBag, Eye, Download } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import useOrders from "@/hooks/account/useOrders";
 
 export default function Orders() {
+  const { orders, loading } = useOrders();
+
   return (
     <div>
-      {/* Breadcrumb */}
-      <Breadcrumb className="mb-6">
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/" className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-              <Home className="h-3.5 w-3.5" /> Trang chủ
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/account" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-              Tài khoản
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage className="text-sm font-semibold">Lịch sử đơn hàng</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
+      <AppBreadcrumb paths={[{ label: "Tài khoản", href: "/account" }, { label: "Lịch sử đơn hàng" }]} />
 
-      {/* Page Title */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-2xl font-extrabold text-foreground flex items-center gap-3">
-            <ShoppingBag className="w-7 h-7 text-primary" />
-            Lịch sử mua hàng
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Quản lý các giao dịch và đăng ký khóa học của bạn.
-          </p>
-        </div>
-      </div>
+      <AppPageHeader
+        icon={ShoppingBag}
+        title="Lịch sử mua hàng"
+        description="Quản lý các giao dịch và đăng ký khóa học của bạn."
+      />
 
       {/* Orders Table */}
       <Card className="border-border shadow-sm overflow-hidden">
@@ -105,8 +46,20 @@ export default function Orders() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {ORDERS_DATA.length > 0 ? (
-                  ORDERS_DATA.map((order) => (
+                {loading ? (
+                  [1, 2, 3].map((i) => (
+                    <TableRow key={i}>
+                      <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-40" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
+                      <TableCell><div className="flex justify-end gap-2"><Skeleton className="h-8 w-8 rounded-md" /><Skeleton className="h-8 w-8 rounded-md" /></div></TableCell>
+                    </TableRow>
+                  ))
+                ) : orders.length > 0 ? (
+                  orders.map((order) => (
                     <TableRow key={order.id} className="border-border hover:bg-muted transition-colors">
                       <TableCell className="font-mono font-semibold text-foreground py-4">
                         {order.id}
@@ -171,7 +124,7 @@ export default function Orders() {
       
       {/* Pagination Placeholder */}
       <div className="flex items-center justify-between px-2 py-4 mt-2">
-        <p className="text-sm text-muted-foreground font-medium">Hiển thị {ORDERS_DATA.length} đơn hàng</p>
+        <p className="text-sm text-muted-foreground font-medium">Hiển thị {orders.length} đơn hàng</p>
       </div>
     </div>
   );

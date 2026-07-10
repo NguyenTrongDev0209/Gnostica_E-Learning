@@ -43,7 +43,7 @@ public class Review {
     private String comment;
 
     /**
-     * Status: 0: Hidden (áº¨n), 1: Published (Hiá»ƒn thá»‹), 2: Spam (Vi pháº¡m)
+     * Status: 0: Hidden (Ẩn), 1: Published (Hiển thị), 2: Spam (Vi phạm)
      */
     @NotNull
     private Integer status;

@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { SettingsHeader } from "@/pages/admin/components/settings/SettingsHeader";
-import { GeneralSettings } from "@/pages/admin/components/settings/GeneralSettings";
-import { PaymentConfigSettings } from "@/pages/admin/components/settings/PaymentConfigSettings";
-import { SecuritySettings } from "@/pages/admin/components/settings/SecuritySettings";
+import { SettingsHeader } from "@/pages/admin/components/SettingsHeader";
+import { GeneralSettings } from "@/pages/admin/components/GeneralSettings";
+import { PaymentConfigSettings } from "@/pages/admin/components/PaymentConfigSettings";
+import { SecuritySettings } from "@/pages/admin/components/SecuritySettings";
 import { Globe, CreditCard, Shield } from "lucide-react";
 import { toast } from "sonner";
 
