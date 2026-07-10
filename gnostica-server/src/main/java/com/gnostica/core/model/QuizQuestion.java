@@ -12,7 +12,9 @@ import jakarta.validation.constraints.*;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "quiz_questions")
+@Table(name = "quiz_questions", uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"quiz_id", "question_id"})
+})
 public class QuizQuestion {
 
     @Id

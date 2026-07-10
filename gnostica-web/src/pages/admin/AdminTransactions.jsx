@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useTransactions } from "@/hooks/payment/useTransactions";
-import { TransactionHeader } from "@/pages/admin/components/transactions/TransactionHeader";
-import { TransactionStatsFilter } from "@/pages/admin/components/transactions/TransactionStatsFilter";
-import { TransactionTable } from "@/pages/admin/components/transactions/TransactionTable";
-import { TransactionDetailModal } from "@/pages/admin/components/transactions/TransactionDetailModal";
-import { Button } from "@/components/ui/button";
+import { TransactionHeader } from "@/pages/admin/components/TransactionHeader";
+import { TransactionStatsFilter } from "@/pages/admin/components/TransactionStatsFilter";
+import { TransactionTable } from "@/pages/admin/components/TransactionTable";
+import { TransactionDetailModal } from "@/pages/admin/components/TransactionDetailModal";
+import { SimpleButton, GhostButton } from "@/components/common/AppButton";
 
 export default function AdminTransactions() {
+  // eslint-disable-next-line no-unused-vars
   const { transactions, isLoading, fetchTransactions } = useTransactions();
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
@@ -41,6 +42,7 @@ export default function AdminTransactions() {
   const paginatedTransactions = filteredTransactions.slice(startIndex, startIndex + itemsPerPage);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCurrentPage(1);
   }, [searchTerm, typeFilter, statusFilter]);
 
@@ -76,40 +78,46 @@ export default function AdminTransactions() {
             Hiển thị <span className="font-bold text-foreground">{startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredTransactions.length)}</span> trong số <span className="font-bold text-foreground">{filteredTransactions.length}</span> giao dịch
           </div>
           <div className="flex gap-1">
-            <Button 
-              variant="outline" 
+            <GhostButton 
               size="sm" 
-              className="h-8" 
+              className="h-8 border border-border" 
               disabled={currentPage === 1}
               onClick={() => setCurrentPage(currentPage - 1)}
             >
               Trước
-            </Button>
+            </GhostButton>
             
             {[...Array(totalPages)].map((_, i) => {
               const pageNumber = i + 1;
-              return (
-                <Button 
+              return currentPage === pageNumber ? (
+                <SimpleButton 
                   key={pageNumber}
-                  variant="outline" 
                   size="sm" 
-                  className={`h-8 ${currentPage === pageNumber ? 'bg-primary text-white border-primary hover:bg-primary/90 hover:text-white' : ''}`}
+                  className="h-8"
                   onClick={() => setCurrentPage(pageNumber)}
                 >
                   {pageNumber}
-                </Button>
+                </SimpleButton>
+              ) : (
+                <GhostButton 
+                  key={pageNumber}
+                  size="sm" 
+                  className="h-8 border border-border bg-white text-muted-foreground hover:bg-muted"
+                  onClick={() => setCurrentPage(pageNumber)}
+                >
+                  {pageNumber}
+                </GhostButton>
               );
             })}
 
-            <Button 
-              variant="outline" 
+            <GhostButton 
               size="sm" 
-              className="h-8" 
+              className="h-8 border border-border" 
               disabled={currentPage === totalPages}
               onClick={() => setCurrentPage(currentPage + 1)}
             >
               Sau
-            </Button>
+            </GhostButton>
           </div>
         </div>
       )}

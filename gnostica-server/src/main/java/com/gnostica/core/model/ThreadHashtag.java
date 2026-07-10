@@ -12,7 +12,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "thread_hashtags")
+@Table(name = "thread_hashtags", uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"thread_id", "hashtag_id"})
+})
 public class ThreadHashtag {
 
     @Id

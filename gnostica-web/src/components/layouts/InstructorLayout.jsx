@@ -1,58 +1,10 @@
 import React from "react";
-import { Outlet, useNavigate, Link, useLocation } from "react-router-dom";
-import {
-  Bell,
-  Search,
-  Menu,
-  Plus,
-  LayoutDashboard,
-  BookOpen,
-  Users,
-  MessageSquare,
-  BarChart,
-  Settings,
-  LogOut,
-  Wallet,
-  Ticket
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { AppLogo } from "@/components/common/AppButton";
-import NotificationBell from "@/components/common/NotificationBell";
-
-const INSTRUCTOR_MENU_GROUPS = [
-  {
-    title: "QUẢN LÝ CHUNG",
-    items: [
-      { label: "Tổng quan", icon: LayoutDashboard, href: "/instructor" },
-      { label: "Học viên", icon: Users, href: "/instructor/students" },
-    ]
-  },
-  {
-    title: "NỘI DUNG",
-    items: [
-      { label: "Khóa học", icon: BookOpen, href: "/instructor/courses" },
-    ]
-  },
-  {
-    title: "KINH DOANH",
-    items: [
-      { label: "Doanh thu", icon: Wallet, href: "/instructor/revenue" },
-      { label: "Phiếu giảm", icon: Ticket, href: "/instructor/coupons" },
-    ]
-  },
-  {
-    title: "HỆ THỐNG",
-    items: [
-      { label: "Cài đặt", icon: Settings, href: "/instructor/settings" },
-    ]
-  }
-];
-
+import { Outlet } from "react-router-dom";
 import useAuthStore from "@/store/useAuthStore";
+import InstructorSidebar from "@/components/fragments/InstructorSidebar";
+import InstructorHeader from "@/components/fragments/InstructorHeader";
 
 export default function InstructorLayout() {
-  const navigate = useNavigate();
-  const location = useLocation();
   const user = useAuthStore(state => state.user);
   const logout = useAuthStore(state => state.logout);
 

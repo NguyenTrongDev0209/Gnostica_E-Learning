@@ -32,11 +32,15 @@ public class Order {
 
     @NotNull
     @Min(0)
+    @Column(precision = 18, scale = 6)
     private BigDecimal totalPrice;
 
     @NotBlank
     @Size(max = 255)
     private String paymentMethod;
+
+    @Column(unique = true)
+    private Long orderCode;
 
     /**
      * Status: 1: Pending (Chờ thanh toán), 2: Paid (Đã thanh toán), 3: Cancelled (Đã huỷ), 4: Refunded (Đã hoàn tiền)
@@ -54,7 +58,4 @@ public class Order {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private java.util.List<OrderDetail> details;
 
-    public String getTransactionId() {
-        return this.id != null ? this.id.toString() : null;
-    }
 }

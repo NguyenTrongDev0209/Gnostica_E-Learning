@@ -1,17 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import AppBreadcrumb from "@/components/common/AppBreadcrumb";
+import AppPageHeader from "@/components/common/AppPageHeader";
+import { Skeleton } from "@/components/ui/skeleton";
+import useLearningProgress from "@/hooks/account/useLearningProgress";
 import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import {
-  Home,
   Activity,
   Trophy,
   Target,
@@ -19,41 +14,8 @@ import {
   BookOpen,
   Clock,
 } from "lucide-react";
-import enrollmentService from "@/services/course/enrollmentService";
-import { toast } from "sonner";
-import { Skeleton } from "@/components/ui/skeleton";
-
 export default function LearningProgress() {
-  const [courses, setCourses] = useState([]);
-  const [stats, setStats] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const [statsRes, coursesRes] = await Promise.all([
-          enrollmentService.getMyStats(),
-          enrollmentService.getMyCourses()
-        ]);
-
-        if (statsRes.success) {
-          setStats(statsRes.data);
-        }
-
-        if (coursesRes.success) {
-          setCourses(coursesRes.data);
-        }
-      } catch (error) {
-        console.error("Error fetching progress data:", error);
-        toast.error("Không thể tải thông tin tiến độ học tập");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
+  const { courses, stats, loading } = useLearningProgress();
 
   const overallStats = [
     { 
@@ -78,37 +40,13 @@ export default function LearningProgress() {
 
   return (
     <div>
-      {/* Breadcrumb */}
-      <Breadcrumb className="mb-6">
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/" className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-              <Home className="h-3.5 w-3.5" /> Trang chủ
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/account" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-              Tài khoản
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage className="text-sm font-semibold">Tiến độ học tập</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
+      <AppBreadcrumb paths={[{ label: "Tài khoản", href: "/account" }, { label: "Tiến độ học tập" }]} />
 
-      {/* Page Title */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-extrabold text-foreground flex items-center gap-3">
-          <Activity className="w-7 h-7 text-primary" />
-          Tiến độ học tập
-        </h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Theo dõi quá trình học tập và hoàn thành mục tiêu của bạn.
-        </p>
-      </div>
+      <AppPageHeader
+        icon={Activity}
+        title="Tiến độ học tập"
+        description="Theo dõi quá trình học tập và hoàn thành mục tiêu của bạn."
+      />
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">

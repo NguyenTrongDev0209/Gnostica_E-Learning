@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import courseService from "@/services/course/courseService";
+import adminCourseService from "@/services/admin/adminCourseService";
 import { toast } from "sonner";
 
 export default function useAdminCourseModeration() {
@@ -34,7 +34,7 @@ export default function useAdminCourseModeration() {
       else if (activeTab === "approved") statusParam = 1;
       else if (activeTab === "rejected") statusParam = 3;
 
-      const resRaw = await courseService.getModerationCourses(statusParam, pagination.currentPage, 10);
+      const resRaw = await adminCourseService.getModerationCourses(statusParam, pagination.currentPage, 10);
       return extractPageData(resRaw) || {};
     },
     staleTime: 1000 * 60,
@@ -50,7 +50,7 @@ export default function useAdminCourseModeration() {
   const { data: stats = { pending: 0, approved: 0, rejected: 0 } } = useQuery({
     queryKey: ['admin_moderation_stats'],
     queryFn: async () => {
-      const res = await courseService.getModerationStats();
+      const res = await adminCourseService.getModerationStats();
       const statsData = res?.data !== undefined ? res.data : res;
       return {
         pending: statsData?.pending || 0,
@@ -67,7 +67,7 @@ export default function useAdminCourseModeration() {
 
   const approveMutation = useMutation({
     mutationFn: async (slug) => {
-      return await courseService.approveCourse(slug);
+      return await adminCourseService.approveCourse(slug);
     },
     onSuccess: () => {
       toast.success("Phê duyệt và xuất bản khóa học thành công!");
@@ -81,7 +81,7 @@ export default function useAdminCourseModeration() {
 
   const rejectMutation = useMutation({
     mutationFn: async ({ slug, reason }) => {
-      return await courseService.rejectCourse(slug, reason);
+      return await adminCourseService.rejectCourse(slug, reason);
     },
     onSuccess: () => {
       toast.success("Đã gửi lý do từ chối phê duyệt khóa học.");

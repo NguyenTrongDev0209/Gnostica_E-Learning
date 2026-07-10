@@ -52,6 +52,7 @@ public class Course {
 
     @NotNull
     @Min(0)
+    @Column(precision = 18, scale = 6)
     private BigDecimal price;
 
     @Min(0)

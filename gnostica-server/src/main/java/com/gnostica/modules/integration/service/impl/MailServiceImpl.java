@@ -39,7 +39,7 @@ public class MailServiceImpl implements MailService {
             context.setVariable("order", order);
             context.setVariable("accountName", order.getAccount().getFullName());
             context.setVariable("totalPrice", order.getTotalPrice());
-            context.setVariable("transactionId", order.getTransactionId());
+            context.setVariable("transactionId", order.getId() != null ? order.getId().toString() : null);
             context.setVariable("details", order.getDetails());
 
             String html = templateEngine.process("payment-success", context);

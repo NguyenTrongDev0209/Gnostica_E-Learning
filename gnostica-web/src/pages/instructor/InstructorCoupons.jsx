@@ -12,11 +12,11 @@ import {
   Activity
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { SimpleButton } from "@/components/common/AppButton";
 import { Input } from "@/components/ui/input";
 import { useCoupons } from "@/hooks/order/useCoupons";
-import { CouponFormModal } from "@/pages/admin/components/coupons/CouponFormModal";
-import InstructorCouponTable from "@/pages/instructor/components/coupons/InstructorCouponTable";
+import { CouponFormModal } from "@/pages/admin/components/CouponFormModal";
+import InstructorCouponTable from "@/pages/instructor/components/InstructorCouponTable";
 
 export default function InstructorCoupons() {
   const { coupons, isLoading, addCoupon, removeCoupon, toggleCouponStatus } = useCoupons({ mine: true });
@@ -63,13 +63,13 @@ export default function InstructorCoupons() {
             Tạo và quản lý các mã giảm giá để thúc đẩy doanh số bán khóa học của bạn.
           </p>
         </div>
-        <Button
+        <SimpleButton
           onClick={() => setIsModalOpen(true)}
           className="btn-md bg-primary hover:scale-[1.02] transition-all text-white font-bold rounded-xl shadow-lg shadow-primary/20 flex items-center gap-2"
         >
           <Plus className="w-5 h-5" />
           Tạo Mã Giảm Giá Mới
-        </Button>
+        </SimpleButton>
       </div>
 
       {/* Stats Summary (Standardized) */}

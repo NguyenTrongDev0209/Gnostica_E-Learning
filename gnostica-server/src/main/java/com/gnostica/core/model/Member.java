@@ -11,7 +11,9 @@ import jakarta.validation.constraints.*;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "members")
+@Table(name = "members", uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"account_id", "topic_id"})
+})
 public class Member {
 
     @Id

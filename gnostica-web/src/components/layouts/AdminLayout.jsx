@@ -36,7 +36,7 @@ const ADMIN_MENU_GROUPS = [
     title: "NỘI DUNG",
     items: [
       { label: "Khóa học", icon: BookOpen, href: "/admin/courses" },
-      { label: "Chủ đề", icon: LayoutList, href: "/admin/categories" },
+      { label: "Danh mục", icon: LayoutList, href: "/admin/categories" },
     ]
   },
   {
@@ -72,22 +72,21 @@ const ADMIN_MENU_GROUPS = [
 
 
 import useAuthStore from "@/store/useAuthStore";
+import AdminSidebar from "@/components/fragments/AdminSidebar";
+import AdminHeader from "@/components/fragments/AdminHeader";
 
 export default function AdminLayout() {
-  const navigate = useNavigate();
-  const location = useLocation();
   const user = useAuthStore(state => state.user);
   const logout = useAuthStore(state => state.logout);
 
   const handleLogout = async () => {
     await logout();
-    // navigate is handled inside useAuthStore.logout() if needed, or we can just leave it to zustand.
   };
 
   return (
     <div className="min-h-screen bg-muted flex">
-      {/* Sidebar - Static Flex */}
-      <aside className="w-64 bg-slate-50 border-r border-border min-h-screen flex flex-col z-50">
+      {/* Sidebar - Fixed */}
+      <aside className="w-64 bg-slate-50 border-r border-border min-h-screen fixed left-0 top-0 bottom-0 flex flex-col z-50">
         {/* Brand */}
         <div className="h-16 flex items-center justify-center px-0 border-b border-border bg-white">
           <AppLogo className="h-12 md:h-12" />
@@ -160,7 +159,7 @@ export default function AdminLayout() {
       </aside>
 
       {/* Main Content Area */}
-      <div className="flex-1 min-w-0 flex flex-col min-h-screen">
+      <div className="flex-1 ml-64 flex flex-col min-h-screen">
         {/* Top Header */}
         <header className="px-6 pt-4 pb-2 sticky top-0 z-40 bg-muted/80 backdrop-blur-sm">
           <div className="h-16 bg-white border border-border rounded-xl flex items-center justify-between px-6 shadow-sm">

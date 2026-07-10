@@ -1,16 +1,16 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+import { GhostButton, SimpleButton } from "@/components/common/AppButton";
 import { Loader2 } from "lucide-react";
 import useInstructorDashboard from "@/hooks/dashboard/useInstructorDashboard";
 
 // Components
-import StatsGrid from "@/pages/instructor/components/dashboard/StatsGrid";
-import RevenueChart from "@/pages/instructor/components/dashboard/RevenueChart";
-import RatingDistribution from "@/pages/instructor/components/dashboard/RatingDistribution";
-import StudentGrowthChart from "@/pages/instructor/components/dashboard/StudentGrowthChart";
-import PendingTasks from "@/pages/instructor/components/dashboard/PendingTasks";
-import CoursePerformanceTable from "@/pages/instructor/components/dashboard/CoursePerformanceTable";
+import StatsGrid from "@/pages/instructor/components/StatsGrid";
+import RevenueChart from "@/pages/instructor/components/RevenueChart";
+import RatingDistribution from "@/pages/instructor/components/RatingDistribution";
+import StudentGrowthChart from "@/pages/instructor/components/StudentGrowthChart";
+import PendingTasks from "@/pages/instructor/components/PendingTasks";
+import CoursePerformanceTable from "@/pages/instructor/components/CoursePerformanceTable";
 
 export default function InstructorDashboard() {
   const { data, loading } = useInstructorDashboard();
@@ -38,11 +38,11 @@ export default function InstructorDashboard() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="border-border">Xuất báo cáo</Button>
+          <GhostButton className="border border-border">Xuất báo cáo</GhostButton>
           <Link to="/instructor/courses/courses-form">
-            <Button className="bg-success/10 text-success hover:bg-success/10 text-success text-white shadow-none font-bold">
+            <SimpleButton className="bg-success/10 text-success hover:bg-success/20 font-bold">
               Tạo Khóa Học Mới
-            </Button>
+            </SimpleButton>
           </Link>
         </div>
       </div>

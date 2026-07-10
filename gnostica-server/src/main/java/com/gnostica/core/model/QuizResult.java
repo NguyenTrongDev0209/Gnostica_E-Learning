@@ -32,6 +32,7 @@ public class QuizResult {
     private Quiz quiz;
 
     @Min(0)
+    @Column(precision = 5, scale = 2)
     private BigDecimal point;
 
     @Min(0)
@@ -48,7 +49,7 @@ public class QuizResult {
     private String responseDetail;
 
     /**
-     * Status: 1: In Progress (Äang lÃ m), 2: Submitted (ÄÃ£ ná»™p/Cháº¥m Ä‘iá»ƒm)
+     * Status: 1: In Progress (Đang làm), 2: Submitted (Đã nộp/Chấm điểm)
      */
     @NotNull
     private Integer status;

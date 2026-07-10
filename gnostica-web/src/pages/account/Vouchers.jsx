@@ -2,166 +2,123 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import { Home, Ticket, Scissors, CheckCircle2 } from "lucide-react";
-import { toast } from "sonner";
-
-// Mock Data
-const VOUCHERS_DATA = [
-  {
-    id: "WELCOME50",
-    code: "GNOSTICA50",
-    title: "Giảm 50% cho người mới",
-    desc: "Áp dụng cho đơn hàng đầu tiên. Không giới hạn giá trị tối đa.",
-    expiry: "30/04/2026",
-    status: "active",
-    discount: "50%",
-    color: "from-blue-500 to-cyan-500",
-  },
-  {
-    id: "MEMBER20",
-    code: "MEMBER20",
-    title: "Tri ân học viên cũ",
-    desc: "Giảm trực tiếp 200.000đ cho các khóa học trên 1.000.000đ.",
-    expiry: "15/05/2026",
-    status: "active",
-    discount: "200K",
-    color: "from-orange-500 to-amber-500",
-  },
-  {
-    id: "EXPIRED15",
-    code: "FLASH15",
-    title: "Flash Sale cuối tuần",
-    desc: "Giảm 15% cho tất cả khóa học Lập trình.",
-    expiry: "01/01/2026",
-    status: "expired",
-    discount: "15%",
-    color: "from-slate-400 to-slate-500",
-  },
-];
+import AppBreadcrumb from "@/components/common/AppBreadcrumb";
+import AppPageHeader from "@/components/common/AppPageHeader";
+import { Ticket, Scissors, CheckCircle2 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import useVouchers from "@/hooks/account/useVouchers";
 
 export default function Vouchers() {
-  const handleCopyCode = (code) => {
-    navigator.clipboard.writeText(code);
-    toast.success(`Đã sao chép mã ${code}`);
-  };
+  const { vouchers, loading, handleCopyCode } = useVouchers();
 
   return (
     <div>
-      {/* Breadcrumb */}
-      <Breadcrumb className="mb-6">
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/" className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-              <Home className="h-3.5 w-3.5" /> Trang chủ
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/account" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-              Tài khoản
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage className="text-sm font-semibold">Kho Voucher</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
+      <AppBreadcrumb paths={[{ label: "Tài khoản", href: "/account" }, { label: "Kho Voucher" }]} />
 
-      {/* Page Title */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-2xl font-extrabold text-foreground flex items-center gap-3">
-            <Ticket className="w-7 h-7 text-primary" />
-            Kho Voucher của bạn
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Sử dụng các mã giảm giá này khi thanh toán để tiết kiệm chi phí học tập.
-          </p>
-        </div>
-      </div>
+      <AppPageHeader
+        icon={Ticket}
+        title="Kho Voucher của bạn"
+        description="Sử dụng các mã giảm giá này khi thanh toán để tiết kiệm chi phí học tập."
+      />
 
       {/* Vouchers Grid */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        {VOUCHERS_DATA.map((voucher) => {
-          const isExpired = voucher.status === "expired";
-          
-          return (
-            <div 
-              key={voucher.id} 
-              className={`flex border rounded-2xl overflow-hidden shadow-sm transition-transform hover:shadow-md ${isExpired ? 'border-border opacity-60' : 'border-border hover:scale-[1.01]'}`}
-            >
-              {/* Left Side: Ticket Stub & Value */}
-              <div className={`w-32 sm:w-40 flex items-center justify-center p-4 relative shrink-0 bg-gradient-to-br ${voucher.color} text-white`}>
-                {/* Dashed edge */}
-                <div className="absolute right-0 top-0 bottom-0 w-2 flex flex-col justify-between overflow-hidden">
-                  {[...Array(12)].map((_, i) => (
-                    <div key={i} className={`w-2 h-2 rounded-full -mr-1 ${isExpired ? 'bg-muted' : 'bg-white'}`}></div>
-                  ))}
-                </div>
-                
-                {/* Content */}
-                <div className="text-center z-10 w-full pl-2">
-                  <Ticket className="w-8 h-8 opacity-90 mx-auto mb-2" />
-                  <p className="font-black text-2xl leading-none mb-1 text-center w-full">{voucher.discount}</p>
-                </div>
+        {loading ? (
+          [1, 2, 3].map((i) => (
+            <div key={i} className="flex border rounded-2xl overflow-hidden shadow-sm h-48 border-border">
+              <div className="w-32 sm:w-40 flex items-center justify-center p-4 bg-muted shrink-0">
+                <Skeleton className="w-16 h-16 rounded-full" />
               </div>
-
-              {/* Right Side: Info & Coupon Code */}
-              <div className="flex-1 p-5 sm:p-6 bg-white relative">
-                <div className="flex justify-between items-start gap-3 mb-2">
-                  <h3 className="font-bold text-lg text-foreground leading-tight">
-                    {voucher.title}
-                  </h3>
-                  {isExpired ? (
-                    <Badge className="bg-secondary text-muted-foreground border-none shrink-0 pointer-events-none text-[10px] font-bold">Hết hạn</Badge>
-                  ) : (
-                    <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-none shrink-0 text-[10px] font-bold flex items-center gap-1">
-                      <CheckCircle2 className="w-3 h-3" />
-                      Khả dụng
-                    </Badge>
-                  )}
-                </div>
-                
-                <p className="text-sm text-muted-foreground mb-6 leading-relaxed line-clamp-2">
-                  {voucher.desc}
-                </p>
-
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-auto">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Mã code:</span>
-                    <span className="font-mono font-black text-lg text-primary tracking-wider">{voucher.code}</span>
-                  </div>
-                  
-                  {!isExpired && (
-                    <button 
-                      onClick={() => handleCopyCode(voucher.code)}
-                      className="flex items-center justify-center gap-2 px-4 py-2 bg-secondary hover:bg-muted text-foreground text-sm font-bold rounded-xl transition-colors shrink-0"
-                      aria-label="Sao chép mã"
-                    >
-                      <Scissors className="w-4 h-4" />
-                      Sao chép
-                    </button>
-                  )}
-                </div>
-
-                <div className="mt-4 pt-4 border-t border-border border-dashed">
-                  <p className={`text-xs font-medium ${isExpired ? 'text-error' : 'text-muted-foreground'}`}>
-                    {isExpired ? 'Đã hết hạn: ' : 'HSD: '}{voucher.expiry}
-                  </p>
+              <div className="flex-1 p-5 sm:p-6 bg-white space-y-4">
+                <Skeleton className="h-6 w-3/4" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-5/6" />
+                <div className="flex justify-between items-center pt-2">
+                  <Skeleton className="h-6 w-24" />
+                  <Skeleton className="h-8 w-24 rounded-xl" />
                 </div>
               </div>
             </div>
-          );
-        })}
+          ))
+        ) : vouchers.length > 0 ? (
+          vouchers.map((voucher) => {
+            const isExpired = voucher.status === "expired";
+            
+            return (
+              <div 
+                key={voucher.id} 
+                className={`flex border rounded-2xl overflow-hidden shadow-sm transition-transform hover:shadow-md ${isExpired ? 'border-border opacity-60' : 'border-border hover:scale-[1.01]'}`}
+              >
+                {/* Left Side: Ticket Stub & Value */}
+                <div className={`w-32 sm:w-40 flex items-center justify-center p-4 relative shrink-0 bg-gradient-to-br ${voucher.color} text-white`}>
+                  {/* Dashed edge */}
+                  <div className="absolute right-0 top-0 bottom-0 w-2 flex flex-col justify-between overflow-hidden">
+                    {[...Array(12)].map((_, i) => (
+                      <div key={i} className={`w-2 h-2 rounded-full -mr-1 ${isExpired ? 'bg-muted' : 'bg-white'}`}></div>
+                    ))}
+                  </div>
+                  
+                  {/* Content */}
+                  <div className="text-center z-10 w-full pl-2">
+                    <Ticket className="w-8 h-8 opacity-90 mx-auto mb-2" />
+                    <p className="font-black text-2xl leading-none mb-1 text-center w-full">{voucher.discount}</p>
+                  </div>
+                </div>
+
+                {/* Right Side: Info & Coupon Code */}
+                <div className="flex-1 p-5 sm:p-6 bg-white relative">
+                  <div className="flex justify-between items-start gap-3 mb-2">
+                    <h3 className="font-bold text-lg text-foreground leading-tight">
+                      {voucher.title}
+                    </h3>
+                    {isExpired ? (
+                      <Badge className="bg-secondary text-muted-foreground border-none shrink-0 pointer-events-none text-[10px] font-bold">Hết hạn</Badge>
+                    ) : (
+                      <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-none shrink-0 text-[10px] font-bold flex items-center gap-1">
+                        <CheckCircle2 className="w-3 h-3" />
+                        Khả dụng
+                      </Badge>
+                    )}
+                  </div>
+                  
+                  <p className="text-sm text-muted-foreground mb-6 leading-relaxed line-clamp-2">
+                    {voucher.desc}
+                  </p>
+
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-auto">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Mã code:</span>
+                      <span className="font-mono font-black text-lg text-primary tracking-wider">{voucher.code}</span>
+                    </div>
+                    
+                    {!isExpired && (
+                      <button 
+                        onClick={() => handleCopyCode(voucher.code)}
+                        className="flex items-center justify-center gap-2 px-4 py-2 bg-secondary hover:bg-muted text-foreground text-sm font-bold rounded-xl transition-colors shrink-0"
+                        aria-label="Sao chép mã"
+                      >
+                        <Scissors className="w-4 h-4" />
+                        Sao chép
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="mt-4 pt-4 border-t border-border border-dashed">
+                    <p className={`text-xs font-medium ${isExpired ? 'text-error' : 'text-muted-foreground'}`}>
+                      {isExpired ? 'Đã hết hạn: ' : 'HSD: '}{voucher.expiry}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        ) : (
+          <div className="col-span-full py-16 text-center border-2 border-dashed border-border rounded-2xl bg-muted/50">
+            <Ticket className="w-16 h-16 text-muted-foreground mx-auto mb-4 opacity-50" />
+            <h3 className="text-lg font-bold text-foreground mb-2">Chưa có voucher nào</h3>
+            <p className="text-sm text-muted-foreground">Các mã giảm giá sẽ xuất hiện ở đây khi bạn được nhận.</p>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -11,12 +11,11 @@ import {
   Loader2
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { GhostButton, SimpleButton } from "@/components/common/AppButton";
 import { Input } from "@/components/ui/input";
-import InstructorStudentTable from "@/pages/instructor/components/students/InstructorStudentTable";
-import StudentCoursesModal from "@/pages/instructor/components/students/StudentCoursesModal";
+import InstructorStudentTable from "@/pages/instructor/components/InstructorStudentTable";
+import StudentCoursesModal from "@/pages/instructor/components/StudentCoursesModal";
 import { useInstructorStudents } from "@/hooks/user/useInstructorStudents";
-import { toast } from "sonner";
 
 export default function InstructorStudents() {
   const { students, stats, loading } = useInstructorStudents();
@@ -41,12 +40,12 @@ export default function InstructorStudents() {
           </p>
         </div>
         <div className="flex items-center gap-3 w-full sm:w-auto">
-          <Button variant="outline" className="btn-md bg-white border-border font-bold hover:shadow-sm rounded-xl">
+          <GhostButton className="btn-md bg-white border border-border font-bold hover:shadow-sm rounded-xl">
             <Download className="w-4 h-4 mr-2" /> Xuất dữ liệu
-          </Button>
-          <Button className="btn-md bg-primary hover:primary/90 text-white shadow-lg shadow-primary/20 font-bold rounded-xl transition-all hover:scale-[1.02]">
+          </GhostButton>
+          <SimpleButton className="btn-md font-bold rounded-xl transition-all hover:scale-[1.02]">
             <Mail className="w-4 h-4 mr-2" /> Gửi thông báo
-          </Button>
+          </SimpleButton>
         </div>
       </div>
 

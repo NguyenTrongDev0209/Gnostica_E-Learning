@@ -10,14 +10,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
+import AppBreadcrumb from "@/components/common/AppBreadcrumb";
+import AppPageHeader from "@/components/common/AppPageHeader";
 import {
   Home,
   Search,
@@ -44,39 +38,13 @@ export default function MyCourses() {
 
   return (
     <div>
-      {/* Breadcrumb */}
-      <Breadcrumb className="mb-6">
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/" className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-              <Home className="h-3.5 w-3.5" /> Trang chủ
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/account" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-              Tài khoản
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage className="text-sm font-semibold">Khóa học của tôi</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
+      <AppBreadcrumb paths={[{ label: "Tài khoản", href: "/account" }, { label: "Khóa học của tôi" }]} />
 
-      {/* Page Title */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-2xl font-extrabold text-foreground flex items-center gap-3">
-            <BookOpen className="w-7 h-7 text-primary" />
-            Khóa học của tôi
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Bạn đang có tổng cộng {courses.length} khóa học trong thư viện.
-          </p>
-        </div>
-      </div>
+      <AppPageHeader
+        icon={BookOpen}
+        title="Khóa học của tôi"
+        description={`Bạn đang có tổng cộng ${courses.length} khóa học trong thư viện.`}
+      />
 
       {/* Filters Bar */}
       <div className="flex flex-col sm:flex-row gap-4 mb-8 bg-white p-4 rounded-lg border border-border shadow-sm">

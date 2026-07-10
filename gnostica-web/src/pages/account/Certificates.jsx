@@ -2,16 +2,11 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import AppBreadcrumb from "@/components/common/AppBreadcrumb";
+import AppPageHeader from "@/components/common/AppPageHeader";
+import { Skeleton } from "@/components/ui/skeleton";
+import useCertificates from "@/hooks/account/useCertificates";
 import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import {
-  Home,
   Award,
   Download,
   Share2,
@@ -19,73 +14,45 @@ import {
   ExternalLink,
 } from "lucide-react";
 
-// Mock Data
-const CERTIFICATES_DATA = [
-  {
-    id: "CERT-2026-891",
-    courseId: 3,
-    title: "Thiết kế UI/UX Thực chiến với Figma",
-    issueDate: "15/03/2026",
-    instructor: "Lê Minh Tâm",
-    grade: "Xuất sắc",
-    hours: "20.5 giờ",
-    image: "https://images.unsplash.com/photo-1586717791821-3f44a563fc4c?q=80&w=400&auto=format&fit=crop",
-    color: "from-orange-500 to-amber-500",
-  },
-  {
-    id: "CERT-2026-102",
-    courseId: 2,
-    title: "JavaScript Cơ bản",
-    issueDate: "10/01/2026",
-    instructor: "Nguyễn Văn A",
-    grade: "Giỏi",
-    hours: "15 giờ",
-    image: "https://images.unsplash.com/photo-1627398242454-4bcf1c8f1d8?q=80&w=400&auto=format&fit=crop",
-    color: "from-blue-500 to-cyan-500",
-  },
-];
-
 export default function Certificates() {
+  const { certificates, loading } = useCertificates();
+
   return (
     <div>
-      {/* Breadcrumb */}
-      <Breadcrumb className="mb-6">
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/" className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-              <Home className="h-3.5 w-3.5" /> Trang chủ
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/account" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-              Tài khoản
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage className="text-sm font-semibold">Chứng chỉ</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
+      <AppBreadcrumb paths={[{ label: "Tài khoản", href: "/account" }, { label: "Chứng chỉ" }]} />
 
-      {/* Page Title */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-2xl font-extrabold text-foreground flex items-center gap-3">
-            <Award className="w-7 h-7 text-primary" />
-            Chứng chỉ của tôi
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Bạn đã nỗ lực hoàn thành {CERTIFICATES_DATA.length} khóa học. Tuyệt vời!
-          </p>
-        </div>
-      </div>
+      <AppPageHeader
+        icon={Award}
+        title="Chứng chỉ của tôi"
+        description={`Bạn đã nỗ lực hoàn thành ${certificates.length} khóa học. Tuyệt vời!`}
+      />
 
       {/* Certificates Grid */}
-      {CERTIFICATES_DATA.length > 0 ? (
+      {loading ? (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-          {CERTIFICATES_DATA.map((cert) => (
+          {[1, 2].map((i) => (
+            <Card key={i} className="border-border shadow-sm overflow-hidden h-64 flex">
+              <div className="w-full sm:w-48 bg-muted shrink-0 flex items-center justify-center p-6">
+                 <Skeleton className="w-20 h-20 rounded-full" />
+              </div>
+              <div className="p-6 flex-1 flex flex-col justify-between">
+                 <Skeleton className="h-6 w-3/4 mb-4" />
+                 <div className="space-y-2">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-3/4" />
+                 </div>
+                 <div className="flex gap-3 mt-4">
+                    <Skeleton className="h-10 flex-1" />
+                    <Skeleton className="h-10 w-12" />
+                 </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      ) : certificates.length > 0 ? (
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          {certificates.map((cert) => (
             <Card key={cert.id} className="border-border shadow-sm overflow-hidden hover:shadow-lg transition-all group">
               <CardContent className="p-0 flex flex-col sm:flex-row">
                 {/* Left Side: Thumbnail/Design */}
