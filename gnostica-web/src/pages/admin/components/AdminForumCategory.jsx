@@ -8,7 +8,15 @@ import {
   MessageSquare,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import AppTable from "@/components/common/AppTable";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
 import { SimpleButton, TableActionIconButton, GhostButton } from "@/components/common/AppButton";
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
@@ -200,7 +208,7 @@ export default function AdminForumCategory({ hideHeader = false }) {
         >
           <Plus className="w-4 h-4" />
           Thêm Chủ Đề
-        </Button>
+        </SimpleButton>
       </div>
 
       {/* Filter */}
@@ -448,7 +456,7 @@ export default function AdminForumCategory({ hideHeader = false }) {
                   className="border border-border"
                 >
                   Hủy bỏ
-                </Button>
+                </GhostButton>
                 <Button type="submit" className="bg-primary font-bold px-6">
                   {editId ? "Lưu Cập Nhật" : "Tạo chủ đề"}
                 </Button>

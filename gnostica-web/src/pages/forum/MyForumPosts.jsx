@@ -1,18 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import threadService from '@/services/forum/threadService';
+import React from 'react';
 import SectionContainer, { PageHeader, AppBreadcrumb } from '@/components/common/AppSection';
 import { ForumPostCard } from "@/components/common/AppCard";
-import { Button } from "@/components/ui/button";
-import { ChevronLeft, ThumbsUp, FileText, LayoutGrid, Trash2 } from 'lucide-react';
-
+import { ChevronLeft, ThumbsUp, LayoutGrid, Trash2 } from 'lucide-react';
+import { GhostButton, SimpleButton } from "@/components/common/AppButton";
 import { useNavigate, Link } from "react-router-dom";
-import { cn } from "@/lib/utils";
-import { Card, CardContent } from "@/components/ui/card";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
     Pagination,
     PaginationContent,
-    PaginationEllipsis,
     PaginationItem,
     PaginationLink,
     PaginationNext,
@@ -28,9 +22,10 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
 
 import useMyForumPosts from "@/hooks/forum/useMyForumPosts";
+import MyForumSidebar from './components/MyForumSidebar';
 
 const MyForumPosts = () => {
     const navigate = useNavigate();
@@ -69,94 +64,30 @@ const MyForumPosts = () => {
                         className="mb-0 sm:mb-0"
                     />
                     <Link to="/forum">
-                        <Button variant="outline" className="gap-2">
+                        <GhostButton className="gap-2 border border-border">
                            <ChevronLeft className="w-4 h-4" /> Quay lại diễn đàn
-                        </Button>
+                        </GhostButton>
                     </Link>
                 </div>
 
                 <div className="flex flex-col lg:flex-row gap-8">
                     {/* Sidebar Stats */}
-                    <div className="w-full lg:w-72 xl:w-80 flex flex-col gap-6 shrink-0 order-2 lg:order-1">
-                        <Card className="bg-white shadow-sm border-border overflow-hidden">
-                            <div className="h-24 bg-button-gradient" />
-                            <CardContent className="p-5 -mt-12 text-center">
-                                <Avatar className="w-20 h-20 mx-auto border-4 border-white shadow-md mb-4 bg-white">
-                                    <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser?.email || 'default'}`} />
-                                    <AvatarFallback className="bg-primary/10 text-primary text-xl font-bold">
-                                        {currentUser?.fullName?.substring(0, 2).toUpperCase() || "U"}
-                                    </AvatarFallback>
-                                </Avatar>
-                                <h3 className="font-bold text-lg text-foreground mb-1">{currentUser?.fullName || "Tài khoản của tôi"}</h3>
-                                <p className="text-sm text-muted-foreground mb-6">{currentUser?.email}</p>
-
-                                <div className="grid grid-cols-2 gap-4 pt-6 border-t border-border">
-                                    <div className="flex flex-col items-center">
-                                        <div className="w-10 h-10 bg-blue-50 text-info rounded-full flex items-center justify-center mb-2">
-                                            <FileText className="w-5 h-5" />
-                                        </div>
-                                        <span className="text-xl font-bold text-foreground">{userStats.threadCount || 0}</span>
-                                        <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Bài viết</span>
-                                    </div>
-                                    <div className="flex flex-col items-center">
-                                        <div className="w-10 h-10 bg-orange-50 text-warning rounded-full flex items-center justify-center mb-2">
-                                            <ThumbsUp className="w-5 h-5" />
-                                        </div>
-                                        <span className="text-xl font-bold text-foreground">{userStats.totalLikes || 0}</span>
-                                        <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Lượt thích</span>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card className="bg-white shadow-sm border-border">
-                            <CardContent className="p-5">
-                                <h4 className="font-bold text-sm text-foreground mb-4 flex items-center gap-2">
-                                    <LayoutGrid className="w-4 h-4 text-primary" />
-                                    Truy cập nhanh
-                                </h4>
-                                <div className="flex flex-col gap-2">
-                                    <Button
-                                        variant="ghost"
-                                        className={cn(
-                                            "w-full justify-start text-sm gap-3 font-semibold",
-                                            activeTab === 'my-posts' ? "bg-primary/10 text-primary hover:bg-primary/20" : "hover:bg-muted text-muted-foreground hover:text-foreground"
-                                        )}
-                                        onClick={() => setActiveTab('my-posts')}
-                                    >
-                                        <FileText className="w-4 h-4" />
-                                        Bài viết của tôi
-                                    </Button>
-                                    <Button
-                                        variant="ghost"
-                                        className={cn(
-                                            "w-full justify-start text-sm gap-3 font-semibold",
-                                            activeTab === 'liked' ? "bg-primary/10 text-primary hover:bg-primary/20" : "hover:bg-muted text-muted-foreground hover:text-foreground"
-                                        )}
-                                        onClick={() => setActiveTab('liked')}
-                                    >
-                                        <ThumbsUp className="w-4 h-4" />
-                                        Bài viết đã thích
-                                    </Button>
-                                    <Link to="/account" className="w-full">
-                                        <Button variant="ghost" className="w-full justify-start text-sm hover:bg-muted gap-3 text-muted-foreground hover:text-foreground">
-                                            Tài khoản của tôi
-                                        </Button>
-                                    </Link>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
+                    <MyForumSidebar
+                        currentUser={currentUser}
+                        userStats={userStats}
+                        activeTab={activeTab}
+                        setActiveTab={setActiveTab}
+                    />
 
                     {/* Main Content */}
                     <div className="flex-1 order-1 lg:order-2">
 
-
                         {/* Post List */}
                         {isLoading ? (
-                            <div className="flex flex-col items-center justify-center py-16 bg-white rounded-lg border">
-                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                                <p className="mt-4 text-muted-foreground">Đang tải bài viết của bạn...</p>
+                            <div className="flex flex-col gap-4">
+                                {[1, 2, 3].map(i => (
+                                    <Skeleton key={i} className="h-40 w-full rounded-xl bg-white" />
+                                ))}
                             </div>
                         ) : currentPosts.length > 0 ? (
                             <div className="flex flex-col gap-4">
@@ -206,10 +137,12 @@ const MyForumPosts = () => {
                                         <Pagination>
                                             <PaginationContent>
                                                 <PaginationItem>
-                                                    <PaginationPrevious 
+                                                    <GhostButton 
                                                         onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
-                                                        className={currentPage === 0 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                                                    />
+                                                        className={currentPage === 0 ? "pointer-events-none opacity-50 h-9" : "cursor-pointer h-9"}
+                                                    >
+                                                        <PaginationPrevious className="p-0 hover:bg-transparent" />
+                                                    </GhostButton>
                                                 </PaginationItem>
 
                                                 {[...Array(totalPages)].map((_, i) => (
@@ -225,10 +158,12 @@ const MyForumPosts = () => {
                                                 ))}
 
                                                 <PaginationItem>
-                                                    <PaginationNext 
-                                                        onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
-                                                        className={currentPage === totalPages - 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                                                    />
+                                                    <GhostButton 
+                                                        onClick={() => setCurrentPage(prev => Math.max(totalPages - 1, prev + 1))}
+                                                        className={currentPage === totalPages - 1 ? "pointer-events-none opacity-50 h-9" : "cursor-pointer h-9"}
+                                                    >
+                                                        <PaginationNext className="p-0 hover:bg-transparent" />
+                                                    </GhostButton>
                                                 </PaginationItem>
                                             </PaginationContent>
                                         </Pagination>
@@ -248,12 +183,12 @@ const MyForumPosts = () => {
                                         ? "Hãy khám phá diễn đàn và bày tỏ sự ủng hộ bằng cách thích các bài viết hữu ích nhé!"
                                         : "Hãy chia sẻ kiến thức hoặc đặt câu hỏi đầu tiên của bạn ngay hôm nay!"}
                                 </p>
-                                <Button
-                                    className="mt-6 bg-button-gradient font-bold px-8"
+                                <SimpleButton
+                                    className="mt-6 px-8"
                                     onClick={() => navigate(activeTab === 'liked' ? '/forum' : '/forum/create')}
                                 >
                                     {activeTab === 'liked' ? "Đi tới diễn đàn" : "+ Tạo bài viết đầu tiên"}
-                                </Button>
+                                </SimpleButton>
                             </div>
                         )}
                     </div>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import SectionContainer, { PageHeader } from '@/components/common/AppSection';
-import { Button } from "@/components/ui/button";
+import { SimpleButton, GhostButton } from "@/components/common/AppButton";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Send, FileText, Hash, X } from 'lucide-react';
@@ -169,17 +169,16 @@ const ForumCreatePost = () => {
                             {/* Submit Button */}
                             <div className="flex justify-end pt-4 mt-2 border-t">
                                 <span className="flex-1"></span>
-                                <Button 
+                                <GhostButton 
                                     type="button" 
-                                    variant="outline" 
-                                    className="mr-3" 
+                                    className="mr-3 border border-border" 
                                     onClick={() => navigate(-1)}
                                 >
                                     Hủy
-                                </Button>
-                                <Button 
+                                </GhostButton>
+                                <SimpleButton 
                                     type="submit" 
-                                    className="bg-button-gradient hover:brightness-110 font-bold px-8 flex items-center gap-2"
+                                    className="px-8 flex items-center gap-2"
                                     disabled={isSubmitting}
                                 >
                                     {isSubmitting ? 'Đang Đăng...' : (
@@ -187,7 +186,7 @@ const ForumCreatePost = () => {
                                             <Send className="w-4 h-4" /> Đăng bài
                                         </>
                                     )}
-                                </Button>
+                                </SimpleButton>
                             </div>
 
                         </form>

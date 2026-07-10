@@ -10,8 +10,15 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import AppTable from "@/components/common/AppTable";
-import { TableRow, TableCell } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { SimpleButton, TableActionIconButton, GhostButton } from "@/components/common/AppButton";
@@ -145,7 +152,7 @@ export default function AdminCategories({ hideHeader = false }) {
         >
           <Plus className="w-4 h-4" />
           Thêm Chủ Đề
-        </Button>
+        </SimpleButton>
       </div>
 
       {/* Filter */}
@@ -565,7 +572,7 @@ export default function AdminCategories({ hideHeader = false }) {
                   className="border border-border"
                 >
                   Hủy bỏ
-                </Button>
+                </GhostButton>
                 <Button type="submit" className="bg-primary font-bold px-6">
                   {editId ? "Lưu Cập Nhật" : "Tạo chủ đề"}
                 </Button>
