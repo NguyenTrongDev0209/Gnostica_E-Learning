@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import { Trophy, Clock, Target, AlertTriangle, RefreshCw, XCircle, CheckCircle2, ChevronRight, ChevronLeft, Loader2, Info, User, Trash, CornerDownRight, ChevronDown, ChevronUp, Send, MessageSquare, HelpCircle, Award } from "lucide-react";
-import courseService from "@/services/course/courseService";
+import progressService from "@/services/course/progressService";
 import commentService from "@/services/forum/commentService";
 import useAuthStore from "@/store/useAuthStore";
 
@@ -82,7 +82,7 @@ export default function QuizArea({ quiz, existingResult, onBack, onQuizCompleted
         const finalScore = Math.round((correct / questions.length) * 100);
 
         // 1. Đẩy kết quả lên Server để lưu lịch sử và tính % khóa học
-        await courseService.submitQuizResult(quiz.id, {
+        await progressService.submitQuizResult(quiz.id, {
             point: finalScore * 1.0,
             totalQuestions: questions.length,
             correctAnswers: correct
@@ -113,7 +113,7 @@ export default function QuizArea({ quiz, existingResult, onBack, onQuizCompleted
       setIsSyncing(true);
       try {
           // 1. Gọi Server xóa bản ghi kết quả
-          await courseService.resetQuizResult(quiz.id);
+          await progressService.resetQuizResult(quiz.id);
 
           // 2. Reset state giao diện local
           setIsSubmitted(false);

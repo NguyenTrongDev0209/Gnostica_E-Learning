@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useOrders } from "@/hooks/order/useOrders";
-import { OrderHeader } from "@/pages/admin/components/orders/OrderHeader";
-import { OrderStatsFilter } from "@/pages/admin/components/orders/OrderStatsFilter";
-import { OrderTable } from "@/pages/admin/components/orders/OrderTable";
-import { OrderDetailModal } from "@/pages/admin/components/orders/OrderDetailModal";
-import { Button } from "@/components/ui/button";
+import { OrderHeader } from "@/pages/admin/components/OrderHeader";
+import { OrderStatsFilter } from "@/pages/admin/components/OrderStatsFilter";
+import { OrderTable } from "@/pages/admin/components/OrderTable";
+import { OrderDetailModal } from "@/pages/admin/components/OrderDetailModal";
+import { GhostButton, SimpleButton } from "@/components/common/AppButton";
 
 export default function AdminOrders() {
+  // eslint-disable-next-line no-unused-vars
   const { orders, isLoading, fetchOrders } = useOrders();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -37,6 +38,7 @@ export default function AdminOrders() {
   const paginatedOrders = filteredOrders.slice(startIndex, startIndex + itemsPerPage);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCurrentPage(1);
   }, [searchTerm, statusFilter]);
 
@@ -70,40 +72,46 @@ export default function AdminOrders() {
             Hiển thị <span className="font-bold text-foreground">{startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredOrders.length)}</span> trong số <span className="font-bold text-foreground">{filteredOrders.length}</span> đơn hàng
           </div>
           <div className="flex gap-1">
-            <Button 
-              variant="outline" 
+            <GhostButton 
               size="sm" 
-              className="h-8" 
+              className="h-8 border border-border" 
               disabled={currentPage === 1}
               onClick={() => setCurrentPage(currentPage - 1)}
             >
               Trước
-            </Button>
+            </GhostButton>
             
             {[...Array(totalPages)].map((_, i) => {
               const pageNumber = i + 1;
-              return (
-                <Button 
+              return currentPage === pageNumber ? (
+                <SimpleButton 
                   key={pageNumber}
-                  variant="outline" 
                   size="sm" 
-                  className={`h-8 ${currentPage === pageNumber ? 'bg-primary text-white border-primary hover:bg-primary/90 hover:text-white' : ''}`}
+                  className="h-8"
                   onClick={() => setCurrentPage(pageNumber)}
                 >
                   {pageNumber}
-                </Button>
+                </SimpleButton>
+              ) : (
+                <GhostButton 
+                  key={pageNumber}
+                  size="sm" 
+                  className="h-8 border border-border bg-white text-muted-foreground hover:bg-muted"
+                  onClick={() => setCurrentPage(pageNumber)}
+                >
+                  {pageNumber}
+                </GhostButton>
               );
             })}
 
-            <Button 
-              variant="outline" 
+            <GhostButton 
               size="sm" 
-              className="h-8" 
+              className="h-8 border border-border" 
               disabled={currentPage === totalPages}
               onClick={() => setCurrentPage(currentPage + 1)}
             >
               Sau
-            </Button>
+            </GhostButton>
           </div>
         </div>
       )}

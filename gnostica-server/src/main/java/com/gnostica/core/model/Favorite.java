@@ -11,7 +11,9 @@ import jakarta.validation.constraints.*;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "favorites")
+@Table(name = "favorites", uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"account_id", "course_id"})
+})
 public class Favorite {
 
     @Id
@@ -29,7 +31,7 @@ public class Favorite {
     private Course course;
 
     /**
-     * Status: 0: Removed (ÄÃ£ bá»), 1: Active (YÃªu thÃ­ch)
+     * Status: 0: Removed (Đã bỏ), 1: Active (Yêu thích)
      */
     @NotNull
     private Integer status;

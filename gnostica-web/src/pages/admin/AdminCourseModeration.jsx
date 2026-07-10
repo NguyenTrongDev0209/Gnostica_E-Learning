@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-unused-vars
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -13,15 +14,8 @@ import {
   Loader2,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
+import AppTable from "@/components/common/AppTable";
+import { SimpleButton, GhostButton } from "@/components/common/AppButton";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -30,8 +24,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+// eslint-disable-next-line no-unused-vars
 import courseService from "@/services/course/courseService";
-import { toast } from "sonner";
+
 
 // Shared Modal Imports
 import CourseRejectModal from "@/components/modals/CourseRejectModal";
@@ -211,218 +206,167 @@ export default function AdminCourseModeration() {
 
       {/* Data Table */}
       <Card className="border-border/60 shadow-sm overflow-hidden bg-white rounded-xl">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader className="bg-muted/80">
-              <TableRow>
-                <TableHead className="py-4 font-bold text-muted-foreground uppercase text-xs tracking-wider pl-6 w-[380px]">
-                  Thông tin khóa học
-                </TableHead>
-                <TableHead className="py-4 font-bold text-muted-foreground uppercase text-xs tracking-wider">
-                  Giảng viên
-                </TableHead>
-                <TableHead className="py-4 font-bold text-muted-foreground uppercase text-xs tracking-wider">
-                  Ngày cập nhật
-                </TableHead>
-                <TableHead className="py-4 font-bold text-muted-foreground uppercase text-xs tracking-wider">
-                  Giá bán
-                </TableHead>
-                <TableHead className="py-4 font-bold text-muted-foreground uppercase text-xs tracking-wider">
-                  Trạng thái
-                </TableHead>
-                <TableHead className="py-4 font-bold text-muted-foreground uppercase text-xs tracking-wider text-right pr-6">
-                  Thao tác
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="h-48 text-center">
-                    <div className="flex flex-col items-center justify-center text-muted-foreground gap-2">
-                      <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                      <p className="font-bold">Đang tải danh sách kiểm duyệt...</p>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ) : filteredCourses.length > 0 ? (
-                filteredCourses.map((item) => (
-                  <TableRow
-                    key={item.id}
-                    className="hover:bg-muted/60 group transition-colors"
+        <AppTable
+          columns={[
+            {
+              header: "Thông tin khóa học",
+              width: "380px",
+              className: "pl-6",
+              render: (item) => (
+                <div className="flex gap-4 items-center pl-6">
+                  <div
+                    onClick={() => handleOpenPreview(item)}
+                    className="w-24 h-16 rounded-lg overflow-hidden border border-border shadow-sm shrink-0 relative group-hover:shadow-md transition-shadow cursor-pointer bg-secondary flex items-center justify-center"
                   >
-                    <TableCell className="pl-6 py-4">
-                      <div className="flex gap-4 items-center">
-                        <div 
-                          onClick={() => handleOpenPreview(item)}
-                          className="w-24 h-16 rounded-lg overflow-hidden border border-border shadow-sm shrink-0 relative group-hover:shadow-md transition-shadow cursor-pointer bg-secondary flex items-center justify-center"
-                        >
-                          {item.thumbnail ? (
-                            <img
-                              src={item.thumbnail}
-                              alt={item.title}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                            />
-                          ) : (
-                            <span className="text-[8px] font-extrabold text-muted-foreground">Gnostica Image</span>
-                          )}
-                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
-                            <Eye className="w-5 h-5 text-white drop-shadow" />
-                          </div>
-                        </div>
-                        <div className="flex flex-col min-w-0 flex-1">
-                          <span
-                            onClick={() => handleOpenPreview(item)}
-                            className="font-bold text-foreground truncate group-hover:text-primary transition-colors cursor-pointer leading-tight"
-                            title={item.title}
-                          >
-                            {item.title || <i className="text-muted-foreground font-normal">Chưa đặt tên</i>}
-                          </span>
-                          <div className="flex items-center gap-2 mt-1">
-                            <Badge variant="outline" className="text-[10px] font-extrabold uppercase tracking-wide px-1 bg-muted">
-                              ID: {item.id}
-                            </Badge>
-                            <span className="text-xs text-muted-foreground font-bold">
-                              {item.categoryName || "Chưa rõ danh mục"}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-full overflow-hidden border border-border bg-secondary shadow-sm shrink-0 flex items-center justify-center">
-                          {item.instructorAvatar ? (
-                            <img
-                              src={item.instructorAvatar}
-                              alt=""
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <span className="text-xs font-bold text-muted-foreground">Gv</span>
-                          )}
-                        </div>
-                        <span className="font-semibold text-foreground text-sm line-clamp-1">
-                          {item.instructorName || "Unknown"}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1.5 text-muted-foreground text-sm font-medium">
-                        <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
-                        {formatFriendlyDate(item.updatedAt)}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <span className="font-extrabold text-foreground text-[15px]">
-                        {formatCurrency(item.salePrice || item.price || 0)}
-                      </span>
-                    </TableCell>
-                    <TableCell>{getStatusBadge(item.status)}</TableCell>
-                    <TableCell className="text-right pr-6">
-                      <div className="flex justify-end items-center gap-2">
-                        {item.status === 4 ? (
-                          <>
-                            <Button
-                              size="sm"
-                              disabled={isSubmitting}
-                              onClick={() => handleApprove(item)}
-                              className="h-8 font-bold gap-1.5 shadow-sm bg-emerald-600 hover:bg-emerald-700 text-white px-3"
-                            >
-                              <CheckCircle2 className="w-3.5 h-3.5" />
-                              Duyệt
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              disabled={isSubmitting}
-                              onClick={() => handleOpenRejectModal(item)}
-                              className="h-8 font-bold border-border text-muted-foreground hover:text-rose-600 hover:bg-rose-50 hover:border-rose-200"
-                            >
-                              Từ chối
-                            </Button>
-                          </>
-                        ) : (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleOpenPreview(item)}
-                            className="h-8 font-bold text-muted-foreground gap-1.5 hover:border-primary hover:text-primary bg-white"
-                          >
-                            Chi tiết <ArrowUpRight className="w-3.5 h-3.5" />
-                          </Button>
-                        )}
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-muted-foreground hover:text-foreground rounded-full"
-                            >
-                              <MoreVertical className="w-4 h-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-52">
-                            <DropdownMenuItem 
-                              onClick={() => handleOpenPreview(item)}
-                              className="cursor-pointer font-semibold"
-                            >
-                              Xem giáo trình đầy đủ
-                            </DropdownMenuItem>
-                            <DropdownMenuItem 
-                              onClick={() => handleOpenInstructorProfile(item)}
-                              className="cursor-pointer font-semibold"
-                            >
-                              Hồ sơ Giảng viên
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={6} className="h-64 text-center">
-                    <div className="flex flex-col items-center justify-center text-muted-foreground gap-2">
-                      <div className="p-4 bg-muted rounded-full">
-                        <Filter className="w-8 h-8 text-slate-300" />
-                      </div>
-                      <p className="font-bold">Danh sách kiểm duyệt đang trống</p>
+                    {item.thumbnail ? (
+                      <img
+                        src={item.thumbnail}
+                        alt={item.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                    ) : (
+                      <span className="text-[8px] font-extrabold text-muted-foreground">Gnostica Image</span>
+                    )}
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+                      <Eye className="w-5 h-5 text-white drop-shadow" />
                     </div>
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-
-        {/* Pagination */}
-        <div className="p-4 border-t border-border flex items-center justify-between text-sm text-muted-foreground bg-white">
-          <div className="font-medium pl-2">
-            Hiển thị trang <span className="font-black text-foreground">{pagination.currentPage + 1}</span> / {pagination.totalPages || 1} ({pagination.totalElements} kết quả)
-          </div>
-          <div className="flex gap-1">
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-9 font-bold border-border text-muted-foreground"
-              onClick={() => loadCourses(pagination.currentPage - 1)}
-              disabled={pagination.currentPage === 0 || loading}
-            >
-              Trước
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-9 font-bold border-border text-muted-foreground"
-              onClick={() => loadCourses(pagination.currentPage + 1)}
-              disabled={pagination.currentPage >= pagination.totalPages - 1 || loading}
-            >
-              Sau
-            </Button>
-          </div>
-        </div>
+                  </div>
+                  <div className="flex flex-col min-w-0 flex-1">
+                    <span
+                      onClick={() => handleOpenPreview(item)}
+                      className="font-bold text-foreground truncate group-hover:text-primary transition-colors cursor-pointer leading-tight"
+                      title={item.title}
+                    >
+                      {item.title || <i className="text-muted-foreground font-normal">Chưa đặt tên</i>}
+                    </span>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Badge variant="outline" className="text-[10px] font-extrabold uppercase tracking-wide px-1 bg-muted">
+                        ID: {item.id}
+                      </Badge>
+                      <span className="text-xs text-muted-foreground font-bold">
+                        {item.categoryName || "Chưa rõ danh mục"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ),
+            },
+            {
+              header: "Giảng viên",
+              render: (item) => (
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-full overflow-hidden border border-border bg-secondary shadow-sm shrink-0 flex items-center justify-center">
+                    {item.instructorAvatar ? (
+                      <img
+                        src={item.instructorAvatar}
+                        alt=""
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-xs font-bold text-muted-foreground">Gv</span>
+                    )}
+                  </div>
+                  <span className="font-semibold text-foreground text-sm line-clamp-1">
+                    {item.instructorName || "Unknown"}
+                  </span>
+                </div>
+              ),
+            },
+            {
+              header: "Ngày cập nhật",
+              render: (item) => (
+                <div className="flex items-center gap-1.5 text-muted-foreground text-sm font-medium">
+                  <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
+                  {formatFriendlyDate(item.updatedAt)}
+                </div>
+              ),
+            },
+            {
+              header: "Giá bán",
+              render: (item) => (
+                <span className="font-extrabold text-foreground text-[15px]">
+                  {formatCurrency(item.salePrice || item.price || 0)}
+                </span>
+              ),
+            },
+            {
+              header: "Trạng thái",
+              render: (item) => getStatusBadge(item.status),
+            },
+            {
+              header: "Thao tác",
+              className: "text-right pr-6",
+              render: (item) => (
+                <div className="flex justify-end items-center gap-2 pr-6">
+                  {item.status === 4 ? (
+                    <>
+                      <SimpleButton
+                        size="sm"
+                        disabled={isSubmitting}
+                        onClick={() => handleApprove(item)}
+                        className="h-8 font-bold gap-1.5 shadow-sm bg-emerald-600 hover:bg-emerald-700 text-white px-3 border-none"
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        Duyệt
+                      </SimpleButton>
+                      <GhostButton
+                        size="sm"
+                        disabled={isSubmitting}
+                        onClick={() => handleOpenRejectModal(item)}
+                        className="h-8 font-bold border border-border text-muted-foreground hover:text-rose-600 hover:bg-rose-50 hover:border-rose-200"
+                      >
+                        Từ chối
+                      </GhostButton>
+                    </>
+                  ) : (
+                    <GhostButton
+                      size="sm"
+                      onClick={() => handleOpenPreview(item)}
+                      className="h-8 font-bold text-muted-foreground gap-1.5 hover:border-primary hover:text-primary bg-white border border-border"
+                    >
+                      Chi tiết <ArrowUpRight className="w-3.5 h-3.5" />
+                    </GhostButton>
+                  )}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <GhostButton
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-foreground rounded-full border-none hover:bg-muted"
+                      >
+                        <MoreVertical className="w-4 h-4" />
+                      </GhostButton>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-52">
+                      <DropdownMenuItem
+                        onClick={() => handleOpenPreview(item)}
+                        className="cursor-pointer font-semibold"
+                      >
+                        Xem giáo trình đầy đủ
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => handleOpenInstructorProfile(item)}
+                        className="cursor-pointer font-semibold"
+                      >
+                        Hồ sơ Giảng viên
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              ),
+            },
+          ]}
+          data={filteredCourses}
+          isLoading={loading}
+          loadingState="Đang tải danh sách kiểm duyệt..."
+          emptyState="Danh sách kiểm duyệt đang trống"
+          pagination={{
+            currentPage: pagination.currentPage,
+            totalPages: pagination.totalPages || 1,
+            totalElements: pagination.totalElements,
+            onPageChange: (page) => loadCourses(page),
+            zeroIndexed: true,
+          }}
+        />
       </Card>
 
       <CourseRejectModal

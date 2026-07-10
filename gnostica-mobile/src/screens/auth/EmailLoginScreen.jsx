@@ -5,7 +5,7 @@ import { ChevronLeft, Mail, Lock } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
-import authService from '../../services/authService';
+import authService from '../../services/auth/authService';
 import { useAuth } from '../../context/AuthContext';
 
 const EmailLoginScreen = () => {

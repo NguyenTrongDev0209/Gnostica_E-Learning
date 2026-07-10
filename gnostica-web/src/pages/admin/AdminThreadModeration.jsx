@@ -14,10 +14,11 @@ import {
   AlertCircle
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { SimpleButton, GhostButton } from "@/components/common/AppButton";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { toast } from "sonner";
+// eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from "framer-motion";
 import RenderContent from "@/components/common/RenderContent";
 import {
@@ -137,9 +138,9 @@ export default function AdminThreadModeration() {
             Duyệt hoặc từ chối các bài đăng mới từ học viên và giảng viên trước khi hiển thị trên cộng đồng.
           </p>
         </div>
-        <Button onClick={fetchPendingThreads} variant="outline" className="h-10 font-bold shrink-0">
+        <GhostButton onClick={fetchPendingThreads} className="h-10 font-bold shrink-0 border border-border bg-white text-foreground hover:bg-muted">
           Làm mới danh sách
-        </Button>
+        </GhostButton>
       </div>
 
       {/* Stats Widget */}
@@ -282,21 +283,20 @@ export default function AdminThreadModeration() {
 
                       {/* Right: Actions */}
                       <div className="md:w-36 shrink-0 flex md:flex-col items-center justify-end md:justify-start gap-2 pt-2 md:pt-0">
-                        <Button
+                        <SimpleButton
                           size="sm"
-                          className="w-full md:w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-9 gap-1.5 shadow-md transition-all"
+                          className="w-full md:w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-9 gap-1.5 shadow-md transition-all border-none"
                           onClick={() => openConfirm(thread.id, "approve")}
                         >
                           <CheckCircle2 className="w-4 h-4" /> Duyệt bài
-                        </Button>
-                        <Button
+                        </SimpleButton>
+                        <GhostButton
                           size="sm"
-                          variant="outline"
-                          className="w-full md:w-full border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 font-bold h-9 gap-1.5 transition-all"
+                          className="w-full md:w-full border border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 font-bold h-9 gap-1.5 transition-all bg-white"
                           onClick={() => openConfirm(thread.id, "delete")}
                         >
                           <Trash2 className="w-4 h-4" /> Từ chối
-                        </Button>
+                        </GhostButton>
                       </div>
                     </motion.div>
                   );

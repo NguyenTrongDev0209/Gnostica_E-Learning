@@ -39,12 +39,15 @@ public class Coupon {
     private Integer discountType;
 
     @NotNull
+    @Column(precision = 18, scale = 6)
     private BigDecimal discountValue;
 
     @Min(0)
+    @Column(precision = 18, scale = 6)
     private BigDecimal minDiscount;
 
     @Min(0)
+    @Column(precision = 18, scale = 6)
     private BigDecimal maxDiscount;
 
     @Min(0)

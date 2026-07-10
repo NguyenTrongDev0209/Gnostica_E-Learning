@@ -33,6 +33,7 @@ public class Payment {
 
     @NotNull
     @Min(0)
+    @Column(precision = 18, scale = 6)
     private BigDecimal amount;
 
     @Size(max = 255)

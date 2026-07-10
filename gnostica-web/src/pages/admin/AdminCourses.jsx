@@ -7,15 +7,8 @@ import {
   Users
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
+import AppTable from "@/components/common/AppTable";
+import { SimpleButton, GhostButton } from "@/components/common/AppButton";
 import { Input } from "@/components/ui/input";
 
 const COURSES_DATA = [
@@ -72,10 +65,10 @@ export default function AdminCourses() {
             Thêm mới, chỉnh sửa nội dung và quản lý doanh thu khóa học.
           </p>
         </div>
-        <Button className="font-bold flex items-center gap-2">
+        <SimpleButton className="font-bold flex items-center gap-2 border-none">
           <Plus className="w-4 h-4" />
           Tạo Khóa Học Mới
-        </Button>
+        </SimpleButton>
       </div>
 
       {/* Filters & Actions */}
@@ -107,77 +100,80 @@ export default function AdminCourses() {
 
       {/* Courses Table */}
       <Card className="border-border shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader className="bg-muted">
-              <TableRow>
-                <TableHead className="py-4 font-semibold text-foreground w-[400px]">Thông tin khóa học</TableHead>
-                <TableHead className="py-4 font-semibold text-foreground">Giá bán</TableHead>
-                <TableHead className="py-4 font-semibold text-foreground">Trạng thái</TableHead>
-                <TableHead className="py-4 font-semibold text-foreground text-center">Học viên</TableHead>
-                <TableHead className="py-4 font-semibold text-foreground text-center">Đánh giá</TableHead>
-                <TableHead className="py-4 font-semibold text-foreground text-right">Thao tác</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {COURSES_DATA.map((course) => (
-                <TableRow key={course.id} className="hover:bg-muted">
-                  <TableCell>
-                    <div className="flex gap-4 items-center">
-                      <div className="w-20 h-14 rounded-md overflow-hidden shrink-0 border border-border">
-                        <img src={course.image} alt={course.title} className="w-full h-full object-cover" />
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="font-bold text-foreground line-clamp-1 truncate" title={course.title}>{course.title}</span>
-                        <span className="text-xs text-muted-foreground mt-1">Gv: {course.instructor}</span>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <span className="font-bold text-foreground">{course.price}</span>
-                  </TableCell>
-                  <TableCell>
-                    {course.status === "published" && <span className="inline-flex items-center gap-1.5 text-xs text-success font-bold bg-green-50 px-2.5 py-1 rounded-full border border-success/20"><div className="w-1.5 h-1.5 rounded-full bg-success/10 text-success"></div> Đang bán</span>}
-                    {course.status === "draft" && <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground font-bold bg-secondary px-2.5 py-1 rounded-full border border-border"><div className="w-1.5 h-1.5 rounded-full bg-muted"></div> Bản nháp</span>}
-                    {course.status === "archived" && <span className="inline-flex items-center gap-1.5 text-xs text-amber-600 font-bold bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200"><div className="w-1.5 h-1.5 rounded-full bg-amber-500"></div> Tạm ẩn</span>}
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <span className="inline-flex items-center gap-1 font-bold text-foreground">
-                      <Users className="w-3.5 h-3.5 text-muted-foreground" />
-                      {course.students.toLocaleString()}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <span className="inline-flex items-center gap-1 font-bold text-foreground">
-                      <Star className={`w-3.5 h-3.5 ${course.rating > 0 ? 'text-warning fill-yellow-500' : 'text-slate-300'}`} />
-                      {course.rating > 0 ? course.rating : "--"}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end items-center gap-2">
-                      <Button variant="outline" size="sm" className="h-8 font-medium">Chi tiết</Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-error">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-        
-        {/* Pagination */}
-        <div className="p-4 border-t border-border flex items-center justify-between text-sm text-muted-foreground">
-          <div>Hiển thị <span className="font-bold text-foreground">1-4</span> trong số <span className="font-bold text-foreground">42</span> khóa học</div>
-          <div className="flex gap-1">
-            <Button variant="outline" size="sm" className="h-8" disabled>Trước</Button>
-            <Button variant="outline" size="sm" className="h-8 bg-primary text-white border-primary hover:bg-primary/90 hover:text-white">1</Button>
-            <Button variant="outline" size="sm" className="h-8">2</Button>
-            <Button variant="outline" size="sm" className="h-8">3</Button>
-            <Button variant="outline" size="sm" className="h-8">Sau</Button>
-          </div>
-        </div>
+        <AppTable
+          columns={[
+            {
+              header: "Thông tin khóa học",
+              width: "400px",
+              render: (course) => (
+                <div className="flex gap-4 items-center">
+                  <div className="w-20 h-14 rounded-md overflow-hidden shrink-0 border border-border">
+                    <img src={course.image} alt={course.title} className="w-full h-full object-cover" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="font-bold text-foreground line-clamp-1 truncate" title={course.title}>{course.title}</span>
+                    <span className="text-xs text-muted-foreground mt-1">Gv: {course.instructor}</span>
+                  </div>
+                </div>
+              ),
+            },
+            {
+              header: "Giá bán",
+              render: (course) => <span className="font-bold text-foreground">{course.price}</span>,
+            },
+            {
+              header: "Trạng thái",
+              render: (course) => (
+                <>
+                  {course.status === "published" && <span className="inline-flex items-center gap-1.5 text-xs text-success font-bold bg-green-50 px-2.5 py-1 rounded-full border border-success/20"><div className="w-1.5 h-1.5 rounded-full bg-success/10 text-success"></div> Đang bán</span>}
+                  {course.status === "draft" && <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground font-bold bg-secondary px-2.5 py-1 rounded-full border border-border"><div className="w-1.5 h-1.5 rounded-full bg-muted"></div> Bản nháp</span>}
+                  {course.status === "archived" && <span className="inline-flex items-center gap-1.5 text-xs text-amber-600 font-bold bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200"><div className="w-1.5 h-1.5 rounded-full bg-amber-500"></div> Tạm ẩn</span>}
+                </>
+              ),
+            },
+            {
+              header: "Học viên",
+              className: "text-center",
+              render: (course) => (
+                <span className="inline-flex items-center gap-1 font-bold text-foreground">
+                  <Users className="w-3.5 h-3.5 text-muted-foreground" />
+                  {course.students.toLocaleString()}
+                </span>
+              ),
+            },
+            {
+              header: "Đánh giá",
+              className: "text-center",
+              render: (course) => (
+                <span className="inline-flex items-center gap-1 font-bold text-foreground">
+                  <Star className={`w-3.5 h-3.5 ${course.rating > 0 ? 'text-warning fill-yellow-500' : 'text-slate-300'}`} />
+                  {course.rating > 0 ? course.rating : "--"}
+                </span>
+              ),
+            },
+            {
+              header: "Thao tác",
+              className: "text-right",
+              // eslint-disable-next-line no-unused-vars
+              render: (course) => (
+                <div className="flex justify-end items-center gap-2">
+                  <GhostButton size="sm" className="h-8 font-medium border border-border bg-white hover:bg-muted">Chi tiết</GhostButton>
+                  <GhostButton size="icon" className="h-8 w-8 text-muted-foreground hover:bg-red-50 hover:text-error border-none">
+                    <Trash2 className="w-4 h-4" />
+                  </GhostButton>
+                </div>
+              ),
+            },
+          ]}
+          data={COURSES_DATA}
+          pagination={{
+            currentPage: 1, // Dummy pagination for static data
+            totalPages: 3,
+            totalElements: 42,
+            onPageChange: () => {},
+            zeroIndexed: false,
+          }}
+        />
       </Card>
     </div>
   );

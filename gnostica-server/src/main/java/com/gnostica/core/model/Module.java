@@ -39,7 +39,7 @@ public class Module {
     private Integer sortOrder;
 
     /**
-     * Status: 0: Hidden (áº¨n), 1: Draft (Báº£n nhÃ¡p), 2: Published (ÄÃ£ xuáº¥t báº£n)
+     * Status: 0: Hidden (Ẩn), 1: Draft (Bản nháp), 2: Published (Đã xuất bản)
      */
     @NotNull
     private Integer status;
