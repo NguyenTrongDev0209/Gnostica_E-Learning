@@ -53,8 +53,8 @@ const ITEMS_PER_PAGE = 10;
 const categorySchema = z.object({
   name: z
     .string()
-    .min(1, "Tên danh mục không được để trống")
-    .max(255, "Tên danh mục không vượt quá 255 ký tự"),
+    .min(1, "Tên chủ đề không được để trống")
+    .max(255, "Tên chủ đề không vượt quá 255 ký tự"),
   slug: z
     .string()
     .min(1, "Slug không được để trống")
@@ -130,10 +130,10 @@ export default function AdminCategories({ hideHeader = false }) {
         {!hideHeader ? (
           <div>
             <h1 className="text-2xl font-bold text-foreground tracking-tight">
-              Quản Lý Danh Mục
+              Quản Lý Chủ Đề
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Thêm mới, chỉnh sửa và sắp xếp danh mục khóa học.
+              Thêm mới, chỉnh sửa và sắp xếp chủ đề khóa học.
             </p>
           </div>
         ) : (
@@ -144,8 +144,8 @@ export default function AdminCategories({ hideHeader = false }) {
           onClick={() => setIsAddModalOpen(true)}
         >
           <Plus className="w-4 h-4" />
-          Thêm Danh Mục
-        </SimpleButton>
+          Thêm Chủ Đề
+        </Button>
       </div>
 
       {/* Filter */}
@@ -154,7 +154,7 @@ export default function AdminCategories({ hideHeader = false }) {
           <div className="relative w-full md:w-80">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="Tìm danh mục..."
+              placeholder="Tìm chủ đề..."
               className="pl-9 h-10 border-border focus:bg-white"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -185,128 +185,41 @@ export default function AdminCategories({ hideHeader = false }) {
 
       {/* Categories Table */}
       <Card className="border-border shadow-sm overflow-hidden">
-        <AppTable
-          columns={[
-            {
-              width: "40px",
-              className: "w-10 mx-auto",
-              cellClassName: "w-8 pl-4",
-              render: (cat) => (
-                <ChevronRight
-                  className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${expanded === cat.id ? "rotate-90" : ""}`}
-                />
-              ),
-            },
-            {
-              header: "Danh mục",
-              width: "25%",
-              className: "min-w-[200px]",
-              render: (cat) => (
-                <div className="flex items-center gap-3">
-                  <div>
-                    <p className="font-bold text-foreground">{cat.name}</p>
-                  </div>
-                </div>
-              ),
-            },
-            {
-              header: "Slug",
-              width: "20%",
-              className: "min-w-[150px]",
-              render: (cat) => (
-                <code className="text-xs bg-secondary px-2 py-1 rounded text-muted-foreground font-mono">
-                  {cat.slug}
-                </code>
-              ),
-            },
-            {
-              header: "Danh mục con",
-              className: "text-center w-32 whitespace-nowrap",
-              cellClassName: "text-center",
-              render: (cat) => (
-                <span className="text-sm text-muted-foreground font-medium bg-secondary px-2.5 py-1 rounded-full">
-                  {cat.subcategories ? cat.subcategories.length : 0}
-                </span>
-              ),
-            },
-            {
-              header: "Khóa học",
-              className: "text-center w-24 whitespace-nowrap",
-              cellClassName: "text-center font-bold text-foreground",
-              render: (cat) => cat.courses,
-            },
-            {
-              header: "Trạng thái",
-              className: "w-32 whitespace-nowrap",
-              render: (cat) => (
-                cat.status === true ? (
-                  <span
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleStatus(cat.id, false);
-                    }}
-                    className="inline-flex items-center gap-1.5 text-sm text-success font-medium cursor-pointer hover:underline"
-                  >
-                    <span className="w-2 h-2 rounded-full bg-success/10 text-success" />{" "}
-                    Hoạt động
-                  </span>
-                ) : (
-                  <span
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleStatus(cat.id, true);
-                    }}
-                    className="inline-flex items-center gap-1.5 text-sm text-muted-foreground font-medium cursor-pointer hover:underline"
-                  >
-                    <span className="w-2 h-2 rounded-full bg-muted" />{" "}
-                    Tạm ẩn
-                  </span>
-                )
-              ),
-            },
-            {
-              header: "Thao tác",
-              className: "text-center w-24 min-w-[100px]",
-              cellClassName: "text-center",
-              render: (cat) => (
-                <div
-                  className="flex justify-center items-center gap-2"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <TableActionIconButton
-                    icon={Edit}
-                    onClick={(e) => handleEdit(e, cat)}
-                  />
-                  <TableActionIconButton
-                    icon={Trash2}
-                    colorVariant="error"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDelete(cat.id);
-                    }}
-                  />
-                </div>
-              ),
-            },
-          ]}
-          data={categories}
-          isLoading={loading}
-          loadingState="Đang tải danh mục..."
-          emptyState="Không tìm thấy danh mục nào phù hợp."
-          onRowClick={(cat) => setExpanded(expanded === cat.id ? null : cat.id)}
-          rowClassName="cursor-pointer"
-          pagination={{
-            currentPage,
-            totalPages,
-            totalElements,
-            onPageChange: setCurrentPage,
-            zeroIndexed: false,
-          }}
-          renderExpandedRow={(cat) => {
-            if (expanded === cat.id && cat.subcategories && cat.subcategories.length > 0) {
-              return (
-                <>
-                  {cat.subcategories.map((sub) => (
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader className="bg-muted">
+              <TableRow>
+                <TableHead className="py-4 font-semibold text-foreground w-10 mx-auto" />
+                <TableHead className="py-4 font-semibold text-foreground w-[25%] min-w-[200px]">
+                  Chủ đề
+                </TableHead>
+                <TableHead className="py-4 font-semibold text-foreground w-[20%] min-w-[150px]">
+                  Slug
+                </TableHead>
+                <TableHead className="py-4 font-semibold text-foreground text-center w-32 whitespace-nowrap">
+                  Chủ đề con
+                </TableHead>
+                <TableHead className="py-4 font-semibold text-foreground text-center w-24 whitespace-nowrap">
+                  Khóa học
+                </TableHead>
+                <TableHead className="py-4 font-semibold text-foreground w-32 whitespace-nowrap">
+                  Trạng thái
+                </TableHead>
+                <TableHead className="py-4 font-semibold text-foreground text-center w-24 min-w-[100px]">
+                  Thao tác
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {categories.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="h-32 text-center text-muted-foreground font-medium">
+                    Không tìm thấy chủ đề nào phù hợp.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                categories.map((cat) => (
+                  <React.Fragment key={cat.id}>
                     <TableRow
                       key={sub.id}
                       className="bg-muted/60 hover:bg-secondary"
@@ -378,13 +291,133 @@ export default function AdminCategories({ hideHeader = false }) {
                         </div>
                       </TableCell>
                     </TableRow>
-                  ))}
-                </>
-              );
-            }
-            return null;
-          }}
-        />
+
+                    {/* Subcategories expanded row */}
+                    {expanded === cat.id &&
+                      cat.subcategories &&
+                      cat.subcategories.length > 0 &&
+                      cat.subcategories.map((sub) => (
+                        <TableRow
+                          key={sub.id}
+                          className="bg-muted/60 hover:bg-secondary"
+                        >
+                          <TableCell className="w-8" />
+                          <TableCell className="pl-12">
+                            <div className="flex items-center gap-3">
+                              <div className="w-1.5 h-1.5 rounded-full bg-muted" />
+                              <div>
+                                <p className="font-bold text-foreground">
+                                  {sub.name}
+                                </p>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <code className="text-xs bg-white px-2 py-1 rounded border border-border text-muted-foreground font-mono">
+                              {sub.slug}
+                            </code>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <span className="text-sm text-muted-foreground font-medium block w-full">-</span>
+                          </TableCell>
+                          <TableCell className="text-center font-bold text-foreground">
+                            {sub.courses}
+                          </TableCell>
+                          <TableCell>
+                            {sub.status === true ? (
+                              <span
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleStatus(sub.id, false);
+                                }}
+                                className="inline-flex items-center gap-1.5 text-sm text-success font-medium cursor-pointer hover:underline"
+                              >
+                                <span className="w-2 h-2 rounded-full bg-success/10 text-success" />{" "}
+                                Hoạt động
+                              </span>
+                            ) : (
+                              <span
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleStatus(sub.id, true);
+                                }}
+                                className="inline-flex items-center gap-1.5 text-sm text-muted-foreground font-medium cursor-pointer hover:underline"
+                              >
+                                <span className="w-2 h-2 rounded-full bg-muted" />{" "}
+                                Tạm ẩn
+                              </span>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <div
+                              className="flex justify-center items-center gap-2"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-muted-foreground hover:text-primary"
+                                onClick={(e) => handleEdit(e, sub, cat.id)}
+                              >
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-muted-foreground hover:text-error"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDelete(sub.id);
+                                }}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                  </React.Fragment>
+                ))
+              )}
+            </TableBody>
+          </Table>
+          {totalPages > 1 && (
+            <div className="flex flex-col sm:flex-row justify-between items-center py-4 px-4 bg-white border-t border-border gap-4">
+              <span className="text-sm font-medium text-muted-foreground">
+                Hiển thị {(currentPage - 1) * ITEMS_PER_PAGE + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, totalElements)} của {totalElements} chủ đề
+              </span>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                >
+                  Trước
+                </Button>
+                {Array.from({ length: totalPages }).map((_, idx) => (
+                  <Button
+                    key={idx}
+                    variant={currentPage === idx + 1 ? "default" : "outline"}
+                    size="sm"
+                    className="w-8 h-8 rounded-lg p-0"
+                    onClick={() => setCurrentPage(idx + 1)}
+                  >
+                    {idx + 1}
+                  </Button>
+                ))}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  Sau
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
       </Card>
       {/* Add Category Modal */}
       <Dialog
@@ -403,12 +436,12 @@ export default function AdminCategories({ hideHeader = false }) {
               <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
                 <Plus className="w-5 h-5 text-primary" />
               </div>
-              {editId ? "Cập Nhật Danh Mục" : "Thêm Danh Mục Mới"}
+              {editId ? "Cập Nhật Chủ Đề" : "Thêm Chủ Đề Mới"}
             </DialogTitle>
             <DialogDescription>
               {editId
-                ? "Chỉnh sửa thông tin danh mục hiện có."
-                : "Tạo một danh mục mới để phân loại các khóa học của bạn."}
+                ? "Chỉnh sửa thông tin chủ đề hiện có."
+                : "Tạo một chủ đề mới để phân loại các khóa học của bạn."}
             </DialogDescription>
           </DialogHeader>
 
@@ -423,7 +456,7 @@ export default function AdminCategories({ hideHeader = false }) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-foreground font-semibold">
-                      Tên danh mục
+                      Tên chủ đề
                     </FormLabel>
                     <FormControl>
                       <Input
@@ -467,7 +500,7 @@ export default function AdminCategories({ hideHeader = false }) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-foreground font-semibold">
-                      Danh mục cha
+                      Chủ đề cha
                     </FormLabel>
                     <Select
                       onValueChange={field.onChange}
@@ -475,12 +508,12 @@ export default function AdminCategories({ hideHeader = false }) {
                     >
                       <FormControl>
                         <SelectTrigger className="h-10 border-border w-full">
-                          <SelectValue placeholder="Chọn danh mục cha" />
+                          <SelectValue placeholder="Chọn chủ đề cha" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="none">
-                          Không có (Danh mục gốc)
+                          Không có (Chủ đề gốc)
                         </SelectItem>
                         {categories.map((cat) => (
                           <SelectItem key={cat.id} value={cat.id.toString()}>
@@ -532,10 +565,10 @@ export default function AdminCategories({ hideHeader = false }) {
                   className="border border-border"
                 >
                   Hủy bỏ
-                </GhostButton>
-                <SimpleButton type="submit">
-                  {editId ? "Lưu Cập Nhật" : "Tạo danh mục"}
-                </SimpleButton>
+                </Button>
+                <Button type="submit" className="bg-primary font-bold px-6">
+                  {editId ? "Lưu Cập Nhật" : "Tạo chủ đề"}
+                </Button>
               </DialogFooter>
             </form>
           </Form>

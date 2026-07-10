@@ -41,7 +41,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
         // Publish audit log event
         try {
-            Account account = accountRepository.findByEmail(email).orElse(null);
+            Account account = accountRepository.findByEmailWithRole(email).orElse(null);
             if (account != null) {
                 String payload = objectMapper.writeValueAsString(java.util.Map.of(
                         "email", account.getEmail(),

@@ -48,6 +48,16 @@ public class ThreadController {
         }
     }
 
+    @GetMapping("/slug/{slug}")
+    public ResponseEntity<?> getThreadBySlug(@PathVariable String slug) {
+        try {
+            return ResponseEntity.ok(threadService.getThreadBySlug(slug));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Error fetching thread: " + e.getMessage());
+        }
+    }
+
     @PostMapping("/{id}/view")
     public ResponseEntity<?> incrementView(@PathVariable Integer id) {
         try {
@@ -64,6 +74,8 @@ public class ThreadController {
             @RequestParam(value = "content", required = false) String content,
             @RequestParam(value = "authorEmail", required = false) String authorEmail,
             @RequestParam(value = "topicId", required = false) Integer topicId,
+            @RequestParam(value = "categoryId", required = false) Integer categoryId,
+            @RequestParam(value = "hashtags", required = false) String hashtagsStr,
             @RequestParam(value = "images", required = false) List<MultipartFile> images) {
         try {
             if (content == null || content.trim().isEmpty()) {
@@ -73,7 +85,17 @@ public class ThreadController {
                 return ResponseEntity.badRequest().body("Missing required field: authorEmail. Please make sure you are logged in.");
             }
 
-            Thread newThread = threadService.createThread(title, content, topicId, authorEmail, images);
+            // Parse hashtags from comma-separated string
+            List<String> hashtags = new java.util.ArrayList<>();
+            if (hashtagsStr != null && !hashtagsStr.trim().isEmpty()) {
+                for (String tag : hashtagsStr.split(",")) {
+                    String cleaned = tag.trim().replaceAll("^#+", "");
+                    if (!cleaned.isEmpty()) hashtags.add(cleaned);
+                }
+            }
+
+            Integer targetTopicId = topicId != null ? topicId : categoryId;
+            Thread newThread = threadService.createThread(title, content, targetTopicId, authorEmail, images, hashtags);
             return ResponseEntity.ok(newThread);
 
         } catch (Exception e) {
@@ -150,6 +172,20 @@ public class ThreadController {
         }
     }
 
+    @GetMapping("/me/liked")
+    public ResponseEntity<?> getMyLikedThreads(
+            @RequestParam String email,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size) {
+        try {
+            Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+            return ResponseEntity.ok(threadService.getLikedThreadsByEmail(email, pageable));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error fetching liked threads: " + e.getMessage());
+        }
+    }
+
     @GetMapping("/me/stats")
     public ResponseEntity<?> getMyStats(@RequestParam String email) {
         try {
@@ -191,6 +227,44 @@ public class ThreadController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error approving thread: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/{id}/vote")
+    public ResponseEntity<?> voteThread(@PathVariable Integer id, @RequestBody Map<String, Object> payload) {
+        try {
+            String userEmail = (String) payload.get("email");
+            if (userEmail == null || userEmail.isEmpty()) {
+                userEmail = (String) payload.get("userEmail");
+            }
+            Object voteValueObj = payload.get("voteValue");
+            Integer voteValue = null;
+            if (voteValueObj instanceof Number) {
+                voteValue = ((Number) voteValueObj).intValue();
+            } else if (voteValueObj instanceof String) {
+                voteValue = Integer.parseInt((String) voteValueObj);
+            }
+            if (userEmail == null || userEmail.isEmpty()) {
+                return ResponseEntity.badRequest().body("Lỗi: Yêu cầu cung cấp Email người dùng!");
+            }
+            if (voteValue == null) {
+                return ResponseEntity.badRequest().body("Lỗi: Yêu cầu cung cấp giá trị vote!");
+            }
+            return ResponseEntity.ok(threadService.voteThread(id, userEmail, voteValue));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error voting thread: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/{id}/vote-status")
+    public ResponseEntity<?> getVoteStatus(@PathVariable Integer id, @RequestParam String email) {
+        try {
+            Map<String, Object> response = new HashMap<>();
+            response.put("voteType", threadService.getVoteStatus(id, email));
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
     }
 }

@@ -20,10 +20,10 @@ public interface CategoryRepository extends JpaRepository<Category, Integer> {
 
     @Query("SELECT DISTINCT c FROM Category c LEFT JOIN c.children ch " +
            "WHERE c.parent IS NULL " +
-           "AND (:status IS NULL OR c.status = :status) " +
+           "AND (CAST(:status AS integer) IS NULL OR c.status = :status) " +
            "AND (LOWER(c.name) LIKE LOWER(CONCAT('%', :search, '%')) " +
            "OR LOWER(c.slug) LIKE LOWER(CONCAT('%', :search, '%')) " +
            "OR LOWER(ch.name) LIKE LOWER(CONCAT('%', :search, '%')) " +
            "OR LOWER(ch.slug) LIKE LOWER(CONCAT('%', :search, '%')))")
-    Page<Category> findRootCategoriesWithFilters(@Param("search") String search, @Param("status") Boolean status, Pageable pageable);
+    Page<Category> findRootCategoriesWithFilters(@Param("search") String search, @Param("status") Integer status, Pageable pageable);
 }

@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import jakarta.validation.constraints.*;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -66,5 +67,23 @@ public class Thread {
     private LocalDateTime updatedAt;
 
     private LocalDateTime deletedAt;
+
+    @OneToMany(mappedBy = "thread", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ThreadHashtag> hashtags;
+
+    @Transient
+    private Long likes;
+
+    @Transient
+    private Long commentCount;
+
+    @Transient
+    private Long voteScore;
+
+    @Transient
+    private Integer userVote; // 1: upvoted, -1: downvoted, 0: none
+
+    @Transient
+    private Boolean userLiked;
 
 }

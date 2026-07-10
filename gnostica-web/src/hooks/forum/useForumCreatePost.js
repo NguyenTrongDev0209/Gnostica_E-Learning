@@ -7,8 +7,11 @@ import { toast } from "sonner";
 
 export default function useForumCreatePost() {
   const navigate = useNavigate();
+  const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [categoryId, setCategoryId] = useState('');
+  const [hashtags, setHashtags] = useState([]); // array of tag strings
+  const [tagInput, setTagInput] = useState('');
   const [errors, setErrors] = useState({});
 
   const { data: categories = [] } = useQuery({
@@ -23,6 +26,13 @@ export default function useForumCreatePost() {
 
   const validateForm = () => {
     const newErrors = {};
+    if (!title || !title.trim()) {
+        newErrors.title = "Vui lòng nhập tiêu đề bài viết.";
+    } else if (title.trim().length < 5) {
+        newErrors.title = "Tiêu đề phải có ít nhất 5 ký tự.";
+    } else if (title.trim().length > 255) {
+        newErrors.title = "Tiêu đề không được vượt quá 255 ký tự.";
+    }
     if (!categoryId) {
         newErrors.categoryId = "Vui lòng chọn chủ đề.";
     }
@@ -35,6 +45,30 @@ export default function useForumCreatePost() {
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  // Hashtag handlers
+  const addTag = (raw) => {
+    const tag = raw.trim().toLowerCase().replace(/^#+/, '').replace(/[^a-z0-9_\u00c0-\u024f]/g, '');
+    if (!tag) return;
+    if (hashtags.length >= 10) return; // max 10 tags
+    if (!hashtags.includes(tag)) {
+      setHashtags(prev => [...prev, tag]);
+    }
+    setTagInput('');
+  };
+
+  const removeTag = (tag) => {
+    setHashtags(prev => prev.filter(t => t !== tag));
+  };
+
+  const handleTagKeyDown = (e) => {
+    if (e.key === 'Enter' || e.key === ' ' || e.key === ',') {
+      e.preventDefault();
+      addTag(tagInput);
+    } else if (e.key === 'Backspace' && tagInput === '' && hashtags.length > 0) {
+      setHashtags(prev => prev.slice(0, -1));
+    }
   };
 
   const createMutation = useMutation({
@@ -75,18 +109,30 @@ export default function useForumCreatePost() {
     const user = JSON.parse(userStr);
     
     const formData = new FormData();
+    formData.append('title', title.trim());
     formData.append('content', content);
     formData.append('categoryId', categoryId);
-    formData.append('authorEmail', user.email || user.username || ""); 
+    formData.append('authorEmail', user.email || user.username || "");
+    if (hashtags.length > 0) {
+      formData.append('hashtags', hashtags.join(','));
+    }
 
     await createMutation.mutateAsync(formData);
   };
 
   return {
+    title,
+    setTitle,
     content,
     setContent,
     categoryId,
     setCategoryId,
+    hashtags,
+    tagInput,
+    setTagInput,
+    addTag,
+    removeTag,
+    handleTagKeyDown,
     categories,
     errors,
     setErrors,

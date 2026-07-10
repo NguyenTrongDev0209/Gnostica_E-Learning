@@ -18,13 +18,13 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
     @org.springframework.data.jpa.repository.Query(
         value = "SELECT c FROM Course c LEFT JOIN c.category cat LEFT JOIN cat.parent p WHERE c.account.email = :email " +
                 "AND (CAST(:search AS String) IS NULL OR LOWER(c.title) LIKE :search) " +
-                "AND (:categoryId IS NULL OR cat.id = :categoryId OR p.id = :categoryId) " +
-                "AND (:status IS NULL OR c.status = :status) " +
+                "AND (CAST(:categoryId AS integer) IS NULL OR cat.id = :categoryId OR p.id = :categoryId) " +
+                "AND (CAST(:status AS integer) IS NULL OR c.status = :status) " +
                 "AND c.deletedAt IS NULL",
         countQuery = "SELECT COUNT(c) FROM Course c LEFT JOIN c.category cat LEFT JOIN cat.parent p WHERE c.account.email = :email " +
                      "AND (CAST(:search AS String) IS NULL OR LOWER(c.title) LIKE :search) " +
-                     "AND (:categoryId IS NULL OR cat.id = :categoryId OR p.id = :categoryId) " +
-                     "AND (:status IS NULL OR c.status = :status) " +
+                     "AND (CAST(:categoryId AS integer) IS NULL OR cat.id = :categoryId OR p.id = :categoryId) " +
+                     "AND (CAST(:status AS integer) IS NULL OR c.status = :status) " +
                      "AND c.deletedAt IS NULL"
     )
     org.springframework.data.domain.Page<Course> findInstructorCourses(
@@ -57,9 +57,9 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
     boolean existsByCategory_Id(Integer categoryId);
 
     @org.springframework.data.jpa.repository.Query("SELECT c FROM Course c JOIN FETCH c.account JOIN FETCH c.category WHERE c.status = 1 " +
-            "AND (:categoryId IS NULL OR c.category.id = :categoryId OR c.category.parent.id = :categoryId) " +
-            "AND (:categorySlug IS NULL OR c.category.slug = :categorySlug OR c.category.parent.slug = :categorySlug) " +
-            "AND (:level IS NULL OR c.level = :level) " +
+            "AND (CAST(:categoryId AS integer) IS NULL OR c.category.id = :categoryId OR c.category.parent.id = :categoryId) " +
+            "AND (CAST(:categorySlug AS String) IS NULL OR c.category.slug = :categorySlug OR c.category.parent.slug = :categorySlug) " +
+            "AND (CAST(:level AS String) IS NULL OR c.level = :level) " +
             "AND c.deletedAt IS NULL")
     org.springframework.data.domain.Page<Course> findPublicCourses(
             @org.springframework.data.repository.query.Param("categoryId") Integer categoryId,
@@ -77,8 +77,8 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
     java.util.List<Course> findTop5ByAverageRating(org.springframework.data.domain.Pageable pageable);
 
     @org.springframework.data.jpa.repository.Query("SELECT c FROM Course c WHERE c.status = 1 AND c.deletedAt IS NULL " +
-            "AND (:categoryName IS NULL OR LOWER(c.category.name) LIKE LOWER(CONCAT('%', :categoryName, '%'))) " +
-            "AND (:maxPrice IS NULL OR c.price <= :maxPrice)")
+            "AND (CAST(:categoryName AS String) IS NULL OR LOWER(c.category.name) LIKE LOWER(CONCAT('%', :categoryName, '%'))) " +
+            "AND (CAST(:maxPrice AS double) IS NULL OR c.price <= :maxPrice)")
     java.util.List<Course> findCoursesByCategoryAndPrice(
             @org.springframework.data.repository.query.Param("categoryName") String categoryName, 
             @org.springframework.data.repository.query.Param("maxPrice") Double maxPrice, 
@@ -86,10 +86,10 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
 
     @org.springframework.data.jpa.repository.Query(
         value = "SELECT DISTINCT c FROM Course c LEFT JOIN FETCH c.account LEFT JOIN FETCH c.category " +
-                "WHERE (:status IS NULL OR c.status = :status) " +
+                "WHERE (CAST(:status AS integer) IS NULL OR c.status = :status) " +
                 "AND c.deletedAt IS NULL",
         countQuery = "SELECT COUNT(c) FROM Course c " +
-                     "WHERE (:status IS NULL OR c.status = :status) " +
+                     "WHERE (CAST(:status AS integer) IS NULL OR c.status = :status) " +
                      "AND c.deletedAt IS NULL"
     )
     org.springframework.data.domain.Page<Course> findModerationCourses(
@@ -104,7 +104,7 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
     java.util.List<Object[]> countModerationStats();
     @org.springframework.data.jpa.repository.Query(
         "SELECT c FROM Course c WHERE c.status = 1 AND c.deletedAt IS NULL " +
-        "AND (:level IS NULL OR c.level = :level) " +
+        "AND (CAST(:level AS String) IS NULL OR c.level = :level) " +
         "AND (CAST(:categoryIds AS integer) IS NULL OR c.category.id IN :categoryIds OR c.category.parent.id IN :categoryIds)"
     )
     org.springframework.data.domain.Page<Course> findRecommendedCourses(
