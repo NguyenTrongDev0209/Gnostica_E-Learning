@@ -2,8 +2,9 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import SectionContainer, { PageHeader } from '@/components/common/AppSection';
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Send } from 'lucide-react';
+import { Send, FileText, Hash, X } from 'lucide-react';
 import useForumCreatePost from "@/hooks/forum/useForumCreatePost";
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
@@ -21,10 +22,18 @@ const quillModules = {
 const ForumCreatePost = () => {
     const navigate = useNavigate();
     const {
+        title,
+        setTitle,
         content,
         setContent,
         categoryId,
         setCategoryId,
+        hashtags,
+        tagInput,
+        setTagInput,
+        addTag,
+        removeTag,
+        handleTagKeyDown,
         categories,
         errors,
         setErrors,
@@ -66,6 +75,33 @@ const ForumCreatePost = () => {
                                 {errors.categoryId && <span className="text-xs text-error">{errors.categoryId}</span>}
                             </div>
 
+                            {/* Title Input */}
+                            <div className="flex flex-col gap-2">
+                                <label className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                                    <FileText className="w-4 h-4 text-primary" />
+                                    Tiêu đề bài viết <span className="text-error">*</span>
+                                </label>
+                                <div className="relative">
+                                    <Input
+                                        type="text"
+                                        placeholder="Nhập tiêu đề ngắn gọn, rõ ràng cho bài viết..."
+                                        value={title}
+                                        onChange={(e) => {
+                                            setTitle(e.target.value);
+                                            if (errors.title) setErrors(prev => ({ ...prev, title: null }));
+                                        }}
+                                        maxLength={255}
+                                        className={`h-12 text-sm pr-20 ${errors.title ? 'border-error/60 focus-visible:ring-error/30' : ''}`}
+                                    />
+                                    <span className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium tabular-nums ${
+                                        title.length > 200 ? 'text-warning' : 'text-muted-foreground'
+                                    }`}>
+                                        {title.length}/255
+                                    </span>
+                                </div>
+                                {errors.title && <span className="text-xs text-error">{errors.title}</span>}
+                            </div>
+
                             {/* Rich Text Content */}
                             <div className="flex flex-col gap-2 relative z-0">
                                 <label className="text-sm font-semibold text-foreground">
@@ -85,6 +121,49 @@ const ForumCreatePost = () => {
                                     />
                                 </div>
                                 {errors.content && <span className="text-xs text-error">{errors.content}</span>}
+                            </div>
+
+                            {/* Hashtags */}
+                            <div className="flex flex-col gap-2">
+                                <label className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                                    <Hash className="w-4 h-4 text-primary" />
+                                    Hashtag
+                                    <span className="text-xs text-muted-foreground font-normal ml-1">(tối đa 10, nhấn Space hoặc Enter để thêm)</span>
+                                </label>
+                                <div className={`flex flex-wrap gap-2 min-h-[48px] items-center px-3 py-2 rounded-md border ${
+                                    hashtags.length >= 10 ? 'border-warning/60 bg-warning/5' : 'border-input bg-background'
+                                } focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 transition-all`}>
+                                    {hashtags.map(tag => (
+                                        <span
+                                            key={tag}
+                                            className="inline-flex items-center gap-1 bg-primary/10 text-primary text-xs font-semibold px-2.5 py-1 rounded-full border border-primary/20"
+                                        >
+                                            #{tag}
+                                            <button
+                                                type="button"
+                                                onClick={() => removeTag(tag)}
+                                                className="hover:text-error transition-colors ml-0.5"
+                                                aria-label={`Xóa hashtag ${tag}`}
+                                            >
+                                                <X className="w-3 h-3" />
+                                            </button>
+                                        </span>
+                                    ))}
+                                    {hashtags.length < 10 && (
+                                        <input
+                                            type="text"
+                                            value={tagInput}
+                                            onChange={(e) => setTagInput(e.target.value)}
+                                            onKeyDown={handleTagKeyDown}
+                                            onBlur={() => tagInput.trim() && addTag(tagInput)}
+                                            placeholder={hashtags.length === 0 ? 'laptrinh, javascript, react...' : ''}
+                                            className="flex-1 min-w-[120px] outline-none bg-transparent text-sm placeholder:text-muted-foreground"
+                                        />
+                                    )}
+                                </div>
+                                <p className="text-xs text-muted-foreground">
+                                    {hashtags.length}/10 hashtag — nhấn <kbd className="px-1 py-0.5 bg-muted border rounded text-xs">Space</kbd>, <kbd className="px-1 py-0.5 bg-muted border rounded text-xs">Enter</kbd> hoặc <kbd className="px-1 py-0.5 bg-muted border rounded text-xs">,</kbd> để thêm tag
+                                </p>
                             </div>
 
                             {/* Submit Button */}

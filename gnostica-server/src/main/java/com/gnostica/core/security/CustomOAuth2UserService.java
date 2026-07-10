@@ -42,7 +42,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             System.out.println("Processing OAuth2 user: email=" + email + ", name=" + name + ", avatar=" + picture);
             
             System.out.println("DEBUG: Looking for account with email: " + email);
-            Optional<Account> accountOptional = accountRepository.findByEmail(email);
+            Optional<Account> accountOptional = accountRepository.findByEmailWithRole(email);
             
             Account account;
             if (accountOptional.isEmpty()) {
@@ -53,6 +53,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 account.setProvider(provider);
                 account.setAvatar(picture);
                 account.setStatus(1);
+                account.setPassword("OAUTH2_USER");
                 
                 // Cẩn thận với Role
                 Role defaultRole = roleRepository.findByName("USER")
@@ -61,6 +62,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                            return roleRepository.findByName("Student").orElseGet(() -> {
                                Role newRole = new Role();
                                newRole.setName("USER");
+                               newRole.setStatus(1);
+                               newRole.setDescription("Default User Role");
                                return roleRepository.save(newRole);
                            });
                         });

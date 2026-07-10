@@ -7,13 +7,18 @@ import org.springframework.stereotype.Repository;
 import com.gnostica.core.model.Thread;
 import java.util.List;
 
+import java.util.Optional;
+
 @Repository
 public interface ThreadRepository extends JpaRepository<Thread, Integer> {
+    Optional<Thread> findBySlug(String slug);
+    Page<Thread> findByIdIn(List<Integer> ids, Pageable pageable);
     Page<Thread> findAllByStatus(Integer status, Pageable pageable);
     Page<Thread> findByAccountEmailOrderByCreatedAtDesc(String email, Pageable pageable);
     List<Thread> findTop5ByStatusOrderByViewCountDesc(Integer status);
     List<Thread> findTop5ByContentContainingIgnoreCaseOrderByCreatedAtDesc(String keyword);
     List<Thread> findTop5ByTopic_IdAndStatusOrderByViewCountDesc(Integer topicId, Integer status);
+    long countByTopic_Id(Integer topicId);
     
     @org.springframework.data.jpa.repository.Query("SELECT t.account, COUNT(t.id) FROM Thread t GROUP BY t.account ORDER BY COUNT(t.id) DESC")
     List<Object[]> findTopContributors(Pageable pageable);

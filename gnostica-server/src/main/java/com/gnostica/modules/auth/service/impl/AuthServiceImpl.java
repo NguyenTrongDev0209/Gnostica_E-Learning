@@ -60,6 +60,8 @@ public class AuthServiceImpl implements AuthService {
                 .orElseGet(() -> {
                     Role newRole = new Role();
                     newRole.setName("USER");
+                    newRole.setStatus(1);
+                    newRole.setDescription("Default User Role");
                     return roleRepository.save(newRole);
                 });
 
@@ -87,7 +89,7 @@ public class AuthServiceImpl implements AuthService {
         Account account = accountRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("Tai khoan khong ton tai."));
 
-        if ("GOOGLE".equalsIgnoreCase(account.getProvider()) && account.getPassword() == null) {
+        if ("GOOGLE".equalsIgnoreCase(account.getProvider())) {
             throw new RuntimeException("Tai khoan nay duoc dang ky bang Google. Vui long dang nhap bang Google.");
         }
 
@@ -202,6 +204,8 @@ public class AuthServiceImpl implements AuthService {
                 .orElseGet(() -> {
                     Role newRole = new Role();
                     newRole.setName("INSTRUCTOR");
+                    newRole.setStatus(1);
+                    newRole.setDescription("Default Instructor Role");
                     return roleRepository.save(newRole);
                 });
 

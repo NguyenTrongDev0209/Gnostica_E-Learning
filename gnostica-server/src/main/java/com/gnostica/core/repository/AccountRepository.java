@@ -7,6 +7,10 @@ import java.util.UUID;
 
 public interface AccountRepository extends JpaRepository<Account, UUID> {
     Optional<Account> findByEmail(String email);
+
+    @org.springframework.data.jpa.repository.Query("SELECT a FROM Account a JOIN FETCH a.role WHERE a.email = :email")
+    Optional<Account> findByEmailWithRole(@org.springframework.data.repository.query.Param("email") String email);
+
     boolean existsByEmail(String email);
     java.util.List<Account> findAllByCreatedAtAfter(java.time.LocalDateTime date);
     long countByRoleNameAndCreatedAtAfter(String roleName, java.time.LocalDateTime date);

@@ -8,6 +8,7 @@ export default function useMyForumPosts(postsPerPage = 5) {
   const [currentUser, setCurrentUser] = useState(null);
   const [currentPage, setCurrentPage] = useState(0);
   const [threadToDelete, setThreadToDelete] = useState(null);
+  const [activeTab, setActiveTab] = useState("my-posts"); // 'my-posts' | 'liked'
 
   useEffect(() => {
     const userData = JSON.parse(localStorage.getItem('user'));
@@ -15,10 +16,15 @@ export default function useMyForumPosts(postsPerPage = 5) {
   }, []);
 
   const { data: threads = [], isLoading: isThreadsLoading } = useQuery({
-    queryKey: ['my_threads', currentUser?.email],
+    queryKey: ['my_threads', currentUser?.email, activeTab],
     queryFn: async () => {
-      const res = await threadService.getMyThreads(currentUser.email);
-      return res?.content || res?.data?.content || [];
+      if (activeTab === "liked") {
+        const res = await threadService.getMyLikedThreads(currentUser.email);
+        return res?.content || res?.data?.content || [];
+      } else {
+        const res = await threadService.getMyThreads(currentUser.email);
+        return res?.content || res?.data?.content || [];
+      }
     },
     enabled: !!currentUser?.email,
     staleTime: 1000 * 60 * 2, // 2 mins cache
@@ -57,21 +63,29 @@ export default function useMyForumPosts(postsPerPage = 5) {
 
   const stripHtml = (html) => {
     if (!html) return '';
-    return html.replace(/<[^>]*>/g, '').trim();
+    let text = html.replace(/<[^>]*>/g, '');
+    text = text
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'");
+    return text.trim();
   };
 
   const mappedPosts = threads.map(thread => {
     const plainText = stripHtml(thread.content);
     return {
       id: thread.id,
-      title: plainText.substring(0, 100) + (plainText.length > 100 ? "..." : ""),
+      title: thread.title || (plainText.substring(0, 100) + (plainText.length > 100 ? "..." : "")),
       content: plainText,
       author: {
         name: thread.account?.fullName || "Ẩn danh",
         avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${thread.account?.email || 'default'}`,
         status: "online"
       },
-      category: thread.category?.name || "Thảo luận",
+      category: thread.topic?.title || thread.category?.name || "Thảo luận",
       tags: [],
       createdAt: new Date(thread.createdAt).toLocaleDateString('vi-VN', {
         day: '2-digit',
@@ -88,7 +102,11 @@ export default function useMyForumPosts(postsPerPage = 5) {
       images: thread.images || [],
       isHot: (thread.views || 0) > 50,
       status: thread.status,
-      pendingModeration: thread.pendingModeration
+      pendingModeration: thread.pendingModeration,
+      voteScore: thread.voteScore || 0,
+      userVote: thread.userVote || 0,
+      userLiked: thread.userLiked || false,
+      slug: thread.slug
     };
   });
 
@@ -97,7 +115,7 @@ export default function useMyForumPosts(postsPerPage = 5) {
 
   useEffect(() => {
     setCurrentPage(0);
-  }, [threads.length]);
+  }, [threads.length, activeTab]);
 
   return {
     currentUser,
@@ -109,6 +127,8 @@ export default function useMyForumPosts(postsPerPage = 5) {
     setCurrentPage,
     threadToDelete,
     setThreadToDelete,
-    handleDelete
+    handleDelete,
+    activeTab,
+    setActiveTab
   };
 }

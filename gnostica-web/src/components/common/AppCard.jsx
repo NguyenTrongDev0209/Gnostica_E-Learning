@@ -1,10 +1,13 @@
 import React from 'react';
-import { Star, BookOpen, Users, Clock, Flame, ThumbsUp, MessageSquare, Eye } from 'lucide-react';
+import { Star, BookOpen, Users, Clock, Flame, ThumbsUp, MessageSquare, Eye, ArrowUp, ArrowDown, Share2 } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback, AvatarBadge } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { Link } from 'react-router-dom';
+import useAuthStore from '@/store/useAuthStore';
+import threadService from '@/services/forum/threadService';
+import { toast } from 'sonner';
 
 const AppCard = ({
   image,
@@ -230,8 +233,93 @@ export const CourseCardHorizontal = ({
  */
 export const ForumPostCard = ({ post, className }) => {
   if (!post) return null;
+
+  const currentUser = useAuthStore(state => state.user);
+  const [voteScore, setVoteScore] = React.useState(post.voteScore || 0);
+  const [userVote, setUserVote] = React.useState(post.userVote || 0);
+  const [likesCount, setLikesCount] = React.useState(post.stats?.likes || 0);
+  const [userLiked, setUserLiked] = React.useState(post.userLiked || false);
+
+  React.useEffect(() => {
+    if (post.voteScore !== undefined) setVoteScore(post.voteScore);
+    if (post.userVote !== undefined) setUserVote(post.userVote);
+  }, [post.voteScore, post.userVote]);
+
+  React.useEffect(() => {
+    if (post.stats?.likes !== undefined) setLikesCount(post.stats.likes);
+    if (post.userLiked !== undefined) setUserLiked(post.userLiked);
+  }, [post.stats?.likes, post.userLiked]);
+
+  const handleLike = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!currentUser) {
+      toast.error("Vui lòng đăng nhập để thích bài viết!");
+      return;
+    }
+
+    const nextLiked = !userLiked;
+    setUserLiked(nextLiked);
+    setLikesCount(prev => prev + (nextLiked ? 1 : -1));
+
+    try {
+      await threadService.toggleLike(post.id, currentUser.email);
+    } catch (err) {
+      console.error("Error liking:", err);
+      // Revert state
+      setUserLiked(!nextLiked);
+      setLikesCount(prev => prev + (nextLiked ? -1 : 1));
+      toast.error("Thao tác Thích thất bại!");
+    }
+  };
+
+  const handleShare = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const shareUrl = `${window.location.origin}/forum/${post.slug || post.id}`;
+    navigator.clipboard.writeText(shareUrl)
+      .then(() => {
+        toast.success("Đã sao chép liên kết chia sẻ!");
+      })
+      .catch(() => {
+        toast.error("Không thể sao chép liên kết!");
+      });
+  };
+
+  const handleVote = async (e, type) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!currentUser) {
+      toast.error("Vui lòng đăng nhập để bình chọn bài viết!");
+      return;
+    }
+
+    let newVote = 0;
+    if (type === 1) { // Upvote
+      newVote = userVote === 1 ? 0 : 1;
+    } else { // Downvote
+      newVote = userVote === -1 ? 0 : -1;
+    }
+
+    const diff = newVote - userVote;
+    setUserVote(newVote);
+    setVoteScore(prev => prev + diff);
+
+    try {
+      await threadService.voteThread(post.id, currentUser.email, newVote);
+    } catch (err) {
+      console.error("Error voting:", err);
+      // Revert state
+      setUserVote(userVote);
+      setVoteScore(prev => prev - diff);
+      toast.error("Thao tác bình chọn thất bại!");
+    }
+  };
+
   return (
-    <Link to={`/forum/${post.id}`} className="block">
+    <Link to={`/forum/${post.slug || post.id}`} className="block">
       <Card className={cn("hover:border-primary/50 transition-colors bg-white overflow-hidden group cursor-pointer", className)}>
         <CardContent className="p-4 sm:p-5">
           <div className="flex items-start gap-4">
@@ -266,13 +354,38 @@ export const ForumPostCard = ({ post, className }) => {
                   <Clock className="w-3.5 h-3.5" />
                   {post.createdAt}
                 </span>
+                {post.status !== undefined && post.status !== null && (
+                  <>
+                    <span>•</span>
+                    <span className="flex items-center">
+                      {post.status === 1 && (
+                        <Badge variant="secondary" className="bg-warning/10 text-warning hover:bg-warning/20 border-none text-[10px] py-0 px-1.5 h-5 font-semibold shrink-0">
+                          Đang duyệt
+                        </Badge>
+                      )}
+                      {post.status === 2 && (
+                        <Badge variant="secondary" className="bg-success/10 text-success hover:bg-success/20 border-none text-[10px] py-0 px-1.5 h-5 font-semibold shrink-0">
+                          Đã duyệt
+                        </Badge>
+                      )}
+                      {post.status === 3 && (
+                        <Badge variant="destructive" className="bg-error/10 text-error hover:bg-error/20 border-none text-[10px] py-0 px-1.5 h-5 font-semibold shrink-0">
+                          Từ chối
+                        </Badge>
+                      )}
+                      {post.status === 0 && (
+                        <Badge variant="secondary" className="bg-muted text-muted-foreground hover:bg-muted border-none text-[10px] py-0 px-1.5 h-5 font-semibold shrink-0">
+                          Ẩn
+                        </Badge>
+                      )}
+                    </span>
+                  </>
+                )}
               </div>
 
               {/* Title */}
               <h3 className="text-lg font-bold text-foreground mb-1 group-hover:text-primary transition-colors flex items-center gap-2">
                 {post.isHot && <Flame className="w-4 h-4 text-warning fill-orange-500 shrink-0" />}
-                {post.status === false && post.pendingModeration === true && <Badge variant="secondary" className="bg-warning/10 text-warning text-warning border-none text-[10px] h-5 shrink-0">Chờ duyệt</Badge>}
-                {post.status === false && post.pendingModeration !== true && <Badge variant="destructive" className="bg-error/10 text-error text-white border-none text-[10px] h-5 shrink-0">Vi phạm</Badge>}
                 <span className="line-clamp-2">{post.title}</span>
               </h3>
 
@@ -280,7 +393,7 @@ export const ForumPostCard = ({ post, className }) => {
               <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{post.content}</p>
 
               {/* Tags & Stats */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-auto">
+              <div className="flex flex-col items-start gap-3 mt-auto">
                 {post.tags && post.tags.length > 0 && (
                   <div className="flex items-center gap-1.5 flex-wrap">
                     {post.tags.map(tag => (
@@ -291,15 +404,59 @@ export const ForumPostCard = ({ post, className }) => {
                   </div>
                 )}
                 <div className="flex items-center gap-4 text-xs font-medium text-muted-foreground shrink-0">
-                  <div className="flex items-center gap-1.5 hover:text-primary transition-colors">
-                    <ThumbsUp className="w-4 h-4" /><span>{post.stats.likes}</span>
+                  {/* Voting Pill */}
+                  <div className="flex items-center gap-1 bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700/80 rounded-full px-2 py-0.5 border border-transparent transition-colors">
+                    <button
+                      onClick={(e) => handleVote(e, 1)}
+                      className={cn(
+                        "p-1 hover:text-orange-500 rounded-full transition-colors",
+                        userVote === 1 && "text-orange-500 font-bold"
+                      )}
+                    >
+                      <ArrowUp className="w-3.5 h-3.5" />
+                    </button>
+                    <span className={cn(
+                      "px-1 font-semibold text-[11px] min-w-[12px] text-center",
+                      userVote === 1 && "text-orange-500",
+                      userVote === -1 && "text-blue-500"
+                    )}>
+                      {voteScore}
+                    </span>
+                    <button
+                      onClick={(e) => handleVote(e, -1)}
+                      className={cn(
+                        "p-1 hover:text-blue-500 rounded-full transition-colors",
+                        userVote === -1 && "text-blue-500 font-bold"
+                      )}
+                    >
+                      <ArrowDown className="w-3.5 h-3.5" />
+                    </button>
                   </div>
+
+                  <button
+                    onClick={handleLike}
+                    className={cn(
+                      "flex items-center gap-1.5 hover:text-primary transition-colors",
+                      userLiked && "text-primary font-semibold"
+                    )}
+                  >
+                    <ThumbsUp className={cn("w-4 h-4", userLiked && "fill-primary")} />
+                    <span>{likesCount}</span>
+                  </button>
                   <div className="flex items-center gap-1.5 hover:text-primary transition-colors">
                     <MessageSquare className="w-4 h-4" /><span>{post.stats.replies}</span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <Eye className="w-4 h-4" /><span>{post.stats.views}</span>
                   </div>
+                  <button
+                    onClick={handleShare}
+                    className="flex items-center gap-1.5 hover:text-primary transition-colors"
+                    title="Chia sẻ liên kết"
+                  >
+                    <Share2 className="w-4 h-4" />
+                    <span>Chia sẻ</span>
+                  </button>
                 </div>
               </div>
             </div>

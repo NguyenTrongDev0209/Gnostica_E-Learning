@@ -18,6 +18,11 @@ export const threadService = {
     return res.data;
   },
 
+  getThreadBySlug: async (slug) => {
+    const res = await axiosClient.get(`${API_URL}/slug/${slug}`);
+    return res.data;
+  },
+
   getRelatedThreads: async (id) => {
     const res = await axiosClient.get(`${API_URL}/${id}/related`);
     return res.data;
@@ -48,6 +53,16 @@ export const threadService = {
     return res.data;
   },
 
+  getVoteStatus: async (id, email) => {
+    const res = await axiosClient.get(`${API_URL}/${id}/vote-status?email=${encodeURIComponent(email)}`);
+    return res.data;
+  },
+
+  voteThread: async (id, email, voteValue) => {
+    const res = await axiosClient.post(`${API_URL}/${id}/vote`, { email, voteValue });
+    return res.data;
+  },
+
   viewThread: async (id) => {
     const res = await axiosClient.post(`${API_URL}/${id}/view`);
     return res.data;
@@ -55,6 +70,11 @@ export const threadService = {
 
   getMyThreads: async (email, page = 0, size = 1000) => {
     const res = await axiosClient.get(`${API_URL}/me?email=${encodeURIComponent(email)}&page=${page}&size=${size}`);
+    return res.data;
+  },
+
+  getMyLikedThreads: async (email, page = 0, size = 1000) => {
+    const res = await axiosClient.get(`${API_URL}/me/liked?email=${encodeURIComponent(email)}&page=${page}&size=${size}`);
     return res.data;
   },
 

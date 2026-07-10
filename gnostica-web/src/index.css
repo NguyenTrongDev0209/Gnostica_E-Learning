@@ -531,4 +531,50 @@
     background-image: radial-gradient(circle, var(--border) 1px, transparent 1px);
     background-size: 20px 20px;
   }
+
+  .quill-content img,
+  .html-content img {
+    max-width: 100% !important;
+    height: auto !important;
+    border-radius: var(--radius-md);
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .quill-content,
+  .html-content,
+  .quill-content *:not(pre):not(code),
+  .html-content *:not(pre):not(code) {
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: break-word;
+  }
+
+  .quill-content pre,
+  .html-content pre,
+  .quill-content code,
+  .html-content code {
+    white-space: pre-wrap !important;
+    word-break: normal !important;
+  }
+}
+
+/* Hide scrollbar from browser window itself (still scrollable). */
+html {
+  scrollbar-width: none;
+}
+
+html::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+body {
+  scrollbar-width: none;
+}
+
+body::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
