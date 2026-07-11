@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import SectionContainer, { PageHeader } from '@/components/common/composite/AppSection';
+import PageContainer from "@/components/common/core/PageContainer";
 import { ForumPostCard } from "@/components/common/composite/AppCard";
 import { Search } from 'lucide-react';
 import { Input } from "@/components/ui/input";
@@ -108,11 +108,10 @@ const ForumPage = () => {
 
   return (
     <div className="min-h-screen bg-muted pb-16 pt-8">
-      <SectionContainer containerClassName="w-full">
+      <PageContainer.Section className="w-full app-container">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 sm:mb-12 gap-4">
-          <PageHeader
-            title="Diễn đàn"
-            highlightedTitle="Cộng đồng"
+          <PageContainer.Header
+            title={<>Diễn đàn <span className="bg-accent-gradient bg-clip-text text-transparent italic">Cộng đồng</span></>}
             description="Nơi giao lưu, hỏi đáp và chia sẻ kiến thức về lập trình, công nghệ."
             className="mb-0 sm:mb-0"
           />
@@ -220,7 +219,7 @@ const ForumPage = () => {
             currentUser={currentUser}
           />
         </div>
-      </SectionContainer>
+      </PageContainer.Section>
     </div>
   );
 };

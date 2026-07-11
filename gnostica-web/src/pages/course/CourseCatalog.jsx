@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useParams } from "react-router-dom";
-import { PageHeader, AppBreadcrumb } from "@/components/common/composite/AppSection";
+import PageContainer from "@/components/common/core/PageContainer";
+import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
 import CourseListSection from "@/pages/course/components/shared/CourseListSection";
 import AppCard from "@/components/common/composite/AppCard";
 import { Home } from "lucide-react";
@@ -46,20 +47,14 @@ export default function CourseCatalog() {
 
   return (
     <div className="app-container py-8 md:py-12 bg-background">
-      <AppBreadcrumb items={breadcrumbItems} />
-
-      {displayTitle ? (
-        <PageHeader
-          title={displayTitle}
-          description={`Khám phá các khóa học ${displayTitle} đa dạng được thiết kế để giúp bạn nắm vững kiến thức và thăng tiến trong sự nghiệp.`}
-        />
-      ) : (
-        <PageHeader
-          title="Khám phá các"
-          highlightedTitle="Khóa học"
-          description="Khám phá các khóa học đa dạng được thiết kế để giúp bạn làm chủ các kỹ năng mới và thăng tiến trong sự nghiệp."
-        />
-      )}
+      <PageContainer.Header
+        title={displayTitle || <>Khám phá các <span className="bg-accent-gradient bg-clip-text text-transparent italic">Khóa học</span></>}
+        description={displayTitle 
+          ? `Khám phá các khóa học ${displayTitle} đa dạng được thiết kế để giúp bạn nắm vững kiến thức và thăng tiến trong sự nghiệp.` 
+          : "Khám phá các khóa học đa dạng được thiết kế để giúp bạn làm chủ các kỹ năng mới và thăng tiến trong sự nghiệp."}
+      >
+        <AppBreadcrumb paths={breadcrumbItems} />
+      </PageContainer.Header>
 
       {/* Tabbed Popular / Trending Section */}
       <div className="mb-12">

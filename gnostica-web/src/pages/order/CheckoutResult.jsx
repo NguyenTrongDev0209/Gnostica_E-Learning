@@ -12,7 +12,7 @@ import {
 import { AppButton } from "@/components/common/micro/AppButton";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { AppBreadcrumb } from "@/components/common/composite/AppSection";
+import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
 import { checkoutStatusConfig } from "@/apiMocks/checkout";
 import orderService from "@/services/order/orderService";
 
@@ -69,10 +69,7 @@ export default function CheckoutResult() {
       <section className="bg-muted py-12 text-white">
         <div className="app-container">
           <AppBreadcrumb
-            items={breadcrumbItems}
-            linkClassName="text-muted-foreground hover:text-slate-100"
-            activeClassName="font-semibold text-slate-200"
-            separatorClassName="text-muted-foreground"
+            paths={breadcrumbItems}
           />
           <h1 className="text-3xl md:text-4xl font-extrabold">
             Kết quả thanh toán

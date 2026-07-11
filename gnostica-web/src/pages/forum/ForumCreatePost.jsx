@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import SectionContainer, { PageHeader } from '@/components/common/composite/AppSection';
+import PageContainer from "@/components/common/core/PageContainer";
 import { AppButton } from "@/components/common/micro/AppButton";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -43,12 +43,10 @@ const ForumCreatePost = () => {
 
     return (
         <div className="min-h-screen bg-muted pb-16 pt-8">
-            <SectionContainer containerClassName="max-w-4xl mx-auto w-full">
-                <PageHeader
-                    title="Tạo bài viết"
-                    highlightedTitle="Mới"
+            <PageContainer.Section className="max-w-4xl mx-auto w-full app-container">
+                <PageContainer.Header
+                    title={<>Tạo bài viết <span className="bg-accent-gradient bg-clip-text text-transparent italic">Mới</span></>}
                     description="Chia sẻ kiến thức, câu hỏi hoặc thảo luận cùng cộng đồng."
-                    className="mb-8"
                 />
 
                 <Card className="bg-white shadow-sm border-border">
@@ -192,7 +190,7 @@ const ForumCreatePost = () => {
                         </form>
                     </CardContent>
                 </Card>
-            </SectionContainer>
+            </PageContainer.Section>
         </div>
     );
 };

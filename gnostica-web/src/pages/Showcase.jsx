@@ -104,8 +104,20 @@ import AppSelect from "@/components/common/micro/AppSelect"
 import AppCarousel from "@/components/common/micro/AppCarousel"
 import AppChart from "@/components/common/micro/AppChart"
 import NotificationBell from "@/components/common/micro/NotificationBell"
-
-
+import { AppCheckbox } from "@/components/common/micro/AppCheckbox"
+import {
+  AppCommand,
+  AppCommandInput,
+  AppCommandList,
+  AppCommandEmpty,
+  AppCommandGroup,
+  AppCommandItem,
+  AppCommandShortcut,
+  AppCommandPalette,
+  AppCommandSeparator
+} from "@/components/common/micro/AppCommand"
+import { AppDialog } from "@/components/common/micro/AppDialog"
+import { AppDropdownMenu } from "@/components/common/micro/AppDropdownMenu"
 const formSchema = z.object({
   username: z.string().min(2, { message: "Username must be at least 2 characters." }),
   email: z.string().email({ message: "Please enter a valid email address." }),
@@ -154,6 +166,7 @@ const pieChartConfig = {
 const Showcase = () => {
   const [date, setDate] = useState(new Date())
   const [hamburgerOpen, setHamburgerOpen] = useState(false)
+  const [commandOpen, setCommandOpen] = useState(false)
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -511,6 +524,28 @@ const Showcase = () => {
                         </CardContent>
                       </Card>
 
+                      <Card>
+                        <CardHeader><CardTitle>AppCheckbox</CardTitle><CardDescription>Checkbox thông minh hỗ trợ các variant màu của hệ thống và tự quản lý Layout cùng Label/Description.</CardDescription></CardHeader>
+                        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                          <div className="space-y-4">
+                            <AppCheckbox id="chk1" label="Đồng ý với điều khoản" description="Bạn phải đồng ý với điều khoản sử dụng của Gnostica." />
+                            <AppCheckbox id="chk2" appVariant="success" label="Đăng ký nhận tin nhắn" description="Chúng tôi sẽ gửi thông báo đến email của bạn." defaultChecked />
+                            <AppCheckbox id="chk3" appVariant="warning" label="Tôi đã hiểu rủi ro" />
+                            <AppCheckbox id="chk4" appVariant="error" label="Xóa toàn bộ dữ liệu" description="Hành động này không thể hoàn tác." />
+                            <AppCheckbox id="chk-grad" appVariant="gradient" label="Premium Checkbox" description="Dùng cho các chức năng đặc biệt." defaultChecked />
+                          </div>
+                          <div className="space-y-4 border-l pl-8">
+                            <h4 className="text-sm font-semibold text-muted-foreground mb-4">Responsive Sizes</h4>
+                            <AppCheckbox id="sz-sm" appSize="sm" label="Kích thước Small (sm)" description="Dùng cho không gian chật hẹp." />
+                            <AppCheckbox id="sz-md" appSize="default" label="Kích thước Mặc định (md)" defaultChecked />
+                            <AppCheckbox id="sz-lg" appSize="lg" appVariant="accent" label="Kích thước Lớn (lg)" description="Nổi bật và dễ click trên màn hình cảm ứng." />
+                            <div className="pt-4">
+                                <AppCheckbox id="chk-disabled" label="Checkbox Vô hiệu hóa" description="Không thể tương tác." disabled />
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+
 
                     </div>
                   </div>
@@ -523,6 +558,126 @@ const Showcase = () => {
                         <CardHeader><CardTitle>AppBreadcrumb</CardTitle></CardHeader>
                         <CardContent>
                           <AppBreadcrumb paths={[{ label: 'Khóa học', href: '#' }, { label: 'React JS' }]} />
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader><CardTitle>AppCommand & AppCommandPalette</CardTitle><CardDescription>Menu lệnh đa năng, hỗ trợ data-driven AppCommandPalette để tạo Search/Command menu nhanh chóng.</CardDescription></CardHeader>
+                        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                          <div className="space-y-4">
+                            <h4 className="text-sm font-semibold text-muted-foreground mb-2">Inline Command (Outline Variant)</h4>
+                            <AppCommand appVariant="outline" className="max-w-md max-h-[300px]">
+                              <AppCommandInput placeholder="Gõ lệnh hoặc tìm kiếm..." />
+                              <AppCommandList>
+                                <AppCommandEmpty>Không tìm thấy kết quả.</AppCommandEmpty>
+                                <AppCommandGroup heading="Gợi ý">
+                                  <AppCommandItem><CalendarIcon className="mr-2 size-4" />Lịch học</AppCommandItem>
+                                  <AppCommandItem><User className="mr-2 size-4" />Hồ sơ</AppCommandItem>
+                                </AppCommandGroup>
+                                <AppCommandSeparator />
+                                <AppCommandGroup heading="Cài đặt">
+                                  <AppCommandItem><Settings className="mr-2 size-4" />Cài đặt chung<AppCommandShortcut>⌘S</AppCommandShortcut></AppCommandItem>
+                                </AppCommandGroup>
+                              </AppCommandList>
+                            </AppCommand>
+                          </div>
+                          
+                          <div className="space-y-4 border-l pl-8">
+                            <h4 className="text-sm font-semibold text-muted-foreground mb-2">Palette Dialog (Glass Variant)</h4>
+                            <AppButton onClick={() => setCommandOpen(true)} className="w-full justify-start text-muted-foreground" variant="outline">
+                              <Search className="mr-2 size-4" />
+                              Tìm kiếm nhanh...
+                              <kbd className="pointer-events-none ml-auto inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
+                                <span className="text-xs">⌘</span>K
+                              </kbd>
+                            </AppButton>
+                            <AppCommandPalette 
+                              open={commandOpen} 
+                              onOpenChange={setCommandOpen}
+                              groups={[
+                                {
+                                  heading: "Hành động nhanh",
+                                  items: [
+                                    { label: "Tạo bài viết mới", icon: Plus, shortcut: "⌘N" },
+                                    { label: "Quản lý khóa học", icon: Layers }
+                                  ]
+                                },
+                                {
+                                  heading: "Cá nhân",
+                                  items: [
+                                    { label: "Trang cá nhân", icon: User },
+                                    { label: "Thanh toán", icon: CreditCard },
+                                    { label: "Cài đặt", icon: Settings, shortcut: "⌘S" }
+                                  ]
+                                }
+                              ]}
+                            />
+                            <p className="text-xs text-muted-foreground">Click vào input ảo phía trên để mở Command Palette (trải nghiệm Glassmorphism).</p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </div>
+
+                  {/* Overlays */}
+                  <div>
+                    <h3 className="text-xl font-bold mb-4 text-foreground/80">Overlays & Popups</h3>
+                    <div className="space-y-6">
+                      <Card>
+                        <CardHeader><CardTitle>AppDialog</CardTitle><CardDescription>Hộp thoại tự động quản lý trạng thái, hỗ trợ giao diện Glassmorphism.</CardDescription></CardHeader>
+                        <CardContent className="flex gap-4 flex-wrap">
+                          <AppDialog 
+                            title="Xác nhận xóa" 
+                            description="Bạn có chắc chắn muốn xóa khóa học này không? Hành động này không thể hoàn tác."
+                            trigger={<AppButton variant="destructive">Mở Dialog (Glass)</AppButton>}
+                            footer={
+                              <>
+                                <AppButton variant="ghost">Hủy</AppButton>
+                                <AppButton variant="destructive">Xóa khóa học</AppButton>
+                              </>
+                            }
+                          />
+
+                          <AppDialog 
+                            title="Chỉnh sửa thông tin" 
+                            description="Vui lòng nhập các thông tin cần thiết bên dưới."
+                            appVariant="outline"
+                            trigger={<AppButton variant="outline">Mở Dialog (Outline)</AppButton>}
+                            footer={<AppButton>Lưu thay đổi</AppButton>}
+                          >
+                            <div className="space-y-4">
+                              <AppInput id="dl-name" label="Tên hiển thị" placeholder="Nhập tên..." />
+                              <AppInput id="dl-email" label="Email" placeholder="Nhập email..." />
+                            </div>
+                          </AppDialog>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader><CardTitle>AppDropdownMenu</CardTitle><CardDescription>Data-driven Dropdown Menu dễ dàng sử dụng cho các nút tính năng.</CardDescription></CardHeader>
+                        <CardContent className="flex gap-4">
+                          <AppDropdownMenu 
+                            label="Tài khoản của tôi"
+                            trigger={<AppButton appVariant="category">Mở Menu (Glass) <ChevronRight className="ml-2 size-4" /></AppButton>}
+                            items={[
+                              { label: "Trang cá nhân", icon: User, shortcut: "⇧⌘P" },
+                              { label: "Giỏ hàng", icon: ShoppingCart },
+                              { type: "separator" },
+                              { label: "Cài đặt", icon: Settings },
+                              { label: "Đăng xuất", icon: LogOut, className: "text-error" }
+                            ]}
+                          />
+
+                          <AppDropdownMenu 
+                            appVariant="outline"
+                            trigger={<AppIconButton icon={MoreVertical} />}
+                            items={[
+                              { label: "Sửa", icon: Edit },
+                              { label: "Lưu trữ", icon: Cloud },
+                              { type: "separator" },
+                              { label: "Xóa", icon: Trash, className: "text-error" }
+                            ]}
+                          />
                         </CardContent>
                       </Card>
                     </div>

@@ -2,7 +2,7 @@ import React, { Suspense } from "react";
 import MainHeroCarousel from "@/pages/home/components/MainHeroCarousel"
 import SubBannerCarousel from "@/pages/home/components/SubBannerCarousel"
 import CardCarousel from "@/pages/home/components/CardCarousel"
-import AppSection from "@/components/common/composite/AppSection"
+import PageContainer from "@/components/common/core/PageContainer";
 import PlatformStats from "@/pages/home/components/PlatformStats"
 
 import CategoryGrid from "@/pages/home/components/CategoryGrid"
@@ -30,26 +30,26 @@ function HomePage() {
           <RecommendedCourses />
         </div>
 
-        <AppSection title="Danh mục nổi bật" containerClassName="w-full">
+        <PageContainer.Section title="Danh mục nổi bật" className="w-full app-container">
           <CategoryGrid />
-        </AppSection>
+        </PageContainer.Section>
 
-        <AppSection title="Khóa học thịnh hành" containerClassName="w-full">
+        <PageContainer.Section title="Khóa học thịnh hành" className="w-full app-container">
           <FeaturedCourses />
-        </AppSection>
+        </PageContainer.Section>
 
-        <AppSection title="Giảng viên tiêu biểu" containerClassName="w-full">
+        <PageContainer.Section title="Giảng viên tiêu biểu" className="w-full app-container">
           <InstructorGrid />
           <OutcomeBanner />
-        </AppSection>
+        </PageContainer.Section>
 
-        <AppSection title="Khóa học nổi bật" containerClassName="w-full">
+        <PageContainer.Section title="Khóa học nổi bật" className="w-full app-container">
           <CardCarousel />
-        </AppSection>
+        </PageContainer.Section>
 
-        <AppSection title="Câu hỏi thường gặp" containerClassName="w-full">
+        <PageContainer.Section title="Câu hỏi thường gặp" className="w-full app-container">
           <FAQSection />
-        </AppSection>
+        </PageContainer.Section>
 
       </div>
     </div>

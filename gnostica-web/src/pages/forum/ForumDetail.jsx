@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import SectionContainer, { AppBreadcrumb } from '@/components/common/composite/AppSection';
+import PageContainer from "@/components/common/core/PageContainer";
+import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -104,8 +105,8 @@ const ForumDetail = () => {
 
   return (
     <div className="min-h-screen bg-muted pb-16 pt-8">
-      <SectionContainer containerClassName="w-full">
-        <AppBreadcrumb items={breadcrumbItems} />
+      <PageContainer.Section className="w-full app-container">
+        <AppBreadcrumb paths={breadcrumbItems} />
 
         <div className="flex flex-col lg:flex-row gap-8">
           {/* ── Main Content ── */}
@@ -303,7 +304,7 @@ const ForumDetail = () => {
           onSendReport={onSendReport}
           isSubmittingReport={isSubmittingReport}
         />
-      </SectionContainer>
+      </PageContainer.Section>
     </div>
   );
 };

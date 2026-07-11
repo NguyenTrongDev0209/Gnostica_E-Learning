@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Home, Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-import { AppBreadcrumb } from "@/components/common/composite/AppSection";
+import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
 import courseService from "@/services/course/courseService";
 import wishlistService from "@/services/course/wishlistService";
 import { 
@@ -147,10 +147,7 @@ export default function CourseDetail() {
       <div className="app-container pt-8 md:pt-12">
         <div className="mb-6">
           <AppBreadcrumb
-            items={breadcrumbItems}
-            linkClassName="text-muted-foreground hover:text-primary transition-colors"
-            activeClassName="font-bold text-foreground"
-            separatorClassName="text-muted-foreground"
+            paths={breadcrumbItems}
           />
         </div>
 

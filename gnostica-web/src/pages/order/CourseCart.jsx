@@ -25,7 +25,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { AppButton } from "@/components/common/micro/AppButton";
-import { AppBreadcrumb, PageHeader } from "@/components/common/composite/AppSection";
+import PageContainer from "@/components/common/core/PageContainer";
+import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
 import CartItemTableRow from "@/components/common/composite/CartItemTableRow";
 import { Home } from "lucide-react";
 import { cartItemsMock } from "@/apiMocks/cart";
@@ -74,19 +75,12 @@ export default function CourseCart() {
     <div className="min-h-screen bg-background pb-20 pt-8">
       {/* 2. Main Content Area */}
       <main className="app-container">
-        <div className="mb-0">
-          <AppBreadcrumb
-            items={breadcrumbItems}
-            linkClassName="text-muted-foreground hover:text-primary"
-            activeClassName="font-semibold text-foreground"
-            separatorClassName="text-slate-300"
-          />
-          <PageHeader
-            title="Giỏ hàng của bạn"
-            description={`Bạn đang có ${cart.length} khóa học tuyệt vời trong giỏ hàng`}
-            className="mt-4"
-          />
-        </div>
+        <PageContainer.Header
+          title="Giỏ hàng của bạn"
+          description={`Bạn đang có ${cart.length} khóa học tuyệt vời trong giỏ hàng`}
+        >
+          <AppBreadcrumb paths={breadcrumbItems} />
+        </PageContainer.Header>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
 

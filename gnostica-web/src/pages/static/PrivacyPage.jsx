@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Home, Shield } from "lucide-react";
-import { AppBreadcrumb } from "@/components/common/composite/AppSection";
+import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
 import { privacySectionsMock } from "@/apiMocks/staticPages";
 
 export default function PrivacyPage() {
@@ -11,13 +11,10 @@ export default function PrivacyPage() {
       <section className="bg-muted py-12 text-white">
         <div className="app-container">
           <AppBreadcrumb 
-            items={[
-              { label: "Trang chủ", href: "/", icon: Home },
-              { label: "Chính sách bảo mật", isLast: true }
+            paths={[
+              { label: "Trang chủ", href: "/" },
+              { label: "Chính sách bảo mật" }
             ]} 
-            linkClassName="text-muted-foreground hover:text-slate-100"
-            activeClassName="font-semibold text-slate-200"
-            separatorClassName="text-muted-foreground"
           />
           <h1 className="text-3xl md:text-4xl font-extrabold flex items-center gap-3">
             <Shield className="w-8 h-8 text-primary" />

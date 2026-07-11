@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Card, CardContent } from "@/components/ui/card";
 import { Star } from "lucide-react";
-import AppSection from "@/components/common/composite/AppSection";
+import PageContainer from "@/components/common/core/PageContainer";
 
 const testimonials = [
   {
@@ -68,13 +68,12 @@ export function TestimonialCarousel() {
   );
 
   return (
-    <AppSection
+    <PageContainer.Section
       title={titleNode}
       description="Khám phá hành trình thay đổi của những học viên đã tin tưởng và đồng hành cùng Gnostica."
-      centered={true}
-      className="py-8 md:py-12 bg-muted dark:bg-transparent"
-      containerClassName="relative w-full px-2 md:px-12 pt-4"
+      className="py-8 md:py-12 bg-muted dark:bg-transparent items-center text-center"
     >
+      <div className="relative w-full px-2 md:px-12 pt-4">
       <Carousel
         setApi={setApi}
         opts={{
@@ -137,7 +136,8 @@ export function TestimonialCarousel() {
         <CarouselPrevious className="hidden md:flex -left-2 lg:left-4 bg-white shadow-xl border-none hover:bg-orange-50 hover:text-warning hover:scale-110 transition-all w-12 h-12 z-40 text-neutral-400" />
         <CarouselNext className="hidden md:flex -right-2 lg:right-4 bg-white shadow-xl border-none hover:bg-orange-50 hover:text-warning hover:scale-110 transition-all w-12 h-12 z-40 text-neutral-400" />
       </Carousel>
-    </AppSection>
+      </div>
+    </PageContainer.Section>
   );
 }
 export default TestimonialCarousel;

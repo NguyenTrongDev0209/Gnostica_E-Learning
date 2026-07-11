@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import SectionContainer from '@/components/common/composite/AppSection';
+import PageContainer from "@/components/common/core/PageContainer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback, AvatarBadge } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -208,7 +208,7 @@ const UserProfile = () => {
         <div className="absolute inset-0 opacity-20 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC40Ij48cGF0aCBkPSJNMzYgMzRjMC0yLjIgMS44LTQgNC00czQgMS44IDQgNC0xLjggNC00IDQtNC0xLjgtNC00eiIvPjwvZz48L2c+PC9zdmc+')] bg-repeat" />
       </div>
 
-      <SectionContainer containerClassName="w-full">
+      <PageContainer.Section className="w-full app-container">
         {/* Profile Header */}
         <div className="relative -mt-16 sm:-mt-20 mb-6">
           <Card className="bg-white border-border shadow-sm">
@@ -450,7 +450,7 @@ const UserProfile = () => {
             </Link>
           </div>
         </div>
-      </SectionContainer>
+      </PageContainer.Section>
 
       <PersonalizationModal
         forceOpen={isPersonalizationOpen}

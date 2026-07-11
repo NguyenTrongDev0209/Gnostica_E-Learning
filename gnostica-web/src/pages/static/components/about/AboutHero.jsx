@@ -2,7 +2,7 @@ import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Monitor, Home } from "lucide-react";
 import { AppButton } from "@/components/common/micro/AppButton";
-import { AppBreadcrumb } from "@/components/common/composite/AppSection";
+import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
 
 export default function AboutHero({ data }) {
   const breadcrumbItems = [
@@ -12,10 +12,9 @@ export default function AboutHero({ data }) {
 
   return (
     <section className="app-container py-6 md:py-12">
-      <AppBreadcrumb 
-        items={breadcrumbItems} 
-        className="mb-6 md:mb-10" 
-      />
+      <div className="mb-6 md:mb-10">
+        <AppBreadcrumb paths={breadcrumbItems} />
+      </div>
       <div className="grid md:grid-cols-2 items-center gap-6">
         <div className="flex flex-col gap-6">
           <Badge variant="secondary" className="w-fit bg-primary/10 text-primary hover:bg-primary/20 transition-colors">

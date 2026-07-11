@@ -1,5 +1,6 @@
 import React from 'react';
-import SectionContainer, { PageHeader, AppBreadcrumb } from '@/components/common/composite/AppSection';
+import PageContainer from "@/components/common/core/PageContainer";
+import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
 import { ForumPostCard } from "@/components/common/composite/AppCard";
 import { ChevronLeft, ThumbsUp, LayoutGrid, Trash2 } from 'lucide-react';
 import { AppButton } from "@/components/common/micro/AppButton";
@@ -53,16 +54,15 @@ const MyForumPosts = () => {
 
     return (
         <div className="min-h-screen bg-muted pb-16 pt-8">
-            <SectionContainer containerClassName="w-full">
-                <AppBreadcrumb items={breadcrumbItems} />
-
+            <PageContainer.Section className="w-full app-container">
                 <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 sm:mb-12 gap-4">
-                    <PageHeader
-                        title="Bài viết"
-                        highlightedTitle={activeTab === 'liked' ? "đã thích" : "của tôi"}
+                    <PageContainer.Header
+                        title={<>Bài viết <span className="bg-accent-gradient bg-clip-text text-transparent italic">{activeTab === 'liked' ? "đã thích" : "của tôi"}</span></>}
                         description={activeTab === 'liked' ? "Xem lại danh sách tất cả các bài viết bạn đã bày tỏ thái độ yêu thích." : "Quản lý và xem lại tất cả các nội dung bạn đã chia sẻ trên diễn đàn."}
                         className="mb-0 sm:mb-0"
-                    />
+                    >
+                        <AppBreadcrumb paths={breadcrumbItems} />
+                    </PageContainer.Header>
                     <Link to="/forum">
                         <AppButton appVariant="ghostMuted" variant="ghost" className="gap-2 border border-border">
                            <ChevronLeft className="w-4 h-4" /> Quay lại diễn đàn
@@ -193,7 +193,7 @@ const MyForumPosts = () => {
                         )}
                     </div>
                 </div>
-            </SectionContainer>
+            </PageContainer.Section>
         </div>
     );
 };

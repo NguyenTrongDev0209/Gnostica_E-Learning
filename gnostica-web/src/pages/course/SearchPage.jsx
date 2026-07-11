@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { AppBreadcrumb, PageHeader } from "@/components/common/composite/AppSection";
+import PageContainer from "@/components/common/core/PageContainer";
+import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
 import CourseListSection from "@/pages/course/components/shared/CourseListSection";
 import { Home } from "lucide-react";
 import { useSearch } from "@/hooks/course/useSearch";
@@ -45,12 +46,12 @@ const SearchPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="app-container py-8 md:py-12">
-        <AppBreadcrumb items={breadcrumbItems} />
-
-        <PageHeader
+        <PageContainer.Header
           title={`Kết quả tìm kiếm ${query ? `cho "${query}"` : ""}`}
           description={loading ? "Đang tìm kiếm khóa học..." : `Tìm thấy ${totalElements} khóa học phù hợp với yêu cầu của bạn.`}
-        />
+        >
+          <AppBreadcrumb paths={breadcrumbItems} />
+        </PageContainer.Header>
 
         <CourseListSection
           courses={courses}
