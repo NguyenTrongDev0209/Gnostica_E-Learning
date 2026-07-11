@@ -35,7 +35,11 @@ export default function useForumDetail(slug) {
         ]);
         
         setComments(commentsData);
-        setRelatedPosts(relatedData);
+        // Filter out the current post from related posts
+        const filtered = Array.isArray(relatedData)
+          ? relatedData.filter(p => p.id !== postData.id)
+          : [];
+        setRelatedPosts(filtered);
 
         // Fetch user specific data if logged in
         const userData = JSON.parse(localStorage.getItem('user'));

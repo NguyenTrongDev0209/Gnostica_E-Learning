@@ -20,6 +20,7 @@ public interface ThreadService {
     Page<Thread> getLikedThreadsByEmail(String email, Pageable pageable);
     Map<String, Object> getUserStats(String email);
     void deleteThread(Integer id);
+    void rejectThread(Integer id, String reason);
     void incrementView(Integer id);
     Page<Thread> getPendingThreads(Pageable pageable);
     Thread approveThread(Integer id);
