@@ -2,8 +2,8 @@ import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { SimpleButton, GhostButton } from "@/components/common/AppButton";
 import AppBreadcrumb from "@/components/common/AppBreadcrumb";
 import AppPageHeader from "@/components/common/AppPageHeader";
 import { UserCog, Camera, Save, Loader2 } from "lucide-react";
@@ -135,14 +135,13 @@ export default function Settings() {
                       Tùy chỉnh lĩnh vực quan tâm và trình độ hiện tại để hệ thống đề xuất khóa học phù hợp nhất.
                     </p>
                   </div>
-                  <Button
+                  <GhostButton
                     type="button"
-                    variant="outline"
                     onClick={() => setPersonalizationOpen(true)}
-                    className="shrink-0 border-primary/20 text-primary hover:bg-primary hover:text-white"
+                    className="shrink-0 border border-primary/20 text-primary hover:bg-primary hover:text-white"
                   >
                     Thay đổi
-                  </Button>
+                  </GhostButton>
                 </div>
               </div>
 
@@ -160,10 +159,10 @@ export default function Settings() {
 
             {/* Submit Button */}
             <div className="pt-4 flex justify-end">
-              <Button
+              <SimpleButton
                 type="submit"
                 disabled={isLoading}
-                className="h-12 px-8 font-bold bg-primary hover:bg-primary/90 text-white gap-2 shadow-lg shadow-primary/20 hover:shadow-xl transition-all w-full sm:w-auto"
+                className="h-12 px-8 font-bold gap-2 shadow-lg shadow-primary/20 hover:shadow-xl transition-all w-full sm:w-auto"
               >
                 {isLoading ? (
                   <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -173,7 +172,7 @@ export default function Settings() {
                     Lưu thay đổi
                   </>
                 )}
-              </Button>
+              </SimpleButton>
             </div>
           </form>
         </CardContent>

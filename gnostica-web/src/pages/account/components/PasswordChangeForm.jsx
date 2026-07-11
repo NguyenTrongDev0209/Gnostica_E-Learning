@@ -2,8 +2,8 @@ import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
 import { Eye, EyeOff } from "lucide-react";
+import { SimpleButton } from "@/components/common/AppButton";
 
 export default function PasswordChangeForm({
   formData,
@@ -118,17 +118,17 @@ export default function PasswordChangeForm({
 
           {/* Submit Button */}
           <div className="pt-6">
-            <Button 
+            <SimpleButton 
               type="submit" 
               disabled={isLoading}
-              className="h-12 font-bold bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 hover:shadow-xl transition-all w-full md:w-auto px-8"
+              className="h-12 font-bold shadow-lg shadow-primary/20 hover:shadow-xl transition-all w-full md:w-auto px-8"
             >
               {isLoading ? (
                 <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
                 "Cập nhật mật khẩu"
               )}
-            </Button>
+            </SimpleButton>
           </div>
         </form>
       </CardContent>

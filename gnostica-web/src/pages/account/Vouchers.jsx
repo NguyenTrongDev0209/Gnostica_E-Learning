@@ -7,6 +7,7 @@ import AppPageHeader from "@/components/common/AppPageHeader";
 import { Ticket, Scissors, CheckCircle2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import useVouchers from "@/hooks/account/useVouchers";
+import { GhostButton } from "@/components/common/AppButton";
 
 export default function Vouchers() {
   const { vouchers, loading, handleCopyCode } = useVouchers();
@@ -92,14 +93,14 @@ export default function Vouchers() {
                     </div>
                     
                     {!isExpired && (
-                      <button 
+                      <GhostButton 
                         onClick={() => handleCopyCode(voucher.code)}
                         className="flex items-center justify-center gap-2 px-4 py-2 bg-secondary hover:bg-muted text-foreground text-sm font-bold rounded-xl transition-colors shrink-0"
                         aria-label="Sao chép mã"
                       >
                         <Scissors className="w-4 h-4" />
                         Sao chép
-                      </button>
+                      </GhostButton>
                     )}
                   </div>
 

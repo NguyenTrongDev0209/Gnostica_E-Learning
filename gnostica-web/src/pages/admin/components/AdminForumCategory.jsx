@@ -16,7 +16,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
 import { SimpleButton, TableActionIconButton, GhostButton } from "@/components/common/AppButton";
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
@@ -320,22 +319,20 @@ export default function AdminForumCategory({ hideHeader = false }) {
                     </TableCell>
                     <TableCell className="text-center">
                       <div className="flex justify-center items-center gap-2">
-                        <Button
-                          variant="ghost"
+                        <GhostButton
                           size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-primary"
+                          className="h-8 w-8 text-muted-foreground hover:text-primary border-none"
                           onClick={() => handleEdit(cat)}
                         >
                           <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
+                        </GhostButton>
+                        <GhostButton
                           size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-error"
+                          className="h-8 w-8 text-muted-foreground hover:text-error border-none"
                           onClick={() => handleDelete(cat.id)}
                         >
                           <Trash2 className="w-4 h-4" />
-                        </Button>
+                        </GhostButton>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -457,9 +454,9 @@ export default function AdminForumCategory({ hideHeader = false }) {
                 >
                   Hủy bỏ
                 </GhostButton>
-                <Button type="submit" className="bg-primary font-bold px-6">
+                <SimpleButton type="submit" className="bg-primary font-bold px-6">
                   {editId ? "Lưu Cập Nhật" : "Tạo chủ đề"}
-                </Button>
+                </SimpleButton>
               </DialogFooter>
             </form>
           </Form>

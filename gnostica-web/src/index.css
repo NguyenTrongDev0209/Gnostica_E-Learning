@@ -149,17 +149,17 @@
   --btn-sm-gap: 6px;
 
   /* Typography Scales */
-  --text-2xs: 0.625rem;
-  --text-xs: 0.75rem;
-  --text-sm: 0.875rem;
-  --text-base: 1rem;
-  --text-lg: 1.125rem;
-  --text-xl: 1.25rem;
-  --text-2xl: 1.5rem;
-  --text-3xl: 1.875rem;
-  --text-4xl: 2.25rem;
-  --text-5xl: 3rem;
-  --text-display: 3.75rem;
+  --type-size-2xs: 0.625rem;
+  --type-size-xs: 0.75rem;
+  --type-size-sm: 0.875rem;
+  --type-size-base: 1rem;
+  --type-size-lg: 1.125rem;
+  --type-size-xl: 1.25rem;
+  --type-size-2xl: 1.5rem;
+  --type-size-3xl: 1.875rem;
+  --type-size-4xl: 2.25rem;
+  --type-size-5xl: 3rem;
+  --type-size-display: 3.75rem;
 
   /* Custom Shadows */
   --gnostica-shadow-sm: 0 1px 2px 0 oklch(0.2 0.08 285 / 0.05);
@@ -256,17 +256,19 @@
   --font-sans: 'Inter Variable', sans-serif;
 
   /* Typography */
-  --font-size-2xs: var(--text-2xs);
-  --font-size-xs: var(--text-xs);
-  --font-size-sm: var(--text-sm);
-  --font-size-base: var(--text-base);
-  --font-size-lg: var(--text-lg);
-  --font-size-xl: var(--text-xl);
-  --font-size-2xl: var(--text-2xl);
-  --font-size-3xl: var(--text-3xl);
-  --font-size-4xl: var(--text-4xl);
-  --font-size-5xl: var(--text-5xl);
-  --font-size-display: var(--text-display);
+  --text-2xs: var(--type-size-2xs);
+  --text-2xs--line-height: 0.875rem;
+  --text-xs: var(--type-size-xs);
+  --text-sm: var(--type-size-sm);
+  --text-base: var(--type-size-base);
+  --text-lg: var(--type-size-lg);
+  --text-xl: var(--type-size-xl);
+  --text-2xl: var(--type-size-2xl);
+  --text-3xl: var(--type-size-3xl);
+  --text-4xl: var(--type-size-4xl);
+  --text-5xl: var(--type-size-5xl);
+  --text-display: var(--type-size-display);
+  --text-display--line-height: 1;
 
   /* Colors */
   --color-primary: var(--primary);
@@ -394,11 +396,6 @@
     @apply bg-primary/20 text-primary;
   }
 
-  /* Scrollbars - Hide scrollbar from browser window itself */
-  html { scrollbar-width: none; }
-  html::-webkit-scrollbar { width: 0; height: 0; }
-  body { scrollbar-width: none; }
-  body::-webkit-scrollbar { display: none; width: 0; height: 0; }
 }
 
 @layer components {
@@ -485,13 +482,13 @@
   .scrollbar-hide::-webkit-scrollbar { display: none; }
   .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
-  .glass { @apply bg-white/70 backdrop-blur-md border border-white/20 shadow-sm; }
-  .glass-dark { @apply bg-black/40 backdrop-blur-md border border-white/10 shadow-lg; }
+  .glass { @apply bg-card/70 backdrop-blur-md border border-border shadow-sm; }
+  .glass-dark { @apply bg-card/70 backdrop-blur-md border border-border shadow-lg; }
 
   .skeleton { @apply bg-muted relative overflow-hidden rounded-md; }
   .skeleton::after {
     content: "";
-    @apply absolute inset-0 bg-linear-to-r from-transparent via-white/20 to-transparent;
+    @apply absolute inset-0 bg-linear-to-r from-transparent via-foreground/10 to-transparent;
     animation: shimmer 2s infinite linear;
     background-size: 200% 100%;
   }
@@ -503,6 +500,7 @@
   .hover-glow { @apply transition-shadow duration-300 ease-out; }
   .hover-glow:hover { box-shadow: 0 0 20px color-mix(in srgb, var(--primary), transparent 70%); }
 
+  .scrollbar-thin { scrollbar-width: thin; }
   .scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
   .scrollbar-thin::-webkit-scrollbar-track { @apply bg-transparent; }
   .scrollbar-thin::-webkit-scrollbar-thumb { @apply bg-muted-foreground/20 rounded-full hover:bg-muted-foreground/40 transition-colors; }
@@ -559,22 +557,20 @@
   }
 }
 
-/* Hide scrollbar from browser window itself (still scrollable). */
-html {
-  scrollbar-width: none;
-}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 
-html::-webkit-scrollbar {
-  width: 0;
-  height: 0;
-}
+  .animate-fade-up,
+  .animate-subtle-float,
+  .animate-shimmer,
+  .skeleton::after {
+    animation: none !important;
+  }
 
-body {
-  scrollbar-width: none;
-}
-
-body::-webkit-scrollbar {
-  display: none;
-  width: 0;
-  height: 0;
+  .hover-lift {
+    transition-property: none;
+    transform: none !important;
+  }
 }

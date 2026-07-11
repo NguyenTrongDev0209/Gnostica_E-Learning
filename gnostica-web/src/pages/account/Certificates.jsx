@@ -1,7 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import AppBreadcrumb from "@/components/common/AppBreadcrumb";
 import AppPageHeader from "@/components/common/AppPageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -13,6 +12,7 @@ import {
   Trophy,
   ExternalLink,
 } from "lucide-react";
+import { SimpleButton, GhostButton } from "@/components/common/AppButton";
 
 export default function Certificates() {
   const { certificates, loading } = useCertificates();
@@ -99,13 +99,13 @@ export default function Certificates() {
 
                   {/* Actions */}
                   <div className="flex items-center gap-3 mt-6 pt-4 border-t border-border">
-                    <Button className="flex-1 bg-primary text-white hover:bg-primary/90 font-bold text-sm gap-2">
+                    <SimpleButton className="flex-1 font-bold text-sm gap-2">
                       <Download className="w-4 h-4" />
                       Tải PDF
-                    </Button>
-                    <Button variant="outline" className="px-4 text-muted-foreground hover:text-primary hover:bg-primary/5 transition-colors border-border">
+                    </SimpleButton>
+                    <GhostButton className="px-4 text-muted-foreground hover:text-primary hover:bg-primary/5 transition-colors border border-border">
                       <Share2 className="w-4 h-4" />
-                    </Button>
+                    </GhostButton>
                   </div>
                 </div>
               </CardContent>
@@ -123,7 +123,7 @@ export default function Certificates() {
               Hãy cố gắng hoàn thành 100% bài giảng và bài tập trong khóa học để mở khóa chứng chỉ của bạn nhé!
             </p>
             <Link to="/account/my-courses">
-              <Button className="font-bold bg-primary text-white">Quay lại học ngay</Button>
+              <SimpleButton className="font-bold">Quay lại học ngay</SimpleButton>
             </Link>
           </CardContent>
         </Card>

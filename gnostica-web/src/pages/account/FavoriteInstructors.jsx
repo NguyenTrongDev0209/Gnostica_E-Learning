@@ -1,12 +1,12 @@
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import { Link } from 'react-router-dom';
 import AppBreadcrumb from "@/components/common/AppBreadcrumb";
 import AppPageHeader from "@/components/common/AppPageHeader";
 import { Users, ArrowRight, UserMinus, Star } from "lucide-react";
 import useFavoriteInstructors from '@/hooks/account/useFavoriteInstructors';
+import { SimpleButton } from '@/components/common/AppButton';
 
 export default function FavoriteInstructors() {
     const { instructors, loading, handleUnfollow } = useFavoriteInstructors();
@@ -72,7 +72,7 @@ export default function FavoriteInstructors() {
                     <h3 className="text-lg font-bold text-foreground mb-1">Chưa theo dõi giảng viên nào</h3>
                     <p className="text-sm text-muted-foreground mb-6">Hãy khám phá và theo dõi những giảng viên yêu thích của bạn.</p>
                     <Link to="/instructors">
-                        <Button className="bg-primary hover:bg-primary/90 font-bold px-6">Khám phá ngay</Button>
+                        <SimpleButton className="font-bold px-6">Khám phá ngay</SimpleButton>
                     </Link>
                 </div>
             )}

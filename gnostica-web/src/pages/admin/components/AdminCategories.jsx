@@ -18,7 +18,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { SimpleButton, TableActionIconButton, GhostButton } from "@/components/common/AppButton";
@@ -360,25 +359,23 @@ export default function AdminCategories({ hideHeader = false }) {
                               className="flex justify-center items-center gap-2"
                               onClick={(e) => e.stopPropagation()}
                             >
-                              <Button
-                                variant="ghost"
+                              <GhostButton
                                 size="icon"
-                                className="h-8 w-8 text-muted-foreground hover:text-primary"
+                                className="h-8 w-8 text-muted-foreground hover:text-primary border-none"
                                 onClick={(e) => handleEdit(e, sub, cat.id)}
                               >
                                 <Edit className="w-4 h-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
+                              </GhostButton>
+                              <GhostButton
                                 size="icon"
-                                className="h-8 w-8 text-muted-foreground hover:text-error"
+                                className="h-8 w-8 text-muted-foreground hover:text-error border-none"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleDelete(sub.id);
                                 }}
                               >
                                 <Trash2 className="w-4 h-4" />
-                              </Button>
+                              </GhostButton>
                             </div>
                           </TableCell>
                         </TableRow>
@@ -394,33 +391,35 @@ export default function AdminCategories({ hideHeader = false }) {
                 Hiển thị {(currentPage - 1) * ITEMS_PER_PAGE + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, totalElements)} của {totalElements} chủ đề
               </span>
               <div className="flex gap-2">
-                <Button
-                  variant="outline"
+                <GhostButton
                   size="sm"
+                  className="border border-border bg-white"
                   onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                   disabled={currentPage === 1}
                 >
                   Trước
-                </Button>
-                {Array.from({ length: totalPages }).map((_, idx) => (
-                  <Button
-                    key={idx}
-                    variant={currentPage === idx + 1 ? "default" : "outline"}
-                    size="sm"
-                    className="w-8 h-8 rounded-lg p-0"
-                    onClick={() => setCurrentPage(idx + 1)}
-                  >
-                    {idx + 1}
-                  </Button>
-                ))}
-                <Button
-                  variant="outline"
+                </GhostButton>
+                {Array.from({ length: totalPages }).map((_, idx) => {
+                  const Btn = currentPage === idx + 1 ? SimpleButton : GhostButton;
+                  return (
+                    <Btn
+                      key={idx}
+                      size="sm"
+                      className={`w-8 h-8 rounded-lg p-0 ${currentPage === idx + 1 ? 'bg-primary' : 'border border-border bg-white'}`}
+                      onClick={() => setCurrentPage(idx + 1)}
+                    >
+                      {idx + 1}
+                    </Btn>
+                  );
+                })}
+                <GhostButton
                   size="sm"
+                  className="border border-border bg-white"
                   onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
                   disabled={currentPage === totalPages}
                 >
                   Sau
-                </Button>
+                </GhostButton>
               </div>
             </div>
           )}
@@ -573,9 +572,9 @@ export default function AdminCategories({ hideHeader = false }) {
                 >
                   Hủy bỏ
                 </GhostButton>
-                <Button type="submit" className="bg-primary font-bold px-6">
+                <SimpleButton type="submit" className="bg-primary font-bold px-6">
                   {editId ? "Lưu Cập Nhật" : "Tạo chủ đề"}
-                </Button>
+                </SimpleButton>
               </DialogFooter>
             </form>
           </Form>

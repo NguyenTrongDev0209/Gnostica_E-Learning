@@ -5,6 +5,8 @@ import { Heart } from "lucide-react";
 import AppBreadcrumb from "@/components/common/AppBreadcrumb";
 import AppPageHeader from "@/components/common/AppPageHeader";
 import useWishlist from "@/hooks/account/useWishlist";
+import { GhostButton } from "@/components/common/AppButton";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Wishlist() {
   const { courses, loading, handleToggleWishlist } = useWishlist();
@@ -62,9 +64,9 @@ export default function Wishlist() {
           <h3 className="text-lg font-bold text-foreground mb-2">Chưa có khóa học nào</h3>
           <p className="text-muted-foreground mb-6">Bạn chưa lưu khóa học nào vào danh sách yêu thích.</p>
           <Link to="/courses">
-            <button className="px-6 py-2.5 rounded-xl border-2 border-primary text-primary font-bold hover:bg-primary/5 transition-colors">
+            <GhostButton className="px-6 py-2.5 rounded-xl border-2 border-primary text-primary font-bold hover:bg-primary/5 transition-colors">
               Khám phám khóa học mới
-            </button>
+            </GhostButton>
           </Link>
         </div>
       )}
