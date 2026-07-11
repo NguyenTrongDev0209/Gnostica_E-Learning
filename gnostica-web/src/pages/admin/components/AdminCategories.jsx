@@ -10,12 +10,17 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import AppTable from "@/components/common/AppTable";
-import { TableRow, TableCell } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SimpleButton, TableActionIconButton, GhostButton } from "@/components/common/AppButton";
-import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -145,7 +150,7 @@ export default function AdminCategories({ hideHeader = false }) {
         >
           <Plus className="w-4 h-4" />
           Thêm Chủ Đề
-        </Button>
+        </SimpleButton>
       </div>
 
       {/* Filter */}
@@ -211,7 +216,16 @@ export default function AdminCategories({ hideHeader = false }) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {categories.length === 0 ? (
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="h-32 text-center text-muted-foreground font-medium">
+                    <div className="flex flex-col items-center justify-center gap-3">
+                      <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                      <span className="text-sm animate-pulse">Đang tải dữ liệu...</span>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : categories.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="h-32 text-center text-muted-foreground font-medium">
                     Không tìm thấy chủ đề nào phù hợp.
@@ -220,38 +234,45 @@ export default function AdminCategories({ hideHeader = false }) {
               ) : (
                 categories.map((cat) => (
                   <React.Fragment key={cat.id}>
+                    {/* Parent category row */}
                     <TableRow
-                      key={sub.id}
-                      className="bg-muted/60 hover:bg-secondary"
+                      className="hover:bg-secondary cursor-pointer"
+                      onClick={() => setExpanded(expanded === cat.id ? null : cat.id)}
                     >
-                      <TableCell className="w-8" />
-                      <TableCell className="pl-12">
+                      <TableCell className="w-8">
+                        {cat.subcategories && cat.subcategories.length > 0 && (
+                          <ChevronRight
+                            className={`w-4 h-4 text-muted-foreground transition-transform ${expanded === cat.id ? "rotate-90" : ""}`}
+                          />
+                        )}
+                      </TableCell>
+                      <TableCell>
                         <div className="flex items-center gap-3">
-                          <div className="w-1.5 h-1.5 rounded-full bg-muted" />
+                          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                            <FolderOpen className="w-4 h-4 text-primary" />
+                          </div>
                           <div>
-                            <p className="font-bold text-foreground">
-                              {sub.name}
-                            </p>
+                            <p className="font-bold text-foreground">{cat.name}</p>
                           </div>
                         </div>
                       </TableCell>
                       <TableCell>
                         <code className="text-xs bg-white px-2 py-1 rounded border border-border text-muted-foreground font-mono">
-                          {sub.slug}
+                          {cat.slug}
                         </code>
                       </TableCell>
-                      <TableCell className="text-center">
-                        <span className="text-sm text-muted-foreground font-medium block w-full">-</span>
+                      <TableCell className="text-center font-bold text-foreground">
+                        {cat.subcategories ? cat.subcategories.length : 0}
                       </TableCell>
                       <TableCell className="text-center font-bold text-foreground">
-                        {sub.courses}
+                        {cat.courses || 0}
                       </TableCell>
                       <TableCell>
-                        {sub.status === true ? (
+                        {cat.status === true ? (
                           <span
                             onClick={(e) => {
                               e.stopPropagation();
-                              toggleStatus(sub.id, false);
+                              toggleStatus(cat.id, false);
                             }}
                             className="inline-flex items-center gap-1.5 text-sm text-success font-medium cursor-pointer hover:underline"
                           >
@@ -262,7 +283,7 @@ export default function AdminCategories({ hideHeader = false }) {
                           <span
                             onClick={(e) => {
                               e.stopPropagation();
-                              toggleStatus(sub.id, true);
+                              toggleStatus(cat.id, true);
                             }}
                             className="inline-flex items-center gap-1.5 text-sm text-muted-foreground font-medium cursor-pointer hover:underline"
                           >
@@ -278,21 +299,21 @@ export default function AdminCategories({ hideHeader = false }) {
                         >
                           <TableActionIconButton
                             icon={Edit}
-                            onClick={(e) => handleEdit(e, sub, cat.id)}
+                            onClick={(e) => handleEdit(e, cat)}
                           />
                           <TableActionIconButton
                             icon={Trash2}
                             colorVariant="error"
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleDelete(sub.id);
+                              handleDelete(cat.id);
                             }}
                           />
                         </div>
                       </TableCell>
                     </TableRow>
 
-                    {/* Subcategories expanded row */}
+                    {/* Subcategories expanded rows */}
                     {expanded === cat.id &&
                       cat.subcategories &&
                       cat.subcategories.length > 0 &&
@@ -321,7 +342,7 @@ export default function AdminCategories({ hideHeader = false }) {
                             <span className="text-sm text-muted-foreground font-medium block w-full">-</span>
                           </TableCell>
                           <TableCell className="text-center font-bold text-foreground">
-                            {sub.courses}
+                            {sub.courses || 0}
                           </TableCell>
                           <TableCell>
                             {sub.status === true ? (
@@ -353,25 +374,18 @@ export default function AdminCategories({ hideHeader = false }) {
                               className="flex justify-center items-center gap-2"
                               onClick={(e) => e.stopPropagation()}
                             >
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-muted-foreground hover:text-primary"
+                              <TableActionIconButton
+                                icon={Edit}
                                 onClick={(e) => handleEdit(e, sub, cat.id)}
-                              >
-                                <Edit className="w-4 h-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-muted-foreground hover:text-error"
+                              />
+                              <TableActionIconButton
+                                icon={Trash2}
+                                colorVariant="error"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleDelete(sub.id);
                                 }}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
+                              />
                             </div>
                           </TableCell>
                         </TableRow>
@@ -565,7 +579,7 @@ export default function AdminCategories({ hideHeader = false }) {
                   className="border border-border"
                 >
                   Hủy bỏ
-                </Button>
+                </GhostButton>
                 <Button type="submit" className="bg-primary font-bold px-6">
                   {editId ? "Lưu Cập Nhật" : "Tạo chủ đề"}
                 </Button>

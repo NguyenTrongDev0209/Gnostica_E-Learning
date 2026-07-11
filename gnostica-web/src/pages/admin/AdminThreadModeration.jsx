@@ -31,6 +31,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function AdminThreadModeration() {
   const [pendingThreads, setPendingThreads] = useState([]);
@@ -43,6 +51,8 @@ export default function AdminThreadModeration() {
     title: "",
     description: "",
   });
+  const [rejectType, setRejectType] = useState("");
+  const [rejectDetail, setRejectDetail] = useState("");
 
   const fetchPendingThreads = async () => {
     setIsLoading(true);
@@ -71,18 +81,33 @@ export default function AdminThreadModeration() {
         description: "Bạn có chắc chắn muốn phê duyệt bài viết này hiển thị trên cộng đồng?",
       });
     } else if (type === "delete") {
+      setRejectType("");
+      setRejectDetail("");
       setConfirmState({
         isOpen: true,
         threadId: id,
         type: "delete",
-        title: "Xác nhận từ chối bài viết",
-        description: "Hành động này sẽ từ chối và xóa bài viết khỏi danh sách chờ. Bạn không thể hoàn tác hành động này.",
+        title: "Lý do từ chối",
+        description: "Vui lòng chọn loại vi phạm và cung cấp thông tin chi tiết bên dưới để gửi thông báo đến tác giả.",
       });
     }
   };
 
+  const rejectTypeLabels = {
+    spam: "Spam / Quảng cáo",
+    harassment: "Quấy rối / Chửi bới / Lăng mạ",
+    inappropriate: "Nội dung không phù hợp / Phản cảm",
+    copyright: "Vi phạm bản quyền",
+    other: "Khác",
+  };
+
   const handleConfirmAction = async () => {
     const { threadId, type } = confirmState;
+    if (type === "delete" && !rejectType) {
+      toast.error("Vui lòng chọn loại vi phạm!");
+      return;
+    }
+
     setConfirmState(prev => ({ ...prev, isOpen: false }));
     if (!threadId) return;
 
@@ -97,12 +122,13 @@ export default function AdminThreadModeration() {
       }
     } else if (type === "delete") {
       try {
-        await threadService.deleteThread(threadId);
-        toast.success("Đã từ chối và xóa bài viết!");
+        const fullReason = `${rejectTypeLabels[rejectType] || rejectType}${rejectDetail ? ' - ' + rejectDetail : ''}`;
+        await threadService.rejectThread(threadId, fullReason);
+        toast.success("Đã từ chối bài viết!");
         setPendingThreads(prev => prev.filter(t => t.id !== threadId));
       } catch (error) {
         console.error("Error deleting thread:", error);
-        toast.error("Xóa bài viết thất bại");
+        toast.error("Từ chối bài viết thất bại");
       }
     }
   };
@@ -225,7 +251,7 @@ export default function AdminThreadModeration() {
                       </div>
 
                       {/* Middle: Content and Category */}
-                      <div className="flex-1 min-w-0 space-y-2.5 overflow-hidden">
+                      <div className="flex-1 min-w-0 space-y-2.5 overflow-hidden w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <Badge variant="secondary" className="bg-primary/10 text-primary hover:bg-primary/10 border-none font-semibold px-2 py-0.5 text-xs">
                             <Layers className="w-3 h-3 mr-1" />
@@ -238,8 +264,8 @@ export default function AdminThreadModeration() {
                         </div>
 
                         {/* Content text */}
-                        <div className="relative text-sm text-muted-foreground leading-relaxed font-normal">
-                          <div className={(!isExpanded && hasLongContent) ? "line-clamp-4 max-h-[120px] overflow-hidden" : (isExpanded ? "max-h-[500px] overflow-y-auto pr-2 scrollbar-thin" : "")}>
+                        <div className="relative text-sm text-muted-foreground leading-relaxed font-normal overflow-hidden">
+                          <div className={`break-words overflow-wrap-anywhere ${(!isExpanded && hasLongContent) ? "line-clamp-4 max-h-[120px] overflow-hidden" : (isExpanded ? "max-h-[500px] overflow-y-auto pr-2 scrollbar-thin" : "")}`}>
                             <RenderContent text={thread.content} />
                           </div>
                           {hasLongContent && (
@@ -307,9 +333,8 @@ export default function AdminThreadModeration() {
         </CardContent>
       </Card>
 
-      {/* Confirmation Alert Dialog */}
       <AlertDialog open={confirmState.isOpen} onOpenChange={(open) => setConfirmState(prev => ({ ...prev, isOpen: open }))}>
-        <AlertDialogContent>
+        <AlertDialogContent className="bg-white sm:max-w-md">
           <AlertDialogHeader>
             <div className="flex items-center gap-2">
               <AlertCircle className={`w-5 h-5 ${confirmState.type === "approve" ? "text-emerald-500" : "text-rose-500"}`} />
@@ -319,11 +344,42 @@ export default function AdminThreadModeration() {
               {confirmState.description}
             </AlertDialogDescription>
           </AlertDialogHeader>
+
+          {confirmState.type === "delete" && (
+            <div className="flex flex-col gap-4 py-2 text-left">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-medium text-foreground">Loại vi phạm <span className="text-rose-500 font-bold">*</span></label>
+                <Select value={rejectType} onValueChange={setRejectType}>
+                  <SelectTrigger className="w-full bg-white border border-border">
+                    <SelectValue placeholder="Chọn loại vi phạm" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white">
+                    <SelectItem value="spam">Spam / Quảng cáo</SelectItem>
+                    <SelectItem value="harassment">Quấy rối / Chửi bới / Lăng mạ</SelectItem>
+                    <SelectItem value="inappropriate">Nội dung không phù hợp / Phản cảm</SelectItem>
+                    <SelectItem value="copyright">Vi phạm bản quyền</SelectItem>
+                    <SelectItem value="other">Khác</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-medium text-foreground">Chi tiết từ chối</label>
+                <Textarea 
+                  placeholder="Nhập thông tin chi tiết về lý do từ chối..."
+                  value={rejectDetail}
+                  onChange={(e) => setRejectDetail(e.target.value)}
+                  className="min-h-[100px] bg-white border border-border resize-none"
+                />
+              </div>
+            </div>
+          )}
+
           <AlertDialogFooter className="mt-4">
             <AlertDialogCancel className="h-9 font-semibold">Hủy</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmAction}
-              className={`h-9 font-bold text-white transition-all ${
+              disabled={confirmState.type === "delete" && !rejectType}
+              className={`h-9 font-bold text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
                 confirmState.type === "approve"
                   ? "bg-emerald-600 hover:bg-emerald-700"
                   : "bg-rose-600 hover:bg-rose-700"
