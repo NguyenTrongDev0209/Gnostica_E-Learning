@@ -118,9 +118,29 @@ import {
 } from "@/components/common/micro/AppCommand"
 import { AppDialog } from "@/components/common/micro/AppDialog"
 import { AppDropdownMenu } from "@/components/common/micro/AppDropdownMenu"
+import AppTextarea from "@/components/common/micro/AppTextarea"
+import AppRadioGroup from "@/components/common/micro/AppRadioGroup"
+import AppSwitch from "@/components/common/micro/AppSwitch"
+import AppSlider from "@/components/common/micro/AppSlider"
+import AppDatePicker from "@/components/common/composite/AppDatePicker"
+import { DataForm, DataFormField } from "@/components/common/composite/DataForm"
+
 const formSchema = z.object({
   username: z.string().min(2, { message: "Username must be at least 2 characters." }),
   email: z.string().email({ message: "Please enter a valid email address." }),
+})
+
+const complexFormSchema = z.object({
+  fullName: z.string().min(2, "Tên phải có ít nhất 2 ký tự"),
+  email: z.string().email("Email không hợp lệ"),
+  password: z.string().min(6, "Mật khẩu quá ngắn (ít nhất 6 ký tự)"),
+  role: z.string().min(1, "Vui lòng chọn vai trò"),
+  bio: z.string().min(10, "Giới thiệu bản thân phải dài hơn 10 ký tự").optional().or(z.literal('')),
+  experience: z.array(z.number()).min(1),
+  website: z.string().url("URL không hợp lệ").optional().or(z.literal('')),
+  otp: z.string().length(6, "Mã OTP phải gồm 6 chữ số"),
+  terms: z.boolean().refine(val => val === true, "Bạn phải đồng ý với điều khoản"),
+  newsletter: z.boolean().default(false),
 })
 
 const chartData = [
@@ -546,6 +566,197 @@ const Showcase = () => {
                         </CardContent>
                       </Card>
 
+                      <Card>
+                        <CardHeader><CardTitle>AppRadioGroup & AppSwitch</CardTitle><CardDescription>Các control lựa chọn tự động quản lý Layout Label/Description.</CardDescription></CardHeader>
+                        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                          <div className="space-y-6">
+                            <AppRadioGroup 
+                              label="Vai trò của bạn"
+                              options={[
+                                { label: "Học viên", value: "student", description: "Người tham gia học các khóa học." },
+                                { label: "Giảng viên", value: "teacher", description: "Người tạo và quản lý khóa học.", appVariant: "success" },
+                                { label: "Quản trị viên", value: "admin", description: "Quản lý hệ thống (Disabled).", disabled: true }
+                              ]}
+                              defaultValue="student"
+                            />
+                            <div className="pt-4 border-t">
+                              <AppRadioGroup 
+                                label="Đánh giá"
+                                orientation="horizontal"
+                                appVariant="warning"
+                                options={[
+                                  { label: "1 Sao", value: "1" },
+                                  { label: "2 Sao", value: "2" },
+                                  { label: "3 Sao", value: "3" },
+                                ]}
+                              />
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-6 border-l pl-8">
+                            <AppSwitch 
+                              id="sw1"
+                              label="Thông báo Email" 
+                              description="Nhận email khi có bài học mới." 
+                              defaultChecked
+                            />
+                            <AppSwitch 
+                              id="sw2"
+                              appVariant="success"
+                              label="Chế độ Dark Mode" 
+                              description="Thay đổi giao diện sáng/tối." 
+                            />
+                            <AppSwitch 
+                              id="sw3"
+                              disabled
+                              label="Tính năng Beta" 
+                              description="Chưa khả dụng cho tài khoản của bạn." 
+                            />
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader><CardTitle>AppTextarea, AppSlider & AppDatePicker</CardTitle></CardHeader>
+                        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                          <div className="space-y-6">
+                            <AppTextarea 
+                              id="ta1"
+                              label="Giới thiệu bản thân" 
+                              description="Viết một đoạn ngắn gọn về bạn."
+                              placeholder="Tôi là một sinh viên yêu thích công nghệ..." 
+                            />
+                            <AppSlider 
+                              label="Kinh nghiệm lập trình (Năm)" 
+                              defaultValue={[2]} 
+                              max={10} 
+                              step={1} 
+                              appVariant="success"
+                              valueSuffix=" năm"
+                            />
+                          </div>
+                          
+                          <div className="space-y-6 border-l pl-8">
+                            <AppDatePicker 
+                              label="Ngày sinh" 
+                              description="Chọn ngày sinh của bạn."
+                            />
+                            <AppDatePicker 
+                              label="Ngày khai giảng" 
+                              appVariant="glass"
+                              description="Giao diện Glassmorphism."
+                              date={new Date()}
+                            />
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      {/* DATA-DRIVEN FORM SHOWCASE */}
+                      <Card className="border-primary/50 shadow-md">
+                        <CardHeader>
+                          <CardTitle className="text-primary">Data-Driven Form (The Ultimate Form)</CardTitle>
+                          <CardDescription>
+                            Chỉ cần khai báo Zod Schema và sử dụng các thẻ `DataFormField` siêu ngắn gọn. 
+                            Hệ thống tự động map Props, tự động Validate và đổ màu báo lỗi (Error State).
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <DataForm 
+                            schema={complexFormSchema} 
+                            defaultValues={{
+                              fullName: "",
+                              email: "",
+                              password: "",
+                              role: "",
+                              bio: "",
+                              experience: [2],
+                              website: "",
+                              otp: "",
+                              terms: false,
+                              newsletter: true
+                            }}
+                            onSubmit={(data) => {
+                              alert("Đăng ký thành công!\n\n" + JSON.stringify(data, null, 2));
+                            }}
+                            className="space-y-6 max-w-2xl"
+                          >
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                              <DataFormField name="fullName" label="Họ và tên" placeholder="VD: Nguyễn Văn A" />
+                              <DataFormField name="email" type="email" label="Email" placeholder="VD: email@example.com" />
+                              
+                              <DataFormField name="password" type="password" label="Mật khẩu" placeholder="Tạo mật khẩu" />
+                              
+                              <DataFormField 
+                                name="role" 
+                                type="select" 
+                                label="Vai trò đăng ký" 
+                                placeholder="Chọn vai trò..."
+                                options={[
+                                  { label: "Học viên", value: "student" },
+                                  { label: "Giảng viên", value: "teacher" }
+                                ]} 
+                              />
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                              <DataFormField 
+                                name="website" 
+                                type="group" 
+                                label="Trang web cá nhân" 
+                                placeholder="gnostica.com" 
+                                leftAddon="https://"
+                              />
+
+                              <DataFormField 
+                                name="otp" 
+                                type="otp" 
+                                label="Mã xác thực (OTP)" 
+                                description="Nhập 6 số được gửi về điện thoại."
+                                maxLength={6}
+                              />
+                            </div>
+
+                            <DataFormField 
+                              name="bio" 
+                              type="textarea" 
+                              label="Giới thiệu ngắn (Tùy chọn)" 
+                              placeholder="Kể một chút về bạn..." 
+                            />
+
+                            <DataFormField 
+                              name="experience" 
+                              type="slider" 
+                              label="Kinh nghiệm lập trình" 
+                              max={10} 
+                              valueSuffix=" năm" 
+                              appVariant="success"
+                            />
+
+                            <div className="space-y-4 pt-4 border-t">
+                              <DataFormField 
+                                name="newsletter" 
+                                type="switch" 
+                                label="Nhận bản tin" 
+                                description="Nhận thông tin cập nhật hàng tuần từ Gnostica." 
+                              />
+                              
+                              <DataFormField 
+                                name="terms" 
+                                type="checkbox" 
+                                label="Đồng ý với điều khoản dịch vụ" 
+                                description="Bạn bắt buộc phải đánh dấu ô này để đăng ký." 
+                                appVariant="primary"
+                              />
+                            </div>
+
+                            <div className="pt-2">
+                              <AppButton type="submit" className="w-full">
+                                Đăng ký tài khoản
+                              </AppButton>
+                            </div>
+                          </DataForm>
+                        </CardContent>
+                      </Card>
 
                     </div>
                   </div>

@@ -4,6 +4,8 @@ import { Lock, Eye, EyeOff } from 'lucide-react';
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator } from "@/components/ui/input-otp";
+import { InputGroup, InputGroupAddon, InputGroupText, InputGroupInput, InputGroupButton } from "@/components/ui/input-group";
 
 const AppInput = forwardRef(({
   id,
@@ -143,5 +145,98 @@ export const AppPasswordInput = forwardRef(({
 });
 
 AppPasswordInput.displayName = "AppPasswordInput";
+
+export const AppInputOTP = forwardRef(({
+  id,
+  label,
+  description,
+  error,
+  maxLength = 6,
+  containerClassName,
+  labelClassName,
+  ...props
+}, ref) => {
+  return (
+    <div className={cn("flex flex-col gap-1.5 w-full", containerClassName)}>
+      {label && (
+        <Label htmlFor={id} className={cn("text-sm font-medium text-foreground", labelClassName)}>
+          {label}
+        </Label>
+      )}
+      {description && (
+        <p className="text-[0.8rem] text-muted-foreground">{description}</p>
+      )}
+
+      <InputOTP id={id} ref={ref} maxLength={maxLength} {...props}>
+        <InputOTPGroup>
+          {Array.from({ length: maxLength }).map((_, i) => (
+            <InputOTPSlot key={i} index={i} />
+          ))}
+        </InputOTPGroup>
+      </InputOTP>
+
+      {error && <p className="text-error text-xs mt-1 animate-in fade-in slide-in-from-top-1">{error}</p>}
+    </div>
+  );
+});
+
+AppInputOTP.displayName = "AppInputOTP";
+
+export const AppInputGroup = forwardRef(({
+  id,
+  label,
+  description,
+  error,
+  leftAddon,
+  rightAddon,
+  leftButton,
+  rightButton,
+  containerClassName,
+  labelClassName,
+  ...props
+}, ref) => {
+  return (
+    <div className={cn("flex flex-col gap-1.5 w-full", containerClassName)}>
+      {label && (
+        <Label htmlFor={id} className={cn("text-sm font-medium text-foreground", labelClassName)}>
+          {label}
+        </Label>
+      )}
+      {description && (
+        <p className="text-[0.8rem] text-muted-foreground">{description}</p>
+      )}
+
+      <InputGroup className={cn("h-11 bg-muted border-border focus-within:bg-white transition-colors", error && "border-error/20 focus-within:ring-red-500")}>
+        {leftAddon && (
+          <InputGroupAddon align="inline-start">
+            <InputGroupText>{leftAddon}</InputGroupText>
+          </InputGroupAddon>
+        )}
+        {leftButton && (
+          <InputGroupAddon align="inline-start">
+            {leftButton}
+          </InputGroupAddon>
+        )}
+        
+        <InputGroupInput id={id} ref={ref} {...props} />
+        
+        {rightAddon && (
+          <InputGroupAddon align="inline-end">
+            <InputGroupText>{rightAddon}</InputGroupText>
+          </InputGroupAddon>
+        )}
+        {rightButton && (
+          <InputGroupAddon align="inline-end">
+            {rightButton}
+          </InputGroupAddon>
+        )}
+      </InputGroup>
+
+      {error && <p className="text-error text-xs mt-1 animate-in fade-in slide-in-from-top-1">{error}</p>}
+    </div>
+  );
+});
+
+AppInputGroup.displayName = "AppInputGroup";
 
 export default AppInput;
