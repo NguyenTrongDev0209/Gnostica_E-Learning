@@ -1,7 +1,7 @@
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Trophy } from "lucide-react";
-import { SimpleButton } from "@/components/common/micro/AppButton";
+import { AppButton } from "@/components/common/micro/AppButton";
 
 export default function AccountWelcomeBanner({ user, isInstructor, handleBecomeInstructor }) {
   return (
@@ -32,9 +32,9 @@ export default function AccountWelcomeBanner({ user, isInstructor, handleBecomeI
                 <p className="text-xs text-muted-foreground mt-0.5 font-medium">Đăng ký trở thành giảng viên trên Gnostica ngay hôm nay.</p>
               </div>
             </div>
-            <SimpleButton variant="outline" className="border-warning/20 text-warning hover:bg-warning/10 text-warning hover:text-white shrink-0 font-bold hidden sm:flex">
+            <AppButton appVariant="gradient" variant="outline" className="border-warning/20 text-warning hover:bg-warning/10 text-warning hover:text-white shrink-0 font-bold hidden sm:flex">
               Đăng ký ngay
-            </SimpleButton>
+            </AppButton>
           </CardContent>
         </Card>
       )}

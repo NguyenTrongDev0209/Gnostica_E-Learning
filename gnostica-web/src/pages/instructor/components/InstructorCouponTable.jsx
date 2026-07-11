@@ -8,7 +8,7 @@ import {
     XCircle,
     RotateCw,
 } from "lucide-react";
-import { GhostButton, TableActionIconButton } from "@/components/common/micro/AppButton";
+import { TableActionIconButton, AppButton } from "@/components/common/micro/AppButton";
 import { Badge } from "@/components/ui/badge";
 import AppTable from "@/components/common/composite/AppTable";
 
@@ -133,14 +133,14 @@ export default function InstructorCouponTable({
             cellClassName: "text-center",
             render: (coupon) => (
                 <div className="flex justify-center items-center gap-2">
-                    <GhostButton
+                    <AppButton appVariant="ghostMuted" variant="ghost"
                         size="sm"
                         className="h-9 px-3 font-bold text-xs bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-100 rounded-lg transition-all flex items-center gap-1.5"
                         onClick={() => onToggleStatus?.(coupon)}
                     >
                         <RotateCw className="w-3.5 h-3.5" />
                         Đổi Trạng Thái
-                    </GhostButton>
+                    </AppButton>
                     <TableActionIconButton
                         icon={Trash2}
                         colorVariant="error"

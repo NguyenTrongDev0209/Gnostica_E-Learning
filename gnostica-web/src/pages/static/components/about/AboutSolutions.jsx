@@ -1,5 +1,5 @@
 import React from "react";
-import { SimpleButton } from "@/components/common/micro/AppButton";
+import { AppButton } from "@/components/common/micro/AppButton";
 
 export default function AboutSolutions({ steps }) {
   return (
@@ -33,8 +33,8 @@ export default function AboutSolutions({ steps }) {
             ))}
           </div>
           <div className="flex items-center gap-4 pt-4">
-            <SimpleButton size="lg" className="min-w-[120px]">Tìm hiểu thêm</SimpleButton>
-            <SimpleButton size="lg" variant="outline" className="min-w-[120px] bg-transparent border-warning/20 text-warning hover:bg-orange-50">Triết lý của Chúng tôi</SimpleButton>
+            <AppButton appVariant="gradient" size="lg" className="min-w-[120px]">Tìm hiểu thêm</AppButton>
+            <AppButton appVariant="gradient" size="lg" variant="outline" className="min-w-[120px] bg-transparent border-warning/20 text-warning hover:bg-orange-50">Triết lý của Chúng tôi</AppButton>
           </div>
         </div>
       </div>

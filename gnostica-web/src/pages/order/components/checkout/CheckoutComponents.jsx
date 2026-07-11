@@ -6,7 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { SimpleButton } from "@/components/common/micro/AppButton";
+import { AppButton } from "@/components/common/micro/AppButton";
 import { AppBreadcrumb, PageHeader } from "@/components/common/composite/AppSection";
 
 /**
@@ -267,7 +267,7 @@ export const CheckoutOrderSummary = ({
         </div>
 
         <div className="pt-2">
-          <SimpleButton
+          <AppButton appVariant="gradient"
             type="submit"
             className="w-fit mx-auto py-7 px-16 text-lg font-bold tracking-wide gap-2 flex"
             size="lg"
@@ -296,7 +296,7 @@ export const CheckoutOrderSummary = ({
               </svg>
             )}
             {loading ? "ĐANG XỬ LÝ..." : "XÁC NHẬN THANH TOÁN"}
-          </SimpleButton>
+          </AppButton>
         </div>
 
         <p className="text-[11px] text-center text-muted-foreground leading-relaxed pt-2">

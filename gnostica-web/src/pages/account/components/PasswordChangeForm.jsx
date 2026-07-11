@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Eye, EyeOff } from "lucide-react";
-import { SimpleButton } from "@/components/common/micro/AppButton";
+import { AppButton } from "@/components/common/micro/AppButton";
 
 export default function PasswordChangeForm({
   formData,
@@ -118,7 +118,7 @@ export default function PasswordChangeForm({
 
           {/* Submit Button */}
           <div className="pt-6">
-            <SimpleButton 
+            <AppButton appVariant="gradient" 
               type="submit" 
               disabled={isLoading}
               className="h-12 font-bold shadow-lg shadow-primary/20 hover:shadow-xl transition-all w-full md:w-auto px-8"
@@ -128,7 +128,7 @@ export default function PasswordChangeForm({
               ) : (
                 "Cập nhật mật khẩu"
               )}
-            </SimpleButton>
+            </AppButton>
           </div>
         </form>
       </CardContent>

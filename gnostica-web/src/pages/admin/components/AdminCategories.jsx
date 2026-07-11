@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { SimpleButton, TableActionIconButton, GhostButton } from "@/components/common/micro/AppButton";
+import { TableActionIconButton, AppButton } from "@/components/common/micro/AppButton";
 import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -145,13 +145,13 @@ export default function AdminCategories({ hideHeader = false }) {
         ) : (
           <div />
         )}
-        <SimpleButton
+        <AppButton appVariant="gradient"
           className="flex items-center gap-2"
           onClick={() => setIsAddModalOpen(true)}
         >
           <Plus className="w-4 h-4" />
           Thêm Chủ Đề
-        </SimpleButton>
+        </AppButton>
       </div>
 
       {/* Filter */}
@@ -359,14 +359,14 @@ export default function AdminCategories({ hideHeader = false }) {
                               className="flex justify-center items-center gap-2"
                               onClick={(e) => e.stopPropagation()}
                             >
-                              <GhostButton
+                              <AppButton appVariant="ghostMuted" variant="ghost"
                                 size="icon"
                                 className="h-8 w-8 text-muted-foreground hover:text-primary border-none"
                                 onClick={(e) => handleEdit(e, sub, cat.id)}
                               >
                                 <Edit className="w-4 h-4" />
-                              </GhostButton>
-                              <GhostButton
+                              </AppButton>
+                              <AppButton appVariant="ghostMuted" variant="ghost"
                                 size="icon"
                                 className="h-8 w-8 text-muted-foreground hover:text-error border-none"
                                 onClick={(e) => {
@@ -375,7 +375,7 @@ export default function AdminCategories({ hideHeader = false }) {
                                 }}
                               >
                                 <Trash2 className="w-4 h-4" />
-                              </GhostButton>
+                              </AppButton>
                             </div>
                           </TableCell>
                         </TableRow>
@@ -391,14 +391,14 @@ export default function AdminCategories({ hideHeader = false }) {
                 Hiển thị {(currentPage - 1) * ITEMS_PER_PAGE + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, totalElements)} của {totalElements} chủ đề
               </span>
               <div className="flex gap-2">
-                <GhostButton
+                <AppButton appVariant="ghostMuted" variant="ghost"
                   size="sm"
                   className="border border-border bg-white"
                   onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                   disabled={currentPage === 1}
                 >
                   Trước
-                </GhostButton>
+                </AppButton>
                 {Array.from({ length: totalPages }).map((_, idx) => {
                   const Btn = currentPage === idx + 1 ? SimpleButton : GhostButton;
                   return (
@@ -412,14 +412,14 @@ export default function AdminCategories({ hideHeader = false }) {
                     </Btn>
                   );
                 })}
-                <GhostButton
+                <AppButton appVariant="ghostMuted" variant="ghost"
                   size="sm"
                   className="border border-border bg-white"
                   onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
                   disabled={currentPage === totalPages}
                 >
                   Sau
-                </GhostButton>
+                </AppButton>
               </div>
             </div>
           )}
@@ -561,7 +561,7 @@ export default function AdminCategories({ hideHeader = false }) {
               />
 
               <DialogFooter className="pt-4 gap-2">
-                <GhostButton
+                <AppButton appVariant="ghostMuted" variant="ghost"
                   type="button"
                   onClick={() => {
                     setIsAddModalOpen(false);
@@ -571,10 +571,10 @@ export default function AdminCategories({ hideHeader = false }) {
                   className="border border-border"
                 >
                   Hủy bỏ
-                </GhostButton>
-                <SimpleButton type="submit" className="bg-primary font-bold px-6">
+                </AppButton>
+                <AppButton appVariant="gradient" type="submit" className="bg-primary font-bold px-6">
                   {editId ? "Lưu Cập Nhật" : "Tạo chủ đề"}
-                </SimpleButton>
+                </AppButton>
               </DialogFooter>
             </form>
           </Form>

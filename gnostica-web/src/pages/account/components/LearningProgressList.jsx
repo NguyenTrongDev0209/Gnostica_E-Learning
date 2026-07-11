@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import { GhostButton, SimpleButton } from "@/components/common/micro/AppButton";
+import { AppButton } from "@/components/common/micro/AppButton";
 
 export default function LearningProgressList({ loading, courses }) {
   if (loading) {
@@ -89,9 +89,9 @@ export default function LearningProgressList({ loading, courses }) {
               <div className="shrink-0 flex md:flex-col gap-3 justify-end items-end border-t border-border pt-4 md:border-0 md:pt-0">
                 <Link to={`/learning/${course.courseId}`}>
                   {course.progressPercent === 100 ? (
-                    <GhostButton className="px-6 border border-border">Xem lại bài</GhostButton>
+                    <AppButton appVariant="ghostMuted" variant="ghost" className="px-6 border border-border">Xem lại bài</AppButton>
                   ) : (
-                    <SimpleButton className="px-6 font-bold">Học ngay</SimpleButton>
+                    <AppButton appVariant="gradient" className="px-6 font-bold">Học ngay</AppButton>
                   )}
                 </Link>
               </div>

@@ -12,7 +12,7 @@ import {
   Trophy,
   ExternalLink,
 } from "lucide-react";
-import { SimpleButton, GhostButton } from "@/components/common/micro/AppButton";
+import { AppButton } from "@/components/common/micro/AppButton";
 
 export default function Certificates() {
   const { certificates, loading } = useCertificates();
@@ -99,13 +99,13 @@ export default function Certificates() {
 
                   {/* Actions */}
                   <div className="flex items-center gap-3 mt-6 pt-4 border-t border-border">
-                    <SimpleButton className="flex-1 font-bold text-sm gap-2">
+                    <AppButton appVariant="gradient" className="flex-1 font-bold text-sm gap-2">
                       <Download className="w-4 h-4" />
                       Tải PDF
-                    </SimpleButton>
-                    <GhostButton className="px-4 text-muted-foreground hover:text-primary hover:bg-primary/5 transition-colors border border-border">
+                    </AppButton>
+                    <AppButton appVariant="ghostMuted" variant="ghost" className="px-4 text-muted-foreground hover:text-primary hover:bg-primary/5 transition-colors border border-border">
                       <Share2 className="w-4 h-4" />
-                    </GhostButton>
+                    </AppButton>
                   </div>
                 </div>
               </CardContent>
@@ -123,7 +123,7 @@ export default function Certificates() {
               Hãy cố gắng hoàn thành 100% bài giảng và bài tập trong khóa học để mở khóa chứng chỉ của bạn nhé!
             </p>
             <Link to="/account/my-courses">
-              <SimpleButton className="font-bold">Quay lại học ngay</SimpleButton>
+              <AppButton appVariant="gradient" className="font-bold">Quay lại học ngay</AppButton>
             </Link>
           </CardContent>
         </Card>

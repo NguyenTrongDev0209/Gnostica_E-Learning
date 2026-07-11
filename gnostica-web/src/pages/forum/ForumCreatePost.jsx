@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import SectionContainer, { PageHeader } from '@/components/common/composite/AppSection';
-import { SimpleButton, GhostButton } from "@/components/common/micro/AppButton";
+import { AppButton } from "@/components/common/micro/AppButton";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Send, FileText, Hash, X } from 'lucide-react';
@@ -169,14 +169,14 @@ const ForumCreatePost = () => {
                             {/* Submit Button */}
                             <div className="flex justify-end pt-4 mt-2 border-t">
                                 <span className="flex-1"></span>
-                                <GhostButton 
+                                <AppButton appVariant="ghostMuted" variant="ghost" 
                                     type="button" 
                                     className="mr-3 border border-border" 
                                     onClick={() => navigate(-1)}
                                 >
                                     Hủy
-                                </GhostButton>
-                                <SimpleButton 
+                                </AppButton>
+                                <AppButton appVariant="gradient" 
                                     type="submit" 
                                     className="px-8 flex items-center gap-2"
                                     disabled={isSubmitting}
@@ -186,7 +186,7 @@ const ForumCreatePost = () => {
                                             <Send className="w-4 h-4" /> Đăng bài
                                         </>
                                     )}
-                                </SimpleButton>
+                                </AppButton>
                             </div>
 
                         </form>

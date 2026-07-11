@@ -10,7 +10,7 @@ import {
   AlertCircle, ArrowLeft, Calendar as CalendarIcon, Check,
   ChevronRight, ChevronsUpDown, CreditCard, Github, Image as ImageIcon,
   Keyboard, LayoutDashboard, LifeBuoy, Loader2, LogOut, Mail, Plus,
-  Settings, User, MousePointer2, Type, Layers, MessageSquare, 
+  Settings, User, MousePointer2, Type, Layers, MessageSquare,
   Table as TableIcon, Maximize2, TrendingUp, Settings2, Bell, Navigation, Search, PanelLeft, CheckCircle2, MoreVertical, Cloud,
   ShoppingCart, Eye, Edit, Trash
 } from "lucide-react"
@@ -82,10 +82,10 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts"
 
 // --- SYSTEM DESIGN COMPONENTS (RIGHT COLUMN) ---
-import { 
-  SimpleButton, OutlineGradientButton, GhostButton, IconLabelButton, 
-  HorizontalIconLabelButton, AppIconButton, AppHeaderButton, AppHamburgerButton, 
-  AppNavLink, AppUserMenu, CategoryButton, AppLogo, TableActionIconButton 
+import {
+  AppButton, IconLabelButton,
+  HorizontalIconLabelButton, AppIconButton, AppHeaderButton, AppHamburgerButton,
+  AppNavLink, AppUserMenu, AppLogo, TableActionIconButton
 } from "@/components/common/micro/AppButton"
 import AppCard, { CourseCardHorizontal, ForumPostCard } from "@/components/common/composite/AppCard"
 import AppInput, { AppPasswordInput } from "@/components/common/micro/AppInput"
@@ -93,6 +93,8 @@ import AppSearchInput from "@/components/common/micro/AppSearchInput"
 import CommentCard from "@/components/common/composite/CommentCard"
 import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb"
 import AppTable from "@/components/common/composite/AppTable"
+import AppAccordion from "@/components/common/micro/AppAccordion"
+import AppAlert from "@/components/common/micro/AppAlert"
 
 
 const formSchema = z.object({
@@ -129,7 +131,7 @@ const Showcase = () => {
   return (
     <div className="w-full h-screen overflow-y-auto bg-background p-4 sm:p-8">
       <Toaster />
-      
+
       <Tabs defaultValue="system" className="w-full max-w-7xl mx-auto">
         <div className="flex flex-col items-center text-center mb-8">
           <h1 className="text-4xl font-extrabold tracking-tight text-foreground mb-4">
@@ -155,349 +157,467 @@ const Showcase = () => {
             </header>
 
             <div className="space-y-24">
-          <section>
-            <h2 className="text-2xl font-bold mb-6 border-b pb-2">A</h2>
-            <div className="grid gap-6 2xl:grid-cols-2">
-              <Card><CardHeader><CardTitle>Accordion</CardTitle></CardHeader><CardContent><Accordion type="single" collapsible><AccordionItem value="i1"><AccordionTrigger>Accessible?</AccordionTrigger><AccordionContent>Yes, very.</AccordionContent></AccordionItem></Accordion></CardContent></Card>
-              <Card><CardHeader><CardTitle>Alert</CardTitle></CardHeader><CardContent className="space-y-4"><Alert><AlertCircle className="w-4 h-4"/><AlertTitle>Info</AlertTitle><AlertDescription>Alert description</AlertDescription></Alert><Alert variant="destructive"><AlertCircle className="w-4 h-4"/><AlertTitle>Error</AlertTitle><AlertDescription>Destructive alert description</AlertDescription></Alert></CardContent></Card>
-              <Card><CardHeader><CardTitle>Alert Dialog</CardTitle></CardHeader><CardContent><AlertDialog><AlertDialogTrigger asChild><Button variant="outline">Delete</Button></AlertDialogTrigger><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction>Confirm</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog></CardContent></Card>
-              <Card><CardHeader><CardTitle>Avatar</CardTitle></CardHeader><CardContent><Avatar><AvatarImage src="https://github.com/shadcn.png" /><AvatarFallback>CN</AvatarFallback></Avatar></CardContent></Card>
-            </div>
-          </section>
+              <section>
+                <h2 className="text-2xl font-bold mb-6 border-b pb-2">A</h2>
+                <div className="grid gap-6 2xl:grid-cols-2">
+                  <Card><CardHeader><CardTitle>Accordion</CardTitle></CardHeader><CardContent><Accordion type="single" collapsible><AccordionItem value="i1"><AccordionTrigger>Accessible?</AccordionTrigger><AccordionContent>Yes, very.</AccordionContent></AccordionItem></Accordion></CardContent></Card>
+                  <Card><CardHeader><CardTitle>Alert</CardTitle></CardHeader><CardContent className="space-y-4"><Alert><AlertCircle className="w-4 h-4" /><AlertTitle>Info</AlertTitle><AlertDescription>Alert description</AlertDescription></Alert><Alert variant="destructive"><AlertCircle className="w-4 h-4" /><AlertTitle>Error</AlertTitle><AlertDescription>Destructive alert description</AlertDescription></Alert></CardContent></Card>
+                  <Card><CardHeader><CardTitle>Alert Dialog</CardTitle></CardHeader><CardContent><AlertDialog><AlertDialogTrigger asChild><Button variant="outline">Delete</Button></AlertDialogTrigger><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction>Confirm</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog></CardContent></Card>
+                  <Card><CardHeader><CardTitle>Aspect Ratio</CardTitle></CardHeader><CardContent><AspectRatio ratio={16 / 9} className="bg-muted rounded-md overflow-hidden border"><img src="https://images.unsplash.com/photo-1588345921523-c2dcdb7f1dcd?w=800&dpr=2&q=80" alt="Photo" className="object-cover w-full h-full" /></AspectRatio></CardContent></Card>
+                  <Card><CardHeader><CardTitle>Avatar</CardTitle></CardHeader><CardContent><Avatar><AvatarImage src="https://github.com/shadcn.png" /><AvatarFallback>CN</AvatarFallback></Avatar></CardContent></Card>
+                </div>
+              </section>
 
-          <section>
-            <h2 className="text-2xl font-bold mb-6 border-b pb-2">B</h2>
-            <div className="grid gap-6 2xl:grid-cols-2">
-              <Card><CardHeader><CardTitle>Badge</CardTitle></CardHeader><CardContent className="flex flex-wrap gap-2"><Badge>Default</Badge><Badge variant="secondary">Secondary</Badge><Badge variant="destructive">Destructive</Badge><Badge variant="outline">Outline</Badge><Badge variant="ghost">Ghost</Badge></CardContent></Card>
-              <Card><CardHeader><CardTitle>Button</CardTitle></CardHeader><CardContent className="flex flex-wrap gap-2"><Button>Default</Button><Button variant="secondary">Secondary</Button><Button variant="destructive">Destructive</Button><Button variant="outline">Outline</Button><Button variant="ghost">Ghost</Button><Button variant="link">Link</Button></CardContent></Card>
-            </div>
-          </section>
+              <section>
+                <h2 className="text-2xl font-bold mb-6 border-b pb-2">B</h2>
+                <div className="grid gap-6 2xl:grid-cols-2">
+                  <Card><CardHeader><CardTitle>Badge</CardTitle></CardHeader><CardContent className="flex flex-wrap gap-2"><Badge>Default</Badge><Badge variant="secondary">Secondary</Badge><Badge variant="destructive">Destructive</Badge><Badge variant="outline">Outline</Badge><Badge variant="ghost">Ghost</Badge></CardContent></Card>
+                  <Card><CardHeader><CardTitle>Breadcrumb</CardTitle></CardHeader><CardContent><Breadcrumb><BreadcrumbList><BreadcrumbItem><BreadcrumbLink href="/">Home</BreadcrumbLink></BreadcrumbItem><BreadcrumbSeparator /><BreadcrumbItem><BreadcrumbPage>Current</BreadcrumbPage></BreadcrumbItem></BreadcrumbList></Breadcrumb></CardContent></Card>
+                  <Card><CardHeader><CardTitle>Button</CardTitle></CardHeader><CardContent className="flex flex-wrap gap-2"><Button>Default</Button><Button variant="secondary">Secondary</Button><Button variant="destructive">Destructive</Button><Button variant="outline">Outline</Button><Button variant="ghost">Ghost</Button><Button variant="link">Link</Button></CardContent></Card>
+                </div>
+              </section>
 
-          <section>
-            <h2 className="text-2xl font-bold mb-6 border-b pb-2">C</h2>
-            <div className="grid gap-6 2xl:grid-cols-2">
-              <Card><CardHeader><CardTitle>Calendar</CardTitle></CardHeader><CardContent><Calendar mode="single" selected={date} onSelect={setDate} className="rounded-md border mx-auto w-fit" /></CardContent></Card>
-              <Card><CardHeader><CardTitle>Checkbox</CardTitle></CardHeader><CardContent className="flex items-center gap-2"><Checkbox id="c1" /><label htmlFor="c1" className="text-sm">Accept terms</label></CardContent></Card>
-              <Card className="2xl:col-span-2"><CardHeader><CardTitle>Chart</CardTitle></CardHeader><CardContent><ChartContainer config={chartConfig} className="h-[200px] w-full"><BarChart data={chartData}><CartesianGrid vertical={false}/><XAxis dataKey="month" /><Bar dataKey="desktop" fill="var(--color-desktop)" radius={4}/></BarChart></ChartContainer></CardContent></Card>
-            </div>
-          </section>
+              <section>
+                <h2 className="text-2xl font-bold mb-6 border-b pb-2">C</h2>
+                <div className="grid gap-6 2xl:grid-cols-2">
+                  <Card><CardHeader><CardTitle>Calendar</CardTitle></CardHeader><CardContent><Calendar mode="single" selected={date} onSelect={setDate} className="rounded-md border mx-auto w-fit" /></CardContent></Card>
+                  <Card><CardHeader><CardTitle>Carousel</CardTitle></CardHeader><CardContent><Carousel className="w-full max-w-[200px] mx-auto"><CarouselContent>{Array.from({ length: 3 }).map((_, i) => (<CarouselItem key={i}><div className="p-1"><Card><CardContent className="flex aspect-square items-center justify-center p-6"><span className="text-4xl font-semibold">{i + 1}</span></CardContent></Card></div></CarouselItem>))}</CarouselContent><CarouselPrevious /><CarouselNext /></Carousel></CardContent></Card>
+                  <Card className="2xl:col-span-2"><CardHeader><CardTitle>Chart</CardTitle></CardHeader><CardContent><ChartContainer config={chartConfig} className="h-[200px] w-full"><BarChart data={chartData}><CartesianGrid vertical={false} /><XAxis dataKey="month" /><Bar dataKey="desktop" fill="var(--color-desktop)" radius={4} /></BarChart></ChartContainer></CardContent></Card>
+                  <Card><CardHeader><CardTitle>Checkbox</CardTitle></CardHeader><CardContent className="flex items-center gap-2"><Checkbox id="c1" /><label htmlFor="c1" className="text-sm">Accept terms</label></CardContent></Card>
+                  <Card><CardHeader><CardTitle>Collapsible</CardTitle></CardHeader><CardContent><Collapsible><CollapsibleTrigger asChild><Button variant="outline">Toggle</Button></CollapsibleTrigger><CollapsibleContent className="p-4 border mt-2 rounded-md bg-muted/50 text-sm">Content hidden inside</CollapsibleContent></Collapsible></CardContent></Card>
+                  <Card><CardHeader><CardTitle>Command</CardTitle></CardHeader><CardContent><Command className="rounded-lg border shadow-md"><CommandInput placeholder="Type a command or search..." /><CommandList><CommandEmpty>No results found.</CommandEmpty><CommandGroup heading="Suggestions"><CommandItem>Calendar</CommandItem><CommandItem>Search Emoji</CommandItem></CommandGroup></CommandList></Command></CardContent></Card>
+                  <Card><CardHeader><CardTitle>Context Menu</CardTitle></CardHeader><CardContent><ContextMenu><ContextMenuTrigger className="flex h-[100px] w-full items-center justify-center rounded-md border border-dashed text-sm">Right click here</ContextMenuTrigger><ContextMenuContent><ContextMenuItem>Profile</ContextMenuItem><ContextMenuItem>Billing</ContextMenuItem></ContextMenuContent></ContextMenu></CardContent></Card>
+                </div>
+              </section>
 
-          <section>
-            <h2 className="text-2xl font-bold mb-6 border-b pb-2">D</h2>
-            <div className="grid gap-6 2xl:grid-cols-2">
-              <Card><CardHeader><CardTitle>Dialog</CardTitle></CardHeader><CardContent><Dialog><DialogTrigger asChild><Button>Open</Button></DialogTrigger><DialogContent><DialogHeader><DialogTitle>Title</DialogTitle></DialogHeader>Content</DialogContent></Dialog></CardContent></Card>
-              <Card><CardHeader><CardTitle>Dropdown</CardTitle></CardHeader><CardContent><DropdownMenu><DropdownMenuTrigger asChild><Button variant="outline">Menu</Button></DropdownMenuTrigger><DropdownMenuContent><DropdownMenuItem>Profile</DropdownMenuItem></DropdownMenuContent></DropdownMenu></CardContent></Card>
-            </div>
-          </section>
+              <section>
+                <h2 className="text-2xl font-bold mb-6 border-b pb-2">D</h2>
+                <div className="grid gap-6 2xl:grid-cols-2">
+                  <Card><CardHeader><CardTitle>Dialog</CardTitle></CardHeader><CardContent><Dialog><DialogTrigger asChild><Button>Open</Button></DialogTrigger><DialogContent><DialogHeader><DialogTitle>Title</DialogTitle></DialogHeader>Content</DialogContent></Dialog></CardContent></Card>
+                  <Card><CardHeader><CardTitle>Drawer</CardTitle></CardHeader><CardContent><Drawer><DrawerTrigger asChild><Button variant="outline">Open Drawer</Button></DrawerTrigger><DrawerContent><DrawerHeader><DrawerTitle>Drawer Title</DrawerTitle><DrawerDescription>Description</DrawerDescription></DrawerHeader><div className="p-4 flex justify-center">Content</div><DrawerFooter><Button>Submit</Button><DrawerClose asChild><Button variant="outline">Cancel</Button></DrawerClose></DrawerFooter></DrawerContent></Drawer></CardContent></Card>
+                  <Card><CardHeader><CardTitle>Dropdown Menu</CardTitle></CardHeader><CardContent><DropdownMenu><DropdownMenuTrigger asChild><Button variant="outline">Menu</Button></DropdownMenuTrigger><DropdownMenuContent><DropdownMenuItem>Profile</DropdownMenuItem></DropdownMenuContent></DropdownMenu></CardContent></Card>
+                </div>
+              </section>
 
-          <section>
-            <h2 className="text-2xl font-bold mb-6 border-b pb-2">F</h2>
-            <Card><CardHeader><CardTitle>Form</CardTitle></CardHeader><CardContent>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <FormField control={form.control} name="username" render={({field}) => (<FormItem><FormLabel>Username</FormLabel><FormControl><Input {...field}/></FormControl></FormItem>)} />
-                  <Button type="submit">Submit</Button>
-                </form>
-              </Form>
-            </CardContent></Card>
-          </section>
+              <section>
+                <h2 className="text-2xl font-bold mb-6 border-b pb-2">F</h2>
+                <Card><CardHeader><CardTitle>Form</CardTitle></CardHeader><CardContent>
+                  <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 max-w-sm">
+                      <FormField control={form.control} name="username" render={({ field }) => (<FormItem><FormLabel>Username</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage/></FormItem>)} />
+                      <Button type="submit">Submit</Button>
+                    </form>
+                  </Form>
+                </CardContent></Card>
+              </section>
 
-          <section>
-            <h2 className="text-2xl font-bold mb-6 border-b pb-2">I</h2>
-            <div className="grid gap-6 2xl:grid-cols-2">
-              <Card><CardHeader><CardTitle>Input</CardTitle></CardHeader><CardContent><Input placeholder="Email..." /></CardContent></Card>
-              <Card><CardHeader><CardTitle>Input OTP</CardTitle></CardHeader><CardContent><InputOTP maxLength={4}><InputOTPGroup><InputOTPSlot index={0}/><InputOTPSlot index={1}/></InputOTPGroup><InputOTPSeparator/><InputOTPGroup><InputOTPSlot index={2}/><InputOTPSlot index={3}/></InputOTPGroup></InputOTP></CardContent></Card>
-            </div>
-          </section>
+              <section>
+                <h2 className="text-2xl font-bold mb-6 border-b pb-2">H</h2>
+                <Card><CardHeader><CardTitle>Hover Card</CardTitle></CardHeader><CardContent><HoverCard><HoverCardTrigger asChild><Button variant="link">Hover me</Button></HoverCardTrigger><HoverCardContent className="text-sm">The react framework for the edge.</HoverCardContent></HoverCard></CardContent></Card>
+              </section>
 
-          <section>
-            <h2 className="text-2xl font-bold mb-6 border-b pb-2">S</h2>
-            <div className="grid gap-6 2xl:grid-cols-2">
-              <Card><CardHeader><CardTitle>Select</CardTitle></CardHeader><CardContent><Select><SelectTrigger><SelectValue placeholder="Theme" /></SelectTrigger><SelectContent><SelectItem value="light">Light</SelectItem><SelectItem value="dark">Dark</SelectItem></SelectContent></Select></CardContent></Card>
-              <Card><CardHeader><CardTitle>Switch</CardTitle></CardHeader><CardContent className="flex items-center gap-2"><Switch id="s1" /><Label htmlFor="s1">Airplane mode</Label></CardContent></Card>
-              <Card><CardHeader><CardTitle>Slider</CardTitle></CardHeader><CardContent><Slider defaultValue={[50]} max={100} step={1} /></CardContent></Card>
-            </div>
-          </section>
+              <section>
+                <h2 className="text-2xl font-bold mb-6 border-b pb-2">I</h2>
+                <div className="grid gap-6 2xl:grid-cols-2">
+                  <Card><CardHeader><CardTitle>Input</CardTitle></CardHeader><CardContent><Input placeholder="Email..." /></CardContent></Card>
+                  <Card><CardHeader><CardTitle>Input Group</CardTitle></CardHeader><CardContent><InputGroup><InputGroupText>@</InputGroupText><InputGroupInput placeholder="Username" /><InputGroupButton><Button variant="secondary">Send</Button></InputGroupButton></InputGroup></CardContent></Card>
+                  <Card><CardHeader><CardTitle>Input OTP</CardTitle></CardHeader><CardContent><InputOTP maxLength={4}><InputOTPGroup><InputOTPSlot index={0} /><InputOTPSlot index={1} /></InputOTPGroup><InputOTPSeparator /><InputOTPGroup><InputOTPSlot index={2} /><InputOTPSlot index={3} /></InputOTPGroup></InputOTP></CardContent></Card>
+                </div>
+              </section>
 
-          <section>
-            <h2 className="text-2xl font-bold mb-6 border-b pb-2">T</h2>
-            <div className="grid gap-6 2xl:grid-cols-2">
-              <Card className="2xl:col-span-2"><CardHeader><CardTitle>Table</CardTitle></CardHeader><CardContent><Table><TableHeader><TableRow><TableHead>ID</TableHead><TableHead>Status</TableHead></TableRow></TableHeader><TableBody><TableRow><TableCell>INV001</TableCell><TableCell>Paid</TableCell></TableRow></TableBody></Table></CardContent></Card>
-              <Card><CardHeader><CardTitle>Tabs</CardTitle></CardHeader><CardContent><Tabs defaultValue="a"><TabsList><TabsTrigger value="a">A</TabsTrigger><TabsTrigger value="b">B</TabsTrigger></TabsList><TabsContent value="a">Content A</TabsContent><TabsContent value="b">Content B</TabsContent></Tabs></CardContent></Card>
-              <Card><CardHeader><CardTitle>Toggle</CardTitle></CardHeader><CardContent className="flex gap-2"><Toggle>Default</Toggle><Toggle variant="outline">Outline</Toggle></CardContent></Card>
+              <section>
+                <h2 className="text-2xl font-bold mb-6 border-b pb-2">L</h2>
+                <Card><CardHeader><CardTitle>Label</CardTitle></CardHeader><CardContent><Label htmlFor="email">Your email address</Label></CardContent></Card>
+              </section>
+
+              <section>
+                <h2 className="text-2xl font-bold mb-6 border-b pb-2">M</h2>
+                <Card><CardHeader><CardTitle>Menubar</CardTitle></CardHeader><CardContent><Menubar><MenubarMenu><MenubarTrigger>File</MenubarTrigger><MenubarContent><MenubarItem>New</MenubarItem><MenubarSeparator/><MenubarItem>Quit</MenubarItem></MenubarContent></MenubarMenu></Menubar></CardContent></Card>
+              </section>
+
+              <section>
+                <h2 className="text-2xl font-bold mb-6 border-b pb-2">N</h2>
+                <Card><CardHeader><CardTitle>Navigation Menu</CardTitle></CardHeader><CardContent><NavigationMenu><NavigationMenuList><NavigationMenuItem><NavigationMenuTrigger>Item One</NavigationMenuTrigger><NavigationMenuContent><div className="p-4 w-[200px] text-sm">Content 1</div></NavigationMenuContent></NavigationMenuItem></NavigationMenuList></NavigationMenu></CardContent></Card>
+              </section>
+
+              <section>
+                <h2 className="text-2xl font-bold mb-6 border-b pb-2">P</h2>
+                <div className="grid gap-6 2xl:grid-cols-2">
+                  <Card><CardHeader><CardTitle>Pagination</CardTitle></CardHeader><CardContent><Pagination><PaginationContent><PaginationItem><PaginationPrevious href="#" /></PaginationItem><PaginationItem><PaginationLink href="#">1</PaginationLink></PaginationItem><PaginationItem><PaginationEllipsis /></PaginationItem><PaginationItem><PaginationNext href="#" /></PaginationItem></PaginationContent></Pagination></CardContent></Card>
+                  <Card><CardHeader><CardTitle>Popover</CardTitle></CardHeader><CardContent><Popover><PopoverTrigger asChild><Button variant="outline">Open popover</Button></PopoverTrigger><PopoverContent className="text-sm">Place content for the popover here.</PopoverContent></Popover></CardContent></Card>
+                  <Card className="2xl:col-span-2"><CardHeader><CardTitle>Progress</CardTitle></CardHeader><CardContent><Progress value={33} /></CardContent></Card>
+                </div>
+              </section>
+
+              <section>
+                <h2 className="text-2xl font-bold mb-6 border-b pb-2">R</h2>
+                <div className="grid gap-6 2xl:grid-cols-2">
+                  <Card><CardHeader><CardTitle>Radio Group</CardTitle></CardHeader><CardContent><RadioGroup defaultValue="option-one"><div className="flex items-center space-x-2"><RadioGroupItem value="option-one" id="option-one" /><Label htmlFor="option-one">Option One</Label></div><div className="flex items-center space-x-2"><RadioGroupItem value="option-two" id="option-two" /><Label htmlFor="option-two">Option Two</Label></div></RadioGroup></CardContent></Card>
+                  <Card><CardHeader><CardTitle>Resizable</CardTitle></CardHeader><CardContent><ResizablePanelGroup direction="horizontal" className="max-w-md rounded-lg border"><ResizablePanel defaultSize={50}><div className="flex h-[100px] items-center justify-center">One</div></ResizablePanel><ResizableHandle /><ResizablePanel defaultSize={50}><div className="flex h-[100px] items-center justify-center">Two</div></ResizablePanel></ResizablePanelGroup></CardContent></Card>
+                </div>
+              </section>
+
+              <section>
+                <h2 className="text-2xl font-bold mb-6 border-b pb-2">S</h2>
+                <div className="grid gap-6 2xl:grid-cols-2">
+                  <Card><CardHeader><CardTitle>Scroll Area</CardTitle></CardHeader><CardContent><ScrollArea className="h-[100px] w-full rounded-md border p-4 text-sm">Jokester began sneaking into the castle in the middle of the night and leaving jokes all over the place: under the king's pillow, in his soup, even tied to the royal toilet seat. The king was furious.</ScrollArea></CardContent></Card>
+                  <Card><CardHeader><CardTitle>Select</CardTitle></CardHeader><CardContent><Select><SelectTrigger><SelectValue placeholder="Theme" /></SelectTrigger><SelectContent><SelectItem value="light">Light</SelectItem><SelectItem value="dark">Dark</SelectItem></SelectContent></Select></CardContent></Card>
+                  <Card><CardHeader><CardTitle>Separator</CardTitle></CardHeader><CardContent><div><div className="space-y-1"><h4 className="text-sm font-medium leading-none">Radix Primitives</h4></div><Separator className="my-4" /><div className="flex h-5 items-center space-x-4 text-sm"><div>Blog</div><Separator orientation="vertical" /><div>Docs</div></div></div></CardContent></Card>
+                  <Card><CardHeader><CardTitle>Sheet</CardTitle></CardHeader><CardContent><Sheet><SheetTrigger asChild><Button variant="outline">Open Sheet</Button></SheetTrigger><SheetContent><SheetHeader><SheetTitle>Edit profile</SheetTitle><SheetDescription>Make changes to your profile here.</SheetDescription></SheetHeader></SheetContent></Sheet></CardContent></Card>
+                  <Card><CardHeader><CardTitle>Skeleton</CardTitle></CardHeader><CardContent><div className="flex items-center space-x-4"><Skeleton className="h-12 w-12 rounded-full" /><div className="space-y-2"><Skeleton className="h-4 w-[150px]" /><Skeleton className="h-4 w-[100px]" /></div></div></CardContent></Card>
+                  <Card><CardHeader><CardTitle>Slider</CardTitle></CardHeader><CardContent><Slider defaultValue={[50]} max={100} step={1} /></CardContent></Card>
+                  <Card><CardHeader><CardTitle>Sonner (Toaster)</CardTitle></CardHeader><CardContent><Button variant="outline" onClick={() => toast("Event has been created", { description: "Sunday, December 03, 2023 at 9:00 AM" })}>Show Toast</Button></CardContent></Card>
+                  <Card><CardHeader><CardTitle>Switch</CardTitle></CardHeader><CardContent className="flex items-center gap-2"><Switch id="s1" /><Label htmlFor="s1">Airplane mode</Label></CardContent></Card>
+                </div>
+              </section>
+
+              <section>
+                <h2 className="text-2xl font-bold mb-6 border-b pb-2">T</h2>
+                <div className="grid gap-6 2xl:grid-cols-2">
+                  <Card className="2xl:col-span-2"><CardHeader><CardTitle>Table</CardTitle></CardHeader><CardContent><Table><TableHeader><TableRow><TableHead>ID</TableHead><TableHead>Status</TableHead></TableRow></TableHeader><TableBody><TableRow><TableCell>INV001</TableCell><TableCell>Paid</TableCell></TableRow></TableBody></Table></CardContent></Card>
+                  <Card><CardHeader><CardTitle>Tabs</CardTitle></CardHeader><CardContent><Tabs defaultValue="a"><TabsList><TabsTrigger value="a">A</TabsTrigger><TabsTrigger value="b">B</TabsTrigger></TabsList><TabsContent value="a">Content A</TabsContent><TabsContent value="b">Content B</TabsContent></Tabs></CardContent></Card>
+                  <Card><CardHeader><CardTitle>Textarea</CardTitle></CardHeader><CardContent><Textarea placeholder="Type your message here." /></CardContent></Card>
+                  <Card><CardHeader><CardTitle>Toggle</CardTitle></CardHeader><CardContent className="flex gap-2"><Toggle>Default</Toggle><Toggle variant="outline">Outline</Toggle></CardContent></Card>
+                  <Card><CardHeader><CardTitle>Toggle Group</CardTitle></CardHeader><CardContent><ToggleGroup type="multiple"><ToggleGroupItem value="a">A</ToggleGroupItem><ToggleGroupItem value="b">B</ToggleGroupItem><ToggleGroupItem value="c">C</ToggleGroupItem></ToggleGroup></CardContent></Card>
+                  <Card><CardHeader><CardTitle>Tooltip</CardTitle></CardHeader><CardContent><TooltipProvider><Tooltip><TooltipTrigger asChild><Button variant="outline">Hover</Button></TooltipTrigger><TooltipContent><p>Add to library</p></TooltipContent></Tooltip></TooltipProvider></CardContent></Card>
+                </div>
+              </section>
             </div>
-          </section>
           </div>
-        </div>
-      </TabsContent>
+        </TabsContent>
 
-      {/* SYSTEM DESIGN TAB */}
-      <TabsContent value="system" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
-        <div className="w-full bg-white rounded-xl border p-6 md:p-10 shadow-sm">
-          <header className="mb-10 text-center">
-            <Badge className="mb-4 bg-accent-gradient border-none text-white">Gnostica Design System</Badge>
-            <h2 className="text-3xl font-bold tracking-tight text-foreground">
-              System Components
-            </h2>
-            <p className="mt-2 text-muted-foreground">
-              Các component mở rộng được thiết kế riêng cho hệ thống (Common Components).
-            </p>
-          </header>
+        {/* SYSTEM DESIGN TAB */}
+        <TabsContent value="system" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+          <div className="w-full bg-white rounded-xl border p-6 md:p-10 shadow-sm">
+            <header className="mb-10 text-center">
+              <Badge className="mb-4 bg-accent-gradient border-none text-white">Gnostica Design System</Badge>
+              <h2 className="text-3xl font-bold tracking-tight text-foreground">
+                System Components
+              </h2>
+              <p className="mt-2 text-muted-foreground">
+                Các component mở rộng được thiết kế riêng cho hệ thống (Common Components).
+              </p>
+            </header>
 
-          <div className="space-y-12">
-          {/* SECTION 1: DESIGN TOKENS */}
-          <section>
-            <h2 className="text-3xl font-extrabold mb-6 border-b pb-2 text-primary">1. Design Tokens</h2>
-            <div className="space-y-6">
-              
-              <Card>
-                <CardHeader><CardTitle>Colors & Gradients</CardTitle><CardDescription>Biến màu hệ thống (CSS Variables)</CardDescription></CardHeader>
-                <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="space-y-2"><div className="h-12 rounded-md bg-primary"></div><p className="text-xs font-medium text-center">Primary</p></div>
-                  <div className="space-y-2"><div className="h-12 rounded-md bg-accent"></div><p className="text-xs font-medium text-center">Accent</p></div>
-                  <div className="space-y-2"><div className="h-12 rounded-md bg-success"></div><p className="text-xs font-medium text-center">Success</p></div>
-                  <div className="space-y-2"><div className="h-12 rounded-md bg-[image:var(--accent-gradient)]"></div><p className="text-xs font-medium text-center">Accent Gradient</p></div>
-                  <div className="space-y-2"><div className="h-12 rounded-md bg-warning"></div><p className="text-xs font-medium text-center">Warning</p></div>
-                  <div className="space-y-2"><div className="h-12 rounded-md bg-error"></div><p className="text-xs font-medium text-center">Error</p></div>
-                  <div className="space-y-2"><div className="h-12 rounded-md bg-info"></div><p className="text-xs font-medium text-center">Info</p></div>
-                  <div className="space-y-2"><div className="h-12 rounded-md bg-[image:var(--primary-gradient)]"></div><p className="text-xs font-medium text-center">Primary Gradient</p></div>
-                </CardContent>
-              </Card>
+            <div className="space-y-12">
+              {/* SECTION 1: DESIGN TOKENS */}
+              <section>
+                <h2 className="text-3xl font-extrabold mb-6 border-b pb-2 text-primary">1. Design Tokens</h2>
+                <div className="space-y-6">
 
-              <Card>
-                <CardHeader><CardTitle>Typography</CardTitle><CardDescription>Kích thước chữ mặc định của hệ thống</CardDescription></CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-baseline justify-between"><span className="text-4xl font-bold">Heading 1</span><span className="text-sm text-muted-foreground">text-4xl</span></div>
-                  <div className="flex items-baseline justify-between"><span className="text-3xl font-bold">Heading 2</span><span className="text-sm text-muted-foreground">text-3xl</span></div>
-                  <div className="flex items-baseline justify-between"><span className="text-2xl font-bold">Heading 3</span><span className="text-sm text-muted-foreground">text-2xl</span></div>
-                  <div className="flex items-baseline justify-between"><span className="text-xl font-bold">Heading 4</span><span className="text-sm text-muted-foreground">text-xl</span></div>
-                  <div className="flex items-baseline justify-between"><span className="text-base font-medium">Body Base Text</span><span className="text-sm text-muted-foreground">text-base</span></div>
-                  <div className="flex items-baseline justify-between"><span className="text-sm text-muted-foreground">Small muted text</span><span className="text-sm text-muted-foreground">text-sm</span></div>
-                </CardContent>
-              </Card>
+                  <Card>
+                    <CardHeader><CardTitle>Colors & Gradients</CardTitle><CardDescription>Biến màu hệ thống (CSS Variables)</CardDescription></CardHeader>
+                    <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="space-y-2"><div className="h-12 rounded-md bg-primary"></div><p className="text-xs font-medium text-center">Primary</p></div>
+                      <div className="space-y-2"><div className="h-12 rounded-md bg-accent"></div><p className="text-xs font-medium text-center">Accent</p></div>
+                      <div className="space-y-2"><div className="h-12 rounded-md bg-success"></div><p className="text-xs font-medium text-center">Success</p></div>
+                      <div className="space-y-2"><div className="h-12 rounded-md bg-[image:var(--accent-gradient)]"></div><p className="text-xs font-medium text-center">Accent Gradient</p></div>
+                      <div className="space-y-2"><div className="h-12 rounded-md bg-warning"></div><p className="text-xs font-medium text-center">Warning</p></div>
+                      <div className="space-y-2"><div className="h-12 rounded-md bg-error"></div><p className="text-xs font-medium text-center">Error</p></div>
+                      <div className="space-y-2"><div className="h-12 rounded-md bg-info"></div><p className="text-xs font-medium text-center">Info</p></div>
+                      <div className="space-y-2"><div className="h-12 rounded-md bg-[image:var(--primary-gradient)]"></div><p className="text-xs font-medium text-center">Primary Gradient</p></div>
+                    </CardContent>
+                  </Card>
 
-              <Card>
-                <CardHeader><CardTitle>Shadows & Radius</CardTitle><CardDescription>Bo góc và bóng đổ Gnostica</CardDescription></CardHeader>
-                <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                  <div className="h-20 bg-background border flex items-center justify-center rounded-sm shadow-sm"><span className="text-xs">sm</span></div>
-                  <div className="h-20 bg-background border flex items-center justify-center rounded-md shadow-md"><span className="text-xs">md</span></div>
-                  <div className="h-20 bg-background border flex items-center justify-center rounded-lg shadow-lg"><span className="text-xs">lg</span></div>
-                  <div className="h-20 bg-background border flex items-center justify-center rounded-xl shadow-xl"><span className="text-xs">xl</span></div>
-                </CardContent>
-              </Card>
+                  <Card>
+                    <CardHeader><CardTitle>Typography</CardTitle><CardDescription>Kích thước chữ mặc định của hệ thống</CardDescription></CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex items-baseline justify-between"><span className="text-4xl font-bold">Heading 1</span><span className="text-sm text-muted-foreground">text-4xl</span></div>
+                      <div className="flex items-baseline justify-between"><span className="text-3xl font-bold">Heading 2</span><span className="text-sm text-muted-foreground">text-3xl</span></div>
+                      <div className="flex items-baseline justify-between"><span className="text-2xl font-bold">Heading 3</span><span className="text-sm text-muted-foreground">text-2xl</span></div>
+                      <div className="flex items-baseline justify-between"><span className="text-xl font-bold">Heading 4</span><span className="text-sm text-muted-foreground">text-xl</span></div>
+                      <div className="flex items-baseline justify-between"><span className="text-base font-medium">Body Base Text</span><span className="text-sm text-muted-foreground">text-base</span></div>
+                      <div className="flex items-baseline justify-between"><span className="text-sm text-muted-foreground">Small muted text</span><span className="text-sm text-muted-foreground">text-sm</span></div>
+                    </CardContent>
+                  </Card>
 
-              <Card>
-                <CardHeader><CardTitle>Custom Utilities</CardTitle><CardDescription>Các class CSS viết tay ở index.css</CardDescription></CardHeader>
-                <CardContent className="grid grid-cols-2 gap-4">
-                  <div className="h-24 bg-[url('https://images.unsplash.com/photo-1550684848-fac1c5b4e853')] bg-cover bg-center rounded-lg p-4 flex items-center justify-center">
-                    <div className="glass px-4 py-2 rounded text-sm font-medium text-foreground">.glass</div>
+                  <Card>
+                    <CardHeader><CardTitle>Shadows & Radius</CardTitle><CardDescription>Bo góc và bóng đổ Gnostica</CardDescription></CardHeader>
+                    <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                      <div className="h-20 bg-background border flex items-center justify-center rounded-sm shadow-sm"><span className="text-xs">sm</span></div>
+                      <div className="h-20 bg-background border flex items-center justify-center rounded-md shadow-md"><span className="text-xs">md</span></div>
+                      <div className="h-20 bg-background border flex items-center justify-center rounded-lg shadow-lg"><span className="text-xs">lg</span></div>
+                      <div className="h-20 bg-background border flex items-center justify-center rounded-xl shadow-xl"><span className="text-xs">xl</span></div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader><CardTitle>Custom Utilities</CardTitle><CardDescription>Các class CSS viết tay ở index.css</CardDescription></CardHeader>
+                    <CardContent className="grid grid-cols-2 gap-4">
+                      <div className="h-24 bg-[url('https://images.unsplash.com/photo-1550684848-fac1c5b4e853')] bg-cover bg-center rounded-lg p-4 flex items-center justify-center">
+                        <div className="glass px-4 py-2 rounded text-sm font-medium text-foreground">.glass</div>
+                      </div>
+                      <div className="h-24 flex flex-col gap-2 items-center justify-center border rounded-lg p-4">
+                        <div className="h-4 w-full skeleton"></div>
+                        <div className="h-4 w-3/4 skeleton"></div>
+                        <div className="text-xs text-muted-foreground mt-1">.skeleton</div>
+                      </div>
+                      <div className="h-20 bg-background border-glow flex flex-col items-center justify-center rounded-lg">
+                        <span className="text-sm font-medium text-primary">.border-glow</span>
+                      </div>
+                      <div className="h-20 bg-background border hover-glow hover-lift flex flex-col text-center items-center justify-center rounded-lg cursor-pointer p-2">
+                        <span className="text-xs">Hover me</span>
+                        <span className="text-[10px] text-muted-foreground">.hover-lift & .hover-glow</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                </div>
+              </section>
+
+              {/* SECTION 2: MICRO COMPONENTS */}
+              <section className="mt-12">
+                <h2 className="text-3xl font-extrabold mb-6 border-b pb-2 text-primary">2. Micro Components</h2>
+                <div className="space-y-10">
+
+                  {/* Buttons & Actions */}
+                  <div>
+                    <h3 className="text-xl font-bold mb-4 text-foreground/80">Buttons & Actions</h3>
+                    <div className="space-y-6">
+                      <Card>
+                        <CardHeader><CardTitle>Base Buttons</CardTitle><CardDescription>Các loại nút bấm (AppButton) theo biến thể (variants)</CardDescription></CardHeader>
+                        <CardContent className="flex flex-wrap items-center gap-4">
+                          <AppButton appVariant="gradient">Simple Button</AppButton>
+                          <AppButton appVariant="outlineGradient">Outline Gradient</AppButton>
+                          <AppButton appVariant="ghostMuted" variant="ghost">Ghost Button</AppButton>
+                          <AppButton appVariant="category" className="text-sm h-10 px-4">
+                            <Layers className="w-4 h-4 mr-2 inline" /> Danh mục
+                          </AppButton>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader><CardTitle>Special Buttons</CardTitle><CardDescription>Các nút bấm đặc biệt có chứa Icon và Badge, có thể dùng ở mọi nơi (nền sáng/tối đều được)</CardDescription></CardHeader>
+                        <CardContent className="flex flex-wrap items-center gap-6">
+                          <IconLabelButton icon={User} badge={2}>Đăng nhập</IconLabelButton>
+                          <HorizontalIconLabelButton icon={ShoppingCart}>Giỏ hàng</HorizontalIconLabelButton>
+                          <AppIconButton icon={Bell} badge={5} />
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader><CardTitle>Header Specific Buttons</CardTitle><CardDescription>Các nút bấm thiết kế riêng cho thanh Header (Bắt buộc dùng trên nền tối)</CardDescription></CardHeader>
+                        <CardContent className="space-y-6">
+                          <div className="flex flex-wrap items-center gap-6 bg-slate-900 p-6 rounded-xl border">
+                            <AppHeaderButton icon={Mail} label="Inbox" badge={1} />
+                            <div className="ml-auto flex items-center gap-4">
+                              <AppHamburgerButton isOpen={hamburgerOpen} onClick={() => setHamburgerOpen(!hamburgerOpen)} className="text-white" />
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader><CardTitle>Table Actions</CardTitle><CardDescription>Dùng cho cột thao tác trong bảng dữ liệu</CardDescription></CardHeader>
+                        <CardContent className="flex gap-4">
+                          <TableActionIconButton icon={Eye} colorVariant="primary" />
+                          <TableActionIconButton icon={Edit} colorVariant="success" />
+                          <TableActionIconButton icon={Trash} colorVariant="error" />
+                        </CardContent>
+                      </Card>
+                    </div>
                   </div>
-                  <div className="h-24 flex flex-col gap-2 items-center justify-center border rounded-lg p-4">
-                    <div className="h-4 w-full skeleton"></div>
-                    <div className="h-4 w-3/4 skeleton"></div>
-                    <div className="text-xs text-muted-foreground mt-1">.skeleton</div>
+
+                  {/* Menus & Links */}
+                  <div>
+                    <h3 className="text-xl font-bold mb-4 text-foreground/80">Menus & Links</h3>
+                    <div className="space-y-6">
+                      <Card>
+                        <CardHeader><CardTitle>User Menu</CardTitle></CardHeader>
+                        <CardContent>
+                          <div className="bg-slate-900 p-6 rounded-xl w-fit">
+                            <AppUserMenu user={{ name: "Minh Nguyễn", avatar: "https://github.com/shadcn.png" }} onLogout={() => toast("Đã đăng xuất")} />
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader><CardTitle>Navigation Links & Logos</CardTitle></CardHeader>
+                        <CardContent className="flex items-center gap-12">
+                          <AppLogo />
+                          <div className="flex gap-6">
+                            <AppNavLink href="#">Khóa học</AppNavLink>
+                            <AppNavLink href="#">Tin tức</AppNavLink>
+                            <AppNavLink href="#">Liên hệ</AppNavLink>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
                   </div>
-                  <div className="h-20 bg-background border-glow flex flex-col items-center justify-center rounded-lg">
-                    <span className="text-sm font-medium text-primary">.border-glow</span>
+
+                  {/* Forms & Inputs */}
+                  <div>
+                    <h3 className="text-xl font-bold mb-4 text-foreground/80">Forms & Inputs</h3>
+                    <div className="space-y-6">
+                      <Card>
+                        <CardHeader><CardTitle>AppInput & AppPasswordInput</CardTitle></CardHeader>
+                        <CardContent className="space-y-4 max-w-sm">
+                          <AppInput id="demo-input" label="Tên đăng nhập" placeholder="Nhập tên đăng nhập..." icon={User} />
+                          <AppPasswordInput id="demo-pwd" label="Mật khẩu" placeholder="Nhập mật khẩu..." forgotPasswordLink showStrength strength={{ score: 2, color: 'bg-warning', text: 'text-warning', label: 'Trung bình' }} value="123456" onChange={() => { }} />
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader><CardTitle>AppSearchInput</CardTitle></CardHeader>
+                        <CardContent className="bg-slate-50 p-6 rounded-md">
+                          <div className="max-w-md">
+                            <AppSearchInput />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
                   </div>
-                  <div className="h-20 bg-background border hover-glow hover-lift flex flex-col text-center items-center justify-center rounded-lg cursor-pointer p-2">
-                    <span className="text-xs">Hover me</span>
-                    <span className="text-[10px] text-muted-foreground">.hover-lift & .hover-glow</span>
+
+                  {/* Navigation */}
+                  <div>
+                    <h3 className="text-xl font-bold mb-4 text-foreground/80">Navigation</h3>
+                    <div className="space-y-6">
+                      <Card>
+                        <CardHeader><CardTitle>AppBreadcrumb</CardTitle></CardHeader>
+                        <CardContent>
+                          <AppBreadcrumb paths={[{ label: 'Khóa học', href: '#' }, { label: 'React JS' }]} />
+                        </CardContent>
+                      </Card>
+                    </div>
                   </div>
-                </CardContent>
-              </Card>
+
+                  {/* Layout & Content */}
+                  <div>
+                    <h3 className="text-xl font-bold mb-4 text-foreground/80">Layout & Content</h3>
+                    <div className="space-y-6">
+                      <Card>
+                        <CardHeader><CardTitle>AppAccordion</CardTitle><CardDescription>Dùng cho phần FAQ hoặc hiển thị nội dung thu gọn (có biến thể Separated)</CardDescription></CardHeader>
+                        <CardContent className="grid md:grid-cols-2 gap-8">
+                          <div>
+                            <h4 className="font-semibold mb-4 text-sm text-muted-foreground uppercase">Default Variant</h4>
+                            <AppAccordion 
+                              items={[
+                                { title: "AppAccordion là gì?", content: "Là component được bọc lại từ Shadcn UI giúp truyền mảng dữ liệu (items) nhanh chóng hơn thay vì phải lặp thủ công." },
+                                { title: "Nó có hỗ trợ Icon không?", content: "Có, bạn có thể truyền trực tiếp thuộc tính icon vào mỗi item." }
+                              ]}
+                            />
+                          </div>
+                          <div>
+                            <h4 className="font-semibold mb-4 text-sm text-muted-foreground uppercase">Separated Variant</h4>
+                            <AppAccordion 
+                              variant="separated"
+                              items={[
+                                { icon: <MessageSquare className="w-5 h-5"/>, title: "Làm sao để đăng ký khóa học?", content: "Bạn chỉ cần tạo tài khoản, nạp xu và click nút Mua khóa học." },
+                                { icon: <CreditCard className="w-5 h-5"/>, title: "Các phương thức thanh toán?", content: "Chúng tôi hỗ trợ chuyển khoản ngân hàng, mã QR và thẻ tín dụng." }
+                              ]}
+                            />
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader><CardTitle>AppAlert</CardTitle><CardDescription>Dùng cho các thông báo hệ thống với Semantic Colors (Success, Error, Warning, Info)</CardDescription></CardHeader>
+                        <CardContent className="grid md:grid-cols-2 gap-4">
+                          <AppAlert 
+                            variant="success" 
+                            title="Thành công" 
+                            description="Bạn đã đăng ký khóa học thành công." 
+                          />
+                          <AppAlert 
+                            variant="error" 
+                            title="Lỗi thanh toán" 
+                            description="Số dư của bạn không đủ để thực hiện giao dịch này." 
+                          />
+                          <AppAlert 
+                            variant="warning" 
+                            title="Cảnh báo" 
+                            description="Khóa học này sẽ hết hạn đăng ký trong 2 ngày tới." 
+                          />
+                          <AppAlert 
+                            variant="info" 
+                            title="Thông tin" 
+                            description="Chương trình khuyến mãi giảm 50% sẽ bắt đầu vào ngày mai." 
+                          />
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </div>
+
+                </div>
+              </section>
+
+              {/* SECTION 3: COMPOSITE COMPONENTS */}
+              <section className="mt-12">
+                <h2 className="text-3xl font-extrabold mb-6 border-b pb-2 text-primary">3. Composite Components</h2>
+                <div className="space-y-10">
+
+                  {/* Data Display */}
+                  <div>
+                    <h3 className="text-xl font-bold mb-4 text-foreground/80">Data Display & Cards</h3>
+                    <div className="space-y-6">
+                      <Card>
+                        <CardHeader><CardTitle>AppCard & CourseCardHorizontal</CardTitle></CardHeader>
+                        <CardContent className="grid md:grid-cols-2 gap-4">
+                          <div className="max-w-xs"><AppCard /></div>
+                          <div className="flex flex-col gap-4">
+                            <CourseCardHorizontal />
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader><CardTitle>ForumPostCard</CardTitle></CardHeader>
+                        <CardContent>
+                          <ForumPostCard post={{ id: 1, title: 'Hướng dẫn sử dụng React hooks', content: 'Trong bài viết này chúng ta sẽ tìm hiểu về các hooks cơ bản trong React...', author: { name: 'Admin', avatar: '', status: 'online' }, category: 'Lập trình', tags: ['React', 'Frontend'], createdAt: '2 giờ trước', stats: { replies: 5, views: 120, likes: 12 }, isHot: true }} />
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader><CardTitle>AppTable</CardTitle></CardHeader>
+                        <CardContent>
+                          <AppTable
+                            columns={[
+                              { key: "id", header: "ID", width: "50px" },
+                              { key: "name", header: "Học viên" },
+                              { key: "course", header: "Khóa học" },
+                            ]}
+                            data={[
+                              { id: 1, name: "Minh Nguyễn", course: "React JS" },
+                              { id: 2, name: "Thanh Trần", course: "Node JS" }
+                            ]}
+                            pagination={{ currentPage: 1, totalPages: 1, totalItems: 2 }}
+                          />
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </div>
+
+                  {/* Feedback & Interactivity */}
+                  <div>
+                    <h3 className="text-xl font-bold mb-4 text-foreground/80">Feedback & Interactivity</h3>
+                    <div className="space-y-6">
+                      <Card>
+                        <CardHeader><CardTitle>CommentCard</CardTitle></CardHeader>
+                        <CardContent>
+                          <div className="max-w-2xl">
+                            <CommentCard
+                              comment={{
+                                id: 1,
+                                content: '<p>Khóa học này rất tuyệt vời, giảng viên giảng dễ hiểu!</p>',
+                                author: { name: 'Học viên A', avatar: '' },
+                                createdAt: '1 giờ trước',
+                                replies: [
+                                  { id: 2, content: '<p>Cảm ơn bạn đã nhận xét.</p>', author: { name: 'Giảng viên', avatar: '', role: 'Instructor' }, createdAt: '30 phút trước', isAccepted: true }
+                                ]
+                              }}
+                            />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </div>
+
+                </div>
+              </section>
 
             </div>
-          </section>
-
-          {/* SECTION 2: MICRO COMPONENTS */}
-          <section className="mt-12">
-            <h2 className="text-3xl font-extrabold mb-6 border-b pb-2 text-primary">2. Micro Components</h2>
-            <div className="space-y-10">
-              
-              {/* Buttons & Actions */}
-              <div>
-                <h3 className="text-xl font-bold mb-4 text-foreground/80">Buttons & Actions</h3>
-                <div className="space-y-6">
-                  <Card>
-                    <CardHeader><CardTitle>Base Buttons</CardTitle><CardDescription>Các loại nút bấm tùy chỉnh màu sắc thương hiệu</CardDescription></CardHeader>
-                    <CardContent className="flex flex-wrap gap-4">
-                      <SimpleButton>Simple Button</SimpleButton>
-                      <OutlineGradientButton>Outline Gradient</OutlineGradientButton>
-                      <GhostButton>Ghost Button</GhostButton>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader><CardTitle>Header & Navigation Buttons</CardTitle><CardDescription>Dùng cho thanh điều hướng và menu (Background tối mô phỏng Header)</CardDescription></CardHeader>
-                    <CardContent className="space-y-6">
-                      <div className="flex flex-wrap items-center gap-6 bg-slate-900 p-6 rounded-xl border">
-                        <IconLabelButton icon={User} badge={2}>Đăng nhập</IconLabelButton>
-                        <HorizontalIconLabelButton icon={ShoppingCart}>Giỏ hàng</HorizontalIconLabelButton>
-                        <AppIconButton icon={Bell} badge={5} />
-                        <AppHeaderButton icon={Mail} label="Inbox" badge={1} />
-                        <div className="ml-auto flex items-center gap-4">
-                          <CategoryButton><Layers className="w-5 h-5"/> Danh mục</CategoryButton>
-                          <AppHamburgerButton isOpen={hamburgerOpen} onClick={() => setHamburgerOpen(!hamburgerOpen)} className="text-white" />
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader><CardTitle>Table Actions</CardTitle><CardDescription>Dùng cho cột thao tác trong bảng dữ liệu</CardDescription></CardHeader>
-                    <CardContent className="flex gap-4">
-                      <TableActionIconButton icon={Eye} colorVariant="primary" />
-                      <TableActionIconButton icon={Edit} colorVariant="success" />
-                      <TableActionIconButton icon={Trash} colorVariant="error" />
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-
-              {/* Menus & Links */}
-              <div>
-                <h3 className="text-xl font-bold mb-4 text-foreground/80">Menus & Links</h3>
-                <div className="space-y-6">
-                  <Card>
-                    <CardHeader><CardTitle>User Menu</CardTitle></CardHeader>
-                    <CardContent>
-                      <div className="bg-slate-900 p-6 rounded-xl w-fit">
-                        <AppUserMenu user={{ name: "Minh Nguyễn", avatar: "https://github.com/shadcn.png" }} onLogout={() => toast("Đã đăng xuất")} />
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader><CardTitle>Navigation Links & Logos</CardTitle></CardHeader>
-                    <CardContent className="flex items-center gap-12">
-                      <AppLogo />
-                      <div className="flex gap-6">
-                        <AppNavLink href="#">Khóa học</AppNavLink>
-                        <AppNavLink href="#">Tin tức</AppNavLink>
-                        <AppNavLink href="#">Liên hệ</AppNavLink>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-
-              {/* Forms & Inputs */}
-              <div>
-                <h3 className="text-xl font-bold mb-4 text-foreground/80">Forms & Inputs</h3>
-                <div className="space-y-6">
-                  <Card>
-                    <CardHeader><CardTitle>AppInput & AppPasswordInput</CardTitle></CardHeader>
-                    <CardContent className="space-y-4 max-w-sm">
-                      <AppInput id="demo-input" label="Tên đăng nhập" placeholder="Nhập tên đăng nhập..." icon={User} />
-                      <AppPasswordInput id="demo-pwd" label="Mật khẩu" placeholder="Nhập mật khẩu..." forgotPasswordLink showStrength strength={{ score: 2, color: 'bg-warning', text: 'text-warning', label: 'Trung bình' }} value="123456" onChange={()=>{}} />
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader><CardTitle>AppSearchInput</CardTitle></CardHeader>
-                    <CardContent className="bg-slate-50 p-6 rounded-md">
-                      <div className="max-w-md">
-                        <AppSearchInput />
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-
-              {/* Navigation */}
-              <div>
-                <h3 className="text-xl font-bold mb-4 text-foreground/80">Navigation</h3>
-                <div className="space-y-6">
-                  <Card>
-                    <CardHeader><CardTitle>AppBreadcrumb</CardTitle></CardHeader>
-                    <CardContent>
-                      <AppBreadcrumb paths={[{ label: 'Khóa học', href: '#' }, { label: 'React JS' }]} />
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-
-            </div>
-          </section>
-
-          {/* SECTION 3: COMPOSITE COMPONENTS */}
-          <section className="mt-12">
-            <h2 className="text-3xl font-extrabold mb-6 border-b pb-2 text-primary">3. Composite Components</h2>
-            <div className="space-y-10">
-              
-              {/* Data Display */}
-              <div>
-                <h3 className="text-xl font-bold mb-4 text-foreground/80">Data Display & Cards</h3>
-                <div className="space-y-6">
-                  <Card>
-                    <CardHeader><CardTitle>AppCard & CourseCardHorizontal</CardTitle></CardHeader>
-                    <CardContent className="grid md:grid-cols-2 gap-4">
-                      <div className="max-w-xs"><AppCard /></div>
-                      <div className="flex flex-col gap-4">
-                         <CourseCardHorizontal />
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader><CardTitle>ForumPostCard</CardTitle></CardHeader>
-                    <CardContent>
-                      <ForumPostCard post={{ id: 1, title: 'Hướng dẫn sử dụng React hooks', content: 'Trong bài viết này chúng ta sẽ tìm hiểu về các hooks cơ bản trong React...', author: { name: 'Admin', avatar: '', status: 'online' }, category: 'Lập trình', tags: ['React', 'Frontend'], createdAt: '2 giờ trước', stats: { replies: 5, views: 120, likes: 12 }, isHot: true }} />
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader><CardTitle>AppTable</CardTitle></CardHeader>
-                    <CardContent>
-                      <AppTable 
-                        columns={[
-                          { key: "id", header: "ID", width: "50px" },
-                          { key: "name", header: "Học viên" },
-                          { key: "course", header: "Khóa học" },
-                        ]}
-                        data={[
-                          { id: 1, name: "Minh Nguyễn", course: "React JS" },
-                          { id: 2, name: "Thanh Trần", course: "Node JS" }
-                        ]}
-                        pagination={{ currentPage: 1, totalPages: 1, totalItems: 2 }}
-                      />
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-
-              {/* Feedback & Interactivity */}
-              <div>
-                <h3 className="text-xl font-bold mb-4 text-foreground/80">Feedback & Interactivity</h3>
-                <div className="space-y-6">
-                  <Card>
-                    <CardHeader><CardTitle>CommentCard</CardTitle></CardHeader>
-                    <CardContent>
-                      <div className="max-w-2xl">
-                        <CommentCard 
-                          comment={{ 
-                            id: 1, 
-                            content: '<p>Khóa học này rất tuyệt vời, giảng viên giảng dễ hiểu!</p>', 
-                            author: { name: 'Học viên A', avatar: '' }, 
-                            createdAt: '1 giờ trước',
-                            replies: [
-                               { id: 2, content: '<p>Cảm ơn bạn đã nhận xét.</p>', author: { name: 'Giảng viên', avatar: '', role: 'Instructor' }, createdAt: '30 phút trước', isAccepted: true }
-                            ]
-                          }} 
-                        />
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-
-            </div>
-          </section>
-
           </div>
-        </div>
-      </TabsContent>
+        </TabsContent>
       </Tabs>
     </div>
   )

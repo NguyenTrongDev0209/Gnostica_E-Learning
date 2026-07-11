@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Shield, Lock, Smartphone, UserCheck } from 'lucide-react';
-import { GhostButton } from '@/components/common/micro/AppButton';
+import { AppButton } from "@/components/common/micro/AppButton";
 
 export function SecuritySettings() {
   return (
@@ -33,7 +33,7 @@ export function SecuritySettings() {
             </div>
           </div>
           <div className="flex justify-end mt-4">
-            <GhostButton className="text-xs font-bold border border-border">Cập nhật mật khẩu</GhostButton>
+            <AppButton appVariant="ghostMuted" variant="ghost" className="text-xs font-bold border border-border">Cập nhật mật khẩu</AppButton>
           </div>
         </CardContent>
       </Card>

@@ -5,12 +5,7 @@ import {
     LayoutGrid,
     Flame
 } from "lucide-react"
-import {
-    AppHamburgerButton,
-    AppLogo,
-    AppUserMenu,
-    CategoryButton
-} from "@/components/common/micro/AppButton"
+import { AppHamburgerButton, AppLogo, AppUserMenu, AppButton } from "@/components/common/micro/AppButton"
 import AppSearchInput from "@/components/common/micro/AppSearchInput"
 import NotificationBell from "@/components/common/micro/NotificationBell"
 import {
@@ -145,11 +140,11 @@ const MainHeader = ({
                     <div className="flex-1 flex justify-start">
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <CategoryButton>
+                                <AppButton appVariant="category" className="text-sm h-10 px-4">
                                     <LayoutGrid className="w-5 h-5 pointer-events-none" />
                                     <span className="pointer-events-none">Khóa học</span>
                                     <ChevronDown className="w-4 h-4 ml-1 pointer-events-none" />
-                                </CategoryButton>
+                                </AppButton>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="start" className="w-[280px] bg-white border-none shadow-2xl rounded-lg p-2 animate-in fade-in slide-in-from-top-2 z-[101]">
                                 {renderCategoryItems(categoryTree)}

@@ -5,7 +5,7 @@ import * as z from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { GhostButton, SimpleButton } from "@/components/common/micro/AppButton";
+import { AppButton } from "@/components/common/micro/AppButton";
 import { Ticket, Percent, CircleDollarSign, Package, Calendar } from "lucide-react";
 import { format } from "date-fns";
 
@@ -286,16 +286,16 @@ export function CouponFormModal({ isOpen, onOpenChange, onSave }) {
             </div>
 
             <DialogFooter className="pt-4 gap-2">
-              <GhostButton
+              <AppButton appVariant="ghostMuted" variant="ghost"
                 type="button"
                 onClick={() => form.reset()}
                 className="px-6 border border-border"
               >
                 Tạo lại
-              </GhostButton>
-              <SimpleButton type="submit" className="px-8 font-bold">
+              </AppButton>
+              <AppButton appVariant="gradient" type="submit" className="px-8 font-bold">
                 Tạo mã ngay
-              </SimpleButton>
+              </AppButton>
             </DialogFooter>
           </form>
         </Form>

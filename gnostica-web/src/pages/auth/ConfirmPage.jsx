@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ShieldCheck, ArrowLeft } from 'lucide-react';
-import { SimpleButton } from '@/components/common/micro/AppButton';
+import { AppButton } from "@/components/common/micro/AppButton";
 import AuthCard from './components/AuthCard';
 import { useConfirm } from '@/hooks/auth/useConfirm';
 
@@ -89,7 +89,7 @@ const ConfirmPage = () => {
         </div>
 
         {/* Submit */}
-        <SimpleButton
+        <AppButton appVariant="gradient"
           type="submit"
           className="w-full mt-1 gap-2"
           disabled={loading || !isComplete}
@@ -101,7 +101,7 @@ const ConfirmPage = () => {
             </svg>
           ) : <ShieldCheck className="w-4 h-4" />}
           {loading ? 'Đang xác nhận...' : 'Xác nhận'}
-        </SimpleButton>
+        </AppButton>
       </form>
 
       {/* Back to login */}

@@ -9,7 +9,7 @@ import {
   FileText,
   Loader2,
 } from "lucide-react";
-import { SimpleButton } from "@/components/common/micro/AppButton";
+import { AppButton } from "@/components/common/micro/AppButton";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { AppBreadcrumb } from "@/components/common/composite/AppSection";
@@ -140,10 +140,10 @@ export default function CheckoutResult() {
                     </Button>
                   </Link>
                   <Link to="/account/my-courses" className="flex-1">
-                    <SimpleButton className="w-full h-12 font-bold gap-2 rounded-xl">
+                    <AppButton appVariant="gradient" className="w-full h-12 font-bold gap-2 rounded-xl">
                       Vào học ngay
                       <ArrowRight className="w-4 h-4" />
-                    </SimpleButton>
+                    </AppButton>
                   </Link>
                 </>
               ) : (
@@ -158,10 +158,10 @@ export default function CheckoutResult() {
                     </Button>
                   </Link>
                   <Link to="/checkout" className="flex-1">
-                    <SimpleButton className="w-full h-12 font-bold gap-2 rounded-xl">
+                    <AppButton appVariant="gradient" className="w-full h-12 font-bold gap-2 rounded-xl">
                       <RotateCcw className="w-4 h-4" />
                       Thử lại
-                    </SimpleButton>
+                    </AppButton>
                   </Link>
                 </>
               )}

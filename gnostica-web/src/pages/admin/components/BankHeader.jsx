@@ -1,6 +1,6 @@
 import React from 'react';
 import { Building2, Plus, RefreshCw } from 'lucide-react';
-import { GhostButton, SimpleButton } from '@/components/common/micro/AppButton';
+import { AppButton } from "@/components/common/micro/AppButton";
 
 export function BankHeader({ onAddClick, onSyncClick, isSyncing }) {
   return (
@@ -15,21 +15,21 @@ export function BankHeader({ onAddClick, onSyncClick, isSyncing }) {
         </p>
       </div>
       <div className="flex items-center gap-2">
-        <GhostButton
+        <AppButton appVariant="ghostMuted" variant="ghost"
           className="font-bold flex items-center gap-2 border border-primary text-primary hover:bg-primary/5"
           onClick={onSyncClick}
           disabled={isSyncing}
         >
           <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
           Đồng bộ VietQR
-        </GhostButton>
-        <SimpleButton
+        </AppButton>
+        <AppButton appVariant="gradient"
           className="flex items-center gap-2"
           onClick={onAddClick}
         >
           <Plus className="w-4 h-4" />
           Thêm Ngân hàng
-        </SimpleButton>
+        </AppButton>
       </div>
     </div>
   );

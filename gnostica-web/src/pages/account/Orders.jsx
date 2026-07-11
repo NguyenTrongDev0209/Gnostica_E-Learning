@@ -15,7 +15,7 @@ import AppPageHeader from "@/components/common/composite/AppPageHeader";
 import { ShoppingBag, Eye, Download } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import useOrders from "@/hooks/account/useOrders";
-import { GhostButton } from "@/components/common/micro/AppButton";
+import { AppButton } from "@/components/common/micro/AppButton";
 
 export default function Orders() {
   const { orders, loading } = useOrders();
@@ -95,12 +95,12 @@ export default function Orders() {
                       </TableCell>
                       <TableCell className="text-right py-4">
                         <div className="flex items-center justify-end gap-2">
-                          <GhostButton size="icon" className="h-9 w-9 rounded-lg" title="Xem chi tiết">
+                          <AppButton appVariant="ghostMuted" variant="ghost" size="icon" className="h-9 w-9 rounded-lg" title="Xem chi tiết">
                             <Eye className="w-5 h-5" />
-                          </GhostButton>
-                          <GhostButton size="icon" className="h-9 w-9 rounded-lg hover:text-info hover:bg-blue-50" title="Tải hóa đơn">
+                          </AppButton>
+                          <AppButton appVariant="ghostMuted" variant="ghost" size="icon" className="h-9 w-9 rounded-lg hover:text-info hover:bg-blue-50" title="Tải hóa đơn">
                             <Download className="w-5 h-5" />
-                          </GhostButton>
+                          </AppButton>
                         </div>
                       </TableCell>
                     </TableRow>

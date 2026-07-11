@@ -1,7 +1,7 @@
 import { toast } from "sonner";
 import React, { useState, useEffect } from "react";
 import { X, Building2, CreditCard, DollarSign, Lock, Trash2 } from "lucide-react";
-import { GhostButton, SimpleButton } from "@/components/common/micro/AppButton";
+import { AppButton } from "@/components/common/micro/AppButton";
 import walletService from "@/services/payment/walletService";
 import bankService from "@/services/payment/bankService";
 
@@ -223,10 +223,10 @@ export default function WithdrawModal({ isOpen, onClose, wallet, onSuccess }) {
                                 required
                             />
                             <div className="pt-2 flex gap-3">
-                                <GhostButton type="button" onClick={onClose} className="flex-1 border border-border">Hủy</GhostButton>
-                                <SimpleButton type="submit" disabled={loading} className="flex-1 bg-success/10 text-success hover:bg-success/20">
+                                <AppButton appVariant="ghostMuted" variant="ghost" type="button" onClick={onClose} className="flex-1 border border-border">Hủy</AppButton>
+                                <AppButton appVariant="gradient" type="submit" disabled={loading} className="flex-1 bg-success/10 text-success hover:bg-success/20">
                                     {loading ? "Đang lưu..." : "Lưu tài khoản"}
-                                </SimpleButton>
+                                </AppButton>
                             </div>
                         </form>
                     )}
@@ -289,10 +289,10 @@ export default function WithdrawModal({ isOpen, onClose, wallet, onSuccess }) {
                             />
 
                             <div className="pt-2 flex gap-3">
-                                <GhostButton type="button" onClick={onClose} className="flex-1 border border-border">Hủy</GhostButton>
-                                <SimpleButton type="submit" disabled={loading} className="flex-1 bg-success/10 text-success hover:bg-success/20">
+                                <AppButton appVariant="ghostMuted" variant="ghost" type="button" onClick={onClose} className="flex-1 border border-border">Hủy</AppButton>
+                                <AppButton appVariant="gradient" type="submit" disabled={loading} className="flex-1 bg-success/10 text-success hover:bg-success/20">
                                     {loading ? "Đang xử lý..." : "Xác nhận rút tiền"}
-                                </SimpleButton>
+                                </AppButton>
                             </div>
                         </form>
                     )}
@@ -316,20 +316,20 @@ export default function WithdrawModal({ isOpen, onClose, wallet, onSuccess }) {
                             />
 
                             <div className="pt-2 flex gap-3">
-                                <GhostButton
+                                <AppButton appVariant="ghostMuted" variant="ghost"
                                     type="button"
                                     onClick={() => setStep("withdraw")}
                                     className="flex-1 border border-border"
                                 >
                                     Quay lại
-                                </GhostButton>
-                                <SimpleButton
+                                </AppButton>
+                                <AppButton appVariant="gradient"
                                     type="submit"
                                     disabled={loading}
                                     className="flex-1 bg-error/10 text-error hover:bg-error/20"
                                 >
                                     {loading ? "Đang xử lý..." : "Xác nhận xóa"}
-                                </SimpleButton>
+                                </AppButton>
                             </div>
                         </form>
                     )}

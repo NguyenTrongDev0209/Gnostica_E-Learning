@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 import RenderContent from '@/components/common/core/RenderContent';
 import useForumDetail from '@/hooks/forum/useForumDetail';
 import { toast } from 'sonner';
-import { GhostButton } from '@/components/common/micro/AppButton';
+import { AppButton } from "@/components/common/micro/AppButton";
 import ForumDetailSidebar from './components/ForumDetailSidebar';
 import ReportPostModal from './components/ReportPostModal';
 import CommentSection from './components/CommentSection';
@@ -89,7 +89,7 @@ const ForumDetail = () => {
           <h2 className="text-2xl font-bold text-foreground mb-2">Thao tác thất bại</h2>
           <p className="text-muted-foreground mb-6">{error || "Không tìm thấy bài viết này."}</p>
           <Link to="/forum">
-            <GhostButton className="bg-accent-gradient text-white w-full">Quay lại Diễn đàn</GhostButton>
+            <AppButton appVariant="ghostMuted" variant="ghost" className="bg-accent-gradient text-white w-full">Quay lại Diễn đàn</AppButton>
           </Link>
         </div>
       </div>
@@ -231,26 +231,26 @@ const ForumDetail = () => {
                         </button>
                       </div>
 
-                      <GhostButton
+                      <AppButton appVariant="ghostMuted" variant="ghost"
                         size="sm"
                         className={`gap-1.5 h-9 border border-border ${postLiked ? 'border-primary text-primary bg-primary/5' : ''}`}
                         onClick={handleToggleLike}
                       >
                         <ThumbsUp className={`w-4 h-4 ${postLiked ? 'fill-primary' : ''}`} />
                         {post.likes || 0} Hữu ích
-                      </GhostButton>
+                      </AppButton>
                     </div>
                     <div className="flex items-center gap-2">
-                      <GhostButton
+                      <AppButton appVariant="ghostMuted" variant="ghost"
                         size="sm"
                         className="gap-1.5 h-9 text-muted-foreground hover:text-primary transition-all"
                         onClick={handleShare}
                       >
                         <Share2 className="w-4 h-4" />
                         Chia sẻ
-                      </GhostButton>
+                      </AppButton>
 
-                      <GhostButton 
+                      <AppButton appVariant="ghostMuted" variant="ghost" 
                         size="sm" 
                         className={cn(
                           "gap-1.5 h-9",
@@ -267,7 +267,7 @@ const ForumDetail = () => {
                       >
                         <Flag className={cn("w-4 h-4", hasReported && "fill-red-500")} /> 
                         {hasReported ? "Đã báo cáo" : "Báo cáo"}
-                      </GhostButton>
+                      </AppButton>
                     </div>
                   </div>
                 )}

@@ -6,7 +6,7 @@ import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
 import AppPageHeader from "@/components/common/composite/AppPageHeader";
 import { Users, ArrowRight, UserMinus, Star } from "lucide-react";
 import useFavoriteInstructors from '@/hooks/account/useFavoriteInstructors';
-import { SimpleButton } from '@/components/common/micro/AppButton';
+import { AppButton } from "@/components/common/micro/AppButton";
 
 export default function FavoriteInstructors() {
     const { instructors, loading, handleUnfollow } = useFavoriteInstructors();
@@ -72,7 +72,7 @@ export default function FavoriteInstructors() {
                     <h3 className="text-lg font-bold text-foreground mb-1">Chưa theo dõi giảng viên nào</h3>
                     <p className="text-sm text-muted-foreground mb-6">Hãy khám phá và theo dõi những giảng viên yêu thích của bạn.</p>
                     <Link to="/instructors">
-                        <SimpleButton className="font-bold px-6">Khám phá ngay</SimpleButton>
+                        <AppButton appVariant="gradient" className="font-bold px-6">Khám phá ngay</AppButton>
                     </Link>
                 </div>
             )}

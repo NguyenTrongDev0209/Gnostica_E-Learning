@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { FileText, ThumbsUp, LayoutGrid } from 'lucide-react';
-import { GhostButton } from '@/components/common/micro/AppButton';
+import { AppButton } from "@/components/common/micro/AppButton";
 import { cn } from "@/lib/utils";
 
 const MyForumSidebar = ({ currentUser, userStats, activeTab, setActiveTab }) => {
@@ -47,7 +47,7 @@ const MyForumSidebar = ({ currentUser, userStats, activeTab, setActiveTab }) => 
             Truy cập nhanh
           </h4>
           <div className="flex flex-col gap-2">
-            <GhostButton
+            <AppButton appVariant="ghostMuted" variant="ghost"
               className={cn(
                 "w-full justify-start text-sm gap-3 font-semibold",
                 activeTab === 'my-posts' ? "bg-primary/10 text-primary hover:bg-primary/20" : "hover:bg-muted text-muted-foreground hover:text-foreground"
@@ -56,8 +56,8 @@ const MyForumSidebar = ({ currentUser, userStats, activeTab, setActiveTab }) => 
             >
               <FileText className="w-4 h-4" />
               Bài viết của tôi
-            </GhostButton>
-            <GhostButton
+            </AppButton>
+            <AppButton appVariant="ghostMuted" variant="ghost"
               className={cn(
                 "w-full justify-start text-sm gap-3 font-semibold",
                 activeTab === 'liked' ? "bg-primary/10 text-primary hover:bg-primary/20" : "hover:bg-muted text-muted-foreground hover:text-foreground"
@@ -66,11 +66,11 @@ const MyForumSidebar = ({ currentUser, userStats, activeTab, setActiveTab }) => 
             >
               <ThumbsUp className="w-4 h-4" />
               Bài viết đã thích
-            </GhostButton>
+            </AppButton>
             <Link to="/account" className="w-full">
-              <GhostButton className="w-full justify-start text-sm hover:bg-muted gap-3 text-muted-foreground hover:text-foreground">
+              <AppButton appVariant="ghostMuted" variant="ghost" className="w-full justify-start text-sm hover:bg-muted gap-3 text-muted-foreground hover:text-foreground">
                 Tài khoản của tôi
-              </GhostButton>
+              </AppButton>
             </Link>
           </div>
         </CardContent>

@@ -2,7 +2,7 @@ import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
 import { ChevronRight } from "lucide-react";
-import { SimpleButton } from "@/components/common/micro/AppButton";
+import { AppButton } from "@/components/common/micro/AppButton";
 import useAuthStore from "@/store/useAuthStore";
 import AccountWelcomeBanner from "@/pages/account/components/AccountWelcomeBanner";
 import AccountStatsCards from "@/pages/account/components/AccountStatsCards";
@@ -29,9 +29,9 @@ export default function AccountOverview() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <h1 className="text-2xl font-extrabold text-foreground">Tổng quan học tập</h1>
         <Link to="/courses">
-          <SimpleButton className="w-full sm:w-auto font-bold gap-2">
+          <AppButton appVariant="gradient" className="w-full sm:w-auto font-bold gap-2">
             Khám phá khóa học mới
-          </SimpleButton>
+          </AppButton>
         </Link>
       </div>
 

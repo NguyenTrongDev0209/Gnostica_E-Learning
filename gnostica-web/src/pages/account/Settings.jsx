@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { SimpleButton, GhostButton } from "@/components/common/micro/AppButton";
+import { AppButton } from "@/components/common/micro/AppButton";
 import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
 import AppPageHeader from "@/components/common/composite/AppPageHeader";
 import { UserCog, Camera, Save, Loader2 } from "lucide-react";
@@ -135,13 +135,13 @@ export default function Settings() {
                       Tùy chỉnh lĩnh vực quan tâm và trình độ hiện tại để hệ thống đề xuất khóa học phù hợp nhất.
                     </p>
                   </div>
-                  <GhostButton
+                  <AppButton appVariant="ghostMuted" variant="ghost"
                     type="button"
                     onClick={() => setPersonalizationOpen(true)}
                     className="shrink-0 border border-primary/20 text-primary hover:bg-primary hover:text-white"
                   >
                     Thay đổi
-                  </GhostButton>
+                  </AppButton>
                 </div>
               </div>
 
@@ -159,7 +159,7 @@ export default function Settings() {
 
             {/* Submit Button */}
             <div className="pt-4 flex justify-end">
-              <SimpleButton
+              <AppButton appVariant="gradient"
                 type="submit"
                 disabled={isLoading}
                 className="h-12 px-8 font-bold gap-2 shadow-lg shadow-primary/20 hover:shadow-xl transition-all w-full sm:w-auto"
@@ -172,7 +172,7 @@ export default function Settings() {
                     Lưu thay đổi
                   </>
                 )}
-              </SimpleButton>
+              </AppButton>
             </div>
           </form>
         </CardContent>

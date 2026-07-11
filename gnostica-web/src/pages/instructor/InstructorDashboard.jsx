@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { GhostButton, SimpleButton } from "@/components/common/micro/AppButton";
+import { AppButton } from "@/components/common/micro/AppButton";
 import { Loader2 } from "lucide-react";
 import useInstructorDashboard from "@/hooks/dashboard/useInstructorDashboard";
 
@@ -38,11 +38,11 @@ export default function InstructorDashboard() {
           </p>
         </div>
         <div className="flex gap-2">
-          <GhostButton className="border border-border">Xuất báo cáo</GhostButton>
+          <AppButton appVariant="ghostMuted" variant="ghost" className="border border-border">Xuất báo cáo</AppButton>
           <Link to="/instructor/courses/courses-form">
-            <SimpleButton className="bg-success/10 text-success hover:bg-success/20 font-bold">
+            <AppButton appVariant="gradient" className="bg-success/10 text-success hover:bg-success/20 font-bold">
               Tạo Khóa Học Mới
-            </SimpleButton>
+            </AppButton>
           </Link>
         </div>
       </div>

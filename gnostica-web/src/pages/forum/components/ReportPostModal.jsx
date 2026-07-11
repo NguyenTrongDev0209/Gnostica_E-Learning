@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { GhostButton } from '@/components/common/micro/AppButton';
+import { AppButton } from "@/components/common/micro/AppButton";
 
 const ReportPostModal = ({
   isOpen,
@@ -64,9 +64,9 @@ const ReportPostModal = ({
           </div>
         </div>
         <DialogFooter className="sm:justify-end gap-2 text-right">
-          <GhostButton type="button" className="border border-border" onClick={() => onOpenChange(false)} disabled={isSubmittingReport}>
+          <AppButton appVariant="ghostMuted" variant="ghost" type="button" className="border border-border" onClick={() => onOpenChange(false)} disabled={isSubmittingReport}>
             Hủy
-          </GhostButton>
+          </AppButton>
           <Button
             type="button"
             className="bg-error/10 hover:bg-error/20 text-error font-bold"

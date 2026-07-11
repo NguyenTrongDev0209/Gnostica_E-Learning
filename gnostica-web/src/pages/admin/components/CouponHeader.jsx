@@ -1,6 +1,6 @@
 import React from 'react';
 import { Ticket, Plus } from 'lucide-react';
-import { SimpleButton } from '@/components/common/micro/AppButton';
+import { AppButton } from "@/components/common/micro/AppButton";
 
 export function CouponHeader({ onAddClick }) {
   return (
@@ -14,13 +14,13 @@ export function CouponHeader({ onAddClick }) {
           Tạo và quản lý các chương trình ưu đãi cho học viên.
         </p>
       </div>
-      <SimpleButton
+      <AppButton appVariant="gradient"
         className="flex items-center gap-2"
         onClick={onAddClick}
       >
         <Plus className="w-4 h-4" />
         Thêm Phiếu giảm
-      </SimpleButton>
+      </AppButton>
     </div>
   );
 }

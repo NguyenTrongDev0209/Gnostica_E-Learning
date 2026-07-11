@@ -1,5 +1,5 @@
 import React from "react";
-import { GhostButton } from "@/components/common/micro/AppButton";
+import { AppButton } from "@/components/common/micro/AppButton";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { CheckCircle2, BookOpen, Layers, Video, Trophy, ChevronRight } from "lucide-react";
 
@@ -27,13 +27,13 @@ export default function CourseCurriculumSidebar({ course, validModules, totalLes
             {course.instructorName || "Giảng viên Gnostica"}
           </p>
         </div>
-        <GhostButton
+        <AppButton appVariant="ghostMuted" variant="ghost"
           size="sm"
           onClick={() => setIsProfileModalOpen(true)}
           className="font-bold text-xs rounded-lg hover:bg-indigo-50 hover:text-indigo-700 transition-colors shrink-0 border border-border"
         >
           Hồ sơ
-        </GhostButton>
+        </AppButton>
       </div>
 
       <div className="bg-white rounded-2xl border border-border/60 shadow-sm flex flex-col overflow-hidden max-h-[calc(100vh-200px)]">

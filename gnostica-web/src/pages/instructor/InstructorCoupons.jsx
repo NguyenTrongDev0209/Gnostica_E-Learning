@@ -12,7 +12,7 @@ import {
   Activity
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { SimpleButton } from "@/components/common/micro/AppButton";
+import { AppButton } from "@/components/common/micro/AppButton";
 import { Input } from "@/components/ui/input";
 import { useCoupons } from "@/hooks/order/useCoupons";
 import { CouponFormModal } from "@/pages/admin/components/CouponFormModal";
@@ -63,13 +63,13 @@ export default function InstructorCoupons() {
             Tạo và quản lý các mã giảm giá để thúc đẩy doanh số bán khóa học của bạn.
           </p>
         </div>
-        <SimpleButton
+        <AppButton appVariant="gradient"
           onClick={() => setIsModalOpen(true)}
           className="btn-md bg-primary hover:scale-[1.02] transition-all text-white font-bold rounded-xl shadow-lg shadow-primary/20 flex items-center gap-2"
         >
           <Plus className="w-5 h-5" />
           Tạo Mã Giảm Giá Mới
-        </SimpleButton>
+        </AppButton>
       </div>
 
       {/* Stats Summary (Standardized) */}

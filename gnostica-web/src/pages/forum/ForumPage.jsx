@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/pagination";
 import { useForumPage } from '@/hooks/forum/useForumPage';
 import useAuthStore from '@/store/useAuthStore';
-import { SimpleButton, GhostButton } from '@/components/common/micro/AppButton';
+import { AppButton } from "@/components/common/micro/AppButton";
 import ForumSidebar from './components/ForumSidebar';
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -116,12 +116,12 @@ const ForumPage = () => {
             description="Nơi giao lưu, hỏi đáp và chia sẻ kiến thức về lập trình, công nghệ."
             className="mb-0 sm:mb-0"
           />
-          <SimpleButton
+          <AppButton appVariant="gradient"
             className="md:w-auto w-full"
             onClick={() => navigate('/forum/create')}
           >
             + Tạo bài viết mới
-          </SimpleButton>
+          </AppButton>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
@@ -163,9 +163,9 @@ const ForumPage = () => {
                 <p className="text-muted-foreground text-sm max-w-sm">
                   Thử thay đổi từ khóa tìm kiếm hoặc chọn danh mục khác xem sao.
                 </p>
-                <GhostButton className="mt-4 border border-border" onClick={() => { setSearchQuery(""); setActiveCategory("Tất cả"); navigate("/forum"); }}>
+                <AppButton appVariant="ghostMuted" variant="ghost" className="mt-4 border border-border" onClick={() => { setSearchQuery(""); setActiveCategory("Tất cả"); navigate("/forum"); }}>
                   Xóa bộ lọc
-                </GhostButton>
+                </AppButton>
               </div>
             )}
 
@@ -175,13 +175,13 @@ const ForumPage = () => {
                 <Pagination>
                   <PaginationContent>
                     <PaginationItem>
-                      <GhostButton
+                      <AppButton appVariant="ghostMuted" variant="ghost"
                         disabled={currentPage === 0}
                         onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
                         className="gap-1 pl-2.5 h-9"
                       >
                         <PaginationPrevious className="hover:bg-transparent p-0" />
-                      </GhostButton>
+                      </AppButton>
                     </PaginationItem>
 
                     {[...Array(totalPages)].map((_, i) => (
@@ -197,13 +197,13 @@ const ForumPage = () => {
                     ))}
 
                     <PaginationItem>
-                      <GhostButton
+                      <AppButton appVariant="ghostMuted" variant="ghost"
                         disabled={currentPage === totalPages - 1}
                         onClick={() => setCurrentPage(prev => Math.max(totalPages - 1, prev + 1))}
                         className="gap-1 pr-2.5 h-9"
                       >
                         <PaginationNext className="hover:bg-transparent p-0" />
-                      </GhostButton>
+                      </AppButton>
                     </PaginationItem>
                   </PaginationContent>
                 </Pagination>

@@ -24,7 +24,7 @@ import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { SimpleButton } from "@/components/common/micro/AppButton";
+import { AppButton } from "@/components/common/micro/AppButton";
 import { AppBreadcrumb, PageHeader } from "@/components/common/composite/AppSection";
 import CartItemTableRow from "@/components/common/composite/CartItemTableRow";
 import { Home } from "lucide-react";
@@ -130,7 +130,7 @@ export default function CourseCart() {
                           <ShoppingBag className="w-16 h-16 opacity-20" />
                           <p className="font-medium">Giỏ hàng rỗng</p>
                           <Link to="/courses">
-                            <SimpleButton>Khám phá khóa học ngay</SimpleButton>
+                            <AppButton appVariant="gradient">Khám phá khóa học ngay</AppButton>
                           </Link>
                         </div>
                       </TableCell>
@@ -231,9 +231,9 @@ export default function CourseCart() {
                 </CardContent>
                 <CardFooter className="p-6 pt-6 flex flex-col gap-4">
                   <Link to="/checkout" className="mx-auto">
-                    <SimpleButton className="w-fit py-7 px-16 text-lg font-bold tracking-wide gap-2 flex" size="lg">
+                    <AppButton appVariant="gradient" className="w-fit py-7 px-16 text-lg font-bold tracking-wide gap-2 flex" size="lg">
                       THANH TOÁN NGAY
-                    </SimpleButton>
+                    </AppButton>
                   </Link>
                 </CardFooter>
               </Card>

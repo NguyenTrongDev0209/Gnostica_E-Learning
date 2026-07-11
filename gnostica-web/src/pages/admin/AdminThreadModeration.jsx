@@ -14,7 +14,7 @@ import {
   AlertCircle
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { SimpleButton, GhostButton } from "@/components/common/micro/AppButton";
+import { AppButton } from "@/components/common/micro/AppButton";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { toast } from "sonner";
@@ -138,9 +138,9 @@ export default function AdminThreadModeration() {
             Duyệt hoặc từ chối các bài đăng mới từ học viên và giảng viên trước khi hiển thị trên cộng đồng.
           </p>
         </div>
-        <GhostButton onClick={fetchPendingThreads} className="h-10 font-bold shrink-0 border border-border bg-white text-foreground hover:bg-muted">
+        <AppButton appVariant="ghostMuted" variant="ghost" onClick={fetchPendingThreads} className="h-10 font-bold shrink-0 border border-border bg-white text-foreground hover:bg-muted">
           Làm mới danh sách
-        </GhostButton>
+        </AppButton>
       </div>
 
       {/* Stats Widget */}
@@ -283,20 +283,20 @@ export default function AdminThreadModeration() {
 
                       {/* Right: Actions */}
                       <div className="md:w-36 shrink-0 flex md:flex-col items-center justify-end md:justify-start gap-2 pt-2 md:pt-0">
-                        <SimpleButton
+                        <AppButton appVariant="gradient"
                           size="sm"
                           className="w-full md:w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-9 gap-1.5 shadow-md transition-all border-none"
                           onClick={() => openConfirm(thread.id, "approve")}
                         >
                           <CheckCircle2 className="w-4 h-4" /> Duyệt bài
-                        </SimpleButton>
-                        <GhostButton
+                        </AppButton>
+                        <AppButton appVariant="ghostMuted" variant="ghost"
                           size="sm"
                           className="w-full md:w-full border border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 font-bold h-9 gap-1.5 transition-all bg-white"
                           onClick={() => openConfirm(thread.id, "delete")}
                         >
                           <Trash2 className="w-4 h-4" /> Từ chối
-                        </GhostButton>
+                        </AppButton>
                       </div>
                     </motion.div>
                   );

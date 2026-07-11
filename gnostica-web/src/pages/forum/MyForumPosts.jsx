@@ -2,7 +2,7 @@ import React from 'react';
 import SectionContainer, { PageHeader, AppBreadcrumb } from '@/components/common/composite/AppSection';
 import { ForumPostCard } from "@/components/common/composite/AppCard";
 import { ChevronLeft, ThumbsUp, LayoutGrid, Trash2 } from 'lucide-react';
-import { GhostButton, SimpleButton } from "@/components/common/micro/AppButton";
+import { AppButton } from "@/components/common/micro/AppButton";
 import { useNavigate, Link } from "react-router-dom";
 import {
     Pagination,
@@ -64,9 +64,9 @@ const MyForumPosts = () => {
                         className="mb-0 sm:mb-0"
                     />
                     <Link to="/forum">
-                        <GhostButton className="gap-2 border border-border">
+                        <AppButton appVariant="ghostMuted" variant="ghost" className="gap-2 border border-border">
                            <ChevronLeft className="w-4 h-4" /> Quay lại diễn đàn
-                        </GhostButton>
+                        </AppButton>
                     </Link>
                 </div>
 
@@ -137,12 +137,12 @@ const MyForumPosts = () => {
                                         <Pagination>
                                             <PaginationContent>
                                                 <PaginationItem>
-                                                    <GhostButton 
+                                                    <AppButton appVariant="ghostMuted" variant="ghost" 
                                                         onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
                                                         className={currentPage === 0 ? "pointer-events-none opacity-50 h-9" : "cursor-pointer h-9"}
                                                     >
                                                         <PaginationPrevious className="p-0 hover:bg-transparent" />
-                                                    </GhostButton>
+                                                    </AppButton>
                                                 </PaginationItem>
 
                                                 {[...Array(totalPages)].map((_, i) => (
@@ -158,12 +158,12 @@ const MyForumPosts = () => {
                                                 ))}
 
                                                 <PaginationItem>
-                                                    <GhostButton 
+                                                    <AppButton appVariant="ghostMuted" variant="ghost" 
                                                         onClick={() => setCurrentPage(prev => Math.max(totalPages - 1, prev + 1))}
                                                         className={currentPage === totalPages - 1 ? "pointer-events-none opacity-50 h-9" : "cursor-pointer h-9"}
                                                     >
                                                         <PaginationNext className="p-0 hover:bg-transparent" />
-                                                    </GhostButton>
+                                                    </AppButton>
                                                 </PaginationItem>
                                             </PaginationContent>
                                         </Pagination>
@@ -183,12 +183,12 @@ const MyForumPosts = () => {
                                         ? "Hãy khám phá diễn đàn và bày tỏ sự ủng hộ bằng cách thích các bài viết hữu ích nhé!"
                                         : "Hãy chia sẻ kiến thức hoặc đặt câu hỏi đầu tiên của bạn ngay hôm nay!"}
                                 </p>
-                                <SimpleButton
+                                <AppButton appVariant="gradient"
                                     className="mt-6 px-8"
                                     onClick={() => navigate(activeTab === 'liked' ? '/forum' : '/forum/create')}
                                 >
                                     {activeTab === 'liked' ? "Đi tới diễn đàn" : "+ Tạo bài viết đầu tiên"}
-                                </SimpleButton>
+                                </AppButton>
                             </div>
                         )}
                     </div>

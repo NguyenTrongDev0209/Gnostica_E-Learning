@@ -1,7 +1,7 @@
 import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Monitor, Home } from "lucide-react";
-import { SimpleButton } from "@/components/common/micro/AppButton";
+import { AppButton } from "@/components/common/micro/AppButton";
 import { AppBreadcrumb } from "@/components/common/composite/AppSection";
 
 export default function AboutHero({ data }) {
@@ -28,12 +28,12 @@ export default function AboutHero({ data }) {
             {data.description}
           </p>
           <div className="flex items-center gap-4 mt-2">
-            <SimpleButton size="lg" className="min-w-[120px] shadow-lg shadow-orange-500/20">
+            <AppButton appVariant="gradient" size="lg" className="min-w-[120px] shadow-lg shadow-orange-500/20">
               {data.primaryCta}
-            </SimpleButton>
-            <SimpleButton size="lg" variant="outline" className="min-w-[120px] bg-transparent border-warning/20 text-warning hover:bg-orange-50">
+            </AppButton>
+            <AppButton appVariant="gradient" size="lg" variant="outline" className="min-w-[120px] bg-transparent border-warning/20 text-warning hover:bg-orange-50">
               {data.secondaryCta}
-            </SimpleButton>
+            </AppButton>
           </div>
         </div>
         <div className="relative aspect-square md:aspect-[4/3] bg-teal-800 rounded-3xl overflow-hidden shadow-2xl flex items-center justify-center transform transition-all hover:scale-[1.02] cursor-pointer">

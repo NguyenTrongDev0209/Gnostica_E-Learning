@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { BookOpen, PlayCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { SimpleButton } from "@/components/common/micro/AppButton";
+import { AppButton } from "@/components/common/micro/AppButton";
 
 export default function RecentCoursesList({ loading, recentCourses }) {
   if (loading) {
@@ -43,7 +43,7 @@ export default function RecentCoursesList({ loading, recentCourses }) {
               <p className="text-sm text-muted-foreground mt-1">Hãy khám phá các khóa học hấp dẫn trên Gnostica</p>
             </div>
             <Link to="/courses">
-              <SimpleButton className="mt-2 font-bold bg-transparent text-primary border border-primary hover:bg-primary/5">Khám phá ngay</SimpleButton>
+              <AppButton appVariant="gradient" className="mt-2 font-bold bg-transparent text-primary border border-primary hover:bg-primary/5">Khám phá ngay</AppButton>
             </Link>
           </CardContent>
         </Card>

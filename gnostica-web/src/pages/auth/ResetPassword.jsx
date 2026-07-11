@@ -1,6 +1,6 @@
 import React from 'react';
 import { Save } from 'lucide-react';
-import { SimpleButton } from '@/components/common/micro/AppButton';
+import { AppButton } from "@/components/common/micro/AppButton";
 import { AppPasswordInput } from '@/components/common/micro/AppInput';
 import AuthCard from './components/AuthCard';
 import { useResetPassword } from '@/hooks/auth/useResetPassword';
@@ -43,10 +43,10 @@ const ResetPassword = () => {
           error={errors.confirmPassword}
         />
 
-        <SimpleButton type="submit" className="w-full mt-1 gap-2" disabled={loading}>
+        <AppButton appVariant="gradient" type="submit" className="w-full mt-1 gap-2" disabled={loading}>
           {loading ? "Đang xử lý..." : "Cập nhật mật khẩu"}
           {!loading && <Save className="w-4 h-4" />}
-        </SimpleButton>
+        </AppButton>
       </form>
     </AuthCard>
   );

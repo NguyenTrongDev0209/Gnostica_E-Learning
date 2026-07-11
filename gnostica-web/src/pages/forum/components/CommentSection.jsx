@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { MessageSquare, Send } from 'lucide-react';
-import { SimpleButton } from '@/components/common/micro/AppButton';
+import { AppButton } from "@/components/common/micro/AppButton";
 import CommentCard from '@/components/common/composite/CommentCard';
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
@@ -76,13 +76,13 @@ const CommentSection = ({
             />
           </div>
           <div className="flex justify-end mt-3">
-            <SimpleButton
+            <AppButton appVariant="gradient"
               className="gap-2"
               disabled={!commentText || commentText.replace(/<[^>]*>/g, '').trim() === ''}
               onClick={onSendComment}
             >
               <Send className="w-4 h-4" /> Gửi bình luận
-            </SimpleButton>
+            </AppButton>
           </div>
         </CardContent>
       </Card>

@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { SimpleButton } from "@/components/common/micro/AppButton";
+import { AppButton } from "@/components/common/micro/AppButton";
 import {
   Dialog,
   DialogContent,
@@ -415,14 +415,14 @@ export const CourseDetailPricingCard = ({ course: initialCourse }) => {
         </div>
 
         <div className="flex items-stretch gap-3 mb-6">
-          <SimpleButton
+          <AppButton appVariant="gradient"
             size="lg"
             className="flex-1 py-7 text-lg font-bold rounded-2xl"
             onClick={handleCheckout}
             disabled={initialCourse.isEnrolled}
           >
             {initialCourse.isEnrolled ? "Đã đăng ký" : "Đăng ký học ngay"}
-          </SimpleButton>
+          </AppButton>
           <button
             className="flex-none p-4 rounded-2xl border-2 border-border text-foreground hover:bg-muted hover:text-primary hover:border-primary transition-all flex items-center justify-center cursor-pointer"
           >

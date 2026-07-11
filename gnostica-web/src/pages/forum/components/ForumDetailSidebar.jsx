@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Eye, ThumbsUp, MessageSquare, ChevronLeft } from 'lucide-react';
-import { GhostButton } from '@/components/common/micro/AppButton';
+import { AppButton } from "@/components/common/micro/AppButton";
 
 const ForumDetailSidebar = ({ post, relatedPosts }) => {
   return (
@@ -85,9 +85,9 @@ const ForumDetailSidebar = ({ post, relatedPosts }) => {
 
           <Separator className="my-4" />
           <Link to="/forum">
-            <GhostButton className="w-full text-sm gap-2 border border-border" size="sm">
+            <AppButton appVariant="ghostMuted" variant="ghost" className="w-full text-sm gap-2 border border-border" size="sm">
               <ChevronLeft className="w-4 h-4" /> Quay về diễn đàn
-            </GhostButton>
+            </AppButton>
           </Link>
         </CardContent>
       </Card>

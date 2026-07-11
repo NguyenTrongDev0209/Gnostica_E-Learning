@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { BookOpen, PlayCircle, Award } from "lucide-react";
-import { SimpleButton, GhostButton, OutlineGradientButton } from "@/components/common/micro/AppButton";
+import { AppButton } from "@/components/common/micro/AppButton";
 
 export default function MyCourseGrid({ loading, courses }) {
   if (loading) {
@@ -23,9 +23,9 @@ export default function MyCourseGrid({ loading, courses }) {
         <h3 className="text-lg font-bold text-foreground mb-2">Không tìm thấy khóa học nào</h3>
         <p className="text-muted-foreground mb-6">Bạn chưa sở hữu khóa học nào phù hợp với bộ lọc hiện tại.</p>
         <Link to="/courses">
-          <OutlineGradientButton className="font-bold border-2 border-primary text-primary hover:bg-primary/5">
+          <AppButton appVariant="outlineGradient" className="font-bold border-2 border-primary text-primary hover:bg-primary/5">
             Khám phá khóa học
-          </OutlineGradientButton>
+          </AppButton>
         </Link>
       </div>
     );
@@ -105,9 +105,9 @@ export default function MyCourseGrid({ loading, courses }) {
               </Link>
               {course.progressPercent === 100 && course.certifiUrl && (
                 <Link to={`/certificate/${course.certifiUrl}`} target="_blank" className="block w-full">
-                   <GhostButton className="w-full py-2.5 text-sm font-bold bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 transition-colors gap-2">
+                   <AppButton appVariant="ghostMuted" variant="ghost" className="w-full py-2.5 text-sm font-bold bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 transition-colors gap-2">
                        <Award className="w-4 h-4" /> Xem chứng chỉ
-                   </GhostButton>
+                   </AppButton>
                 </Link>
               )}
             </div>
