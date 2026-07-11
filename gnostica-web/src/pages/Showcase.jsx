@@ -12,7 +12,7 @@ import {
   Keyboard, LayoutDashboard, LifeBuoy, Loader2, LogOut, Mail, Plus,
   Settings, User, MousePointer2, Type, Layers, MessageSquare,
   Table as TableIcon, Maximize2, TrendingUp, Settings2, Bell, Navigation, Search, PanelLeft, CheckCircle2, MoreVertical, Cloud,
-  ShoppingCart, Eye, Edit, Trash
+  ShoppingCart, Eye, Edit, Trash, AlertTriangle, Info
 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -95,6 +95,15 @@ import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb"
 import AppTable from "@/components/common/composite/AppTable"
 import AppAccordion from "@/components/common/micro/AppAccordion"
 import AppAlert from "@/components/common/micro/AppAlert"
+import AppAlertDialog from "@/components/common/micro/AppAlertDialog"
+import AppAspectRatio from "@/components/common/micro/AppAspectRatio"
+import AppAvatar, { AppAvatarGroup } from "@/components/common/micro/AppAvatar"
+import AppBadge from "@/components/common/micro/AppBadge"
+import AppCalendar from "@/components/common/micro/AppCalendar"
+import AppSelect from "@/components/common/micro/AppSelect"
+import AppCarousel from "@/components/common/micro/AppCarousel"
+import AppChart from "@/components/common/micro/AppChart"
+import NotificationBell from "@/components/common/micro/NotificationBell"
 
 
 const formSchema = z.object({
@@ -112,6 +121,35 @@ const chartConfig = {
   desktop: { label: "Desktop", color: "hsl(var(--primary))" },
   mobile: { label: "Mobile", color: "hsl(var(--chart-2))" },
 }
+
+const gnosticaChartData = [
+  { month: "T1", sales: 186, users: 80, visits: 120 },
+  { month: "T2", sales: 305, users: 200, visits: 250 },
+  { month: "T3", sales: 237, users: 120, visits: 180 },
+  { month: "T4", sales: 73, users: 190, visits: 200 },
+  { month: "T5", sales: 209, users: 130, visits: 160 },
+  { month: "T6", sales: 214, users: 140, visits: 210 },
+];
+
+const gnosticaChartConfig = {
+  sales: { label: "Doanh thu", color: "var(--primary)" },
+  users: { label: "Người dùng", color: "var(--success)" },
+  visits: { label: "Lượt xem", color: "var(--info)" },
+};
+
+const pieChartData = [
+  { name: "Frontend", value: 400, fill: "var(--primary)" },
+  { name: "Backend", value: 300, fill: "var(--success)" },
+  { name: "DevOps", value: 300, fill: "var(--warning)" },
+  { name: "Design", value: 200, fill: "var(--info)" },
+];
+
+const pieChartConfig = {
+  Frontend: { label: "Khóa Frontend" },
+  Backend: { label: "Khóa Backend" },
+  DevOps: { label: "Khóa DevOps" },
+  Design: { label: "Khóa Design" },
+};
 
 const Showcase = () => {
   const [date, setDate] = useState(new Date())
@@ -204,7 +242,7 @@ const Showcase = () => {
                 <Card><CardHeader><CardTitle>Form</CardTitle></CardHeader><CardContent>
                   <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 max-w-sm">
-                      <FormField control={form.control} name="username" render={({ field }) => (<FormItem><FormLabel>Username</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage/></FormItem>)} />
+                      <FormField control={form.control} name="username" render={({ field }) => (<FormItem><FormLabel>Username</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
                       <Button type="submit">Submit</Button>
                     </form>
                   </Form>
@@ -232,7 +270,7 @@ const Showcase = () => {
 
               <section>
                 <h2 className="text-2xl font-bold mb-6 border-b pb-2">M</h2>
-                <Card><CardHeader><CardTitle>Menubar</CardTitle></CardHeader><CardContent><Menubar><MenubarMenu><MenubarTrigger>File</MenubarTrigger><MenubarContent><MenubarItem>New</MenubarItem><MenubarSeparator/><MenubarItem>Quit</MenubarItem></MenubarContent></MenubarMenu></Menubar></CardContent></Card>
+                <Card><CardHeader><CardTitle>Menubar</CardTitle></CardHeader><CardContent><Menubar><MenubarMenu><MenubarTrigger>File</MenubarTrigger><MenubarContent><MenubarItem>New</MenubarItem><MenubarSeparator /><MenubarItem>Quit</MenubarItem></MenubarContent></MenubarMenu></Menubar></CardContent></Card>
               </section>
 
               <section>
@@ -442,6 +480,13 @@ const Showcase = () => {
                           </div>
                         </CardContent>
                       </Card>
+
+                      <Card>
+                        <CardHeader><CardTitle>Notification Bell</CardTitle></CardHeader>
+                        <CardContent className="flex items-center gap-4 bg-slate-900 p-6 rounded-xl w-fit">
+                          <NotificationBell isDark={true} />
+                        </CardContent>
+                      </Card>
                     </div>
                   </div>
 
@@ -465,6 +510,8 @@ const Showcase = () => {
                           </div>
                         </CardContent>
                       </Card>
+
+
                     </div>
                   </div>
 
@@ -490,7 +537,7 @@ const Showcase = () => {
                         <CardContent className="grid md:grid-cols-2 gap-8">
                           <div>
                             <h4 className="font-semibold mb-4 text-sm text-muted-foreground uppercase">Default Variant</h4>
-                            <AppAccordion 
+                            <AppAccordion
                               items={[
                                 { title: "AppAccordion là gì?", content: "Là component được bọc lại từ Shadcn UI giúp truyền mảng dữ liệu (items) nhanh chóng hơn thay vì phải lặp thủ công." },
                                 { title: "Nó có hỗ trợ Icon không?", content: "Có, bạn có thể truyền trực tiếp thuộc tính icon vào mỗi item." }
@@ -499,11 +546,11 @@ const Showcase = () => {
                           </div>
                           <div>
                             <h4 className="font-semibold mb-4 text-sm text-muted-foreground uppercase">Separated Variant</h4>
-                            <AppAccordion 
+                            <AppAccordion
                               variant="separated"
                               items={[
-                                { icon: <MessageSquare className="w-5 h-5"/>, title: "Làm sao để đăng ký khóa học?", content: "Bạn chỉ cần tạo tài khoản, nạp xu và click nút Mua khóa học." },
-                                { icon: <CreditCard className="w-5 h-5"/>, title: "Các phương thức thanh toán?", content: "Chúng tôi hỗ trợ chuyển khoản ngân hàng, mã QR và thẻ tín dụng." }
+                                { icon: <MessageSquare className="w-5 h-5" />, title: "Làm sao để đăng ký khóa học?", content: "Bạn chỉ cần tạo tài khoản, nạp xu và click nút Mua khóa học." },
+                                { icon: <CreditCard className="w-5 h-5" />, title: "Các phương thức thanh toán?", content: "Chúng tôi hỗ trợ chuyển khoản ngân hàng, mã QR và thẻ tín dụng." }
                               ]}
                             />
                           </div>
@@ -513,26 +560,396 @@ const Showcase = () => {
                       <Card>
                         <CardHeader><CardTitle>AppAlert</CardTitle><CardDescription>Dùng cho các thông báo hệ thống với Semantic Colors (Success, Error, Warning, Info)</CardDescription></CardHeader>
                         <CardContent className="grid md:grid-cols-2 gap-4">
-                          <AppAlert 
-                            variant="success" 
-                            title="Thành công" 
-                            description="Bạn đã đăng ký khóa học thành công." 
+                          <AppAlert
+                            variant="success"
+                            title="Thành công"
+                            description="Bạn đã đăng ký khóa học thành công."
                           />
-                          <AppAlert 
-                            variant="error" 
-                            title="Lỗi thanh toán" 
-                            description="Số dư của bạn không đủ để thực hiện giao dịch này." 
+                          <AppAlert
+                            variant="error"
+                            title="Lỗi thanh toán"
+                            description="Số dư của bạn không đủ để thực hiện giao dịch này."
                           />
-                          <AppAlert 
-                            variant="warning" 
-                            title="Cảnh báo" 
-                            description="Khóa học này sẽ hết hạn đăng ký trong 2 ngày tới." 
+                          <AppAlert
+                            variant="warning"
+                            title="Cảnh báo"
+                            description="Khóa học này sẽ hết hạn đăng ký trong 2 ngày tới."
                           />
-                          <AppAlert 
-                            variant="info" 
-                            title="Thông tin" 
-                            description="Chương trình khuyến mãi giảm 50% sẽ bắt đầu vào ngày mai." 
+                          <AppAlert
+                            variant="info"
+                            title="Thông tin"
+                            description="Chương trình khuyến mãi giảm 50% sẽ bắt đầu vào ngày mai."
                           />
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader><CardTitle>AppAlertDialog</CardTitle><CardDescription>Dùng cho các popup xác nhận hành động với hệ thống Semantics Colors</CardDescription></CardHeader>
+                        <CardContent className="flex flex-wrap gap-4">
+                          <AppAlertDialog
+                            variant="default"
+                            trigger={<AppButton variant="outline">Xóa tệp</AppButton>}
+                            title="Xóa tệp tin?"
+                            description="Bạn có chắc muốn chuyển tệp này vào thùng rác không?"
+                            confirmText="Tiếp tục"
+                          />
+                          <AppAlertDialog
+                            variant="destructive"
+                            trigger={<AppButton variant="destructive">Xóa tài khoản</AppButton>}
+                            title="Xóa tài khoản vĩnh viễn?"
+                            description="Tất cả dữ liệu của bạn sẽ bị xóa và không thể khôi phục."
+                            confirmText="Xóa vĩnh viễn"
+                          />
+                          <AppAlertDialog
+                            variant="warning"
+                            trigger={<AppButton className="bg-warning hover:bg-warning/90 text-warning-foreground border-none">Thoát tiến trình</AppButton>}
+                            title="Bạn muốn thoát?"
+                            description="Tiến trình học tập của bạn chưa được lưu lại."
+                            confirmText="Thoát"
+                          />
+                          <AppAlertDialog
+                            variant="success"
+                            trigger={<AppButton className="bg-success hover:bg-success/90 text-white border-none">Nộp bài thi</AppButton>}
+                            title="Nộp bài thi?"
+                            description="Bạn có chắc chắn muốn nộp bài thi ngay bây giờ không?"
+                            confirmText="Nộp bài"
+                          />
+                          <AppAlertDialog
+                            variant="info"
+                            trigger={<AppButton className="bg-info hover:bg-info/90 text-white border-none">Xem thông tin</AppButton>}
+                            title="Chính sách mới"
+                            description="Chính sách bảo mật của chúng tôi đã được cập nhật."
+                            confirmText="Đã hiểu"
+                          />
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader><CardTitle>AppAspectRatio</CardTitle><CardDescription>Dùng để giữ đúng tỷ lệ khung hình cho ảnh, video trên mọi kích thước màn hình</CardDescription></CardHeader>
+                        <CardContent className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                          <div>
+                            <h4 className="font-semibold mb-2 text-sm text-muted-foreground uppercase">16:9 (Video)</h4>
+                            <AppAspectRatio variant="video">
+                              <img src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&q=80&w=600" alt="Demo" />
+                            </AppAspectRatio>
+                          </div>
+                          <div>
+                            <h4 className="font-semibold mb-2 text-sm text-muted-foreground uppercase">1:1 (Square)</h4>
+                            <AppAspectRatio variant="square">
+                              <img src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&q=80&w=600" alt="Demo" />
+                            </AppAspectRatio>
+                          </div>
+                          <div>
+                            <h4 className="font-semibold mb-2 text-sm text-muted-foreground uppercase">3:4 (Portrait)</h4>
+                            <AppAspectRatio variant="portrait">
+                              <img src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&q=80&w=600" alt="Demo" />
+                            </AppAspectRatio>
+                          </div>
+                          <div>
+                            <h4 className="font-semibold mb-2 text-sm text-muted-foreground uppercase">21:9 (Widescreen)</h4>
+                            <AppAspectRatio variant="widescreen">
+                              <img src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&q=80&w=600" alt="Demo" />
+                            </AppAspectRatio>
+                          </div>
+                          <div>
+                            <h4 className="font-semibold mb-2 text-sm text-muted-foreground uppercase">4:3 (Standard)</h4>
+                            <AppAspectRatio variant="standard">
+                              <img src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&q=80&w=600" alt="Demo" />
+                            </AppAspectRatio>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader><CardTitle>AppAvatar</CardTitle><CardDescription>Hiển thị ảnh đại diện, auto-generate chữ cái đầu nếu không có ảnh, hỗ trợ trạng thái Online và hiển thị dạng nhóm (Group)</CardDescription></CardHeader>
+                        <CardContent className="space-y-8">
+                          <div>
+                            <h4 className="font-semibold mb-4 text-sm text-muted-foreground uppercase">Kích thước (Sizes)</h4>
+                            <div className="flex flex-wrap items-end gap-6">
+                              <div className="flex flex-col items-center gap-2">
+                                <AppAvatar size="sm" src="https://i.pravatar.cc/150?u=1" alt="Small User" />
+                                <span className="text-xs text-muted-foreground">sm</span>
+                              </div>
+                              <div className="flex flex-col items-center gap-2">
+                                <AppAvatar size="default" src="https://i.pravatar.cc/150?u=2" alt="Default User" />
+                                <span className="text-xs text-muted-foreground">default</span>
+                              </div>
+                              <div className="flex flex-col items-center gap-2">
+                                <AppAvatar size="lg" src="https://i.pravatar.cc/150?u=3" alt="Large User" />
+                                <span className="text-xs text-muted-foreground">lg</span>
+                              </div>
+                              <div className="flex flex-col items-center gap-2">
+                                <AppAvatar size="xl" src="https://i.pravatar.cc/150?u=4" alt="Extra Large" />
+                                <span className="text-xs text-muted-foreground">xl</span>
+                              </div>
+                              <div className="flex flex-col items-center gap-2">
+                                <AppAvatar size="2xl" src="https://i.pravatar.cc/150?u=5" alt="Huge User" />
+                                <span className="text-xs text-muted-foreground">2xl</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="grid sm:grid-cols-2 gap-8">
+                            <div>
+                              <h4 className="font-semibold mb-4 text-sm text-muted-foreground uppercase">Trạng thái & Fallback</h4>
+                              <div className="flex items-center gap-6">
+                                <AppAvatar online size="lg" src="https://i.pravatar.cc/150?u=6" alt="Online User" />
+                                <AppAvatar size="lg" alt="Nguyễn Văn A" />
+                                <AppAvatar online size="lg" alt="Trần Thị B" />
+                              </div>
+                            </div>
+
+                            <div>
+                              <h4 className="font-semibold mb-4 text-sm text-muted-foreground uppercase">Avatar Group</h4>
+                              <AppAvatarGroup
+                                size="lg"
+                                max={4}
+                                users={[
+                                  { src: "https://i.pravatar.cc/150?u=11", name: "User 1" },
+                                  { src: "https://i.pravatar.cc/150?u=12", name: "User 2" },
+                                  { src: "https://i.pravatar.cc/150?u=13", name: "User 3" },
+                                  { src: "https://i.pravatar.cc/150?u=14", name: "User 4" },
+                                  { src: "https://i.pravatar.cc/150?u=15", name: "User 5" },
+                                  { src: "https://i.pravatar.cc/150?u=16", name: "User 6" },
+                                ]}
+                              />
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader><CardTitle>AppBadge</CardTitle><CardDescription>Nhãn dán (Label/Tag) hỗ trợ đầy đủ các biến thể màu Semantic, Soft mode và Icon</CardDescription></CardHeader>
+                        <CardContent className="space-y-6">
+                          <div>
+                            <h4 className="font-semibold mb-3 text-sm text-muted-foreground uppercase">Solid (Màu đặc)</h4>
+                            <div className="flex flex-wrap gap-3">
+                              <AppBadge variant="primary">Mới</AppBadge>
+                              <AppBadge variant="secondary">Lưu trữ</AppBadge>
+                              <AppBadge variant="success">Hoàn thành</AppBadge>
+                              <AppBadge variant="warning">Chờ duyệt</AppBadge>
+                              <AppBadge variant="error">Hủy bỏ</AppBadge>
+                              <AppBadge variant="info">Thông tin</AppBadge>
+                              <AppBadge variant="gradient">Pro</AppBadge>
+                              <AppBadge variant="outline">Nháp</AppBadge>
+                            </div>
+                          </div>
+                          <div>
+                            <h4 className="font-semibold mb-3 text-sm text-muted-foreground uppercase">Soft (Màu mờ)</h4>
+                            <div className="flex flex-wrap gap-3">
+                              <AppBadge soft variant="primary">Mới</AppBadge>
+                              <AppBadge soft variant="secondary">Lưu trữ</AppBadge>
+                              <AppBadge soft variant="success">Hoàn thành</AppBadge>
+                              <AppBadge soft variant="warning">Chờ duyệt</AppBadge>
+                              <AppBadge soft variant="error">Hủy bỏ</AppBadge>
+                              <AppBadge soft variant="info">Thông tin</AppBadge>
+                            </div>
+                          </div>
+                          <div>
+                            <h4 className="font-semibold mb-3 text-sm text-muted-foreground uppercase">Tích hợp Icon</h4>
+                            <div className="flex flex-wrap gap-3">
+                              <AppBadge variant="success" icon={CheckCircle2}>Đã xác thực</AppBadge>
+                              <AppBadge soft variant="warning" icon={AlertTriangle}>Cần chú ý</AppBadge>
+                              <AppBadge variant="gradient" icon={Info}>Khóa học Premium</AppBadge>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader><CardTitle>AppCalendar</CardTitle><CardDescription>Lịch chọn ngày đã được cấu hình mặc định tiếng Việt, tích hợp UI bóng đổ và bo góc</CardDescription></CardHeader>
+                        <CardContent className="flex flex-col sm:flex-row gap-8 items-start">
+                          <div>
+                            <h4 className="font-semibold mb-3 text-sm text-muted-foreground uppercase">Chế độ chọn 1 ngày (Single)</h4>
+                            <AppCalendar
+                              mode="single"
+                              selected={date}
+                              onSelect={setDate}
+                            />
+                            <p className="mt-3 text-sm text-muted-foreground">
+                              Ngày đang chọn: <strong className="text-primary">{date?.toLocaleDateString('vi-VN')}</strong>
+                            </p>
+                          </div>
+                          <div>
+                            <h4 className="font-semibold mb-3 text-sm text-muted-foreground uppercase">Chế độ chọn nhiều ngày (Multiple)</h4>
+                            <AppCalendar
+                              mode="multiple"
+                            />
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>AppCarousel</CardTitle>
+                          <CardDescription>Trình chiếu nội dung dạng trượt (Carousel/Slider) với các biến thể (variants) được thiết kế sẵn.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-12">
+                          
+                          <div>
+                            <h4 className="font-semibold mb-3 text-sm text-muted-foreground uppercase">Default Variant</h4>
+                            <AppCarousel 
+                              variant="default"
+                              itemClassName="md:basis-1/2 lg:basis-1/3"
+                              items={[1, 2, 3, 4, 5, 6]}
+                              renderItem={(item) => (
+                                <div className="p-1">
+                                  <Card className="border-none shadow-sm">
+                                    <CardContent className="flex aspect-square items-center justify-center p-6 bg-primary/5 rounded-xl border border-primary/10">
+                                      <span className="text-4xl font-bold text-primary/40">{item}</span>
+                                    </CardContent>
+                                  </Card>
+                                </div>
+                              )}
+                            />
+                          </div>
+
+                          <div>
+                            <h4 className="font-semibold mb-3 text-sm text-muted-foreground uppercase">Hero Variant (Có indicators)</h4>
+                            <AppCarousel 
+                              variant="hero"
+                              items={[1, 2, 3]}
+                              renderItem={(item) => (
+                                <div className="w-full aspect-[21/9] bg-gradient-to-br from-primary/20 to-accent/20 rounded-xl flex items-center justify-center shadow-inner">
+                                  <span className="text-3xl md:text-5xl font-bold text-primary">Hero Slide {item}</span>
+                                </div>
+                              )}
+                            />
+                          </div>
+
+                          <div>
+                            <h4 className="font-semibold mb-3 text-sm text-muted-foreground uppercase">Sub Banner Variant</h4>
+                            <AppCarousel 
+                              variant="sub-banner"
+                              items={[1, 2, 3, 4]}
+                              renderItem={(item) => (
+                                <div className="w-full aspect-[4/1] bg-secondary/30 rounded-xl flex items-center justify-center border border-secondary/50">
+                                  <span className="text-xl font-medium text-secondary-foreground">Banner {item}</span>
+                                </div>
+                              )}
+                            />
+                          </div>
+
+                          <div>
+                            <h4 className="font-semibold mb-3 text-sm text-muted-foreground uppercase">Centered Focus Variant</h4>
+                            <AppCarousel 
+                              variant="centered-focus"
+                              items={[1, 2, 3, 4, 5]}
+                              renderItem={(item, index, isActive) => (
+                                <Card className="border-none shadow-sm h-40">
+                                  <CardContent className={cn(
+                                    "flex h-full items-center justify-center p-6 rounded-xl border transition-colors",
+                                    isActive ? "bg-primary/10 border-primary" : "bg-muted border-transparent"
+                                  )}>
+                                    <span className={cn(
+                                      "text-2xl font-bold",
+                                      isActive ? "text-primary" : "text-muted-foreground"
+                                    )}>Card {item}</span>
+                                  </CardContent>
+                                </Card>
+                              )}
+                            />
+                          </div>
+
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>AppChart</CardTitle>
+                          <CardDescription>Trình diễn biểu đồ (Bar, Line, Area, Pie/Donut) dễ dàng thông qua wrapper kết hợp Shadcn UI & Recharts.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-12">
+                          
+                          <div>
+                            <h4 className="font-semibold mb-3 text-sm text-muted-foreground uppercase">Bar Chart (Biểu đồ cột)</h4>
+                            <div className="w-full h-72">
+                              <AppChart 
+                                type="bar"
+                                data={gnosticaChartData}
+                                config={gnosticaChartConfig}
+                                xAxisKey="month"
+                                showLegend={true}
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <h4 className="font-semibold mb-3 text-sm text-muted-foreground uppercase">Line Chart (Biểu đồ đường)</h4>
+                            <div className="w-full h-72">
+                              <AppChart 
+                                type="line"
+                                data={gnosticaChartData}
+                                config={gnosticaChartConfig}
+                                xAxisKey="month"
+                                showLegend={true}
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <h4 className="font-semibold mb-3 text-sm text-muted-foreground uppercase">Area Chart (Biểu đồ vùng)</h4>
+                            <div className="w-full h-72">
+                              <AppChart 
+                                type="area"
+                                data={gnosticaChartData}
+                                config={gnosticaChartConfig}
+                                xAxisKey="month"
+                                showLegend={true}
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <h4 className="font-semibold mb-3 text-sm text-muted-foreground uppercase">Donut Chart (Biểu đồ tròn rỗng)</h4>
+                            <div className="w-full h-72 flex justify-center">
+                              <AppChart 
+                                type="donut"
+                                data={pieChartData}
+                                config={pieChartConfig}
+                                nameKey="name"
+                                dataKey="value"
+                                showLegend={true}
+                                className="w-1/2 min-w-[300px]"
+                              />
+                            </div>
+                          </div>
+
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>AppSelect</CardTitle>
+                          <CardDescription>Hộp thoại lựa chọn với 2 chế độ: Đóng gói sẵn (Options Prop) và Linh hoạt (Composition).</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                          <div className="space-y-4">
+                            <h3 className="text-sm font-medium text-muted-foreground">Sử dụng qua Prop (Tiện lợi)</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <AppSelect
+                                placeholder="Chọn một hệ điều hành..."
+                                options={[
+                                  { label: "Windows", value: "windows" },
+                                  { label: "macOS", value: "macos" },
+                                  { label: "Linux", value: "linux" },
+                                  { label: "Ubuntu", value: "ubuntu", disabled: true }
+                                ]}
+                              />
+                              <AppSelect
+                                placeholder="Select đang bị vô hiệu hóa..."
+                                disabled
+                                options={[{ label: "Tùy chọn 1", value: "1" }]}
+                              />
+                              <AppSelect
+                                placeholder="Select đang báo lỗi..."
+                                error
+                                options={[
+                                  { label: "Lựa chọn sai", value: "wrong" }
+                                ]}
+                              />
+                            </div>
+                          </div>
                         </CardContent>
                       </Card>
                     </div>
