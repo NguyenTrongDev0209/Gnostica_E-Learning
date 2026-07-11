@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import { GhostButton, SimpleButton } from "@/components/common/AppButton";
+import { GhostButton, SimpleButton } from "@/components/common/micro/AppButton";
 
 export default function LearningProgressList({ loading, courses }) {
   if (loading) {

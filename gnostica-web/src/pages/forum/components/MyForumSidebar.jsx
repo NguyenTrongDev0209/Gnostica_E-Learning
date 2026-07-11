@@ -3,14 +3,14 @@ import { Link } from 'react-router-dom';
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { FileText, ThumbsUp, LayoutGrid } from 'lucide-react';
-import { GhostButton } from '@/components/common/AppButton';
+import { GhostButton } from '@/components/common/micro/AppButton';
 import { cn } from "@/lib/utils";
 
 const MyForumSidebar = ({ currentUser, userStats, activeTab, setActiveTab }) => {
   return (
     <div className="w-full lg:w-72 xl:w-80 flex flex-col gap-6 shrink-0 order-2 lg:order-1">
       <Card className="bg-white shadow-sm border-border overflow-hidden">
-        <div className="h-24 bg-button-gradient" />
+        <div className="h-24 bg-accent-gradient" />
         <CardContent className="p-5 -mt-12 text-center">
           <Avatar className="w-20 h-20 mx-auto border-4 border-white shadow-md mb-4 bg-white">
             <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser?.email || 'default'}`} />

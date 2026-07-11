@@ -6,37 +6,31 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* =========================================
-     1. PRIMITIVE COLORS (Scale 50 - 950)
-     ========================================= */
-  
-  /* Primary Scale (Hue 285) - Tím Xanh */
+
   --primary-50: oklch(0.97 0.02 285);
   --primary-100: oklch(0.94 0.04 285);
   --primary-200: oklch(0.88 0.08 285);
   --primary-300: oklch(0.80 0.14 285);
   --primary-400: oklch(0.70 0.20 285);
-  --primary-500: oklch(0.60 0.25 285); /* Base */
+  --primary-500: oklch(0.60 0.25 285); 
   --primary-600: oklch(0.50 0.22 285);
   --primary-700: oklch(0.40 0.18 285);
   --primary-800: oklch(0.30 0.12 285);
   --primary-900: oklch(0.20 0.08 285);
   --primary-950: oklch(0.15 0.04 285);
 
-  /* Accent Scale (Hue 45) - Cam */
   --accent-50: oklch(0.97 0.02 45);
   --accent-100: oklch(0.94 0.05 45);
   --accent-200: oklch(0.88 0.10 45);
   --accent-300: oklch(0.80 0.15 45);
   --accent-400: oklch(0.72 0.18 45);
-  --accent-500: oklch(0.63 0.20 45); /* Base */
+  --accent-500: oklch(0.63 0.20 45); 
   --accent-600: oklch(0.53 0.18 45);
   --accent-700: oklch(0.43 0.14 45);
   --accent-800: oklch(0.33 0.10 45);
   --accent-900: oklch(0.23 0.06 45);
   --accent-950: oklch(0.15 0.03 45);
 
-  /* Gray/Neutral Scale (Cool Gray, Hue 250) */
   --gray-50: oklch(0.98 0.01 250);
   --gray-100: oklch(0.96 0.01 250);
   --gray-200: oklch(0.92 0.01 250);
@@ -49,7 +43,6 @@
   --gray-900: oklch(0.20 0.03 250);
   --gray-950: oklch(0.14 0.03 250);
 
-  /* Semantic Base Primitives */
   --success-base: oklch(0.627 0.194 149.21);
   --success-soft: oklch(0.96 0.05 149.21);
   --warning-base: oklch(0.846 0.188 70.08);
@@ -62,9 +55,6 @@
   --white: oklch(1 0 0);
   --black: oklch(0 0 0);
 
-  /* =========================================
-     2. SEMANTIC COLORS (Light Theme)
-     ========================================= */
   --background: var(--white);
   --foreground: var(--gray-950);
 
@@ -74,7 +64,7 @@
   
   --accent: var(--accent-500);
   --accent-foreground: var(--white);
-  --button-gradient: linear-gradient(to right, oklch(74% 0.28 55), oklch(80% 0.2 60));
+  --accent-gradient: linear-gradient(to right, oklch(74% 0.28 55), oklch(80% 0.2 60));
 
   --card: var(--white);
   --card-foreground: var(--gray-950);
@@ -92,7 +82,6 @@
   --input: var(--gray-200);
   --ring: var(--primary-500);
 
-  /* Status Colors */
   --success: var(--success-base);
   --success-foreground: var(--white);
   --warning: var(--warning-base);
@@ -104,16 +93,12 @@
   --destructive: var(--error-base);
   --destructive-foreground: var(--white);
 
-  /* Soft Status Variants */
   --success-soft-bg: var(--success-soft);
   --warning-soft-bg: var(--warning-soft);
   --error-soft-bg: var(--error-soft);
   --info-soft-bg: var(--info-soft);
 
-  /* =========================================
-     3. SIZING, TYPOGRAPHY & OTHER TOKENS
-     ========================================= */
-  --radius: 0.5rem; /* 8px - Rounded but sharp enough */
+  --radius: 0.5rem; 
 
   --header-bg: #fcf1e7;
   --header-text: #4a4a4a;
@@ -123,8 +108,6 @@
   --section-gap-md: 3rem;
   --section-gap-sm: 2rem;
 
-  /* Button Sizes (Golden Ratio: Padding X = 2 * Padding Y) */
-  /* LG: height 56px, fz 18px (lh 28px) -> py 14px, px 28px */
   --btn-lg-h: 56px;
   --btn-lg-px-l: 28px;
   --btn-lg-px-r: 28px;
@@ -132,7 +115,6 @@
   --btn-lg-icon: 24px;
   --btn-lg-gap: 12px;
 
-  /* MD: height 44px, fz 16px (lh 24px) -> py 10px, px 20px */
   --btn-md-h: 44px;
   --btn-md-px-l: 20px;
   --btn-md-px-r: 20px;
@@ -140,7 +122,6 @@
   --btn-md-icon: 20px;
   --btn-md-gap: 8px;
 
-  /* SM: height 36px, fz 14px (lh 20px) -> py 8px, px 16px */
   --btn-sm-h: 36px;
   --btn-sm-px-l: 16px;
   --btn-sm-px-r: 16px;
@@ -148,7 +129,6 @@
   --btn-sm-icon: 16px;
   --btn-sm-gap: 6px;
 
-  /* Typography Scales */
   --type-size-2xs: 0.625rem;
   --type-size-xs: 0.75rem;
   --type-size-sm: 0.875rem;
@@ -161,7 +141,6 @@
   --type-size-5xl: 3rem;
   --type-size-display: 3.75rem;
 
-  /* Custom Shadows */
   --gnostica-shadow-sm: 0 1px 2px 0 oklch(0.2 0.08 285 / 0.05);
   --gnostica-shadow-md: 0 4px 6px -1px oklch(0.2 0.08 285 / 0.1), 0 2px 4px -2px oklch(0.2 0.08 285 / 0.1);
   --gnostica-shadow-lg: 0 10px 15px -3px oklch(0.2 0.08 285 / 0.1), 0 4px 6px -4px oklch(0.2 0.08 285 / 0.1);
@@ -169,7 +148,6 @@
   --gnostica-shadow-2xl: 0 25px 50px -12px oklch(0.2 0.08 285 / 0.25);
   --gnostica-shadow-inner: inset 0 2px 4px 0 oklch(0.2 0.08 285 / 0.05);
 
-  /* Z-Index Scale */
   --z-below: -1;
   --z-base: 0;
   --z-above: 1;
@@ -181,7 +159,6 @@
   --z-toast: 1500;
   --z-tooltip: 1600;
 
-  /* Avatar Sizes */
   --avatar-xs: 24px;
   --avatar-sm: 32px;
   --avatar-md: 40px;
@@ -189,7 +166,6 @@
   --avatar-xl: 64px;
   --avatar-2xl: 96px;
 
-  /* Container Max Widths */
   --container-max: 1536px;
   --container-xl: 1280px;
   --container-lg: 1024px;
@@ -199,7 +175,6 @@
   --container-px-md: 2rem;
   --container-px-lg: 4rem;
 
-  /* Transitions */
   --ease-in-out-back: cubic-bezier(0.68, -0.6, 0.32, 1.6);
   --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
   --transition-fast: 150ms;
@@ -208,9 +183,7 @@
 }
 
 .dark {
-  /* =========================================
-     4. SEMANTIC COLORS (Dark Theme)
-     ========================================= */
+  
   --background: var(--gray-950);
   --foreground: var(--gray-50);
 
@@ -220,7 +193,7 @@
   
   --accent: var(--accent-400);
   --accent-foreground: var(--gray-950);
-  --button-gradient: linear-gradient(to right, oklch(68% 0.22 55), oklch(75% 0.15 60));
+  --accent-gradient: linear-gradient(to right, oklch(68% 0.22 55), oklch(75% 0.15 60));
 
   --card: var(--gray-900);
   --card-foreground: var(--gray-50);
@@ -238,11 +211,9 @@
   --input: var(--gray-800);
   --ring: var(--primary-400);
 
-  /* Status Colors */
-  --error: oklch(0.704 0.191 22.216); /* Brighter for dark mode */
+  --error: oklch(0.704 0.191 22.216); 
   --destructive: var(--error);
-  
-  /* Soft Status Variants */
+
   --success-soft-bg: oklch(0.25 0.05 149.21);
   --warning-soft-bg: oklch(0.25 0.05 70.08);
   --error-soft-bg: oklch(0.25 0.05 27.325);
@@ -250,12 +221,9 @@
 }
 
 @theme inline {
-  /* =========================================
-     5. TAILWIND V4 THEME MAPPINGS
-     ========================================= */
+  
   --font-sans: 'Inter Variable', sans-serif;
 
-  /* Typography */
   --text-2xs: var(--type-size-2xs);
   --text-2xs--line-height: 0.875rem;
   --text-xs: var(--type-size-xs);
@@ -270,7 +238,6 @@
   --text-display: var(--type-size-display);
   --text-display--line-height: 1;
 
-  /* Colors */
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-accent: var(--accent);
@@ -301,22 +268,18 @@
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
 
-  /* Soft Colors */
   --color-success-soft: var(--success-soft-bg);
   --color-warning-soft: var(--warning-soft-bg);
   --color-error-soft: var(--error-soft-bg);
   --color-info-soft: var(--info-soft-bg);
 
-  /* Legacy & Misc */
   --color-header-bg: var(--header-bg);
   --color-header-text: var(--header-text);
   --color-header-orange: var(--accent);
 
-  /* Gradients */
   --background-image-primary-gradient: var(--primary-gradient);
-  --background-image-button-gradient: var(--button-gradient);
+  --background-image-accent-gradient: var(--accent-gradient);
 
-  /* Shadows */
   --shadow-sm: var(--gnostica-shadow-sm);
   --shadow-md: var(--gnostica-shadow-md);
   --shadow-lg: var(--gnostica-shadow-lg);
@@ -324,7 +287,6 @@
   --shadow-2xl: var(--gnostica-shadow-2xl);
   --shadow-inner: var(--gnostica-shadow-inner);
 
-  /* Radius */
   --radius-sm: calc(var(--radius) * 0.5);
   --radius-md: calc(var(--radius) * 0.75);
   --radius-lg: var(--radius);
@@ -333,13 +295,11 @@
   --radius-3xl: calc(var(--radius) * 2);
   --radius-4xl: calc(var(--radius) * 2.5);
 
-  /* Spacing */
   --spacing-header: var(--header-height);
   --spacing-section-lg: var(--section-gap-lg);
   --spacing-section-md: var(--section-gap-md);
   --spacing-section-sm: var(--section-gap-sm);
 
-  /* Z-Index */
   --z-index-below: var(--z-below);
   --z-index-base: var(--z-base);
   --z-index-above: var(--z-above);
@@ -351,7 +311,6 @@
   --z-index-toast: var(--z-toast);
   --z-index-tooltip: var(--z-tooltip);
 
-  /* Animations */
   @keyframes fade-in-up {
     from { opacity: 0; transform: translateY(1rem); }
     to { opacity: 1; transform: translateY(0); }
@@ -371,9 +330,7 @@
 }
 
 @layer base {
-  /* =========================================
-     6. BASE HTML/BODY RESETS & GLOBALS
-     ========================================= */
+  
   * {
     @apply border-border outline-ring/50;
   }
@@ -399,24 +356,19 @@
 }
 
 @layer components {
-  /* =========================================
-     7. CUSTOM COMPONENT CLASSES
-     ========================================= */
 
-  /* Gradients */
   .btn-outline-gradient {
     position: relative;
     border: 2px solid transparent;
     background-clip: padding-box, border-box;
     background-origin: border-box;
-    background-image: linear-gradient(var(--card), var(--card)), var(--button-gradient);
+    background-image: linear-gradient(var(--card), var(--card)), var(--accent-gradient);
   }
 
   .text-gradient-button {
-    @apply bg-button-gradient bg-clip-text text-transparent;
+    @apply bg-accent-gradient bg-clip-text text-transparent;
   }
 
-  /* Containers */
   .container-base, .app-container, .container-xl, .container-lg, .container-md, .container-sm {
     @apply w-full mx-auto px-[var(--container-px)] md:px-[var(--container-px-md)] lg:px-[var(--container-px-lg)];
   }
@@ -427,7 +379,6 @@
   .container-md { max-width: var(--container-md); }
   .container-sm { max-width: var(--container-sm); }
 
-  /* Header Utils */
   .header-icon-box {
     @apply w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm text-header-text hover:text-header-orange transition-all;
   }
@@ -440,7 +391,6 @@
     @apply absolute bottom-0 left-0 right-0 h-0.5 bg-header-orange scale-x-0 group-hover:scale-x-100 transition-transform origin-left;
   }
 
-  /* Custom Button Base Classes */
   .btn-base, .btn-lg, .btn-md, .btn-sm {
     @apply inline-flex items-center justify-center font-medium transition-all active:scale-95 cursor-pointer disabled:opacity-50 disabled:pointer-events-none whitespace-nowrap select-none;
   }
@@ -475,10 +425,7 @@
 }
 
 @layer utilities {
-  /* =========================================
-     8. CUSTOM UTILITY CLASSES
-     ========================================= */
-  /* Misc Utilities */
+
   .scrollbar-hide::-webkit-scrollbar { display: none; }
   .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 

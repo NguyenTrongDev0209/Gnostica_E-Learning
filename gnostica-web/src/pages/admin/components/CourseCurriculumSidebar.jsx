@@ -1,5 +1,5 @@
 import React from "react";
-import { GhostButton } from "@/components/common/AppButton";
+import { GhostButton } from "@/components/common/micro/AppButton";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { CheckCircle2, BookOpen, Layers, Video, Trophy, ChevronRight } from "lucide-react";
 

@@ -8,7 +8,7 @@ import {
     XCircle,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import AppTable from "@/components/common/AppTable";
+import AppTable from "@/components/common/composite/AppTable";
 
 const formatVND = (amount) =>
     new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(amount);

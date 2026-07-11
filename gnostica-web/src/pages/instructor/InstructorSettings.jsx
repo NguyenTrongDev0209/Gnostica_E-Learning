@@ -13,7 +13,7 @@ import {
   ExternalLink
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { GhostButton, SimpleButton } from "@/components/common/AppButton";
+import { GhostButton, SimpleButton } from "@/components/common/micro/AppButton";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 

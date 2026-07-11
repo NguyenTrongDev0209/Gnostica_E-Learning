@@ -2,7 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import NotificationBell from "@/components/common/NotificationBell";
+import NotificationBell from "@/components/common/micro/NotificationBell";
 
 export default function InstructorHeader() {
   const navigate = useNavigate();

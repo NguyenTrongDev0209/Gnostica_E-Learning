@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import SectionContainer from '@/components/common/AppSection';
+import SectionContainer from '@/components/common/composite/AppSection';
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback, AvatarBadge } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import AppCard, { ForumPostCard } from "@/components/common/AppCard";
+import AppCard, { ForumPostCard } from "@/components/common/composite/AppCard";
 import {
   MessageSquare, ThumbsUp, Eye, Clock, MapPin, Link as LinkIcon,
   Calendar, Star, Award, BookOpen, Flame, UserPlus, Send, Users, Sparkles
 } from 'lucide-react';
-import StatItem from '@/components/common/StatItem';
+import StatItem from '@/components/common/micro/StatItem';
 import {
   Dialog,
   DialogContent,
@@ -25,7 +25,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import authService from '@/services/auth/authService';
 import followingService from '@/services/instructor/followingService';
 import { toast } from 'sonner';
-import PersonalizationModal from '@/components/common/PersonalizationModal';
+import PersonalizationModal from '@/components/common/composite/PersonalizationModal';
 
 // ── Mock Data ──────────────────────────────────────────────
 const MOCK_USER = {

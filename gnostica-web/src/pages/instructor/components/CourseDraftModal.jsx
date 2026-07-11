@@ -1,6 +1,6 @@
 import React from "react";
 import { Card } from "@/components/ui/card";
-import { GhostButton, SimpleButton } from "@/components/common/AppButton";
+import { GhostButton, SimpleButton } from "@/components/common/micro/AppButton";
 import { Clock } from "lucide-react";
 
 export default function CourseDraftModal({ showDraftModal, setShowDraftModal, slug, restoreDraft }) {

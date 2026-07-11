@@ -9,7 +9,7 @@ import {
   Settings,
   LogOut
 } from "lucide-react";
-import { AppLogo } from "@/components/common/AppButton";
+import { AppLogo } from "@/components/common/micro/AppButton";
 
 const INSTRUCTOR_MENU_GROUPS = [
   {

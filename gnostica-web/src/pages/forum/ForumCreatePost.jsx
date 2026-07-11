@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import SectionContainer, { PageHeader } from '@/components/common/AppSection';
-import { SimpleButton, GhostButton } from "@/components/common/AppButton";
+import SectionContainer, { PageHeader } from '@/components/common/composite/AppSection';
+import { SimpleButton, GhostButton } from "@/components/common/micro/AppButton";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Send, FileText, Hash, X } from 'lucide-react';

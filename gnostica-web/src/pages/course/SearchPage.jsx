@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { AppBreadcrumb, PageHeader } from "@/components/common/AppSection";
+import { AppBreadcrumb, PageHeader } from "@/components/common/composite/AppSection";
 import CourseListSection from "@/pages/course/components/shared/CourseListSection";
 import { Home } from "lucide-react";
 import { useSearch } from "@/hooks/course/useSearch";

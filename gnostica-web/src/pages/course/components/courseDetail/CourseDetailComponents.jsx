@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { SimpleButton } from "@/components/common/AppButton";
+import { SimpleButton } from "@/components/common/micro/AppButton";
 import {
   Dialog,
   DialogContent,

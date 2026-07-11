@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Home, Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-import { AppBreadcrumb } from "@/components/common/AppSection";
+import { AppBreadcrumb } from "@/components/common/composite/AppSection";
 import courseService from "@/services/course/courseService";
 import wishlistService from "@/services/course/wishlistService";
 import { 

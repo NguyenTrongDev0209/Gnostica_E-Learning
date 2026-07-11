@@ -1,8 +1,8 @@
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { MessageSquare, Send } from 'lucide-react';
-import { SimpleButton } from '@/components/common/AppButton';
-import CommentCard from '@/components/common/CommentCard';
+import { SimpleButton } from '@/components/common/micro/AppButton';
+import CommentCard from '@/components/common/composite/CommentCard';
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 

@@ -1,8 +1,8 @@
 import React from "react";
 import { MoreHorizontal, ArrowUpDown } from "lucide-react";
-import { TableActionIconButton } from "@/components/common/AppButton";
+import { TableActionIconButton } from "@/components/common/micro/AppButton";
 import { Badge } from "@/components/ui/badge";
-import AppTable from "@/components/common/AppTable";
+import AppTable from "@/components/common/composite/AppTable";
 import { cn } from "@/lib/utils";
 
 const formatDate = (dateValue) => {

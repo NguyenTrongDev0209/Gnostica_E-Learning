@@ -4,7 +4,7 @@ import { OrderHeader } from "@/pages/admin/components/OrderHeader";
 import { OrderStatsFilter } from "@/pages/admin/components/OrderStatsFilter";
 import { OrderTable } from "@/pages/admin/components/OrderTable";
 import { OrderDetailModal } from "@/pages/admin/components/OrderDetailModal";
-import { GhostButton, SimpleButton } from "@/components/common/AppButton";
+import { GhostButton, SimpleButton } from "@/components/common/micro/AppButton";
 
 export default function AdminOrders() {
   // eslint-disable-next-line no-unused-vars

@@ -1,5 +1,5 @@
 import React from "react";
-import { SimpleButton } from "@/components/common/AppButton";
+import { SimpleButton } from "@/components/common/micro/AppButton";
 
 export default function AboutSolutions({ steps }) {
   return (
@@ -16,13 +16,13 @@ export default function AboutSolutions({ steps }) {
         </div>
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
-            <span className="bg-button-gradient bg-clip-text text-transparent font-bold tracking-widest text-xs uppercase">CÁCH CHÚNG TÔI LÀM VIỆC</span>
+            <span className="bg-accent-gradient bg-clip-text text-transparent font-bold tracking-widest text-xs uppercase">CÁCH CHÚNG TÔI LÀM VIỆC</span>
             <h2 className="text-3xl md:text-5xl font-bold text-foreground">Giải pháp Học tập Đơn giản!</h2>
           </div>
           <div className="flex flex-col gap-6">
             {steps.map((step, index) => (
               <div key={index} className="flex gap-4 items-start">
-                <div className="w-10 h-10 rounded-full bg-button-gradient flex-shrink-0 flex items-center justify-center text-white font-bold text-sm shadow-md shadow-orange-500/10">
+                <div className="w-10 h-10 rounded-full bg-accent-gradient flex-shrink-0 flex items-center justify-center text-white font-bold text-sm shadow-md shadow-orange-500/10">
                   {index + 1}
                 </div>
                 <div className="flex flex-col">

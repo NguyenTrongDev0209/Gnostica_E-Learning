@@ -2,12 +2,12 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import AppBreadcrumb from "@/components/common/AppBreadcrumb";
-import AppPageHeader from "@/components/common/AppPageHeader";
+import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
+import AppPageHeader from "@/components/common/composite/AppPageHeader";
 import { Ticket, Scissors, CheckCircle2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import useVouchers from "@/hooks/account/useVouchers";
-import { GhostButton } from "@/components/common/AppButton";
+import { GhostButton } from "@/components/common/micro/AppButton";
 
 export default function Vouchers() {
   const { vouchers, loading, handleCopyCode } = useVouchers();

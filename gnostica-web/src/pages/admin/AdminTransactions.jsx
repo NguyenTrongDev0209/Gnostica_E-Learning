@@ -4,7 +4,7 @@ import { TransactionHeader } from "@/pages/admin/components/TransactionHeader";
 import { TransactionStatsFilter } from "@/pages/admin/components/TransactionStatsFilter";
 import { TransactionTable } from "@/pages/admin/components/TransactionTable";
 import { TransactionDetailModal } from "@/pages/admin/components/TransactionDetailModal";
-import { SimpleButton, GhostButton } from "@/components/common/AppButton";
+import { SimpleButton, GhostButton } from "@/components/common/micro/AppButton";
 
 export default function AdminTransactions() {
   // eslint-disable-next-line no-unused-vars

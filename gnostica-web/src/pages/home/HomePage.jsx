@@ -2,7 +2,7 @@ import React, { Suspense } from "react";
 import MainHeroCarousel from "@/pages/home/components/MainHeroCarousel"
 import SubBannerCarousel from "@/pages/home/components/SubBannerCarousel"
 import CardCarousel from "@/pages/home/components/CardCarousel"
-import AppSection from "@/components/common/AppSection"
+import AppSection from "@/components/common/composite/AppSection"
 import PlatformStats from "@/pages/home/components/PlatformStats"
 
 import CategoryGrid from "@/pages/home/components/CategoryGrid"

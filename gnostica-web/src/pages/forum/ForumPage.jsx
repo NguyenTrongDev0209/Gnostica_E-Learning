@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import SectionContainer, { PageHeader } from '@/components/common/AppSection';
-import { ForumPostCard } from "@/components/common/AppCard";
+import SectionContainer, { PageHeader } from '@/components/common/composite/AppSection';
+import { ForumPostCard } from "@/components/common/composite/AppCard";
 import { Search } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/pagination";
 import { useForumPage } from '@/hooks/forum/useForumPage';
 import useAuthStore from '@/store/useAuthStore';
-import { SimpleButton, GhostButton } from '@/components/common/AppButton';
+import { SimpleButton, GhostButton } from '@/components/common/micro/AppButton';
 import ForumSidebar from './components/ForumSidebar';
 import { Skeleton } from "@/components/ui/skeleton";
 

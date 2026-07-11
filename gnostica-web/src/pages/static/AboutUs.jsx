@@ -1,5 +1,5 @@
 import React from "react";
-import { TestimonialCarousel } from "@/components/common/TestimonialCarousel";
+import { TestimonialCarousel } from "@/components/common/composite/TestimonialCarousel";
 
 // Components
 import AboutHero from "@/pages/static/components/about/AboutHero";

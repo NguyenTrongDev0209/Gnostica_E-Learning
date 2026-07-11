@@ -1,8 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Mail, Send } from 'lucide-react';
-import { SimpleButton } from '@/components/common/AppButton';
-import AppInput from '@/components/common/AppInput';
+import { SimpleButton } from '@/components/common/micro/AppButton';
+import AppInput from '@/components/common/micro/AppInput';
 import AuthCard from './components/AuthCard';
 import { useForgotPassword } from '@/hooks/auth/useForgotPassword';
 

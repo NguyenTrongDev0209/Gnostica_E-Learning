@@ -11,7 +11,7 @@ import {
   CheckCircle2
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { GhostButton, SimpleButton } from "@/components/common/AppButton";
+import { GhostButton, SimpleButton } from "@/components/common/micro/AppButton";
 import { useInstructorRevenue } from "@/hooks/payment/useInstructorRevenue";
 import WithdrawModal from "./components/WithdrawModal";
 import InstructorRevenueTable from "@/pages/instructor/components/InstructorRevenueTable";

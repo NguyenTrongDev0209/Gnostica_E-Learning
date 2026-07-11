@@ -1,8 +1,8 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import AppBreadcrumb from "@/components/common/AppBreadcrumb";
+import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
 import { ChevronRight } from "lucide-react";
-import { SimpleButton } from "@/components/common/AppButton";
+import { SimpleButton } from "@/components/common/micro/AppButton";
 import useAuthStore from "@/store/useAuthStore";
 import AccountWelcomeBanner from "@/pages/account/components/AccountWelcomeBanner";
 import AccountStatsCards from "@/pages/account/components/AccountStatsCards";

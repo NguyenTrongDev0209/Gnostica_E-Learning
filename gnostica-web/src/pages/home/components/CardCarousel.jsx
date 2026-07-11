@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import AppCard from "@/components/common/AppCard";
+import AppCard from "@/components/common/composite/AppCard";
 import useFeaturedCourses from "@/hooks/course/useFeaturedCourses";
 
 export default function CardCarousel() {

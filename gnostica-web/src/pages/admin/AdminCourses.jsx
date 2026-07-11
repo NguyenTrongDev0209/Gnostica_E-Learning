@@ -7,8 +7,8 @@ import {
   Users
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import AppTable from "@/components/common/AppTable";
-import { SimpleButton, GhostButton } from "@/components/common/AppButton";
+import AppTable from "@/components/common/composite/AppTable";
+import { SimpleButton, GhostButton } from "@/components/common/micro/AppButton";
 import { Input } from "@/components/ui/input";
 
 const COURSES_DATA = [

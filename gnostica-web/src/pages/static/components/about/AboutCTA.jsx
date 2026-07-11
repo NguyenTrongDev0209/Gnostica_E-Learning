@@ -1,10 +1,10 @@
 import React from "react";
-import { SimpleButton } from "@/components/common/AppButton";
+import { SimpleButton } from "@/components/common/micro/AppButton";
 
 export default function AboutCTA({ data }) {
   return (
     <section className="app-container pb-8">
-      <div className="w-full bg-button-gradient md:bg-primary rounded-[2rem] py-8 px-6 text-center text-white flex flex-col items-center gap-4 shadow-2xl shadow-primary/30 relative overflow-hidden">
+      <div className="w-full bg-accent-gradient md:bg-primary rounded-[2rem] py-8 px-6 text-center text-white flex flex-col items-center gap-4 shadow-2xl shadow-primary/30 relative overflow-hidden">
         {/* Decorative patterns */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2"></div>
         <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2"></div>

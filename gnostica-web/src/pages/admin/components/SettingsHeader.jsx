@@ -1,6 +1,6 @@
 import React from 'react';
 import { Save } from 'lucide-react';
-import { SimpleButton } from '@/components/common/AppButton';
+import { SimpleButton } from '@/components/common/micro/AppButton';
 
 export function SettingsHeader({ onSave, isSaving }) {
   return (

@@ -10,9 +10,9 @@ import {
     AppLogo,
     AppUserMenu,
     CategoryButton
-} from "@/components/common/AppButton"
-import AppSearchInput from "@/components/common/AppSearchInput"
-import NotificationBell from "@/components/common/NotificationBell"
+} from "@/components/common/micro/AppButton"
+import AppSearchInput from "@/components/common/micro/AppSearchInput"
+import NotificationBell from "@/components/common/micro/NotificationBell"
 import {
     DropdownMenu,
     DropdownMenuContent,

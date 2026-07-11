@@ -11,7 +11,7 @@ import {
   Home,
   CheckCircle2,
 } from "lucide-react";
-import { AppBreadcrumb } from "@/components/common/AppSection";
+import { AppBreadcrumb } from "@/components/common/composite/AppSection";
 import { toast } from "sonner";
 import { payosPaymentMock } from "@/apiMocks/payment";
 import orderService from "@/services/order/orderService";

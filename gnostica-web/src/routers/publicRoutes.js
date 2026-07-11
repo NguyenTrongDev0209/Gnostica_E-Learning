@@ -37,8 +37,10 @@ export const publicRoutes = {
     { path: "/profile/:id", component: UserProfile },
     { path: "/terms", component: TermsPage },
     { path: "/privacy", component: PrivacyPage },
-    { path: "/showcase", component: Showcase },
     { path: "/instructors", component: InstructorList },
+  ],
+  noLayout: [
+    { path: "/showcase", component: Showcase },
   ],
   auth: [
     { path: "/login", component: LoginPage },

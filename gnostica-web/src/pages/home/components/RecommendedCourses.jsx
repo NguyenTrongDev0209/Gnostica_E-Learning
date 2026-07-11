@@ -1,5 +1,5 @@
 import React from 'react';
-import AppCard from '@/components/common/AppCard';
+import AppCard from '@/components/common/composite/AppCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Sparkles } from 'lucide-react';
 import useRecommendedCourses from '@/hooks/course/useRecommendedCourses';

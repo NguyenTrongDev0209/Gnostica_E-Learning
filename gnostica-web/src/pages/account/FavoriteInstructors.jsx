@@ -2,11 +2,11 @@ import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Link } from 'react-router-dom';
-import AppBreadcrumb from "@/components/common/AppBreadcrumb";
-import AppPageHeader from "@/components/common/AppPageHeader";
+import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
+import AppPageHeader from "@/components/common/composite/AppPageHeader";
 import { Users, ArrowRight, UserMinus, Star } from "lucide-react";
 import useFavoriteInstructors from '@/hooks/account/useFavoriteInstructors';
-import { SimpleButton } from '@/components/common/AppButton';
+import { SimpleButton } from '@/components/common/micro/AppButton';
 
 export default function FavoriteInstructors() {
     const { instructors, loading, handleUnfollow } = useFavoriteInstructors();

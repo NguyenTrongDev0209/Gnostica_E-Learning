@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Shield, Lock, Smartphone, UserCheck } from 'lucide-react';
-import { GhostButton } from '@/components/common/AppButton';
+import { GhostButton } from '@/components/common/micro/AppButton';
 
 export function SecuritySettings() {
   return (

@@ -1,7 +1,7 @@
 import React from 'react';
-import AppTable from "@/components/common/AppTable";
+import AppTable from "@/components/common/composite/AppTable";
 import { Badge } from "@/components/ui/badge";
-import { TableActionIconButton } from "@/components/common/AppButton";
+import { TableActionIconButton } from "@/components/common/micro/AppButton";
 import { Eye, User, ShoppingCart, CreditCard, XCircle, CheckCircle, Clock } from "lucide-react";
 import { Card } from "@/components/ui/card";
 

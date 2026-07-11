@@ -24,9 +24,9 @@ import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { SimpleButton } from "@/components/common/AppButton";
-import { AppBreadcrumb, PageHeader } from "@/components/common/AppSection";
-import CartItemTableRow from "@/components/common/CartItemTableRow";
+import { SimpleButton } from "@/components/common/micro/AppButton";
+import { AppBreadcrumb, PageHeader } from "@/components/common/composite/AppSection";
+import CartItemTableRow from "@/components/common/composite/CartItemTableRow";
 import { Home } from "lucide-react";
 import { cartItemsMock } from "@/apiMocks/cart";
 

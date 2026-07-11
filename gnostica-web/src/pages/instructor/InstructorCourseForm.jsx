@@ -5,7 +5,7 @@ import { FormProvider } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, CircleFadingArrowUp, Save, Sparkles, Loader2 } from "lucide-react";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { GhostButton, SimpleButton } from "@/components/common/AppButton";
+import { GhostButton, SimpleButton } from "@/components/common/micro/AppButton";
 
 import CourseStepper from "@/pages/instructor/components/CourseStepper";
 import BasicInfoTab from "@/pages/instructor/components/BasicInfoTab";

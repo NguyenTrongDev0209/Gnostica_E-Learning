@@ -8,8 +8,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import AppBreadcrumb from "@/components/common/AppBreadcrumb";
-import AppPageHeader from "@/components/common/AppPageHeader";
+import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
+import AppPageHeader from "@/components/common/composite/AppPageHeader";
 import useMyCourses from "@/hooks/course/useMyCourses";
 import MyCourseGrid from "@/pages/account/components/MyCourseGrid";
 

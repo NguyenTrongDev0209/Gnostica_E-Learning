@@ -1,7 +1,7 @@
 import { toast } from "sonner";
 import React, { useState, useEffect } from "react";
 import { X, Building2, CreditCard, DollarSign, Lock, Trash2 } from "lucide-react";
-import { GhostButton, SimpleButton } from "@/components/common/AppButton";
+import { GhostButton, SimpleButton } from "@/components/common/micro/AppButton";
 import walletService from "@/services/payment/walletService";
 import bankService from "@/services/payment/bankService";
 

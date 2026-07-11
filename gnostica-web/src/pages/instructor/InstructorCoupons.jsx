@@ -12,7 +12,7 @@ import {
   Activity
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { SimpleButton } from "@/components/common/AppButton";
+import { SimpleButton } from "@/components/common/micro/AppButton";
 import { Input } from "@/components/ui/input";
 import { useCoupons } from "@/hooks/order/useCoupons";
 import { CouponFormModal } from "@/pages/admin/components/CouponFormModal";

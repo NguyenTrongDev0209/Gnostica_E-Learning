@@ -1,7 +1,7 @@
 import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, CheckCircle2, Loader2, Sparkles, AlertTriangle, ShieldCheck, ShieldAlert, FileText, Video, Trophy, BookOpen, Layers, ExternalLink, ChevronRight, Download } from "lucide-react";
-import { SimpleButton, GhostButton } from "@/components/common/AppButton";
+import { SimpleButton, GhostButton } from "@/components/common/micro/AppButton";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CourseRejectModal from "@/components/modals/CourseRejectModal";

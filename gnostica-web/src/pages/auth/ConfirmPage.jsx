@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ShieldCheck, ArrowLeft } from 'lucide-react';
-import { SimpleButton } from '@/components/common/AppButton';
+import { SimpleButton } from '@/components/common/micro/AppButton';
 import AuthCard from './components/AuthCard';
 import { useConfirm } from '@/hooks/auth/useConfirm';
 

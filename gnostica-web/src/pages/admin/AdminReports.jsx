@@ -2,9 +2,9 @@ import threadReportService from "@/services/forum/threadReportService";
 import React, { useState, useEffect } from "react";
 import { BarChart3, ShieldAlert, CheckCircle2, XCircle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import AppTable from "@/components/common/AppTable";
+import AppTable from "@/components/common/composite/AppTable";
 import { Badge } from "@/components/ui/badge";
-import { GhostButton, SimpleButton } from "@/components/common/AppButton";
+import { GhostButton, SimpleButton } from "@/components/common/micro/AppButton";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 

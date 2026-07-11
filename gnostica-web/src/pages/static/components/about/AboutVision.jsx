@@ -14,7 +14,7 @@ export default function AboutVision({ data }) {
             </div>
             <div className="border-l-4 border-warning/20/50 pl-6 py-2 italic font-medium text-foreground bg-white/50 rounded-r-lg">
               "{data.quote}"
-              <div className="text-xs bg-button-gradient bg-clip-text text-transparent font-bold mt-2 uppercase tracking-widest">— {data.author}</div>
+              <div className="text-xs bg-accent-gradient bg-clip-text text-transparent font-bold mt-2 uppercase tracking-widest">— {data.author}</div>
             </div>
           </div>
           <div className="aspect-square bg-neutral-900 rounded-3xl shadow-2xl relative overflow-hidden flex items-center justify-center group">

@@ -1,7 +1,7 @@
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Trophy } from "lucide-react";
-import { SimpleButton } from "@/components/common/AppButton";
+import { SimpleButton } from "@/components/common/micro/AppButton";
 
 export default function AccountWelcomeBanner({ user, isInstructor, handleBecomeInstructor }) {
   return (

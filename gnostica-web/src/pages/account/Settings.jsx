@@ -3,13 +3,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { SimpleButton, GhostButton } from "@/components/common/AppButton";
-import AppBreadcrumb from "@/components/common/AppBreadcrumb";
-import AppPageHeader from "@/components/common/AppPageHeader";
+import { SimpleButton, GhostButton } from "@/components/common/micro/AppButton";
+import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
+import AppPageHeader from "@/components/common/composite/AppPageHeader";
 import { UserCog, Camera, Save, Loader2 } from "lucide-react";
 import useSettingsForm from "@/hooks/account/useSettingsForm";
 import ImageCropModal from "@/components/modals/ImageCropModal";
-import PersonalizationModal from "@/components/common/PersonalizationModal";
+import PersonalizationModal from "@/components/common/composite/PersonalizationModal";
 import useAuthStore from "@/store/useAuthStore";
 
 export default function Settings() {

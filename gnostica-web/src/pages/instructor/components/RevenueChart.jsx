@@ -1,6 +1,6 @@
 import React from "react";
-import LineChart from "@/components/common/LineChart";
-import ChartDateFilters from "@/components/common/ChartDateFilters";
+import LineChart from "@/components/common/composite/LineChart";
+import ChartDateFilters from "@/components/common/composite/ChartDateFilters";
 
 export default function RevenueChart({ data }) {
     const subtitle = (

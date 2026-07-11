@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Home, Shield } from "lucide-react";
-import { AppBreadcrumb } from "@/components/common/AppSection";
+import { AppBreadcrumb } from "@/components/common/composite/AppSection";
 import { privacySectionsMock } from "@/apiMocks/staticPages";
 
 export default function PrivacyPage() {

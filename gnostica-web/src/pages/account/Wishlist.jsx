@@ -1,11 +1,11 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import AppCard from "@/components/common/AppCard";
+import AppCard from "@/components/common/composite/AppCard";
 import { Heart } from "lucide-react";
-import AppBreadcrumb from "@/components/common/AppBreadcrumb";
-import AppPageHeader from "@/components/common/AppPageHeader";
+import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
+import AppPageHeader from "@/components/common/composite/AppPageHeader";
 import useWishlist from "@/hooks/account/useWishlist";
-import { GhostButton } from "@/components/common/AppButton";
+import { GhostButton } from "@/components/common/micro/AppButton";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Wishlist() {

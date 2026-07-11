@@ -6,8 +6,8 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { SimpleButton } from "@/components/common/AppButton";
-import { AppBreadcrumb, PageHeader } from "@/components/common/AppSection";
+import { SimpleButton } from "@/components/common/micro/AppButton";
+import { AppBreadcrumb, PageHeader } from "@/components/common/composite/AppSection";
 
 /**
  * Header for the Checkout page, including breadcrumbs and title.

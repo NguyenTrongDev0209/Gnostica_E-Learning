@@ -10,12 +10,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import AppBreadcrumb from "@/components/common/AppBreadcrumb";
-import AppPageHeader from "@/components/common/AppPageHeader";
+import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
+import AppPageHeader from "@/components/common/composite/AppPageHeader";
 import { ShoppingBag, Eye, Download } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import useOrders from "@/hooks/account/useOrders";
-import { GhostButton } from "@/components/common/AppButton";
+import { GhostButton } from "@/components/common/micro/AppButton";
 
 export default function Orders() {
   const { orders, loading } = useOrders();

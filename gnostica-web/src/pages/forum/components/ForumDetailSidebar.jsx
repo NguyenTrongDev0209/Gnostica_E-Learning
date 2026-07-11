@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Eye, ThumbsUp, MessageSquare, ChevronLeft } from 'lucide-react';
-import { GhostButton } from '@/components/common/AppButton';
+import { GhostButton } from '@/components/common/micro/AppButton';
 
 const ForumDetailSidebar = ({ post, relatedPosts }) => {
   return (

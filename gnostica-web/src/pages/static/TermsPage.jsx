@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Home, FileText } from "lucide-react";
-import { AppBreadcrumb } from "@/components/common/AppSection";
+import { AppBreadcrumb } from "@/components/common/composite/AppSection";
 import { termsSectionsMock } from "@/apiMocks/staticPages";
 
 export default function TermsPage() {

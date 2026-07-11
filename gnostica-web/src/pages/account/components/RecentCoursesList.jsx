@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { BookOpen, PlayCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { SimpleButton } from "@/components/common/AppButton";
+import { SimpleButton } from "@/components/common/micro/AppButton";
 
 export default function RecentCoursesList({ loading, recentCourses }) {
   if (loading) {

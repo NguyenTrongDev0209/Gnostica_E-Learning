@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { GhostButton } from '@/components/common/AppButton';
+import { GhostButton } from '@/components/common/micro/AppButton';
 
 const ReportPostModal = ({
   isOpen,

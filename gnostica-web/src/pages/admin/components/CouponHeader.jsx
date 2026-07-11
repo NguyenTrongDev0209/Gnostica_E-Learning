@@ -1,6 +1,6 @@
 import React from 'react';
 import { Ticket, Plus } from 'lucide-react';
-import { SimpleButton } from '@/components/common/AppButton';
+import { SimpleButton } from '@/components/common/micro/AppButton';
 
 export function CouponHeader({ onAddClick }) {
   return (

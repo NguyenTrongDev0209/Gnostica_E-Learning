@@ -1,5 +1,5 @@
 import React from 'react';
-import AppCard from '@/components/common/AppCard';
+import AppCard from '@/components/common/composite/AppCard';
 import useFeaturedCourses from '@/hooks/course/useFeaturedCourses';
 
 const FeaturedCourses = () => {

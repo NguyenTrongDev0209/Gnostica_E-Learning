@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import SectionContainer, { AppBreadcrumb } from '@/components/common/AppSection';
+import SectionContainer, { AppBreadcrumb } from '@/components/common/composite/AppSection';
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -8,10 +8,10 @@ import {
   Clock, Eye, Tag, Flame, ThumbsUp, ArrowUp, ArrowDown, Share2, Flag
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
-import RenderContent from '@/components/common/RenderContent';
+import RenderContent from '@/components/common/core/RenderContent';
 import useForumDetail from '@/hooks/forum/useForumDetail';
 import { toast } from 'sonner';
-import { GhostButton } from '@/components/common/AppButton';
+import { GhostButton } from '@/components/common/micro/AppButton';
 import ForumDetailSidebar from './components/ForumDetailSidebar';
 import ReportPostModal from './components/ReportPostModal';
 import CommentSection from './components/CommentSection';
@@ -89,7 +89,7 @@ const ForumDetail = () => {
           <h2 className="text-2xl font-bold text-foreground mb-2">Thao tác thất bại</h2>
           <p className="text-muted-foreground mb-6">{error || "Không tìm thấy bài viết này."}</p>
           <Link to="/forum">
-            <GhostButton className="bg-button-gradient text-white w-full">Quay lại Diễn đàn</GhostButton>
+            <GhostButton className="bg-accent-gradient text-white w-full">Quay lại Diễn đàn</GhostButton>
           </Link>
         </div>
       </div>

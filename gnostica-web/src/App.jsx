@@ -9,10 +9,10 @@ import InstructorLayout from "@/components/layouts/InstructorLayout";
 import LearningLayout from "@/components/layouts/LearningLayout";
 import { publicRoutes, privateRoutes } from "@/routers";
 import ErrorPage from "@/pages/static/ErrorPage";
-import ProtectedRoute from "@/components/common/ProtectedRoute";
+import ProtectedRoute from "@/components/common/core/ProtectedRoute";
 import CertificatePage from "@/pages/learning/CertificatePage";
 import { ROLES } from "@/utils/constants";
-import PersonalizationModal from "@/components/common/PersonalizationModal";
+import PersonalizationModal from "@/components/common/composite/PersonalizationModal";
 
 function App() {
   return (
@@ -21,6 +21,9 @@ function App() {
       <Router>
         <PersonalizationModal />
         <Routes>
+          {publicRoutes.noLayout && publicRoutes.noLayout.map(({ path, component: Component }) => (
+            <Route key={path} path={path} element={<Component />} />
+          ))}
 
           <Route element={<MainLayout />}>
             {publicRoutes.main.map(({ path, component: Component }) => (

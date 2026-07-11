@@ -2,8 +2,8 @@ import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Bell, AlertCircle, CheckCircle2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import AppBreadcrumb from "@/components/common/AppBreadcrumb";
-import AppPageHeader from "@/components/common/AppPageHeader";
+import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
+import AppPageHeader from "@/components/common/composite/AppPageHeader";
 import useNotifications from "@/hooks/account/useNotifications";
 export default function Notifications() {
   const { notifications, loading, unreadCount, markAllAsRead, markAsRead } = useNotifications();

@@ -110,7 +110,7 @@ export const PageHeader = ({
       <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground leading-tight font-sans">
         {title}{" "}
         {highlightedTitle && (
-          <span className={cn("bg-button-gradient bg-clip-text text-transparent", italic && "italic")}>
+          <span className={cn("bg-accent-gradient bg-clip-text text-transparent", italic && "italic")}>
             {highlightedTitle}.
           </span>
         )}

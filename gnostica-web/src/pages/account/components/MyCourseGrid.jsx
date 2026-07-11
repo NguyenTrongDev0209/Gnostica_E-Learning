@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { BookOpen, PlayCircle, Award } from "lucide-react";
-import { SimpleButton, GhostButton, OutlineGradientButton } from "@/components/common/AppButton";
+import { SimpleButton, GhostButton, OutlineGradientButton } from "@/components/common/micro/AppButton";
 
 export default function MyCourseGrid({ loading, courses }) {
   if (loading) {

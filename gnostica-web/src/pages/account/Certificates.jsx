@@ -1,8 +1,8 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
-import AppBreadcrumb from "@/components/common/AppBreadcrumb";
-import AppPageHeader from "@/components/common/AppPageHeader";
+import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
+import AppPageHeader from "@/components/common/composite/AppPageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 import useCertificates from "@/hooks/account/useCertificates";
 import {
@@ -12,7 +12,7 @@ import {
   Trophy,
   ExternalLink,
 } from "lucide-react";
-import { SimpleButton, GhostButton } from "@/components/common/AppButton";
+import { SimpleButton, GhostButton } from "@/components/common/micro/AppButton";
 
 export default function Certificates() {
   const { certificates, loading } = useCertificates();

@@ -1,8 +1,8 @@
 import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Monitor, Home } from "lucide-react";
-import { SimpleButton } from "@/components/common/AppButton";
-import { AppBreadcrumb } from "@/components/common/AppSection";
+import { SimpleButton } from "@/components/common/micro/AppButton";
+import { AppBreadcrumb } from "@/components/common/composite/AppSection";
 
 export default function AboutHero({ data }) {
   const breadcrumbItems = [
@@ -22,7 +22,7 @@ export default function AboutHero({ data }) {
             {data.badge}
           </Badge>
           <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-foreground leading-tight">
-            {data.title} <span className="bg-button-gradient bg-clip-text text-transparent italic">{data.highlight}</span>
+            {data.title} <span className="bg-accent-gradient bg-clip-text text-transparent italic">{data.highlight}</span>
           </h1>
           <p className="text-lg text-muted-foreground max-w-lg leading-relaxed">
             {data.description}

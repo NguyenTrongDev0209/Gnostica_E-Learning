@@ -1,6 +1,6 @@
 import React from 'react';
 import * as LucideIcons from 'lucide-react';
-import StatItem from '@/components/common/StatItem';
+import StatItem from '@/components/common/micro/StatItem';
 import useHomeData from '@/hooks/home/useHomeData';
 import { Skeleton } from '@/components/ui/skeleton';
 

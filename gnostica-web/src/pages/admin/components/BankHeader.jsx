@@ -1,6 +1,6 @@
 import React from 'react';
 import { Building2, Plus, RefreshCw } from 'lucide-react';
-import { GhostButton, SimpleButton } from '@/components/common/AppButton';
+import { GhostButton, SimpleButton } from '@/components/common/micro/AppButton';
 
 export function BankHeader({ onAddClick, onSyncClick, isSyncing }) {
   return (

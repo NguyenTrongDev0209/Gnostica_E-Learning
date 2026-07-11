@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import AppTable from "@/components/common/AppTable";
+import AppTable from "@/components/common/composite/AppTable";
 import { Badge } from "@/components/ui/badge";
 
 export default function RecentOrders({ orders }) {

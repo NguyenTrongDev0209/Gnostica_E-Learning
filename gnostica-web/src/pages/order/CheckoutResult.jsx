@@ -9,10 +9,10 @@ import {
   FileText,
   Loader2,
 } from "lucide-react";
-import { SimpleButton } from "@/components/common/AppButton";
+import { SimpleButton } from "@/components/common/micro/AppButton";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { AppBreadcrumb } from "@/components/common/AppSection";
+import { AppBreadcrumb } from "@/components/common/composite/AppSection";
 import { checkoutStatusConfig } from "@/apiMocks/checkout";
 import orderService from "@/services/order/orderService";
 

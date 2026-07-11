@@ -1,6 +1,6 @@
 import React from "react";
-import AppCard, { CourseCardHorizontal } from "@/components/common/AppCard";
-import FilterOptions from "@/components/common/FilterOptions";
+import AppCard, { CourseCardHorizontal } from "@/components/common/composite/AppCard";
+import FilterOptions from "@/components/common/composite/FilterOptions";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import {

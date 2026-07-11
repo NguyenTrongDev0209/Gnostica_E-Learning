@@ -1,8 +1,8 @@
 import React from 'react';
-import SectionContainer, { PageHeader, AppBreadcrumb } from '@/components/common/AppSection';
-import { ForumPostCard } from "@/components/common/AppCard";
+import SectionContainer, { PageHeader, AppBreadcrumb } from '@/components/common/composite/AppSection';
+import { ForumPostCard } from "@/components/common/composite/AppCard";
 import { ChevronLeft, ThumbsUp, LayoutGrid, Trash2 } from 'lucide-react';
-import { GhostButton, SimpleButton } from "@/components/common/AppButton";
+import { GhostButton, SimpleButton } from "@/components/common/micro/AppButton";
 import { useNavigate, Link } from "react-router-dom";
 import {
     Pagination,

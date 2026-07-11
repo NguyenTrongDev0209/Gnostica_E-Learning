@@ -1,7 +1,7 @@
 import React from "react";
 import { useParams } from "react-router-dom";
-import { CourseCardHorizontal } from "@/components/common/AppCard";
-import AppSection, { PageHeader, AppBreadcrumb } from "@/components/common/AppSection";
+import { CourseCardHorizontal } from "@/components/common/composite/AppCard";
+import AppSection, { PageHeader, AppBreadcrumb } from "@/components/common/composite/AppSection";
 import { Home } from "lucide-react";
 import { popularCoursesMock } from "@/apiMocks/courses";
 

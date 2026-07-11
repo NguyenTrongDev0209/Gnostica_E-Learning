@@ -11,7 +11,7 @@ import {
   Loader2
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { GhostButton, SimpleButton } from "@/components/common/AppButton";
+import { GhostButton, SimpleButton } from "@/components/common/micro/AppButton";
 import { Input } from "@/components/ui/input";
 import InstructorStudentTable from "@/pages/instructor/components/InstructorStudentTable";
 import StudentCoursesModal from "@/pages/instructor/components/StudentCoursesModal";

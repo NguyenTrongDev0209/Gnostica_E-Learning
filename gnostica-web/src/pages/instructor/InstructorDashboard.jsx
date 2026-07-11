@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { GhostButton, SimpleButton } from "@/components/common/AppButton";
+import { GhostButton, SimpleButton } from "@/components/common/micro/AppButton";
 import { Loader2 } from "lucide-react";
 import useInstructorDashboard from "@/hooks/dashboard/useInstructorDashboard";
 

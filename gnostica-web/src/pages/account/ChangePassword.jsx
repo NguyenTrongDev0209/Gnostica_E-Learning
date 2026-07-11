@@ -1,6 +1,6 @@
 import React from "react";
-import AppBreadcrumb from "@/components/common/AppBreadcrumb";
-import AppPageHeader from "@/components/common/AppPageHeader";
+import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
+import AppPageHeader from "@/components/common/composite/AppPageHeader";
 import { KeyRound } from "lucide-react";
 import useAuthStore from "@/store/useAuthStore";
 import useChangePassword from "@/hooks/account/useChangePassword";

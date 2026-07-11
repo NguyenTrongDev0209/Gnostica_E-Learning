@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Avatar, AvatarImage, AvatarFallback, AvatarBadge } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Clock, CornerDownRight, Send } from 'lucide-react';
-import RenderContent from './RenderContent';
+import RenderContent from '@/components/common/core/RenderContent';
 import commentService from '@/services/forum/commentService';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -172,7 +172,7 @@ export default function CommentCard({ comment, isNested = false, threadId, onCom
               <Button size="sm" variant="ghost" onClick={() => setShowReply(false)}>Hủy</Button>
               <Button 
                 size="sm" 
-                className="bg-button-gradient font-bold" 
+                className="bg-accent-gradient font-bold" 
                 onClick={handleSendReply}
                 disabled={!replyContent || replyContent.replace(/<[^>]*>/g, '').trim() === ''}
               >

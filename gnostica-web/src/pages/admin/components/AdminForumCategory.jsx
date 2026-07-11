@@ -16,7 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { SimpleButton, TableActionIconButton, GhostButton } from "@/components/common/AppButton";
+import { SimpleButton, TableActionIconButton, GhostButton } from "@/components/common/micro/AppButton";
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";

@@ -19,14 +19,14 @@ export default function AboutTools({ tools }) {
             return (
               <Card key={index} className="border-none shadow-sm hover:shadow-md transition-all group overflow-hidden bg-white">
                 <CardContent className="p-5 flex flex-col gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-button-gradient text-white flex items-center justify-center shadow-lg shadow-orange-500/20 group-hover:scale-110 transition-transform">
+                  <div className="w-12 h-12 rounded-xl bg-accent-gradient text-white flex items-center justify-center shadow-lg shadow-orange-500/20 group-hover:scale-110 transition-transform">
                     <ToolIcon className="w-6 h-6" />
                   </div>
                   <h3 className="text-xl font-bold text-foreground">{tool.title}</h3>
                   <p className="text-muted-foreground text-sm leading-relaxed">
                     {tool.description}
                   </p>
-                  <Button variant="link" className="p-0 h-auto bg-button-gradient bg-clip-text text-transparent font-bold w-fit group-hover:gap-2 transition-all">
+                  <Button variant="link" className="p-0 h-auto bg-accent-gradient bg-clip-text text-transparent font-bold w-fit group-hover:gap-2 transition-all">
                     Đọc thêm <ArrowRight className="ml-1 w-4 h-4 opacity-0 group-hover:opacity-100 transition-all text-warning" />
                   </Button>
                 </CardContent>

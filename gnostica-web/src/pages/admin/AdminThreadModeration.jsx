@@ -14,13 +14,13 @@ import {
   AlertCircle
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { SimpleButton, GhostButton } from "@/components/common/AppButton";
+import { SimpleButton, GhostButton } from "@/components/common/micro/AppButton";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { toast } from "sonner";
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from "framer-motion";
-import RenderContent from "@/components/common/RenderContent";
+import RenderContent from "@/components/common/core/RenderContent";
 import {
   AlertDialog,
   AlertDialogAction,

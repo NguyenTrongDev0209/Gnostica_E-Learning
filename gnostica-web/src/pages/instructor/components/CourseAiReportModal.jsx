@@ -1,6 +1,6 @@
 import React from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { GhostButton, SimpleButton } from "@/components/common/AppButton";
+import { GhostButton, SimpleButton } from "@/components/common/micro/AppButton";
 import { Badge } from "@/components/ui/badge";
 import { Sparkles, ShieldCheck, ShieldAlert, AlertTriangle, CheckCircle2, Loader2 } from "lucide-react";
 

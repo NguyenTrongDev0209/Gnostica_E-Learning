@@ -92,7 +92,7 @@ const AppCard = ({
           {/* Footer Row (Price Only) */}
           <div className="flex items-center justify-between gap-1 flex-wrap mt-auto pt-1">
             <div className="flex items-center gap-1.5 flex-wrap">
-              <div className="text-sm sm:text-xl font-bold bg-button-gradient bg-clip-text text-transparent leading-none">
+              <div className="text-sm sm:text-xl font-bold bg-accent-gradient bg-clip-text text-transparent leading-none">
                 {price}<span className="text-[10px] sm:text-lg ml-0.5">{currency}</span>
               </div>
 
@@ -205,7 +205,7 @@ export const CourseCardHorizontal = ({
 
           {/* Price */}
           <div className="flex items-center gap-2 flex-wrap mt-auto">
-            <div className="text-lg font-bold bg-button-gradient bg-clip-text text-transparent leading-none">
+            <div className="text-lg font-bold bg-accent-gradient bg-clip-text text-transparent leading-none">
               {price}<span className="text-base ml-0.5">{currency}</span>
             </div>
             {originalPrice && (

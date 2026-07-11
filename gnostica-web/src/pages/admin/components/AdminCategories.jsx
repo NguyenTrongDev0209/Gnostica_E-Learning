@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { SimpleButton, TableActionIconButton, GhostButton } from "@/components/common/AppButton";
+import { SimpleButton, TableActionIconButton, GhostButton } from "@/components/common/micro/AppButton";
 import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";

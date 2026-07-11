@@ -19,7 +19,7 @@ export const SimpleButton = ({ children, className, variant = "default", size = 
       variant={variant}
       className={cn(
         sizeClass,
-        "bg-button-gradient text-primary-foreground hover:brightness-110 shadow-md font-semibold tracking-tight",
+        "bg-accent-gradient text-primary-foreground hover:brightness-110 shadow-md font-semibold tracking-tight",
         className
       )}
       {...props}
@@ -74,7 +74,7 @@ export const IconLabelButton = ({ children, icon: Icon, className, variant = "de
     <Button
       variant={variant}
       className={cn(
-        "relative h-auto min-h-9 md:w-auto px-0 md:px-3 flex flex-col items-center justify-center gap-0.5 bg-button-gradient bg-clip-border border-none hover:brightness-110 active:scale-95 transition-all text-primary-foreground font-semibold tracking-tight",
+        "relative h-auto min-h-9 md:w-auto px-0 md:px-3 flex flex-col items-center justify-center gap-0.5 bg-accent-gradient bg-clip-border border-none hover:brightness-110 active:scale-95 transition-all text-primary-foreground font-semibold tracking-tight",
         className
       )}
       {...props}
@@ -97,7 +97,7 @@ export const HorizontalIconLabelButton = ({ children, icon: Icon, className, var
     <Button
       variant={variant}
       className={cn(
-        "h-10 w-10 p-0 aspect-square min-w-0 flex items-center justify-center bg-button-gradient bg-clip-border border-none hover:brightness-110 active:scale-95 transition-all text-primary-foreground shrink-0",
+        "h-10 w-10 p-0 aspect-square min-w-0 flex items-center justify-center bg-accent-gradient bg-clip-border border-none hover:brightness-110 active:scale-95 transition-all text-primary-foreground shrink-0",
         "md:w-auto md:px-5 md:aspect-auto text-base font-semibold tracking-tight",
         className
       )}
@@ -115,7 +115,7 @@ export const AppIconButton = ({ icon: Icon, className, variant = "ghost", badge,
     <Button
       variant={variant}
       className={cn(
-        "relative h-9 w-9 p-0 aspect-square min-w-0 flex items-center justify-center bg-button-gradient bg-clip-border border-none hover:brightness-110 hover:text-white active:scale-95 transition-all text-white shrink-0 shadow-sm",
+        "relative h-9 w-9 p-0 aspect-square min-w-0 flex items-center justify-center bg-accent-gradient bg-clip-border border-none hover:brightness-110 hover:text-white active:scale-95 transition-all text-white shrink-0 shadow-sm",
         className
       )}
       {...props}

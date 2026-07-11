@@ -1,7 +1,7 @@
 import React from 'react';
 import { Save } from 'lucide-react';
-import { SimpleButton } from '@/components/common/AppButton';
-import { AppPasswordInput } from '@/components/common/AppInput';
+import { SimpleButton } from '@/components/common/micro/AppButton';
+import { AppPasswordInput } from '@/components/common/micro/AppInput';
 import AuthCard from './components/AuthCard';
 import { useResetPassword } from '@/hooks/auth/useResetPassword';
 
