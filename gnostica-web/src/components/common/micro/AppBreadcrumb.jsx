@@ -16,7 +16,7 @@ export default function AppBreadcrumb({ paths = [] }) {
       <BreadcrumbList>
         <BreadcrumbItem>
           <BreadcrumbLink asChild>
-            <Link to="/" className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            <Link to="/" className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-primary transition-colors duration-300">
               <Home className="h-3.5 w-3.5" /> Trang chủ
             </Link>
           </BreadcrumbLink>
@@ -30,10 +30,10 @@ export default function AppBreadcrumb({ paths = [] }) {
               <BreadcrumbSeparator />
               <BreadcrumbItem>
                 {isLast || !path.href ? (
-                  <BreadcrumbPage className="text-sm font-semibold">{path.label}</BreadcrumbPage>
+                  <BreadcrumbPage className="text-sm font-semibold text-foreground">{path.label}</BreadcrumbPage>
                 ) : (
                   <BreadcrumbLink asChild>
-                    <Link to={path.href} className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+                    <Link to={path.href} className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors duration-300">
                       {path.label}
                     </Link>
                   </BreadcrumbLink>
