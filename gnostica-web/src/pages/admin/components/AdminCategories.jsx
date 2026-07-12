@@ -17,7 +17,6 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { SimpleButton, TableActionIconButton, GhostButton } from "@/components/common/AppButton";
-import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -213,7 +212,16 @@ export default function AdminCategories({ hideHeader = false }) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {categories.length === 0 ? (
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="h-32 text-center text-muted-foreground font-medium">
+                    <div className="flex flex-col items-center justify-center gap-3">
+                      <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                      <span className="text-sm animate-pulse">Đang tải dữ liệu...</span>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : categories.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="h-32 text-center text-muted-foreground font-medium">
                     Không tìm thấy chủ đề nào phù hợp.
@@ -222,6 +230,7 @@ export default function AdminCategories({ hideHeader = false }) {
               ) : (
                 categories.map((cat) => (
                   <React.Fragment key={cat.id}>
+                    {/* Parent category row */}
                     <TableRow
                       key={cat.id}
                       className="hover:bg-muted cursor-pointer"
@@ -314,7 +323,7 @@ export default function AdminCategories({ hideHeader = false }) {
                       </TableCell>
                     </TableRow>
 
-                    {/* Subcategories expanded row */}
+                    {/* Subcategories expanded rows */}
                     {expanded === cat.id &&
                       cat.subcategories &&
                       cat.subcategories.length > 0 &&
@@ -343,7 +352,7 @@ export default function AdminCategories({ hideHeader = false }) {
                             <span className="text-sm text-muted-foreground font-medium block w-full">-</span>
                           </TableCell>
                           <TableCell className="text-center font-bold text-foreground">
-                            {sub.courses}
+                            {sub.courses || 0}
                           </TableCell>
                           <TableCell>
                             {sub.status === true ? (
@@ -375,25 +384,18 @@ export default function AdminCategories({ hideHeader = false }) {
                               className="flex justify-center items-center gap-2"
                               onClick={(e) => e.stopPropagation()}
                             >
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-muted-foreground hover:text-primary"
+                              <TableActionIconButton
+                                icon={Edit}
                                 onClick={(e) => handleEdit(e, sub, cat.id)}
-                              >
-                                <Edit className="w-4 h-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-muted-foreground hover:text-error"
+                              />
+                              <TableActionIconButton
+                                icon={Trash2}
+                                colorVariant="error"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleDelete(sub.id);
                                 }}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
+                              />
                             </div>
                           </TableCell>
                         </TableRow>

@@ -31,9 +31,47 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 
-export default function CommentCard({ comment, isNested = false, threadId, onCommentAdded, onCommentDeleted, parentAuthorName }) {
+export default function CommentCard({ comment, isNested = false, threadId, onCommentAdded, onCommentDeleted, parentAuthorName, threadAuthorEmail }) {
   const [showReply, setShowReply] = useState(false);
   const [replyContent, setReplyContent] = useState('');
+
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [shouldShowMore, setShouldShowMore] = useState(false);
+  const contentRef = React.useRef(null);
+
+  React.useEffect(() => {
+    setIsExpanded(false);
+  }, [comment.content]);
+
+  React.useEffect(() => {
+    if (contentRef.current) {
+      const checkOverflow = () => {
+        if (contentRef.current && !isExpanded) {
+          const hasOverflow = contentRef.current.scrollHeight > contentRef.current.clientHeight;
+          setShouldShowMore(hasOverflow);
+        }
+      };
+      // Perform initial check
+      checkOverflow();
+
+      // Set up ResizeObserver to observe size changes (especially useful when images load)
+      const observer = new ResizeObserver(() => {
+        checkOverflow();
+      });
+      observer.observe(contentRef.current);
+
+      window.addEventListener('resize', checkOverflow);
+      return () => {
+        observer.disconnect();
+        window.removeEventListener('resize', checkOverflow);
+      };
+    }
+  }, [comment.content, isExpanded]);
+
+  const collapsedStyle = {
+    maxHeight: '120px',
+    overflow: 'hidden',
+  };
 
   const handleSendReply = async () => {
     const isReplyEmpty = !replyContent || replyContent.replace(/<[^>]*>/g, '').trim() === '';
@@ -82,6 +120,7 @@ export default function CommentCard({ comment, isNested = false, threadId, onCom
   
   const currentUser = JSON.parse(localStorage.getItem('user'));
   const isOwner = currentUser?.email === comment.account?.email;
+  const isThreadOwner = currentUser?.email && threadAuthorEmail && currentUser.email === threadAuthorEmail;
 
   return (
     <div className={`flex gap-3 ${isNested ? 'ml-8 sm:ml-12 mt-4 border-l-2 border-border pl-4' : ''}`}>
@@ -113,7 +152,20 @@ export default function CommentCard({ comment, isNested = false, threadId, onCom
               <Clock className="w-3 h-3" /> {comment.createdAt}
             </span>
           </div>
-          <RenderContent text={comment.content} />
+          <div ref={contentRef} style={!isExpanded ? collapsedStyle : undefined} className="relative">
+            <RenderContent text={comment.content} />
+            {shouldShowMore && !isExpanded && (
+              <div className={`absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t pointer-events-none ${comment.isAccepted ? 'from-primary/5 to-transparent' : 'from-muted to-transparent'}`} />
+            )}
+          </div>
+          {shouldShowMore && (
+            <button 
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="text-xs font-semibold text-primary hover:text-primary/80 mt-2 block transition-colors cursor-pointer focus:outline-none"
+            >
+              {isExpanded ? 'Thu gọn' : 'Xem thêm'}
+            </button>
+          )}
         </div>
 
         {/* Comment Actions */}
@@ -125,7 +177,7 @@ export default function CommentCard({ comment, isNested = false, threadId, onCom
             <CornerDownRight className="w-3.5 h-3.5" /> Trả lời
           </button>
           
-          {isOwner && (
+          {(isOwner || isThreadOwner) && (
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <button 
@@ -192,6 +244,7 @@ export default function CommentCard({ comment, isNested = false, threadId, onCom
             onCommentAdded={onCommentAdded}
             onCommentDeleted={onCommentDeleted}
             parentAuthorName={comment.author.name}
+            threadAuthorEmail={threadAuthorEmail}
           />
         ))}
       </div>

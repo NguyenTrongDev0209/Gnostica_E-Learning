@@ -4,7 +4,6 @@ import {
   Search,
   Edit,
   Trash2,
-  FolderOpen,
   MessageSquare,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
