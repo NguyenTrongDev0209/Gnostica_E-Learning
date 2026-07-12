@@ -10,15 +10,11 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import AppTable from "@/components/common/AppTable";
+import { Table, TableHeader, TableRow, TableCell, TableHead, TableBody } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { SimpleButton, TableActionIconButton, GhostButton } from "@/components/common/AppButton";
 import { useForm } from "react-hook-form";
@@ -236,23 +232,37 @@ export default function AdminCategories({ hideHeader = false }) {
                   <React.Fragment key={cat.id}>
                     {/* Parent category row */}
                     <TableRow
-                      className="hover:bg-secondary cursor-pointer"
+                      key={cat.id}
+                      className="hover:bg-muted cursor-pointer"
                       onClick={() => setExpanded(expanded === cat.id ? null : cat.id)}
                     >
-                      <TableCell className="w-8">
+                      <TableCell className="w-10 text-center">
                         {cat.subcategories && cat.subcategories.length > 0 && (
-                          <ChevronRight
-                            className={`w-4 h-4 text-muted-foreground transition-transform ${expanded === cat.id ? "rotate-90" : ""}`}
-                          />
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setExpanded(expanded === cat.id ? null : cat.id);
+                            }}
+                            className="p-1 hover:bg-muted rounded-lg transition-colors flex items-center justify-center mx-auto"
+                          >
+                            <ChevronRight
+                              className={cn(
+                                "w-4 h-4 text-muted-foreground transition-transform duration-200",
+                                expanded === cat.id && "rotate-90"
+                              )}
+                            />
+                          </button>
                         )}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
                             <FolderOpen className="w-4 h-4 text-primary" />
                           </div>
                           <div>
-                            <p className="font-bold text-foreground">{cat.name}</p>
+                            <p className="font-bold text-foreground">
+                              {cat.name}
+                            </p>
                           </div>
                         </div>
                       </TableCell>
@@ -262,7 +272,7 @@ export default function AdminCategories({ hideHeader = false }) {
                         </code>
                       </TableCell>
                       <TableCell className="text-center font-bold text-foreground">
-                        {cat.subcategories ? cat.subcategories.length : 0}
+                        {cat.subcategories?.length || 0}
                       </TableCell>
                       <TableCell className="text-center font-bold text-foreground">
                         {cat.courses || 0}

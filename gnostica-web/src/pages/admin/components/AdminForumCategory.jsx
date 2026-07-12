@@ -7,14 +7,8 @@ import {
   MessageSquare,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import AppTable from "@/components/common/AppTable";
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { SimpleButton, TableActionIconButton, GhostButton } from "@/components/common/AppButton";
 import { Input } from "@/components/ui/input";
