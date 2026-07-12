@@ -19,7 +19,10 @@ import org.springframework.transaction.annotation.Transactional;
 import com.gnostica.modules.course.dto.request.CategoryRequest;
 import com.gnostica.modules.course.dto.response.CategoryResponseDTO;
 import com.gnostica.core.model.Category;
+import com.gnostica.core.model.Account;
 import com.gnostica.core.repository.CategoryRepository;
+import com.gnostica.core.repository.AccountRepository;
+import com.gnostica.core.util.AuthUtil;
 
 @Service
 public class CategoryService {
@@ -29,6 +32,9 @@ public class CategoryService {
 
     @Autowired
     private com.gnostica.core.repository.CourseRepository courseRepository;
+
+    @Autowired
+    private AccountRepository accountRepository;
 
 
     @Transactional(readOnly = true)
@@ -85,6 +91,15 @@ public class CategoryService {
         if (request.getStatus() != null) {
             category.setStatus(request.getStatus() ? 1 : 0);
         }
+
+        // Thiết lập người tạo danh mục (bắt buộc)
+        String currentEmail = AuthUtil.getCurrentUserEmail();
+        if (currentEmail == null) {
+            throw new RuntimeException("Bạn chưa đăng nhập hoặc phiên đăng nhập đã hết hạn.");
+        }
+        Account creator = accountRepository.findByEmail(currentEmail)
+                .orElseThrow(() -> new RuntimeException("Tài khoản người dùng không tồn tại trong hệ thống."));
+        category.setAccount(creator);
 
         if (request.getParent_id() != null) {
             Category parent = categoryRepository.findById(request.getParent_id())
