@@ -9,6 +9,8 @@ import {
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import AppTable from "@/components/common/AppTable";
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
 import { SimpleButton, TableActionIconButton, GhostButton } from "@/components/common/AppButton";
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
@@ -117,8 +119,8 @@ export default function AdminForumCategory({ hideHeader = false }) {
       await forumCategoryService.updateStatus(id, newStatus);
       toast.success(newStatus ? "Đã hiển thị chủ đề thành công" : "Đã ẩn chủ đề thành công");
       // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchCategories();
-    // eslint-disable-next-line no-unused-vars
+      fetchCategories();
+      // eslint-disable-next-line no-unused-vars
     } catch (error) {
       toast.error("Không thể cập nhật trạng thái");
     }
@@ -162,7 +164,7 @@ export default function AdminForumCategory({ hideHeader = false }) {
       setEditId(null);
       form.reset({ name: "", slug: "", status: true });
       // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchCategories();
+      fetchCategories();
     } catch (error) {
       const errorMessage =
         error?.response?.data?.message || "Có lỗi xảy ra, vui lòng thử lại.";
@@ -200,7 +202,7 @@ export default function AdminForumCategory({ hideHeader = false }) {
         >
           <Plus className="w-4 h-4" />
           Thêm Chủ Đề
-        </Button>
+        </SimpleButton>
       </div>
 
       {/* Filter */}
@@ -448,7 +450,7 @@ export default function AdminForumCategory({ hideHeader = false }) {
                   className="border border-border"
                 >
                   Hủy bỏ
-                </Button>
+                </GhostButton>
                 <Button type="submit" className="bg-primary font-bold px-6">
                   {editId ? "Lưu Cập Nhật" : "Tạo chủ đề"}
                 </Button>
