@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { Toaster } from "@/components/ui/sonner";
+import { AppToaster } from "@/components/common/micro/AppToast";
 import MainLayout from "@/components/layouts/MainLayout";
 import AuthLayout from "@/components/layouts/AuthLayout";
 import AccountLayout from "@/components/layouts/AccountLayout";
@@ -17,7 +17,7 @@ import PersonalizationModal from "@/components/common/composite/PersonalizationM
 function App() {
   return (
     <TooltipProvider>
-      <Toaster />
+      <AppToaster />
       <Router>
         <PersonalizationModal />
         <Routes>

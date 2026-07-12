@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { ArrowRight, Mail } from 'lucide-react';
 import { AppButton } from "@/components/common/micro/AppButton";
 import AppInput, { AppPasswordInput } from '@/components/common/micro/AppInput';
-import AppDivider from '@/components/common/micro/AppDivider';
+import AppSeparator from '@/components/common/micro/AppSeparator';
 import AuthSocialLogin from './components/AuthSocialLogin';
 import AuthCard from './components/AuthCard';
 import { useLogin } from '@/hooks/auth/useLogin';
@@ -81,7 +81,7 @@ const LoginPage = () => {
         </AppButton>
       </form>
 
-      <AppDivider text="Hoặc đăng nhập với" />
+      <AppSeparator text="Hoặc đăng nhập với" />
 
       <AuthSocialLogin />
 

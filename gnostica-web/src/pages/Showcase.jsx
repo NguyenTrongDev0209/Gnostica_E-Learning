@@ -124,6 +124,14 @@ import AppSwitch from "@/components/common/micro/AppSwitch"
 import AppSlider from "@/components/common/micro/AppSlider"
 import AppDatePicker from "@/components/common/composite/AppDatePicker"
 import { DataForm, DataFormField } from "@/components/common/composite/DataForm"
+import AppMenubar from "@/components/common/micro/AppMenubar"
+import AppNavigationMenu from "@/components/common/micro/AppNavigationMenu"
+import AppResizable from "@/components/common/micro/AppResizable"
+import AppScrollArea from "@/components/common/micro/AppScrollArea"
+import AppSheet from "@/components/common/micro/AppSheet"
+import AppSkeleton from "@/components/common/micro/AppSkeleton"
+import { AppToast } from "@/components/common/micro/AppToast"
+import AppSeparator from "@/components/common/micro/AppSeparator"
 
 const formSchema = z.object({
   username: z.string().min(2, { message: "Username must be at least 2 characters." }),
@@ -181,6 +189,104 @@ const pieChartConfig = {
   Backend: { label: "Khóa Backend" },
   DevOps: { label: "Khóa DevOps" },
   Design: { label: "Khóa Design" },
+};
+
+const menubarData = [
+  {
+    trigger: "File",
+    items: [
+      { label: "New Tab", shortcut: "⌘T" },
+      { label: "New Window", shortcut: "⌘N", disabled: true },
+      { type: "separator" },
+      { label: "Share", sub: [
+        { label: "Email" },
+        { label: "Message" },
+        { type: "separator" },
+        { label: "More..." }
+      ]},
+      { type: "separator" },
+      { label: "Print", shortcut: "⌘P" }
+    ]
+  },
+  {
+    trigger: "Edit",
+    items: [
+      { label: "Undo", shortcut: "⌘Z" },
+      { label: "Redo", shortcut: "⇧⌘Z" },
+      { type: "separator" },
+      { type: "checkbox", label: "Show Toolbar", checked: true }
+    ]
+  }
+];
+
+const navMenuData = [
+  {
+    label: "Getting Started",
+    content: (
+      <ul className="grid gap-3 p-4 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
+        <li className="row-span-3">
+          <a
+            className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-primary/20 to-primary/5 p-6 no-underline outline-none border"
+            href="#"
+          >
+            <div className="mb-2 mt-4 text-lg font-extrabold text-primary">
+              Gnostica
+            </div>
+            <p className="text-sm leading-tight text-muted-foreground">
+              Hệ thống E-Learning với giao diện Glassmorphism đỉnh cao.
+            </p>
+          </a>
+        </li>
+        <li>
+          <a href="#" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-primary/10 hover:text-primary">
+            <div className="text-sm font-medium leading-none">Introduction</div>
+            <p className="line-clamp-2 text-sm leading-snug text-muted-foreground mt-1">Các component cơ bản của hệ thống.</p>
+          </a>
+        </li>
+        <li>
+          <a href="#" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-primary/10 hover:text-primary">
+            <div className="text-sm font-medium leading-none">Installation</div>
+            <p className="line-clamp-2 text-sm leading-snug text-muted-foreground mt-1">Cách cấu hình và triển khai.</p>
+          </a>
+        </li>
+      </ul>
+    )
+  },
+  {
+    label: "Components",
+    links: [
+      { title: "AppForm", href: "#", description: "Kiến trúc form data-driven kết hợp Zod validation." },
+      { title: "AppMenubar", href: "#", description: "Menu bar thiết kế giống macOS với hỗ trợ menu lồng nhau." },
+      { title: "AppNavigationMenu", href: "#", description: "Thanh điều hướng Mega-menu dành cho Desktop." },
+      { title: "AppDropdownMenu", href: "#", description: "Menu thả xuống với glass effect." }
+    ]
+  },
+  {
+    label: "Documentation",
+    href: "#"
+  }
+];
+
+const resizableLayoutData = {
+  direction: "horizontal",
+  panels: [
+    { 
+      defaultSize: 20, 
+      minSize: 15, 
+      maxSize: 30, 
+      content: <div className="flex h-full items-center justify-center p-6 font-semibold bg-primary/5 text-primary">Sidebar (20%)</div> 
+    },
+    { 
+      defaultSize: 80, 
+      group: {
+        direction: "vertical",
+        panels: [
+          { defaultSize: 70, content: <div className="flex h-full items-center justify-center p-6 text-xl font-bold bg-background">Main Workspace (70%)</div> },
+          { defaultSize: 30, content: <div className="flex h-full items-center justify-center p-6 font-semibold bg-muted/50 text-muted-foreground border-t">Terminal / Logs (30%)</div> }
+        ]
+      }
+    }
+  ]
 };
 
 const Showcase = () => {
@@ -520,6 +626,20 @@ const Showcase = () => {
                           <NotificationBell isDark={true} />
                         </CardContent>
                       </Card>
+
+                      <Card>
+                        <CardHeader><CardTitle>AppMenubar</CardTitle><CardDescription>Thanh menu truyền thống (macOS style), hỗ trợ sub-menu lồng nhau.</CardDescription></CardHeader>
+                        <CardContent className="space-y-4">
+                          <AppMenubar menus={menubarData} appVariant="default" />
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader><CardTitle>AppNavigationMenu</CardTitle><CardDescription>Mega-menu trên header dành cho Desktop, hỗ trợ tự động dropdown content tuỳ biến.</CardDescription></CardHeader>
+                        <CardContent className="space-y-4">
+                          <AppNavigationMenu items={navMenuData} appVariant="glass" />
+                        </CardContent>
+                      </Card>
                     </div>
                   </div>
 
@@ -758,6 +878,21 @@ const Showcase = () => {
                         </CardContent>
                       </Card>
 
+                    </div>
+                  </div>
+
+                  {/* Layouts & Containers */}
+                  <div>
+                    <h3 className="text-xl font-bold mb-4 text-foreground/80">Layouts & Containers</h3>
+                    <div className="space-y-6">
+                      <Card>
+                        <CardHeader><CardTitle>AppResizable</CardTitle><CardDescription>Data-Driven Resizable Panels. Kéo thả để thay đổi kích thước các vùng không gian. Hỗ trợ chia màn hình lồng nhau (nested).</CardDescription></CardHeader>
+                        <CardContent>
+                          <div className="h-[400px]">
+                            <AppResizable layout={resizableLayoutData} appVariant="glass" />
+                          </div>
+                        </CardContent>
+                      </Card>
                     </div>
                   </div>
 
@@ -1318,6 +1453,72 @@ const Showcase = () => {
                           </div>
                         </CardContent>
                       </Card>
+                    </div>
+                  </div>
+
+                  {/* Overlays & Utils */}
+                  <div>
+                    <h3 className="text-xl font-bold mb-4 text-foreground/80">Overlays, Feedback & Utils</h3>
+                    <div className="space-y-6">
+                      
+                      <Card>
+                        <CardHeader><CardTitle>AppSeparator & AppScrollArea</CardTitle></CardHeader>
+                        <CardContent className="space-y-4">
+                          <AppSeparator text="Phân cách ngang" />
+                          <AppScrollArea maxHeight={150} className="border p-4 bg-muted/20">
+                            <h4 className="font-bold mb-2">Cuộn nội dung</h4>
+                            <p className="text-muted-foreground leading-relaxed">
+                              Jokester began sneaking into the castle in the middle of the night and leaving
+                              jokes all over the place: under the king's pillow, in his soup, even tied to the
+                              royal toilet seat. The king was furious, but he couldn't seem to stop Jokester.
+                              And then, one day, the people of the kingdom discovered that the jokes left by
+                              Jokester were so funny that they couldn't help but laugh. And once they
+                              started laughing, they couldn't stop.
+                            </p>
+                          </AppScrollArea>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader><CardTitle>AppSheet (Offcanvas)</CardTitle></CardHeader>
+                        <CardContent>
+                          <AppSheet 
+                            trigger={<AppButton variant="outline">Mở Sidebar (Phải)</AppButton>}
+                            title="Chỉnh sửa hồ sơ"
+                            description="Thực hiện thay đổi hồ sơ của bạn ở đây. Bấm lưu để hoàn tất."
+                          >
+                            <div className="grid gap-4 py-4">
+                              <AppInput id="name" label="Tên hiển thị" defaultValue="Nguyễn Văn A" />
+                              <AppInput id="username" label="Tên người dùng" defaultValue="@nguyenvana" />
+                            </div>
+                          </AppSheet>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader><CardTitle>AppSkeleton</CardTitle></CardHeader>
+                        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                          <div>
+                            <h4 className="text-sm font-semibold mb-2">Preset: Profile</h4>
+                            <AppSkeleton preset="profile" />
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-semibold mb-2">Preset: Card</h4>
+                            <AppSkeleton preset="card" />
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader><CardTitle>AppToast (Sonner)</CardTitle></CardHeader>
+                        <CardContent className="flex flex-wrap gap-4">
+                          <AppButton variant="outline" onClick={() => AppToast.success("Cập nhật thành công!")}>Success Toast</AppButton>
+                          <AppButton variant="outline" onClick={() => AppToast.error("Đã xảy ra lỗi hệ thống!")}>Error Toast</AppButton>
+                          <AppButton variant="outline" onClick={() => AppToast.info("Có một tin nhắn mới.")}>Info Toast</AppButton>
+                          <AppButton variant="outline" onClick={() => AppToast.warning("Tài khoản của bạn sắp hết hạn.")}>Warning Toast</AppButton>
+                        </CardContent>
+                      </Card>
+
                     </div>
                   </div>
 

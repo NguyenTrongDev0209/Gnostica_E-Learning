@@ -168,9 +168,13 @@ export const AppInputOTP = forwardRef(({
       )}
 
       <InputOTP id={id} ref={ref} maxLength={maxLength} {...props}>
-        <InputOTPGroup>
+        <InputOTPGroup className="gap-2">
           {Array.from({ length: maxLength }).map((_, i) => (
-            <InputOTPSlot key={i} index={i} />
+            <InputOTPSlot 
+              key={i} 
+              index={i} 
+              className="h-14 w-12 rounded-xl border border-input bg-background text-lg font-semibold shadow-sm first:rounded-l-xl first:border-l last:rounded-r-xl" 
+            />
           ))}
         </InputOTPGroup>
       </InputOTP>
