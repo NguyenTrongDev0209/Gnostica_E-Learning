@@ -43,8 +43,8 @@ export const AppTextarea = forwardRef(({
         id={id}
         ref={ref}
         className={cn(
-          "min-h-20 bg-muted border-border focus:bg-background transition-colors resize-y",
-          error ? "border-error/20 focus-visible:ring-error" : "focus-visible:ring-primary",
+          "min-h-20 bg-muted/50 border-border hover:border-primary/50 focus:bg-background transition-all duration-300 resize-y rounded-lg scrollbar-thin",
+          error ? "border-error focus-visible:ring-error focus:shadow-[0_0_15px_color-mix(in_srgb,var(--color-error),transparent_80%)]" : "focus-visible:ring-primary focus:shadow-[0_0_15px_color-mix(in_srgb,var(--color-primary),transparent_80%)]",
           className
         )}
         {...props}

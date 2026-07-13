@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+﻿import React, { useState } from "react"
 import { Link } from "react-router-dom"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -92,7 +92,7 @@ import AppInput, { AppPasswordInput } from "@/components/common/micro/AppInput"
 import AppSearchInput from "@/components/common/micro/AppSearchInput"
 import CommentCard from "@/components/common/composite/CommentCard"
 import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb"
-import AppTable from "@/components/common/composite/AppTable"
+import DataTable from "@/components/common/composite/DataTable"
 import AppAccordion from "@/components/common/micro/AppAccordion"
 import AppAlert from "@/components/common/micro/AppAlert"
 import AppAlertDialog from "@/components/common/micro/AppAlertDialog"
@@ -132,6 +132,12 @@ import AppSheet from "@/components/common/micro/AppSheet"
 import AppSkeleton from "@/components/common/micro/AppSkeleton"
 import { AppToast } from "@/components/common/micro/AppToast"
 import AppSeparator from "@/components/common/micro/AppSeparator"
+import MicroAppTable from "@/components/common/micro/AppTable"
+import AppTabs from "@/components/common/micro/AppTabs"
+import AppToggle from "@/components/common/micro/AppToggle"
+import { AppToggleGroup } from "@/components/common/micro/AppToggleGroup"
+import AppTooltip from "@/components/common/micro/AppTooltip"
+import AppPagination from "@/components/common/micro/AppPagination"
 
 const formSchema = z.object({
   username: z.string().min(2, { message: "Username must be at least 2 characters." }),
@@ -1522,6 +1528,119 @@ const Showcase = () => {
                     </div>
                   </div>
 
+                  {/* Additional Micro Components */}
+                  <div>
+                    <h3 className="text-xl font-bold mb-4 text-foreground/80">Data Display, Inputs & Feedback</h3>
+                    <div className="space-y-6">
+                      <Card>
+                        <CardHeader><CardTitle>AppNavigationMenu</CardTitle></CardHeader>
+                        <CardContent>
+                          <AppNavigationMenu 
+                            items={[
+                              { label: "Trang chủ", href: "#" },
+                              { 
+                                label: "Khóa học", 
+                                links: [
+                                  { title: "ReactJS Cơ bản", href: "#", description: "Học React từ con số 0" },
+                                  { title: "NodeJS Nâng cao", href: "#", description: "Xây dựng API với Express" },
+                                  { title: "NextJS Thực chiến", href: "#", description: "Xây dựng ứng dụng SSR" }
+                                ]
+                              },
+                              {
+                                label: "Giới thiệu",
+                                content: (
+                                  <div className="p-2 w-64 text-sm text-muted-foreground">
+                                    <h4 className="font-semibold text-foreground mb-1">Về Gnostica</h4>
+                                    <p>Nền tảng học tập trực tuyến kết nối kiến thức và người học một cách toàn diện.</p>
+                                  </div>
+                                )
+                              }
+                            ]}
+                          />
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader><CardTitle>AppPagination</CardTitle></CardHeader>
+                        <CardContent>
+                          <AppPagination 
+                            currentPage={5}
+                            totalPages={10}
+                            onPageChange={(page) => console.log("Changed to page", page)}
+                          />
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader><CardTitle>AppTable (Micro)</CardTitle></CardHeader>
+                        <CardContent>
+                          <MicroAppTable 
+                            columns={[
+                              { key: "id", label: "ID" },
+                              { key: "status", label: "Trạng thái" }
+                            ]}
+                            data={[
+                              { id: "INV001", status: "Đã thanh toán" },
+                              { id: "INV002", status: "Chờ xử lý" }
+                            ]}
+                          />
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader><CardTitle>AppTabs</CardTitle></CardHeader>
+                        <CardContent>
+                          <AppTabs 
+                            tabs={[
+                              { value: "a", label: "Tab A", content: <div className="p-4 bg-muted/20 rounded-md text-sm mt-2">Nội dung Tab A</div> },
+                              { value: "b", label: "Tab B", content: <div className="p-4 bg-muted/20 rounded-md text-sm mt-2">Nội dung Tab B</div> }
+                            ]}
+                          />
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader><CardTitle>AppTextarea</CardTitle></CardHeader>
+                        <CardContent>
+                          <AppTextarea label="Nội dung" placeholder="Nhập văn bản của bạn..." description="Có thể mở rộng khung nhập liệu" />
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader><CardTitle>AppToggle & AppToggleGroup</CardTitle></CardHeader>
+                        <CardContent className="flex flex-col gap-6">
+                          <div>
+                            <h4 className="text-sm font-semibold mb-2">AppToggle</h4>
+                            <div className="flex gap-2">
+                              <AppToggle>Bật/Tắt (Mặc định)</AppToggle>
+                              <AppToggle variant="outline">Bật/Tắt (Outline)</AppToggle>
+                            </div>
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-semibold mb-2">AppToggleGroup</h4>
+                            <AppToggleGroup 
+                              type="multiple"
+                              items={[
+                                { value: "a", label: "A" },
+                                { value: "b", label: "B" },
+                                { value: "c", label: "C" },
+                              ]}
+                            />
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader><CardTitle>AppTooltip</CardTitle></CardHeader>
+                        <CardContent>
+                          <AppTooltip content="Đây là thông tin bổ sung khi hover">
+                            <AppButton variant="outline">Di chuột vào đây</AppButton>
+                          </AppTooltip>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </div>
+
                 </div>
               </section>
 
@@ -1554,7 +1673,7 @@ const Showcase = () => {
                       <Card>
                         <CardHeader><CardTitle>AppTable</CardTitle></CardHeader>
                         <CardContent>
-                          <AppTable
+                          <DataTable
                             columns={[
                               { key: "id", header: "ID", width: "50px" },
                               { key: "name", header: "Học viên" },

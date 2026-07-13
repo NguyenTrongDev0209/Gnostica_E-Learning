@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import {
     Calendar,
     Trash2,
@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { TableActionIconButton, AppButton } from "@/components/common/micro/AppButton";
 import { Badge } from "@/components/ui/badge";
-import AppTable from "@/components/common/composite/AppTable";
+import DataTable from "@/components/common/composite/DataTable";
 
 const formatVND = (amount) =>
     new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(amount);
@@ -154,7 +154,7 @@ export default function InstructorCouponTable({
 
     return (
         <div className="animate-fade-up">
-            <AppTable 
+            <DataTable 
                 columns={columns}
                 data={coupons}
                 isLoading={isLoading}

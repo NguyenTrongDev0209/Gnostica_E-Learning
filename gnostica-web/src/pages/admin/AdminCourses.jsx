@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { 
   Plus, 
   Search, 
@@ -7,7 +7,7 @@ import {
   Users
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import AppTable from "@/components/common/composite/AppTable";
+import DataTable from "@/components/common/composite/DataTable";
 import { AppButton } from "@/components/common/micro/AppButton";
 import { Input } from "@/components/ui/input";
 
@@ -100,7 +100,7 @@ export default function AdminCourses() {
 
       {/* Courses Table */}
       <Card className="border-border shadow-sm overflow-hidden">
-        <AppTable
+        <DataTable
           columns={[
             {
               header: "Thông tin khóa học",

@@ -1,5 +1,5 @@
-import React from 'react';
-import AppTable from "@/components/common/composite/AppTable";
+﻿import React from 'react';
+import DataTable from "@/components/common/composite/DataTable";
 import { Badge } from "@/components/ui/badge";
 import { TableActionIconButton } from "@/components/common/micro/AppButton";
 import { Trash2, Edit, Building2 } from "lucide-react";
@@ -9,7 +9,7 @@ export function BankTable({ banks, isLoading, onEdit, onDelete, startIndex = 0 }
   return (
     <Card className="border-border shadow-sm overflow-hidden">
       <div className="px-4 pb-2">
-        <AppTable
+        <DataTable
           columns={[
             {
               header: "STT",

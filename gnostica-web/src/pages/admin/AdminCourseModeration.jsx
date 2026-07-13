@@ -1,4 +1,4 @@
-// eslint-disable-next-line no-unused-vars
+﻿// eslint-disable-next-line no-unused-vars
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -14,7 +14,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import AppTable from "@/components/common/composite/AppTable";
+import DataTable from "@/components/common/composite/DataTable";
 import { AppButton } from "@/components/common/micro/AppButton";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -206,7 +206,7 @@ export default function AdminCourseModeration() {
 
       {/* Data Table */}
       <Card className="border-border/60 shadow-sm overflow-hidden bg-white rounded-xl">
-        <AppTable
+        <DataTable
           columns={[
             {
               header: "Thông tin khóa học",

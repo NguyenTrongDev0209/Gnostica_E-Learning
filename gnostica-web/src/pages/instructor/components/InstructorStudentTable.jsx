@@ -1,8 +1,8 @@
-import React from "react";
+﻿import React from "react";
 import { MoreHorizontal, ArrowUpDown } from "lucide-react";
 import { TableActionIconButton } from "@/components/common/micro/AppButton";
 import { Badge } from "@/components/ui/badge";
-import AppTable from "@/components/common/composite/AppTable";
+import DataTable from "@/components/common/composite/DataTable";
 import { cn } from "@/lib/utils";
 
 const formatDate = (dateValue) => {
@@ -141,7 +141,7 @@ export default function InstructorStudentTable({ students, isLoading, onActionCl
     ];
 
     return (
-        <AppTable 
+        <DataTable 
             columns={columns} 
             data={students} 
             pagination={{

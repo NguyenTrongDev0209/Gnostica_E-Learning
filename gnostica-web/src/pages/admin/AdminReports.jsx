@@ -1,8 +1,8 @@
-import threadReportService from "@/services/forum/threadReportService";
+﻿import threadReportService from "@/services/forum/threadReportService";
 import React, { useState, useEffect } from "react";
 import { BarChart3, ShieldAlert, CheckCircle2, XCircle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import AppTable from "@/components/common/composite/AppTable";
+import DataTable from "@/components/common/composite/DataTable";
 import { Badge } from "@/components/ui/badge";
 import { AppButton } from "@/components/common/micro/AppButton";
 import { toast } from "sonner";
@@ -87,7 +87,7 @@ export default function AdminReports() {
         <TabsContent value="forum-reports">
           <Card className="border-border shadow-sm">
             <CardContent className="p-0">
-              <AppTable
+              <DataTable
                 columns={[
                   {
                     header: "Người báo cáo",

@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import {
   Plus,
   Search,
@@ -11,7 +11,7 @@ import {
   Lock,
   Unlock
 } from "lucide-react";
-import AppTable from "@/components/common/composite/AppTable";
+import DataTable from "@/components/common/composite/DataTable";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AppButton } from "@/components/common/micro/AppButton";
@@ -235,7 +235,7 @@ export default function AdminUsers() {
 
         <TabsContent value="USER" className="mt-0">
           <Card className="border-border shadow-sm overflow-hidden border-none bg-transparent">
-            <AppTable 
+            <DataTable 
               columns={accountColumns}
               data={filteredAccounts}
               isLoading={loading}
@@ -249,7 +249,7 @@ export default function AdminUsers() {
 
         <TabsContent value="INSTRUCTOR" className="mt-0">
           <Card className="border-border shadow-sm overflow-hidden border-none bg-transparent">
-            <AppTable 
+            <DataTable 
               columns={accountColumns}
               data={filteredAccounts}
               isLoading={loading}
@@ -263,7 +263,7 @@ export default function AdminUsers() {
 
         <TabsContent value="PENDING_APP" className="mt-0">
           <Card className="border-border shadow-sm overflow-hidden border-none bg-transparent">
-            <AppTable 
+            <DataTable 
               columns={applicationColumns}
               data={applications}
               isLoading={loading}

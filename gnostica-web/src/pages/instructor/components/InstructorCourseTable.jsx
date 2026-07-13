@@ -1,5 +1,5 @@
-import React from "react";
-import AppTable from "@/components/common/composite/AppTable";
+﻿import React from "react";
+import DataTable from "@/components/common/composite/DataTable";
 import {
     Eye,
     EyeOff,
@@ -194,7 +194,7 @@ export default function InstructorCourseTable({
     ];
 
     return (
-        <AppTable 
+        <DataTable 
             columns={columns} 
             data={courses} 
             pagination={{

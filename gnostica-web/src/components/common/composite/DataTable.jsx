@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
     Table,
@@ -26,7 +26,7 @@ import { Button } from "@/components/ui/button";
  * @param {Object} props.pagination - Pagination data { currentPage, totalItems, totalPages, onPageChange, zeroIndexed }
  * @param {Function} props.rowKey - Optional function to get row key. Defaults to row.id or index.
  */
-export default function AppTable({
+export default function DataTable({
     columns = [],
     data = [],
     className,

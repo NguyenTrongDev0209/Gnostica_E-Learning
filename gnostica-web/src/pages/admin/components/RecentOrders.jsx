@@ -1,7 +1,7 @@
-import React from "react";
+﻿import React from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import AppTable from "@/components/common/composite/AppTable";
+import DataTable from "@/components/common/composite/DataTable";
 import { Badge } from "@/components/ui/badge";
 
 export default function RecentOrders({ orders }) {
@@ -17,7 +17,7 @@ export default function RecentOrders({ orders }) {
                 </Link>
             </CardHeader>
             <CardContent className="p-0 flex-1 overflow-auto max-h-[340px]">
-                <AppTable
+                <DataTable
                     columns={[
                         {
                             header: "Mã đơn",
