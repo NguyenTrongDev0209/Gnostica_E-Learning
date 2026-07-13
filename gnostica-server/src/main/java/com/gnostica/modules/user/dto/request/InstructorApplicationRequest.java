@@ -23,8 +23,10 @@ public class InstructorApplicationRequest {
     @NotBlank(message = "CV URL is required")
     private String cvUrl;
 
-    @NotBlank(message = "Bằng cấp/Chứng chỉ là bắt buộc")
+    @NotBlank(message = "Bằng cấp chuyên môn là bắt buộc")
     private String degreeUrls;
+
+    private String certificateUrls; // Danh sách chứng chỉ tin học, tiếng Anh, sư phạm... (Optional)
 
     private String sampleVideoUrl; // Optional/Required depending on business
 

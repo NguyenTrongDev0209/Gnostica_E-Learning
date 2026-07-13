@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import SectionContainer from '@/components/common/AppSection';
 import { Card, CardContent } from "@/components/ui/card";
@@ -26,6 +26,7 @@ import authService from '@/services/auth/authService';
 import followingService from '@/services/instructor/followingService';
 import { toast } from 'sonner';
 import PersonalizationModal from '@/components/common/PersonalizationModal';
+import instructorService from '@/services/instructor/instructorService';
 
 // ── Mock Data ──────────────────────────────────────────────
 const MOCK_USER = {
@@ -101,8 +102,17 @@ const UserProfile = () => {
   const [isPersonalizationOpen, setIsPersonalizationOpen] = useState(false);
   const navigate = useNavigate();
 
-  const currentUser = JSON.parse(localStorage.getItem('user'));
-  const isOwnProfile = currentUser && (id === String(currentUser.id) || !id);
+  let currentUser = null;
+  try {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      currentUser = JSON.parse(userStr);
+    }
+  } catch (error) {
+    console.error("Failed to parse user from localStorage:", error);
+  }
+
+  const isOwnProfile = !!(currentUser && (id === String(currentUser.id) || !id));
 
   // Check following status
   useEffect(() => {
@@ -110,7 +120,7 @@ const UserProfile = () => {
       if (currentUser && id && !isOwnProfile) {
         try {
           const res = await followingService.checkFollowing(id);
-          setFollowing(res.data.isFollowing);
+          setFollowing(res?.isFollowing || false);
         } catch (err) {
           console.error("Lỗi kiểm tra trạng thái theo dõi", err);
         }
@@ -127,8 +137,8 @@ const UserProfile = () => {
     try {
       setFollowLoading(true);
       const res = await followingService.toggleFollow(id);
-      setFollowing(res.data.isFollowing);
-      toast.success(res.data.message);
+      setFollowing(res?.isFollowing || false);
+      toast.success(res?.message || "Đã cập nhật trạng thái theo dõi!");
     } catch (err) {
       toast.error("Không thể thực hiện thao tác này!");
     } finally {
@@ -137,7 +147,7 @@ const UserProfile = () => {
   };
 
   const [userData, setUserData] = useState(() =>
-    isOwnProfile ? { ...MOCK_USER, ...currentUser, name: currentUser.fullName, role: currentUser.role } : MOCK_USER
+    isOwnProfile ? { ...MOCK_USER, ...currentUser, name: currentUser?.fullName, role: currentUser?.role } : MOCK_USER
   );
 
   useEffect(() => {
@@ -151,28 +161,31 @@ const UserProfile = () => {
     const fetchUserData = async () => {
       setLoading(true);
       try {
-        // Thử gọi api dành cho public profile
-        const response = await axios.get(`http://localhost:8080/api/instructors/${id}/profile`);
-        const data = response.data;
+        // Thử gọi api dành cho public profile qua instructorService
+        const response = await instructorService.getInstructorProfile(id);
+        const data = response;
         setUserData(prev => ({
           ...prev,
-          id: data.id,
-          name: data.name,
-          avatar: data.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name)}&background=random&color=fff`,
-          email: data.email,
+          id: data?.id,
+          name: data?.name || "Giảng viên",
+          avatar: data?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(data?.name || "Giảng viên")}&background=random&color=fff`,
+          email: data?.email,
           role: "INSTRUCTOR",
+          bio: data?.bio || prev?.bio || "",
+          website: data?.website || prev?.website || "",
+          linkedin: data?.linkedin || prev?.linkedin || "",
           stats: {
-            ...prev.stats,
-            courses: data.coursesCount || 0,
-            students: data.studentsCount || 0,
+            ...prev?.stats,
+            courses: data?.coursesCount || 0,
+            students: data?.studentsCount || 0,
           }
         }));
 
         // Xử lý load khóa học nếu là INSTRUCTOR
         setLoadingCourses(true);
         try {
-          const coursesResp = await axios.get(`http://localhost:8080/api/instructors/${id}/courses`);
-          setInstructorCourses(coursesResp.data || []);
+          const coursesResp = await instructorService.getInstructorCourses(id);
+          setInstructorCourses(coursesResp || []);
         } catch (err) {
           console.error("Không thể lấy danh sách khóa học của giảng viên", err);
         } finally {
@@ -204,7 +217,7 @@ const UserProfile = () => {
     <div className="min-h-screen bg-muted pb-16">
 
       {/* Cover Banner */}
-      <div className={`w-full h-40 sm:h-52 bg-gradient-to-r ${user.coverColor} relative`}>
+      <div className={`w-full h-40 sm:h-52 bg-gradient-to-r ${user?.coverColor || "from-violet-600 via-purple-600 to-indigo-600"} relative`}>
         <div className="absolute inset-0 opacity-20 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC40Ij48cGF0aCBkPSJNMzYgMzRjMC0yLjIgMS44LTQgNC00czQgMS44IDQgNC0xLjggNC00IDQtNC0xLjgtNC00eiIvPjwvZz48L2c+PC9zdmc+')] bg-repeat" />
       </div>
 
@@ -217,11 +230,11 @@ const UserProfile = () => {
                 {/* Avatar */}
                 <div className="shrink-0 -mt-12 sm:-mt-16">
                   <Avatar className="w-24 h-24 sm:w-28 sm:h-28 ring-4 ring-white shadow-lg">
-                    <AvatarImage src={user.avatar} alt={user.name} />
+                    <AvatarImage src={user?.avatar} alt={user?.name || "Giảng viên"} />
                     <AvatarFallback className="bg-primary/10 text-primary font-bold text-2xl">
-                      {user.name.substring(0, 2).toUpperCase()}
+                      {(user?.name || "GV").substring(0, 2).toUpperCase()}
                     </AvatarFallback>
-                    {user.status === 'online' && (
+                    {user?.status === 'online' && (
                       <AvatarBadge className="bg-success/10 text-success border-[3px] border-white ring-0 w-5 h-5" />
                     )}
                   </Avatar>
@@ -231,14 +244,14 @@ const UserProfile = () => {
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 flex-wrap">
                     <div>
-                      <h1 className="text-2xl font-bold text-foreground leading-tight">{user.name}</h1>
-                      <p className="text-sm text-muted-foreground font-medium">@{user.username}</p>
+                      <h1 className="text-2xl font-bold text-foreground leading-tight">{user?.name || "Giảng viên"}</h1>
+                      <p className="text-sm text-muted-foreground font-medium">@{user?.username || (user?.email ? user.email.split('@')[0] : "giangvien")}</p>
                       {/* Badges */}
                       <div className="flex gap-2 flex-wrap mt-2">
                         <Badge className="bg-primary/10 text-primary border-none text-xs font-semibold">
-                          {user.role}
+                          {user?.role || "Giảng viên"}
                         </Badge>
-                        {user.badges.map(b => (
+                        {(user?.badges || []).map(b => (
                           <Badge key={b.label} className={`${b.color} border-none text-xs font-semibold`}>
                             {b.label}
                           </Badge>
@@ -281,18 +294,24 @@ const UserProfile = () => {
                   </div>
 
                   {/* Bio & Meta */}
-                  <p className="text-sm text-muted-foreground mt-3 leading-relaxed max-w-2xl">{user.bio}</p>
+                  <p className="text-sm text-muted-foreground mt-3 leading-relaxed max-w-2xl">{user?.bio || ""}</p>
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3 text-xs text-muted-foreground">
-                    {user.location && (
+                    {user?.location && (
                       <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" />{user.location}</span>
                     )}
-                    {user.website && (
+                    {user?.website && (
                       <a href={user.website} target="_blank" rel="noreferrer"
                         className="flex items-center gap-1 hover:text-primary transition-colors">
                         <LinkIcon className="w-3.5 h-3.5" />{user.website.replace('https://', '')}
                       </a>
                     )}
-                    <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" />Tham gia {user.joinedAt}</span>
+                    {user?.linkedin && (
+                      <a href={user.linkedin} target="_blank" rel="noreferrer"
+                        className="flex items-center gap-1 hover:text-primary transition-colors text-blue-600 font-semibold">
+                        <LinkIcon className="w-3.5 h-3.5 text-blue-500" />LinkedIn
+                      </a>
+                    )}
+                    <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" />Tham gia {user?.joinedAt || "Mới đây"}</span>
                   </div>
                 </div>
               </div>
@@ -301,17 +320,17 @@ const UserProfile = () => {
               <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-border">
                 {isInstructor ? (
                   <>
-                    <StatItem icon={BookOpen} value={user.stats.courses || 0} label="Khóa học" />
-                    <StatItem icon={Users} value={user.stats.students || 0} label="Học viên" color="text-warning" />
+                    <StatItem icon={BookOpen} value={user?.stats?.courses || 0} label="Khóa học" />
+                    <StatItem icon={Users} value={user?.stats?.students || 0} label="Học viên" color="text-warning" />
                   </>
                 ) : (
                   <>
-                    <StatItem icon={BookOpen} value={user.stats.posts} label="Bài đăng" />
-                    <StatItem icon={ThumbsUp} value={user.stats.likes} label="Lượt thích" color="text-warning" />
+                    <StatItem icon={BookOpen} value={user?.stats?.posts || 0} label="Bài đăng" />
+                    <StatItem icon={ThumbsUp} value={user?.stats?.likes || 0} label="Lượt thích" color="text-warning" />
                   </>
                 )}
-                <StatItem icon={Eye} value={user.stats.views} label="Lượt xem" color="text-info" />
-                <StatItem icon={MessageSquare} value={user.stats.comments} label="Bình luận" color="text-success" />
+                <StatItem icon={Eye} value={user?.stats?.views || 0} label="Lượt xem" color="text-info" />
+                <StatItem icon={MessageSquare} value={user?.stats?.comments || 0} label="Bình luận" color="text-success" />
               </div>
             </CardContent>
           </Card>

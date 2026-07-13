@@ -157,9 +157,20 @@ export default function AdminUsers() {
           </div>
           {app.degreeUrls && (
             <div className="flex flex-wrap gap-x-2 mt-1 italic">
+              <span className="text-xs font-bold text-slate-500 not-italic">Bằng cấp:</span>
               {app.degreeUrls.split(',').filter(u => u).map((url, i) => (
-                <button key={i} type="button" onClick={() => setPreviewDocument({ url: url, title: `Bằng cấp/Chứng chỉ ${i + 1}` })} className="text-emerald-600 underline hover:text-emerald-800 transition-colors">
-                  Bằng cấp {i + 1}
+                <button key={i} type="button" onClick={() => setPreviewDocument({ url: url, title: `Bằng cấp chuyên môn ${i + 1}` })} className="text-emerald-600 underline hover:text-emerald-800 transition-colors">
+                  Bằng {i + 1}
+                </button>
+              ))}
+            </div>
+          )}
+          {app.certificateUrls && (
+            <div className="flex flex-wrap gap-x-2 mt-1 italic">
+              <span className="text-xs font-bold text-slate-500 not-italic">Chứng chỉ:</span>
+              {app.certificateUrls.split(',').filter(u => u).map((url, i) => (
+                <button key={i} type="button" onClick={() => setPreviewDocument({ url: url, title: `Chứng chỉ liên quan ${i + 1}` })} className="text-indigo-600 underline hover:text-indigo-800 transition-colors">
+                  C/chỉ {i + 1}
                 </button>
               ))}
             </div>
@@ -176,7 +187,7 @@ export default function AdminUsers() {
           <GhostButton
             size="sm"
             className="border border-success/20 text-success hover:bg-green-50 bg-white font-bold"
-            onClick={() => handleApprove(app.id)}
+            onClick={() => handleApprove(app.accountId)}
           >
             Phê duyệt
           </GhostButton>
@@ -184,7 +195,7 @@ export default function AdminUsers() {
             size="sm"
             className="border border-error/20 text-error hover:bg-red-50 bg-white font-bold"
             onClick={() => {
-              setSelectedApp(app.id);
+              setSelectedApp(app.accountId);
               setRejectReason("");
               setRejectDialogOpen(true);
             }}
@@ -235,7 +246,7 @@ export default function AdminUsers() {
 
         <TabsContent value="USER" className="mt-0">
           <Card className="border-border shadow-sm overflow-hidden border-none bg-transparent">
-            <AppTable 
+            <AppTable
               columns={accountColumns}
               data={filteredAccounts}
               isLoading={loading}
@@ -249,7 +260,7 @@ export default function AdminUsers() {
 
         <TabsContent value="INSTRUCTOR" className="mt-0">
           <Card className="border-border shadow-sm overflow-hidden border-none bg-transparent">
-            <AppTable 
+            <AppTable
               columns={accountColumns}
               data={filteredAccounts}
               isLoading={loading}
@@ -263,7 +274,7 @@ export default function AdminUsers() {
 
         <TabsContent value="PENDING_APP" className="mt-0">
           <Card className="border-border shadow-sm overflow-hidden border-none bg-transparent">
-            <AppTable 
+            <AppTable
               columns={applicationColumns}
               data={applications}
               isLoading={loading}
@@ -337,12 +348,30 @@ export default function AdminUsers() {
           </DialogHeader>
           <div className="flex-1 w-full bg-slate-100/50 rounded-lg overflow-hidden border border-border flex items-center justify-center relative">
             {previewDocument?.url && (
-              <iframe
-                src={previewDocument.url}
-                className="w-full h-full border-0 rounded-md absolute inset-0 bg-white"
-                title={previewDocument.title}
-                loading="lazy"
-              />
+              (() => {
+                const isPdf = previewDocument.url.split('?')[0].toLowerCase().endsWith('.pdf') ||
+                  previewDocument.title?.toLowerCase().includes("pdf");
+                if (isPdf) {
+                  return (
+                    <iframe
+                      src={previewDocument.url}
+                      className="w-full h-full border-0 rounded-md absolute inset-0 bg-white"
+                      title={previewDocument.title}
+                      loading="lazy"
+                    />
+                  );
+                } else {
+                  return (
+                    <div className="w-full h-full flex items-center justify-center p-4">
+                      <img
+                        src={previewDocument.url}
+                        alt={previewDocument.title}
+                        className="max-w-[95%] max-h-[95%] object-contain rounded-lg shadow-md bg-white border border-border"
+                      />
+                    </div>
+                  );
+                }
+              })()
             )}
           </div>
         </DialogContent>

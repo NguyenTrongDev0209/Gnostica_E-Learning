@@ -39,6 +39,18 @@ public class InstructorProfileController {
             long coursesCount = courseRepository.countByAccountIdAndStatus(account.getId(), 1);
             long studentsCount = courseRepository.countStudentsByInstructorId(account.getId());
             
+            String title = "";
+            String bio = "";
+            try {
+                if (account.getMetadata() != null && !account.getMetadata().isEmpty()) {
+                    com.fasterxml.jackson.databind.JsonNode metadataNode = objectMapper.readTree(account.getMetadata());
+                    if (metadataNode.has("title")) title = metadataNode.get("title").asText();
+                    if (metadataNode.has("bio")) bio = metadataNode.get("bio").asText();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
             return InstructorStatsResponse.builder()
                     .id(account.getId()) // Sử dụng Account ID cho các liên kết URL
                     .fullName(account.getFullName())
@@ -47,6 +59,8 @@ public class InstructorProfileController {
                     .coursesCount(coursesCount)
                     .studentsCount(studentsCount)
                     .rating(4.8)
+                    .title(title.isEmpty() ? "Giảng viên" : title)
+                    .bio(bio)
                     .build();
         }).collect(Collectors.toList());
 
@@ -77,18 +91,28 @@ public class InstructorProfileController {
         profile.put("reviewsCount", 0); // Chưa có hệ thống đánh giá
 
         String bio = "";
+        String title = "";
+        String website = "";
+        String linkedin = "";
         boolean ticked = false;
         try {
             if (account.getMetadata() != null && !account.getMetadata().isEmpty()) {
                 com.fasterxml.jackson.databind.JsonNode metadataNode = objectMapper.readTree(account.getMetadata());
                 if (metadataNode.has("bio")) bio = metadataNode.get("bio").asText();
+                if (metadataNode.has("title")) title = metadataNode.get("title").asText();
+                if (metadataNode.has("website")) website = metadataNode.get("website").asText();
+                if (metadataNode.has("linkedin")) linkedin = metadataNode.get("linkedin").asText();
                 if (metadataNode.has("ticked")) ticked = metadataNode.get("ticked").asBoolean();
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
         profile.put("bio", bio);
+        profile.put("title", title);
+        profile.put("website", website);
+        profile.put("linkedin", linkedin);
         profile.put("ticked", ticked);
+        profile.put("phone", account.getPhone());
 
         return ResponseEntity.ok(profile);
     }

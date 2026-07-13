@@ -5,13 +5,14 @@ import { Separator } from "@/components/ui/separator";
 import { AppBreadcrumb } from "@/components/common/AppSection";
 import courseService from "@/services/course/courseService";
 import wishlistService from "@/services/course/wishlistService";
-import { 
-  CourseDetailHeader, 
-  CourseDetailVideo, 
-  CourseDetailOutcomes, 
-  CourseDetailCurriculum, 
-  CourseDetailInstructor, 
-  CourseDetailPricingCard 
+import instructorService from "@/services/instructor/instructorService";
+import {
+  CourseDetailHeader,
+  CourseDetailVideo,
+  CourseDetailOutcomes,
+  CourseDetailCurriculum,
+  CourseDetailInstructor,
+  CourseDetailPricingCard
 } from "@/pages/course/components/courseDetail/CourseDetailComponents";
 
 export default function CourseDetail() {
@@ -26,7 +27,7 @@ export default function CourseDetail() {
       try {
         setLoading(true);
         const data = await courseService.getCourseBySlug(slug);
-        
+
         // Map backend model to frontend structure
         const formattedCourse = {
           id: data.id,
@@ -63,6 +64,7 @@ export default function CourseDetail() {
             })) : []
           })) : [],
           instructor: {
+            id: data.instructorId || "",
             name: data.instructorName || "Ẩn danh",
             avatar: data.instructorAvatar || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=100&auto=format&fit=crop",
             role: "Giảng viên",
@@ -127,10 +129,11 @@ export default function CourseDetail() {
 
   // Build instructor data: ưu tiên dữ liệu từ API profile, fallback về course data
   const instructorData = {
+    id: instructorProfile?.id || course.instructor?.id || "",
     name: instructorProfile?.name || course.instructor?.name || "Giảng viên",
     avatar: instructorProfile?.avatar || course.instructor?.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=100&auto=format&fit=crop",
-    role: "Chuyên gia đào tạo",
-    bio: `Giảng viên tại Gnostica với ${instructorProfile?.coursesCount || 1} khóa học và ${instructorProfile?.studentsCount || 0} học viên đã đăng ký.`,
+    role: instructorProfile?.title || course.instructor?.role || "Chuyên gia đào tạo",
+    bio: instructorProfile?.bio || course.instructor?.bio || `Giảng viên tại Gnostica với ${instructorProfile?.coursesCount || 1} khóa học và ${instructorProfile?.studentsCount || 0} học viên đã đăng ký.`,
     reviewsCount: instructorProfile?.reviewsCount || 0,
     studentsCount: instructorProfile?.studentsCount || 0,
     coursesCount: instructorProfile?.coursesCount || 1,
@@ -157,10 +160,10 @@ export default function CourseDetail() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 xl:gap-12">
           <div className="lg:col-span-8 flex flex-col gap-10">
             <CourseDetailHeader course={course} />
-            
-            <CourseDetailVideo 
-              courseImage={course.thumbnail} 
-              courseTitle={course.title} 
+
+            <CourseDetailVideo
+              courseImage={course.thumbnail}
+              courseTitle={course.title}
               promoVideo={course.promoVideo}
             />
 

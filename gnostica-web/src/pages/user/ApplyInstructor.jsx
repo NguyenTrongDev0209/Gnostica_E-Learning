@@ -44,6 +44,7 @@ const ApplyInstructor = () => {
             idCardBack: '',
             cvUrl: '',
             degreeUrls: '',
+            certificateUrls: '',
             contactPhone: '',
             courseOutline: ''
         }
@@ -53,7 +54,8 @@ const ApplyInstructor = () => {
         idCardFront: null,
         idCardBack: null,
         cvUrl: null,
-        degreeUrls: []
+        degreeUrls: [],
+        certificateUrls: []
     });
     const [agreedTerms, setAgreedTerms] = useState(false);
 
@@ -65,13 +67,14 @@ const ApplyInstructor = () => {
         register('idCardBack', { required: "Vui lòng tải lên ảnh CCCD mặt sau" });
         register('cvUrl', { required: "Vui lòng tải lên CV của bạn" });
         register('degreeUrls', { required: "Vui lòng tải lên ít nhất một bằng cấp" });
+        register('certificateUrls'); // Optional chứng chỉ
     }, [register]);
 
     const handleFileChange = async (e, field) => {
         const selectedFiles = Array.from(e.target.files);
         if (selectedFiles.length === 0) return;
 
-        if (field === 'degreeUrls') {
+        if (field === 'degreeUrls' || field === 'certificateUrls') {
             toast.info(`Đang xử lý ${selectedFiles.length} tệp...`);
 
             const uploadPromises = selectedFiles.map(async (file) => {
@@ -95,14 +98,14 @@ const ApplyInstructor = () => {
             const results = (await Promise.all(uploadPromises)).filter(r => r !== null);
 
             if (results.length > 0) {
-                const currentUrls = watch('degreeUrls') ? watch('degreeUrls').split(',').filter(u => u) : [];
+                const currentUrls = watch(field) ? watch(field).split(',').filter(u => u) : [];
                 const newUrls = results.map(r => r.url);
                 const updatedUrls = [...currentUrls, ...newUrls];
 
-                setValue('degreeUrls', updatedUrls.join(','), { shouldValidate: true });
+                setValue(field, updatedUrls.join(','), { shouldValidate: true });
                 setFiles(prev => ({
                     ...prev,
-                    degreeUrls: [...prev.degreeUrls, ...results]
+                    [field]: [...prev[field], ...results]
                 }));
                 toast.success(`Đã tải thành công ${results.length} tệp`);
             }
@@ -137,13 +140,13 @@ const ApplyInstructor = () => {
         }
     };
 
-    const removeDegreeFile = (index) => {
-        const currentFiles = [...files.degreeUrls];
+    const removeFile = (index, field) => {
+        const currentFiles = [...files[field]];
         currentFiles.splice(index, 1);
 
         const updatedUrls = currentFiles.map(f => f.url).join(',');
-        setValue('degreeUrls', updatedUrls, { shouldValidate: true });
-        setFiles(prev => ({ ...prev, degreeUrls: currentFiles }));
+        setValue(field, updatedUrls, { shouldValidate: true });
+        setFiles(prev => ({ ...prev, [field]: currentFiles }));
     };
 
     const onSubmit = async (data) => {
@@ -161,6 +164,7 @@ const ApplyInstructor = () => {
                 contactPhone: data.contactPhone,
                 cvUrl: data.cvUrl,
                 degreeUrls: data.degreeUrls,
+                certificateUrls: data.certificateUrls || '',
                 courseOutline: data.courseOutline || ''
             });
             toast.success("Nộp đơn thành công! Chúng tôi sẽ phản hồi sớm nhất có thể.");
@@ -410,13 +414,14 @@ const ApplyInstructor = () => {
 
                                         <div className="space-y-4">
                                             <Label className="text-slate-600 font-bold flex items-center gap-2">
-                                                Bằng cấp, chứng chỉ liên quan (Nhiều tệp) <span className="text-rose-500">*</span>
+                                                Bằng cấp chuyên môn (Nhiều tệp) <span className="text-rose-500">*</span>
                                             </Label>
+                                            <p className="text-xs text-slate-400 -mt-2">Ví dụ: Bằng Đại học, Cao đẳng, Thạc sĩ, Tiến sĩ...</p>
                                             <div className="flex items-center justify-center w-full group">
                                                 <label className="flex flex-col items-center justify-center w-full h-40 border-4 border-dashed border-slate-100 rounded-[2.5rem] cursor-pointer bg-slate-50/30 hover:bg-white hover:border-primary/20 transition-all duration-500 shadow-inner">
                                                     <div className="flex flex-col items-center justify-center pt-5 pb-6">
                                                         <UploadCloud className="w-12 h-12 mb-4 text-slate-200 group-hover:text-primary/40 group-hover:scale-110 transition-all duration-500" />
-                                                        <p className="mb-2 text-base text-slate-500 font-bold">Thanh bằng cấp (Ảnh/PDF)</p>
+                                                        <p className="mb-2 text-base text-slate-500 font-bold">Tải lên bằng cấp (Ảnh/PDF)</p>
                                                         <p className="text-xs text-slate-400">Nhấp để chọn hoặc kéo thả nhiều tệp cùng lúc</p>
                                                     </div>
                                                     <input type="file" className="hidden" multiple accept="image/*,application/pdf" onChange={(e) => handleFileChange(e, 'degreeUrls')} />
@@ -443,7 +448,51 @@ const ApplyInstructor = () => {
                                                                     <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">{file.type.split('/')[1]}</p>
                                                                 </div>
                                                             </div>
-                                                            <button type="button" onClick={() => removeDegreeFile(index)} className="p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-full transition-all opacity-0 group-hover:opacity-100">
+                                                            <button type="button" onClick={() => removeFile(index, 'degreeUrls')} className="p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-full transition-all opacity-0 group-hover:opacity-100">
+                                                                <X className="w-5 h-5" />
+                                                            </button>
+                                                        </motion.div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div className="space-y-4 pt-4">
+                                            <Label className="text-slate-600 font-bold flex items-center gap-2">
+                                                Chứng chỉ liên quan (Nhiều tệp)
+                                            </Label>
+                                            <p className="text-xs text-slate-400 -mt-2">Ví dụ: Chứng chỉ Tin học, Tiếng Anh, Sư phạm... (Không bắt buộc)</p>
+                                            <div className="flex items-center justify-center w-full group">
+                                                <label className="flex flex-col items-center justify-center w-full h-40 border-4 border-dashed border-slate-100 rounded-[2.5rem] cursor-pointer bg-slate-50/30 hover:bg-white hover:border-primary/20 transition-all duration-500 shadow-inner">
+                                                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                                        <UploadCloud className="w-12 h-12 mb-4 text-slate-200 group-hover:text-primary/40 group-hover:scale-110 transition-all duration-500" />
+                                                        <p className="mb-2 text-base text-slate-500 font-bold">Tải lên chứng chỉ (Ảnh/PDF)</p>
+                                                        <p className="text-xs text-slate-400">Nhấp để chọn hoặc kéo thả nhiều tệp cùng lúc</p>
+                                                    </div>
+                                                    <input type="file" className="hidden" multiple accept="image/*,application/pdf" onChange={(e) => handleFileChange(e, 'certificateUrls')} />
+                                                </label>
+                                            </div>
+
+                                            {files.certificateUrls.length > 0 && (
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
+                                                    {files.certificateUrls.map((file, index) => (
+                                                        <motion.div
+                                                            key={index}
+                                                            initial={{ scale: 0.9, opacity: 0 }}
+                                                            animate={{ scale: 1, opacity: 1 }}
+                                                            className="flex items-center justify-between p-4 bg-white border-2 border-slate-50 rounded-2xl shadow-sm hover:shadow-md transition-all group"
+                                                        >
+                                                            <div className="flex items-center space-x-4 overflow-hidden">
+                                                                <div className={`p-2 rounded-lg 
+                                                                    ${file.type === 'application/pdf' ? 'bg-rose-50 text-rose-500' : 'bg-sky-50 text-sky-500'}`}>
+                                                                    {file.type === 'application/pdf' ? <FileText className="w-5 h-5" /> : <ImageIcon className="w-5 h-5" />}
+                                                                </div>
+                                                                <div className="overflow-hidden">
+                                                                    <p className="text-sm font-bold text-slate-700 truncate max-w-[160px]" title={file.name}>{file.name}</p>
+                                                                    <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">{file.type.split('/')[1]}</p>
+                                                                </div>
+                                                            </div>
+                                                            <button type="button" onClick={() => removeFile(index, 'certificateUrls')} className="p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-full transition-all opacity-0 group-hover:opacity-100">
                                                                 <X className="w-5 h-5" />
                                                             </button>
                                                         </motion.div>

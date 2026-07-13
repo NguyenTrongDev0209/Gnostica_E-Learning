@@ -14,7 +14,7 @@ import useAuthStore from "@/store/useAuthStore";
 
 export default function Settings() {
   const user = useAuthStore(state => state.user);
-  
+
   const {
     formData,
     isLoading,
@@ -57,7 +57,7 @@ export default function Settings() {
               <div className="relative group">
                 <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-lg bg-primary/10 flex items-center justify-center text-primary text-2xl font-bold relative">
                   {formData.avatar ? (
-                    <img src={formData.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                    <img src={formData.avatar} alt="Avatar" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
                   ) : (
                     formData.fullName?.charAt(0) || "U"
                   )}

@@ -62,6 +62,7 @@ public class InstructorApplicationServiceImpl implements InstructorApplicationSe
             appNode.put("contactPhone", request.getContactPhone());
             appNode.put("cvUrl", request.getCvUrl());
             appNode.put("degreeUrls", request.getDegreeUrls());
+            appNode.put("certificateUrls", request.getCertificateUrls());
             appNode.put("sampleVideoUrl", request.getSampleVideoUrl());
             appNode.put("courseOutline", request.getCourseOutline());
             appNode.put("status", "PENDING");
@@ -140,8 +141,12 @@ public class InstructorApplicationServiceImpl implements InstructorApplicationSe
             account.setMetadata(objectMapper.writeValueAsString(rootNode));
             accountRepository.save(account);
 
-            mailService.sendEmail(account.getEmail(), "Đơn đăng ký giảng viên được chấp thuận",
-                    "Chúc mừng! Đơn đăng ký giảng viên của bạn đã được chấp thuận. Bạn có thể bắt đầu tạo khóa học ngay bây giờ.");
+            try {
+                mailService.sendEmail(account.getEmail(), "Đơn đăng ký giảng viên được chấp thuận",
+                        "Chúc mừng! Đơn đăng ký giảng viên của bạn đã được chấp thuận. Bạn có thể bắt đầu tạo khóa học ngay bây giờ.");
+            } catch (Exception e) {
+                System.err.println("Failed to send approval email to " + account.getEmail() + ": " + e.getMessage());
+            }
             notificationService.createNotification(account, "Đơn đăng ký được phê duyệt",
                     "Chúc mừng! Đơn đăng ký giảng viên của bạn đã được chấp thuận.", "SYSTEM");
 
@@ -177,9 +182,13 @@ public class InstructorApplicationServiceImpl implements InstructorApplicationSe
             account.setMetadata(objectMapper.writeValueAsString(rootNode));
             accountRepository.save(account);
 
-            mailService.sendEmail(account.getEmail(), "Thông báo về đơn đăng ký giảng viên",
-                    "Rất tiếc, đơn đăng ký làm giảng viên của bạn đã bị từ chối.<br/><strong>Lý do:</strong> "
-                            + request.getReason());
+            try {
+                mailService.sendEmail(account.getEmail(), "Thông báo về đơn đăng ký giảng viên",
+                        "Rất tiếc, đơn đăng ký làm giảng viên của bạn đã bị từ chối.<br/><strong>Lý do:</strong> "
+                                + request.getReason());
+            } catch (Exception e) {
+                System.err.println("Failed to send rejection email to " + account.getEmail() + ": " + e.getMessage());
+            }
             notificationService.createNotification(account, "Đơn đăng ký bị từ chối",
                     "Rất tiếc, đơn đăng ký làm giảng viên của bạn đã bị từ chối. Lý do: " + request.getReason(),
                     "SYSTEM");
@@ -207,6 +216,7 @@ public class InstructorApplicationServiceImpl implements InstructorApplicationSe
             response.setContactPhone(appNode.path("contactPhone").asText(null));
             response.setCvUrl(appNode.path("cvUrl").asText(null));
             response.setDegreeUrls(appNode.path("degreeUrls").asText(null));
+            response.setCertificateUrls(appNode.path("certificateUrls").asText(null));
             response.setSampleVideoUrl(appNode.path("sampleVideoUrl").asText(null));
             response.setCourseOutline(appNode.path("courseOutline").asText(null));
             response.setStatus(appNode.path("status").asText(null));

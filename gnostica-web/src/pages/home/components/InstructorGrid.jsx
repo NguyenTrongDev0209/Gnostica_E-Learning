@@ -1,10 +1,12 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Users, BookOpen } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import useHomeData from '@/hooks/home/useHomeData';
 
 const InstructorGrid = () => {
+  const navigate = useNavigate();
   const { instructors, loadingInstructors } = useHomeData();
 
   if (loadingInstructors) {
@@ -20,7 +22,7 @@ const InstructorGrid = () => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
       {instructors.map((instructor, idx) => (
-        <Card key={idx} className="flex flex-col items-center p-6 text-center w-full hover:shadow-lg transition-all hover:-translate-y-1 cursor-pointer">
+        <Card key={idx} onClick={() => instructor.id && navigate(`/profile/${instructor.id}`)} className="flex flex-col items-center p-6 text-center w-full hover:shadow-lg transition-all hover:-translate-y-1 cursor-pointer">
           <img src={instructor.avatar} alt={instructor.name} className="w-24 h-24 rounded-full mb-4 object-cover border-4 border-background shadow-sm" />
           <h3 className="font-bold text-lg">{instructor.name}</h3>
           <p className="text-primary text-sm font-medium mb-3">{instructor.role}</p>
