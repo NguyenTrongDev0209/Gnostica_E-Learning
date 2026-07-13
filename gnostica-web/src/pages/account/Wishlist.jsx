@@ -1,6 +1,6 @@
-import React from "react";
+﻿import React from "react";
 import { Link } from "react-router-dom";
-import AppCard from "@/components/common/composite/AppCard";
+import CourseCard from "@/components/common/composite/CourseCard";
 import { Heart } from "lucide-react";
 import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
 import AppPageHeader from "@/components/common/composite/AppPageHeader";
@@ -38,7 +38,7 @@ export default function Wishlist() {
           {courses.map((course) => (
             <div key={course.id} className="relative group">
               <Link to={`/course/${course.slug}`}>
-                <AppCard {...course} />
+                <CourseCard {...course} />
               </Link>
               
               {/* Overlay Delete Button - appears on hover */}

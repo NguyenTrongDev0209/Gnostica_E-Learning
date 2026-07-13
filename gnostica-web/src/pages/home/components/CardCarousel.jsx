@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import AppCard from "@/components/common/composite/AppCard";
+import CourseCard from "@/components/common/composite/CourseCard";
 import useFeaturedCourses from "@/hooks/course/useFeaturedCourses";
 
 export default function CardCarousel() {
@@ -46,7 +46,7 @@ export default function CardCarousel() {
                     : "scale-90 md:scale-95 z-10 opacity-50 blur-[0.5px] transition-opacity hover:opacity-100"
                     }`}
                 >
-                  <AppCard
+                  <CourseCard
                     category={course.categoryName}
                     rating={4.8}
                     title={course.title}

@@ -1,7 +1,7 @@
-import React from "react";
+﻿import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
-import NotificationBell from "@/components/common/micro/NotificationBell";
+import NotificationBell from "@/components/common/composite/NotificationBell";
 
 export default function AdminHeader({ user }) {
   const navigate = useNavigate();

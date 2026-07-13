@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils";
  * @param {Function|string} rowClassName - Class cho dòng (Nhận row và index nếu là function)
  * @param {Function} onRowClick - Hàm chạy khi click vào 1 dòng
  * @param {Function} rowKey - Hàm tạo khoá cho dòng
+ * @param {Function} renderExpandedRow - Hàm render nội dung mở rộng cho dòng (trả về ReactNode)
  */
 export default function AppTable({
   columns = [],
@@ -35,10 +36,16 @@ export default function AppTable({
   rowClassName,
   onRowClick,
   rowKey = (row, index) => row?.id || index,
+  renderExpandedRow,
+  hideWrapperStyle = false,
   ...props
 }) {
   return (
-    <div className={cn("w-full overflow-x-auto rounded-xl border glass scrollbar-thin shadow-sm", className)}>
+    <div className={cn(
+      "w-full overflow-x-auto scrollbar-thin", 
+      !hideWrapperStyle && "rounded-xl border glass shadow-sm",
+      className
+    )}>
       <Table {...props}>
         {caption && <TableCaption>{caption}</TableCaption>}
         <TableHeader>
@@ -78,25 +85,29 @@ export default function AppTable({
                   ? rowClassName(row, rowIndex) 
                   : rowClassName || "";
 
+              const expandedContent = renderExpandedRow ? renderExpandedRow(row, rowIndex) : null;
+
               return (
-                <TableRow 
-                  key={rowKey(row, rowIndex)}
-                  className={cn(
-                    "transition-colors duration-200 hover:bg-muted/30 border-b border-border/50 last:border-0",
-                    onRowClick && "cursor-pointer",
-                    trClass
-                  )}
-                  onClick={() => onRowClick?.(row)}
-                >
-                  {columns.map((col, colIndex) => (
-                    <TableCell 
-                      key={col.key || col.accessor || colIndex} 
-                      className={cn("py-3 px-4 align-middle", col.cellClassName)}
-                    >
-                      {col.render ? col.render(row[col.key || col.accessor], row, rowIndex) : row[col.key || col.accessor]}
-                    </TableCell>
-                  ))}
-                </TableRow>
+                <React.Fragment key={rowKey(row, rowIndex)}>
+                  <TableRow 
+                    className={cn(
+                      "transition-colors duration-200 hover:bg-muted/30 border-b border-border/50 last:border-0",
+                      onRowClick && "cursor-pointer",
+                      trClass
+                    )}
+                    onClick={() => onRowClick?.(row)}
+                  >
+                    {columns.map((col, colIndex) => (
+                      <TableCell 
+                        key={col.key || col.accessor || colIndex} 
+                        className={cn("py-3 px-4 align-middle", col.cellClassName)}
+                      >
+                        {col.render ? col.render(row, rowIndex) : row[col.key || col.accessor]}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                  {expandedContent}
+                </React.Fragment>
               );
             })
           )}

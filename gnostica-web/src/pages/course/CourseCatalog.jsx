@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 import PageContainer from "@/components/common/core/PageContainer";
 import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
 import CourseListSection from "@/pages/course/components/shared/CourseListSection";
-import AppCard from "@/components/common/composite/AppCard";
+import CourseCard from "@/components/common/composite/CourseCard";
 import { Home } from "lucide-react";
 import useCategories from "@/hooks/course/useCategories";
 import useCourses from "@/hooks/course/useCourses";
@@ -78,7 +78,7 @@ export default function CourseCatalog() {
         {/* Cards Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {tabCourses.map((course) => (
-            <AppCard key={course.id} {...course} />
+            <CourseCard key={course.id} {...course} />
           ))}
         </div>
       </div>

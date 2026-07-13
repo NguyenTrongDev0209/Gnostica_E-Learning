@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import PageContainer from "@/components/common/core/PageContainer";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,7 +12,7 @@ import {
   MessageSquare, ThumbsUp, Eye, Clock, MapPin, Link as LinkIcon,
   Calendar, Star, Award, BookOpen, Flame, UserPlus, Send, Users, Sparkles
 } from 'lucide-react';
-import StatItem from '@/components/common/micro/StatItem';
+import StatItem from '@/components/common/composite/StatItem';
 import {
   Dialog,
   DialogContent,

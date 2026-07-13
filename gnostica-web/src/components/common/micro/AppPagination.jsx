@@ -29,7 +29,7 @@ export default function AppPagination({
   const generatePagination = () => {
     const pages = [];
     if (totalPages <= 5) {
-      for (let i = 1; i <= totalPages; i++) pages.push(i);
+      for (let i = 1; i <= Math.max(1, totalPages); i++) pages.push(i);
       return pages;
     }
     
@@ -57,11 +57,9 @@ export default function AppPagination({
 
   const pages = generatePagination();
 
-  if (totalPages <= 1) return null;
-
   return (
     <Pagination className={className} {...props}>
-      <PaginationContent className="bg-muted/30 p-1.5 rounded-xl border glass shadow-sm">
+      <PaginationContent className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide py-1">
         <PaginationItem>
           <PaginationPrevious 
             href="#" 
@@ -70,10 +68,11 @@ export default function AppPagination({
               if (currentPage > 1 && onPageChange) onPageChange(currentPage - 1);
             }}
             className={cn(
-              "rounded-lg transition-all duration-300 hover:bg-muted font-medium hover-lift",
-              currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"
+              "h-9 px-3 font-semibold text-muted-foreground hover:text-foreground hover:bg-white hover:shadow-sm hover:border hover:border-border rounded-xl transition-all",
+              currentPage <= 1 ? "opacity-30 pointer-events-none" : "cursor-pointer"
             )}
-            text="Trang trước"
+            size="sm"
+            text="Trước"
           />
         </PaginationItem>
         
@@ -81,7 +80,7 @@ export default function AppPagination({
           if (page === "...") {
             return (
               <PaginationItem key={`ellipsis-${idx}`}>
-                <PaginationEllipsis />
+                <PaginationEllipsis className="w-9 h-9" />
               </PaginationItem>
             );
           }
@@ -97,10 +96,10 @@ export default function AppPagination({
                   if (page !== currentPage && onPageChange) onPageChange(page);
                 }}
                 className={cn(
-                  "rounded-lg transition-all duration-300 font-medium hover-lift",
+                  "w-9 h-9 shrink-0 flex items-center justify-center rounded-lg text-sm font-semibold transition-all cursor-pointer border",
                   isActive 
-                    ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-md" 
-                    : "cursor-pointer hover:bg-muted"
+                    ? "bg-primary text-white border-primary shadow-sm hover:bg-primary/90 hover:text-white" 
+                    : "text-foreground bg-white border-border hover:bg-muted/50 hover:border-border"
                 )}
               >
                 {page}
@@ -117,10 +116,11 @@ export default function AppPagination({
               if (currentPage < totalPages && onPageChange) onPageChange(currentPage + 1);
             }}
             className={cn(
-              "rounded-lg transition-all duration-300 hover:bg-muted font-medium hover-lift",
-              currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"
+              "h-9 px-3 font-semibold text-muted-foreground hover:text-foreground hover:bg-white hover:shadow-sm hover:border hover:border-border rounded-xl transition-all",
+              currentPage >= Math.max(1, totalPages) ? "opacity-30 pointer-events-none" : "cursor-pointer"
             )}
-            text="Trang sau"
+            size="sm"
+            text="Sau"
           />
         </PaginationItem>
       </PaginationContent>

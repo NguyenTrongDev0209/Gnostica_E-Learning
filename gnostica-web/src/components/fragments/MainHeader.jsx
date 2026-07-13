@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Link } from 'react-router-dom';
 import {
     ChevronDown,
@@ -7,7 +7,7 @@ import {
 } from "lucide-react"
 import { AppHamburgerButton, AppLogo, AppUserMenu, AppButton } from "@/components/common/micro/AppButton"
 import AppSearchInput from "@/components/common/micro/AppSearchInput"
-import NotificationBell from "@/components/common/micro/NotificationBell"
+import NotificationBell from "@/components/common/composite/NotificationBell"
 import {
     DropdownMenu,
     DropdownMenuContent,

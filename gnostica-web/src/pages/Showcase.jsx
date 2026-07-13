@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react"
+import React, { useState } from "react"
 import { Link } from "react-router-dom"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -87,7 +87,7 @@ import {
   HorizontalIconLabelButton, AppIconButton, AppHeaderButton, AppHamburgerButton,
   AppNavLink, AppUserMenu, AppLogo, TableActionIconButton
 } from "@/components/common/micro/AppButton"
-import AppCard, { CourseCardHorizontal, ForumPostCard } from "@/components/common/composite/AppCard"
+import CourseCard, { CourseCardHorizontal, ForumPostCard } from "@/components/common/composite/CourseCard"
 import AppInput, { AppPasswordInput } from "@/components/common/micro/AppInput"
 import AppSearchInput from "@/components/common/micro/AppSearchInput"
 import CommentCard from "@/components/common/composite/CommentCard"
@@ -103,7 +103,7 @@ import AppCalendar from "@/components/common/micro/AppCalendar"
 import AppSelect from "@/components/common/micro/AppSelect"
 import AppCarousel from "@/components/common/micro/AppCarousel"
 import AppChart from "@/components/common/micro/AppChart"
-import NotificationBell from "@/components/common/micro/NotificationBell"
+import NotificationBell from "@/components/common/composite/NotificationBell"
 import { AppCheckbox } from "@/components/common/micro/AppCheckbox"
 import {
   AppCommand,
@@ -138,6 +138,13 @@ import AppToggle from "@/components/common/micro/AppToggle"
 import { AppToggleGroup } from "@/components/common/micro/AppToggleGroup"
 import AppTooltip from "@/components/common/micro/AppTooltip"
 import AppPagination from "@/components/common/micro/AppPagination"
+import AppCard, { AppCardHeader, AppCardTitle, AppCardContent } from "@/components/common/micro/AppCard"
+import AppCollapsible, { AppCollapsibleTrigger, AppCollapsibleContent } from "@/components/common/micro/AppCollapsible"
+import AppContextMenu, { AppContextMenuTrigger, AppContextMenuContent, AppContextMenuItem } from "@/components/common/micro/AppContextMenu"
+import AppDrawer, { AppDrawerTrigger, AppDrawerContent, AppDrawerHeader, AppDrawerTitle, AppDrawerDescription } from "@/components/common/micro/AppDrawer"
+import AppHoverCard, { AppHoverCardTrigger, AppHoverCardContent } from "@/components/common/micro/AppHoverCard"
+import AppPopover, { AppPopoverTrigger, AppPopoverContent } from "@/components/common/micro/AppPopover"
+import AppProgress from "@/components/common/micro/AppProgress"
 
 const formSchema = z.object({
   username: z.string().min(2, { message: "Username must be at least 2 characters." }),
@@ -1525,6 +1532,92 @@ const Showcase = () => {
                         </CardContent>
                       </Card>
 
+                      <Card>
+                        <CardHeader><CardTitle>AppDrawer & AppCollapsible</CardTitle></CardHeader>
+                        <CardContent className="flex flex-col gap-6">
+                          <div>
+                            <h4 className="text-sm font-semibold mb-2">AppDrawer</h4>
+                            <AppDrawer>
+                              <AppDrawerTrigger asChild>
+                                <AppButton variant="outline">Mở ngăn kéo (Drawer)</AppButton>
+                              </AppDrawerTrigger>
+                              <AppDrawerContent>
+                                <AppDrawerHeader>
+                                  <AppDrawerTitle>Ngăn kéo ở dưới</AppDrawerTitle>
+                                  <AppDrawerDescription>Nội dung này hiển thị từ dưới lên mượt mà.</AppDrawerDescription>
+                                </AppDrawerHeader>
+                                <div className="p-4 flex items-center justify-center h-24 bg-muted/50 rounded-lg m-4">
+                                  Nội dung Drawer
+                                </div>
+                              </AppDrawerContent>
+                            </AppDrawer>
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-semibold mb-2">AppCollapsible</h4>
+                            <AppCollapsible>
+                              <AppCollapsibleTrigger asChild>
+                                <AppButton variant="ghost">Bấm để hiện/ẩn nội dung</AppButton>
+                              </AppCollapsibleTrigger>
+                              <AppCollapsibleContent className="p-4 bg-muted/20 rounded-md mt-2 text-sm">
+                                Đây là nội dung bị ẩn đi, có hiệu ứng chuyển động mượt mà.
+                              </AppCollapsibleContent>
+                            </AppCollapsible>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader><CardTitle>AppHoverCard & AppPopover & AppContextMenu</CardTitle></CardHeader>
+                        <CardContent className="flex flex-wrap gap-4 items-center">
+                          <AppHoverCard>
+                            <AppHoverCardTrigger asChild>
+                              <AppButton variant="outline">Hover Card</AppButton>
+                            </AppHoverCardTrigger>
+                            <AppHoverCardContent className="w-80">
+                              <div className="flex justify-between space-x-4">
+                                <AppAvatar src="https://github.com/vercel.png" alt="@nextjs" size="default" />
+                                <div className="space-y-1">
+                                  <h4 className="text-sm font-semibold">@nextjs</h4>
+                                  <p className="text-sm">The React Framework – created and maintained by @vercel.</p>
+                                </div>
+                              </div>
+                            </AppHoverCardContent>
+                          </AppHoverCard>
+
+                          <AppPopover>
+                            <AppPopoverTrigger asChild>
+                              <AppButton variant="outline">Mở Popover</AppButton>
+                            </AppPopoverTrigger>
+                            <AppPopoverContent>
+                              <div className="space-y-2">
+                                <h4 className="font-medium leading-none">Tuỳ chỉnh thông báo</h4>
+                                <p className="text-sm text-muted-foreground">Bạn có thể đặt nhiều cài đặt tại đây.</p>
+                              </div>
+                            </AppPopoverContent>
+                          </AppPopover>
+
+                          <AppContextMenu>
+                            <AppContextMenuTrigger className="flex h-[40px] w-[150px] items-center justify-center rounded-md border border-dashed text-sm">
+                              Click chuột phải
+                            </AppContextMenuTrigger>
+                            <AppContextMenuContent>
+                              <AppContextMenuItem>Quay lại</AppContextMenuItem>
+                              <AppContextMenuItem>Tải lại</AppContextMenuItem>
+                              <AppContextMenuItem>Lưu trang thành...</AppContextMenuItem>
+                            </AppContextMenuContent>
+                          </AppContextMenu>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader><CardTitle>AppProgress</CardTitle></CardHeader>
+                        <CardContent className="space-y-4">
+                          <AppProgress value={33} />
+                          <AppProgress value={66} indicatorClassName="bg-warning" heightClass="h-4" />
+                          <AppProgress value={100} indicatorClassName="bg-success" />
+                        </CardContent>
+                      </Card>
+
                     </div>
                   </div>
 
@@ -1532,6 +1625,19 @@ const Showcase = () => {
                   <div>
                     <h3 className="text-xl font-bold mb-4 text-foreground/80">Data Display, Inputs & Feedback</h3>
                     <div className="space-y-6">
+                      <Card>
+                        <CardHeader><CardTitle>AppCard (Micro)</CardTitle></CardHeader>
+                        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <AppCard appVariant="glass">
+                            <AppCardHeader><AppCardTitle>Thẻ Glass</AppCardTitle></AppCardHeader>
+                            <AppCardContent><p className="text-sm text-muted-foreground">Hiệu ứng trong suốt.</p></AppCardContent>
+                          </AppCard>
+                          <AppCard appVariant="outline">
+                            <AppCardHeader><AppCardTitle>Thẻ Outline</AppCardTitle></AppCardHeader>
+                            <AppCardContent><p className="text-sm text-muted-foreground">Chỉ có viền, không đổ bóng nền.</p></AppCardContent>
+                          </AppCard>
+                        </CardContent>
+                      </Card>
                       <Card>
                         <CardHeader><CardTitle>AppNavigationMenu</CardTitle></CardHeader>
                         <CardContent>
@@ -1656,7 +1762,7 @@ const Showcase = () => {
                       <Card>
                         <CardHeader><CardTitle>AppCard & CourseCardHorizontal</CardTitle></CardHeader>
                         <CardContent className="grid md:grid-cols-2 gap-4">
-                          <div className="max-w-xs"><AppCard /></div>
+                          <div className="max-w-xs"><CourseCard /></div>
                           <div className="flex flex-col gap-4">
                             <CourseCardHorizontal />
                           </div>

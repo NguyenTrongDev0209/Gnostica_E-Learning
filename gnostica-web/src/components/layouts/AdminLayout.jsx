@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { Outlet, useNavigate, Link, useLocation } from "react-router-dom";
 import {
   Bell,
@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 
 import { AppLogo } from "@/components/common/micro/AppButton";
-import NotificationBell from "@/components/common/micro/NotificationBell";
+import NotificationBell from "@/components/common/composite/NotificationBell";
 
 const ADMIN_MENU_GROUPS = [
   {

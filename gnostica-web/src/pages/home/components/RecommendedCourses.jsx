@@ -1,5 +1,5 @@
-import React from 'react';
-import AppCard from '@/components/common/composite/AppCard';
+﻿import React from 'react';
+import CourseCard from "@/components/common/composite/CourseCard";
 import { Skeleton } from '@/components/ui/skeleton';
 import { Sparkles } from 'lucide-react';
 import useRecommendedCourses from '@/hooks/course/useRecommendedCourses';
@@ -31,7 +31,7 @@ const RecommendedCourses = () => {
             ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     {courses.map(course => (
-                        <AppCard
+                        <CourseCard
                             key={course.id}
                             image={course.thumbnail}
                             title={course.title}

@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Star, BookOpen, Users, Clock, Flame, ThumbsUp, MessageSquare, Eye, ArrowUp, ArrowDown, Share2 } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,7 +9,7 @@ import useAuthStore from '@/store/useAuthStore';
 import threadService from '@/services/forum/threadService';
 import { toast } from 'sonner';
 
-const AppCard = ({
+const CourseCard = ({
   image,
   category = "Data Science",
   rating = 4.9,
@@ -115,7 +115,7 @@ const AppCard = ({
   );
 };
 
-export default AppCard;
+export default CourseCard;
 /**
  * CourseCardHorizontal - Card khóa học nằm ngang cho trang danh mục.
  * Same style system as AppCard but in landscape/row layout.

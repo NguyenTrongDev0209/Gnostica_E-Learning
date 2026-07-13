@@ -1,5 +1,5 @@
-import React from 'react';
-import AppCard from '@/components/common/composite/AppCard';
+﻿import React from 'react';
+import CourseCard from "@/components/common/composite/CourseCard";
 import useFeaturedCourses from '@/hooks/course/useFeaturedCourses';
 
 const FeaturedCourses = () => {
@@ -26,7 +26,7 @@ const FeaturedCourses = () => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 justify-items-center w-full">
       {courses.map((course) => (
-        <AppCard
+        <CourseCard
           key={course.id}
           category={course.categoryName}
           rating={4.8} // Default rating for now
