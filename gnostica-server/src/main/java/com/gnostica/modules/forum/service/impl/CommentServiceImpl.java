@@ -61,8 +61,13 @@ public class CommentServiceImpl implements CommentService {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new RuntimeException("Comment not found"));
 
-        // Verify ownership
-        if (!comment.getAccount().getEmail().equals(userEmail)) {
+        // Verify ownership: either the comment author OR the thread author
+        boolean isCommentAuthor = comment.getAccount().getEmail().equals(userEmail);
+        boolean isThreadAuthor = comment.getThread() != null 
+                && comment.getThread().getAccount() != null 
+                && comment.getThread().getAccount().getEmail().equals(userEmail);
+
+        if (!isCommentAuthor && !isThreadAuthor) {
             throw new RuntimeException("You are not authorized to delete this comment");
         }
 

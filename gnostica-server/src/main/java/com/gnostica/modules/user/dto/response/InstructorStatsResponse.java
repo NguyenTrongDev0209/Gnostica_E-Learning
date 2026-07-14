@@ -17,4 +17,6 @@ public class InstructorStatsResponse {
     private long coursesCount;
     private long studentsCount;
     private double rating;
+    private String title;
+    private String bio;
 }

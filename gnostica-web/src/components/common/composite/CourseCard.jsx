@@ -235,6 +235,7 @@ export const ForumPostCard = ({ post, className }) => {
   if (!post) return null;
 
   const currentUser = useAuthStore(state => state.user);
+  const isPending = post.status === 1 || post.status === 3;
   const [voteScore, setVoteScore] = React.useState(post.voteScore || 0);
   const [userVote, setUserVote] = React.useState(post.userVote || 0);
   const [likesCount, setLikesCount] = React.useState(post.stats?.likes || 0);
@@ -253,6 +254,11 @@ export const ForumPostCard = ({ post, className }) => {
   const handleLike = async (e) => {
     e.preventDefault();
     e.stopPropagation();
+
+    if (isPending) {
+      toast.info("Bài viết đang chờ duyệt, chưa thể tương tác!");
+      return;
+    }
 
     if (!currentUser) {
       toast.error("Vui lòng đăng nhập để thích bài viết!");
@@ -277,6 +283,12 @@ export const ForumPostCard = ({ post, className }) => {
   const handleShare = (e) => {
     e.preventDefault();
     e.stopPropagation();
+
+    if (isPending) {
+      toast.info("Bài viết đang chờ duyệt, chưa thể chia sẻ!");
+      return;
+    }
+
     const shareUrl = `${window.location.origin}/forum/${post.slug || post.id}`;
     navigator.clipboard.writeText(shareUrl)
       .then(() => {
@@ -290,6 +302,11 @@ export const ForumPostCard = ({ post, className }) => {
   const handleVote = async (e, type) => {
     e.preventDefault();
     e.stopPropagation();
+
+    if (isPending) {
+      toast.info("Bài viết đang chờ duyệt, chưa thể tương tác!");
+      return;
+    }
 
     if (!currentUser) {
       toast.error("Vui lòng đăng nhập để bình chọn bài viết!");
@@ -403,11 +420,15 @@ export const ForumPostCard = ({ post, className }) => {
                     ))}
                   </div>
                 )}
-                <div className="flex items-center gap-4 text-xs font-medium text-muted-foreground shrink-0">
+                <div className={cn(
+                  "flex items-center gap-4 text-xs font-medium text-muted-foreground shrink-0",
+                  isPending && "opacity-40 pointer-events-none select-none"
+                )}>
                   {/* Voting Pill */}
                   <div className="flex items-center gap-1 bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700/80 rounded-full px-2 py-0.5 border border-transparent transition-colors">
                     <button
                       onClick={(e) => handleVote(e, 1)}
+                      disabled={isPending}
                       className={cn(
                         "p-1 hover:text-orange-500 rounded-full transition-colors",
                         userVote === 1 && "text-orange-500 font-bold"
@@ -424,6 +445,7 @@ export const ForumPostCard = ({ post, className }) => {
                     </span>
                     <button
                       onClick={(e) => handleVote(e, -1)}
+                      disabled={isPending}
                       className={cn(
                         "p-1 hover:text-blue-500 rounded-full transition-colors",
                         userVote === -1 && "text-blue-500 font-bold"
@@ -435,6 +457,7 @@ export const ForumPostCard = ({ post, className }) => {
 
                   <button
                     onClick={handleLike}
+                    disabled={isPending}
                     className={cn(
                       "flex items-center gap-1.5 hover:text-primary transition-colors",
                       userLiked && "text-primary font-semibold"
@@ -451,8 +474,9 @@ export const ForumPostCard = ({ post, className }) => {
                   </div>
                   <button
                     onClick={handleShare}
+                    disabled={isPending}
                     className="flex items-center gap-1.5 hover:text-primary transition-colors"
-                    title="Chia sẻ liên kết"
+                    title={isPending ? "Bài đang chờ duyệt" : "Chia sẻ liên kết"}
                   >
                     <Share2 className="w-4 h-4" />
                     <span>Chia sẻ</span>

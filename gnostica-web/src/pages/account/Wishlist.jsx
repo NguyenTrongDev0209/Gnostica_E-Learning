@@ -40,10 +40,10 @@ export default function Wishlist() {
               <Link to={`/course/${course.slug}`}>
                 <CourseCard {...course} />
               </Link>
-              
+
               {/* Overlay Delete Button - appears on hover */}
               <div className="absolute top-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button 
+                <button
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();

@@ -92,6 +92,11 @@ export const threadService = {
   approveThread: async (id) => {
     const res = await axiosClient.post(`${API_URL}/${id}/approve`);
     return res.data;
+  },
+
+  rejectThread: async (id, reason) => {
+    const res = await axiosClient.post(`${API_URL}/${id}/reject`, { reason });
+    return res.data;
   }
 };
 

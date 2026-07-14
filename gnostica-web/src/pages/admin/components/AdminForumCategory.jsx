@@ -4,7 +4,6 @@ import {
   Search,
   Edit,
   Trash2,
-  FolderOpen,
   MessageSquare,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -124,8 +123,8 @@ export default function AdminForumCategory({ hideHeader = false }) {
       await forumCategoryService.updateStatus(id, newStatus);
       toast.success(newStatus ? "Đã hiển thị chủ đề thành công" : "Đã ẩn chủ đề thành công");
       // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchCategories();
-    // eslint-disable-next-line no-unused-vars
+      fetchCategories();
+      // eslint-disable-next-line no-unused-vars
     } catch (error) {
       toast.error("Không thể cập nhật trạng thái");
     }
@@ -169,7 +168,7 @@ export default function AdminForumCategory({ hideHeader = false }) {
       setEditId(null);
       form.reset({ name: "", slug: "", status: true });
       // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchCategories();
+      fetchCategories();
     } catch (error) {
       const errorMessage =
         error?.response?.data?.message || "Có lỗi xảy ra, vui lòng thử lại.";

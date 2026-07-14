@@ -56,4 +56,20 @@ public class AccountController {
                     .build());
         }
     }
+
+    @PutMapping("/profile")
+    public ResponseEntity<?> updateProfile(@RequestBody com.gnostica.modules.auth.dto.request.ProfileUpdateRequest dto, @RequestParam("email") String email) {
+        try {
+            authService.updateProfile(email, dto);
+            return ResponseEntity.ok(ResponseDTO.builder()
+                    .status(200)
+                    .message("Cập nhật thông tin hồ sơ thành công!")
+                    .build());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ResponseDTO.builder()
+                    .status(400)
+                    .message("Cập nhật thông tin thất bại: " + e.getMessage())
+                    .build());
+        }
+    }
 }

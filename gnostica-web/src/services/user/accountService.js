@@ -56,6 +56,26 @@ const accountService = {
         } catch (error) {
             throw error.response?.data?.message || 'Không thể cập nhật thông tin cá nhân hóa!';
         }
+    },
+    updateProfile: async (email, data) => {
+        try {
+            const user = JSON.parse(localStorage.getItem('user'));
+            const token = user?.token;
+            const response = await axiosClient.put(`${API_URL}/profile?email=${email}`, data, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (response.data.status === 200) {
+                if (user && data.fullName) {
+                    user.fullName = data.fullName;
+                    localStorage.setItem('user', JSON.stringify(user));
+                }
+            }
+            return response.data;
+        } catch (error) {
+            throw error.response?.data?.message || 'Không thể cập nhật thông tin hồ sơ!';
+        }
     }
 };
 

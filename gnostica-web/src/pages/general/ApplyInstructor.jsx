@@ -45,6 +45,7 @@ const ApplyInstructor = () => {
             idCardBack: '',
             cvUrl: '',
             degreeUrls: '',
+            certificateUrls: '',
             contactPhone: '',
             courseOutline: ''
         }
@@ -54,7 +55,8 @@ const ApplyInstructor = () => {
         idCardFront: null,
         idCardBack: null,
         cvUrl: null,
-        degreeUrls: []
+        degreeUrls: [],
+        certificateUrls: []
     });
     const [agreedTerms, setAgreedTerms] = useState(false);
 
@@ -66,13 +68,14 @@ const ApplyInstructor = () => {
         register('idCardBack', { required: "Vui lòng tải lên ảnh CCCD mặt sau" });
         register('cvUrl', { required: "Vui lòng tải lên CV của bạn" });
         register('degreeUrls', { required: "Vui lòng tải lên ít nhất một bằng cấp" });
+        register('certificateUrls'); // Optional chứng chỉ
     }, [register]);
 
     const handleFileChange = async (e, field) => {
         const selectedFiles = Array.from(e.target.files);
         if (selectedFiles.length === 0) return;
 
-        if (field === 'degreeUrls') {
+        if (field === 'degreeUrls' || field === 'certificateUrls') {
             toast.info(`Đang xử lý ${selectedFiles.length} tệp...`);
 
             const uploadPromises = selectedFiles.map(async (file) => {
@@ -96,14 +99,14 @@ const ApplyInstructor = () => {
             const results = (await Promise.all(uploadPromises)).filter(r => r !== null);
 
             if (results.length > 0) {
-                const currentUrls = watch('degreeUrls') ? watch('degreeUrls').split(',').filter(u => u) : [];
+                const currentUrls = watch(field) ? watch(field).split(',').filter(u => u) : [];
                 const newUrls = results.map(r => r.url);
                 const updatedUrls = [...currentUrls, ...newUrls];
 
-                setValue('degreeUrls', updatedUrls.join(','), { shouldValidate: true });
+                setValue(field, updatedUrls.join(','), { shouldValidate: true });
                 setFiles(prev => ({
                     ...prev,
-                    degreeUrls: [...prev.degreeUrls, ...results]
+                    [field]: [...prev[field], ...results]
                 }));
                 toast.success(`Đã tải thành công ${results.length} tệp`);
             }
@@ -138,13 +141,13 @@ const ApplyInstructor = () => {
         }
     };
 
-    const removeDegreeFile = (index) => {
-        const currentFiles = [...files.degreeUrls];
+    const removeFile = (index, field) => {
+        const currentFiles = [...files[field]];
         currentFiles.splice(index, 1);
 
         const updatedUrls = currentFiles.map(f => f.url).join(',');
-        setValue('degreeUrls', updatedUrls, { shouldValidate: true });
-        setFiles(prev => ({ ...prev, degreeUrls: currentFiles }));
+        setValue(field, updatedUrls, { shouldValidate: true });
+        setFiles(prev => ({ ...prev, [field]: currentFiles }));
     };
 
     
@@ -417,6 +420,7 @@ const ApplyInstructor = () => {
                                             <Label className="text-muted-foreground font-bold flex items-center gap-2">
                                                 Bằng cấp, chứng chỉ liên quan (Nhiều tệp) <span className="text-destructive">*</span>
                                             </Label>
+                                            <p className="text-xs text-slate-400 -mt-2">Ví dụ: Bằng Đại học, Cao đẳng, Thạc sĩ, Tiến sĩ...</p>
                                             <div className="flex items-center justify-center w-full group">
                                                 <label className="flex flex-col items-center justify-center w-full h-40 border-4 border-dashed border-border rounded-[2.5rem] cursor-pointer bg-muted/30 hover:bg-white hover:border-primary/20 transition-all duration-500 shadow-inner">
                                                     <div className="flex flex-col items-center justify-center pt-5 pb-6">

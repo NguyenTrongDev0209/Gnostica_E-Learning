@@ -217,7 +217,16 @@ export default function AdminCategories({ hideHeader = false }) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {categories.length === 0 ? (
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="h-32 text-center text-muted-foreground font-medium">
+                    <div className="flex flex-col items-center justify-center gap-3">
+                      <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                      <span className="text-sm animate-pulse">Đang tải dữ liệu...</span>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : categories.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="h-32 text-center text-muted-foreground font-medium">
                     Không tìm thấy chủ đề nào phù hợp.
@@ -226,38 +235,59 @@ export default function AdminCategories({ hideHeader = false }) {
               ) : (
                 categories.map((cat) => (
                   <React.Fragment key={cat.id}>
+                    {/* Parent category row */}
                     <TableRow
-                      key={sub.id}
-                      className="bg-muted/60 hover:bg-secondary"
+                      key={cat.id}
+                      className="hover:bg-muted cursor-pointer"
+                      onClick={() => setExpanded(expanded === cat.id ? null : cat.id)}
                     >
-                      <TableCell className="w-8" />
-                      <TableCell className="pl-12">
+                      <TableCell className="w-10 text-center">
+                        {cat.subcategories && cat.subcategories.length > 0 && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setExpanded(expanded === cat.id ? null : cat.id);
+                            }}
+                            className="p-1 hover:bg-muted rounded-lg transition-colors flex items-center justify-center mx-auto"
+                          >
+                            <ChevronRight
+                              className={cn(
+                                "w-4 h-4 text-muted-foreground transition-transform duration-200",
+                                expanded === cat.id && "rotate-90"
+                              )}
+                            />
+                          </button>
+                        )}
+                      </TableCell>
+                      <TableCell>
                         <div className="flex items-center gap-3">
-                          <div className="w-1.5 h-1.5 rounded-full bg-muted" />
+                          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                            <FolderOpen className="w-4 h-4 text-primary" />
+                          </div>
                           <div>
                             <p className="font-bold text-foreground">
-                              {sub.name}
+                              {cat.name}
                             </p>
                           </div>
                         </div>
                       </TableCell>
                       <TableCell>
                         <code className="text-xs bg-white px-2 py-1 rounded border border-border text-muted-foreground font-mono">
-                          {sub.slug}
+                          {cat.slug}
                         </code>
                       </TableCell>
-                      <TableCell className="text-center">
-                        <span className="text-sm text-muted-foreground font-medium block w-full">-</span>
+                      <TableCell className="text-center font-bold text-foreground">
+                        {cat.subcategories?.length || 0}
                       </TableCell>
                       <TableCell className="text-center font-bold text-foreground">
-                        {sub.courses}
+                        {cat.courses || 0}
                       </TableCell>
                       <TableCell>
-                        {sub.status === true ? (
+                        {cat.status === true ? (
                           <span
                             onClick={(e) => {
                               e.stopPropagation();
-                              toggleStatus(sub.id, false);
+                              toggleStatus(cat.id, false);
                             }}
                             className="inline-flex items-center gap-1.5 text-sm text-success font-medium cursor-pointer hover:underline"
                           >
@@ -268,7 +298,7 @@ export default function AdminCategories({ hideHeader = false }) {
                           <span
                             onClick={(e) => {
                               e.stopPropagation();
-                              toggleStatus(sub.id, true);
+                              toggleStatus(cat.id, true);
                             }}
                             className="inline-flex items-center gap-1.5 text-sm text-muted-foreground font-medium cursor-pointer hover:underline"
                           >
@@ -284,21 +314,21 @@ export default function AdminCategories({ hideHeader = false }) {
                         >
                           <TableActionIconButton
                             icon={Edit}
-                            onClick={(e) => handleEdit(e, sub, cat.id)}
+                            onClick={(e) => handleEdit(e, cat)}
                           />
                           <TableActionIconButton
                             icon={Trash2}
                             colorVariant="error"
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleDelete(sub.id);
+                              handleDelete(cat.id);
                             }}
                           />
                         </div>
                       </TableCell>
                     </TableRow>
 
-                    {/* Subcategories expanded row */}
+                    {/* Subcategories expanded rows */}
                     {expanded === cat.id &&
                       cat.subcategories &&
                       cat.subcategories.length > 0 &&
@@ -327,7 +357,7 @@ export default function AdminCategories({ hideHeader = false }) {
                             <span className="text-sm text-muted-foreground font-medium block w-full">-</span>
                           </TableCell>
                           <TableCell className="text-center font-bold text-foreground">
-                            {sub.courses}
+                            {sub.courses || 0}
                           </TableCell>
                           <TableCell>
                             {sub.status === true ? (

@@ -32,7 +32,7 @@ export default function AdminHeader({ user }) {
           <NotificationBell />
           <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm overflow-hidden">
             {user?.avatar ? (
-              <img src={user.avatar} alt="Avatar" className="w-full h-full object-cover" />
+              <img src={user.avatar} alt="Avatar" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
             ) : (
               user?.fullName?.substring(0, 2).toUpperCase() || "AD"
             )}

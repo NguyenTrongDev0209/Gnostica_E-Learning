@@ -15,6 +15,98 @@ const AiChatBot = () => {
     const [isMinimized, setIsMinimized] = useState(false);
     const messagesEndRef = useRef(null);
 
+    const [width, setWidth] = useState(840);
+    const [height, setHeight] = useState(700);
+    const [isResizing, setIsResizing] = useState(false);
+    const resizeRef = useRef({
+        isResizing: false,
+        direction: '',
+        startX: 0,
+        startY: 0,
+        startWidth: 0,
+        startHeight: 0
+    });
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            setWidth(Math.min(840, window.innerWidth - 48));
+            setHeight(Math.min(700, window.innerHeight - 48));
+        }
+    }, []);
+
+    useEffect(() => {
+        const handleMouseMove = (e) => {
+            if (!resizeRef.current.isResizing) return;
+            const clientX = e.clientX || (e.touches && e.touches[0]?.clientX);
+            const clientY = e.clientY || (e.touches && e.touches[0]?.clientY);
+            if (clientX === undefined || clientY === undefined) return;
+
+            const { direction, startX, startY, startWidth, startHeight } = resizeRef.current;
+
+            let newWidth = startWidth;
+            let newHeight = startHeight;
+
+            if (direction.includes('w')) {
+                const deltaX = clientX - startX;
+                newWidth = Math.max(320, Math.min(window.innerWidth - 48, startWidth - deltaX));
+            }
+            if (direction.includes('n')) {
+                const deltaY = clientY - startY;
+                newHeight = Math.max(200, Math.min(window.innerHeight - 48, startHeight - deltaY));
+            }
+
+            setWidth(newWidth);
+            setHeight(newHeight);
+        };
+
+        const handleMouseUp = () => {
+            if (resizeRef.current.isResizing) {
+                setIsResizing(false);
+                resizeRef.current.isResizing = false;
+            }
+        };
+
+        document.addEventListener('mousemove', handleMouseMove);
+        document.addEventListener('mouseup', handleMouseUp);
+        document.addEventListener('touchmove', handleMouseMove, { passive: false });
+        document.addEventListener('touchend', handleMouseUp);
+
+        return () => {
+            document.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mouseup', handleMouseUp);
+            document.removeEventListener('touchmove', handleMouseMove);
+            document.removeEventListener('touchend', handleMouseUp);
+        };
+    }, []);
+
+    const handleMouseDown = (e, direction) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsResizing(true);
+        resizeRef.current = {
+            isResizing: true,
+            direction,
+            startX: e.clientX,
+            startY: e.clientY,
+            startWidth: width,
+            startHeight: height
+        };
+    };
+
+    const handleTouchStart = (e, direction) => {
+        const touch = e.touches[0];
+        if (!touch) return;
+        setIsResizing(true);
+        resizeRef.current = {
+            isResizing: true,
+            direction,
+            startX: touch.clientX,
+            startY: touch.clientY,
+            startWidth: width,
+            startHeight: height
+        };
+    };
+
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
@@ -25,17 +117,17 @@ const AiChatBot = () => {
 
     const renderMessageContent = (content) => {
         if (!content) return null;
-        
+
         // Clean any system/tool logs block if it starts with /* and ends with */
         const cleanedContent = content.replace(/\/\*[\s\S]*?\*\//g, '').trim();
-        
+
         const parts = cleanedContent.split(/(\[\[CARD:[^\]]+\]\])/g);
-        
+
         return parts.map((part, index) => {
             const cardMatch = part.match(/\[\[CARD:(.*?)\|(.*?)\|(.*?)\|(.*?)\|(.*?)\|(.*?)\|(.*?)\]\]/);
             if (cardMatch) {
                 const [, type, id, title, info, author, category, imgUrl] = cardMatch;
-                
+
                 const isCourse = type === 'course';
                 let linkTo = '#';
                 let icon = <Folder className="w-3.5 h-3.5" />;
@@ -69,40 +161,40 @@ const AiChatBot = () => {
                         e.preventDefault();
                     }
                 };
-                
+
                 return (
-                    <Link 
-                        key={index} 
-                        to={linkTo} 
+                    <Link
+                        key={index}
+                        to={linkTo}
                         onClick={handleLinkClick}
                         className="block mt-2 mb-3 bg-white border border-border/50 hover:border-primary/50 transition-colors rounded-xl p-3 shadow-sm hover:shadow-md group no-underline text-card-foreground"
                     >
                         <div className="flex items-start gap-3">
                             <div className="shrink-0 mt-0.5">
                                 <div className="w-8 h-8 rounded-full overflow-hidden border border-border bg-muted ring-2 ring-transparent group-hover:ring-primary/20 transition-all">
-                                   <img src={avatarUrl} alt={author} className="w-full h-full object-cover" />
+                                    <img src={avatarUrl} alt={author} className="w-full h-full object-cover" />
                                 </div>
                             </div>
-                            
+
                             <div className="flex-1 min-w-0">
-                                 <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground mb-1">
-                                      <span className="font-semibold text-primary">{category}</span>
-                                      <span>•</span>
-                                      <span className="truncate text-muted-foreground font-medium">{author}</span>
-                                 </div>
-                                 
-                                 <h3 className="font-bold text-[13px] leading-tight line-clamp-2 group-hover:text-primary transition-colors text-foreground mb-2">
-                                     {title}
-                                 </h3>
-                                 
-                                 <div className="flex items-center gap-3 text-[11px] font-medium text-muted-foreground">
-                                      <div className="flex items-center gap-1 hover:text-primary transition-colors">
-                                           {icon}
-                                           <span>{infoText}</span>
-                                      </div>
-                                 </div>
+                                <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground mb-1">
+                                    <span className="font-semibold text-primary">{category}</span>
+                                    <span>•</span>
+                                    <span className="truncate text-muted-foreground font-medium">{author}</span>
+                                </div>
+
+                                <h3 className="font-bold text-[13px] leading-tight line-clamp-2 group-hover:text-primary transition-colors text-foreground mb-2">
+                                    {title}
+                                </h3>
+
+                                <div className="flex items-center gap-3 text-[11px] font-medium text-muted-foreground">
+                                    <div className="flex items-center gap-1 hover:text-primary transition-colors">
+                                        {icon}
+                                        <span>{infoText}</span>
+                                    </div>
+                                </div>
                             </div>
-                            
+
                             {imgUrl && imgUrl !== 'none' && !isCourse && (
                                 <div className="w-16 h-16 shrink-0 rounded-md overflow-hidden border border-border mt-0.5 hidden sm:block">
                                     <img src={imgUrl} alt="preview" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
@@ -113,7 +205,7 @@ const AiChatBot = () => {
                 );
             }
             return (
-                 <span key={index} className="whitespace-pre-wrap">{part.replace(/---/g, '').trim()}</span>
+                <span key={index} className="whitespace-pre-wrap">{part.replace(/---/g, '').trim()}</span>
             );
         });
     };
@@ -158,10 +250,33 @@ const AiChatBot = () => {
     }
 
     return (
-        <div className={cn(
-            "fixed bottom-6 right-6 bg-card border border-border rounded-2xl shadow-2xl overflow-hidden flex flex-col transition-all duration-300 z-50",
-            isMinimized ? "w-72 h-14" : "w-[840px] h-[800px] max-h-[90vh] max-w-[95vw]"
-        )}>
+        <div
+            className={cn(
+                "fixed bottom-6 right-6 bg-card border border-border rounded-2xl shadow-2xl overflow-hidden flex flex-col z-50",
+                isMinimized ? "w-72 h-14 transition-all duration-300" : (isResizing ? "" : "transition-all duration-300")
+            )}
+            style={isMinimized ? {} : { width: `${width}px`, height: `${height}px`, maxWidth: '95vw', maxHeight: '90vh' }}
+        >
+            {!isMinimized && (
+                <>
+                    {/* Resize handles */}
+                    <div
+                        className="absolute top-0 left-0 right-0 h-1 cursor-ns-resize z-50 select-none hover:bg-white/30 transition-colors"
+                        onMouseDown={(e) => handleMouseDown(e, 'n')}
+                        onTouchStart={(e) => handleTouchStart(e, 'n')}
+                    />
+                    <div
+                        className="absolute top-0 bottom-0 left-0 w-1.5 cursor-ew-resize z-50 select-none hover:bg-primary/20 transition-colors"
+                        onMouseDown={(e) => handleMouseDown(e, 'w')}
+                        onTouchStart={(e) => handleTouchStart(e, 'w')}
+                    />
+                    <div
+                        className="absolute top-0 left-0 w-3 h-3 cursor-nwse-resize z-50 select-none hover:bg-white/40 rounded-br-lg transition-colors"
+                        onMouseDown={(e) => handleMouseDown(e, 'nw')}
+                        onTouchStart={(e) => handleTouchStart(e, 'nw')}
+                    />
+                </>
+            )}
             {/* Header */}
             <div className="bg-primary p-4 text-white flex items-center justify-between cursor-pointer" onClick={() => isMinimized && setIsMinimized(false)}>
                 <div className="flex items-center gap-2">

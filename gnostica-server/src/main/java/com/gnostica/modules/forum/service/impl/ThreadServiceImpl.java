@@ -17,6 +17,9 @@ import com.gnostica.core.repository.ThreadHashtagRepository;
 import com.gnostica.modules.integration.service.CloudinaryService;
 import com.gnostica.modules.forum.service.ThreadService;
 import com.gnostica.core.util.AuthUtil;
+import com.gnostica.modules.user.service.NotificationService;
+import java.time.LocalDateTime;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,6 +60,8 @@ public class ThreadServiceImpl implements ThreadService {
     private HashtagRepository hashtagRepository;
     @Autowired
     private ThreadHashtagRepository threadHashtagRepository;
+    @Autowired
+    private NotificationService notificationService;
 
     private String toSlug(String input) {
         if (input == null) return "";
@@ -81,7 +86,11 @@ public class ThreadServiceImpl implements ThreadService {
         thread.setContent(content);
         thread.setAccount(account);
         thread.setTopic(topic);
-        thread.setStatus(1); // 1 = Draft or Pending
+        
+        // Auto-approve thread (Status 2 = Published) if author is an ADMIN
+        boolean isAdmin = account.getRole() != null && "ADMIN".equalsIgnoreCase(account.getRole().getName());
+        thread.setStatus(isAdmin ? 2 : 1); // 1 = Draft or Pending, 2 = Published
+        
         thread.setViewCount(0);
         thread.setSharedCount(0);
         thread.setIsLocked(false);
@@ -201,9 +210,9 @@ public class ThreadServiceImpl implements ThreadService {
             Map<String, Object> map = new HashMap<>();
             map.put("account", account);
             
-            // Calculate total likes for this account
+            // Calculate total likes for this account (only published threads)
             long totalLikes = 0;
-            List<Thread> userThreads = threadRepository.findByAccountEmailOrderByCreatedAtDesc(account.getEmail(), PageRequest.of(0, 1000)).getContent();
+            List<Thread> userThreads = threadRepository.findByAccountEmailAndStatusOrderByCreatedAtDesc(account.getEmail(), 2, PageRequest.of(0, 1000)).getContent();
             for (Thread t : userThreads) {
                 totalLikes += voteRepository.countByTargetIdAndTypeAndValue(t.getId().toString(), 1, true);
             }
@@ -219,7 +228,9 @@ public class ThreadServiceImpl implements ThreadService {
         if (topicId == null) {
             return new ArrayList<>();
         }
-        return populateThreadsStats(threadRepository.findTop5ByTopic_IdAndStatusOrderByViewCountDesc(topicId, 2)); 
+        return populateThreadsStats(
+            threadRepository.findTop5ByTopic_IdAndStatusAndIdNotOrderByViewCountDesc(topicId, 2, currentThreadId)
+        );
     }
 
     @Override
@@ -259,7 +270,8 @@ public class ThreadServiceImpl implements ThreadService {
             return response;
         }
 
-        Page<Thread> threadsPage = threadRepository.findByAccountEmailOrderByCreatedAtDesc(email, PageRequest.of(0, 1000));
+        // Only count published threads (status = 2)
+        Page<Thread> threadsPage = threadRepository.findByAccountEmailAndStatusOrderByCreatedAtDesc(email, 2, PageRequest.of(0, 1000));
         long threadCount = threadsPage.getTotalElements();
         
         long totalLikes = 0;
@@ -282,6 +294,22 @@ public class ThreadServiceImpl implements ThreadService {
         reportRepository.deleteByTargetIdAndTargetType(id.toString(), "THREAD");
         commentRepository.deleteByThreadId(id);
         threadRepository.delete(thread);
+    }
+
+    @Override
+    @Transactional
+    public void rejectThread(Integer id, String reason) {
+        Thread thread = threadRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Thread not found with id: " + id));
+
+        if (thread.getAccount() != null) {
+            String title = "Bài viết \"" + thread.getTitle() + "\" bị từ chối";
+            String content = "Bài viết \"" + thread.getTitle() + "\" của bạn đã bị từ chối duyệt. Lý do: " + reason;
+            notificationService.createNotification(thread.getAccount(), title, content, "FORUM_REJECT");
+        }
+
+        thread.setStatus(3); // 3 = Rejected
+        threadRepository.save(thread);
     }
 
     @Override
@@ -430,5 +458,19 @@ public class ThreadServiceImpl implements ThreadService {
             threadsList.forEach(this::populateThreadStats);
         }
         return threadsList;
+    }
+
+    // Automatically delete rejected threads that are older than 24 hours
+    @Scheduled(cron = "0 0 * * * *") // Runs every hour
+    @Transactional
+    public void deleteExpiredRejectedThreads() {
+        LocalDateTime cutoff = LocalDateTime.now().minusHours(24);
+        List<Thread> expiredThreads = threadRepository.findAllByStatusAndUpdatedAtBefore(3, cutoff);
+        for (Thread thread : expiredThreads) {
+            voteRepository.deleteByTargetIdAndType(thread.getId().toString(), 1);
+            reportRepository.deleteByTargetIdAndTargetType(thread.getId().toString(), "THREAD");
+            commentRepository.deleteByThreadId(thread.getId());
+            threadRepository.delete(thread);
+        }
     }
 }

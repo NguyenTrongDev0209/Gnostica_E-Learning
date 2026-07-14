@@ -207,6 +207,21 @@ public class ThreadController {
         }
     }
 
+    @PostMapping("/{id}/reject")
+    public ResponseEntity<?> rejectThread(@PathVariable Integer id, @RequestBody Map<String, String> payload) {
+        try {
+            String reason = payload.get("reason");
+            if (reason == null || reason.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("Lỗi: Yêu cầu cung cấp lý do từ chối!");
+            }
+            threadService.rejectThread(id, reason);
+            return ResponseEntity.ok(Map.of("message", "Thread rejected successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error rejecting thread: " + e.getMessage());
+        }
+    }
+
     @GetMapping("/pending")
     public ResponseEntity<?> getPendingThreads(
             @RequestParam(defaultValue = "0") int page,

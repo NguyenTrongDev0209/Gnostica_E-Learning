@@ -37,7 +37,15 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             String provider = userRequest.getClientRegistration().getRegistrationId().toUpperCase();
             String email = oAuth2User.getAttribute("email");
             String name = oAuth2User.getAttribute("name");
-            String picture = oAuth2User.getAttribute("picture"); // Link avatar từ Google
+            
+            // Lấy avatar (kiểm tra nhiều thuộc tính khác nhau để tăng khả năng tương thích)
+            String picture = oAuth2User.getAttribute("picture");
+            if (picture == null) {
+                picture = oAuth2User.getAttribute("avatar_url"); // Fallback cho Github/Gitlab
+            }
+            if (picture == null) {
+                picture = oAuth2User.getAttribute("avatar");     // Fallback dự phòng khác
+            }
             
             System.out.println("Processing OAuth2 user: email=" + email + ", name=" + name + ", avatar=" + picture);
             

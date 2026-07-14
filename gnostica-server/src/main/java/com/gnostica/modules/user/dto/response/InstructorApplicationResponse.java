@@ -14,6 +14,7 @@ public class InstructorApplicationResponse {
     private String contactPhone;
     private String cvUrl;
     private String degreeUrls;
+    private String certificateUrls;
     private String sampleVideoUrl;
     private String courseOutline;
     private String status;
