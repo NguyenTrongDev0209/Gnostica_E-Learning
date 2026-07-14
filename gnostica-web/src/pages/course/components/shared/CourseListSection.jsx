@@ -1,5 +1,5 @@
 import React from "react";
-import AppCard, { CourseCardHorizontal } from "@/components/common/composite/AppCard";
+import CourseCard, { CourseCardHorizontal } from "@/components/common/composite/CourseCard";
 import FilterOptions from "@/components/common/composite/FilterOptions";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";

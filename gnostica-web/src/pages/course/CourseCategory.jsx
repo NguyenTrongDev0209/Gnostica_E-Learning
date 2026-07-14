@@ -1,6 +1,6 @@
 import React from "react";
 import { useParams } from "react-router-dom";
-import { CourseCardHorizontal } from "@/components/common/composite/AppCard";
+import { CourseCardHorizontal } from "@/components/common/composite/CourseCard";
 import PageContainer from "@/components/common/core/PageContainer";
 import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
 import { Home } from "lucide-react";

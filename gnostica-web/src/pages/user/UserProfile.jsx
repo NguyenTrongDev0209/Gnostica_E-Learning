@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import PageContainer from "@/components/common/core/PageContainer";
 import { Card, CardContent } from "@/components/ui/card";
@@ -7,12 +7,18 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import AppCard, { ForumPostCard } from "@/components/common/composite/AppCard";
+import CourseCard, { ForumPostCard } from "@/components/common/composite/CourseCard";
 import {
   MessageSquare, ThumbsUp, Eye, Clock, MapPin, Link as LinkIcon,
   Calendar, Star, Award, BookOpen, Flame, UserPlus, Send, Users, Sparkles
 } from 'lucide-react';
-import StatItem from '@/components/common/composite/StatItem';
+const StatBlock = ({ icon: Icon, value, label, color = "text-primary" }) => (
+  <div className="flex flex-col items-center gap-1 py-3 px-4">
+    <Icon className={`w-5 h-5 ${color} mb-0.5`} />
+    <span className="text-xl font-bold text-foreground">{value}</span>
+    <span className="text-xs text-muted-foreground font-medium">{label}</span>
+  </div>
+);
 import {
   Dialog,
   DialogContent,
@@ -301,17 +307,17 @@ const UserProfile = () => {
               <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-border">
                 {isInstructor ? (
                   <>
-                    <StatItem icon={BookOpen} value={user.stats.courses || 0} label="Khóa học" />
-                    <StatItem icon={Users} value={user.stats.students || 0} label="Học viên" color="text-warning" />
+                    <StatBlock icon={BookOpen} value={user.stats.courses || 0} label="Khóa học" />
+                    <StatBlock icon={Users} value={user.stats.students || 0} label="Học viên" color="text-warning" />
                   </>
                 ) : (
                   <>
-                    <StatItem icon={BookOpen} value={user.stats.posts} label="Bài đăng" />
-                    <StatItem icon={ThumbsUp} value={user.stats.likes} label="Lượt thích" color="text-warning" />
+                    <StatBlock icon={BookOpen} value={user.stats.posts} label="Bài đăng" />
+                    <StatBlock icon={ThumbsUp} value={user.stats.likes} label="Lượt thích" color="text-warning" />
                   </>
                 )}
-                <StatItem icon={Eye} value={user.stats.views} label="Lượt xem" color="text-info" />
-                <StatItem icon={MessageSquare} value={user.stats.comments} label="Bình luận" color="text-success" />
+                <StatBlock icon={Eye} value={user.stats.views} label="Lượt xem" color="text-info" />
+                <StatBlock icon={MessageSquare} value={user.stats.comments} label="Bình luận" color="text-success" />
               </div>
             </CardContent>
           </Card>
@@ -344,7 +350,7 @@ const UserProfile = () => {
                   ) : instructorCourses.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                       {instructorCourses.map(course => (
-                        <AppCard
+                        <CourseCard
                           key={course.id}
                           title={course.title}
                           image={course.thumbnail}

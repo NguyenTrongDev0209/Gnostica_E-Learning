@@ -1,7 +1,7 @@
 import React from 'react';
 import PageContainer from "@/components/common/core/PageContainer";
 import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
-import { ForumPostCard } from "@/components/common/composite/AppCard";
+import { ForumPostCard } from "@/components/common/composite/CourseCard";
 import { ChevronLeft, ThumbsUp, LayoutGrid, Trash2 } from 'lucide-react';
 import { AppButton } from "@/components/common/micro/AppButton";
 import { useNavigate, Link } from "react-router-dom";

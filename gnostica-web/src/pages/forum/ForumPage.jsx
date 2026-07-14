@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import PageContainer from "@/components/common/core/PageContainer";
-import { ForumPostCard } from "@/components/common/composite/AppCard";
+import { ForumPostCard } from "@/components/common/composite/CourseCard";
 import { Search } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { useNavigate, useLocation } from "react-router-dom";
