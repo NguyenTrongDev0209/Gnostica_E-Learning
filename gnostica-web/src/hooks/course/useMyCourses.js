@@ -1,16 +1,21 @@
 import { useState, useEffect } from "react";
-import { MOCK_COURSES } from "@/mocks/accountMocks";
+import { MOCK_COURSES, MOCK_STATS } from "@/mocks/accountMocks";
 
 export default function useMyCourses() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [selectedCategories, setSelectedCategories] = useState([]);
   const [courses, setCourses] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setLoading(true);
     setTimeout(() => {
       setCourses(MOCK_COURSES);
+      setCategories([...new Set(MOCK_COURSES.map(c => c.category).filter(Boolean))]);
+      setStats(MOCK_STATS);
       setLoading(false);
     }, 600);
   }, []);
@@ -25,7 +30,8 @@ export default function useMyCourses() {
     const matchesSearch = course.courseTitle.toLowerCase().includes(searchQuery.toLowerCase());
     const status = getStatus(course.progressPercent);
     const matchesStatus = statusFilter === "all" || status === statusFilter;
-    return matchesSearch && matchesStatus;
+    const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(course.category);
+    return matchesSearch && matchesStatus && matchesCategory;
   });
 
   return {
@@ -35,6 +41,10 @@ export default function useMyCourses() {
     setSearchQuery,
     statusFilter,
     setStatusFilter,
-    totalCourses: courses.length
+    selectedCategories,
+    setSelectedCategories,
+    categories,
+    totalCourses: courses.length,
+    stats
   };
 }

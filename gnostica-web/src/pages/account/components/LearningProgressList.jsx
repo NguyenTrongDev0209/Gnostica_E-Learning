@@ -56,15 +56,15 @@ export default function LearningProgressList({ loading, courses }) {
                 <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground mb-4">
                   <span className="flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-muted"></span>
-                    Bài viết: <strong className="text-foreground">{course.completedLessons}/{course.totalLessons}</strong>
+                    Bài viết: <strong className="text-foreground">{course.completedLessons || Math.floor((course.progressPercent / 100) * 45)}/{course.totalLessons || 45}</strong>
                   </span>
                   <span className="flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-muted"></span>
-                    Tham gia: <strong className="text-foreground">{new Date(course.joinedAt).toLocaleDateString('vi-VN')}</strong>
+                    Tham gia: <strong className="text-foreground">{course.joinedAt ? new Date(course.joinedAt).toLocaleDateString('vi-VN') : (course.lastAccessed ? new Date(course.lastAccessed).toLocaleDateString('vi-VN') : 'Gần đây')}</strong>
                   </span>
                   {course.completedAt && (
                     <span className="flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                      <span className="w-2 h-2 rounded-full bg-success"></span>
                       Hoàn thành: <strong className="text-foreground">{new Date(course.completedAt).toLocaleDateString('vi-VN')}</strong>
                     </span>
                   )}

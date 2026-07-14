@@ -12,7 +12,7 @@ export default function AccountWelcomeBanner({ user, isInstructor, handleBecomeI
         </div>
         <CardContent className="p-6 md:p-8 relative z-10">
           <h2 className="text-xl sm:text-2xl font-extrabold mb-2">
-            Chào mừng trở lại, {user?.fullName || "Học viên"}! 👋
+            Chào mừng trở lại, {user?.fullName || "Học viên"}!
           </h2>
           <p className="text-slate-200 text-sm leading-relaxed max-w-xl">
             Tiếp tục hành trình chinh phục kiến thức mới hôm nay nhé. Mỗi phút học tập đều đưa bạn đến gần hơn với mục tiêu!

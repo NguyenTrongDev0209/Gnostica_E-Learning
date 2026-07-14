@@ -6,7 +6,6 @@ import { Separator } from "@/components/ui/separator";
 import {
   LayoutDashboard,
   BookOpen,
-  Activity,
   Award,
   ShoppingBag,
   Heart,
@@ -24,7 +23,6 @@ const MENU_GROUPS = [
     items: [
       { label: "Tổng quan", icon: LayoutDashboard, href: "/account" },
       { label: "Khóa học của tôi", icon: BookOpen, href: "/account/my-courses" },
-      { label: "Tiến độ học tập", icon: Activity, href: "/account/progress" },
       { label: "Giảng viên yêu thích", icon: Users, href: "/account/following" },
       { label: "Chứng chỉ", icon: Award, href: "/account/certificates" },
     ],

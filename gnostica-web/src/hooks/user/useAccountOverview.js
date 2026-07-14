@@ -14,8 +14,9 @@ export default function useAccountOverview() {
         recentCertificates: [
           {
             id: "CERT-2026-891",
-            title: "Thi?t k? UI/UX Th?c chi?n v?i Figma",
-            issueDate: "15/03/2026",
+            title: "Thiết kế UI/UX Thực chiến với Figma",
+            date: "15/03/2026",
+            color: "from-primary to-blue-500",
             image: "https://images.unsplash.com/photo-1586717791821-3f44a563fc4c?q=80&w=400&auto=format&fit=crop",
           }
         ]

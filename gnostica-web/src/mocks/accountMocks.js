@@ -13,7 +13,8 @@ export const MOCK_COURSES = [
     slug: "thiet-ke-ui-ux-thuc-chien-voi-figma",
     thumbnail: "https://images.unsplash.com/photo-1586717791821-3f44a563fc4c?q=80&w=400&auto=format&fit=crop",
     progressPercent: 45,
-    lastAccessed: "2026-07-10T10:00:00Z"
+    lastAccessed: "2026-07-10T10:00:00Z",
+    category: "Lập trình Web"
   },
   {
     id: 2,
@@ -21,7 +22,8 @@ export const MOCK_COURSES = [
     slug: "javascript-co-ban-den-nang-cao",
     thumbnail: "https://images.unsplash.com/photo-1627398242454-4bcf1c8f1d8?q=80&w=400&auto=format&fit=crop",
     progressPercent: 100,
-    lastAccessed: "2026-06-25T14:30:00Z"
+    lastAccessed: "2026-06-25T14:30:00Z",
+    category: "Lập trình Web"
   },
   {
     id: 3,
@@ -29,7 +31,8 @@ export const MOCK_COURSES = [
     slug: "reactjs-masterclass",
     thumbnail: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=400&auto=format&fit=crop",
     progressPercent: 0,
-    lastAccessed: null
+    lastAccessed: null,
+    category: "Frontend"
   }
 ];
 

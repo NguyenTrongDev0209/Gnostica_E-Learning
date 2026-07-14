@@ -2,7 +2,6 @@ import LearningWorkspace from "@/pages/learning/LearningWorkspace";
 
 import AccountOverview from "@/pages/account/AccountOverview";
 import MyCourses from "@/pages/account/MyCourses";
-import LearningProgress from "@/pages/account/LearningProgress";
 import Certificates from "@/pages/account/Certificates";
 import Wishlist from "@/pages/account/Wishlist";
 import Orders from "@/pages/account/Orders";
@@ -47,7 +46,6 @@ export const privateRoutes = {
   account: [
     { path: "/account", component: AccountOverview },
     { path: "/account/my-courses", component: MyCourses },
-    { path: "/account/progress", component: LearningProgress },
     { path: "/account/certificates", component: Certificates },
     { path: "/account/wishlist", component: Wishlist },
     { path: "/account/orders", component: Orders },
