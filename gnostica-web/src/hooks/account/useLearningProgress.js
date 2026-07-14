@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import enrollmentService from "@/services/course/enrollmentService";
-import { toast } from "sonner";
+import { MOCK_STATS, MOCK_COURSES } from "@/mocks/accountMocks";
 
 export default function useLearningProgress() {
   const [courses, setCourses] = useState([]);
@@ -8,30 +7,12 @@ export default function useLearningProgress() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const [statsRes, coursesRes] = await Promise.all([
-          enrollmentService.getMyStats(),
-          enrollmentService.getMyCourses()
-        ]);
-
-        if (statsRes.success) {
-          setStats(statsRes.data);
-        }
-
-        if (coursesRes.success) {
-          setCourses(coursesRes.data);
-        }
-      } catch (error) {
-        console.error("Error fetching progress data:", error);
-        toast.error("Không thể tải thông tin tiến độ học tập");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
+    setLoading(true);
+    setTimeout(() => {
+      setStats(MOCK_STATS);
+      setCourses(MOCK_COURSES);
+      setLoading(false);
+    }, 600);
   }, []);
 
   return {

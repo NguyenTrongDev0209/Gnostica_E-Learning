@@ -13,7 +13,7 @@ import { AppButton } from "@/components/common/micro/AppButton";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
-import { checkoutStatusConfig } from "@/apiMocks/checkout";
+import { checkoutStatusConfig } from "@/mocks/checkout";
 import orderService from "@/services/order/orderService";
 
 export default function CheckoutResult() {

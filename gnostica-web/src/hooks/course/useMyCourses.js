@@ -1,19 +1,19 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import enrollmentService from "@/services/course/enrollmentService";
+import { useState, useEffect } from "react";
+import { MOCK_COURSES } from "@/mocks/accountMocks";
 
 export default function useMyCourses() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const { data: courses = [], isLoading: loading } = useQuery({
-    queryKey: ['my_courses'],
-    queryFn: async () => {
-      const response = await enrollmentService.getMyCourses();
-      return response?.data || [];
-    },
-    staleTime: 1000 * 60 * 5, // 5 phút cache
-  });
+  useEffect(() => {
+    setLoading(true);
+    setTimeout(() => {
+      setCourses(MOCK_COURSES);
+      setLoading(false);
+    }, 600);
+  }, []);
 
   const getStatus = (progress) => {
     if (progress === 100) return "completed";

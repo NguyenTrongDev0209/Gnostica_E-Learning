@@ -3,7 +3,7 @@ import PageContainer from '@/components/common/core/PageContainer';
 import { Link } from "react-router-dom";
 import { Home, FileText } from "lucide-react";
 import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
-import { termsSectionsMock } from "@/apiMocks/staticPages";
+import { termsSectionsMock } from "@/mocks/staticPages";
 
 export default function TermsPage() {
   return (

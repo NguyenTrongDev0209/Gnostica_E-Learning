@@ -1,4 +1,4 @@
-import { mockPlatformStats, mockInstructors } from '@/apiMocks/home';
+import { mockPlatformStats, mockInstructors } from '@/mocks/home';
 
 /**
  * Service mock cho trang chủ (Home Page)

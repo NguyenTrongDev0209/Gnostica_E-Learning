@@ -3,7 +3,7 @@ import PageContainer from '@/components/common/core/PageContainer';
 import { Link } from "react-router-dom";
 import { Home, Shield } from "lucide-react";
 import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
-import { privacySectionsMock } from "@/apiMocks/staticPages";
+import { privacySectionsMock } from "@/mocks/staticPages";
 
 export default function PrivacyPage() {
   return (

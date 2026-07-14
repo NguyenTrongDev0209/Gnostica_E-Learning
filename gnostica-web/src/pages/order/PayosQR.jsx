@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
 import { toast } from "sonner";
-import { payosPaymentMock } from "@/apiMocks/payment";
+import { payosPaymentMock } from "@/mocks/payment";
 import orderService from "@/services/order/orderService";
 
 export default function PayosQR() {

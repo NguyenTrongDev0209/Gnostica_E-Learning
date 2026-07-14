@@ -1,48 +1,33 @@
-import { useQuery } from "@tanstack/react-query";
-import enrollmentService from "@/services/course/enrollmentService";
-import { toast } from "sonner";
+import { useState, useEffect } from "react";
+import { MOCK_STATS, MOCK_COURSES } from "@/mocks/accountMocks";
 
 export default function useAccountOverview() {
-  const { data, isLoading: loading } = useQuery({
-    queryKey: ['account_overview'],
-    queryFn: async () => {
-      const [statsRes, coursesRes] = await Promise.all([
-        enrollmentService.getMyStats(),
-        enrollmentService.getMyCourses()
-      ]);
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState({ stats: null, recentCourses: [], recentCertificates: [] });
 
-      let stats = null;
-      let recentCourses = [];
-      let recentCertificates = [];
-
-      if (statsRes.success) {
-        stats = statsRes.data;
-      }
-
-      if (coursesRes.success) {
-        const courses = coursesRes.data;
-        recentCourses = courses.slice(0, 3);
-        
-        recentCertificates = courses
-          .filter(c => c.progressPercent === 100)
-          .map(c => ({
-            id: c.id,
-            title: c.courseTitle,
-            date: c.completedAt ? new Date(c.completedAt).toLocaleDateString('vi-VN') : "N/A",
-            color: "from-blue-500 to-cyan-500", 
-          }))
-          .slice(0, 2);
-      }
-
-      return { stats, recentCourses, recentCertificates };
-    },
-    staleTime: 1000 * 60 * 5, // 5 phút cache
-  });
+  useEffect(() => {
+    setLoading(true);
+    setTimeout(() => {
+      setData({
+        stats: MOCK_STATS,
+        recentCourses: MOCK_COURSES,
+        recentCertificates: [
+          {
+            id: "CERT-2026-891",
+            title: "Thi?t k? UI/UX Th?c chi?n v?i Figma",
+            issueDate: "15/03/2026",
+            image: "https://images.unsplash.com/photo-1586717791821-3f44a563fc4c?q=80&w=400&auto=format&fit=crop",
+          }
+        ]
+      });
+      setLoading(false);
+    }, 600);
+  }, []);
 
   return {
-    stats: data?.stats || null,
-    recentCourses: data?.recentCourses || [],
-    recentCertificates: data?.recentCertificates || [],
+    stats: data.stats,
+    recentCourses: data.recentCourses,
+    recentCertificates: data.recentCertificates,
     loading
   };
 }

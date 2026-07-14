@@ -29,7 +29,7 @@ import PageContainer from "@/components/common/core/PageContainer";
 import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
 import CartItemTableRow from "@/components/common/composite/CartItemTableRow";
 import { Home } from "lucide-react";
-import { cartItemsMock } from "@/apiMocks/cart";
+import { cartItemsMock } from "@/mocks/cart";
 
 export default function CourseCart() {
   const [cart, setCart] = useState(cartItemsMock);

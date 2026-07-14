@@ -1,37 +1,22 @@
-import { useState, useEffect, useCallback } from 'react';
-import followingService from '@/services/instructor/followingService';
+import { useState, useEffect } from 'react';
+import { MOCK_INSTRUCTORS } from '@/mocks/accountMocks';
 import { toast } from 'sonner';
 
 export default function useFavoriteInstructors() {
     const [instructors, setInstructors] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    const fetchFollowedInstructors = useCallback(async () => {
-        try {
-            setLoading(true);
-            const res = await followingService.getFollowedInstructors();
-            setInstructors(res.data || []);
-        } catch (err) {
-            console.error("Lỗi lấy danh sách giảng viên theo dõi", err);
-        } finally {
+    useEffect(() => {
+        setLoading(true);
+        setTimeout(() => {
+            setInstructors(MOCK_INSTRUCTORS);
             setLoading(false);
-        }
+        }, 600);
     }, []);
 
-    useEffect(() => {
-        fetchFollowedInstructors();
-    }, [fetchFollowedInstructors]);
-
-    const handleUnfollow = async (instructorId) => {
-        try {
-            const res = await followingService.toggleFollow(instructorId);
-            if (!res.data.isFollowing) {
-                setInstructors(prev => prev.filter(inst => inst.id !== instructorId));
-                toast.success("Đã bỏ theo dõi giảng viên");
-            }
-        } catch (err) {
-            toast.error("Không thể bỏ theo dõi!");
-        }
+    const handleUnfollow = (instructorId) => {
+        setInstructors(prev => prev.filter(inst => inst.id !== instructorId));
+        toast.success("�� b? theo d�i gi?ng vi�n");
     };
 
     return {

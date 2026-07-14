@@ -17,7 +17,7 @@ export default function AboutVision({ data }) {
               <div className="text-xs bg-accent-gradient bg-clip-text text-transparent font-bold mt-2 uppercase tracking-widest">— {data.author}</div>
             </div>
           </div>
-          <div className="aspect-square bg-card text-card-foreground rounded-3xl shadow-2xl relative overflow-hidden flex items-center justify-center group">
+          <div className="aspect-square bg-primary text-primary-foreground rounded-3xl shadow-2xl relative overflow-hidden flex items-center justify-center group">
              <div className="flex flex-col items-center gap-4 text-white p-12">
                 <div className="w-20 h-28 border border-white/20 rounded-t-full flex items-center justify-center">
                   <div className="w-8 h-8 rounded-full bg-warning/10 text-warning shadow-glow"></div>

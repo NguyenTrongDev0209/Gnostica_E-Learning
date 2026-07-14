@@ -4,7 +4,7 @@ import { CourseCardHorizontal } from "@/components/common/composite/CourseCard";
 import PageContainer from "@/components/common/core/PageContainer";
 import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
 import { Home } from "lucide-react";
-import { popularCoursesMock } from "@/apiMocks/courses";
+import { popularCoursesMock } from "@/mocks/courses";
 
 export default function CourseCategory() {
   const { categoryName } = useParams();

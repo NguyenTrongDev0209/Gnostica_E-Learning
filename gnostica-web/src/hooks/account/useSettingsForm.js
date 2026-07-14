@@ -1,98 +1,55 @@
 import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import accountService from "@/services/user/accountService";
 
 export default function useSettingsForm(user) {
-  const [personalizationOpen, setPersonalizationOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    fullName: "",
-    email: "",
-    phone: "",
-    bio: "",
-    avatar: "",
+  const [loading, setLoading] = useState(false);
+  
+  const form = useForm({
+    defaultValues: {
+      fullName: "",
+      phone: "",
+      headline: "",
+      bio: "",
+      website: "",
+      facebook: "",
+      linkedin: "",
+    }
   });
-
-  const [isLoading, setIsLoading] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-
-  // Crop state
-  const [cropModalOpen, setCropModalOpen] = useState(false);
-  const [tempImage, setTempImage] = useState(null);
 
   useEffect(() => {
     if (user) {
-      setFormData({
+      form.reset({
         fullName: user.fullName || "",
-        email: user.email || "",
         phone: user.phone || "",
-        bio: "Học viên đam mê công nghệ và lập trình. Luôn thích khám phá các kiến thức mới về Frontend Development.",
-        avatar: user.avatar || "",
+        headline: user.headline || "H?c vi�n t?i Gnostica",
+        bio: user.bio || "Xin ch�o, t�i l� h?c vi�n m?i.",
+        website: user.website || "",
+        facebook: user.facebook || "",
+        linkedin: user.linkedin || "",
       });
     }
-  }, [user]);
+  }, [user, form]);
 
-  const handleChange = (e) => {
-    const { id, value } = e.target;
-    setFormData((prev) => ({ ...prev, [id]: value }));
-  };
-
-  const handleAvatarChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    if (!file.type.startsWith('image/')) {
-      toast.error('Vui lòng chọn tệp hình ảnh!');
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.addEventListener('load', () => {
-      setTempImage(reader.result);
-      setCropModalOpen(true);
-    });
-    reader.readAsDataURL(file);
-    e.target.value = '';
-  };
-
-  const handleCropComplete = async (croppedFile) => {
-    try {
-      setIsUploading(true);
-      const res = await accountService.updateAvatar(user.email, croppedFile);
-      if (res.status === 200) {
-        setFormData(prev => ({ ...prev, avatar: res.data.avatarUrl }));
-        toast.success('Cập nhật ảnh đại diện thành công!');
-        window.dispatchEvent(new Event('storage'));
-      }
-    } catch (error) {
-      toast.error(error.message || 'Có lỗi xảy ra');
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    // Simulate API call for other profile info
+  const onSubmit = (data) => {
+    setLoading(true);
     setTimeout(() => {
-      setIsLoading(false);
-      toast.success("Đã cập nhật thông tin cá nhân thành công!");
-    }, 1000);
+      toast.success("C?p nh?t th�ng tin th�nh c�ng!");
+      setLoading(false);
+    }, 800);
+  };
+
+  const handleAvatarUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      toast.success("�� t?i ?nh l�n th�nh c�ng (mock)");
+    }
   };
 
   return {
-    formData,
-    isLoading,
-    isUploading,
-    personalizationOpen,
-    setPersonalizationOpen,
-    cropModalOpen,
-    setCropModalOpen,
-    tempImage,
-    handleChange,
-    handleAvatarChange,
-    handleCropComplete,
-    handleSubmit
+    form,
+    loading,
+    onSubmit: form.handleSubmit(onSubmit),
+    handleAvatarUpload
   };
 }

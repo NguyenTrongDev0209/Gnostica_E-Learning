@@ -7,7 +7,7 @@ import CourseCard from "@/components/common/composite/CourseCard";
 import { Home } from "lucide-react";
 import useCategories from "@/hooks/course/useCategories";
 import useCourses from "@/hooks/course/useCourses";
-import { popularCoursesMock } from "@/apiMocks/courses";
+import { popularCoursesMock } from "@/mocks/courses";
 
 // Mock "thịnh hành" = reversed order for differentiation
 const trendingCoursesMock = [...popularCoursesMock].reverse();
