@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import PageContainer from "@/components/common/core/PageContainer";
 import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
-import { Card, CardContent } from "@/components/ui/card";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
+import AppCard, { AppCardContent } from "@/components/common/micro/AppCard";
+import AppAvatar from "@/components/common/micro/AppAvatar";
+import AppBadge from "@/components/common/micro/AppBadge";
 import {
   Clock, Eye, Tag, Flame, ThumbsUp, ArrowUp, ArrowDown, Share2, Flag
 } from 'lucide-react';
@@ -113,16 +113,16 @@ const ForumDetail = () => {
           <div className="flex-1 flex flex-col gap-6 min-w-0">
 
             {/* Post Card */}
-            <Card className="bg-white border-border shadow-sm">
-              <CardContent className="p-5 sm:p-7">
+            <AppCard appVariant="default" className="bg-white border-border shadow-sm">
+              <AppCardContent className="p-5 sm:p-7">
                 <div className="flex items-center gap-2 mb-3 flex-wrap">
-                  <Badge variant="secondary" className="bg-primary/10 text-primary border-none text-xs font-semibold">
+                  <AppBadge variant="primary" soft className="text-xs font-semibold">
                     {post.topic?.title || "Thảo luận"}
-                  </Badge>
+                  </AppBadge>
                   {(post.views || 0) > 100 && (
-                    <Badge className="bg-warning/10 text-warning border-none text-xs font-semibold gap-1">
+                    <AppBadge variant="warning" soft className="text-xs font-semibold gap-1">
                       <Flame className="w-3 h-3 fill-warning" /> Đang hot
-                    </Badge>
+                    </AppBadge>
                   )}
                 </div>
 
@@ -131,12 +131,12 @@ const ForumDetail = () => {
                 </h1>
 
                 <div className="flex items-center gap-3 mb-5 pb-5 border-b border-border">
-                  <Avatar className="w-10 h-10 ring-2 ring-primary/10">
-                    <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${post.account?.email || 'default'}`} alt={post.account?.fullName} />
-                    <AvatarFallback className="bg-primary/10 text-primary font-bold">
-                      {(post.account?.fullName || "A").substring(0, 2).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
+                  <AppAvatar 
+                    className="w-10 h-10 ring-2 ring-primary/10"
+                    src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${post.account?.email || 'default'}`} 
+                    alt={post.account?.fullName || "Ẩn danh"}
+                    fallback={(post.account?.fullName || "A").substring(0, 2).toUpperCase()}
+                  />
                   <div>
                     <p className="text-sm font-semibold text-foreground">{post.account?.fullName || "Ẩn danh"}</p>
                     <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
@@ -175,18 +175,15 @@ const ForumDetail = () => {
                         to={`/forum?tag=${encodeURIComponent(th.hashtag?.name || '')}`}
                         className="inline-flex"
                       >
-                        <Badge
-                          variant="secondary"
-                          className="bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 text-xs font-semibold cursor-pointer transition-colors"
-                        >
+                        <AppBadge variant="primary" soft className="text-xs font-semibold cursor-pointer">
                           #{th.hashtag?.name}
-                        </Badge>
+                        </AppBadge>
                       </Link>
                     ))
                   ) : (
-                    <Badge variant="secondary" className="bg-secondary text-muted-foreground hover:bg-muted border-none text-xs">
+                    <AppBadge variant="secondary" soft className="text-xs">
                       Thảo luận
-                    </Badge>
+                    </AppBadge>
                   )}
                 </div>
 
@@ -272,8 +269,8 @@ const ForumDetail = () => {
                     </div>
                   </div>
                 )}
-              </CardContent>
-            </Card>
+              </AppCardContent>
+            </AppCard>
 
             {/* Comments Section */}
             {!isOwnerViewingPending && (

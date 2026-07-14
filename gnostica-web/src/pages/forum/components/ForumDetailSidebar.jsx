@@ -1,8 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Card, CardContent } from "@/components/ui/card";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Separator } from "@/components/ui/separator";
+import AppCard, { AppCardContent } from "@/components/common/micro/AppCard";
+import AppAvatar from "@/components/common/micro/AppAvatar";
+import AppSeparator from "@/components/common/micro/AppSeparator";
 import { Eye, ThumbsUp, MessageSquare, ChevronLeft } from 'lucide-react';
 import { AppButton } from "@/components/common/micro/AppButton";
 
@@ -10,22 +10,21 @@ const ForumDetailSidebar = ({ post, relatedPosts }) => {
   return (
     <div className="w-full lg:w-72 xl:w-80 flex flex-col gap-6 shrink-0">
       {/* Author Info */}
-      <Card className="bg-white shadow-sm border-border">
-        <CardContent className="p-5">
+      <AppCard appVariant="default" className="bg-white shadow-sm border-border">
+        <AppCardContent className="p-5">
           <h3 className="text-sm font-bold text-foreground mb-4">Thông tin tác giả</h3>
           <div className="flex items-center gap-3 mb-4">
-            <Avatar className="w-12 h-12 ring-2 ring-primary/10">
-              <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${post.account?.email || 'default'}`} />
-              <AvatarFallback className="bg-primary/10 text-primary font-bold">
-                {(post.account?.fullName || "A").substring(0, 2).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
+            <AppAvatar 
+              className="w-12 h-12 ring-2 ring-primary/10"
+              src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${post.account?.email || 'default'}`}
+              fallback={(post.account?.fullName || "A").substring(0, 2).toUpperCase()}
+            />
             <div>
               <p className="font-bold text-foreground">{post.account?.fullName || "Ẩn danh"}</p>
               <p className="text-xs text-muted-foreground">Email: {post.account?.email}</p>
             </div>
           </div>
-          <Separator className="mb-4" />
+          <AppSeparator className="mb-4" />
           <div className="flex justify-around text-center">
             <div>
               <p className="font-bold text-foreground">{post.likes || 0}</p>
@@ -36,12 +35,12 @@ const ForumDetailSidebar = ({ post, relatedPosts }) => {
               <p className="text-xs text-muted-foreground">Bình luận</p>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </AppCardContent>
+      </AppCard>
 
       {/* Post Stats */}
-      <Card className="bg-white shadow-sm border-border">
-        <CardContent className="p-5">
+      <AppCard appVariant="default" className="bg-white shadow-sm border-border">
+        <AppCardContent className="p-5">
           <h3 className="text-sm font-bold text-foreground mb-4">Thống kê bài viết</h3>
           <div className="flex flex-col gap-3">
             {[
@@ -57,12 +56,12 @@ const ForumDetailSidebar = ({ post, relatedPosts }) => {
               </div>
             ))}
           </div>
-        </CardContent>
-      </Card>
+        </AppCardContent>
+      </AppCard>
 
       {/* Related Posts */}
-      <Card className="bg-white shadow-sm border-border">
-        <CardContent className="p-5">
+      <AppCard appVariant="default" className="bg-white shadow-sm border-border">
+        <AppCardContent className="p-5">
           <h3 className="text-sm font-bold text-foreground mb-4">Bài viết liên quan</h3>
           <div className="flex flex-col gap-3">
             {relatedPosts && relatedPosts.length > 0 ? (
@@ -83,14 +82,14 @@ const ForumDetailSidebar = ({ post, relatedPosts }) => {
             )}
           </div>
 
-          <Separator className="my-4" />
+          <AppSeparator className="my-4" />
           <Link to="/forum">
             <AppButton appVariant="ghostMuted" variant="ghost" className="w-full text-sm gap-2 border border-border" size="sm">
               <ChevronLeft className="w-4 h-4" /> Quay về diễn đàn
             </AppButton>
           </Link>
-        </CardContent>
-      </Card>
+        </AppCardContent>
+      </AppCard>
     </div>
   );
 };

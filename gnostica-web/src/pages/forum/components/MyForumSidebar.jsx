@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Card, CardContent } from "@/components/ui/card";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import AppCard, { AppCardContent } from "@/components/common/micro/AppCard";
+import AppAvatar from "@/components/common/micro/AppAvatar";
 import { FileText, ThumbsUp, LayoutGrid } from 'lucide-react';
 import { AppButton } from "@/components/common/micro/AppButton";
 import { cn } from "@/lib/utils";
@@ -9,15 +9,14 @@ import { cn } from "@/lib/utils";
 const MyForumSidebar = ({ currentUser, userStats, activeTab, setActiveTab }) => {
   return (
     <div className="w-full lg:w-72 xl:w-80 flex flex-col gap-6 shrink-0 order-2 lg:order-1">
-      <Card className="bg-white shadow-sm border-border overflow-hidden">
+      <AppCard appVariant="default" className="bg-white shadow-sm border-border overflow-hidden">
         <div className="h-24 bg-accent-gradient" />
-        <CardContent className="p-5 -mt-12 text-center">
-          <Avatar className="w-20 h-20 mx-auto border-4 border-white shadow-md mb-4 bg-white">
-            <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser?.email || 'default'}`} />
-            <AvatarFallback className="bg-primary/10 text-primary text-xl font-bold">
-              {currentUser?.fullName?.substring(0, 2).toUpperCase() || "U"}
-            </AvatarFallback>
-          </Avatar>
+        <AppCardContent className="p-5 -mt-12 text-center">
+          <AppAvatar 
+            className="w-20 h-20 mx-auto border-4 border-white shadow-md mb-4 bg-white"
+            src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser?.email || 'default'}`}
+            fallback={currentUser?.fullName?.substring(0, 2).toUpperCase() || "U"}
+          />
           <h3 className="font-bold text-lg text-foreground mb-1">{currentUser?.fullName || "Tài khoản của tôi"}</h3>
           <p className="text-sm text-muted-foreground mb-6">{currentUser?.email}</p>
 
@@ -37,11 +36,11 @@ const MyForumSidebar = ({ currentUser, userStats, activeTab, setActiveTab }) => 
               <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Lượt thích</span>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </AppCardContent>
+      </AppCard>
 
-      <Card className="bg-white shadow-sm border-border">
-        <CardContent className="p-5">
+      <AppCard appVariant="default" className="bg-white shadow-sm border-border">
+        <AppCardContent className="p-5">
           <h4 className="font-bold text-sm text-foreground mb-4 flex items-center gap-2">
             <LayoutGrid className="w-4 h-4 text-primary" />
             Truy cập nhanh
@@ -73,8 +72,8 @@ const MyForumSidebar = ({ currentUser, userStats, activeTab, setActiveTab }) => 
               </AppButton>
             </Link>
           </div>
-        </CardContent>
-      </Card>
+        </AppCardContent>
+      </AppCard>
     </div>
   );
 };

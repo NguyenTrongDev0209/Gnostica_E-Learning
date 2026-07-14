@@ -2,21 +2,14 @@ import React, { useState } from 'react';
 import PageContainer from "@/components/common/core/PageContainer";
 import { ForumPostCard } from "@/components/common/composite/CourseCard";
 import { Search } from 'lucide-react';
-import { Input } from "@/components/ui/input";
+import AppInput from "@/components/common/micro/AppInput";
 import { useNavigate, useLocation } from "react-router-dom";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
+import AppPagination from "@/components/common/micro/AppPagination";
 import { useForumPage } from '@/hooks/forum/useForumPage';
 import useAuthStore from '@/store/useAuthStore';
 import { AppButton } from "@/components/common/micro/AppButton";
 import ForumSidebar from './components/ForumSidebar';
-import { Skeleton } from "@/components/ui/skeleton";
+import AppSkeleton from "@/components/common/micro/AppSkeleton";
 
 const ForumPage = () => {
   const navigate = useNavigate();
@@ -131,7 +124,7 @@ const ForumPage = () => {
             <div className="flex flex-col sm:flex-row gap-4 mb-2">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input
+                <AppInput
                   placeholder="Tìm kiếm chủ đề, tag..."
                   className="pl-9 bg-white h-11"
                   value={searchQuery}
@@ -144,7 +137,7 @@ const ForumPage = () => {
             {isLoading ? (
               <div className="flex flex-col gap-4">
                 {[1, 2, 3].map(i => (
-                  <Skeleton key={i} className="h-40 w-full rounded-xl bg-white" />
+                  <AppSkeleton key={i} className="h-40 w-full rounded-xl bg-white" />
                 ))}
               </div>
             ) : currentPosts.length > 0 ? (
@@ -171,41 +164,11 @@ const ForumPage = () => {
             {/* Pagination Component */}
             {totalPages > 1 && (
               <div className="flex justify-center mt-8 mb-4">
-                <Pagination>
-                  <PaginationContent>
-                    <PaginationItem>
-                      <AppButton appVariant="ghostMuted" variant="ghost"
-                        disabled={currentPage === 0}
-                        onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
-                        className="gap-1 pl-2.5 h-9"
-                      >
-                        <PaginationPrevious className="hover:bg-transparent p-0" />
-                      </AppButton>
-                    </PaginationItem>
-
-                    {[...Array(totalPages)].map((_, i) => (
-                      <PaginationItem key={i}>
-                        <PaginationLink
-                          onClick={() => setCurrentPage(i)}
-                          isActive={currentPage === i}
-                          className="cursor-pointer"
-                        >
-                          {i + 1}
-                        </PaginationLink>
-                      </PaginationItem>
-                    ))}
-
-                    <PaginationItem>
-                      <AppButton appVariant="ghostMuted" variant="ghost"
-                        disabled={currentPage === totalPages - 1}
-                        onClick={() => setCurrentPage(prev => Math.max(totalPages - 1, prev + 1))}
-                        className="gap-1 pr-2.5 h-9"
-                      >
-                        <PaginationNext className="hover:bg-transparent p-0" />
-                      </AppButton>
-                    </PaginationItem>
-                  </PaginationContent>
-                </Pagination>
+                <AppPagination 
+                  currentPage={currentPage + 1} 
+                  totalPages={totalPages} 
+                  onPageChange={(page) => setCurrentPage(page - 1)} 
+                />
               </div>
             )}
           </div>

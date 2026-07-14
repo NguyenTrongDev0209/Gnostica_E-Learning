@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, CardContent } from "@/components/ui/card";
+import AppCard, { AppCardContent } from "@/components/common/micro/AppCard";
 import { MessageSquare, Send } from 'lucide-react';
 import { AppButton } from "@/components/common/micro/AppButton";
 import CommentCard from '@/components/common/composite/CommentCard';
@@ -62,8 +62,8 @@ const CommentSection = ({
       </div>
 
       {/* Reply Box */}
-      <Card className="bg-white border-border shadow-sm mt-6">
-        <CardContent className="p-5">
+      <AppCard appVariant="default" className="bg-white border-border shadow-sm mt-6">
+        <AppCardContent className="p-5">
           <h3 className="text-sm font-bold text-foreground mb-3">Viết bình luận của bạn</h3>
           <div className="rounded-lg border border-border overflow-hidden focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50 transition-all bg-white relative z-0">
             <ReactQuill
@@ -84,8 +84,8 @@ const CommentSection = ({
               <Send className="w-4 h-4" /> Gửi bình luận
             </AppButton>
           </div>
-        </CardContent>
-      </Card>
+        </AppCardContent>
+      </AppCard>
     </>
   );
 };

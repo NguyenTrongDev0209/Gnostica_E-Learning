@@ -5,25 +5,9 @@ import { ForumPostCard } from "@/components/common/composite/CourseCard";
 import { ChevronLeft, ThumbsUp, LayoutGrid, Trash2 } from 'lucide-react';
 import { AppButton } from "@/components/common/micro/AppButton";
 import { useNavigate, Link } from "react-router-dom";
-import {
-    Pagination,
-    PaginationContent,
-    PaginationItem,
-    PaginationLink,
-    PaginationNext,
-    PaginationPrevious,
-} from "@/components/ui/pagination";
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Skeleton } from "@/components/ui/skeleton";
+import AppPagination from "@/components/common/micro/AppPagination";
+import AppAlertDialog from "@/components/common/micro/AppAlertDialog";
+import AppSkeleton from "@/components/common/micro/AppSkeleton";
 
 import useMyForumPosts from "@/hooks/forum/useMyForumPosts";
 import MyForumSidebar from './components/MyForumSidebar';
@@ -86,7 +70,7 @@ const MyForumPosts = () => {
                         {isLoading ? (
                             <div className="flex flex-col gap-4">
                                 {[1, 2, 3].map(i => (
-                                    <Skeleton key={i} className="h-40 w-full rounded-xl bg-white" />
+                                    <AppSkeleton key={i} className="h-40 w-full rounded-xl bg-white" />
                                 ))}
                             </div>
                         ) : currentPosts.length > 0 ? (
@@ -111,62 +95,24 @@ const MyForumPosts = () => {
                                 ))}
 
                                 {/* Deletion Confirmation Dialog */}
-                                <AlertDialog open={!!threadToDelete} onOpenChange={(open) => !open && setThreadToDelete(null)}>
-                                    <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                            <AlertDialogTitle>Xác nhận xóa bài viết?</AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                                Hành động này không thể hoàn tác. Bài viết, hình ảnh, lượt thích và toàn bộ bình luận liên quan sẽ bị xóa vĩnh viễn.
-                                            </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                            <AlertDialogCancel>Hủy</AlertDialogCancel>
-                                            <AlertDialogAction 
-                                                onClick={handleDelete}
-                                                className="bg-error/10 text-error hover:bg-error/10 text-error font-bold"
-                                            >
-                                                Tiếp tục xóa
-                                            </AlertDialogAction>
-                                        </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                </AlertDialog>
+                                <AppAlertDialog 
+                                    open={!!threadToDelete} 
+                                    onOpenChange={(open) => !open && setThreadToDelete(null)}
+                                    title="Xác nhận xóa bài viết?"
+                                    description="Hành động này không thể hoàn tác. Bài viết, hình ảnh, lượt thích và toàn bộ bình luận liên quan sẽ bị xóa vĩnh viễn."
+                                    onConfirm={handleDelete}
+                                    variant="destructive"
+                                    confirmText="Tiếp tục xóa"
+                                />
 
                                 {/* Pagination Component */}
                                 {totalPages > 1 && (
                                     <div className="flex justify-center mt-8 mb-4">
-                                        <Pagination>
-                                            <PaginationContent>
-                                                <PaginationItem>
-                                                    <AppButton appVariant="ghostMuted" variant="ghost" 
-                                                        onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
-                                                        className={currentPage === 0 ? "pointer-events-none opacity-50 h-9" : "cursor-pointer h-9"}
-                                                    >
-                                                        <PaginationPrevious className="p-0 hover:bg-transparent" />
-                                                    </AppButton>
-                                                </PaginationItem>
-
-                                                {[...Array(totalPages)].map((_, i) => (
-                                                    <PaginationItem key={i}>
-                                                        <PaginationLink
-                                                            onClick={() => setCurrentPage(i)}
-                                                            isActive={currentPage === i}
-                                                            className="cursor-pointer"
-                                                        >
-                                                            {i + 1}
-                                                        </PaginationLink>
-                                                    </PaginationItem>
-                                                ))}
-
-                                                <PaginationItem>
-                                                    <AppButton appVariant="ghostMuted" variant="ghost" 
-                                                        onClick={() => setCurrentPage(prev => Math.max(totalPages - 1, prev + 1))}
-                                                        className={currentPage === totalPages - 1 ? "pointer-events-none opacity-50 h-9" : "cursor-pointer h-9"}
-                                                    >
-                                                        <PaginationNext className="p-0 hover:bg-transparent" />
-                                                    </AppButton>
-                                                </PaginationItem>
-                                            </PaginationContent>
-                                        </Pagination>
+                                        <AppPagination 
+                                            currentPage={currentPage + 1} 
+                                            totalPages={totalPages} 
+                                            onPageChange={(page) => setCurrentPage(page - 1)} 
+                                        />
                                     </div>
                                 )}
                             </div>
