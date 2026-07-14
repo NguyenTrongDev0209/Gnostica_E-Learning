@@ -1,5 +1,5 @@
-import HomePage from "@/pages/static/HomePage";
-import AboutUs from "@/pages/static/AboutUs";
+import HomePage from "@/pages/general/HomePage";
+import AboutUs from "@/pages/general/AboutUs";
 import CourseCatalog from "@/pages/course/CourseCatalog";
 import CourseCategory from "@/pages/course/CourseCategory";
 import CourseDetail from "@/pages/course/CourseDetail";
@@ -7,12 +7,12 @@ import CourseCart from "@/pages/order/CourseCart";
 import SearchPage from "@/pages/course/SearchPage";
 import ForumPage from "@/pages/forum/ForumPage";
 import ForumDetail from "@/pages/forum/ForumDetail";
-import UserProfile from "@/pages/user/UserProfile";
-import TermsPage from "@/pages/static/TermsPage";
-import PrivacyPage from "@/pages/static/PrivacyPage";
+import UserProfile from "@/pages/general/UserProfile";
+import TermsPage from "@/pages/general/TermsPage";
+import PrivacyPage from "@/pages/general/PrivacyPage";
 import Showcase from "@/pages/Showcase";
-import ErrorPage from "@/pages/static/ErrorPage";
-import InstructorList from "@/pages/user/InstructorList";
+import ErrorPage from "@/pages/general/ErrorPage";
+import InstructorList from "@/pages/general/InstructorList";
 
 import LoginPage from "@/pages/auth/LoginPage";
 import RegisterPage from "@/pages/auth/RegisterPage";

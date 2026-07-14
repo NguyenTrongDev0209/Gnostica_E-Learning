@@ -5,7 +5,7 @@ export default function AboutSolutions({ steps }) {
   return (
     <section className="app-container py-8 lg:py-12">
       <div className="grid lg:grid-cols-2 items-center gap-6 lg:gap-10">
-        <div className="aspect-square bg-neutral-900 rounded-3xl shadow-2xl flex items-center justify-center relative overflow-hidden group">
+        <div className="aspect-square bg-card text-card-foreground rounded-3xl shadow-2xl flex items-center justify-center relative overflow-hidden group">
           <div className="text-white text-center p-8 z-10">
              <h4 className="text-2xl font-black tracking-wide mb-2 opacity-60">TẦM NHÌN</h4>
              <div className="w-16 h-0.5 bg-primary/50 mx-auto mb-4"></div>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import PageContainer from "@/components/common/core/PageContainer";
 import { Card, CardContent } from "@/components/ui/card";
@@ -29,6 +29,8 @@ import {
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import authService from '@/services/auth/authService';
+import { useQuery } from '@tanstack/react-query';
+import instructorService from '@/services/instructor/instructorService';
 import followingService from '@/services/instructor/followingService';
 import { toast } from 'sonner';
 import PersonalizationModal from '@/components/common/composite/PersonalizationModal';
@@ -39,7 +41,7 @@ const MOCK_USER = {
   name: "Nguyễn Văn A",
   username: "nguyenvana",
   avatar: "https://i.pravatar.cc/150?u=a042581f4e29026024d",
-  coverColor: "from-violet-600 via-purple-600 to-indigo-600",
+  coverColor: "from-primary/80 via-primary to-primary/90",
   status: "online",
   bio: "Frontend Developer đam mê ReactJS và UI/UX. Mình thích chia sẻ kiến thức với cộng đồng và học hỏi từ mọi người.",
   location: "Hồ Chí Minh, Việt Nam",
@@ -101,9 +103,6 @@ const UserProfile = () => {
   const { id } = useParams();
   const [following, setFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [instructorCourses, setInstructorCourses] = useState([]);
-  const [loadingCourses, setLoadingCourses] = useState(false);
   const [isPersonalizationOpen, setIsPersonalizationOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -142,68 +141,49 @@ const UserProfile = () => {
     }
   };
 
-  const [userData, setUserData] = useState(() =>
-    isOwnProfile ? { ...MOCK_USER, ...currentUser, name: currentUser.fullName, role: currentUser.role } : MOCK_USER
-  );
 
-  useEffect(() => {
-    // Nếu là chính mình, đã set ở trạng thái khởi tạo, nhưng vẫn có thể fetch mới, tạm bọc trong loading để render
-    if (isOwnProfile) {
-      setLoading(false);
-      return;
-    }
+  const { data: fetchedProfile, isLoading: loadingProfile } = useQuery({
+    queryKey: ['instructor-profile', id],
+    queryFn: () => instructorService.getInstructorProfile(id),
+    enabled: !!id && !isOwnProfile,
+    retry: false
+  });
 
-    // Nếu là xem user khác, tải dữ liệu
-    const fetchUserData = async () => {
-      setLoading(true);
-      try {
-        // Thử gọi api dành cho public profile
-        const response = await axios.get(`http://localhost:8080/api/instructors/${id}/profile`);
-        const data = response.data;
-        setUserData(prev => ({
-          ...prev,
-          id: data.id,
-          name: data.name,
-          avatar: data.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name)}&background=random&color=fff`,
-          email: data.email,
+  const { data: fetchedCourses, isLoading: loadingCourses } = useQuery({
+    queryKey: ['instructor-courses', id],
+    queryFn: () => instructorService.getInstructorCourses(id),
+    enabled: !!id && !isOwnProfile,
+    retry: false
+  });
+
+  const user = isOwnProfile 
+    ? { ...MOCK_USER, ...currentUser, name: currentUser.fullName, role: currentUser.role }
+    : fetchedProfile 
+      ? {
+          ...MOCK_USER,
+          id: fetchedProfile.id,
+          name: fetchedProfile.name || fetchedProfile.fullName,
+          avatar: fetchedProfile.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(fetchedProfile.name || fetchedProfile.fullName)}&background=random&color=fff`,
+          email: fetchedProfile.email,
           role: "INSTRUCTOR",
           stats: {
-            ...prev.stats,
-            courses: data.coursesCount || 0,
-            students: data.studentsCount || 0,
+            ...MOCK_USER.stats,
+            courses: fetchedProfile.coursesCount || 0,
+            students: fetchedProfile.studentsCount || 0,
           }
-        }));
-
-        // Xử lý load khóa học nếu là INSTRUCTOR
-        setLoadingCourses(true);
-        try {
-          const coursesResp = await axios.get(`http://localhost:8080/api/instructors/${id}/courses`);
-          setInstructorCourses(coursesResp.data || []);
-        } catch (err) {
-          console.error("Không thể lấy danh sách khóa học của giảng viên", err);
-        } finally {
-          setLoadingCourses(false);
         }
+      : MOCK_USER;
 
-      } catch (error) {
-        console.error("Không thể lấy thông tin chi tiết user", error);
-        // Fallback back to MOCK with id if error
-      } finally {
-        setLoading(false);
-      }
-    };
-    if (id) fetchUserData();
-  }, [id, isOwnProfile]);
-
-  const user = userData;
+  const instructorCourses = fetchedCourses || [];
   const isInstructor = (user.role || '').toUpperCase() === 'INSTRUCTOR';
+  const loading = loadingProfile;
 
   const handleBecomeInstructor = async () => {
     navigate('/apply-instructor');
   };
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Đang tải hồ sơ...</div>;
+    return <div className="min-h-screen flex items-center justify-center">�ang t?i h? so...</div>;
   }
 
   return (
@@ -276,7 +256,7 @@ const UserProfile = () => {
 
                       {isOwnProfile && !isInstructor && (
                         <Button
-                          className="gap-1.5 h-9 font-bold bg-orange-500 hover:bg-orange-600 border-none"
+                          className="gap-1.5 h-9 font-bold bg-primary hover:bg-primary/90 border-none"
                           size="sm"
                           onClick={handleBecomeInstructor}
                         >
@@ -394,31 +374,31 @@ const UserProfile = () => {
               <Card className="bg-white shadow-sm border-border">
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-sm font-bold text-slate-700 flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-amber-500" /> Cá nhân hóa
+                    <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-warning" /> Cá nhân hóa
                     </h3>
-                    <Button variant="ghost" size="icon" className="h-6 w-6 text-indigo-600" onClick={() => setIsPersonalizationOpen(true)}>
+                    <Button variant="ghost" size="icon" className="h-6 w-6 text-info" onClick={() => setIsPersonalizationOpen(true)}>
                       <LinkIcon className="w-3 h-3" />
                     </Button>
                   </div>
                   <div className="space-y-3">
                     <div>
-                      <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">Trình độ</p>
-                      <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-100">
-                        {userData.level || "Chưa thiết lập"}
+                      <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Trình độ</p>
+                      <Badge variant="outline" className="bg-info-soft text-info-foreground border-info/20">
+                        {user.level || "Chưa thiết lập"}
                       </Badge>
                     </div>
                     <div>
-                      <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">Chuyên ngành</p>
+                      <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Chuyên ngành</p>
                       <div className="flex flex-wrap gap-1">
-                        {userData.interests && userData.interests.length > 0 ? (
-                          userData.interests.map(cat => (
+                        {user.interests && user.interests.length > 0 ? (
+                          user.interests.map(cat => (
                             <Badge key={cat.id} variant="secondary" className="text-[11px]">
                               {cat.name}
                             </Badge>
                           ))
                         ) : (
-                          <span className="text-xs text-slate-400 italic">Chưa thiết lập</span>
+                          <span className="text-xs text-muted-foreground italic">Chưa thiết lập</span>
                         )}
                       </div>
                     </div>
@@ -435,9 +415,9 @@ const UserProfile = () => {
                 </h3>
                 <div className="flex flex-col gap-3">
                   {[
-                    { icon: Flame, label: "5 bài đang hot", color: "text-warning bg-orange-50" },
-                    { icon: Star, label: "Top 10 tuần này", color: "text-warning bg-yellow-50" },
-                    { icon: MessageSquare, label: "50+ bình luận", color: "text-info bg-blue-50" },
+                    { icon: Flame, label: "5 bài đang hot", color: "text-warning bg-warning-soft" },
+                    { icon: Star, label: "Top 10 tuần này", color: "text-warning bg-warning-soft" },
+                    { icon: MessageSquare, label: "50+ bình luận", color: "text-info bg-info-soft" },
                   ].map(({ icon: Icon, label, color }) => (
                     <div key={label} className={`flex items-center gap-3 rounded-lg px-3 py-2.5 ${color.split(' ')[1]}`}>
                       <Icon className={`w-4 h-4 shrink-0 ${color.split(' ')[0]}`} />

@@ -23,7 +23,7 @@ const InstructorList = () => {
         <div className="min-h-screen bg-muted flex flex-col animate-in fade-in duration-500">
             {/* Hero Section */}
             <section className="relative w-full bg-muted pt-20 pb-24 lg:pt-28 lg:pb-32 overflow-hidden border-b border-white/10">
-                <div className="absolute inset-0 bg-primary/20 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/20 via-slate-900 to-slate-900 z-0"></div>
+                <div className="absolute inset-0 bg-primary/20 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/20 via-background to-background z-0"></div>
                 <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/20 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/3 opacity-50"></div>
                 
                 <div className="app-container relative z-10">
@@ -36,9 +36,9 @@ const InstructorList = () => {
                     <div className="text-center max-w-3xl mx-auto space-y-6 animate-in slide-in-from-bottom-6 duration-700">
                         <h1 className="text-4xl md:text-6xl font-black text-white tracking-tight leading-[1.1]">
                             Đội ngũ Giảng viên <br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-orange-400">Hàng đầu</span>
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-warning">Hàng đầu</span>
                         </h1>
-                        <p className="text-lg md:text-xl text-slate-300 leading-relaxed font-medium">
+                        <p className="text-lg md:text-xl text-muted-foreground leading-relaxed font-medium">
                             Học hỏi từ những chuyên gia có nhiều năm kinh nghiệm, luôn sẵn sàng truyền đạt kiến thức thực tế giúp bạn nhanh chóng đạt mục tiêu.
                         </p>
                     </div>
@@ -88,7 +88,7 @@ const InstructorList = () => {
                                         className="group relative bg-white border border-border rounded-[28px] overflow-hidden hover:shadow-2xl hover:shadow-primary/5 transition-all duration-500 flex flex-col hover:-translate-y-2 animate-in fade-in slide-in-from-bottom-8"
                                         style={{ animationFillMode: 'both', animationDelay: `${idx * 100}ms` }}
                                     >
-                                        <div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-br from-slate-100 to-slate-200/50 -z-10 group-hover:from-primary/10 group-hover:to-orange-50 transition-colors duration-500"></div>
+                                        <div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-br from-muted to-muted/50 -z-10 group-hover:from-primary/10 group-hover:to-warning-soft transition-colors duration-500"></div>
                                         
                                         <div className="flex justify-center pt-10 pb-6 relative">
                                             <div className="relative">

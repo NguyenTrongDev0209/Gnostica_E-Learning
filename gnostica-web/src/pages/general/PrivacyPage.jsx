@@ -1,10 +1,11 @@
-import React from "react";
+import React from 'react';
+import PageContainer from '@/components/common/core/PageContainer';
 import { Link } from "react-router-dom";
-import { Home, FileText } from "lucide-react";
+import { Home, Shield } from "lucide-react";
 import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
-import { termsSectionsMock } from "@/apiMocks/staticPages";
+import { privacySectionsMock } from "@/apiMocks/staticPages";
 
-export default function TermsPage() {
+export default function PrivacyPage() {
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
@@ -13,21 +14,21 @@ export default function TermsPage() {
           <AppBreadcrumb 
             paths={[
               { label: "Trang chủ", href: "/" },
-              { label: "Điều khoản dịch vụ" }
+              { label: "Chính sách bảo mật" }
             ]} 
           />
           <h1 className="text-3xl md:text-4xl font-extrabold flex items-center gap-3">
-            <FileText className="w-8 h-8 text-primary" />
-            Điều khoản dịch vụ
+            <Shield className="w-8 h-8 text-primary" />
+            Chính sách bảo mật
           </h1>
           <p className="text-muted-foreground mt-2 font-medium">Cập nhật lần cuối: 24 tháng 3, 2026</p>
         </div>
       </section>
 
-      {/* Main Content */}
+      {/* Main */}
       <main className="app-container max-w-3xl mt-10">
-        <div className="bg-white rounded-2xl shadow-lg border border-border p-6 sm:p-10 space-y-8">
-          {termsSectionsMock.map((section, i) => (
+        <div className="bg-card text-card-foreground rounded-2xl shadow-lg border border-border p-6 sm:p-10 space-y-8">
+          {privacySectionsMock.map((section, i) => (
             <div key={i}>
               <h2 className="text-lg font-bold text-foreground mb-3">{section.title}</h2>
               {section.content && (

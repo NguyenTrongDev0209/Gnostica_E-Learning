@@ -17,7 +17,7 @@ import PayosQR from "@/pages/order/PayosQR";
 import CheckoutResult from "@/pages/order/CheckoutResult";
 import ForumCreatePost from "@/pages/forum/ForumCreatePost";
 import MyForumPosts from "@/pages/forum/MyForumPosts";
-import ApplyInstructor from "@/pages/user/ApplyInstructor";
+import ApplyInstructor from "@/pages/general/ApplyInstructor";
 
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminUsers from "@/pages/admin/AdminUsers";

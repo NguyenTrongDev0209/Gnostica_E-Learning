@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 
 const ErrorPage = () => {
   return (
-    <div className="relative min-h-screen w-full flex flex-col items-center justify-center bg-white overflow-hidden font-sans">
+    <div className="relative min-h-screen w-full flex flex-col items-center justify-center bg-card text-card-foreground overflow-hidden font-sans">
       {/* City Skyline Background (SVG) */}
       <div className="absolute inset-0 z-0 pointer-events-none opacity-20 flex items-end justify-center">
         <svg
@@ -54,7 +54,7 @@ const ErrorPage = () => {
       </div>
 
       {/* Subtle bottom gradient for depth */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white to-transparent pointer-events-none" />
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent pointer-events-none" />
     </div>
   );
 };

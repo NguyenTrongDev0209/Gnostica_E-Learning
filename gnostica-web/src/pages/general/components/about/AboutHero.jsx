@@ -35,7 +35,7 @@ export default function AboutHero({ data }) {
             </AppButton>
           </div>
         </div>
-        <div className="relative aspect-square md:aspect-[4/3] bg-teal-800 rounded-3xl overflow-hidden shadow-2xl flex items-center justify-center transform transition-all hover:scale-[1.02] cursor-pointer">
+        <div className="relative aspect-square md:aspect-[4/3] bg-primary text-primary-foreground rounded-3xl overflow-hidden shadow-2xl flex items-center justify-center transform transition-all hover:scale-[1.02] cursor-pointer">
            <div className="text-white text-center flex flex-col items-center gap-4">
                <div className="w-24 h-24 border-2 border-white/20 rounded-full flex items-center justify-center opacity-40">
                 <Monitor size={48} />
