@@ -81,7 +81,7 @@ CREATE TABLE accounts (
     full_name VARCHAR(255) NOT NULL,
     phone VARCHAR(12),
     password VARCHAR(255),
-    avatar VARCHAR(255),
+    avatar VARCHAR(2048),
     provider VARCHAR(255),
     birth_day DATE,
     metadata JSONB,
