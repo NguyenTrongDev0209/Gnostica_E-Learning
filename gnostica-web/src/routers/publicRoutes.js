@@ -1,4 +1,4 @@
-import HomePage from "@/pages/home/HomePage";
+import HomePage from "@/pages/static/HomePage";
 import AboutUs from "@/pages/static/AboutUs";
 import CourseCatalog from "@/pages/course/CourseCatalog";
 import CourseCategory from "@/pages/course/CourseCategory";
