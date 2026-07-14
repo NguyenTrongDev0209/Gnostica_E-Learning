@@ -92,7 +92,7 @@ export default function InstructorSidebar({ user, handleLogout }) {
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-10 h-10 rounded-full bg-success/10 text-success flex items-center justify-center font-bold text-success shrink-0 border border-border overflow-hidden">
               {user?.avatar ? (
-                <img src={user.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                <img src={user.avatar} alt="Avatar" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
               ) : (
                 user?.fullName?.charAt(0) || "I"
               )}

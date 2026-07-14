@@ -195,7 +195,7 @@ export const AppUserMenu = ({ user = { name: "Học viên", avatar: "https://git
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button className="flex items-center gap-2.5 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full p-1 pr-3 transition-all duration-300 group focus:outline-none h-[42px]">
-          <img src={user.avatar} alt="Avatar" className="w-8 h-8 rounded-full border-2 border-white/50 object-cover" />
+          <img src={user.avatar} alt="Avatar" referrerPolicy="no-referrer" className="w-8 h-8 rounded-full border-2 border-white/50 object-cover" />
           <span className="text-base font-bold text-white max-w-[140px] truncate">{user.name}</span>
           <ChevronDown className="w-5 h-5 text-white/70 group-hover:text-white transition-colors" />
         </button>
@@ -256,11 +256,11 @@ export const AppLogo = ({ src = "/Gnostica_Mark.webp", className }) => {
 
 // Nút thao tác trên bảng (Sửa, Xóa, Xem): Nền trong suốt, hover hiện màu tương ứng
 export const TableActionIconButton = ({ icon: Icon, colorVariant = "primary", className, ...props }) => {
-  const colorClass = colorVariant === "error" 
+  const colorClass = colorVariant === "error"
     ? "text-muted-foreground hover:text-error hover:bg-error/10"
     : colorVariant === "success"
-    ? "text-muted-foreground hover:text-success hover:bg-success/10"
-    : "text-muted-foreground hover:text-primary hover:bg-primary/10";
+      ? "text-muted-foreground hover:text-success hover:bg-success/10"
+      : "text-muted-foreground hover:text-primary hover:bg-primary/10";
 
   return (
     <Button

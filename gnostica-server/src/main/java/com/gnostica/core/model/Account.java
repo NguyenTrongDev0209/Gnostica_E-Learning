@@ -45,7 +45,7 @@ public class Account {
     @Size(max = 255)
     private String password;
 
-    @Size(max = 255)
+    @Size(max = 2048)
     private String avatar;
 
     @Size(max = 255)

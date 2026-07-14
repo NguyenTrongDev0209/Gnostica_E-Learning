@@ -89,12 +89,12 @@ export const CourseDetailVideo = ({ courseImage, courseTitle, promoVideo }) => {
   if (isPlaying && promoVideo) {
     const youtubeId = getYoutubeId(promoVideo);
     const bunnyGuid = isBunnyGuid(promoVideo) ? promoVideo : null;
-    
+
     return (
       <div className="relative aspect-video overflow-hidden shadow-2xl shadow-slate-200 border-none bg-black">
         {youtubeId ? (
-          <iframe 
-            src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1`} 
+          <iframe
+            src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1`}
             title="Course Trailer"
             className="w-full h-full"
             frameBorder="0"
@@ -111,10 +111,10 @@ export const CourseDetailVideo = ({ courseImage, courseTitle, promoVideo }) => {
             allowFullScreen
           />
         ) : (
-          <video 
-            src={promoVideo} 
-            controls 
-            autoPlay 
+          <video
+            src={promoVideo}
+            controls
+            autoPlay
             className="w-full h-full object-contain bg-black"
           />
         )}
@@ -123,7 +123,7 @@ export const CourseDetailVideo = ({ courseImage, courseTitle, promoVideo }) => {
   }
 
   return (
-    <div 
+    <div
       className="relative aspect-video overflow-hidden shadow-2xl shadow-slate-200 group cursor-pointer border border-border/50 bg-muted"
       onClick={() => promoVideo && setIsPlaying(true)}
     >
@@ -194,7 +194,7 @@ export const CourseDetailOutcomes = ({ course }) => {
   return (
     <section className="bg-muted/80 border border-border/60 rounded-[24px] p-6 md:p-10">
       <h2 className="text-2xl font-extrabold mb-6 text-foreground">Nội dung bài học</h2>
-      <div 
+      <div
         className="text-foreground text-[15px] leading-relaxed prose prose-slate max-w-none"
         dangerouslySetInnerHTML={{ __html: course.description }}
       />
@@ -207,7 +207,7 @@ export const CourseDetailOutcomes = ({ course }) => {
  */
 export const CourseDetailCurriculum = ({ curriculum }) => {
   const totalLessons = curriculum.reduce((acc, section) => acc + (section.lessons?.length || 0), 0);
-  
+
   return (
     <section>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
@@ -241,11 +241,10 @@ export const CourseDetailCurriculum = ({ curriculum }) => {
                   >
                     <div className="flex items-center gap-4">
                       <div
-                        className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                          lesson.preview
+                        className={`w-8 h-8 rounded-full flex items-center justify-center ${lesson.preview
                             ? "bg-primary/10 text-primary"
                             : "bg-secondary text-muted-foreground"
-                        }`}
+                          }`}
                       >
                         <PlayCircle className="w-4 h-4" />
                       </div>
@@ -273,6 +272,7 @@ export const CourseDetailCurriculum = ({ curriculum }) => {
  * Instructor profile and bio section.
  */
 export const CourseDetailInstructor = ({ instructor }) => {
+  const navigate = useNavigate();
   return (
     <section>
       <h2 className="text-2xl font-extrabold mb-8 text-foreground">Giảng viên của bạn</h2>
@@ -287,19 +287,19 @@ export const CourseDetailInstructor = ({ instructor }) => {
               <div className="w-8 h-8 rounded-full bg-yellow-50 flex items-center justify-center shrink-0">
                 <Star className="w-4 h-4 text-warning fill-yellow-600" />
               </div>
-              <span className="font-bold">{instructor.reviewsCount} Đánh giá</span>
+              <span className="font-bold">{instructor.reviewsCount || 0} Đánh giá</span>
             </div>
             <div className="flex items-center gap-3 text-foreground">
               <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
                 <Users className="w-4 h-4 text-info" />
               </div>
-              <span className="font-bold">{instructor.studentsCount} Học viên</span>
+              <span className="font-bold">{instructor.studentsCount || 0} Học viên</span>
             </div>
             <div className="flex items-center gap-3 text-foreground">
               <div className="w-8 h-8 rounded-full bg-purple-50 flex items-center justify-center shrink-0">
                 <PlayCircle className="w-4 h-4 text-purple-600" />
               </div>
-              <span className="font-bold">{instructor.coursesCount} Khóa học</span>
+              <span className="font-bold">{instructor.coursesCount || 0} Khóa học</span>
             </div>
           </div>
         </div>
@@ -319,6 +319,7 @@ export const CourseDetailInstructor = ({ instructor }) => {
           </p>
           <Button
             variant="outline"
+            onClick={() => instructor.id && navigate(`/profile/${instructor.id}`)}
             className="mt-2 font-bold border-border text-foreground hover:text-primary hover:border-primary"
           >
             Xem hồ sơ giảng viên
@@ -336,7 +337,7 @@ export const CourseDetailPricingCard = ({ course: initialCourse }) => {
   const navigate = useNavigate();
   const [isFavourite, setIsFavourite] = React.useState(initialCourse?.isFavourite || false);
   const [isToggling, setIsToggling] = React.useState(false);
-  
+
   const totalLessons = initialCourse?.curriculum?.reduce((acc, section) => acc + (section.lessons?.length || 0), 0) || 0;
 
   const handleCheckout = () => {
@@ -390,14 +391,13 @@ export const CourseDetailPricingCard = ({ course: initialCourse }) => {
           >
             Giảm giá {initialCourse.discount}%
           </Badge>
-          <button 
+          <button
             onClick={handleToggleWishlist}
             disabled={isToggling}
-            className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
-              isFavourite 
-                ? "bg-red-50 text-error shadow-sm" 
+            className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${isFavourite
+                ? "bg-red-50 text-error shadow-sm"
                 : "bg-muted text-muted-foreground hover:text-error hover:bg-red-50"
-            }`}
+              }`}
           >
             <Heart className={`w-5 h-5 ${isFavourite ? "fill-red-500" : ""}`} />
           </button>

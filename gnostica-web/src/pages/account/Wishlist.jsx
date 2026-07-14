@@ -5,6 +5,7 @@ import { Heart } from "lucide-react";
 import AppBreadcrumb from "@/components/common/AppBreadcrumb";
 import AppPageHeader from "@/components/common/AppPageHeader";
 import useWishlist from "@/hooks/account/useWishlist";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Wishlist() {
   const { courses, loading, handleToggleWishlist } = useWishlist();
@@ -38,10 +39,10 @@ export default function Wishlist() {
               <Link to={`/course/${course.slug}`}>
                 <AppCard {...course} />
               </Link>
-              
+
               {/* Overlay Delete Button - appears on hover */}
               <div className="absolute top-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button 
+                <button
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();

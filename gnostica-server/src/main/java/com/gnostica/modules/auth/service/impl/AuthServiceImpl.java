@@ -278,6 +278,44 @@ public class AuthServiceImpl implements AuthService {
         accountRepository.save(account);
     }
 
+    @Override
+    public void updateProfile(String email, com.gnostica.modules.auth.dto.request.ProfileUpdateRequest request) {
+        Account account = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Tai khoan khong ton tai."));
+
+        if (request.getFullName() != null) {
+            account.setFullName(request.getFullName());
+        }
+        if (request.getPhone() != null) {
+            account.setPhone(request.getPhone());
+        }
+
+        try {
+            java.util.Map<String, Object> metaMap = new java.util.HashMap<>();
+            if (account.getMetadata() != null && !account.getMetadata().trim().isEmpty()) {
+                metaMap = objectMapper.readValue(account.getMetadata(), new com.fasterxml.jackson.core.type.TypeReference<java.util.Map<String, Object>>() {});
+            }
+            if (request.getBio() != null) {
+                metaMap.put("bio", request.getBio());
+            }
+            if (request.getTitle() != null) {
+                metaMap.put("title", request.getTitle());
+            }
+            if (request.getWebsite() != null) {
+                metaMap.put("website", request.getWebsite());
+            }
+            if (request.getLinkedin() != null) {
+                metaMap.put("linkedin", request.getLinkedin());
+            }
+
+            account.setMetadata(objectMapper.writeValueAsString(metaMap));
+        } catch (Exception e) {
+            throw new RuntimeException("Loi parse metadata", e);
+        }
+
+        accountRepository.save(account);
+    }
+
     private void validateOtp(String purpose, String email, String code) {
         if (!otpService.exists(purpose, email)) {
             throw new RuntimeException("Ma xac thuc da het han.");
