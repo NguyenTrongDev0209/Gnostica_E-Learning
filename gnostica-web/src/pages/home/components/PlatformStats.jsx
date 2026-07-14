@@ -22,16 +22,30 @@ const PlatformStats = () => {
   if (!stats || stats.length === 0) return null;
 
   return (
-    <div className="app-container mb-8">
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+    <div className="app-container mb-12 -mt-4 relative z-20">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
         {stats.map((stat, idx) => {
           const Icon = LucideIcons[stat.iconName] || LucideIcons.Users;
           return (
-            <div key={idx} className="flex flex-col items-center justify-center rounded-2xl bg-primary/5 border border-primary/10 hover:bg-primary/10 transition-colors">
-              <div className="flex flex-col items-center gap-1 py-3 px-4">
-                <Icon className="w-5 h-5 text-primary mb-0.5" />
-                <span className="text-xl font-bold text-foreground">{stat.value}</span>
-                <span className="text-xs text-muted-foreground font-medium">{stat.label}</span>
+            <div 
+              key={idx} 
+              className="group relative flex flex-col items-center justify-center rounded-3xl bg-card/80 backdrop-blur-sm border border-border/50 p-6 shadow-sm hover:shadow-xl hover:-translate-y-2 hover:border-primary/40 transition-all duration-500 overflow-hidden"
+            >
+              {/* Subtle background gradient that appears on hover */}
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              
+              <div className="relative z-10 flex flex-col items-center gap-4">
+                <div className="p-4 rounded-2xl bg-primary/10 text-primary group-hover:scale-110 group-hover:bg-primary group-hover:text-primary-foreground group-hover:shadow-md transition-all duration-500">
+                  <Icon className="w-7 h-7 stroke-[1.5]" />
+                </div>
+                <div className="flex flex-col items-center gap-1 text-center">
+                  <span className="text-3xl md:text-4xl font-black text-foreground tracking-tight drop-shadow-sm">
+                    {stat.value}
+                  </span>
+                  <span className="text-xs md:text-sm font-bold text-muted-foreground uppercase tracking-widest">
+                    {stat.label}
+                  </span>
+                </div>
               </div>
             </div>
           );

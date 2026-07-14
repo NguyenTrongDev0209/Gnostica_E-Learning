@@ -3,13 +3,13 @@ import { ArrowRight } from 'lucide-react';
 
 const OutcomeBanner = () => {
     return (
-        <div className="w-full mt-12 bg-[#001E3C] rounded-2xl overflow-hidden flex flex-col md:flex-row items-center justify-between p-8 md:p-10 relative">
+        <div className="w-full mt-12 bg-foreground rounded-2xl overflow-hidden flex flex-col md:flex-row items-center justify-between p-8 md:p-10 relative">
             {/* Background decoration */}
             <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-primary/5 to-transparent pointer-events-none"></div>
 
             {/* Left Content */}
             <div className="flex flex-col gap-3 z-10 max-w-lg text-center md:text-left mb-6 md:mb-0">
-                <h2 className="text-2xl md:text-3xl font-bold text-white leading-tight">
+                <h2 className="text-2xl md:text-3xl font-bold text-background leading-tight">
                     95% học viên đạt được mục tiêu nghề nghiệp
                 </h2>
                 <p className="text-muted-foreground text-sm md:text-base leading-relaxed">
@@ -18,7 +18,7 @@ const OutcomeBanner = () => {
                 <div className="mt-2">
                     <a
                         href="#"
-                        className="inline-flex items-center gap-2 text-white font-bold hover:text-primary transition-all text-sm md:text-base group"
+                        className="inline-flex items-center gap-2 text-background font-bold hover:text-primary transition-all text-sm md:text-base group"
                     >
                         Khám phá lộ trình học tập
                         <ArrowRight className="h-4 w-4 group-hover:translate-x-2 transition-transform" />
@@ -37,7 +37,7 @@ const OutcomeBanner = () => {
                             cy="50%"
                             r="42%"
                             fill="transparent"
-                            stroke="rgba(59, 130, 246, 0.1)"
+                            className="stroke-primary/10"
                             strokeWidth="1"
                         />
                         {/* Main Progress Background */}
@@ -45,8 +45,7 @@ const OutcomeBanner = () => {
                             cx="50%"
                             cy="50%"
                             r="32%"
-                            fill="#001428"
-                            stroke="rgba(255,255,255,0.03)"
+                            className="fill-background/10 stroke-background/5"
                             strokeWidth="10"
                         />
                         {/* Progress Line */}
@@ -63,13 +62,13 @@ const OutcomeBanner = () => {
                         />
                         <defs>
                             <linearGradient id="banner-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" stopColor="#3B82F6" />
-                                <stop offset="100%" stopColor="#10B981" />
+                                <stop offset="0%" className="text-primary" stopColor="currentColor" />
+                                <stop offset="100%" className="text-success" stopColor="currentColor" />
                             </linearGradient>
                         </defs>
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <span className="text-2xl md:text-3xl font-black text-white">95%</span>
+                        <span className="text-2xl md:text-3xl font-black text-background">95%</span>
                     </div>
                 </div>
             </div>

@@ -27,7 +27,7 @@ export default function SubBannerCarousel() {
         <CarouselContent className="-ml-2 md:-ml-4">
           {subBanners.map((banner, index) => (
             <CarouselItem key={index} className="pl-2 md:pl-4 basis-full md:basis-1/2">
-              <div className="w-full rounded-lg overflow-hidden bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center shadow-sm hover:shadow-md transition-shadow">
+              <div className="w-full rounded-lg overflow-hidden bg-muted flex items-center justify-center shadow-sm hover:shadow-md transition-shadow">
                 <img
                   src={banner.img}
                   alt={banner.alt}
@@ -41,8 +41,8 @@ export default function SubBannerCarousel() {
           ))}
         </CarouselContent>
         {/* Nút điều hướng - Ẩn trên mobile, hiện trên md trở lên */}
-        <CarouselPrevious className="hidden md:flex -left-4 lg:-left-6 bg-white/90 shadow text-neutral-800 hover:bg-white z-10" />
-        <CarouselNext className="hidden md:flex -right-4 lg:-right-6 bg-white/90 shadow text-neutral-800 hover:bg-white z-10" />
+        <CarouselPrevious className="hidden md:flex -left-4 lg:-left-6 bg-background/90 shadow text-foreground hover:bg-background z-10 border-border" />
+        <CarouselNext className="hidden md:flex -right-4 lg:-right-6 bg-background/90 shadow text-foreground hover:bg-background z-10 border-border" />
       </Carousel>
     </div>
   );

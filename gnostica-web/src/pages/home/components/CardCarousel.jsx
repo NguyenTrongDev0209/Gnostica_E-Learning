@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import CourseCard from "@/components/common/composite/CourseCard";
 import useFeaturedCourses from "@/hooks/course/useFeaturedCourses";
@@ -39,11 +39,11 @@ export default function CardCarousel() {
             const isActive = activeIndex === index;
 
             return (
-              <CarouselItem key={`${course.id}-${index}`} className="pl-3 md:pl-4 basis-[70%] sm:basis-[40%] lg:basis-[25%] px-2">
+              <CarouselItem key={`${course.id}-${index}`} className="pl-3 md:pl-4 basis-3/4 sm:basis-2/5 lg:basis-1/4 px-2">
                 <div
                   className={`h-full transition-all duration-700 ease-in-out origin-center flex flex-col ${isActive
                     ? "scale-105 md:scale-110 z-30 opacity-100 ring-2 ring-primary/20 rounded-xl shadow-xl"
-                    : "scale-90 md:scale-95 z-10 opacity-50 blur-[0.5px] transition-opacity hover:opacity-100"
+                    : "scale-90 md:scale-95 z-10 opacity-50 blur-sm transition-opacity hover:opacity-100"
                     }`}
                 >
                   <CourseCard
@@ -69,8 +69,8 @@ export default function CardCarousel() {
             );
           })}
         </CarouselContent>
-        <CarouselPrevious className="hidden md:flex -left-4 lg:-left-6 bg-white shadow-xl text-neutral-800 hover:bg-neutral-50 hover:scale-110 transition-transform z-40 w-12 h-12 border-none" />
-        <CarouselNext className="hidden md:flex -right-4 lg:-right-6 bg-white shadow-xl text-neutral-800 hover:bg-neutral-50 hover:scale-110 transition-transform z-40 w-12 h-12 border-none" />
+        <CarouselPrevious className="hidden md:flex -left-4 lg:-left-6 bg-background shadow-xl text-foreground hover:bg-muted hover:scale-110 transition-transform z-40 w-12 h-12 border-border" />
+        <CarouselNext className="hidden md:flex -right-4 lg:-right-6 bg-background shadow-xl text-foreground hover:bg-muted hover:scale-110 transition-transform z-40 w-12 h-12 border-border" />
       </Carousel>
     </div>
   );

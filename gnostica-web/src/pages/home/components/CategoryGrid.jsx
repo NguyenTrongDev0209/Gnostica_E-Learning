@@ -4,11 +4,11 @@ import useCategories from '@/hooks/course/useCategories';
 import { Card } from '@/components/ui/card';
 
 const defaultColors = [
+  "bg-primary/10 text-primary",
   "bg-info/10 text-info",
-  "bg-pink-500/10 text-pink-500",
   "bg-warning/10 text-warning",
   "bg-success/10 text-success",
-  "bg-purple-500/10 text-purple-500"
+  "bg-error/10 text-error"
 ];
 
 const CategoryGrid = () => {

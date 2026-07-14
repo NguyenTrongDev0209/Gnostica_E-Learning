@@ -16,8 +16,8 @@ import RecommendedCourses from "@/pages/home/components/RecommendedCourses"
 function HomePage() {
 
   return (
-    <div className={`min-h-[100dvh] transition-colors duration-700 ease-in-out bg-background`}>
-      <div className="flex flex-col gap-12 sm:gap-16 pb-12 relative z-10 w-full overflow-hidden">
+    <PageContainer>
+      <PageContainer.Content disableContainer={true} className="flex flex-col gap-12 sm:gap-16 pb-12 relative z-10 w-full overflow-hidden pt-0 md:pt-0">
         <MainHeroCarousel />
         
         <PlatformStats />
@@ -51,8 +51,8 @@ function HomePage() {
           <FAQSection />
         </PageContainer.Section>
 
-      </div>
-    </div>
+      </PageContainer.Content>
+    </PageContainer>
   )
 }
 
