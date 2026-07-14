@@ -120,8 +120,8 @@ const ForumDetail = () => {
                     {post.topic?.title || "Thảo luận"}
                   </Badge>
                   {(post.views || 0) > 100 && (
-                    <Badge className="bg-warning/10 text-warning text-warning border-none text-xs font-semibold gap-1">
-                      <Flame className="w-3 h-3 fill-orange-500" /> Đang hot
+                    <Badge className="bg-warning/10 text-warning border-none text-xs font-semibold gap-1">
+                      <Flame className="w-3 h-3 fill-warning" /> Đang hot
                     </Badge>
                   )}
                 </div>
@@ -192,9 +192,9 @@ const ForumDetail = () => {
 
                 {isOwnerViewingPending ? (
                   <div className="mt-5 pt-5 border-t border-border">
-                    <div className="flex items-center gap-2 p-3 rounded-lg bg-amber-50 border border-amber-200">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                      <p className="text-sm text-amber-700 font-medium">
+                    <div className="flex items-center gap-2 p-3 rounded-lg bg-warning-soft border border-warning/20">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-warning shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                      <p className="text-sm text-warning font-medium">
                         Bài viết đang chờ kiểm duyệt &mdash; các tương tác sẽ được mở khóa sau khi bài được phê duyệt.
                       </p>
                     </div>
@@ -202,12 +202,12 @@ const ForumDetail = () => {
                 ) : (
                   <div className="flex items-center justify-between mt-5 flex-wrap gap-3">
                     <div className="flex items-center gap-2">
-                      <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 rounded-full px-3 py-1 h-9 border border-transparent">
+                      <div className="flex items-center gap-1.5 bg-secondary rounded-full px-3 py-1 h-9 border border-transparent">
                         <button
                           onClick={() => handleVote(1)}
                           className={cn(
-                            "p-1 hover:text-orange-500 rounded-full transition-colors",
-                            postVoteStatus === 1 && "text-orange-500 font-bold"
+                            "p-1 hover:text-primary rounded-full transition-colors",
+                            postVoteStatus === 1 && "text-primary font-bold"
                           )}
                           title="Bình chọn lên"
                         >
@@ -215,16 +215,16 @@ const ForumDetail = () => {
                         </button>
                         <span className={cn(
                           "px-1.5 font-semibold text-sm min-w-[20px] text-center",
-                          postVoteStatus === 1 && "text-orange-500",
-                          postVoteStatus === -1 && "text-blue-500"
+                          postVoteStatus === 1 && "text-primary",
+                          postVoteStatus === -1 && "text-info"
                         )}>
                           {post.voteScore || 0}
                         </span>
                         <button
                           onClick={() => handleVote(-1)}
                           className={cn(
-                            "p-1 hover:text-blue-500 rounded-full transition-colors",
-                            postVoteStatus === -1 && "text-blue-500 font-bold"
+                            "p-1 hover:text-info rounded-full transition-colors",
+                            postVoteStatus === -1 && "text-info font-bold"
                           )}
                           title="Bình chọn xuống"
                         >
@@ -255,7 +255,7 @@ const ForumDetail = () => {
                         size="sm" 
                         className={cn(
                           "gap-1.5 h-9",
-                          hasReported ? "text-error bg-red-50" : "text-muted-foreground hover:text-error"
+                          hasReported ? "text-error bg-error/10" : "text-muted-foreground hover:text-error hover:bg-error/10"
                         )}
                         onClick={() => {
                           if (hasReported) {
@@ -266,7 +266,7 @@ const ForumDetail = () => {
                         }}
                         disabled={hasReported}
                       >
-                        <Flag className={cn("w-4 h-4", hasReported && "fill-red-500")} /> 
+                        <Flag className={cn("w-4 h-4", hasReported && "fill-error")} /> 
                         {hasReported ? "Đã báo cáo" : "Báo cáo"}
                       </AppButton>
                     </div>

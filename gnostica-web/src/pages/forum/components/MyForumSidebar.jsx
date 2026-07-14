@@ -23,14 +23,14 @@ const MyForumSidebar = ({ currentUser, userStats, activeTab, setActiveTab }) => 
 
           <div className="grid grid-cols-2 gap-4 pt-6 border-t border-border">
             <div className="flex flex-col items-center">
-              <div className="w-10 h-10 bg-blue-50 text-info rounded-full flex items-center justify-center mb-2">
+              <div className="w-10 h-10 bg-info/10 text-info rounded-full flex items-center justify-center mb-2">
                 <FileText className="w-5 h-5" />
               </div>
               <span className="text-xl font-bold text-foreground">{userStats?.threadCount || 0}</span>
               <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Bài viết</span>
             </div>
             <div className="flex flex-col items-center">
-              <div className="w-10 h-10 bg-orange-50 text-warning rounded-full flex items-center justify-center mb-2">
+              <div className="w-10 h-10 bg-warning/10 text-warning rounded-full flex items-center justify-center mb-2">
                 <ThumbsUp className="w-5 h-5" />
               </div>
               <span className="text-xl font-bold text-foreground">{userStats?.totalLikes || 0}</span>

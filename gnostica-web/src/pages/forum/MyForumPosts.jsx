@@ -101,7 +101,7 @@ const MyForumPosts = () => {
                                                     e.stopPropagation();
                                                     setThreadToDelete(post.id);
                                                 }}
-                                                className="absolute top-4 right-4 p-2 bg-red-50 text-error rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-error/10 text-error hover:text-white shadow-sm z-10"
+                                                className="absolute top-4 right-4 p-2 bg-error/10 text-error rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-error/20 hover:text-error-foreground shadow-sm z-10"
                                                 title="Xóa bài viết"
                                             >
                                                 <Trash2 className="w-4 h-4" />

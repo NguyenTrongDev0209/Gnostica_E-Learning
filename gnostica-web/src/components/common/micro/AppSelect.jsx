@@ -46,16 +46,22 @@ export default function AppSelect({
       </SelectTrigger>
       <SelectContent position="popper" className="shadow-none border border-border ring-0 rounded-xl bg-card">
         <SelectGroup className="p-1 space-y-1">
-          {options.map((opt) => (
-            <SelectItem 
-              key={opt.value} 
-              value={opt.value} 
-              disabled={opt.disabled}
-              className="rounded-lg cursor-pointer py-2.5 text-sm transition-colors focus:!bg-primary/10 focus:!text-primary focus:**:!text-primary data-[state=checked]:!text-primary data-[state=checked]:!bg-primary/10 data-[state=checked]:**:!text-primary data-[state=checked]:font-medium"
-            >
-              {opt.label}
-            </SelectItem>
-          ))}
+          {options.length > 0 ? (
+            options.map((opt) => (
+              <SelectItem 
+                key={opt.value} 
+                value={opt.value} 
+                disabled={opt.disabled}
+                className="rounded-lg cursor-pointer py-2.5 text-sm transition-colors focus:!bg-primary/10 focus:!text-primary focus:**:!text-primary data-[state=checked]:!text-primary data-[state=checked]:!bg-primary/10 data-[state=checked]:**:!text-primary data-[state=checked]:font-medium"
+              >
+                {opt.label}
+              </SelectItem>
+            ))
+          ) : (
+            <div className="py-6 text-center text-sm text-muted-foreground flex flex-col items-center justify-center pointer-events-none">
+              <span className="opacity-70">Không có dữ liệu</span>
+            </div>
+          )}
         </SelectGroup>
       </SelectContent>
     </Select>
