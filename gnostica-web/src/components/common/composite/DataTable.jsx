@@ -1,8 +1,7 @@
 import React from "react";
 import { cn } from "@/lib/utils";
 import AppTable from "@/components/common/micro/AppTable";
-import AppPagination from "@/components/common/micro/AppPagination";
-import AppSelect from "@/components/common/micro/AppSelect";
+import DataPagination from "@/components/common/composite/DataPagination";
 
 /**
  * Gnostica DataTable - Unified, premium, reusable table component with pagination.
@@ -34,10 +33,6 @@ export default function DataTable({
     renderExpandedRow,
     ...props
 }) {
-    // Pagination logic
-    const isZeroIndexed = pagination?.zeroIndexed || false;
-    const maxPages = pagination?.totalPages || 1;
-    const currentPageForUI = pagination ? pagination.currentPage + (isZeroIndexed ? 1 : 0) : 1;
 
     return (
         <div className={cn("w-full bg-white border border-border rounded-xl shadow-sm overflow-hidden flex flex-col", className)}>
@@ -59,37 +54,7 @@ export default function DataTable({
             </div>
 
             {/* Pagination & Display Info */}
-            {pagination && (
-                <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-t border-border/50 bg-muted/30 gap-4">
-                    <div className="flex flex-col sm:flex-row items-center gap-4 text-sm font-medium text-muted-foreground whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                            <span>Xem</span>
-                            <AppSelect 
-                                className="!h-9 w-[80px] rounded-lg"
-                                value={pagination.pageSize ? pagination.pageSize.toString() : "10"}
-                                onValueChange={(val) => pagination.onPageSizeChange?.(Number(val))}
-                                options={[
-                                    { label: "10", value: "10" },
-                                    { label: "20", value: "20" },
-                                    { label: "50", value: "50" },
-                                    { label: "100", value: "100" },
-                                ]}
-                            />
-                            <span>mục</span>
-                        </div>
-                        <p className="hidden sm:block text-muted-foreground/40">|</p>
-                        <p>Hiển thị {data?.length || 0} / {(pagination.totalItems || pagination.totalElements || 0).toLocaleString()} bản ghi</p>
-                    </div>
-                    
-                    <AppPagination 
-                        currentPage={currentPageForUI}
-                        totalPages={maxPages}
-                        onPageChange={(page) => pagination.onPageChange?.(isZeroIndexed ? page - 1 : page)}
-                        siblingCount={1}
-                        className="w-auto mx-0"
-                    />
-                </div>
-            )}
+            <DataPagination pagination={pagination} dataLength={data?.length || 0} />
         </div>
     );
 }

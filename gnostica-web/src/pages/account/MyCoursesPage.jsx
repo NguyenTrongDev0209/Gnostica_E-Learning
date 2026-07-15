@@ -5,6 +5,7 @@ import AppCard, { AppCardContent } from "@/components/common/micro/AppCard";
 import AppInput from "@/components/common/micro/AppInput";
 import AppSelect from "@/components/common/micro/AppSelect";
 import { AppCheckbox } from "@/components/common/micro/AppCheckbox";
+import AppPagination from "@/components/common/micro/AppPagination";
 import { Skeleton } from "@/components/ui/skeleton";
 import AppPageHeader from "@/components/common/composite/AppPageHeader";
 import useMyCourses from "@/hooks/course/useMyCourses";
@@ -21,6 +22,9 @@ export default function MyCourses() {
     selectedCategories,
     setSelectedCategories,
     categories,
+    currentPage,
+    setCurrentPage,
+    totalPages,
     stats
   } = useMyCourses();
 
@@ -130,6 +134,15 @@ export default function MyCourses() {
           </div>
           
           <MyCourseGrid loading={loading} courses={courses} />
+
+          {courses.length > 0 && !loading && (
+            <AppPagination 
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              className="pt-4 border-t border-border/50"
+            />
+          )}
         </div>
 
         {/* Right Column: Filters Sidebar */}

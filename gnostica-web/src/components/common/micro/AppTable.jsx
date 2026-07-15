@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 /**
  * AppTable (Micro) - Bảng hiển thị dữ liệu chuẩn cơ bản của Gnostica
  * 
- * @param {Array} columns - Định nghĩa cột: { key/accessor, label/header, render, className, cellClassName, width }
+ * @param {Array} columns - Định nghĩa cột: { key/accessor, label/header, render, className, cellClassName, width, align }
  * @param {Array} data - Dữ liệu bảng
  * @param {string} caption - Ghi chú dưới bảng (tùy chọn)
  * @param {boolean} isLoading - Trạng thái loading
@@ -53,7 +53,13 @@ export default function AppTable({
             {columns.map((col, index) => (
               <TableHead 
                 key={col.key || col.accessor || index} 
-                className={cn("py-3 px-4 font-semibold text-foreground align-middle", col.className)} 
+                className={cn(
+                  "py-3 px-4 font-semibold text-foreground align-middle", 
+                  col.align === "center" && "text-center",
+                  col.align === "right" && "text-right",
+                  col.align === "left" && "text-left",
+                  col.className
+                )} 
                 style={{ width: col.width }}
               >
                 {typeof col.header === "function" ? col.header() : col.header || col.label}
@@ -100,7 +106,13 @@ export default function AppTable({
                     {columns.map((col, colIndex) => (
                       <TableCell 
                         key={col.key || col.accessor || colIndex} 
-                        className={cn("py-3 px-4 align-middle", col.cellClassName)}
+                        className={cn(
+                          "py-3 px-4 align-middle", 
+                          col.align === "center" && "text-center",
+                          col.align === "right" && "text-right",
+                          col.align === "left" && "text-left",
+                          col.cellClassName
+                        )}
                       >
                         {col.render ? col.render(row, rowIndex) : row[col.key || col.accessor]}
                       </TableCell>

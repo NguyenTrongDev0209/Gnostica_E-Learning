@@ -28,11 +28,11 @@ const MENU_GROUPS = [
     ],
   },
   {
-    title: "Giao dịch",
+    title: "Thanh toán",
     items: [
       { label: "Danh sách yêu thích", icon: Heart, href: "/account/wishlist" },
       { label: "Lịch sử đơn hàng", icon: ShoppingBag, href: "/account/orders" },
-      { label: "Kho Voucher", icon: Ticket, href: "/account/vouchers", badge: "2" },
+      { label: "Kho giảm giá", icon: Ticket, href: "/account/vouchers", badge: "2" },
     ],
   },
   {
@@ -40,7 +40,7 @@ const MENU_GROUPS = [
     items: [
       { label: "Thông báo", icon: Bell, href: "/account/notifications" },
       { label: "Hồ sơ cá nhân", icon: UserCog, href: "/account/settings" },
-      { label: "Bảo mật & Mật khẩu", icon: KeyRound, href: "/account/change-password" },
+      { label: "Bảo mật", icon: KeyRound, href: "/account/change-password" },
     ],
   },
 ];

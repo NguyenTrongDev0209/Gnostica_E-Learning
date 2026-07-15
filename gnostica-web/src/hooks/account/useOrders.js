@@ -34,6 +34,8 @@ const ORDERS_DATA = [
 export default function useOrders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   useEffect(() => {
     // Simulate API fetch
@@ -48,5 +50,14 @@ export default function useOrders() {
     fetchOrders();
   }, []);
 
-  return { orders, loading };
+  return { 
+    orders, 
+    loading,
+    currentPage,
+    setCurrentPage,
+    pageSize,
+    setPageSize,
+    totalItems: ORDERS_DATA.length,
+    totalPages: Math.ceil(ORDERS_DATA.length / pageSize) || 1
+  };
 }

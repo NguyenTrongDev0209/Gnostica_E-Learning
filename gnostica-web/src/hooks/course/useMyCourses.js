@@ -8,6 +8,7 @@ export default function useMyCourses() {
   const [courses, setCourses] = useState([]);
   const [categories, setCategories] = useState([]);
   const [stats, setStats] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -44,6 +45,9 @@ export default function useMyCourses() {
     selectedCategories,
     setSelectedCategories,
     categories,
+    currentPage,
+    setCurrentPage,
+    totalPages: Math.ceil(filteredCourses.length / 5) || 1,
     totalCourses: courses.length,
     stats
   };
