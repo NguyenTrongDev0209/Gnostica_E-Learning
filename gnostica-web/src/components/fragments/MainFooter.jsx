@@ -93,7 +93,7 @@ const MainFooter = () => {
                         </div>
 
                         {/* Thank You Bar */}
-                        <div className="w-full py-5 px-6 border-2 border-border rounded-lg flex items-center justify-center bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,0.05)]">
+                        <div className="w-full py-5 px-6 border-2 border-border rounded-lg flex items-center justify-center bg-white shadow-md">
                             <span className="text-foreground font-bold text-sm lg:text-[15px] text-center leading-relaxed">
                                 Cảm ơn bạn đã tin tưởng và đồng hành cùng Gnostica
                             </span>
@@ -114,7 +114,7 @@ const MainFooter = () => {
             </div>
 
             {/* Bottom Bar */}
-            <div className="w-full bg-[#11141D] text-white">
+            <div className="w-full bg-foreground text-background">
                 <div className="h-[3px] w-full bg-primary"></div>
                 <div className="app-container py-4 flex flex-col md:flex-row justify-between items-center gap-6">
                     <div className="flex gap-4 items-center">

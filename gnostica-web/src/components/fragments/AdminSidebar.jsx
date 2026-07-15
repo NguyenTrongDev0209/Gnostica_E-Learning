@@ -67,16 +67,16 @@ export default function AdminSidebar({ user, handleLogout }) {
   const location = useLocation();
 
   return (
-    <aside className="w-64 bg-slate-50 border-r border-border min-h-screen fixed left-0 top-0 bottom-0 flex flex-col z-50">
-      <div className="h-16 flex items-center justify-center px-0 border-b border-border bg-white">
+    <aside className="w-64 bg-background border-r border-border min-h-screen fixed left-0 top-0 bottom-0 flex flex-col z-50">
+      <div className="h-16 flex items-center justify-center px-0 border-b border-border bg-background">
         <AppLogo className="h-12 md:h-12" />
       </div>
 
-      <div className="flex-1 overflow-y-auto py-6 px-4 scrollbar-hide text-slate-300">
+      <div className="flex-1 overflow-y-auto py-6 px-4 scrollbar-hide">
         <nav className="flex flex-col gap-3">
           {ADMIN_MENU_GROUPS.map((group, idx) => (
             <div key={idx} className="space-y-2">
-              <p className="px-3 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">
+              <p className="px-3 text-xs font-bold text-muted-foreground uppercase tracking-widest">
                 {group.title}
               </p>
               <div className="flex flex-col gap-1">
@@ -110,7 +110,7 @@ export default function AdminSidebar({ user, handleLogout }) {
         </nav>
       </div>
 
-      <div className="p-4 border-t border-border bg-white font-bold">
+      <div className="p-4 border-t border-border bg-background font-bold">
         <div className="flex items-center justify-between px-2">
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center font-bold text-primary-foreground shrink-0 border border-border overflow-hidden">
@@ -122,7 +122,7 @@ export default function AdminSidebar({ user, handleLogout }) {
             </div>
             <div className="min-w-0">
               <p className="text-sm font-bold text-foreground truncate">{user?.fullName || "Administrator"}</p>
-              <p className="text-[11px] text-muted-foreground truncate">{user?.email || "admin@system.com"}</p>
+              <p className="text-xs text-muted-foreground truncate">{user?.email || "admin@system.com"}</p>
             </div>
           </div>
           <button

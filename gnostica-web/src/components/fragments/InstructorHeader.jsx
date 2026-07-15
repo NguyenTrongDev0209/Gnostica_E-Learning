@@ -1,7 +1,7 @@
-﻿import React from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { AppButton } from "@/components/common/micro/AppButton";
 import NotificationBell from "@/components/common/composite/NotificationBell";
 
 export default function InstructorHeader() {
@@ -16,19 +16,19 @@ export default function InstructorHeader() {
             <input
               type="text"
               placeholder="Tìm khóa học, câu hỏi của học viên..."
-              className="w-full h-10 pl-10 pr-4 bg-muted border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-success/20 transition-all"
+              className="w-full h-10 pl-10 pr-4 bg-muted border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-success/20 focus:border-success/20 transition-all"
             />
           </div>
         </div>
 
         <div className="flex items-center gap-4 shrink-0">
-          <Button
+          <AppButton
             onClick={() => navigate("/instructor/courses/courses-form")}
             className="h-9 font-bold bg-success text-white hover:bg-success/90 flex items-center gap-1.5 shadow-none hidden lg:flex"
           >
             <Plus className="w-4 h-4" />
             Tạo khóa học mới
-          </Button>
+          </AppButton>
 
           <div className="w-px h-6 bg-muted mx-2 hidden lg:block"></div>
 
