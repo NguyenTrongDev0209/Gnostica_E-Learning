@@ -3,7 +3,6 @@ import com.gnostica.modules.integration.service.MailService;
 
 import com.gnostica.core.model.Order;
 import com.gnostica.core.model.Enrollment;
-import com.gnostica.modules.integration.service.MailService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
