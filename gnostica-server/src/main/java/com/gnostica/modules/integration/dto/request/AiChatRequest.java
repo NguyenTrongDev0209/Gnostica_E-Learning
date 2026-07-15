@@ -10,6 +10,8 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AiChatRequest {
+    private String sessionId;
+    private String message;
     private List<Message> messages;
 
     @Data

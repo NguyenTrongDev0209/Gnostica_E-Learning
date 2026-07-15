@@ -1,9 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MessageCircle, X, Send, Bot, User, Loader2, Minimize2, Maximize2, ThumbsUp, Folder } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { sendChatMessage } from '@/services/admin/aiService';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+
+const FAQS = [
+    { id: '1', text: 'Tìm kiếm khóa học Java' },
+    { id: '2', text: 'Xem các bài viết nổi bật' },
+    { id: '3', text: 'Thành viên đóng góp tích cực nhất' },
+    { id: '4', text: 'Chuyên mục thảo luận diễn đàn' }
+];
 
 const AiChatBot = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -26,6 +33,7 @@ const AiChatBot = () => {
         startWidth: 0,
         startHeight: 0
     });
+    const navigate = useNavigate();
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
@@ -156,9 +164,10 @@ const AiChatBot = () => {
                     avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${author}`;
                 }
 
-                const handleLinkClick = (e) => {
-                    if (linkTo === '#') {
-                        e.preventDefault();
+                const handleLinkClick = (e, to) => {
+                    e.preventDefault();
+                    if (to && to !== '#') {
+                        navigate(to);
                     }
                 };
 
@@ -166,7 +175,7 @@ const AiChatBot = () => {
                     <Link
                         key={index}
                         to={linkTo}
-                        onClick={handleLinkClick}
+                        onClick={(e) => handleLinkClick(e, linkTo)}
                         className="block mt-2 mb-3 bg-white border border-border/50 hover:border-primary/50 transition-colors rounded-xl p-3 shadow-sm hover:shadow-md group no-underline text-card-foreground"
                     >
                         <div className="flex items-start gap-3">
@@ -210,13 +219,14 @@ const AiChatBot = () => {
         });
     };
 
-    const handleSend = async (e) => {
-        e.preventDefault();
-        if (!input.trim() || isLoading) return;
+    const handleSend = async (e, textToSend = null) => {
+        if (e) e.preventDefault();
+        const finalInput = textToSend ? textToSend : input;
+        if (!finalInput.trim() || isLoading) return;
 
-        const userMessage = { role: 'user', content: input };
+        const userMessage = { role: 'user', content: finalInput };
         setMessages(prev => [...prev, userMessage]);
-        setInput('');
+        if (!textToSend) setInput('');
         setIsLoading(true);
 
         try {
@@ -329,6 +339,25 @@ const AiChatBot = () => {
                                 <div className="p-3 rounded-2xl bg-white border border-border rounded-tl-none shadow-sm flex items-center gap-2">
                                     <Loader2 size={16} className="animate-spin text-primary" />
                                     <span className="text-xs text-muted-foreground italic">Trợ lý đang trả lời...</span>
+                                </div>
+                            </div>
+                        )}
+                        {messages.length === 1 && !isLoading && (
+                            <div className="flex flex-col gap-2 mt-4 ml-10 mr-auto max-w-[85%] select-none">
+                                <span className="text-xs text-muted-foreground font-semibold flex items-center gap-1">
+                                    💡 Các câu hỏi thường gặp:
+                                </span>
+                                <div className="flex flex-col sm:flex-row flex-wrap gap-2">
+                                    {FAQS.map((faq) => (
+                                        <button
+                                            key={faq.id}
+                                            type="button"
+                                            onClick={() => handleSend(null, faq.text)}
+                                            className="text-left text-xs bg-white border border-border hover:border-primary hover:text-primary rounded-xl px-4 py-2.5 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer"
+                                        >
+                                            {faq.text}
+                                        </button>
+                                    ))}
                                 </div>
                             </div>
                         )}
