@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import {
     ChevronDown,
@@ -140,14 +140,20 @@ const MainHeader = ({
                     <div className="flex-1 flex justify-start">
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <AppButton appVariant="category" className="text-sm h-10 px-4">
-                                    <LayoutGrid className="w-5 h-5 pointer-events-none" />
+                                <AppButton appVariant="accent">
+                                    <LayoutGrid className="pointer-events-none" />
                                     <span className="pointer-events-none">Khóa học</span>
-                                    <ChevronDown className="w-4 h-4 ml-1 pointer-events-none" />
+                                    <ChevronDown className="pointer-events-none" />
                                 </AppButton>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="start" className="w-[280px] bg-white border-none shadow-2xl rounded-lg p-2 animate-in fade-in slide-in-from-top-2 z-[101]">
-                                {renderCategoryItems(categoryTree)}
+                                {categoryTree && categoryTree.length > 0 ? (
+                                    renderCategoryItems(categoryTree)
+                                ) : (
+                                    <div className="p-4 text-center text-sm text-muted-foreground font-medium">
+                                        Đang cập nhật danh mục...
+                                    </div>
+                                )}
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </div>

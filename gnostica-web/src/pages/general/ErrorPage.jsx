@@ -1,10 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Button } from "@/components/ui/button";
+import { AppButton } from "@/components/common/micro/AppButton";
 
 const ErrorPage = () => {
   return (
-    <div className="relative min-h-screen w-full flex flex-col items-center justify-center bg-card text-card-foreground overflow-hidden font-sans">
+    <div className="relative min-h-screen w-full flex flex-col items-center justify-center bg-background text-foreground overflow-hidden font-sans">
       {/* City Skyline Background (SVG) */}
       <div className="absolute inset-0 z-0 pointer-events-none opacity-20 flex items-end justify-center">
         <svg
@@ -31,25 +31,27 @@ const ErrorPage = () => {
       {/* Main Content */}
       <div className="relative z-10 text-center px-4 -mt-24 md:-mt-32">
         {/* 404 Text */}
-        <h1 className="text-[120px] md:text-[200px] font-bold leading-none select-none animate-in fade-in zoom-in duration-700" style={{ color: 'var(--primary, oklch(74% 0.28 55))' }}>
+        <h1 className="text-[120px] md:text-[200px] font-black leading-none select-none animate-in fade-in zoom-in duration-700 bg-accent-gradient bg-clip-text text-transparent">
           404
         </h1>
 
         {/* Heading */}
-        <h2 className="text-3xl md:text-4xl font-semibold text-foreground mt-4 tracking-tight">
+        <h2 className="text-3xl md:text-4xl font-bold text-foreground mt-4 tracking-tight">
           Oops! Không tìm thấy trang này.
         </h2>
 
         {/* Subtext */}
-        <p className="text-muted-foreground mt-4 max-w-md mx-auto text-lg">
+        <p className="text-muted-foreground mt-4 max-w-md mx-auto text-lg font-medium">
           Trang bạn đang tìm kiếm không tồn tại hoặc đã được di chuyển.
         </p>
 
         {/* Back Button */}
-        <div className="mt-10">
-          <Button asChild className="px-8 py-6 text-lg rounded-xl bg-muted hover:bg-muted transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-1">
-            <Link to="/">Quay về trang chủ</Link>
-          </Button>
+        <div className="mt-10 flex justify-center">
+          <Link to="/">
+            <AppButton appSize="lg" appVariant="gradient" className="shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all">
+              Quay về trang chủ
+            </AppButton>
+          </Link>
         </div>
       </div>
 

@@ -211,9 +211,6 @@ const RecommendedCourses = () => {
   return (
     <section className="w-full">
       <div className="flex items-center gap-2 mb-6">
-        <div className="p-2 bg-warning/10 rounded-lg">
-          <Sparkles className="w-5 h-5 text-warning" />
-        </div>
         <h2 className="text-2xl font-bold text-foreground">Dành riêng cho bạn</h2>
       </div>
 

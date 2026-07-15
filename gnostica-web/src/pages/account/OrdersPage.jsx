@@ -1,11 +1,13 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
 import AppPageHeader from "@/components/common/composite/AppPageHeader";
 import DataTable from "@/components/common/composite/DataTable";
+import FilterOptions from "@/components/common/composite/FilterOptions";
 import { ShoppingBag, Eye, Download } from "lucide-react";
 import useOrders from "@/hooks/account/useOrders";
 import { AppButton } from "@/components/common/micro/AppButton";
+import OrderDetailModal from "./components/OrderDetailModal";
 
 export default function Orders() {
   const { 
@@ -19,34 +21,37 @@ export default function Orders() {
     totalPages
   } = useOrders();
 
+  const [selectedOrder, setSelectedOrder] = useState(null);
+
   const columns = [
     { 
       accessor: "id", 
       header: "Mã đơn hàng", 
-      className: "whitespace-nowrap py-4",
-      cellClassName: "font-mono font-semibold text-foreground py-4",
+      className: "whitespace-nowrap py-4 text-center",
+      cellClassName: "py-4",
     },
     { 
       accessor: "date", 
       header: "Ngày đặt",
-      className: "whitespace-nowrap py-4",
-      cellClassName: "text-muted-foreground font-medium py-4",
+      className: "whitespace-nowrap py-4 text-center",
+      cellClassName: "text-muted-foreground font-medium py-4 text-center",
     },
     { 
       accessor: "courses", 
       header: "Sản phẩm",
       width: "300px",
+      className: "py-4 text-center",
       render: (order) => (
         <div className="py-4">
           <div className="space-y-1">
             {order.courses.map((course, idx) => (
-              <p key={idx} className="text-sm font-bold text-foreground line-clamp-1">
-                • {course}
+              <p key={idx} className="text-sm text-foreground line-clamp-1">
+                {course.name || course}
               </p>
             ))}
           </div>
           {order.courses.length > 1 && (
-            <span className="text-xs text-primary font-bold mt-1 inline-block">
+            <span className="text-xs text-muted-foreground mt-1 inline-block">
               +{order.courses.length - 1} khóa học khác
             </span>
           )}
@@ -56,19 +61,14 @@ export default function Orders() {
     { 
       accessor: "total", 
       header: "Tổng tiền",
-      className: "whitespace-nowrap py-4",
-      cellClassName: "font-black text-primary py-4",
-    },
-    { 
-      accessor: "method", 
-      header: "PT Thanh toán",
-      className: "whitespace-nowrap py-4",
-      cellClassName: "text-muted-foreground font-medium py-4",
+      className: "whitespace-nowrap py-4 text-center",
+      cellClassName: "font-black bg-accent-gradient bg-clip-text text-transparent py-4 text-center",
     },
     { 
       accessor: "status", 
       header: "Trạng thái",
-      className: "whitespace-nowrap py-4",
+      className: "whitespace-nowrap py-4 text-center",
+      cellClassName: "py-4 text-center",
       render: (order) => (
         <span className={`inline-flex items-center justify-center px-2.5 py-1 text-xs font-bold rounded-md border-none shadow-none ${order.statusColor}`}>
           {order.status}
@@ -78,11 +78,18 @@ export default function Orders() {
     { 
       accessor: "actions", 
       header: "Thao tác",
-      className: "text-right whitespace-nowrap py-4",
-      cellClassName: "text-right py-4",
-      render: () => (
-        <div className="flex items-center justify-end gap-2">
-          <AppButton appVariant="ghostMuted" variant="ghost" size="icon" className="h-9 w-9 rounded-lg" title="Xem chi tiết">
+      className: "whitespace-nowrap py-4 text-center",
+      cellClassName: "py-4",
+      render: (order) => (
+        <div className="flex items-center justify-center gap-2">
+          <AppButton 
+            appVariant="ghostMuted" 
+            variant="ghost" 
+            size="icon" 
+            className="h-9 w-9 rounded-lg" 
+            title="Xem chi tiết"
+            onClick={() => setSelectedOrder(order)}
+          >
             <Eye className="w-5 h-5" />
           </AppButton>
           <AppButton appVariant="ghostMuted" variant="ghost" size="icon" className="h-9 w-9 rounded-lg hover:text-info hover:bg-blue-50" title="Tải hóa đơn">
@@ -102,6 +109,10 @@ export default function Orders() {
         title="Lịch sử mua hàng"
         description="Quản lý các giao dịch và đăng ký khóa học của bạn."
       />
+
+      <div className="mb-6">
+        <FilterOptions onFilterChange={() => {}} selectedFilters={{}} />
+      </div>
 
       <DataTable 
         columns={columns}
@@ -123,6 +134,12 @@ export default function Orders() {
           onPageChange: setCurrentPage,
           onPageSizeChange: setPageSize
         }}
+      />
+
+      <OrderDetailModal 
+        open={!!selectedOrder} 
+        onOpenChange={(open) => !open && setSelectedOrder(null)} 
+        order={selectedOrder} 
       />
     </div>
   );

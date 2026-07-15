@@ -5,7 +5,9 @@ const ORDERS_DATA = [
   {
     id: "DH-10294",
     date: "15/03/2026",
-    courses: ["Thiết kế UI/UX Thực chiến với Figma"],
+    courses: [
+      { name: "Thiết kế UI/UX Thực chiến với Figma", giftedTo: "minhquoc@gmail.com" }
+    ],
     total: "899.000đ",
     method: "VNPay",
     status: "Thành công",
@@ -14,7 +16,10 @@ const ORDERS_DATA = [
   {
     id: "DH-10182",
     date: "10/01/2026",
-    courses: ["Lập trình Web Frontend Bootcamp 2026", "Mastering React 18"],
+    courses: [
+      { name: "Lập trình Web Frontend Bootcamp 2026" }, 
+      { name: "Mastering React 18" }
+    ],
     total: "1.299.000đ",
     method: "Thẻ tín dụng",
     status: "Thành công",
@@ -23,7 +28,7 @@ const ORDERS_DATA = [
   {
     id: "DH-09871",
     date: "25/12/2025",
-    courses: ["Docker & Kubernetes Bootcamp"],
+    courses: [{ name: "Docker & Kubernetes Bootcamp" }],
     total: "749.000đ",
     method: "Momo",
     status: "Đã hủy",

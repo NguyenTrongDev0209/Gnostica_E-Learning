@@ -17,10 +17,11 @@ const appButtonVariants = cva(
   {
     variants: {
       appVariant: {
+        primary: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm border-none",
         gradient: "bg-accent-gradient text-primary-foreground hover:brightness-110 shadow-md border-none",
         outlineGradient: "btn-outline-gradient hover:brightness-105 shadow-sm",
         ghostMuted: "text-muted-foreground hover:text-primary hover:bg-primary/5",
-        category: "bg-header-orange text-white border-2 border-white/20 uppercase rounded-lg font-bold hover:brightness-110 active:scale-95",
+        accent: "bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm border-none",
       },
       appSize: {
         sm: "btn-sm",

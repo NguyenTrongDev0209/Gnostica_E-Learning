@@ -1,15 +1,15 @@
 import LearningWorkspace from "@/pages/learning/LearningWorkspace";
 
-import AccountOverviewPage from "@/pages/account/AccountOverviewPage";
-import MyCoursesPage from "@/pages/account/MyCoursesPage";
+import AccountOverview from "@/pages/account/AccountOverview";
+import MyCourses from "@/pages/account/MyCourses";
 import CertificatesPage from "@/pages/account/CertificatesPage";
 import WishlistPage from "@/pages/account/WishlistPage";
 import OrdersPage from "@/pages/account/OrdersPage";
 import VouchersPage from "@/pages/account/VouchersPage";
 import NotificationsPage from "@/pages/account/NotificationsPage";
 import SettingsPage from "@/pages/account/SettingsPage";
-import ChangePasswordPage from "@/pages/account/ChangePasswordPage";
-import FavoriteInstructorsPage from "@/pages/account/FavoriteInstructorsPage";
+import ChangePassword from "@/pages/account/ChangePassword";
+import FavoriteInstructors from "@/pages/account/FavoriteInstructors";
 
 import CheckoutPage from "@/pages/order/CheckoutPage";
 import PayosQR from "@/pages/order/PayosQR";
@@ -44,16 +44,16 @@ import InstructorCourseForm from "@/pages/instructor/InstructorCourseForm";
 
 export const privateRoutes = {
   account: [
-    { path: "/account", component: AccountOverviewPage },
-    { path: "/account/my-courses", component: MyCoursesPage },
+    { path: "/account", component: AccountOverview },
+    { path: "/account/my-courses", component: MyCourses },
     { path: "/account/certificates", component: CertificatesPage },
     { path: "/account/wishlist", component: WishlistPage },
     { path: "/account/orders", component: OrdersPage },
     { path: "/account/vouchers", component: VouchersPage },
     { path: "/account/notifications", component: NotificationsPage },
     { path: "/account/settings", component: SettingsPage },
-    { path: "/account/change-password", component: ChangePasswordPage },
-    { path: "/account/following", component: FavoriteInstructorsPage },
+    { path: "/account/change-password", component: ChangePassword },
+    { path: "/account/following", component: FavoriteInstructors },
   ],
   admin: [
     { path: "/admin", component: AdminDashboard },
