@@ -11,7 +11,7 @@ import {
   Loader2
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { GhostButton, SimpleButton } from "@/components/common/AppButton";
+import { AppButton } from "@/components/common/micro/AppButton";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -110,9 +110,9 @@ export default function InstructorQA() {
                         <ThumbsUp className="w-3.5 h-3.5" /> {q.likes || 0} Hữu ích
                       </button>
                     </div>
-                    <SimpleButton size="sm" className="bg-success/10 text-success hover:bg-success/20 font-bold h-8">
+                    <AppButton appVariant="gradient" size="sm" className="bg-success/10 text-success hover:bg-success/20 font-bold h-8">
                       <Reply className="w-3.5 h-3.5 mr-1.5" /> Phản hồi ngay
-                    </SimpleButton>
+                    </AppButton>
                  </div>
                </CardContent>
              </Card>
@@ -148,9 +148,9 @@ export default function InstructorQA() {
                     </div>
                  </div>
                  <div className="px-5 py-3 border-t border-border bg-muted flex justify-end">
-                    <GhostButton size="sm" className="h-8 font-bold text-amber-600 hover:bg-amber-50 hover:text-amber-700">
+                    <AppButton appVariant="ghostMuted" variant="ghost" size="sm" className="h-8 font-bold text-amber-600 hover:bg-amber-50 hover:text-amber-700">
                       Cảm ơn học viên &rarr;
-                    </GhostButton>
+                    </AppButton>
                  </div>
                </CardContent>
              </Card>

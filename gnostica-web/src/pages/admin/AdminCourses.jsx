@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { 
   Plus, 
   Search, 
@@ -7,8 +7,8 @@ import {
   Users
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import AppTable from "@/components/common/AppTable";
-import { SimpleButton, GhostButton } from "@/components/common/AppButton";
+import DataTable from "@/components/common/composite/DataTable";
+import { AppButton } from "@/components/common/micro/AppButton";
 import { Input } from "@/components/ui/input";
 
 const COURSES_DATA = [
@@ -65,10 +65,10 @@ export default function AdminCourses() {
             Thêm mới, chỉnh sửa nội dung và quản lý doanh thu khóa học.
           </p>
         </div>
-        <SimpleButton className="font-bold flex items-center gap-2 border-none">
+        <AppButton appVariant="gradient" className="font-bold flex items-center gap-2 border-none">
           <Plus className="w-4 h-4" />
           Tạo Khóa Học Mới
-        </SimpleButton>
+        </AppButton>
       </div>
 
       {/* Filters & Actions */}
@@ -100,7 +100,7 @@ export default function AdminCourses() {
 
       {/* Courses Table */}
       <Card className="border-border shadow-sm overflow-hidden">
-        <AppTable
+        <DataTable
           columns={[
             {
               header: "Thông tin khóa học",
@@ -157,10 +157,10 @@ export default function AdminCourses() {
               // eslint-disable-next-line no-unused-vars
               render: (course) => (
                 <div className="flex justify-end items-center gap-2">
-                  <GhostButton size="sm" className="h-8 font-medium border border-border bg-white hover:bg-muted">Chi tiết</GhostButton>
-                  <GhostButton size="icon" className="h-8 w-8 text-muted-foreground hover:bg-red-50 hover:text-error border-none">
+                  <AppButton appVariant="ghostMuted" variant="ghost" size="sm" className="h-8 font-medium border border-border bg-white hover:bg-muted">Chi tiết</AppButton>
+                  <AppButton appVariant="ghostMuted" variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:bg-red-50 hover:text-error border-none">
                     <Trash2 className="w-4 h-4" />
-                  </GhostButton>
+                  </AppButton>
                 </div>
               ),
             },

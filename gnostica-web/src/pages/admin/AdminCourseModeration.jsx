@@ -1,4 +1,4 @@
-// eslint-disable-next-line no-unused-vars
+﻿// eslint-disable-next-line no-unused-vars
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -14,8 +14,8 @@ import {
   Loader2,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import AppTable from "@/components/common/AppTable";
-import { SimpleButton, GhostButton } from "@/components/common/AppButton";
+import DataTable from "@/components/common/composite/DataTable";
+import { AppButton } from "@/components/common/micro/AppButton";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -206,7 +206,7 @@ export default function AdminCourseModeration() {
 
       {/* Data Table */}
       <Card className="border-border/60 shadow-sm overflow-hidden bg-white rounded-xl">
-        <AppTable
+        <DataTable
           columns={[
             {
               header: "Thông tin khóa học",
@@ -300,7 +300,7 @@ export default function AdminCourseModeration() {
                 <div className="flex justify-end items-center gap-2 pr-6">
                   {item.status === 4 ? (
                     <>
-                      <SimpleButton
+                      <AppButton appVariant="gradient"
                         size="sm"
                         disabled={isSubmitting}
                         onClick={() => handleApprove(item)}
@@ -308,33 +308,33 @@ export default function AdminCourseModeration() {
                       >
                         <CheckCircle2 className="w-3.5 h-3.5" />
                         Duyệt
-                      </SimpleButton>
-                      <GhostButton
+                      </AppButton>
+                      <AppButton appVariant="ghostMuted" variant="ghost"
                         size="sm"
                         disabled={isSubmitting}
                         onClick={() => handleOpenRejectModal(item)}
                         className="h-8 font-bold border border-border text-muted-foreground hover:text-rose-600 hover:bg-rose-50 hover:border-rose-200"
                       >
                         Từ chối
-                      </GhostButton>
+                      </AppButton>
                     </>
                   ) : (
-                    <GhostButton
+                    <AppButton appVariant="ghostMuted" variant="ghost"
                       size="sm"
                       onClick={() => handleOpenPreview(item)}
                       className="h-8 font-bold text-muted-foreground gap-1.5 hover:border-primary hover:text-primary bg-white border border-border"
                     >
                       Chi tiết <ArrowUpRight className="w-3.5 h-3.5" />
-                    </GhostButton>
+                    </AppButton>
                   )}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <GhostButton
+                      <AppButton appVariant="ghostMuted" variant="ghost"
                         size="icon"
                         className="h-8 w-8 text-muted-foreground hover:text-foreground rounded-full border-none hover:bg-muted"
                       >
                         <MoreVertical className="w-4 h-4" />
-                      </GhostButton>
+                      </AppButton>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-52">
                       <DropdownMenuItem

@@ -1,6 +1,6 @@
 import React from "react";
 import { Card } from "@/components/ui/card";
-import { GhostButton, SimpleButton } from "@/components/common/AppButton";
+import { AppButton } from "@/components/common/micro/AppButton";
 import { Clock } from "lucide-react";
 
 export default function CourseDraftModal({ showDraftModal, setShowDraftModal, slug, restoreDraft }) {
@@ -18,7 +18,7 @@ export default function CourseDraftModal({ showDraftModal, setShowDraftModal, sl
             Bạn có một bản lưu nháp chưa hoàn thành từ phiên làm việc trước. Bạn có muốn khôi phục lại dữ liệu này không?
           </p>
           <div className="grid grid-cols-2 gap-3">
-            <GhostButton
+            <AppButton appVariant="ghostMuted" variant="ghost"
               className="h-11 font-bold border-border"
               onClick={() => {
                 setShowDraftModal(false);
@@ -26,13 +26,13 @@ export default function CourseDraftModal({ showDraftModal, setShowDraftModal, sl
               }}
             >
               Bỏ qua
-            </GhostButton>
-            <SimpleButton
+            </AppButton>
+            <AppButton appVariant="gradient"
               className="h-11 font-bold bg-info text-white hover:bg-info/90 border-none"
               onClick={restoreDraft}
             >
               Khôi phục ngay
-            </SimpleButton>
+            </AppButton>
           </div>
         </div>
       </Card>

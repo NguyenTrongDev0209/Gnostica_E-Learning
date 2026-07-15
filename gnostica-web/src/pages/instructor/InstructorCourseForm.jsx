@@ -5,7 +5,7 @@ import { FormProvider } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, CircleFadingArrowUp, Save, Sparkles, Loader2 } from "lucide-react";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { GhostButton, SimpleButton } from "@/components/common/AppButton";
+import { AppButton } from "@/components/common/micro/AppButton";
 
 import CourseStepper from "@/pages/instructor/components/CourseStepper";
 import BasicInfoTab from "@/pages/instructor/components/BasicInfoTab";
@@ -97,7 +97,7 @@ export default function InstructorCourseForm() {
               </div>
             )}
 
-            <GhostButton
+            <AppButton appVariant="ghostMuted" variant="ghost"
               type="button"
               onClick={() => setShowAiReportModal(true)}
               className={`h-9 sm:h-10 px-3 sm:px-5 rounded-xl font-bold border shadow-sm text-xs sm:text-sm flex items-center gap-2 transition-all duration-300 hover:-translate-y-0.5 shrink-0 ${
@@ -117,17 +117,17 @@ export default function InstructorCourseForm() {
               <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               <span className="hidden md:inline">Kết quả kiểm duyệt AI</span>
               <span className="md:hidden">AI Report</span>
-            </GhostButton>
+            </AppButton>
 
-            <GhostButton
+            <AppButton appVariant="ghostMuted" variant="ghost"
               type="button"
               className="h-9 sm:h-10 px-3 sm:px-5 font-bold border border-border text-muted-foreground hover:bg-muted shadow-none text-xs sm:text-sm"
               onClick={handleExitWithConfirmation}
             >
               Hủy
-            </GhostButton>
+            </AppButton>
 
-            <GhostButton
+            <AppButton appVariant="ghostMuted" variant="ghost"
               type="button"
               disabled={isSavingDraft || isUploading}
               className="h-9 sm:h-10 px-3 sm:px-5 font-bold border border-info/20 text-info hover:bg-blue-50 shadow-none text-xs sm:text-sm flex items-center gap-2"
@@ -139,7 +139,7 @@ export default function InstructorCourseForm() {
                 <Save size={16} />
               )}
               Lưu bản nháp
-            </GhostButton>
+            </AppButton>
           </div>
         </div>
       </div>
@@ -200,14 +200,14 @@ export default function InstructorCourseForm() {
                 </button>
               ) : (
                 <>
-                  <GhostButton
+                  <AppButton appVariant="ghostMuted" variant="ghost"
                     type="button"
                     onClick={() => setShowAiReportModal(true)}
                     className="h-11 px-6 rounded-xl font-bold border border-border shadow-sm text-xs sm:text-sm flex items-center gap-2"
                   >
                     <Sparkles className="w-4 h-4" />
                     Kết quả kiểm duyệt AI
-                  </GhostButton>
+                  </AppButton>
 
                   <button
                     type="button"

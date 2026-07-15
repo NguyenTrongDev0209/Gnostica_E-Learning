@@ -1,6 +1,6 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import { AppLogo } from '@/components/common/AppButton';
+import { AppLogo } from '@/components/common/micro/AppButton';
 
 const AuthLayout = () => {
   return (

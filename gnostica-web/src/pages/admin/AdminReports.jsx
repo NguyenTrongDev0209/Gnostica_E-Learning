@@ -1,10 +1,10 @@
-import threadReportService from "@/services/forum/threadReportService";
+﻿import threadReportService from "@/services/forum/threadReportService";
 import React, { useState, useEffect } from "react";
 import { BarChart3, ShieldAlert, CheckCircle2, XCircle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import AppTable from "@/components/common/AppTable";
+import DataTable from "@/components/common/composite/DataTable";
 import { Badge } from "@/components/ui/badge";
-import { GhostButton, SimpleButton } from "@/components/common/AppButton";
+import { AppButton } from "@/components/common/micro/AppButton";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -87,7 +87,7 @@ export default function AdminReports() {
         <TabsContent value="forum-reports">
           <Card className="border-border shadow-sm">
             <CardContent className="p-0">
-              <AppTable
+              <DataTable
                 columns={[
                   {
                     header: "Người báo cáo",
@@ -145,37 +145,37 @@ export default function AdminReports() {
                     render: (report) => (
                       <div className="flex items-center justify-end gap-2">
                         {report.status === "RESOLVED" ? (
-                          <GhostButton 
+                          <AppButton appVariant="ghostMuted" variant="ghost" 
                             size="sm" 
                             className="h-8 gap-1 text-muted-foreground border border-border hover:bg-muted bg-white"
                             onClick={() => handleUpdateStatus(report.id, "PENDING")}
                           >
                             <XCircle className="w-3.5 h-3.5" /> Hủy duyệt
-                          </GhostButton>
+                          </AppButton>
                         ) : report.status === "DISMISSED" ? (
-                          <GhostButton 
+                          <AppButton appVariant="ghostMuted" variant="ghost" 
                             size="sm" 
                             className="h-8 gap-1 text-muted-foreground border border-border hover:bg-muted bg-white"
                             onClick={() => handleUpdateStatus(report.id, "PENDING")}
                           >
                             <XCircle className="w-3.5 h-3.5" /> Hoàn tác
-                          </GhostButton>
+                          </AppButton>
                         ) : (
                           <>
-                            <GhostButton 
+                            <AppButton appVariant="ghostMuted" variant="ghost" 
                               size="sm" 
                               className="h-8 gap-1 text-error border border-error/20 bg-white hover:bg-red-50 hover:text-error"
                               onClick={() => handleUpdateStatus(report.id, "RESOLVED")}
                             >
                               <CheckCircle2 className="w-3.5 h-3.5" /> Duyệt
-                            </GhostButton>
-                            <GhostButton 
+                            </AppButton>
+                            <AppButton appVariant="ghostMuted" variant="ghost" 
                               size="sm" 
                               className="h-8 gap-1 text-muted-foreground border-none hover:bg-muted hover:text-foreground"
                               onClick={() => handleUpdateStatus(report.id, "DISMISSED")}
                             >
                               <XCircle className="w-3.5 h-3.5" /> Bỏ qua
-                            </GhostButton>
+                            </AppButton>
                           </>
                         )}
                       </div>

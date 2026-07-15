@@ -11,7 +11,7 @@ import {
   Loader2
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { GhostButton, SimpleButton } from "@/components/common/AppButton";
+import { AppButton } from "@/components/common/micro/AppButton";
 import { Input } from "@/components/ui/input";
 import InstructorStudentTable from "@/pages/instructor/components/InstructorStudentTable";
 import StudentCoursesModal from "@/pages/instructor/components/StudentCoursesModal";
@@ -40,12 +40,12 @@ export default function InstructorStudents() {
           </p>
         </div>
         <div className="flex items-center gap-3 w-full sm:w-auto">
-          <GhostButton className="btn-md bg-white border border-border font-bold hover:shadow-sm rounded-xl">
+          <AppButton appVariant="ghostMuted" variant="ghost" className="btn-md bg-white border border-border font-bold hover:shadow-sm rounded-xl">
             <Download className="w-4 h-4 mr-2" /> Xuất dữ liệu
-          </GhostButton>
-          <SimpleButton className="btn-md font-bold rounded-xl transition-all hover:scale-[1.02]">
+          </AppButton>
+          <AppButton appVariant="gradient" className="btn-md font-bold rounded-xl transition-all hover:scale-[1.02]">
             <Mail className="w-4 h-4 mr-2" /> Gửi thông báo
-          </SimpleButton>
+          </AppButton>
         </div>
       </div>
 

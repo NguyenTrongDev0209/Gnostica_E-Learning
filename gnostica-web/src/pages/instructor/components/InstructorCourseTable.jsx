@@ -1,5 +1,5 @@
-import React from "react";
-import AppTable from "@/components/common/AppTable";
+﻿import React from "react";
+import DataTable from "@/components/common/composite/DataTable";
 import {
     Eye,
     EyeOff,
@@ -11,7 +11,7 @@ import {
     Star,
     Search,
 } from "lucide-react";
-import { TableActionIconButton } from "@/components/common/AppButton";
+import { TableActionIconButton } from "@/components/common/micro/AppButton";
 
 const formatPrice = (price) =>
     new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
@@ -194,7 +194,7 @@ export default function InstructorCourseTable({
     ];
 
     return (
-        <AppTable 
+        <DataTable 
             columns={columns} 
             data={courses} 
             pagination={{

@@ -2,13 +2,12 @@ import LearningWorkspace from "@/pages/learning/LearningWorkspace";
 
 import AccountOverview from "@/pages/account/AccountOverview";
 import MyCourses from "@/pages/account/MyCourses";
-import LearningProgress from "@/pages/account/LearningProgress";
-import Certificates from "@/pages/account/Certificates";
-import Wishlist from "@/pages/account/Wishlist";
-import Orders from "@/pages/account/Orders";
-import Vouchers from "@/pages/account/Vouchers";
-import Notifications from "@/pages/account/Notifications";
-import Settings from "@/pages/account/Settings";
+import CertificatesPage from "@/pages/account/CertificatesPage";
+import WishlistPage from "@/pages/account/WishlistPage";
+import OrdersPage from "@/pages/account/OrdersPage";
+import VouchersPage from "@/pages/account/VouchersPage";
+import NotificationsPage from "@/pages/account/NotificationsPage";
+import SettingsPage from "@/pages/account/SettingsPage";
 import ChangePassword from "@/pages/account/ChangePassword";
 import FavoriteInstructors from "@/pages/account/FavoriteInstructors";
 
@@ -17,7 +16,7 @@ import PayosQR from "@/pages/order/PayosQR";
 import CheckoutResult from "@/pages/order/CheckoutResult";
 import ForumCreatePost from "@/pages/forum/ForumCreatePost";
 import MyForumPosts from "@/pages/forum/MyForumPosts";
-import ApplyInstructor from "@/pages/user/ApplyInstructor";
+import ApplyInstructor from "@/pages/general/ApplyInstructor";
 
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminUsers from "@/pages/admin/AdminUsers";
@@ -47,13 +46,12 @@ export const privateRoutes = {
   account: [
     { path: "/account", component: AccountOverview },
     { path: "/account/my-courses", component: MyCourses },
-    { path: "/account/progress", component: LearningProgress },
-    { path: "/account/certificates", component: Certificates },
-    { path: "/account/wishlist", component: Wishlist },
-    { path: "/account/orders", component: Orders },
-    { path: "/account/vouchers", component: Vouchers },
-    { path: "/account/notifications", component: Notifications },
-    { path: "/account/settings", component: Settings },
+    { path: "/account/certificates", component: CertificatesPage },
+    { path: "/account/wishlist", component: WishlistPage },
+    { path: "/account/orders", component: OrdersPage },
+    { path: "/account/vouchers", component: VouchersPage },
+    { path: "/account/notifications", component: NotificationsPage },
+    { path: "/account/settings", component: SettingsPage },
     { path: "/account/change-password", component: ChangePassword },
     { path: "/account/following", component: FavoriteInstructors },
   ],

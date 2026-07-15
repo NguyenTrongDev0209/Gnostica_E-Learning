@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { Toaster } from "@/components/ui/sonner";
+import { AppToaster } from "@/components/common/micro/AppToast";
 import MainLayout from "@/components/layouts/MainLayout";
 import AuthLayout from "@/components/layouts/AuthLayout";
 import AccountLayout from "@/components/layouts/AccountLayout";
@@ -8,19 +8,22 @@ import AdminLayout from "@/components/layouts/AdminLayout";
 import InstructorLayout from "@/components/layouts/InstructorLayout";
 import LearningLayout from "@/components/layouts/LearningLayout";
 import { publicRoutes, privateRoutes } from "@/routers";
-import ErrorPage from "@/pages/static/ErrorPage";
-import ProtectedRoute from "@/components/common/ProtectedRoute";
+import ErrorPage from "@/pages/general/ErrorPage";
+import ProtectedRoute from "@/components/common/core/ProtectedRoute";
 import CertificatePage from "@/pages/learning/CertificatePage";
 import { ROLES } from "@/utils/constants";
-import PersonalizationModal from "@/components/common/PersonalizationModal";
+import PersonalizationModal from "@/components/common/composite/PersonalizationModal";
 
 function App() {
   return (
     <TooltipProvider>
-      <Toaster />
+      <AppToaster />
       <Router>
         <PersonalizationModal />
         <Routes>
+          {publicRoutes.noLayout && publicRoutes.noLayout.map(({ path, component: Component }) => (
+            <Route key={path} path={path} element={<Component />} />
+          ))}
 
           <Route element={<MainLayout />}>
             {publicRoutes.main.map(({ path, component: Component }) => (

@@ -4,7 +4,7 @@ import { TransactionHeader } from "@/pages/admin/components/TransactionHeader";
 import { TransactionStatsFilter } from "@/pages/admin/components/TransactionStatsFilter";
 import { TransactionTable } from "@/pages/admin/components/TransactionTable";
 import { TransactionDetailModal } from "@/pages/admin/components/TransactionDetailModal";
-import { SimpleButton, GhostButton } from "@/components/common/AppButton";
+import { AppButton } from "@/components/common/micro/AppButton";
 
 export default function AdminTransactions() {
   // eslint-disable-next-line no-unused-vars
@@ -78,46 +78,46 @@ export default function AdminTransactions() {
             Hiển thị <span className="font-bold text-foreground">{startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredTransactions.length)}</span> trong số <span className="font-bold text-foreground">{filteredTransactions.length}</span> giao dịch
           </div>
           <div className="flex gap-1">
-            <GhostButton 
+            <AppButton appVariant="ghostMuted" variant="ghost" 
               size="sm" 
               className="h-8 border border-border" 
               disabled={currentPage === 1}
               onClick={() => setCurrentPage(currentPage - 1)}
             >
               Trước
-            </GhostButton>
+            </AppButton>
             
             {[...Array(totalPages)].map((_, i) => {
               const pageNumber = i + 1;
               return currentPage === pageNumber ? (
-                <SimpleButton 
+                <AppButton appVariant="gradient" 
                   key={pageNumber}
                   size="sm" 
                   className="h-8"
                   onClick={() => setCurrentPage(pageNumber)}
                 >
                   {pageNumber}
-                </SimpleButton>
+                </AppButton>
               ) : (
-                <GhostButton 
+                <AppButton appVariant="ghostMuted" variant="ghost" 
                   key={pageNumber}
                   size="sm" 
                   className="h-8 border border-border bg-white text-muted-foreground hover:bg-muted"
                   onClick={() => setCurrentPage(pageNumber)}
                 >
                   {pageNumber}
-                </GhostButton>
+                </AppButton>
               );
             })}
 
-            <GhostButton 
+            <AppButton appVariant="ghostMuted" variant="ghost" 
               size="sm" 
               className="h-8 border border-border" 
               disabled={currentPage === totalPages}
               onClick={() => setCurrentPage(currentPage + 1)}
             >
               Sau
-            </GhostButton>
+            </AppButton>
           </div>
         </div>
       )}

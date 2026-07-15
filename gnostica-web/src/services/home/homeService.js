@@ -1,5 +1,4 @@
-import { mockPlatformStats, mockInstructors } from '@/apiMocks/home';
-import axiosClient from '@/lib/axiosClient';
+import { mockPlatformStats, mockInstructors } from '@/mocks/home';
 
 /**
  * Service cho trang chủ (Home Page)

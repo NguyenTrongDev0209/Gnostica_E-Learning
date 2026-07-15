@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import * as homeService from '@/services/home/homeService';
+import { MOCK_STATS, MOCK_INSTRUCTORS } from '@/mocks/homeMocks';
 
 export default function useHomeData() {
     const [stats, setStats] = useState([]);
@@ -9,34 +9,16 @@ export default function useHomeData() {
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        const fetchStats = async () => {
-            try {
-                setLoadingStats(true);
-                const data = await homeService.getPlatformStats();
-                setStats(data);
-            } catch (err) {
-                setError(err);
-                console.error("Failed to load platform stats:", err);
-            } finally {
-                setLoadingStats(false);
-            }
-        };
-
-        const fetchInstructors = async () => {
-            try {
-                setLoadingInstructors(true);
-                const data = await homeService.getInstructors();
-                setInstructors(data);
-            } catch (err) {
-                setError(err);
-                console.error("Failed to load instructors:", err);
-            } finally {
-                setLoadingInstructors(false);
-            }
-        };
-
-        fetchStats();
-        fetchInstructors();
+        // Mock data loading
+        setTimeout(() => {
+            setStats(MOCK_STATS);
+            setLoadingStats(false);
+        }, 500);
+        
+        setTimeout(() => {
+            setInstructors(MOCK_INSTRUCTORS);
+            setLoadingInstructors(false);
+        }, 800);
     }, []);
 
     return {

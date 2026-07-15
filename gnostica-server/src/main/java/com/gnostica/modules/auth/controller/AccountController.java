@@ -72,4 +72,26 @@ public class AccountController {
                     .build());
         }
     }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<?> changePassword(@RequestBody com.gnostica.modules.auth.dto.request.ChangePasswordRequest request, org.springframework.security.core.Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).body(ResponseDTO.builder()
+                    .status(401)
+                    .message("Vui lòng đăng nhập")
+                    .build());
+        }
+        try {
+            authService.changePassword(authentication.getName(), request.getCurrentPassword(), request.getNewPassword());
+            return ResponseEntity.ok(ResponseDTO.builder()
+                    .status(200)
+                    .message("Đổi mật khẩu thành công!")
+                    .build());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ResponseDTO.builder()
+                    .status(400)
+                    .message(e.getMessage())
+                    .build());
+        }
+    }
 }

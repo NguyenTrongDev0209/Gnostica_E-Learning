@@ -1,6 +1,6 @@
 import React from "react";
-import AppCard, { CourseCardHorizontal } from "@/components/common/AppCard";
-import FilterOptions from "@/components/common/FilterOptions";
+import CourseCard, { CourseCardHorizontal } from "@/components/common/composite/CourseCard";
+import { DataFilterSidebar } from "@/components/common/composite/DataFilter";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import {
@@ -52,7 +52,7 @@ export default function CourseListSection({
       {/* Sidebar Filters */}
       <aside className="hidden lg:block lg:col-span-3">
         <div className="sticky top-24">
-          <FilterOptions
+          <DataFilterSidebar
             categories={categories}
             selectedFilters={filters}
             onFilterChange={onFilterChange}
@@ -75,7 +75,7 @@ export default function CourseListSection({
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="w-[300px] sm:w-[400px] overflow-y-auto p-4 bg-muted border-l-slate-200">
-              <FilterOptions
+              <DataFilterSidebar
                 categories={categories}
                 selectedFilters={filters}
                 onFilterChange={onFilterChange}

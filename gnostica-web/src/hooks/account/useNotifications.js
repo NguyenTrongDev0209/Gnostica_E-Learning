@@ -1,44 +1,65 @@
-import { useState, useEffect, useCallback } from "react";
-import notificationService from "@/services/user/notificationService";
+import { useState, useEffect } from "react";
+import useAuthStore from "@/store/useAuthStore";
 
 export default function useNotifications() {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const token = useAuthStore(state => state.user?.token);
 
-  const fetchNotifications = useCallback(async () => {
+  const fetchNotifications = async () => {
+    if (!token) { setLoading(false); return; }
+    setLoading(true);
     try {
-      setLoading(true);
-      const res = await notificationService.getNotifications();
-      setNotifications(res.data || []);
+      const res = await fetch("http://localhost:8080/api/notifications", {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        // Map to UI model
+        const mapped = (data || []).map(n => ({
+          id: n.id,
+          title: n.title,
+          message: n.message,
+          time: n.createdAt ? new Date(n.createdAt).toLocaleString("vi-VN") : "Gần đây",
+          isRead: n.isRead,
+          type: n.type || "system"
+        }));
+        setNotifications(mapped);
+      }
     } catch (error) {
-      console.error('Lỗi khi lấy thông báo:', error);
+      console.error("Failed to fetch notifications:", error);
     } finally {
       setLoading(false);
     }
-  }, []);
+  };
 
   useEffect(() => {
     fetchNotifications();
-  }, [fetchNotifications]);
+  }, [token]);
 
   const markAllAsRead = async () => {
+    if (!token) { setLoading(false); return; }
     try {
-      await notificationService.markAllAsRead();
-      fetchNotifications();
+      await fetch("http://localhost:8080/api/notifications/read-all", {
+        method: "PUT",
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
     } catch (error) {
-      console.error('Lỗi khi đánh dấu tất cả đã đọc:', error);
+      console.error("Failed to mark all as read:", error);
     }
   };
 
   const markAsRead = async (id) => {
-    const notif = notifications.find(n => n.id === id);
-    if (!notif || notif.isRead) return;
-    
+    if (!token) { setLoading(false); return; }
     try {
-      await notificationService.markAsRead(id);
-      fetchNotifications();
+      await fetch(`http://localhost:8080/api/notifications/${id}/read`, {
+        method: "PUT",
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
     } catch (error) {
-      console.error('Lỗi khi đánh dấu đã đọc:', error);
+      console.error(`Failed to mark notification ${id} as read:`, error);
     }
   };
 

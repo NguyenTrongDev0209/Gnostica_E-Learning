@@ -1,7 +1,9 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import SectionContainer, { PageHeader } from '@/components/common/AppSection';
-import { Button } from "@/components/ui/button";
+import PageContainer from "@/components/common/core/PageContainer";
+import AppSelect from "@/components/common/micro/AppSelect";
+import AppInput from "@/components/common/micro/AppInput";
+import { AppButton } from "@/components/common/micro/AppButton";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Send, FileText, Hash, X } from 'lucide-react';
@@ -43,12 +45,10 @@ const ForumCreatePost = () => {
 
     return (
         <div className="min-h-screen bg-muted pb-16 pt-8">
-            <SectionContainer containerClassName="max-w-4xl mx-auto w-full">
-                <PageHeader
-                    title="Tạo bài viết"
-                    highlightedTitle="Mới"
+            <PageContainer.Section className="max-w-4xl mx-auto w-full app-container">
+                <PageContainer.Header
+                    title={<>Tạo bài viết <span className="bg-accent-gradient bg-clip-text text-transparent italic">Mới</span></>}
                     description="Chia sẻ kiến thức, câu hỏi hoặc thảo luận cùng cộng đồng."
-                    className="mb-8"
                 />
 
                 <Card className="bg-white shadow-sm border-border">
@@ -59,19 +59,16 @@ const ForumCreatePost = () => {
                                 <label className="text-sm font-semibold text-foreground">
                                     Chủ đề <span className="text-error">*</span>
                                 </label>
-                                <select 
-                                    className={`flex h-12 w-full items-center justify-between rounded-md border ${errors.categoryId ? 'border-error/20' : 'border-input'} bg-muted px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50`}
+                                <AppSelect
                                     value={categoryId}
-                                    onChange={(e) => {
-                                        setCategoryId(e.target.value);
+                                    onValueChange={(val) => {
+                                        setCategoryId(val);
                                         if (errors.categoryId) setErrors(prev => ({ ...prev, categoryId: null }));
                                     }}
-                                >
-                                    <option value="">Chọn chủ đề...</option>
-                                    {categories.map(cat => (
-                                        <option key={cat.id} value={cat.id}>{cat.name}</option>
-                                    ))}
-                                </select>
+                                    placeholder="Chọn chủ đề..."
+                                    error={!!errors.categoryId}
+                                    options={categories.map(cat => ({ label: cat.name, value: cat.id }))}
+                                />
                                 {errors.categoryId && <span className="text-xs text-error">{errors.categoryId}</span>}
                             </div>
 
@@ -125,61 +122,52 @@ const ForumCreatePost = () => {
 
                             {/* Hashtags */}
                             <div className="flex flex-col gap-2">
-                                <label className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-                                    <Hash className="w-4 h-4 text-primary" />
-                                    Hashtag
-                                    <span className="text-xs text-muted-foreground font-normal ml-1">(tối đa 10, nhấn Space hoặc Enter để thêm)</span>
-                                </label>
-                                <div className={`flex flex-wrap gap-2 min-h-[48px] items-center px-3 py-2 rounded-md border ${
-                                    hashtags.length >= 10 ? 'border-warning/60 bg-warning/5' : 'border-input bg-background'
-                                } focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 transition-all`}>
-                                    {hashtags.map(tag => (
-                                        <span
-                                            key={tag}
-                                            className="inline-flex items-center gap-1 bg-primary/10 text-primary text-xs font-semibold px-2.5 py-1 rounded-full border border-primary/20"
-                                        >
-                                            #{tag}
-                                            <button
-                                                type="button"
-                                                onClick={() => removeTag(tag)}
-                                                className="hover:text-error transition-colors ml-0.5"
-                                                aria-label={`Xóa hashtag ${tag}`}
+                                <AppInput
+                                    icon={Hash}
+                                    label="Hashtag"
+                                    labelRight={<span className="text-xs text-muted-foreground font-normal">(tối đa 10, nhấn Space hoặc Enter để thêm)</span>}
+                                    value={tagInput}
+                                    onChange={(e) => setTagInput(e.target.value)}
+                                    onKeyDown={handleTagKeyDown}
+                                    placeholder={hashtags.length < 10 ? "Thêm hashtag..." : "Đã đạt giới hạn 10 hashtag"}
+                                    disabled={hashtags.length >= 10}
+                                    className="bg-background"
+                                />
+                                {hashtags.length > 0 && (
+                                    <div className="flex flex-wrap gap-2 mt-1">
+                                        {hashtags.map(tag => (
+                                            <span
+                                                key={tag}
+                                                className="inline-flex items-center gap-1 bg-primary/10 text-primary text-xs font-semibold px-2.5 py-1 rounded-full border border-primary/20"
                                             >
-                                                <X className="w-3 h-3" />
-                                            </button>
-                                        </span>
-                                    ))}
-                                    {hashtags.length < 10 && (
-                                        <input
-                                            type="text"
-                                            value={tagInput}
-                                            onChange={(e) => setTagInput(e.target.value)}
-                                            onKeyDown={handleTagKeyDown}
-                                            onBlur={() => tagInput.trim() && addTag(tagInput)}
-                                            placeholder={hashtags.length === 0 ? 'laptrinh, javascript, react...' : ''}
-                                            className="flex-1 min-w-[120px] outline-none bg-transparent text-sm placeholder:text-muted-foreground"
-                                        />
-                                    )}
-                                </div>
-                                <p className="text-xs text-muted-foreground">
-                                    {hashtags.length}/10 hashtag — nhấn <kbd className="px-1 py-0.5 bg-muted border rounded text-xs">Space</kbd>, <kbd className="px-1 py-0.5 bg-muted border rounded text-xs">Enter</kbd> hoặc <kbd className="px-1 py-0.5 bg-muted border rounded text-xs">,</kbd> để thêm tag
-                                </p>
+                                                #{tag}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeTag(tag)}
+                                                    className="hover:text-error transition-colors ml-0.5"
+                                                    aria-label={`Xóa hashtag ${tag}`}
+                                                >
+                                                    <X className="w-3 h-3" />
+                                                </button>
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
 
                             {/* Submit Button */}
                             <div className="flex justify-end pt-4 mt-2 border-t">
                                 <span className="flex-1"></span>
-                                <Button 
+                                <AppButton appVariant="ghostMuted" variant="ghost" 
                                     type="button" 
-                                    variant="outline" 
-                                    className="mr-3" 
+                                    className="mr-3 border border-border" 
                                     onClick={() => navigate(-1)}
                                 >
                                     Hủy
-                                </Button>
-                                <Button 
+                                </AppButton>
+                                <AppButton appVariant="gradient" 
                                     type="submit" 
-                                    className="bg-button-gradient hover:brightness-110 font-bold px-8 flex items-center gap-2"
+                                    className="px-8 flex items-center gap-2"
                                     disabled={isSubmitting}
                                 >
                                     {isSubmitting ? 'Đang Đăng...' : (
@@ -187,13 +175,13 @@ const ForumCreatePost = () => {
                                             <Send className="w-4 h-4" /> Đăng bài
                                         </>
                                     )}
-                                </Button>
+                                </AppButton>
                             </div>
 
                         </form>
                     </CardContent>
                 </Card>
-            </SectionContainer>
+            </PageContainer.Section>
         </div>
     );
 };

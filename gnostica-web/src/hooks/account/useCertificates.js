@@ -1,47 +1,52 @@
 import { useState, useEffect } from "react";
-
-// Mock Data
-const CERTIFICATES_DATA = [
-  {
-    id: "CERT-2026-891",
-    courseId: 3,
-    title: "Thiết kế UI/UX Thực chiến với Figma",
-    issueDate: "15/03/2026",
-    instructor: "Lê Minh Tâm",
-    grade: "Xuất sắc",
-    hours: "20.5 giờ",
-    image: "https://images.unsplash.com/photo-1586717791821-3f44a563fc4c?q=80&w=400&auto=format&fit=crop",
-    color: "from-orange-500 to-amber-500",
-  },
-  {
-    id: "CERT-2026-102",
-    courseId: 2,
-    title: "JavaScript Cơ bản",
-    issueDate: "10/01/2026",
-    instructor: "Nguyễn Văn A",
-    grade: "Giỏi",
-    hours: "15 giờ",
-    image: "https://images.unsplash.com/photo-1627398242454-4bcf1c8f1d8?q=80&w=400&auto=format&fit=crop",
-    color: "from-blue-500 to-cyan-500",
-  },
-];
+import useAuthStore from "@/store/useAuthStore";
 
 export default function useCertificates() {
   const [certificates, setCertificates] = useState([]);
   const [loading, setLoading] = useState(true);
+  const token = useAuthStore(state => state.user?.token);
 
   useEffect(() => {
-    // Simulate API fetch
+    if (!token) { setLoading(false); return; }
+
     const fetchCertificates = async () => {
       setLoading(true);
-      setTimeout(() => {
-        setCertificates(CERTIFICATES_DATA);
+      try {
+        const res = await fetch("http://localhost:8080/api/certificates/my-certificates", {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const mapped = (data || []).map((c, index) => {
+            const colors = [
+              "from-orange-500 to-amber-500",
+              "from-blue-500 to-cyan-500",
+              "from-purple-500 to-fuchsia-500",
+              "from-emerald-500 to-teal-500"
+            ];
+            return {
+              id: c.certifiUrl || `CERT-${index}`,
+              courseId: index, // dummy if not available
+              title: c.courseTitle,
+              issueDate: c.completedAt ? new Date(c.completedAt).toLocaleDateString("vi-VN") : "",
+              instructor: c.instructorName,
+              grade: "Hoàn thành", // No grade available yet
+              hours: "---", // No hours available yet
+              image: "https://images.unsplash.com/photo-1586717791821-3f44a563fc4c?q=80&w=400&auto=format&fit=crop",
+              color: colors[index % colors.length]
+            };
+          });
+          setCertificates(mapped);
+        }
+      } catch (error) {
+        console.error("Failed to fetch certificates:", error);
+      } finally {
         setLoading(false);
-      }, 700);
+      }
     };
 
     fetchCertificates();
-  }, []);
+  }, [token]);
 
   return { certificates, loading };
 }

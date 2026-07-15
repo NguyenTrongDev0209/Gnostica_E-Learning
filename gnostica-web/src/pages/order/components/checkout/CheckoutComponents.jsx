@@ -6,27 +6,21 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { SimpleButton } from "@/components/common/AppButton";
-import { AppBreadcrumb, PageHeader } from "@/components/common/AppSection";
+import { AppButton } from "@/components/common/micro/AppButton";
+import PageContainer from "@/components/common/core/PageContainer";
+import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
 
 /**
  * Header for the Checkout page, including breadcrumbs and title.
  */
 export const CheckoutOrderHeader = ({ breadcrumbItems }) => {
   return (
-    <div className="mb-0">
-      <AppBreadcrumb
-        items={breadcrumbItems}
-        linkClassName="text-muted-foreground hover:text-primary"
-        activeClassName="font-semibold text-foreground"
-        separatorClassName="text-slate-300"
-      />
-      <PageHeader
-        title="Thanh toán"
-        description="Hoàn tất đơn hàng của bạn một cách an toàn và nhanh chóng"
-        className="mt-4"
-      />
-    </div>
+    <PageContainer.Header
+      title="Thanh toán"
+      description="Hoàn tất đơn hàng của bạn một cách an toàn và nhanh chóng"
+    >
+      <AppBreadcrumb paths={breadcrumbItems} />
+    </PageContainer.Header>
   );
 };
 
@@ -267,7 +261,7 @@ export const CheckoutOrderSummary = ({
         </div>
 
         <div className="pt-2">
-          <SimpleButton
+          <AppButton appVariant="gradient"
             type="submit"
             className="w-fit mx-auto py-7 px-16 text-lg font-bold tracking-wide gap-2 flex"
             size="lg"
@@ -296,7 +290,7 @@ export const CheckoutOrderSummary = ({
               </svg>
             )}
             {loading ? "ĐANG XỬ LÝ..." : "XÁC NHẬN THANH TOÁN"}
-          </SimpleButton>
+          </AppButton>
         </div>
 
         <p className="text-[11px] text-center text-muted-foreground leading-relaxed pt-2">

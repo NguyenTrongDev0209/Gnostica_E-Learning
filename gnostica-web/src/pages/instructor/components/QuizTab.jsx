@@ -1,7 +1,7 @@
 import React from "react";
 import { useFormContext, Controller } from "react-hook-form";
 import { Input } from "@/components/ui/input";
-import { SimpleButton, GhostButton } from "@/components/common/AppButton";
+import { AppButton } from "@/components/common/micro/AppButton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -350,7 +350,7 @@ export default function QuizTab({ courseId }) {
                   </Select>
                 </div>
 
-                <SimpleButton
+                <AppButton appVariant="gradient"
                   type="button"
                   onClick={handleCreateAI}
                   disabled={isGeneratingAi}
@@ -367,7 +367,7 @@ export default function QuizTab({ courseId }) {
                       Bắt Đầu Tạo Câu Hỏi Bằng AI
                     </>
                   )}
-                </SimpleButton>
+                </AppButton>
               </div>
             </div>
           </div>
@@ -462,15 +462,15 @@ export default function QuizTab({ courseId }) {
           </div>
           <div className="flex justify-end gap-3 pt-2">
             {editingQuestionId !== null && (
-              <GhostButton
+              <AppButton appVariant="ghostMuted" variant="ghost"
                 type="button"
                 onClick={handleCancelEdit}
                 className="h-11 px-6 font-bold border border-border text-muted-foreground rounded-xl"
               >
                 Hủy Chỉnh Sửa
-              </GhostButton>
+              </AppButton>
             )}
-            <SimpleButton
+            <AppButton appVariant="gradient"
               type="button"
               onClick={handleAddManual}
               className={`h-11 px-8 font-bold text-white rounded-xl gap-2 shadow-md border-none ${editingQuestionId !== null
@@ -487,7 +487,7 @@ export default function QuizTab({ courseId }) {
                   <Plus size={16} /> Thêm Vào Ngân Hàng
                 </>
               )}
-            </SimpleButton>
+            </AppButton>
           </div>
         </div>
       </div>
@@ -612,7 +612,7 @@ export default function QuizTab({ courseId }) {
           </div>
 
           <div className="pt-4 mt-4 border-t border-border">
-            <SimpleButton
+            <AppButton appVariant="gradient"
               type="button"
               onClick={handleConfirmBank}
               disabled={isBankConfirmed || draftQuestions.length === 0}
@@ -624,7 +624,7 @@ export default function QuizTab({ courseId }) {
             >
               {isBankConfirmed ? <Check size={18} /> : <CheckCircle2 size={18} />}
               {isBankConfirmed ? "Đã Xác Nhận Ngân Hàng Câu Hỏi" : "Xác Nhận Ngân Hàng Câu Hỏi"}
-            </SimpleButton>
+            </AppButton>
           </div>
         </div>
       </div>
