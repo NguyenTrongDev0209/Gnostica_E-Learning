@@ -86,7 +86,7 @@ export default function InstructorQA() {
                          <p className="text-xs text-muted-foreground font-bold uppercase tracking-tight">{formatTime(q.createdAt)}</p>
                        </div>
                        {q.status === 'unanswered' ? (
-                         <AppBadge className="bg-amber-100 text-amber-700 hover:bg-amber-100 border-none font-bold">
+                         <AppBadge className="bg-warning/10 text-warning hover:bg-warning/10 border-none font-bold">
                            <AlertCircle className="w-3 h-3 mr-1.5" /> Chưa phản hồi
                          </AppBadge>
                        ) : (
@@ -99,12 +99,12 @@ export default function InstructorQA() {
                        "{q.content}"
                      </p>
                      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-bold text-muted-foreground uppercase tracking-tighter">
-                       <span className="flex items-center gap-1">Khóa: <span className="text-muted-foreground font-black">{q.courseName}</span></span>
-                       <span className="flex items-center gap-1">Bài: <span className="text-muted-foreground font-black">{q.lessonName}</span></span>
+                       <span className="flex items-center gap-1">Khóa: <span className="text-muted-foreground font-bold">{q.courseName}</span></span>
+                       <span className="flex items-center gap-1">Bài: <span className="text-muted-foreground font-bold">{q.lessonName}</span></span>
                      </div>
                    </div>
                  </div>
-                 <div className="px-5 py-3 border-t border-border bg-muted flex justify-between items-center group-hover:bg-green-50/30 transition-colors">
+                 <div className="px-5 py-3 border-t border-border bg-muted flex justify-between items-center group-hover:bg-success/5 transition-colors">
                     <div className="flex items-center gap-4">
                       <button className="text-xs font-bold text-muted-foreground hover:text-muted-foreground flex items-center gap-1.5">
                         <ThumbsUp className="w-3.5 h-3.5" /> {q.likes || 0} Hữu ích
@@ -142,13 +142,13 @@ export default function InstructorQA() {
                          <span className="text-xs text-muted-foreground font-bold uppercase">{formatTime(r.createdAt)}</span>
                        </div>
                        <p className="text-sm font-medium text-muted-foreground py-3 italic">"{r.content}"</p>
-                       <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-2 py-0.5 bg-secondary w-fit rounded">
+                       <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-2 py-0.5 bg-secondary w-fit rounded">
                          Khóa học: <span className="text-foreground">{r.courseName}</span>
                        </p>
                     </div>
                  </div>
                  <div className="px-5 py-3 border-t border-border bg-muted flex justify-end">
-                    <AppButton appVariant="ghostMuted" variant="ghost" size="sm" className="h-8 font-bold text-amber-600 hover:bg-amber-50 hover:text-amber-700">
+                    <AppButton appVariant="ghostMuted" variant="ghost" size="sm" className="h-8 font-bold text-warning hover:bg-warning/10 hover:text-warning">
                       Cảm ơn học viên &rarr;
                     </AppButton>
                  </div>

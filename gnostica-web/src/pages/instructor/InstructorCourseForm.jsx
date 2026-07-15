@@ -1,4 +1,4 @@
-import "react-quill-new/dist/quill.snow.css";
+﻿import "react-quill-new/dist/quill.snow.css";
 import React from "react";
 import { useFormContext, useWatch, Controller, useFieldArray, FormProvider } from "react-hook-form";
 import AppInput from "@/components/common/micro/AppInput";
@@ -227,7 +227,7 @@ function CourseDraftModal({ showDraftModal, setShowDraftModal, slug, restoreDraf
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
       <AppCard className="w-full max-w-md shadow-2xl border-none overflow-hidden">
         <div className="p-6 text-center">
-          <div className="w-16 h-16 bg-blue-50 text-info rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 bg-info/10 text-info rounded-full flex items-center justify-center mx-auto mb-4">
             <Clock className="w-8 h-8" />
           </div>
           <h3 className="text-xl font-bold text-foreground mb-2">Phát hiện bản nháp!</h3>
@@ -298,10 +298,10 @@ function CourseAiReportModal({
                   <ShieldIcon className="w-7 h-7" />
                 </div>
                 <div>
-                  <h3 className="font-black text-lg tracking-tight leading-none flex items-center gap-2">
+                  <h3 className="font-bold text-lg tracking-tight leading-none flex items-center gap-2">
                     {statusText}
                   </h3>
-                  <p className="text-[10px] font-extrabold tracking-widest uppercase mt-2 opacity-90 flex items-center gap-1">
+                  <p className="text-[10px] font-bold tracking-widest uppercase mt-2 opacity-90 flex items-center gap-1">
                     <Sparkles className="w-3.5 h-3.5 animate-pulse" /> CHỈ SỐ AN TOÀN AI: {score}%
                   </p>
                 </div>
@@ -313,7 +313,7 @@ function CourseAiReportModal({
                     <div className="w-16 h-16 bg-violet-50 border border-violet-100 text-violet-600 rounded-full flex items-center justify-center mb-4 shadow-inner">
                       <Sparkles className="w-8 h-8 animate-bounce" />
                     </div>
-                    <p className="font-black text-foreground text-[15px] uppercase tracking-wide">Chưa có dữ liệu quét AI</p>
+                    <p className="font-bold text-foreground text-[15px] uppercase tracking-wide">Chưa có dữ liệu quét AI</p>
                     <p className="text-muted-foreground text-xs mt-1.5 max-w-[320px] font-medium leading-relaxed">
                       Hệ thống Tường lửa AI sẽ tự động thẩm định Tiêu đề & Mô tả khóa học ngay khi bạn bấm nút <span className="font-bold text-info">"Lưu khóa học"</span> lần đầu tiên.
                     </p>
@@ -321,7 +321,7 @@ function CourseAiReportModal({
                 ) : (
                   <>
                     <div className="bg-white p-4 rounded-2xl border border-border/60 shadow-sm">
-                      <p className="text-[10px] font-black text-muted-foreground tracking-widest uppercase mb-2.5 pl-1">📝 Nhận xét tổng hợp từ Trợ lý AI</p>
+                      <p className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase mb-2.5 pl-1">📝 Nhận xét tổng hợp từ Trợ lý AI</p>
                       <p className="text-xs text-foreground font-bold italic bg-muted p-3.5 rounded-xl border border-border leading-relaxed shadow-inner">
                         "{report.assessment}"
                       </p>
@@ -329,17 +329,17 @@ function CourseAiReportModal({
 
                     {report.violations && report.violations.length > 0 ? (
                       <div className="space-y-3">
-                        <p className="text-[10px] font-black text-muted-foreground tracking-widest uppercase pl-1 flex items-center gap-1.5">
+                        <p className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase pl-1 flex items-center gap-1.5">
                           ⚠️ Danh sách điểm cần sửa đổi ({report.violations.length})
                         </p>
                         <div className="space-y-3">
                           {report.violations.map((v, i) => (
                             <div key={i} className="p-4 bg-white rounded-2xl border border-border shadow-sm space-y-2.5 hover:shadow-md transition-all duration-300 group">
                               <div className="flex items-center justify-between">
-                                <span className={`text-[11px] font-black uppercase flex items-center gap-1 ${isCritical ? 'text-rose-700' : 'text-amber-700'}`}>
+                                <span className={`text-[11px] font-bold uppercase flex items-center gap-1 ${isCritical ? 'text-rose-700' : 'text-amber-700'}`}>
                                   {v.type === 'EXTERNAL_MARKETING' ? '📢 Quảng cáo / Kéo khách ngoài' : '🗣️ Từ ngữ vi phạm'}
                                 </span>
-                                <AppBadge className={`h-4.5 px-2 py-0 text-[9px] font-black border-none uppercase tracking-wider ${v.severity === 'CRITICAL' || v.severity === 'HIGH' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'}`}>
+                                <AppBadge className={`h-4.5 px-2 py-0 text-[9px] font-bold border-none uppercase tracking-wider ${v.severity === 'CRITICAL' || v.severity === 'HIGH' ? 'bg-rose-100 text-rose-700' : 'bg-warning/20 text-amber-700'}`}>
                                   {v.severity}
                                 </AppBadge>
                               </div>
@@ -347,7 +347,7 @@ function CourseAiReportModal({
                                 "{v.content}"
                               </p>
                               <p className="text-[11px] text-muted-foreground leading-relaxed mt-1.5 flex items-start gap-1 pl-0.5">
-                                <span className="font-extrabold text-foreground shrink-0">📌 Giải thích:</span> 
+                                <span className="font-bold text-foreground shrink-0">📌 Giải thích:</span> 
                                 <span className="font-medium">{v.explanation}</span>
                               </p>
                             </div>
@@ -356,10 +356,10 @@ function CourseAiReportModal({
                       </div>
                     ) : (
                       <div className="p-8 text-center bg-white rounded-2xl border border-emerald-100 flex flex-col items-center shadow-sm">
-                        <div className="w-14 h-14 rounded-full bg-emerald-50 flex items-center justify-center mb-3 border border-emerald-100 shadow-inner">
+                        <div className="w-14 h-14 rounded-full bg-success/10 flex items-center justify-center mb-3 border border-emerald-100 shadow-inner">
                           <CheckCircle2 className="w-8 h-8 text-emerald-500 animate-pulse" />
                         </div>
-                        <p className="font-black text-emerald-800 uppercase tracking-wide text-[13px]">Văn bản sạch tuyệt đối!</p>
+                        <p className="font-bold text-emerald-800 uppercase tracking-wide text-[13px]">Văn bản sạch tuyệt đối!</p>
                         <p className="text-muted-foreground text-xs mt-1.5 font-medium max-w-[340px] leading-relaxed">
                           Trợ lý AI không phát hiện bất kỳ lỗi ngôn từ, kéo khách ngoài hay vi phạm chính sách nào. Bạn đã sẵn sàng gửi duyệt!
                         </p>
@@ -491,7 +491,7 @@ function BasicInfoTab({ categories }) {
       {aiModerationReport && (
         <div className="flex items-center gap-1.5 bg-violet-50/50 border border-violet-100/60 px-4 py-2 rounded-xl text-violet-700 text-xs font-bold">
           <Sparkles className="w-3.5 h-3.5 animate-pulse" />
-          Mẹo: Bấm nút <span className="underline font-black decoration-2 decoration-violet-300 mx-0.5">"Kết quả kiểm duyệt AI"</span> ở góc trên hoặc dưới cùng màn hình để xem chi tiết thẩm định.
+          Mẹo: Bấm nút <span className="underline font-bold decoration-2 decoration-violet-300 mx-0.5">"Kết quả kiểm duyệt AI"</span> ở góc trên hoặc dưới cùng màn hình để xem chi tiết thẩm định.
         </div>
       )}
 
@@ -703,7 +703,7 @@ function CurriculumTab({ uploadVideoToBunny, setActiveUploads, fields, append, r
       </div>
 
       {errors.sections?.root && (
-        <div className="text-sm font-bold text-error bg-red-50 border border-error/20 p-3 rounded-lg">
+        <div className="text-sm font-bold text-error bg-error/10 border border-error/20 p-3 rounded-lg">
           {errors.sections.root.message}
         </div>
       )}
@@ -750,7 +750,7 @@ function CurriculumTab({ uploadVideoToBunny, setActiveUploads, fields, append, r
                         }
                       }
                     }}
-                    className="p-2 text-muted-foreground hover:text-error hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                    className="p-2 text-muted-foreground hover:text-error hover:bg-error/10 rounded-lg transition-colors cursor-pointer"
                   >
                     <Trash2 size={16} />
                   </div>
@@ -1029,7 +1029,7 @@ function QuizTab({ courseId }) {
       </div>
 
       <div className="bg-muted border border-border rounded-2xl p-6 relative overflow-hidden shadow-sm">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-full blur-3xl opacity-50 pointer-events-none" />
+        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl opacity-50 pointer-events-none" />
 
         <h4 className="text-md font-bold text-foreground mb-5 flex items-center gap-2">
           <div className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-bold">1</div>
@@ -1043,7 +1043,7 @@ function QuizTab({ courseId }) {
                 Upload tài liệu (PDF, DOCX,...)
               </label>
               <div
-                className="border-2 border-dashed border-indigo-300 bg-white rounded-xl p-8 flex flex-col items-center justify-center text-center hover:bg-indigo-50/50 hover:border-indigo-400 transition-colors cursor-pointer group h-[220px] relative"
+                className="border-2 border-dashed border-indigo-300 bg-white rounded-xl p-8 flex flex-col items-center justify-center text-center hover:bg-primary/10/50 hover:border-indigo-400 transition-colors cursor-pointer group h-[220px] relative"
               >
                 <input
                   type="file"
@@ -1062,7 +1062,7 @@ function QuizTab({ courseId }) {
                 />
                 {aiFile ? (
                   <div className="flex flex-col items-center">
-                    <div className="w-14 h-14 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mb-3">
+                    <div className="w-14 h-14 bg-success/10 text-emerald-500 rounded-full flex items-center justify-center mb-3">
                       <CheckCircle2 className="w-6 h-6" />
                     </div>
                     <p className="text-sm font-bold text-emerald-700">{aiFile.name}</p>
@@ -1070,7 +1070,7 @@ function QuizTab({ courseId }) {
                   </div>
                 ) : (
                   <>
-                    <div className="w-14 h-14 bg-indigo-50 text-indigo-400 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 group-hover:text-indigo-500 transition-all">
+                    <div className="w-14 h-14 bg-primary/10 text-indigo-400 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 group-hover:text-indigo-500 transition-all">
                       <FileText className="w-6 h-6" />
                     </div>
                     <p className="text-sm font-bold text-indigo-900">Kéo thả file vào đây hoặc nhấn để chọn</p>
@@ -1144,7 +1144,7 @@ function QuizTab({ courseId }) {
             {editingQuestionId !== null ? "Hiệu Chỉnh Câu Hỏi" : "Thêm Câu Hỏi Thủ Công"}
           </div>
           {editingQuestionId !== null && (
-            <span className="text-xs text-amber-600 font-bold bg-amber-50 px-3 py-1.5 rounded-full border border-amber-200 animate-pulse">
+            <span className="text-xs text-warning font-bold bg-warning/10 px-3 py-1.5 rounded-full border border-amber-200 animate-pulse">
               Đang chỉnh sửa câu hỏi #{editingQuestionId}
             </span>
           )}
@@ -1186,7 +1186,7 @@ function QuizTab({ courseId }) {
             </label>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {['A', 'B', 'C', 'D'].map((opt) => (
-                <div key={opt} className={`flex items-start gap-3 p-3 rounded-xl border transition-all ${manualCorrect === opt ? 'border-emerald-200 bg-emerald-50/30' : 'border-border bg-muted'}`}>
+                <div key={opt} className={`flex items-start gap-3 p-3 rounded-xl border transition-all ${manualCorrect === opt ? 'border-emerald-200 bg-success/10/30' : 'border-border bg-muted'}`}>
                   <div className="pt-2.5">
                     <input
                       type="radio"
@@ -1258,11 +1258,11 @@ function QuizTab({ courseId }) {
       <div className="bg-white border border-border rounded-2xl p-6 shadow-sm mt-8">
         <h4 className="text-md font-bold text-foreground mb-6 flex items-center justify-between w-full">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs font-bold">3</div>
+            <div className="w-6 h-6 rounded-full bg-emerald-100 text-success flex items-center justify-center text-xs font-bold">3</div>
             Question Bank Preview
           </div>
           <span className="text-xs font-bold text-muted-foreground bg-secondary px-3 py-1.5 rounded-full border border-border flex items-center gap-1.5">
-            Tổng số câu hỏi: <span className="text-indigo-600 font-extrabold">{draftQuestions.length}</span> / 300 câu
+            Tổng số câu hỏi: <span className="text-indigo-600 font-bold">{draftQuestions.length}</span> / 300 câu
           </span>
         </h4>
 
@@ -1315,13 +1315,13 @@ function QuizTab({ courseId }) {
                     {['A', 'B', 'C', 'D'].map((opt) => {
                       const isCorrect = q.correct === opt;
                       return (
-                        <div key={opt} className={`flex items-start gap-2 px-3 py-2 rounded-md ${isCorrect ? 'bg-emerald-50 border border-emerald-200' : 'bg-white border border-border'}`}>
+                        <div key={opt} className={`flex items-start gap-2 px-3 py-2 rounded-md ${isCorrect ? 'bg-success/10 border border-emerald-200' : 'bg-white border border-border'}`}>
                           {isCorrect ? (
-                            <span className="w-5 h-5 rounded bg-emerald-500 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
+                            <span className="w-5 h-5 rounded bg-success/100 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
                               <Check size={12} strokeWidth={3} />
                             </span>
                           ) : (
-                            <span className="w-5 h-5 rounded bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
+                            <span className="w-5 h-5 rounded bg-primary/10 text-indigo-600 flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
                               {opt}
                             </span>
                           )}
@@ -1332,9 +1332,9 @@ function QuizTab({ courseId }) {
                   </div>
 
                   {q.explanation && (
-                    <div className="mt-3 p-3 bg-amber-50/50 border border-amber-100/60 rounded-xl text-xs text-amber-800 leading-relaxed">
+                    <div className="mt-3 p-3 bg-warning/10/50 border border-amber-100/60 rounded-xl text-xs text-amber-800 leading-relaxed">
                       <span className="font-bold flex items-center gap-1.5 mb-0.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-warning/100 animate-pulse"></span>
                         Giải thích câu hỏi:
                       </span>
                       {q.explanation}
@@ -1342,9 +1342,9 @@ function QuizTab({ courseId }) {
                   )}
 
                   <div className="flex items-center gap-2 mt-4">
-                    <span className={`text-[10px] px-2.5 py-0.5 rounded-md font-bold uppercase tracking-wider ${q.level === 'easy' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' :
-                        q.level === 'medium' ? 'bg-amber-50 text-amber-700 border border-amber-100' :
-                          'bg-rose-50 text-rose-700 border border-rose-100'
+                    <span className={`text-[10px] px-2.5 py-0.5 rounded-md font-bold uppercase tracking-wider ${q.level === 'easy' ? 'bg-success/10 text-emerald-700 border border-emerald-100' :
+                        q.level === 'medium' ? 'bg-warning/10 text-amber-700 border border-amber-100' :
+                          'bg-error/10 text-rose-700 border border-rose-100'
                       }`}>
                       {q.level === 'easy' ? 'Dễ' : q.level === 'medium' ? 'Trung bình' : 'Khó'}
                     </span>
@@ -1352,7 +1352,7 @@ function QuizTab({ courseId }) {
                       <button
                         type="button"
                         onClick={() => handleStartEdit(q)}
-                        className={`w-8 h-8 flex items-center justify-center rounded-md bg-white border text-muted-foreground hover:text-amber-600 hover:border-amber-200 transition-colors ${editingQuestionId === q.id ? 'border-amber-500 bg-amber-50 text-amber-600 ring-1 ring-amber-500' : 'border-border'
+                        className={`w-8 h-8 flex items-center justify-center rounded-md bg-white border text-muted-foreground hover:text-warning hover:border-amber-200 transition-colors ${editingQuestionId === q.id ? 'border-amber-500 bg-warning/10 text-warning ring-1 ring-amber-500' : 'border-border'
                           }`}
                       >
                         <Pencil size={14} />
@@ -1996,16 +1996,16 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
               <AppButton appVariant="gradient"
                 type="button"
                 onClick={() => setIsQuizModalOpen(true)}
-                className="w-full h-10 border-emerald-300 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 hover:text-emerald-800 font-bold gap-2 shadow-sm transition-all border"
+                className="w-full h-10 border-emerald-300 text-emerald-700 bg-success/10 hover:bg-emerald-100 hover:text-emerald-800 font-bold gap-2 shadow-sm transition-all border"
               >
-                <CheckCircle2 size={16} className="text-emerald-600" />
+                <CheckCircle2 size={16} className="text-success" />
                 <span>Đã có bài Quiz ({watch(`sections.${sectionIndex}.quiz.questionIds`).length} câu) - Chỉnh sửa</span>
               </AppButton>
             ) : (
               <AppButton appVariant="gradient"
                 type="button"
                 onClick={() => setIsQuizModalOpen(true)}
-                className="w-full h-10 border-indigo-200 text-indigo-700 hover:bg-indigo-50 hover:text-indigo-800 font-bold gap-2 border-dashed bg-transparent shadow-none"
+                className="w-full h-10 border-indigo-200 text-indigo-700 hover:bg-primary/10 hover:text-indigo-800 font-bold gap-2 border-dashed bg-transparent shadow-none"
               >
                 <Database size={16} />
                 Tạo bài Quiz cho chương này
@@ -2191,7 +2191,7 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
               <button
                 type="button"
                 onClick={() => remove(lessonIdx)}
-                className="absolute -top-2 -right-2 w-8 h-8 flex items-center justify-center bg-white border border-border text-muted-foreground hover:text-error hover:border-error/20 hover:bg-red-50 rounded-full transition-all opacity-0 group-hover:opacity-100 shadow-md z-30"
+                className="absolute -top-2 -right-2 w-8 h-8 flex items-center justify-center bg-white border border-border text-muted-foreground hover:text-error hover:border-error/20 hover:bg-error/10 rounded-full transition-all opacity-0 group-hover:opacity-100 shadow-md z-30"
                 title="Xóa bài học"
               >
                 <Trash2 size={14} />
@@ -2203,7 +2203,7 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
 
       {/* Error level Section */}
       {errors.sections?.[sectionIndex]?.lessons?.root && (
-        <p className="text-xs font-bold text-error bg-red-50 p-2 rounded-md mt-2">
+        <p className="text-xs font-bold text-error bg-error/10 p-2 rounded-md mt-2">
           {errors.sections[sectionIndex].lessons.root.message}
         </p>
       )}
@@ -2243,7 +2243,7 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
                   </div>
 
                   <div className="border border-border rounded-xl flex flex-col flex-1 overflow-hidden bg-white shadow-sm">
-                    <div className="bg-indigo-50/50 px-4 py-3 border-b border-indigo-100 flex items-center justify-between">
+                    <div className="bg-primary/10/50 px-4 py-3 border-b border-indigo-100 flex items-center justify-between">
                       <div>
                         <span className="text-sm font-bold text-indigo-900 block">Nội dung bài Quiz</span>
                         <span className="text-[11px] text-indigo-600 font-bold">{selectedQuizQuestions.length} câu hỏi được chọn</span>
@@ -2275,7 +2275,7 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
                                 <button
                                   type="button"
                                   onClick={() => setSelectedQuizQuestions(selectedQuizQuestions.filter(id => id !== qId))}
-                                  className="w-7 h-7 flex items-center justify-center rounded-full text-muted-foreground hover:text-error hover:bg-red-50 transition-all shrink-0"
+                                  className="w-7 h-7 flex items-center justify-center rounded-full text-muted-foreground hover:text-error hover:bg-error/10 transition-all shrink-0"
                                   title="Xóa khỏi bài Quiz"
                                 >
                                   <Trash2 size={13} />
@@ -2350,10 +2350,10 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
                                   const isCorrect = q.correct === opt;
                                   return (
                                     <div key={opt} className={`flex items-start gap-2 px-2.5 py-1.5 rounded border ${
-                                      isCorrect ? "bg-emerald-50 border-emerald-200 text-emerald-700 font-bold" : "bg-muted border-border text-muted-foreground"
+                                      isCorrect ? "bg-success/10 border-emerald-200 text-emerald-700 font-bold" : "bg-muted border-border text-muted-foreground"
                                     }`}>
                                       <span className={`w-4 h-4 rounded flex items-center justify-center font-bold text-[9px] shrink-0 mt-0.5 ${
-                                        isCorrect ? "bg-emerald-500 text-white" : "bg-indigo-50 text-indigo-600"
+                                        isCorrect ? "bg-success/100 text-white" : "bg-primary/10 text-indigo-600"
                                       }`}>
                                         {isCorrect ? <Check size={10} strokeWidth={3} /> : opt}
                                       </span>
@@ -2365,8 +2365,8 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
 
                               <div className="flex items-center gap-2 mt-3">
                                 <span className={`text-[10px] border px-2 py-0.5 rounded font-bold uppercase ${
-                                  q.level === "hard" ? "text-error bg-red-50 border-error/20" :
-                                  q.level === "medium" ? "text-amber-600 bg-amber-50 border-amber-100" :
+                                  q.level === "hard" ? "text-error bg-error/10 border-error/20" :
+                                  q.level === "medium" ? "text-warning bg-warning/10 border-amber-100" :
                                   "text-success bg-green-50 border-success/20"
                                 }`}>
                                   {q.level === "hard" ? "Khó" : q.level === "medium" ? "Trung bình" : "Dễ"}
@@ -2545,8 +2545,8 @@ export default function InstructorCourseForm() {
                     if (!rep) return "text-muted-foreground bg-muted border-border border-dashed";
                     const sc = rep.safetyScore ?? 100;
                     const hasV = rep.violations && rep.violations.length > 0;
-                    if (sc < 70 || hasV) return "bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200 animate-pulse shadow-rose-100/40 shadow-lg";
-                    return "bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-200";
+                    if (sc < 70 || hasV) return "bg-error/10 hover:bg-rose-100 text-rose-700 border-rose-200 animate-pulse shadow-rose-100/40 shadow-lg";
+                    return "bg-success/10 hover:bg-emerald-100 text-emerald-700 border-emerald-200";
                   // eslint-disable-next-line no-unused-vars
                   } catch(e) { return "text-muted-foreground border-border"; }
                 })()
@@ -2568,7 +2568,7 @@ export default function InstructorCourseForm() {
             <AppButton appVariant="ghostMuted" variant="ghost"
               type="button"
               disabled={isSavingDraft || isUploading}
-              className="h-9 sm:h-10 px-3 sm:px-5 font-bold border border-info/20 text-info hover:bg-blue-50 shadow-none text-xs sm:text-sm flex items-center gap-2"
+              className="h-9 sm:h-10 px-3 sm:px-5 font-bold border border-info/20 text-info hover:bg-info/10 shadow-none text-xs sm:text-sm flex items-center gap-2"
               onClick={() => saveDraft(methods.getValues(), true)}
             >
               {isSavingDraft ? (

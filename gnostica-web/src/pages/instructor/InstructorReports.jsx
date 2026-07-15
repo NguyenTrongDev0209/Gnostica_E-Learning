@@ -76,10 +76,10 @@ export default function InstructorReports() {
       {/* KPI Section */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {[
-          { label: "Tỷ lệ hoàn thành", value: "72.4%", icon: Target, isPositive: true, trend: "+2.1%", styles: "text-info bg-blue-50 border-info/20" },
-          { label: "Thời gian học TB", value: "45p/ngày", icon: Clock, isPositive: true, trend: "+5.4%", styles: "text-success bg-green-50 border-success/20" },
-          { label: "Điểm thi trung bình", value: "8.2/10", icon: Award, isPositive: false, trend: "-0.5%", styles: "text-amber-600 bg-amber-50 border-amber-100" },
-          { label: "Số giờ giảng dạy", value: "124h", icon: Layout, isPositive: true, trend: "+12h", styles: "text-indigo-600 bg-indigo-50 border-indigo-100" },
+          { label: "Tỷ lệ hoàn thành", value: "72.4%", icon: Target, isPositive: true, trend: "+2.1%", styles: "text-info bg-info/10 border-info/20" },
+          { label: "Thời gian học TB", value: "45p/ngày", icon: Clock, isPositive: true, trend: "+5.4%", styles: "text-success bg-success/10 border-success/20" },
+          { label: "Điểm thi trung bình", value: "8.2/10", icon: Award, isPositive: false, trend: "-0.5%", styles: "text-warning bg-warning/10 border-warning/20" },
+          { label: "Số giờ giảng dạy", value: "124h", icon: Layout, isPositive: true, trend: "+12h", styles: "text-primary bg-primary/10 border-primary/20" },
         ].map((kpi, i) => (
           <AppCard key={i} className="border-border shadow-sm overflow-hidden">
             <AppCardContent className="p-4 flex flex-col gap-3">
@@ -87,13 +87,13 @@ export default function InstructorReports() {
                 <div className={`p-2 rounded-lg border ${kpi.styles}`}>
                   <kpi.icon className="w-5 h-5" />
                 </div>
-                <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${kpi.isPositive ? 'text-success bg-green-50' : 'text-error bg-red-50'}`}>
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${kpi.isPositive ? 'text-success bg-success/10' : 'text-error bg-error/10'}`}>
                   {kpi.trend}
                 </span>
               </div>
               <div>
                 <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{kpi.label}</p>
-                <p className="text-xl font-black text-foreground">{kpi.value}</p>
+                <p className="text-xl font-bold text-foreground">{kpi.value}</p>
               </div>
             </AppCardContent>
           </AppCard>
@@ -224,8 +224,8 @@ export default function InstructorReports() {
                      <span className="text-sm font-bold text-foreground line-clamp-1">{lesson.title}</span>
                    </div>
                    <div className="flex items-center gap-4 shrink-0">
-                     <span className="text-xs font-bold text-info bg-blue-50 px-2 py-0.5 rounded">{lesson.views} views</span>
-                     <ChevronRight className="w-4 h-4 text-slate-300" />
+                     <span className="text-xs font-bold text-info bg-info/10 px-2 py-0.5 rounded">{lesson.views} views</span>
+                     <ChevronRight className="w-4 h-4 text-muted-foreground" />
                    </div>
                  </div>
                ))}

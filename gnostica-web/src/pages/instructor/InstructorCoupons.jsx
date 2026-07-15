@@ -51,10 +51,10 @@ function InstructorCouponTable({
             render: (coupon) => (
                 <div className="flex flex-col items-center gap-2 p-1">
                     <div className="flex items-center gap-1.5 bg-muted text-white px-3 py-1 rounded-lg shadow-sm border border-border">
-                        <Ticket className="w-3.5 h-3.5 text-amber-400" />
-                        <span className="text-sm font-black tracking-widest font-mono">{coupon.code}</span>
+                        <Ticket className="w-3.5 h-3.5 text-warning" />
+                        <span className="text-sm font-bold tracking-widest font-mono">{coupon.code}</span>
                     </div>
-                    <AppBadge className="bg-green-50 text-success border-success/20 shadow-none hover:bg-success/10 text-[10px] font-black uppercase tracking-wider h-5 flex items-center gap-1">
+                    <AppBadge className="bg-success/10 text-success border-success/20 shadow-none hover:bg-success/20 text-[10px] font-bold uppercase tracking-wider h-5 flex items-center gap-1">
                         Giảm {coupon.discountPercent}%
                     </AppBadge>
                 </div>
@@ -82,7 +82,7 @@ function InstructorCouponTable({
             render: (coupon) => (
                 <div className="flex flex-col items-center gap-1">
                     <Calendar className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-xs font-black text-foreground">
+                    <span className="text-xs font-semibold text-foreground">
                         {new Date(coupon.expiryDate).toLocaleDateString('vi-VN', {
                             day: '2-digit', month: '2-digit', year: 'numeric'
                         })}
@@ -96,7 +96,7 @@ function InstructorCouponTable({
             render: (coupon) => (
                 <div className="flex justify-center">
                     <div className="flex flex-col gap-1.5 w-32">
-                        <div className="flex justify-between text-[10px] font-black text-muted-foreground uppercase tracking-tighter">
+                        <div className="flex justify-between text-[10px] font-semibold text-muted-foreground uppercase tracking-tighter">
                             <span>Đã dùng</span>
                             <span>{coupon.usedCount || 0}/{coupon.quantity}</span>
                         </div>
@@ -117,22 +117,22 @@ function InstructorCouponTable({
             cellClassName: "text-center",
             render: (coupon) => {
                 if (coupon.status === 1) return (
-                    <AppBadge className="bg-green-50 text-success border-success/20 shadow-none hover:bg-green-50 text-[10px] font-black py-0.5 inline-flex items-center gap-1 uppercase tracking-tight">
+                    <AppBadge className="bg-success/10 text-success border-success/20 shadow-none hover:bg-success/20 text-[10px] font-bold py-0.5 inline-flex items-center gap-1 uppercase tracking-tight">
                         <CheckCircle2 className="w-3 h-3" /> Hoạt động
                     </AppBadge>
                 );
                 if (coupon.status === 2) return (
-                    <AppBadge className="bg-muted text-muted-foreground border-border shadow-none hover:bg-muted text-[10px] font-black py-0.5 inline-flex items-center gap-1 uppercase tracking-tight">
+                    <AppBadge className="bg-muted text-muted-foreground border-border shadow-none hover:bg-muted text-[10px] font-bold py-0.5 inline-flex items-center gap-1 uppercase tracking-tight">
                         <Clock className="w-3 h-3" /> Hết hạn
                     </AppBadge>
                 );
                 if (coupon.status === 0) return (
-                    <AppBadge className="bg-blue-50 text-info border-info/20 shadow-none hover:bg-blue-50 text-[10px] font-black py-0.5 inline-flex items-center gap-1 uppercase tracking-tight">
+                    <AppBadge className="bg-info/10 text-info border-info/20 shadow-none hover:bg-info/20 text-[10px] font-bold py-0.5 inline-flex items-center gap-1 uppercase tracking-tight">
                         <XCircle className="w-3 h-3" /> Tạm ẩn
                     </AppBadge>
                 );
                 return (
-                    <AppBadge className="bg-amber-50 text-amber-700 border-amber-200 shadow-none hover:bg-amber-50 text-[10px] font-black py-0.5 inline-flex items-center gap-1 uppercase tracking-tight">
+                    <AppBadge className="bg-warning/10 text-warning border-warning/20 shadow-none hover:bg-warning/20 text-[10px] font-bold py-0.5 inline-flex items-center gap-1 uppercase tracking-tight">
                         <XCircle className="w-3 h-3" /> Hết lượt
                     </AppBadge>
                 );
@@ -230,7 +230,7 @@ export default function InstructorCoupons() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 text-foreground">
         <div className="space-y-1">
-          <h1 className="text-h1 font-black text-foreground tracking-tight leading-none">Phiếu Giảm Giá</h1>
+          <h1 className="text-2xl font-bold text-foreground tracking-tight leading-none">Phiếu Giảm Giá</h1>
           <p className="text-sm font-medium text-muted-foreground">
             Tạo và quản lý các mã giảm giá để thúc đẩy doanh số bán khóa học của bạn.
           </p>
@@ -247,20 +247,20 @@ export default function InstructorCoupons() {
       {/* Stats Summary (Standardized) */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {[
-          { label: "Tổng số mã", value: stats.total, icon: Ticket, color: "slate" },
-          { label: "Đang hoạt động", value: stats.active, icon: CircleCheck, color: "green" },
-          { label: "Sắp diễn ra", value: stats.scheduled, icon: Clock, color: "amber" },
-          { label: "Đã hết hạn", value: stats.expired, icon: CircleOff, color: "rose" },
+          { label: "Tổng số mã", value: stats.total, icon: Ticket, bgClass: "bg-slate-50", textClass: "text-slate-600", borderClass: "border-slate-100", circleClass: "bg-slate-50/50 group-hover:bg-slate-100/50" },
+          { label: "Đang hoạt động", value: stats.active, icon: CircleCheck, bgClass: "bg-success/10", textClass: "text-success", borderClass: "border-success/20", circleClass: "bg-success/5 group-hover:bg-success/10" },
+          { label: "Sắp diễn ra", value: stats.scheduled, icon: Clock, bgClass: "bg-warning/10", textClass: "text-warning", borderClass: "border-warning/20", circleClass: "bg-warning/5 group-hover:bg-warning/10" },
+          { label: "Đã hết hạn", value: stats.expired, icon: CircleOff, bgClass: "bg-error/10", textClass: "text-error", borderClass: "border-error/20", circleClass: "bg-error/5 group-hover:bg-error/10" },
         ].map((stat, i) => (
-          <AppCard key={i} className="group hover-lift border-border shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden relative bg-white rounded-2xl">
-            <div className={`absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 rounded-full bg-${stat.color}-50/50 group-hover:bg-${stat.color}-100/50 transition-colors duration-500`} />
+          <AppCard key={i} className="group hover-lift border-border shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden relative bg-card rounded-2xl">
+            <div className={`absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 rounded-full ${stat.circleClass} transition-colors duration-500`} />
             <AppCardContent className="p-6 flex items-center gap-4 relative z-10">
-              <div className={`w-12 h-12 rounded-2xl bg-${stat.color}-50 text-${stat.color}-600 border border-${stat.color}-100 flex items-center justify-center group-hover:scale-110 transition-transform duration-500 shadow-sm`}>
+              <div className={`w-12 h-12 rounded-2xl ${stat.bgClass} ${stat.textClass} border ${stat.borderClass} flex items-center justify-center group-hover:scale-110 transition-transform duration-500 shadow-sm`}>
                 <stat.icon className="w-6 h-6" />
               </div>
               <div className="flex flex-col">
-                <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">{stat.label}</span>
-                <span className="text-2xl font-black text-foreground tracking-tight">{stat.value}</span>
+                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{stat.label}</span>
+                <span className="text-2xl font-semibold text-foreground tracking-tight">{stat.value}</span>
               </div>
             </AppCardContent>
           </AppCard>
@@ -280,7 +280,7 @@ export default function InstructorCoupons() {
             />
           </div>
           <div className="h-10 w-px bg-border/60 hidden md:block" />
-          <div className="flex items-center gap-2 text-xs font-black text-muted-foreground uppercase tracking-widest">
+          <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-widest">
             <Filter className="w-3.5 h-3.5" />
             Bộ lọc
           </div>
@@ -295,7 +295,7 @@ export default function InstructorCoupons() {
             <button
               key={tab.id}
               onClick={() => setStatusFilter(tab.id)}
-              className={`flex-1 md:flex-none px-6 py-2 rounded-xl text-xs font-black transition-all duration-200 uppercase tracking-tight ${statusFilter === tab.id
+              className={`flex-1 md:flex-none px-6 py-2 rounded-xl text-xs font-bold transition-all duration-200 uppercase tracking-tight ${statusFilter === tab.id
                 ? "bg-white text-primary shadow-sm ring-1 ring-black/5"
                 : "text-muted-foreground hover:text-foreground"
                 }`}
@@ -314,12 +314,12 @@ export default function InstructorCoupons() {
               <Activity className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-lg font-black text-foreground tracking-tight">Danh Sách Mã Giảm Giá</h2>
-              <p className="text-xs font-bold text-muted-foreground">Quản lý các chương trình ưu đãi và chiến dịch của bạn.</p>
+              <h2 className="text-lg font-bold text-foreground tracking-tight">Danh Sách Mã Giảm Giá</h2>
+              <p className="text-xs font-medium text-muted-foreground">Quản lý các chương trình ưu đãi và chiến dịch của bạn.</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 text-xs font-black text-muted-foreground bg-muted/80 p-2 rounded-xl border border-border/50">
+          <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground bg-muted/80 p-2 rounded-xl border border-border/50">
             <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
             {new Date().toLocaleDateString('vi-VN', { month: 'long', year: 'numeric' })}
           </div>

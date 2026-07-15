@@ -177,7 +177,7 @@ function WithdrawModal({ isOpen, onClose, wallet, onSuccess }) {
 
                     <div className="bg-muted border border-border px-4 py-3 rounded-lg flex justify-between items-center">
                         <span className="text-sm font-medium text-muted-foreground">Số dư khả dụng:</span>
-                        <span className="text-lg font-black text-success">{formatVND(wallet?.remain)}</span>
+                        <span className="text-lg font-bold text-success">{formatVND(wallet?.remain)}</span>
                     </div>
 
                     {step === "setup" && (
@@ -395,7 +395,7 @@ function InstructorRevenueTable({
             className: "text-center",
             cellClassName: "text-center",
             render: (trx) => (
-                <span className={`font-black text-sm ${trx.type === 1 ? "text-success" : "text-rose-600"}`}>
+                <span className={`font-bold text-sm ${trx.type === 1 ? "text-success" : "text-error"}`}>
                     {trx.type === 1 ? "+" : "-"}{formatVND(trx.amount)}
                 </span>
             )
@@ -417,17 +417,17 @@ function InstructorRevenueTable({
             cellClassName: "text-center",
             render: (trx) => {
                 if (trx.status === 1) return (
-                    <AppBadge className="bg-green-50 text-success border-success/20 shadow-none hover:bg-green-50 text-[10px] font-bold py-0.5 inline-flex items-center gap-1">
+                    <AppBadge className="bg-success/10 text-success border-success/20 shadow-none hover:bg-success/20 text-[10px] font-bold py-0.5 inline-flex items-center gap-1">
                         <CheckCircle2 className="w-3 h-3" /> Thành công
                     </AppBadge>
                 );
                 if (trx.status === 0) return (
-                    <AppBadge className="bg-amber-50 text-amber-700 border-amber-200 shadow-none hover:bg-amber-50 text-[10px] font-bold py-0.5 inline-flex items-center gap-1">
+                    <AppBadge className="bg-warning/10 text-warning border-warning/20 shadow-none hover:bg-warning/20 text-[10px] font-bold py-0.5 inline-flex items-center gap-1">
                         <Clock className="w-3 h-3" /> Đang chờ
                     </AppBadge>
                 );
                 return (
-                    <AppBadge className="bg-rose-50 text-rose-700 border-rose-200 shadow-none hover:bg-rose-50 text-[10px] font-bold py-0.5 inline-flex items-center gap-1">
+                    <AppBadge className="bg-error/10 text-error border-error/20 shadow-none hover:bg-error/20 text-[10px] font-bold py-0.5 inline-flex items-center gap-1">
                         <XCircle className="w-3 h-3" /> Thất bại
                     </AppBadge>
                 );
@@ -497,7 +497,7 @@ export default function InstructorRevenue() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
         <div className="space-y-1">
-          <h1 className="text-h1 font-black text-foreground tracking-tight leading-none">Doanh Thu & Thanh Toán</h1>
+          <h1 className="text-2xl font-bold text-foreground tracking-tight leading-none">Doanh Thu & Thanh Toán</h1>
           <p className="text-sm font-medium text-muted-foreground">
             Theo dõi dòng tiền, sao kê giao dịch và yêu cầu rút tiền của bạn.
           </p>
@@ -550,14 +550,14 @@ export default function InstructorRevenue() {
               </div>
               <div className="flex flex-col flex-1">
                 <div className="flex justify-between items-center">
-                  <span className={`text-[10px] font-black uppercase tracking-widest ${stat.dark ? 'text-muted-foreground' : 'text-muted-foreground'}`}>{stat.label}</span>
+                  <span className={`text-[10px] font-bold uppercase tracking-widest ${stat.dark ? 'text-muted-foreground' : 'text-muted-foreground'}`}>{stat.label}</span>
                   {stat.trend && (
-                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-green-50 text-success flex items-center gap-0.5">
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-success/10 text-success flex items-center gap-0.5 border border-success/20">
                       <ArrowUpRight className="w-2.5 h-2.5" /> {stat.trend}
                     </span>
                   )}
                 </div>
-                <span className={`text-2xl font-black tracking-tight ${stat.dark ? 'text-white' : 'text-foreground'}`}>{stat.value}</span>
+                <span className={`text-2xl font-semibold tracking-tight ${stat.dark ? 'text-white' : 'text-foreground'}`}>{stat.value}</span>
                 {stat.sub && (
                   <span className="text-[10px] font-bold text-muted-foreground mt-0.5">{stat.sub}</span>
                 )}
@@ -575,12 +575,12 @@ export default function InstructorRevenue() {
               <Activity className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-lg font-black text-foreground tracking-tight">Lịch Sử Giao Dịch</h2>
-              <p className="text-xs font-bold text-muted-foreground">Danh sách các giao dịch phát sinh trong ví của bạn.</p>
+              <h2 className="text-lg font-bold text-foreground tracking-tight">Lịch Sử Giao Dịch</h2>
+              <p className="text-xs font-medium text-muted-foreground">Danh sách các giao dịch phát sinh trong ví của bạn.</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 text-xs font-black text-muted-foreground bg-muted/80 p-2 rounded-xl border border-border/50">
+          <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground bg-muted/80 p-2 rounded-xl border border-border/50">
             <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
             {new Date().toLocaleDateString('vi-VN', { month: 'long', year: 'numeric' })}
           </div>

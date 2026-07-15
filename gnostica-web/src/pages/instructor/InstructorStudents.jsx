@@ -84,7 +84,7 @@ function InstructorStudentTable({ students, isLoading, onActionClick, onCoursesC
                             e.stopPropagation();
                             onCoursesClick?.(student);
                         }}
-                        className="text-xs font-black text-primary bg-primary/5 border border-primary/10 px-3 py-1.5 rounded-xl whitespace-nowrap shadow-sm hover:bg-primary hover:text-white transition-all cursor-pointer group-hover:scale-105 active:scale-95"
+                        className="text-xs font-bold text-primary bg-primary/5 border border-primary/10 px-3 py-1.5 rounded-xl whitespace-nowrap shadow-sm hover:bg-primary hover:text-white transition-all cursor-pointer group-hover:scale-105 active:scale-95"
                     >
                         {student.coursesCount} Khóa học
                     </span>
@@ -103,12 +103,12 @@ function InstructorStudentTable({ students, isLoading, onActionClick, onCoursesC
                 <div className="w-[140px] mx-auto flex flex-col gap-2">
                     <div className="flex justify-between items-end">
                         <span className={cn(
-                            "text-[10px] font-black uppercase tracking-tight",
+                            "text-[10px] font-bold uppercase tracking-tight",
                             student.progress === 100 ? "text-success" : "text-muted-foreground"
                         )}>
                             {student.progress === 100 ? "Hoàn thành" : "Đang học"}
                         </span>
-                        <span className="text-xs font-black text-foreground">{student.progress}%</span>
+                        <span className="text-xs font-bold text-foreground">{student.progress}%</span>
                     </div>
                     <div className="h-2 w-full bg-secondary rounded-full overflow-hidden border border-border/50 p-[1px]">
                         <div
@@ -138,7 +138,7 @@ function InstructorStudentTable({ students, isLoading, onActionClick, onCoursesC
                             "w-1.5 h-1.5 rounded-full shadow-sm",
                             student.lastActive.includes("giờ") || student.lastActive.includes("phút") ? "bg-success animate-pulse" : "bg-muted"
                         )} />
-                        <span className="text-[10px] font-black text-muted-foreground uppercase tracking-tight">{student.lastActive}</span>
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight">{student.lastActive}</span>
                     </div>
                 </div>
             ),
@@ -215,7 +215,7 @@ const StudentCoursesModal = ({ isOpen, onClose, student }) => {
                                 <GraduationCap className="w-5 h-5" />
                             </div>
                             <div>
-                                <AppDialogTitle className="text-base font-black text-foreground">
+                                <AppDialogTitle className="text-base font-bold text-foreground">
                                     Khóa học tham gia
                                 </AppDialogTitle>
                                 <p className="text-xs font-medium text-muted-foreground">
@@ -295,7 +295,7 @@ const StudentCoursesModal = ({ isOpen, onClose, student }) => {
                                         <td className="py-4 px-4">
                                             <div className="space-y-1.5">
                                                 <div className="flex justify-between items-center">
-                                                    <span className="text-sm font-black text-primary">{course.progressPercent}%</span>
+                                                    <span className="text-sm font-bold text-primary">{course.progressPercent}%</span>
                                                 </div>
                                                 <AppProgress value={course.progressPercent} className="h-1.5 bg-primary/10" />
                                             </div>
@@ -339,7 +339,7 @@ export default function InstructorStudents() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
         <div className="space-y-1">
-          <h1 className="text-h1 font-black text-foreground tracking-tight leading-none">Học Viên Của Tôi</h1>
+          <h1 className="text-2xl font-bold text-foreground tracking-tight leading-none">Học Viên Của Tôi</h1>
           <p className="text-sm font-medium text-muted-foreground">
             Quản lý và theo dõi tiến độ của học viên trong các khóa học bạn đang giảng dạy.
           </p>
@@ -357,22 +357,22 @@ export default function InstructorStudents() {
       {/* Stats Summary */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: "Tổng học viên", value: stats.total.toLocaleString(), icon: Users, color: "blue", trend: "+0%" },
-          { label: "Hoàn thành", value: stats.completed.toLocaleString(), icon: CheckCircle2, color: "green", trend: "+0%" },
-          { label: "Đang học", value: stats.learning.toLocaleString(), icon: Clock, color: "amber", trend: "+0%" },
-          { label: "Hoạt động", value: stats.active.toLocaleString(), icon: Activity, color: "purple", trend: "+0%" },
+          { label: "Tổng học viên", value: stats.total.toLocaleString(), icon: Users, bgClass: "bg-info/10", textClass: "text-info", borderClass: "border-info/20", circleClass: "bg-info/5 group-hover:bg-info/10", trend: "+0%", trendBgClass: "bg-info/5", trendBorderClass: "border-info/20" },
+          { label: "Hoàn thành", value: stats.completed.toLocaleString(), icon: CheckCircle2, bgClass: "bg-success/10", textClass: "text-success", borderClass: "border-success/20", circleClass: "bg-success/5 group-hover:bg-success/10", trend: "+0%", trendBgClass: "bg-success/5", trendBorderClass: "border-success/20" },
+          { label: "Đang học", value: stats.learning.toLocaleString(), icon: Clock, bgClass: "bg-warning/10", textClass: "text-warning", borderClass: "border-warning/20", circleClass: "bg-warning/5 group-hover:bg-warning/10", trend: "+0%", trendBgClass: "bg-warning/5", trendBorderClass: "border-warning/20" },
+          { label: "Hoạt động", value: stats.active.toLocaleString(), icon: Activity, bgClass: "bg-primary/10", textClass: "text-primary", borderClass: "border-primary/20", circleClass: "bg-primary/5 group-hover:bg-primary/10", trend: "+0%", trendBgClass: "bg-primary/5", trendBorderClass: "border-primary/20" },
         ].map((stat, i) => (
-          <AppCard key={i} className="group hover-lift border-border shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden relative rounded-2xl">
-            <div className={`absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 rounded-full bg-${stat.color}-50/50 group-hover:bg-${stat.color}-100/50 transition-colors duration-500`} />
+          <AppCard key={i} className="group hover-lift border-border shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden relative rounded-2xl bg-card">
+            <div className={`absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 rounded-full ${stat.circleClass} transition-colors duration-500`} />
             <AppCardContent className="p-5 flex items-center gap-4 relative z-10">
-              <div className={`w-12 h-12 rounded-2xl bg-${stat.color}-50 flex items-center justify-center text-${stat.color}-600 border border-${stat.color}-100 group-hover:scale-110 transition-transform duration-500 shadow-sm`}>
+              <div className={`w-12 h-12 rounded-2xl ${stat.bgClass} flex items-center justify-center ${stat.textClass} border ${stat.borderClass} group-hover:scale-110 transition-transform duration-500 shadow-sm`}>
                 <stat.icon className="w-6 h-6" />
               </div>
               <div className="flex flex-col">
-                <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">{stat.label}</span>
+                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{stat.label}</span>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-black text-foreground tracking-tight">{stat.value}</span>
-                  <span className={`text-[10px] font-bold text-${stat.color}-600 bg-${stat.color}-50 px-1.5 rounded-full border border-${stat.color}-100/50`}>{stat.trend}</span>
+                  <span className="text-2xl font-semibold text-foreground tracking-tight">{stat.value}</span>
+                  <span className={`text-[10px] font-bold ${stat.textClass} ${stat.trendBgClass} px-1.5 rounded-full border ${stat.trendBorderClass}`}>{stat.trend}</span>
                 </div>
               </div>
             </AppCardContent>
@@ -398,8 +398,8 @@ export default function InstructorStudents() {
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 text-xs font-black text-muted-foreground bg-muted/80 p-1.5 rounded-xl border border-border/50 shadow-inner">
-            <button className="px-5 py-2 rounded-lg bg-white text-primary shadow-sm hover:shadow-md transition-all font-black uppercase tracking-tight">Tất cả</button>
+          <div className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground bg-muted/80 p-1.5 rounded-xl border border-border/50 shadow-inner">
+            <button className="px-5 py-2 rounded-lg bg-white text-primary shadow-sm hover:shadow-md transition-all font-bold uppercase tracking-tight">Tất cả</button>
             <button className="px-5 py-2 rounded-lg hover:text-foreground transition-all hover:bg-white/50 font-bold uppercase tracking-tight">Đang học</button>
             <button className="px-5 py-2 rounded-lg hover:text-foreground transition-all hover:bg-white/50 font-bold uppercase tracking-tight">Hoàn thành</button>
           </div>

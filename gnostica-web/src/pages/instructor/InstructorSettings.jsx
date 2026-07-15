@@ -303,7 +303,7 @@ export default function InstructorSettings() {
                   <p className="text-sm text-muted-foreground mb-2">Giảng viên xuất sắc • Tham gia từ 2024</p>
                   <div className="flex gap-2">
                     <AppButton appVariant="ghostMuted" variant="ghost" size="sm" className="text-xs h-8 border border-border">Thay đổi ảnh</AppButton>
-                    <AppButton appVariant="ghostMuted" variant="ghost" size="sm" className="text-xs h-8 text-error hover:bg-red-50 hover:text-error">Xóa ảnh</AppButton>
+                    <AppButton appVariant="ghostMuted" variant="ghost" size="sm" className="text-xs h-8 text-error hover:bg-error/10 hover:text-error">Xóa ảnh</AppButton>
                   </div>
                 </div>
 
@@ -466,10 +466,11 @@ export default function InstructorSettings() {
                     </div>
                   </div>
                   <div className="pt-4 flex justify-end">
-                    <SimpleButton
+                    <AppButton
+                      appVariant="gradient"
                       type="submit"
                       disabled={isLoading}
-                      className="bg-primary text-white hover:bg-primary/95 font-bold px-6 shadow-sm gap-2"
+                      className="bg-primary/10 text-primary hover:bg-primary/20 font-bold px-6 shadow-sm gap-2"
                     >
                       {isLoading ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
@@ -477,7 +478,7 @@ export default function InstructorSettings() {
                         <Lock className="w-4 h-4" />
                       )}
                       Cập nhật mật khẩu
-                    </SimpleButton>
+                    </AppButton>
                   </div>
                 </form>
               </AppCardContent>

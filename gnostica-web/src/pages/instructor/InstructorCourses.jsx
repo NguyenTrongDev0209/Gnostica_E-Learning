@@ -66,8 +66,8 @@ function InstructorCourseTable({
                             </div>
                         )}
                         {row.isVirtualDraft && (
-                            <div className="absolute inset-0 bg-amber-500/10 flex items-center justify-center">
-                                <span className="text-[8px] font-black text-amber-700 bg-amber-100/90 px-1 py-0.5 rounded uppercase tracking-wider">
+                            <div className="absolute inset-0 bg-warning/5 flex items-center justify-center">
+                                <span className="text-[8px] font-bold text-warning bg-warning/10 px-1 py-0.5 rounded uppercase tracking-wider">
                                     Nháp
                                 </span>
                             </div>
@@ -94,39 +94,39 @@ function InstructorCourseTable({
                         <span className="text-sm text-muted-foreground italic">—</span>
                     ) : row.discount > 0 ? (
                         <>
-                            <span className="font-black text-foreground leading-none">{formatPrice(row.salePrice)}</span>
+                            <span className="font-bold text-foreground leading-none">{formatPrice(row.salePrice)}</span>
                             <div className="flex items-center gap-1.5 mt-0.5">
                                 <span className="text-[10px] text-muted-foreground line-through decoration-slate-300">
                                     {formatPrice(row.price)}
                                 </span>
-                                <span className="text-[9px] font-bold text-error bg-red-50 px-1 rounded">
+                                <span className="text-[9px] font-bold text-error bg-error/10 px-1 rounded">
                                     -{row.discount}%
                                 </span>
                             </div>
                         </>
                     ) : (
-                        <span className="font-black text-foreground">{formatPrice(row.price)}</span>
+                        <span className="font-bold text-foreground">{formatPrice(row.price)}</span>
                     )}
                     <div className="flex flex-wrap gap-1 mt-1.5">
                         {row.isVirtualDraft ? (
-                            <span className="inline-flex items-center gap-1 text-[10px] text-amber-700 font-bold bg-amber-50 px-1.5 py-0.5 rounded border border-amber-300">
+                            <span className="inline-flex items-center gap-1 text-[10px] text-warning font-bold bg-warning/10 px-1.5 py-0.5 rounded border border-warning/20">
                                 Bản nháp mới
                             </span>
                         ) : (
                             <>
                                 {row.status === 1 ? (
-                                    <span className="inline-flex items-center gap-1 text-[10px] text-success font-bold bg-green-50 px-1.5 py-0 rounded border border-success/20">Đang bán</span>
+                                    <span className="inline-flex items-center gap-1 text-[10px] text-success font-bold bg-success/10 px-1.5 py-0 rounded border border-success/20">Đang bán</span>
                                 ) : row.status === 3 || row.status === "rejected" ? (
-                                    <span className="inline-flex items-center gap-1 text-[10px] text-rose-600 font-bold bg-rose-50 px-1.5 py-0 rounded border border-rose-200">Bị từ chối</span>
+                                    <span className="inline-flex items-center gap-1 text-[10px] text-error font-bold bg-error/10 px-1.5 py-0 rounded border border-error/20">Bị từ chối</span>
                                 ) : row.status === 4 ? (
-                                    <span className="inline-flex items-center gap-1 text-[10px] text-amber-600 font-bold bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">Chờ duyệt</span>
+                                    <span className="inline-flex items-center gap-1 text-[10px] text-warning font-bold bg-warning/10 px-1.5 py-0.5 rounded border border-warning/20">Chờ duyệt</span>
                                 ) : (
                                     <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground font-bold bg-secondary px-1.5 py-0 rounded border border-border">Ẩn</span>
                                 )}
                                 {row.hasUnsavedDraft && (
-                                    <span className="inline-flex items-center gap-1 text-[10px] text-warning font-bold bg-orange-50 px-1.5 py-0 rounded border border-warning/20">
+                                    <span className="inline-flex items-center gap-1 text-[10px] text-warning font-bold bg-warning/10 px-1.5 py-0 rounded border border-warning/20">
                                         Có bản nháp
-                                        <span className="w-1 h-1 rounded-full bg-warning/10 text-warning animate-pulse ml-1" />
+                                        <span className="w-1 h-1 rounded-full bg-warning text-warning animate-pulse ml-1" />
                                     </span>
                                 )}
                             </>
@@ -142,7 +142,7 @@ function InstructorCourseTable({
             render: (row) => row.isVirtualDraft ? (
                 <span className="text-slate-300 text-sm">—</span>
             ) : (
-                <span className="inline-flex items-center gap-1.5 font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full text-xs border border-indigo-100">
+                <span className="inline-flex items-center gap-1.5 font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-full text-xs border border-primary/20">
                     <Tag className="w-3 h-3" />
                     {row.categoryName || "Chưa phân loại"}
                 </span>
@@ -305,7 +305,7 @@ export default function InstructorCourses() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
         <div className="space-y-1">
-          <h1 className="text-h1 font-black text-foreground tracking-tight leading-none">Khóa Học Của Tôi</h1>
+          <h1 className="text-2xl font-bold text-foreground tracking-tight leading-none">Khóa Học Của Tôi</h1>
           <p className="text-sm font-medium text-muted-foreground">
             Quản lý, chỉnh sửa và theo dõi hiệu suất các khóa học bạn đang giảng dạy.
           </p>
@@ -321,20 +321,20 @@ export default function InstructorCourses() {
       {/* Stats Summary (Styled like Students page) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: "Tổng khóa học", value: pagination.totalElements || 0, icon: PlayCircle, color: "blue" },
-          { label: "Đang hiển thị", value: courses.filter(c => c.status === 1).length, icon: CheckCircle2, color: "green" },
-          { label: "Chờ duyệt", value: courses.filter(c => c.status === 4).length, icon: Clock, color: "amber" },
-          { label: "Bản nháp", value: courses.filter(c => c.isVirtualDraft || c.hasUnsavedDraft).length, icon: Activity, color: "purple" },
+          { label: "Tổng khóa học", value: pagination.totalElements || 0, icon: PlayCircle, bgClass: "bg-info/10", textClass: "text-info", borderClass: "border-info/20", circleClass: "bg-info/5 group-hover:bg-info/10" },
+          { label: "Đang hiển thị", value: courses.filter(c => c.status === 1).length, icon: CheckCircle2, bgClass: "bg-success/10", textClass: "text-success", borderClass: "border-success/20", circleClass: "bg-success/5 group-hover:bg-success/10" },
+          { label: "Chờ duyệt", value: courses.filter(c => c.status === 4).length, icon: Clock, bgClass: "bg-warning/10", textClass: "text-warning", borderClass: "border-warning/20", circleClass: "bg-warning/5 group-hover:bg-warning/10" },
+          { label: "Bản nháp", value: courses.filter(c => c.isVirtualDraft || c.hasUnsavedDraft).length, icon: Activity, bgClass: "bg-primary/10", textClass: "text-primary", borderClass: "border-primary/20", circleClass: "bg-primary/5 group-hover:bg-primary/10" },
         ].map((stat, i) => (
-          <AppCard key={i} className="group hover-lift border-border shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden relative rounded-2xl">
-            <div className={`absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 rounded-full bg-${stat.color}-50/50 group-hover:bg-${stat.color}-100/50 transition-colors duration-500`} />
+          <AppCard key={i} className="group hover-lift border-border shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden relative rounded-2xl bg-card">
+            <div className={`absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 rounded-full ${stat.circleClass} transition-colors duration-500`} />
             <AppCardContent className="p-5 flex items-center gap-4 relative z-10">
-              <div className={`w-12 h-12 rounded-2xl bg-${stat.color}-50 flex items-center justify-center text-${stat.color}-600 border border-${stat.color}-100 group-hover:scale-110 transition-transform duration-500 shadow-sm`}>
+              <div className={`w-12 h-12 rounded-2xl ${stat.bgClass} flex items-center justify-center ${stat.textClass} border ${stat.borderClass} group-hover:scale-110 transition-transform duration-500 shadow-sm`}>
                 <stat.icon className="w-6 h-6" />
               </div>
               <div className="flex flex-col">
-                <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">{stat.label}</span>
-                <span className="text-2xl font-black text-foreground tracking-tight">{stat.value}</span>
+                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{stat.label}</span>
+                <span className="text-2xl font-semibold text-foreground tracking-tight">{stat.value}</span>
               </div>
             </AppCardContent>
           </AppCard>
@@ -382,7 +382,7 @@ export default function InstructorCourses() {
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 text-xs font-black text-muted-foreground bg-muted/80 p-1.5 rounded-xl border border-border/50 shadow-inner">
+          <div className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground bg-muted/80 p-1.5 rounded-xl border border-border/50 shadow-inner">
             {[
               { label: "Tất cả", value: "all" },
               { label: "Đang bán", value: "1" },
@@ -392,7 +392,7 @@ export default function InstructorCourses() {
               <button
                 key={btn.value}
                 onClick={() => setFilters(prev => ({ ...prev, status: btn.value === "all" ? "" : Number(btn.value) }))}
-                className={`px-5 py-2 rounded-lg transition-all font-black uppercase tracking-tight ${(filters.status === "" && btn.value === "all") || (String(filters.status) === btn.value)
+                className={`px-5 py-2 rounded-lg transition-all font-bold uppercase tracking-tight ${(filters.status === "" && btn.value === "all") || (String(filters.status) === btn.value)
                     ? "bg-white text-primary shadow-sm"
                     : "hover:text-foreground hover:bg-white/50"
                   }`}
@@ -434,23 +434,23 @@ export default function InstructorCourses() {
       >
         <AppDialogContent className="sm:!max-w-[450px] p-0 overflow-hidden border-none shadow-2xl bg-white rounded-2xl">
           <AppDialogHeader className="p-6 pb-4 bg-muted border-b border-border text-left sm:text-left flex flex-row items-start gap-4 space-y-0">
-            <div className="w-12 h-12 shrink-0 rounded-2xl bg-rose-50 flex items-center justify-center text-rose-600 border border-rose-100 shadow-sm">
+            <div className="w-12 h-12 shrink-0 rounded-2xl bg-error/10 flex items-center justify-center text-error border border-error/20 shadow-sm">
               <XCircle className="w-6 h-6" />
             </div>
             <div className="space-y-1">
-              <AppDialogTitle className="text-lg font-black text-foreground tracking-tight leading-tight uppercase">
+              <AppDialogTitle className="text-lg font-bold text-foreground tracking-tight leading-tight uppercase">
                 Lý do từ chối
               </AppDialogTitle>
               <AppDialogDescription className="text-muted-foreground text-xs font-bold leading-tight">
-                Khóa học: <span className="text-rose-600">"{rejectViewModal.courseTitle}"</span>
+                Khóa học: <span className="text-error">"{rejectViewModal.courseTitle}"</span>
               </AppDialogDescription>
             </div>
           </AppDialogHeader>
 
           <div className="p-6 bg-white">
-            <div className="p-5 bg-rose-50/50 border border-rose-100 rounded-2xl relative shadow-inner">
-              <AlertCircle className="absolute top-4 right-4 w-4 h-4 text-rose-300" />
-              <p className="text-[10px] font-black text-rose-600 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+            <div className="p-5 bg-error/5 border border-error/20 rounded-2xl relative shadow-inner">
+              <AlertCircle className="absolute top-4 right-4 w-4 h-4 text-error" />
+              <p className="text-[10px] font-bold text-error uppercase tracking-widest mb-2 flex items-center gap-1.5">
                 Phản hồi từ Quản trị viên
               </p>
               <p className="text-foreground font-bold text-sm leading-relaxed whitespace-pre-wrap italic">
