@@ -1,6 +1,6 @@
 import React from 'react';
-import { Card, CardContent } from "@/components/ui/card";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import AppCard, { AppCardContent } from "@/components/common/micro/AppCard";
+import AppAvatar from "@/components/common/micro/AppAvatar";
 import { Link } from 'react-router-dom';
 import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
 import AppPageHeader from "@/components/common/composite/AppPageHeader";
@@ -30,15 +30,14 @@ export default function FavoriteInstructors() {
             ) : instructors.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {instructors.map((instructor) => (
-                        <Card key={instructor.id} className="group border-border hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 overflow-hidden">
-                            <CardContent className="p-5">
+                        <AppCard key={instructor.id} appVariant="default" className="group border-border hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 overflow-hidden">
+                            <AppCardContent className="p-5">
                                 <div className="flex items-center gap-4">
-                                    <Avatar className="w-16 h-16 border-2 border-white shadow-md">
-                                        <AvatarImage src={instructor.avatar} />
-                                        <AvatarFallback className="bg-primary/10 text-primary font-bold">
-                                            {instructor.fullName?.substring(0, 2).toUpperCase()}
-                                        </AvatarFallback>
-                                    </Avatar>
+                                    <AppAvatar 
+                                        className="w-16 h-16 border-2 border-white shadow-md"
+                                        src={instructor.avatar}
+                                        fallback={instructor.fullName?.substring(0, 2).toUpperCase()}
+                                    />
                                     <div className="flex-1 min-w-0">
                                         <h3 className="font-bold text-foreground truncate group-hover:text-primary transition-colors">
                                             {instructor.fullName}
@@ -60,8 +59,8 @@ export default function FavoriteInstructors() {
                                         <Star className="w-5 h-5 fill-current" />
                                     </div>
                                 </div>
-                            </CardContent>
-                        </Card>
+                            </AppCardContent>
+                        </AppCard>
                     ))}
                 </div>
             ) : (

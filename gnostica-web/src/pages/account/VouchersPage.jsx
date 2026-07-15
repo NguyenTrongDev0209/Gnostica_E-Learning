@@ -1,11 +1,9 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
 import AppPageHeader from "@/components/common/composite/AppPageHeader";
 import { Ticket } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
+import AppSkeleton from "@/components/common/micro/AppSkeleton";
 import useVouchers from "@/hooks/account/useVouchers";
 import VoucherCard from "@/components/common/composite/VoucherCard";
 
@@ -28,15 +26,15 @@ export default function VouchersPage() {
           [1, 2, 3].map((i) => (
             <div key={i} className="flex border rounded-2xl overflow-hidden shadow-sm h-48 border-border">
               <div className="w-32 sm:w-40 flex items-center justify-center p-4 bg-muted shrink-0">
-                <Skeleton className="w-16 h-16 rounded-full" />
+                <AppSkeleton className="w-16 h-16 rounded-full" />
               </div>
               <div className="flex-1 p-5 sm:p-6 bg-white space-y-4">
-                <Skeleton className="h-6 w-3/4" />
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-5/6" />
+                <AppSkeleton className="h-6 w-3/4" />
+                <AppSkeleton className="h-4 w-full" />
+                <AppSkeleton className="h-4 w-5/6" />
                 <div className="flex justify-between items-center pt-2">
-                  <Skeleton className="h-6 w-24" />
-                  <Skeleton className="h-8 w-24 rounded-xl" />
+                  <AppSkeleton className="h-6 w-24" />
+                  <AppSkeleton className="h-8 w-24 rounded-xl" />
                 </div>
               </div>
             </div>

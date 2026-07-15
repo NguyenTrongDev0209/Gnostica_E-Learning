@@ -1,9 +1,9 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Card, CardContent } from "@/components/ui/card";
+import AppCard, { AppCardContent } from "@/components/common/micro/AppCard";
 import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
 import AppPageHeader from "@/components/common/composite/AppPageHeader";
-import { Skeleton } from "@/components/ui/skeleton";
+import AppSkeleton from "@/components/common/micro/AppSkeleton";
 import useCertificates from "@/hooks/account/useCertificates";
 import {
   Award,
@@ -31,30 +31,30 @@ export default function Certificates() {
       {loading ? (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           {[1, 2].map((i) => (
-            <Card key={i} className="border-border shadow-sm overflow-hidden h-64 flex">
+            <AppCard key={i} appVariant="default" className="border-border shadow-sm overflow-hidden h-64 flex">
               <div className="w-full sm:w-48 bg-muted shrink-0 flex items-center justify-center p-6">
-                 <Skeleton className="w-20 h-20 rounded-full" />
+                 <AppSkeleton className="w-20 h-20 rounded-full" />
               </div>
               <div className="p-6 flex-1 flex flex-col justify-between">
-                 <Skeleton className="h-6 w-3/4 mb-4" />
+                 <AppSkeleton className="h-6 w-3/4 mb-4" />
                  <div className="space-y-2">
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-3/4" />
+                    <AppSkeleton className="h-4 w-full" />
+                    <AppSkeleton className="h-4 w-full" />
+                    <AppSkeleton className="h-4 w-3/4" />
                  </div>
                  <div className="flex gap-3 mt-4">
-                    <Skeleton className="h-10 flex-1" />
-                    <Skeleton className="h-10 w-12" />
+                    <AppSkeleton className="h-10 flex-1" />
+                    <AppSkeleton className="h-10 w-12" />
                  </div>
               </div>
-            </Card>
+            </AppCard>
           ))}
         </div>
       ) : certificates.length > 0 ? (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           {certificates.map((cert) => (
-            <Card key={cert.id} className="border-border shadow-sm overflow-hidden hover:shadow-lg transition-all group">
-              <CardContent className="p-0 flex flex-col sm:flex-row">
+            <AppCard key={cert.id} appVariant="default" className="border-border shadow-sm overflow-hidden hover:shadow-lg transition-all group">
+              <AppCardContent className="p-0 flex flex-col sm:flex-row">
                 {/* Left Side: Thumbnail/Design */}
                 <div className={`relative w-full sm:w-48 h-48 sm:h-auto bg-gradient-to-br ${cert.color} overflow-hidden shrink-0 flex flex-col items-center justify-center text-white p-6`}>
                   <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -108,13 +108,13 @@ export default function Certificates() {
                     </AppButton>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </AppCardContent>
+            </AppCard>
           ))}
         </div>
       ) : (
-        <Card className="border-dashed border-2 bg-muted shadow-none border-border">
-          <CardContent className="p-16 flex flex-col items-center justify-center text-center">
+        <AppCard appVariant="default" className="border-dashed border-2 bg-muted shadow-none border-border">
+          <AppCardContent className="p-16 flex flex-col items-center justify-center text-center">
             <div className="w-20 h-20 rounded-full bg-secondary flex items-center justify-center text-primary/40 mb-6">
               <Trophy className="w-10 h-10" />
             </div>
@@ -125,8 +125,8 @@ export default function Certificates() {
             <Link to="/account/my-courses">
               <AppButton appVariant="gradient" className="font-bold">Quay lại học ngay</AppButton>
             </Link>
-          </CardContent>
-        </Card>
+          </AppCardContent>
+        </AppCard>
       )}
     </div>
   );

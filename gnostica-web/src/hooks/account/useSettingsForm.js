@@ -1,55 +1,76 @@
 import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 export default function useSettingsForm(user) {
-  const [loading, setLoading] = useState(false);
-  
-  const form = useForm({
-    defaultValues: {
-      fullName: "",
-      phone: "",
-      headline: "",
-      bio: "",
-      website: "",
-      facebook: "",
-      linkedin: "",
-    }
+  const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    phone: "",
+    bio: "",
+    avatar: ""
   });
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [personalizationOpen, setPersonalizationOpen] = useState(false);
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [tempImage, setTempImage] = useState(null);
 
   useEffect(() => {
     if (user) {
-      form.reset({
+      setFormData({
         fullName: user.fullName || "",
+        email: user.email || "",
         phone: user.phone || "",
-        headline: user.headline || "H?c vi�n t?i Gnostica",
-        bio: user.bio || "Xin ch�o, t�i l� h?c vi�n m?i.",
-        website: user.website || "",
-        facebook: user.facebook || "",
-        linkedin: user.linkedin || "",
+        bio: user.bio || "",
+        avatar: user.avatar || ""
       });
     }
-  }, [user, form]);
+  }, [user]);
 
-  const onSubmit = (data) => {
-    setLoading(true);
+  const handleChange = (e) => {
+    const { id, value } = e.target;
+    setFormData(prev => ({ ...prev, [id]: value }));
+  };
+
+  const handleAvatarChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setTempImage(event.target.result);
+        setCropModalOpen(true);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleCropComplete = (croppedImage) => {
+    setFormData(prev => ({ ...prev, avatar: croppedImage }));
+    setCropModalOpen(false);
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setIsLoading(true);
     setTimeout(() => {
-      toast.success("C?p nh?t th�ng tin th�nh c�ng!");
-      setLoading(false);
+      toast.success("Cập nhật thông tin thành công!");
+      setIsLoading(false);
     }, 800);
   };
 
-  const handleAvatarUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      toast.success("�� t?i ?nh l�n th�nh c�ng (mock)");
-    }
-  };
-
   return {
-    form,
-    loading,
-    onSubmit: form.handleSubmit(onSubmit),
-    handleAvatarUpload
+    formData,
+    isLoading,
+    isUploading,
+    personalizationOpen,
+    setPersonalizationOpen,
+    cropModalOpen,
+    setCropModalOpen,
+    tempImage,
+    handleChange,
+    handleAvatarChange,
+    handleCropComplete,
+    handleSubmit
   };
 }

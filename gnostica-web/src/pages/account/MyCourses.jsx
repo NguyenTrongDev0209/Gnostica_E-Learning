@@ -1,14 +1,16 @@
 import React from "react";
 import { BookOpen, Trophy, Clock } from "lucide-react";
+import { Link } from "react-router-dom";
 import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
 import AppCard, { AppCardContent } from "@/components/common/micro/AppCard";
 import { AppCheckbox } from "@/components/common/micro/AppCheckbox";
+import { AppButton } from "@/components/common/micro/AppButton";
 import AppPagination from "@/components/common/micro/AppPagination";
-import { Skeleton } from "@/components/ui/skeleton";
+import AppSkeleton from "@/components/common/micro/AppSkeleton";
 import AppPageHeader from "@/components/common/composite/AppPageHeader";
 import DataFilter, { DataFilterSidebarChecklist } from "@/components/common/composite/DataFilter";
+import { CourseProgressCard } from "@/components/common/composite/CourseCard";
 import useMyCourses from "@/hooks/course/useMyCourses";
-import MyCourseGrid from "@/pages/account/components/MyCourseGrid";
 
 export default function MyCourses() {
   const {
@@ -78,10 +80,10 @@ export default function MyCourses() {
           Array(3).fill(0).map((_, i) => (
             <AppCard key={i} appVariant="default" className="shadow-sm">
               <AppCardContent className="p-5 flex items-center gap-4">
-                <Skeleton className="w-12 h-12 rounded-xl" />
+                <AppSkeleton className="w-12 h-12 rounded-xl" />
                 <div className="space-y-2">
-                  <Skeleton className="h-3 w-20" />
-                  <Skeleton className="h-6 w-12" />
+                  <AppSkeleton className="h-3 w-20" />
+                  <AppSkeleton className="h-6 w-12" />
                 </div>
               </AppCardContent>
             </AppCard>
@@ -153,6 +155,56 @@ export default function MyCourses() {
         </div>
         
       </div>
+    </div>
+  );
+}
+
+function MyCourseGrid({ loading, courses }) {
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {[1,2,3,4].map(n => (
+          <div key={n} className="h-80 bg-secondary animate-pulse rounded-lg" />
+        ))}
+      </div>
+    );
+  }
+
+  if (courses.length === 0) {
+    return (
+      <div className="text-center py-20 bg-muted rounded-lg border border-dashed border-border">
+        <BookOpen className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+        <h3 className="text-lg font-bold text-foreground mb-2">Không tìm thấy khóa học nào</h3>
+        <p className="text-muted-foreground mb-6">Bạn chưa sở hữu khóa học nào phù hợp với bộ lọc hiện tại.</p>
+        <Link to="/courses">
+          <AppButton appVariant="outlineGradient" className="font-bold border-2 border-primary text-primary hover:bg-primary/5">
+            Khám phá khóa học
+          </AppButton>
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {courses.map((course) => (
+        <CourseProgressCard
+          key={course.id}
+          id={course.id}
+          title={course.courseTitle}
+          category={course.category}
+          image={course.courseThumbnail}
+          instructor={course.instructorName}
+          progressPercent={course.progressPercent}
+          lastAccessed={course.lastAccessed}
+          completedAt={course.completedAt}
+          joinedAt={course.joinedAt}
+          firstLessonId={course.firstLessonId}
+          lastWatchedLessonSlug={course.lastWatchedLessonSlug}
+          certifiUrl={course.certifiUrl}
+          link={`/learning/${course.courseSlug}${course.progressPercent === 100 ? `?lesson=${course.firstLessonId}&restart=true` : (course.lastWatchedLessonSlug ? `?lesson=${course.lastWatchedLessonSlug}` : "")}`}
+        />
+      ))}
     </div>
   );
 }

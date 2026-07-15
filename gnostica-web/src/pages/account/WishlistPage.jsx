@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import { Link } from "react-router-dom";
 import CourseCard from "@/components/common/composite/CourseCard";
 import { Heart } from "lucide-react";
@@ -6,7 +6,7 @@ import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
 import AppPageHeader from "@/components/common/composite/AppPageHeader";
 import useWishlist from "@/hooks/account/useWishlist";
 import { AppButton } from "@/components/common/micro/AppButton";
-import { Skeleton } from "@/components/ui/skeleton";
+import AppSkeleton from "@/components/common/micro/AppSkeleton";
 
 export default function Wishlist() {
   const { courses, loading, handleToggleWishlist } = useWishlist();
@@ -27,9 +27,9 @@ export default function Wishlist() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
           {[1, 2, 3].map(i => (
             <div key={i} className="space-y-3">
-              <Skeleton className="aspect-video w-full rounded-xl" />
-              <Skeleton className="h-6 w-3/4" />
-              <Skeleton className="h-4 w-1/2" />
+              <AppSkeleton className="aspect-video w-full rounded-xl" />
+              <AppSkeleton className="h-6 w-3/4" />
+              <AppSkeleton className="h-4 w-1/2" />
             </div>
           ))}
         </div>
@@ -37,9 +37,7 @@ export default function Wishlist() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
           {courses.map((course) => (
             <div key={course.id} className="relative group">
-              <Link to={`/course/${course.slug}`}>
-                <CourseCard {...course} />
-              </Link>
+              <CourseCard {...course} link={`/course/${course.slug}`} />
 
               {/* Overlay Delete Button - appears on hover */}
               <div className="absolute top-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity">

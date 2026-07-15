@@ -1,7 +1,7 @@
 import React from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import AppCard, { AppCardContent } from "@/components/common/micro/AppCard";
 import { Bell, AlertCircle, CheckCircle2 } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
+import AppSkeleton from "@/components/common/micro/AppSkeleton";
 import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
 import AppPageHeader from "@/components/common/composite/AppPageHeader";
 import useNotifications from "@/hooks/account/useNotifications";
@@ -43,22 +43,22 @@ export default function Notifications() {
       <div>
         <AppBreadcrumb paths={[{ label: "Tài khoản", href: "/account" }, { label: "Thông báo" }]} />
         <div className="flex flex-col gap-4 mb-8">
-          <Skeleton className="h-8 w-1/3" />
-          <Skeleton className="h-4 w-1/4" />
+          <AppSkeleton className="h-8 w-1/3" />
+          <AppSkeleton className="h-4 w-1/4" />
         </div>
-        <Card className="border-border shadow-sm overflow-hidden">
-          <CardContent className="p-0 divide-y divide-slate-100">
+        <AppCard appVariant="default" className="border-border shadow-sm overflow-hidden">
+          <AppCardContent className="p-0 divide-y divide-slate-100">
             {[1, 2, 3, 4].map(i => (
               <div key={i} className="p-5 flex gap-4">
-                <Skeleton className="w-12 h-12 rounded-full shrink-0" />
+                <AppSkeleton className="w-12 h-12 rounded-full shrink-0" />
                 <div className="flex-1 space-y-2">
-                  <Skeleton className="h-5 w-3/4" />
-                  <Skeleton className="h-4 w-full" />
+                  <AppSkeleton className="h-5 w-3/4" />
+                  <AppSkeleton className="h-4 w-full" />
                 </div>
               </div>
             ))}
-          </CardContent>
-        </Card>
+          </AppCardContent>
+        </AppCard>
       </div>
     );
   }
@@ -91,8 +91,8 @@ export default function Notifications() {
       />
 
       {/* Notifications List */}
-      <Card className="border-border shadow-sm overflow-hidden">
-        <CardContent className="p-0 divide-y divide-slate-100">
+      <AppCard appVariant="default" className="border-border shadow-sm overflow-hidden">
+        <AppCardContent className="p-0 divide-y divide-slate-100">
           {notifications.length > 0 ? (
             notifications.map((notification) => {
               const Icon = getNotificationIcon(notification.type);
@@ -132,8 +132,8 @@ export default function Notifications() {
               <p className="text-sm text-muted-foreground">Khi có hoạt động mới, thông báo sẽ hiển thị ở đây.</p>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </AppCardContent>
+      </AppCard>
     </div>
   );
 }

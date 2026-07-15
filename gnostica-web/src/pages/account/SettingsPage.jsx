@@ -1,8 +1,8 @@
 import React from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import AppCard, { AppCardContent } from "@/components/common/micro/AppCard";
+import AppInput from "@/components/common/micro/AppInput";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { AppTextarea } from "@/components/common/micro/AppTextarea";
 import { AppButton } from "@/components/common/micro/AppButton";
 import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
 import AppPageHeader from "@/components/common/composite/AppPageHeader";
@@ -48,8 +48,8 @@ export default function Settings() {
         description="Quản lý thông tin cá nhân và cách bạn hiển thị trên Gnostica."
       />
 
-      <Card className="border-border shadow-sm overflow-hidden">
-        <CardContent className="p-6 sm:p-10">
+      <AppCard appVariant="default" className="border-border shadow-sm overflow-hidden">
+        <AppCardContent className="p-6 sm:p-10">
           <form onSubmit={handleSubmit} className="space-y-8 max-w-2xl">
 
             {/* Avatar Section */}
@@ -94,7 +94,7 @@ export default function Settings() {
             <div className="space-y-5">
               <div className="space-y-2">
                 <Label htmlFor="fullName" className="text-sm font-bold text-foreground">Họ và tên</Label>
-                <Input
+                <AppInput
                   id="fullName"
                   value={formData.fullName}
                   onChange={handleChange}
@@ -105,7 +105,7 @@ export default function Settings() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div className="space-y-2">
                   <Label htmlFor="email" className="text-sm font-bold text-foreground">Email</Label>
-                  <Input
+                  <AppInput
                     id="email"
                     type="email"
                     value={formData.email}
@@ -118,7 +118,7 @@ export default function Settings() {
 
                 <div className="space-y-2">
                   <Label htmlFor="phone" className="text-sm font-bold text-foreground">Số điện thoại</Label>
-                  <Input
+                  <AppInput
                     id="phone"
                     value={formData.phone}
                     onChange={handleChange}
@@ -147,7 +147,7 @@ export default function Settings() {
 
               <div className="space-y-2">
                 <Label htmlFor="bio" className="text-sm font-bold text-foreground">Giới thiệu ngắn (Bio)</Label>
-                <Textarea
+                <AppTextarea
                   id="bio"
                   value={formData.bio}
                   onChange={handleChange}
@@ -175,8 +175,8 @@ export default function Settings() {
               </AppButton>
             </div>
           </form>
-        </CardContent>
-      </Card>
+        </AppCardContent>
+      </AppCard>
 
       {/* Personalization Modal triggered from settings */}
       <PersonalizationModal forceOpen={personalizationOpen} onClose={() => setPersonalizationOpen(false)} />
