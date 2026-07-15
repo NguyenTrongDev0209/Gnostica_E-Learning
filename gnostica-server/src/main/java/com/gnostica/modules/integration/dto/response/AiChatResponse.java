@@ -10,4 +10,10 @@ import lombok.NoArgsConstructor;
 public class AiChatResponse {
     private String content;
     private String role;
+    private String sessionId;
+
+    public AiChatResponse(String content, String role) {
+        this.content = content;
+        this.role = role;
+    }
 }

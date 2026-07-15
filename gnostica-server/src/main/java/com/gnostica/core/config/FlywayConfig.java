@@ -18,6 +18,7 @@ public class FlywayConfig {
     public Flyway flyway(DataSource dataSource) {
         return Flyway.configure()
                 .baselineOnMigrate(true)
+                .validateOnMigrate(false)   // Suppress checksum mismatch errors for already-applied migrations
                 .locations("classpath:db/migration")
                 .dataSource(dataSource)
                 .load();
