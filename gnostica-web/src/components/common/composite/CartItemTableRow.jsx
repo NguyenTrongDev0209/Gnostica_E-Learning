@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { TableRow, TableCell } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+import { AppButton } from "@/components/common/micro/AppButton";
+import { AppCheckbox } from "@/components/common/micro/AppCheckbox";
 import { Trash2, Plus, Minus, Star } from "lucide-react";
 
 export default function CartItemTableRow({ item, onRemove, isSelected, onSelect }) {
@@ -15,7 +14,7 @@ export default function CartItemTableRow({ item, onRemove, isSelected, onSelect 
     <TableRow className="group hover:bg-muted transition-colors">
       {/* Cột 1: Checkbox */}
       <TableCell className="py-6">
-        <Checkbox 
+        <AppCheckbox 
           id={`item-${item.id}`} 
           checked={isSelected}
           onCheckedChange={(checked) => onSelect && onSelect(item.id, checked)}
@@ -67,38 +66,38 @@ export default function CartItemTableRow({ item, onRemove, isSelected, onSelect 
       {/* Cột 4: Số lượng */}
       <TableCell className="py-6">
         <div className="flex items-center justify-center gap-1">
-          <Button 
+          <AppButton 
             variant="outline" 
             size="icon" 
             className="h-8 w-8 rounded-full border-border hover:bg-primary/5 hover:text-primary hover:border-primary/30 transition-all active:scale-95"
             onClick={handleDecrement}
           >
             <Minus className="w-3 h-3" />
-          </Button>
+          </AppButton>
           <div className="w-10 text-center font-bold text-foreground">
             {quantity}
           </div>
-          <Button 
+          <AppButton 
             variant="outline" 
             size="icon" 
             className="h-8 w-8 rounded-full border-border hover:bg-primary/5 hover:text-primary hover:border-primary/30 transition-all active:scale-95"
             onClick={handleIncrement}
           >
             <Plus className="w-3 h-3" />
-          </Button>
+          </AppButton>
         </div>
       </TableCell>
 
       {/* Cột 5: Xóa */}
       <TableCell className="py-6 text-right">
-        <Button 
+        <AppButton 
           variant="ghost" 
           size="icon" 
           className="text-muted-foreground hover:text-error hover:bg-red-50 transition-all active:scale-90"
           onClick={() => onRemove && onRemove(item.id)}
         >
           <Trash2 className="w-5 h-5" />
-        </Button>
+        </AppButton>
       </TableCell>
     </TableRow>
   );

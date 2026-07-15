@@ -6,6 +6,10 @@ import useInstructorDashboard from "@/hooks/dashboard/useInstructorDashboard";
 import AppCard, { AppCardContent, AppCardHeader, AppCardTitle, AppCardDescription } from "@/components/common/micro/AppCard";
 import LineChart from "@/components/common/composite/LineChart";
 import ChartDateFilters from "@/components/common/composite/ChartDateFilters";
+import AppPageHeader from "@/components/common/composite/AppPageHeader";
+import AppTable from "@/components/common/micro/AppTable";
+import AppBadge from "@/components/common/micro/AppBadge";
+import AppProgress from "@/components/common/micro/AppProgress";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 
 function StatsGrid({ stats }) {
@@ -14,20 +18,20 @@ function StatsGrid({ stats }) {
             {stats.map((stat, i) => {
                 const Icon = stat.icon;
                 return (
-                    <AppCard key={i} className="border-border shadow-sm border-b-4 border-b-green-500/10 hover:border-b-green-500/50 transition-all">
+                    <AppCard key={i} className="border-border shadow-sm border-b-4 border-b-success/10 hover:border-b-success/50 transition-all hover-lift">
                         <AppCardContent className="p-5 flex flex-col gap-4">
                             <div className="flex justify-between items-start">
                                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center border ${stat.color}`}>
                                     <Icon className="w-5 h-5" />
                                 </div>
-                                <div className={`flex items-center gap-1 text-[11px] font-black px-2 py-0.5 rounded-full border ${stat.isPositive ? 'text-success bg-green-50 border-success/20' : 'text-error bg-red-50 border-error/20'}`}>
+                                <AppBadge variant={stat.isPositive ? "success" : "error"} soft className="h-6 flex items-center gap-1">
                                     {stat.isPositive ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
                                     {stat.trend}
-                                </div>
+                                </AppBadge>
                             </div>
                             <div>
-                                <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">{stat.title}</h3>
-                                <div className="text-2xl font-black text-foreground">{stat.value}</div>
+                                <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">{stat.title}</h3>
+                                <div className="text-2xl font-semibold text-foreground">{stat.value}</div>
                             </div>
                         </AppCardContent>
                     </AppCard>
@@ -40,8 +44,8 @@ function StatsGrid({ stats }) {
 function RevenueChart({ data }) {
     const subtitle = (
         <>
-            <span className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Tổng doanh thu:</span>
-            <span className="text-2xl font-bold text-foreground">112.800.000đ</span>
+            <span className="text-sm font-medium text-muted-foreground uppercase tracking-widest">Tổng doanh thu:</span>
+            <span className="text-2xl font-semibold text-foreground">112.800.000đ</span>
         </>
     );
 
@@ -67,8 +71,9 @@ function RevenueChart({ data }) {
             headerExtra={headerExtra}
             data={data}
             dataKey="revenue"
+            xAxisKey="name"
             strokeColor="#16a34a"
-            fillColor="#166534"
+            fillColor="#16a34a"
             gradientId="colorRevenue"
             yAxisFormatter={(value) => `${value / 1000000}Tr`}
             tooltipFormatter={(value) => [`${value.toLocaleString()}đ`, "Doanh thu"]}
@@ -80,7 +85,7 @@ function RatingDistribution({ data }) {
     return (
         <AppCard className="border-border shadow-sm">
             <AppCardHeader>
-                <AppCardTitle className="text-lg font-bold">Phân Bổ Đánh Giá</AppCardTitle>
+                <AppCardTitle className="text-lg font-semibold">Phân Bổ Đánh Giá</AppCardTitle>
                 <AppCardDescription>Dựa trên 1,000+ đánh giá mới nhất</AppCardDescription>
             </AppCardHeader>
             <AppCardContent className="h-[300px] w-full pt-0 flex flex-col">
@@ -118,8 +123,8 @@ function RatingDistribution({ data }) {
 function StudentGrowthChart({ data, onFilterChange }) {
     const subtitle = (
         <>
-            <span className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Tổng học viên:</span>
-            <span className="text-2xl font-bold text-foreground">4.330</span>
+            <span className="text-sm font-medium text-muted-foreground uppercase tracking-widest">Tổng học viên:</span>
+            <span className="text-2xl font-semibold text-foreground">4.330</span>
         </>
     );
 
@@ -138,6 +143,7 @@ function StudentGrowthChart({ data, onFilterChange }) {
             headerExtra={headerExtra}
             data={data}
             dataKey="students"
+            xAxisKey="name"
             strokeColor="#3b82f6"
             fillColor="#3b82f6"
             gradientId="colorStudents"
@@ -153,13 +159,13 @@ function PendingTasks({ tasks }) {
             <AppCardHeader className="pb-3 border-b border-border">
                 <div className="flex items-center justify-between">
                     <AppCardTitle className="text-lg font-bold">Việc Cần Làm</AppCardTitle>
-                    <span className="text-[10px] font-black text-white bg-error/10 text-error px-2 py-0.5 rounded-full">
+                    <AppBadge variant="error" soft>
                         {tasks.reduce((s, t) => s + t.count, 0)} chờ xử lý
-                    </span>
+                    </AppBadge>
                 </div>
             </AppCardHeader>
             <AppCardContent className="p-0 flex-1">
-                <div className="flex flex-col divide-y divide-slate-100">
+                <div className="flex flex-col divide-y divide-border">
                     {tasks.map((task) => {
                         const Icon = task.icon;
                         return (
@@ -175,7 +181,7 @@ function PendingTasks({ tasks }) {
                                 </div>
                                 <div className="flex items-center gap-1.5 shrink-0">
                                     <span className={`text-sm font-black ${task.urgent ? 'text-error' : 'text-muted-foreground'}`}>{task.count}</span>
-                                    <ChevronRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-muted-foreground transition-colors" />
+                                    <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/30 group-hover:text-muted-foreground transition-colors" />
                                 </div>
                             </Link>
                         );
@@ -192,87 +198,7 @@ function PendingTasks({ tasks }) {
     );
 }
 
-function CoursePerformanceTable({ courses }) {
-    return (
-        <AppCard className="border-border shadow-sm">
-            <AppCardHeader className="pb-4 border-b border-border">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <AppCardTitle className="text-lg font-bold">Hiệu Suất Học Viên</AppCardTitle>
-                        <AppCardDescription>Tỷ lệ hoàn thành và tiến độ trung bình theo từng khóa học</AppCardDescription>
-                    </div>
-                    <Link to="/instructor/courses" className="text-xs text-success font-bold hover:underline px-3 py-1.5 bg-green-50 rounded-lg">
-                        Quản lý khóa học
-                    </Link>
-                </div>
-            </AppCardHeader>
-            <AppCardContent className="p-0">
-                <div className="overflow-x-auto">
-                    <table className="w-full">
-                        <thead>
-                            <tr className="bg-muted/70">
-                                <th className="text-left text-[10px] font-black text-muted-foreground uppercase tracking-widest px-5 py-3">Khóa học</th>
-                                <th className="text-center text-[10px] font-black text-muted-foreground uppercase tracking-widest px-4 py-3">Học viên</th>
-                                <th className="text-center text-[10px] font-black text-muted-foreground uppercase tracking-widest px-4 py-3">Hoàn thành</th>
-                                <th className="text-center text-[10px] font-black text-muted-foreground uppercase tracking-widest px-4 py-3 hidden md:table-cell">Tiến độ TB</th>
-                                <th className="text-center text-[10px] font-black text-muted-foreground uppercase tracking-widest px-4 py-3 hidden lg:table-cell">Đánh giá</th>
-                                <th className="text-center text-[10px] font-black text-muted-foreground uppercase tracking-widest px-4 py-3">Trạng thái</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {courses.map((course) => (
-                                <tr key={course.id} className="border-t border-border hover:bg-muted transition-colors">
-                                    <td className="px-5 py-4">
-                                        <p className="text-sm font-bold text-foreground line-clamp-1">{course.title}</p>
-                                    </td>
-                                    <td className="px-4 py-4 text-center">
-                                        <span className="text-sm font-bold text-foreground">{course.students.toLocaleString()}</span>
-                                    </td>
-                                    <td className="px-4 py-4">
-                                        <div className="flex flex-col items-center gap-1.5">
-                                            <span className="text-sm font-black text-foreground">{course.completed}%</span>
-                                            <div className="w-24 h-1.5 bg-secondary rounded-full overflow-hidden">
-                                                <div
-                                                    className="h-full rounded-full bg-gradient-to-r from-green-400 to-emerald-500"
-                                                    style={{ width: `${course.completed}%` }}
-                                                />
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-4 py-4 text-center hidden md:table-cell">
-                                        <div className="flex flex-col items-center gap-1.5">
-                                            <span className="text-sm font-black text-foreground">{course.avgProgress}%</span>
-                                            <div className="w-24 h-1.5 bg-secondary rounded-full overflow-hidden">
-                                                <div
-                                                    className="h-full rounded-full bg-gradient-to-r from-blue-400 to-indigo-500"
-                                                    style={{ width: `${course.avgProgress}%` }}
-                                                />
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-4 py-4 text-center hidden lg:table-cell">
-                                        <div className="flex items-center justify-center gap-1">
-                                            <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-                                            <span className="text-sm font-black text-foreground">{course.rating}</span>
-                                        </div>
-                                    </td>
-                                    <td className="px-4 py-4 text-center">
-                                        <span className={`text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wide ${course.status === 'active'
-                                            ? 'text-success bg-green-50 border border-success/20'
-                                            : 'text-amber-700 bg-amber-50 border border-amber-200'
-                                            }`}>
-                                            {course.status === 'active' ? 'Đang hoạt động' : 'Nháp'}
-                                        </span>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </AppCardContent>
-        </AppCard>
-    );
-}
+
 
 export default function InstructorDashboard() {
   const { data, loading } = useInstructorDashboard();
@@ -292,22 +218,20 @@ export default function InstructorDashboard() {
   return (
     <div className="space-y-6 animate-in fade-in duration-700">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground tracking-tight">Tổng Quan Giảng Viên</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Theo dõi hiệu suất và tăng trưởng của các khóa học bạn đang giảng dạy.
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <AppButton appVariant="ghostMuted" variant="ghost" className="border border-border">Xuất báo cáo</AppButton>
-          <Link to="/instructor/courses/courses-form">
-            <AppButton appVariant="gradient" className="bg-success/10 text-success hover:bg-success/20 font-bold">
-              Tạo Khóa Học Mới
-            </AppButton>
-          </Link>
-        </div>
-      </div>
+      <AppPageHeader 
+        title="Tổng Quan Giảng Viên"
+        description="Theo dõi hiệu suất và tăng trưởng của các khóa học bạn đang giảng dạy."
+        actions={
+          <div className="flex gap-2">
+            <AppButton appVariant="ghostMuted" variant="ghost" className="border border-border">Xuất báo cáo</AppButton>
+            <Link to="/instructor/courses/courses-form">
+              <AppButton appVariant="gradient" className="bg-success/10 text-success hover:bg-success/20 font-bold">
+                Tạo Khóa Học Mới
+              </AppButton>
+            </Link>
+          </div>
+        }
+      />
 
       {/* Stats Grid */}
       <StatsGrid stats={STATS} />
@@ -325,9 +249,6 @@ export default function InstructorDashboard() {
       <div className="grid grid-cols-1 gap-6">
         <StudentGrowthChart data={STUDENT_GROWTH_DATA} />
       </div>
-
-      {/* Student Performance Table */}
-      <CoursePerformanceTable courses={COURSE_PERFORMANCE} />
 
     </div>
   );

@@ -23,11 +23,11 @@ export const MOCK_DASHBOARD = {
     { name: "T6", revenue: 15000000 },
   ],
   RATING_DISTRIBUTION: [
-    { name: "5 sao", value: 650, color: "#f59e0b" },
-    { name: "4 sao", value: 200, color: "#fbbf24" },
-    { name: "3 sao", value: 50, color: "#fcd34d" },
-    { name: "2 sao", value: 20, color: "#fde68a" },
-    { name: "1 sao", value: 10, color: "#fef3c7" },
+    { name: "5 sao", value: 650, color: "var(--color-warning)" },
+    { name: "4 sao", value: 200, color: "color-mix(in srgb, var(--color-warning) 80%, transparent)" },
+    { name: "3 sao", value: 50, color: "color-mix(in srgb, var(--color-warning) 60%, transparent)" },
+    { name: "2 sao", value: 20, color: "color-mix(in srgb, var(--color-warning) 40%, transparent)" },
+    { name: "1 sao", value: 10, color: "color-mix(in srgb, var(--color-warning) 20%, transparent)" },
   ],
   STUDENT_GROWTH_DATA: [
     { name: "T1", students: 50 },

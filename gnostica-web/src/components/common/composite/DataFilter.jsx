@@ -14,12 +14,8 @@ import { AppRadioGroupItem } from "@/components/common/micro/AppRadioGroup";
 import { RadioGroup } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { AppCheckbox } from "@/components/common/micro/AppCheckbox";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { AppButton } from "@/components/common/micro/AppButton";
+import AppPopover, { AppPopoverContent, AppPopoverTrigger } from "@/components/common/micro/AppPopover";
+import { Button } from "@/components/ui/button";
 import AppCalendar from "@/components/common/micro/AppCalendar";
 /**
  * Thanh tìm kiếm & lọc topbar
@@ -346,15 +342,15 @@ export const AppDatePicker = forwardRef(({
         </p>
       )}
 
-      <Popover>
-        <PopoverTrigger asChild>
-          <AppButton
+      <AppPopover>
+        <AppPopoverTrigger asChild>
+          <Button
             id={datePickerId}
             ref={ref}
             variant="outline"
             disabled={disabled}
             className={cn(
-              "w-full justify-start text-left font-normal bg-muted border-border hover:bg-white transition-colors !text-foreground",
+              "w-full justify-start text-left font-normal bg-card border border-border hover:bg-muted transition-colors !text-foreground",
               !date && "!text-muted-foreground",
               error && "border-error/20 focus-visible:ring-error",
               className
@@ -362,9 +358,9 @@ export const AppDatePicker = forwardRef(({
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
             {date ? format(date, "PPP", { locale: vi }) : placeholder}
-          </AppButton>
-        </PopoverTrigger>
-        <PopoverContent 
+          </Button>
+        </AppPopoverTrigger>
+        <AppPopoverContent 
           align="start" 
           className={cn(
             "w-auto p-0 border-none shadow-lg bg-card rounded-xl z-[100]", 
@@ -379,8 +375,8 @@ export const AppDatePicker = forwardRef(({
             className={cn("border-none shadow-none", appVariant === "glass" && "bg-transparent")}
             {...props}
           />
-        </PopoverContent>
-      </Popover>
+        </AppPopoverContent>
+      </AppPopover>
 
       {error && <p className="text-error text-xs mt-1 animate-in fade-in slide-in-from-top-1">{error}</p>}
     </div>
@@ -406,6 +402,7 @@ export const AppDateRangePicker = forwardRef(({
   containerClassName,
   className,
   appVariant = "default",
+  numberOfMonths = 1,
   ...props
 }, ref) => {
   const generatedId = useId();
@@ -428,15 +425,15 @@ export const AppDateRangePicker = forwardRef(({
         </p>
       )}
 
-      <Popover>
-        <PopoverTrigger asChild>
-          <AppButton
+      <AppPopover>
+        <AppPopoverTrigger asChild>
+          <Button
             id={datePickerId}
             ref={ref}
             variant="outline"
             disabled={disabled}
             className={cn(
-              "w-full justify-start text-left font-normal bg-muted border-border hover:bg-white transition-colors !text-foreground",
+              "w-full justify-start text-left font-normal bg-card border border-border hover:bg-muted transition-colors !text-foreground",
               !date?.from && "!text-muted-foreground",
               error && "border-error/20 focus-visible:ring-error",
               className
@@ -455,9 +452,9 @@ export const AppDateRangePicker = forwardRef(({
             ) : (
               <span>{placeholder}</span>
             )}
-          </AppButton>
-        </PopoverTrigger>
-        <PopoverContent 
+          </Button>
+        </AppPopoverTrigger>
+        <AppPopoverContent 
           align="start" 
           className={cn(
             "w-auto p-0 border-none shadow-lg bg-card rounded-xl z-[100]", 
@@ -469,12 +466,12 @@ export const AppDateRangePicker = forwardRef(({
             defaultMonth={date?.from}
             selected={date}
             onSelect={onSelect}
-            numberOfMonths={2}
+            numberOfMonths={numberOfMonths}
             className={cn("border-none shadow-none", appVariant === "glass" && "bg-transparent")}
             {...props}
           />
-        </PopoverContent>
-      </Popover>
+        </AppPopoverContent>
+      </AppPopover>
 
       {error && <p className="text-error text-xs mt-1 animate-in fade-in slide-in-from-top-1">{error}</p>}
     </div>

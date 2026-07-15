@@ -97,22 +97,22 @@ const NotificationBell = ({ isDark = false }) => {
     <div className="relative" ref={dropdownRef}>
       <button 
         onClick={toggleDropdown}
-        className={`p-2 rounded-full transition-colors relative flex items-center justify-center ${isDark ? 'text-white hover:bg-white/20' : 'text-gray-400 hover:text-gray-500 hover:bg-gray-100'}`}
+        className={`p-2 rounded-full transition-colors relative flex items-center justify-center ${isDark ? 'text-white hover:bg-white/20' : 'text-muted-foreground hover:text-foreground hover:bg-accent'}`}
       >
         <Bell className="w-6 h-6" />
         {unreadCount > 0 && (
-          <span className="absolute top-1 right-1.5 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full"></span>
+          <span className="absolute top-1 right-1.5 w-2.5 h-2.5 bg-error border-2 border-background rounded-full"></span>
         )}
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50">
-          <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50">
-            <h3 className="font-semibold text-gray-800">Thông báo</h3>
+        <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-card rounded-xl shadow-xl border border-border overflow-hidden z-50">
+          <div className="p-4 border-b border-border flex items-center justify-between bg-muted/50">
+            <h3 className="font-semibold text-foreground">Thông báo</h3>
             {unreadCount > 0 && (
               <button 
                 onClick={handleMarkAllAsRead}
-                className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+                className="text-xs text-primary hover:text-primary/80 font-medium"
               >
                 Đánh dấu tất cả đã đọc
               </button>
@@ -121,35 +121,35 @@ const NotificationBell = ({ isDark = false }) => {
 
           <div className="max-h-96 overflow-y-auto">
             {notifications.length === 0 ? (
-              <div className="p-8 text-center text-gray-500 flex flex-col items-center">
-                <Bell className="w-12 h-12 text-gray-200 mb-3" />
+              <div className="p-8 text-center text-muted-foreground flex flex-col items-center">
+                <Bell className="w-12 h-12 text-muted-foreground/30 mb-3" />
                 <p>Không có thông báo nào</p>
               </div>
             ) : (
-              <div className="divide-y divide-gray-100">
+              <div className="divide-y divide-border">
                 {notifications.slice(0, 5).map((notif) => (
                   <div 
                     key={notif.id}
                     onClick={() => handleNotificationClick(notif)}
-                    className={`p-4 cursor-pointer hover:bg-gray-50 transition-colors ${!notif.isRead ? 'bg-blue-50/50' : ''}`}
+                    className={`p-4 cursor-pointer hover:bg-muted/50 transition-colors ${!notif.isRead ? 'bg-primary/5' : ''}`}
                   >
                     <div className="flex gap-3">
-                      <div className={`mt-1 w-2 h-2 rounded-full flex-shrink-0 ${!notif.isRead ? 'bg-blue-500' : 'bg-transparent'}`} />
+                      <div className={`mt-1 w-2 h-2 rounded-full flex-shrink-0 ${!notif.isRead ? 'bg-primary' : 'bg-transparent'}`} />
                       <div className="flex-1 min-w-0">
-                        <p className={`text-sm font-medium ${!notif.isRead ? 'text-gray-900' : 'text-gray-700'}`}>
+                        <p className={`text-sm font-medium ${!notif.isRead ? 'text-foreground' : 'text-muted-foreground'}`}>
                           {notif.title}
                         </p>
-                        <p className="text-sm text-gray-500 mt-1 line-clamp-2">
+                        <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
                           {notif.content}
                         </p>
                         <div className="flex items-center justify-between mt-2">
-                          <span className="text-xs text-gray-400">
+                          <span className="text-xs text-muted-foreground/70">
                             {timeAgo(notif.createdAt)}
                           </span>
                           {!notif.isRead && (
                             <button
                               onClick={(e) => handleMarkAsRead(notif.id, e)}
-                              className="text-gray-400 hover:text-blue-600"
+                              className="text-muted-foreground hover:text-primary"
                               title="Đánh dấu đã đọc"
                             >
                               <Check className="w-4 h-4" />
@@ -165,11 +165,11 @@ const NotificationBell = ({ isDark = false }) => {
           </div>
 
           {notifications.length > 0 && (
-            <div className="p-3 border-t border-gray-100 text-center bg-gray-50">
+            <div className="p-3 border-t border-border text-center bg-muted/50">
               <Link 
                 to="/account/notifications"
                 onClick={() => setIsOpen(false)}
-                className="text-sm text-blue-600 hover:text-blue-700 font-medium inline-flex items-center gap-1"
+                className="text-sm text-primary hover:text-primary/80 font-medium inline-flex items-center gap-1"
               >
                 Xem tất cả thông báo
                 <ExternalLink className="w-3 h-3" />

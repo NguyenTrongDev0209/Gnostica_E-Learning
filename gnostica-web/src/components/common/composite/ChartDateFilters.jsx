@@ -1,25 +1,24 @@
 import React, { useState, useEffect } from "react";
-import { Input } from "@/components/ui/input";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
+import AppSelect from "@/components/common/micro/AppSelect";
+import { AppDateRangePicker } from "@/components/common/composite/DataFilter";
 
 export default function ChartDateFilters({
     onDateChange,
     onPresetChange,
     defaultPreset = "6-months"
 }) {
-    const [startDate, setStartDate] = useState("");
-    const [endDate, setEndDate] = useState("");
+    const [dateRange, setDateRange] = useState({ from: undefined, to: undefined });
     const [selectedPreset, setSelectedPreset] = useState(defaultPreset);
 
     // Helpers for Date Calculation
     const getToday = () => new Date();
-    const formatDateInput = (date) => date.toISOString().split('T')[0];
+    const formatDateInput = (date) => {
+        if (!date) return "";
+        const yyyy = date.getFullYear();
+        const mm = String(date.getMonth() + 1).padStart(2, '0');
+        const dd = String(date.getDate()).padStart(2, '0');
+        return `${yyyy}-${mm}-${dd}`;
+    };
     const formatWithTime = (dateStr, isEnd) => {
         if (!dateStr) return "";
         const now = getToday();
@@ -71,22 +70,25 @@ export default function ChartDateFilters({
             default:
                 return null;
         }
-        return { start: formatDateInput(start), end: formatDateInput(end) };
+        return { from: start, to: end };
     };
 
     // Initialize dates based on default preset
     useEffect(() => {
         const range = calculatePresetRange(defaultPreset);
         if (range) {
-            setStartDate(range.start);
-            setEndDate(range.end);
-            notifyParent(range.start, range.end);
+            setDateRange(range);
+            notifyParent(range.from, range.to);
         }
     }, []);
 
-    const notifyParent = (start, end) => {
-        onDateChange?.('start', formatWithTime(start, false));
-        onDateChange?.('end', formatWithTime(end, true));
+    const notifyParent = (from, to) => {
+        if (from) {
+            onDateChange?.('start', formatWithTime(formatDateInput(from), false));
+        }
+        if (to) {
+            onDateChange?.('end', formatWithTime(formatDateInput(to), true));
+        }
     };
 
     const handlePresetSelect = (value) => {
@@ -95,72 +97,47 @@ export default function ChartDateFilters({
 
         const range = calculatePresetRange(value);
         if (range) {
-            setStartDate(range.start);
-            setEndDate(range.end);
-            notifyParent(range.start, range.end);
+            setDateRange(range);
+            notifyParent(range.from, range.to);
         }
     };
 
-    const handleDateInput = (type, value) => {
+    const handleDateRangeSelect = (range) => {
+        setDateRange(range);
         setSelectedPreset("custom"); // Set to custom when manually changed
-        let newStart = startDate;
-        let newEnd = endDate;
-
-        if (type === 'start') {
-            setStartDate(value);
-            newStart = value;
-        } else {
-            setEndDate(value);
-            newEnd = value;
-        }
-
-        notifyParent(newStart, newEnd);
+        notifyParent(range?.from, range?.to);
     };
 
     return (
         <div className="flex flex-wrap items-center gap-3">
             {/* Date Range Selector */}
-            <div className="flex items-center h-[40px] gap-2 bg-muted border border-border rounded-lg px-2">
-                <div className="relative h-full flex items-center">
-                    <Input
-                        type="date"
-                        value={startDate}
-                        className="h-full w-[130px] px-2 border-none bg-transparent text-xs font-bold focus-visible:ring-0 shadow-none py-0"
-                        placeholder="Từ ngày"
-                        onChange={(e) => handleDateInput('start', e.target.value)}
-                    />
-                </div>
-                <div className="w-2 h-[1px] bg-muted"></div>
-                <div className="relative h-full flex items-center">
-                    <Input
-                        type="date"
-                        value={endDate}
-                        className="h-full w-[130px] px-2 border-none bg-transparent text-xs font-bold focus-visible:ring-0 shadow-none py-0"
-                        placeholder="Đến ngày"
-                        onChange={(e) => handleDateInput('end', e.target.value)}
-                    />
-                </div>
+            <div className="w-[280px]">
+                <AppDateRangePicker 
+                    date={dateRange}
+                    onSelect={handleDateRangeSelect}
+                    placeholder="Khoảng thời gian"
+                    className="!h-11 bg-card border border-border text-sm font-medium rounded-xl shadow-sm hover:bg-card/90"
+                />
             </div>
 
             {/* Presets Selector */}
-            <Select value={selectedPreset} onValueChange={handlePresetSelect}>
-                <SelectTrigger className="!h-[40px] w-[140px] bg-muted border-border text-xs font-bold rounded-lg shadow-none">
-                    <SelectValue placeholder="Chọn khoảng thời gian" />
-                </SelectTrigger>
-                <SelectContent className="rounded-lg border-border shadow-xl">
-                    {selectedPreset === "custom" && (
-                        <SelectItem value="custom" className="text-xs font-bold">Tùy chọn</SelectItem>
-                    )}
-                    <SelectItem value="yesterday" className="text-xs font-bold">Hôm qua</SelectItem>
-                    <SelectItem value="last-7-days" className="text-xs font-bold">7 ngày qua</SelectItem>
-                    <SelectItem value="last-30-days" className="text-xs font-bold">30 ngày qua</SelectItem>
-                    <SelectItem value="this-month" className="text-xs font-bold">Tháng này</SelectItem>
-                    <SelectItem value="last-month" className="text-xs font-bold">Tháng trước</SelectItem>
-                    <SelectItem value="this-quarter" className="text-xs font-bold">Quý này</SelectItem>
-                    <SelectItem value="6-months" className="text-xs font-bold">6 tháng qua</SelectItem>
-                    <SelectItem value="this-year" className="text-xs font-bold">Năm nay</SelectItem>
-                </SelectContent>
-            </Select>
+            <AppSelect 
+                value={selectedPreset} 
+                onValueChange={handlePresetSelect}
+                options={[
+                    ...(selectedPreset === "custom" ? [{ label: "Tùy chọn", value: "custom" }] : []),
+                    { label: "Hôm qua", value: "yesterday" },
+                    { label: "7 ngày qua", value: "last-7-days" },
+                    { label: "30 ngày qua", value: "last-30-days" },
+                    { label: "Tháng này", value: "this-month" },
+                    { label: "Tháng trước", value: "last-month" },
+                    { label: "Quý này", value: "this-quarter" },
+                    { label: "6 tháng qua", value: "6-months" },
+                    { label: "Năm nay", value: "this-year" },
+                ]}
+                placeholder="Chọn khoảng thời gian"
+                className="!h-11 w-[140px] bg-card border border-border text-sm font-medium rounded-xl shadow-sm"
+            />
         </div>
     );
 }
