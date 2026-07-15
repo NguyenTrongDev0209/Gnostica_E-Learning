@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, Mail, Send } from 'lucide-react';
 import { AppButton } from "@/components/common/micro/AppButton";
 import AppInput from '@/components/common/micro/AppInput';
-import AuthCard from './components/AuthCard';
+import { Card, CardContent } from "@/components/ui/card";
 import { useForgotPassword } from '@/hooks/auth/useForgotPassword';
 
 const ForgotPassword = () => {
@@ -16,10 +16,15 @@ const ForgotPassword = () => {
   } = useForgotPassword();
 
   return (
-    <AuthCard
-      title="Quên mật khẩu?"
-      description="Nhập email hoặc số điện thoại của bạn, chúng tôi sẽ gửi mã xác nhận để đặt lại mật khẩu."
-    >
+    <div className="w-full max-w-[480px]">
+      <Card className="shadow-lg border-border bg-white/80 backdrop-blur-md">
+        <CardContent className="p-6 sm:p-8">
+          <div className="text-center mb-6">
+            <h1 className="text-3xl font-bold text-foreground tracking-tight">Quên mật khẩu?</h1>
+            <p className="text-muted-foreground mt-2 text-sm max-w-xs mx-auto">
+              Nhập email hoặc số điện thoại của bạn, chúng tôi sẽ gửi mã xác nhận để đặt lại mật khẩu.
+            </p>
+          </div>
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
         <AppInput
           id="contact"
@@ -65,7 +70,9 @@ const ForgotPassword = () => {
           Quay lại đăng nhập
         </Link>
       </p>
-    </AuthCard>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

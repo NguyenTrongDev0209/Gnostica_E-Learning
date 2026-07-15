@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ShieldCheck, ArrowLeft } from 'lucide-react';
 import { AppButton } from "@/components/common/micro/AppButton";
-import AuthCard from './components/AuthCard';
+import { Card, CardContent } from "@/components/ui/card";
 import { useConfirm } from '@/hooks/auth/useConfirm';
 
 const ConfirmPage = () => {
@@ -27,10 +27,15 @@ const ConfirmPage = () => {
   };
 
   return (
-    <AuthCard
-      title="Nhập mã xác nhận"
-      description={`Chúng tôi đã gửi mã gồm ${otpLength} chữ số đến email hoặc số điện thoại của bạn.`}
-    >
+    <div className="w-full max-w-[480px]">
+      <Card className="shadow-lg border-border bg-white/80 backdrop-blur-md">
+        <CardContent className="p-6 sm:p-8">
+          <div className="text-center mb-6">
+            <h1 className="text-3xl font-bold text-foreground tracking-tight">Nhập mã xác nhận</h1>
+            <p className="text-muted-foreground mt-2 text-sm max-w-xs mx-auto">
+              {`Chúng tôi đã gửi mã gồm ${otpLength} chữ số đến email hoặc số điện thoại của bạn.`}
+            </p>
+          </div>
       <form onSubmit={handleSubmit} className="flex flex-col items-center gap-6">
         {/* OTP Inputs */}
         <div className="flex gap-2.5 sm:gap-3 justify-center" onPaste={handlePaste}>
@@ -111,7 +116,9 @@ const ConfirmPage = () => {
           Quay lại đăng nhập
         </Link>
       </p>
-    </AuthCard>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

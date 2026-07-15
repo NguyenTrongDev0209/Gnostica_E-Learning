@@ -2,7 +2,7 @@ import React from 'react';
 import { Save } from 'lucide-react';
 import { AppButton } from "@/components/common/micro/AppButton";
 import { AppPasswordInput } from '@/components/common/micro/AppInput';
-import AuthCard from './components/AuthCard';
+import { Card, CardContent } from "@/components/ui/card";
 import { useResetPassword } from '@/hooks/auth/useResetPassword';
 
 const ResetPassword = () => {
@@ -16,12 +16,15 @@ const ResetPassword = () => {
   } = useResetPassword();
 
   return (
-    <AuthCard
-      title="Đặt lại mật khẩu"
-      description={
-        <>Tạo mật khẩu mới cho tài khoản <span className="font-semibold text-foreground">{email}</span></>
-      }
-    >
+    <div className="w-full max-w-[480px]">
+      <Card className="shadow-lg border-border bg-white/80 backdrop-blur-md">
+        <CardContent className="p-6 sm:p-8">
+          <div className="text-center mb-6">
+            <h1 className="text-3xl font-bold text-foreground tracking-tight">Đặt lại mật khẩu</h1>
+            <p className="text-muted-foreground mt-2 text-sm max-w-xs mx-auto">
+              Tạo mật khẩu mới cho tài khoản <span className="font-semibold text-foreground">{email}</span>
+            </p>
+          </div>
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
         <AppPasswordInput
           id="password"
@@ -48,7 +51,9 @@ const ResetPassword = () => {
           {!loading && <Save className="w-4 h-4" />}
         </AppButton>
       </form>
-    </AuthCard>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
