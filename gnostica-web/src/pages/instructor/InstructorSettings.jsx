@@ -13,10 +13,10 @@ import {
   ExternalLink,
   Loader2
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import AppCard, { AppCardContent, AppCardHeader, AppCardTitle, AppCardDescription } from "@/components/common/micro/AppCard";
 import { AppButton } from "@/components/common/micro/AppButton";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import AppInput from "@/components/common/micro/AppInput";
+import AppTextarea from "@/components/common/micro/AppTextarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import useAuthStore from "@/store/useAuthStore";
@@ -258,12 +258,12 @@ export default function InstructorSettings() {
           )}
 
           {!isLoading && activeTab === "profile" && (
-            <Card className="border-border shadow-sm">
-              <CardHeader className="border-b border-border">
-                <CardTitle className="text-lg font-bold">Thông Tin Cá Nhân</CardTitle>
-                <CardDescription>Cập nhật ảnh đại diện và các thông tin cơ bản hiển thị trên hệ thống giảng dạy.</CardDescription>
-              </CardHeader>
-              <CardContent className="p-6 space-y-6">
+            <AppCard className="border-border shadow-sm">
+              <AppCardHeader className="border-b border-border">
+                <AppCardTitle className="text-lg font-bold">Thông Tin Cá Nhân</AppCardTitle>
+                <AppCardDescription>Cập nhật ảnh đại diện và các thông tin cơ bản hiển thị trên hệ thống giảng dạy.</AppCardDescription>
+              </AppCardHeader>
+              <AppCardContent className="p-6 space-y-6">
                 {/* Avatar upload */}
                 <div className="flex items-center gap-6 pb-6 border-b border-border">
                   <div className="relative group">
@@ -311,7 +311,7 @@ export default function InstructorSettings() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">Họ và tên</label>
-                    <Input
+                    <AppInput
                       id="fullName"
                       value={formData.fullName}
                       onChange={handleChange}
@@ -320,7 +320,7 @@ export default function InstructorSettings() {
                   </div>
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">Email (Không thể sửa)</label>
-                    <Input
+                    <AppInput
                       id="email"
                       value={formData.email}
                       disabled
@@ -329,7 +329,7 @@ export default function InstructorSettings() {
                   </div>
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">Chức danh / Tiêu đề</label>
-                    <Input
+                    <AppInput
                       id="title"
                       value={formData.title}
                       onChange={handleChange}
@@ -339,7 +339,7 @@ export default function InstructorSettings() {
                   </div>
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">Số điện thoại</label>
-                    <Input
+                    <AppInput
                       id="phone"
                       value={formData.phone}
                       onChange={handleChange}
@@ -348,7 +348,7 @@ export default function InstructorSettings() {
                   </div>
                   <div className="md:col-span-2 space-y-2">
                     <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">Giới thiệu ngắn (Bio)</label>
-                    <Textarea
+                    <AppTextarea
                       id="bio"
                       rows={4}
                       value={formData.bio}
@@ -358,17 +358,17 @@ export default function InstructorSettings() {
                     />
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </AppCardContent>
+            </AppCard>
           )}
 
           {!isLoading && activeTab === "payment" && (
-            <Card className="border-border shadow-sm">
-              <CardHeader className="border-b border-border">
-                <CardTitle className="text-lg font-bold">Thông Tin Thanh Toán</CardTitle>
-                <CardDescription>Cài đặt tài khoản ngân hàng nhận doanh thu và rút tiền định kỳ.</CardDescription>
-              </CardHeader>
-              <CardContent className="p-6 space-y-4">
+            <AppCard className="border-border shadow-sm">
+              <AppCardHeader className="border-b border-border">
+                <AppCardTitle className="text-lg font-bold">Thông Tin Thanh Toán</AppCardTitle>
+                <AppCardDescription>Cài đặt tài khoản ngân hàng nhận doanh thu và rút tiền định kỳ.</AppCardDescription>
+              </AppCardHeader>
+              <AppCardContent className="p-6 space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2 col-span-2">
                     <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">Ngân hàng</label>
@@ -399,7 +399,7 @@ export default function InstructorSettings() {
                   </div>
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">Số tài khoản</label>
-                    <Input
+                    <AppInput
                       id="bankAccountNumber"
                       value={formData.bankAccountNumber}
                       onChange={handleChange}
@@ -409,7 +409,7 @@ export default function InstructorSettings() {
                   </div>
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">Tên chủ tài khoản (Viết hoa không dấu)</label>
-                    <Input
+                    <AppInput
                       id="bankAccountName"
                       value={formData.bankAccountName}
                       onChange={handleChange}
@@ -418,21 +418,21 @@ export default function InstructorSettings() {
                     />
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </AppCardContent>
+            </AppCard>
           )}
 
           {!isLoading && activeTab === "security" && (
-            <Card className="border-border shadow-sm">
-              <CardHeader className="border-b border-border">
-                <CardTitle className="text-lg font-bold">Mật khẩu & Bảo mật</CardTitle>
-                <CardDescription>Cập nhật mật khẩu định kỳ để nâng cao tính an toàn cho tài khoản giảng viên.</CardDescription>
-              </CardHeader>
-              <CardContent className="p-6">
+            <AppCard className="border-border shadow-sm">
+              <AppCardHeader className="border-b border-border">
+                <AppCardTitle className="text-lg font-bold">Mật khẩu & Bảo mật</AppCardTitle>
+                <AppCardDescription>Cập nhật mật khẩu định kỳ để nâng cao tính an toàn cho tài khoản giảng viên.</AppCardDescription>
+              </AppCardHeader>
+              <AppCardContent className="p-6">
                 <form onSubmit={handleSubmitPassword} className="space-y-4">
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">Mật khẩu hiện tại</label>
-                    <Input
+                    <AppInput
                       id="currentPassword"
                       type="password"
                       value={passwordData.currentPassword}
@@ -444,7 +444,7 @@ export default function InstructorSettings() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">Mật khẩu mới</label>
-                      <Input
+                      <AppInput
                         id="newPassword"
                         type="password"
                         value={passwordData.newPassword}
@@ -455,7 +455,7 @@ export default function InstructorSettings() {
                     </div>
                     <div className="space-y-2">
                       <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">Xác nhận mật khẩu mới</label>
-                      <Input
+                      <AppInput
                         id="confirmPassword"
                         type="password"
                         value={passwordData.confirmPassword}
@@ -480,22 +480,22 @@ export default function InstructorSettings() {
                     </SimpleButton>
                   </div>
                 </form>
-              </CardContent>
-            </Card>
+              </AppCardContent>
+            </AppCard>
           )}
 
           {!isLoading && activeTab === "public" && (
-            <Card className="border-border shadow-sm">
-              <CardHeader className="border-b border-border">
-                <CardTitle className="text-lg font-bold">Hồ Sơ Công Khai</CardTitle>
-                <CardDescription>Các liên kết hiển thị trên trang thông tin công khai của giảng viên.</CardDescription>
-              </CardHeader>
-              <CardContent className="p-6 space-y-4">
+            <AppCard className="border-border shadow-sm">
+              <AppCardHeader className="border-b border-border">
+                <AppCardTitle className="text-lg font-bold">Hồ Sơ Công Khai</AppCardTitle>
+                <AppCardDescription>Các liên kết hiển thị trên trang thông tin công khai của giảng viên.</AppCardDescription>
+              </AppCardHeader>
+              <AppCardContent className="p-6 space-y-4">
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">Website cá nhân</label>
                   <div className="flex items-center gap-3">
                     <div className="p-3 rounded-lg bg-secondary text-muted-foreground"><Globe className="w-5 h-5 shrink-0" /></div>
-                    <Input
+                    <AppInput
                       id="website"
                       value={formData.website}
                       onChange={handleChange}
@@ -508,7 +508,7 @@ export default function InstructorSettings() {
                   <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">Hồ sơ LinkedIn</label>
                   <div className="flex items-center gap-3">
                     <div className="p-3 rounded-lg bg-blue-50 text-blue-600"><ExternalLink className="w-5 h-5 shrink-0" /></div>
-                    <Input
+                    <AppInput
                       id="linkedin"
                       value={formData.linkedin}
                       onChange={handleChange}
@@ -517,8 +517,8 @@ export default function InstructorSettings() {
                     />
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </AppCardContent>
+            </AppCard>
           )}
         </div>
       </div>

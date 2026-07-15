@@ -15,10 +15,10 @@ import {
   XCircle,
   RotateCw
 } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import AppCard, { AppCardContent } from "@/components/common/micro/AppCard";
 import { AppButton, TableActionIconButton } from "@/components/common/micro/AppButton";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+import AppInput from "@/components/common/micro/AppInput";
+import AppBadge from "@/components/common/micro/AppBadge";
 import DataTable from "@/components/common/composite/DataTable";
 import { useCoupons } from "@/hooks/order/useCoupons";
 import { CouponFormModal } from "@/pages/admin/components/CouponFormModal";
@@ -54,9 +54,9 @@ function InstructorCouponTable({
                         <Ticket className="w-3.5 h-3.5 text-amber-400" />
                         <span className="text-sm font-black tracking-widest font-mono">{coupon.code}</span>
                     </div>
-                    <Badge className="bg-green-50 text-success border-success/20 shadow-none hover:bg-success/10 text-[10px] font-black uppercase tracking-wider h-5 flex items-center gap-1">
+                    <AppBadge className="bg-green-50 text-success border-success/20 shadow-none hover:bg-success/10 text-[10px] font-black uppercase tracking-wider h-5 flex items-center gap-1">
                         Giảm {coupon.discountPercent}%
-                    </Badge>
+                    </AppBadge>
                 </div>
             )
         },
@@ -117,24 +117,24 @@ function InstructorCouponTable({
             cellClassName: "text-center",
             render: (coupon) => {
                 if (coupon.status === 1) return (
-                    <Badge className="bg-green-50 text-success border-success/20 shadow-none hover:bg-green-50 text-[10px] font-black py-0.5 inline-flex items-center gap-1 uppercase tracking-tight">
+                    <AppBadge className="bg-green-50 text-success border-success/20 shadow-none hover:bg-green-50 text-[10px] font-black py-0.5 inline-flex items-center gap-1 uppercase tracking-tight">
                         <CheckCircle2 className="w-3 h-3" /> Hoạt động
-                    </Badge>
+                    </AppBadge>
                 );
                 if (coupon.status === 2) return (
-                    <Badge className="bg-muted text-muted-foreground border-border shadow-none hover:bg-muted text-[10px] font-black py-0.5 inline-flex items-center gap-1 uppercase tracking-tight">
+                    <AppBadge className="bg-muted text-muted-foreground border-border shadow-none hover:bg-muted text-[10px] font-black py-0.5 inline-flex items-center gap-1 uppercase tracking-tight">
                         <Clock className="w-3 h-3" /> Hết hạn
-                    </Badge>
+                    </AppBadge>
                 );
                 if (coupon.status === 0) return (
-                    <Badge className="bg-blue-50 text-info border-info/20 shadow-none hover:bg-blue-50 text-[10px] font-black py-0.5 inline-flex items-center gap-1 uppercase tracking-tight">
+                    <AppBadge className="bg-blue-50 text-info border-info/20 shadow-none hover:bg-blue-50 text-[10px] font-black py-0.5 inline-flex items-center gap-1 uppercase tracking-tight">
                         <XCircle className="w-3 h-3" /> Tạm ẩn
-                    </Badge>
+                    </AppBadge>
                 );
                 return (
-                    <Badge className="bg-amber-50 text-amber-700 border-amber-200 shadow-none hover:bg-amber-50 text-[10px] font-black py-0.5 inline-flex items-center gap-1 uppercase tracking-tight">
+                    <AppBadge className="bg-amber-50 text-amber-700 border-amber-200 shadow-none hover:bg-amber-50 text-[10px] font-black py-0.5 inline-flex items-center gap-1 uppercase tracking-tight">
                         <XCircle className="w-3 h-3" /> Hết lượt
-                    </Badge>
+                    </AppBadge>
                 );
             }
         },
@@ -252,9 +252,9 @@ export default function InstructorCoupons() {
           { label: "Sắp diễn ra", value: stats.scheduled, icon: Clock, color: "amber" },
           { label: "Đã hết hạn", value: stats.expired, icon: CircleOff, color: "rose" },
         ].map((stat, i) => (
-          <Card key={i} className="group hover-lift border-border shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden relative bg-white rounded-2xl">
+          <AppCard key={i} className="group hover-lift border-border shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden relative bg-white rounded-2xl">
             <div className={`absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 rounded-full bg-${stat.color}-50/50 group-hover:bg-${stat.color}-100/50 transition-colors duration-500`} />
-            <CardContent className="p-6 flex items-center gap-4 relative z-10">
+            <AppCardContent className="p-6 flex items-center gap-4 relative z-10">
               <div className={`w-12 h-12 rounded-2xl bg-${stat.color}-50 text-${stat.color}-600 border border-${stat.color}-100 flex items-center justify-center group-hover:scale-110 transition-transform duration-500 shadow-sm`}>
                 <stat.icon className="w-6 h-6" />
               </div>
@@ -262,8 +262,8 @@ export default function InstructorCoupons() {
                 <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">{stat.label}</span>
                 <span className="text-2xl font-black text-foreground tracking-tight">{stat.value}</span>
               </div>
-            </CardContent>
-          </Card>
+            </AppCardContent>
+          </AppCard>
         ))}
       </div>
 
@@ -272,7 +272,7 @@ export default function InstructorCoupons() {
         <div className="flex w-full md:w-auto items-center gap-4">
           <div className="relative w-full md:w-96 group">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-muted-foreground group-focus-within:text-primary transition-colors" />
-            <Input
+            <AppInput
               placeholder="Tìm theo mã hoặc tên..."
               className="pl-11 h-11 border-border bg-white/50 backdrop-blur-sm focus:bg-white focus:ring-4 focus:ring-primary/10 transition-all rounded-xl font-medium shadow-inner"
               value={searchTerm}

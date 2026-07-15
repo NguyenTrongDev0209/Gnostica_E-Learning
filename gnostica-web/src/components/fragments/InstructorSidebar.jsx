@@ -44,8 +44,8 @@ export default function InstructorSidebar({ user, handleLogout }) {
   const location = useLocation();
 
   return (
-    <aside className="w-64 bg-background border-r border-border min-h-screen fixed left-0 top-0 bottom-0 flex flex-col z-50">
-      <div className="h-16 flex items-center justify-center px-0 border-b border-border bg-background">
+    <aside className="w-64 bg-card border-r border-border min-h-screen fixed left-0 top-0 bottom-0 flex flex-col z-50">
+      <div className="h-16 flex items-center justify-center px-0 border-b border-border bg-card">
         <AppLogo className="h-12 md:h-12" />
       </div>
 
@@ -61,7 +61,7 @@ export default function InstructorSidebar({ user, handleLogout }) {
                   const Icon = item.icon;
                   const isActive =
                     item.href === "/instructor"
-                      ? location.pathname === "/instructor"
+                      ? location.pathname === "/instructor" || location.pathname === "/instructor/"
                       : location.pathname.startsWith(item.href);
 
                   return (
@@ -87,7 +87,7 @@ export default function InstructorSidebar({ user, handleLogout }) {
         </nav>
       </div>
 
-      <div className="p-4 border-t border-border bg-background font-bold">
+      <div className="p-4 border-t border-border bg-card font-bold">
         <div className="flex items-center justify-between px-2">
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-10 h-10 rounded-full bg-success/10 text-success flex items-center justify-center font-bold text-success shrink-0 border border-border overflow-hidden">

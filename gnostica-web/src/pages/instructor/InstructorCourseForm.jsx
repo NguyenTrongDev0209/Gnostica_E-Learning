@@ -1,23 +1,23 @@
 import "react-quill-new/dist/quill.snow.css";
 import React from "react";
 import { useFormContext, useWatch, Controller, useFieldArray, FormProvider } from "react-hook-form";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import AppInput from "@/components/common/micro/AppInput";
+import { Select as AppSelectRoot, SelectContent as AppSelectContent, SelectItem as AppSelectItem, SelectTrigger as AppSelectTrigger, SelectValue as AppSelectValue } from "@/components/common/micro/AppSelect";
+import AppPopover, { AppPopoverContent, AppPopoverTrigger } from "@/components/common/micro/AppPopover";
+import { AppAccordionRoot, AppAccordionContent, AppAccordionItem, AppAccordionTrigger } from "@/components/common/micro/AppAccordion";
+import AppTextarea from "@/components/common/micro/AppTextarea";
+import { AppDialogRoot, AppDialogContent, AppDialogTrigger } from "@/components/common/micro/AppDialog";
 import { ChevronDown, ArrowLeft, ArrowRight, Video, GripVertical, Trash2, Plus, PlayCircle, FileText, Check, Loader2, Sparkles, Database, CheckCircle2, ListOrdered, Search, Pencil, ChevronRight, Clock, ShieldCheck, ShieldAlert, AlertTriangle, Save, CircleFadingArrowUp } from "lucide-react";
 import ReactQuill from "react-quill-new";
-import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
+import AppBadge from "@/components/common/micro/AppBadge";
+import AppCard from "@/components/common/micro/AppCard";
 import { AppButton } from "@/components/common/micro/AppButton";
 import { toast } from "sonner";
 import questionService from "@/services/course/questionService";
 import { useParams, useNavigate } from "react-router-dom";
 import courseService from "@/services/course/courseService";
 import useInstructorCourseForm from "@/hooks/course/useInstructorCourseForm";
-import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { Tabs as AppTabsRoot, TabsContent as AppTabsContent } from "@/components/common/micro/AppTabs";
 import { courseSchema, viErrorMap } from "@/utils/validations/courseSchema";
 import useCourseAiPreScan from "@/hooks/course/useCourseAiPreScan";
 
@@ -225,7 +225,7 @@ function CourseDraftModal({ showDraftModal, setShowDraftModal, slug, restoreDraf
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-      <Card className="w-full max-w-md shadow-2xl border-none overflow-hidden">
+      <AppCard className="w-full max-w-md shadow-2xl border-none overflow-hidden">
         <div className="p-6 text-center">
           <div className="w-16 h-16 bg-blue-50 text-info rounded-full flex items-center justify-center mx-auto mb-4">
             <Clock className="w-8 h-8" />
@@ -252,7 +252,7 @@ function CourseDraftModal({ showDraftModal, setShowDraftModal, slug, restoreDraf
             </AppButton>
           </div>
         </div>
-      </Card>
+      </AppCard>
     </div>
   );
 }
@@ -265,8 +265,8 @@ function CourseAiReportModal({
   handlePreScanWholeCourse
 }) {
   return (
-    <Dialog open={showAiReportModal} onOpenChange={setShowAiReportModal}>
-      <DialogContent className="sm:max-w-[600px] rounded-2xl border border-border p-0 overflow-hidden shadow-2xl bg-white focus-visible:outline-none z-[9999]">
+    <AppDialogRoot open={showAiReportModal} onOpenChange={setShowAiReportModal}>
+      <AppDialogContent className="sm:max-w-[600px] rounded-2xl border border-border p-0 overflow-hidden shadow-2xl bg-white focus-visible:outline-none z-[9999]">
         {(() => {
           let report = null;
           try {
@@ -339,9 +339,9 @@ function CourseAiReportModal({
                                 <span className={`text-[11px] font-black uppercase flex items-center gap-1 ${isCritical ? 'text-rose-700' : 'text-amber-700'}`}>
                                   {v.type === 'EXTERNAL_MARKETING' ? '📢 Quảng cáo / Kéo khách ngoài' : '🗣️ Từ ngữ vi phạm'}
                                 </span>
-                                <Badge className={`h-4.5 px-2 py-0 text-[9px] font-black border-none uppercase tracking-wider ${v.severity === 'CRITICAL' || v.severity === 'HIGH' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'}`}>
+                                <AppBadge className={`h-4.5 px-2 py-0 text-[9px] font-black border-none uppercase tracking-wider ${v.severity === 'CRITICAL' || v.severity === 'HIGH' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'}`}>
                                   {v.severity}
-                                </Badge>
+                                </AppBadge>
                               </div>
                               <p className="text-xs font-bold text-foreground italic bg-muted p-2.5 rounded-xl border border-border leading-relaxed group-hover:bg-secondary transition-colors">
                                 "{v.content}"
@@ -398,8 +398,8 @@ function CourseAiReportModal({
             </div>
           );
         })()}
-      </DialogContent>
-    </Dialog>
+      </AppDialogContent>
+    </AppDialogRoot>
   );
 }
 
@@ -500,7 +500,7 @@ function BasicInfoTab({ categories }) {
           <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
             Tên Khóa Học <span className="text-error">*</span>
           </label>
-          <Input
+          <AppInput
             className="h-11 border-border focus:border-success/20 font-medium"
             placeholder="Ví dụ: React Native Masterclass 2026..."
             {...register("title")}
@@ -516,7 +516,7 @@ function BasicInfoTab({ categories }) {
           <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
             Slug <span className="text-error">*</span>
           </label>
-          <Input
+          <AppInput
             className="h-11 border-border bg-muted font-medium cursor-not-allowed"
             placeholder="react-native-masterclass-2026"
             {...register("slug")}
@@ -563,17 +563,17 @@ function BasicInfoTab({ categories }) {
             name="level"
             control={control}
             render={({ field }) => (
-              <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
-                <SelectTrigger className="w-full !h-11 border-border focus:border-success/20 font-medium bg-white data-[state=open]:ring-1 data-[state=open]:ring-green-500">
-                  <SelectValue placeholder="Chọn cấp độ" />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  <SelectItem value="beginner">Người mới bắt đầu</SelectItem>
-                  <SelectItem value="intermediate">Trung bình</SelectItem>
-                  <SelectItem value="advanced">Nâng cao</SelectItem>
-                  <SelectItem value="all">Dành cho mọi đối tượng</SelectItem>
-                </SelectContent>
-              </Select>
+              <AppSelectRoot onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                <AppSelectTrigger className="w-full !h-11 border-border focus:border-success/20 font-medium bg-white data-[state=open]:ring-1 data-[state=open]:ring-green-500">
+                  <AppSelectValue placeholder="Chọn cấp độ" />
+                </AppSelectTrigger>
+                <AppSelectContent className="bg-white">
+                  <AppSelectItem value="beginner">Người mới bắt đầu</AppSelectItem>
+                  <AppSelectItem value="intermediate">Trung bình</AppSelectItem>
+                  <AppSelectItem value="advanced">Nâng cao</AppSelectItem>
+                  <AppSelectItem value="all">Dành cho mọi đối tượng</AppSelectItem>
+                </AppSelectContent>
+              </AppSelectRoot>
             )}
           />
           {errors.level && (
@@ -590,7 +590,7 @@ function BasicInfoTab({ categories }) {
             name="status"
             control={control}
             render={({ field }) => (
-              <Select
+              <AppSelectRoot
                 onValueChange={(val) => {
                   const newStatus = Number(val);
 
@@ -621,14 +621,14 @@ function BasicInfoTab({ categories }) {
                 value={(field.value ?? 1).toString()}
                 disabled={isCategoryHidden}
               >
-                <SelectTrigger className={`w-full !h-11 border-border focus:border-success/20 font-medium ${isCategoryHidden ? 'bg-muted opacity-80' : 'bg-white'}`}>
-                  <SelectValue placeholder="Chọn trạng thái" />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  <SelectItem value="1" disabled={isCategoryHidden}>Hoạt động {isCategoryHidden && "(Danh mục cha đang ẩn)"}</SelectItem>
-                  <SelectItem value="2">Ẩn</SelectItem>
-                </SelectContent>
-              </Select>
+                <AppSelectTrigger className={`w-full !h-11 border-border focus:border-success/20 font-medium ${isCategoryHidden ? 'bg-muted opacity-80' : 'bg-white'}`}>
+                  <AppSelectValue placeholder="Chọn trạng thái" />
+                </AppSelectTrigger>
+                <AppSelectContent className="bg-white">
+                  <AppSelectItem value="1" disabled={isCategoryHidden}>Hoạt động {isCategoryHidden && "(Danh mục cha đang ẩn)"}</AppSelectItem>
+                  <AppSelectItem value="2">Ẩn</AppSelectItem>
+                </AppSelectContent>
+              </AppSelectRoot>
             )}
           />
         </div>
@@ -710,18 +710,18 @@ function CurriculumTab({ uploadVideoToBunny, setActiveUploads, fields, append, r
 
       {/* Dùng div với overflow-y-auto đơn giản để đảm bảo cuộn luôn hoạt động */}
       <div className="max-h-[850px] overflow-y-auto pr-2 custom-scrollbar scroll-smooth">
-        <Accordion
+        <AppAccordionRoot
           type="multiple"
           defaultValue={[fields[0]?.id]}
           className="space-y-4 pb-24"
         >
           {fields.map((section, sectionIdx) => (
-            <AccordionItem
+            <AppAccordionItem
               value={section.id}
               key={section.id}
               className="border border-border rounded-xl bg-muted overflow-hidden shadow-sm"
             >
-              <AccordionTrigger className="px-5 py-4 hover:bg-secondary hover:no-underline border-b border-transparent data-[state=open]:border-border">
+              <AppAccordionTrigger className="px-5 py-4 hover:bg-secondary hover:no-underline border-b border-transparent data-[state=open]:border-border">
                 <div className="flex items-center w-full pr-4 text-left">
                   <div className="flex flex-col gap-0.5 flex-1">
                     <span className="text-xs font-bold text-success uppercase tracking-widest">
@@ -755,18 +755,18 @@ function CurriculumTab({ uploadVideoToBunny, setActiveUploads, fields, append, r
                     <Trash2 size={16} />
                   </div>
                 </div>
-              </AccordionTrigger>
-              <AccordionContent className="p-0 bg-white border-t border-slate-50">
+              </AppAccordionTrigger>
+              <AppAccordionContent className="p-0 bg-white border-t border-slate-50">
                 <SectionItem
                   sectionIndex={sectionIdx}
                   control={control}
                   uploadVideoToBunny={uploadVideoToBunny}
                   setActiveUploads={setActiveUploads}
                 />
-              </AccordionContent>
-            </AccordionItem>
+              </AppAccordionContent>
+            </AppAccordionItem>
           ))}
-        </Accordion>
+        </AppAccordionRoot>
       </div>
     </div>
   );
@@ -1087,7 +1087,7 @@ function QuizTab({ courseId }) {
                 Số lượng câu hỏi (Tối đa 100)
               </label>
               <div className="h-[220px] flex flex-col justify-between">
-                <Input
+                <AppInput
                   type="number"
                   value={aiQuestionCount}
                   onChange={(e) => setAiQuestionCount(Math.max(1, Math.min(100, Number(e.target.value))))}
@@ -1100,17 +1100,17 @@ function QuizTab({ courseId }) {
                   <label className="block text-[11px] font-bold text-muted-foreground uppercase tracking-widest pl-1">
                     Chọn cấp độ
                   </label>
-                  <Select value={aiLevel} onValueChange={setAiLevel}>
-                    <SelectTrigger className="w-full h-11 border-border bg-white text-xs font-bold focus:ring-indigo-500 focus:border-indigo-500">
-                      <SelectValue placeholder="Chọn cấp độ" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white">
-                      <SelectItem value="easy">Dễ</SelectItem>
-                      <SelectItem value="medium">Trung bình</SelectItem>
-                      <SelectItem value="hard">Khó</SelectItem>
-                      <SelectItem value="mixed">Hỗn hợp (Trộn cấp độ)</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <AppSelectRoot value={aiLevel} onValueChange={setAiLevel}>
+                    <AppSelectTrigger className="w-full h-11 border-border bg-white text-xs font-bold focus:ring-indigo-500 focus:border-indigo-500">
+                      <AppSelectValue placeholder="Chọn cấp độ" />
+                    </AppSelectTrigger>
+                    <AppSelectContent className="bg-white">
+                      <AppSelectItem value="easy">Dễ</AppSelectItem>
+                      <AppSelectItem value="medium">Trung bình</AppSelectItem>
+                      <AppSelectItem value="hard">Khó</AppSelectItem>
+                      <AppSelectItem value="mixed">Hỗn hợp (Trộn cấp độ)</AppSelectItem>
+                    </AppSelectContent>
+                  </AppSelectRoot>
                 </div>
 
                 <AppButton appVariant="gradient"
@@ -1169,16 +1169,16 @@ function QuizTab({ courseId }) {
             <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
               Độ khó câu hỏi
             </label>
-            <Select value={manualLevel} onValueChange={setManualLevel}>
-              <SelectTrigger className="w-[180px] h-10 border-border bg-white text-xs font-bold focus:ring-indigo-500 focus:border-indigo-500">
-                <SelectValue placeholder="Chọn độ khó" />
-              </SelectTrigger>
-              <SelectContent className="bg-white">
-                <SelectItem value="easy">Dễ</SelectItem>
-                <SelectItem value="medium">Trung bình</SelectItem>
-                <SelectItem value="hard">Khó</SelectItem>
-              </SelectContent>
-            </Select>
+            <AppSelectRoot value={manualLevel} onValueChange={setManualLevel}>
+              <AppSelectTrigger className="w-[180px] h-10 border-border bg-white text-xs font-bold focus:ring-indigo-500 focus:border-indigo-500">
+                <AppSelectValue placeholder="Chọn độ khó" />
+              </AppSelectTrigger>
+              <AppSelectContent className="bg-white">
+                <AppSelectItem value="easy">Dễ</AppSelectItem>
+                <AppSelectItem value="medium">Trung bình</AppSelectItem>
+                <AppSelectItem value="hard">Khó</AppSelectItem>
+              </AppSelectContent>
+            </AppSelectRoot>
           </div>
           <div className="space-y-3">
             <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
@@ -1200,7 +1200,7 @@ function QuizTab({ courseId }) {
                     <span className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-md flex items-center justify-center font-bold text-[10px] ${manualCorrect === opt ? 'bg-emerald-100 text-emerald-700' : 'bg-muted text-muted-foreground'}`}>
                       {opt}
                     </span>
-                    <Input
+                    <AppInput
                       value={manualOptions[opt]}
                       onChange={(e) => setManualOptions({ ...manualOptions, [opt]: e.target.value })}
                       className={`h-10 pl-10 border-transparent bg-white shadow-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-sm`}
@@ -1280,24 +1280,24 @@ function QuizTab({ courseId }) {
             <div className="flex items-center gap-2 w-full sm:w-auto">
               <div className="relative flex-1 sm:w-64">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
+                <AppInput
                   placeholder="Tìm kiếm câu hỏi..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-9 h-9 border-border text-sm focus:ring-indigo-500 focus:border-indigo-500 bg-muted"
                 />
               </div>
-              <Select value={filterLevel} onValueChange={setFilterLevel}>
-                <SelectTrigger className="w-[110px] h-9 border-border bg-muted text-xs font-bold focus:ring-indigo-500 focus:border-indigo-500">
-                  <SelectValue placeholder="Độ khó" />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  <SelectItem value="all">Tất cả</SelectItem>
-                  <SelectItem value="easy">Dễ</SelectItem>
-                  <SelectItem value="medium">Trung bình</SelectItem>
-                  <SelectItem value="hard">Khó</SelectItem>
-                </SelectContent>
-              </Select>
+              <AppSelectRoot value={filterLevel} onValueChange={setFilterLevel}>
+                <AppSelectTrigger className="w-[110px] h-9 border-border bg-muted text-xs font-bold focus:ring-indigo-500 focus:border-indigo-500">
+                  <AppSelectValue placeholder="Độ khó" />
+                </AppSelectTrigger>
+                <AppSelectContent className="bg-white">
+                  <AppSelectItem value="all">Tất cả</AppSelectItem>
+                  <AppSelectItem value="easy">Dễ</AppSelectItem>
+                  <AppSelectItem value="medium">Trung bình</AppSelectItem>
+                  <AppSelectItem value="hard">Khó</AppSelectItem>
+                </AppSelectContent>
+              </AppSelectRoot>
             </div>
           </div>
 
@@ -1569,8 +1569,8 @@ function CategoryCascader({ categories, value, onChange }) {
   }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
+    <AppPopover open={open} onOpenChange={setOpen}>
+      <AppPopoverTrigger asChild>
         <button
           type="button"
           onClick={() => {
@@ -1583,8 +1583,8 @@ function CategoryCascader({ categories, value, onChange }) {
           </span>
           <ChevronDown className="h-4 w-4 opacity-50" />
         </button>
-      </PopoverTrigger>
-      <PopoverContent className="w-auto p-0 flex flex-row items-start gap-1.5 border-none bg-transparent shadow-none" align="start" sideOffset={8}>
+      </AppPopoverTrigger>
+      <AppPopoverContent className="w-auto p-0 flex flex-row items-start gap-1.5 border-none bg-transparent shadow-none" align="start" sideOffset={8}>
         {/* Cấp 1 */}
         <div className="w-[240px] max-h-[300px] overflow-y-auto py-2 bg-white rounded-md shadow-lg border border-border">
           {categories.map(parent => {
@@ -1628,8 +1628,8 @@ function CategoryCascader({ categories, value, onChange }) {
             ))}
           </div>
         )}
-      </PopoverContent>
-    </Popover>
+      </AppPopoverContent>
+    </AppPopover>
   );
 }
 
@@ -1788,7 +1788,7 @@ function PricingTab() {
                 name="price"
                 control={useFormContext().control}
                 render={({ field }) => (
-                  <Input
+                  <AppInput
                     className="h-11 border-border focus:border-success/20 font-bold pl-10"
                     placeholder="Ví dụ: 500.000"
                     value={field.value ? new Intl.NumberFormat("vi-VN").format(field.value) : ""}
@@ -1813,7 +1813,7 @@ function PricingTab() {
               Tổng tiền sau giảm (Hiển thị cho học viên)
             </label>
             <div className="relative">
-              <Input
+              <AppInput
                 className="h-11 border-success/20 bg-green-50/30 text-success font-bold text-lg pl-10 cursor-not-allowed"
                 value={new Intl.NumberFormat("vi-VN").format(finalPrice)}
                 readOnly
@@ -1830,7 +1830,7 @@ function PricingTab() {
               Phần trăm giảm giá (%)
             </label>
             <div className="relative">
-              <Input
+              <AppInput
                 type="number"
                 className="h-11 border-border focus:border-success/20 font-bold pl-10 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 placeholder="0 - 100"
@@ -1947,7 +1947,7 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
         <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
           Tiêu đề chương <span className="text-error">*</span>
         </label>
-        <Input
+        <AppInput
           className="h-10 border-border focus:border-success/20 font-bold shadow-sm"
           placeholder="Vd: Chương 1: Giới thiệu tổng quan"
           {...register(`sections.${sectionIndex}.title`)}
@@ -1984,7 +1984,7 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
                     </button>
                   </div>
                 ) : (
-                  <Input
+                  <AppInput
                     type="file"
                     className="h-10 text-xs pt-2 cursor-pointer w-full"
                     onChange={(e) => field.onChange(e.target.files[0])}
@@ -2021,7 +2021,7 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
             name={`sections.${sectionIndex}.status`}
             control={control}
             render={({ field }) => (
-              <Select
+              <AppSelectRoot
                 onValueChange={(val) => {
                   const newStatus = Number(val);
 
@@ -2044,14 +2044,14 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
                 }}
                 value={(field.value ?? 1).toString()}
               >
-                <SelectTrigger className="h-10 border-border focus:border-success/20 font-medium bg-white">
-                  <SelectValue placeholder="Chọn trạng thái" />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  <SelectItem value="1" disabled={currentCourseStatus === 2}>Hoạt động {currentCourseStatus === 2 && "(Bị khóa)"}</SelectItem>
-                  <SelectItem value="2">Ẩn</SelectItem>
-                </SelectContent>
-              </Select>
+                <AppSelectTrigger className="h-10 border-border focus:border-success/20 font-medium bg-white">
+                  <AppSelectValue placeholder="Chọn trạng thái" />
+                </AppSelectTrigger>
+                <AppSelectContent className="bg-white">
+                  <AppSelectItem value="1" disabled={currentCourseStatus === 2}>Hoạt động {currentCourseStatus === 2 && "(Bị khóa)"}</AppSelectItem>
+                  <AppSelectItem value="2">Ẩn</AppSelectItem>
+                </AppSelectContent>
+              </AppSelectRoot>
             )}
           />
         </div>
@@ -2098,7 +2098,7 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
                     <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1">
                       Tiêu đề bài học <span className="text-error">*</span>
                     </label>
-                    <Input
+                    <AppInput
                       className="h-10 font-bold border-border focus:ring-0 focus:border-success/20 transition-all text-foreground"
                       placeholder={`Ví dụ: Bài giảng số ${lessonIdx + 1}: Giới thiệu ngôn ngữ`}
                       {...register(`sections.${sectionIndex}.lessons.${lessonIdx}.title`)}
@@ -2113,7 +2113,7 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
                     <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1">
                       Mô tả nội dung bài học
                     </label>
-                    <Textarea
+                    <AppTextarea
                       className="min-h-[80px] text-xs resize-none border-border focus:ring-0 focus:border-success/20"
                       placeholder="Một đoạn mô tả ngắn về những gì học viên sẽ được học trong bài này..."
                       {...register(`sections.${sectionIndex}.lessons.${lessonIdx}.content`)}
@@ -2131,7 +2131,7 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
                       name={`sections.${sectionIndex}.lessons.${lessonIdx}.status`}
                       control={control}
                       render={({ field }) => (
-                        <Select
+                        <AppSelectRoot
                           onValueChange={(val) => {
                             const newStatus = Number(val);
 
@@ -2145,14 +2145,14 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
                           }}
                           value={(field.value ?? 1).toString()}
                         >
-                          <SelectTrigger className="h-9 border-border focus:border-success/20 font-medium bg-white text-xs">
-                            <SelectValue placeholder="Chọn trạng thái" />
-                          </SelectTrigger>
-                          <SelectContent className="bg-white">
-                            <SelectItem value="1" disabled={currentSectionStatus === 2}>Hoạt động {currentSectionStatus === 2 && "(Bị khóa)"}</SelectItem>
-                            <SelectItem value="2">Ẩn</SelectItem>
-                          </SelectContent>
-                        </Select>
+                          <AppSelectTrigger className="h-9 border-border focus:border-success/20 font-medium bg-white text-xs">
+                            <AppSelectValue placeholder="Chọn trạng thái" />
+                          </AppSelectTrigger>
+                          <AppSelectContent className="bg-white">
+                            <AppSelectItem value="1" disabled={currentSectionStatus === 2}>Hoạt động {currentSectionStatus === 2 && "(Bị khóa)"}</AppSelectItem>
+                            <AppSelectItem value="2">Ẩn</AppSelectItem>
+                          </AppSelectContent>
+                        </AppSelectRoot>
                       )}
                     />
                   </div>
@@ -2234,7 +2234,7 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
                     <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
                       Tên bài Quiz <span className="text-error">*</span>
                     </label>
-                    <Input
+                    <AppInput
                       value={quizTitle}
                       onChange={(e) => setQuizTitle(e.target.value)}
                       placeholder="Ví dụ: Kiểm tra kiến thức chương"
@@ -2303,7 +2303,7 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
                       <div className="flex items-center gap-2">
                         <div className="relative flex-1">
                           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-                          <Input 
+                          <AppInput 
                             placeholder="Tìm kiếm theo từ khóa..." 
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
@@ -2587,23 +2587,23 @@ export default function InstructorCourseForm() {
           <div className="px-6 mb-12">
             <CourseStepper activeTab={activeTab} onTabChange={setActiveTab} />
           </div>
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsContent value="basic" className="bg-white p-6 md:p-8 rounded-xl border border-border shadow-sm mt-0">
+          <AppTabsRoot value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <AppTabsContent value="basic" className="bg-white p-6 md:p-8 rounded-xl border border-border shadow-sm mt-0">
               <BasicInfoTab categories={categories} />
-            </TabsContent>
+            </AppTabsContent>
 
-            <TabsContent value="quiz" className="bg-white p-6 md:p-8 rounded-xl border border-border shadow-sm mt-0">
+            <AppTabsContent value="quiz" className="bg-white p-6 md:p-8 rounded-xl border border-border shadow-sm mt-0">
               <QuizTab courseId={methods.watch("id")} />
-            </TabsContent>
+            </AppTabsContent>
 
-            <TabsContent value="curriculum" className="bg-white p-6 md:p-8 rounded-xl border border-border shadow-sm mt-0">
+            <AppTabsContent value="curriculum" className="bg-white p-6 md:p-8 rounded-xl border border-border shadow-sm mt-0">
               <CurriculumTab uploadVideoToBunny={uploadVideoToBunny} setActiveUploads={setActiveUploads} />
-            </TabsContent>
+            </AppTabsContent>
 
-            <TabsContent value="settings" className="bg-white p-6 md:p-8 rounded-xl border border-border shadow-sm mt-0">
+            <AppTabsContent value="settings" className="bg-white p-6 md:p-8 rounded-xl border border-border shadow-sm mt-0">
               <SettingsTab uploadVideoToBunny={uploadVideoToBunny} setActiveUploads={setActiveUploads} />
-            </TabsContent>
-          </Tabs>
+            </AppTabsContent>
+          </AppTabsRoot>
 
           <div className="mt-10 pt-6 border-t border-border flex items-center justify-between">
             <div className="flex items-center gap-2">

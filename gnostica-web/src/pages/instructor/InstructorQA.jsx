@@ -10,11 +10,11 @@ import {
   AlertCircle,
   Loader2
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import AppCard, { AppCardContent, AppCardHeader, AppCardTitle, AppCardDescription } from "@/components/common/micro/AppCard";
 import { AppButton } from "@/components/common/micro/AppButton";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import AppInput from "@/components/common/micro/AppInput";
+import AppBadge from "@/components/common/micro/AppBadge";
+import { Tabs as AppTabsRoot, TabsContent as AppTabsContent, TabsList as AppTabsList, TabsTrigger as AppTabsTrigger } from "@/components/common/micro/AppTabs";
 import useInstructorQA from "@/hooks/forum/useInstructorQA";
 
 export default function InstructorQA() {
@@ -57,24 +57,24 @@ export default function InstructorQA() {
         </div>
       </div>
 
-      <Tabs defaultValue="questions" className="w-full">
-        <TabsList className="mb-6 bg-secondary p-1">
-          <TabsTrigger value="questions" className="px-8 py-2.5 font-bold data-[state=active]:bg-white data-[state=active]:text-success data-[state=active]:shadow-sm">
+      <AppTabsRoot defaultValue="questions" className="w-full">
+        <AppTabsList className="mb-6 bg-secondary p-1">
+          <AppTabsTrigger value="questions" className="px-8 py-2.5 font-bold data-[state=active]:bg-white data-[state=active]:text-success data-[state=active]:shadow-sm">
             <MessageSquare className="w-4 h-4 mr-2" />
             Hỏi Đáp ({questions.filter(q => q.status === 'unanswered').length})
-          </TabsTrigger>
-          <TabsTrigger value="reviews" className="px-8 py-2.5 font-bold data-[state=active]:bg-white data-[state=active]:text-amber-600 data-[state=active]:shadow-sm">
+          </AppTabsTrigger>
+          <AppTabsTrigger value="reviews" className="px-8 py-2.5 font-bold data-[state=active]:bg-white data-[state=active]:text-amber-600 data-[state=active]:shadow-sm">
             <Star className="w-4 h-4 mr-2" />
             Đánh Giá ({reviews.filter(r => r.status === 'not_responded').length})
-          </TabsTrigger>
-        </TabsList>
+          </AppTabsTrigger>
+        </AppTabsList>
 
-        <TabsContent value="questions" className="space-y-4">
+        <AppTabsContent value="questions" className="space-y-4">
            {questions.length === 0 ? (
              <div className="text-center py-10 bg-muted/50 rounded-lg">Không có câu hỏi nào.</div>
            ) : questions.map((q) => (
-             <Card key={q.id} className="border-border shadow-sm hover:border-success/20 transition-colors group">
-               <CardContent className="p-0">
+             <AppCard key={q.id} className="border-border shadow-sm hover:border-success/20 transition-colors group">
+               <AppCardContent className="p-0">
                  <div className="p-5 flex gap-4">
                    <div className="w-10 h-10 rounded-full overflow-hidden border border-border shrink-0">
                      <img src={q.studentAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${q.studentName}`} alt={q.studentName} className="w-full h-full object-cover" />
@@ -86,13 +86,13 @@ export default function InstructorQA() {
                          <p className="text-xs text-muted-foreground font-bold uppercase tracking-tight">{formatTime(q.createdAt)}</p>
                        </div>
                        {q.status === 'unanswered' ? (
-                         <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 border-none font-bold">
+                         <AppBadge className="bg-amber-100 text-amber-700 hover:bg-amber-100 border-none font-bold">
                            <AlertCircle className="w-3 h-3 mr-1.5" /> Chưa phản hồi
-                         </Badge>
+                         </AppBadge>
                        ) : (
-                         <Badge className="bg-success/10 text-success hover:bg-success/10 text-success border-none font-bold">
+                         <AppBadge className="bg-success/10 text-success hover:bg-success/10 text-success border-none font-bold">
                            <CheckCircle2 className="w-3 h-3 mr-1.5" /> Đã trả lời
-                         </Badge>
+                         </AppBadge>
                        )}
                      </div>
                      <p className="text-sm font-bold text-foreground mb-3 bg-muted p-3 rounded-lg border-l-4 border-l-green-500">
@@ -114,17 +114,17 @@ export default function InstructorQA() {
                       <Reply className="w-3.5 h-3.5 mr-1.5" /> Phản hồi ngay
                     </AppButton>
                  </div>
-               </CardContent>
-             </Card>
+               </AppCardContent>
+             </AppCard>
            ))}
-        </TabsContent>
+        </AppTabsContent>
 
-        <TabsContent value="reviews" className="space-y-4">
+        <AppTabsContent value="reviews" className="space-y-4">
            {reviews.length === 0 ? (
              <div className="text-center py-10 bg-muted/50 rounded-lg">Không có đánh giá nào.</div>
            ) : reviews.map((r) => (
-             <Card key={r.id} className="border-border shadow-sm hover:border-amber-200 transition-colors">
-               <CardContent className="p-0">
+             <AppCard key={r.id} className="border-border shadow-sm hover:border-amber-200 transition-colors">
+               <AppCardContent className="p-0">
                  <div className="p-5 flex gap-4">
                     <div className="w-10 h-10 rounded-full overflow-hidden border border-border shrink-0">
                       <img src={r.studentAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${r.studentName}`} alt={r.studentName} className="w-full h-full object-cover" />
@@ -152,11 +152,11 @@ export default function InstructorQA() {
                       Cảm ơn học viên &rarr;
                     </AppButton>
                  </div>
-               </CardContent>
-             </Card>
+               </AppCardContent>
+             </AppCard>
            ))}
-        </TabsContent>
-      </Tabs>
+        </AppTabsContent>
+      </AppTabsRoot>
     </div>
   );
 }

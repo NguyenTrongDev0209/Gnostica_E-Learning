@@ -1,12 +1,26 @@
 import { useQuery } from '@tanstack/react-query';
 import instructorService from '@/services/instructor/instructorService';
+import { USE_INSTRUCTOR_MOCK, MOCK_STUDENTS } from "@/mocks/instructorMockData";
 
 export function useInstructorStudents() {
   const { data, isLoading } = useQuery({
     queryKey: ['instructor_students'],
     queryFn: async () => {
-      const res = await instructorService.getMyStudents();
-      const students = res.data || res || [];
+      let res;
+      try {
+        res = await instructorService.getMyStudents();
+      } catch (e) {
+        if (USE_INSTRUCTOR_MOCK) {
+          console.log("Using Mock Data for Students due to error");
+        } else {
+          throw e;
+        }
+      }
+
+      let students = res?.data || res || [];
+      if (USE_INSTRUCTOR_MOCK && (!students || students.length === 0)) {
+        students = MOCK_STUDENTS;
+      }
       
       const total = students.length;
       const completed = students.filter(s => s.progress === 100).length;

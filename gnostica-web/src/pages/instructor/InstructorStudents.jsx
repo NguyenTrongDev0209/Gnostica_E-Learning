@@ -15,20 +15,15 @@ import {
   GraduationCap,
   X
 } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import AppCard, { AppCardContent } from "@/components/common/micro/AppCard";
 import { AppButton, TableActionIconButton } from "@/components/common/micro/AppButton";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+import AppInput from "@/components/common/micro/AppInput";
+import AppBadge from "@/components/common/micro/AppBadge";
 import DataTable from "@/components/common/composite/DataTable";
 import { cn } from "@/lib/utils";
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-} from "@/components/ui/dialog";
+import { AppDialogRoot, AppDialogContent, AppDialogHeader, AppDialogTitle } from "@/components/common/micro/AppDialog";
 import instructorService from "@/services/instructor/instructorService";
-import { Progress } from "@/components/ui/progress";
+import AppProgress from "@/components/common/micro/AppProgress";
 import { useInstructorStudents } from "@/hooks/user/useInstructorStudents";
 
 const formatDate = (dateValue) => {
@@ -206,23 +201,23 @@ const StudentCoursesModal = ({ isOpen, onClose, student }) => {
     }, [isOpen, student]);
 
     return (
-        <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent
+        <AppDialogRoot open={isOpen} onOpenChange={onClose}>
+            <AppDialogContent
                 className="p-0 overflow-hidden border-none shadow-2xl rounded-2xl"
                 style={{ maxWidth: "860px", width: "92vw" }}
                 showCloseButton={false}
             >
                 {/* Header */}
-                <DialogHeader className="px-6 py-5 bg-muted border-b border-border">
+                <AppDialogHeader className="px-6 py-5 bg-muted border-b border-border">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
                                 <GraduationCap className="w-5 h-5" />
                             </div>
                             <div>
-                                <DialogTitle className="text-base font-black text-foreground">
+                                <AppDialogTitle className="text-base font-black text-foreground">
                                     Khóa học tham gia
-                                </DialogTitle>
+                                </AppDialogTitle>
                                 <p className="text-xs font-medium text-muted-foreground">
                                     Học viên:{" "}
                                     <span className="text-primary font-bold">{student?.fullName}</span>
@@ -236,7 +231,7 @@ const StudentCoursesModal = ({ isOpen, onClose, student }) => {
                             <X className="w-5 h-5" />
                         </button>
                     </div>
-                </DialogHeader>
+                </AppDialogHeader>
 
                 {/* Table */}
                 <div className="overflow-y-auto max-h-[60vh]">
@@ -302,7 +297,7 @@ const StudentCoursesModal = ({ isOpen, onClose, student }) => {
                                                 <div className="flex justify-between items-center">
                                                     <span className="text-sm font-black text-primary">{course.progressPercent}%</span>
                                                 </div>
-                                                <Progress value={course.progressPercent} className="h-1.5 bg-primary/10" />
+                                                <AppProgress value={course.progressPercent} className="h-1.5 bg-primary/10" />
                                             </div>
                                         </td>
                                         <td className="py-4 px-4 text-center">
@@ -322,8 +317,8 @@ const StudentCoursesModal = ({ isOpen, onClose, student }) => {
                         </table>
                     )}
                 </div>
-            </DialogContent>
-        </Dialog>
+            </AppDialogContent>
+        </AppDialogRoot>
     );
 };
 
@@ -367,9 +362,9 @@ export default function InstructorStudents() {
           { label: "Đang học", value: stats.learning.toLocaleString(), icon: Clock, color: "amber", trend: "+0%" },
           { label: "Hoạt động", value: stats.active.toLocaleString(), icon: Activity, color: "purple", trend: "+0%" },
         ].map((stat, i) => (
-          <Card key={i} className="group hover-lift border-border shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden relative rounded-2xl">
+          <AppCard key={i} className="group hover-lift border-border shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden relative rounded-2xl">
             <div className={`absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 rounded-full bg-${stat.color}-50/50 group-hover:bg-${stat.color}-100/50 transition-colors duration-500`} />
-            <CardContent className="p-5 flex items-center gap-4 relative z-10">
+            <AppCardContent className="p-5 flex items-center gap-4 relative z-10">
               <div className={`w-12 h-12 rounded-2xl bg-${stat.color}-50 flex items-center justify-center text-${stat.color}-600 border border-${stat.color}-100 group-hover:scale-110 transition-transform duration-500 shadow-sm`}>
                 <stat.icon className="w-6 h-6" />
               </div>
@@ -380,8 +375,8 @@ export default function InstructorStudents() {
                   <span className={`text-[10px] font-bold text-${stat.color}-600 bg-${stat.color}-50 px-1.5 rounded-full border border-${stat.color}-100/50`}>{stat.trend}</span>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </AppCardContent>
+          </AppCard>
         ))}
       </div>
 
@@ -391,7 +386,7 @@ export default function InstructorStudents() {
           <div className="flex flex-col sm:flex-row w-full lg:w-auto items-center gap-3">
             <div className="relative w-full sm:w-80 group">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-              <Input
+              <AppInput
                 placeholder="Tìm kiếm theo tên hoặc email..."
                 className="pl-9 h-11 bg-white border-border focus:ring-2 focus:ring-primary/10 transition-all rounded-xl shadow-none"
               />

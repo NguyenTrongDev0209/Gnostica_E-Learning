@@ -20,24 +20,11 @@ import {
   Users,
   Star,
 } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import AppCard, { AppCardContent } from "@/components/common/micro/AppCard";
 import { AppButton, TableActionIconButton } from "@/components/common/micro/AppButton";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import AppInput from "@/components/common/micro/AppInput";
+import { Select as AppSelectRoot, SelectContent as AppSelectContent, SelectItem as AppSelectItem, SelectTrigger as AppSelectTrigger, SelectValue as AppSelectValue } from "@/components/common/micro/AppSelect";
+import { AppDialogRoot, AppDialogContent, AppDialogDescription, AppDialogFooter, AppDialogHeader, AppDialogTitle } from "@/components/common/micro/AppDialog";
 import DataTable from "@/components/common/composite/DataTable";
 import categoryService from "@/services/course/categoryService";
 
@@ -339,9 +326,9 @@ export default function InstructorCourses() {
           { label: "Chờ duyệt", value: courses.filter(c => c.status === 4).length, icon: Clock, color: "amber" },
           { label: "Bản nháp", value: courses.filter(c => c.isVirtualDraft || c.hasUnsavedDraft).length, icon: Activity, color: "purple" },
         ].map((stat, i) => (
-          <Card key={i} className="group hover-lift border-border shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden relative rounded-2xl">
+          <AppCard key={i} className="group hover-lift border-border shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden relative rounded-2xl">
             <div className={`absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 rounded-full bg-${stat.color}-50/50 group-hover:bg-${stat.color}-100/50 transition-colors duration-500`} />
-            <CardContent className="p-5 flex items-center gap-4 relative z-10">
+            <AppCardContent className="p-5 flex items-center gap-4 relative z-10">
               <div className={`w-12 h-12 rounded-2xl bg-${stat.color}-50 flex items-center justify-center text-${stat.color}-600 border border-${stat.color}-100 group-hover:scale-110 transition-transform duration-500 shadow-sm`}>
                 <stat.icon className="w-6 h-6" />
               </div>
@@ -349,8 +336,8 @@ export default function InstructorCourses() {
                 <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">{stat.label}</span>
                 <span className="text-2xl font-black text-foreground tracking-tight">{stat.value}</span>
               </div>
-            </CardContent>
-          </Card>
+            </AppCardContent>
+          </AppCard>
         ))}
       </div>
 
@@ -360,7 +347,7 @@ export default function InstructorCourses() {
           <div className="flex flex-col sm:flex-row w-full lg:w-auto items-center gap-3">
             <div className="relative w-full sm:w-80 group">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-              <Input
+              <AppInput
                 placeholder="Tìm khóa học theo tên..."
                 value={localSearch}
                 onChange={(e) => setLocalSearch(e.target.value)}
@@ -369,29 +356,29 @@ export default function InstructorCourses() {
             </div>
 
             <div className="flex items-center gap-2 bg-muted/80 p-1 rounded-xl w-full sm:w-auto border border-border/50">
-              <Select
+              <AppSelectRoot
                 value={filters.categoryId ? String(filters.categoryId) : "all"}
                 onValueChange={(val) => setFilters(prev => ({ ...prev, categoryId: val === "all" ? null : Number(val) }))}
               >
-                <SelectTrigger className="h-9 w-full sm:w-[200px] bg-transparent border-none focus:ring-0 text-sm font-bold text-foreground cursor-pointer">
+                <AppSelectTrigger className="h-9 w-full sm:w-[200px] bg-transparent border-none focus:ring-0 text-sm font-bold text-foreground cursor-pointer">
                   <div className="flex items-center gap-2 truncate">
                     <Tag className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-                    <SelectValue placeholder="Tất cả danh mục" />
+                    <AppSelectValue placeholder="Tất cả danh mục" />
                   </div>
-                </SelectTrigger>
-                <SelectContent className="max-h-[300px] rounded-xl border-border">
-                  <SelectItem value="all" className="font-bold">Tất cả danh mục</SelectItem>
+                </AppSelectTrigger>
+                <AppSelectContent className="max-h-[300px] rounded-xl border-border">
+                  <AppSelectItem value="all" className="font-bold">Tất cả danh mục</AppSelectItem>
                   {categories.map(cat => (
-                    <SelectItem
+                    <AppSelectItem
                       key={cat.id}
                       value={String(cat.id)}
                       className={cat.isParent ? "font-extrabold bg-muted" : "pl-6 font-medium"}
                     >
                       {cat.name}
-                    </SelectItem>
+                    </AppSelectItem>
                   ))}
-                </SelectContent>
-              </Select>
+                </AppSelectContent>
+              </AppSelectRoot>
             </div>
           </div>
 
@@ -441,24 +428,24 @@ export default function InstructorCourses() {
       </div>
 
       {/* REJECTION REASON VIEWER MODAL (Styled like Students details) */}
-      <Dialog
+      <AppDialogRoot
         open={rejectViewModal.isOpen}
         onOpenChange={(open) => setRejectViewModal(prev => ({ ...prev, isOpen: open }))}
       >
-        <DialogContent className="sm:!max-w-[450px] p-0 overflow-hidden border-none shadow-2xl bg-white rounded-2xl">
-          <DialogHeader className="p-6 pb-4 bg-muted border-b border-border text-left sm:text-left flex flex-row items-start gap-4 space-y-0">
+        <AppDialogContent className="sm:!max-w-[450px] p-0 overflow-hidden border-none shadow-2xl bg-white rounded-2xl">
+          <AppDialogHeader className="p-6 pb-4 bg-muted border-b border-border text-left sm:text-left flex flex-row items-start gap-4 space-y-0">
             <div className="w-12 h-12 shrink-0 rounded-2xl bg-rose-50 flex items-center justify-center text-rose-600 border border-rose-100 shadow-sm">
               <XCircle className="w-6 h-6" />
             </div>
             <div className="space-y-1">
-              <DialogTitle className="text-lg font-black text-foreground tracking-tight leading-tight uppercase">
+              <AppDialogTitle className="text-lg font-black text-foreground tracking-tight leading-tight uppercase">
                 Lý do từ chối
-              </DialogTitle>
-              <DialogDescription className="text-muted-foreground text-xs font-bold leading-tight">
+              </AppDialogTitle>
+              <AppDialogDescription className="text-muted-foreground text-xs font-bold leading-tight">
                 Khóa học: <span className="text-rose-600">"{rejectViewModal.courseTitle}"</span>
-              </DialogDescription>
+              </AppDialogDescription>
             </div>
-          </DialogHeader>
+          </AppDialogHeader>
 
           <div className="p-6 bg-white">
             <div className="p-5 bg-rose-50/50 border border-rose-100 rounded-2xl relative shadow-inner">
@@ -475,16 +462,16 @@ export default function InstructorCourses() {
             </p>
           </div>
 
-          <DialogFooter className="p-4 bg-muted border-t border-border">
+          <AppDialogFooter className="p-4 bg-muted border-t border-border">
             <AppButton appVariant="gradient"
               onClick={() => setRejectViewModal(prev => ({ ...prev, isOpen: false }))}
               className="w-full h-11 font-black rounded-xl"
             >
               Đã hiểu
             </AppButton>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </AppDialogFooter>
+        </AppDialogContent>
+      </AppDialogRoot>
     </div>
   );
 }

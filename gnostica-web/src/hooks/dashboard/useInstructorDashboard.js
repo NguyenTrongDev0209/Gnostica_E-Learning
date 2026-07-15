@@ -1,24 +1,32 @@
 import { useQuery } from "@tanstack/react-query";
 import { instructorDashboardService } from "@/services/instructor/instructorDashboardService";
 import { Users, Star, Activity, DollarSign } from "lucide-react";
-
+import { USE_INSTRUCTOR_MOCK, MOCK_DASHBOARD } from "@/mocks/instructorMockData";
 export default function useInstructorDashboard() {
   const { data, isLoading } = useQuery({
     queryKey: ['instructor_dashboard'],
     queryFn: async () => {
-        const [
-          statsData, 
-          revenueData, 
-          ratingData, 
-          growthData, 
-          performanceData
-        ] = await Promise.all([
-          instructorDashboardService.getStats(),
-          instructorDashboardService.getRevenueChart(),
-          instructorDashboardService.getRatingDistribution(),
-          instructorDashboardService.getStudentGrowthChart(),
-          instructorDashboardService.getCoursePerformance()
-        ]);
+        let statsData, revenueData, ratingData, growthData, performanceData;
+        try {
+          const res = await Promise.all([
+            instructorDashboardService.getStats(),
+            instructorDashboardService.getRevenueChart(),
+            instructorDashboardService.getRatingDistribution(),
+            instructorDashboardService.getStudentGrowthChart(),
+            instructorDashboardService.getCoursePerformance()
+          ]);
+          [statsData, revenueData, ratingData, growthData, performanceData] = res;
+        } catch (e) {
+          if (USE_INSTRUCTOR_MOCK) {
+            console.log("Using Mock Data for Dashboard due to error");
+          } else {
+            throw e;
+          }
+        }
+
+        if (USE_INSTRUCTOR_MOCK && (!statsData || !revenueData || !ratingData || !growthData || !performanceData)) {
+          return MOCK_DASHBOARD;
+        }
 
         const STATS = [
           {

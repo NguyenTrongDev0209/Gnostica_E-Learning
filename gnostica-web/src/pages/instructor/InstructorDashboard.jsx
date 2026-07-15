@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { AppButton } from "@/components/common/micro/AppButton";
 import { Loader2, ArrowUpRight, ArrowDownRight, ChevronRight, CheckCircle2, Star } from "lucide-react";
 import useInstructorDashboard from "@/hooks/dashboard/useInstructorDashboard";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import AppCard, { AppCardContent, AppCardHeader, AppCardTitle, AppCardDescription } from "@/components/common/micro/AppCard";
 import LineChart from "@/components/common/composite/LineChart";
 import ChartDateFilters from "@/components/common/composite/ChartDateFilters";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
@@ -14,8 +14,8 @@ function StatsGrid({ stats }) {
             {stats.map((stat, i) => {
                 const Icon = stat.icon;
                 return (
-                    <Card key={i} className="border-border shadow-sm border-b-4 border-b-green-500/10 hover:border-b-green-500/50 transition-all">
-                        <CardContent className="p-5 flex flex-col gap-4">
+                    <AppCard key={i} className="border-border shadow-sm border-b-4 border-b-green-500/10 hover:border-b-green-500/50 transition-all">
+                        <AppCardContent className="p-5 flex flex-col gap-4">
                             <div className="flex justify-between items-start">
                                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center border ${stat.color}`}>
                                     <Icon className="w-5 h-5" />
@@ -29,8 +29,8 @@ function StatsGrid({ stats }) {
                                 <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">{stat.title}</h3>
                                 <div className="text-2xl font-black text-foreground">{stat.value}</div>
                             </div>
-                        </CardContent>
-                    </Card>
+                        </AppCardContent>
+                    </AppCard>
                 );
             })}
         </div>
@@ -78,12 +78,12 @@ function RevenueChart({ data }) {
 
 function RatingDistribution({ data }) {
     return (
-        <Card className="border-border shadow-sm">
-            <CardHeader>
-                <CardTitle className="text-lg font-bold">Phân Bổ Đánh Giá</CardTitle>
-                <CardDescription>Dựa trên 1,000+ đánh giá mới nhất</CardDescription>
-            </CardHeader>
-            <CardContent className="h-[300px] w-full pt-0 flex flex-col">
+        <AppCard className="border-border shadow-sm">
+            <AppCardHeader>
+                <AppCardTitle className="text-lg font-bold">Phân Bổ Đánh Giá</AppCardTitle>
+                <AppCardDescription>Dựa trên 1,000+ đánh giá mới nhất</AppCardDescription>
+            </AppCardHeader>
+            <AppCardContent className="h-[300px] w-full pt-0 flex flex-col">
                 <ResponsiveContainer width="100%" height="70%">
                     <PieChart>
                         <Pie
@@ -110,8 +110,8 @@ function RatingDistribution({ data }) {
                         </div>
                     ))}
                 </div>
-            </CardContent>
-        </Card>
+            </AppCardContent>
+        </AppCard>
     );
 }
 
@@ -149,16 +149,16 @@ function StudentGrowthChart({ data, onFilterChange }) {
 
 function PendingTasks({ tasks }) {
     return (
-        <Card className="border-border shadow-sm flex flex-col">
-            <CardHeader className="pb-3 border-b border-border">
+        <AppCard className="border-border shadow-sm flex flex-col">
+            <AppCardHeader className="pb-3 border-b border-border">
                 <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg font-bold">Việc Cần Làm</CardTitle>
+                    <AppCardTitle className="text-lg font-bold">Việc Cần Làm</AppCardTitle>
                     <span className="text-[10px] font-black text-white bg-error/10 text-error px-2 py-0.5 rounded-full">
                         {tasks.reduce((s, t) => s + t.count, 0)} chờ xử lý
                     </span>
                 </div>
-            </CardHeader>
-            <CardContent className="p-0 flex-1">
+            </AppCardHeader>
+            <AppCardContent className="p-0 flex-1">
                 <div className="flex flex-col divide-y divide-slate-100">
                     {tasks.map((task) => {
                         const Icon = task.icon;
@@ -181,32 +181,32 @@ function PendingTasks({ tasks }) {
                         );
                     })}
                 </div>
-            </CardContent>
+            </AppCardContent>
             <div className="p-4 border-t border-border mt-auto">
                 <Link to="/instructor/courses" className="flex items-center justify-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-primary transition-colors">
                     <CheckCircle2 className="w-3.5 h-3.5" />
                     Xem tất cả nhiệm vụ
                 </Link>
             </div>
-        </Card>
+        </AppCard>
     );
 }
 
 function CoursePerformanceTable({ courses }) {
     return (
-        <Card className="border-border shadow-sm">
-            <CardHeader className="pb-4 border-b border-border">
+        <AppCard className="border-border shadow-sm">
+            <AppCardHeader className="pb-4 border-b border-border">
                 <div className="flex items-center justify-between">
                     <div>
-                        <CardTitle className="text-lg font-bold">Hiệu Suất Học Viên</CardTitle>
-                        <CardDescription>Tỷ lệ hoàn thành và tiến độ trung bình theo từng khóa học</CardDescription>
+                        <AppCardTitle className="text-lg font-bold">Hiệu Suất Học Viên</AppCardTitle>
+                        <AppCardDescription>Tỷ lệ hoàn thành và tiến độ trung bình theo từng khóa học</AppCardDescription>
                     </div>
                     <Link to="/instructor/courses" className="text-xs text-success font-bold hover:underline px-3 py-1.5 bg-green-50 rounded-lg">
                         Quản lý khóa học
                     </Link>
                 </div>
-            </CardHeader>
-            <CardContent className="p-0">
+            </AppCardHeader>
+            <AppCardContent className="p-0">
                 <div className="overflow-x-auto">
                     <table className="w-full">
                         <thead>
@@ -269,8 +269,8 @@ function CoursePerformanceTable({ courses }) {
                         </tbody>
                     </table>
                 </div>
-            </CardContent>
-        </Card>
+            </AppCardContent>
+        </AppCard>
     );
 }
 

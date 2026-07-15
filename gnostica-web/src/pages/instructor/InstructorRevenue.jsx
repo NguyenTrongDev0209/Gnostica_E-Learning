@@ -19,9 +19,9 @@ import {
   Lock,
   Trash2
 } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import AppCard, { AppCardContent } from "@/components/common/micro/AppCard";
 import { AppButton } from "@/components/common/micro/AppButton";
-import { Badge } from "@/components/ui/badge";
+import AppBadge from "@/components/common/micro/AppBadge";
 import DataTable from "@/components/common/composite/DataTable";
 import { useInstructorRevenue } from "@/hooks/payment/useInstructorRevenue";
 import walletService from "@/services/payment/walletService";
@@ -405,10 +405,10 @@ function InstructorRevenueTable({
             className: "text-center",
             cellClassName: "text-center",
             render: (trx) => (
-                <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-tight py-0 bg-muted border-border text-muted-foreground">
+                <AppBadge variant="outline" className="text-[10px] font-bold uppercase tracking-tight py-0 bg-muted border-border text-muted-foreground">
                     {trx.paymentMethod === "REVENUE" ? "Thanh toán khóa học" :
                         trx.paymentMethod === "WITHDRAW" ? "Rút tiền mặt" : trx.paymentMethod}
-                </Badge>
+                </AppBadge>
             )
         },
         {
@@ -417,19 +417,19 @@ function InstructorRevenueTable({
             cellClassName: "text-center",
             render: (trx) => {
                 if (trx.status === 1) return (
-                    <Badge className="bg-green-50 text-success border-success/20 shadow-none hover:bg-green-50 text-[10px] font-bold py-0.5 inline-flex items-center gap-1">
+                    <AppBadge className="bg-green-50 text-success border-success/20 shadow-none hover:bg-green-50 text-[10px] font-bold py-0.5 inline-flex items-center gap-1">
                         <CheckCircle2 className="w-3 h-3" /> Thành công
-                    </Badge>
+                    </AppBadge>
                 );
                 if (trx.status === 0) return (
-                    <Badge className="bg-amber-50 text-amber-700 border-amber-200 shadow-none hover:bg-amber-50 text-[10px] font-bold py-0.5 inline-flex items-center gap-1">
+                    <AppBadge className="bg-amber-50 text-amber-700 border-amber-200 shadow-none hover:bg-amber-50 text-[10px] font-bold py-0.5 inline-flex items-center gap-1">
                         <Clock className="w-3 h-3" /> Đang chờ
-                    </Badge>
+                    </AppBadge>
                 );
                 return (
-                    <Badge className="bg-rose-50 text-rose-700 border-rose-200 shadow-none hover:bg-rose-50 text-[10px] font-bold py-0.5 inline-flex items-center gap-1">
+                    <AppBadge className="bg-rose-50 text-rose-700 border-rose-200 shadow-none hover:bg-rose-50 text-[10px] font-bold py-0.5 inline-flex items-center gap-1">
                         <XCircle className="w-3 h-3" /> Thất bại
-                    </Badge>
+                    </AppBadge>
                 );
             }
         }
@@ -542,9 +542,9 @@ export default function InstructorRevenue() {
             color: "blue"
           },
         ].map((stat, i) => (
-          <Card key={i} className={`group hover-lift border-border shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden relative rounded-2xl ${stat.dark ? 'bg-muted text-white' : 'bg-white'}`}>
+          <AppCard key={i} className={`group hover-lift border-border shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden relative rounded-2xl ${stat.dark ? 'bg-muted text-white' : 'bg-white'}`}>
             <div className={`absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 rounded-full ${stat.dark ? 'bg-white/5' : `bg-${stat.color}-50/50 group-hover:bg-${stat.color}-100/50`} transition-colors duration-500`} />
-            <CardContent className="p-6 flex items-center gap-4 relative z-10">
+            <AppCardContent className="p-6 flex items-center gap-4 relative z-10">
               <div className={`w-12 h-12 rounded-2xl ${stat.dark ? 'bg-white/10 text-white' : `bg-${stat.color}-50 text-${stat.color}-600 border border-${stat.color}-100`} flex items-center justify-center group-hover:scale-110 transition-transform duration-500 shadow-sm`}>
                 <stat.icon className="w-6 h-6" />
               </div>
@@ -562,8 +562,8 @@ export default function InstructorRevenue() {
                   <span className="text-[10px] font-bold text-muted-foreground mt-0.5">{stat.sub}</span>
                 )}
               </div>
-            </CardContent>
-          </Card>
+            </AppCardContent>
+          </AppCard>
         ))}
       </div>
 
