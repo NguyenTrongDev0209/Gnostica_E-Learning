@@ -1,13 +1,12 @@
 import React from "react";
-import { Search, BookOpen, Trophy, Clock } from "lucide-react";
+import { BookOpen, Trophy, Clock } from "lucide-react";
 import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
 import AppCard, { AppCardContent } from "@/components/common/micro/AppCard";
-import AppInput from "@/components/common/micro/AppInput";
-import AppSelect from "@/components/common/micro/AppSelect";
 import { AppCheckbox } from "@/components/common/micro/AppCheckbox";
 import AppPagination from "@/components/common/micro/AppPagination";
 import { Skeleton } from "@/components/ui/skeleton";
 import AppPageHeader from "@/components/common/composite/AppPageHeader";
+import DataFilter, { DataFilterSidebarChecklist } from "@/components/common/composite/DataFilter";
 import useMyCourses from "@/hooks/course/useMyCourses";
 import MyCourseGrid from "@/pages/account/components/MyCourseGrid";
 
@@ -21,6 +20,8 @@ export default function MyCourses() {
     setStatusFilter,
     selectedCategories,
     setSelectedCategories,
+    dateRange,
+    setDateRange,
     categories,
     currentPage,
     setCurrentPage,
@@ -29,6 +30,10 @@ export default function MyCourses() {
   } = useMyCourses();
 
   const handleCategoryToggle = (category) => {
+    if (category === "CLEAR_ALL") {
+      setSelectedCategories([]);
+      return;
+    }
     setSelectedCategories(prev => 
       prev.includes(category)
         ? prev.filter(c => c !== category)
@@ -106,32 +111,20 @@ export default function MyCourses() {
         
         {/* Left Column: Course Grid */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="flex flex-col sm:flex-row gap-4 bg-card p-4 rounded-xl border border-border shadow-sm">
-            <div className="flex-1">
-              <AppInput 
-                icon={Search}
-                placeholder="Tìm kiếm khóa học..." 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                containerClassName="w-full"
-                className="bg-muted focus:bg-white"
-              />
-            </div>
-            <div className="w-full sm:w-[200px]">
-              <AppSelect 
-                value={statusFilter} 
-                onValueChange={setStatusFilter}
-                placeholder="Trạng thái"
-                className="bg-muted focus:bg-white border-none"
-                options={[
-                  { label: "Tất cả trạng thái", value: "all" },
-                  { label: "Chưa bắt đầu", value: "not_started" },
-                  { label: "Đang học", value: "in_progress" },
-                  { label: "Đã hoàn thành", value: "completed" },
-                ]}
-              />
-            </div>
-          </div>
+          <DataFilter
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            searchPlaceholder="Tìm kiếm khóa học..."
+            filterValue={statusFilter}
+            onFilterChange={setStatusFilter}
+            filterPlaceholder="Trạng thái"
+            filterOptions={[
+              { label: "Tất cả trạng thái", value: "all" },
+              { label: "Chưa bắt đầu", value: "not_started" },
+              { label: "Đang học", value: "in_progress" },
+              { label: "Đã hoàn thành", value: "completed" },
+            ]}
+          />
           
           <MyCourseGrid loading={loading} courses={courses} />
 
@@ -147,23 +140,16 @@ export default function MyCourses() {
 
         {/* Right Column: Filters Sidebar */}
         <div className="space-y-6">
-          <AppCard appVariant="default" className="sticky top-24 p-5 shadow-sm">
-            <h3 className="font-bold text-foreground text-base mb-4">Danh mục khóa học</h3>
-            <div className="space-y-3">
-              {categories.map((category) => (
-                <AppCheckbox
-                  key={category}
-                  id={`cat-${category}`}
-                  label={category}
-                  checked={selectedCategories.includes(category)}
-                  onCheckedChange={() => handleCategoryToggle(category)}
-                />
-              ))}
-              {categories.length === 0 && !loading && (
-                <p className="text-sm text-muted-foreground">Không có danh mục nào.</p>
-              )}
-            </div>
-          </AppCard>
+          <div className="sticky top-24">
+            <DataFilterSidebarChecklist
+              dateRange={dateRange}
+              onDateRangeChange={setDateRange}
+              items={categories}
+              selectedItems={selectedCategories}
+              onItemToggle={handleCategoryToggle}
+              emptyMessage={!loading ? "Không có danh mục nào." : "Đang tải..."}
+            />
+          </div>
         </div>
         
       </div>

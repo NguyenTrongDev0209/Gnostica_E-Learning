@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
 import AppPageHeader from "@/components/common/composite/AppPageHeader";
 import DataTable from "@/components/common/composite/DataTable";
-import FilterOptions from "@/components/common/composite/FilterOptions";
+import DataFilter from "@/components/common/composite/DataFilter";
 import { ShoppingBag, Eye, Download } from "lucide-react";
 import useOrders from "@/hooks/account/useOrders";
 import { AppButton } from "@/components/common/micro/AppButton";
@@ -17,6 +17,10 @@ export default function Orders() {
     setCurrentPage,
     pageSize,
     setPageSize,
+    searchQuery,
+    setSearchQuery,
+    dateRange,
+    setDateRange,
     totalItems,
     totalPages
   } = useOrders();
@@ -111,7 +115,13 @@ export default function Orders() {
       />
 
       <div className="mb-6">
-        <FilterOptions onFilterChange={() => {}} selectedFilters={{}} />
+        <DataFilter 
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          searchPlaceholder="Tìm kiếm mã đơn hàng..."
+          dateRange={dateRange}
+          onDateRangeChange={setDateRange}
+        />
       </div>
 
       <DataTable 

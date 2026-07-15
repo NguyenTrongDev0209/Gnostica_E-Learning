@@ -41,6 +41,8 @@ export default function useOrders() {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [dateRange, setDateRange] = useState(null);
 
   useEffect(() => {
     // Simulate API fetch
@@ -55,14 +57,30 @@ export default function useOrders() {
     fetchOrders();
   }, []);
 
+  const filteredOrders = orders.filter(order => {
+    const matchesSearch = order.id.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    // Mock logic for dateRange
+    let matchesDate = true;
+    if (dateRange?.from) {
+      matchesDate = true; // In a real app, parse order.date and compare
+    }
+
+    return matchesSearch && matchesDate;
+  });
+
   return { 
-    orders, 
+    orders: filteredOrders, 
     loading,
     currentPage,
     setCurrentPage,
     pageSize,
     setPageSize,
-    totalItems: ORDERS_DATA.length,
-    totalPages: Math.ceil(ORDERS_DATA.length / pageSize) || 1
+    searchQuery,
+    setSearchQuery,
+    dateRange,
+    setDateRange,
+    totalItems: filteredOrders.length,
+    totalPages: Math.ceil(filteredOrders.length / pageSize) || 1
   };
 }
