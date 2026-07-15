@@ -11,7 +11,7 @@ import {
   CheckCircle2
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { GhostButton, SimpleButton } from "@/components/common/AppButton";
+import { AppButton } from "@/components/common/micro/AppButton";
 import { useInstructorRevenue } from "@/hooks/payment/useInstructorRevenue";
 import WithdrawModal from "./components/WithdrawModal";
 import InstructorRevenueTable from "@/pages/instructor/components/InstructorRevenueTable";
@@ -66,17 +66,17 @@ export default function InstructorRevenue() {
           </p>
         </div>
         <div className="flex gap-3">
-          <GhostButton className="btn-md font-bold flex items-center gap-2 border border-border hover:bg-muted transition-all rounded-xl">
+          <AppButton appVariant="ghostMuted" variant="ghost" className="btn-md font-bold flex items-center gap-2 border border-border hover:bg-muted transition-all rounded-xl">
             <Download className="w-4 h-4" />
             Xuất Excel
-          </GhostButton>
-          <SimpleButton
+          </AppButton>
+          <AppButton appVariant="gradient"
             onClick={() => setIsWithdrawOpen(true)}
             className="btn-md bg-success/10 text-success hover:bg-success/20 font-bold rounded-xl transition-all hover:scale-[1.02]"
           >
             <WalletIcon className="w-4 h-4 mr-2" />
             Rút Tiền
-          </SimpleButton>
+          </AppButton>
         </div>
       </div>
 

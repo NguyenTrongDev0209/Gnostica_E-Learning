@@ -12,7 +12,7 @@ import {
   Layout
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { GhostButton, SimpleButton } from "@/components/common/AppButton";
+import { AppButton } from "@/components/common/micro/AppButton";
 import { 
   BarChart, 
   Bar, 
@@ -64,12 +64,12 @@ export default function InstructorReports() {
           </p>
         </div>
         <div className="flex gap-2">
-          <GhostButton className="border border-border">
+          <AppButton appVariant="ghostMuted" variant="ghost" className="border border-border">
             <Calendar className="w-4 h-4 mr-2" /> 30 ngày qua
-          </GhostButton>
-          <SimpleButton className="bg-success/10 text-success hover:bg-success/20 font-bold">
+          </AppButton>
+          <AppButton appVariant="gradient" className="bg-success/10 text-success hover:bg-success/20 font-bold">
             <Download className="w-4 h-4 mr-2" /> Tải báo cáo PDF
-          </SimpleButton>
+          </AppButton>
         </div>
       </div>
 

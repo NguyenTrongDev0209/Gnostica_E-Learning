@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import {
     Calendar,
     ArrowUpRight,
@@ -8,7 +8,7 @@ import {
     XCircle,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import AppTable from "@/components/common/AppTable";
+import DataTable from "@/components/common/composite/DataTable";
 
 const formatVND = (amount) =>
     new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(amount);
@@ -111,7 +111,7 @@ export default function InstructorRevenueTable({
 
     return (
         <div className="animate-fade-up">
-            <AppTable 
+            <DataTable 
                 columns={columns}
                 data={transactions}
                 emptyState="Chưa có giao dịch nào được ghi nhận."

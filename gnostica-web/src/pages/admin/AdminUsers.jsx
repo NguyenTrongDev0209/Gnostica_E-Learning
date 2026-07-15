@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import {
   Plus,
   Search,
@@ -11,10 +11,10 @@ import {
   Lock,
   Unlock
 } from "lucide-react";
-import AppTable from "@/components/common/AppTable";
+import DataTable from "@/components/common/composite/DataTable";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { SimpleButton, GhostButton } from "@/components/common/AppButton";
+import { AppButton } from "@/components/common/micro/AppButton";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -107,21 +107,21 @@ export default function AdminUsers() {
       render: (acc) => (
         <div className="flex justify-end items-center gap-2">
           {acc.locked ? (
-            <SimpleButton
+            <AppButton appVariant="gradient"
               size="sm"
               className={`h-9 font-bold gap-2 bg-emerald-600 hover:bg-emerald-700 text-white border-none`}
               onClick={() => handleToggleLock(acc)}
             >
               <Unlock className="w-4 h-4" /> Mở khóa
-            </SimpleButton>
+            </AppButton>
           ) : (
-            <GhostButton
+            <AppButton appVariant="ghostMuted" variant="ghost"
               size="sm"
               className={`h-9 font-bold gap-2 border border-error/20 text-error hover:bg-red-50 hover:text-error bg-white`}
               onClick={() => handleToggleLock(acc)}
             >
               <Lock className="w-4 h-4" /> Khóa
-            </GhostButton>
+            </AppButton>
           )}
         </div>
       )
@@ -184,14 +184,14 @@ export default function AdminUsers() {
       cellClassName: "text-right",
       render: (app) => (
         <div className="flex justify-end items-center gap-2">
-          <GhostButton
+          <AppButton appVariant="ghostMuted" variant="ghost"
             size="sm"
             className="border border-success/20 text-success hover:bg-green-50 bg-white font-bold"
             onClick={() => handleApprove(app.accountId)}
           >
             Phê duyệt
-          </GhostButton>
-          <GhostButton
+          </AppButton>
+          <AppButton appVariant="ghostMuted" variant="ghost"
             size="sm"
             className="border border-error/20 text-error hover:bg-red-50 bg-white font-bold"
             onClick={() => {
@@ -201,7 +201,7 @@ export default function AdminUsers() {
             }}
           >
             Từ chối
-          </GhostButton>
+          </AppButton>
         </div>
       )
     }
@@ -237,16 +237,16 @@ export default function AdminUsers() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <GhostButton className="h-10 px-3 flex items-center gap-2 border border-border bg-white text-foreground hover:bg-muted font-bold">
+            <AppButton appVariant="ghostMuted" variant="ghost" className="h-10 px-3 flex items-center gap-2 border border-border bg-white text-foreground hover:bg-muted font-bold">
               <Filter className="w-4 h-4" />
               Lọc
-            </GhostButton>
+            </AppButton>
           </div>
         </div>
 
         <TabsContent value="USER" className="mt-0">
           <Card className="border-border shadow-sm overflow-hidden border-none bg-transparent">
-            <AppTable
+            <DataTable 
               columns={accountColumns}
               data={filteredAccounts}
               isLoading={loading}
@@ -260,7 +260,7 @@ export default function AdminUsers() {
 
         <TabsContent value="INSTRUCTOR" className="mt-0">
           <Card className="border-border shadow-sm overflow-hidden border-none bg-transparent">
-            <AppTable
+            <DataTable 
               columns={accountColumns}
               data={filteredAccounts}
               isLoading={loading}
@@ -274,7 +274,7 @@ export default function AdminUsers() {
 
         <TabsContent value="PENDING_APP" className="mt-0">
           <Card className="border-border shadow-sm overflow-hidden border-none bg-transparent">
-            <AppTable
+            <DataTable 
               columns={applicationColumns}
               data={applications}
               isLoading={loading}
@@ -302,10 +302,10 @@ export default function AdminUsers() {
             />
           </div>
           <DialogFooter>
-            <GhostButton className="border-none hover:bg-muted font-bold" onClick={() => setLockDialogOpen(false)}>Hủy</GhostButton>
-            <SimpleButton className="bg-error/10 text-error hover:bg-error/20 text-error font-bold border-none" onClick={confirmLock}>
+            <AppButton appVariant="ghostMuted" variant="ghost" className="border-none hover:bg-muted font-bold" onClick={() => setLockDialogOpen(false)}>Hủy</AppButton>
+            <AppButton appVariant="gradient" className="bg-error/10 text-error hover:bg-error/20 text-error font-bold border-none" onClick={confirmLock}>
               Xác nhận khóa
-            </SimpleButton>
+            </AppButton>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -327,10 +327,10 @@ export default function AdminUsers() {
             />
           </div>
           <DialogFooter>
-            <GhostButton className="border-none hover:bg-muted font-bold" onClick={() => setRejectDialogOpen(false)}>Hủy</GhostButton>
-            <SimpleButton className="bg-error/10 text-error hover:bg-error/20 text-error font-bold border-none" onClick={handleReject}>
+            <AppButton appVariant="ghostMuted" variant="ghost" className="border-none hover:bg-muted font-bold" onClick={() => setRejectDialogOpen(false)}>Hủy</AppButton>
+            <AppButton appVariant="gradient" className="bg-error/10 text-error hover:bg-error/20 text-error font-bold border-none" onClick={handleReject}>
               Xác nhận từ chối
-            </SimpleButton>
+            </AppButton>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -341,9 +341,9 @@ export default function AdminUsers() {
           <DialogHeader className="mb-2 shrink-0">
             <DialogTitle className="text-xl font-bold flex justify-between items-center pr-6 text-slate-800">
               {previewDocument?.title || "Xem trước tài liệu"}
-              <GhostButton size="sm" className="h-8 border border-border bg-white hover:bg-muted font-bold" onClick={() => window.open(previewDocument?.url, '_blank')}>
+              <AppButton appVariant="ghostMuted" variant="ghost" size="sm" className="h-8 border border-border bg-white hover:bg-muted font-bold" onClick={() => window.open(previewDocument?.url, '_blank')}>
                 Mở trong tab mới
-              </GhostButton>
+              </AppButton>
             </DialogTitle>
           </DialogHeader>
           <div className="flex-1 w-full bg-slate-100/50 rounded-lg overflow-hidden border border-border flex items-center justify-center relative">

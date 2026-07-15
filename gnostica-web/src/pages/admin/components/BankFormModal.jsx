@@ -5,7 +5,7 @@ import * as z from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { GhostButton, SimpleButton } from "@/components/common/AppButton";
+import { AppButton } from "@/components/common/micro/AppButton";
 import { Building2, Hash, Image as ImageIcon, ToggleLeft } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -182,16 +182,16 @@ export function BankFormModal({ isOpen, onOpenChange, onSave, editingBank }) {
             />
 
             <DialogFooter className="pt-4 gap-2">
-              <GhostButton
+              <AppButton appVariant="ghostMuted" variant="ghost"
                 type="button"
                 onClick={() => onOpenChange(false)}
                 className="px-6 border border-border"
               >
                 Hủy
-              </GhostButton>
-              <SimpleButton type="submit" className="px-8 font-bold">
+              </AppButton>
+              <AppButton appVariant="gradient" type="submit" className="px-8 font-bold">
                 {editingBank ? "Cập nhật" : "Thêm mới"}
-              </SimpleButton>
+              </AppButton>
             </DialogFooter>
           </form>
         </Form>

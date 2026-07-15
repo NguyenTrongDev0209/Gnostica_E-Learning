@@ -15,7 +15,7 @@ import {
   History,
   ShieldCheck
 } from "lucide-react";
-import { AppLogo } from "@/components/common/AppButton";
+import { AppLogo } from "@/components/common/micro/AppButton";
 
 export const ADMIN_MENU_GROUPS = [
   {

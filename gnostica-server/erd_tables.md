@@ -40,7 +40,7 @@
 | 4 | full_name | VARCHAR(255) | | |
 | 5 | phone | VARCHAR(12) | | |
 | 6 | password | VARCHAR(255) | | |
-| 7 | avatar | VARCHAR(255) | | |
+| 7 | avatar | VARCHAR(2048) | | |
 | 8 | provider | VARCHAR(255) | IDX | |
 | 9 | birth_day | DATE | | |
 | 10 | metadata | JSONB | | |

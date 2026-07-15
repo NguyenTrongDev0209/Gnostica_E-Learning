@@ -316,6 +316,19 @@ public class AuthServiceImpl implements AuthService {
         accountRepository.save(account);
     }
 
+    @Override
+    public void changePassword(String email, String currentPassword, String newPassword) {
+        Account account = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Tai khoan khong ton tai."));
+        
+        if (!passwordEncoder.matches(currentPassword, account.getPassword())) {
+            throw new RuntimeException("Mật khẩu hiện tại không đúng.");
+        }
+        
+        account.setPassword(passwordEncoder.encode(newPassword));
+        accountRepository.save(account);
+    }
+
     private void validateOtp(String purpose, String email, String code) {
         if (!otpService.exists(purpose, email)) {
             throw new RuntimeException("Ma xac thuc da het han.");

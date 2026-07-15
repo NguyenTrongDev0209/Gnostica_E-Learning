@@ -2,6 +2,7 @@ import React from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import useAuthStore from '@/store/useAuthStore';
 import AccountSidebar from "@/components/fragments/AccountSidebar";
+import { PageContainer } from "@/components/common/core/PageContainer";
 
 const AccountLayout = () => {
   const navigate = useNavigate();
@@ -21,8 +22,8 @@ const AccountLayout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20">
-      <main className="app-container py-8">
+    <PageContainer className="pb-20">
+      <PageContainer.Content className="py-8">
         <div className="flex flex-col lg:flex-row gap-8">
           <AccountSidebar user={user} currentUser={currentUser} handleLogout={handleLogout} />
 
@@ -30,8 +31,8 @@ const AccountLayout = () => {
             <Outlet />
           </div>
         </div>
-      </main>
-    </div>
+      </PageContainer.Content>
+    </PageContainer>
   );
 };
 

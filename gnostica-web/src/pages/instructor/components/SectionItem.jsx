@@ -155,23 +155,23 @@ export default function SectionItem({ sectionIndex, control, uploadVideoToBunny,
               )}
             />
             {watch(`sections.${sectionIndex}.quiz.questionIds`)?.length > 0 ? (
-              <SimpleButton
+              <AppButton appVariant="gradient"
                 type="button"
                 onClick={() => setIsQuizModalOpen(true)}
                 className="w-full h-10 border-emerald-300 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 hover:text-emerald-800 font-bold gap-2 shadow-sm transition-all border"
               >
                 <CheckCircle2 size={16} className="text-emerald-600" />
                 <span>Đã có bài Quiz ({watch(`sections.${sectionIndex}.quiz.questionIds`).length} câu) - Chỉnh sửa</span>
-              </SimpleButton>
+              </AppButton>
             ) : (
-              <SimpleButton
+              <AppButton appVariant="gradient"
                 type="button"
                 onClick={() => setIsQuizModalOpen(true)}
                 className="w-full h-10 border-indigo-200 text-indigo-700 hover:bg-indigo-50 hover:text-indigo-800 font-bold gap-2 border-dashed bg-transparent shadow-none"
               >
                 <Database size={16} />
                 Tạo bài Quiz cho chương này
-              </SimpleButton>
+              </AppButton>
             )}
           </div>
         </div>
@@ -545,13 +545,13 @@ export default function SectionItem({ sectionIndex, control, uploadVideoToBunny,
             </div>
 
             <div className="px-6 py-4 border-t border-border bg-muted flex justify-end gap-3">
-              <GhostButton type="button" onClick={handleCancelQuiz} className="h-11 px-6 font-bold border border-border bg-white hover:bg-secondary text-muted-foreground">
+              <AppButton appVariant="ghostMuted" variant="ghost" type="button" onClick={handleCancelQuiz} className="h-11 px-6 font-bold border border-border bg-white hover:bg-secondary text-muted-foreground">
                 Hủy
-              </GhostButton>
-              <SimpleButton type="button" onClick={handleSaveQuiz} className="h-11 px-8 font-bold bg-indigo-600 hover:bg-indigo-700 text-white gap-2 shadow-md shadow-indigo-100 border-none">
+              </AppButton>
+              <AppButton appVariant="gradient" type="button" onClick={handleSaveQuiz} className="h-11 px-8 font-bold bg-indigo-600 hover:bg-indigo-700 text-white gap-2 shadow-md shadow-indigo-100 border-none">
                 <Save size={16} />
                 Lưu Bài Quiz
-              </SimpleButton>
+              </AppButton>
             </div>
           </div>
         </div>

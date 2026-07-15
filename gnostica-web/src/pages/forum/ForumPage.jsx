@@ -1,24 +1,15 @@
 import React, { useState } from 'react';
-import SectionContainer, { PageHeader } from '@/components/common/AppSection';
-import { ForumPostCard } from "@/components/common/AppCard";
-import { Button } from "@/components/ui/button";
-import { Search, Menu, Star, Tag } from 'lucide-react';
-import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { useNavigate, Link, useLocation } from "react-router-dom";
-import { Badge } from "@/components/ui/badge";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
+import PageContainer from "@/components/common/core/PageContainer";
+import { ForumPostCard } from "@/components/common/composite/CourseCard";
+import { Search } from 'lucide-react';
+import AppInput from "@/components/common/micro/AppInput";
+import { useNavigate, useLocation } from "react-router-dom";
+import AppPagination from "@/components/common/micro/AppPagination";
 import { useForumPage } from '@/hooks/forum/useForumPage';
 import useAuthStore from '@/store/useAuthStore';
+import { AppButton } from "@/components/common/micro/AppButton";
+import ForumSidebar from './components/ForumSidebar';
+import AppSkeleton from "@/components/common/micro/AppSkeleton";
 
 const ForumPage = () => {
   const navigate = useNavigate();
@@ -65,8 +56,8 @@ const ForumPage = () => {
     const plainText = stripHtml(thread.content);
     return {
       id: thread.id,
-      title: thread.title || (stripHtml(thread.content).substring(0, 60) + (stripHtml(thread.content).length > 60 ? "..." : "")),
-      content: stripHtml(thread.content),
+      title: thread.title || (plainText.substring(0, 60) + (plainText.length > 60 ? "..." : "")),
+      content: plainText,
       author: {
         name: thread.account?.fullName || "Ẩn danh",
         avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${thread.account?.email || 'default'}`,
@@ -110,20 +101,19 @@ const ForumPage = () => {
 
   return (
     <div className="min-h-screen bg-muted pb-16 pt-8">
-      <SectionContainer containerClassName="w-full">
+      <PageContainer.Section className="w-full app-container">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 sm:mb-12 gap-4">
-          <PageHeader
-            title="Diễn đàn"
-            highlightedTitle="Cộng đồng"
+          <PageContainer.Header
+            title={<>Diễn đàn <span className="bg-accent-gradient bg-clip-text text-transparent italic">Cộng đồng</span></>}
             description="Nơi giao lưu, hỏi đáp và chia sẻ kiến thức về lập trình, công nghệ."
             className="mb-0 sm:mb-0"
           />
-          <Button
-            className="bg-button-gradient hover:brightness-110 md:w-auto w-full font-bold"
+          <AppButton appVariant="gradient"
+            className="md:w-auto w-full"
             onClick={() => navigate('/forum/create')}
           >
             + Tạo bài viết mới
-          </Button>
+          </AppButton>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
@@ -134,7 +124,7 @@ const ForumPage = () => {
             <div className="flex flex-col sm:flex-row gap-4 mb-2">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input
+                <AppInput
                   placeholder="Tìm kiếm chủ đề, tag..."
                   className="pl-9 bg-white h-11"
                   value={searchQuery}
@@ -145,9 +135,10 @@ const ForumPage = () => {
 
             {/* Post List */}
             {isLoading ? (
-              <div className="flex flex-col items-center justify-center py-16 bg-white rounded-lg border">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                <p className="mt-4 text-muted-foreground">Đang tải bài viết...</p>
+              <div className="flex flex-col gap-4">
+                {[1, 2, 3].map(i => (
+                  <AppSkeleton key={i} className="h-40 w-full rounded-xl bg-white" />
+                ))}
               </div>
             ) : currentPosts.length > 0 ? (
               <div className="flex flex-col gap-4">
@@ -164,165 +155,34 @@ const ForumPage = () => {
                 <p className="text-muted-foreground text-sm max-w-sm">
                   Thử thay đổi từ khóa tìm kiếm hoặc chọn danh mục khác xem sao.
                 </p>
-                <Button variant="outline" className="mt-4" onClick={() => { setSearchQuery(""); setActiveCategory("Tất cả"); navigate("/forum"); }}>
+                <AppButton appVariant="ghostMuted" variant="ghost" className="mt-4 border border-border" onClick={() => { setSearchQuery(""); setActiveCategory("Tất cả"); navigate("/forum"); }}>
                   Xóa bộ lọc
-                </Button>
+                </AppButton>
               </div>
             )}
 
             {/* Pagination Component */}
             {totalPages > 1 && (
               <div className="flex justify-center mt-8 mb-4">
-                <Pagination>
-                  <PaginationContent>
-                    <PaginationItem>
-                      <Button
-                        variant="ghost"
-                        disabled={currentPage === 0}
-                        onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
-                        className="gap-1 pl-2.5"
-                      >
-                        <PaginationPrevious className="hover:bg-transparent p-0" />
-                      </Button>
-                    </PaginationItem>
-
-                    {[...Array(totalPages)].map((_, i) => (
-                      <PaginationItem key={i}>
-                        <PaginationLink
-                          onClick={() => setCurrentPage(i)}
-                          isActive={currentPage === i}
-                          className="cursor-pointer"
-                        >
-                          {i + 1}
-                        </PaginationLink>
-                      </PaginationItem>
-                    ))}
-
-                    <PaginationItem>
-                      <Button
-                        variant="ghost"
-                        disabled={currentPage === totalPages - 1}
-                        onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
-                        className="gap-1 pr-2.5"
-                      >
-                        <PaginationNext className="hover:bg-transparent p-0" />
-                      </Button>
-                    </PaginationItem>
-                  </PaginationContent>
-                </Pagination>
+                <AppPagination 
+                  currentPage={currentPage + 1} 
+                  totalPages={totalPages} 
+                  onPageChange={(page) => setCurrentPage(page - 1)} 
+                />
               </div>
             )}
           </div>
 
           {/* Sidebar */}
-          <div className="w-full lg:w-72 xl:w-80 flex flex-col gap-6 shrink-0">
-            {/* Categories Widget */}
-            <Card className="bg-white shadow-sm border-border">
-              <CardContent className="p-5">
-                <h3 className="font-bold text-base mb-4 flex items-center gap-2">
-                  <Menu className="w-5 h-5 text-primary" />
-                  Danh mục chủ đề
-                </h3>
-                <div className="flex flex-col gap-1">
-                  <button
-                    onClick={() => setActiveCategory("Tất cả")}
-                    className={`flex items-center justify-between px-3 py-2 rounded-md text-sm transition-colors ${activeCategory === "Tất cả"
-                      ? "bg-primary/10 text-primary font-semibold"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                      }`}
-                  >
-                    <span>Tất cả chủ đề</span>
-                  </button>
-                  {categories.map((cat) => (
-                    <button
-                      key={cat.id}
-                      onClick={() => setActiveCategory(cat.name)}
-                      className={`flex items-center justify-between px-3 py-2 rounded-md text-sm transition-colors group ${activeCategory === cat.name
-                        ? "bg-primary/10 text-primary font-semibold"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                        }`}
-                    >
-                      <span className="truncate pr-2">{cat.name}</span>
-                      <Badge variant="secondary" className={`text-[10px] px-1.5 py-0 border-none transition-colors ${activeCategory === cat.name ? "bg-primary/20 text-primary" : "bg-secondary text-muted-foreground group-hover:bg-muted"
-                        }`}>
-                        {cat.threadCount || 0}
-                      </Badge>
-                    </button>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-
-            {/* Top Contributors Widget */}
-            <Card className="bg-white shadow-sm border-border hidden lg:block">
-              <CardContent className="p-5">
-                <h3 className="font-bold text-base mb-4 flex items-center gap-2">
-                  <Star className="w-5 h-5 text-primary fill-primary" />
-                  Người nổi bật
-                </h3>
-                <div className="flex flex-col gap-4">
-                  {topContributors.length > 0 ? (
-                    topContributors.map((item, index) => (
-                      <div key={item.account.id} className="flex items-center gap-3">
-                        <Avatar size="sm" className="w-8 h-8">
-                          <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${item.account.email || 'default'}`} />
-                          <AvatarFallback>{item.account.fullName?.substring(0, 1).toUpperCase() || "U"}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex flex-col overflow-hidden">
-                          <span className="text-sm font-semibold text-foreground truncate">
-                            {item.account.fullName || "Ẩn danh"}
-                          </span>
-                          <span className="text-[10px] text-muted-foreground">
-                            {item.totalLikes} lượt thích · {item.threadCount} bài viết
-                          </span>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-xs text-muted-foreground text-center py-2">Chưa có dữ liệu</p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-            
-            {/* "Me" Section */}
-            {currentUser && (
-              <Card className="bg-white shadow-sm border-border">
-                <CardContent className="p-5">
-                  <h3 className="font-bold text-base mb-4 flex items-center gap-2">
-                    <Avatar className="w-5 h-5">
-                      <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.email || 'default'}`} />
-                      <AvatarFallback>{currentUser.fullName?.substring(0, 1).toUpperCase() || "U"}</AvatarFallback>
-                    </Avatar>
-                    Tôi
-                  </h3>
-                  <Link 
-                    to="/forum/me"
-                    className="flex items-center gap-3 p-2 -mx-2 rounded-lg hover:bg-muted transition-colors group"
-                  >
-                    <Avatar className="w-10 h-10 ring-2 ring-primary/10 group-hover:ring-primary/30 transition-all">
-                      <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.email || 'default'}`} />
-                      <AvatarFallback className="bg-primary/10 text-primary font-bold">
-                        {currentUser.fullName?.substring(0, 2).toUpperCase() || "U"}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex flex-col overflow-hidden">
-                      <span className="text-sm font-semibold text-foreground truncate group-hover:text-primary transition-colors">
-                        {currentUser.fullName || "Tài khoản của tôi"}
-                      </span>
-                      <span className="text-xs text-muted-foreground flex items-center gap-1">
-                        Xem bài viết của tôi
-                      </span>
-                    </div>
-                  </Link>
-                </CardContent>
-              </Card>
-            )}
-
-          </div>
+          <ForumSidebar 
+            categories={categories}
+            activeCategory={activeCategory}
+            setActiveCategory={setActiveCategory}
+            topContributors={topContributors}
+            currentUser={currentUser}
+          />
         </div>
-      </SectionContainer>
+      </PageContainer.Section>
     </div>
   );
 };

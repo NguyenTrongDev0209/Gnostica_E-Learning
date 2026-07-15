@@ -6,7 +6,6 @@ import { Separator } from "@/components/ui/separator";
 import {
   LayoutDashboard,
   BookOpen,
-  Activity,
   Award,
   ShoppingBag,
   Heart,
@@ -24,17 +23,16 @@ const MENU_GROUPS = [
     items: [
       { label: "Tổng quan", icon: LayoutDashboard, href: "/account" },
       { label: "Khóa học của tôi", icon: BookOpen, href: "/account/my-courses" },
-      { label: "Tiến độ học tập", icon: Activity, href: "/account/progress" },
       { label: "Giảng viên yêu thích", icon: Users, href: "/account/following" },
       { label: "Chứng chỉ", icon: Award, href: "/account/certificates" },
     ],
   },
   {
-    title: "Giao dịch",
+    title: "Thanh toán",
     items: [
       { label: "Danh sách yêu thích", icon: Heart, href: "/account/wishlist" },
       { label: "Lịch sử đơn hàng", icon: ShoppingBag, href: "/account/orders" },
-      { label: "Kho Voucher", icon: Ticket, href: "/account/vouchers", badge: "2" },
+      { label: "Kho giảm giá", icon: Ticket, href: "/account/vouchers", badge: "2" },
     ],
   },
   {
@@ -42,7 +40,7 @@ const MENU_GROUPS = [
     items: [
       { label: "Thông báo", icon: Bell, href: "/account/notifications" },
       { label: "Hồ sơ cá nhân", icon: UserCog, href: "/account/settings" },
-      { label: "Bảo mật & Mật khẩu", icon: KeyRound, href: "/account/change-password" },
+      { label: "Bảo mật", icon: KeyRound, href: "/account/change-password" },
     ],
   },
 ];

@@ -1,7 +1,7 @@
-import React from 'react';
-import AppTable from "@/components/common/AppTable";
+﻿import React from 'react';
+import DataTable from "@/components/common/composite/DataTable";
 import { Badge } from "@/components/ui/badge";
-import { TableActionIconButton } from "@/components/common/AppButton";
+import { TableActionIconButton } from "@/components/common/micro/AppButton";
 import { Eye, CreditCard, ArrowDownCircle, ArrowUpCircle, ShoppingBag } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { format } from "date-fns";
@@ -37,7 +37,7 @@ export function TransactionTable({ transactions, isLoading, onDetailClick, start
 
     <Card className="border-border shadow-sm overflow-hidden">
       <div className="px-4 pb-2">
-        <AppTable
+        <DataTable
           columns={[
             {
               header: "STT",

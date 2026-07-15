@@ -3,9 +3,9 @@ import { Link } from 'react-router-dom';
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { ArrowRight, Mail, User } from 'lucide-react';
-import { SimpleButton } from '@/components/common/AppButton';
-import AppInput, { AppPasswordInput } from '@/components/common/AppInput';
-import AppDivider from '@/components/common/AppDivider';
+import { AppButton } from "@/components/common/micro/AppButton";
+import AppInput, { AppPasswordInput } from '@/components/common/micro/AppInput';
+import AppSeparator from '@/components/common/micro/AppSeparator';
 import AuthSocialLogin from './components/AuthSocialLogin';
 import AuthCard from './components/AuthCard';
 import { useRegister } from '@/hooks/auth/useRegister';
@@ -105,7 +105,7 @@ const RegisterPage = () => {
         </div>
 
         {/* Submit */}
-        <SimpleButton
+        <AppButton appVariant="gradient"
           type="submit"
           className="w-full mt-1 gap-2"
           disabled={loading}
@@ -117,10 +117,10 @@ const RegisterPage = () => {
             </svg>
           ) : <ArrowRight className="w-4 h-4" />}
           {loading ? 'Đang tạo tài khoản...' : 'Đăng ký'}
-        </SimpleButton>
+        </AppButton>
       </form>
 
-      <AppDivider text="Hoặc" />
+      <AppSeparator text="Hoặc" />
 
       <AuthSocialLogin />
 

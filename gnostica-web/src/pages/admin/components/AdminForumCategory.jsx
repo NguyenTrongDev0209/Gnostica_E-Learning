@@ -7,10 +7,15 @@ import {
   MessageSquare,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import AppTable from "@/components/common/AppTable";
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { SimpleButton, TableActionIconButton, GhostButton } from "@/components/common/AppButton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { TableActionIconButton, AppButton } from "@/components/common/micro/AppButton";
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -195,13 +200,13 @@ export default function AdminForumCategory({ hideHeader = false }) {
         ) : (
           <div />
         )}
-        <SimpleButton
+        <AppButton appVariant="gradient"
           className="flex items-center gap-2"
           onClick={() => setIsAddModalOpen(true)}
         >
           <Plus className="w-4 h-4" />
           Thêm Chủ Đề
-        </SimpleButton>
+        </AppButton>
       </div>
 
       {/* Filter */}
@@ -313,22 +318,20 @@ export default function AdminForumCategory({ hideHeader = false }) {
                     </TableCell>
                     <TableCell className="text-center">
                       <div className="flex justify-center items-center gap-2">
-                        <Button
-                          variant="ghost"
+                        <AppButton appVariant="ghostMuted" variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-primary"
+                          className="h-8 w-8 text-muted-foreground hover:text-primary border-none"
                           onClick={() => handleEdit(cat)}
                         >
                           <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
+                        </AppButton>
+                        <AppButton appVariant="ghostMuted" variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-error"
+                          className="h-8 w-8 text-muted-foreground hover:text-error border-none"
                           onClick={() => handleDelete(cat.id)}
                         >
                           <Trash2 className="w-4 h-4" />
-                        </Button>
+                        </AppButton>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -439,7 +442,7 @@ export default function AdminForumCategory({ hideHeader = false }) {
               />
 
               <DialogFooter className="pt-4 gap-2">
-                <GhostButton
+                <AppButton appVariant="ghostMuted" variant="ghost"
                   type="button"
                   onClick={() => {
                     setIsAddModalOpen(false);
@@ -449,10 +452,10 @@ export default function AdminForumCategory({ hideHeader = false }) {
                   className="border border-border"
                 >
                   Hủy bỏ
-                </GhostButton>
-                <Button type="submit" className="bg-primary font-bold px-6">
+                </AppButton>
+                <AppButton appVariant="gradient" type="submit" className="bg-primary font-bold px-6">
                   {editId ? "Lưu Cập Nhật" : "Tạo chủ đề"}
-                </Button>
+                </AppButton>
               </DialogFooter>
             </form>
           </Form>

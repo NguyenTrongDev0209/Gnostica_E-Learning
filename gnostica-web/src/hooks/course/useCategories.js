@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import categoryService from "@/services/course/categoryService";
+import { MOCK_CATEGORIES } from '@/mocks/homeMocks';
 
 /**
  * Hook để lấy danh sách danh mục cha từ API (sử dụng React Query)
@@ -9,8 +9,10 @@ export default function useCategories() {
   const { data, isLoading, error } = useQuery({
     queryKey: ["categories", "active"],
     queryFn: async () => {
-      const res = await categoryService.getAllCategories(1, 100, "", "active");
-      return res?.content || res?.data?.content || [];
+      // Return mock data for now
+      return new Promise((resolve) => {
+        setTimeout(() => resolve(MOCK_CATEGORIES), 500);
+      });
     },
     staleTime: 1000 * 60 * 5, // Cache dữ liệu trong 5 phút
   });

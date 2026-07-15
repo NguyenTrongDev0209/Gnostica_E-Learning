@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
-import courseService from '@/services/course/courseService';
-import authService from '@/services/auth/authService';
+import { MOCK_COURSES } from '@/mocks/homeMocks';
 
 export default function useRecommendedCourses(size = 4) {
     const [courses, setCourses] = useState([]);
     const [loading, setLoading] = useState(true);
-    const user = authService.getCurrentUser();
-    const userEmail = user?.email;
+    // Hardcode user so recommended courses show up without login during testing
+    const user = { email: "test@example.com" }; 
 
     useEffect(() => {
         let isMounted = true;
@@ -14,9 +13,10 @@ export default function useRecommendedCourses(size = 4) {
         const fetchRecommendations = async () => {
             try {
                 setLoading(true);
-                const data = await courseService.getRecommendedCourses(0, size);
+                // Mock delay
+                await new Promise(r => setTimeout(r, 600));
                 if (isMounted) {
-                    setCourses(data.content || []);
+                    setCourses(MOCK_COURSES.slice(0, size));
                 }
             } catch (error) {
                 if (isMounted) {
@@ -29,16 +29,12 @@ export default function useRecommendedCourses(size = 4) {
             }
         };
 
-        if (userEmail) {
-            fetchRecommendations();
-        } else {
-            setLoading(false);
-        }
+        fetchRecommendations();
 
         return () => {
             isMounted = false;
         };
-    }, [size, userEmail]);
+    }, [size]);
 
     return { courses, loading, user };
 }

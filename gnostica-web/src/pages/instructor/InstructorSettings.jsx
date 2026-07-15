@@ -14,7 +14,7 @@ import {
   Loader2
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { GhostButton, SimpleButton } from "@/components/common/AppButton";
+import { AppButton } from "@/components/common/micro/AppButton";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -217,20 +217,9 @@ export default function InstructorSettings() {
             Quản lý thông tin hồ sơ giảng viên, cấu hình thanh toán và bảo mật tài khoản.
           </p>
         </div>
-        {activeTab !== "security" && (
-          <SimpleButton
-            onClick={handleSave}
-            disabled={isLoading}
-            className="bg-success text-white hover:bg-success/90 font-bold px-6 shadow-sm gap-2"
-          >
-            {isLoading ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Save className="w-4 h-4" />
-            )}
-            Lưu thay đổi
-          </SimpleButton>
-        )}
+        <AppButton appVariant="gradient" className="bg-success/10 text-success hover:bg-success/20 font-bold">
+          <Save className="w-4 h-4 mr-2" /> Lưu thay đổi
+        </AppButton>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -305,14 +294,16 @@ export default function InstructorSettings() {
                       disabled={isUploading}
                     />
                   </div>
-                  <div className="flex-1">
-                    <h4 className="font-bold text-foreground text-base">{formData.fullName || "Giảng viên"}</h4>
-                    <p className="text-sm text-muted-foreground mb-2">Giảng viên Gnostica • Email: {formData.email}</p>
-                    <div className="flex gap-2">
-                      <label htmlFor="avatar-upload" className="inline-flex items-center justify-center text-xs h-8 px-4 border border-border rounded-lg bg-white font-bold text-muted-foreground hover:bg-slate-50 cursor-pointer transition-colors shadow-sm">
-                        Thay đổi ảnh
-                      </label>
-                    </div>
+                  <button className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-success/10 text-success text-white flex items-center justify-center border-4 border-white shadow-lg hover:bg-success/10 text-success transition-colors">
+                    <Camera className="w-4 h-4" />
+                  </button>
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-bold text-foreground text-base">Sonny Sangha</h4>
+                  <p className="text-sm text-muted-foreground mb-2">Giảng viên xuất sắc • Tham gia từ 2024</p>
+                  <div className="flex gap-2">
+                    <AppButton appVariant="ghostMuted" variant="ghost" size="sm" className="text-xs h-8 border border-border">Thay đổi ảnh</AppButton>
+                    <AppButton appVariant="ghostMuted" variant="ghost" size="sm" className="text-xs h-8 text-error hover:bg-red-50 hover:text-error">Xóa ảnh</AppButton>
                   </div>
                 </div>
 

@@ -1,6 +1,6 @@
 import React from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { GhostButton, SimpleButton } from "@/components/common/AppButton";
+import { AppButton } from "@/components/common/micro/AppButton";
 import { Badge } from "@/components/ui/badge";
 import { Sparkles, ShieldCheck, ShieldAlert, AlertTriangle, CheckCircle2, Loader2 } from "lucide-react";
 
@@ -117,7 +117,7 @@ export default function CourseAiReportModal({
               </div>
 
               <div className="p-4 bg-white border-t border-border flex items-center justify-between gap-3 shrink-0">
-                <GhostButton
+                <AppButton appVariant="ghostMuted" variant="ghost"
                   type="button"
                   disabled={isPreScanning}
                   onClick={handlePreScanWholeCourse}
@@ -134,13 +134,13 @@ export default function CourseAiReportModal({
                       <span>Quét thử toàn bộ khóa học</span>
                     </>
                   )}
-                </GhostButton>
-                <SimpleButton 
+                </AppButton>
+                <AppButton appVariant="gradient" 
                   onClick={() => setShowAiReportModal(false)}
                   className="h-10 px-5 bg-muted hover:bg-secondary text-foreground font-bold rounded-xl shadow-md text-xs select-none active:scale-95 transition-transform border-none"
                 >
                   Đóng báo cáo
-                </SimpleButton>
+                </AppButton>
               </div>
             </div>
           );

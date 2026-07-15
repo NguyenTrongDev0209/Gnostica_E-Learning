@@ -1,36 +1,57 @@
-import { useState, useEffect, useCallback } from 'react';
-import followingService from '@/services/instructor/followingService';
+import { useState, useEffect } from 'react';
+import useAuthStore from '@/store/useAuthStore';
 import { toast } from 'sonner';
 
 export default function useFavoriteInstructors() {
     const [instructors, setInstructors] = useState([]);
     const [loading, setLoading] = useState(true);
+    const token = useAuthStore(state => state.user?.token);
 
-    const fetchFollowedInstructors = useCallback(async () => {
+    const fetchInstructors = async () => {
+        if (!token) { setLoading(false); return; }
+        setLoading(true);
         try {
-            setLoading(true);
-            const res = await followingService.getFollowedInstructors();
-            setInstructors(res.data || []);
-        } catch (err) {
-            console.error("Lỗi lấy danh sách giảng viên theo dõi", err);
+            const res = await fetch("http://localhost:8080/api/follow/instructors", {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (res.ok) {
+                // Map to UI model
+                const mapped = (data.data || []).map(inst => ({
+                    id: inst.instructorId,
+                    name: inst.instructorName,
+                    avatar: inst.instructorAvatar || "https://images.unsplash.com/photo-1568602471122-7832951cc4c5?w=150&h=150&fit=crop",
+                    title: inst.instructorTitle || "Giảng viên",
+                    coursesCount: inst.totalCourses || 0,
+                    studentsCount: inst.totalStudents || 0,
+                    rating: inst.rating || 0
+                }));
+                setInstructors(mapped);
+            }
+        } catch (error) {
+            console.error("Failed to fetch favorite instructors:", error);
         } finally {
             setLoading(false);
         }
-    }, []);
+    };
 
     useEffect(() => {
-        fetchFollowedInstructors();
-    }, [fetchFollowedInstructors]);
+        fetchInstructors();
+    }, [token]);
 
     const handleUnfollow = async (instructorId) => {
+        if (!token) { setLoading(false); return; }
         try {
-            const res = await followingService.toggleFollow(instructorId);
-            if (!res.data.isFollowing) {
+            const res = await fetch(`http://localhost:8080/api/follow/toggle/${instructorId}`, {
+                method: "POST",
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            if (res.ok) {
                 setInstructors(prev => prev.filter(inst => inst.id !== instructorId));
                 toast.success("Đã bỏ theo dõi giảng viên");
             }
-        } catch (err) {
-            toast.error("Không thể bỏ theo dõi!");
+        } catch (error) {
+            toast.error("Lỗi khi bỏ theo dõi");
         }
     };
 

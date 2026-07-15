@@ -14,7 +14,7 @@ import {
   Activity,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { GhostButton, SimpleButton } from "@/components/common/AppButton";
+import { AppButton } from "@/components/common/micro/AppButton";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -119,12 +119,12 @@ export default function InstructorCourses() {
             Quản lý, chỉnh sửa và theo dõi hiệu suất các khóa học bạn đang giảng dạy.
           </p>
         </div>
-        <SimpleButton
+        <AppButton appVariant="gradient"
           onClick={() => navigate("/instructor/courses/courses-form")}
           className="btn-md font-bold rounded-xl transition-all hover:scale-[1.02]"
         >
           <Plus className="w-4 h-4 mr-2" /> Tạo khóa học mới
-        </SimpleButton>
+        </AppButton>
       </div>
 
       {/* Stats Summary (Styled like Students page) */}
@@ -272,12 +272,12 @@ export default function InstructorCourses() {
           </div>
 
           <DialogFooter className="p-4 bg-muted border-t border-border">
-            <SimpleButton
+            <AppButton appVariant="gradient"
               onClick={() => setRejectViewModal(prev => ({ ...prev, isOpen: false }))}
               className="w-full h-11 font-black rounded-xl"
             >
               Đã hiểu
-            </SimpleButton>
+            </AppButton>
           </DialogFooter>
         </DialogContent>
       </Dialog>

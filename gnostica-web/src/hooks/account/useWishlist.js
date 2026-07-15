@@ -1,56 +1,65 @@
-import { useState, useEffect, useCallback } from "react";
-import wishlistService from "@/services/course/wishlistService";
+import { useState, useEffect } from "react";
+import useAuthStore from "@/store/useAuthStore";
 import { toast } from "sonner";
 
 export default function useWishlist() {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
+  const token = useAuthStore(state => state.user?.token);
 
-  const fetchWishlist = useCallback(async () => {
+  const fetchWishlist = async () => {
+    if (!token) { setLoading(false); return; }
+    setLoading(true);
     try {
-      setLoading(true);
-      const res = await wishlistService.getMyWishlist();
-      if (res.success) {
-        const formattedCourses = res.data.map(course => ({
-          id: course.id,
-          category: course.category?.name || "Chưa phân loại",
-          rating: 5.0,
-          title: course.title,
-          classes: course.classes || 0,
-          students: course.students || 0,
-          price: course.salePrice?.toLocaleString("vi-VN") || "0",
-          originalPrice: course.price?.toLocaleString("vi-VN") || "0",
-          discountPercentage: course.discount || 0,
-          image: course.thumbnail,
-          slug: course.slug,
-          instructor: {
-            name: course.account?.fullName || "Ẩn danh",
-            avatar: course.account?.avatar || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=100&auto=format&fit=crop",
-          }
+      const res = await fetch("http://localhost:8080/api/favourites", {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (res.ok) {
+        // Map data to match UI
+        const mappedCourses = (data.data || []).map(c => ({
+          id: c.id, // Ensure this matches course ID
+          courseTitle: c.title,
+          slug: c.slug,
+          courseThumbnail: c.thumbnail || "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&q=80",
+          instructorName: c.instructorName,
+          category: "Lập trình", // Add if available
+          level: c.level,
+          price: c.price,
+          salePrice: c.salePrice,
+          rating: c.rating || 0,
+          totalRatings: c.totalRatings || 0,
+          totalStudents: c.totalStudents || 0,
+          totalLessons: c.totalLessons || 0,
+          totalDuration: c.totalDuration || "0"
         }));
-        setCourses(formattedCourses);
+        setCourses(mappedCourses);
       }
     } catch (error) {
-      console.error("Error fetching wishlist:", error);
-      toast.error("Không thể tải danh sách yêu thích");
+      console.error("Failed to fetch wishlist:", error);
     } finally {
       setLoading(false);
     }
-  }, []);
+  };
 
   useEffect(() => {
     fetchWishlist();
-  }, [fetchWishlist]);
+  }, [token]);
 
   const handleToggleWishlist = async (courseId) => {
+    if (!token) { setLoading(false); return; }
     try {
-      const res = await wishlistService.toggleWishlist(courseId);
-      if (res.success) {
-        toast.success(res.data.message);
+      const res = await fetch(`http://localhost:8080/api/favourites/toggle/${courseId}`, {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (res.ok) {
+        // Optimistic update for UI
         setCourses(prev => prev.filter(c => c.id !== courseId));
+        toast.success("Đã xóa khỏi danh sách yêu thích");
       }
     } catch (error) {
-      toast.error("Thao tác thất bại");
+      toast.error("Có lỗi xảy ra, vui lòng thử lại sau.");
     }
   };
 

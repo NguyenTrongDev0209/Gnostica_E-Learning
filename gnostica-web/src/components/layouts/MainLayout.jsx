@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import useAuthStore from '@/store/useAuthStore';
 import useCategories from "@/hooks/course/useCategories"
-import AiChatBot from '@/components/common/AiChatBot'
+import AiChatBot from '@/components/common/composite/AiChatBot'
 import MainHeader from '@/components/fragments/MainHeader'
 import MainFooter from '@/components/fragments/MainFooter'
 

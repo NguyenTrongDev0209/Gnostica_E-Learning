@@ -10,13 +10,18 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import AppTable from "@/components/common/AppTable";
-import { Table, TableHeader, TableRow, TableCell, TableHead, TableBody } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { SimpleButton, TableActionIconButton, GhostButton } from "@/components/common/AppButton";
+import { TableActionIconButton, AppButton } from "@/components/common/micro/AppButton";
+import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -140,13 +145,13 @@ export default function AdminCategories({ hideHeader = false }) {
         ) : (
           <div />
         )}
-        <SimpleButton
+        <AppButton appVariant="gradient"
           className="flex items-center gap-2"
           onClick={() => setIsAddModalOpen(true)}
         >
           <Plus className="w-4 h-4" />
           Thêm Chủ Đề
-        </SimpleButton>
+        </AppButton>
       </div>
 
       {/* Filter */}
@@ -384,18 +389,23 @@ export default function AdminCategories({ hideHeader = false }) {
                               className="flex justify-center items-center gap-2"
                               onClick={(e) => e.stopPropagation()}
                             >
-                              <TableActionIconButton
-                                icon={Edit}
+                              <AppButton appVariant="ghostMuted" variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-muted-foreground hover:text-primary border-none"
                                 onClick={(e) => handleEdit(e, sub, cat.id)}
-                              />
-                              <TableActionIconButton
-                                icon={Trash2}
-                                colorVariant="error"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </AppButton>
+                              <AppButton appVariant="ghostMuted" variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-muted-foreground hover:text-error border-none"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleDelete(sub.id);
                                 }}
-                              />
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </AppButton>
                             </div>
                           </TableCell>
                         </TableRow>
@@ -411,33 +421,35 @@ export default function AdminCategories({ hideHeader = false }) {
                 Hiển thị {(currentPage - 1) * ITEMS_PER_PAGE + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, totalElements)} của {totalElements} chủ đề
               </span>
               <div className="flex gap-2">
-                <Button
-                  variant="outline"
+                <AppButton appVariant="ghostMuted" variant="ghost"
                   size="sm"
+                  className="border border-border bg-white"
                   onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                   disabled={currentPage === 1}
                 >
                   Trước
-                </Button>
-                {Array.from({ length: totalPages }).map((_, idx) => (
-                  <Button
-                    key={idx}
-                    variant={currentPage === idx + 1 ? "default" : "outline"}
-                    size="sm"
-                    className="w-8 h-8 rounded-lg p-0"
-                    onClick={() => setCurrentPage(idx + 1)}
-                  >
-                    {idx + 1}
-                  </Button>
-                ))}
-                <Button
-                  variant="outline"
+                </AppButton>
+                {Array.from({ length: totalPages }).map((_, idx) => {
+                  const Btn = currentPage === idx + 1 ? SimpleButton : GhostButton;
+                  return (
+                    <Btn
+                      key={idx}
+                      size="sm"
+                      className={`w-8 h-8 rounded-lg p-0 ${currentPage === idx + 1 ? 'bg-primary' : 'border border-border bg-white'}`}
+                      onClick={() => setCurrentPage(idx + 1)}
+                    >
+                      {idx + 1}
+                    </Btn>
+                  );
+                })}
+                <AppButton appVariant="ghostMuted" variant="ghost"
                   size="sm"
+                  className="border border-border bg-white"
                   onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
                   disabled={currentPage === totalPages}
                 >
                   Sau
-                </Button>
+                </AppButton>
               </div>
             </div>
           )}
@@ -579,7 +591,7 @@ export default function AdminCategories({ hideHeader = false }) {
               />
 
               <DialogFooter className="pt-4 gap-2">
-                <GhostButton
+                <AppButton appVariant="ghostMuted" variant="ghost"
                   type="button"
                   onClick={() => {
                     setIsAddModalOpen(false);
@@ -589,10 +601,10 @@ export default function AdminCategories({ hideHeader = false }) {
                   className="border border-border"
                 >
                   Hủy bỏ
-                </GhostButton>
-                <Button type="submit" className="bg-primary font-bold px-6">
+                </AppButton>
+                <AppButton appVariant="gradient" type="submit" className="bg-primary font-bold px-6">
                   {editId ? "Lưu Cập Nhật" : "Tạo chủ đề"}
-                </Button>
+                </AppButton>
               </DialogFooter>
             </form>
           </Form>

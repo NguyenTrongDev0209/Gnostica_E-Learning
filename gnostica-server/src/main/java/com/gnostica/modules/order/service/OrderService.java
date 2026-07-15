@@ -52,6 +52,14 @@ public class OrderService {
                 .collect(Collectors.toList());
     }
 
+    public List<OrderResponse> getMyOrders(String email) {
+        Account account = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("Account not found for email: " + email));
+        return orderRepository.findByAccountOrderByIdDesc(account).stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
     public Page<OrderResponse> getOrdersPaginated(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         return orderRepository.findAll(pageable).map(this::mapToResponse);

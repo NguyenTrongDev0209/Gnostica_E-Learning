@@ -1,8 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Mail, Send } from 'lucide-react';
-import { SimpleButton } from '@/components/common/AppButton';
-import AppInput from '@/components/common/AppInput';
+import { AppButton } from "@/components/common/micro/AppButton";
+import AppInput from '@/components/common/micro/AppInput';
 import AuthCard from './components/AuthCard';
 import { useForgotPassword } from '@/hooks/auth/useForgotPassword';
 
@@ -43,7 +43,7 @@ const ForgotPassword = () => {
         )}
 
         {/* Submit */}
-        <SimpleButton
+        <AppButton appVariant="gradient"
           type="submit"
           className="w-full mt-1 gap-2"
           disabled={loading || sent}
@@ -55,7 +55,7 @@ const ForgotPassword = () => {
             </svg>
           ) : <Send className="w-4 h-4" />}
           {loading ? 'Đang gửi...' : 'Gửi mã xác nhận'}
-        </SimpleButton>
+        </AppButton>
       </form>
 
       {/* Back to login */}

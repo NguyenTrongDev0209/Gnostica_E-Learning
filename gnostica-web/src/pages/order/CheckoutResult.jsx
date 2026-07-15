@@ -9,11 +9,11 @@ import {
   FileText,
   Loader2,
 } from "lucide-react";
-import { SimpleButton } from "@/components/common/AppButton";
+import { AppButton } from "@/components/common/micro/AppButton";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { AppBreadcrumb } from "@/components/common/AppSection";
-import { checkoutStatusConfig } from "@/apiMocks/checkout";
+import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
+import { checkoutStatusConfig } from "@/mocks/checkout";
 import orderService from "@/services/order/orderService";
 
 export default function CheckoutResult() {
@@ -69,10 +69,7 @@ export default function CheckoutResult() {
       <section className="bg-muted py-12 text-white">
         <div className="app-container">
           <AppBreadcrumb
-            items={breadcrumbItems}
-            linkClassName="text-muted-foreground hover:text-slate-100"
-            activeClassName="font-semibold text-slate-200"
-            separatorClassName="text-muted-foreground"
+            paths={breadcrumbItems}
           />
           <h1 className="text-3xl md:text-4xl font-extrabold">
             Kết quả thanh toán
@@ -140,10 +137,10 @@ export default function CheckoutResult() {
                     </Button>
                   </Link>
                   <Link to="/account/my-courses" className="flex-1">
-                    <SimpleButton className="w-full h-12 font-bold gap-2 rounded-xl">
+                    <AppButton appVariant="gradient" className="w-full h-12 font-bold gap-2 rounded-xl">
                       Vào học ngay
                       <ArrowRight className="w-4 h-4" />
-                    </SimpleButton>
+                    </AppButton>
                   </Link>
                 </>
               ) : (
@@ -158,10 +155,10 @@ export default function CheckoutResult() {
                     </Button>
                   </Link>
                   <Link to="/checkout" className="flex-1">
-                    <SimpleButton className="w-full h-12 font-bold gap-2 rounded-xl">
+                    <AppButton appVariant="gradient" className="w-full h-12 font-bold gap-2 rounded-xl">
                       <RotateCcw className="w-4 h-4" />
                       Thử lại
-                    </SimpleButton>
+                    </AppButton>
                   </Link>
                 </>
               )}

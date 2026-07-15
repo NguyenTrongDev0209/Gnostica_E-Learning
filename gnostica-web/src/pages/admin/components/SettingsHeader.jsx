@@ -1,6 +1,6 @@
 import React from 'react';
 import { Save } from 'lucide-react';
-import { SimpleButton } from '@/components/common/AppButton';
+import { AppButton } from "@/components/common/micro/AppButton";
 
 export function SettingsHeader({ onSave, isSaving }) {
   return (
@@ -11,14 +11,14 @@ export function SettingsHeader({ onSave, isSaving }) {
           Cấu hình và tùy chỉnh các thông số vận hành của nền tảng Gnostica.
         </p>
       </div>
-      <SimpleButton 
+      <AppButton appVariant="gradient" 
         className="font-bold flex items-center gap-2 bg-primary hover:bg-primary/90 shadow-sm"
         onClick={onSave}
         disabled={isSaving}
       >
         <Save className="w-4 h-4" />
         {isSaving ? "Đang lưu..." : "Lưu thay đổi"}
-      </SimpleButton>
+      </AppButton>
     </div>
   );
 }

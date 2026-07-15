@@ -1,7 +1,7 @@
 import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, CheckCircle2, Loader2, Sparkles, AlertTriangle, ShieldCheck, ShieldAlert, FileText, Video, Trophy, BookOpen, Layers, ExternalLink, ChevronRight, Download } from "lucide-react";
-import { SimpleButton, GhostButton } from "@/components/common/AppButton";
+import { AppButton } from "@/components/common/micro/AppButton";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CourseRejectModal from "@/components/modals/CourseRejectModal";
@@ -117,9 +117,9 @@ export default function AdminCourseDetailModeration() {
     <div className="max-w-[1400px] mx-auto space-y-6 animate-in fade-in duration-500 pb-10">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-border/60 shadow-sm sticky top-4 z-20 backdrop-blur-md bg-white/95">
         <div className="flex items-center gap-4 min-w-0">
-          <GhostButton size="icon" onClick={() => navigate("/admin/course-moderation")} className="h-10 w-10 rounded-xl shrink-0 border border-border bg-white hover:bg-muted hover:text-primary transition-colors">
+          <AppButton appVariant="ghostMuted" variant="ghost" size="icon" onClick={() => navigate("/admin/course-moderation")} className="h-10 w-10 rounded-xl shrink-0 border border-border bg-white hover:bg-muted hover:text-primary transition-colors">
             <ArrowLeft className="w-5 h-5" />
-          </GhostButton>
+          </AppButton>
           <div className="min-w-0">
             <div className="flex items-center gap-2 mb-0.5">
               <span className="text-[11px] font-black text-muted-foreground uppercase tracking-wider">ID: {course.id}</span>
@@ -132,12 +132,12 @@ export default function AdminCourseDetailModeration() {
         <div className="flex items-center gap-3 shrink-0 ml-14 md:ml-0">
           {course.status === 4 && (
             <>
-              <GhostButton onClick={() => setIsRejectModalOpen(true)} disabled={isSubmitting} className="font-bold text-rose-600 border border-rose-200 bg-white hover:bg-rose-50 hover:text-rose-700 h-10 px-5">
+              <AppButton appVariant="ghostMuted" variant="ghost" onClick={() => setIsRejectModalOpen(true)} disabled={isSubmitting} className="font-bold text-rose-600 border border-rose-200 bg-white hover:bg-rose-50 hover:text-rose-700 h-10 px-5">
                 Từ chối kiểm duyệt
-              </GhostButton>
-              <SimpleButton onClick={handleApprove} disabled={isSubmitting} className="font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-md gap-2 border-none px-6 h-10">
+              </AppButton>
+              <AppButton appVariant="gradient" onClick={handleApprove} disabled={isSubmitting} className="font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-md gap-2 border-none px-6 h-10">
                 <CheckCircle2 className="w-4.5 h-4.5" /> Phê duyệt khóa học
-              </SimpleButton>
+              </AppButton>
             </>
           )}
         </div>
@@ -161,9 +161,9 @@ export default function AdminCourseDetailModeration() {
                 )}
               </h2>
               {activePreview && (
-                <GhostButton size="sm" className="text-indigo-600 border-none font-bold hover:bg-indigo-50 gap-1 text-xs" onClick={() => setActivePreview(null)}>
+                <AppButton appVariant="ghostMuted" variant="ghost" size="sm" className="text-indigo-600 border-none font-bold hover:bg-indigo-50 gap-1 text-xs" onClick={() => setActivePreview(null)}>
                   Xem Promo Video
-                </GhostButton>
+                </AppButton>
               )}
             </div>
             <div className="p-6">
@@ -220,7 +220,7 @@ export default function AdminCourseDetailModeration() {
                                        <p className="text-[10px] text-muted-foreground uppercase">{file.fileType || "DOCUMENT"}</p>
                                      </div>
                                    </div>
-                                   <GhostButton size="icon" className="border-none hover:bg-muted" onClick={() => window.open(file.fileUrl, '_blank')}><Download className="w-4 h-4" /></GhostButton>
+                                   <AppButton appVariant="ghostMuted" variant="ghost" size="icon" className="border-none hover:bg-muted" onClick={() => window.open(file.fileUrl, '_blank')}><Download className="w-4 h-4" /></AppButton>
                                  </div>
                                ))}
                              </div>

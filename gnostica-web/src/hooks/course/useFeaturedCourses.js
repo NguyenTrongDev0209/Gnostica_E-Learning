@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import courseService from '@/services/course/courseService';
+import { MOCK_COURSES } from '@/mocks/homeMocks';
 
 export default function useFeaturedCourses(size = 8) {
   const [courses, setCourses] = useState([]);
@@ -11,9 +11,10 @@ export default function useFeaturedCourses(size = 8) {
     const fetchCourses = async () => {
       try {
         setLoading(true);
-        const data = await courseService.getAllCourses(0, size);
+        // Mock delay
+        await new Promise(r => setTimeout(r, 600));
         if (isMounted) {
-          setCourses(data.content || []);
+          setCourses(MOCK_COURSES.slice(0, size));
         }
       } catch (error) {
         if (isMounted) {

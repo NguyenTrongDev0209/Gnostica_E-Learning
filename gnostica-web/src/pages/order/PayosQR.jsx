@@ -11,9 +11,9 @@ import {
   Home,
   CheckCircle2,
 } from "lucide-react";
-import { AppBreadcrumb } from "@/components/common/AppSection";
+import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
 import { toast } from "sonner";
-import { payosPaymentMock } from "@/apiMocks/payment";
+import { payosPaymentMock } from "@/mocks/payment";
 import orderService from "@/services/order/orderService";
 
 export default function PayosQR() {
@@ -129,10 +129,7 @@ export default function PayosQR() {
       <section className="bg-muted py-12 text-white">
         <div className="app-container">
           <AppBreadcrumb
-            items={breadcrumbItems}
-            linkClassName="text-muted-foreground hover:text-slate-100"
-            activeClassName="font-semibold text-slate-200"
-            separatorClassName="text-muted-foreground"
+            paths={breadcrumbItems}
           />
           <h1 className="text-3xl md:text-4xl font-extrabold uppercase tracking-tight">
             Thanh toán đơn hàng {paymentData?.orderCode ? `#${paymentData.orderCode}` : ""}
