@@ -1,22 +1,58 @@
 import { useState, useEffect } from 'react';
-import { MOCK_INSTRUCTORS } from '@/mocks/accountMocks';
+import useAuthStore from '@/store/useAuthStore';
 import { toast } from 'sonner';
 
 export default function useFavoriteInstructors() {
     const [instructors, setInstructors] = useState([]);
     const [loading, setLoading] = useState(true);
+    const token = useAuthStore(state => state.user?.token);
+
+    const fetchInstructors = async () => {
+        if (!token) { setLoading(false); return; }
+        setLoading(true);
+        try {
+            const res = await fetch("http://localhost:8080/api/follow/instructors", {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (res.ok) {
+                // Map to UI model
+                const mapped = (data.data || []).map(inst => ({
+                    id: inst.instructorId,
+                    name: inst.instructorName,
+                    avatar: inst.instructorAvatar || "https://images.unsplash.com/photo-1568602471122-7832951cc4c5?w=150&h=150&fit=crop",
+                    title: inst.instructorTitle || "Giảng viên",
+                    coursesCount: inst.totalCourses || 0,
+                    studentsCount: inst.totalStudents || 0,
+                    rating: inst.rating || 0
+                }));
+                setInstructors(mapped);
+            }
+        } catch (error) {
+            console.error("Failed to fetch favorite instructors:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        setLoading(true);
-        setTimeout(() => {
-            setInstructors(MOCK_INSTRUCTORS);
-            setLoading(false);
-        }, 600);
-    }, []);
+        fetchInstructors();
+    }, [token]);
 
-    const handleUnfollow = (instructorId) => {
-        setInstructors(prev => prev.filter(inst => inst.id !== instructorId));
-        toast.success("�� b? theo d�i gi?ng vi�n");
+    const handleUnfollow = async (instructorId) => {
+        if (!token) { setLoading(false); return; }
+        try {
+            const res = await fetch(`http://localhost:8080/api/follow/toggle/${instructorId}`, {
+                method: "POST",
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            if (res.ok) {
+                setInstructors(prev => prev.filter(inst => inst.id !== instructorId));
+                toast.success("Đã bỏ theo dõi giảng viên");
+            }
+        } catch (error) {
+            toast.error("Lỗi khi bỏ theo dõi");
+        }
     };
 
     return {

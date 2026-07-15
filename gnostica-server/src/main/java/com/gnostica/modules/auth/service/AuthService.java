@@ -24,5 +24,6 @@ public interface AuthService {
 
     void updatePersonalization(String email, com.gnostica.modules.user.dto.request.PersonalizationDTO dto);
     void updateProfile(String email, com.gnostica.modules.auth.dto.request.ProfileUpdateRequest request);
+    void changePassword(String email, String currentPassword, String newPassword);
 }
 

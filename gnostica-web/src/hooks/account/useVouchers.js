@@ -1,55 +1,70 @@
 import { useState, useEffect } from "react";
+import useAuthStore from "@/store/useAuthStore";
 import { toast } from "sonner";
-
-// Mock Data
-const VOUCHERS_DATA = [
-  {
-    id: "WELCOME50",
-    code: "GNOSTICA50",
-    title: "Giảm 50% cho người mới",
-    desc: "Áp dụng cho đơn hàng đầu tiên. Không giới hạn giá trị tối đa.",
-    expiry: "30/04/2026",
-    status: "active",
-    discount: "50%",
-    color: "from-blue-500 to-cyan-500",
-  },
-  {
-    id: "MEMBER20",
-    code: "MEMBER20",
-    title: "Tri ân học viên cũ",
-    desc: "Giảm trực tiếp 200.000đ cho các khóa học trên 1.000.000đ.",
-    expiry: "15/05/2026",
-    status: "active",
-    discount: "200K",
-    color: "from-orange-500 to-amber-500",
-  },
-  {
-    id: "EXPIRED15",
-    code: "FLASH15",
-    title: "Flash Sale cuối tuần",
-    desc: "Giảm 15% cho tất cả khóa học Lập trình.",
-    expiry: "01/01/2026",
-    status: "expired",
-    discount: "15%",
-    color: "from-slate-400 to-slate-500",
-  },
-];
 
 export default function useVouchers() {
   const [vouchers, setVouchers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const token = useAuthStore(state => state.user?.token);
 
   useEffect(() => {
+    if (!token) { setLoading(false); return; }
+
     const fetchVouchers = async () => {
       setLoading(true);
-      setTimeout(() => {
-        setVouchers(VOUCHERS_DATA);
+      try {
+        const res = await fetch("http://localhost:8080/api/coupons/me", {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        const data = await res.json();
+        
+        if (res.ok) {
+          const mapped = (data.data || []).map((c, index) => {
+            // Randomly assign colors if not from backend
+            const colors = [
+              "from-blue-500 to-cyan-500",
+              "from-orange-500 to-amber-500",
+              "from-purple-500 to-fuchsia-500",
+              "from-emerald-500 to-teal-500"
+            ];
+            const color = colors[index % colors.length];
+            
+            // Format discount text
+            let discountText = "";
+            if (c.discountType === 1) {
+               discountText = `${c.discountValue}%`;
+            } else {
+               // Assuming discountValue is a number, e.g. 200000 -> 200K
+               const val = c.discountValue;
+               if (val >= 1000) {
+                 discountText = `${val / 1000}K`;
+               } else {
+                 discountText = `${val}đ`;
+               }
+            }
+
+            return {
+              id: c.id,
+              code: c.code,
+              title: c.name || "Voucher giảm giá",
+              desc: c.maxDiscount ? `Giảm tối đa ${c.maxDiscount}đ` : "Không giới hạn mức giảm",
+              expiry: c.validUntil ? new Date(c.validUntil).toLocaleDateString("vi-VN") : "Không thời hạn",
+              status: c.status === 1 ? "active" : "expired",
+              discount: discountText,
+              color: c.status === 1 ? color : "from-slate-400 to-slate-500",
+            };
+          });
+          setVouchers(mapped);
+        }
+      } catch (error) {
+        console.error("Failed to fetch vouchers:", error);
+      } finally {
         setLoading(false);
-      }, 600);
+      }
     };
 
     fetchVouchers();
-  }, []);
+  }, [token]);
 
   const handleCopyCode = (code) => {
     navigator.clipboard.writeText(code);

@@ -1,40 +1,5 @@
 import { useState, useEffect } from "react";
-
-// Mock Data
-const ORDERS_DATA = [
-  {
-    id: "DH-10294",
-    date: "15/03/2026",
-    courses: [
-      { name: "Thiết kế UI/UX Thực chiến với Figma", giftedTo: "minhquoc@gmail.com" }
-    ],
-    total: "899.000đ",
-    method: "VNPay",
-    status: "Thành công",
-    statusColor: "bg-emerald-100 text-emerald-700",
-  },
-  {
-    id: "DH-10182",
-    date: "10/01/2026",
-    courses: [
-      { name: "Lập trình Web Frontend Bootcamp 2026" }, 
-      { name: "Mastering React 18" }
-    ],
-    total: "1.299.000đ",
-    method: "Thẻ tín dụng",
-    status: "Thành công",
-    statusColor: "bg-emerald-100 text-emerald-700",
-  },
-  {
-    id: "DH-09871",
-    date: "25/12/2025",
-    courses: [{ name: "Docker & Kubernetes Bootcamp" }],
-    total: "749.000đ",
-    method: "Momo",
-    status: "Đã hủy",
-    statusColor: "bg-error/10 text-error text-error",
-  },
-];
+import useAuthStore from "@/store/useAuthStore";
 
 export default function useOrders() {
   const [orders, setOrders] = useState([]);
@@ -43,19 +8,53 @@ export default function useOrders() {
   const [pageSize, setPageSize] = useState(10);
   const [searchQuery, setSearchQuery] = useState("");
   const [dateRange, setDateRange] = useState(null);
+  const token = useAuthStore(state => state.user?.token);
 
   useEffect(() => {
-    // Simulate API fetch
+    if (!token) { setLoading(false); return; }
+
     const fetchOrders = async () => {
       setLoading(true);
-      setTimeout(() => {
-        setOrders(ORDERS_DATA);
+      try {
+        const res = await fetch("http://localhost:8080/api/order/my-orders", {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const mapped = (data.data || []).map(o => {
+            // Determine status text & color
+            let statusText = "Đang xử lý";
+            let statusColor = "bg-warning/10 text-warning";
+            
+            if (o.status === "SUCCESS" || o.status === 1) {
+              statusText = "Thành công";
+              statusColor = "bg-emerald-100 text-emerald-700";
+            } else if (o.status === "FAILED" || o.status === "CANCELLED" || o.status === 2) {
+              statusText = "Đã hủy";
+              statusColor = "bg-error/10 text-error";
+            }
+
+            return {
+              id: o.transactionCode || o.id,
+              date: o.orderDate ? new Date(o.orderDate).toLocaleDateString("vi-VN") : "N/A",
+              courses: o.orderDetails?.map(d => ({ name: d.courseName })) || [],
+              total: o.finalAmount ? o.finalAmount.toLocaleString("vi-VN") + "đ" : "0đ",
+              method: o.paymentMethod || "N/A",
+              status: statusText,
+              statusColor: statusColor
+            };
+          });
+          setOrders(mapped);
+        }
+      } catch (error) {
+        console.error("Failed to fetch orders:", error);
+      } finally {
         setLoading(false);
-      }, 800);
+      }
     };
 
     fetchOrders();
-  }, []);
+  }, [token]);
 
   const filteredOrders = orders.filter(order => {
     const matchesSearch = order.id.toLowerCase().includes(searchQuery.toLowerCase());

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import useAuthStore from "@/store/useAuthStore";
 
 export default function useSettingsForm(user) {
   const [formData, setFormData] = useState({
@@ -50,13 +51,44 @@ export default function useSettingsForm(user) {
     setCropModalOpen(false);
   };
 
-  const handleSubmit = (e) => {
+  const setUser = useAuthStore(state => state.setUser);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!user?.email) return;
+
     setIsLoading(true);
-    setTimeout(() => {
-      toast.success("Cập nhật thông tin thành công!");
+    try {
+      // 1. Update Profile
+      const res = await fetch(`http://localhost:8080/api/account/profile?email=${user.email}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fullName: formData.fullName,
+          phone: formData.phone,
+          bio: formData.bio,
+          title: "", // Not used in form currently
+          website: "", // Not used
+          linkedin: "" // Not used
+        })
+      });
+
+      if (res.ok) {
+        // Update user state and local storage
+        const updatedUser = { ...user, fullName: formData.fullName, phone: formData.phone, bio: formData.bio };
+        setUser(updatedUser);
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+        
+        toast.success("Cập nhật thông tin thành công!");
+      } else {
+        toast.error("Cập nhật thất bại.");
+      }
+    } catch (error) {
+      toast.error("Lỗi khi cập nhật.");
+      console.error(error);
+    } finally {
       setIsLoading(false);
-    }, 800);
+    }
   };
 
   return {
