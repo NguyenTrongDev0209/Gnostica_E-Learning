@@ -28,14 +28,18 @@ public class QuestionBankController {
 
     @PostMapping("/ai-generate")
     public ResponseEntity<?> generateQuestionsWithAi(
-            @PathVariable java.util.UUID courseId,
+            @PathVariable String courseId,
             @RequestParam("file") MultipartFile file,
             @RequestParam("count") int count,
             @RequestParam("level") String level) {
         try {
             log.info("Receiving request to generate {} questions for course {} using AI.", count, courseId);
             String documentText = documentExtractionService.extractText(file);
-            List<QuestionDto> questions = openRouterAiService.generateQuestions(documentText, count, level);
+            boolean isExcel = file.getOriginalFilename() != null && 
+                             (file.getOriginalFilename().toLowerCase().endsWith(".xlsx") || 
+                              file.getOriginalFilename().toLowerCase().endsWith(".xls"));
+                              
+            List<QuestionDto> questions = openRouterAiService.generateQuestions(documentText, count, level, isExcel);
             return ResponseEntity.ok(questions);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(new ResponseDTO<>(400, e.getMessage(), null));
@@ -47,36 +51,48 @@ public class QuestionBankController {
     }
 
     @PostMapping("/drafts")
-    public ResponseEntity<?> saveDrafts(@PathVariable java.util.UUID courseId, @RequestBody List<QuestionDto> questions) {
+    public ResponseEntity<?> saveDrafts(@PathVariable String courseId, @RequestBody List<QuestionDto> questions, org.springframework.security.core.Authentication authentication) {
         try {
-            redisDraftService.saveDraft(courseId.toString(), questions);
+            String email = authentication.getName();
+            redisDraftService.saveDraft(email, courseId, questions);
             return ResponseEntity.ok(new ResponseDTO<>(200, "Lưu nháp thành công", null));
         } catch (Exception e) {
+            log.error("Error saving drafts to Redis: ", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ResponseDTO<>(500, "Lỗi khi lưu nháp", null));
+                    .body(new ResponseDTO<>(500, "Lỗi khi lưu nháp: " + e.getMessage(), null));
         }
     }
 
     @GetMapping("/drafts")
-    public ResponseEntity<?> getDrafts(@PathVariable java.util.UUID courseId) {
+    public ResponseEntity<?> getDrafts(@PathVariable String courseId, org.springframework.security.core.Authentication authentication) {
         try {
-            List<QuestionDto> draft = redisDraftService.getDraft(courseId.toString());
+            String email = authentication.getName();
+            List<QuestionDto> draft = redisDraftService.getDraft(email, courseId);
             if (draft != null) {
                 return ResponseEntity.ok(draft);
             }
+            // Nếu courseId là 0 (chưa được tạo trong DB) thì không có DB question
+            if ("0".equals(courseId)) {
+                return ResponseEntity.ok(List.of());
+            }
             // Nếu không có draft trong Redis, trả về dữ liệu gốc từ Database
-            List<QuestionDto> dbQuestions = questionBankService.getQuestionsByCourseId(courseId);
+            List<QuestionDto> dbQuestions = questionBankService.getQuestionsByCourseId(java.util.UUID.fromString(courseId));
             return ResponseEntity.ok(dbQuestions);
+        } catch (IllegalArgumentException e) {
+            log.warn("Invalid UUID format for courseId: {}", courseId);
+            return ResponseEntity.ok(List.of());
         } catch (Exception e) {
+            log.error("Error fetching drafts from Redis: ", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ResponseDTO<>(500, "Lỗi khi tải câu hỏi", null));
+                    .body(new ResponseDTO<>(500, "Lỗi khi tải câu hỏi: " + e.getMessage(), null));
         }
     }
 
     @PutMapping
-    public ResponseEntity<?> confirmAndSaveQuestionBank(@PathVariable java.util.UUID courseId, @RequestBody List<QuestionDto> questions) {
+    public ResponseEntity<?> confirmAndSaveQuestionBank(@PathVariable String courseId, @RequestBody List<QuestionDto> questions, org.springframework.security.core.Authentication authentication) {
         try {
-            questionBankService.saveQuestionBank(courseId, questions);
+            String email = authentication.getName();
+            questionBankService.saveQuestionBank(email, java.util.UUID.fromString(courseId), questions);
             return ResponseEntity.ok(new ResponseDTO<>(200, "Lưu ngân hàng câu hỏi thành công", null));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(new ResponseDTO<>(400, e.getMessage(), null));

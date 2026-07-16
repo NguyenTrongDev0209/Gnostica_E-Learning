@@ -28,6 +28,8 @@ export default function MyCourses() {
     currentPage,
     setCurrentPage,
     totalPages,
+    totalCourses,
+    totalFilteredCourses,
     stats
   } = useMyCourses();
 
@@ -71,7 +73,7 @@ export default function MyCourses() {
       <AppPageHeader
         icon={BookOpen}
         title="Khóa học của tôi"
-        description={`Bạn đang có tổng cộng ${courses.length} khóa học trong thư viện. Hãy theo dõi quá trình học tập của mình.`}
+        description={`Bạn đang có tổng cộng ${totalCourses} khóa học trong thư viện. Hãy theo dõi quá trình học tập của mình.`}
       />
 
       {/* Stats Cards */}

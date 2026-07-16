@@ -78,6 +78,9 @@ public class Course {
     @NotNull
     private Integer status;
 
+    @Column(columnDefinition = "TEXT")
+    private String rejectReason;
+
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime createdAt;

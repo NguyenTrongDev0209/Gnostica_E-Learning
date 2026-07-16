@@ -32,7 +32,7 @@ public class QuestionBankService {
 
     @Transactional(readOnly = true)
     public List<QuestionDto> getQuestionsByCourseId(java.util.UUID courseId) {
-        List<Question> questions = questionRepository.findByCourse_Id(courseId);
+        List<Question> questions = questionRepository.findByCourse_IdOrderByIdAsc(courseId);
         List<QuestionDto> dtos = new ArrayList<>();
 
         for (Question q : questions) {
@@ -64,18 +64,18 @@ public class QuestionBankService {
     }
 
     @Transactional
-    public void saveQuestionBank(java.util.UUID courseId, List<QuestionDto> dtos) {
+    public void saveQuestionBank(String email, java.util.UUID courseId, List<QuestionDto> dtos) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new IllegalArgumentException("Khóa học không tồn tại."));
 
-        List<Question> existingQuestions = questionRepository.findByCourse_Id(courseId);
+        List<Question> existingQuestions = questionRepository.findByCourse_IdOrderByIdAsc(courseId);
         if (existingQuestions != null && !existingQuestions.isEmpty()) {
             quizQuestionRepository.deleteByQuestionIn(existingQuestions);
         }
         questionRepository.deleteAll(existingQuestions);
 
         if (dtos == null || dtos.isEmpty()) {
-            redisDraftService.clearDraft(courseId.toString());
+            redisDraftService.clearDraft(email, courseId.toString());
             return;
         }
 
@@ -101,21 +101,22 @@ public class QuestionBankService {
             questionRepository.save(q);
         }
 
-        redisDraftService.clearDraft(courseId.toString());
+        redisDraftService.clearDraft(email, courseId.toString());
         log.info("Saved {} questions for course {} and cleared draft.", dtos.size(), courseId);
     }
 
     @Transactional
     public Map<Integer, Integer> saveQuestionBankAndGetMap(Course course, List<QuestionDto> dtos) {
-        List<Question> existingQuestions = questionRepository.findByCourse_Id(course.getId());
+        List<Question> existingQuestions = questionRepository.findByCourse_IdOrderByIdAsc(course.getId());
         if (existingQuestions != null && !existingQuestions.isEmpty()) {
             quizQuestionRepository.deleteByQuestionIn(existingQuestions);
         }
         questionRepository.deleteAll(existingQuestions);
 
         Map<Integer, Integer> idMapping = new HashMap<>();
+        String email = course.getAccount().getEmail();
         if (dtos == null || dtos.isEmpty()) {
-            redisDraftService.clearDraft(course.getId().toString());
+            redisDraftService.clearDraft(email, course.getId().toString());
             return idMapping;
         }
 
@@ -145,7 +146,7 @@ public class QuestionBankService {
             }
         }
 
-        redisDraftService.clearDraft(course.getId().toString());
+        redisDraftService.clearDraft(email, course.getId().toString());
         return idMapping;
     }
 }

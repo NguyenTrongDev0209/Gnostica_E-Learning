@@ -1,4 +1,4 @@
-﻿// eslint-disable-next-line no-unused-vars
+// eslint-disable-next-line no-unused-vars
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -210,8 +210,7 @@ export default function AdminCourseModeration() {
           columns={[
             {
               header: "Thông tin khóa học",
-              width: "380px",
-              className: "pl-6",
+              className: "pl-6 min-w-[300px]",
               render: (item) => (
                 <div className="flex gap-4 items-center pl-6">
                   <div
@@ -240,21 +239,28 @@ export default function AdminCourseModeration() {
                       {item.title || <i className="text-muted-foreground font-normal">Chưa đặt tên</i>}
                     </span>
                     <div className="flex items-center gap-2 mt-1">
-                      <Badge variant="outline" className="text-[10px] font-extrabold uppercase tracking-wide px-1 bg-muted">
+                      <Badge variant="outline" className="text-[10px] font-extrabold uppercase tracking-wide px-1 bg-transparent border-transparent text-muted-foreground opacity-50">
                         ID: {item.id}
                       </Badge>
-                      <span className="text-xs text-muted-foreground font-bold">
-                        {item.categoryName || "Chưa rõ danh mục"}
-                      </span>
                     </div>
                   </div>
                 </div>
               ),
             },
             {
-              header: "Giảng viên",
+              header: "Danh mục",
+              align: "center",
               render: (item) => (
-                <div className="flex items-center gap-2.5">
+                <span className="text-sm font-semibold text-foreground">
+                  {item.categoryName || "Chưa rõ danh mục"}
+                </span>
+              ),
+            },
+            {
+              header: "Giảng viên",
+              align: "center",
+              render: (item) => (
+                <div className="flex items-center justify-center gap-2.5">
                   <div className="w-8 h-8 rounded-full overflow-hidden border border-border bg-secondary shadow-sm shrink-0 flex items-center justify-center">
                     {item.instructorAvatar ? (
                       <img
@@ -274,8 +280,9 @@ export default function AdminCourseModeration() {
             },
             {
               header: "Ngày cập nhật",
+              align: "center",
               render: (item) => (
-                <div className="flex items-center gap-1.5 text-muted-foreground text-sm font-medium">
+                <div className="flex items-center justify-center gap-1.5 text-muted-foreground text-sm font-medium">
                   <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
                   {formatFriendlyDate(item.updatedAt)}
                 </div>
@@ -283,6 +290,7 @@ export default function AdminCourseModeration() {
             },
             {
               header: "Giá bán",
+              align: "center",
               render: (item) => (
                 <span className="font-extrabold text-foreground text-[15px]">
                   {formatCurrency(item.salePrice || item.price || 0)}
@@ -291,6 +299,7 @@ export default function AdminCourseModeration() {
             },
             {
               header: "Trạng thái",
+              align: "center",
               render: (item) => getStatusBadge(item.status),
             },
             {

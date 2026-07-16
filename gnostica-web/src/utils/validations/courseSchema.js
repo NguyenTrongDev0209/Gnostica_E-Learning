@@ -98,5 +98,4 @@ export const courseSchema = z.object({
   createdAt: z.any().nullable().optional(),
   updatedAt: z.any().nullable().optional(),
   questionBank: z.any().nullable().optional(),
-  aiModerationReport: z.any().nullable().optional(),
 });

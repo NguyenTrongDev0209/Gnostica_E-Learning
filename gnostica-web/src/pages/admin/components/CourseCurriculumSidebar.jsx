@@ -37,11 +37,11 @@ export default function CourseCurriculumSidebar({ course, validModules, totalLes
       </div>
 
       <div className="bg-white rounded-2xl border border-border/60 shadow-sm flex flex-col overflow-hidden max-h-[calc(100vh-200px)]">
-        <div className="p-5 bg-muted text-white flex-shrink-0">
+        <div className="p-5 bg-slate-900 text-white flex-shrink-0">
           <h3 className="font-black flex items-center gap-2.5 tracking-tight text-[17px]">
             <BookOpen className="w-5 h-5 text-indigo-400" /> Chương trình đào tạo
           </h3>
-          <p className="text-muted-foreground text-xs font-bold mt-1 flex items-center gap-2">
+          <p className="text-slate-300 text-xs font-bold mt-1 flex items-center gap-2">
             <Layers className="w-3.5 h-3.5" /> {validModules.length} Chương • {totalLessons} Bài giảng
           </p>
         </div>

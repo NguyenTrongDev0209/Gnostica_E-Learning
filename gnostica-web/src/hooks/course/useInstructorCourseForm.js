@@ -7,6 +7,7 @@ import axiosClient from "@/lib/axiosClient";
 import { toast } from "sonner";
 import courseService from "@/services/course/courseService";
 import categoryService from "@/services/course/categoryService";
+import questionService from "@/services/course/questionService";
 
 /**
  * Hook quản lý toàn bộ logic cho InstructorCourseForm.
@@ -296,7 +297,7 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
           let bankQuestions = [];
           try {
             if (data && data.id) {
-              const qs = await courseService.getDraftQuestions(data.id);
+              const qs = await questionService.getDraftQuestions(data.id);
               if (qs && Array.isArray(qs)) {
                 bankQuestions = qs;
               }

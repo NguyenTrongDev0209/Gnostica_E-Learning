@@ -27,9 +27,7 @@ export default function AdminCourseDetailModeration() {
     activePreview,
     setActivePreview,
     playerRef,
-    // eslint-disable-next-line no-unused-vars
-    isAiScanning,
-    isAiScanningInfo,
+
     isEmbedLink,
     handleApprove,
     handleConfirmReject
@@ -245,12 +243,18 @@ export default function AdminCourseDetailModeration() {
                       <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
                         {activePreview.data.questions?.map((q, idx) => (
                           <div key={q.id} className="p-4 bg-white rounded-xl border border-border shadow-sm">
-                            <p className="font-bold text-sm mb-3">Câu {idx + 1}: {q.content}</p>
+                            <p className="font-bold text-sm mb-3">Câu {idx + 1}: {q.text || q.content}</p>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                              {q.answers?.map((a) => (
+                              {q.options ? Object.entries(q.options).map(([key, val]) => (
+                                <div key={key} className={`p-2.5 rounded-lg border text-sm font-medium flex items-center justify-between ${q.correct === key ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-muted border-transparent text-muted-foreground'}`}>
+                                  <div className="flex gap-2">
+                                    <span className="font-bold">{key}.</span> 
+                                    <span>{val}</span>
+                                  </div>
+                                </div>
+                              )) : q.answers?.map((a) => (
                                 <div key={a.id} className={`p-2.5 rounded-lg border text-sm font-medium flex items-center justify-between ${a.isCorrect ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-muted border-transparent text-muted-foreground'}`}>
                                   {a.content}
-                                  {a.isCorrect && <CheckCircle2 className="w-4 h-4 text-emerald-500" />}
                                 </div>
                               ))}
                             </div>

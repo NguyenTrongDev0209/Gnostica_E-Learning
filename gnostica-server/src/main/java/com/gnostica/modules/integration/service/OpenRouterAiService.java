@@ -35,7 +35,7 @@ public class OpenRouterAiService {
     @Value("${openrouter.model}")
     private String model;
 
-    public List<QuestionDto> generateQuestions(String documentText, int count, String difficulty) throws Exception {
+    public List<QuestionDto> generateQuestions(String documentText, int count, String difficulty, boolean isExcel) throws Exception {
         String url = baseUrl + "/chat/completions";
 
         HttpHeaders headers = new HttpHeaders();
@@ -47,7 +47,24 @@ public class OpenRouterAiService {
         // Limit the text to avoid context length overflow. Flash can handle ~1M tokens, but we truncate just in case.
         String context = documentText.length() > 500000 ? documentText.substring(0, 500000) : documentText;
 
-        String systemPrompt = "Bạn là một chuyên gia giáo dục xuất sắc. Nhiệm vụ của bạn là đọc tài liệu dưới đây và tạo ra " + count + " câu hỏi trắc nghiệm.\n" +
+        String systemPrompt = "";
+        
+        if (isExcel) {
+            systemPrompt = "Bạn là một hệ thống trích xuất dữ liệu tự động. Văn bản dưới đây được trích xuất từ một file Excel chứa danh sách câu hỏi. " +
+                "Nhiệm vụ của bạn là đọc và trích xuất Y NGUYÊN 100% tất cả các câu hỏi có trong văn bản mà KHÔNG ĐƯỢC tự ý thay đổi từ ngữ, KHÔNG ĐƯỢC thay đổi cấp độ, và KHÔNG ĐƯỢC giới hạn số lượng. " +
+                "Bạn phải trích xuất TẤT CẢ các câu hỏi có trong đó (bao gồm câu hỏi, 4 đáp án A B C D, đáp án đúng và lời giải thích).\n" +
+                "QUAN TRỌNG NHẤT: BẠN PHẢI TRẢ VỀ KẾT QUẢ DƯỚI DẠNG MẢNG JSON NGUYÊN BẢN (Raw JSON Array). Không thêm markdown (như ```json), CHỈ trả về đúng chuỗi JSON như cấu trúc sau:\n" +
+                "[\n" +
+                "  {\n" +
+                "    \"text\": \"Nội dung câu hỏi...\",\n" +
+                "    \"options\": {\"A\": \"Đáp án A\", \"B\": \"Đáp án B\", \"C\": \"Đáp án C\", \"D\": \"Đáp án D\"},\n" +
+                "    \"correct\": \"A\",\n" +
+                "    \"level\": \"medium\",\n" +
+                "    \"explanation\": \"Lời giải chi tiết...\"\n" +
+                "  }\n" +
+                "]";
+        } else {
+            systemPrompt = "Bạn là một chuyên gia giáo dục xuất sắc. Nhiệm vụ của bạn là đọc tài liệu dưới đây và tạo ra " + count + " câu hỏi trắc nghiệm.\n" +
                 "Yêu cầu:\n" +
                 "- Số lượng câu hỏi cần tạo: đúng " + count + " câu.\n" +
                 "- Độ khó: " + difficulty + " (phải gán nhãn level là 'easy', 'medium', 'hard' hoặc trộn theo ngữ cảnh).\n" +
@@ -64,6 +81,7 @@ public class OpenRouterAiService {
                 "    \"explanation\": \"Lời giải chi tiết...\"\n" +
                 "  }\n" +
                 "]";
+        }
 
         List<Map<String, String>> messages = new ArrayList<>();
         messages.add(Map.of("role", "system", "content", systemPrompt));

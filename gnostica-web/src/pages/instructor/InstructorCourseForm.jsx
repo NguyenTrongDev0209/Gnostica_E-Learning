@@ -2455,9 +2455,7 @@ function VideoProgressCircle({ progress, size = 60 }) {
 
 
 export default function InstructorCourseForm() {
-  // eslint-disable-next-line no-unused-vars
   const navigate = useNavigate();
-  const [showAiReportModal, setShowAiReportModal] = React.useState(false);
 
   const {
     methods,
@@ -2485,10 +2483,6 @@ export default function InstructorCourseForm() {
     uploadVideoToBunny,
     onSubmit
   } = useInstructorCourseForm(courseSchema, viErrorMap);
-
-  const { isPreScanning, handlePreScanWholeCourse } = useCourseAiPreScan(methods);
-
-  const overallAiReport = methods.watch("aiModerationReport");
 
   const onError = (errors) => {
     toast.error("Vui lòng kiểm tra lại thông tin trên form!");
@@ -2683,14 +2677,6 @@ export default function InstructorCourseForm() {
           setShowDraftModal={setShowDraftModal} 
           slug={slug} 
           restoreDraft={restoreDraft} 
-        />
-        
-        <CourseAiReportModal 
-          showAiReportModal={showAiReportModal} 
-          setShowAiReportModal={setShowAiReportModal} 
-          overallAiReport={overallAiReport} 
-          isPreScanning={isPreScanning} 
-          handlePreScanWholeCourse={handlePreScanWholeCourse} 
         />
       </FormProvider>
     </div>
