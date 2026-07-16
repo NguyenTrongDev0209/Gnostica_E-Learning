@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import couponService from '@/services/order/couponService';
+import { USE_INSTRUCTOR_MOCK, MOCK_COUPONS } from "@/mocks/instructorMockData";
 
 export function useCoupons(options = {}) {
   const { mine = false } = options;
@@ -13,12 +14,22 @@ export function useCoupons(options = {}) {
       const response = mine
         ? await couponService.getMyCoupons()
         : await couponService.getCoupons();
-      if (response && response.data) {
-        setCoupons(response.data);
+        
+      let data = response?.data;
+      if (USE_INSTRUCTOR_MOCK && mine && (!data || data.length === 0)) {
+        data = MOCK_COUPONS;
+      }
+      if (data) {
+        setCoupons(data);
       }
     } catch (error) {
-      console.error("Failed to fetch coupons", error);
-      toast.error("Không thể tải danh sách mã giảm giá");
+      if (USE_INSTRUCTOR_MOCK && mine) {
+        console.log("Using Mock Data for Coupons due to error");
+        setCoupons(MOCK_COUPONS);
+      } else {
+        console.error("Failed to fetch coupons", error);
+        toast.error("Không thể tải danh sách mã giảm giá");
+      }
     } finally {
       setIsLoading(false);
     }

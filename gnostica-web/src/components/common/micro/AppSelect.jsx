@@ -31,6 +31,7 @@ export default function AppSelect({
   disabled = false,
   error = false,
   className,
+  contentClassName,
   ...props
 }) {
   return (
@@ -38,13 +39,13 @@ export default function AppSelect({
       <SelectTrigger 
         aria-invalid={error}
         className={cn(
-          "w-full !h-11 bg-card transition-all duration-300 hover:shadow-[0_0_20px_color-mix(in_srgb,var(--color-primary),transparent_70%)] border",
+          "w-full !h-11 bg-card transition-all duration-300 hover:shadow-[0_0_20px_color-mix(in_srgb,var(--color-primary),transparent_70%)] border font-sans",
           className
         )}
       >
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
-      <SelectContent position="popper" className="shadow-none border border-border ring-0 rounded-xl bg-card">
+      <SelectContent position="popper" className={cn("shadow-none border border-border ring-0 rounded-xl bg-card", contentClassName)}>
         <SelectGroup className="p-1 space-y-1">
           {options.length > 0 ? (
             options.map((opt) => (

@@ -50,7 +50,7 @@ export default function AccountSidebar({ user, currentUser, handleLogout }) {
 
   return (
     <aside className="w-full lg:w-1/4 lg:max-w-[320px] shrink-0">
-      <div className="bg-white rounded-2xl shadow-sm border border-border overflow-hidden sticky top-24">
+      <div className="bg-card rounded-2xl shadow-sm border border-border overflow-hidden sticky top-24">
         {/* User Info */}
         <div className="p-5 flex items-center gap-3">
           <Avatar className="w-12 h-12 ring-2 ring-primary/10">
@@ -126,7 +126,7 @@ export default function AccountSidebar({ user, currentUser, handleLogout }) {
         <div className="p-2">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-base font-semibold text-error hover:bg-red-50 transition-all font-bold"
+            className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-base font-bold text-error hover:bg-error-soft transition-all"
           >
             <LogOut className="w-5 h-5" />
             Đăng xuất

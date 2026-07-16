@@ -44,8 +44,8 @@ export default function InstructorSidebar({ user, handleLogout }) {
   const location = useLocation();
 
   return (
-    <aside className="w-64 bg-slate-50 border-r border-border min-h-screen fixed left-0 top-0 bottom-0 flex flex-col z-50">
-      <div className="h-16 flex items-center justify-center px-0 border-b border-border bg-white">
+    <aside className="w-64 bg-card border-r border-border min-h-screen fixed left-0 top-0 bottom-0 flex flex-col z-50">
+      <div className="h-16 flex items-center justify-center px-0 border-b border-border bg-card">
         <AppLogo className="h-12 md:h-12" />
       </div>
 
@@ -53,7 +53,7 @@ export default function InstructorSidebar({ user, handleLogout }) {
         <nav className="flex flex-col gap-3">
           {INSTRUCTOR_MENU_GROUPS.map((group, idx) => (
             <div key={idx} className="space-y-2">
-              <p className="px-3 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">
+              <p className="px-3 text-xs font-bold text-muted-foreground uppercase tracking-widest">
                 {group.title}
               </p>
               <div className="flex flex-col gap-1">
@@ -61,7 +61,7 @@ export default function InstructorSidebar({ user, handleLogout }) {
                   const Icon = item.icon;
                   const isActive =
                     item.href === "/instructor"
-                      ? location.pathname === "/instructor"
+                      ? location.pathname === "/instructor" || location.pathname === "/instructor/"
                       : location.pathname.startsWith(item.href);
 
                   return (
@@ -87,7 +87,7 @@ export default function InstructorSidebar({ user, handleLogout }) {
         </nav>
       </div>
 
-      <div className="p-4 border-t border-border bg-white font-bold">
+      <div className="p-4 border-t border-border bg-card font-bold">
         <div className="flex items-center justify-between px-2">
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-10 h-10 rounded-full bg-success/10 text-success flex items-center justify-center font-bold text-success shrink-0 border border-border overflow-hidden">
@@ -99,7 +99,7 @@ export default function InstructorSidebar({ user, handleLogout }) {
             </div>
             <div className="min-w-0">
               <p className="text-sm font-bold text-foreground truncate">{user?.fullName || "Giảng viên"}</p>
-              <p className="text-[11px] text-muted-foreground truncate uppercase tracking-wider">{user?.role || "Instructor"}</p>
+              <p className="text-xs text-muted-foreground truncate uppercase tracking-wider">{user?.role || "Instructor"}</p>
             </div>
           </div>
           <button

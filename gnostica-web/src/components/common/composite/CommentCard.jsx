@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Avatar, AvatarImage, AvatarFallback, AvatarBadge } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
+import AppAvatar from "@/components/common/micro/AppAvatar";
+import AppBadge from "@/components/common/micro/AppBadge";
 import { Clock, CornerDownRight, Send } from 'lucide-react';
 import RenderContent from '@/components/common/core/RenderContent';
 import commentService from '@/services/forum/commentService';
-import { Button, buttonVariants } from '@/components/ui/button';
+import { AppButton } from '@/components/common/micro/AppButton';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import ReactQuill from "react-quill-new";
@@ -19,17 +19,7 @@ const quillModules = {
         ["clean"],
     ],
 };
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
+import AppAlertDialog from "@/components/common/micro/AppAlertDialog"
 
 export default function CommentCard({ comment, isNested = false, threadId, onCommentAdded, onCommentDeleted, parentAuthorName, threadAuthorEmail }) {
   const [showReply, setShowReply] = useState(false);
@@ -125,12 +115,12 @@ export default function CommentCard({ comment, isNested = false, threadId, onCom
   return (
     <div className={`flex gap-3 ${isNested ? 'ml-8 sm:ml-12 mt-4 border-l-2 border-border pl-4' : ''}`}>
       <div className="shrink-0 mt-1">
-        <Avatar className="w-9 h-9 ring-2 ring-transparent hover:ring-primary/20 transition-all">
-          <AvatarImage src={comment.author.avatar} alt={comment.author.name} />
-          <AvatarFallback className="bg-primary/10 text-primary font-bold text-xs">
-            {comment.author.name.substring(0, 2).toUpperCase()}
-          </AvatarFallback>
-        </Avatar>
+        <AppAvatar 
+          size="md"
+          className="w-9 h-9 ring-2 ring-transparent hover:ring-primary/20 transition-all"
+          src={comment.author.avatar} 
+          alt={comment.author.name}
+        />
       </div>
       <div className="flex-1 min-w-0">
         <div className={`rounded-xl p-4 ${comment.isAccepted ? 'bg-primary/5 border border-primary/20' : 'bg-muted border border-border'}`}>
@@ -143,9 +133,9 @@ export default function CommentCard({ comment, isNested = false, threadId, onCom
                 </span>
               )}
               {comment.author.role && (
-                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-secondary border-none text-muted-foreground">
+                <AppBadge variant="secondary" className="text-[10px] px-1.5 py-0 bg-secondary border-none text-muted-foreground">
                   {comment.author.role}
-                </Badge>
+                </AppBadge>
               )}
             </div>
             <span className="text-[11px] text-muted-foreground flex items-center gap-1">
@@ -178,32 +168,21 @@ export default function CommentCard({ comment, isNested = false, threadId, onCom
           </button>
           
           {(isOwner || isThreadOwner) && (
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
+            <AppAlertDialog
+              trigger={
                 <button 
                   className="text-xs font-medium text-muted-foreground hover:text-error transition-colors"
                 >
                   Xóa
                 </button>
-              </AlertDialogTrigger>
-              <AlertDialogContent className="bg-white">
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Xác nhận xóa bình luận?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Hành động này không thể hoàn tác. Bình luận của bạn và các phản hồi liên quan sẽ bị xóa vĩnh viễn khỏi hệ thống.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel className="border-border">Hủy</AlertDialogCancel>
-                  <AlertDialogAction 
-                    onClick={handleDelete}
-                    className="bg-error/10 text-error hover:bg-error/10 text-error text-white font-bold"
-                  >
-                    Xóa bình luận
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+              }
+              title="Xác nhận xóa bình luận?"
+              description="Hành động này không thể hoàn tác. Bình luận của bạn và các phản hồi liên quan sẽ bị xóa vĩnh viễn khỏi hệ thống."
+              confirmText="Xóa bình luận"
+              cancelText="Hủy"
+              onConfirm={handleDelete}
+              variant="destructive"
+            />
           )}
         </div>
 
@@ -221,15 +200,15 @@ export default function CommentCard({ comment, isNested = false, threadId, onCom
               />
             </div>
             <div className="flex justify-end gap-2">
-              <Button size="sm" variant="ghost" onClick={() => setShowReply(false)}>Hủy</Button>
-              <Button 
+              <AppButton size="sm" variant="ghost" onClick={() => setShowReply(false)}>Hủy</AppButton>
+              <AppButton 
                 size="sm" 
-                className="bg-accent-gradient font-bold" 
+                className="bg-accent-gradient font-bold text-white" 
                 onClick={handleSendReply}
                 disabled={!replyContent || replyContent.replace(/<[^>]*>/g, '').trim() === ''}
               >
                 <Send className="w-3 h-3 mr-1" /> Trả lời
-              </Button>
+              </AppButton>
             </div>
           </div>
         )}

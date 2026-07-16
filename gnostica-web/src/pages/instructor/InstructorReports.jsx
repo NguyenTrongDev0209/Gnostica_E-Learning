@@ -11,7 +11,7 @@ import {
   Clock,
   Layout
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import AppCard, { AppCardContent, AppCardHeader, AppCardTitle, AppCardDescription } from "@/components/common/micro/AppCard";
 import { AppButton } from "@/components/common/micro/AppButton";
 import { 
   BarChart, 
@@ -76,39 +76,39 @@ export default function InstructorReports() {
       {/* KPI Section */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {[
-          { label: "Tỷ lệ hoàn thành", value: "72.4%", icon: Target, isPositive: true, trend: "+2.1%", styles: "text-info bg-blue-50 border-info/20" },
-          { label: "Thời gian học TB", value: "45p/ngày", icon: Clock, isPositive: true, trend: "+5.4%", styles: "text-success bg-green-50 border-success/20" },
-          { label: "Điểm thi trung bình", value: "8.2/10", icon: Award, isPositive: false, trend: "-0.5%", styles: "text-amber-600 bg-amber-50 border-amber-100" },
-          { label: "Số giờ giảng dạy", value: "124h", icon: Layout, isPositive: true, trend: "+12h", styles: "text-indigo-600 bg-indigo-50 border-indigo-100" },
+          { label: "Tỷ lệ hoàn thành", value: "72.4%", icon: Target, isPositive: true, trend: "+2.1%", styles: "text-info bg-info/10 border-info/20" },
+          { label: "Thời gian học TB", value: "45p/ngày", icon: Clock, isPositive: true, trend: "+5.4%", styles: "text-success bg-success/10 border-success/20" },
+          { label: "Điểm thi trung bình", value: "8.2/10", icon: Award, isPositive: false, trend: "-0.5%", styles: "text-warning bg-warning/10 border-warning/20" },
+          { label: "Số giờ giảng dạy", value: "124h", icon: Layout, isPositive: true, trend: "+12h", styles: "text-primary bg-primary/10 border-primary/20" },
         ].map((kpi, i) => (
-          <Card key={i} className="border-border shadow-sm overflow-hidden">
-            <CardContent className="p-4 flex flex-col gap-3">
+          <AppCard key={i} className="border-border shadow-sm overflow-hidden">
+            <AppCardContent className="p-4 flex flex-col gap-3">
               <div className="flex justify-between items-center">
                 <div className={`p-2 rounded-lg border ${kpi.styles}`}>
                   <kpi.icon className="w-5 h-5" />
                 </div>
-                <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${kpi.isPositive ? 'text-success bg-green-50' : 'text-error bg-red-50'}`}>
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${kpi.isPositive ? 'text-success bg-success/10' : 'text-error bg-error/10'}`}>
                   {kpi.trend}
                 </span>
               </div>
               <div>
                 <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{kpi.label}</p>
-                <p className="text-xl font-black text-foreground">{kpi.value}</p>
+                <p className="text-xl font-bold text-foreground">{kpi.value}</p>
               </div>
-            </CardContent>
-          </Card>
+            </AppCardContent>
+          </AppCard>
         ))}
       </div>
 
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Completion Rate Chart */}
-        <Card className="border-border shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-lg font-bold">Tỷ Lệ Hoàn Thành Khóa Học</CardTitle>
-            <CardDescription>So sánh tỷ lệ hoàn thành giữa các khóa học</CardDescription>
-          </CardHeader>
-          <CardContent className="h-[300px] w-full pt-0">
+        <AppCard className="border-border shadow-sm">
+          <AppCardHeader>
+            <AppCardTitle className="text-lg font-bold">Tỷ Lệ Hoàn Thành Khóa Học</AppCardTitle>
+            <AppCardDescription>So sánh tỷ lệ hoàn thành giữa các khóa học</AppCardDescription>
+          </AppCardHeader>
+          <AppCardContent className="h-[300px] w-full pt-0">
              <ResponsiveContainer width="100%" height="100%">
               <BarChart data={COMPLETION_DATA} layout="vertical" margin={{ left: 20 }}>
                 <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f1f5f9" />
@@ -127,16 +127,16 @@ export default function InstructorReports() {
                 <Bar dataKey="rate" fill="#16a34a" radius={[0, 4, 4, 0]} barSize={20} />
               </BarChart>
             </ResponsiveContainer>
-          </CardContent>
-        </Card>
+          </AppCardContent>
+        </AppCard>
 
         {/* Engagement Trend */}
-        <Card className="border-border shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-lg font-bold">Lượng Truy Cập Hàng Ngày</CardTitle>
-            <CardDescription>Số lượng học viên hoạt động trong tuần qua</CardDescription>
-          </CardHeader>
-          <CardContent className="h-[300px] w-full pt-0">
+        <AppCard className="border-border shadow-sm">
+          <AppCardHeader>
+            <AppCardTitle className="text-lg font-bold">Lượng Truy Cập Hàng Ngày</AppCardTitle>
+            <AppCardDescription>Số lượng học viên hoạt động trong tuần qua</AppCardDescription>
+          </AppCardHeader>
+          <AppCardContent className="h-[300px] w-full pt-0">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={ENGAGEMENT_DATA}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -165,16 +165,16 @@ export default function InstructorReports() {
                 />
               </LineChart>
             </ResponsiveContainer>
-          </CardContent>
-        </Card>
+          </AppCardContent>
+        </AppCard>
 
         {/* Device Distribution */}
-        <Card className="border-border shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-lg font-bold">Thiết Bị Truy Cập</CardTitle>
-            <CardDescription>Tỷ lệ các loại thiết bị học viên sử dụng</CardDescription>
-          </CardHeader>
-          <CardContent className="h-[300px] w-full pt-0 flex flex-col items-center">
+        <AppCard className="border-border shadow-sm">
+          <AppCardHeader>
+            <AppCardTitle className="text-lg font-bold">Thiết Bị Truy Cập</AppCardTitle>
+            <AppCardDescription>Tỷ lệ các loại thiết bị học viên sử dụng</AppCardDescription>
+          </AppCardHeader>
+          <AppCardContent className="h-[300px] w-full pt-0 flex flex-col items-center">
             <ResponsiveContainer width="100%" height="80%">
               <PieChart>
                 <Pie
@@ -201,16 +201,16 @@ export default function InstructorReports() {
                  </div>
                ))}
             </div>
-          </CardContent>
-        </Card>
+          </AppCardContent>
+        </AppCard>
 
         {/* Top Content (Lessons) */}
-        <Card className="border-border shadow-sm h-full">
-          <CardHeader>
-            <CardTitle className="text-lg font-bold">Bài Học Phổ Biến</CardTitle>
-            <CardDescription>Những bài học có lượng truy cập nhiều nhất</CardDescription>
-          </CardHeader>
-          <CardContent className="p-0">
+        <AppCard className="border-border shadow-sm h-full">
+          <AppCardHeader>
+            <AppCardTitle className="text-lg font-bold">Bài Học Phổ Biến</AppCardTitle>
+            <AppCardDescription>Những bài học có lượng truy cập nhiều nhất</AppCardDescription>
+          </AppCardHeader>
+          <AppCardContent className="p-0">
              <div className="flex flex-col">
                {[
                  { title: "Hướng dẫn cài đặt môi trường", views: "2.4k", time: "12m" },
@@ -224,14 +224,14 @@ export default function InstructorReports() {
                      <span className="text-sm font-bold text-foreground line-clamp-1">{lesson.title}</span>
                    </div>
                    <div className="flex items-center gap-4 shrink-0">
-                     <span className="text-xs font-bold text-info bg-blue-50 px-2 py-0.5 rounded">{lesson.views} views</span>
-                     <ChevronRight className="w-4 h-4 text-slate-300" />
+                     <span className="text-xs font-bold text-info bg-info/10 px-2 py-0.5 rounded">{lesson.views} views</span>
+                     <ChevronRight className="w-4 h-4 text-muted-foreground" />
                    </div>
                  </div>
                ))}
              </div>
-          </CardContent>
-        </Card>
+          </AppCardContent>
+        </AppCard>
       </div>
     </div>
   );

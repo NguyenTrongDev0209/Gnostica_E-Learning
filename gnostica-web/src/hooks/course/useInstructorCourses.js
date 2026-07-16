@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import courseService from "@/services/course/courseService";
+import { USE_INSTRUCTOR_MOCK, MOCK_COURSES } from "@/mocks/instructorMockData";
 
 /**
  * Hook quản lý danh sách khóa học của giảng viên bằng React Query.
@@ -25,22 +26,31 @@ export default function useInstructorCourses(pageSize = 10) {
   const { data, isLoading: loading } = useQuery({
     queryKey: ['instructor_courses', paginationState.currentPage, filters],
     queryFn: async () => {
-      const response = await courseService.getInstructorCourses(
-        paginationState.currentPage, 
-        paginationState.size, 
-        filters.search, 
-        filters.categoryId, 
-        filters.status
-      );
-      const draftsRaw = await courseService.getAllDrafts();
-      
-      const dbData = (response && response.data !== undefined && response.error !== undefined) 
-        ? response.data 
-        : response;
+      let dbData = {};
+      let drafts = [];
+      try {
+        const response = await courseService.getInstructorCourses(
+          paginationState.currentPage, 
+          paginationState.size, 
+          filters.search, 
+          filters.categoryId, 
+          filters.status
+        );
+        const draftsRaw = await courseService.getAllDrafts();
+        dbData = (response && response.data !== undefined && response.error !== undefined) ? response.data : response;
+        drafts = (draftsRaw && draftsRaw.data && draftsRaw.error !== undefined) ? draftsRaw.data : draftsRaw;
+      } catch (e) {
+        if (USE_INSTRUCTOR_MOCK) {
+          console.log("Using Mock Data for Courses due to error");
+          dbData = MOCK_COURSES;
+        } else {
+          throw e;
+        }
+      }
 
-      const drafts = (draftsRaw && draftsRaw.data && draftsRaw.error !== undefined)
-        ? draftsRaw.data
-        : draftsRaw;
+      if (USE_INSTRUCTOR_MOCK && (!dbData || !dbData.content || dbData.content.length === 0) && (!drafts || drafts.length === 0)) {
+        dbData = MOCK_COURSES;
+      }
 
       let dbCourses = dbData.content || [];
 

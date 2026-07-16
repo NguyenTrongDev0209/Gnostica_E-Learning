@@ -1,5 +1,5 @@
 import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import AppCard, { AppCardContent, AppCardHeader, AppCardTitle } from "@/components/common/micro/AppCard";
 import {
     AreaChart,
     Area,
@@ -17,8 +17,8 @@ export default function LineChart({
     data,
     dataKey,
     xAxisKey = "month",
-    strokeColor = "#3b82f6",
-    fillColor = "#3b82f6",
+    strokeColor = "var(--color-primary)",
+    fillColor = "var(--color-primary)",
     gradientId = "colorDefault",
     yAxisFormatter = (val) => val,
     tooltipFormatter = (val) => [val, ""],
@@ -26,11 +26,11 @@ export default function LineChart({
     className = ""
 }) {
     return (
-        <Card className={`lg:col-span-2 border-border shadow-sm ${className}`}>
-            <CardHeader className="pb-2">
+        <AppCard appVariant="default" className={`lg:col-span-2 border-border shadow-sm ${className}`}>
+            <AppCardHeader className="pb-2">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="space-y-1">
-                        <CardTitle className="text-lg font-bold">{title}</CardTitle>
+                        <AppCardTitle className="text-lg font-semibold">{title}</AppCardTitle>
                         {subtitle && (
                             <div className="flex items-baseline gap-2">
                                 {subtitle}
@@ -43,8 +43,8 @@ export default function LineChart({
                         </div>
                     )}
                 </div>
-            </CardHeader>
-            <CardContent className="w-full pt-0" style={{ height: `${height}px` }}>
+            </AppCardHeader>
+            <AppCardContent className="w-full pt-0" style={{ height: `${height}px` }}>
                 <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                         <defs>
@@ -53,18 +53,18 @@ export default function LineChart({
                                 <stop offset="95%" stopColor={fillColor} stopOpacity={0} />
                             </linearGradient>
                         </defs>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-border)" />
                         <XAxis
                             dataKey={xAxisKey}
                             axisLine={false}
                             tickLine={false}
-                            tick={{ fontSize: 12, fontWeight: 600, fill: '#94a3b8' }}
+                            tick={{ fontSize: 12, fontWeight: 500, fill: 'var(--color-muted-foreground)' }}
                             dy={10}
                         />
                         <YAxis
                             axisLine={false}
                             tickLine={false}
-                            tick={{ fontSize: 12, fontWeight: 600, fill: '#94a3b8' }}
+                            tick={{ fontSize: 12, fontWeight: 500, fill: 'var(--color-muted-foreground)' }}
                             tickFormatter={yAxisFormatter}
                         />
                         <Tooltip
@@ -81,7 +81,7 @@ export default function LineChart({
                         />
                     </AreaChart>
                 </ResponsiveContainer>
-            </CardContent>
-        </Card>
+            </AppCardContent>
+        </AppCard>
     );
 }

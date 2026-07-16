@@ -14,7 +14,7 @@ const AuthLayout = () => {
         <AppLogo src="/Gnostica_Mark.webp" />
       </div>
 
-      <main className="flex-grow flex items-center justify-center p-4 py-20 sm:p-8 relative z-10 [&>div]:max-w-[500px]">
+      <main className="flex-grow flex items-center justify-center p-4 py-20 sm:p-8 relative z-10 [&>div]:container-sm [&>div]:px-0">
         <Outlet />
       </main>
     </div>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { ArrowUpDown } from 'lucide-react';
 import {
   Table,
   TableHeader,
@@ -54,15 +55,25 @@ export default function AppTable({
               <TableHead 
                 key={col.key || col.accessor || index} 
                 className={cn(
-                  "py-3 px-4 font-semibold text-foreground align-middle", 
-                  col.align === "center" && "text-center",
-                  col.align === "right" && "text-right",
-                  col.align === "left" && "text-left",
+                  "py-3 px-4 font-semibold text-foreground align-middle text-center", 
+                  col.headerAlign === "left" && "text-left",
+                  col.headerAlign === "right" && "text-right",
                   col.className
                 )} 
                 style={{ width: col.width }}
               >
-                {typeof col.header === "function" ? col.header() : col.header || col.label}
+                {col.sortable !== false && typeof col.header !== "function" && col.header !== "Thao tác" ? (
+                  <div className={cn(
+                    "flex items-center gap-1.5 cursor-pointer hover:text-primary transition-colors group select-none justify-center",
+                    col.headerAlign === "left" && "justify-start",
+                    col.headerAlign === "right" && "justify-end"
+                  )}>
+                    {col.header || col.label}
+                    <ArrowUpDown className="w-3 h-3 text-muted-foreground/50 group-hover:text-primary transition-colors" />
+                  </div>
+                ) : (
+                  typeof col.header === "function" ? col.header() : col.header || col.label
+                )}
               </TableHead>
             ))}
           </TableRow>

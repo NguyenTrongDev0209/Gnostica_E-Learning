@@ -1,11 +1,10 @@
 import React from 'react';
 import { Star, BookOpen, Users, Clock, Flame, ThumbsUp, MessageSquare, Eye, ArrowUp, ArrowDown, Share2, PlayCircle } from 'lucide-react';
-import { Card } from "@/components/ui/card"; // Removing later if not needed
 import AppCard, { AppCardContent } from "@/components/common/micro/AppCard";
 import AppBadge from "@/components/common/micro/AppBadge";
 import AppAvatar from "@/components/common/micro/AppAvatar";
 import { cn } from "@/lib/utils";
-import { Progress } from "@/components/ui/progress";
+import AppProgress from "@/components/common/micro/AppProgress";
 import { Link } from 'react-router-dom';
 import useAuthStore from '@/store/useAuthStore';
 import threadService from '@/services/forum/threadService';
@@ -198,7 +197,7 @@ export const CourseProgressCard = ({
                   {progressPercent}%
                 </span>
               </div>
-              <Progress value={progressPercent} className={cn("h-1.5 sm:h-2", progressPercent === 100 && "[&>div]:bg-success")} />
+              <AppProgress value={progressPercent} className={cn("h-1.5 sm:h-2", progressPercent === 100 && "[&>div]:bg-success")} />
             </div>
             <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center bg-secondary hover:bg-primary group-hover:bg-primary group-hover:text-white text-muted-foreground transition-colors shrink-0 shadow-sm hover:shadow-md">
               <PlayCircle className="w-4 h-4 sm:w-5 sm:h-5" />
