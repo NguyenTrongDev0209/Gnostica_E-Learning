@@ -52,8 +52,8 @@ export default function InstructorQA() {
           </p>
         </div>
         <div className="flex text-sm font-bold text-muted-foreground bg-secondary p-1 rounded-lg">
-          <button className="px-4 py-2 rounded-md bg-white text-foreground shadow-sm">Tất cả</button>
-          <button className="px-4 py-2 rounded-md hover:text-foreground transition-colors">Chưa trả lời</button>
+          <AppButton appVariant="outline" variant="outline" className="px-4 h-9 shadow-sm bg-white">Tất cả</AppButton>
+          <AppButton appVariant="ghostMuted" variant="ghost" className="px-4 h-9 font-normal">Chưa trả lời</AppButton>
         </div>
       </div>
 

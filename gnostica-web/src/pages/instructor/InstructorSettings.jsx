@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import AppCard, { AppCardContent, AppCardHeader, AppCardTitle, AppCardDescription } from "@/components/common/micro/AppCard";
 import { AppButton } from "@/components/common/micro/AppButton";
+import AppSelect from "@/components/common/micro/AppSelect";
 import AppInput from "@/components/common/micro/AppInput";
 import AppTextarea from "@/components/common/micro/AppTextarea";
 import { Label } from "@/components/ui/label";

@@ -20,6 +20,8 @@ import {
   Trash2
 } from "lucide-react";
 import AppCard, { AppCardContent } from "@/components/common/micro/AppCard";
+import { AppDialog } from "@/components/common/micro/AppDialog";
+import AppInput, { AppPasswordInput } from "@/components/common/micro/AppInput";
 import { AppButton } from "@/components/common/micro/AppButton";
 import AppBadge from "@/components/common/micro/AppBadge";
 import DataTable from "@/components/common/composite/DataTable";
@@ -152,191 +154,172 @@ function WithdrawModal({ isOpen, onClose, wallet, onSuccess }) {
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 animate-in fade-in">
-            <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden relative">
-                <div className="p-6 space-y-5">
-                    <div className="flex justify-between items-center border-b pb-4">
-                        <div>
-                            <h2 className="text-xl font-bold text-foreground">
-                                {step === "setup" && "Thiết lập tài khoản ngân hàng"}
-                                {step === "withdraw" && "Yêu cầu rút tiền"}
-                                {step === "remove" && "Xóa tài khoản ngân hàng"}
-                            </h2>
-                            {step === "setup" && (
-                                <p className="text-xs text-muted-foreground mt-0.5">
-                                    Thiết lập một lần, dùng mãi về sau
-                                </p>
-                            )}
+        <AppDialog
+            open={isOpen}
+            onOpenChange={(val) => !val && onClose()}
+            title={
+                step === "setup" ? "Thiết lập tài khoản ngân hàng" :
+                step === "withdraw" ? "Yêu cầu rút tiền" : "Xóa tài khoản ngân hàng"
+            }
+            description={step === "setup" ? "Thiết lập một lần, dùng mãi về sau" : null}
+            appVariant="outline"
+            className="sm:max-w-md"
+        >
+            <div className="space-y-5 mt-4">
+                <div className="bg-muted border border-border px-4 py-3 rounded-lg flex justify-between items-center">
+                    <span className="text-sm font-medium text-muted-foreground">Số dư khả dụng:</span>
+                    <span className="text-lg font-bold text-success">{formatVND(wallet?.remain)}</span>
+                </div>
+
+                {step === "setup" && (
+                    <form onSubmit={handleSetup} className="space-y-4">
+                        <div className="space-y-1.5">
+                            <label className="text-sm font-medium text-foreground flex items-center gap-2">
+                                <Building2 className="w-4 h-4 text-muted-foreground" /> Ngân hàng
+                            </label>
+                            <select
+                                value={setupForm.bin}
+                                onChange={e => setSetupForm(p => ({ ...p, bin: e.target.value }))}
+                                className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:border-success/20 focus:ring-1 focus:ring-green-500 outline-none transition-all"
+                                required
+                            >
+                                <option value="">-- Chọn ngân hàng --</option>
+                                {banks.map(bank => (
+                                    <option key={bank.id} value={bank.bin}>{bank.shortName}</option>
+                                ))}
+                            </select>
                         </div>
-                        <button
-                            onClick={onClose}
-                            className="p-2 text-muted-foreground hover:text-muted-foreground rounded-full hover:bg-secondary transition"
-                        >
-                            <X className="w-5 h-5" />
-                        </button>
-                    </div>
+                        <AppInput
+                            icon={CreditCard}
+                            label="Số tài khoản"
+                            type="text"
+                            placeholder="Ví dụ: 190345..."
+                            value={setupForm.accountNumber}
+                            onChange={e => setSetupForm(p => ({ ...p, accountNumber: e.target.value }))}
+                            required
+                        />
+                        <AppPasswordInput
+                            icon={Lock}
+                            label="Đặt mã PIN (tối thiểu 4 ký tự)"
+                            placeholder="Nhập mã PIN"
+                            value={setupForm.pin}
+                            onChange={e => setSetupForm(p => ({ ...p, pin: e.target.value }))}
+                            required
+                        />
+                        <AppPasswordInput
+                            icon={Lock}
+                            label="Xác nhận mã PIN"
+                            placeholder="Nhập lại mã PIN"
+                            value={setupForm.pinConfirm}
+                            onChange={e => setSetupForm(p => ({ ...p, pinConfirm: e.target.value }))}
+                            required
+                        />
+                        <div className="pt-2 flex gap-3">
+                            <AppButton appVariant="ghostMuted" variant="ghost" type="button" onClick={onClose} className="flex-1 border border-border">Hủy</AppButton>
+                            <AppButton appVariant="gradient" type="submit" disabled={loading} className="flex-1 bg-success/10 text-success hover:bg-success/20">
+                                {loading ? "Đang lưu..." : "Lưu tài khoản"}
+                            </AppButton>
+                        </div>
+                    </form>
+                )}
 
-                    <div className="bg-muted border border-border px-4 py-3 rounded-lg flex justify-between items-center">
-                        <span className="text-sm font-medium text-muted-foreground">Số dư khả dụng:</span>
-                        <span className="text-lg font-bold text-success">{formatVND(wallet?.remain)}</span>
-                    </div>
-
-                    {step === "setup" && (
-                        <form onSubmit={handleSetup} className="space-y-4">
-                            <div className="space-y-1.5">
-                                <label className="text-sm font-medium text-foreground flex items-center gap-2">
-                                    <Building2 className="w-4 h-4 text-muted-foreground" /> Ngân hàng
-                                </label>
-                                <select
-                                    value={setupForm.bin}
-                                    onChange={e => setSetupForm(p => ({ ...p, bin: e.target.value }))}
-                                    className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:border-success/20 focus:ring-1 focus:ring-green-500 outline-none transition-all"
-                                    required
-                                >
-                                    <option value="">-- Chọn ngân hàng --</option>
-                                    {banks.map(bank => (
-                                        <option key={bank.id} value={bank.bin}>{bank.shortName}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <InputField
-                                icon={CreditCard}
-                                label="Số tài khoản"
-                                type="text"
-                                placeholder="Ví dụ: 190345..."
-                                value={setupForm.accountNumber}
-                                onChange={e => setSetupForm(p => ({ ...p, accountNumber: e.target.value }))}
-                                required
-                            />
-                            <InputField
-                                icon={Lock}
-                                label="Đặt mã PIN (tối thiểu 4 ký tự)"
-                                type="password"
-                                placeholder="Nhập mã PIN"
-                                value={setupForm.pin}
-                                onChange={e => setSetupForm(p => ({ ...p, pin: e.target.value }))}
-                                required
-                            />
-                            <InputField
-                                icon={Lock}
-                                label="Xác nhận mã PIN"
-                                type="password"
-                                placeholder="Nhập lại mã PIN"
-                                value={setupForm.pinConfirm}
-                                onChange={e => setSetupForm(p => ({ ...p, pinConfirm: e.target.value }))}
-                                required
-                            />
-                            <div className="pt-2 flex gap-3">
-                                <AppButton appVariant="ghostMuted" variant="ghost" type="button" onClick={onClose} className="flex-1 border border-border">Hủy</AppButton>
-                                <AppButton appVariant="gradient" type="submit" disabled={loading} className="flex-1 bg-success/10 text-success hover:bg-success/20">
-                                    {loading ? "Đang lưu..." : "Lưu tài khoản"}
-                                </AppButton>
-                            </div>
-                        </form>
-                    )}
-
-                    {step === "withdraw" && (
-                        <form onSubmit={handleWithdraw} className="space-y-4">
-                            <div className="border border-border rounded-lg p-3 flex items-center justify-between bg-muted">
-                                <div className="flex items-center gap-3">
-                                    <div className="bg-success/10 text-success p-2 rounded-lg">
-                                        <CreditCard className="w-4 h-4 text-success" />
-                                    </div>
-                                    <div>
-                                        <p className="text-sm font-semibold text-foreground">{bankName || "Ngân hàng"}</p>
-                                        <p className="text-xs text-muted-foreground font-mono">{maskAccount(wallet?.accountNumber)}</p>
-                                    </div>
+                {step === "withdraw" && (
+                    <form onSubmit={handleWithdraw} className="space-y-4">
+                        <div className="border border-border rounded-lg p-3 flex items-center justify-between bg-muted">
+                            <div className="flex items-center gap-3">
+                                <div className="bg-success/10 text-success p-2 rounded-lg border border-success/20">
+                                    <CreditCard className="w-4 h-4 text-success" />
                                 </div>
+                                <div>
+                                    <p className="text-sm font-semibold text-foreground">{bankName || "Ngân hàng"}</p>
+                                    <p className="text-xs text-muted-foreground font-mono mt-0.5">{maskAccount(wallet?.accountNumber)}</p>
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setStep("remove")}
+                                className="text-xs font-semibold text-error hover:text-error/80 flex items-center gap-1 transition"
+                            >
+                                <Trash2 className="w-3.5 h-3.5" /> Đổi
+                            </button>
+                        </div>
+
+                        <AppInput
+                            type="number"
+                            label="Số tiền rút (VND)"
+                            icon={DollarSign}
+                            labelRight={
                                 <button
                                     type="button"
-                                    onClick={() => setStep("remove")}
-                                    className="text-xs text-error hover:text-error flex items-center gap-1 transition"
+                                    onClick={() => setWithdrawForm(p => ({ ...p, amount: wallet?.remain || 0 }))}
+                                    className="text-xs text-success hover:text-success font-bold"
                                 >
-                                    <Trash2 className="w-3.5 h-3.5" /> Đổi
+                                    Rút tối đa
                                 </button>
-                            </div>
+                            }
+                            placeholder="0"
+                            min="10000"
+                            max={wallet?.remain || 0}
+                            value={withdrawForm.amount}
+                            onChange={e => setWithdrawForm(p => ({ ...p, amount: e.target.value }))}
+                            className="font-mono"
+                            required
+                        />
 
-                            <div className="space-y-1.5">
-                                <label className="text-sm font-medium text-foreground flex justify-between items-center">
-                                    <span className="flex items-center gap-2">
-                                        <DollarSign className="w-4 h-4 text-muted-foreground" /> Số tiền rút (VND)
-                                    </span>
-                                    <span
-                                        onClick={() => setWithdrawForm(p => ({ ...p, amount: wallet?.remain || 0 }))}
-                                        className="text-xs text-success hover:text-success font-bold cursor-pointer"
-                                    >
-                                        Rút tối đa
-                                    </span>
-                                </label>
-                                <input
-                                    type="number"
-                                    placeholder="0"
-                                    min="10000"
-                                    max={wallet?.remain || 0}
-                                    value={withdrawForm.amount}
-                                    onChange={e => setWithdrawForm(p => ({ ...p, amount: e.target.value }))}
-                                    className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:border-success/20 focus:ring-1 focus:ring-green-500 outline-none transition-all font-mono"
-                                    required
-                                />
-                            </div>
+                        <AppPasswordInput
+                            icon={Lock}
+                            label="Mã PIN xác nhận"
+                            placeholder="Nhập mã PIN"
+                            value={withdrawForm.pin}
+                            onChange={e => setWithdrawForm(p => ({ ...p, pin: e.target.value }))}
+                            required
+                        />
 
-                            <InputField
-                                icon={Lock}
-                                label="Mã PIN xác nhận"
-                                type="password"
-                                placeholder="Nhập mã PIN"
-                                value={withdrawForm.pin}
-                                onChange={e => setWithdrawForm(p => ({ ...p, pin: e.target.value }))}
-                                required
-                            />
+                        <div className="pt-2 flex gap-3">
+                            <AppButton appVariant="ghostMuted" variant="ghost" type="button" onClick={onClose} className="flex-1 border border-border font-bold">Hủy</AppButton>
+                            <AppButton appVariant="gradient" type="submit" disabled={loading} className="flex-1 bg-success/10 text-success hover:bg-success/20 font-bold">
+                                {loading ? "Đang xử lý..." : "Xác nhận rút tiền"}
+                            </AppButton>
+                        </div>
+                    </form>
+                )}
 
-                            <div className="pt-2 flex gap-3">
-                                <AppButton appVariant="ghostMuted" variant="ghost" type="button" onClick={onClose} className="flex-1 border border-border">Hủy</AppButton>
-                                <AppButton appVariant="gradient" type="submit" disabled={loading} className="flex-1 bg-success/10 text-success hover:bg-success/20">
-                                    {loading ? "Đang xử lý..." : "Xác nhận rút tiền"}
-                                </AppButton>
-                            </div>
-                        </form>
-                    )}
+                {step === "remove" && (
+                    <form onSubmit={handleRemove} className="space-y-4">
+                        <div className="bg-red-50 border border-error/20 rounded-lg p-3 text-sm text-error">
+                            Nhập mã PIN để xác nhận xóa tài khoản ngân hàng hiện tại.
+                            Sau khi xóa, bạn có thể thiết lập tài khoản mới.
+                        </div>
 
-                    {step === "remove" && (
-                        <form onSubmit={handleRemove} className="space-y-4">
-                            <div className="bg-red-50 border border-error/20 rounded-lg p-3 text-sm text-error">
-                                Nhập mã PIN để xác nhận xóa tài khoản ngân hàng hiện tại.
-                                Sau khi xóa, bạn có thể thiết lập tài khoản mới.
-                            </div>
+                        <AppPasswordInput
+                            icon={Lock}
+                            label="Mã PIN hiện tại"
+                            placeholder="Nhập mã PIN"
+                            value={removePin}
+                            onChange={e => setRemovePin(e.target.value)}
+                            required
+                        />
 
-                            <InputField
-                                icon={Lock}
-                                label="Mã PIN hiện tại"
-                                type="password"
-                                placeholder="Nhập mã PIN"
-                                value={removePin}
-                                onChange={e => setRemovePin(e.target.value)}
-                                required
-                            />
-
-                            <div className="pt-2 flex gap-3">
-                                <AppButton appVariant="ghostMuted" variant="ghost"
-                                    type="button"
-                                    onClick={() => setStep("withdraw")}
-                                    className="flex-1 border border-border"
-                                >
-                                    Quay lại
-                                </AppButton>
-                                <AppButton appVariant="gradient"
-                                    type="submit"
-                                    disabled={loading}
-                                    className="flex-1 bg-error/10 text-error hover:bg-error/20"
-                                >
-                                    {loading ? "Đang xử lý..." : "Xác nhận xóa"}
-                                </AppButton>
-                            </div>
-                        </form>
-                    )}
-                </div>
+                        <div className="pt-2 flex gap-3">
+                            <AppButton appVariant="ghostMuted" variant="ghost"
+                                type="button"
+                                onClick={() => setStep("withdraw")}
+                                className="flex-1 border border-border font-bold"
+                            >
+                                Quay lại
+                            </AppButton>
+                            <AppButton appVariant="gradient"
+                                type="submit"
+                                disabled={loading}
+                                className="flex-1 bg-error/10 text-error hover:bg-error/20 font-bold"
+                            >
+                                {loading ? "Đang xử lý..." : "Xác nhận xóa"}
+                            </AppButton>
+                        </div>
+                    </form>
+                )}
             </div>
-        </div>
+        </AppDialog>
     );
 }
 
@@ -540,9 +523,9 @@ export default function InstructorRevenue() {
             <Download className="w-4 h-4" />
             Xuất Excel
           </AppButton>
-          <AppButton appVariant="gradient"
+          <AppButton
             onClick={() => setIsWithdrawOpen(true)}
-            className="btn-md bg-success/10 text-success hover:bg-success/20 font-bold rounded-lg transition-all hover:scale-[1.02]"
+            className="btn-md bg-success text-white hover:bg-success/90 font-bold rounded-lg transition-all shadow-none hover:scale-[1.02]"
           >
             <WalletIcon className="w-4 h-4 mr-2" />
             Rút Tiền
