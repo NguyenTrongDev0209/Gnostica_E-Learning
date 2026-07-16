@@ -13,7 +13,7 @@ import {
   Image as ImageIcon,
   AlertCircle
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import AppCard, { AppCardContent, AppCardHeader, AppCardTitle, AppCardDescription } from "@/components/common/micro/AppCard";
 import { AppButton } from "@/components/common/micro/AppButton";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -31,13 +31,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import AppSelect from "@/components/common/micro/AppSelect";
 import { Textarea } from "@/components/ui/textarea";
 
 export default function AdminThreadModeration() {
@@ -171,30 +165,30 @@ export default function AdminThreadModeration() {
 
       {/* Stats Widget */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-info/20 shadow-sm">
-          <CardContent className="p-5 flex items-center justify-between">
+        <AppCard className="bg-gradient-to-r from-blue-50 to-indigo-50 border-info/20 shadow-sm">
+          <AppCardContent className="p-5 flex items-center justify-between">
             <div className="space-y-1">
               <p className="text-sm font-semibold text-info/80">Bài viết chờ duyệt</p>
               <h3 className="text-3xl font-extrabold text-info">{pendingThreads.length}</h3>
             </div>
-            <div className="w-12 h-12 rounded-full bg-info/10 text-info/10 flex items-center justify-center text-info">
+            <div className="w-12 h-12 rounded-full bg-info/10 flex items-center justify-center text-info">
               <MessageSquare className="w-6 h-6" />
             </div>
-          </CardContent>
-        </Card>
+          </AppCardContent>
+        </AppCard>
       </div>
 
       {/* Pending List Area */}
-      <Card className="border-border shadow-sm">
-        <CardHeader className="border-b bg-muted py-4">
-          <CardTitle className="text-lg font-bold text-foreground">
+      <AppCard appVariant="default" className="border-border shadow-sm">
+        <AppCardHeader className="border-b bg-muted py-4">
+          <AppCardTitle className="text-lg font-bold text-foreground">
             Danh sách chờ kiểm duyệt
-          </CardTitle>
-          <CardDescription>
+          </AppCardTitle>
+          <AppCardDescription>
             Tất cả bài viết được đăng lên mặc định sẽ ở trạng thái chờ duyệt.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-0">
+          </AppCardDescription>
+        </AppCardHeader>
+        <AppCardContent className="p-0">
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-20 gap-4 text-muted-foreground">
               <div className="animate-spin rounded-full h-9 w-9 border-b-2 border-primary"></div>
@@ -269,16 +263,17 @@ export default function AdminThreadModeration() {
                             <RenderContent text={thread.content} />
                           </div>
                           {hasLongContent && (
-                            <button
+                            <AppButton
+                              appVariant="ghostMuted" variant="link" size="sm" type="button"
                               onClick={() => toggleExpand(thread.id)}
-                              className="text-xs font-bold text-primary hover:underline mt-2 flex items-center gap-1 focus:outline-none"
+                              className="p-0 h-auto text-xs font-bold text-primary mt-2 flex items-center gap-1"
                             >
                               {isExpanded ? (
                                 <>Thu gọn <ChevronUp className="w-3 h-3" /></>
                               ) : (
                                 <>Đọc thêm bản đầy đủ <ChevronDown className="w-3 h-3" /></>
                               )}
-                            </button>
+                            </AppButton>
                           )}
                         </div>
 
@@ -330,8 +325,8 @@ export default function AdminThreadModeration() {
               </AnimatePresence>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </AppCardContent>
+      </AppCard>
 
       <AlertDialog open={confirmState.isOpen} onOpenChange={(open) => setConfirmState(prev => ({ ...prev, isOpen: open }))}>
         <AlertDialogContent className="bg-white sm:max-w-md">
@@ -349,18 +344,18 @@ export default function AdminThreadModeration() {
             <div className="flex flex-col gap-4 py-2 text-left">
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-medium text-foreground">Loại vi phạm <span className="text-rose-500 font-bold">*</span></label>
-                <Select value={rejectType} onValueChange={setRejectType}>
-                  <SelectTrigger className="w-full bg-white border border-border">
-                    <SelectValue placeholder="Chọn loại vi phạm" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white">
-                    <SelectItem value="spam">Spam / Quảng cáo</SelectItem>
-                    <SelectItem value="harassment">Quấy rối / Chửi bới / Lăng mạ</SelectItem>
-                    <SelectItem value="inappropriate">Nội dung không phù hợp / Phản cảm</SelectItem>
-                    <SelectItem value="copyright">Vi phạm bản quyền</SelectItem>
-                    <SelectItem value="other">Khác</SelectItem>
-                  </SelectContent>
-                </Select>
+                <AppSelect
+                  value={rejectType} 
+                  onValueChange={setRejectType}
+                  placeholder="Chọn loại vi phạm"
+                  options={[
+                    { label: "Spam / Quảng cáo", value: "spam" },
+                    { label: "Quấy rối / Chửi bới / Lăng mạ", value: "harassment" },
+                    { label: "Nội dung không phù hợp / Phản cảm", value: "inappropriate" },
+                    { label: "Vi phạm bản quyền", value: "copyright" },
+                    { label: "Khác", value: "other" }
+                  ]}
+                />
               </div>
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-medium text-foreground">Chi tiết từ chối</label>

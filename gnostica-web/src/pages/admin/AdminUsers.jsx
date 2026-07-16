@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import {
   Plus,
   Search,
@@ -12,7 +12,7 @@ import {
   Unlock
 } from "lucide-react";
 import DataTable from "@/components/common/composite/DataTable";
-import { Card, CardContent } from "@/components/ui/card";
+import AppCard, { AppCardContent, AppCardHeader, AppCardTitle } from "@/components/common/micro/AppCard";
 import { Badge } from "@/components/ui/badge";
 import { AppButton } from "@/components/common/micro/AppButton";
 import { Input } from "@/components/ui/input";
@@ -149,19 +149,19 @@ export default function AdminUsers() {
       render: (app) => (
         <>
           <div className="flex gap-2 mb-1">
-            <button type="button" onClick={() => setPreviewDocument({ url: app.idCardFront, title: "CCCD Mặt trước" })} className="text-info underline hover:text-blue-700 transition-colors">CCCD Trước</button>
-            <button type="button" onClick={() => setPreviewDocument({ url: app.idCardBack, title: "CCCD Mặt sau" })} className="text-info underline hover:text-blue-700 transition-colors">CCCD Sau</button>
+            <AppButton appVariant="ghostMuted" variant="link" size="sm" type="button" onClick={() => setPreviewDocument({ url: app.idCardFront, title: "CCCD Mặt trước" })} className="p-0 h-auto text-info hover:text-blue-700">CCCD Trước</AppButton>
+            <AppButton appVariant="ghostMuted" variant="link" size="sm" type="button" onClick={() => setPreviewDocument({ url: app.idCardBack, title: "CCCD Mặt sau" })} className="p-0 h-auto text-info hover:text-blue-700">CCCD Sau</AppButton>
           </div>
           <div>
-            <button type="button" onClick={() => setPreviewDocument({ url: app.cvUrl, title: "CV/Resume (PDF)" })} className="text-info underline hover:text-blue-700 transition-colors">CV PDF</button>
+            <AppButton appVariant="ghostMuted" variant="link" size="sm" type="button" onClick={() => setPreviewDocument({ url: app.cvUrl, title: "CV/Resume (PDF)" })} className="p-0 h-auto text-info hover:text-blue-700">CV PDF</AppButton>
           </div>
           {app.degreeUrls && (
             <div className="flex flex-wrap gap-x-2 mt-1 italic">
               <span className="text-xs font-bold text-slate-500 not-italic">Bằng cấp:</span>
               {app.degreeUrls.split(',').filter(u => u).map((url, i) => (
-                <button key={i} type="button" onClick={() => setPreviewDocument({ url: url, title: `Bằng cấp chuyên môn ${i + 1}` })} className="text-emerald-600 underline hover:text-emerald-800 transition-colors">
+                <AppButton appVariant="ghostMuted" variant="link" size="sm" key={i} type="button" onClick={() => setPreviewDocument({ url: url, title: `Bằng cấp chuyên môn ${i + 1}` })} className="p-0 h-auto text-emerald-600 hover:text-emerald-800">
                   Bằng {i + 1}
-                </button>
+                </AppButton>
               ))}
             </div>
           )}
@@ -169,9 +169,9 @@ export default function AdminUsers() {
             <div className="flex flex-wrap gap-x-2 mt-1 italic">
               <span className="text-xs font-bold text-slate-500 not-italic">Chứng chỉ:</span>
               {app.certificateUrls.split(',').filter(u => u).map((url, i) => (
-                <button key={i} type="button" onClick={() => setPreviewDocument({ url: url, title: `Chứng chỉ liên quan ${i + 1}` })} className="text-indigo-600 underline hover:text-indigo-800 transition-colors">
+                <AppButton appVariant="ghostMuted" variant="link" size="sm" key={i} type="button" onClick={() => setPreviewDocument({ url: url, title: `Chứng chỉ liên quan ${i + 1}` })} className="p-0 h-auto text-indigo-600 hover:text-indigo-800">
                   C/chỉ {i + 1}
-                </button>
+                </AppButton>
               ))}
             </div>
           )}
@@ -245,42 +245,42 @@ export default function AdminUsers() {
         </div>
 
         <TabsContent value="USER" className="mt-0">
-          <Card className="border-border shadow-sm overflow-hidden border-none bg-transparent">
+          <AppCard className="border-border shadow-sm overflow-hidden border-none bg-transparent">
             <DataTable 
               columns={accountColumns}
               data={filteredAccounts}
               isLoading={loading}
               emptyState="Không tìm thấy người dùng nào."
             />
-            <div className="p-4 bg-white border border-t-0 border-border rounded-b-xl flex items-center justify-between text-sm text-muted-foreground">
+            <div className="p-4 bg-card border border-t-0 border-border flex items-center justify-between text-sm text-muted-foreground">
               <div>Hiển thị <span className="font-bold text-foreground">{filteredAccounts.length}</span> kết quả</div>
             </div>
-          </Card>
+          </AppCard>
         </TabsContent>
 
         <TabsContent value="INSTRUCTOR" className="mt-0">
-          <Card className="border-border shadow-sm overflow-hidden border-none bg-transparent">
+          <AppCard className="border-border shadow-sm overflow-hidden border-none bg-transparent">
             <DataTable 
               columns={accountColumns}
               data={filteredAccounts}
               isLoading={loading}
               emptyState="Không tìm thấy người dùng nào."
             />
-            <div className="p-4 bg-white border border-t-0 border-border rounded-b-xl flex items-center justify-between text-sm text-muted-foreground">
+            <div className="p-4 bg-card border border-t-0 border-border flex items-center justify-between text-sm text-muted-foreground">
               <div>Hiển thị <span className="font-bold text-foreground">{filteredAccounts.length}</span> kết quả</div>
             </div>
-          </Card>
+          </AppCard>
         </TabsContent>
 
         <TabsContent value="PENDING_APP" className="mt-0">
-          <Card className="border-border shadow-sm overflow-hidden border-none bg-transparent">
+          <AppCard className="border-border shadow-sm overflow-hidden border-none bg-transparent">
             <DataTable 
               columns={applicationColumns}
               data={applications}
               isLoading={loading}
               emptyState="Không có đơn đăng ký chờ duyệt."
             />
-          </Card>
+          </AppCard>
         </TabsContent>
       </Tabs>
 
@@ -298,7 +298,7 @@ export default function AdminUsers() {
               placeholder="Nhập lý do tại đây..."
               value={lockReason}
               onChange={(e) => setLockReason(e.target.value)}
-              className="resize-none h-32 focus-visible:ring-red-500"
+              className="resize-none h-32"
             />
           </div>
           <DialogFooter>
@@ -323,7 +323,7 @@ export default function AdminUsers() {
               placeholder="Nhập lý do tại đây..."
               value={rejectReason}
               onChange={(e) => setRejectReason(e.target.value)}
-              className="resize-none h-32 focus-visible:ring-red-500"
+              className="resize-none h-32"
             />
           </div>
           <DialogFooter>
@@ -346,7 +346,7 @@ export default function AdminUsers() {
               </AppButton>
             </DialogTitle>
           </DialogHeader>
-          <div className="flex-1 w-full bg-slate-100/50 rounded-lg overflow-hidden border border-border flex items-center justify-center relative">
+          <div className="flex-1 w-full bg-slate-100/50 overflow-hidden border border-border flex items-center justify-center relative">
             {previewDocument?.url && (
               (() => {
                 const isPdf = previewDocument.url.split('?')[0].toLowerCase().endsWith('.pdf') ||
@@ -355,7 +355,7 @@ export default function AdminUsers() {
                   return (
                     <iframe
                       src={previewDocument.url}
-                      className="w-full h-full border-0 rounded-md absolute inset-0 bg-white"
+                      className="w-full h-full border-0 absolute inset-0 bg-card"
                       title={previewDocument.title}
                       loading="lazy"
                     />
@@ -366,7 +366,7 @@ export default function AdminUsers() {
                       <img
                         src={previewDocument.url}
                         alt={previewDocument.title}
-                        className="max-w-[95%] max-h-[95%] object-contain rounded-lg shadow-md bg-white border border-border"
+                        className="max-w-[95%] max-h-[95%] object-contain shadow-md bg-card border border-border"
                       />
                     </div>
                   );

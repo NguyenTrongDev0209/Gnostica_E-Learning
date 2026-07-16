@@ -3,10 +3,10 @@ import React, { useState, useEffect } from "react";
 import { BarChart3, ShieldAlert, CheckCircle2, XCircle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DataTable from "@/components/common/composite/DataTable";
-import { Badge } from "@/components/ui/badge";
 import { AppButton } from "@/components/common/micro/AppButton";
 import { toast } from "sonner";
-import { Card, CardContent } from "@/components/ui/card";
+import AppCard, { AppCardContent, AppCardHeader, AppCardTitle } from "@/components/common/micro/AppCard";
+import AppBadge from "@/components/common/micro/AppBadge";
 
 const violationTypes = {
   spam: "Spam / Quảng cáo",
@@ -54,13 +54,13 @@ export default function AdminReports() {
   const getStatusBadge = (status) => {
     switch (status) {
       case "PENDING":
-        return <Badge variant="secondary" className="bg-warning/10 text-warning text-warning hover:bg-warning/10 text-warning border-none">Chờ xử lý</Badge>;
+        return <AppBadge variant="secondary" className="bg-warning/10 text-warning text-warning hover:bg-warning/10 text-warning border-none">Chờ xử lý</AppBadge>;
       case "RESOLVED":
-        return <Badge variant="secondary" className="bg-success/10 text-success text-success hover:bg-success/10 text-success border-none">Đã duyệt</Badge>;
+        return <AppBadge variant="secondary" className="bg-success/10 text-success text-success hover:bg-success/10 text-success border-none">Đã duyệt</AppBadge>;
       case "DISMISSED":
-        return <Badge variant="secondary" className="bg-secondary text-foreground hover:bg-secondary border-none">Bỏ qua</Badge>;
+        return <AppBadge variant="secondary" className="bg-secondary text-foreground hover:bg-secondary border-none">Bỏ qua</AppBadge>;
       default:
-        return <Badge>{status}</Badge>;
+        return <AppBadge>{status}</AppBadge>;
     }
   };
 
@@ -85,8 +85,8 @@ export default function AdminReports() {
         </TabsContent>
 
         <TabsContent value="forum-reports">
-          <Card className="border-border shadow-sm">
-            <CardContent className="p-0">
+          <AppCard appVariant="default" className="border-border shadow-sm">
+            <AppCardContent className="p-0">
               <DataTable
                 columns={[
                   {
@@ -187,8 +187,8 @@ export default function AdminReports() {
                 loadingState="Đang tải dữ liệu..."
                 emptyState="Chưa có báo cáo nào"
               />
-            </CardContent>
-          </Card>
+            </AppCardContent>
+          </AppCard>
         </TabsContent>
       </Tabs>
     </div>

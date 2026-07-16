@@ -1,5 +1,7 @@
 import React from "react";
 import { MessageSquare } from "lucide-react";
+import AppCard, { AppCardContent, AppCardHeader, AppCardTitle } from "@/components/common/micro/AppCard";
+import AppBadge from "@/components/common/micro/AppBadge";
 
 export default function AdminReviews() {
   return (

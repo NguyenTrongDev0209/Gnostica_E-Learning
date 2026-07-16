@@ -21,7 +21,7 @@ import ApplyInstructor from "@/pages/general/ApplyInstructor";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminUsers from "@/pages/admin/AdminUsers";
 import AdminCourses from "@/pages/admin/AdminCourses";
-import AdminCategoryManagement from "@/pages/admin/AdminCategoryManagement";
+import AdminCategories from "@/pages/admin/AdminCategories";
 import AdminOrders from "@/pages/admin/AdminOrders";
 import AdminCoupons from "@/pages/admin/AdminCoupons";
 import AdminReviews from "@/pages/admin/AdminReviews";
@@ -59,7 +59,7 @@ export const privateRoutes = {
     { path: "/admin", component: AdminDashboard },
     { path: "/admin/users", component: AdminUsers },
     { path: "/admin/courses", component: AdminCourses },
-    { path: "/admin/categories", component: AdminCategoryManagement },
+    { path: "/admin/categories", component: AdminCategories },
     { path: "/admin/orders", component: AdminOrders },
     { path: "/admin/coupons", component: AdminCoupons },
     { path: "/admin/reviews", component: AdminReviews },

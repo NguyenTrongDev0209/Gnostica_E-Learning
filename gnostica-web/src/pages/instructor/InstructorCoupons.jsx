@@ -21,7 +21,7 @@ import AppInput from "@/components/common/micro/AppInput";
 import AppBadge from "@/components/common/micro/AppBadge";
 import DataTable from "@/components/common/composite/DataTable";
 import { useCoupons } from "@/hooks/order/useCoupons";
-import { CouponFormModal } from "@/pages/admin/components/CouponFormModal";
+import { CouponFormModal } from "@/pages/instructor/components/CouponFormModal";
 import DataFilter from "@/components/common/composite/DataFilter";
 
 const formatVND = (amount) =>

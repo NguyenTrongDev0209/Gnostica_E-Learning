@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import { 
   Plus, 
   Search, 
@@ -6,7 +6,8 @@ import {
   Star,
   Users
 } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import AppCard, { AppCardContent } from "@/components/common/micro/AppCard";
+import AppSelect from "@/components/common/micro/AppSelect";
 import DataTable from "@/components/common/composite/DataTable";
 import { AppButton } from "@/components/common/micro/AppButton";
 import { Input } from "@/components/ui/input";
@@ -72,8 +73,8 @@ export default function AdminCourses() {
       </div>
 
       {/* Filters & Actions */}
-      <Card className="border-border shadow-sm">
-        <CardContent className="p-4 flex flex-col md:flex-row gap-4 items-center justify-between">
+      <AppCard appVariant="default" className="border-border shadow-sm">
+        <AppCardContent className="p-4 flex flex-col md:flex-row gap-4 items-center justify-between">
           <div className="flex w-full md:w-auto items-center gap-3">
             <div className="relative w-full md:w-80 border-border">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -82,24 +83,29 @@ export default function AdminCourses() {
                 className="pl-9 h-10 border-border focus:bg-white"
               />
             </div>
-            <select className="h-10 px-3 bg-white border border-border rounded-lg text-sm text-muted-foreground focus:outline-none focus:border-primary">
-              <option>Tất cả danh mục</option>
-              <option>Web Development</option>
-              <option>Mobile App</option>
-              <option>UI/UX Design</option>
-            </select>
+            <div className="w-full md:w-[180px]">
+              <AppSelect 
+                placeholder="Tất cả danh mục"
+                options={[
+                  { label: "Tất cả danh mục", value: "all" },
+                  { label: "Web Development", value: "web" },
+                  { label: "Mobile App", value: "mobile" },
+                  { label: "UI/UX Design", value: "uiux" }
+                ]} 
+              />
+            </div>
           </div>
           
           <div className="flex text-sm font-medium text-muted-foreground bg-secondary p-1 rounded-lg">
-            <button className="px-3 py-1.5 rounded-md bg-white text-foreground shadow-sm">Tất cả (42)</button>
-            <button className="px-3 py-1.5 rounded-md hover:text-foreground">Đã xuất bản (35)</button>
-            <button className="px-3 py-1.5 rounded-md hover:text-foreground">Bản nháp (5)</button>
+            <AppButton appVariant="ghostMuted" variant="ghost" size="sm" className="bg-card text-foreground shadow-sm h-8">Tất cả (42)</AppButton>
+            <AppButton appVariant="ghostMuted" variant="ghost" size="sm" className="hover:text-foreground h-8">Đã xuất bản (35)</AppButton>
+            <AppButton appVariant="ghostMuted" variant="ghost" size="sm" className="hover:text-foreground h-8">Bản nháp (5)</AppButton>
           </div>
-        </CardContent>
-      </Card>
+        </AppCardContent>
+      </AppCard>
 
       {/* Courses Table */}
-      <Card className="border-border shadow-sm overflow-hidden">
+      <AppCard appVariant="default" className="border-border shadow-sm overflow-hidden">
         <DataTable
           columns={[
             {
@@ -107,7 +113,7 @@ export default function AdminCourses() {
               width: "400px",
               render: (course) => (
                 <div className="flex gap-4 items-center">
-                  <div className="w-20 h-14 rounded-md overflow-hidden shrink-0 border border-border">
+                  <div className="w-20 h-14 overflow-hidden shrink-0 border border-border rounded-lg">
                     <img src={course.image} alt={course.title} className="w-full h-full object-cover" />
                   </div>
                   <div className="flex flex-col">
@@ -174,7 +180,7 @@ export default function AdminCourses() {
             zeroIndexed: false,
           }}
         />
-      </Card>
+      </AppCard>
     </div>
   );
 }

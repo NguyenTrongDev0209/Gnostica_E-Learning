@@ -13,11 +13,11 @@ import {
   Calendar,
   Loader2,
 } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import AppCard, { AppCardContent } from "@/components/common/micro/AppCard";
 import DataTable from "@/components/common/composite/DataTable";
 import { AppButton } from "@/components/common/micro/AppButton";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+import AppBadge from "@/components/common/micro/AppBadge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -70,39 +70,15 @@ export default function AdminCourseModeration() {
   const getStatusBadge = (status) => {
     switch (status) {
       case 4: // Backend Chờ duyệt
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 shadow-sm">
-            <Clock className="w-3.5 h-3.5 animate-pulse" />
-            Chờ duyệt
-          </span>
-        );
+        return <AppBadge variant="warning" soft icon={Clock}>Chờ duyệt</AppBadge>;
       case 1: // Backend Đã duyệt
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm">
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            Đã duyệt
-          </span>
-        );
+        return <AppBadge variant="success" soft icon={CheckCircle2}>Đã duyệt</AppBadge>;
       case 3: // Backend Từ chối
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200 shadow-sm">
-            <XCircle className="w-3.5 h-3.5" />
-            Từ chối
-          </span>
-        );
+        return <AppBadge variant="error" soft icon={XCircle}>Từ chối</AppBadge>;
       case 2: // Backend Ẩn
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-muted text-muted-foreground border border-border shadow-sm">
-            <Clock className="w-3.5 h-3.5" />
-            Tạm ẩn
-          </span>
-        );
+        return <AppBadge variant="secondary" soft icon={Clock}>Tạm ẩn</AppBadge>;
       default:
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-muted text-muted-foreground border border-border shadow-sm">
-            Nháp
-          </span>
-        );
+        return <AppBadge variant="secondary" soft>Nháp</AppBadge>;
     }
   };
 
@@ -137,7 +113,7 @@ export default function AdminCourseModeration() {
           </h4>
           <div className="flex items-end justify-between mt-2">
             <span className="text-3xl font-black text-amber-700">{stats.pending}</span>
-            <Badge variant="outline" className="bg-amber-50 border-amber-200 text-amber-700 font-extrabold">Cần duyệt</Badge>
+            <AppBadge variant="warning" soft>Cần duyệt</AppBadge>
           </div>
         </div>
 
@@ -147,7 +123,7 @@ export default function AdminCourseModeration() {
           </h4>
           <div className="flex items-end justify-between mt-2">
             <span className="text-3xl font-black text-emerald-700">{stats.approved}</span>
-            <Badge variant="outline" className="bg-emerald-50 border-emerald-200 text-emerald-700 font-extrabold">Hoạt động</Badge>
+            <AppBadge variant="success" soft>Hoạt động</AppBadge>
           </div>
         </div>
 
@@ -157,7 +133,7 @@ export default function AdminCourseModeration() {
           </h4>
           <div className="flex items-end justify-between mt-2">
             <span className="text-3xl font-black text-rose-700">{stats.rejected}</span>
-            <Badge variant="outline" className="bg-rose-50 border-rose-200 text-rose-700 font-extrabold">Yêu cầu sửa</Badge>
+            <AppBadge variant="error" soft>Yêu cầu sửa</AppBadge>
           </div>
         </div>
       </div>
@@ -171,7 +147,7 @@ export default function AdminCourseModeration() {
               placeholder="Tìm nhanh trong trang..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9 bg-muted border-border h-10 focus:bg-white focus:ring-2 focus:ring-primary/10 transition-all"
+              className="pl-9 bg-muted border-border h-10 focus:bg-white transition-all"
             />
           </div>
         </div>
@@ -205,7 +181,7 @@ export default function AdminCourseModeration() {
       </div>
 
       {/* Data Table */}
-      <Card className="border-border/60 shadow-sm overflow-hidden bg-white rounded-xl">
+      <AppCard className="border-border/60 shadow-sm overflow-hidden bg-white rounded-xl">
         <DataTable
           columns={[
             {
@@ -239,9 +215,9 @@ export default function AdminCourseModeration() {
                       {item.title || <i className="text-muted-foreground font-normal">Chưa đặt tên</i>}
                     </span>
                     <div className="flex items-center gap-2 mt-1">
-                      <Badge variant="outline" className="text-[10px] font-extrabold uppercase tracking-wide px-1 bg-transparent border-transparent text-muted-foreground opacity-50">
+                      <AppBadge variant="outline" className="text-[10px] font-extrabold uppercase tracking-wide px-1 bg-transparent border-transparent text-muted-foreground opacity-50">
                         ID: {item.id}
-                      </Badge>
+                      </AppBadge>
                     </div>
                   </div>
                 </div>
@@ -376,7 +352,7 @@ export default function AdminCourseModeration() {
             zeroIndexed: true,
           }}
         />
-      </Card>
+      </AppCard>
 
       <CourseRejectModal
          isOpen={isRejectModalOpen}
@@ -397,17 +373,19 @@ export default function AdminCourseModeration() {
 }
 
 const TabButton = ({ children, active, onClick }) => (
-  <button
+  <AppButton
+    appVariant="ghostMuted"
+    variant="ghost"
     onClick={onClick}
     className={`
-      px-4 py-2 rounded-lg text-sm font-bold transition-all flex-1 text-center
+      px-4 py-2 rounded-lg text-sm font-bold transition-all flex-1 text-center h-auto
       ${
         active
           ? "bg-white text-foreground shadow-sm border border-border/50 scale-[1.02]"
-          : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+          : "text-muted-foreground hover:text-foreground hover:bg-muted/50 border border-transparent"
       }
     `}
   >
     {children}
-  </button>
+  </AppButton>
 );
