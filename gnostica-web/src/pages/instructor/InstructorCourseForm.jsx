@@ -1,8 +1,9 @@
-﻿import "react-quill-new/dist/quill.snow.css";
+import "react-quill-new/dist/quill.snow.css";
 import React from "react";
+import { Label } from "@/components/ui/label";
 import { useFormContext, useWatch, Controller, useFieldArray, FormProvider } from "react-hook-form";
 import AppInput from "@/components/common/micro/AppInput";
-import { Select as AppSelectRoot, SelectContent as AppSelectContent, SelectItem as AppSelectItem, SelectTrigger as AppSelectTrigger, SelectValue as AppSelectValue } from "@/components/common/micro/AppSelect";
+import AppSelect, { Select as AppSelectRoot, SelectContent as AppSelectContent, SelectItem as AppSelectItem, SelectTrigger as AppSelectTrigger, SelectValue as AppSelectValue } from "@/components/common/micro/AppSelect";
 import AppPopover, { AppPopoverContent, AppPopoverTrigger } from "@/components/common/micro/AppPopover";
 import { AppAccordionRoot, AppAccordionContent, AppAccordionItem, AppAccordionTrigger } from "@/components/common/micro/AppAccordion";
 import AppTextarea from "@/components/common/micro/AppTextarea";
@@ -151,7 +152,7 @@ function CourseStepper({ activeTab, onTabChange }) {
                     fill="transparent"
                     strokeDasharray={circumference}
                     strokeDashoffset={offset}
-                    className="text-success transition-all duration-500 ease-out"
+                    className="text-primary transition-all duration-500 ease-out"
                     strokeLinecap="round"
                   />
                 </svg>
@@ -161,9 +162,9 @@ function CourseStepper({ activeTab, onTabChange }) {
                   className={`
                     w-[28px] h-[28px] rounded-full flex items-center justify-center font-bold text-sm z-10 transition-all duration-300
                     ${isActive
-                      ? "bg-success/10 text-success text-white shadow-lg shadow-green-100 scale-105"
+                      ? "bg-primary/10 text-primary text-white shadow-lg shadow-primary/20 scale-105"
                       : isCompleted
-                        ? "bg-success/10 text-success text-white"
+                        ? "bg-primary/10 text-primary text-white"
                         : "bg-white text-slate-300"
                     }
                   `}
@@ -191,7 +192,7 @@ function CourseStepper({ activeTab, onTabChange }) {
               {/* Label */}
               <div className="absolute -bottom-6 whitespace-nowrap text-[11px] font-bold transition-all duration-300 text-center uppercase tracking-tighter">
                 <p
-                  className={`${isActive ? "text-success scale-110" : isCompleted ? "text-success" : "text-muted-foreground opacity-60"}`}
+                  className={`${isActive ? "text-primary scale-110" : isCompleted ? "text-primary" : "text-muted-foreground opacity-60"}`}
                 >
                   {s.label}
                 </p>
@@ -203,7 +204,7 @@ function CourseStepper({ activeTab, onTabChange }) {
               <div className="flex-1 mx-2 h-[2px] bg-secondary relative rounded-full overflow-hidden">
                 <div
                   className={`
-                    absolute inset-0 bg-success/10 text-success transition-all duration-1000 ease-out
+                    absolute inset-0 bg-primary/10 text-primary transition-all duration-1000 ease-out
                     ${currentStepNum > idx + 1 ? "w-full" : "w-0"}
                   `}
                 />
@@ -266,7 +267,7 @@ function CourseAiReportModal({
 }) {
   return (
     <AppDialogRoot open={showAiReportModal} onOpenChange={setShowAiReportModal}>
-      <AppDialogContent className="sm:max-w-[600px] rounded-2xl border border-border p-0 overflow-hidden shadow-2xl bg-white focus-visible:outline-none z-[9999]">
+      <AppDialogContent className="sm:max-w-[600px] rounded-lg border border-border p-0 overflow-hidden shadow-2xl bg-white focus-visible:outline-none z-[9999]">
         {(() => {
           let report = null;
           try {
@@ -277,7 +278,7 @@ function CourseAiReportModal({
           const hasViolations = report?.violations && report.violations.length > 0;
           const isCritical = score < 70 || report?.violations?.some(v => v.severity === 'CRITICAL' || v.severity === 'HIGH');
           
-          let headerBg = "bg-gradient-to-br from-emerald-600 to-emerald-500 text-white";
+          let headerBg = "bg-gradient-to-br from-success to-success text-white";
           let ShieldIcon = ShieldCheck;
           let statusText = "Nội Dung Đạt Chuẩn An Toàn";
 
@@ -294,7 +295,7 @@ function CourseAiReportModal({
           return (
             <div className="flex flex-col h-full animate-in fade-in zoom-in-95 duration-300">
               <div className={`p-6 flex items-center gap-4 border-b border-white/10 shadow-sm shrink-0 ${headerBg}`}>
-                <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-white backdrop-blur-md shadow-inner shrink-0">
+                <div className="w-12 h-12 rounded-lg bg-white/20 flex items-center justify-center text-white backdrop-blur-md shadow-inner shrink-0">
                   <ShieldIcon className="w-7 h-7" />
                 </div>
                 <div>
@@ -310,7 +311,7 @@ function CourseAiReportModal({
               <div className="p-6 space-y-5 max-h-[60vh] overflow-y-auto scrollbar-thin bg-muted/30">
                 {!report ? (
                   <div className="text-center py-12 px-6 flex flex-col items-center">
-                    <div className="w-16 h-16 bg-violet-50 border border-violet-100 text-violet-600 rounded-full flex items-center justify-center mb-4 shadow-inner">
+                    <div className="w-16 h-16 bg-primary/10 border border-primary/20 text-primary rounded-full flex items-center justify-center mb-4 shadow-inner">
                       <Sparkles className="w-8 h-8 animate-bounce" />
                     </div>
                     <p className="font-bold text-foreground text-[15px] uppercase tracking-wide">Chưa có dữ liệu quét AI</p>
@@ -320,9 +321,9 @@ function CourseAiReportModal({
                   </div>
                 ) : (
                   <>
-                    <div className="bg-white p-4 rounded-2xl border border-border/60 shadow-sm">
+                    <div className="bg-white p-4 rounded-lg border border-border/60 shadow-sm">
                       <p className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase mb-2.5 pl-1">📝 Nhận xét tổng hợp từ Trợ lý AI</p>
-                      <p className="text-xs text-foreground font-bold italic bg-muted p-3.5 rounded-xl border border-border leading-relaxed shadow-inner">
+                      <p className="text-xs text-foreground font-bold italic bg-muted p-3.5 rounded-lg border border-border leading-relaxed shadow-inner">
                         "{report.assessment}"
                       </p>
                     </div>
@@ -334,16 +335,16 @@ function CourseAiReportModal({
                         </p>
                         <div className="space-y-3">
                           {report.violations.map((v, i) => (
-                            <div key={i} className="p-4 bg-white rounded-2xl border border-border shadow-sm space-y-2.5 hover:shadow-md transition-all duration-300 group">
+                            <div key={i} className="p-4 bg-white rounded-lg border border-border shadow-sm space-y-2.5 hover:shadow-md transition-all duration-300 group">
                               <div className="flex items-center justify-between">
-                                <span className={`text-[11px] font-bold uppercase flex items-center gap-1 ${isCritical ? 'text-rose-700' : 'text-amber-700'}`}>
+                                <span className={`text-[11px] font-bold uppercase flex items-center gap-1 ${isCritical ? 'text-rose-700' : 'text-warning'}`}>
                                   {v.type === 'EXTERNAL_MARKETING' ? '📢 Quảng cáo / Kéo khách ngoài' : '🗣️ Từ ngữ vi phạm'}
                                 </span>
-                                <AppBadge className={`h-4.5 px-2 py-0 text-[9px] font-bold border-none uppercase tracking-wider ${v.severity === 'CRITICAL' || v.severity === 'HIGH' ? 'bg-rose-100 text-rose-700' : 'bg-warning/20 text-amber-700'}`}>
+                                <AppBadge className={`h-4.5 px-2 py-0 text-[9px] font-bold border-none uppercase tracking-wider ${v.severity === 'CRITICAL' || v.severity === 'HIGH' ? 'bg-rose-100 text-rose-700' : 'bg-warning/20 text-warning'}`}>
                                   {v.severity}
                                 </AppBadge>
                               </div>
-                              <p className="text-xs font-bold text-foreground italic bg-muted p-2.5 rounded-xl border border-border leading-relaxed group-hover:bg-secondary transition-colors">
+                              <p className="text-xs font-bold text-foreground italic bg-muted p-2.5 rounded-lg border border-border leading-relaxed group-hover:bg-secondary transition-colors">
                                 "{v.content}"
                               </p>
                               <p className="text-[11px] text-muted-foreground leading-relaxed mt-1.5 flex items-start gap-1 pl-0.5">
@@ -355,11 +356,11 @@ function CourseAiReportModal({
                         </div>
                       </div>
                     ) : (
-                      <div className="p-8 text-center bg-white rounded-2xl border border-emerald-100 flex flex-col items-center shadow-sm">
-                        <div className="w-14 h-14 rounded-full bg-success/10 flex items-center justify-center mb-3 border border-emerald-100 shadow-inner">
-                          <CheckCircle2 className="w-8 h-8 text-emerald-500 animate-pulse" />
+                      <div className="p-8 text-center bg-white rounded-lg border border-primary/20 flex flex-col items-center shadow-sm">
+                        <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-3 border border-primary/20 shadow-inner">
+                          <CheckCircle2 className="w-8 h-8 text-primary animate-pulse" />
                         </div>
-                        <p className="font-bold text-emerald-800 uppercase tracking-wide text-[13px]">Văn bản sạch tuyệt đối!</p>
+                        <p className="font-bold text-primary uppercase tracking-wide text-[13px]">Văn bản sạch tuyệt đối!</p>
                         <p className="text-muted-foreground text-xs mt-1.5 font-medium max-w-[340px] leading-relaxed">
                           Trợ lý AI không phát hiện bất kỳ lỗi ngôn từ, kéo khách ngoài hay vi phạm chính sách nào. Bạn đã sẵn sàng gửi duyệt!
                         </p>
@@ -374,7 +375,7 @@ function CourseAiReportModal({
                   type="button"
                   disabled={isPreScanning}
                   onClick={handlePreScanWholeCourse}
-                  className="h-10 px-4 border border-violet-200 text-violet-700 bg-white hover:bg-violet-50 hover:text-violet-800 font-bold rounded-xl shadow-sm text-xs flex items-center gap-1.5 active:scale-95 transition-all"
+                  className="h-10 px-4 border border-primary/30 text-primary bg-white hover:bg-primary/10 hover:text-primary font-bold rounded-lg shadow-sm text-xs flex items-center gap-1.5 active:scale-95 transition-all"
                 >
                   {isPreScanning ? (
                     <>
@@ -383,14 +384,14 @@ function CourseAiReportModal({
                     </>
                   ) : (
                     <>
-                      <Sparkles className="w-3.5 h-3.5 text-violet-500" />
+                      <Sparkles className="w-3.5 h-3.5 text-primary/100" />
                       <span>Quét thử toàn bộ khóa học</span>
                     </>
                   )}
                 </AppButton>
                 <AppButton appVariant="gradient" 
                   onClick={() => setShowAiReportModal(false)}
-                  className="h-10 px-5 bg-muted hover:bg-secondary text-foreground font-bold rounded-xl shadow-md text-xs select-none active:scale-95 transition-transform border-none"
+                  className="h-10 px-5 bg-muted hover:bg-secondary text-foreground font-bold rounded-lg shadow-md text-xs select-none active:scale-95 transition-transform border-none"
                 >
                   Đóng báo cáo
                 </AppButton>
@@ -489,19 +490,19 @@ function BasicInfoTab({ categories }) {
       </div>
 
       {aiModerationReport && (
-        <div className="flex items-center gap-1.5 bg-violet-50/50 border border-violet-100/60 px-4 py-2 rounded-xl text-violet-700 text-xs font-bold">
+        <div className="flex items-center gap-1.5 bg-primary/10 border border-primary/20 px-4 py-2 rounded-lg text-primary text-xs font-bold">
           <Sparkles className="w-3.5 h-3.5 animate-pulse" />
-          Mẹo: Bấm nút <span className="underline font-bold decoration-2 decoration-violet-300 mx-0.5">"Kết quả kiểm duyệt AI"</span> ở góc trên hoặc dưới cùng màn hình để xem chi tiết thẩm định.
+          Mẹo: Bấm nút <span className="underline font-bold decoration-2 decoration-primary/30 mx-0.5">"Kết quả kiểm duyệt AI"</span> ở góc trên hoặc dưới cùng màn hình để xem chi tiết thẩm định.
         </div>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
-          <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
+          <Label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
             Tên Khóa Học <span className="text-error">*</span>
-          </label>
+          </Label>
           <AppInput
-            className="h-11 border-border focus:border-success/20 font-medium"
+            className="h-12 border-border focus-visible:ring-primary focus-visible:bg-white bg-muted font-medium "
             placeholder="Ví dụ: React Native Masterclass 2026..."
             {...register("title")}
           />
@@ -513,11 +514,11 @@ function BasicInfoTab({ categories }) {
         </div>
 
         <div className="space-y-2">
-          <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
+          <Label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
             Slug <span className="text-error">*</span>
-          </label>
+          </Label>
           <AppInput
-            className="h-11 border-border bg-muted font-medium cursor-not-allowed"
+            className="h-12 border-border focus-visible:ring-primary focus-visible:bg-white bg-muted font-medium cursor-not-allowed"
             placeholder="react-native-masterclass-2026"
             {...register("slug")}
             readOnly
@@ -534,9 +535,9 @@ function BasicInfoTab({ categories }) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
-          <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
+          <Label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
             Danh Mục <span className="text-error">*</span>
-          </label>
+          </Label>
           <Controller
             name="categoryId"
             control={control}
@@ -556,24 +557,24 @@ function BasicInfoTab({ categories }) {
         </div>
 
         <div className="space-y-2">
-          <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
+          <Label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
             Cấp Độ <span className="text-error">*</span>
-          </label>
+          </Label>
           <Controller
             name="level"
             control={control}
             render={({ field }) => (
-              <AppSelectRoot onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
-                <AppSelectTrigger className="w-full !h-11 border-border focus:border-success/20 font-medium bg-white data-[state=open]:ring-1 data-[state=open]:ring-green-500">
-                  <AppSelectValue placeholder="Chọn cấp độ" />
-                </AppSelectTrigger>
-                <AppSelectContent className="bg-white">
-                  <AppSelectItem value="beginner">Người mới bắt đầu</AppSelectItem>
-                  <AppSelectItem value="intermediate">Trung bình</AppSelectItem>
-                  <AppSelectItem value="advanced">Nâng cao</AppSelectItem>
-                  <AppSelectItem value="all">Dành cho mọi đối tượng</AppSelectItem>
-                </AppSelectContent>
-              </AppSelectRoot>
+              <AppSelect 
+                value={field.value} 
+                onValueChange={field.onChange}
+                placeholder="Chọn cấp độ"
+                options={[
+                  { label: "Người mới bắt đầu", value: "beginner" },
+                  { label: "Trung bình", value: "intermediate" },
+                  { label: "Nâng cao", value: "advanced" },
+                  { label: "Dành cho mọi đối tượng", value: "all" },
+                ]}
+              />
             )}
           />
           {errors.level && (
@@ -583,15 +584,15 @@ function BasicInfoTab({ categories }) {
           )}
         </div>
         <div className="space-y-2">
-          <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
+          <Label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
             Trạng Thái <span className="text-error">*</span>
-          </label>
+          </Label>
           <Controller
             name="status"
             control={control}
             render={({ field }) => (
-              <AppSelectRoot
-                onValueChange={(val) => {
+              <AppSelect
+  onValueChange={(val) => {
                   const newStatus = Number(val);
 
                   // Chặn bật hoạt động nếu danh mục đang ẩn
@@ -618,26 +619,24 @@ function BasicInfoTab({ categories }) {
                   // replace giúp cập nhật ngay lập tức giao diện Accordion/FieldArray của chương
                   if (replace) replace(updatedSections);
                 }}
-                value={(field.value ?? 1).toString()}
-                disabled={isCategoryHidden}
-              >
-                <AppSelectTrigger className={`w-full !h-11 border-border focus:border-success/20 font-medium ${isCategoryHidden ? 'bg-muted opacity-80' : 'bg-white'}`}>
-                  <AppSelectValue placeholder="Chọn trạng thái" />
-                </AppSelectTrigger>
-                <AppSelectContent className="bg-white">
-                  <AppSelectItem value="1" disabled={isCategoryHidden}>Hoạt động {isCategoryHidden && "(Danh mục cha đang ẩn)"}</AppSelectItem>
-                  <AppSelectItem value="2">Ẩn</AppSelectItem>
-                </AppSelectContent>
-              </AppSelectRoot>
+  value={(field.value ?? 1).toString()}
+  disabled={isCategoryHidden}
+  placeholder="Chọn trạng thái"
+  options={[
+    { value: "1", label: `Hoạt động ${isCategoryHidden ? "(Danh mục cha đang ẩn)" : ""}`, disabled: isCategoryHidden },
+    { value: "2", label: "Ẩn" }
+  ]}
+  triggerClassName={`w-full ${isCategoryHidden ? 'bg-muted opacity-80' : ''}`}
+/>
             )}
           />
         </div>
       </div>
 
       <div className="space-y-2">
-        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
+        <Label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
           Mô Tả Khóa Học (Tuỳ chọn)
-        </label>
+        </Label>
         <div className="rounded-lg border border-border overflow-hidden focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50 transition-all bg-white">
           <Controller
             name="description"
@@ -662,8 +661,9 @@ function BasicInfoTab({ categories }) {
   );
 }
 
-function CurriculumTab({ uploadVideoToBunny, setActiveUploads, fields, append, remove }) {
+function CurriculumTab({ uploadVideoToBunny, setActiveUploads }) {
   const { control, watch, formState: { errors } } = useFormContext();
+  const { fields, append, remove } = useFieldArray({ control, name: 'sections' });
   const currentCourseStatus = watch("status") ?? 1;
 
   return (
@@ -677,7 +677,7 @@ function CurriculumTab({ uploadVideoToBunny, setActiveUploads, fields, append, r
             Xây dựng kiến trúc bài giảng rõ ràng, rành mạch.
           </p>
         </div>
-        <button
+        <AppButton appVariant="ghostMuted"
           type="button"
           onClick={() =>
             append({
@@ -699,7 +699,7 @@ function CurriculumTab({ uploadVideoToBunny, setActiveUploads, fields, append, r
           className="flex items-center gap-1.5 text-sm font-bold border border-border px-3 py-1.5 rounded-lg bg-muted hover:bg-secondary transition-colors"
         >
           <Plus size={16} className="text-muted-foreground" /> Thêm Chương
-        </button>
+        </AppButton>
       </div>
 
       {errors.sections?.root && (
@@ -719,12 +719,12 @@ function CurriculumTab({ uploadVideoToBunny, setActiveUploads, fields, append, r
             <AppAccordionItem
               value={section.id}
               key={section.id}
-              className="border border-border rounded-xl bg-muted overflow-hidden shadow-sm"
+              className="border border-border rounded-lg bg-muted overflow-hidden shadow-sm"
             >
               <AppAccordionTrigger className="px-5 py-4 hover:bg-secondary hover:no-underline border-b border-transparent data-[state=open]:border-border">
                 <div className="flex items-center w-full pr-4 text-left">
                   <div className="flex flex-col gap-0.5 flex-1">
-                    <span className="text-xs font-bold text-success uppercase tracking-widest">
+                    <span className="text-xs font-bold text-primary uppercase tracking-widest">
                       Chương {sectionIdx + 1}
                     </span>
                     <span className="font-bold text-foreground line-clamp-1">
@@ -1020,7 +1020,7 @@ function QuizTab({ courseId }) {
     <div className="space-y-10 py-4 w-full">
       <div>
         <h3 className="text-xl font-bold text-foreground border-b border-border pb-3 mb-4 flex items-center gap-2">
-          <Database className="w-5 h-5 text-indigo-500" />
+          <Database className="w-5 h-5 text-primary" />
           Tạo Ngân Hàng Câu Hỏi
         </h3>
         <p className="text-sm text-muted-foreground">
@@ -1028,22 +1028,22 @@ function QuizTab({ courseId }) {
         </p>
       </div>
 
-      <div className="bg-muted border border-border rounded-2xl p-6 relative overflow-hidden shadow-sm">
+      <div className="bg-muted border border-border rounded-lg p-6 relative overflow-hidden shadow-sm">
         <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl opacity-50 pointer-events-none" />
 
         <h4 className="text-md font-bold text-foreground mb-5 flex items-center gap-2">
-          <div className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-bold">1</div>
+          <div className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold">1</div>
           Tạo Question Bank bằng AI
         </h4>
 
         <div className="relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
             <div className="lg:col-span-3 space-y-3">
-              <label className="block text-[11px] font-bold text-muted-foreground uppercase tracking-widest pl-1">
+              <Label className="block text-[11px] font-bold text-muted-foreground uppercase tracking-widest pl-1">
                 Upload tài liệu (PDF, DOCX,...)
-              </label>
+              </Label>
               <div
-                className="border-2 border-dashed border-indigo-300 bg-white rounded-xl p-8 flex flex-col items-center justify-center text-center hover:bg-primary/10/50 hover:border-indigo-400 transition-colors cursor-pointer group h-[220px] relative"
+                className="border-2 border-dashed border-primary/40 bg-white rounded-lg p-8 flex flex-col items-center justify-center text-center hover:bg-primary/10/50 hover:border-primary/40 transition-colors cursor-pointer group h-[220px] relative"
               >
                 <input
                   type="file"
@@ -1062,18 +1062,18 @@ function QuizTab({ courseId }) {
                 />
                 {aiFile ? (
                   <div className="flex flex-col items-center">
-                    <div className="w-14 h-14 bg-success/10 text-emerald-500 rounded-full flex items-center justify-center mb-3">
+                    <div className="w-14 h-14 bg-primary/10 text-primary rounded-full flex items-center justify-center mb-3">
                       <CheckCircle2 className="w-6 h-6" />
                     </div>
-                    <p className="text-sm font-bold text-emerald-700">{aiFile.name}</p>
+                    <p className="text-sm font-bold text-primary">{aiFile.name}</p>
                     <p className="text-xs text-muted-foreground mt-1">{(aiFile.size / 1024 / 1024).toFixed(2)} MB</p>
                   </div>
                 ) : (
                   <>
-                    <div className="w-14 h-14 bg-primary/10 text-indigo-400 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 group-hover:text-indigo-500 transition-all">
+                    <div className="w-14 h-14 bg-primary/10 text-primary/40 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 group-hover:text-primary transition-all">
                       <FileText className="w-6 h-6" />
                     </div>
-                    <p className="text-sm font-bold text-indigo-900">Kéo thả file vào đây hoặc nhấn để chọn</p>
+                    <p className="text-sm font-bold text-primary">Kéo thả file vào đây hoặc nhấn để chọn</p>
                     <p className="text-xs text-muted-foreground mt-2 max-w-[280px]">
                       AI sẽ đọc và phân tích nội dung để tạo câu hỏi bám sát tài liệu bài giảng của bạn.
                     </p>
@@ -1083,9 +1083,9 @@ function QuizTab({ courseId }) {
             </div>
 
             <div className="lg:col-span-2 space-y-3">
-              <label className="block text-[11px] font-bold text-muted-foreground uppercase tracking-widest pl-1">
+              <Label className="block text-[11px] font-bold text-muted-foreground uppercase tracking-widest pl-1">
                 Số lượng câu hỏi (Tối đa 100)
-              </label>
+              </Label>
               <div className="h-[220px] flex flex-col justify-between">
                 <AppInput
                   type="number"
@@ -1093,31 +1093,31 @@ function QuizTab({ courseId }) {
                   onChange={(e) => setAiQuestionCount(Math.max(1, Math.min(100, Number(e.target.value))))}
                   min={1}
                   max={100}
-                  className="h-11 border-border bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 font-bold"
+                  className="h-11 border-border bg-white focus:border-primary focus:ring-1 focus:ring-primary font-bold"
                 />
 
                 <div className="space-y-1.5 w-full">
-                  <label className="block text-[11px] font-bold text-muted-foreground uppercase tracking-widest pl-1">
+                  <Label className="block text-[11px] font-bold text-muted-foreground uppercase tracking-widest pl-1">
                     Chọn cấp độ
-                  </label>
-                  <AppSelectRoot value={aiLevel} onValueChange={setAiLevel}>
-                    <AppSelectTrigger className="w-full h-11 border-border bg-white text-xs font-bold focus:ring-indigo-500 focus:border-indigo-500">
-                      <AppSelectValue placeholder="Chọn cấp độ" />
-                    </AppSelectTrigger>
-                    <AppSelectContent className="bg-white">
-                      <AppSelectItem value="easy">Dễ</AppSelectItem>
-                      <AppSelectItem value="medium">Trung bình</AppSelectItem>
-                      <AppSelectItem value="hard">Khó</AppSelectItem>
-                      <AppSelectItem value="mixed">Hỗn hợp (Trộn cấp độ)</AppSelectItem>
-                    </AppSelectContent>
-                  </AppSelectRoot>
+                  </Label>
+                  <AppSelect
+  value={aiLevel}
+  onValueChange={setAiLevel}
+  placeholder="Chọn cấp độ"
+  options={[
+    { value: 'easy', label: 'Dễ' },
+    { value: 'medium', label: 'Trung bình' },
+    { value: 'hard', label: 'Khó' },
+    { value: 'mixed', label: 'Hỗn hợp (Trộn cấp độ)' },
+  ]}
+/>
                 </div>
 
                 <AppButton appVariant="gradient"
                   type="button"
                   onClick={handleCreateAI}
                   disabled={isGeneratingAi}
-                  className="w-full h-12 text-sm font-bold bg-[#8b5cf6] hover:bg-[#7c3aed] text-white rounded-xl gap-2 transition-all shadow-md shadow-indigo-100 disabled:opacity-70 disabled:cursor-not-allowed"
+                  className="w-full h-12 text-sm font-bold bg-primary hover:bg-primary/90 text-white rounded-lg gap-2 transition-all shadow-md shadow-primary/20 disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                   {isGeneratingAi ? (
                     <>
@@ -1137,24 +1137,24 @@ function QuizTab({ courseId }) {
         </div>
       </div>
 
-      <div id="manual-question-form" className="bg-white border border-border rounded-2xl p-6 shadow-sm mt-8">
+      <div id="manual-question-form" className="bg-white border border-border rounded-lg p-6 shadow-sm mt-8">
         <h4 className="text-md font-bold text-foreground mb-6 flex items-center justify-between w-full">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-full bg-info/10 text-info text-info flex items-center justify-center text-xs font-bold">2</div>
             {editingQuestionId !== null ? "Hiệu Chỉnh Câu Hỏi" : "Thêm Câu Hỏi Thủ Công"}
           </div>
           {editingQuestionId !== null && (
-            <span className="text-xs text-warning font-bold bg-warning/10 px-3 py-1.5 rounded-full border border-amber-200 animate-pulse">
+            <span className="text-xs text-warning font-bold bg-warning/10 px-3 py-1.5 rounded-full border border-warning/30 animate-pulse">
               Đang chỉnh sửa câu hỏi #{editingQuestionId}
             </span>
           )}
         </h4>
         <div className="space-y-5 border-b border-border pb-6">
           <div className="space-y-2">
-            <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
+            <Label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
               Nội dung câu hỏi <span className="text-error">*</span>
-            </label>
-            <div className="rounded-xl border border-border overflow-hidden focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500 transition-all bg-white">
+            </Label>
+            <div className="rounded-lg border border-border overflow-hidden focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all bg-white">
               <ReactQuill
                 theme="snow"
                 value={manualText}
@@ -1166,44 +1166,45 @@ function QuizTab({ courseId }) {
             </div>
           </div>
           <div className="space-y-2">
-            <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
+            <Label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
               Độ khó câu hỏi
-            </label>
-            <AppSelectRoot value={manualLevel} onValueChange={setManualLevel}>
-              <AppSelectTrigger className="w-[180px] h-10 border-border bg-white text-xs font-bold focus:ring-indigo-500 focus:border-indigo-500">
-                <AppSelectValue placeholder="Chọn độ khó" />
-              </AppSelectTrigger>
-              <AppSelectContent className="bg-white">
-                <AppSelectItem value="easy">Dễ</AppSelectItem>
-                <AppSelectItem value="medium">Trung bình</AppSelectItem>
-                <AppSelectItem value="hard">Khó</AppSelectItem>
-              </AppSelectContent>
-            </AppSelectRoot>
+            </Label>
+            <AppSelect
+  value={manualLevel}
+  onValueChange={setManualLevel}
+  placeholder="Chọn độ khó"
+  options={[
+    { value: 'easy', label: 'Dễ' },
+    { value: 'medium', label: 'Trung bình' },
+    { value: 'hard', label: 'Khó' },
+  ]}
+  triggerClassName="w-[180px] h-10 text-xs"
+/>
           </div>
           <div className="space-y-3">
-            <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
+            <Label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
               Các đáp án & Chọn đáp án đúng <span className="text-error">*</span>
-            </label>
+            </Label>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {['A', 'B', 'C', 'D'].map((opt) => (
-                <div key={opt} className={`flex items-start gap-3 p-3 rounded-xl border transition-all ${manualCorrect === opt ? 'border-emerald-200 bg-success/10/30' : 'border-border bg-muted'}`}>
+                <div key={opt} className={`flex items-start gap-3 p-3 rounded-lg border transition-all ${manualCorrect === opt ? 'border-success/30 bg-primary/10/30' : 'border-border bg-muted'}`}>
                   <div className="pt-2.5">
                     <input
                       type="radio"
                       name="correctAnswer"
-                      className="w-4 h-4 text-emerald-500 focus:ring-emerald-500 border-border cursor-pointer"
+                      className="w-4 h-4 text-primary focus:ring-success border-border cursor-pointer"
                       checked={manualCorrect === opt}
                       onChange={() => setManualCorrect(opt)}
                     />
                   </div>
                   <div className="flex-1 relative">
-                    <span className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-md flex items-center justify-center font-bold text-[10px] ${manualCorrect === opt ? 'bg-emerald-100 text-emerald-700' : 'bg-muted text-muted-foreground'}`}>
+                    <span className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-md flex items-center justify-center font-bold text-[10px] ${manualCorrect === opt ? 'bg-success/20 text-primary' : 'bg-muted text-muted-foreground'}`}>
                       {opt}
                     </span>
                     <AppInput
                       value={manualOptions[opt]}
                       onChange={(e) => setManualOptions({ ...manualOptions, [opt]: e.target.value })}
-                      className={`h-10 pl-10 border-transparent bg-white shadow-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-sm`}
+                      className={`h-10 pl-10 border-transparent bg-white shadow-sm focus:border-primary focus:ring-1 focus:ring-primary text-sm`}
                       placeholder={`Nhập đáp án ${opt}`}
                     />
                   </div>
@@ -1212,14 +1213,14 @@ function QuizTab({ courseId }) {
             </div>
           </div>
           <div className="space-y-2">
-            <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
+            <Label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
               Giải thích câu hỏi (Không bắt buộc)
-            </label>
+            </Label>
             <textarea
               value={manualExplanation}
               onChange={(e) => setManualExplanation(e.target.value)}
               rows={3}
-              className="w-full rounded-xl border border-border p-3 bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none text-sm text-foreground transition-all font-sans placeholder:text-muted-foreground"
+              className="w-full rounded-lg border border-border p-3 bg-white focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none text-sm text-foreground transition-all font-sans placeholder:text-muted-foreground"
               placeholder="Nhập giải thích chi tiết tại sao đáp án đúng là chính xác..."
             />
           </div>
@@ -1228,7 +1229,7 @@ function QuizTab({ courseId }) {
               <AppButton appVariant="ghostMuted" variant="ghost"
                 type="button"
                 onClick={handleCancelEdit}
-                className="h-11 px-6 font-bold border border-border text-muted-foreground rounded-xl"
+                className="h-11 px-6 font-bold border border-border text-muted-foreground rounded-lg"
               >
                 Hủy Chỉnh Sửa
               </AppButton>
@@ -1236,8 +1237,8 @@ function QuizTab({ courseId }) {
             <AppButton appVariant="gradient"
               type="button"
               onClick={handleAddManual}
-              className={`h-11 px-8 font-bold text-white rounded-xl gap-2 shadow-md border-none ${editingQuestionId !== null
-                  ? 'bg-amber-600 hover:bg-amber-700 shadow-amber-100'
+              className={`h-11 px-8 font-bold text-white rounded-lg gap-2 shadow-md border-none ${editingQuestionId !== null
+                  ? 'bg-warning hover:bg-warning/80 shadow-warning/20'
                   : 'bg-info hover:bg-info/90 shadow-blue-100'
                 }`}
             >
@@ -1255,23 +1256,23 @@ function QuizTab({ courseId }) {
         </div>
       </div>
 
-      <div className="bg-white border border-border rounded-2xl p-6 shadow-sm mt-8">
+      <div className="bg-white border border-border rounded-lg p-6 shadow-sm mt-8">
         <h4 className="text-md font-bold text-foreground mb-6 flex items-center justify-between w-full">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-full bg-emerald-100 text-success flex items-center justify-center text-xs font-bold">3</div>
+            <div className="w-6 h-6 rounded-full bg-success/20 text-primary flex items-center justify-center text-xs font-bold">3</div>
             Question Bank Preview
           </div>
           <span className="text-xs font-bold text-muted-foreground bg-secondary px-3 py-1.5 rounded-full border border-border flex items-center gap-1.5">
-            Tổng số câu hỏi: <span className="text-indigo-600 font-bold">{draftQuestions.length}</span> / 300 câu
+            Tổng số câu hỏi: <span className="text-primary font-bold">{draftQuestions.length}</span> / 300 câu
           </span>
         </h4>
 
-        <div className="bg-white rounded-xl border border-border p-5 flex flex-col shadow-sm">
+        <div className="bg-white rounded-lg border border-border p-5 flex flex-col shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-4 mb-4">
             <div>
               <h5 className="text-sm font-bold text-foreground flex items-center gap-2">
                 Danh sách câu hỏi
-                <span className="bg-warning/10 text-warning text-warning text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider flex items-center gap-1">
+                <span className="bg-warning/10 text-warning text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider flex items-center gap-1">
                   <Clock className="w-3 h-3" />
                   Draft
                 </span>
@@ -1284,20 +1285,21 @@ function QuizTab({ courseId }) {
                   placeholder="Tìm kiếm câu hỏi..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-9 h-9 border-border text-sm focus:ring-indigo-500 focus:border-indigo-500 bg-muted"
+                  className="pl-9 h-9 border-border text-sm focus:ring-primary focus:border-primary bg-muted"
                 />
               </div>
-              <AppSelectRoot value={filterLevel} onValueChange={setFilterLevel}>
-                <AppSelectTrigger className="w-[110px] h-9 border-border bg-muted text-xs font-bold focus:ring-indigo-500 focus:border-indigo-500">
-                  <AppSelectValue placeholder="Độ khó" />
-                </AppSelectTrigger>
-                <AppSelectContent className="bg-white">
-                  <AppSelectItem value="all">Tất cả</AppSelectItem>
-                  <AppSelectItem value="easy">Dễ</AppSelectItem>
-                  <AppSelectItem value="medium">Trung bình</AppSelectItem>
-                  <AppSelectItem value="hard">Khó</AppSelectItem>
-                </AppSelectContent>
-              </AppSelectRoot>
+              <AppSelect
+  value={filterLevel}
+  onValueChange={setFilterLevel}
+  placeholder="Độ khó"
+  options={[
+    { value: 'all', label: 'Tất cả' },
+    { value: 'easy', label: 'Dễ' },
+    { value: 'medium', label: 'Trung bình' },
+    { value: 'hard', label: 'Khó' },
+  ]}
+  triggerClassName="w-[110px] h-9 text-xs"
+/>
             </div>
           </div>
 
@@ -1308,31 +1310,31 @@ function QuizTab({ courseId }) {
               </div>
             ) : (
               filteredQuestions.map((q, idx) => (
-                <div key={q.id} className="border border-border rounded-lg p-4 hover:border-indigo-200 transition-colors bg-muted">
+                <div key={q.id} className="border border-border rounded-lg p-4 hover:border-primary/30 transition-colors bg-muted">
                   <div className="text-sm font-bold text-foreground leading-relaxed prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: `Câu ${idx + 1}: ${q.text}` }} />
 
                   <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-2">
                     {['A', 'B', 'C', 'D'].map((opt) => {
                       const isCorrect = q.correct === opt;
                       return (
-                        <div key={opt} className={`flex items-start gap-2 px-3 py-2 rounded-md ${isCorrect ? 'bg-success/10 border border-emerald-200' : 'bg-white border border-border'}`}>
+                        <div key={opt} className={`flex items-start gap-2 px-3 py-2 rounded-md ${isCorrect ? 'bg-primary/10 border border-success/30' : 'bg-white border border-border'}`}>
                           {isCorrect ? (
-                            <span className="w-5 h-5 rounded bg-success/100 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
+                            <span className="w-5 h-5 rounded bg-primary/100 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
                               <Check size={12} strokeWidth={3} />
                             </span>
                           ) : (
-                            <span className="w-5 h-5 rounded bg-primary/10 text-indigo-600 flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
+                            <span className="w-5 h-5 rounded bg-primary/10 text-primary flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
                               {opt}
                             </span>
                           )}
-                          <span className={`text-xs ${isCorrect ? 'text-emerald-700 font-bold' : 'text-muted-foreground'}`}>{q.options[opt]}</span>
+                          <span className={`text-xs ${isCorrect ? 'text-primary font-bold' : 'text-muted-foreground'}`}>{q.options[opt]}</span>
                         </div>
                       );
                     })}
                   </div>
 
                   {q.explanation && (
-                    <div className="mt-3 p-3 bg-warning/10/50 border border-amber-100/60 rounded-xl text-xs text-amber-800 leading-relaxed">
+                    <div className="mt-3 p-3 bg-warning/10/50 border border-warning/20/60 rounded-lg text-xs text-warning leading-relaxed">
                       <span className="font-bold flex items-center gap-1.5 mb-0.5">
                         <span className="w-1.5 h-1.5 rounded-full bg-warning/100 animate-pulse"></span>
                         Giải thích câu hỏi:
@@ -1342,28 +1344,28 @@ function QuizTab({ courseId }) {
                   )}
 
                   <div className="flex items-center gap-2 mt-4">
-                    <span className={`text-[10px] px-2.5 py-0.5 rounded-md font-bold uppercase tracking-wider ${q.level === 'easy' ? 'bg-success/10 text-emerald-700 border border-emerald-100' :
-                        q.level === 'medium' ? 'bg-warning/10 text-amber-700 border border-amber-100' :
+                    <span className={`text-[10px] px-2.5 py-0.5 rounded-md font-bold uppercase tracking-wider ${q.level === 'easy' ? 'bg-primary/10 text-primary border border-primary/20' :
+                        q.level === 'medium' ? 'bg-warning/10 text-warning border border-warning/20' :
                           'bg-error/10 text-rose-700 border border-rose-100'
                       }`}>
                       {q.level === 'easy' ? 'Dễ' : q.level === 'medium' ? 'Trung bình' : 'Khó'}
                     </span>
                     <div className="flex gap-2 ml-auto">
-                      <button
+                      <AppButton appVariant="ghostMuted"
                         type="button"
                         onClick={() => handleStartEdit(q)}
-                        className={`w-8 h-8 flex items-center justify-center rounded-md bg-white border text-muted-foreground hover:text-warning hover:border-amber-200 transition-colors ${editingQuestionId === q.id ? 'border-amber-500 bg-warning/10 text-warning ring-1 ring-amber-500' : 'border-border'
+                        className={`w-8 h-8 flex items-center justify-center rounded-md bg-white border text-muted-foreground hover:text-warning hover:border-warning/30 transition-colors ${editingQuestionId === q.id ? 'border-warning bg-warning/10 text-warning ring-1 ring-warning' : 'border-border'
                           }`}
                       >
                         <Pencil size={14} />
-                      </button>
-                      <button
+                      </AppButton>
+                      <AppButton appVariant="ghostMuted"
                         type="button"
                         onClick={() => handleDeleteQuestion(q.id)}
                         className="w-8 h-8 flex items-center justify-center rounded-md bg-white border border-border text-muted-foreground hover:text-error hover:border-error/20 transition-colors"
                       >
                         <Trash2 size={14} />
-                      </button>
+                      </AppButton>
                     </div>
                   </div>
                 </div>
@@ -1382,7 +1384,7 @@ function QuizTab({ courseId }) {
               className={`w-full h-11 font-bold gap-2 disabled:opacity-75 disabled:cursor-not-allowed transition-all border ${
                 isBankConfirmed 
                   ? "border-border bg-muted text-muted-foreground" 
-                  : "border-success/20 bg-green-50 text-success hover:bg-success/10"
+                  : "border-primary/20 bg-primary/10 text-primary hover:bg-primary/10"
               }`}
             >
               {isBankConfirmed ? <Check size={18} /> : <CheckCircle2 size={18} />}
@@ -1503,8 +1505,8 @@ function BackgroundVideoUploader({ label, value, onChange, onUploadStart, onUplo
   return (
     <div
       onClick={() => !isUploading && document.getElementById(id).click()}
-      className={`relative aspect-video rounded-xl border-2 border-dashed flex flex-col items-center justify-center p-4 transition-all cursor-pointer group/upload
-        ${isCompleted ? "border-success/20 bg-green-50/30" : isCurrentlyUploading ? "border-success/20 bg-green-50/10" : "border-border bg-muted hover:bg-secondary hover:border-success/20"}`}
+      className={`relative aspect-video rounded-lg border-2 border-dashed flex flex-col items-center justify-center p-4 transition-all cursor-pointer group/upload
+        ${isCompleted ? "border-primary/20 bg-primary/10" : isCurrentlyUploading ? "border-primary/20 bg-primary/10" : "border-border bg-muted hover:bg-secondary hover:border-primary/20"}`}
     >
       <input
         type="file"
@@ -1522,24 +1524,24 @@ function BackgroundVideoUploader({ label, value, onChange, onUploadStart, onUplo
               progress={uploadPhase === "uploading" ? uploadProgress : processingProgress} 
               size={80} 
            />
-           <p className={`text-[10px] font-bold text-center leading-tight animate-pulse ${uploadPhase === "uploading" ? "text-muted-foreground" : "text-success"}`}>
+           <p className={`text-[10px] font-bold text-center leading-tight animate-pulse ${uploadPhase === "uploading" ? "text-muted-foreground" : "text-primary"}`}>
              {uploadPhase === "uploading" ? "ĐANG TIẾN HÀNH UPLOAD VIDEO..." : "ĐANG HOÀN TẤT..."}
            </p>
         </div>
       ) : isCompleted ? (
         <div className="flex flex-col items-center">
-          <div className="w-10 h-10 rounded-full bg-success/10 text-success text-white flex items-center justify-center mb-2 shadow-sm">
+          <div className="w-10 h-10 rounded-full bg-primary/10 text-primary text-white flex items-center justify-center mb-2 shadow-sm">
             <Check className="w-6 h-6" />
           </div>
-          <p className="text-[10px] font-bold text-success uppercase tracking-tight">Tải lên hoàn tất</p>
+          <p className="text-[10px] font-bold text-primary uppercase tracking-tight">Tải lên hoàn tất</p>
           <p className="text-[9px] text-muted-foreground mt-1 truncate max-w-[150px]">ID: {value.substring(0, 12)}...</p>
         </div>
       ) : (
         <>
-          <div className="w-10 h-10 rounded-full bg-white text-slate-300 group-hover/upload:text-success flex items-center justify-center mb-2 shadow-sm border border-border transition-all">
+          <div className="w-10 h-10 rounded-full bg-white text-slate-300 group-hover/upload:text-primary flex items-center justify-center mb-2 shadow-sm border border-border transition-all">
             <Video size={20} />
           </div>
-          <p className="text-[10px] font-bold text-muted-foreground group-hover/upload:text-success transition-colors uppercase tracking-tight">
+          <p className="text-[10px] font-bold text-muted-foreground group-hover/upload:text-primary transition-colors uppercase tracking-tight">
             Chạm để tải {label}
           </p>
           <p className="text-[9px] text-muted-foreground mt-0.5">MP4, MOV hoặc AVI</p>
@@ -1571,18 +1573,18 @@ function CategoryCascader({ categories, value, onChange }) {
   return (
     <AppPopover open={open} onOpenChange={setOpen}>
       <AppPopoverTrigger asChild>
-        <button
+        <AppButton appVariant="ghostMuted"
           type="button"
           onClick={() => {
             if (!open) setActiveParent(null);
           }}
-          className="flex h-11 w-full items-center justify-between rounded-md border border-border bg-white px-3 py-2 text-sm font-medium focus:outline-none focus:border-warning/20 focus:ring-1 focus:ring-orange-500 disabled:cursor-not-allowed disabled:opacity-50 data-[state=open]:border-warning/20 data-[state=open]:ring-1 data-[state=open]:ring-orange-500 transition-all font-sans"
+          className="flex h-11 w-full items-center justify-between rounded-md border border-border bg-white px-3 py-2 text-sm font-medium focus:outline-none focus:border-warning/20 focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50 data-[state=open]:border-warning/20 data-[state=open]:ring-1 data-[state=open]:ring-primary transition-all font-sans"
         >
           <span className={value ? "text-foreground" : "text-muted-foreground"}>
             {selectedName || "Chọn danh mục khóa học"}
           </span>
           <ChevronDown className="h-4 w-4 opacity-50" />
-        </button>
+        </AppButton>
       </AppPopoverTrigger>
       <AppPopoverContent className="w-auto p-0 flex flex-row items-start gap-1.5 border-none bg-transparent shadow-none" align="start" sideOffset={8}>
         {/* Cấp 1 */}
@@ -1593,7 +1595,7 @@ function CategoryCascader({ categories, value, onChange }) {
             return (
               <div
                 key={parent.id}
-                className={`flex items-center justify-between px-4 py-2.5 text-sm cursor-pointer transition-colors ${isActive ? "text-warning bg-orange-50/50" : "text-foreground hover:text-warning hover:bg-orange-50/50"}`}
+                className={`flex items-center justify-between px-4 py-2.5 text-sm cursor-pointer transition-colors ${isActive ? "text-warning bg-primary/10" : "text-foreground hover:text-warning hover:bg-primary/10"}`}
                 onMouseEnter={() => setActiveParent(parent)}
                 onClick={() => {
                   if (!hasChildren) {
@@ -1617,7 +1619,7 @@ function CategoryCascader({ categories, value, onChange }) {
             {activeParent.subcategories.filter(c => c.status).map(child => (
               <div
                 key={child.id}
-                className="px-4 py-2.5 text-sm cursor-pointer text-foreground hover:text-warning hover:bg-orange-50/50 transition-colors"
+                className="px-4 py-2.5 text-sm cursor-pointer text-foreground hover:text-warning hover:bg-primary/10 transition-colors"
                 onClick={() => {
                   onChange(child.id.toString());
                   setOpen(false);
@@ -1672,9 +1674,9 @@ function MediaTab({ uploadVideoToBunny, setActiveUploads }) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="space-y-3">
-          <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1 text-center">
+          <Label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1 text-center">
             Ảnh đại diện khóa học (Thumbnail) <span className="text-error">*</span>
-          </label>
+          </Label>
           <input
             type="file"
             id="thumbnail-upload"
@@ -1687,7 +1689,7 @@ function MediaTab({ uploadVideoToBunny, setActiveUploads }) {
           />
           <div
             onClick={() => document.getElementById("thumbnail-upload").click()}
-            className={`aspect-video rounded-xl bg-muted border-2 border-dashed flex flex-col items-center justify-center p-4 transition-all cursor-pointer group ${thumbnail ? "border-success/20 bg-green-50" : "border-border hover:bg-secondary hover:border-success/20"}`}
+            className={`aspect-video rounded-lg bg-muted border-2 border-dashed flex flex-col items-center justify-center p-4 transition-all cursor-pointer group ${thumbnail ? "border-primary/20 bg-primary/10" : "border-border hover:bg-secondary hover:border-primary/20"}`}
           >
             {thumbnail && (thumbnail instanceof File || typeof thumbnail === "string") ? (
               <div className="relative w-full h-full rounded-lg overflow-hidden">
@@ -1697,13 +1699,13 @@ function MediaTab({ uploadVideoToBunny, setActiveUploads }) {
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                  <p className="text-white text-xs font-bold px-3 py-1.5 bg-success/10 text-success rounded-full">Đổi ảnh</p>
+                  <p className="text-white text-xs font-bold px-3 py-1.5 bg-primary/10 text-primary rounded-full">Đổi ảnh</p>
                 </div>
               </div>
             ) : (
               <>
                 <div
-                  className={`w-12 h-12 rounded-full bg-white flex items-center justify-center text-muted-foreground group-hover:text-success shadow-sm border border-border mb-2 ${thumbnail ? "text-success" : ""}`}
+                  className={`w-12 h-12 rounded-full bg-white flex items-center justify-center text-muted-foreground group-hover:text-primary shadow-sm border border-border mb-2 ${thumbnail ? "text-primary" : ""}`}
                 >
                   {thumbnail ? (
                     <Check className="w-6 h-6" />
@@ -1728,9 +1730,9 @@ function MediaTab({ uploadVideoToBunny, setActiveUploads }) {
         </div>
 
         <div className="space-y-3">
-          <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1 text-center">
+          <Label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1 text-center">
             Video giới thiệu (Promo Video) (Nếu có)
-          </label>
+          </Label>
           <Controller
             name="promoVideo"
             render={({ field }) => (
@@ -1780,16 +1782,16 @@ function PricingTab() {
         <div className="space-y-6">
           {/* Ô nhập giá gốc - Format TRỰC TIẾP */}
           <div className="space-y-2">
-            <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
+            <Label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
               Giá bán thực tế (VNĐ) <span className="text-error">*</span>
-            </label>
+            </Label>
             <div className="relative">
               <Controller
                 name="price"
                 control={useFormContext().control}
                 render={({ field }) => (
                   <AppInput
-                    className="h-11 border-border focus:border-success/20 font-bold pl-10"
+                    className="h-12 border-border focus-visible:ring-primary focus-visible:bg-white bg-muted font-medium focus: pl-10"
                     placeholder="Ví dụ: 500.000"
                     value={field.value ? new Intl.NumberFormat("vi-VN").format(field.value) : ""}
                     onChange={(e) => {
@@ -1809,16 +1811,16 @@ function PricingTab() {
 
           {/* Ô hiển thị tổng tiền sau khi giảm */}
           <div className="space-y-2">
-            <label className="block text-xs font-bold text-success uppercase tracking-widest pl-1">
+            <Label className="block text-xs font-bold text-primary uppercase tracking-widest pl-1">
               Tổng tiền sau giảm (Hiển thị cho học viên)
-            </label>
+            </Label>
             <div className="relative">
               <AppInput
-                className="h-11 border-success/20 bg-green-50/30 text-success font-bold text-lg pl-10 cursor-not-allowed"
+                className="h-12 border-border focus-visible:ring-primary focus-visible:bg-white bg-muted font-medium pl-10 cursor-not-allowed"
                 value={new Intl.NumberFormat("vi-VN").format(finalPrice)}
                 readOnly
               />
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-success font-bold text-sm">₫</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-primary font-bold text-sm">₫</span>
             </div>
           </div>
         </div>
@@ -1826,13 +1828,13 @@ function PricingTab() {
         <div className="space-y-6">
           {/* Ô nhập % giảm giá */}
           <div className="space-y-2">
-            <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
+            <Label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
               Phần trăm giảm giá (%)
-            </label>
+            </Label>
             <div className="relative">
               <AppInput
                 type="number"
-                className="h-11 border-border focus:border-success/20 font-bold pl-10 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                className="h-12 border-border focus-visible:ring-primary focus-visible:bg-white bg-muted font-medium focus: pl-10 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 placeholder="0 - 100"
                 {...register("discount")}
               />
@@ -1944,11 +1946,11 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
       <div className="h-2" /> {/* Spacer extra giúp né Header Accordion */}
       {/* Tên Chương */}
       <div className="space-y-2">
-        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
+        <Label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
           Tiêu đề chương <span className="text-error">*</span>
-        </label>
+        </Label>
         <AppInput
-          className="h-10 border-border focus:border-success/20 font-bold shadow-sm"
+          className="h-12 border-border focus-visible:ring-primary focus-visible:bg-white bg-muted font-medium "
           placeholder="Vd: Chương 1: Giới thiệu tổng quan"
           {...register(`sections.${sectionIndex}.title`)}
           autoComplete="off"
@@ -1963,30 +1965,30 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
       {/* Attachments & Status */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
-          <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
+          <Label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
             Tài liệu đính kèm (PDF, ZIP,...) (Nếu có)
-          </label>
+          </Label>
           <div className="flex flex-col gap-3">
             <Controller
               name={`sections.${sectionIndex}.attachments`}
               control={control}
               render={({ field }) => (
                 field.value && typeof field.value === "string" ? (
-                  <div className="flex items-center gap-2 p-2 border border-success/20 rounded-md bg-green-50/50 h-10">
-                    <span className="text-xs text-success font-bold flex-1 truncate">Đã có tài liệu</span>
-                    <a href={field.value} target="_blank" rel="noreferrer" className="text-xs text-info hover:underline px-2 border-r border-success/20">Xem file</a>
-                    <button
+                  <div className="flex items-center gap-2 p-2 border border-primary/20 rounded-md bg-primary/10 h-10">
+                    <span className="text-xs text-primary font-bold flex-1 truncate">Đã có tài liệu</span>
+                    <a href={field.value} target="_blank" rel="noreferrer" className="text-xs text-info hover:underline px-2 border-r border-primary/20">Xem file</a>
+                    <AppButton appVariant="ghostMuted"
                       type="button"
                       className="text-xs font-bold text-error hover:text-error px-2"
                       onClick={() => field.onChange(null)}
                     >
                       Đổi file khác
-                    </button>
+                    </AppButton>
                   </div>
                 ) : (
                   <AppInput
                     type="file"
-                    className="h-10 text-xs pt-2 cursor-pointer w-full"
+                    className="h-12 border-border focus-visible:ring-primary focus-visible:bg-white bg-muted font-medium text-xs pt-2 cursor-pointer w-full"
                     onChange={(e) => field.onChange(e.target.files[0])}
                   />
                 )
@@ -1996,16 +1998,16 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
               <AppButton appVariant="gradient"
                 type="button"
                 onClick={() => setIsQuizModalOpen(true)}
-                className="w-full h-10 border-emerald-300 text-emerald-700 bg-success/10 hover:bg-emerald-100 hover:text-emerald-800 font-bold gap-2 shadow-sm transition-all border"
+                className="w-full h-10 border-primary/30 text-primary bg-primary/10 hover:bg-primary/20 hover:text-primary font-bold gap-2 shadow-sm transition-all border"
               >
-                <CheckCircle2 size={16} className="text-success" />
+                <CheckCircle2 size={16} className="text-primary" />
                 <span>Đã có bài Quiz ({watch(`sections.${sectionIndex}.quiz.questionIds`).length} câu) - Chỉnh sửa</span>
               </AppButton>
             ) : (
               <AppButton appVariant="gradient"
                 type="button"
                 onClick={() => setIsQuizModalOpen(true)}
-                className="w-full h-10 border-indigo-200 text-indigo-700 hover:bg-primary/10 hover:text-indigo-800 font-bold gap-2 border-dashed bg-transparent shadow-none"
+                className="w-full h-10 border-primary/30 text-primary hover:bg-primary/10 hover:text-primary font-bold gap-2 border-dashed bg-transparent shadow-none"
               >
                 <Database size={16} />
                 Tạo bài Quiz cho chương này
@@ -2014,15 +2016,15 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
           </div>
         </div>
         <div className="space-y-2">
-          <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
+          <Label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
             Trạng thái chương <span className="text-error">*</span>
-          </label>
+          </Label>
           <Controller
             name={`sections.${sectionIndex}.status`}
             control={control}
             render={({ field }) => (
-              <AppSelectRoot
-                onValueChange={(val) => {
+              <AppSelect
+  onValueChange={(val) => {
                   const newStatus = Number(val);
 
                   // Ràng buộc Business: Nếu khóa học đang ẩn, không cho phép bật chương hoạt động
@@ -2042,16 +2044,14 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
 
                   setValue(`sections.${sectionIndex}.lessons`, updatedLessons, { shouldDirty: true });
                 }}
-                value={(field.value ?? 1).toString()}
-              >
-                <AppSelectTrigger className="h-10 border-border focus:border-success/20 font-medium bg-white">
-                  <AppSelectValue placeholder="Chọn trạng thái" />
-                </AppSelectTrigger>
-                <AppSelectContent className="bg-white">
-                  <AppSelectItem value="1" disabled={currentCourseStatus === 2}>Hoạt động {currentCourseStatus === 2 && "(Bị khóa)"}</AppSelectItem>
-                  <AppSelectItem value="2">Ẩn</AppSelectItem>
-                </AppSelectContent>
-              </AppSelectRoot>
+  value={(field.value ?? 1).toString()}
+  placeholder="Chọn trạng thái"
+  options={[
+    { value: "1", label: `Hoạt động ${currentCourseStatus === 2 ? "(Bị khóa)" : ""}`, disabled: currentCourseStatus === 2 },
+    { value: "2", label: "Ẩn" }
+  ]}
+  triggerClassName="h-10"
+/>
             )}
           />
         </div>
@@ -2060,12 +2060,12 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
       {/* Danh sách Bài học */}
       <div className="pt-2">
         <div className="flex items-center justify-between mb-3">
-          <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
+          <Label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
             Danh Sách Bài Học ({fields.length})
-          </label>
-          <button
+          </Label>
+          <AppButton appVariant="ghostMuted"
             type="button"
-            className="flex items-center gap-1.5 text-xs font-bold text-success hover:text-success bg-green-50 hover:bg-success/10 text-success px-2 py-1.5 rounded-md transition-colors"
+            className="flex items-center gap-1.5 text-xs font-bold text-primary hover:text-primary bg-primary/10 hover:bg-primary/10 text-primary px-2 py-1.5 rounded-md transition-colors"
             onClick={() => append({
               title: "",
               content: "",
@@ -2076,14 +2076,14 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
             })}
           >
             <Plus size={14} /> Bài học mới
-          </button>
+          </AppButton>
         </div>
 
         <div className="space-y-6 pb-4 pt-2 border-t border-slate-50 mt-3">
           {fields.map((lesson, lessonIdx) => (
             <div
               key={lesson.id}
-              className="group flex gap-4 p-5 border border-border rounded-2xl bg-white hover:border-success/20 hover:shadow-lg transition-all duration-300 relative"
+              className="group flex gap-4 p-5 border border-border rounded-lg bg-white hover:border-primary/20 hover:shadow-lg transition-all duration-300 relative"
             >
 
 
@@ -2095,11 +2095,11 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
                 {/* Left side: Information (Title + Description + Dates) */}
                 <div className="space-y-4">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1">
+                    <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1">
                       Tiêu đề bài học <span className="text-error">*</span>
-                    </label>
+                    </Label>
                     <AppInput
-                      className="h-10 font-bold border-border focus:ring-0 focus:border-success/20 transition-all text-foreground"
+                      className="h-12 border-border focus-visible:ring-primary focus-visible:bg-white bg-muted font-medium "
                       placeholder={`Ví dụ: Bài giảng số ${lessonIdx + 1}: Giới thiệu ngôn ngữ`}
                       {...register(`sections.${sectionIndex}.lessons.${lessonIdx}.title`)}
                       autoComplete="off"
@@ -2110,11 +2110,11 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1">
+                    <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1">
                       Mô tả nội dung bài học
-                    </label>
+                    </Label>
                     <AppTextarea
-                      className="min-h-[80px] text-xs resize-none border-border focus:ring-0 focus:border-success/20"
+                      className="min-h-[120px] resize-y border-border focus-visible:ring-primary focus-visible:bg-white bg-muted font-medium p-4 leading-relaxed text-xs "
                       placeholder="Một đoạn mô tả ngắn về những gì học viên sẽ được học trong bài này..."
                       {...register(`sections.${sectionIndex}.lessons.${lessonIdx}.content`)}
                     />
@@ -2124,15 +2124,15 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1">
+                    <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1">
                       Trạng thái bài học <span className="text-error">*</span>
-                    </label>
+                    </Label>
                     <Controller
                       name={`sections.${sectionIndex}.lessons.${lessonIdx}.status`}
                       control={control}
                       render={({ field }) => (
-                        <AppSelectRoot
-                          onValueChange={(val) => {
+                        <AppSelect
+  onValueChange={(val) => {
                             const newStatus = Number(val);
 
                             // Ràng buộc Business: Nếu chương đang ẩn, không cho phép bật bài học hoạt động
@@ -2143,16 +2143,14 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
 
                             field.onChange(newStatus);
                           }}
-                          value={(field.value ?? 1).toString()}
-                        >
-                          <AppSelectTrigger className="h-9 border-border focus:border-success/20 font-medium bg-white text-xs">
-                            <AppSelectValue placeholder="Chọn trạng thái" />
-                          </AppSelectTrigger>
-                          <AppSelectContent className="bg-white">
-                            <AppSelectItem value="1" disabled={currentSectionStatus === 2}>Hoạt động {currentSectionStatus === 2 && "(Bị khóa)"}</AppSelectItem>
-                            <AppSelectItem value="2">Ẩn</AppSelectItem>
-                          </AppSelectContent>
-                        </AppSelectRoot>
+  value={(field.value ?? 1).toString()}
+  placeholder="Chọn trạng thái"
+  options={[
+    { value: "1", label: `Hoạt động ${currentSectionStatus === 2 ? "(Bị khóa)" : ""}`, disabled: currentSectionStatus === 2 },
+    { value: "2", label: "Ẩn" }
+  ]}
+  triggerClassName="h-9 text-xs"
+/>
                       )}
                     />
                   </div>
@@ -2160,9 +2158,9 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
 
                 {/* Right side: Video Upload Box */}
                 <div className="space-y-1.5 flex flex-col justify-between">
-                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1">
+                  <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1">
                     Video bài học
-                  </label>
+                  </Label>
                   <Controller
                     name={`sections.${sectionIndex}.lessons.${lessonIdx}.videoFile`}
                     control={control}
@@ -2188,14 +2186,14 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
               </div>
 
               {/* Nút Xóa bài học */}
-              <button
+              <AppButton appVariant="ghostMuted"
                 type="button"
                 onClick={() => remove(lessonIdx)}
                 className="absolute -top-2 -right-2 w-8 h-8 flex items-center justify-center bg-white border border-border text-muted-foreground hover:text-error hover:border-error/20 hover:bg-error/10 rounded-full transition-all opacity-0 group-hover:opacity-100 shadow-md z-30"
                 title="Xóa bài học"
               >
                 <Trash2 size={14} />
-              </button>
+              </AppButton>
             </div>
           ))}
         </div>
@@ -2211,19 +2209,19 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
       {/* Quiz Modal */}
       {isQuizModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-muted/50 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-7xl max-h-[95vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-7xl max-h-[95vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="px-6 py-4 border-b border-border flex items-center justify-between bg-muted">
               <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
-                <Database className="w-5 h-5 text-indigo-500" />
+                <Database className="w-5 h-5 text-primary" />
                 Tạo Bài Quiz - Chương {sectionIndex + 1}
               </h3>
-              <button
+              <AppButton appVariant="ghostMuted"
                 type="button"
                 onClick={() => setIsQuizModalOpen(false)}
                 className="w-8 h-8 flex items-center justify-center rounded-full bg-secondary text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
               >
                 <Plus className="w-5 h-5 rotate-45" />
-              </button>
+              </AppButton>
             </div>
 
             <div className="p-6 flex flex-col flex-1 overflow-hidden space-y-6">
@@ -2231,27 +2229,27 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
                 {/* L Pane: Bài Quiz */}
                 <div className="flex flex-col gap-4 overflow-hidden h-full">
                   <div className="space-y-2 shrink-0">
-                    <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
+                    <Label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
                       Tên bài Quiz <span className="text-error">*</span>
-                    </label>
+                    </Label>
                     <AppInput
                       value={quizTitle}
                       onChange={(e) => setQuizTitle(e.target.value)}
                       placeholder="Ví dụ: Kiểm tra kiến thức chương"
-                      className="h-11 border-border focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 font-bold bg-white"
+                      className="h-11 border-border focus:border-primary focus:ring-1 focus:ring-primary font-bold bg-white"
                     />
                   </div>
 
-                  <div className="border border-border rounded-xl flex flex-col flex-1 overflow-hidden bg-white shadow-sm">
-                    <div className="bg-primary/10/50 px-4 py-3 border-b border-indigo-100 flex items-center justify-between">
+                  <div className="border border-border rounded-lg flex flex-col flex-1 overflow-hidden bg-white shadow-sm">
+                    <div className="bg-primary/10/50 px-4 py-3 border-b border-primary/20 flex items-center justify-between">
                       <div>
-                        <span className="text-sm font-bold text-indigo-900 block">Nội dung bài Quiz</span>
-                        <span className="text-[11px] text-indigo-600 font-bold">{selectedQuizQuestions.length} câu hỏi được chọn</span>
+                        <span className="text-sm font-bold text-primary block">Nội dung bài Quiz</span>
+                        <span className="text-[11px] text-primary font-bold">{selectedQuizQuestions.length} câu hỏi được chọn</span>
                       </div>
                     </div>
                     <div className="p-4 flex-1 overflow-y-auto custom-scrollbar bg-muted">
                       {selectedQuizQuestions.length === 0 ? (
-                        <div className="h-full flex flex-col justify-center items-center text-muted-foreground border-dashed border-2 border-border rounded-xl p-8 bg-white">
+                        <div className="h-full flex flex-col justify-center items-center text-muted-foreground border-dashed border-2 border-border rounded-lg p-8 bg-white">
                           <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center mb-3">
                             <ListOrdered className="w-6 h-6 text-slate-300" />
                           </div>
@@ -2263,23 +2261,23 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
                           {selectedQuizQuestions.map((qId, idx) => {
                             const qDetails = bankQuestions.find(item => item.id === qId);
                             return (
-                              <div key={qId} className="border border-indigo-500/20 rounded-lg p-3 bg-white shadow-sm flex items-center justify-between gap-3 hover:border-error/20 transition-colors">
+                              <div key={qId} className="border border-primary/20 rounded-lg p-3 bg-white shadow-sm flex items-center justify-between gap-3 hover:border-error/20 transition-colors">
                                 <div className="flex gap-3 items-start flex-1">
                                   <div className="pt-0.5 shrink-0">
-                                    <div className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-[10px] font-bold">{idx + 1}</div>
+                                    <div className="w-5 h-5 rounded-full bg-primary/20 text-primary flex items-center justify-center text-[10px] font-bold">{idx + 1}</div>
                                   </div>
                                   <div className="flex-1">
                                     <div className="text-xs font-bold text-foreground leading-relaxed prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: qDetails?.text || "Đang tải câu hỏi..." }} />
                                   </div>
                                 </div>
-                                <button
+                                <AppButton appVariant="ghostMuted"
                                   type="button"
                                   onClick={() => setSelectedQuizQuestions(selectedQuizQuestions.filter(id => id !== qId))}
                                   className="w-7 h-7 flex items-center justify-center rounded-full text-muted-foreground hover:text-error hover:bg-error/10 transition-all shrink-0"
                                   title="Xóa khỏi bài Quiz"
                                 >
                                   <Trash2 size={13} />
-                                </button>
+                                </AppButton>
                               </div>
                             );
                           })}
@@ -2292,7 +2290,7 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
                 {/* R Pane: Question Bank */}
                 <div className="flex flex-col h-full overflow-hidden">
                   <div className="h-[24px] shrink-0"></div>
-                  <div className="border border-border rounded-xl flex flex-col flex-1 overflow-hidden bg-white shadow-sm">
+                  <div className="border border-border rounded-lg flex flex-col flex-1 overflow-hidden bg-white shadow-sm">
                     <div className="bg-muted px-4 py-3 border-b border-border flex flex-col gap-3">
                       <div className="flex items-center justify-between">
                         <div>
@@ -2307,13 +2305,13 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
                             placeholder="Tìm kiếm theo từ khóa..." 
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="pl-8 h-8 text-xs border-border bg-white focus:ring-indigo-500 focus:border-indigo-500" 
+                            className="pl-8 h-8 text-xs border-border bg-white focus:ring-primary focus:border-primary" 
                           />
                         </div>
                         <select 
                           value={filterLevel} 
                           onChange={(e) => setFilterLevel(e.target.value)}
-                          className="w-[110px] h-8 border border-border bg-white text-xs font-bold rounded-md px-2 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer shadow-sm text-foreground"
+                          className="w-[110px] h-8 border border-border bg-white text-xs font-bold rounded-md px-2 focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer shadow-sm text-foreground"
                         >
                           <option value="all">Tất cả độ khó</option>
                           <option value="easy">Dễ</option>
@@ -2327,7 +2325,7 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
                         <div className="text-center py-8 text-xs text-muted-foreground">Không tìm thấy câu hỏi phù hợp trong ngân hàng.</div>
                       ) : (
                         filteredQuestions.map((q) => (
-                          <div key={q.id} className="border border-border rounded-lg p-3 hover:border-indigo-200 transition-colors flex gap-3 cursor-pointer group bg-white">
+                          <div key={q.id} className="border border-border rounded-lg p-3 hover:border-primary/30 transition-colors flex gap-3 cursor-pointer group bg-white">
                             <div className="pt-0.5">
                               <input
                                 type="checkbox"
@@ -2339,7 +2337,7 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
                                     setSelectedQuizQuestions(selectedQuizQuestions.filter(id => id !== q.id));
                                   }
                                 }}
-                                className="w-4 h-4 rounded border-border text-indigo-600 focus:ring-indigo-600 cursor-pointer"
+                                className="w-4 h-4 rounded border-border text-primary focus:ring-primary cursor-pointer"
                               />
                             </div>
                             <div className="flex-1">
@@ -2350,10 +2348,10 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
                                   const isCorrect = q.correct === opt;
                                   return (
                                     <div key={opt} className={`flex items-start gap-2 px-2.5 py-1.5 rounded border ${
-                                      isCorrect ? "bg-success/10 border-emerald-200 text-emerald-700 font-bold" : "bg-muted border-border text-muted-foreground"
+                                      isCorrect ? "bg-primary/10 border-success/30 text-primary font-bold" : "bg-muted border-border text-muted-foreground"
                                     }`}>
                                       <span className={`w-4 h-4 rounded flex items-center justify-center font-bold text-[9px] shrink-0 mt-0.5 ${
-                                        isCorrect ? "bg-success/100 text-white" : "bg-primary/10 text-indigo-600"
+                                        isCorrect ? "bg-primary/100 text-white" : "bg-primary/10 text-primary"
                                       }`}>
                                         {isCorrect ? <Check size={10} strokeWidth={3} /> : opt}
                                       </span>
@@ -2366,8 +2364,8 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
                               <div className="flex items-center gap-2 mt-3">
                                 <span className={`text-[10px] border px-2 py-0.5 rounded font-bold uppercase ${
                                   q.level === "hard" ? "text-error bg-error/10 border-error/20" :
-                                  q.level === "medium" ? "text-warning bg-warning/10 border-amber-100" :
-                                  "text-success bg-green-50 border-success/20"
+                                  q.level === "medium" ? "text-warning bg-warning/10 border-warning/20" :
+                                  "text-primary bg-primary/10 border-primary/20"
                                 }`}>
                                   {q.level === "hard" ? "Khó" : q.level === "medium" ? "Trung bình" : "Dễ"}
                                 </span>
@@ -2386,7 +2384,7 @@ function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploa
               <AppButton appVariant="ghostMuted" variant="ghost" type="button" onClick={handleCancelQuiz} className="h-11 px-6 font-bold border border-border bg-white hover:bg-secondary text-muted-foreground">
                 Hủy
               </AppButton>
-              <AppButton appVariant="gradient" type="button" onClick={handleSaveQuiz} className="h-11 px-8 font-bold bg-indigo-600 hover:bg-indigo-700 text-white gap-2 shadow-md shadow-indigo-100 border-none">
+              <AppButton appVariant="gradient" type="button" onClick={handleSaveQuiz} className="h-11 px-8 font-bold bg-primary hover:bg-primary text-white gap-2 shadow-md shadow-primary/20 border-none">
                 <Save size={16} />
                 Lưu Bài Quiz
               </AppButton>
@@ -2432,7 +2430,7 @@ function VideoProgressCircle({ progress, size = 60 }) {
           cy={size / 2}
         />
       </svg>
-      <span className="absolute text-[10px] font-bold text-success">{progress}%</span>
+      <span className="absolute text-[10px] font-bold text-primary">{progress}%</span>
     </div>
   );
 }
@@ -2501,13 +2499,13 @@ export default function InstructorCourseForm() {
     <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 animate-in fade-in duration-500">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div className="flex items-center gap-3">
-          <button
+          <AppButton appVariant="ghostMuted"
             type="button"
             onClick={handleExitWithConfirmation}
             className="w-10 h-10 flex items-center justify-center rounded-full bg-secondary text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
-          </button>
+          </AppButton>
           <div>
             <h1 className="text-2xl font-bold text-foreground tracking-tight">
               {isEditMode ? "Chỉnh Sửa Khóa Học" : "Tạo Mới Khóa Học"}
@@ -2521,7 +2519,7 @@ export default function InstructorCourseForm() {
         <div className="flex items-center gap-3 transition-all">
           {(isUploading || activeUploads > 0) && (
             <div className="flex flex-col items-end mr-4">
-              <span className="text-sm font-bold text-success animate-pulse mb-1">
+              <span className="text-sm font-bold text-primary animate-pulse mb-1">
                 {activeUploads > 0 ? `Đang tải ${activeUploads} video...` : uploadStatus}
               </span>
             </div>
@@ -2538,7 +2536,7 @@ export default function InstructorCourseForm() {
             <AppButton appVariant="ghostMuted" variant="ghost"
               type="button"
               onClick={() => setShowAiReportModal(true)}
-              className={`h-9 sm:h-10 px-3 sm:px-5 rounded-xl font-bold border shadow-sm text-xs sm:text-sm flex items-center gap-2 transition-all duration-300 hover:-translate-y-0.5 shrink-0 ${
+              className={`h-9 sm:h-10 px-3 sm:px-5 rounded-lg font-bold border shadow-sm text-xs sm:text-sm flex items-center gap-2 transition-all duration-300 hover:-translate-y-0.5 shrink-0 ${
                 (() => {
                   try {
                     const rep = overallAiReport ? JSON.parse(overallAiReport) : null;
@@ -2546,7 +2544,7 @@ export default function InstructorCourseForm() {
                     const sc = rep.safetyScore ?? 100;
                     const hasV = rep.violations && rep.violations.length > 0;
                     if (sc < 70 || hasV) return "bg-error/10 hover:bg-rose-100 text-rose-700 border-rose-200 animate-pulse shadow-rose-100/40 shadow-lg";
-                    return "bg-success/10 hover:bg-emerald-100 text-emerald-700 border-emerald-200";
+                    return "bg-primary/10 hover:bg-primary/20 text-primary border-success/30";
                   // eslint-disable-next-line no-unused-vars
                   } catch(e) { return "text-muted-foreground border-border"; }
                 })()
@@ -2588,19 +2586,19 @@ export default function InstructorCourseForm() {
             <CourseStepper activeTab={activeTab} onTabChange={setActiveTab} />
           </div>
           <AppTabsRoot value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <AppTabsContent value="basic" className="bg-white p-6 md:p-8 rounded-xl border border-border shadow-sm mt-0">
+            <AppTabsContent value="basic" className="bg-white p-6 md:p-8 rounded-lg border border-border shadow-sm mt-0">
               <BasicInfoTab categories={categories} />
             </AppTabsContent>
 
-            <AppTabsContent value="quiz" className="bg-white p-6 md:p-8 rounded-xl border border-border shadow-sm mt-0">
+            <AppTabsContent value="quiz" className="bg-white p-6 md:p-8 rounded-lg border border-border shadow-sm mt-0">
               <QuizTab courseId={methods.watch("id")} />
             </AppTabsContent>
 
-            <AppTabsContent value="curriculum" className="bg-white p-6 md:p-8 rounded-xl border border-border shadow-sm mt-0">
+            <AppTabsContent value="curriculum" className="bg-white p-6 md:p-8 rounded-lg border border-border shadow-sm mt-0">
               <CurriculumTab uploadVideoToBunny={uploadVideoToBunny} setActiveUploads={setActiveUploads} />
             </AppTabsContent>
 
-            <AppTabsContent value="settings" className="bg-white p-6 md:p-8 rounded-xl border border-border shadow-sm mt-0">
+            <AppTabsContent value="settings" className="bg-white p-6 md:p-8 rounded-lg border border-border shadow-sm mt-0">
               <SettingsTab uploadVideoToBunny={uploadVideoToBunny} setActiveUploads={setActiveUploads} />
             </AppTabsContent>
           </AppTabsRoot>
@@ -2608,7 +2606,7 @@ export default function InstructorCourseForm() {
           <div className="mt-10 pt-6 border-t border-border flex items-center justify-between">
             <div className="flex items-center gap-2">
               {activeTab !== "basic" && (
-                <button
+                <AppButton appVariant="ghostMuted"
                   type="button"
                   onClick={() => {
                     const sequence = ["basic", "quiz", "curriculum", "settings"];
@@ -2618,13 +2616,13 @@ export default function InstructorCourseForm() {
                   className="flex items-center gap-2 h-11 px-5 rounded-lg font-bold text-muted-foreground hover:bg-secondary transition-all"
                 >
                   <ArrowLeft size={18} /> Quay lại
-                </button>
+                </AppButton>
               )}
             </div>
 
             <div className="flex items-center gap-3">
               {activeTab !== "settings" ? (
-                <button
+                <AppButton appVariant="ghostMuted"
                   type="button"
                   onClick={() => {
                     const sequence = ["basic", "quiz", "curriculum", "settings"];
@@ -2632,29 +2630,29 @@ export default function InstructorCourseForm() {
                     if (currentIdx < sequence.length - 1) setActiveTab(sequence[currentIdx + 1]);
                     window.scrollTo({ top: 0, behavior: "smooth" });
                   }}
-                  className="flex items-center gap-2 h-11 px-8 rounded-lg font-bold bg-success text-white hover:bg-success/90 transition-all shadow-lg shadow-green-100"
+                  className="flex items-center gap-2 h-11 px-8 rounded-lg font-bold bg-success text-white hover:bg-success/90 transition-all shadow-lg shadow-primary/20"
                 >
                   Tiếp theo <ArrowRight size={18} />
-                </button>
+                </AppButton>
               ) : (
                 <>
                   <AppButton appVariant="ghostMuted" variant="ghost"
                     type="button"
                     onClick={() => setShowAiReportModal(true)}
-                    className="h-11 px-6 rounded-xl font-bold border border-border shadow-sm text-xs sm:text-sm flex items-center gap-2"
+                    className="h-11 px-6 rounded-lg font-bold border border-border shadow-sm text-xs sm:text-sm flex items-center gap-2"
                   >
                     <Sparkles className="w-4 h-4" />
                     Kết quả kiểm duyệt AI
                   </AppButton>
 
-                  <button
+                  <AppButton appVariant="ghostMuted"
                     type="button"
                     disabled={activeUploads > 0}
                     onClick={methods.handleSubmit(onSubmit, onError)}
-                    className="flex items-center gap-2 h-11 px-8 rounded-lg font-bold bg-success text-white hover:bg-success/90 transition-all shadow-lg shadow-green-100 disabled:opacity-50"
+                    className="flex items-center gap-2 h-11 px-8 rounded-lg font-bold bg-success text-white hover:bg-success/90 transition-all shadow-lg shadow-primary/20 disabled:opacity-50"
                   >
                     <CircleFadingArrowUp size={18} /> {activeUploads > 0 ? "Đang tải video..." : "Xuất bản"}
-                  </button>
+                  </AppButton>
                 </>
               )}
             </div>
@@ -2663,12 +2661,12 @@ export default function InstructorCourseForm() {
 
         {isUploading && (
           <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] w-full max-w-md px-4">
-            <div className="bg-muted text-white p-4 rounded-xl shadow-2xl flex items-center gap-4 animate-in slide-in-from-bottom-10">
-              <Loader2 className="w-6 h-6 animate-spin text-success" />
+            <div className="bg-muted text-white p-4 rounded-lg shadow-2xl flex items-center gap-4 animate-in slide-in-from-bottom-10">
+              <Loader2 className="w-6 h-6 animate-spin text-primary" />
               <div className="flex-1">
                 <p className="text-sm font-bold">{uploadStatus}</p>
                 <div className="w-full bg-muted h-1.5 rounded-full mt-2 overflow-hidden">
-                  <div className="bg-success/10 text-success h-full transition-all duration-300" style={{ width: '45%' }} />
+                  <div className="bg-primary/10 text-primary h-full transition-all duration-300" style={{ width: '45%' }} />
                 </div>
               </div>
               {activeUploads > 0 && (

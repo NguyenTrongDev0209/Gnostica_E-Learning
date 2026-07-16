@@ -23,32 +23,32 @@ export default function AppBadge({
   switch (variant) {
     case "success":
       badgeClass += soft 
-        ? "!bg-success/10 !text-success hover:!bg-success/20 !border-transparent" 
-        : "!bg-success !text-white hover:!bg-success/90 !border-transparent";
+        ? "!bg-success-soft !text-success hover:opacity-80 !border-transparent" 
+        : "!bg-success !text-white hover:opacity-90 !border-transparent";
       break;
     case "warning":
       badgeClass += soft 
-        ? "!bg-warning/10 !text-warning hover:!bg-warning/20 !border-transparent" 
-        : "!bg-warning !text-warning-foreground hover:!bg-warning/90 !border-transparent";
+        ? "!bg-warning-soft !text-warning-foreground hover:opacity-80 !border-transparent" 
+        : "!bg-warning !text-warning-foreground hover:opacity-90 !border-transparent";
       break;
     case "error":
     case "destructive":
       badgeClass += soft 
-        ? "!bg-error/10 !text-error hover:!bg-error/20 !border-transparent" 
-        : "!bg-error !text-white hover:!bg-error/90 !border-transparent";
+        ? "!bg-error-soft !text-error hover:opacity-80 !border-transparent" 
+        : "!bg-error !text-white hover:opacity-90 !border-transparent";
       break;
     case "info":
       badgeClass += soft 
-        ? "!bg-info/10 !text-info hover:!bg-info/20 !border-transparent" 
-        : "!bg-info !text-white hover:!bg-info/90 !border-transparent";
+        ? "!bg-info-soft !text-info hover:opacity-80 !border-transparent" 
+        : "!bg-info !text-white hover:opacity-90 !border-transparent";
       break;
     case "gradient":
       badgeClass += "bg-accent-gradient !text-white !border-transparent hover:brightness-110 shadow-sm";
       break;
     case "secondary":
       badgeClass += soft 
-        ? "!bg-secondary/50 !text-secondary-foreground hover:!bg-secondary !border-transparent" 
-        : "!bg-secondary !text-secondary-foreground hover:!bg-secondary/80 !border-transparent";
+        ? "!bg-muted !text-secondary-foreground hover:opacity-80 !border-transparent" 
+        : "!bg-secondary !text-secondary-foreground hover:opacity-90 !border-transparent";
       break;
     case "outline":
       badgeClass += "!border-border !text-foreground hover:!bg-muted";
@@ -56,8 +56,8 @@ export default function AppBadge({
     case "primary":
     default:
       badgeClass += soft 
-        ? "!bg-primary/10 !text-primary hover:!bg-primary/20 !border-transparent" 
-        : "!bg-primary !text-primary-foreground hover:!bg-primary/90 !border-transparent shadow-sm";
+        ? "!bg-primary-50 !text-primary hover:opacity-80 !border-transparent" 
+        : "!bg-primary !text-primary-foreground hover:opacity-90 !border-transparent shadow-sm";
       break;
   }
 
