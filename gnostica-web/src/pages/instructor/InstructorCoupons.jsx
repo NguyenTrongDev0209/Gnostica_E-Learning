@@ -22,6 +22,7 @@ import AppBadge from "@/components/common/micro/AppBadge";
 import DataTable from "@/components/common/composite/DataTable";
 import { useCoupons } from "@/hooks/order/useCoupons";
 import { CouponFormModal } from "@/pages/admin/components/CouponFormModal";
+import DataFilter from "@/components/common/composite/DataFilter";
 
 const formatVND = (amount) =>
     new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(amount);
@@ -40,7 +41,7 @@ function InstructorCouponTable({
             className: "w-[60px] text-center",
             cellClassName: "text-center font-sans",
             render: (coupon, index) => (
-                <span className="text-2xs font-bold text-muted-foreground tracking-tighter">
+                <span className="text-sm font-bold text-muted-foreground tracking-tighter">
                     {(index + 1).toString().padStart(2, '0')}
                 </span>
             )
@@ -193,7 +194,8 @@ function InstructorCouponTable({
 export default function InstructorCoupons() {
   const { coupons, isLoading, addCoupon, removeCoupon, toggleCouponStatus } = useCoupons({ mine: true });
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState([]);
+  const [dateRange, setDateRange] = useState({ from: undefined, to: undefined });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [pagination, setPagination] = useState({
     currentPage: 0,
@@ -211,7 +213,21 @@ export default function InstructorCoupons() {
       matchesStatus = coupon.status === Number(statusFilter);
     }
 
-    return matchesSearch && matchesStatus;
+    let matchDate = true;
+    if (dateRange?.from) {
+      // Dựa vào ngày tạo (createdAt) hoặc startDate của coupon
+      const dateVal = coupon.startDate || coupon.createdAt;
+      if (dateVal) {
+        const itemDate = new Date(dateVal);
+        const from = new Date(dateRange.from);
+        from.setHours(0, 0, 0, 0);
+        const to = dateRange.to ? new Date(dateRange.to) : new Date(from);
+        to.setHours(23, 59, 59, 999);
+        matchDate = itemDate >= from && itemDate <= to;
+      }
+    }
+
+    return matchesSearch && matchesStatus && matchDate;
   });
 
   const stats = {
@@ -267,44 +283,27 @@ export default function InstructorCoupons() {
         ))}
       </div>
 
-      {/* Filters & Actions (Glassmorphism) */}
-      <div className="glass p-4 rounded-2xl border border-border flex flex-col md:flex-row gap-6 items-center justify-between shadow-sm">
-        <div className="flex w-full md:w-auto items-center gap-4">
-          <div className="relative w-full md:w-96 group">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-muted-foreground group-focus-within:text-primary transition-colors" />
-            <AppInput
-              placeholder="Tìm theo mã hoặc tên..."
-              className="pl-11 h-11 border-border bg-white/50 backdrop-blur-sm focus:bg-white focus:ring-4 focus:ring-primary/10 transition-all rounded-xl font-medium shadow-inner"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          <div className="h-10 w-px bg-border/60 hidden md:block" />
-          <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-widest">
-            <Filter className="w-3.5 h-3.5" />
-            Bộ lọc
-          </div>
-        </div>
-
-        <div className="flex bg-secondary/80 backdrop-blur-sm p-1.5 rounded-[14px] border border-border/50 shadow-inner w-full md:w-auto">
-          {[
-            { id: "all", label: "Tất cả" },
-            { id: "1", label: "Đang hoạt động" },
-            { id: "2", label: "Đã hết hạn" }
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setStatusFilter(tab.id)}
-              className={`flex-1 md:flex-none px-6 py-2 rounded-xl text-xs font-bold transition-all duration-200 uppercase tracking-tight ${statusFilter === tab.id
-                ? "bg-white text-primary shadow-sm ring-1 ring-black/5"
-                : "text-muted-foreground hover:text-foreground"
-                }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-      </div>
+      {/* Filters */}
+      <DataFilter
+        searchQuery={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Tìm theo mã hoặc tên..."
+        dropdownChecklists={[
+          {
+            title: "Bộ lọc",
+            items: [
+              { label: "Đang hoạt động", value: "1" },
+              { label: "Đã hết hạn", value: "2" }
+            ],
+            selectedItems: statusFilter,
+            onItemToggle: (val) => setStatusFilter(prev => prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val]),
+            onClear: () => setStatusFilter([])
+          }
+        ]}
+        dateRange={dateRange}
+        onDateRangeChange={setDateRange}
+        dateRangePlaceholder="Khoảng thời gian"
+      />
 
       {/* Coupons Table Section */}
       <div className="space-y-6">

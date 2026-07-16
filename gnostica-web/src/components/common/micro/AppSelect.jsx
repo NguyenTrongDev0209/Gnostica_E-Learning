@@ -31,6 +31,7 @@ export default function AppSelect({
   disabled = false,
   error = false,
   className,
+  contentClassName,
   ...props
 }) {
   return (
@@ -44,7 +45,7 @@ export default function AppSelect({
       >
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
-      <SelectContent position="popper" className="shadow-none border border-border ring-0 rounded-xl bg-card">
+      <SelectContent position="popper" className={cn("shadow-none border border-border ring-0 rounded-xl bg-card", contentClassName)}>
         <SelectGroup className="p-1 space-y-1">
           {options.length > 0 ? (
             options.map((opt) => (

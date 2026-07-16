@@ -23,6 +23,7 @@ import AppCard, { AppCardContent } from "@/components/common/micro/AppCard";
 import { AppButton } from "@/components/common/micro/AppButton";
 import AppBadge from "@/components/common/micro/AppBadge";
 import DataTable from "@/components/common/composite/DataTable";
+import DataFilter from "@/components/common/composite/DataFilter";
 import { useInstructorRevenue } from "@/hooks/payment/useInstructorRevenue";
 import walletService from "@/services/payment/walletService";
 import bankService from "@/services/payment/bankService";
@@ -350,7 +351,7 @@ function InstructorRevenueTable({
             className: "w-[60px] text-center",
             cellClassName: "text-center font-sans",
             render: (trx, index) => (
-                <span className="text-2xs font-bold text-muted-foreground tracking-tighter">
+                <span className="text-sm font-bold text-muted-foreground tracking-tighter">
                     {(index + 1).toString().padStart(2, '0')}
                 </span>
             )
@@ -461,6 +462,38 @@ export default function InstructorRevenue() {
     currentPage: 0,
     totalPages: 1,
     size: 10
+  });
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState([]);
+  const [dateRange, setDateRange] = useState({ from: undefined, to: undefined });
+
+  const filteredTransactions = (Array.isArray(transactions) ? transactions : []).filter((trx) => {
+    // Tìm kiếm theo ID hoặc nội dung
+    const searchString = searchTerm.toLowerCase();
+    const matchSearch = `trx-${trx.id}`.toLowerCase().includes(searchString) || 
+      (trx.ref && trx.ref.toLowerCase().includes(searchString));
+    
+    // Lọc trạng thái / loại
+    let matchStatus = true;
+    if (statusFilter.length > 0) {
+      if (statusFilter.includes("success") && trx.status !== 1) matchStatus = false;
+      if (statusFilter.includes("pending") && trx.status !== 0) matchStatus = false;
+      if (statusFilter.includes("failed") && trx.status !== -1) matchStatus = false;
+    }
+
+    // Lọc theo khoảng thời gian
+    let matchDate = true;
+    if (dateRange?.from) {
+      const trxDate = new Date(trx.createdAt);
+      const from = new Date(dateRange.from);
+      from.setHours(0, 0, 0, 0);
+      const to = dateRange.to ? new Date(dateRange.to) : new Date(from);
+      to.setHours(23, 59, 59, 999);
+      matchDate = trxDate >= from && trxDate <= to;
+    }
+
+    return matchSearch && matchStatus && matchDate;
   });
 
   const formatVND = (amount) => {
@@ -579,16 +612,33 @@ export default function InstructorRevenue() {
               <p className="text-xs font-medium text-muted-foreground">Danh sách các giao dịch phát sinh trong ví của bạn.</p>
             </div>
           </div>
-
-          <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground bg-muted/80 p-2 rounded-xl border border-border/50">
-            <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
-            {new Date().toLocaleDateString('vi-VN', { month: 'long', year: 'numeric' })}
-          </div>
         </div>
 
+        <DataFilter
+          searchQuery={searchTerm}
+          onSearchChange={setSearchTerm}
+          searchPlaceholder="Tìm mã GD, nội dung..."
+          dropdownChecklists={[
+            {
+              title: "Bộ lọc",
+              items: [
+                { label: "Thành công", value: "success" },
+                { label: "Đang chờ", value: "pending" },
+                { label: "Thất bại", value: "failed" },
+              ],
+              selectedItems: statusFilter,
+              onItemToggle: (val) => setStatusFilter(prev => prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val]),
+              onClear: () => setStatusFilter([])
+            }
+          ]}
+          dateRange={dateRange}
+          onDateRangeChange={setDateRange}
+          dateRangePlaceholder="Khoảng thời gian"
+        />
+
         <InstructorRevenueTable
-          transactions={transactions}
-          pagination={{...pagination, totalElements: transactions.length, totalPages: Math.ceil(transactions.length / pagination.size) || 1}}
+          transactions={filteredTransactions}
+          pagination={{...pagination, totalElements: filteredTransactions.length, totalPages: Math.ceil(filteredTransactions.length / pagination.size) || 1}}
           onPageChange={handlePageChange}
         />
       </div>

@@ -122,7 +122,7 @@ import AppTextarea from "@/components/common/micro/AppTextarea"
 import AppRadioGroup from "@/components/common/micro/AppRadioGroup"
 import AppSwitch from "@/components/common/micro/AppSwitch"
 import AppSlider from "@/components/common/micro/AppSlider"
-import { AppDatePicker, AppDateRangePicker } from "@/components/common/composite/DataFilter";
+import DataFilter, { DataFilterSidebar, DataFilterSidebarChecklist, DataFilterDropdownChecklist, AppDatePicker, AppDateRangePicker, ChartDateFilters } from "@/components/common/composite/DataFilter";
 import { DataForm, DataFormField } from "@/components/common/composite/DataForm"
 import AppMenubar from "@/components/common/micro/AppMenubar"
 import AppNavigationMenu from "@/components/common/micro/AppNavigationMenu"
@@ -1796,6 +1796,89 @@ const Showcase = () => {
                     </div>
                   </div>
 
+                  {/* Filters & Search */}
+                  <div>
+                    <h3 className="text-xl font-bold mb-4 text-foreground/80">Filters, Search & Date Pickers</h3>
+                    <div className="grid grid-cols-1 gap-6">
+                      <Card>
+                        <CardHeader><CardTitle>DataFilter</CardTitle></CardHeader>
+                        <CardContent>
+                          <DataFilter
+                            searchQuery=""
+                            onSearchChange={() => {}}
+                            searchPlaceholder="Tìm kiếm học viên..."
+                            filterValue="all"
+                            onFilterChange={() => {}}
+                            filterOptions={[
+                              { label: "Tất cả", value: "all" },
+                              { label: "Hoạt động", value: "active" },
+                            ]}
+                            dateRange={{ from: undefined, to: undefined }}
+                            onDateRangeChange={() => {}}
+                          />
+                        </CardContent>
+                      </Card>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <Card>
+                          <CardHeader><CardTitle>DataFilterSidebar</CardTitle></CardHeader>
+                          <CardContent>
+                            <DataFilterSidebar 
+                              categories={[{ id: 1, name: "Khóa học React", slug: "react", courses: 5 }]}
+                              selectedFilters={{ categorySlug: null, level: "all" }}
+                              onFilterChange={() => {}}
+                            />
+                          </CardContent>
+                        </Card>
+                        
+                        <Card>
+                          <CardHeader><CardTitle>DataFilterSidebarChecklist</CardTitle></CardHeader>
+                          <CardContent>
+                            <DataFilterSidebarChecklist
+                              items={["Trạng thái: Hoạt động", "Trạng thái: Đã ẩn"]}
+                              selectedItems={[]}
+                              onItemToggle={() => {}}
+                              dateRange={{ from: undefined, to: undefined }}
+                              onDateRangeChange={() => {}}
+                            />
+                          </CardContent>
+                        </Card>
+                      </div>
+
+                      <Card>
+                        <CardHeader><CardTitle>DataFilterDropdownChecklist</CardTitle></CardHeader>
+                        <CardContent>
+                          <DataFilterDropdownChecklist
+                            title="Lọc theo trạng thái"
+                            items={[
+                              { label: "Đã duyệt", value: "approved" },
+                              { label: "Chờ xử lý", value: "pending" },
+                              { label: "Bị từ chối", value: "rejected" }
+                            ]}
+                            selectedItems={["pending"]}
+                            onItemToggle={() => {}}
+                            onClear={() => {}}
+                          />
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader><CardTitle>AppDatePicker & AppDateRangePicker</CardTitle></CardHeader>
+                        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <AppDatePicker label="Ngày sinh" placeholder="Chọn ngày sinh" date={new Date()} onSelect={() => {}} />
+                          <AppDateRangePicker label="Chu kỳ" date={{ from: new Date(), to: new Date() }} onSelect={() => {}} />
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader><CardTitle>ChartDateFilters</CardTitle></CardHeader>
+                        <CardContent>
+                          <ChartDateFilters onDateChange={() => {}} onPresetChange={() => {}} />
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </div>
+
                   {/* Feedback & Interactivity */}
                   <div>
                     <h3 className="text-xl font-bold mb-4 text-foreground/80">Feedback & Interactivity</h3>
@@ -1816,6 +1899,24 @@ const Showcase = () => {
                               }}
                             />
                           </div>
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardHeader><CardTitle>DataFilter</CardTitle></CardHeader>
+                        <CardContent>
+                          <DataFilter
+                            searchQuery=""
+                            onSearchChange={() => {}}
+                            searchPlaceholder="Tìm kiếm học viên..."
+                            filterValue="all"
+                            onFilterChange={() => {}}
+                            filterOptions={[
+                              { label: "Tất cả", value: "all" },
+                              { label: "Hoạt động", value: "active" },
+                            ]}
+                            dateRange={{ from: undefined, to: undefined }}
+                            onDateRangeChange={() => {}}
+                          />
                         </CardContent>
                       </Card>
                     </div>

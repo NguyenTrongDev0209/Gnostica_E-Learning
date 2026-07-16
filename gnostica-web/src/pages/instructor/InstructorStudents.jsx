@@ -25,6 +25,7 @@ import { AppDialogRoot, AppDialogContent, AppDialogHeader, AppDialogTitle } from
 import instructorService from "@/services/instructor/instructorService";
 import AppProgress from "@/components/common/micro/AppProgress";
 import { useInstructorStudents } from "@/hooks/user/useInstructorStudents";
+import DataFilter from "@/components/common/composite/DataFilter";
 
 const formatDate = (dateValue) => {
     if (!dateValue) return "N/A";
@@ -44,7 +45,7 @@ function InstructorStudentTable({ students, isLoading, onActionClick, onCoursesC
             className: "w-[60px] text-center",
             cellClassName: "text-center",
             render: (_, index) => (
-                <span className="text-2xs font-bold text-muted-foreground font-sans tracking-tighter">
+                <span className="text-sm font-bold text-muted-foreground font-sans tracking-tighter">
                     {(index + 1).toString().padStart(2, '0')}
                 </span>
             ),
@@ -65,10 +66,10 @@ function InstructorStudentTable({ students, isLoading, onActionClick, onCoursesC
                         )}
                     </div>
                     <div className="flex flex-col">
-                        <span className="font-bold text-foreground group-hover:text-primary transition-colors duration-200 uppercase text-xs tracking-tight">
+                        <span className="font-bold text-foreground group-hover:text-primary transition-colors duration-200 uppercase text-sm tracking-tight">
                             {student.name}
                         </span>
-                        <span className="text-2xs text-muted-foreground font-medium">{student.email}</span>
+                        <span className="text-xs text-muted-foreground font-medium">{student.email}</span>
                     </div>
                 </div>
             ),
@@ -110,17 +111,15 @@ function InstructorStudentTable({ students, isLoading, onActionClick, onCoursesC
                         </span>
                         <span className="text-xs font-bold text-foreground">{student.progress}%</span>
                     </div>
-                    <div className="h-2 w-full bg-secondary rounded-full overflow-hidden border border-border/50 p-[1px]">
-                        <div
-                            className={cn(
-                                "h-full rounded-full transition-all duration-1000 ease-out relative shadow-sm",
-                                student.progress === 100 ? "bg-success" : "bg-primary"
-                            )}
-                            style={{ width: `${student.progress}%` }}
-                        >
-                            <div className="absolute inset-0 bg-white/30 animate-shimmer" style={{ backgroundSize: '200% 100%' }} />
-                        </div>
-                    </div>
+                    <AppProgress
+                        value={student.progress}
+                        heightClass="h-2"
+                        className="bg-secondary rounded-full border border-border/50"
+                        indicatorClassName={cn(
+                            "rounded-full transition-all duration-1000 ease-out",
+                            student.progress === 100 ? "bg-success" : "bg-primary"
+                        )}
+                    />
                 </div>
             ),
         },
@@ -329,6 +328,37 @@ export default function InstructorStudents() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
 
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState([]);
+  const [dateRange, setDateRange] = useState({ from: undefined, to: undefined });
+
+  const filteredStudents = (Array.isArray(students) ? students : []).filter((student) => {
+    const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      student.email.toLowerCase().includes(searchTerm.toLowerCase());
+
+    let matchesStatus = true;
+    if (statusFilter.length > 0) {
+      if (statusFilter.includes("learning") && student.progress === 100) matchesStatus = false;
+      if (statusFilter.includes("completed") && student.progress < 100) matchesStatus = false;
+    }
+
+    let matchDate = true;
+    if (dateRange?.from) {
+      // Assuming student has joinedAt or createdAt. Let's use joinedAt if available, else skip filtering or assume joinedAt
+      const dateVal = student.joinedAt || student.createdAt;
+      if (dateVal) {
+        const itemDate = new Date(dateVal);
+        const from = new Date(dateRange.from);
+        from.setHours(0, 0, 0, 0);
+        const to = dateRange.to ? new Date(dateRange.to) : new Date(from);
+        to.setHours(23, 59, 59, 999);
+        matchDate = itemDate >= from && itemDate <= to;
+      }
+    }
+
+    return matchesSearch && matchesStatus && matchDate;
+  });
+
   const handleOpenCoursesModal = (student) => {
     setSelectedStudent(student);
     setIsModalOpen(true);
@@ -382,28 +412,26 @@ export default function InstructorStudents() {
 
       {/* Filters & Content */}
       <div className="space-y-6">
-        <div className="flex flex-col lg:flex-row gap-4 items-center justify-between glass p-4 rounded-2xl border border-border">
-          <div className="flex flex-col sm:flex-row w-full lg:w-auto items-center gap-3">
-            <div className="relative w-full sm:w-80 group">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-              <AppInput
-                placeholder="Tìm kiếm theo tên hoặc email..."
-                className="pl-9 h-11 bg-white border-border focus:ring-2 focus:ring-primary/10 transition-all rounded-xl shadow-none"
-              />
-            </div>
-            <div className="flex items-center gap-2 bg-muted/80 p-1 rounded-xl w-full sm:w-auto border border-border/50">
-              <select className="h-9 px-3 bg-transparent border-none rounded-lg text-sm text-foreground font-bold focus:outline-none appearance-none min-w-[160px] cursor-pointer">
-                <option>Tất cả khóa học</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground bg-muted/80 p-1.5 rounded-xl border border-border/50 shadow-inner">
-            <button className="px-5 py-2 rounded-lg bg-white text-primary shadow-sm hover:shadow-md transition-all font-bold uppercase tracking-tight">Tất cả</button>
-            <button className="px-5 py-2 rounded-lg hover:text-foreground transition-all hover:bg-white/50 font-bold uppercase tracking-tight">Đang học</button>
-            <button className="px-5 py-2 rounded-lg hover:text-foreground transition-all hover:bg-white/50 font-bold uppercase tracking-tight">Hoàn thành</button>
-          </div>
-        </div>
+        <DataFilter
+          searchQuery={searchTerm}
+          onSearchChange={setSearchTerm}
+          searchPlaceholder="Tìm kiếm theo tên hoặc email..."
+          dropdownChecklists={[
+            {
+              title: "Bộ lọc",
+              items: [
+                { label: "Đang học", value: "learning" },
+                { label: "Hoàn thành", value: "completed" }
+              ],
+              selectedItems: statusFilter,
+              onItemToggle: (val) => setStatusFilter(prev => prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val]),
+              onClear: () => setStatusFilter([])
+            }
+          ]}
+          dateRange={dateRange}
+          onDateRangeChange={setDateRange}
+          dateRangePlaceholder="Khoảng thời gian"
+        />
 
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4 bg-white rounded-2xl border border-border shadow-sm">
@@ -412,12 +440,12 @@ export default function InstructorStudents() {
           </div>
         ) : (
           <InstructorStudentTable
-            students={students}
+            students={filteredStudents}
             onCoursesClick={handleOpenCoursesModal}
             pagination={{
               currentPage: 1,
               totalPages: 1,
-              totalItems: students.length,
+              totalItems: filteredStudents.length,
               itemsPerPage: 50
             }}
             onPageChange={(page) => console.log("Page changed to:", page)}

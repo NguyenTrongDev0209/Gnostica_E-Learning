@@ -18,7 +18,7 @@ export default function AppProgress({
     <Progress 
       value={value} 
       className={cn(
-        "bg-muted overflow-hidden shadow-inner", 
+        "bg-muted overflow-hidden", 
         heightClass, 
         indicatorClassName && `[&>[data-slot=progress-indicator]]:${indicatorClassName}`,
         className

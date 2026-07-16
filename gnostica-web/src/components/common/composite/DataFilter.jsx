@@ -1,7 +1,7 @@
 import React, { useState, useEffect, forwardRef, useId } from "react";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
-import { Search, ChevronDown, Calendar as CalendarIcon } from "lucide-react";
+import { Search, ChevronDown, Calendar as CalendarIcon, SlidersHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 import courseService from "@/services/course/courseService";
 
@@ -17,6 +17,7 @@ import { AppCheckbox } from "@/components/common/micro/AppCheckbox";
 import AppPopover, { AppPopoverContent, AppPopoverTrigger } from "@/components/common/micro/AppPopover";
 import { Button } from "@/components/ui/button";
 import AppCalendar from "@/components/common/micro/AppCalendar";
+import { Slider } from "@/components/ui/slider";
 /**
  * Thanh tìm kiếm & lọc topbar
  */
@@ -31,8 +32,66 @@ export default function DataFilter({
   dateRange, // { from, to }
   onDateRangeChange,
   dateRangePlaceholder = "Từ ngày - Đến ngày",
+  dropdownChecklists = [], // Mảng config cho các DataFilterDropdownChecklist
   containerClassName = "",
+  children,
 }) {
+  const [selectedPreset, setSelectedPreset] = useState("custom");
+
+  const calculatePresetRange = (preset) => {
+    const now = new Date();
+    let start = new Date(now);
+    let end = new Date(now);
+
+    switch (preset) {
+        case "yesterday":
+            start.setDate(now.getDate() - 1);
+            end.setDate(now.getDate() - 1);
+            break;
+        case "last-7-days":
+            start.setDate(now.getDate() - 6);
+            break;
+        case "last-30-days":
+            start.setDate(now.getDate() - 29);
+            break;
+        case "this-month":
+            start = new Date(now.getFullYear(), now.getMonth(), 1);
+            break;
+        case "last-month":
+            start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+            end = new Date(now.getFullYear(), now.getMonth(), 0);
+            break;
+        case "this-quarter":
+            const quarter = Math.floor(now.getMonth() / 3);
+            start = new Date(now.getFullYear(), quarter * 3, 1);
+            break;
+        case "6-months":
+            start.setMonth(now.getMonth() - 6);
+            break;
+        case "this-year":
+            start = new Date(now.getFullYear(), 0, 1);
+            break;
+        default:
+            return null;
+    }
+    return { from: start, to: end };
+  };
+
+  const handlePresetSelect = (value) => {
+    setSelectedPreset(value);
+    const range = calculatePresetRange(value);
+    if (range && onDateRangeChange) {
+      onDateRangeChange(range);
+    }
+  };
+
+  const handleDateRangeSelect = (range) => {
+    setSelectedPreset("custom");
+    if (onDateRangeChange) {
+      onDateRangeChange(range);
+    }
+  };
+
   return (
     <div className={cn("flex flex-col xl:flex-row gap-4 bg-card p-4 rounded-xl border border-border shadow-sm", containerClassName)}>
       <div className="flex-1 min-w-[250px]">
@@ -56,15 +115,46 @@ export default function DataFilter({
         </div>
       )}
 
+      {dropdownChecklists && dropdownChecklists.length > 0 && dropdownChecklists.map((checklist, index) => (
+        <div key={index} className="w-full xl:w-auto">
+          <DataFilterDropdownChecklist {...checklist} />
+        </div>
+      ))}
+
       {onDateRangeChange && (
-        <div className="w-full xl:w-[320px]">
-          <AppDateRangePicker 
-            date={dateRange}
-            onSelect={onDateRangeChange}
-            placeholder={dateRangePlaceholder}
-          />
+        <div className="flex items-center gap-3 w-full xl:w-auto">
+          <div className="w-full xl:w-[240px]">
+            <AppDateRangePicker 
+              date={dateRange}
+              onSelect={handleDateRangeSelect}
+              placeholder={dateRangePlaceholder}
+              className="!h-11"
+            />
+          </div>
+          <span className="text-muted-foreground font-medium">-</span>
+          <div className="w-[140px] shrink-0">
+             <AppSelect 
+                value={selectedPreset} 
+                onValueChange={handlePresetSelect}
+                options={[
+                    ...(selectedPreset === "custom" ? [{ label: "Tùy chọn", value: "custom" }] : []),
+                    { label: "Hôm qua", value: "yesterday" },
+                    { label: "7 ngày qua", value: "last-7-days" },
+                    { label: "30 ngày qua", value: "last-30-days" },
+                    { label: "Tháng này", value: "this-month" },
+                    { label: "Tháng trước", value: "last-month" },
+                    { label: "Quý này", value: "this-quarter" },
+                    { label: "6 tháng qua", value: "6-months" },
+                    { label: "Năm nay", value: "this-year" },
+                ]}
+                placeholder="Khoảng thời gian"
+                className="!h-11 bg-card border border-border text-sm font-medium rounded-xl shadow-sm"
+            />
+          </div>
         </div>
       )}
+      
+      {children}
     </div>
   );
 }
@@ -433,8 +523,8 @@ export const AppDateRangePicker = forwardRef(({
             variant="outline"
             disabled={disabled}
             className={cn(
-              "w-full justify-start text-left font-normal bg-card border border-border hover:bg-muted transition-colors !text-foreground",
-              !date?.from && "!text-muted-foreground",
+              "w-full h-11 justify-start text-left font-normal bg-muted border-border focus:bg-white transition-colors",
+              !date?.from && "text-muted-foreground",
               error && "border-error/20 focus-visible:ring-error",
               className
             )}
@@ -479,3 +569,259 @@ export const AppDateRangePicker = forwardRef(({
 });
 
 AppDateRangePicker.displayName = "AppDateRangePicker";
+
+export function ChartDateFilters({
+  onDateChange,
+  onPresetChange,
+  defaultPreset = "6-months"
+}) {
+  const [dateRange, setDateRange] = useState({ from: undefined, to: undefined });
+  const [selectedPreset, setSelectedPreset] = useState(defaultPreset);
+
+  // Helpers for Date Calculation
+  const getToday = () => new Date();
+  const formatDateInput = (date) => {
+      if (!date) return "";
+      const yyyy = date.getFullYear();
+      const mm = String(date.getMonth() + 1).padStart(2, '0');
+      const dd = String(date.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
+  };
+  const formatWithTime = (dateStr, isEnd) => {
+      if (!dateStr) return "";
+      const now = getToday();
+      const todayStr = formatDateInput(now);
+
+      if (isEnd) {
+          if (dateStr === todayStr) {
+              // Return current time if it's today
+              return `${dateStr}T${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+          }
+          return `${dateStr}T23:59:59`;
+      }
+      return `${dateStr}T00:00:00`;
+  };
+
+  const calculatePresetRange = (preset) => {
+      const now = getToday();
+      let start = new Date(now);
+      let end = new Date(now);
+
+      switch (preset) {
+          case "yesterday":
+              start.setDate(now.getDate() - 1);
+              end.setDate(now.getDate() - 1);
+              break;
+          case "last-7-days":
+              start.setDate(now.getDate() - 6);
+              break;
+          case "last-30-days":
+              start.setDate(now.getDate() - 29);
+              break;
+          case "this-month":
+              start = new Date(now.getFullYear(), now.getMonth(), 1);
+              break;
+          case "last-month":
+              start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+              end = new Date(now.getFullYear(), now.getMonth(), 0);
+              break;
+          case "this-quarter":
+              const quarter = Math.floor(now.getMonth() / 3);
+              start = new Date(now.getFullYear(), quarter * 3, 1);
+              break;
+          case "6-months":
+              start.setMonth(now.getMonth() - 6);
+              break;
+          case "this-year":
+              start = new Date(now.getFullYear(), 0, 1);
+              break;
+          default:
+              return null;
+      }
+      return { from: start, to: end };
+  };
+
+  // Initialize dates based on default preset
+  useEffect(() => {
+      const range = calculatePresetRange(defaultPreset);
+      if (range) {
+          setDateRange(range);
+          notifyParent(range.from, range.to);
+      }
+  }, []);
+
+  const notifyParent = (from, to) => {
+      if (from) {
+          onDateChange?.('start', formatWithTime(formatDateInput(from), false));
+      }
+      if (to) {
+          onDateChange?.('end', formatWithTime(formatDateInput(to), true));
+      }
+  };
+
+  const handlePresetSelect = (value) => {
+      setSelectedPreset(value);
+      onPresetChange?.(value);
+
+      const range = calculatePresetRange(value);
+      if (range) {
+          setDateRange(range);
+          notifyParent(range.from, range.to);
+      }
+  };
+
+  const handleDateRangeSelect = (range) => {
+      setDateRange(range);
+      setSelectedPreset("custom"); // Set to custom when manually changed
+      notifyParent(range?.from, range?.to);
+  };
+
+  return (
+      <div className="flex flex-wrap items-center gap-3">
+          {/* Date Range Selector */}
+          <div className="w-[280px]">
+              <AppDateRangePicker 
+                  date={dateRange}
+                  onSelect={handleDateRangeSelect}
+                  placeholder="Khoảng thời gian"
+                  className="!h-11 bg-card border border-border text-sm font-medium rounded-xl shadow-sm hover:bg-card/90"
+              />
+          </div>
+
+          {/* Presets Selector */}
+          <AppSelect 
+              value={selectedPreset} 
+              onValueChange={handlePresetSelect}
+              options={[
+                  ...(selectedPreset === "custom" ? [{ label: "Tùy chọn", value: "custom" }] : []),
+                  { label: "Hôm qua", value: "yesterday" },
+                  { label: "7 ngày qua", value: "last-7-days" },
+                  { label: "30 ngày qua", value: "last-30-days" },
+                  { label: "Tháng này", value: "this-month" },
+                  { label: "Tháng trước", value: "last-month" },
+                  { label: "Quý này", value: "this-quarter" },
+                  { label: "6 tháng qua", value: "6-months" },
+                  { label: "Năm nay", value: "this-year" },
+              ]}
+              placeholder="Chọn khoảng thời gian"
+              className="!h-11 w-[140px] bg-card border border-border text-sm font-medium rounded-xl shadow-sm"
+          />
+      </div>
+  );
+}
+/**
+ * Dropdown lọc dạng checkbox
+ */
+export function DataFilterDropdownChecklist({ 
+  title = "Lọc",
+  items = [], 
+  selectedItems = [], 
+  onItemToggle, 
+  onClear,
+  emptyMessage = "Không có dữ liệu.",
+  className
+}) {
+  return (
+    <AppPopover>
+      <AppPopoverTrigger asChild>
+        <Button variant="outline" className={cn("h-11 min-w-[180px] justify-between bg-card border-border hover:bg-muted font-normal text-foreground", className)}>
+          <span className="truncate">{title}</span>
+          <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </AppPopoverTrigger>
+      <AppPopoverContent align="start" className="w-auto min-w-[240px] p-4 bg-card rounded-xl shadow-lg border-border z-[100]">
+        <div className="flex flex-col gap-4">
+          <h4 className="font-bold text-sm text-foreground uppercase tracking-widest">{title}</h4>
+          <div className="space-y-3">
+            {items.map((item) => {
+              const val = typeof item === 'object' ? item.value : item;
+              const lbl = typeof item === 'object' ? item.label : item;
+              return (
+                <AppCheckbox
+                  key={val}
+                  id={`dd-chk-${val}`}
+                  label={lbl}
+                  checked={selectedItems.includes(val)}
+                  onCheckedChange={() => onItemToggle && onItemToggle(val)}
+                />
+              );
+            })}
+            {items.length === 0 && (
+              <p className="text-sm text-muted-foreground">{emptyMessage}</p>
+            )}
+          </div>
+          
+          <AppSeparator className="bg-secondary my-0" />
+          
+          <button
+            onClick={() => onClear && onClear()}
+            className="w-full h-9 rounded-lg border border-border text-xs font-bold text-muted-foreground hover:bg-muted transition-colors uppercase"
+          >
+            Xóa bộ lọc
+          </button>
+        </div>
+      </AppPopoverContent>
+    </AppPopover>
+  );
+}
+
+/**
+ * Dropdown lọc giá dạng slider hai đầu
+ */
+export function DataFilterPriceRange({
+  title = "Khoảng giá",
+  min = 0,
+  max = 10000000,
+  step = 50000,
+  value = [0, 10000000],
+  onValueChange,
+  onClear,
+  formatValue,
+  className
+}) {
+  const defaultFormat = (v) => new Intl.NumberFormat('vi-VN').format(v) + ' đ';
+  const fmt = formatValue || defaultFormat;
+
+  return (
+    <AppPopover>
+      <AppPopoverTrigger asChild>
+        <Button variant="outline" className={cn("h-11 min-w-[180px] justify-between bg-card border-border hover:bg-muted font-normal text-foreground", className)}>
+          <SlidersHorizontal className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+          <span className="truncate">{title}</span>
+          <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </AppPopoverTrigger>
+      <AppPopoverContent align="start" className="w-[300px] p-5 bg-card rounded-xl shadow-lg border-border z-[100]">
+        <div className="flex flex-col gap-5">
+          <h4 className="font-bold text-sm text-foreground uppercase tracking-widest">{title}</h4>
+          
+          <div className="flex items-center justify-between text-xs font-bold text-foreground">
+            <span className="bg-primary/10 text-primary px-2.5 py-1 rounded-lg border border-primary/20">{fmt(value[0])}</span>
+            <span className="text-muted-foreground mx-2">—</span>
+            <span className="bg-primary/10 text-primary px-2.5 py-1 rounded-lg border border-primary/20">{fmt(value[1])}</span>
+          </div>
+
+          <div className="px-1">
+            <Slider
+              min={min}
+              max={max}
+              step={step}
+              value={value}
+              onValueChange={onValueChange}
+              className="w-full"
+            />
+          </div>
+
+          <AppSeparator className="bg-secondary my-0" />
+
+          <button
+            onClick={() => onClear && onClear()}
+            className="w-full h-9 rounded-lg border border-border text-xs font-bold text-muted-foreground hover:bg-muted transition-colors uppercase"
+          >
+            Xóa bộ lọc
+          </button>
+        </div>
+      </AppPopoverContent>
+    </AppPopover>
+  );
+}

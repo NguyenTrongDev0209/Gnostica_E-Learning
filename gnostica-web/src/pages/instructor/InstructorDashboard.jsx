@@ -5,7 +5,7 @@ import { Loader2, ArrowUpRight, ArrowDownRight, ChevronRight, CheckCircle2, Star
 import useInstructorDashboard from "@/hooks/dashboard/useInstructorDashboard";
 import AppCard, { AppCardContent, AppCardHeader, AppCardTitle, AppCardDescription } from "@/components/common/micro/AppCard";
 import LineChart from "@/components/common/composite/LineChart";
-import ChartDateFilters from "@/components/common/composite/ChartDateFilters";
+import { ChartDateFilters } from "@/components/common/composite/DataFilter";
 import AppPageHeader from "@/components/common/composite/AppPageHeader";
 import AppTable from "@/components/common/micro/AppTable";
 import AppBadge from "@/components/common/micro/AppBadge";

@@ -2,33 +2,21 @@ import React from 'react';
 import { Calendar } from "@/components/ui/calendar";
 import { vi } from "date-fns/locale";
 import { cn } from "@/lib/utils";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import AppSelect from "@/components/common/micro/AppSelect";
 
 // Tách CustomDropdown ra ngoài để tránh bị unmount/remount liên tục khi Calendar re-render
 const CustomDropdown = ({ value, onChange, options, disabled }) => {
   return (
-    <Select
+    <AppSelect
       value={value?.toString()}
       onValueChange={(newVal) => {
         onChange?.({ target: { value: newVal } });
       }}
       disabled={disabled}
-    >
-      <SelectTrigger className="h-8 border-none font-semibold w-fit px-2 hover:bg-accent focus:ring-0 bg-transparent text-foreground shadow-none">
-        <SelectValue>{options?.find((o) => o.value?.toString() === value?.toString())?.label}</SelectValue>
-      </SelectTrigger>
-      <SelectContent position="item-aligned" className="max-h-[224px] min-w-[100px] shadow-lg border-border rounded-xl bg-card">
-        {options?.map((opt) => (
-          <SelectItem 
-            key={opt.value} 
-            value={opt.value?.toString()}
-            className="cursor-pointer transition-colors focus:!bg-primary/10 focus:!text-primary focus:**:!text-primary data-[state=checked]:!text-primary data-[state=checked]:!bg-primary/10 data-[state=checked]:**:!text-primary data-[state=checked]:font-medium"
-          >
-            {opt.label}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+      options={options?.map(opt => ({ label: opt.label, value: opt.value?.toString() }))}
+      className="!h-8 !border-none font-semibold w-fit px-2 hover:!bg-accent focus:!ring-0 !bg-transparent text-foreground !shadow-none"
+      contentClassName="max-h-[224px] overflow-y-auto !z-[200]"
+    />
   );
 };
 

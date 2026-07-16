@@ -27,6 +27,7 @@ import { Select as AppSelectRoot, SelectContent as AppSelectContent, SelectItem 
 import { AppDialogRoot, AppDialogContent, AppDialogDescription, AppDialogFooter, AppDialogHeader, AppDialogTitle } from "@/components/common/micro/AppDialog";
 import DataTable from "@/components/common/composite/DataTable";
 import categoryService from "@/services/course/categoryService";
+import DataFilter, { DataFilterPriceRange } from "@/components/common/composite/DataFilter";
 
 const formatPrice = (price) =>
     new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
@@ -46,7 +47,7 @@ function InstructorCourseTable({
             className: "w-[60px] text-center",
             cellClassName: "text-center font-sans",
             render: (row, index) => (
-                <span className="text-2xs font-bold text-muted-foreground tracking-tighter">
+                <span className="text-sm font-bold text-muted-foreground tracking-tighter">
                     {(index + 1).toString().padStart(2, '0')}
                 </span>
             ),
@@ -87,9 +88,11 @@ function InstructorCourseTable({
             )
         },
         {
-            header: "Giá và Trạng thái",
+            header: "Giá",
+            className: "text-center",
+            cellClassName: "text-center",
             render: (row) => (
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col items-center gap-1">
                     {row.isVirtualDraft ? (
                         <span className="text-sm text-muted-foreground italic">—</span>
                     ) : row.discount > 0 ? (
@@ -107,31 +110,6 @@ function InstructorCourseTable({
                     ) : (
                         <span className="font-bold text-foreground">{formatPrice(row.price)}</span>
                     )}
-                    <div className="flex flex-wrap gap-1 mt-1.5">
-                        {row.isVirtualDraft ? (
-                            <span className="inline-flex items-center gap-1 text-[10px] text-warning font-bold bg-warning/10 px-1.5 py-0.5 rounded border border-warning/20">
-                                Bản nháp mới
-                            </span>
-                        ) : (
-                            <>
-                                {row.status === 1 ? (
-                                    <span className="inline-flex items-center gap-1 text-[10px] text-success font-bold bg-success/10 px-1.5 py-0 rounded border border-success/20">Đang bán</span>
-                                ) : row.status === 3 || row.status === "rejected" ? (
-                                    <span className="inline-flex items-center gap-1 text-[10px] text-error font-bold bg-error/10 px-1.5 py-0 rounded border border-error/20">Bị từ chối</span>
-                                ) : row.status === 4 ? (
-                                    <span className="inline-flex items-center gap-1 text-[10px] text-warning font-bold bg-warning/10 px-1.5 py-0.5 rounded border border-warning/20">Chờ duyệt</span>
-                                ) : (
-                                    <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground font-bold bg-secondary px-1.5 py-0 rounded border border-border">Ẩn</span>
-                                )}
-                                {row.hasUnsavedDraft && (
-                                    <span className="inline-flex items-center gap-1 text-[10px] text-warning font-bold bg-warning/10 px-1.5 py-0 rounded border border-warning/20">
-                                        Có bản nháp
-                                        <span className="w-1 h-1 rounded-full bg-warning text-warning animate-pulse ml-1" />
-                                    </span>
-                                )}
-                            </>
-                        )}
-                    </div>
                 </div>
             )
         },
@@ -168,15 +146,33 @@ function InstructorCourseTable({
             header: "Trạng thái",
             className: "text-center w-[120px]",
             cellClassName: "text-center",
-            render: (row) => (!row.isVirtualDraft && (row.status === 1 || row.status === 2)) ? (
-                <TableActionIconButton
-                    icon={row.status === 1 ? Eye : EyeOff}
-                    onClick={() => onToggleStatus?.(row.id, row.status)}
-                    title={row.status === 1 ? "Đang hiển thị (Nhấn để ẩn)" : "Đang ẩn (Nhấn để hiện)"}
-                />
-            ) : !row.isVirtualDraft ? (
-                <span className="text-slate-300 text-xs font-bold tracking-tighter opacity-60">—</span>
-            ) : null
+            render: (row) => (
+                <div className="flex justify-center flex-wrap gap-1">
+                    {row.isVirtualDraft ? (
+                        <span className="inline-flex items-center gap-1 text-[10px] text-warning font-bold bg-warning/10 px-1.5 py-0.5 rounded border border-warning/20">
+                            Bản nháp mới
+                        </span>
+                    ) : (
+                        <>
+                            {row.status === 1 ? (
+                                <span className="inline-flex items-center gap-1 text-[10px] text-success font-bold bg-success/10 px-1.5 py-0 rounded border border-success/20">Đang bán</span>
+                            ) : row.status === 3 || row.status === "rejected" ? (
+                                <span className="inline-flex items-center gap-1 text-[10px] text-error font-bold bg-error/10 px-1.5 py-0 rounded border border-error/20">Bị từ chối</span>
+                            ) : row.status === 4 ? (
+                                <span className="inline-flex items-center gap-1 text-[10px] text-warning font-bold bg-warning/10 px-1.5 py-0.5 rounded border border-warning/20">Chờ duyệt</span>
+                            ) : (
+                                <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground font-bold bg-secondary px-1.5 py-0 rounded border border-border">Ẩn</span>
+                            )}
+                            {row.hasUnsavedDraft && (
+                                <span className="inline-flex items-center gap-1 text-[10px] text-warning font-bold bg-warning/10 px-1.5 py-0 rounded border border-warning/20">
+                                    Có bản nháp
+                                    <span className="w-1 h-1 rounded-full bg-warning text-warning animate-pulse ml-1" />
+                                </span>
+                            )}
+                        </>
+                    )}
+                </div>
+            )
         },
         {
             header: "Thao tác",
@@ -184,6 +180,13 @@ function InstructorCourseTable({
             cellClassName: "text-center",
             render: (row) => (
                 <div className="flex justify-center items-center gap-2">
+                    {(!row.isVirtualDraft && (row.status === 1 || row.status === 2)) && (
+                        <TableActionIconButton
+                            icon={row.status === 1 ? Eye : EyeOff}
+                            onClick={() => onToggleStatus?.(row.id, row.status)}
+                            title={row.status === 1 ? "Đang hiển thị (Nhấn để ẩn)" : "Đang ẩn (Nhấn để hiện)"}
+                        />
+                    )}
                     {(row.status === 3 || row.status === "rejected" || row.rejectReason) && (
                         <TableActionIconButton
                             icon={MessageSquareWarning}
@@ -242,6 +245,47 @@ export default function InstructorCourses() {
   // Local states for UI controls
   const [categories, setCategories] = useState([]);
   const [localSearch, setLocalSearch] = useState("");
+  const [dateRange, setDateRange] = useState({ from: undefined, to: undefined });
+  const [statusFilters, setStatusFilters] = useState([]);
+  const [priceRange, setPriceRange] = useState([0, 10000000]);
+
+  const filteredCourses = (courses || []).filter(course => {
+    let matchDate = true;
+    if (dateRange?.from) {
+      const dateVal = course.createdAt || course.updatedAt;
+      if (dateVal) {
+        const itemDate = new Date(dateVal);
+        const from = new Date(dateRange.from);
+        from.setHours(0, 0, 0, 0);
+        const to = dateRange.to ? new Date(dateRange.to) : new Date(from);
+        to.setHours(23, 59, 59, 999);
+        matchDate = itemDate >= from && itemDate <= to;
+      }
+    }
+
+    let matchCategory = true;
+    if (filters.categoryId) {
+      if (course.categoryId !== filters.categoryId) matchCategory = false;
+    }
+    
+    let matchStatus = true;
+    if (statusFilters.length > 0) {
+      if (!statusFilters.includes(String(course.status))) matchStatus = false;
+    }
+
+    let matchSearch = true;
+    if (localSearch) {
+      if (!course.title?.toLowerCase().includes(localSearch.toLowerCase())) matchSearch = false;
+    }
+
+    let matchPrice = true;
+    if (priceRange[0] > 0 || priceRange[1] < 10000000) {
+      const coursePrice = course.price || 0;
+      if (coursePrice < priceRange[0] || coursePrice > priceRange[1]) matchPrice = false;
+    }
+
+    return matchDate && matchCategory && matchStatus && matchSearch && matchPrice;
+  });
 
   // 1. Load Categories for Dropdown
   useEffect(() => {
@@ -343,66 +387,37 @@ export default function InstructorCourses() {
 
       {/* Filters & Content */}
       <div className="space-y-6">
-        <div className="flex flex-col lg:flex-row gap-4 items-center justify-between glass p-4 rounded-2xl border border-border">
-          <div className="flex flex-col sm:flex-row w-full lg:w-auto items-center gap-3">
-            <div className="relative w-full sm:w-80 group">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-              <AppInput
-                placeholder="Tìm khóa học theo tên..."
-                value={localSearch}
-                onChange={(e) => setLocalSearch(e.target.value)}
-                className="pl-9 h-11 bg-white border-border focus:ring-2 focus:ring-primary/10 transition-all rounded-xl shadow-none"
-              />
-            </div>
-
-            <div className="flex items-center gap-2 bg-muted/80 p-1 rounded-xl w-full sm:w-auto border border-border/50">
-              <AppSelectRoot
-                value={filters.categoryId ? String(filters.categoryId) : "all"}
-                onValueChange={(val) => setFilters(prev => ({ ...prev, categoryId: val === "all" ? null : Number(val) }))}
-              >
-                <AppSelectTrigger className="h-9 w-full sm:w-[200px] bg-transparent border-none focus:ring-0 text-sm font-bold text-foreground cursor-pointer">
-                  <div className="flex items-center gap-2 truncate">
-                    <Tag className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-                    <AppSelectValue placeholder="Tất cả danh mục" />
-                  </div>
-                </AppSelectTrigger>
-                <AppSelectContent className="max-h-[300px] rounded-xl border-border">
-                  <AppSelectItem value="all" className="font-bold">Tất cả danh mục</AppSelectItem>
-                  {categories.map(cat => (
-                    <AppSelectItem
-                      key={cat.id}
-                      value={String(cat.id)}
-                      className={cat.isParent ? "font-extrabold bg-muted" : "pl-6 font-medium"}
-                    >
-                      {cat.name}
-                    </AppSelectItem>
-                  ))}
-                </AppSelectContent>
-              </AppSelectRoot>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground bg-muted/80 p-1.5 rounded-xl border border-border/50 shadow-inner">
-            {[
-              { label: "Tất cả", value: "all" },
-              { label: "Đang bán", value: "1" },
-              { label: "Chờ duyệt", value: "4" },
-              { label: "Ẩn", value: "2" }
-            ].map((btn) => (
-              <button
-                key={btn.value}
-                onClick={() => setFilters(prev => ({ ...prev, status: btn.value === "all" ? "" : Number(btn.value) }))}
-                className={`px-5 py-2 rounded-lg transition-all font-bold uppercase tracking-tight ${(filters.status === "" && btn.value === "all") || (String(filters.status) === btn.value)
-                    ? "bg-white text-primary shadow-sm"
-                    : "hover:text-foreground hover:bg-white/50"
-                  }`}
-              >
-                {btn.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
+        <DataFilter
+          searchQuery={localSearch}
+          onSearchChange={setLocalSearch}
+          searchPlaceholder="Tìm khóa học theo tên..."
+          dropdownChecklists={[
+            {
+              title: "Bộ lọc",
+              items: [
+                { label: "Đang bán", value: "1" },
+                { label: "Chờ duyệt", value: "4" },
+                { label: "Ẩn", value: "2" }
+              ],
+              selectedItems: statusFilters,
+              onItemToggle: (val) => setStatusFilters(prev => prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val]),
+              onClear: () => setStatusFilters([])
+            }
+          ]}
+          dateRange={dateRange}
+          onDateRangeChange={setDateRange}
+          dateRangePlaceholder="Khoảng thời gian"
+        >
+          <DataFilterPriceRange
+            title="Khoảng giá"
+            min={0}
+            max={10000000}
+            step={50000}
+            value={priceRange}
+            onValueChange={setPriceRange}
+            onClear={() => setPriceRange([0, 10000000])}
+          />
+        </DataFilter>
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4 bg-white rounded-2xl border border-border shadow-sm">
             <Loader2 className="w-10 h-10 text-primary animate-spin" />
@@ -410,7 +425,7 @@ export default function InstructorCourses() {
           </div>
         ) : (
           <InstructorCourseTable
-            courses={courses}
+            courses={filteredCourses}
             pagination={pagination}
             onPageChange={handlePageChange}
             onEdit={handleEdit}
