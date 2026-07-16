@@ -263,10 +263,10 @@ export default function InstructorCoupons() {
       {/* Stats Summary (Standardized) */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {[
-          { label: "Tổng số mã", value: stats.total, icon: Ticket, bgClass: "bg-slate-50", textClass: "text-slate-600", borderClass: "border-slate-100", circleClass: "bg-slate-50/50 group-hover:bg-slate-100/50" },
-          { label: "Đang hoạt động", value: stats.active, icon: CircleCheck, bgClass: "bg-success/10", textClass: "text-success", borderClass: "border-success/20", circleClass: "bg-success/5 group-hover:bg-success/10" },
-          { label: "Sắp diễn ra", value: stats.scheduled, icon: Clock, bgClass: "bg-warning/10", textClass: "text-warning", borderClass: "border-warning/20", circleClass: "bg-warning/5 group-hover:bg-warning/10" },
-          { label: "Đã hết hạn", value: stats.expired, icon: CircleOff, bgClass: "bg-error/10", textClass: "text-error", borderClass: "border-error/20", circleClass: "bg-error/5 group-hover:bg-error/10" },
+          { label: "Tổng số mã", value: stats.total, icon: Ticket, bgClass: "bg-primary/10", textClass: "text-primary", borderClass: "border-primary/20", circleClass: "bg-primary/10 opacity-50 group-hover:opacity-100" },
+          { label: "Đang hoạt động", value: stats.active, icon: CircleCheck, bgClass: "bg-success-soft", textClass: "text-success", borderClass: "border-success/20", circleClass: "bg-success-soft opacity-50 group-hover:opacity-100" },
+          { label: "Sắp diễn ra", value: stats.scheduled, icon: Clock, bgClass: "bg-warning-soft", textClass: "text-warning", borderClass: "border-warning/20", circleClass: "bg-warning-soft opacity-50 group-hover:opacity-100" },
+          { label: "Đã hết hạn", value: stats.expired, icon: CircleOff, bgClass: "bg-error-soft", textClass: "text-error", borderClass: "border-error/20", circleClass: "bg-error-soft opacity-50 group-hover:opacity-100" },
         ].map((stat, i) => (
           <AppCard key={i} className="group hover-lift border-border shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden relative bg-card rounded-2xl">
             <div className={`absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 rounded-full ${stat.circleClass} transition-colors duration-500`} />

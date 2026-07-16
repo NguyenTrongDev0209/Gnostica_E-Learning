@@ -406,7 +406,7 @@ function InstructorRevenueTable({
             className: "text-center",
             cellClassName: "text-center",
             render: (trx) => (
-                <AppBadge variant="outline" className="text-[10px] font-bold uppercase tracking-tight py-0 bg-muted border-border text-muted-foreground">
+                <AppBadge variant="secondary" soft className="text-[10px] font-bold uppercase tracking-tight py-0">
                     {trx.paymentMethod === "REVENUE" ? "Thanh toán khóa học" :
                         trx.paymentMethod === "WITHDRAW" ? "Rút tiền mặt" : trx.paymentMethod}
                 </AppBadge>
@@ -418,17 +418,17 @@ function InstructorRevenueTable({
             cellClassName: "text-center",
             render: (trx) => {
                 if (trx.status === 1) return (
-                    <AppBadge className="bg-success/10 text-success border-success/20 shadow-none hover:bg-success/20 text-[10px] font-bold py-0.5 inline-flex items-center gap-1">
+                    <AppBadge variant="success" soft className="text-[10px] font-bold py-0.5 inline-flex items-center gap-1">
                         <CheckCircle2 className="w-3 h-3" /> Thành công
                     </AppBadge>
                 );
                 if (trx.status === 0) return (
-                    <AppBadge className="bg-warning/10 text-warning border-warning/20 shadow-none hover:bg-warning/20 text-[10px] font-bold py-0.5 inline-flex items-center gap-1">
+                    <AppBadge variant="warning" soft className="text-[10px] font-bold py-0.5 inline-flex items-center gap-1">
                         <Clock className="w-3 h-3" /> Đang chờ
                     </AppBadge>
                 );
                 return (
-                    <AppBadge className="bg-error/10 text-error border-error/20 shadow-none hover:bg-error/20 text-[10px] font-bold py-0.5 inline-flex items-center gap-1">
+                    <AppBadge variant="error" soft className="text-[10px] font-bold py-0.5 inline-flex items-center gap-1">
                         <XCircle className="w-3 h-3" /> Thất bại
                     </AppBadge>
                 );
@@ -536,13 +536,13 @@ export default function InstructorRevenue() {
           </p>
         </div>
         <div className="flex gap-3">
-          <AppButton appVariant="ghostMuted" variant="ghost" className="btn-md font-bold flex items-center gap-2 border border-border hover:bg-muted transition-all rounded-xl">
+          <AppButton appVariant="ghostMuted" variant="ghost" className="btn-md font-bold flex items-center gap-2 border border-border hover:bg-muted transition-all rounded-lg">
             <Download className="w-4 h-4" />
             Xuất Excel
           </AppButton>
           <AppButton appVariant="gradient"
             onClick={() => setIsWithdrawOpen(true)}
-            className="btn-md bg-success/10 text-success hover:bg-success/20 font-bold rounded-xl transition-all hover:scale-[1.02]"
+            className="btn-md bg-success/10 text-success hover:bg-success/20 font-bold rounded-lg transition-all hover:scale-[1.02]"
           >
             <WalletIcon className="w-4 h-4 mr-2" />
             Rút Tiền
@@ -557,40 +557,48 @@ export default function InstructorRevenue() {
             label: "Số dư khả dụng",
             value: formatVND(wallet?.remain || 0),
             icon: WalletIcon,
-            color: "slate",
-            dark: true,
+            bgClass: "bg-primary/10",
+            textClass: "text-primary",
+            borderClass: "border-primary/20",
+            circleClass: "bg-primary/10 opacity-50 group-hover:opacity-100",
             sub: `${wallet?.withdrawalsToday || 0}/3 lượt rút hôm nay`
           },
           {
             label: "Doanh thu tháng này",
             value: formatVND(thisMonthRevenue),
             icon: Activity,
-            color: "green",
+            bgClass: "bg-success-soft",
+            textClass: "text-success",
+            borderClass: "border-success/20",
+            circleClass: "bg-success-soft opacity-50 group-hover:opacity-100",
             trend: "+0%"
           },
           {
             label: "Tổng doanh thu",
             value: formatVND(totalLifetime),
             icon: TrendingUp,
-            color: "blue"
+            bgClass: "bg-info-soft",
+            textClass: "text-info",
+            borderClass: "border-info/20",
+            circleClass: "bg-info-soft opacity-50 group-hover:opacity-100"
           },
         ].map((stat, i) => (
-          <AppCard key={i} className={`group hover-lift border-border shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden relative rounded-2xl ${stat.dark ? 'bg-muted text-white' : 'bg-white'}`}>
-            <div className={`absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 rounded-full ${stat.dark ? 'bg-white/5' : `bg-${stat.color}-50/50 group-hover:bg-${stat.color}-100/50`} transition-colors duration-500`} />
+          <AppCard key={i} className={`group hover-lift border-border shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden relative rounded-2xl bg-white`}>
+            <div className={`absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 rounded-full ${stat.circleClass} transition-colors duration-500`} />
             <AppCardContent className="p-6 flex items-center gap-4 relative z-10">
-              <div className={`w-12 h-12 rounded-2xl ${stat.dark ? 'bg-white/10 text-white' : `bg-${stat.color}-50 text-${stat.color}-600 border border-${stat.color}-100`} flex items-center justify-center group-hover:scale-110 transition-transform duration-500 shadow-sm`}>
+              <div className={`w-12 h-12 rounded-2xl ${stat.bgClass} ${stat.textClass} border ${stat.borderClass} flex items-center justify-center group-hover:scale-110 transition-transform duration-500 shadow-sm`}>
                 <stat.icon className="w-6 h-6" />
               </div>
               <div className="flex flex-col flex-1">
                 <div className="flex justify-between items-center">
-                  <span className={`text-[10px] font-bold uppercase tracking-widest ${stat.dark ? 'text-muted-foreground' : 'text-muted-foreground'}`}>{stat.label}</span>
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{stat.label}</span>
                   {stat.trend && (
                     <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-success/10 text-success flex items-center gap-0.5 border border-success/20">
                       <ArrowUpRight className="w-2.5 h-2.5" /> {stat.trend}
                     </span>
                   )}
                 </div>
-                <span className={`text-2xl font-semibold tracking-tight ${stat.dark ? 'text-white' : 'text-foreground'}`}>{stat.value}</span>
+                <span className="text-2xl font-semibold tracking-tight text-foreground">{stat.value}</span>
                 {stat.sub && (
                   <span className="text-[10px] font-bold text-muted-foreground mt-0.5">{stat.sub}</span>
                 )}
