@@ -53,6 +53,7 @@ import Fuse from "fuse.js";
 // eslint-disable-next-line no-unused-vars
 import categoryService from "@/services/course/categoryService";
 import { DialogDescription } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
 
 const ITEMS_PER_PAGE = 10;
 

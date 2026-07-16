@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import useAuthStore from "@/store/useAuthStore";
+import { MOCK_MY_COURSES, MOCK_MY_COURSES_STATS } from "@/mocks/myCoursesMocks";
 
 export default function useMyCourses() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -19,37 +20,13 @@ export default function useMyCourses() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const headers = {
-          "Authorization": `Bearer ${token}`
-        };
+        // MOCK DATA DELAY
+        await new Promise(resolve => setTimeout(resolve, 800));
 
-        const [coursesRes, statsRes] = await Promise.all([
-          fetch("http://localhost:8080/api/enrollments/my-courses", { headers }),
-          fetch("http://localhost:8080/api/enrollments/stats", { headers })
-        ]);
-
-        const coursesData = coursesRes.ok ? await coursesRes.json() : [];
-        const statsData = statsRes.ok ? await statsRes.json() : null;
-
-        const formattedCourses = (coursesData.data || []).map(c => ({
-          id: c.courseId,
-          slug: c.courseSlug,
-          courseTitle: c.courseTitle,
-          courseThumbnail: c.courseThumbnail || "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&q=80",
-          instructorName: c.instructorName,
-          category: "Lập trình", // Backend doesn't return category yet, hardcode or remove
-          progressPercent: c.progressPercent || 0,
-          lastAccessed: c.lastWatchedLessonSlug ? "Hôm nay" : "Chưa học",
-          completedAt: c.completedAt,
-          joinedAt: c.joinedAt,
-          firstLessonId: c.firstLessonId,
-          lastWatchedLessonSlug: c.lastWatchedLessonSlug,
-          certifiUrl: c.certifiUrl
-        }));
-
-        setCourses(formattedCourses);
-        setCategories(["Lập trình"]); // Replace with real categories when API supports it
-        setStats(statsData?.data || { enrolledCourses: 0, completedCourses: 0, hoursStudied: 0 });
+        setCourses(MOCK_MY_COURSES);
+        const uniqueCategories = [...new Set(MOCK_MY_COURSES.map(c => c.category).filter(Boolean))];
+        setCategories(uniqueCategories);
+        setStats(MOCK_MY_COURSES_STATS);
       } catch (error) {
         console.error("Failed to fetch my courses:", error);
       } finally {
@@ -72,19 +49,34 @@ export default function useMyCourses() {
     const matchesStatus = statusFilter === "all" || status === statusFilter;
     const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(course.category);
     
-    // Mock logic for dateRange, assuming date filtering isn't implemented in mock yet
-    // In real app, filter by enrollmentDate etc.
     let matchesDate = true;
-    if (dateRange?.from) {
-      // Dummy date filtering since MOCK_COURSES might not have dates
-      matchesDate = true; 
+    if (dateRange?.from && course.joinedAt) {
+      const courseDate = new Date(course.joinedAt);
+      const from = new Date(dateRange.from);
+      from.setHours(0, 0, 0, 0);
+      
+      if (dateRange.to) {
+        const to = new Date(dateRange.to);
+        to.setHours(23, 59, 59, 999);
+        matchesDate = courseDate >= from && courseDate <= to;
+      } else {
+        matchesDate = courseDate >= from;
+      }
     }
 
     return matchesSearch && matchesStatus && matchesCategory && matchesDate;
   });
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, statusFilter, selectedCategories, dateRange]);
+
+  const ITEMS_PER_PAGE = 5;
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedCourses = filteredCourses.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
   return {
-    courses: filteredCourses,
+    courses: paginatedCourses,
     loading,
     searchQuery,
     setSearchQuery,
@@ -97,8 +89,9 @@ export default function useMyCourses() {
     categories,
     currentPage,
     setCurrentPage,
-    totalPages: Math.ceil(filteredCourses.length / 5) || 1,
+    totalPages: Math.ceil(filteredCourses.length / ITEMS_PER_PAGE) || 1,
     totalCourses: courses.length,
+    totalFilteredCourses: filteredCourses.length,
     stats
   };
 }

@@ -22,6 +22,7 @@ const globalUploadProgress = {};
 const uploadCallbacks = {};
 
 export default function BackgroundVideoUploader({ label, value, onChange, onUploadStart, onUploadEnd, uploadVideoToBunny, id = "v-upload" }) {
+  const fileInputRef = React.useRef(null);
   const [uploadProgress, setUploadProgress] = React.useState(0);
   const [processingProgress, setProcessingProgress] = React.useState(0);
   const [uploadPhase, setUploadPhase] = React.useState("idle"); // idle, uploading, processing, completed
@@ -125,12 +126,13 @@ export default function BackgroundVideoUploader({ label, value, onChange, onUplo
 
   return (
     <div
-      onClick={() => !isUploading && document.getElementById(id).click()}
+      onClick={() => !isUploading && fileInputRef.current?.click()}
       className={`relative aspect-video rounded-xl border-2 border-dashed flex flex-col items-center justify-center p-4 transition-all cursor-pointer group/upload
         ${isCompleted ? "border-success/20 bg-green-50/30" : isCurrentlyUploading ? "border-success/20 bg-green-50/10" : "border-border bg-muted hover:bg-secondary hover:border-success/20"}`}
     >
       <input
         type="file"
+        ref={fileInputRef}
         id={id}
         className="hidden"
         accept="video/*"

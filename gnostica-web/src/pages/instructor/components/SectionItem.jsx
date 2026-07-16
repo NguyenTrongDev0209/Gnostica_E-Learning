@@ -10,6 +10,8 @@ import { ChevronDown, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useParams } from "react-router-dom";
+import { AppButton } from "@/components/common/micro/AppButton";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 import BackgroundVideoUploader from "./BackgroundVideoUploader";
 

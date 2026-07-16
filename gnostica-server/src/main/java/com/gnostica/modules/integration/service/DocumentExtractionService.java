@@ -4,6 +4,8 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.poi.xwpf.extractor.XWPFWordExtractor;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
+import org.apache.poi.xssf.extractor.XSSFExcelExtractor;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -29,10 +31,12 @@ public class DocumentExtractionService {
                 return extractTextFromPdf(is);
             } else if (lowerName.endsWith(".docx")) {
                 return extractTextFromDocx(is);
+            } else if (lowerName.endsWith(".xlsx")) {
+                return extractTextFromXlsx(is);
             } else if (lowerName.endsWith(".txt")) {
                 return new String(is.readAllBytes());
             } else {
-                throw new IllegalArgumentException("Định dạng file không được hỗ trợ. Vui lòng tải lên PDF, DOCX hoặc TXT.");
+                throw new IllegalArgumentException("Định dạng file không được hỗ trợ. Vui lòng tải lên PDF, DOCX, XLSX hoặc TXT.");
             }
         }
     }
@@ -47,6 +51,15 @@ public class DocumentExtractionService {
     private String extractTextFromDocx(InputStream is) throws Exception {
         try (XWPFDocument doc = new XWPFDocument(is);
              XWPFWordExtractor extractor = new XWPFWordExtractor(doc)) {
+            return extractor.getText();
+        }
+    }
+
+    private String extractTextFromXlsx(InputStream is) throws Exception {
+        try (XSSFWorkbook wb = new XSSFWorkbook(is);
+             XSSFExcelExtractor extractor = new XSSFExcelExtractor(wb)) {
+            extractor.setFormulasNotResults(false);
+            extractor.setIncludeSheetNames(false);
             return extractor.getText();
         }
     }

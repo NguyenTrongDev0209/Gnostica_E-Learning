@@ -31,44 +31,39 @@ export default function QuizTab({ courseId }) {
   const [aiFile, setAiFile] = React.useState(null);
   const [aiQuestionCount, setAiQuestionCount] = React.useState(10);
   const [aiLevel, setAiLevel] = React.useState("medium");
+
+  const isExcelFile = aiFile && (aiFile.name.toLowerCase().endsWith(".xlsx") || aiFile.name.toLowerCase().endsWith(".xls"));
   
   const [draftQuestions, setDraftQuestions] = React.useState(() => {
-    const saved = localStorage.getItem(localStorageKey);
-    if (saved && JSON.parse(saved).length > 0) {
-      return JSON.parse(saved);
-    }
-    // Pre-populated from top-level course load or draft injection
-    return getValues("questionBank") || [];
+    // Luôn ưu tiên lấy bản nháp tạm (nếu vừa switch tab), sau đó mới tới bản đã xác nhận
+    return getValues("draftQuestionBank") || getValues("questionBank") || [];
   });
 
   const [isGeneratingAi, setIsGeneratingAi] = React.useState(false);
   const [, setIsFetchingDrafts] = React.useState(false);
   const [, setIsSavingDraft] = React.useState(false);
-  const [isBankConfirmed, setIsBankConfirmed] = React.useState(() => {
-    const confirmed = getValues("questionBank") || [];
-    if (!draftQuestions || draftQuestions.length === 0) return false;
-    // If in-memory draft exactly matches the globally confirmed list, restore confirmed state
-    return JSON.stringify(draftQuestions) === JSON.stringify(confirmed);
-  });
+  const confirmedBank = getValues("questionBank") || [];
+  const isBankConfirmed = draftQuestions.length > 0 && 
+    draftQuestions.length === confirmedBank.length &&
+    draftQuestions.every((dq, idx) => {
+      const cb = confirmedBank[idx];
+      return cb && dq.text === cb.text;
+    });
 
-  // Sync only to localStorage for persistent stage between tab switches
+  // Load drafts from server on mount if global state is empty
   React.useEffect(() => {
-    localStorage.setItem(localStorageKey, JSON.stringify(draftQuestions));
-  }, [draftQuestions, localStorageKey]);
-
-  // Load drafts from server on mount if localStorage is empty
-  React.useEffect(() => {
-    if (!courseId) return;
-    const localQuestions = localStorage.getItem(localStorageKey);
-    if (localQuestions && JSON.parse(localQuestions).length > 0) return; // Prioritize local storage
+    const idToUse = courseId || "0";
+    if (getValues("hasLoadedRedisDrafts")) return; // Chỉ load từ Redis 1 lần duy nhất khi F5 trang
 
     const fetchQuestions = async () => {
       setIsFetchingDrafts(true);
       try {
-        const questions = await questionService.getDraftQuestions(courseId);
+        const questions = await questionService.getDraftQuestions(idToUse);
         if (questions && questions.length > 0) {
           setDraftQuestions(questions);
+          setValue("draftQuestionBank", questions);
         }
+        setValue("hasLoadedRedisDrafts", true); // Đánh dấu đã load xong cho phiên làm việc này
       } catch (err) {
         console.error("Lỗi khi tải câu hỏi:", err);
       } finally {
@@ -76,7 +71,7 @@ export default function QuizTab({ courseId }) {
       }
     };
     fetchQuestions();
-  }, [courseId, localStorageKey]);
+  }, [courseId, getValues, setValue]);
 
   // Auto save drafts to Redis as a double backup if courseId exists
   const initialMount = React.useRef(true);
@@ -85,11 +80,11 @@ export default function QuizTab({ courseId }) {
       initialMount.current = false;
       return;
     }
-    if (!courseId) return;
+    const idToUse = courseId || "0";
     const saveTimer = setTimeout(async () => {
       setIsSavingDraft(true);
       try {
-        await questionService.saveDraftQuestions(courseId, draftQuestions);
+        await questionService.saveDraftQuestions(idToUse, draftQuestions);
       } catch (err) {
         console.error("Lỗi tự động lưu nháp:", err);
       } finally {
@@ -114,12 +109,8 @@ export default function QuizTab({ courseId }) {
       toast.error("Vui lòng tải lên tài liệu bài giảng trước khi tạo câu hỏi!");
       return;
     }
-    if (aiQuestionCount < 1 || aiQuestionCount > 100) {
+    if (!isExcelFile && (aiQuestionCount < 1 || aiQuestionCount > 100)) {
       toast.warning("Số lượng câu hỏi phải từ 1 đến 100!");
-      return;
-    }
-    if (draftQuestions.length + aiQuestionCount > 300) {
-      toast.error(`Không thể tạo thêm ${aiQuestionCount} câu hỏi! Ngân hàng câu hỏi chỉ chứa tối đa 300 câu (hiện tại đã có ${draftQuestions.length} câu).`);
       return;
     }
 
@@ -137,8 +128,9 @@ export default function QuizTab({ courseId }) {
           return { ...q, id: highestId };
         });
 
-        setDraftQuestions(prev => [...prev, ...newQuestionsWithId]);
-        setIsBankConfirmed(false);
+        const updatedQuestions = [...draftQuestions, ...newQuestionsWithId];
+        setDraftQuestions(updatedQuestions);
+        setValue("draftQuestionBank", updatedQuestions);
         toast.success(`Đã tự động tạo và thêm thành công ${newQuestionsWithId.length} câu hỏi vào ngân hàng!`);
       } else {
         toast.warning("AI đã phân tích nhưng không tìm thấy dữ liệu để tạo câu hỏi.");
@@ -186,22 +178,19 @@ export default function QuizTab({ courseId }) {
     }
 
     if (editingQuestionId !== null) {
-      setDraftQuestions(prev => prev.map(q => q.id === editingQuestionId ? {
+      const updatedQuestions = draftQuestions.map(q => q.id === editingQuestionId ? {
         ...q,
         text: manualText,
         options: { ...manualOptions },
         correct: manualCorrect,
         level: manualLevel,
         explanation: manualExplanation
-      } : q));
-      setIsBankConfirmed(false);
+      } : q);
+      setDraftQuestions(updatedQuestions);
+      setValue("draftQuestionBank", updatedQuestions);
       toast.success("Đã cập nhật câu hỏi thành công!");
       setEditingQuestionId(null);
     } else {
-      if (draftQuestions.length >= 300) {
-        toast.error("Ngân hàng câu hỏi chỉ chứa tối đa 300 câu!");
-        return;
-      }
       const newQuestion = {
         id: draftQuestions.length > 0 ? Math.max(...draftQuestions.map(q => q.id)) + 1 : 1,
         text: manualText,
@@ -210,8 +199,9 @@ export default function QuizTab({ courseId }) {
         level: manualLevel,
         explanation: manualExplanation
       };
-      setDraftQuestions(prev => [...prev, newQuestion]);
-      setIsBankConfirmed(false);
+      const updatedQuestions = [...draftQuestions, newQuestion];
+      setDraftQuestions(updatedQuestions);
+      setValue("draftQuestionBank", updatedQuestions);
       toast.success("Đã thêm câu hỏi vào ngân hàng!");
     }
 
@@ -225,8 +215,9 @@ export default function QuizTab({ courseId }) {
 
   const handleDeleteQuestion = (id) => {
     if (window.confirm("Bạn có chắc chắn muốn xóa câu hỏi này khỏi ngân hàng?")) {
-      setDraftQuestions(prev => prev.filter(q => q.id !== id));
-      setIsBankConfirmed(false);
+      const updatedQuestions = draftQuestions.filter(q => q.id !== id);
+      setDraftQuestions(updatedQuestions);
+      setValue("draftQuestionBank", updatedQuestions);
       toast.success("Đã xóa câu hỏi!");
     }
   };
@@ -236,13 +227,10 @@ export default function QuizTab({ courseId }) {
       toast.warning("Ngân hàng câu hỏi đang trống!");
       return;
     }
-    if (draftQuestions.length > 300) {
-      toast.error("Ngân hàng câu hỏi chỉ được chứa tối đa 300 câu!");
-      return;
-    }
 
-    setValue("questionBank", draftQuestions);
-    setIsBankConfirmed(true);
+    setValue("questionBank", draftQuestions, { shouldDirty: true });
+    // Clear draftQuestionBank so it doesn't conflict
+    setValue("draftQuestionBank", null);
     toast.success(`Đã xác nhận duyệt thành công ${draftQuestions.length} câu hỏi! Tất cả các câu hỏi sẽ được lưu vào ngân hàng câu hỏi`);
   };
 
@@ -277,7 +265,7 @@ export default function QuizTab({ courseId }) {
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
             <div className="lg:col-span-3 space-y-3">
               <label className="block text-[11px] font-bold text-muted-foreground uppercase tracking-widest pl-1">
-                Upload tài liệu (PDF, DOCX,...)
+                Upload tài liệu (PDF, DOCX, XLSX...)
               </label>
               <div
                 className="border-2 border-dashed border-indigo-300 bg-white rounded-xl p-8 flex flex-col items-center justify-center text-center hover:bg-indigo-50/50 hover:border-indigo-400 transition-colors cursor-pointer group h-[220px] relative"
@@ -285,7 +273,7 @@ export default function QuizTab({ courseId }) {
                 <input
                   type="file"
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                  accept=".pdf,.docx,.doc,.txt"
+                  accept=".pdf,.docx,.doc,.txt,.xlsx,.xls"
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file) {
@@ -321,7 +309,7 @@ export default function QuizTab({ courseId }) {
 
             <div className="lg:col-span-2 space-y-3">
               <label className="block text-[11px] font-bold text-muted-foreground uppercase tracking-widest pl-1">
-                Số lượng câu hỏi (Tối đa 100)
+                {isExcelFile ? "Số lượng câu hỏi (Trích xuất toàn bộ)" : "Số lượng câu hỏi (Tối đa 100)"}
               </label>
               <div className="h-[220px] flex flex-col justify-between">
                 <Input
@@ -330,15 +318,16 @@ export default function QuizTab({ courseId }) {
                   onChange={(e) => setAiQuestionCount(Math.max(1, Math.min(100, Number(e.target.value))))}
                   min={1}
                   max={100}
-                  className="h-11 border-border bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 font-bold"
+                  disabled={isExcelFile || isGeneratingAi}
+                  className="h-11 border-border bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 font-bold disabled:opacity-50"
                 />
 
                 <div className="space-y-1.5 w-full">
                   <label className="block text-[11px] font-bold text-muted-foreground uppercase tracking-widest pl-1">
                     Chọn cấp độ
                   </label>
-                  <Select value={aiLevel} onValueChange={setAiLevel}>
-                    <SelectTrigger className="w-full h-11 border-border bg-white text-xs font-bold focus:ring-indigo-500 focus:border-indigo-500">
+                  <Select value={aiLevel} onValueChange={setAiLevel} disabled={isExcelFile || isGeneratingAi}>
+                    <SelectTrigger className="w-full h-11 border-border bg-white text-xs font-bold focus:ring-indigo-500 focus:border-indigo-500 disabled:opacity-50">
                       <SelectValue placeholder="Chọn cấp độ" />
                     </SelectTrigger>
                     <SelectContent className="bg-white">
@@ -499,7 +488,7 @@ export default function QuizTab({ courseId }) {
             Question Bank Preview
           </div>
           <span className="text-xs font-bold text-muted-foreground bg-secondary px-3 py-1.5 rounded-full border border-border flex items-center gap-1.5">
-            Tổng số câu hỏi: <span className="text-indigo-600 font-extrabold">{draftQuestions.length}</span> / 300 câu
+            Tổng số câu hỏi: <span className="text-indigo-600 font-extrabold">{draftQuestions.length}</span> câu
           </span>
         </h4>
 

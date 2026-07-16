@@ -36,7 +36,6 @@ export default function BasicInfoTab({ categories }) {
   const title = useWatch({ control, name: "title" });
   const categoryId = useWatch({ control, name: "categoryId" });
   const currentStatus = useWatch({ control, name: "status" });
-  const aiModerationReport = useWatch({ control, name: "aiModerationReport" });
 
   // Logic tìm danh mục được chọn (bao gồm đệ quy cấp 2)
   const selectedCategory = React.useMemo(() => {
@@ -107,13 +106,6 @@ export default function BasicInfoTab({ categories }) {
           THÔNG TIN CƠ BẢN
         </h3>
       </div>
-
-      {aiModerationReport && (
-        <div className="flex items-center gap-1.5 bg-violet-50/50 border border-violet-100/60 px-4 py-2 rounded-xl text-violet-700 text-xs font-bold">
-          <Sparkles className="w-3.5 h-3.5 animate-pulse" />
-          Mẹo: Bấm nút <span className="underline font-black decoration-2 decoration-violet-300 mx-0.5">"Kết quả kiểm duyệt AI"</span> ở góc trên hoặc dưới cùng màn hình để xem chi tiết thẩm định.
-        </div>
-      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">

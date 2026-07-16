@@ -66,7 +66,7 @@ public class DraftCourseController {
 
         CourseRequest draft = draftCourseService.getDraft(email, idToUse);
         if (draft == null) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.ok().build();
         }
         return ResponseEntity.ok(draft);
     }

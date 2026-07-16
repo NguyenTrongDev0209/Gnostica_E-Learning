@@ -80,15 +80,20 @@ public class CourseService {
 
         // Default Status: 4 (Chờ duyệt)
         course.setStatus(4);
+        course.setVersionNumber(1);
+        course.setSharedCount(0); // Initialize shared count to 0
 
         // 3. Map Modules (Sections)
         List<Module> modules = new ArrayList<>();
         if (request.getSections() != null && !request.getSections().isEmpty()) {
+            int moduleSortOrder = 1;
             for (ModuleRequest mReq : request.getSections()) {
                 Module module = new Module();
                 module.setTitle(mReq.getTitle());
                 module.setStatus(mReq.getStatus() != null ? mReq.getStatus() : course.getStatus());
                 module.setCourse(course);
+                module.setVersionNumber(1);
+                module.setSortOrder(moduleSortOrder++);
 
                 // Handle string URL attachment mapped to single entity
                 if (mReq.getAttachments() != null && !mReq.getAttachments().trim().isEmpty()) {
@@ -105,11 +110,14 @@ public class CourseService {
                 // Handle Lessons inside Module
                 List<Lesson> lessons = new ArrayList<>();
                 if (mReq.getLessons() != null && !mReq.getLessons().isEmpty()) {
+                    int lessonSortOrder = 1;
                     for (LessonRequest lReq : mReq.getLessons()) {
                         Lesson lesson = new Lesson();
                         lesson.setTitle(lReq.getTitle());
                         lesson.setContent(lReq.getContent());
                         lesson.setVideoUrl(lReq.getVideoUrl());
+                        lesson.setVersionNumber(1);
+                        lesson.setSortOrder(lessonSortOrder++);
                         // Nếu khóa học đang ẩn thì bài học buộc phải ẩn
                         int finalLessonStatus = (course.getStatus() == 2) ? 2
                                 : (lReq.getStatus() != null ? lReq.getStatus() : module.getStatus());
@@ -262,6 +270,31 @@ public class CourseService {
             throw new RuntimeException("Bạn không có quyền chỉnh sửa khóa học này");
         }
 
+        // Versioning Logic: Nếu khóa học đã xuất bản (status = 1), tạo bản nháp mới (V2) thay vì đè lên bản chính
+        boolean isCloning = false;
+        if (course.getStatus() == 1) {
+            // Kiểm tra xem đã có bản Draft nào của khóa này chưa
+            Course existingDraft = courseRepository.findFirstByOriginalCourseAndDeletedAtIsNullOrderByIdDesc(course)
+                    .orElse(null);
+            if (existingDraft != null) {
+                // Nếu đang có bản Draft, cập nhật thẳng vào bản Draft này
+                course = existingDraft;
+            } else {
+                // Tạo một entity Course mới hoàn toàn (Draft V2)
+                Course newDraft = new Course();
+                newDraft.setOriginalCourse(course);
+                newDraft.setVersionNumber(course.getVersionNumber() + 1);
+                newDraft.setSharedCount(0); // Initialize shared count to 0
+                newDraft.setAccount(course.getAccount());
+                // Sinh slug mới cho bản Draft để không bị trùng (vd: slug-goc-v2)
+                newDraft.setSlug(generateUniqueSlug(course.getSlug() + "-v" + (course.getVersionNumber() + 1), null));
+                newDraft.setModules(new ArrayList<>());
+                newDraft.setEnrollments(new ArrayList<>());
+                course = newDraft;
+                isCloning = true;
+            }
+        }
+
         Category category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new RuntimeException("Danh mục không tồn tại"));
 
@@ -305,7 +338,6 @@ public class CourseService {
         // 3. Smart Update Modules
         List<Module> currentModules = course.getModules();
         List<ModuleRequest> requestedSections = request.getSections();
-
         // CHUYỂN SANG XÓA MỀM: Không clear() hay removeIf() nữa vì orphanRemoval sẽ xóa sạch DB.
         if (requestedSections == null) {
             currentModules.forEach(m -> m.setDeleted(true));
@@ -316,6 +348,7 @@ public class CourseService {
                             .noneMatch(req -> req.getId() != null && req.getId().equals(existingModule.getId())))
                     .forEach(m -> m.setDeleted(true));
 
+            int moduleSortOrder = 1;
             for (ModuleRequest mReq : requestedSections) {
                 Module module;
                 boolean isNewModule = false;
@@ -330,16 +363,23 @@ public class CourseService {
                     } else {
                         module = new Module();
                         module.setCourse(course);
+                        // Versioning: Ghi nhớ Module gốc
+                        Module origMod = new Module();
+                        origMod.setId(mReq.getId());
+                        module.setOriginalModule(origMod);
+                        module.setVersionNumber(course.getVersionNumber());
                         isNewModule = true;
                     }
                 } else {
                     // Create new
                     module = new Module();
                     module.setCourse(course);
+                    module.setVersionNumber(course.getVersionNumber());
                     isNewModule = true;
                 }
 
                 module.setTitle(mReq.getTitle());
+                module.setSortOrder(moduleSortOrder++);
                 module.setStatus(mReq.getStatus() != null ? mReq.getStatus() : course.getStatus());
 
                 // Handle Attachments (Update or create single)
@@ -376,26 +416,34 @@ public class CourseService {
                                     .noneMatch(req -> req.getId() != null && req.getId().equals(existingLesson.getId())))
                             .forEach(l -> l.setDeleted(true));
 
+                    int lessonSortOrder = 1;
                     for (LessonRequest lReq : requestedLessons) {
                         Lesson lesson;
                         if (lReq.getId() != null) {
                             lesson = currentLessons.stream()
                                     .filter(l -> l.getId().equals(lReq.getId()))
                                     .findFirst()
-                                    .orElseGet(() -> {
-                                        Lesson newLess = new Lesson();
-                                        newLess.setModule(module);
-                                        currentLessons.add(newLess);
-                                        return newLess;
-                                    });
+                                    .orElse(null);
+                            if (lesson == null) {
+                                lesson = new Lesson();
+                                lesson.setModule(module);
+                                // Versioning: Ghi nhớ Lesson gốc
+                                Lesson origLess = new Lesson();
+                                origLess.setId(lReq.getId());
+                                lesson.setOriginalLesson(origLess);
+                                lesson.setVersionNumber(course.getVersionNumber());
+                                currentLessons.add(lesson);
+                            }
                         } else {
                             lesson = new Lesson();
                             lesson.setModule(module);
+                            lesson.setVersionNumber(course.getVersionNumber());
                             currentLessons.add(lesson);
                         }
                         lesson.setTitle(lReq.getTitle());
                         lesson.setContent(lReq.getContent());
                         lesson.setVideoUrl(lReq.getVideoUrl());
+                        lesson.setSortOrder(lessonSortOrder++);
 
                         // Nếu khóa học đang ẩn thì bài học buộc phải ẩn
                         int finalLessonStatus = (course.getStatus() == 2) ? 2
@@ -624,18 +672,129 @@ public class CourseService {
         Course course = courseRepository.findFirstBySlugAndDeletedAtIsNullOrderByIdDesc(slug)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học để phê duyệt"));
         
-        course.setStatus(1); // Chuyển thành Hoạt động
-        // course.setRejectReason(null);
+        Course targetCourse = course;
 
-        // Phê duyệt cho cả các chương, bài học chưa bị xóa
-        if (course.getModules() != null) {
-            for (Module m : course.getModules()) {
-                if (!Boolean.TRUE.equals(m.getDeleted())) {
-                    m.setStatus(1);
-                    if (m.getLessons() != null) {
-                        for (Lesson l : m.getLessons()) {
-                            if (!Boolean.TRUE.equals(l.getDeleted())) {
-                                l.setStatus(1);
+        if (course.getOriginalCourse() != null) {
+            // Versioning: Cập nhật đè (merge) lên khóa học gốc
+            Course original = course.getOriginalCourse();
+            
+            original.setTitle(course.getTitle());
+            original.setDescription(course.getDescription());
+            original.setThumbnail(course.getThumbnail());
+            original.setPrice(course.getPrice());
+            original.setDiscount(course.getDiscount());
+            original.setLevel(course.getLevel());
+            original.setCategory(course.getCategory());
+            original.setPromoVideo(course.getPromoVideo());
+            original.setVersionNumber(course.getVersionNumber());
+            original.setStatus(1); // Published
+            
+            // Xử lý Modules
+            List<Module> originalModules = original.getModules();
+            if (originalModules == null) {
+                originalModules = new ArrayList<>();
+                original.setModules(originalModules);
+            }
+            // Đánh dấu xóa tạm thời tất cả module gốc, module nào còn sẽ được khôi phục
+            originalModules.forEach(m -> m.setDeleted(true));
+            
+            if (course.getModules() != null) {
+                for (Module newMod : course.getModules()) {
+                    if (Boolean.TRUE.equals(newMod.getDeleted())) continue;
+                    
+                    Module targetMod = null;
+                    if (newMod.getOriginalModule() != null) {
+                        targetMod = originalModules.stream()
+                            .filter(m -> m.getId().equals(newMod.getOriginalModule().getId()))
+                            .findFirst()
+                            .orElse(null);
+                    }
+                    if (targetMod == null) {
+                        targetMod = new Module();
+                        targetMod.setCourse(original);
+                        originalModules.add(targetMod);
+                    }
+                    
+                    targetMod.setDeleted(false);
+                    targetMod.setTitle(newMod.getTitle());
+                    targetMod.setStatus(1);
+                    targetMod.setVersionNumber(newMod.getVersionNumber());
+                    targetMod.setSortOrder(newMod.getSortOrder());
+                    
+                    // Xử lý bài học
+                    List<Lesson> originalLessons = targetMod.getLessons();
+                    if (originalLessons == null) {
+                        originalLessons = new ArrayList<>();
+                        targetMod.setLessons(originalLessons);
+                    }
+                    originalLessons.forEach(l -> l.setDeleted(true));
+                    
+                    if (newMod.getLessons() != null) {
+                        for (Lesson newLes : newMod.getLessons()) {
+                            if (Boolean.TRUE.equals(newLes.getDeleted())) continue;
+                            
+                            Lesson targetLes = null;
+                            if (newLes.getOriginalLesson() != null) {
+                                targetLes = originalLessons.stream()
+                                    .filter(l -> l.getId().equals(newLes.getOriginalLesson().getId()))
+                                    .findFirst()
+                                    .orElse(null);
+                            }
+                            if (targetLes == null) {
+                                targetLes = new Lesson();
+                                targetLes.setModule(targetMod);
+                                originalLessons.add(targetLes);
+                            }
+                            
+                            targetLes.setDeleted(false);
+                            targetLes.setTitle(newLes.getTitle());
+                            targetLes.setContent(newLes.getContent());
+                            targetLes.setVideoUrl(newLes.getVideoUrl());
+                            targetLes.setStatus(1);
+                        }
+                    }
+                }
+            }
+            
+            // Versioning: Gộp ngân hàng câu hỏi từ V2 sang V1
+            List<com.gnostica.modules.course.dto.response.QuestionDto> v2Questions = questionBankService.getQuestionsByCourseId(course.getId());
+            java.util.Map<Integer, Integer> questionIdMap = new java.util.HashMap<>();
+            if (v2Questions != null && !v2Questions.isEmpty()) {
+                questionIdMap = questionBankService.saveQuestionBankAndGetMap(original, v2Questions);
+            }
+            
+            // Cập nhật lại câu hỏi cho Quiz (nếu có Quiz)
+            for (Module newMod : course.getModules()) {
+                if (!Boolean.TRUE.equals(newMod.getDeleted()) && newMod.getOriginalModule() != null) {
+                    Module targetMod = originalModules.stream()
+                        .filter(m -> m.getId().equals(newMod.getOriginalModule().getId()))
+                        .findFirst()
+                        .orElse(null);
+                        
+                    if (targetMod != null) {
+                        quizService.mergeQuizFromV2ToV1(targetMod, newMod, questionIdMap);
+                    }
+                }
+            }
+            
+            // Xóa khóa học clone (V2) sau khi đã gộp xong
+            course.setDeleted(true);
+            courseRepository.save(course);
+            
+            targetCourse = original;
+        } else {
+            // Duyệt khóa học bình thường (không có bản clone)
+            course.setStatus(1); // Chuyển thành Hoạt động
+            
+            if (course.getModules() != null) {
+                for (Module m : course.getModules()) {
+                    if (!Boolean.TRUE.equals(m.getDeleted())) {
+                        m.setStatus(1);
+                        if (m.getLessons() != null) {
+                            for (Lesson l : m.getLessons()) {
+                                if (!Boolean.TRUE.equals(l.getDeleted())) {
+                                    l.setStatus(1);
+                                }
                             }
                         }
                     }
@@ -643,10 +802,10 @@ public class CourseService {
             }
         }
         
-        notificationService.createNotification(course.getAccount(), "Khóa học được phê duyệt",
-                "Khóa học '" + course.getTitle() + "' của bạn đã được Admin phê duyệt và xuất bản.", "SYSTEM");
+        notificationService.createNotification(targetCourse.getAccount(), "Khóa học được phê duyệt",
+                "Khóa học '" + targetCourse.getTitle() + "' của bạn đã được Admin phê duyệt và xuất bản.", "SYSTEM");
         
-        return mapToCourseDetailResponse(courseRepository.save(course));
+        return mapToCourseDetailResponse(courseRepository.save(targetCourse));
     }
 
     @Transactional
@@ -655,7 +814,7 @@ public class CourseService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học"));
         
         course.setStatus(3); // Bị từ chối
-        // course.setRejectReason(rejectReason != null && !rejectReason.trim().isEmpty() ? rejectReason.trim() : "Nội dung khóa học chưa đáp ứng chuẩn kiểm duyệt.");
+        course.setRejectReason(rejectReason != null && !rejectReason.trim().isEmpty() ? rejectReason.trim() : "Nội dung khóa học chưa đáp ứng chuẩn kiểm duyệt.");
         notificationService.createNotification(course.getAccount(), "Khóa học bị từ chối",
                 "Khóa học '" + course.getTitle() + "' của bạn bị từ chối phê duyệt. Lý do: " + (rejectReason != null ? rejectReason : ""), "SYSTEM");
         
@@ -707,7 +866,7 @@ public class CourseService {
         response.setLevel(course.getLevel());
         response.setStatus(course.getStatus());
         response.setDeleted(course.getDeleted());
-        response.setRejectReason("");
+        response.setRejectReason(course.getRejectReason() != null ? course.getRejectReason() : "");
         response.setCreatedAt(course.getCreatedAt());
         response.setUpdatedAt(course.getUpdatedAt());
         response.setIsEnrolled(false);
@@ -739,13 +898,14 @@ public class CourseService {
         response.setSlug(course.getSlug());
         response.setDescription(course.getDescription());
         response.setThumbnail(course.getThumbnail());
+        response.setPromoVideo(course.getPromoVideo());
         response.setPrice(course.getPrice());
         response.setDiscount(course.getDiscount());
         response.setSalePrice(course.getSalePrice());
         response.setLevel(course.getLevel());
         response.setStatus(course.getStatus());
         response.setDeleted(course.getDeleted());
-        response.setRejectReason("");
+        response.setRejectReason(course.getRejectReason() != null ? course.getRejectReason() : "");
         response.setCreatedAt(course.getCreatedAt());
         response.setUpdatedAt(course.getUpdatedAt());
         response.setIsEnrolled(false);
@@ -767,6 +927,62 @@ public class CourseService {
         response.setClasses(course.getModules() != null ? course.getModules().size() : 0);
         response.setStudents(course.getEnrollments() != null ? course.getEnrollments().size() : 0);
         
+        if (course.getModules() != null) {
+            response.setModules(course.getModules().stream()
+                    .map(this::mapToModuleResponse)
+                    .collect(java.util.stream.Collectors.toList()));
+        }
+        
+        return response;
+    }
+
+    private com.gnostica.modules.course.dto.response.ModuleResponse mapToModuleResponse(com.gnostica.core.model.Module module) {
+        if (module == null) return null;
+        com.gnostica.modules.course.dto.response.ModuleResponse response = new com.gnostica.modules.course.dto.response.ModuleResponse();
+        response.setId(module.getId());
+        response.setTitle(module.getTitle());
+        response.setCreatedAt(module.getCreatedAt());
+        response.setUpdatedAt(module.getUpdatedAt());
+        response.setStatus(module.getStatus());
+        response.setDeleted(module.getDeleted());
+
+        if (module.getLessons() != null) {
+            response.setLessons(module.getLessons().stream()
+                    .map(this::mapToLessonResponse)
+                    .collect(java.util.stream.Collectors.toList()));
+        }
+
+        if (module.getAttachments() != null) {
+            response.setAttachments(module.getAttachments().stream()
+                    .map(this::mapToAttachmentResponse)
+                    .collect(java.util.stream.Collectors.toList()));
+        }
+        
+        response.setQuiz(quizService.getQuizResponseByModuleId(module.getId()));
+
+        return response;
+    }
+
+    private com.gnostica.modules.course.dto.response.LessonResponse mapToLessonResponse(com.gnostica.core.model.Lesson lesson) {
+        if (lesson == null) return null;
+        com.gnostica.modules.course.dto.response.LessonResponse response = new com.gnostica.modules.course.dto.response.LessonResponse();
+        response.setId(lesson.getId());
+        response.setTitle(lesson.getTitle());
+        response.setContent(lesson.getContent());
+        response.setVideoUrl(lesson.getVideoUrl());
+        response.setStatus(lesson.getStatus());
+        response.setDeleted(lesson.getDeleted());
+        response.setCreatedAt(lesson.getCreatedAt());
+        response.setUpdatedAt(lesson.getUpdatedAt());
+        return response;
+    }
+
+    private com.gnostica.modules.course.dto.response.AttachmentResponse mapToAttachmentResponse(com.gnostica.core.model.Attachment attachment) {
+        if (attachment == null) return null;
+        com.gnostica.modules.course.dto.response.AttachmentResponse response = new com.gnostica.modules.course.dto.response.AttachmentResponse();
+        response.setId(attachment.getId());
+        response.setFileType(attachment.getFileType());
+        response.setFileUrl(attachment.getFileUrl());
         return response;
     }
 }

@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import DataTable from "@/components/common/composite/DataTable";
 import {
     Eye,
@@ -72,7 +72,7 @@ export default function InstructorCourseTable({
             )
         },
         {
-            header: "Giá và Trạng thái",
+            header: "Giá",
             render: (row) => (
                 <div className="flex flex-col gap-1">
                     {row.isVirtualDraft ? (
@@ -92,31 +92,6 @@ export default function InstructorCourseTable({
                     ) : (
                         <span className="font-black text-foreground">{formatPrice(row.price)}</span>
                     )}
-                    <div className="flex flex-wrap gap-1 mt-1.5">
-                        {row.isVirtualDraft ? (
-                            <span className="inline-flex items-center gap-1 text-[10px] text-amber-700 font-bold bg-amber-50 px-1.5 py-0.5 rounded border border-amber-300">
-                                Bản nháp mới
-                            </span>
-                        ) : (
-                            <>
-                                {row.status === 1 ? (
-                                    <span className="inline-flex items-center gap-1 text-[10px] text-success font-bold bg-green-50 px-1.5 py-0 rounded border border-success/20">Đang bán</span>
-                                ) : row.status === 3 || row.status === "rejected" ? (
-                                    <span className="inline-flex items-center gap-1 text-[10px] text-rose-600 font-bold bg-rose-50 px-1.5 py-0 rounded border border-rose-200">Bị từ chối</span>
-                                ) : row.status === 4 ? (
-                                    <span className="inline-flex items-center gap-1 text-[10px] text-amber-600 font-bold bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">Chờ duyệt</span>
-                                ) : (
-                                    <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground font-bold bg-secondary px-1.5 py-0 rounded border border-border">Ẩn</span>
-                                )}
-                                {row.hasUnsavedDraft && (
-                                    <span className="inline-flex items-center gap-1 text-[10px] text-warning font-bold bg-orange-50 px-1.5 py-0 rounded border border-warning/20">
-                                        Có bản nháp
-                                        <span className="w-1 h-1 rounded-full bg-warning/10 text-warning animate-pulse ml-1" />
-                                    </span>
-                                )}
-                            </>
-                        )}
-                    </div>
                 </div>
             )
         },
@@ -153,15 +128,42 @@ export default function InstructorCourseTable({
             header: "Trạng thái",
             className: "text-center w-[120px]",
             cellClassName: "text-center",
-            render: (row) => (!row.isVirtualDraft && (row.status === 1 || row.status === 2)) ? (
-                <TableActionIconButton
-                    icon={row.status === 1 ? Eye : EyeOff}
-                    onClick={() => onToggleStatus?.(row.id, row.status)}
-                    title={row.status === 1 ? "Đang hiển thị (Nhấn để ẩn)" : "Đang ẩn (Nhấn để hiện)"}
-                />
-            ) : !row.isVirtualDraft ? (
-                <span className="text-slate-300 text-xs font-bold tracking-tighter opacity-60">—</span>
-            ) : null
+            render: (row) => (
+                <div className="flex flex-col items-center gap-1.5">
+                    {row.isVirtualDraft ? (
+                        <span className="inline-flex items-center gap-1 text-[10px] text-amber-700 font-bold bg-amber-50 px-1.5 py-0.5 rounded border border-amber-300">
+                            Bản nháp mới
+                        </span>
+                    ) : (
+                        <>
+                            {row.status === 1 ? (
+                                <span className="inline-flex items-center gap-1 text-[10px] text-success font-bold bg-green-50 px-1.5 py-0 rounded border border-success/20">Đang bán</span>
+                            ) : row.status === 3 || row.status === "rejected" ? (
+                                <span className="inline-flex items-center gap-1 text-[10px] text-rose-600 font-bold bg-rose-50 px-1.5 py-0 rounded border border-rose-200">Bị từ chối</span>
+                            ) : row.status === 4 ? (
+                                <span className="inline-flex items-center gap-1 text-[10px] text-amber-600 font-bold bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">Chờ duyệt</span>
+                            ) : (
+                                <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground font-bold bg-secondary px-1.5 py-0 rounded border border-border">Ẩn</span>
+                            )}
+                            {row.hasUnsavedDraft && (
+                                <span className="inline-flex items-center gap-1 text-[10px] text-warning font-bold bg-orange-50 px-1.5 py-0 rounded border border-warning/20">
+                                    Có bản nháp
+                                    <span className="w-1 h-1 rounded-full bg-warning/10 text-warning animate-pulse ml-1" />
+                                </span>
+                            )}
+                        </>
+                    )}
+                    {(!row.isVirtualDraft && (row.status === 1 || row.status === 2)) && (
+                        <div className="mt-1">
+                            <TableActionIconButton
+                                icon={row.status === 1 ? Eye : EyeOff}
+                                onClick={() => onToggleStatus?.(row.id, row.status)}
+                                title={row.status === 1 ? "Đang hiển thị (Nhấn để ẩn)" : "Đang ẩn (Nhấn để hiện)"}
+                            />
+                        </div>
+                    )}
+                </div>
+            )
         },
         {
             header: "Thao tác",
@@ -169,7 +171,7 @@ export default function InstructorCourseTable({
             cellClassName: "text-center",
             render: (row) => (
                 <div className="flex justify-center items-center gap-2">
-                    {(row.status === 3 || row.status === "rejected" || row.rejectReason) && (
+                    {(row.status === 3 || row.status === "rejected") && (
                         <TableActionIconButton
                             icon={MessageSquareWarning}
                             colorVariant="error"

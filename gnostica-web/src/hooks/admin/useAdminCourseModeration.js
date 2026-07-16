@@ -15,9 +15,7 @@ export default function useAdminCourseModeration(slug) {
   const [activePreview, setActivePreview] = useState(null);
 
   const playerRef = useRef(null);
-  const [isAiScanning, setIsAiScanning] = useState(false);
-  const [isAiScanningInfo, setIsAiScanningInfo] = useState(false);
-  const [isAiScanningFull, setIsAiScanningFull] = useState(false);
+
 
   const isEmbedLink = (url) => {
     if (!url) return false;
@@ -60,78 +58,7 @@ export default function useAdminCourseModeration(slug) {
     toast.info(`Tua video đến ${timeString}`);
   };
 
-  const handleTriggerAiScan = async (lessonId) => {
-    if (!lessonId) return;
-    try {
-      setIsAiScanning(true);
-      const res = await adminCourseService.triggerAiScan(lessonId);
-      toast.success("Quét kiểm duyệt AI thành công!");
-      const updatedCourse = await adminCourseService.getCourseForModeration(slug);
-      setCourse(updatedCourse);
-      if (activePreview && activePreview.data.id === lessonId) {
-        setActivePreview(prev => ({
-          ...prev,
-          data: { ...prev.data, aiModerationReport: res.aiModerationReport }
-        }));
-      }
-    } catch (err) {
-      toast.error(err.response?.data?.error || "Có lỗi xảy ra khi quét AI.");
-    } finally {
-      setIsAiScanning(false);
-    }
-  };
 
-  const handleTriggerAiScanInfo = async () => {
-    try {
-      setIsAiScanningInfo(true);
-      await adminCourseService.triggerAiScanInfo(slug);
-      toast.success("Quét AI nội dung văn bản khóa học thành công!");
-      const updatedCourse = await adminCourseService.getCourseForModeration(slug);
-      setCourse(updatedCourse);
-    } catch (err) {
-      toast.error(err.response?.data?.error || "Lỗi quét văn bản khóa học.");
-    } finally {
-      setIsAiScanningInfo(false);
-    }
-  };
-
-  const handleTriggerAiScanFull = async () => {
-    try {
-      setIsAiScanningFull(true);
-      const res = await adminCourseService.triggerAiScanFull(slug);
-      toast.info(res.message || "Đang khởi động quy trình kiểm duyệt AI toàn diện trong nền...");
-      setCourse(prev => ({ ...prev, aiModerationStatus: "SCANNING" }));
-    } catch (err) {
-      toast.error(err.response?.data?.error || "Lỗi quét toàn diện khóa học.");
-    } finally {
-      setIsAiScanningFull(false);
-    }
-  };
-
-  useEffect(() => {
-    let intervalId;
-    if (course?.aiModerationStatus === "SCANNING") {
-      intervalId = setInterval(async () => {
-        try {
-          const updatedCourse = await adminCourseService.getCourseForModeration(slug);
-          if (updatedCourse.aiModerationStatus !== "SCANNING") {
-            setCourse(updatedCourse);
-            if (updatedCourse.aiModerationStatus === "COMPLETED") {
-              toast.success("Kiểm duyệt AI toàn diện đã hoàn tất!");
-            } else {
-              toast.error("Kiểm duyệt AI gặp lỗi trong quá trình xử lý nền.");
-            }
-            clearInterval(intervalId);
-          }
-        } catch (e) {
-          console.error("Polling error:", e);
-        }
-      }, 5000);
-    }
-    return () => {
-      if (intervalId) clearInterval(intervalId);
-    };
-  }, [course?.aiModerationStatus, slug]);
 
   const focusAndPreviewLesson = (lesson, mod) => {
     setActivePreview({
@@ -209,14 +136,8 @@ export default function useAdminCourseModeration(slug) {
     activePreview,
     setActivePreview,
     playerRef,
-    isAiScanning,
-    isAiScanningInfo,
-    isAiScanningFull,
     isEmbedLink,
     jumpToTime,
-    handleTriggerAiScan,
-    handleTriggerAiScanInfo,
-    handleTriggerAiScanFull,
     focusAndPreviewLesson,
     handleApprove,
     handleConfirmReject

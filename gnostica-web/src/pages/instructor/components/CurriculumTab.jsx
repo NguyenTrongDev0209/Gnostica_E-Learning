@@ -1,5 +1,5 @@
 import React from "react";
-import { useFormContext, Controller } from "react-hook-form";
+import { useFormContext, Controller, useFieldArray } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -15,8 +15,12 @@ import { Badge } from "@/components/ui/badge";
 
 import SectionItem from "./SectionItem";
 
-export default function CurriculumTab({ uploadVideoToBunny, setActiveUploads, fields, append, remove }) {
+export default function CurriculumTab({ uploadVideoToBunny, setActiveUploads }) {
   const { control, watch, formState: { errors } } = useFormContext();
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "sections",
+  });
   const currentCourseStatus = watch("status") ?? 1;
 
   return (

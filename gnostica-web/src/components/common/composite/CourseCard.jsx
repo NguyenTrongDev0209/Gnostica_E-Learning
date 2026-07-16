@@ -127,6 +127,7 @@ export const CourseProgressCard = ({
   instructor,
   progressPercent = 0,
   lastAccessed,
+  joinedAt,
   className,
   link
 }) => {
@@ -166,8 +167,8 @@ export const CourseProgressCard = ({
               <span className="text-xs sm:text-sm font-semibold text-primary whitespace-nowrap truncate max-w-[120px] sm:max-w-[140px]">
                 {instructor?.name || 'Gnostica'}
               </span>
-              <span className="hidden sm:inline text-xs text-muted-foreground truncate">
-                • Đã tham gia {lastAccessed ? new Date(lastAccessed).toLocaleDateString('vi-VN') : 'Gần đây'}
+              <span className="text-muted-foreground flex items-center gap-1">
+                • Đã tham gia {joinedAt ? new Date(joinedAt).toLocaleDateString('vi-VN') : 'Gần đây'}
               </span>
             </div>
             {progressPercent === 100 && (

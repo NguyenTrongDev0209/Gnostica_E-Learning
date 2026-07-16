@@ -14,14 +14,10 @@ import CurriculumTab from "@/pages/instructor/components/CurriculumTab";
 import SettingsTab from "@/pages/instructor/components/SettingsTab";
 
 import { courseSchema, viErrorMap } from "@/utils/validations/courseSchema";
-import useCourseAiPreScan from "@/pages/instructor/components/course-form/hooks/useCourseAiPreScan";
 import CourseDraftModal from "@/pages/instructor/components/CourseDraftModal";
-import CourseAiReportModal from "@/pages/instructor/components/CourseAiReportModal";
 
 export default function InstructorCourseForm() {
-  // eslint-disable-next-line no-unused-vars
   const navigate = useNavigate();
-  const [showAiReportModal, setShowAiReportModal] = React.useState(false);
 
   const {
     methods,
@@ -49,10 +45,6 @@ export default function InstructorCourseForm() {
     uploadVideoToBunny,
     onSubmit
   } = useInstructorCourseForm(courseSchema, viErrorMap);
-
-  const { isPreScanning, handlePreScanWholeCourse } = useCourseAiPreScan(methods);
-
-  const overallAiReport = methods.watch("aiModerationReport");
 
   const onError = (errors) => {
     toast.error("Vui lòng kiểm tra lại thông tin trên form!");
@@ -97,27 +89,6 @@ export default function InstructorCourseForm() {
               </div>
             )}
 
-            <AppButton appVariant="ghostMuted" variant="ghost"
-              type="button"
-              onClick={() => setShowAiReportModal(true)}
-              className={`h-9 sm:h-10 px-3 sm:px-5 rounded-xl font-bold border shadow-sm text-xs sm:text-sm flex items-center gap-2 transition-all duration-300 hover:-translate-y-0.5 shrink-0 ${
-                (() => {
-                  try {
-                    const rep = overallAiReport ? JSON.parse(overallAiReport) : null;
-                    if (!rep) return "text-muted-foreground bg-muted border-border border-dashed";
-                    const sc = rep.safetyScore ?? 100;
-                    const hasV = rep.violations && rep.violations.length > 0;
-                    if (sc < 70 || hasV) return "bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200 animate-pulse shadow-rose-100/40 shadow-lg";
-                    return "bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-200";
-                  // eslint-disable-next-line no-unused-vars
-                  } catch(e) { return "text-muted-foreground border-border"; }
-                })()
-              }`}
-            >
-              <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              <span className="hidden md:inline">Kết quả kiểm duyệt AI</span>
-              <span className="md:hidden">AI Report</span>
-            </AppButton>
 
             <AppButton appVariant="ghostMuted" variant="ghost"
               type="button"
@@ -200,14 +171,6 @@ export default function InstructorCourseForm() {
                 </button>
               ) : (
                 <>
-                  <AppButton appVariant="ghostMuted" variant="ghost"
-                    type="button"
-                    onClick={() => setShowAiReportModal(true)}
-                    className="h-11 px-6 rounded-xl font-bold border border-border shadow-sm text-xs sm:text-sm flex items-center gap-2"
-                  >
-                    <Sparkles className="w-4 h-4" />
-                    Kết quả kiểm duyệt AI
-                  </AppButton>
 
                   <button
                     type="button"
@@ -247,14 +210,6 @@ export default function InstructorCourseForm() {
           setShowDraftModal={setShowDraftModal} 
           slug={slug} 
           restoreDraft={restoreDraft} 
-        />
-        
-        <CourseAiReportModal 
-          showAiReportModal={showAiReportModal} 
-          setShowAiReportModal={setShowAiReportModal} 
-          overallAiReport={overallAiReport} 
-          isPreScanning={isPreScanning} 
-          handlePreScanWholeCourse={handlePreScanWholeCourse} 
         />
       </FormProvider>
     </div>
