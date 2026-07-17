@@ -4,8 +4,8 @@ import PageContainer from "@/components/common/core/PageContainer";
 import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
 import CourseCard, { CourseCardHorizontal } from "@/components/common/composite/CourseCard";
 import { DataFilterSidebar } from "@/components/common/composite/DataFilter";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
+import { AppSheetRoot as Sheet, AppSheetContent as SheetContent, AppSheetTrigger as SheetTrigger } from "@/components/common/micro/AppSheet";
+import { Button } from "@/components/common/micro/AppButton";
 import {
   Pagination,
   PaginationContent,
@@ -14,7 +14,7 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from "@/components/ui/pagination";
+} from "@/components/common/micro/AppPagination";
 import { Loader2, SearchX, Home } from "lucide-react";
 import useCategories from "@/hooks/course/useCategories";
 import useCourses from "@/hooks/course/useCourses";
@@ -226,7 +226,8 @@ export default function CourseCatalog() {
         {/* Tab Buttons */}
         <div className="flex gap-0 border-b border-border mb-6">
           {TABS.map((tab, idx) => (
-            <button
+            <Button
+              variant="ghost"
               key={tab}
               onClick={() => setActiveTab(idx)}
               className={`px-5 py-3 text-sm font-semibold transition-all relative
@@ -236,7 +237,7 @@ export default function CourseCatalog() {
                 }`}
             >
               {tab}
-            </button>
+            </Button>
           ))}
         </div>
 

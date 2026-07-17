@@ -6,14 +6,15 @@ import { toast } from "sonner";
 import { checkoutOrderItemsMock } from "@/mocks/cart";
 import { paymentMethodsMock } from "@/mocks/checkout";
 import orderService from "@/services/order/orderService";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/common/micro/AppCard";
+import Separator from "@/components/common/micro/AppSeparator";
+import Badge from "@/components/common/micro/AppBadge";
+import { Button } from "@/components/common/micro/AppButton";
+import { AppRadioGroup as RadioGroup, AppRadioGroupItem as RadioGroupItem } from "@/components/common/micro/AppRadioGroup";
 import { AppButton } from "@/components/common/micro/AppButton";
 import PageContainer from "@/components/common/core/PageContainer";
 import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
+import AppInput from "@/components/common/micro/AppInput";
 
 // ── CheckoutOrderHeader ──
 function CheckoutOrderHeader({ breadcrumbItems }) {
@@ -231,13 +232,13 @@ function CheckoutOrderSummary({
               {appliedCoupon && (
                 <CheckCircle2 className="w-4 h-4 text-success absolute left-3 top-1/2 -translate-y-1/2" />
               )}
-              <input
+              <AppInput
                 type="text"
                 placeholder="Nhập mã giảm giá..."
                 value={couponCode}
                 onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
                 disabled={isCouponLoading || appliedCoupon != null}
-                className={`w-full border rounded-lg text-sm px-3 py-2.5 outline-none focus:border-primary transition-all ${appliedCoupon ? 'pl-9 bg-green-50/50 border-success/20 text-success font-bold' : 'border-border'}`}
+                className={`w-full ${appliedCoupon ? 'pl-9 bg-success-soft border-success/20 text-success font-bold' : 'border-border'}`}
               />
             </div>
             <Button

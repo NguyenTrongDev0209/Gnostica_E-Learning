@@ -151,3 +151,5 @@ export default function AppCarousel({
     </Carousel>
   );
 }
+
+export { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious };

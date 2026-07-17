@@ -55,6 +55,10 @@ export const AppButton = React.forwardRef(({ className, appVariant, appSize, var
 })
 AppButton.displayName = "AppButton"
 
+// Compatibility alias for incremental page migrations. Pages import this
+// design-system component as `Button` without reaching into components/ui.
+export { AppButton as Button };
+
 // 3. CÁC NÚT ĐẶC BIỆT (Có Logic Riêng)
 export const IconLabelButton = ({ children, icon: Icon, className, variant = "default", badge, ...props }) => {
   return (

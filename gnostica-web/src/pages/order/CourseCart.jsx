@@ -17,13 +17,13 @@ import {
   TableHead,
   TableHeader,
   TableRow
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
+} from "@/components/common/micro/AppTable";
+import { Button } from "@/components/common/micro/AppButton";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/common/micro/AppCard";
+import Separator from "@/components/common/micro/AppSeparator";
+import Input from "@/components/common/micro/AppInput";
+import Badge from "@/components/common/micro/AppBadge";
+import { AppCheckbox as Checkbox } from "@/components/common/micro/AppCheckbox";
 import { AppButton } from "@/components/common/micro/AppButton";
 import PageContainer from "@/components/common/core/PageContainer";
 import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
@@ -85,7 +85,7 @@ export default function CourseCart() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
           <div className="lg:col-span-8">
-            <Card className="border-none shadow-xl shadow-slate-200/50 overflow-hidden bg-white/80 backdrop-blur-sm px-3">
+            <Card className="border-none shadow-xl overflow-hidden bg-card/80 backdrop-blur-sm px-3">
               <Table>
                 <TableHeader className="bg-muted/80">
                   <TableRow className="hover:bg-transparent">
@@ -146,7 +146,7 @@ export default function CourseCart() {
 
             <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="flex items-center gap-3 p-4 bg-white rounded-xl shadow-sm border border-border">
-                <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center text-success">
+                <div className="w-10 h-10 rounded-full bg-success-soft flex items-center justify-center text-success">
                   <ShieldCheck className="w-6 h-6" />
                 </div>
                 <div className="text-xs">
@@ -155,7 +155,7 @@ export default function CourseCart() {
                 </div>
               </div>
               <div className="flex items-center gap-3 p-4 bg-white rounded-xl shadow-sm border border-border">
-                <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-info">
+                <div className="w-10 h-10 rounded-full bg-info-soft flex items-center justify-center text-info">
                   <CreditCard className="w-6 h-6" />
                 </div>
                 <div className="text-xs">
@@ -164,7 +164,7 @@ export default function CourseCart() {
                 </div>
               </div>
               <div className="flex items-center gap-3 p-4 bg-white rounded-xl shadow-sm border border-border">
-                <div className="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center text-warning">
+                <div className="w-10 h-10 rounded-full bg-warning-soft flex items-center justify-center text-warning">
                   <Gift className="w-6 h-6" />
                 </div>
                 <div className="text-xs">
@@ -177,7 +177,7 @@ export default function CourseCart() {
 
           <div className="lg:col-span-4">
             <div className="sticky top-10 space-y-6">
-              <Card className="border-none shadow-2xl shadow-orange-500/10 overflow-hidden bg-white">
+              <Card className="border-none shadow-2xl overflow-hidden bg-card">
                 <CardHeader className="bg-muted border-b border-border py-5">
                   <CardTitle className="text-xl font-bold text-foreground text-center uppercase tracking-tight">Xác nhận đơn hàng</CardTitle>
                 </CardHeader>

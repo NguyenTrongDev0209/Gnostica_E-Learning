@@ -62,4 +62,13 @@ export default function AppSheet({
 }
 
 // Re-export để người dùng có thể tự gọi các nút đóng bên trong nội dung
-export { SheetClose as AppSheetClose };
+export {
+  Sheet as AppSheetRoot,
+  SheetContent as AppSheetContent,
+  SheetDescription as AppSheetDescription,
+  SheetHeader as AppSheetHeader,
+  SheetTitle as AppSheetTitle,
+  SheetTrigger as AppSheetTrigger,
+  SheetFooter as AppSheetFooter,
+  SheetClose as AppSheetClose,
+};

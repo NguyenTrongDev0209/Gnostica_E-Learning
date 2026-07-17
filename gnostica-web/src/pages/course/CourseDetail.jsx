@@ -7,14 +7,15 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+} from "@/components/common/micro/AppAccordion";
+import Badge from "@/components/common/micro/AppBadge";
+import { Button } from "@/components/common/micro/AppButton";
+import { Card, CardContent } from "@/components/common/micro/AppCard";
+import Separator from "@/components/common/micro/AppSeparator";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/common/micro/AppAvatar";
 import { AppButton } from "@/components/common/micro/AppButton";
 import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
+import PageContainer from "@/components/common/core/PageContainer";
 import courseService from "@/services/course/courseService";
 import wishlistService from "@/services/course/wishlistService";
 import instructorService from "@/services/instructor/instructorService";
@@ -553,8 +554,8 @@ export default function CourseDetail() {
   ];
 
   return (
-    <div className="bg-background min-h-screen pb-24">
-      <div className="app-container pt-8 md:pt-12">
+    <PageContainer className="pb-24">
+      <PageContainer.Content className="pt-8 md:pt-12">
         <div className="mb-6">
           <AppBreadcrumb
             paths={breadcrumbItems}
@@ -586,7 +587,7 @@ export default function CourseDetail() {
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </PageContainer.Content>
+    </PageContainer>
   );
 }

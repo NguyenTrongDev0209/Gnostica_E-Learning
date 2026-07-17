@@ -30,6 +30,13 @@ const dialogVariants = cva(
 
 // We export the standard primitives so users can build custom dialogs
 export {
+  Dialog,
+  DialogTrigger,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
   Dialog as AppDialogRoot,
   DialogTrigger as AppDialogTrigger,
   DialogHeader as AppDialogHeader,
@@ -38,6 +45,8 @@ export {
   DialogFooter as AppDialogFooter,
   DialogClose as AppDialogClose,
 };
+
+export { AppDialogContent as DialogContent };
 
 // We wrap DialogContent to apply our variants
 export const AppDialogContent = React.forwardRef(({ className, appVariant, ...props }, ref) => {

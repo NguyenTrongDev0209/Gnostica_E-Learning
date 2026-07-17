@@ -1,8 +1,9 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Users, BookOpen, Star, Award, ArrowRight, ChevronRight, GraduationCap } from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
+import Skeleton from '@/components/common/micro/AppSkeleton';
 import { useInstructorList } from '@/hooks/instructor/useInstructorList';
+import PageContainer from '@/components/common/core/PageContainer';
 
 const fallbackAvatars = [
     "https://i.pravatar.cc/150?u=1",
@@ -20,7 +21,7 @@ const InstructorList = () => {
     }, []);
 
     return (
-        <div className="min-h-screen bg-muted flex flex-col animate-in fade-in duration-500">
+        <PageContainer className="bg-muted animate-in fade-in duration-500">
             {/* Hero Section */}
             <section className="relative w-full bg-muted pt-20 pb-24 lg:pt-28 lg:pb-32 overflow-hidden border-b border-white/10">
                 <div className="absolute inset-0 bg-primary/20 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/20 via-background to-background z-0"></div>
@@ -155,7 +156,7 @@ const InstructorList = () => {
                     )}
                 </div>
             </section>
-        </div>
+        </PageContainer>
     );
 };
 

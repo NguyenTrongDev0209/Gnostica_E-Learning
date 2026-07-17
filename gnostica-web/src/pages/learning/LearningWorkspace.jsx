@@ -31,17 +31,18 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
+} from "@/components/common/micro/AppAccordion";
+import Progress from "@/components/common/micro/AppProgress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/common/micro/AppTabs";
+import { Button } from "@/components/common/micro/AppButton";
+import Separator from "@/components/common/micro/AppSeparator";
+import PageContainer from "@/components/common/core/PageContainer";
 import courseService from "@/services/course/courseService";
 import progressService from "@/services/course/progressService";
 import enrollmentService from "@/services/course/enrollmentService";
 import commentService from "@/services/forum/commentService";
 import useAuthStore from "@/store/useAuthStore";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/common/micro/AppAvatar";
 
 // ── Component Hỗ Trợ: Giao Diện Hỏi Đáp Q&A ──
 function LessonQA({ lesson }) {
@@ -985,7 +986,8 @@ export default function LearningWorkspace() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-background overflow-hidden font-sans">
+    <PageContainer className="h-screen overflow-hidden font-sans">
+      <PageContainer.Content disableContainer className="h-full gap-0 pb-0 overflow-hidden">
       {/* ── Header ── */}
       <header className="h-16 bg-muted text-white flex items-center justify-between px-6 z-50 shrink-0 shadow-lg border-b border-white/5">
         <div className="flex items-center gap-4 min-w-0">
@@ -1060,7 +1062,7 @@ export default function LearningWorkspace() {
       </header>
 
       {/* ── Body ── */}
-      <div className="flex-1 overflow-y-auto bg-[#F8FAFC]">
+      <div className="flex-1 overflow-y-auto bg-background">
         <div className="w-full mx-auto max-w-screen-2xl px-4 md:px-10 xl:px-16 py-8">
           <div className="flex flex-col lg:flex-row gap-10 items-start">
 
@@ -1324,6 +1326,7 @@ export default function LearningWorkspace() {
           </div>
         </div>
       </div>
-    </div>
+      </PageContainer.Content>
+    </PageContainer>
   );
 }
