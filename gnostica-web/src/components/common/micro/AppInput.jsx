@@ -244,3 +244,4 @@ export const AppInputGroup = forwardRef(({
 AppInputGroup.displayName = "AppInputGroup";
 
 export default AppInput;
+export { AppInput as Input };

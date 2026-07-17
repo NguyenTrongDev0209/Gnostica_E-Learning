@@ -1,18 +1,18 @@
 import React from "react";
 import { useFormContext, Controller } from "react-hook-form";
-import { Input } from "@/components/ui/input";
+import { Input } from "@/components/common/micro/AppInput";
 import { AppButton } from "@/components/common/micro/AppButton";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/common/micro/AppSelect";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/common/micro/AppPopover";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/common/micro/AppAccordion";
+import { Textarea } from "@/components/common/micro/AppTextarea";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/common/micro/AppDialog";
 import { ArrowLeft, ArrowRight, Video, GripVertical, Trash2, Plus, PlayCircle, FileText, Check, Loader2, Sparkles, Database, CheckCircle2, ListOrdered, Search, Pencil, Clock, Save } from "lucide-react";
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import questionService from "@/services/course/questionService";
 import { ChevronDown, ChevronRight } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "@/components/common/micro/AppBadge";
 import { toast } from "sonner";
 import { useParams } from "react-router-dom";
 

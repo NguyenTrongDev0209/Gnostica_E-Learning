@@ -2,7 +2,7 @@ import React from 'react';
 import { Save } from 'lucide-react';
 import { AppButton } from "@/components/common/micro/AppButton";
 import { AppPasswordInput } from '@/components/common/micro/AppInput';
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/common/micro/AppCard";
 import { useResetPassword } from '@/hooks/auth/useResetPassword';
 
 const ResetPassword = () => {

@@ -3,7 +3,7 @@ import LineChart from "@/components/common/composite/LineChart";
 import { ChartDateFilters } from "@/components/common/composite/DataFilter";
 
 import { AreaChart, Area, CartesianGrid, XAxis, YAxis, BarChart, Bar } from "recharts";
-import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart";
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/common/micro/AppChart";
 import { Link } from "react-router-dom";
 import DataTable from "@/components/common/composite/DataTable";
 

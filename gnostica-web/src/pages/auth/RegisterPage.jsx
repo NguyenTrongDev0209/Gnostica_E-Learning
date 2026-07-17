@@ -1,13 +1,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
+import { AppCheckbox as Checkbox } from "@/components/common/micro/AppCheckbox";
+import { Label } from "@/components/common/micro/AppLabel";
 import { ArrowRight, Mail, User } from 'lucide-react';
 import { AppButton } from "@/components/common/micro/AppButton";
 import AppInput, { AppPasswordInput } from '@/components/common/micro/AppInput';
 import AppSeparator from '@/components/common/micro/AppSeparator';
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/common/micro/AppCard";
+import { Button } from "@/components/common/micro/AppButton";
 import { useRegister } from '@/hooks/auth/useRegister';
 
 const RegisterPage = () => {

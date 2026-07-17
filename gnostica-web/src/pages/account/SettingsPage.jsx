@@ -1,7 +1,7 @@
 import React from "react";
 import AppCard, { AppCardContent } from "@/components/common/micro/AppCard";
 import AppInput from "@/components/common/micro/AppInput";
-import { Label } from "@/components/ui/label";
+import { Label } from "@/components/common/micro/AppLabel";
 import { AppTextarea } from "@/components/common/micro/AppTextarea";
 import { AppButton } from "@/components/common/micro/AppButton";
 import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";

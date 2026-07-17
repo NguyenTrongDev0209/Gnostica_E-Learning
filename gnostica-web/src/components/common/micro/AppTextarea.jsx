@@ -58,3 +58,4 @@ export const AppTextarea = forwardRef(({
 
 AppTextarea.displayName = "AppTextarea";
 export default AppTextarea;
+export { AppTextarea as Textarea };

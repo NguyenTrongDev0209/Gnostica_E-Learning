@@ -1,7 +1,7 @@
-import { CardDescription } from "@/components/ui/card";
+import { AppCardDescription as CardDescription } from "@/components/common/micro/AppCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/common/micro/AppTabs";
 import AppTextarea from "@/components/common/micro/AppTextarea";
-import { Switch } from "@/components/ui/switch";
+import { Switch } from "@/components/common/micro/AppSwitch";
 // Fix imported
 import React, { useState } from "react";
 import { AppButton } from "@/components/common/micro/AppButton";

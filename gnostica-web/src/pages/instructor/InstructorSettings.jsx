@@ -18,7 +18,7 @@ import { AppButton } from "@/components/common/micro/AppButton";
 import AppSelect from "@/components/common/micro/AppSelect";
 import AppInput from "@/components/common/micro/AppInput";
 import AppTextarea from "@/components/common/micro/AppTextarea";
-import { Label } from "@/components/ui/label";
+import { Label } from "@/components/common/micro/AppLabel";
 import { toast } from "sonner";
 import useAuthStore from "@/store/useAuthStore";
 import instructorService from "@/services/instructor/instructorService";

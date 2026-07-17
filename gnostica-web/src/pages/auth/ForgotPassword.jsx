@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, Mail, Send } from 'lucide-react';
 import { AppButton } from "@/components/common/micro/AppButton";
 import AppInput from '@/components/common/micro/AppInput';
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/common/micro/AppCard";
 import { useForgotPassword } from '@/hooks/auth/useForgotPassword';
 
 const ForgotPassword = () => {
