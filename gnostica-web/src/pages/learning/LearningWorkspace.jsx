@@ -21,7 +21,10 @@ import {
   User,
   CornerDownRight,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Target,
+  AlertTriangle,
+  RefreshCw
 } from "lucide-react";
 import {
   Accordion,
@@ -40,8 +43,468 @@ import commentService from "@/services/forum/commentService";
 import useAuthStore from "@/store/useAuthStore";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-import QuizArea from "@/pages/learning/components/QuizArea";
-import LessonQA from "@/pages/learning/components/LessonQA";
+// ── Component Hỗ Trợ: Giao Diện Hỏi Đáp Q&A ──
+function LessonQA({ lesson }) {
+  const [comments, setComments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [newComment, setNewComment] = useState("");
+  const [replyingTo, setReplyingTo] = useState(null);
+  const [replyContent, setReplyContent] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [collapsedComments, setCollapsedComments] = useState(new Set());
+  const currentUser = useAuthStore(state => state.user);
+
+  const toggleCollapse = (id) => {
+    setCollapsedComments(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) newSet.delete(id);
+      else newSet.add(id);
+      return newSet;
+    });
+  };
+
+  const fetchComments = useCallback(async () => {
+    if (!lesson?.id) return;
+    setLoading(true);
+    try {
+      const data = await commentService.getCommentsByThreadId(`lesson_${lesson.id}`);
+      setComments(data || []);
+    } catch (error) {
+      console.error("Failed to fetch comments", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [lesson?.id]);
+
+  useEffect(() => {
+    fetchComments();
+  }, [fetchComments]);
+
+  const handleSubmit = async (e, parentId = null) => {
+    e.preventDefault();
+    const content = parentId ? replyContent : newComment;
+    if (!content.trim() || !currentUser?.email) return;
+
+    setIsSubmitting(true);
+    try {
+      await commentService.addComment({
+        content,
+        objectId: `lesson_${lesson.id}`,
+        userEmail: currentUser.email,
+        parentId
+      });
+      if (parentId) {
+        setReplyContent("");
+        setReplyingTo(null);
+      } else {
+        setNewComment("");
+      }
+      fetchComments();
+    } catch (error) {
+      alert(error?.response?.data || "Đã xảy ra lỗi khi gửi bình luận.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Bạn có chắc chắn muốn xóa bình luận này?")) return;
+    try {
+      await commentService.deleteComment(id, currentUser.email);
+      fetchComments();
+    } catch (error) {
+      alert("Xóa bình luận thất bại.");
+    }
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString("vi-VN", {
+      day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit"
+    });
+  };
+
+  const renderComment = (comment, isReply = false) => (
+    <div key={comment.id} className={`flex gap-4 ${isReply ? 'mt-4' : 'mt-6 pt-6 border-t border-border'}`}>
+      <Avatar className="w-10 h-10 border border-border shrink-0">
+        <AvatarImage src={comment.account?.avatar} />
+        <AvatarFallback className="bg-primary/10 text-primary font-bold">
+          {comment.account?.fullName?.charAt(0) || <User className="w-5 h-5" />}
+        </AvatarFallback>
+      </Avatar>
+      <div className="flex-1 min-w-0">
+        <div className="bg-muted border border-border rounded-2xl rounded-tl-none p-4 relative group">
+          <div className="flex items-center justify-between mb-1">
+            <span className="font-bold text-sm text-foreground">{comment.account?.fullName || "Người dùng"}</span>
+            <span className="text-xs text-muted-foreground font-medium">{formatDate(comment.createdAt)}</span>
+          </div>
+          <p className="text-sm text-muted-foreground whitespace-pre-wrap">{comment.content}</p>
+          
+          {currentUser?.email === comment.account?.email && (
+            <button 
+              onClick={() => handleDelete(comment.id)}
+              className="absolute top-4 right-4 text-muted-foreground hover:text-error opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <Trash className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+        
+        <div className="flex items-center gap-4 mt-2 ml-2">
+          <button 
+            onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
+            className="text-xs font-bold text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
+          >
+            <CornerDownRight className="w-3.5 h-3.5" /> Phản hồi
+          </button>
+          {comment.replies && comment.replies.length > 0 && (
+            <button 
+              onClick={() => toggleCollapse(comment.id)}
+              className="text-xs font-bold text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
+            >
+              {collapsedComments.has(comment.id) ? (
+                <><ChevronDown className="w-3.5 h-3.5" /> Hiển thị {comment.replies.length} phản hồi</>
+              ) : (
+                <><ChevronUp className="w-3.5 h-3.5" /> Ẩn phản hồi</>
+              )}
+            </button>
+          )}
+        </div>
+
+        {replyingTo === comment.id && (
+          <form onSubmit={(e) => handleSubmit(e, comment.id)} className="mt-3 flex gap-2">
+            <input
+              type="text"
+              value={replyContent}
+              onChange={(e) => setReplyContent(e.target.value)}
+              placeholder="Viết phản hồi..."
+              className="flex-1 text-sm rounded-md border-border focus:border-primary focus:ring-primary/20"
+              autoFocus
+            />
+            <Button type="submit" size="sm" disabled={isSubmitting || !replyContent.trim()} className="rounded-md px-4">
+              <Send className="w-4 h-4" />
+            </Button>
+          </form>
+        )}
+
+        {comment.replies && comment.replies.length > 0 && !collapsedComments.has(comment.id) && (
+          <div className="pl-4 border-l-2 border-border mt-2">
+            {comment.replies.map(reply => renderComment(reply, true))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="bg-white rounded-xl p-6 md:p-8 border border-border shadow-sm">
+      <h3 className="text-xl font-black text-foreground mb-6 flex items-center gap-3">
+        <MessageSquare className="w-6 h-6 text-primary" /> Thảo luận bài học
+      </h3>
+
+      <form onSubmit={(e) => handleSubmit(e, null)} className="mb-8">
+        <div className="flex gap-4">
+          <Avatar className="w-12 h-12 border border-border shrink-0">
+            <AvatarImage src={currentUser?.avatar} />
+            <AvatarFallback className="bg-primary/10 text-primary font-bold">
+              {currentUser?.fullName?.charAt(0) || <User className="w-6 h-6" />}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1 relative">
+            <textarea
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              placeholder="Bạn có câu hỏi gì về bài học này?"
+              className="w-full rounded-2xl border-border focus:border-primary focus:ring-primary/20 min-h-[100px] p-4 text-sm resize-y shadow-sm"
+            />
+            <Button 
+              type="submit" 
+              disabled={isSubmitting || !newComment.trim()} 
+              className="absolute bottom-3 right-3 rounded-xl gap-2 h-9 px-4 shadow-md font-bold"
+            >
+              Gửi <Send className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+      </form>
+
+      {loading ? (
+        <div className="flex justify-center py-8 text-muted-foreground">
+          <Loader2 className="w-8 h-8 animate-spin" />
+        </div>
+      ) : comments.length > 0 ? (
+        <div className="space-y-2">
+          {comments.map(c => renderComment(c, false))}
+        </div>
+      ) : (
+        <div className="text-center py-12 text-muted-foreground bg-muted rounded-2xl border border-dashed border-border">
+          <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-20" />
+          <p className="font-bold">Chưa có bình luận nào.</p>
+          <p className="text-sm mt-1 opacity-80">Hãy là người đầu tiên đặt câu hỏi!</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Component Hỗ Trợ: Giao Diện Làm Bài Quiz Cho Học Viên ──
+function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }) {
+  const [userAnswers, setUserAnswers] = useState({});
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [scorePercent, setScorePercent] = useState(0);
+  const [correctCount, setCorrectCount] = useState(0);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const quizTopRef = useRef(null);
+
+  const questions = quiz?.questions || [];
+
+  useEffect(() => {
+      setUserAnswers({});
+  }, [quiz?.id]);
+
+  useEffect(() => {
+      if (existingResult) {
+          setIsSubmitted(true);
+          setScorePercent(existingResult.point || 0);
+          setCorrectCount(existingResult.correctAnswers || 0);
+          if (quiz?.id) {
+              const saved = localStorage.getItem(`quiz_answers_${quiz.id}`);
+              if (saved) {
+                  try {
+                      setUserAnswers(JSON.parse(saved));
+                  } catch (e) {}
+              }
+          }
+      } else {
+          setIsSubmitted(false);
+          setScorePercent(0);
+          setCorrectCount(0);
+          setUserAnswers({});
+      }
+  }, [existingResult, quiz?.id]);
+
+  if (!quiz || questions.length === 0) {
+    return (
+      <div className="w-full bg-white rounded-2xl border border-border p-20 text-center shadow-sm">
+        <div className="w-24 h-24 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-6 border border-indigo-100">
+            <HelpCircle className="w-10 h-10 text-indigo-400" />
+        </div>
+        <h2 className="text-2xl font-black text-foreground mb-2">Chương học chưa có bài tập</h2>
+        <p className="text-muted-foreground font-bold mb-8">Bài quiz này hiện chưa chứa câu hỏi nào.</p>
+        <Button onClick={onBack} className="rounded-lg font-bold">Quay lại xem Video</Button>
+      </div>
+    );
+  }
+
+  const handleOptionSelect = (qId, optId) => {
+    if (isSubmitted || isSyncing) return;
+    setUserAnswers(prev => ({ ...prev, [qId]: optId }));
+  };
+
+  const handleSubmitQuiz = async () => {
+    if (Object.keys(userAnswers).length === 0) {
+        alert("Vui lòng trả lời ít nhất một câu hỏi trước khi nộp bài!");
+        return;
+    }
+    
+    setIsSyncing(true);
+    try {
+        let correct = 0;
+        questions.forEach(q => {
+            const selectedId = userAnswers[q.id];
+            const correctOpt = q.answers?.find(a => a.isCorrect);
+            if (selectedId && correctOpt && selectedId === correctOpt.id) {
+                correct++;
+            }
+        });
+        
+        const finalScore = Math.round((correct / questions.length) * 100);
+
+        await progressService.submitQuizResult(quiz.id, {
+            point: finalScore * 1.0,
+            totalQuestions: questions.length,
+            correctAnswers: correct
+        });
+
+        setCorrectCount(correct);
+        setScorePercent(finalScore);
+        setIsSubmitted(true);
+        localStorage.setItem(`quiz_answers_${quiz.id}`, JSON.stringify(userAnswers));
+
+        if (onQuizCompleted) {
+            onQuizCompleted(quiz.id, finalScore, correct, questions.length);
+        }
+
+        quizTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } catch (err) {
+        alert("Đã xảy ra lỗi khi gửi bài làm, vui lòng thử lại sau!");
+    } finally {
+        setIsSyncing(false);
+    }
+  };
+
+  const handleReset = async () => {
+      if (!window.confirm("Bạn có chắc chắn muốn xóa kết quả hiện tại để làm lại từ đầu không?")) return;
+
+      setIsSyncing(true);
+      try {
+          await progressService.resetQuizResult(quiz.id);
+
+          setIsSubmitted(false);
+          setUserAnswers({});
+          setScorePercent(0);
+          setCorrectCount(0);
+          localStorage.removeItem(`quiz_answers_${quiz.id}`);
+
+          if (onQuizReset) {
+              onQuizReset(quiz.id);
+          }
+      } catch (err) {
+          alert("Đã xảy ra lỗi khi reset bài tập. Vui lòng thử lại sau!");
+      } finally {
+          setIsSyncing(false);
+      }
+  };
+
+  const isPassed = scorePercent >= 50;
+
+  return (
+    <div ref={quizTopRef} className="w-full space-y-6 max-w-5xl mx-auto pb-12 pt-2">
+        <div className="bg-white rounded-xl border border-border/60 shadow-sm p-6 md:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-in fade-in duration-500">
+            <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-full bg-violet-600 flex items-center justify-center text-white shadow-lg shadow-violet-200 shrink-0">
+                    <Trophy className="w-7 h-7" />
+                </div>
+                <div>
+                    <h2 className="text-xl md:text-2xl font-black text-foreground leading-tight">
+                        Bài kiểm tra Trắc nghiệm: {quiz.title}
+                    </h2>
+                    <p className="text-muted-foreground text-xs font-bold mt-1 flex items-center gap-1.5">
+                        Bao gồm {questions.length} câu hỏi trắc nghiệm
+                    </p>
+                </div>
+            </div>
+            
+            <Button onClick={onBack} variant="ghost" className="font-extrabold text-xs gap-1 text-muted-foreground hover:bg-muted rounded-lg self-end sm:self-center">
+                <ChevronLeft className="w-3.5 h-3.5" /> Quay lại xem Video
+            </Button>
+        </div>
+
+        {isSubmitted && (
+            <div className="bg-gradient-to-br from-slate-900 to-indigo-950 rounded-xl p-6 md:p-8 text-white shadow-xl border border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-6 animate-in slide-in-from-top duration-500">
+                <div className="flex items-center gap-5">
+                    <div className={`w-16 h-16 ${isPassed ? 'bg-emerald-500' : 'bg-warning/10 text-warning'} rounded-full flex items-center justify-center shadow-lg shrink-0`}>
+                        {isPassed ? <Award className="w-8 h-8 text-white" /> : <HelpCircle className="w-8 h-8 text-white" />}
+                    </div>
+                    <div>
+                        <h3 className="text-xl font-black leading-none">
+                            {isPassed ? "Hoàn Thành Xuất Sắc!" : "Cần Cố Gắng Thêm"}
+                        </h3>
+                        <p className="text-indigo-200/80 text-sm font-medium mt-2">
+                            Kết quả bài thi: <strong className="text-white font-black">{correctCount}/{questions.length}</strong> đáp án đúng (Đạt {scorePercent}%)
+                        </p>
+                        {!isPassed && (
+                            <p className="text-warning/90 text-[13px] font-bold mt-1 flex items-center gap-1.5">
+                                <Info className="w-3.5 h-3.5" /> Bạn cần đạt từ 50% trở lên để vượt qua bài kiểm tra này.
+                            </p>
+                        )}
+                    </div>
+                </div>
+                
+                <div className="flex flex-wrap gap-3 shrink-0">
+                    <Button 
+                       onClick={handleReset} 
+                       disabled={isSyncing}
+                       variant="outline" 
+                       className="rounded-lg font-extrabold border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white gap-2 text-xs h-11 px-5"
+                    >
+                        {isSyncing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
+                        Làm lại bài thi
+                    </Button>
+                </div>
+            </div>
+        )}
+
+        <div className="space-y-5">
+            {questions.map((q, idx) => (
+                <div key={q.id} className="bg-white rounded-xl p-6 md:p-8 border border-border/60 shadow-sm space-y-6 transition-all duration-300 hover:shadow-md">
+                    <h3 className="text-sm md:text-[15px] font-extrabold text-foreground leading-relaxed flex gap-1.5 items-start">
+                        <span className="shrink-0">Câu {idx + 1}:</span>
+                        <span dangerouslySetInnerHTML={{ __html: q.content }}></span>
+                    </h3>
+
+                    <div className="grid grid-cols-1 gap-3">
+                        {(q.answers || []).map((opt, oIdx) => {
+                            const optionLabel = opt.optionLabel || String.fromCharCode(65 + oIdx);
+                            const isSelected = userAnswers[q.id] == opt.id; 
+                            const isCorrect = opt.isCorrect;
+
+                            let buttonClass = "w-full flex items-center justify-between p-4 text-left border rounded-lg transition-all duration-200 text-xs md:text-[13px] font-medium ";
+                            let icon = null;
+
+                            if (!isSubmitted) {
+                                if (isSelected) {
+                                    buttonClass += "bg-violet-50/50 border-violet-500 text-violet-900 font-bold shadow-sm";
+                                } else {
+                                    buttonClass += "bg-muted/40 border-border/60 text-muted-foreground hover:bg-muted hover:border-border";
+                                }
+                            } else {
+                                if (isSelected && isCorrect) {
+                                    buttonClass += "bg-emerald-50/40 border-emerald-500 text-emerald-900 font-bold shadow-sm";
+                                    icon = (
+                                        <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-700 px-2 py-1 rounded-lg flex items-center gap-1 shadow-sm shrink-0">
+                                            <CheckCircle2 className="w-3 h-3" /> Lựa chọn đúng
+                                        </span>
+                                    );
+                                } else if (isSelected && !isCorrect) {
+                                    buttonClass += "bg-rose-50/40 border-rose-500 text-rose-900 font-bold shadow-sm";
+                                    icon = (
+                                        <span className="text-[10px] font-black uppercase tracking-wider bg-rose-100 text-rose-700 px-2 py-1 rounded-lg flex items-center gap-1 shadow-sm shrink-0">
+                                            <XCircle className="w-3 h-3" /> Lựa chọn sai
+                                        </span>
+                                    );
+                                } else {
+                                    buttonClass += "bg-muted/20 border-border text-muted-foreground opacity-60";
+                                }
+                            }
+
+                            return (
+                                <button
+                                    key={opt.id}
+                                    disabled={isSyncing || isSubmitted}
+                                    onClick={() => handleOptionSelect(q.id, opt.id)}
+                                    className={buttonClass}
+                                >
+                                    <span className="pr-4">{optionLabel}. {opt.answerText}</span>
+                                    {icon}
+                                </button>
+                            );
+                        })}
+                    </div>
+                    {isSubmitted && q.answers.some(opt => opt.id == userAnswers[q.id] && opt.isCorrect) && q.explanation && (
+                        <div className="mt-4 p-4 rounded-lg bg-emerald-50 border border-emerald-100 text-emerald-800 text-sm animate-in fade-in slide-in-from-top-2">
+                            <p className="font-bold mb-1 flex items-center gap-1.5"><Info className="w-4 h-4" /> Giải thích:</p>
+                            <div dangerouslySetInnerHTML={{ __html: q.explanation }}></div>
+                        </div>
+                    )}
+                </div>
+            ))}
+        </div>
+
+        {!isSubmitted && (
+            <div className="pt-4 flex justify-end">
+                <Button 
+                    onClick={handleSubmitQuiz}
+                    disabled={isSyncing}
+                    className="h-12 px-12 rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-black text-xs uppercase tracking-wider shadow-lg shadow-violet-100 transition-all hover:scale-[1.02] active:scale-95 gap-2"
+                >
+                    {isSyncing ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                    NỘP BÀI THI VÀ CHẤM ĐIỂM
+                </Button>
+            </div>
+        )}
+    </div>
+  );
+}
 
 
 // ── Component Hỗ Trợ: Giao Diện Làm Bài Quiz Cho Học Viên ──
