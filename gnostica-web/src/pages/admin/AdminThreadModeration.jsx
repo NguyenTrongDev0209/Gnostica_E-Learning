@@ -1,7 +1,8 @@
+import { CardDescription } from "@/components/ui/card";
+// Fix imported
 import React, { useState, useEffect } from "react";
 import threadService from "@/services/forum/threadService";
-import { 
-  ShieldCheck, 
+import {ShieldCheck, 
   Trash2, 
   CheckCircle2, 
   MessageSquare, 
@@ -11,8 +12,7 @@ import {
   ChevronDown,
   ChevronUp,
   Image as ImageIcon,
-  AlertCircle
-} from "lucide-react";
+  AlertCircle, MessageSquareWarning} from "lucide-react";
 import AppCard, { AppCardContent, AppCardHeader, AppCardTitle, AppCardDescription } from "@/components/common/micro/AppCard";
 import { AppButton } from "@/components/common/micro/AppButton";
 import { Badge } from "@/components/ui/badge";
@@ -151,12 +151,12 @@ export default function AdminThreadModeration() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
-            <ShieldCheck className="w-7 h-7 text-primary" />
-            Kiểm duyệt bài viết
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Duyệt hoặc từ chối các bài đăng mới từ học viên và giảng viên trước khi hiển thị trên cộng đồng.
-          </p>
+          <MessageSquareWarning className="w-6 h-6 text-primary" />
+          Kiểm Duyệt Bài Viết
+        </h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Xem xét, phê duyệt hoặc từ chối các bài viết trên diễn đàn.
+        </p>
         </div>
         <AppButton appVariant="ghostMuted" variant="ghost" onClick={fetchPendingThreads} className="h-10 font-bold shrink-0 border border-border bg-white text-foreground hover:bg-muted">
           Làm mới danh sách

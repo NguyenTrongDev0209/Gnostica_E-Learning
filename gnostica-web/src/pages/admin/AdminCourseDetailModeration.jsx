@@ -1,4 +1,10 @@
 import React from "react";
+import { AppButton } from "@/components/common/micro/AppButton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
+import { Badge } from "@/components/ui/badge";
+// Fix imported
+
 import AppSelect from "@/components/common/micro/AppSelect";
 import AppInput from "@/components/common/micro/AppInput";
 import { CheckCircle2, BookOpen, Layers, Video, ArrowLeft, Loader2, Sparkles, AlertTriangle, ShieldCheck, ShieldAlert, FileText, Trophy, ExternalLink, ChevronRight, Download } from "lucide-react";

@@ -1,11 +1,9 @@
 import React from "react";
-import { 
-  Plus, 
+import {Plus, 
   Search, 
   Trash2, 
   Star,
-  Users
-} from "lucide-react";
+  Users, BookOpen} from "lucide-react";
 import AppCard, { AppCardContent } from "@/components/common/micro/AppCard";
 import AppSelect from "@/components/common/micro/AppSelect";
 import DataTable from "@/components/common/composite/DataTable";
@@ -61,10 +59,13 @@ export default function AdminCourses() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground tracking-tight">Quản Lý Khóa Học</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Thêm mới, chỉnh sửa nội dung và quản lý doanh thu khóa học.
-          </p>
+          <h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
+          <BookOpen className="w-6 h-6 text-primary" />
+          Quản Lý Khóa Học
+        </h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Thêm mới, chỉnh sửa nội dung và quản lý doanh thu khóa học.
+        </p>
         </div>
         <AppButton appVariant="gradient" className="font-bold flex items-center gap-2 border-none">
           <Plus className="w-4 h-4" />
@@ -105,8 +106,7 @@ export default function AdminCourses() {
       </AppCard>
 
       {/* Courses Table */}
-      <AppCard appVariant="default" className="border-border shadow-sm overflow-hidden">
-        <DataTable
+      <DataTable
           columns={[
             {
               header: "Thông tin khóa học",
@@ -180,7 +180,6 @@ export default function AdminCourses() {
             zeroIndexed: false,
           }}
         />
-      </AppCard>
     </div>
   );
 }

@@ -1,8 +1,15 @@
+import { CardDescription } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+// Fix imported
 import React, { useState } from "react";
 import { AppButton } from "@/components/common/micro/AppButton";
 import AppSelect from "@/components/common/micro/AppSelect";
 import AppInput from "@/components/common/micro/AppInput";
-import { Globe, ShieldCheck, CreditCard, Lock, Shield, Server, Activity } from "lucide-react";
+import {Globe, ShieldCheck, CreditCard, Lock, Shield, Server, Activity, Settings} from "lucide-react";
 import { toast } from "sonner";
 import AppCard, { AppCardContent, AppCardHeader, AppCardTitle } from "@/components/common/micro/AppCard";
 import AppBadge from "@/components/common/micro/AppBadge";
@@ -60,9 +67,12 @@ function SettingsHeader({ onSave, isSaving }) {
   return (
     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
       <div>
-        <h1 className="text-2xl font-bold text-foreground tracking-tight">Cài Đặt Hệ Thống</h1>
+        <h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
+          <Settings className="w-6 h-6 text-primary" />
+          Cài Đặt Hệ Thống
+        </h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Cấu hình và tùy chỉnh các thông số vận hành của nền tảng Gnostica.
+          Cấu hình các tham số và tùy chọn hệ thống của Gnostica.
         </p>
       </div>
       <AppButton appVariant="gradient" 

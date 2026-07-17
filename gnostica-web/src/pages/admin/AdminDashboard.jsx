@@ -1,8 +1,17 @@
 import React from "react";
+import LineChart from "@/components/common/composite/LineChart";
+import { ChartDateFilters } from "@/components/common/composite/DataFilter";
+
+import { AreaChart, Area, CartesianGrid, XAxis, YAxis, BarChart, Bar } from "recharts";
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart";
+import { CardDescription } from "@/components/ui/card";
+import { Link } from "react-router-dom";
+import DataTable from "@/components/common/composite/DataTable";
+
 import { AppButton } from "@/components/common/micro/AppButton";
 import AppSelect from "@/components/common/micro/AppSelect";
 import AppInput from "@/components/common/micro/AppInput";
-import { ArrowUpRight, ArrowDownRight } from "lucide-react";
+import {ArrowUpRight, ArrowDownRight, TrendingUp, Users, BookOpen, ShoppingCart, LayoutDashboard} from "lucide-react";
 import { useDashboard } from "@/hooks/dashboard/useDashboard";
 import AppCard, { AppCardContent, AppCardHeader, AppCardTitle } from "@/components/common/micro/AppCard";
 import AppBadge from "@/components/common/micro/AppBadge";
@@ -33,10 +42,13 @@ export default function AdminDashboard() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-foreground tracking-tight">Trung Tâm Quản Trị</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Theo dõi tổng quan hoạt động kinh doanh và hạ tầng của nền tảng Gnostica.
-          </p>
+          <h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
+          <LayoutDashboard className="w-6 h-6 text-primary" />
+          Trung Tâm Quản Trị
+        </h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Theo dõi tổng quan hoạt động kinh doanh và hệ thống của nền tảng.
+        </p>
         </div>
         <div className="flex items-center gap-2 bg-white p-1 rounded-xl shadow-sm border border-border">
           <AppSelect className="h-9 px-3 py-1 bg-transparent text-sm font-medium focus:outline-none border-none cursor-pointer">
@@ -61,14 +73,14 @@ export default function AdminDashboard() {
           <p className="text-sm text-muted-foreground mt-1 pl-3.5">Biến động doanh thu và các giao dịch mới nhất</p>
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-          <RevenueCharts revenueData={revenueData} />
-          <RecentOrders orders={recentOrders} />
+        <div className="grid grid-cols-1 xl:grid-cols-1 gap-6">
+          <RevenueCharts revenueData={revenueData} stats={stats} />
+          
         </div>
       </div>
 
       {/* Users & Courses Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pt-8">
+      <div className="grid grid-cols-1 lg:grid-cols-1 gap-8 pt-8">
         <div className="space-y-4">
           <div>
             <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
@@ -76,66 +88,49 @@ export default function AdminDashboard() {
               Phân tích Thành viên
             </h2>
           </div>
-          <MemberGrowthChart data={memberGrowth} />
+          <MemberGrowthChart data={memberGrowth} stats={stats} />
         </div>
 
-        <div className="space-y-4">
-          <div>
-            <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
-              <span className="w-1.5 h-6 bg-amber-500 rounded-full"></span>
-              Hoạt động Khóa học
-            </h2>
-          </div>
-          <TopCourses data={topCourses} />
-        </div>
+
       </div>
 
       {/* Infrastructure Monitoring */}
-      <InfrastructureMonitor />
+      {/* <InfrastructureMonitor /> */}
     </div>
   );
 }
 
 
-const revenueConfig = {
-    revenue: { label: "Doanh thu (đ)", color: "hsl(221, 83%, 53%)" },
-    orders: { label: "Đơn hàng", color: "hsl(142, 71%, 45%)" },
-};
+function RevenueCharts({ revenueData, stats }) {
+    const subtitle = (
+        <>
+            <span className="text-sm font-medium text-muted-foreground uppercase tracking-widest">Tổng doanh thu:</span>
+            <span className="text-2xl font-semibold text-foreground">{(stats?.totalRevenue || 0).toLocaleString()}đ</span>
+        </>
+    );
 
-function RevenueCharts({ revenueData }) {
+    const headerExtra = (
+        <ChartDateFilters
+            onDateChange={(type, value) => console.log('Date changed:', type, value)}
+            onPresetChange={(preset) => console.log('Preset changed:', preset)}
+            defaultPreset="6-months"
+        />
+    );
+
     return (
-        <div className="grid grid-cols-1 xl:grid-cols-1 gap-6 pb-2">
-            <AppCard appVariant="default" className="border-border shadow-sm flex flex-col">
-                <AppCardHeader className="pb-2 border-b border-border">
-                    <AppCardTitle className="text-lg font-bold text-foreground">Doanh Thu & Đơn Hàng</AppCardTitle>
-                    <CardDescription>Biến động doanh thu theo từng tháng trong năm</CardDescription>
-                </AppCardHeader>
-                <AppCardContent className="pt-4 flex-1">
-                    <ChartContainer config={revenueConfig} className="h-[300px] w-full">
-                        <AreaChart data={revenueData} margin={{ left: 8, right: 8, top: 4, bottom: 0 }}>
-                            <defs>
-                                <linearGradient id="revGradient" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="hsl(221, 83%, 53%)" stopOpacity={0.25} />
-                                    <stop offset="95%" stopColor="hsl(221, 83%, 53%)" stopOpacity={0} />
-                                </linearGradient>
-                                <linearGradient id="orderGradient" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="hsl(142, 71%, 45%)" stopOpacity={0.2} />
-                                    <stop offset="95%" stopColor="hsl(142, 71%, 45%)" stopOpacity={0} />
-                                </linearGradient>
-                            </defs>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                            <XAxis dataKey="month" tickLine={false} axisLine={false} tick={{ fontSize: 12 }} />
-                            <YAxis yAxisId="left" tickLine={false} axisLine={false} tick={{ fontSize: 11 }} tickFormatter={(v) => `${(v / 1000000).toFixed(0)}M`} />
-                            <YAxis yAxisId="right" orientation="right" tickLine={false} axisLine={false} tick={{ fontSize: 11 }} />
-                            <ChartTooltip content={<ChartTooltipContent />} />
-                            <ChartLegend content={<ChartLegendContent />} />
-                            <Area yAxisId="left" type="monotone" dataKey="revenue" stroke="hsl(221, 83%, 53%)" strokeWidth={2} fill="url(#revGradient)" dot={false} />
-                            <Area yAxisId="right" type="monotone" dataKey="orders" stroke="hsl(142, 71%, 45%)" strokeWidth={2} fill="url(#orderGradient)" dot={false} />
-                        </AreaChart>
-                    </ChartContainer>
-                </AppCardContent>
-            </AppCard>
-        </div>
+        <LineChart
+            title="Thống kê Doanh thu"
+            subtitle={subtitle}
+            headerExtra={headerExtra}
+            data={revenueData}
+            dataKey="revenue"
+            xAxisKey="month"
+            strokeColor="hsl(221, 83%, 53%)"
+            fillColor="hsl(221, 83%, 53%)"
+            gradientId="colorRevenue"
+            yAxisFormatter={(value) => `${(value / 1000000).toFixed(0)}M`}
+            tooltipFormatter={(value) => [`${value.toLocaleString()}đ`, "Doanh thu"]}
+        />
     );
 }
 
@@ -240,32 +235,36 @@ function TopCourses({ data }) {
     );
 }
 
-const userGrowthConfig = {
-    students: { label: "Học viên", color: "hsl(221, 83%, 53%)" },
-    instructors: { label: "Giảng viên", color: "hsl(38, 92%, 50%)" },
-};
+function MemberGrowthChart({ data, stats }) {
+    const subtitle = (
+        <>
+            <span className="text-sm font-medium text-muted-foreground uppercase tracking-widest">Học viên mới:</span>
+            <span className="text-2xl font-semibold text-foreground">{(stats?.newStudents || 0).toLocaleString()}</span>
+        </>
+    );
 
-function MemberGrowthChart({ data }) {
+    const headerExtra = (
+        <ChartDateFilters
+            onDateChange={(type, value) => console.log('Date changed:', type, value)}
+            onPresetChange={(preset) => console.log('Preset changed:', preset)}
+            defaultPreset="6-months"
+        />
+    );
+
     return (
-        <AppCard appVariant="default" className="lg:col-span-2 border-border shadow-sm flex flex-col">
-            <AppCardHeader className="pb-2 border-b border-border">
-                <AppCardTitle className="text-lg font-bold text-foreground">Tăng Trưởng Thành Viên</AppCardTitle>
-                <CardDescription>Lượng đăng ký mới của Học viên và Giảng viên theo tháng</CardDescription>
-            </AppCardHeader>
-            <AppCardContent className="pt-4 flex-1">
-                <ChartContainer config={userGrowthConfig} className="h-[240px] w-full">
-                    <BarChart data={data} margin={{ left: 0, right: 0, top: 4, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                        <XAxis dataKey="month" tickLine={false} axisLine={false} tick={{ fontSize: 12 }} />
-                        <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 11 }} />
-                        <ChartTooltip content={<ChartTooltipContent />} />
-                        <ChartLegend content={<ChartLegendContent />} />
-                        <Bar dataKey="students" fill="hsl(221, 83%, 53%)" radius={[4, 4, 0, 0]} maxBarSize={32} />
-                        <Bar dataKey="instructors" fill="hsl(38, 92%, 50%)" radius={[4, 4, 0, 0]} maxBarSize={32} />
-                    </BarChart>
-                </ChartContainer>
-            </AppCardContent>
-        </AppCard>
+        <LineChart
+            title="Tăng trưởng Học Viên"
+            subtitle={subtitle}
+            headerExtra={headerExtra}
+            data={data}
+            dataKey="students"
+            xAxisKey="month"
+            strokeColor="#3b82f6"
+            fillColor="#3b82f6"
+            gradientId="colorStudents"
+            tooltipFormatter={(value) => [`${value.toLocaleString()} HV`, "Học viên"]}
+            height={300}
+        />
     );
 }
 

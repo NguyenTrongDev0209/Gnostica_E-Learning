@@ -1,14 +1,17 @@
+import { toast } from "sonner";
+import { format } from "date-fns";
+import DataTable from "@/components/common/composite/DataTable";
 import React, { useState } from "react";
 
 import { useEffect } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
-import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { AppDialog, AppDialogContent, AppDialogHeader, AppDialogTitle, AppDialogFooter } from "@/components/common/micro/AppDialog";
+import { Controller } from "react-hook-form";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
-import { AppButton } from "@/components/common/micro/AppButton";
+import { AppButton, TableActionIconButton } from "@/components/common/micro/AppButton";
 import AppSelect from "@/components/common/micro/AppSelect";
 import AppInput from "@/components/common/micro/AppInput";
 import AppCard, { AppCardContent } from "@/components/common/micro/AppCard";
@@ -132,12 +135,13 @@ function CouponStatsFilter({
         <AppCardContent className="p-4">
           <div className="flex flex-col md:flex-row gap-3">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
+              
+              <AppInput
                 placeholder="Tìm kiếm mã giảm giá..."
-                className="pl-9 h-10 border-border focus:bg-white"
+                className="h-10 border-border focus:bg-white"
                 value={searchTerm}
                 onChange={(e) => onSearchChange(e.target.value)}
+                icon={Search}
               />
             </div>
             
@@ -157,7 +161,7 @@ function CouponStatsFilter({
             </div>
 
             <div className="w-full md:w-[140px]">
-              <Input
+              <AppInput
                 type="date"
                 className="h-10 border-border focus:bg-white text-muted-foreground"
                 value={startDateFilter}
@@ -168,7 +172,7 @@ function CouponStatsFilter({
             <div className="hidden md:flex items-center text-slate-300">-</div>
 
             <div className="w-full md:w-[140px]">
-              <Input
+              <AppInput
                 type="date"
                 className="h-10 border-border focus:bg-white text-muted-foreground"
                 value={endDateFilter}
@@ -412,240 +416,167 @@ function CouponFormModal({ isOpen, onOpenChange, onSave }) {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-bold flex items-center gap-2">
+    <AppDialog open={isOpen} onOpenChange={onOpenChange}>
+      <AppDialogContent className="sm:max-w-[600px]">
+        <AppDialogHeader>
+          <AppDialogTitle className="text-xl font-bold flex items-center gap-2">
             Tạo mã Phiếu giảm giá
-          </DialogTitle>
-        </DialogHeader>
+          </AppDialogTitle>
+        </AppDialogHeader>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 py-4">
-            <div className="grid grid-cols-4 gap-4">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem className="col-span-4">
-                    <FormLabel className="flex items-center gap-2">
-                      <Ticket className="w-4 h-4" /> Tên phiếu giảm giá
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        placeholder="Nhập tên chương trình giảm giá..."
-                        className="h-11 border-border bg-white"
-                      />
-                    </FormControl>
-                    <div className="min-h-[20px]">
-                      <FormMessage className="text-[11px]" />
-                    </div>
-                  </FormItem>
-                )}
-              />
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 py-4">
+          <div className="grid grid-cols-4 gap-4">
+            
+            <Controller
+              control={form.control}
+              name="name"
+              render={({ field, fieldState: { error } }) => (
+                <AppInput
+                  label={<span className="flex items-center gap-2"><Ticket className="w-4 h-4" /> Tên phiếu giảm giá</span>}
+                  containerClassName="col-span-4"
+                  placeholder="Nhập tên chương trình giảm giá..."
+                  {...field}
+                  error={error?.message}
+                />
+              )}
+            />
 
-              <FormField
-                control={form.control}
-                name="code"
-                render={({ field }) => (
-                  <FormItem className="col-span-2">
-                    <FormLabel className="flex items-center gap-2">
-                      <Ticket className="w-4 h-4" /> Mã giảm giá (VD: GS2024)
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        placeholder="NHẬP MÃ TẠI ĐÂY"
-                        className="h-11 border-border bg-white font-bold tracking-widest uppercase"
-                      />
-                    </FormControl>
-                    <div className="min-h-[20px]">
-                      <FormMessage className="text-[11px]" />
-                    </div>
-                  </FormItem>
-                )}
-              />
+            <Controller
+              control={form.control}
+              name="code"
+              render={({ field, fieldState: { error } }) => (
+                <AppInput
+                  label={<span className="flex items-center gap-2"><Ticket className="w-4 h-4" /> Mã giảm giá (VD: GS2024)</span>}
+                  containerClassName="col-span-2"
+                  placeholder="NHẬP MÃ TẠI ĐÂY"
+                  className="font-bold tracking-widest uppercase"
+                  {...field}
+                  error={error?.message}
+                />
+              )}
+            />
 
-              <FormField
-                control={form.control}
-                name="discountPercent"
-                render={({ field }) => (
-                  <FormItem className="col-span-1">
-                    <FormLabel className="flex items-center gap-2">
-                      <Percent className="w-4 h-4" /> Phần trăm giảm
-                    </FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Input
-                          type="text"
-                          className="h-11 border-border bg-white pr-8 text-right font-medium"
-                          value={field.value}
-                          onChange={(e) => {
-                            const clean = e.target.value.replace(/[^0-9]/g, '');
-                            field.onChange(clean === '' ? 0 : Number(clean));
-                          }}
-                        />
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold pointer-events-none">
-                          %
-                        </span>
-                      </div>
-                    </FormControl>
-                    <div className="min-h-[20px]">
-                      <FormMessage className="text-[11px]" />
-                    </div>
-                  </FormItem>
-                )}
-              />
+            <Controller
+              control={form.control}
+              name="discountPercent"
+              render={({ field, fieldState: { error } }) => (
+                <AppInput
+                  label={<span className="flex items-center gap-2"><Percent className="w-4 h-4" /> Phần trăm giảm</span>}
+                  containerClassName="col-span-1"
+                  className="text-right font-medium pr-8"
+                  value={field.value}
+                  onChange={(e) => {
+                    const clean = e.target.value.replace(/[^0-9]/g, '');
+                    field.onChange(clean === '' ? 0 : Number(clean));
+                  }}
+                  rightElement={<span className="text-muted-foreground font-bold">%</span>}
+                  error={error?.message}
+                />
+              )}
+            />
 
-              <FormField
-                control={form.control}
-                name="quantity"
-                render={({ field }) => (
-                  <FormItem className="col-span-1">
-                    <FormLabel className="flex items-center gap-2">
-                      <Package className="w-4 h-4" /> Số lượng
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        type="text"
-                        className="h-11 border-border bg-white text-right font-medium"
-                        value={formatVNNumber(field.value)}
-                        onChange={(e) => {
-                          const clean = e.target.value.replace(/[^0-9]/g, '');
-                          field.onChange(clean === '' ? 0 : Number(clean));
-                        }}
-                      />
-                    </FormControl>
-                    <div className="min-h-[20px]">
-                      <FormMessage className="text-[11px]" />
-                    </div>
-                  </FormItem>
-                )}
-              />
+            <Controller
+              control={form.control}
+              name="quantity"
+              render={({ field, fieldState: { error } }) => (
+                <AppInput
+                  label={<span className="flex items-center gap-2"><Package className="w-4 h-4" /> Số lượng</span>}
+                  containerClassName="col-span-1"
+                  className="text-right font-medium"
+                  value={formatVNNumber(field.value)}
+                  onChange={(e) => {
+                    const clean = e.target.value.replace(/[^0-9]/g, '');
+                    field.onChange(clean === '' ? 0 : Number(clean));
+                  }}
+                  error={error?.message}
+                />
+              )}
+            />
 
-              <FormField
-                control={form.control}
-                name="minDiscount"
-                render={({ field }) => (
-                  <FormItem className="col-span-2">
-                    <FormLabel className="flex items-center gap-2">
-                      <CircleDollarSign className="w-4 h-4" /> Giảm tối thiểu
-                    </FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Input
-                          type="text"
-                          className="h-11 border-border bg-white pr-8 text-right font-medium"
-                          value={formatVNNumber(field.value)}
-                          onChange={(e) => {
-                            const clean = e.target.value.replace(/[^0-9]/g, '');
-                            field.onChange(clean === '' ? 0 : Number(clean));
-                          }}
-                        />
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold pointer-events-none">
-                          đ
-                        </span>
-                      </div>
-                    </FormControl>
-                    <div className="min-h-[20px]">
-                      <FormMessage className="text-[11px]" />
-                    </div>
-                  </FormItem>
-                )}
-              />
+            <Controller
+              control={form.control}
+              name="minDiscount"
+              render={({ field, fieldState: { error } }) => (
+                <AppInput
+                  label={<span className="flex items-center gap-2"><CircleDollarSign className="w-4 h-4" /> Giảm tối thiểu</span>}
+                  containerClassName="col-span-2"
+                  className="text-right font-medium pr-8"
+                  value={formatVNNumber(field.value)}
+                  onChange={(e) => {
+                    const clean = e.target.value.replace(/[^0-9]/g, '');
+                    field.onChange(clean === '' ? 0 : Number(clean));
+                  }}
+                  rightElement={<span className="text-muted-foreground font-bold">đ</span>}
+                  error={error?.message}
+                />
+              )}
+            />
 
-              <FormField
-                control={form.control}
-                name="maxDiscount"
-                render={({ field }) => (
-                  <FormItem className="col-span-2">
-                    <FormLabel className="flex items-center gap-2">
-                      <CircleDollarSign className="w-4 h-4" /> Giảm tối đa
-                    </FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Input
-                          type="text"
-                          className="h-11 border-border bg-white pr-8 text-right font-medium"
-                          value={formatVNNumber(field.value)}
-                          onChange={(e) => {
-                            const clean = e.target.value.replace(/[^0-9]/g, '');
-                            field.onChange(clean === '' ? 0 : Number(clean));
-                          }}
-                        />
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold pointer-events-none">
-                          đ
-                        </span>
-                      </div>
-                    </FormControl>
-                    <div className="min-h-[20px]">
-                      <FormMessage className="text-[11px]" />
-                    </div>
-                  </FormItem>
-                )}
-              />
+            <Controller
+              control={form.control}
+              name="maxDiscount"
+              render={({ field, fieldState: { error } }) => (
+                <AppInput
+                  label={<span className="flex items-center gap-2"><CircleDollarSign className="w-4 h-4" /> Giảm tối đa</span>}
+                  containerClassName="col-span-2"
+                  className="text-right font-medium pr-8"
+                  value={formatVNNumber(field.value)}
+                  onChange={(e) => {
+                    const clean = e.target.value.replace(/[^0-9]/g, '');
+                    field.onChange(clean === '' ? 0 : Number(clean));
+                  }}
+                  rightElement={<span className="text-muted-foreground font-bold">đ</span>}
+                  error={error?.message}
+                />
+              )}
+            />
 
-              <FormField
-                control={form.control}
-                name="startDate"
-                render={({ field }) => (
-                  <FormItem className="col-span-2">
-                    <FormLabel className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4" /> Ngày bắt đầu
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        type="datetime-local"
-                        {...field}
-                        className="h-11 border-border bg-white"
-                      />
-                    </FormControl>
-                    <div className="min-h-[20px]">
-                      <FormMessage className="text-[11px]" />
-                    </div>
-                  </FormItem>
-                )}
-              />
+            <Controller
+              control={form.control}
+              name="startDate"
+              render={({ field, fieldState: { error } }) => (
+                <AppInput
+                  type="datetime-local"
+                  label={<span className="flex items-center gap-2"><Calendar className="w-4 h-4" /> Ngày bắt đầu</span>}
+                  containerClassName="col-span-2"
+                  {...field}
+                  error={error?.message}
+                />
+              )}
+            />
 
-              <FormField
-                control={form.control}
-                name="expiryDate"
-                render={({ field }) => (
-                  <FormItem className="col-span-2">
-                    <FormLabel className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4" /> Ngày hết hạn
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        type="datetime-local"
-                        {...field}
-                        className="h-11 border-border bg-white"
-                      />
-                    </FormControl>
-                    <div className="min-h-[20px]">
-                      <FormMessage className="text-[11px]" />
-                    </div>
-                  </FormItem>
-                )}
-              />
-            </div>
+            <Controller
+              control={form.control}
+              name="expiryDate"
+              render={({ field, fieldState: { error } }) => (
+                <AppInput
+                  type="datetime-local"
+                  label={<span className="flex items-center gap-2"><Calendar className="w-4 h-4" /> Ngày hết hạn</span>}
+                  containerClassName="col-span-2"
+                  {...field}
+                  error={error?.message}
+                />
+              )}
+            />
+          </div>
 
-            <DialogFooter className="pt-4 gap-2">
-              <AppButton appVariant="ghostMuted" variant="ghost"
-                type="button"
-                onClick={() => form.reset()}
-                className="px-6 border border-border"
-              >
-                Tạo lại
-              </AppButton>
-              <AppButton appVariant="gradient" type="submit" className="px-8 font-bold">
-                Tạo mã ngay
-              </AppButton>
-            </DialogFooter>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
+          <AppDialogFooter className="pt-4 gap-2">
+            <AppButton appVariant="ghostMuted" variant="ghost"
+              type="button"
+              onClick={() => form.reset()}
+              className="px-6 border border-border"
+            >
+              Đặt lại
+            </AppButton>
+            <AppButton appVariant="primary"
+              type="submit"
+              className="px-6 shadow-md"
+            >
+              Lưu phiếu giảm giá
+            </AppButton>
+          </AppDialogFooter>
+        </form>
+      </AppDialogContent>
+    </AppDialog>
   );
 }

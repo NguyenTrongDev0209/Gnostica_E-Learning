@@ -1,8 +1,8 @@
+import { format } from "date-fns";
 // eslint-disable-next-line no-unused-vars
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Search,
+import {Search,
   CheckCircle2,
   XCircle,
   Eye,
@@ -11,8 +11,7 @@ import {
   ArrowUpRight,
   MoreVertical,
   Calendar,
-  Loader2,
-} from "lucide-react";
+  Loader2, ShieldCheck} from "lucide-react";
 import AppCard, { AppCardContent } from "@/components/common/micro/AppCard";
 import DataTable from "@/components/common/composite/DataTable";
 import { AppButton } from "@/components/common/micro/AppButton";
@@ -96,12 +95,13 @@ export default function AdminCourseModeration() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-xl border border-border/60 shadow-sm">
         <div className="space-y-1">
-          <h1 className="text-3xl font-extrabold text-foreground tracking-tight flex items-center gap-3">
-            Kiểm Duyệt Khóa Học
-          </h1>
-          <p className="text-muted-foreground font-medium">
-            Xem xét và duyệt khóa học do Giảng viên thiết kế trước khi công khai.
-          </p>
+          <h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
+          <ShieldCheck className="w-6 h-6 text-primary" />
+          Kiểm Duyệt Khóa Học
+        </h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Xem xét, phê duyệt hoặc từ chối các khóa học mới từ giảng viên.
+        </p>
         </div>
       </div>
 
@@ -181,8 +181,7 @@ export default function AdminCourseModeration() {
       </div>
 
       {/* Data Table */}
-      <AppCard className="border-border/60 shadow-sm overflow-hidden bg-white rounded-xl">
-        <DataTable
+      <DataTable
           columns={[
             {
               header: "Thông tin khóa học",
@@ -352,7 +351,6 @@ export default function AdminCourseModeration() {
             zeroIndexed: true,
           }}
         />
-      </AppCard>
 
       <CourseRejectModal
          isOpen={isRejectModalOpen}

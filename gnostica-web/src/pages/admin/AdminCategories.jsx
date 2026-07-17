@@ -1,17 +1,25 @@
 import React from "react";
+import { AppDialog, AppDialogContent, AppDialogHeader, AppDialogTitle, AppDialogFooter } from "@/components/common/micro/AppDialog";
+import { Controller } from "react-hook-form";
+
+import AppCard, { AppCardContent } from "@/components/common/micro/AppCard";
+import forumCategoryService from "@/services/forum/forumCategoryService";
+import { cn } from "@/lib/utils";
+
+import useAdminCategories from "@/hooks/course/useAdminCategories";
+import { toast } from "sonner";
+import AppTabs from "@/components/common/micro/AppTabs";
 
 import { useState, useEffect } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
-import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
-import { AppButton } from "@/components/common/micro/AppButton";
+import { AppButton, TableActionIconButton } from "@/components/common/micro/AppButton";
 import AppSelect from "@/components/common/micro/AppSelect";
 import AppInput from "@/components/common/micro/AppInput";
-import { Plus, Search, Edit, Trash2, MessageSquare, LayoutList } from "lucide-react";
+import { Plus, Search, Edit, Trash2, MessageSquare, LayoutList, ChevronRight, FolderOpen } from "lucide-react";
 
 export default function AdminCategoriesPage() {
     return (
@@ -25,24 +33,30 @@ export default function AdminCategoriesPage() {
                 </p>
             </div>
 
-            <Tabs defaultValue="courses" className="w-full">
-                <TabsList className="mb-4">
-                    <TabsTrigger value="courses" className="flex items-center gap-2">
-                        <LayoutList className="w-4 h-4" />
-                        Khóa học
-                    </TabsTrigger>
-                    <TabsTrigger value="forum" className="flex items-center gap-2">
-                        <MessageSquare className="w-4 h-4" />
-                        Diễn đàn
-                    </TabsTrigger>
-                </TabsList>
-                <TabsContent value="courses">
-                    <AdminCategories hideHeader={true} />
-                </TabsContent>
-                <TabsContent value="forum">
-                    <AdminForumCategory hideHeader={true} />
-                </TabsContent>
-            </Tabs>
+            <AppTabs
+                defaultValue="courses"
+                className="w-full"
+                tabs={[
+                    {
+                        value: "courses",
+                        label: (
+                            <div className="flex items-center gap-2">
+                                <LayoutList className="w-4 h-4" /> Khóa học
+                            </div>
+                        ),
+                        content: <AdminCategories hideHeader={true} />
+                    },
+                    {
+                        value: "forum",
+                        label: (
+                            <div className="flex items-center gap-2">
+                                <MessageSquare className="w-4 h-4" /> Diễn đàn
+                            </div>
+                        ),
+                        content: <AdminForumCategory hideHeader={true} />
+                    }
+                ]}
+            />
         </div>
     );
 }
@@ -156,12 +170,13 @@ function AdminCategories({ hideHeader = false }) {
       <AppCard appVariant="default" className="border-border shadow-sm">
         <AppCardContent className="p-4 flex flex-col md:flex-row gap-4 items-center justify-between">
           <div className="relative w-full md:w-80">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
+            
+            <AppInput
               placeholder="Tìm chủ đề..."
-              className="pl-9 h-10 border-border focus:bg-white"
+              className="h-10 border-border focus:bg-white"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              icon={Search}
             />
           </div>
           <div className="flex text-sm font-medium text-muted-foreground bg-secondary p-1 rounded-lg transition-all">
@@ -428,7 +443,7 @@ function AdminCategories({ hideHeader = false }) {
                   Trước
                 </AppButton>
                 {Array.from({ length: totalPages }).map((_, idx) => {
-                  const Btn = currentPage === idx + 1 ? SimpleButton : GhostButton;
+                  const Btn = currentPage === idx + 1 ? TableActionIconButton : TableActionIconButton;
                   return (
                     <Btn
                       key={idx}
@@ -454,7 +469,7 @@ function AdminCategories({ hideHeader = false }) {
         </div>
       </AppCard>
       {/* Add Category Modal */}
-      <Dialog
+      <AppDialog
         open={isAddModalOpen}
         onOpenChange={(open) => {
           setIsAddModalOpen(open);
@@ -464,150 +479,113 @@ function AdminCategories({ hideHeader = false }) {
           }
         }}
       >
-        <DialogContent className="sm:max-w-[450px]">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold flex items-center gap-2">
+        <AppDialogContent className="sm:max-w-[450px]">
+          <AppDialogHeader>
+            <AppDialogTitle className="text-xl font-bold flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
                 <Plus className="w-5 h-5 text-primary" />
               </div>
               {editId ? "Cập Nhật Chủ Đề" : "Thêm Chủ Đề Mới"}
-            </DialogTitle>
-            <DialogDescription>
-              {editId
-                ? "Chỉnh sửa thông tin chủ đề hiện có."
-                : "Tạo một chủ đề mới để phân loại các khóa học của bạn."}
-            </DialogDescription>
-          </DialogHeader>
+            </AppDialogTitle>
+          </AppDialogHeader>
 
-          <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(onSubmit)}
-              className="space-y-4 py-4"
-            >
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-foreground font-semibold">
-                      Tên chủ đề
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        onChange={(e) => {
-                          field.onChange(e);
-                          onNameChange(e);
-                        }}
-                        className="h-10 border-border"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="slug"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-foreground font-semibold text-xs opacity-70">
-                      Slug
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        readOnly
-                        placeholder="Duong-dan-tinh"
-                        className="h-10 border-border bg-muted font-mono text-xs cursor-not-allowed"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="parent_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-foreground font-semibold">
-                      Chủ đề cha
-                    </FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="h-10 border-border w-full">
-                          <SelectValue placeholder="Chọn chủ đề cha" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="none">
-                          Không có (Chủ đề gốc)
-                        </SelectItem>
-                        {categories.map((cat) => (
-                          <SelectItem key={cat.id} value={cat.id.toString()}>
-                            {cat.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-foreground font-semibold">
-                      Trạng thái
-                    </FormLabel>
-                    <Select
-                      onValueChange={(val) => field.onChange(val === 'true')}
-                      value={field.value ? 'true' : 'false'}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="h-10 border-border w-full">
-                          <SelectValue placeholder="Chọn Trạng thái" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="true">Hoạt động</SelectItem>
-                        <SelectItem value="false">Tạm ẩn</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <DialogFooter className="pt-4 gap-2">
-                <AppButton appVariant="ghostMuted" variant="ghost"
-                  type="button"
-                  onClick={() => {
-                    setIsAddModalOpen(false);
-                    setEditId(null);
-                    form.reset({ name: "", slug: "", parent_id: "none", status: true });
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-4 py-4"
+          >
+            <Controller
+              control={form.control}
+              name="name"
+              render={({ field, fieldState: { error } }) => (
+                <AppInput
+                  label="Tên chủ đề"
+                  {...field}
+                  onChange={(e) => {
+                    field.onChange(e);
+                    onNameChange(e);
                   }}
-                  className="border border-border"
-                >
-                  Hủy bỏ
-                </AppButton>
-                <AppButton appVariant="gradient" type="submit" className="bg-primary font-bold px-6">
-                  {editId ? "Lưu Cập Nhật" : "Tạo chủ đề"}
-                </AppButton>
-              </DialogFooter>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
+                  className="h-10 border-border"
+                  error={error?.message}
+                />
+              )}
+            />
+
+            <Controller
+              control={form.control}
+              name="slug"
+              render={({ field, fieldState: { error } }) => (
+                <AppInput
+                  label="Slug"
+                  {...field}
+                  readOnly
+                  placeholder="Duong-dan-tinh"
+                  className="h-10 border-border bg-muted font-mono text-xs cursor-not-allowed"
+                  error={error?.message}
+                />
+              )}
+            />
+
+            <Controller
+              control={form.control}
+              name="parent_id"
+              render={({ field, fieldState: { error } }) => (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">Chủ đề cha</label>
+                  <AppSelect
+                    onValueChange={field.onChange}
+                    value={field.value}
+                    placeholder="Chọn chủ đề cha"
+                    options={[
+                      { label: "Không có (Chủ đề gốc)", value: "none" },
+                      ...categories.map(cat => ({ label: cat.name, value: cat.id.toString() }))
+                    ]}
+                    error={!!error}
+                  />
+                  {error && <p className="text-[11px] text-error font-medium">{error.message}</p>}
+                </div>
+              )}
+            />
+
+            <Controller
+              control={form.control}
+              name="status"
+              render={({ field, fieldState: { error } }) => (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">Trạng thái</label>
+                  <AppSelect
+                    onValueChange={(val) => field.onChange(val === 'true')}
+                    value={field.value ? 'true' : 'false'}
+                    placeholder="Chọn Trạng thái"
+                    options={[
+                      { label: "Hoạt động", value: "true" },
+                      { label: "Tạm ẩn", value: "false" }
+                    ]}
+                    error={!!error}
+                  />
+                  {error && <p className="text-[11px] text-error font-medium">{error.message}</p>}
+                </div>
+              )}
+            />
+
+            <AppDialogFooter className="pt-4 gap-2">
+              <AppButton appVariant="ghostMuted" variant="ghost"
+                type="button"
+                onClick={() => {
+                  setIsAddModalOpen(false);
+                  setEditId(null);
+                  form.reset({ name: "", slug: "", parent_id: "none", status: true });
+                }}
+                className="border border-border"
+              >
+                Hủy bỏ
+              </AppButton>
+              <AppButton appVariant="gradient" type="submit" className="bg-primary font-bold px-6">
+                {editId ? "Lưu Cập Nhật" : "Tạo chủ đề"}
+              </AppButton>
+            </AppDialogFooter>
+          </form>
+        </AppDialogContent>
+      </AppDialog>
     </div>
   );
 }
@@ -780,12 +758,13 @@ function AdminForumCategory({ hideHeader = false }) {
       <AppCard appVariant="default" className="border-border shadow-sm">
         <AppCardContent className="p-4 flex flex-col md:flex-row gap-4 items-center justify-between">
           <div className="relative w-full md:w-80">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
+            
+            <AppInput
               placeholder="Tìm chủ đề..."
-              className="pl-9 h-10 border-border focus:bg-white"
+              className="h-10 border-border focus:bg-white"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              icon={Search}
             />
           </div>
           <div className="flex text-sm font-medium text-muted-foreground bg-secondary p-1 rounded-lg transition-all">
@@ -910,7 +889,7 @@ function AdminForumCategory({ hideHeader = false }) {
       </AppCard>
 
       {/* Add/Edit Category Modal */}
-      <Dialog
+      <AppDialog
         open={isAddModalOpen}
         onOpenChange={(open) => {
           setIsAddModalOpen(open);
@@ -920,114 +899,94 @@ function AdminForumCategory({ hideHeader = false }) {
           }
         }}
       >
-        <DialogContent className="sm:max-w-[450px]">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold flex items-center gap-2">
+        <AppDialogContent className="sm:max-w-[450px]">
+          <AppDialogHeader>
+            <AppDialogTitle className="text-xl font-bold flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
                 <Plus className="w-5 h-5 text-primary" />
               </div>
               {editId ? "Cập Nhật Chủ Đề" : "Thêm Chủ Đề Diễn Đàn"}
-            </DialogTitle>
-          </DialogHeader>
+            </AppDialogTitle>
+          </AppDialogHeader>
 
-          <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(onSubmit, () => {
-                toast.error("Vui lòng điền đầy đủ thông tin bắt buộc");
-              })}
-              className="space-y-4 py-4"
-            >
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-foreground font-semibold">
-                      Tên chủ đề
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        onChange={(e) => {
-                          field.onChange(e);
-                          onNameChange(e);
-                        }}
-                        className="h-10 border-border"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="slug"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-foreground font-semibold text-xs opacity-70">
-                      Slug
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        readOnly
-                        placeholder="Duong-dan-tinh"
-                        className="h-10 border-border bg-muted font-mono text-xs cursor-not-allowed"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-foreground font-semibold">
-                      Trạng thái
-                    </FormLabel>
-                    <Select
-                      onValueChange={(val) => field.onChange(val === 'true')}
-                      value={field.value ? 'true' : 'false'}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="h-10 border-border w-full">
-                          <SelectValue placeholder="Chọn Trạng thái" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="true">Hoạt động</SelectItem>
-                        <SelectItem value="false">Tạm ẩn</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <DialogFooter className="pt-4 gap-2">
-                <AppButton appVariant="ghostMuted" variant="ghost"
-                  type="button"
-                  onClick={() => {
-                    setIsAddModalOpen(false);
-                    setEditId(null);
-                    form.reset({ name: "", slug: "", status: true });
+          <form
+            onSubmit={form.handleSubmit(onSubmit, () => {
+              toast.error("Vui lòng điền đầy đủ thông tin bắt buộc");
+            })}
+            className="space-y-4 py-4"
+          >
+            <Controller
+              control={form.control}
+              name="name"
+              render={({ field, fieldState: { error } }) => (
+                <AppInput
+                  label="Tên chủ đề"
+                  {...field}
+                  onChange={(e) => {
+                    field.onChange(e);
+                    onNameChange(e);
                   }}
-                  className="border border-border"
-                >
-                  Hủy bỏ
-                </AppButton>
-                <AppButton appVariant="gradient" type="submit" className="bg-primary font-bold px-6">
-                  {editId ? "Lưu Cập Nhật" : "Tạo chủ đề"}
-                </AppButton>
-              </DialogFooter>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
+                  className="h-10 border-border"
+                  error={error?.message}
+                />
+              )}
+            />
+
+            <Controller
+              control={form.control}
+              name="slug"
+              render={({ field, fieldState: { error } }) => (
+                <AppInput
+                  label="Slug"
+                  {...field}
+                  readOnly
+                  placeholder="Duong-dan-tinh"
+                  className="h-10 border-border bg-muted font-mono text-xs cursor-not-allowed"
+                  error={error?.message}
+                />
+              )}
+            />
+
+            <Controller
+              control={form.control}
+              name="status"
+              render={({ field, fieldState: { error } }) => (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">Trạng thái</label>
+                  <AppSelect
+                    onValueChange={(val) => field.onChange(val === 'true')}
+                    value={field.value ? 'true' : 'false'}
+                    placeholder="Chọn Trạng thái"
+                    options={[
+                      { label: "Hoạt động", value: "true" },
+                      { label: "Tạm ẩn", value: "false" }
+                    ]}
+                    error={!!error}
+                  />
+                  {error && <p className="text-[11px] text-error font-medium">{error.message}</p>}
+                </div>
+              )}
+            />
+
+            <AppDialogFooter className="pt-4 gap-2">
+              <AppButton appVariant="ghostMuted" variant="ghost"
+                type="button"
+                onClick={() => {
+                  setIsAddModalOpen(false);
+                  setEditId(null);
+                  form.reset({ name: "", slug: "", status: true });
+                }}
+                className="border border-border"
+              >
+                Hủy bỏ
+              </AppButton>
+              <AppButton appVariant="gradient" type="submit" className="bg-primary font-bold px-6">
+                {editId ? "Lưu Cập Nhật" : "Tạo chủ đề"}
+              </AppButton>
+            </AppDialogFooter>
+          </form>
+        </AppDialogContent>
+      </AppDialog>
     </div>
   );
 }

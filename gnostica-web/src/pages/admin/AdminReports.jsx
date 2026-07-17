@@ -1,4 +1,4 @@
-﻿import threadReportService from "@/services/forum/threadReportService";
+import threadReportService from "@/services/forum/threadReportService";
 import React, { useState, useEffect } from "react";
 import { BarChart3, ShieldAlert, CheckCircle2, XCircle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -67,8 +67,13 @@ export default function AdminReports() {
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-10">
       <div>
-        <h1 className="text-2xl font-bold text-foreground tracking-tight">Thống Kê & Báo Cáo</h1>
-        <p className="text-sm text-muted-foreground mt-1">Phân tích doanh thu và quản lý nội dung nền tảng.</p>
+        <h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
+          <BarChart3 className="w-6 h-6 text-primary" />
+          Thống Kê & Báo Cáo
+        </h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Xem báo cáo chi tiết về doanh thu, học viên và hiệu suất nền tảng.
+        </p>
       </div>
 
       <Tabs defaultValue="stats" className="w-full">
@@ -85,9 +90,15 @@ export default function AdminReports() {
         </TabsContent>
 
         <TabsContent value="forum-reports">
-          <AppCard appVariant="default" className="border-border shadow-sm">
-            <AppCardContent className="p-0">
               <DataTable
+                pagination={{
+                  currentPage: 1,
+                  totalPages: 1,
+                  totalItems: reports.length,
+                  onPageChange: () => {},
+                  zeroIndexed: false,
+                  pageSize: reports.length || 10,
+                }}
                 columns={[
                   {
                     header: "Người báo cáo",
@@ -187,8 +198,6 @@ export default function AdminReports() {
                 loadingState="Đang tải dữ liệu..."
                 emptyState="Chưa có báo cáo nào"
               />
-            </AppCardContent>
-          </AppCard>
         </TabsContent>
       </Tabs>
     </div>

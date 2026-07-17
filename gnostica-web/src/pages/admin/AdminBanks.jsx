@@ -194,9 +194,7 @@ function BankStatsFilter({
 
 function BankTable({ banks, isLoading, onEdit, onDelete, startIndex = 0 }) {
   return (
-    <AppCard appVariant="default" className="border-border shadow-sm overflow-hidden">
-      <div className="px-4 pb-2">
-        <DataTable
+    <DataTable
           columns={[
             {
               header: "STT",
@@ -293,8 +291,6 @@ function BankTable({ banks, isLoading, onEdit, onDelete, startIndex = 0 }) {
             </div>
           }
         />
-      </div>
-    </AppCard>
   );
 }
 

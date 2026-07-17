@@ -1,7 +1,13 @@
+import { format } from "date-fns";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AppButton } from "@/components/common/micro/AppButton";
+import { Input } from "@/components/ui/input";
+// Fix imported
+import DataTable from "@/components/common/composite/DataTable";
 import React, { useState, useEffect } from "react";
 import AppSelect from "@/components/common/micro/AppSelect";
 import AppInput from "@/components/common/micro/AppInput";
-import { Search, CreditCard } from "lucide-react";
+import {Search, CreditCard, History} from "lucide-react";
 import { useTransactions } from "@/hooks/payment/useTransactions";
 import AppCard, { AppCardContent, AppCardHeader, AppCardTitle } from "@/components/common/micro/AppCard";
 import AppBadge from "@/components/common/micro/AppBadge";
@@ -70,57 +76,15 @@ export default function AdminTransactions() {
         isLoading={isLoading} 
         onDetailClick={handleDetailClick}
         startIndex={startIndex}
+        pagination={{
+          currentPage: currentPage,
+          totalPages: totalPages,
+          totalItems: filteredTransactions.length,
+          onPageChange: setCurrentPage,
+          zeroIndexed: false,
+          pageSize: itemsPerPage,
+        }}
       />
-
-      {totalPages > 1 && (
-        <div className="p-4 border-t border-border flex flex-col sm:flex-row shadow-sm bg-white rounded-b-xl items-center justify-between gap-4 text-sm text-muted-foreground">
-          <div>
-            Hiển thị <span className="font-bold text-foreground">{startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredTransactions.length)}</span> trong số <span className="font-bold text-foreground">{filteredTransactions.length}</span> giao dịch
-          </div>
-          <div className="flex gap-1">
-            <AppButton appVariant="ghostMuted" variant="ghost" 
-              size="sm" 
-              className="h-8 border border-border" 
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage(currentPage - 1)}
-            >
-              Trước
-            </AppButton>
-            
-            {[...Array(totalPages)].map((_, i) => {
-              const pageNumber = i + 1;
-              return currentPage === pageNumber ? (
-                <AppButton appVariant="gradient" 
-                  key={pageNumber}
-                  size="sm" 
-                  className="h-8"
-                  onClick={() => setCurrentPage(pageNumber)}
-                >
-                  {pageNumber}
-                </AppButton>
-              ) : (
-                <AppButton appVariant="ghostMuted" variant="ghost" 
-                  key={pageNumber}
-                  size="sm" 
-                  className="h-8 border border-border bg-white text-muted-foreground hover:bg-muted"
-                  onClick={() => setCurrentPage(pageNumber)}
-                >
-                  {pageNumber}
-                </AppButton>
-              );
-            })}
-
-            <AppButton appVariant="ghostMuted" variant="ghost" 
-              size="sm" 
-              className="h-8 border border-border" 
-              disabled={currentPage === totalPages}
-              onClick={() => setCurrentPage(currentPage + 1)}
-            >
-              Sau
-            </AppButton>
-          </div>
-        </div>
-      )}
       
       <TransactionDetailModal 
         isOpen={isDetailModalOpen} 
@@ -138,10 +102,10 @@ function TransactionHeader() {
       <div>
         <h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
           <History className="w-6 h-6 text-primary" />
-          Lịch sử Giao dịch
+          Lịch Sử Giao Dịch
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Theo dõi và quản lý toàn bộ dòng tiền nạp, rút và thanh toán trên hệ thống.
+          Kiểm tra và đối soát các giao dịch thanh toán trên nền tảng.
         </p>
       </div>
     </div>
@@ -209,7 +173,7 @@ function TransactionStatsFilter({
   );
 }
 
-function TransactionTable({ transactions, isLoading, onDetailClick, startIndex = 0 }) {
+function TransactionTable({ transactions, isLoading, onDetailClick, startIndex = 0, pagination }) {
   
   const getTypeIcon = (type) => {
     switch (type) {
@@ -238,9 +202,9 @@ function TransactionTable({ transactions, isLoading, onDetailClick, startIndex =
     }
   };
 
-    <AppCard appVariant="default" className="border-border shadow-sm overflow-hidden">
-      <div className="px-4 pb-2">
-        <DataTable
+  return (
+    <DataTable
+          pagination={pagination}
           columns={[
             {
               header: "STT",
@@ -320,8 +284,7 @@ function TransactionTable({ transactions, isLoading, onDetailClick, startIndex =
             </div>
           }
         />
-      </div>
-    </AppCard>
+  );
 }
 
 // eslint-disable-next-line no-unused-vars

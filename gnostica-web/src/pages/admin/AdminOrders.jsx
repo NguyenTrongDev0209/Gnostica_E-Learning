@@ -1,7 +1,12 @@
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AppButton } from "@/components/common/micro/AppButton";
+import { Input } from "@/components/ui/input";
+// Fix imported
+import DataTable from "@/components/common/composite/DataTable";
 import React, { useState, useEffect } from "react";
 import AppSelect from "@/components/common/micro/AppSelect";
 import AppInput from "@/components/common/micro/AppInput";
-import { Search, CheckCircle, Clock, XCircle } from "lucide-react";
+import {Search, CheckCircle, Clock, XCircle, ShoppingCart} from "lucide-react";
 import { useOrders } from "@/hooks/order/useOrders";
 import AppCard, { AppCardContent, AppCardHeader, AppCardTitle } from "@/components/common/micro/AppCard";
 import AppBadge from "@/components/common/micro/AppBadge";
@@ -64,58 +69,17 @@ export default function AdminOrders() {
         isLoading={isLoading} 
         onDetailClick={handleDetailClick}
         startIndex={startIndex}
+        pagination={{
+          currentPage: currentPage,
+          totalPages: totalPages,
+          totalItems: filteredOrders.length,
+          onPageChange: setCurrentPage,
+          zeroIndexed: false,
+          pageSize: itemsPerPage,
+        }}
       />
 
-      {totalPages > 1 && (
-        <div className="p-4 border-t border-border flex flex-col sm:flex-row shadow-sm bg-white rounded-b-xl items-center justify-between gap-4 text-sm text-muted-foreground">
-          <div>
-            Hiển thị <span className="font-bold text-foreground">{startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredOrders.length)}</span> trong số <span className="font-bold text-foreground">{filteredOrders.length}</span> đơn hàng
-          </div>
-          <div className="flex gap-1">
-            <AppButton appVariant="ghostMuted" variant="ghost" 
-              size="sm" 
-              className="h-8 border border-border" 
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage(currentPage - 1)}
-            >
-              Trước
-            </AppButton>
-            
-            {[...Array(totalPages)].map((_, i) => {
-              const pageNumber = i + 1;
-              return currentPage === pageNumber ? (
-                <AppButton appVariant="gradient" 
-                  key={pageNumber}
-                  size="sm" 
-                  className="h-8"
-                  onClick={() => setCurrentPage(pageNumber)}
-                >
-                  {pageNumber}
-                </AppButton>
-              ) : (
-                <AppButton appVariant="ghostMuted" variant="ghost" 
-                  key={pageNumber}
-                  size="sm" 
-                  className="h-8 border border-border bg-white text-muted-foreground hover:bg-muted"
-                  onClick={() => setCurrentPage(pageNumber)}
-                >
-                  {pageNumber}
-                </AppButton>
-              );
-            })}
 
-            <AppButton appVariant="ghostMuted" variant="ghost" 
-              size="sm" 
-              className="h-8 border border-border" 
-              disabled={currentPage === totalPages}
-              onClick={() => setCurrentPage(currentPage + 1)}
-            >
-              Sau
-            </AppButton>
-          </div>
-        </div>
-      )}
-      
       <OrderDetailModal 
         isOpen={isDetailModalOpen} 
         onOpenChange={setIsDetailModalOpen} 
@@ -135,7 +99,7 @@ function OrderHeader() {
           Quản Lý Đơn Hàng
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Theo dõi, xử lý và quản lý toàn bộ đơn hàng của khách hàng trên hệ thống.
+          Quản lý và theo dõi trạng thái các đơn hàng trên hệ thống.
         </p>
       </div>
     </div>
@@ -188,7 +152,7 @@ function OrderStatsFilter({
   );
 }
 
-function OrderTable({ orders, isLoading, onDetailClick, startIndex = 0 }) {
+function OrderTable({ orders, isLoading, onDetailClick, startIndex = 0, pagination }) {
   
   const getStatusBadge = (status) => {
     switch (status) {
@@ -216,9 +180,7 @@ function OrderTable({ orders, isLoading, onDetailClick, startIndex = 0 }) {
   };
 
   return (
-    <AppCard appVariant="default" className="border-border shadow-sm overflow-hidden">
-      <div className="px-4 pb-2">
-        <DataTable
+    <DataTable
           columns={[
             {
               header: "STT",
@@ -295,8 +257,6 @@ function OrderTable({ orders, isLoading, onDetailClick, startIndex = 0 }) {
             </div>
           }
         />
-      </div>
-    </AppCard>
   );
 }
 

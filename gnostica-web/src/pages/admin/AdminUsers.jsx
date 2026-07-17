@@ -1,6 +1,5 @@
 import React from "react";
-import {
-  Plus,
+import {Plus,
   Search,
   Filter,
   MoreHorizontal,
@@ -9,8 +8,7 @@ import {
   ShieldCheck,
   BookOpen,
   Lock,
-  Unlock
-} from "lucide-react";
+  Unlock, Users} from "lucide-react";
 import DataTable from "@/components/common/composite/DataTable";
 import AppCard, { AppCardContent, AppCardHeader, AppCardTitle } from "@/components/common/micro/AppCard";
 import { Badge } from "@/components/ui/badge";
@@ -212,10 +210,13 @@ export default function AdminUsers() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground tracking-tight">Quản Lý Người Dùng</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Xem, khóa/mở khóa và quản lý quyền hạn của người dùng.
-          </p>
+          <h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
+          <Users className="w-6 h-6 text-primary" />
+          Quản Lý Người Dùng
+        </h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Quản lý danh sách thành viên, giảng viên và phân quyền hệ thống.
+        </p>
         </div>
       </div>
 
@@ -245,42 +246,54 @@ export default function AdminUsers() {
         </div>
 
         <TabsContent value="USER" className="mt-0">
-          <AppCard className="border-border shadow-sm overflow-hidden border-none bg-transparent">
-            <DataTable 
+          <DataTable 
               columns={accountColumns}
               data={filteredAccounts}
               isLoading={loading}
               emptyState="Không tìm thấy người dùng nào."
+              pagination={{
+                currentPage: 1,
+                totalPages: 1,
+                totalItems: filteredAccounts.length,
+                onPageChange: () => {},
+                zeroIndexed: false,
+                pageSize: filteredAccounts.length || 10,
+              }}
             />
-            <div className="p-4 bg-card border border-t-0 border-border flex items-center justify-between text-sm text-muted-foreground">
-              <div>Hiển thị <span className="font-bold text-foreground">{filteredAccounts.length}</span> kết quả</div>
-            </div>
-          </AppCard>
         </TabsContent>
 
         <TabsContent value="INSTRUCTOR" className="mt-0">
-          <AppCard className="border-border shadow-sm overflow-hidden border-none bg-transparent">
             <DataTable 
               columns={accountColumns}
               data={filteredAccounts}
               isLoading={loading}
               emptyState="Không tìm thấy người dùng nào."
+              pagination={{
+                currentPage: 1,
+                totalPages: 1,
+                totalItems: filteredAccounts.length,
+                onPageChange: () => {},
+                zeroIndexed: false,
+                pageSize: filteredAccounts.length || 10,
+              }}
             />
-            <div className="p-4 bg-card border border-t-0 border-border flex items-center justify-between text-sm text-muted-foreground">
-              <div>Hiển thị <span className="font-bold text-foreground">{filteredAccounts.length}</span> kết quả</div>
-            </div>
-          </AppCard>
         </TabsContent>
 
         <TabsContent value="PENDING_APP" className="mt-0">
-          <AppCard className="border-border shadow-sm overflow-hidden border-none bg-transparent">
-            <DataTable 
+          <DataTable 
               columns={applicationColumns}
               data={applications}
               isLoading={loading}
               emptyState="Không có đơn đăng ký chờ duyệt."
+              pagination={{
+                currentPage: 1,
+                totalPages: 1,
+                totalItems: applications.length,
+                onPageChange: () => {},
+                zeroIndexed: false,
+                pageSize: applications.length || 10,
+              }}
             />
-          </AppCard>
         </TabsContent>
       </Tabs>
 
