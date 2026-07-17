@@ -4,13 +4,10 @@ import { useEffect } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { AppDialogRoot as Dialog, AppDialogContent as DialogContent, AppDialogHeader as DialogHeader, AppDialogTitle as DialogTitle, AppDialogFooter as DialogFooter, AppDialogDescription as DialogDescription } from "@/components/common/micro/AppDialog";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import DataTable from "@/components/common/composite/DataTable";
 import { TableActionIconButton } from "@/components/common/micro/AppButton";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
 
 import { AppButton } from "@/components/common/micro/AppButton";
 import AppSelect from "@/components/common/micro/AppSelect";
@@ -96,7 +93,7 @@ export default function AdminBanks() {
         pagination={{
           currentPage,
           totalPages,
-          totalElements: filteredBanks.length,
+          totalItems: filteredBanks.length,
           onPageChange: setCurrentPage,
           zeroIndexed: false,
         }}
@@ -159,12 +156,12 @@ function BankStatsFilter({
           <div className="flex flex-col md:flex-row gap-3">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Tìm kiếm ngân hàng (tên, mã, bin)..."
-                className="pl-9 h-10 border-border focus:bg-white"
-                value={searchTerm}
-                onChange={(e) => onSearchChange(e.target.value)}
-              />
+                <AppInput
+                  placeholder="Tìm kiếm ngân hàng (tên, mã, bin)..."
+                  className="pl-9 h-10 border-border focus:bg-white"
+                  value={searchTerm}
+                  onChange={(e) => onSearchChange(e.target.value)}
+                />
             </div>
             
             <div className="w-full md:w-[200px] flex-shrink-0">
@@ -192,9 +189,10 @@ function BankStatsFilter({
   );
 }
 
-function BankTable({ banks, isLoading, onEdit, onDelete, startIndex = 0 }) {
+function BankTable({ banks, isLoading, onEdit, onDelete, startIndex = 0, pagination }) {
   return (
     <DataTable
+          pagination={pagination}
           columns={[
             {
               header: "STT",
@@ -366,7 +364,7 @@ function BankFormModal({ isOpen, onOpenChange, onSave, editingBank }) {
                     <Building2 className="w-4 h-4" /> Tên hiển thị (Short Name)
                   </FormLabel>
                   <FormControl>
-                    <Input
+                    <AppInput
                       {...field}
                       placeholder="VD: Vietcombank, MBBank..."
                       className="h-10 border-border bg-white"
@@ -387,7 +385,7 @@ function BankFormModal({ isOpen, onOpenChange, onSave, editingBank }) {
                       <Hash className="w-4 h-4" /> Mã ngân hàng (Code)
                     </FormLabel>
                     <FormControl>
-                      <Input
+                      <AppInput
                         {...field}
                         placeholder="VD: VCB, MB"
                         className="h-10 border-border bg-white uppercase font-bold"
@@ -407,7 +405,7 @@ function BankFormModal({ isOpen, onOpenChange, onSave, editingBank }) {
                       <Hash className="w-4 h-4" /> BIN (9704xx)
                     </FormLabel>
                     <FormControl>
-                      <Input
+                      <AppInput
                         {...field}
                         placeholder="Nhập mã BIN"
                         className="h-10 border-border bg-white"
@@ -428,7 +426,7 @@ function BankFormModal({ isOpen, onOpenChange, onSave, editingBank }) {
                     <ImageIcon className="w-4 h-4" /> Link Logo
                   </FormLabel>
                   <FormControl>
-                    <Input
+                    <AppInput
                       {...field}
                       placeholder="https://..."
                       className="h-10 border-border bg-white"
@@ -447,20 +445,18 @@ function BankFormModal({ isOpen, onOpenChange, onSave, editingBank }) {
                   <FormLabel className="flex items-center gap-2">
                     <ToggleLeft className="w-4 h-4" /> Trạng thái
                   </FormLabel>
-                  <Select 
-                    value={field.value.toString()} 
-                    onValueChange={(val) => field.onChange(parseInt(val))}
-                  >
-                    <FormControl>
-                      <SelectTrigger className="h-10 border-border bg-white">
-                        <SelectValue placeholder="Chọn trạng thái" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent className="z-[10000] bg-white border border-border shadow-md">
-                      <SelectItem value="1">Đang hoạt động</SelectItem>
-                      <SelectItem value="0">Tạm dừng</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <FormControl>
+                    <AppSelect 
+                      value={field.value.toString()} 
+                      onValueChange={(val) => field.onChange(parseInt(val))}
+                      placeholder="Chọn trạng thái"
+                      options={[
+                        { label: "Đang hoạt động", value: "1" },
+                        { label: "Tạm dừng", value: "0" }
+                      ]}
+                      className="h-10 border-border bg-white"
+                    />
+                  </FormControl>
                   <FormMessage className="text-[11px]" />
                 </FormItem>
               )}

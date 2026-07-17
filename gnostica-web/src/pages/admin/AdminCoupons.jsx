@@ -9,7 +9,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AppDialog, AppDialogContent, AppDialogHeader, AppDialogTitle, AppDialogFooter } from "@/components/common/micro/AppDialog";
 import { Controller } from "react-hook-form";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/common/micro/AppTable";
 
 import { AppButton, TableActionIconButton } from "@/components/common/micro/AppButton";
 import AppSelect from "@/components/common/micro/AppSelect";
@@ -26,6 +26,8 @@ export default function AdminCoupons() {
   const [startDateFilter, setStartDateFilter] = useState("");
   const [endDateFilter, setEndDateFilter] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const filteredCoupons = coupons.filter((coupon) => {
     const matchesSearch = coupon.code.toLowerCase().includes(searchTerm.toLowerCase());
@@ -51,6 +53,14 @@ export default function AdminCoupons() {
 
     return matchesSearch && matchesStatus && matchesStartDate && matchesEndDate;
   });
+
+  const totalPages = Math.ceil(filteredCoupons.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedCoupons = filteredCoupons.slice(startIndex, startIndex + itemsPerPage);
+
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter, startDateFilter, endDateFilter]);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -83,10 +93,18 @@ export default function AdminCoupons() {
       />
 
       <CouponTable
-        coupons={filteredCoupons}
+        coupons={paginatedCoupons}
         isLoading={isLoading}
         onDelete={removeCoupon}
         onToggleStatus={toggleCouponStatus}
+        pagination={{
+          currentPage,
+          totalPages,
+          totalItems: filteredCoupons.length,
+          onPageChange: setCurrentPage,
+          zeroIndexed: false,
+          pageSize: itemsPerPage,
+        }}
       />
 
       <CouponFormModal
@@ -192,170 +210,167 @@ function CouponStatsFilter({
   );
 }
 
-function CouponTable({ coupons, isLoading, onDelete, onToggleStatus }) {
+function CouponTable({ coupons, isLoading, onDelete, onToggleStatus, pagination }) {
   return (
-    <AppCard appVariant="default" className="border-border shadow-sm overflow-hidden">
-      <div className="px-4 pb-2">
-        <DataTable
-          columns={[
-            {
-              header: "STT",
-              width: "50px",
-              className: "text-center",
-              cellClassName: "text-center font-medium text-muted-foreground",
-              render: (_, index) => index + 1,
-            },
-            {
-              header: "Tên phiếu",
-              className: "text-center",
-              cellClassName: "text-center",
-              render: (coupon) => <span className="font-bold text-foreground">{coupon.name}</span>,
-            },
-            {
-              header: "Mã phiếu",
-              className: "text-center",
-              cellClassName: "text-center",
-              render: (coupon) => (
-                <div className="flex flex-col items-center">
-                  <AppButton appVariant="ghostMuted" variant="ghost"
-                    onClick={() => {
-                      navigator.clipboard.writeText(coupon.code);
-                      toast.success(`Đã sao chép mã: ${coupon.code}`);
-                    }}
-                    title="Nhấn để sao chép"
-                    className="group flex flex-row items-center gap-1.5 bg-secondary hover:bg-muted/70 px-2 py-1 rounded border border-border hover:border-border transition-colors h-auto"
-                  >
-                    <span className="text-xs font-mono font-bold text-primary">
-                      {coupon.code}
-                    </span>
-                    <Copy className="w-3 h-3 text-muted-foreground group-hover:text-primary transition-colors" />
-                  </AppButton>
-                </div>
-              ),
-            },
-            {
-              header: "Giá trị giảm",
-              width: "100px",
-              className: "text-center",
-              cellClassName: "text-center",
-              render: (coupon) => (
-                <div className="flex flex-col items-center">
-                  <span className="text-lg font-bold text-primary">-{coupon.discountPercent}%</span>
-                </div>
-              ),
-            },
-            {
-              header: "Điều kiện",
-              width: "140px",
-              className: "text-center",
-              cellClassName: "text-left py-4 pl-6",
-              render: (coupon) => (
-                <div className="flex flex-col gap-1">
-                  <div className="text-xs text-muted-foreground">
-                    <span className="text-[10px] uppercase font-bold opacity-40 w-8 inline-block">Min:</span>
-                    <span className="font-medium text-foreground">{coupon.minDiscount?.toLocaleString()}đ</span>
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    <span className="text-[10px] uppercase font-bold opacity-40 w-8 inline-block">Max:</span>
-                    <span className="font-medium text-foreground">{coupon.maxDiscount?.toLocaleString()}đ</span>
-                  </div>
-                </div>
-              ),
-            },
-            {
-              header: "Thời gian",
-              width: "220px",
-              className: "text-center",
-              cellClassName: "text-center text-sm",
-              render: (coupon) => (
-                <div className="flex flex-col items-center">
-                  <div className="w-fit text-left space-y-1">
-                    <div className="flex items-center gap-1.5 text-muted-foreground">
-                      <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
-                      <span className="text-[10px] uppercase font-bold opacity-50 w-8">Từ:</span>
-                      <span className="text-xs">{coupon.startDate ? format(new Date(coupon.startDate), "dd/MM/yyyy HH:mm") : "N/A"}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 text-muted-foreground">
-                      <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
-                      <span className="text-[10px] uppercase font-bold opacity-50 w-8">Đến:</span>
-                      <span className="text-xs">{coupon.expiryDate ? format(new Date(coupon.expiryDate), "dd/MM/yyyy HH:mm") : "N/A"}</span>
-                    </div>
-                  </div>
-                </div>
-              ),
-            },
-            {
-              header: "Số lượng",
-              width: "200px",
-              className: "text-center",
-              cellClassName: "text-center w-[200px]",
-              render: (coupon) => (
-                coupon.quantity === 0 ? (
-                  <span className="font-bold text-success bg-success/10 text-success px-2 py-0.5 rounded text-xs">Vô hạn</span>
-                ) : (
-                  <div className="flex flex-col gap-1 w-full max-w-[160px] mx-auto">
-                    <div className="flex justify-between items-end text-[10px] text-muted-foreground font-medium px-1">
-                      <span className="text-primary font-bold">0%</span>
-                      <span>0 / {coupon.quantity.toLocaleString()}</span>
-                    </div>
-                    <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
-                      <div className="h-full bg-primary" style={{ width: '0%' }}></div>
-                    </div>
-                  </div>
-                )
-              ),
-            },
-            {
-              header: "Trạng thái",
-              className: "text-center",
-              cellClassName: "text-center",
-              render: (coupon) => (
-                <>
-                  {coupon.status === 0 && <AppBadge variant="secondary" className="border-border">Tạm ẩn</AppBadge>}
-                  {coupon.status === 1 && <AppBadge variant="success" soft>Hoạt động</AppBadge>}
-                  {coupon.status === 2 && <AppBadge variant="error" soft>Hết hạn</AppBadge>}
-                  {coupon.status === 3 && <AppBadge variant="warning" soft>Hết lượt</AppBadge>}
-                </>
-              ),
-            },
-            {
-              header: "Thao tác",
-              width: "120px",
-              className: "text-center",
-              cellClassName: "text-center w-[120px]",
-              render: (coupon) => (
-                <div className="flex items-center justify-center gap-1">
-                  <TableActionIconButton
-                    icon={Edit}
-                    title="Đổi trạng thái"
-                    onClick={() => onToggleStatus && onToggleStatus(coupon)}
-                  />
-                  <TableActionIconButton
-                    icon={BarChart}
-                    title="Xem biểu đồ"
-                  />
-                  <TableActionIconButton
-                    icon={Trash2}
-                    colorVariant="error"
-                    title="Xóa mã"
-                    onClick={() => onDelete(coupon.id)}
-                  />
-                </div>
-              ),
-            },
-          ]}
-          data={coupons}
-          isLoading={isLoading}
-          loadingState="Đang tải dữ liệu..."
-          emptyState={
-            <div className="flex flex-col items-center justify-center gap-2">
-              <Ticket className="w-12 h-12 opacity-20" />
-              <p>Không tìm thấy mã giảm giá nào.</p>
+    <DataTable
+      pagination={pagination}
+      columns={[
+        {
+          header: "STT",
+          width: "50px",
+          className: "text-center",
+          cellClassName: "text-center font-medium text-muted-foreground",
+          render: (_, index) => index + 1,
+        },
+        {
+          header: "Tên phiếu",
+          className: "text-center",
+          cellClassName: "text-center",
+          render: (coupon) => <span className="font-bold text-foreground">{coupon.name}</span>,
+        },
+        {
+          header: "Mã phiếu",
+          className: "text-center",
+          cellClassName: "text-center",
+          render: (coupon) => (
+            <div className="flex flex-col items-center">
+              <AppButton appVariant="ghostMuted" variant="ghost"
+                onClick={() => {
+                  navigator.clipboard.writeText(coupon.code);
+                  toast.success(`Đã sao chép mã: ${coupon.code}`);
+                }}
+                title="Nhấn để sao chép"
+                className="group flex flex-row items-center gap-1.5 bg-secondary hover:bg-muted/70 px-2 py-1 rounded border border-border hover:border-border transition-colors h-auto"
+              >
+                <span className="text-xs font-mono font-bold text-primary">
+                  {coupon.code}
+                </span>
+                <Copy className="w-3 h-3 text-muted-foreground group-hover:text-primary transition-colors" />
+              </AppButton>
             </div>
-          }
-        />
-      </div>
-    </AppCard>
+          ),
+        },
+        {
+          header: "Giá trị giảm",
+          width: "100px",
+          className: "text-center",
+          cellClassName: "text-center",
+          render: (coupon) => (
+            <div className="flex flex-col items-center">
+              <span className="text-lg font-bold text-primary">-{coupon.discountPercent}%</span>
+            </div>
+          ),
+        },
+        {
+          header: "Điều kiện",
+          width: "140px",
+          className: "text-center",
+          cellClassName: "text-left py-4 pl-6",
+          render: (coupon) => (
+            <div className="flex flex-col gap-1">
+              <div className="text-xs text-muted-foreground">
+                <span className="text-[10px] uppercase font-bold opacity-40 w-8 inline-block">Min:</span>
+                <span className="font-medium text-foreground">{coupon.minDiscount?.toLocaleString()}đ</span>
+              </div>
+              <div className="text-xs text-muted-foreground">
+                <span className="text-[10px] uppercase font-bold opacity-40 w-8 inline-block">Max:</span>
+                <span className="font-medium text-foreground">{coupon.maxDiscount?.toLocaleString()}đ</span>
+              </div>
+            </div>
+          ),
+        },
+        {
+          header: "Thời gian",
+          width: "220px",
+          className: "text-center",
+          cellClassName: "text-center text-sm",
+          render: (coupon) => (
+            <div className="flex flex-col items-center">
+              <div className="w-fit text-left space-y-1">
+                <div className="flex items-center gap-1.5 text-muted-foreground">
+                  <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
+                  <span className="text-[10px] uppercase font-bold opacity-50 w-8">Từ:</span>
+                  <span className="text-xs">{coupon.startDate ? format(new Date(coupon.startDate), "dd/MM/yyyy HH:mm") : "N/A"}</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-muted-foreground">
+                  <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
+                  <span className="text-[10px] uppercase font-bold opacity-50 w-8">Đến:</span>
+                  <span className="text-xs">{coupon.expiryDate ? format(new Date(coupon.expiryDate), "dd/MM/yyyy HH:mm") : "N/A"}</span>
+                </div>
+              </div>
+            </div>
+          ),
+        },
+        {
+          header: "Số lượng",
+          width: "200px",
+          className: "text-center",
+          cellClassName: "text-center w-[200px]",
+          render: (coupon) => (
+            coupon.quantity === 0 ? (
+              <span className="font-bold text-success bg-success/10 text-success px-2 py-0.5 rounded text-xs">Vô hạn</span>
+            ) : (
+              <div className="flex flex-col gap-1 w-full max-w-[160px] mx-auto">
+                <div className="flex justify-between items-end text-[10px] text-muted-foreground font-medium px-1">
+                  <span className="text-primary font-bold">0%</span>
+                  <span>0 / {coupon.quantity.toLocaleString()}</span>
+                </div>
+                <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
+                  <div className="h-full bg-primary" style={{ width: '0%' }}></div>
+                </div>
+              </div>
+            )
+          ),
+        },
+        {
+          header: "Trạng thái",
+          className: "text-center",
+          cellClassName: "text-center",
+          render: (coupon) => (
+            <>
+              {coupon.status === 0 && <AppBadge variant="secondary" className="border-border">Tạm ẩn</AppBadge>}
+              {coupon.status === 1 && <AppBadge variant="success" soft>Hoạt động</AppBadge>}
+              {coupon.status === 2 && <AppBadge variant="error" soft>Hết hạn</AppBadge>}
+              {coupon.status === 3 && <AppBadge variant="warning" soft>Hết lượt</AppBadge>}
+            </>
+          ),
+        },
+        {
+          header: "Thao tác",
+          width: "120px",
+          className: "text-center",
+          cellClassName: "text-center w-[120px]",
+          render: (coupon) => (
+            <div className="flex items-center justify-center gap-1">
+              <TableActionIconButton
+                icon={Edit}
+                title="Đổi trạng thái"
+                onClick={() => onToggleStatus && onToggleStatus(coupon)}
+              />
+              <TableActionIconButton
+                icon={BarChart}
+                title="Xem biểu đồ"
+              />
+              <TableActionIconButton
+                icon={Trash2}
+                colorVariant="error"
+                title="Xóa mã"
+                onClick={() => onDelete(coupon.id)}
+              />
+            </div>
+          ),
+        },
+      ]}
+      data={coupons}
+      isLoading={isLoading}
+      loadingState="Đang tải dữ liệu..."
+      emptyState={
+        <div className="flex flex-col items-center justify-center gap-2">
+          <Ticket className="w-12 h-12 opacity-20" />
+          <p>Không tìm thấy mã giảm giá nào.</p>
+        </div>
+      }
+    />
   );
 }
 

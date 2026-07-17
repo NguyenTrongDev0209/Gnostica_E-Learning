@@ -15,7 +15,7 @@ import {ShieldCheck,
   AlertCircle, MessageSquareWarning} from "lucide-react";
 import AppCard, { AppCardContent, AppCardHeader, AppCardTitle, AppCardDescription } from "@/components/common/micro/AppCard";
 import { AppButton } from "@/components/common/micro/AppButton";
-import { Badge } from "@/components/ui/badge";
+import AppBadge from "@/components/common/micro/AppBadge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { toast } from "sonner";
 // eslint-disable-next-line no-unused-vars
@@ -32,7 +32,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import AppSelect from "@/components/common/micro/AppSelect";
-import { Textarea } from "@/components/ui/textarea";
+import AppTextarea from "@/components/common/micro/AppTextarea";
 
 export default function AdminThreadModeration() {
   const [pendingThreads, setPendingThreads] = useState([]);
@@ -247,10 +247,10 @@ export default function AdminThreadModeration() {
                       {/* Middle: Content and Category */}
                       <div className="flex-1 min-w-0 space-y-2.5 overflow-hidden w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <Badge variant="secondary" className="bg-primary/10 text-primary hover:bg-primary/10 border-none font-semibold px-2 py-0.5 text-xs">
+                          <AppBadge variant="secondary" className="bg-primary/10 text-primary hover:bg-primary/10 border-none font-semibold px-2 py-0.5 text-xs">
                             <Layers className="w-3 h-3 mr-1" />
                             {thread.topic?.title || thread.category?.name || "Chưa phân loại"}
-                          </Badge>
+                          </AppBadge>
                           <span className="text-[11px] text-muted-foreground md:hidden flex items-center gap-1">
                             <Calendar className="w-3 h-3" />
                             {formatDate(thread.createdAt)}
@@ -359,7 +359,7 @@ export default function AdminThreadModeration() {
               </div>
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-medium text-foreground">Chi tiết từ chối</label>
-                <Textarea 
+                <AppTextarea 
                   placeholder="Nhập thông tin chi tiết về lý do từ chối..."
                   value={rejectDetail}
                   onChange={(e) => setRejectDetail(e.target.value)}

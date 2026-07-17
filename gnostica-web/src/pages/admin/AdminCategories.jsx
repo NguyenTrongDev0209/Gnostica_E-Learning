@@ -14,7 +14,8 @@ import { useState, useEffect } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/common/micro/AppTable";
+import DataTable from "@/components/common/composite/DataTable";
 
 import { AppButton, TableActionIconButton } from "@/components/common/micro/AppButton";
 import AppSelect from "@/components/common/micro/AppSelect";
@@ -162,7 +163,7 @@ function AdminCategories({ hideHeader = false }) {
           onClick={() => setIsAddModalOpen(true)}
         >
           <Plus className="w-4 h-4" />
-          Thêm Chủ Đề
+          Thêm Danh Mục
         </AppButton>
       </div>
 
@@ -203,271 +204,223 @@ function AdminCategories({ hideHeader = false }) {
       </AppCard>
 
       {/* Categories Table */}
-      <AppCard appVariant="default" className="border-border shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader className="bg-muted">
-              <TableRow>
-                <TableHead className="py-4 font-semibold text-foreground w-10 mx-auto" />
-                <TableHead className="py-4 font-semibold text-foreground w-[25%] min-w-[200px]">
-                  Chủ đề
-                </TableHead>
-                <TableHead className="py-4 font-semibold text-foreground w-[20%] min-w-[150px]">
-                  Slug
-                </TableHead>
-                <TableHead className="py-4 font-semibold text-foreground text-center w-32 whitespace-nowrap">
-                  Chủ đề con
-                </TableHead>
-                <TableHead className="py-4 font-semibold text-foreground text-center w-24 whitespace-nowrap">
-                  Khóa học
-                </TableHead>
-                <TableHead className="py-4 font-semibold text-foreground w-32 whitespace-nowrap">
-                  Trạng thái
-                </TableHead>
-                <TableHead className="py-4 font-semibold text-foreground text-center w-24 min-w-[100px]">
-                  Thao tác
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="h-32 text-center text-muted-foreground font-medium">
-                    <div className="flex flex-col items-center justify-center gap-3">
-                      <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-                      <span className="text-sm animate-pulse">Đang tải dữ liệu...</span>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ) : categories.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="h-32 text-center text-muted-foreground font-medium">
-                    Không tìm thấy chủ đề nào phù hợp.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                categories.map((cat) => (
-                  <React.Fragment key={cat.id}>
-                    {/* Parent category row */}
-                    <TableRow
-                      key={cat.id}
-                      className="hover:bg-muted cursor-pointer"
-                      onClick={() => setExpanded(expanded === cat.id ? null : cat.id)}
-                    >
-                      <TableCell className="w-10 text-center">
-                        {cat.subcategories && cat.subcategories.length > 0 && (
-                          <AppButton appVariant="ghostMuted" variant="ghost" size="icon"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setExpanded(expanded === cat.id ? null : cat.id);
-                            }}
-                            className="h-8 w-8 hover:bg-muted rounded-lg transition-colors flex items-center justify-center mx-auto"
-                          >
-                            <ChevronRight
-                              className={cn(
-                                "w-4 h-4 text-muted-foreground transition-transform duration-200",
-                                expanded === cat.id && "rotate-90"
-                              )}
-                            />
-                          </AppButton>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                            <FolderOpen className="w-4 h-4 text-primary" />
-                          </div>
-                          <div>
-                            <p className="font-bold text-foreground">
-                              {cat.name}
-                            </p>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <code className="text-xs bg-white px-2 py-1 rounded border border-border text-muted-foreground font-mono">
-                          {cat.slug}
-                        </code>
-                      </TableCell>
-                      <TableCell className="text-center font-bold text-foreground">
-                        {cat.subcategories?.length || 0}
-                      </TableCell>
-                      <TableCell className="text-center font-bold text-foreground">
-                        {cat.courses || 0}
-                      </TableCell>
-                      <TableCell>
-                        {cat.status === true ? (
-                          <span
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleStatus(cat.id, false);
-                            }}
-                            className="inline-flex items-center gap-1.5 text-sm text-success font-medium cursor-pointer hover:underline"
-                          >
-                            <span className="w-2 h-2 rounded-full bg-success/10 text-success" />{" "}
-                            Hoạt động
-                          </span>
-                        ) : (
-                          <span
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleStatus(cat.id, true);
-                            }}
-                            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground font-medium cursor-pointer hover:underline"
-                          >
-                            <span className="w-2 h-2 rounded-full bg-muted" />{" "}
-                            Tạm ẩn
-                          </span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <div
-                          className="flex justify-center items-center gap-2"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <TableActionIconButton
-                            icon={Edit}
-                            onClick={(e) => handleEdit(e, cat)}
-                          />
-                          <TableActionIconButton
-                            icon={Trash2}
-                            colorVariant="error"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDelete(cat.id);
-                            }}
-                          />
-                        </div>
-                      </TableCell>
-                    </TableRow>
-
-                    {/* Subcategories expanded rows */}
-                    {expanded === cat.id &&
-                      cat.subcategories &&
-                      cat.subcategories.length > 0 &&
-                      cat.subcategories.map((sub) => (
-                        <TableRow
-                          key={sub.id}
-                          className="bg-muted/60 hover:bg-secondary"
-                        >
-                          <TableCell className="w-8" />
-                          <TableCell className="pl-12">
-                            <div className="flex items-center gap-3">
-                              <div className="w-1.5 h-1.5 rounded-full bg-muted" />
-                              <div>
-                                <p className="font-bold text-foreground">
-                                  {sub.name}
-                                </p>
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <code className="text-xs bg-white px-2 py-1 rounded border border-border text-muted-foreground font-mono">
-                              {sub.slug}
-                            </code>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <span className="text-sm text-muted-foreground font-medium block w-full">-</span>
-                          </TableCell>
-                          <TableCell className="text-center font-bold text-foreground">
-                            {sub.courses || 0}
-                          </TableCell>
-                          <TableCell>
-                            {sub.status === true ? (
-                              <span
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  toggleStatus(sub.id, false);
-                                }}
-                                className="inline-flex items-center gap-1.5 text-sm text-success font-medium cursor-pointer hover:underline"
-                              >
-                                <span className="w-2 h-2 rounded-full bg-success/10 text-success" />{" "}
-                                Hoạt động
-                              </span>
-                            ) : (
-                              <span
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  toggleStatus(sub.id, true);
-                                }}
-                                className="inline-flex items-center gap-1.5 text-sm text-muted-foreground font-medium cursor-pointer hover:underline"
-                              >
-                                <span className="w-2 h-2 rounded-full bg-muted" />{" "}
-                                Tạm ẩn
-                              </span>
-                            )}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <div
-                              className="flex justify-center items-center gap-2"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <AppButton appVariant="ghostMuted" variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-muted-foreground hover:text-primary border-none"
-                                onClick={(e) => handleEdit(e, sub, cat.id)}
-                              >
-                                <Edit className="w-4 h-4" />
-                              </AppButton>
-                              <AppButton appVariant="ghostMuted" variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-muted-foreground hover:text-error border-none"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDelete(sub.id);
-                                }}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </AppButton>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                  </React.Fragment>
-                ))
-              )}
-            </TableBody>
-          </Table>
-          {totalPages > 1 && (
-            <div className="flex flex-col sm:flex-row justify-between items-center py-4 px-4 bg-white border-t border-border gap-4">
-              <span className="text-sm font-medium text-muted-foreground">
-                Hiển thị {(currentPage - 1) * ITEMS_PER_PAGE + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, totalElements)} của {totalElements} chủ đề
-              </span>
-              <div className="flex gap-2">
-                <AppButton appVariant="ghostMuted" variant="ghost"
-                  size="sm"
-                  className="border border-border bg-white"
-                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                  disabled={currentPage === 1}
+      <DataTable
+        columns={[
+          {
+            header: "",
+            width: "40px",
+            className: "text-center",
+            cellClassName: "text-center w-10 mx-auto",
+            render: (cat) => (
+              cat.subcategories && cat.subcategories.length > 0 && (
+                <AppButton appVariant="ghostMuted" variant="ghost" size="icon"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setExpanded(expanded === cat.id ? null : cat.id);
+                  }}
+                  className="h-8 w-8 hover:bg-muted rounded-lg transition-colors flex items-center justify-center mx-auto"
                 >
-                  Trước
+                  <ChevronRight
+                    className={cn(
+                      "w-4 h-4 text-muted-foreground transition-transform duration-200",
+                      expanded === cat.id && "rotate-90"
+                    )}
+                  />
                 </AppButton>
-                {Array.from({ length: totalPages }).map((_, idx) => {
-                  const Btn = currentPage === idx + 1 ? TableActionIconButton : TableActionIconButton;
-                  return (
-                    <Btn
-                      key={idx}
-                      size="sm"
-                      className={`w-8 h-8 rounded-lg p-0 ${currentPage === idx + 1 ? 'bg-primary' : 'border border-border bg-white'}`}
-                      onClick={() => setCurrentPage(idx + 1)}
-                    >
-                      {idx + 1}
-                    </Btn>
-                  );
-                })}
-                <AppButton appVariant="ghostMuted" variant="ghost"
-                  size="sm"
-                  className="border border-border bg-white"
-                  onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-                  disabled={currentPage === totalPages}
-                >
-                  Sau
-                </AppButton>
+              )
+            ),
+          },
+          {
+            header: "Chủ đề",
+            width: "25%",
+            className: "text-left",
+            cellClassName: "text-left",
+            render: (cat) => (
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <FolderOpen className="w-4 h-4 text-primary" />
+                </div>
+                <div>
+                  <p className="font-bold text-foreground">
+                    {cat.name}
+                  </p>
+                </div>
               </div>
-            </div>
-          )}
-        </div>
-      </AppCard>
+            ),
+          },
+          {
+            header: "Slug",
+            width: "20%",
+            className: "text-left",
+            cellClassName: "text-left",
+            render: (cat) => (
+              <code className="text-xs bg-white px-2 py-1 rounded border border-border text-muted-foreground font-mono">
+                {cat.slug}
+              </code>
+            ),
+          },
+          {
+            header: "Chủ đề con",
+            width: "128px",
+            className: "text-center",
+            cellClassName: "text-center font-bold text-foreground",
+            render: (cat) => cat.subcategories?.length || 0,
+          },
+          {
+            header: "Khóa học",
+            width: "96px",
+            className: "text-center",
+            cellClassName: "text-center font-bold text-foreground",
+            render: (cat) => cat.courses || 0,
+          },
+          {
+            header: "Trạng thái",
+            width: "128px",
+            className: "text-center",
+            cellClassName: "text-center",
+            render: (cat) => (
+              cat.status === true ? (
+                <span
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleStatus(cat.id, false);
+                  }}
+                  className="inline-flex items-center justify-center gap-1.5 text-sm text-success font-medium cursor-pointer hover:underline"
+                >
+                  <span className="w-2 h-2 rounded-full bg-success/10 text-success" /> Hoạt động
+                </span>
+              ) : (
+                <span
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleStatus(cat.id, true);
+                  }}
+                  className="inline-flex items-center justify-center gap-1.5 text-sm text-muted-foreground font-medium cursor-pointer hover:underline"
+                >
+                  <span className="w-2 h-2 rounded-full bg-muted" /> Tạm ẩn
+                </span>
+              )
+            ),
+          },
+          {
+            header: "Thao tác",
+            width: "100px",
+            className: "text-center",
+            cellClassName: "text-center",
+            render: (cat) => (
+              <div
+                className="flex justify-center items-center gap-2"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <TableActionIconButton
+                  icon={Edit}
+                  onClick={(e) => handleEdit(e, cat)}
+                />
+                <TableActionIconButton
+                  icon={Trash2}
+                  colorVariant="error"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete(cat.id);
+                  }}
+                />
+              </div>
+            ),
+          }
+        ]}
+        data={categories}
+        isLoading={loading}
+        loadingState="Đang tải dữ liệu..."
+        emptyState="Không tìm thấy chủ đề nào phù hợp."
+        onRowClick={(cat) => setExpanded(expanded === cat.id ? null : cat.id)}
+        renderExpandedRow={(cat) => {
+          if (expanded !== cat.id || !cat.subcategories || cat.subcategories.length === 0) return null;
+          return cat.subcategories.map((sub) => (
+            <TableRow
+              key={sub.id}
+              className="bg-muted/60 hover:bg-secondary"
+            >
+              <TableCell className="w-10" />
+              <TableCell className="pl-12">
+                <div className="flex items-center gap-3">
+                  <div className="w-1.5 h-1.5 rounded-full bg-muted" />
+                  <div>
+                    <p className="font-bold text-foreground">
+                      {sub.name}
+                    </p>
+                  </div>
+                </div>
+              </TableCell>
+              <TableCell>
+                <code className="text-xs bg-white px-2 py-1 rounded border border-border text-muted-foreground font-mono">
+                  {sub.slug}
+                </code>
+              </TableCell>
+              <TableCell className="text-center">
+                <span className="text-sm text-muted-foreground font-medium block w-full">-</span>
+              </TableCell>
+              <TableCell className="text-center font-bold text-foreground">
+                {sub.courses || 0}
+              </TableCell>
+              <TableCell className="text-center">
+                {sub.status === true ? (
+                  <span
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleStatus(sub.id, false);
+                    }}
+                    className="inline-flex items-center justify-center gap-1.5 text-sm text-success font-medium cursor-pointer hover:underline"
+                  >
+                    <span className="w-2 h-2 rounded-full bg-success/10 text-success" /> Hoạt động
+                  </span>
+                ) : (
+                  <span
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleStatus(sub.id, true);
+                    }}
+                    className="inline-flex items-center justify-center gap-1.5 text-sm text-muted-foreground font-medium cursor-pointer hover:underline"
+                  >
+                    <span className="w-2 h-2 rounded-full bg-muted" /> Tạm ẩn
+                  </span>
+                )}
+              </TableCell>
+              <TableCell className="text-center">
+                <div
+                  className="flex justify-center items-center gap-2"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <AppButton appVariant="ghostMuted" variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-muted-foreground hover:text-primary border-none"
+                    onClick={(e) => handleEdit(e, sub, cat.id)}
+                  >
+                    <Edit className="w-4 h-4" />
+                  </AppButton>
+                  <AppButton appVariant="ghostMuted" variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-muted-foreground hover:text-error border-none"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(sub.id);
+                    }}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </AppButton>
+                </div>
+              </TableCell>
+            </TableRow>
+          ));
+        }}
+        pagination={{
+          currentPage,
+          totalPages,
+          totalItems: totalElements,
+          onPageChange: setCurrentPage,
+          pageSize: ITEMS_PER_PAGE,
+          zeroIndexed: false,
+        }}
+      />
       {/* Add Category Modal */}
       <AppDialog
         open={isAddModalOpen}
@@ -608,6 +561,8 @@ function AdminForumCategory({ hideHeader = false }) {
   const [categories, setCategories] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const FORUM_PAGE_SIZE = 10;
 
   const fetchCategories = async () => {
     try {
@@ -730,6 +685,14 @@ function AdminForumCategory({ hideHeader = false }) {
     return matchesSearch && matchesStatus;
   });
 
+  const forumTotalPages = Math.ceil(filteredCategories.length / FORUM_PAGE_SIZE);
+  const forumStartIndex = (currentPage - 1) * FORUM_PAGE_SIZE;
+  const paginatedForumCategories = filteredCategories.slice(forumStartIndex, forumStartIndex + FORUM_PAGE_SIZE);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterStatus]);
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -791,102 +754,100 @@ function AdminForumCategory({ hideHeader = false }) {
       </AppCard>
 
       {/* Categories Table */}
-      <AppCard appVariant="default" className="border-border shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader className="bg-muted">
-              <TableRow>
-                <TableHead className="py-4 font-semibold text-foreground w-[40%] min-w-[200px]">
-                  Chủ đề
-                </TableHead>
-                <TableHead className="py-4 font-semibold text-foreground w-[30%] min-w-[150px]">
-                  Slug
-                </TableHead>
-                <TableHead className="py-4 font-semibold text-foreground text-center w-32 whitespace-nowrap">
-                  Số bài viết
-                </TableHead>
-                <TableHead className="py-4 font-semibold text-foreground w-32 whitespace-nowrap">
-                  Trạng thái
-                </TableHead>
-                <TableHead className="py-4 font-semibold text-foreground text-center w-24 min-w-[100px]">
-                  Thao tác
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredCategories.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="h-32 text-center text-muted-foreground font-medium">
-                    Không tìm thấy chủ đề nào phù hợp.
-                  </TableCell>
-                </TableRow>
+      <DataTable
+        columns={[
+          {
+            header: "Chủ đề",
+            width: "40%",
+            className: "text-left",
+            cellClassName: "text-left",
+            render: (cat) => (
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <MessageSquare className="w-4 h-4 text-primary" />
+                </div>
+                <div>
+                  <p className="font-bold text-foreground">{cat.name}</p>
+                </div>
+              </div>
+            ),
+          },
+          {
+            header: "Slug",
+            width: "30%",
+            className: "text-left",
+            cellClassName: "text-left",
+            render: (cat) => (
+              <code className="text-xs bg-secondary px-2 py-1 rounded text-muted-foreground font-mono">
+                {cat.slug}
+              </code>
+            ),
+          },
+          {
+            header: "Số bài viết",
+            width: "128px",
+            className: "text-center",
+            cellClassName: "text-center",
+            render: (cat) => (
+              <span className="text-sm text-muted-foreground font-bold bg-secondary px-2.5 py-1 rounded-full">
+                {cat.threadCount || 0}
+              </span>
+            ),
+          },
+          {
+            header: "Trạng thái",
+            width: "128px",
+            className: "text-center",
+            cellClassName: "text-center",
+            render: (cat) => (
+              cat.status === true ? (
+                <span
+                  onClick={() => toggleStatus(cat.id, false)}
+                  className="inline-flex items-center justify-center gap-1.5 text-sm text-success font-medium cursor-pointer hover:underline"
+                >
+                  <span className="w-2 h-2 rounded-full bg-success/10 text-success" /> Hoạt động
+                </span>
               ) : (
-                filteredCategories.map((cat) => (
-                  <TableRow key={cat.id} className="hover:bg-muted">
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                          <MessageSquare className="w-4 h-4 text-primary" />
-                        </div>
-                        <div>
-                          <p className="font-bold text-foreground">{cat.name}</p>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <code className="text-xs bg-secondary px-2 py-1 rounded text-muted-foreground font-mono">
-                        {cat.slug}
-                      </code>
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <span className="text-sm text-muted-foreground font-bold bg-secondary px-2.5 py-1 rounded-full">
-                        {cat.threadCount || 0}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      {cat.status === true ? (
-                        <span
-                          onClick={() => toggleStatus(cat.id, false)}
-                          className="inline-flex items-center gap-1.5 text-sm text-success font-medium cursor-pointer hover:underline"
-                        >
-                          <span className="w-2 h-2 rounded-full bg-success/10 text-success" />{" "}
-                          Hoạt động
-                        </span>
-                      ) : (
-                        <span
-                          onClick={() => toggleStatus(cat.id, true)}
-                          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground font-medium cursor-pointer hover:underline"
-                        >
-                          <span className="w-2 h-2 rounded-full bg-muted" />{" "}
-                          Tạm ẩn
-                        </span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <div className="flex justify-center items-center gap-2">
-                        <AppButton appVariant="ghostMuted" variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-primary border-none"
-                          onClick={() => handleEdit(cat)}
-                        >
-                          <Edit className="w-4 h-4" />
-                        </AppButton>
-                        <AppButton appVariant="ghostMuted" variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-error border-none"
-                          onClick={() => handleDelete(cat.id)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </AppButton>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      </AppCard>
+                <span
+                  onClick={() => toggleStatus(cat.id, true)}
+                  className="inline-flex items-center justify-center gap-1.5 text-sm text-muted-foreground font-medium cursor-pointer hover:underline"
+                >
+                  <span className="w-2 h-2 rounded-full bg-muted" /> Tạm ẩn
+                </span>
+              )
+            ),
+          },
+          {
+            header: "Thao tác",
+            width: "100px",
+            className: "text-center",
+            cellClassName: "text-center",
+            render: (cat) => (
+              <div className="flex justify-center items-center gap-2">
+                <TableActionIconButton
+                  icon={Edit}
+                  onClick={() => handleEdit(cat)}
+                />
+                <TableActionIconButton
+                  icon={Trash2}
+                  colorVariant="error"
+                  onClick={() => handleDelete(cat.id)}
+                />
+              </div>
+            ),
+          },
+        ]}
+        data={paginatedForumCategories}
+        emptyState="Không tìm thấy chủ đề nào phù hợp."
+        pagination={{
+          currentPage,
+          totalPages: forumTotalPages,
+          totalItems: filteredCategories.length,
+          onPageChange: setCurrentPage,
+          pageSize: FORUM_PAGE_SIZE,
+          zeroIndexed: false,
+        }}
+      />
 
       {/* Add/Edit Category Modal */}
       <AppDialog

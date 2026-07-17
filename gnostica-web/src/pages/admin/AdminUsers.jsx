@@ -11,20 +11,20 @@ import {Plus,
   Unlock, Users} from "lucide-react";
 import DataTable from "@/components/common/composite/DataTable";
 import AppCard, { AppCardContent, AppCardHeader, AppCardTitle } from "@/components/common/micro/AppCard";
-import { Badge } from "@/components/ui/badge";
+import AppBadge from "@/components/common/micro/AppBadge";
 import { AppButton } from "@/components/common/micro/AppButton";
-import { Input } from "@/components/ui/input";
+import AppInput from "@/components/common/micro/AppInput";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/common/micro/AppTabs";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
+  AppDialogRoot as Dialog,
+  AppDialogContent as DialogContent,
+  AppDialogDescription as DialogDescription,
+  AppDialogFooter as DialogFooter,
+  AppDialogHeader as DialogHeader,
+  AppDialogTitle as DialogTitle,
+} from "@/components/common/micro/AppDialog";
+import AppTextarea from "@/components/common/micro/AppTextarea";
 import useAdminUsers from "@/hooks/user/useAdminUsers";
 
 export default function AdminUsers() {
@@ -80,18 +80,18 @@ export default function AdminUsers() {
       header: "Trạng thái",
       render: (acc) => (
         acc.locked ? (
-          <Badge className="bg-error/10 text-error shadow-none border-error/20">Bị khóa</Badge>
+          <AppBadge className="bg-error/10 text-error shadow-none border-error/20">Bị khóa</AppBadge>
         ) : acc.active ? (
-          <Badge className="bg-success/10 text-success shadow-none border-success/20">Hoạt động</Badge>
+          <AppBadge className="bg-success/10 text-success shadow-none border-success/20">Hoạt động</AppBadge>
         ) : (
-          <Badge variant="outline" className="text-muted-foreground">Chưa xác thực</Badge>
+          <AppBadge variant="outline" className="text-muted-foreground">Chưa xác thực</AppBadge>
         )
       )
     },
     {
       header: "Nơi đăng ký",
       cellClassName: "text-sm font-medium text-muted-foreground",
-      render: (acc) => <Badge variant="secondary" className="font-bold">{acc.provider || "Manual"}</Badge>
+      render: (acc) => <AppBadge variant="secondary" className="font-bold">{acc.provider || "Manual"}</AppBadge>
     },
     {
       header: "Điện thoại",
@@ -231,7 +231,7 @@ export default function AdminUsers() {
           <div className="flex w-full md:w-auto items-center gap-3">
             <div className="relative w-full md:w-80">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
+              <AppInput
                 placeholder="Tìm kiếm..."
                 className="pl-9 h-10 border-border"
                 value={searchTerm}
@@ -307,7 +307,7 @@ export default function AdminUsers() {
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
-            <Textarea
+            <AppTextarea
               placeholder="Nhập lý do tại đây..."
               value={lockReason}
               onChange={(e) => setLockReason(e.target.value)}
@@ -332,7 +332,7 @@ export default function AdminUsers() {
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
-            <Textarea
+            <AppTextarea
               placeholder="Nhập lý do tại đây..."
               value={rejectReason}
               onChange={(e) => setRejectReason(e.target.value)}

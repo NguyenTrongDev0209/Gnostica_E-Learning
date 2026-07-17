@@ -15,14 +15,14 @@ import {Search,
 import AppCard, { AppCardContent } from "@/components/common/micro/AppCard";
 import DataTable from "@/components/common/composite/DataTable";
 import { AppButton } from "@/components/common/micro/AppButton";
-import { Input } from "@/components/ui/input";
+import AppInput from "@/components/common/micro/AppInput";
 import AppBadge from "@/components/common/micro/AppBadge";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  AppDropdownMenuRoot as DropdownMenu,
+  AppDropdownMenuContent as DropdownMenuContent,
+  AppDropdownMenuItem as DropdownMenuItem,
+  AppDropdownMenuTrigger as DropdownMenuTrigger,
+} from "@/components/common/micro/AppDropdownMenu";
 // eslint-disable-next-line no-unused-vars
 import courseService from "@/services/course/courseService";
 
@@ -143,7 +143,7 @@ export default function AdminCourseModeration() {
         <div className="flex w-full lg:w-auto items-center gap-3">
           <div className="relative flex-1 lg:w-72">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
+            <AppInput
               placeholder="Tìm nhanh trong trang..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}

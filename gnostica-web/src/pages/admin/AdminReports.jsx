@@ -1,7 +1,7 @@
 import threadReportService from "@/services/forum/threadReportService";
 import React, { useState, useEffect } from "react";
 import { BarChart3, ShieldAlert, CheckCircle2, XCircle } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/common/micro/AppTabs";
 import DataTable from "@/components/common/composite/DataTable";
 import { AppButton } from "@/components/common/micro/AppButton";
 import { toast } from "sonner";

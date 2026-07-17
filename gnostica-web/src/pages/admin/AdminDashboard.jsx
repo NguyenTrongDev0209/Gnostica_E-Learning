@@ -4,7 +4,6 @@ import { ChartDateFilters } from "@/components/common/composite/DataFilter";
 
 import { AreaChart, Area, CartesianGrid, XAxis, YAxis, BarChart, Bar } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart";
-import { CardDescription } from "@/components/ui/card";
 import { Link } from "react-router-dom";
 import DataTable from "@/components/common/composite/DataTable";
 
@@ -13,7 +12,7 @@ import AppSelect from "@/components/common/micro/AppSelect";
 import AppInput from "@/components/common/micro/AppInput";
 import {ArrowUpRight, ArrowDownRight, TrendingUp, Users, BookOpen, ShoppingCart, LayoutDashboard} from "lucide-react";
 import { useDashboard } from "@/hooks/dashboard/useDashboard";
-import AppCard, { AppCardContent, AppCardHeader, AppCardTitle } from "@/components/common/micro/AppCard";
+import AppCard, { AppCardContent, AppCardHeader, AppCardTitle, AppCardDescription } from "@/components/common/micro/AppCard";
 import AppBadge from "@/components/common/micro/AppBadge";
 
 export default function AdminDashboard() {
@@ -207,7 +206,7 @@ function TopCourses({ data }) {
         <AppCard appVariant="default" className="lg:col-span-2 border-border shadow-sm flex flex-col">
             <AppCardHeader className="pb-2 border-b border-border">
                 <AppCardTitle className="text-lg font-bold text-foreground">Top Khóa Học Ghi Danh</AppCardTitle>
-                <CardDescription>Các khóa học có lượng học viên cao nhất</CardDescription>
+                <AppCardDescription>Các khóa học có lượng học viên cao nhất</AppCardDescription>
             </AppCardHeader>
             <AppCardContent className="pt-4 flex-1">
                 <ChartContainer config={topCoursesConfig} className="h-[260px] w-full">
@@ -274,7 +273,7 @@ function RecentOrders({ orders }) {
             <AppCardHeader className="flex flex-row items-center justify-between pb-2 border-b border-border">
                 <div>
                     <AppCardTitle className="text-lg font-bold text-foreground">Đơn Hàng Gần Đây</AppCardTitle>
-                    <CardDescription>Giao dịch thực tế qua hệ thống</CardDescription>
+                    <AppCardDescription>Giao dịch thực tế qua hệ thống</AppCardDescription>
                 </div>
                 <Link to="/admin/orders" className="text-sm text-primary font-medium hover:underline">
                     Xem tất cả

@@ -8,7 +8,7 @@ import AppCard, { AppCardContent } from "@/components/common/micro/AppCard";
 import AppSelect from "@/components/common/micro/AppSelect";
 import DataTable from "@/components/common/composite/DataTable";
 import { AppButton } from "@/components/common/micro/AppButton";
-import { Input } from "@/components/ui/input";
+import AppInput from "@/components/common/micro/AppInput";
 
 const COURSES_DATA = [
   { 
@@ -79,7 +79,7 @@ export default function AdminCourses() {
           <div className="flex w-full md:w-auto items-center gap-3">
             <div className="relative w-full md:w-80 border-border">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input 
+              <AppInput 
                 placeholder="Tìm khóa học theo tên..." 
                 className="pl-9 h-10 border-border focus:bg-white"
               />

@@ -1,16 +1,19 @@
 import { format } from "date-fns";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AppButton } from "@/components/common/micro/AppButton";
-import { Input } from "@/components/ui/input";
-// Fix imported
+import { AppButton, TableActionIconButton } from "@/components/common/micro/AppButton";
 import DataTable from "@/components/common/composite/DataTable";
 import React, { useState, useEffect } from "react";
 import AppSelect from "@/components/common/micro/AppSelect";
 import AppInput from "@/components/common/micro/AppInput";
-import {Search, CreditCard, History} from "lucide-react";
+import {Search, CreditCard, History, ArrowDownCircle, ShoppingBag, ArrowUpCircle, Eye, Info, DollarSign, Calendar, Building2, User} from "lucide-react";
 import { useTransactions } from "@/hooks/payment/useTransactions";
 import AppCard, { AppCardContent, AppCardHeader, AppCardTitle } from "@/components/common/micro/AppCard";
 import AppBadge from "@/components/common/micro/AppBadge";
+import {
+  AppDialogRoot as Dialog,
+  AppDialogContent as DialogContent,
+  AppDialogHeader as DialogHeader,
+  AppDialogTitle as DialogTitle,
+} from "@/components/common/micro/AppDialog";
 
 export default function AdminTransactions() {
   // eslint-disable-next-line no-unused-vars
@@ -125,7 +128,7 @@ function TransactionStatsFilter({
           <div className="flex flex-col md:flex-row gap-3">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
+              <AppInput
                 placeholder="Tìm giao dịch (mã, nội dung)..."
                 className="pl-9 h-10 border-border focus:bg-white"
                 value={searchTerm}
@@ -134,31 +137,33 @@ function TransactionStatsFilter({
             </div>
             
             <div className="w-full md:w-[150px] flex-shrink-0">
-              <Select value={typeFilter} onValueChange={onTypeChange}>
-                <SelectTrigger className="!h-10 w-full border-border focus:ring-0 bg-white text-muted-foreground">
-                  <SelectValue placeholder="Phân loại" />
-                </SelectTrigger>
-                <SelectContent className="z-[9999] bg-white border border-border shadow-md">
-                  <SelectItem value="all">Tất cả loại</SelectItem>
-                  <SelectItem value="1">Nạp tiền</SelectItem>
-                  <SelectItem value="2">Thanh toán</SelectItem>
-                  <SelectItem value="3">Rút tiền</SelectItem>
-                </SelectContent>
-              </Select>
+              <AppSelect
+                value={typeFilter}
+                onValueChange={onTypeChange}
+                placeholder="Phân loại"
+                options={[
+                  { label: "Tất cả loại", value: "all" },
+                  { label: "Nạp tiền", value: "1" },
+                  { label: "Thanh toán", value: "2" },
+                  { label: "Rút tiền", value: "3" },
+                ]}
+                className="!h-10 text-muted-foreground"
+              />
             </div>
 
             <div className="w-full md:w-[150px] flex-shrink-0">
-              <Select value={statusFilter} onValueChange={onStatusChange}>
-                <SelectTrigger className="!h-10 w-full border-border focus:ring-0 bg-white text-muted-foreground">
-                  <SelectValue placeholder="Trạng thái" />
-                </SelectTrigger>
-                <SelectContent className="z-[9999] bg-white border border-border shadow-md">
-                  <SelectItem value="all">Tất cả trạng thái</SelectItem>
-                  <SelectItem value="1">Thành công</SelectItem>
-                  <SelectItem value="0">Chờ xử lý</SelectItem>
-                  <SelectItem value="2">Thất bại</SelectItem>
-                </SelectContent>
-              </Select>
+              <AppSelect
+                value={statusFilter}
+                onValueChange={onStatusChange}
+                placeholder="Trạng thái"
+                options={[
+                  { label: "Tất cả trạng thái", value: "all" },
+                  { label: "Thành công", value: "1" },
+                  { label: "Chờ xử lý", value: "0" },
+                  { label: "Thất bại", value: "2" },
+                ]}
+                className="!h-10 text-muted-foreground"
+              />
             </div>
           </div>
         </AppCardContent>

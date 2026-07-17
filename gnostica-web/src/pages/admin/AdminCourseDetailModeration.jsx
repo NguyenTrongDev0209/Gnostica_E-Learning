@@ -1,9 +1,8 @@
 import React from "react";
 import { AppButton } from "@/components/common/micro/AppButton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
-import { Badge } from "@/components/ui/badge";
-// Fix imported
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/common/micro/AppTabs";
+import { AppAccordionRoot as Accordion, AppAccordionItem as AccordionItem, AppAccordionTrigger as AccordionTrigger, AppAccordionContent as AccordionContent } from "@/components/common/micro/AppAccordion";
+import AppBadge from "@/components/common/micro/AppBadge";
 
 import AppSelect from "@/components/common/micro/AppSelect";
 import AppInput from "@/components/common/micro/AppInput";
@@ -106,10 +105,10 @@ export default function AdminCourseDetailModeration() {
 
   const getStatusBadge = (status) => {
     switch (status) {
-      case 4: return <Badge className="bg-amber-50 text-amber-700 border-amber-200"><span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse mr-1"></span> Chờ duyệt</Badge>;
-      case 1: return <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200">Đã duyệt</Badge>;
-      case 3: return <Badge className="bg-rose-50 text-rose-700 border-rose-200">Bị từ chối</Badge>;
-      default: return <Badge className="bg-muted text-muted-foreground border-border">Khác</Badge>;
+      case 4: return <AppBadge className="bg-amber-50 text-amber-700 border-amber-200"><span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse mr-1"></span> Chờ duyệt</AppBadge>;
+      case 1: return <AppBadge className="bg-emerald-50 text-emerald-700 border-emerald-200">Đã duyệt</AppBadge>;
+      case 3: return <AppBadge className="bg-rose-50 text-rose-700 border-rose-200">Bị từ chối</AppBadge>;
+      default: return <AppBadge className="bg-muted text-muted-foreground border-border">Khác</AppBadge>;
     }
   };
 
@@ -198,7 +197,7 @@ export default function AdminCourseDetailModeration() {
                           <TabsTrigger value="attachments" className="font-bold text-xs flex items-center gap-2">
                             <FileText className="w-3.5 h-3.5 text-indigo-600" /> Tài liệu chương
                             {activePreview.moduleAttachments?.length > 0 && (
-                              <Badge className="h-4 px-1.5 py-0 text-[10px] bg-indigo-100 text-indigo-700">{activePreview.moduleAttachments.length}</Badge>
+                              <AppBadge className="h-4 px-1.5 py-0 text-[10px] bg-indigo-100 text-indigo-700">{activePreview.moduleAttachments.length}</AppBadge>
                             )}
                           </TabsTrigger>
                         </TabsList>

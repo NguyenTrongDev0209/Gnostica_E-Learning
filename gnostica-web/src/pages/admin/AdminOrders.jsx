@@ -1,7 +1,5 @@
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/common/micro/AppSelect";
 import { AppButton } from "@/components/common/micro/AppButton";
-import { Input } from "@/components/ui/input";
-// Fix imported
 import DataTable from "@/components/common/composite/DataTable";
 import React, { useState, useEffect } from "react";
 import AppSelect from "@/components/common/micro/AppSelect";
@@ -118,7 +116,7 @@ function OrderStatsFilter({
           <div className="flex flex-col md:flex-row gap-3">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
+              <AppInput
                 placeholder="Tìm đơn hàng (mã, khách hàng)..."
                 className="pl-9 h-10 border-border focus:bg-white"
                 value={searchTerm}
@@ -181,6 +179,7 @@ function OrderTable({ orders, isLoading, onDetailClick, startIndex = 0, paginati
 
   return (
     <DataTable
+          pagination={pagination}
           columns={[
             {
               header: "STT",

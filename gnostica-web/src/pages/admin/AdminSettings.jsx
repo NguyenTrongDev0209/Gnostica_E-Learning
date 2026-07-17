@@ -1,8 +1,6 @@
 import { CardDescription } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/common/micro/AppTabs";
+import AppTextarea from "@/components/common/micro/AppTextarea";
 import { Switch } from "@/components/ui/switch";
 // Fix imported
 import React, { useState } from "react";
@@ -102,11 +100,11 @@ function GeneralSettings() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="siteName" className="text-xs font-bold uppercase text-muted-foreground">Tên Website</Label>
-              <Input id="siteName" placeholder="Gnostica E-Learning" defaultValue="Gnostica E-Learning" className="border-border" />
+              <AppInput id="siteName" placeholder="Gnostica E-Learning" defaultValue="Gnostica E-Learning" className="border-border" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="tagline" className="text-xs font-bold uppercase text-muted-foreground">Slogan</Label>
-              <Input id="tagline" placeholder="Tri thức không giới hạn" defaultValue="Tri thức không giới hạn" className="border-border" />
+              <AppInput id="tagline" placeholder="Tri thức không giới hạn" defaultValue="Tri thức không giới hạn" className="border-border" />
             </div>
           </div>
           
@@ -125,7 +123,7 @@ function GeneralSettings() {
 
           <div className="space-y-2">
             <Label htmlFor="footerText" className="text-xs font-bold uppercase text-muted-foreground">Văn bản chân trang (Footer)</Label>
-            <Textarea id="footerText" placeholder="Nhập nội dung hiển thị ở cuối trang..." className="min-h-[100px] border-border focus:bg-white" />
+            <AppTextarea id="footerText" placeholder="Nhập nội dung hiển thị ở cuối trang..." className="min-h-[100px] border-border focus:bg-white" />
           </div>
         </AppCardContent>
       </AppCard>
@@ -144,21 +142,21 @@ function GeneralSettings() {
               <Label htmlFor="email" className="text-xs font-bold uppercase text-muted-foreground">Email liên hệ</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input id="email" defaultValue="contact@gnostica.com" className="pl-9 border-border" />
+                <AppInput id="email" defaultValue="contact@gnostica.com" className="pl-9 border-border" />
               </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="phone" className="text-xs font-bold uppercase text-muted-foreground">Số điện thoại</Label>
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input id="phone" defaultValue="0987 654 321" className="pl-9 border-border" />
+                <AppInput id="phone" defaultValue="0987 654 321" className="pl-9 border-border" />
               </div>
             </div>
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="address" className="text-xs font-bold uppercase text-muted-foreground">Địa chỉ văn phòng</Label>
               <div className="relative">
                 <MapPin className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
-                <Textarea id="address" defaultValue="Số 1 Trịnh Văn Bô, Nam Từ Liêm, Hà Nội" className="pl-9 min-h-[80px] border-border" />
+                <AppTextarea id="address" defaultValue="Số 1 Trịnh Văn Bô, Nam Từ Liêm, Hà Nội" className="pl-9 min-h-[80px] border-border" />
               </div>
             </div>
           </div>
@@ -187,21 +185,21 @@ function PaymentConfigSettings() {
             <Label htmlFor="clientId" className="text-xs font-bold uppercase text-muted-foreground">Client ID</Label>
             <div className="relative">
               <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input id="clientId" type="password" placeholder="Nhập Client ID..." defaultValue="**********************" className="pl-9 border-border" />
+              <AppInput id="clientId" type="password" placeholder="Nhập Client ID..." defaultValue="**********************" className="pl-9 border-border" />
             </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor="apiKey" className="text-xs font-bold uppercase text-muted-foreground">API Key</Label>
             <div className="relative">
               <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input id="apiKey" type="password" placeholder="Nhập API Key..." defaultValue="**********************" className="pl-9 border-border" />
+              <AppInput id="apiKey" type="password" placeholder="Nhập API Key..." defaultValue="**********************" className="pl-9 border-border" />
             </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor="checksumKey" className="text-xs font-bold uppercase text-muted-foreground">Checksum Key</Label>
             <div className="relative">
               <ShieldCheck className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input id="checksumKey" type="password" placeholder="Nhập Checksum Key..." defaultValue="**********************" className="pl-9 border-border" />
+              <AppInput id="checksumKey" type="password" placeholder="Nhập Checksum Key..." defaultValue="**********************" className="pl-9 border-border" />
             </div>
           </div>
         </AppCardContent>
@@ -234,7 +232,7 @@ function PaymentConfigSettings() {
 
           <div className="space-y-2">
             <Label htmlFor="currencyPrefix" className="text-xs font-bold uppercase text-muted-foreground">Đơn vị tiền tệ hiển thị</Label>
-            <Input id="currencyPrefix" defaultValue="đ" className="w-[100px] border-border" />
+            <AppInput id="currencyPrefix" defaultValue="đ" className="w-[100px] border-border" />
           </div>
         </AppCardContent>
       </AppCard>
@@ -256,16 +254,16 @@ function SecuritySettings() {
         <AppCardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="currentPass" className="text-xs font-bold uppercase text-muted-foreground">Mật khẩu hiện tại</Label>
-            <Input id="currentPass" type="password" placeholder="••••••••" className="border-border" />
+            <AppInput id="currentPass" type="password" placeholder="••••••••" className="border-border" />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="newPass" className="text-xs font-bold uppercase text-muted-foreground">Mật khẩu mới</Label>
-              <Input id="newPass" type="password" placeholder="••••••••" className="border-border" />
+              <AppInput id="newPass" type="password" placeholder="••••••••" className="border-border" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="confirmPass" className="text-xs font-bold uppercase text-muted-foreground">Xác nhận mật khẩu mới</Label>
-              <Input id="confirmPass" type="password" placeholder="••••••••" className="border-border" />
+              <AppInput id="confirmPass" type="password" placeholder="••••••••" className="border-border" />
             </div>
           </div>
           <div className="flex justify-end mt-4">
