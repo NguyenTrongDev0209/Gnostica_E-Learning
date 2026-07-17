@@ -17,4 +17,5 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
     java.util.List<Account> findByRoleName(String roleName);
     Optional<Account> findByIdAndRoleName(UUID id, String roleName);
     java.util.List<Account> findByMetadataIsNotNull();
+    Optional<Account> findByPhone(String phone);
 }

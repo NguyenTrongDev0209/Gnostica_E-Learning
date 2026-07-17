@@ -111,7 +111,7 @@ export default function useAdminUsers() {
   });
 
   const handleToggleLock = async (user) => {
-    if (user.locked) {
+    if (user.status === 2) {
       await unlockMutation.mutateAsync(user.id);
     } else {
       setSelectedUser(user);
