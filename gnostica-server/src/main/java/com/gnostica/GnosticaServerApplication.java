@@ -17,6 +17,13 @@ public class GnosticaServerApplication {
 				.ignoreIfMissing()
 				.load();
 
+		if (dotenv.entries().isEmpty()) {
+			dotenv = Dotenv.configure()
+					.directory("./gnostica-server")
+					.ignoreIfMissing()
+					.load();
+		}
+
 		dotenv.entries().forEach(entry -> System.setProperty(entry.getKey(), entry.getValue()));
 
 		SpringApplication.run(GnosticaServerApplication.class, args);
