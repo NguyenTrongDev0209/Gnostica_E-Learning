@@ -8,7 +8,7 @@ import { useForgotPassword } from '@/hooks/auth/useForgotPassword';
 
 const ForgotPassword = () => {
   const {
-    contact, setContact,
+    email, setEmail,
     loading,
     sent,
     error, setError,
@@ -16,24 +16,24 @@ const ForgotPassword = () => {
   } = useForgotPassword();
 
   return (
-    <div className="w-full max-w-[480px]">
+    <div className="w-full max-w-[540px]">
       <Card className="shadow-lg border-border bg-white/80 backdrop-blur-md">
         <CardContent className="p-6 sm:p-8">
           <div className="text-center mb-6">
             <h1 className="text-3xl font-bold text-foreground tracking-tight">Quên mật khẩu?</h1>
             <p className="text-muted-foreground mt-2 text-sm max-w-xs mx-auto">
-              Nhập email hoặc số điện thoại của bạn, chúng tôi sẽ gửi mã xác nhận để đặt lại mật khẩu.
+              Nhập email của bạn, chúng tôi sẽ gửi mã xác nhận để đặt lại mật khẩu.
             </p>
           </div>
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
         <AppInput
-          id="contact"
-          type="text"
-          label="Email hoặc Số điện thoại"
-          placeholder="you@example.com hoặc 0912 345 678"
-          value={contact}
+          id="email"
+          type="email"
+          label="Email"
+          placeholder="you@example.com"
+          value={email}
           onChange={(e) => {
-            setContact(e.target.value);
+            setEmail(e.target.value);
             if (error) setError('');
           }}
           icon={Mail}

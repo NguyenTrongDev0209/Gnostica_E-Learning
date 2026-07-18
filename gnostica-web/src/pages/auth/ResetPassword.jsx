@@ -16,7 +16,7 @@ const ResetPassword = () => {
   } = useResetPassword();
 
   return (
-    <div className="w-full max-w-[480px]">
+    <div className="w-full max-w-[540px]">
       <Card className="shadow-lg border-border bg-white/80 backdrop-blur-md">
         <CardContent className="p-6 sm:p-8">
           <div className="text-center mb-6">
