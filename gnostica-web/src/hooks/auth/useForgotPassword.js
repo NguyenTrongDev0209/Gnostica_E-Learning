@@ -5,20 +5,19 @@ import { toast } from 'sonner';
 
 export const useForgotPassword = () => {
   const navigate = useNavigate();
-  const [contact, setContact] = useState('');
+  const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState('');
 
   const validateForm = () => {
-    if (!contact.trim()) {
-      setError('Vui lòng nhập email hoặc số điện thoại');
+    if (!email.trim()) {
+      setError('Vui lòng nhập email');
       return false;
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const phoneRegex = /^(0|84)(3|5|7|8|9)([0-9]{8})$/;
-    if (!emailRegex.test(contact) && !phoneRegex.test(contact)) {
-      setError('Email hoặc số điện thoại không hợp lệ');
+    if (!emailRegex.test(email)) {
+      setError('Email không hợp lệ');
       return false;
     }
     return true;
@@ -30,10 +29,10 @@ export const useForgotPassword = () => {
     setLoading(true);
     
     try {
-      await authService.forgotPassword(contact);
+      await authService.forgotPassword(email);
       setSent(true);
       toast.success('Mã xác thực đã được gửi vào email của bạn.');
-      setTimeout(() => navigate(`/confirm-code?email=${contact}&type=reset`), 1500);
+      setTimeout(() => navigate(`/confirm-code?email=${email}&type=reset`), 1500);
     } catch (err) {
       toast.error(err.toString());
       setError(err.toString());
@@ -43,7 +42,7 @@ export const useForgotPassword = () => {
   };
 
   return {
-    contact, setContact,
+    email, setEmail,
     loading,
     sent,
     error, setError,

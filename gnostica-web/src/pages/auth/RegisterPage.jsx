@@ -23,7 +23,7 @@ const RegisterPage = () => {
   } = useRegister();
 
   return (
-    <div className="w-full max-w-[480px]">
+    <div className="w-full max-w-[540px]">
       <Card className="shadow-lg border-border bg-white/80 backdrop-blur-md">
         <CardContent className="p-6 sm:p-8">
           <div className="text-center mb-6">
@@ -89,7 +89,7 @@ const RegisterPage = () => {
 
         {/* Agree Terms */}
         <div className="flex flex-col gap-1">
-          <div className="flex items-start gap-2">
+          <div className="flex items-center gap-2">
             <Checkbox
               id="agreeTerms"
               checked={agreeTerms}
@@ -97,7 +97,7 @@ const RegisterPage = () => {
                 setAgreeTerms(val);
                 if (errors.agreeTerms) setErrors({ ...errors, agreeTerms: '' });
               }}
-              className={`mt-1 border-border ${errors.agreeTerms ? 'border-error/20' : ''}`}
+              className={`border-border ${errors.agreeTerms ? 'border-error/20' : ''}`}
             />
             <Label htmlFor="agreeTerms" className="text-sm text-muted-foreground cursor-pointer font-normal leading-relaxed">
               Tôi đồng ý với{' '}

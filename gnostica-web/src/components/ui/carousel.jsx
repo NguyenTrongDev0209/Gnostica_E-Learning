@@ -144,7 +144,7 @@ function CarouselItem({
 function CarouselPrevious({
   className,
   variant = "outline",
-  size = "icon-sm",
+  size = "icon",
   ...props
 }) {
   const { orientation, scrollPrev, canScrollPrev } = useCarousel()
@@ -154,9 +154,9 @@ function CarouselPrevious({
       data-slot="carousel-previous"
       variant={variant}
       size={size}
-      className={cn("absolute touch-manipulation rounded-full active:scale-95 transition-transform", orientation === "horizontal"
-        ? "top-1/2 -left-12 -translate-y-1/2"
-        : "-top-12 left-1/2 -translate-x-1/2 rotate-90", className)}
+      className={cn("absolute touch-manipulation rounded-full h-10 w-10 md:h-12 md:w-12 p-0 flex items-center justify-center hover:scale-110 active:scale-110 transition-all duration-200", orientation === "horizontal"
+        ? "top-1/2 -left-12 -translate-y-1/2 active:-translate-y-1/2"
+        : "-top-12 left-1/2 -translate-x-1/2 active:-translate-x-1/2 rotate-90", className)}
       disabled={!canScrollPrev}
       onClick={scrollPrev}
       {...props}>
@@ -169,7 +169,7 @@ function CarouselPrevious({
 function CarouselNext({
   className,
   variant = "outline",
-  size = "icon-sm",
+  size = "icon",
   ...props
 }) {
   const { orientation, scrollNext, canScrollNext } = useCarousel()
@@ -179,9 +179,9 @@ function CarouselNext({
       data-slot="carousel-next"
       variant={variant}
       size={size}
-      className={cn("absolute touch-manipulation rounded-full active:scale-95 transition-transform", orientation === "horizontal"
-        ? "top-1/2 -right-12 -translate-y-1/2"
-        : "-bottom-12 left-1/2 -translate-x-1/2 rotate-90", className)}
+      className={cn("absolute touch-manipulation rounded-full h-10 w-10 md:h-12 md:w-12 p-0 flex items-center justify-center hover:scale-110 active:scale-110 transition-all duration-200", orientation === "horizontal"
+        ? "top-1/2 -right-12 -translate-y-1/2 active:-translate-y-1/2"
+        : "-bottom-12 left-1/2 -translate-x-1/2 active:-translate-x-1/2 rotate-90", className)}
       disabled={!canScrollNext}
       onClick={scrollNext}
       {...props}>

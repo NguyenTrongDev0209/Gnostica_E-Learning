@@ -97,13 +97,12 @@ function MainHeroCarousel() {
 
         <div className="hidden md:flex absolute bottom-4 left-1/2 -translate-x-1/2 items-center gap-1.5 md:gap-2 px-2 py-1 md:px-3 md:py-1.5 bg-foreground/20 backdrop-blur-md rounded-full border border-foreground/10">
           {slides.map((_, index) => (
-            <Button
-              variant="ghost"
+            <button
               key={index}
               onClick={() => api?.scrollTo(index)}
               className={`transition-all duration-300 rounded-full ${currentIndex === index
-                ? "w-4 h-1.5 md:w-6 md:h-2 bg-background"
-                : "w-1.5 h-1.5 md:w-2 md:h-2 bg-background/50 hover:bg-background/80"
+                ? "w-4 h-1 md:w-5 md:h-1 bg-background"
+                : "w-1.5 h-1.5 md:w-1.5 md:h-1.5 bg-background/50 hover:bg-background/80"
                 }`}
               aria-label={`Chuyển đến slide ${index + 1}`}
             />

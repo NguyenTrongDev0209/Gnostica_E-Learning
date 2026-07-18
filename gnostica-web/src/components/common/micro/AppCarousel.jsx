@@ -110,6 +110,7 @@ export default function AppCarousel({
                 renderItem ? renderItem(item, index, isActive) : item
               )}
             </CarouselItem>
+
           );
         })}
       </CarouselContent>
@@ -117,13 +118,13 @@ export default function AppCarousel({
       {!hideControls && (
         <>
           <CarouselPrevious className={cn(
-            "hidden md:flex glass hover:bg-background transition-transform active:scale-105 active:-translate-y-1/2 z-40",
+            "hidden md:flex glass hover:bg-background transition-transform active:scale-110 active:-translate-y-1/2 z-40",
             variant === "centered-focus" ? "-left-4 lg:-left-6 w-12 h-12 shadow-xl hover:scale-110" :
             variant === "sub-banner" ? "-left-4 lg:-left-6" :
             variant === "hero" ? "left-4" : "left-2"
           )} />
           <CarouselNext className={cn(
-            "hidden md:flex glass hover:bg-background transition-transform active:scale-105 active:-translate-y-1/2 z-40",
+            "hidden md:flex glass hover:bg-background transition-transform active:scale-110 active:-translate-y-1/2 z-40",
             variant === "centered-focus" ? "-right-4 lg:-right-6 w-12 h-12 shadow-xl hover:scale-110" :
             variant === "sub-banner" ? "-right-4 lg:-right-6" :
             variant === "hero" ? "right-4" : "right-2"
