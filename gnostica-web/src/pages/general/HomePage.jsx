@@ -148,7 +148,7 @@ const PlatformStats = () => {
                   <Icon className="w-7 h-7 stroke-[1.5]" />
                 </div>
                 <div className="flex flex-col items-center gap-1 text-center">
-                  <span className="text-3xl md:text-4xl font-black text-foreground tracking-tight drop-shadow-sm">
+                  <span className="text-3xl md:text-4xl font-bold text-foreground tracking-tight drop-shadow-sm">
                     {stat.value}
                   </span>
                   <span className="text-xs md:text-sm font-bold text-muted-foreground uppercase tracking-widest">
@@ -277,7 +277,7 @@ const CategoryGrid = () => {
         const colorClass = cat.colorClass || defaultColors[idx % defaultColors.length];
 
         return (
-          <Card key={cat.id || idx} className="group relative overflow-hidden p-6 w-full hover:shadow-lg transition-all hover:-translate-y-1 cursor-pointer">
+          <Card appVariant="default" key={cat.id || idx} className="group relative overflow-hidden p-6 w-full hover-lift cursor-pointer">
             <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${colorClass}`}>
               <Icon className="w-6 h-6" />
             </div>
@@ -353,11 +353,11 @@ const InstructorGrid = () => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
       {instructors.map((instructor, idx) => (
-        <Card key={idx} className="flex flex-col items-center p-6 text-center w-full hover:shadow-lg transition-all hover:-translate-y-1 cursor-pointer">
-          <img src={instructor.avatar} alt={instructor.name} className="w-24 h-24 rounded-full mb-4 object-cover border-4 border-background shadow-sm" />
-          <h3 className="font-bold text-lg">{instructor.name}</h3>
+        <Card appVariant="default" key={idx} className="flex flex-col items-center p-6 text-center w-full hover-lift cursor-pointer">
+          <img src={instructor.avatar} alt={instructor.name} className="w-24 h-24 rounded-full mb-4 object-cover border-2 border-background shadow-sm" />
+          <h3 className="font-semibold text-lg">{instructor.name}</h3>
           <p className="text-primary text-sm font-medium mb-3">{instructor.role}</p>
-          <div className="flex items-center gap-4 text-xs text-muted-foreground w-full justify-center border-t pt-3 mt-auto">
+          <div className="flex items-center gap-4 text-xs text-muted-foreground w-full justify-center border-t border-border/60 pt-3 mt-auto">
             <div className="flex items-center gap-1">
               <Users className="w-4 h-4" />
               <span>{instructor.students} hb</span>
@@ -440,7 +440,7 @@ const OutcomeBanner = () => {
             </defs>
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-2xl md:text-3xl font-black text-background">95%</span>
+            <span className="text-2xl md:text-3xl font-bold text-background">95%</span>
           </div>
         </div>
       </div>

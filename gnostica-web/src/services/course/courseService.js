@@ -91,14 +91,14 @@ const deleteDraft = async ({ courseId, slug } = {}) => {
     return response.data;
 };
 
-const getPublicCourses = async ({ categoryId, categorySlug, level, search, page = 0, size = 9 } = {}) => {
+const getPublicCourses = async ({ categoryId, categorySlug, level, search, page = 0, size = 9, signal } = {}) => {
     const params = { page, size };
     if (categoryId) params.categoryId = categoryId;
     if (categorySlug) params.categorySlug = categorySlug;
     if (level && level !== 'all') params.level = level;
     if (search && search.trim() !== "") params.search = search.trim();
 
-    const response = await axiosClient.get(API_URL, { params });
+    const response = await axiosClient.get(API_URL, { params, signal });
     return response.data;
 };
 

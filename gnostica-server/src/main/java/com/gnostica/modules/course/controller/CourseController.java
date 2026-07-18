@@ -35,10 +35,11 @@ public class CourseController {
             @RequestParam(required = false) Integer categoryId,
             @RequestParam(required = false) String categorySlug,
             @RequestParam(required = false) String level,
+            @RequestParam(required = false) String search,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "9") int size
     ) {
-        return ResponseEntity.ok(courseService.getPublicCourses(categoryId, categorySlug, level, page, size));
+        return ResponseEntity.ok(courseService.getPublicCourses(categoryId, categorySlug, level, search, page, Math.min(size, 20)));
     }
 
     @GetMapping("/public-levels")

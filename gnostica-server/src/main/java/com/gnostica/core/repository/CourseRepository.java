@@ -63,17 +63,24 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
                     "AND (:categoryId = -1 OR cat.id = :categoryId OR parent.id = :categoryId) " +
                     "AND (:categorySlug = '' OR cat.slug = :categorySlug OR parent.slug = :categorySlug) " +
                     "AND (:level = '' OR c.level = :level) " +
+                    "AND (:search = '' OR LOWER(c.title) LIKE LOWER(CONCAT('%', :search, '%')) " +
+                    "OR LOWER(cat.name) LIKE LOWER(CONCAT('%', :search, '%')) " +
+                    "OR LOWER(c.account.fullName) LIKE LOWER(CONCAT('%', :search, '%'))) " +
                     "AND c.deletedAt IS NULL",
             countQuery = "SELECT COUNT(c) FROM Course c JOIN c.category cat LEFT JOIN cat.parent parent " +
                     "WHERE c.status = 1 " +
                     "AND (:categoryId = -1 OR cat.id = :categoryId OR parent.id = :categoryId) " +
                     "AND (:categorySlug = '' OR cat.slug = :categorySlug OR parent.slug = :categorySlug) " +
                     "AND (:level = '' OR c.level = :level) " +
+                    "AND (:search = '' OR LOWER(c.title) LIKE LOWER(CONCAT('%', :search, '%')) " +
+                    "OR LOWER(cat.name) LIKE LOWER(CONCAT('%', :search, '%')) " +
+                    "OR LOWER(c.account.fullName) LIKE LOWER(CONCAT('%', :search, '%'))) " +
                     "AND c.deletedAt IS NULL")
     org.springframework.data.domain.Page<Course> findPublicCourses(
             @org.springframework.data.repository.query.Param("categoryId") Integer categoryId,
             @org.springframework.data.repository.query.Param("categorySlug") String categorySlug,
             @org.springframework.data.repository.query.Param("level") String level,
+            @org.springframework.data.repository.query.Param("search") String search,
             org.springframework.data.domain.Pageable pageable);
 
     @org.springframework.data.jpa.repository.Query("SELECT DISTINCT c.level FROM Course c WHERE c.status = 1 AND c.deletedAt IS NULL AND c.level IS NOT NULL")

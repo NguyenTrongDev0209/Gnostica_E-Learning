@@ -563,15 +563,16 @@ public class CourseService {
 
     @Transactional(readOnly = true)
     public org.springframework.data.domain.Page<CourseResponse> getPublicCourses(Integer categoryId, String categorySlug,
-            String level, int page, int size) {
+            String level, String search, int page, int size) {
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size,
                 org.springframework.data.domain.Sort.by("id").descending());
         int categoryIdFilter = categoryId == null ? -1 : categoryId;
         String categorySlugFilter = categorySlug == null ? "" : categorySlug.trim();
         String levelFilter = (level != null && !level.trim().isEmpty() && !level.equalsIgnoreCase("all"))
                 ? level.trim() : "";
+        String searchFilter = search == null ? "" : search.trim();
         org.springframework.data.domain.Page<Course> coursesPage = courseRepository.findPublicCourses(
-                categoryIdFilter, categorySlugFilter, levelFilter, pageable);
+                categoryIdFilter, categorySlugFilter, levelFilter, searchFilter, pageable);
         return coursesPage.map(this::mapToCourseResponse);
     }
 
