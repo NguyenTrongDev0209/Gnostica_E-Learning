@@ -5,14 +5,9 @@ import {
     LayoutGrid,
     Flame
 } from "lucide-react"
-import {
-    AppHamburgerButton,
-    AppLogo,
-    AppUserMenu,
-    CategoryButton
-} from "@/components/common/AppButton"
-import AppSearchInput from "@/components/common/AppSearchInput"
-import NotificationBell from "@/components/common/NotificationBell"
+import { AppHamburgerButton, AppLogo, AppUserMenu, AppButton } from "@/components/common/micro/AppButton"
+import AppSearchInput from "@/components/common/micro/AppSearchInput"
+import NotificationBell from "@/components/common/composite/NotificationBell"
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -49,7 +44,7 @@ const MainHeader = ({
                             <DropdownMenuSubContent
                                 sideOffset={10}
                                 alignOffset={-5}
-                                className="bg-white border-none shadow-[0_10px_40px_rgba(0,0,0,0.15)] min-w-[220px] p-1.5 animate-in slide-in-from-left-2 duration-200"
+                                className="bg-white border-none shadow-xl min-w-[220px] p-1.5 animate-in slide-in-from-left-2 duration-200"
                             >
                                 {renderCategoryItems(category.subcategories, depth + 1)}
                             </DropdownMenuSubContent>
@@ -145,14 +140,20 @@ const MainHeader = ({
                     <div className="flex-1 flex justify-start">
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <CategoryButton>
-                                    <LayoutGrid className="w-5 h-5 pointer-events-none" />
+                                <AppButton appVariant="accent">
+                                    <LayoutGrid className="pointer-events-none" />
                                     <span className="pointer-events-none">Khóa học</span>
-                                    <ChevronDown className="w-4 h-4 ml-1 pointer-events-none" />
-                                </CategoryButton>
+                                    <ChevronDown className="pointer-events-none" />
+                                </AppButton>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="start" className="w-[280px] bg-white border-none shadow-2xl rounded-lg p-2 animate-in fade-in slide-in-from-top-2 z-[101]">
-                                {renderCategoryItems(categoryTree)}
+                                {categoryTree && categoryTree.length > 0 ? (
+                                    renderCategoryItems(categoryTree)
+                                ) : (
+                                    <div className="p-4 text-center text-sm text-muted-foreground font-medium">
+                                        Đang cập nhật danh mục...
+                                    </div>
+                                )}
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </div>
@@ -160,39 +161,39 @@ const MainHeader = ({
                     {/* Center: Navigation Links */}
                     <nav className="hidden lg:flex items-center h-full gap-2">
                         <Link to="/" className="h-full flex items-center relative group px-4">
-                            <span className="font-bold text-foreground group-hover:text-[#f15e2c] transition-colors">
+                            <span className="font-bold text-foreground group-hover:text-header-orange transition-colors">
                                 Trang chủ
                             </span>
-                            <div className="absolute bottom-0 left-0 w-full h-[3px] bg-[#f15e2c] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center" />
+                            <div className="absolute bottom-0 left-0 w-full h-[3px] bg-header-orange scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center" />
                         </Link>
 
                         <Link to="/about" className="h-full flex items-center relative group px-4">
-                            <span className="font-bold text-foreground group-hover:text-[#f15e2c] transition-colors">
+                            <span className="font-bold text-foreground group-hover:text-header-orange transition-colors">
                                 Giới thiệu
                             </span>
-                            <div className="absolute bottom-0 left-0 w-full h-[3px] bg-[#f15e2c] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center" />
+                            <div className="absolute bottom-0 left-0 w-full h-[3px] bg-header-orange scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center" />
                         </Link>
 
                         <Link to="/instructors" className="h-full flex items-center relative group px-4">
-                            <span className="font-bold text-foreground group-hover:text-[#f15e2c] transition-colors">
+                            <span className="font-bold text-foreground group-hover:text-header-orange transition-colors">
                                 Giảng viên
                             </span>
-                            <div className="absolute bottom-0 left-0 w-full h-[3px] bg-[#f15e2c] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center" />
+                            <div className="absolute bottom-0 left-0 w-full h-[3px] bg-header-orange scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center" />
                         </Link>
 
                         <Link to="/forum" className="h-full flex items-center relative group px-4">
-                            <span className="font-bold text-foreground group-hover:text-[#f15e2c] transition-colors">
+                            <span className="font-bold text-foreground group-hover:text-header-orange transition-colors">
                                 Diễn đàn
                             </span>
-                            <div className="absolute bottom-0 left-0 w-full h-[3px] bg-[#f15e2c] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center" />
+                            <div className="absolute bottom-0 left-0 w-full h-[3px] bg-header-orange scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center" />
                         </Link>
 
                         <Link to="/promo" className="h-full flex items-center relative group px-4">
-                            <span className="font-bold text-[#f15e2c] flex items-center gap-2">
+                            <span className="font-bold text-header-orange flex items-center gap-2">
                                 <Flame className="w-4 h-4 fill-current" />
                                 Khuyến mãi
                             </span>
-                            <div className="absolute bottom-0 left-0 w-full h-[3px] bg-[#f15e2c] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center" />
+                            <div className="absolute bottom-0 left-0 w-full h-[3px] bg-header-orange scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center" />
                         </Link>
                     </nav>
 

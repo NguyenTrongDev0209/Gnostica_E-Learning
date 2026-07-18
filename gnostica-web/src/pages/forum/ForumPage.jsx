@@ -1,0 +1,305 @@
+import React, { useState } from 'react';
+import PageContainer from "@/components/common/core/PageContainer";
+import { ForumPostCard } from "@/components/common/composite/CourseCard";
+import { Search, Menu, Star } from 'lucide-react';
+import AppInput from "@/components/common/micro/AppInput";
+import { useNavigate, useLocation } from "react-router-dom";
+import AppPagination from "@/components/common/micro/AppPagination";
+import { useForumPage } from '@/hooks/forum/useForumPage';
+import useAuthStore from '@/store/useAuthStore';
+import { AppButton } from "@/components/common/micro/AppButton";
+import AppSkeleton from "@/components/common/micro/AppSkeleton";
+import AppCard, { AppCardContent } from "@/components/common/micro/AppCard";
+import AppBadge from "@/components/common/micro/AppBadge";
+import AppAvatar from "@/components/common/micro/AppAvatar";
+import { Link } from "react-router-dom";
+
+// ── ForumSidebar ──
+const ForumSidebar = ({ categories, activeCategory, setActiveCategory, topContributors, currentUser }) => {
+  return (
+    <div className="w-full lg:w-72 xl:w-80 flex flex-col gap-6 shrink-0">
+      {/* Categories Widget */}
+      <AppCard appVariant="default" className="bg-white shadow-sm border-border">
+        <AppCardContent className="p-5">
+          <h3 className="font-bold text-base mb-4 flex items-center gap-2">
+            <Menu className="w-5 h-5 text-primary" />
+            Danh mục chủ đề
+          </h3>
+          <div className="flex flex-col gap-1">
+            <button
+              onClick={() => setActiveCategory("Tất cả")}
+              className={`flex items-center justify-between px-3 py-2 rounded-md text-sm transition-colors ${activeCategory === "Tất cả"
+                ? "bg-primary/10 text-primary font-semibold"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                }`}
+            >
+              <span>Tất cả chủ đề</span>
+            </button>
+            {categories.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => setActiveCategory(cat.name)}
+                className={`flex items-center justify-between px-3 py-2 rounded-md text-sm transition-colors group ${activeCategory === cat.name
+                  ? "bg-primary/10 text-primary font-semibold"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  }`}
+              >
+                <span className="truncate pr-2">{cat.name}</span>
+                <AppBadge variant={activeCategory === cat.name ? "primary" : "secondary"} soft className="text-[10px] px-1.5 py-0">
+                  {cat.threadCount || 0}
+                </AppBadge>
+              </button>
+            ))}
+          </div>
+        </AppCardContent>
+      </AppCard>
+
+      {/* Top Contributors Widget */}
+      <AppCard appVariant="default" className="bg-white shadow-sm border-border hidden lg:block">
+        <AppCardContent className="p-5">
+          <h3 className="font-bold text-base mb-4 flex items-center gap-2">
+            <Star className="w-5 h-5 text-primary fill-primary" />
+            Người nổi bật
+          </h3>
+          <div className="flex flex-col gap-4">
+            {topContributors.length > 0 ? (
+              topContributors.map((item, index) => (
+                <div key={item.account.id} className="flex items-center gap-3">
+                  <AppAvatar 
+                    className="w-8 h-8"
+                    src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${item.account.email || 'default'}`}
+                    fallback={item.account.fullName?.substring(0, 1).toUpperCase() || "U"}
+                  />
+                  <div className="flex flex-col overflow-hidden">
+                    <span className="text-sm font-semibold text-foreground truncate">
+                      {item.account.fullName || "Ẩn danh"}
+                    </span>
+                    <span className="text-[10px] text-muted-foreground">
+                      {item.totalLikes} lượt thích · {item.threadCount} bài viết
+                    </span>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-xs text-muted-foreground text-center py-2">Chưa có dữ liệu</p>
+            )}
+          </div>
+        </AppCardContent>
+      </AppCard>
+      
+      {/* "Me" Section */}
+      {currentUser && (
+        <AppCard appVariant="default" className="bg-white shadow-sm border-border">
+          <AppCardContent className="p-5">
+            <h3 className="font-bold text-base mb-4 flex items-center gap-2">
+              <AppAvatar 
+                className="w-5 h-5"
+                src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.email || 'default'}`}
+                fallback={currentUser.fullName?.substring(0, 1).toUpperCase() || "U"}
+              />
+              Tôi
+            </h3>
+            <Link 
+              to="/forum/me"
+              className="flex items-center gap-3 p-2 -mx-2 rounded-lg hover:bg-muted transition-colors group"
+            >
+              <AppAvatar 
+                className="w-10 h-10 ring-2 ring-primary/10 group-hover:ring-primary/30 transition-all"
+                src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.email || 'default'}`}
+                fallback={currentUser.fullName?.substring(0, 2).toUpperCase() || "U"}
+              />
+              <div className="flex flex-col overflow-hidden">
+                <span className="text-sm font-semibold text-foreground truncate group-hover:text-primary transition-colors">
+                  {currentUser.fullName || "Tài khoản của tôi"}
+                </span>
+                <span className="text-xs text-muted-foreground flex items-center gap-1">
+                  Xem bài viết của tôi
+                </span>
+              </div>
+            </Link>
+          </AppCardContent>
+        </AppCard>
+      )}
+    </div>
+  );
+};
+
+
+
+const ForumPage = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const currentUser = useAuthStore(state => state.user);
+  
+  const { threads, categories, topContributors, isLoading } = useForumPage();
+  
+  const [activeCategory, setActiveCategory] = useState("Tất cả");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(0);
+
+  // Parse query parameters
+  const queryParams = new URLSearchParams(location.search);
+  const tagParam = queryParams.get('tag') || queryParams.get('search');
+
+  React.useEffect(() => {
+    if (tagParam) {
+      const cleanTag = tagParam.replace(/^#/, '');
+      setSearchQuery(cleanTag);
+    }
+  }, [tagParam]);
+
+  // Đặt lại trang đầu tiên khi thay đổi bộ lọc
+  React.useEffect(() => {
+    setCurrentPage(0);
+  }, [activeCategory, searchQuery]);
+
+  const stripHtml = (html) => {
+    if (!html) return '';
+    let text = html.replace(/<[^>]*>/g, '');
+    text = text
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'");
+    return text.trim();
+  };
+
+  // Map backend data to ForumPostCard format
+  const mappedPosts = threads.map(thread => {
+    const plainText = stripHtml(thread.content);
+    return {
+      id: thread.id,
+      title: thread.title || (plainText.substring(0, 60) + (plainText.length > 60 ? "..." : "")),
+      content: plainText,
+      author: {
+        name: thread.account?.fullName || "Ẩn danh",
+        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${thread.account?.email || 'default'}`,
+        status: "online"
+      },
+      category: thread.topic?.title || thread.category?.name || "",
+      tags: (thread.hashtags || []).map(th => th.hashtag?.name || ""),
+      createdAt: new Date(thread.createdAt).toLocaleDateString('vi-VN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      }),
+      stats: {
+        likes: thread.likes || 0,
+        views: thread.views || 0,
+        replies: thread.commentCount || 0
+      },
+      images: thread.images || [],
+      isHot: (thread.views || 0) > 50,
+      status: thread.status,
+      voteScore: thread.voteScore || 0,
+      userVote: thread.userVote || 0,
+      userLiked: thread.userLiked || false,
+      slug: thread.slug
+    };
+  });
+
+  const filteredPosts = mappedPosts.filter(post => {
+    const matchesCategory = activeCategory === "Tất cả" || post.category === activeCategory;
+    const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      post.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      post.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+    return matchesCategory && matchesSearch;
+  });
+
+  const postsPerPage = 5;
+  const totalPages = Math.ceil(filteredPosts.length / postsPerPage);
+  const currentPosts = filteredPosts.slice(currentPage * postsPerPage, (currentPage + 1) * postsPerPage);
+
+  return (
+    <div className="min-h-screen bg-muted pb-16 pt-8">
+      <PageContainer.Section className="w-full app-container">
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 sm:mb-12 gap-4">
+          <PageContainer.Header
+            title={<>Diễn đàn <span className="bg-accent-gradient bg-clip-text text-transparent italic">Cộng đồng</span></>}
+            description="Nơi giao lưu, hỏi đáp và chia sẻ kiến thức về lập trình, công nghệ."
+            className="mb-0 sm:mb-0"
+          />
+          <AppButton appVariant="gradient"
+            className="md:w-auto w-full"
+            onClick={() => navigate('/forum/create')}
+          >
+            + Tạo bài viết mới
+          </AppButton>
+        </div>
+
+        <div className="flex flex-col lg:flex-row gap-8">
+
+          {/* Main Content - Feed */}
+          <div className="flex-1 flex flex-col gap-4">
+            {/* Search and Filter Bar */}
+            <div className="flex flex-col sm:flex-row gap-4 mb-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <AppInput
+                  placeholder="Tìm kiếm chủ đề, tag..."
+                  className="pl-9 bg-white h-11"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+            </div>
+
+            {/* Post List */}
+            {isLoading ? (
+              <div className="flex flex-col gap-4">
+                {[1, 2, 3].map(i => (
+                  <AppSkeleton key={i} className="h-40 w-full rounded-xl bg-white" />
+                ))}
+              </div>
+            ) : currentPosts.length > 0 ? (
+              <div className="flex flex-col gap-4">
+                {currentPosts.map((post) => (
+                  <ForumPostCard key={post.id} post={post} />
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-16 text-center bg-white rounded-lg border border-dashed border-border mt-4">
+                <div className="w-16 h-16 bg-secondary rounded-full flex items-center justify-center mb-4">
+                  <Search className="w-8 h-8 text-muted-foreground" />
+                </div>
+                <h3 className="text-lg font-bold text-foreground mb-1">Không tìm thấy bài viết nào</h3>
+                <p className="text-muted-foreground text-sm max-w-sm">
+                  Thử thay đổi từ khóa tìm kiếm hoặc chọn danh mục khác xem sao.
+                </p>
+                <AppButton appVariant="ghostMuted" variant="ghost" className="mt-4 border border-border" onClick={() => { setSearchQuery(""); setActiveCategory("Tất cả"); navigate("/forum"); }}>
+                  Xóa bộ lọc
+                </AppButton>
+              </div>
+            )}
+
+            {/* Pagination Component */}
+            {totalPages > 1 && (
+              <div className="flex justify-center mt-8 mb-4">
+                <AppPagination 
+                  currentPage={currentPage + 1} 
+                  totalPages={totalPages} 
+                  onPageChange={(page) => setCurrentPage(page - 1)} 
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Sidebar */}
+          <ForumSidebar 
+            categories={categories}
+            activeCategory={activeCategory}
+            setActiveCategory={setActiveCategory}
+            topContributors={topContributors}
+            currentUser={currentUser}
+          />
+        </div>
+      </PageContainer.Section>
+    </div>
+  );
+};
+
+export default ForumPage;

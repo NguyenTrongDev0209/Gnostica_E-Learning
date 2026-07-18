@@ -1,7 +1,8 @@
+import { AppCardDescription as CardDescription } from "@/components/common/micro/AppCard";
+// Fix imported
 import React, { useState, useEffect } from "react";
-import threadService from "@/services/threadService";
-import { 
-  ShieldCheck, 
+import threadService from "@/services/forum/threadService";
+import {ShieldCheck, 
   Trash2, 
   CheckCircle2, 
   MessageSquare, 
@@ -11,14 +12,15 @@ import {
   ChevronDown,
   ChevronUp,
   Image as ImageIcon,
-  AlertCircle
-} from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+  AlertCircle, MessageSquareWarning} from "lucide-react";
+import AppCard, { AppCardContent, AppCardHeader, AppCardTitle, AppCardDescription } from "@/components/common/micro/AppCard";
+import { AppButton } from "@/components/common/micro/AppButton";
+import AppBadge from "@/components/common/micro/AppBadge";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/common/micro/AppAvatar";
 import { toast } from "sonner";
+// eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from "framer-motion";
+import RenderContent from "@/components/common/core/RenderContent";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,7 +30,9 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+} from "@/components/common/micro/AppAlertDialog";
+import AppSelect from "@/components/common/micro/AppSelect";
+import AppTextarea from "@/components/common/micro/AppTextarea";
 
 export default function AdminThreadModeration() {
   const [pendingThreads, setPendingThreads] = useState([]);
@@ -41,6 +45,8 @@ export default function AdminThreadModeration() {
     title: "",
     description: "",
   });
+  const [rejectType, setRejectType] = useState("");
+  const [rejectDetail, setRejectDetail] = useState("");
 
   const fetchPendingThreads = async () => {
     setIsLoading(true);
@@ -69,18 +75,33 @@ export default function AdminThreadModeration() {
         description: "Bạn có chắc chắn muốn phê duyệt bài viết này hiển thị trên cộng đồng?",
       });
     } else if (type === "delete") {
+      setRejectType("");
+      setRejectDetail("");
       setConfirmState({
         isOpen: true,
         threadId: id,
         type: "delete",
-        title: "Xác nhận từ chối bài viết",
-        description: "Hành động này sẽ từ chối và xóa bài viết khỏi danh sách chờ. Bạn không thể hoàn tác hành động này.",
+        title: "Lý do từ chối",
+        description: "Vui lòng chọn loại vi phạm và cung cấp thông tin chi tiết bên dưới để gửi thông báo đến tác giả.",
       });
     }
   };
 
+  const rejectTypeLabels = {
+    spam: "Spam / Quảng cáo",
+    harassment: "Quấy rối / Chửi bới / Lăng mạ",
+    inappropriate: "Nội dung không phù hợp / Phản cảm",
+    copyright: "Vi phạm bản quyền",
+    other: "Khác",
+  };
+
   const handleConfirmAction = async () => {
     const { threadId, type } = confirmState;
+    if (type === "delete" && !rejectType) {
+      toast.error("Vui lòng chọn loại vi phạm!");
+      return;
+    }
+
     setConfirmState(prev => ({ ...prev, isOpen: false }));
     if (!threadId) return;
 
@@ -95,12 +116,13 @@ export default function AdminThreadModeration() {
       }
     } else if (type === "delete") {
       try {
-        await threadService.deleteThread(threadId);
-        toast.success("Đã từ chối và xóa bài viết!");
+        const fullReason = `${rejectTypeLabels[rejectType] || rejectType}${rejectDetail ? ' - ' + rejectDetail : ''}`;
+        await threadService.rejectThread(threadId, fullReason);
+        toast.success("Đã từ chối bài viết!");
         setPendingThreads(prev => prev.filter(t => t.id !== threadId));
       } catch (error) {
         console.error("Error deleting thread:", error);
-        toast.error("Xóa bài viết thất bại");
+        toast.error("Từ chối bài viết thất bại");
       }
     }
   };
@@ -129,44 +151,44 @@ export default function AdminThreadModeration() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
-            <ShieldCheck className="w-7 h-7 text-primary" />
-            Kiểm duyệt bài viết
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Duyệt hoặc từ chối các bài đăng mới từ học viên và giảng viên trước khi hiển thị trên cộng đồng.
-          </p>
+          <MessageSquareWarning className="w-6 h-6 text-primary" />
+          Kiểm Duyệt Bài Viết
+        </h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Xem xét, phê duyệt hoặc từ chối các bài viết trên diễn đàn.
+        </p>
         </div>
-        <Button onClick={fetchPendingThreads} variant="outline" className="h-10 font-bold shrink-0">
+        <AppButton appVariant="ghostMuted" variant="ghost" onClick={fetchPendingThreads} className="h-10 font-bold shrink-0 border border-border bg-white text-foreground hover:bg-muted">
           Làm mới danh sách
-        </Button>
+        </AppButton>
       </div>
 
       {/* Stats Widget */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-info/20 shadow-sm">
-          <CardContent className="p-5 flex items-center justify-between">
+        <AppCard className="bg-gradient-to-r from-blue-50 to-indigo-50 border-info/20 shadow-sm">
+          <AppCardContent className="p-5 flex items-center justify-between">
             <div className="space-y-1">
               <p className="text-sm font-semibold text-info/80">Bài viết chờ duyệt</p>
               <h3 className="text-3xl font-extrabold text-info">{pendingThreads.length}</h3>
             </div>
-            <div className="w-12 h-12 rounded-full bg-info/10 text-info/10 flex items-center justify-center text-info">
+            <div className="w-12 h-12 rounded-full bg-info/10 flex items-center justify-center text-info">
               <MessageSquare className="w-6 h-6" />
             </div>
-          </CardContent>
-        </Card>
+          </AppCardContent>
+        </AppCard>
       </div>
 
       {/* Pending List Area */}
-      <Card className="border-border shadow-sm">
-        <CardHeader className="border-b bg-muted py-4">
-          <CardTitle className="text-lg font-bold text-foreground">
+      <AppCard appVariant="default" className="border-border shadow-sm">
+        <AppCardHeader className="border-b bg-muted py-4">
+          <AppCardTitle className="text-lg font-bold text-foreground">
             Danh sách chờ kiểm duyệt
-          </CardTitle>
-          <CardDescription>
+          </AppCardTitle>
+          <AppCardDescription>
             Tất cả bài viết được đăng lên mặc định sẽ ở trạng thái chờ duyệt.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-0">
+          </AppCardDescription>
+        </AppCardHeader>
+        <AppCardContent className="p-0">
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-20 gap-4 text-muted-foreground">
               <div className="animate-spin rounded-full h-9 w-9 border-b-2 border-primary"></div>
@@ -223,12 +245,12 @@ export default function AdminThreadModeration() {
                       </div>
 
                       {/* Middle: Content and Category */}
-                      <div className="flex-1 min-w-0 space-y-2.5">
+                      <div className="flex-1 min-w-0 space-y-2.5 overflow-hidden w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <Badge variant="secondary" className="bg-primary/10 text-primary hover:bg-primary/10 border-none font-semibold px-2 py-0.5 text-xs">
+                          <AppBadge variant="secondary" className="bg-primary/10 text-primary hover:bg-primary/10 border-none font-semibold px-2 py-0.5 text-xs">
                             <Layers className="w-3 h-3 mr-1" />
-                            {thread.category?.name || "Chưa phân loại"}
-                          </Badge>
+                            {thread.topic?.title || thread.category?.name || "Chưa phân loại"}
+                          </AppBadge>
                           <span className="text-[11px] text-muted-foreground md:hidden flex items-center gap-1">
                             <Calendar className="w-3 h-3" />
                             {formatDate(thread.createdAt)}
@@ -236,21 +258,22 @@ export default function AdminThreadModeration() {
                         </div>
 
                         {/* Content text */}
-                        <div className="relative text-sm text-muted-foreground leading-relaxed font-normal">
-                          <p className={`whitespace-pre-line ${(!isExpanded && hasLongContent) ? "line-clamp-4" : ""}`}>
-                            {thread.content}
-                          </p>
+                        <div className="relative text-sm text-muted-foreground leading-relaxed font-normal overflow-hidden">
+                          <div className={`break-words overflow-wrap-anywhere ${(!isExpanded && hasLongContent) ? "line-clamp-4 max-h-[120px] overflow-hidden" : (isExpanded ? "max-h-[500px] overflow-y-auto pr-2 scrollbar-thin" : "")}`}>
+                            <RenderContent text={thread.content} />
+                          </div>
                           {hasLongContent && (
-                            <button
+                            <AppButton
+                              appVariant="ghostMuted" variant="link" size="sm" type="button"
                               onClick={() => toggleExpand(thread.id)}
-                              className="text-xs font-bold text-primary hover:underline mt-2 flex items-center gap-1 focus:outline-none"
+                              className="p-0 h-auto text-xs font-bold text-primary mt-2 flex items-center gap-1"
                             >
                               {isExpanded ? (
                                 <>Thu gọn <ChevronUp className="w-3 h-3" /></>
                               ) : (
                                 <>Đọc thêm bản đầy đủ <ChevronDown className="w-3 h-3" /></>
                               )}
-                            </button>
+                            </AppButton>
                           )}
                         </div>
 
@@ -281,21 +304,20 @@ export default function AdminThreadModeration() {
 
                       {/* Right: Actions */}
                       <div className="md:w-36 shrink-0 flex md:flex-col items-center justify-end md:justify-start gap-2 pt-2 md:pt-0">
-                        <Button
+                        <AppButton appVariant="gradient"
                           size="sm"
-                          className="w-full md:w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-9 gap-1.5 shadow-md transition-all"
+                          className="w-full md:w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-9 gap-1.5 shadow-md transition-all border-none"
                           onClick={() => openConfirm(thread.id, "approve")}
                         >
                           <CheckCircle2 className="w-4 h-4" /> Duyệt bài
-                        </Button>
-                        <Button
+                        </AppButton>
+                        <AppButton appVariant="ghostMuted" variant="ghost"
                           size="sm"
-                          variant="outline"
-                          className="w-full md:w-full border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 font-bold h-9 gap-1.5 transition-all"
+                          className="w-full md:w-full border border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 font-bold h-9 gap-1.5 transition-all bg-white"
                           onClick={() => openConfirm(thread.id, "delete")}
                         >
                           <Trash2 className="w-4 h-4" /> Từ chối
-                        </Button>
+                        </AppButton>
                       </div>
                     </motion.div>
                   );
@@ -303,12 +325,11 @@ export default function AdminThreadModeration() {
               </AnimatePresence>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </AppCardContent>
+      </AppCard>
 
-      {/* Confirmation Alert Dialog */}
       <AlertDialog open={confirmState.isOpen} onOpenChange={(open) => setConfirmState(prev => ({ ...prev, isOpen: open }))}>
-        <AlertDialogContent>
+        <AlertDialogContent className="bg-white sm:max-w-md">
           <AlertDialogHeader>
             <div className="flex items-center gap-2">
               <AlertCircle className={`w-5 h-5 ${confirmState.type === "approve" ? "text-emerald-500" : "text-rose-500"}`} />
@@ -318,11 +339,42 @@ export default function AdminThreadModeration() {
               {confirmState.description}
             </AlertDialogDescription>
           </AlertDialogHeader>
+
+          {confirmState.type === "delete" && (
+            <div className="flex flex-col gap-4 py-2 text-left">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-medium text-foreground">Loại vi phạm <span className="text-rose-500 font-bold">*</span></label>
+                <AppSelect
+                  value={rejectType} 
+                  onValueChange={setRejectType}
+                  placeholder="Chọn loại vi phạm"
+                  options={[
+                    { label: "Spam / Quảng cáo", value: "spam" },
+                    { label: "Quấy rối / Chửi bới / Lăng mạ", value: "harassment" },
+                    { label: "Nội dung không phù hợp / Phản cảm", value: "inappropriate" },
+                    { label: "Vi phạm bản quyền", value: "copyright" },
+                    { label: "Khác", value: "other" }
+                  ]}
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-medium text-foreground">Chi tiết từ chối</label>
+                <AppTextarea 
+                  placeholder="Nhập thông tin chi tiết về lý do từ chối..."
+                  value={rejectDetail}
+                  onChange={(e) => setRejectDetail(e.target.value)}
+                  className="min-h-[100px] bg-white border border-border resize-none"
+                />
+              </div>
+            </div>
+          )}
+
           <AlertDialogFooter className="mt-4">
             <AlertDialogCancel className="h-9 font-semibold">Hủy</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmAction}
-              className={`h-9 font-bold text-white transition-all ${
+              disabled={confirmState.type === "delete" && !rejectType}
+              className={`h-9 font-bold text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
                 confirmState.type === "approve"
                   ? "bg-emerald-600 hover:bg-emerald-700"
                   : "bg-rose-600 hover:bg-rose-700"

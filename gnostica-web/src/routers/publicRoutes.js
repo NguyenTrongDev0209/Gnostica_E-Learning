@@ -1,18 +1,18 @@
-import HomePage from "@/pages/client/HomePage";
-import AboutUs from "@/pages/client/AboutUs";
-import CourseCatalog from "@/pages/client/CourseCatalog";
-import CourseCategory from "@/pages/client/CourseCategory";
-import CourseDetail from "@/pages/client/CourseDetail";
-import CourseCart from "@/pages/client/CourseCart";
-import SearchPage from "@/pages/client/SearchPage";
-import ForumPage from "@/pages/client/ForumPage";
-import ForumDetail from "@/pages/client/ForumDetail";
-import UserProfile from "@/pages/client/UserProfile";
-import TermsPage from "@/pages/client/TermsPage";
-import PrivacyPage from "@/pages/client/PrivacyPage";
+import HomePage from "@/pages/general/HomePage";
+import AboutUs from "@/pages/general/AboutUs";
+import CourseCatalog from "@/pages/course/CourseCatalog";
+import CourseCategory from "@/pages/course/CourseCategory";
+import CourseDetail from "@/pages/course/CourseDetail";
+import CourseCart from "@/pages/order/CourseCart";
+import SearchPage from "@/pages/course/SearchPage";
+import ForumPage from "@/pages/forum/ForumPage";
+import ForumDetail from "@/pages/forum/ForumDetail";
+import UserProfile from "@/pages/general/UserProfile";
+import TermsPage from "@/pages/general/TermsPage";
+import PrivacyPage from "@/pages/general/PrivacyPage";
 import Showcase from "@/pages/Showcase";
-import ErrorPage from "@/pages/ErrorPage";
-import InstructorList from "@/pages/client/InstructorList";
+import ErrorPage from "@/pages/general/ErrorPage";
+import InstructorList from "@/pages/general/InstructorList";
 
 import LoginPage from "@/pages/auth/LoginPage";
 import RegisterPage from "@/pages/auth/RegisterPage";
@@ -33,11 +33,14 @@ export const publicRoutes = {
     { path: "/cart", component: CourseCart },
     { path: "/search", component: SearchPage },
     { path: "/forum", component: ForumPage },
-    { path: "/forum/:id", component: ForumDetail },
+    { path: "/forum/:slug", component: ForumDetail },
     { path: "/profile/:id", component: UserProfile },
     { path: "/terms", component: TermsPage },
-    { path: "/showcase", component: Showcase },
+    { path: "/privacy", component: PrivacyPage },
     { path: "/instructors", component: InstructorList },
+  ],
+  noLayout: [
+    { path: "/showcase", component: Showcase },
   ],
   auth: [
     { path: "/login", component: LoginPage },

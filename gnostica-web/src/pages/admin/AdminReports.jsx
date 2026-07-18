@@ -1,11 +1,12 @@
+import threadReportService from "@/services/forum/threadReportService";
 import React, { useState, useEffect } from "react";
 import { BarChart3, ShieldAlert, CheckCircle2, XCircle } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/common/micro/AppTabs";
+import DataTable from "@/components/common/composite/DataTable";
+import { AppButton } from "@/components/common/micro/AppButton";
 import { toast } from "sonner";
-import { Card, CardContent } from "@/components/ui/card";
+import AppCard, { AppCardContent, AppCardHeader, AppCardTitle } from "@/components/common/micro/AppCard";
+import AppBadge from "@/components/common/micro/AppBadge";
 
 const violationTypes = {
   spam: "Spam / Quảng cáo",
@@ -53,21 +54,26 @@ export default function AdminReports() {
   const getStatusBadge = (status) => {
     switch (status) {
       case "PENDING":
-        return <Badge variant="secondary" className="bg-warning/10 text-warning text-warning hover:bg-warning/10 text-warning border-none">Chờ xử lý</Badge>;
+        return <AppBadge variant="secondary" className="bg-warning/10 text-warning text-warning hover:bg-warning/10 text-warning border-none">Chờ xử lý</AppBadge>;
       case "RESOLVED":
-        return <Badge variant="secondary" className="bg-success/10 text-success text-success hover:bg-success/10 text-success border-none">Đã duyệt</Badge>;
+        return <AppBadge variant="secondary" className="bg-success/10 text-success text-success hover:bg-success/10 text-success border-none">Đã duyệt</AppBadge>;
       case "DISMISSED":
-        return <Badge variant="secondary" className="bg-secondary text-foreground hover:bg-secondary border-none">Bỏ qua</Badge>;
+        return <AppBadge variant="secondary" className="bg-secondary text-foreground hover:bg-secondary border-none">Bỏ qua</AppBadge>;
       default:
-        return <Badge>{status}</Badge>;
+        return <AppBadge>{status}</AppBadge>;
     }
   };
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-10">
       <div>
-        <h1 className="text-2xl font-bold text-foreground tracking-tight">Thống Kê & Báo Cáo</h1>
-        <p className="text-sm text-muted-foreground mt-1">Phân tích doanh thu và quản lý nội dung nền tảng.</p>
+        <h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
+          <BarChart3 className="w-6 h-6 text-primary" />
+          Thống Kê & Báo Cáo
+        </h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Xem báo cáo chi tiết về doanh thu, học viên và hiệu suất nền tảng.
+        </p>
       </div>
 
       <Tabs defaultValue="stats" className="w-full">
@@ -84,111 +90,114 @@ export default function AdminReports() {
         </TabsContent>
 
         <TabsContent value="forum-reports">
-          <Card className="border-border shadow-sm">
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader className="bg-muted">
-                  <TableRow>
-                    <TableHead className="w-[150px]">Người báo cáo</TableHead>
-                    <TableHead className="w-[150px]">Vi phạm</TableHead>
-                    <TableHead className="max-w-[200px]">Nội dung vi phạm</TableHead>
-                    <TableHead className="max-w-[200px]">Chi tiết từ User</TableHead>
-                    <TableHead className="w-[120px]">Trạng thái</TableHead>
-                    <TableHead className="text-right w-[180px]">Hành động</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {isLoading ? (
-                    <TableRow>
-                      <TableCell colSpan={6} className="text-center py-10 h-32 text-muted-foreground">
-                        Đang tải dữ liệu...
-                      </TableCell>
-                    </TableRow>
-                  ) : reports.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={6} className="text-center py-10 h-32 text-muted-foreground">
-                        Chưa có báo cáo nào
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    reports.map((report) => (
-                      <TableRow key={report.id}>
-                        <TableCell>
-                          <p className="font-medium text-foreground">{report.reporterName}</p>
-                          <p className="text-xs text-muted-foreground">{report.reporterEmail}</p>
-                        </TableCell>
-                        <TableCell>
-                          <span className="font-medium text-foreground text-sm">{violationTypes[report.type] || report.type}</span>
-                        </TableCell>
-                        <TableCell>
-                          <p className="text-sm text-muted-foreground" title={report.threadContent}>
-                            {report.threadContent?.length > 50 
-                              ? report.threadContent.substring(0, 50) + "..." 
-                              : report.threadContent}
-                          </p>
-                          <a href={`/forum/${report.threadId}`} target="_blank" rel="noreferrer" className="text-xs text-primary hover:underline mt-1 inline-block">
-                            Xem bài viết
-                          </a>
-                        </TableCell>
-                        <TableCell>
-                          <p className="text-sm text-muted-foreground" title={report.details}>
-                            {report.details 
-                              ? (report.details.length > 50 ? report.details.substring(0, 50) + "..." : report.details)
-                              : <span className="text-muted-foreground italic">Không có</span>}
-                          </p>
-                        </TableCell>
-                        <TableCell>
-                          {getStatusBadge(report.status)}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            {report.status === "RESOLVED" ? (
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                className="h-8 gap-1 text-muted-foreground border-border hover:bg-muted"
-                                onClick={() => handleUpdateStatus(report.id, "PENDING")}
-                              >
-                                <XCircle className="w-3.5 h-3.5" /> Hủy duyệt
-                              </Button>
-                            ) : report.status === "DISMISSED" ? (
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                className="h-8 gap-1 text-muted-foreground border-border hover:bg-muted"
-                                onClick={() => handleUpdateStatus(report.id, "PENDING")}
-                              >
-                                <XCircle className="w-3.5 h-3.5" /> Hoàn tác
-                              </Button>
-                            ) : (
-                              <>
-                                <Button 
-                                  variant="outline" 
-                                  size="sm" 
-                                  className="h-8 gap-1 text-error border-error/20 hover:bg-red-50 hover:text-error"
-                                  onClick={() => handleUpdateStatus(report.id, "RESOLVED")}
-                                >
-                                  <CheckCircle2 className="w-3.5 h-3.5" /> Duyệt
-                                </Button>
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm" 
-                                  className="h-8 gap-1 text-muted-foreground hover:text-foreground"
-                                  onClick={() => handleUpdateStatus(report.id, "DISMISSED")}
-                                >
-                                  <XCircle className="w-3.5 h-3.5" /> Bỏ qua
-                                </Button>
-                              </>
-                            )}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+              <DataTable
+                pagination={{
+                  currentPage: 1,
+                  totalPages: 1,
+                  totalItems: reports.length,
+                  onPageChange: () => {},
+                  zeroIndexed: false,
+                  pageSize: reports.length || 10,
+                }}
+                columns={[
+                  {
+                    header: "Người báo cáo",
+                    width: "150px",
+                    render: (report) => (
+                      <>
+                        <p className="font-medium text-foreground">{report.reporterName}</p>
+                        <p className="text-xs text-muted-foreground">{report.reporterEmail}</p>
+                      </>
+                    ),
+                  },
+                  {
+                    header: "Vi phạm",
+                    width: "150px",
+                    render: (report) => (
+                      <span className="font-medium text-foreground text-sm">{violationTypes[report.type] || report.type}</span>
+                    ),
+                  },
+                  {
+                    header: "Nội dung vi phạm",
+                    width: "200px",
+                    render: (report) => (
+                      <>
+                        <p className="text-sm text-muted-foreground" title={report.threadContent}>
+                          {report.threadContent?.length > 50 
+                            ? report.threadContent.substring(0, 50) + "..." 
+                            : report.threadContent}
+                        </p>
+                        <a href={`/forum/${report.threadId}`} target="_blank" rel="noreferrer" className="text-xs text-primary hover:underline mt-1 inline-block">
+                          Xem bài viết
+                        </a>
+                      </>
+                    ),
+                  },
+                  {
+                    header: "Chi tiết từ User",
+                    width: "200px",
+                    render: (report) => (
+                      <p className="text-sm text-muted-foreground" title={report.details}>
+                        {report.details 
+                          ? (report.details.length > 50 ? report.details.substring(0, 50) + "..." : report.details)
+                          : <span className="text-muted-foreground italic">Không có</span>}
+                      </p>
+                    ),
+                  },
+                  {
+                    header: "Trạng thái",
+                    width: "120px",
+                    render: (report) => getStatusBadge(report.status),
+                  },
+                  {
+                    header: "Hành động",
+                    width: "180px",
+                    className: "text-right",
+                    render: (report) => (
+                      <div className="flex items-center justify-end gap-2">
+                        {report.status === "RESOLVED" ? (
+                          <AppButton appVariant="ghostMuted" variant="ghost" 
+                            size="sm" 
+                            className="h-8 gap-1 text-muted-foreground border border-border hover:bg-muted bg-white"
+                            onClick={() => handleUpdateStatus(report.id, "PENDING")}
+                          >
+                            <XCircle className="w-3.5 h-3.5" /> Hủy duyệt
+                          </AppButton>
+                        ) : report.status === "DISMISSED" ? (
+                          <AppButton appVariant="ghostMuted" variant="ghost" 
+                            size="sm" 
+                            className="h-8 gap-1 text-muted-foreground border border-border hover:bg-muted bg-white"
+                            onClick={() => handleUpdateStatus(report.id, "PENDING")}
+                          >
+                            <XCircle className="w-3.5 h-3.5" /> Hoàn tác
+                          </AppButton>
+                        ) : (
+                          <>
+                            <AppButton appVariant="ghostMuted" variant="ghost" 
+                              size="sm" 
+                              className="h-8 gap-1 text-error border border-error/20 bg-white hover:bg-red-50 hover:text-error"
+                              onClick={() => handleUpdateStatus(report.id, "RESOLVED")}
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5" /> Duyệt
+                            </AppButton>
+                            <AppButton appVariant="ghostMuted" variant="ghost" 
+                              size="sm" 
+                              className="h-8 gap-1 text-muted-foreground border-none hover:bg-muted hover:text-foreground"
+                              onClick={() => handleUpdateStatus(report.id, "DISMISSED")}
+                            >
+                              <XCircle className="w-3.5 h-3.5" /> Bỏ qua
+                            </AppButton>
+                          </>
+                        )}
+                      </div>
+                    ),
+                  },
+                ]}
+                data={reports}
+                isLoading={isLoading}
+                loadingState="Đang tải dữ liệu..."
+                emptyState="Chưa có báo cáo nào"
+              />
         </TabsContent>
       </Tabs>
     </div>

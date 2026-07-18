@@ -1,11 +1,12 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import { AppLogo } from '@/components/common/AppButton';
+import { AppLogo } from '@/components/common/micro/AppButton';
+import PageContainer from '@/components/common/core/PageContainer';
 
 const AuthLayout = () => {
   return (
-    <div
-      className="flex flex-col min-h-screen relative bg-cover bg-center bg-no-repeat"
+    <PageContainer
+      className="relative bg-cover bg-center bg-no-repeat"
       style={{ backgroundImage: "url('/bg_auth.webp')" }}
     >
       <div className="absolute inset-0 bg-muted/50 z-0"></div>
@@ -14,10 +15,10 @@ const AuthLayout = () => {
         <AppLogo src="/Gnostica_Mark.webp" />
       </div>
 
-      <main className="flex-grow flex items-center justify-center p-4 py-20 sm:p-8 relative z-10 [&>div]:max-w-[500px]">
+      <PageContainer.Content disableContainer className="items-center justify-center p-4 py-20 sm:p-8 relative z-10 [&>div]:container-sm [&>div]:px-0">
         <Outlet />
-      </main>
-    </div>
+      </PageContainer.Content>
+    </PageContainer>
   );
 };
 

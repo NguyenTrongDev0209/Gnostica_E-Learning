@@ -1,86 +1,25 @@
-import React, { useEffect, useState } from 'react';
-import { Card, CardContent } from "@/components/ui/card";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import React from 'react';
+import AppCard, { AppCardContent } from "@/components/common/micro/AppCard";
+import AppAvatar from "@/components/common/micro/AppAvatar";
 import { Link } from 'react-router-dom';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import { Home, Users, ArrowRight, UserMinus, Star } from "lucide-react";
-import followingService from '@/services/followingService';
-import useAuthStore from "@/store/useAuthStore";
-import { toast } from 'sonner';
+import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
+import AppPageHeader from "@/components/common/composite/AppPageHeader";
+import { Users, ArrowRight, UserMinus, Star } from "lucide-react";
+import useFavoriteInstructors from '@/hooks/account/useFavoriteInstructors';
+import { AppButton } from "@/components/common/micro/AppButton";
 
 export default function FavoriteInstructors() {
-    const [instructors, setInstructors] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const user = useAuthStore(state => state.user);
-
-    useEffect(() => {
-        fetchFollowedInstructors();
-    }, []);
-
-    const fetchFollowedInstructors = async () => {
-        try {
-            setLoading(true);
-            const res = await followingService.getFollowedInstructors();
-            setInstructors(res.data);
-        } catch (err) {
-            console.error("Lỗi lấy danh sách giảng viên theo dõi", err);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleUnfollow = async (instructorId) => {
-        try {
-            const res = await followingService.toggleFollow(instructorId);
-            if (!res.data.isFollowing) {
-                setInstructors(prev => prev.filter(inst => inst.id !== instructorId));
-                toast.success("Đã bỏ theo dõi giảng viên");
-            }
-        } catch (err) {
-            toast.error("Không thể bỏ theo dõi!");
-        }
-    };
+    const { instructors, loading, handleUnfollow } = useFavoriteInstructors();
 
     return (
         <div className="animate-in fade-in duration-500">
-            {/* Breadcrumb */}
-            <Breadcrumb className="mb-6">
-                <BreadcrumbList>
-                    <BreadcrumbItem>
-                        <BreadcrumbLink href="/" className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground">
-                            <Home className="h-3.5 w-3.5" /> Trang chủ
-                        </BreadcrumbLink>
-                    </BreadcrumbItem>
-                    <BreadcrumbSeparator />
-                    <BreadcrumbItem>
-                        <BreadcrumbLink href="/account" className="text-sm font-medium text-muted-foreground hover:text-foreground">
-                            Tài khoản
-                        </BreadcrumbLink>
-                    </BreadcrumbItem>
-                    <BreadcrumbSeparator />
-                    <BreadcrumbItem>
-                        <BreadcrumbPage className="text-sm font-semibold">Giảng viên yêu thích</BreadcrumbPage>
-                    </BreadcrumbItem>
-                </BreadcrumbList>
-            </Breadcrumb>
+            <AppBreadcrumb paths={[{ label: "Tài khoản", href: "/account" }, { label: "Giảng viên yêu thích" }]} />
 
-            <div className="flex flex-col gap-4 mb-8">
-                <h1 className="text-2xl font-extrabold text-foreground flex items-center gap-3">
-                    <Users className="w-7 h-7 text-primary" />
-                    Giảng viên yêu thích
-                </h1>
-                <p className="text-sm text-muted-foreground mt-1">
-                    Danh sách các giảng viên chuyên gia mà bạn đang theo dõi trên Gnostica.
-                </p>
-            </div>
+            <AppPageHeader
+                icon={Users}
+                title="Giảng viên yêu thích"
+                description="Danh sách các giảng viên chuyên gia mà bạn đang theo dõi trên Gnostica."
+            />
 
             {loading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -91,15 +30,14 @@ export default function FavoriteInstructors() {
             ) : instructors.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {instructors.map((instructor) => (
-                        <Card key={instructor.id} className="group border-border hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 overflow-hidden">
-                            <CardContent className="p-5">
+                        <AppCard key={instructor.id} appVariant="default" className="group border-border hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 overflow-hidden">
+                            <AppCardContent className="p-5">
                                 <div className="flex items-center gap-4">
-                                    <Avatar className="w-16 h-16 border-2 border-white shadow-md">
-                                        <AvatarImage src={instructor.avatar} />
-                                        <AvatarFallback className="bg-primary/10 text-primary font-bold">
-                                            {instructor.fullName?.substring(0, 2).toUpperCase()}
-                                        </AvatarFallback>
-                                    </Avatar>
+                                    <AppAvatar 
+                                        className="w-16 h-16 border-2 border-white shadow-md"
+                                        src={instructor.avatar}
+                                        fallback={instructor.fullName?.substring(0, 2).toUpperCase()}
+                                    />
                                     <div className="flex-1 min-w-0">
                                         <h3 className="font-bold text-foreground truncate group-hover:text-primary transition-colors">
                                             {instructor.fullName}
@@ -121,8 +59,8 @@ export default function FavoriteInstructors() {
                                         <Star className="w-5 h-5 fill-current" />
                                     </div>
                                 </div>
-                            </CardContent>
-                        </Card>
+                            </AppCardContent>
+                        </AppCard>
                     ))}
                 </div>
             ) : (
@@ -133,7 +71,7 @@ export default function FavoriteInstructors() {
                     <h3 className="text-lg font-bold text-foreground mb-1">Chưa theo dõi giảng viên nào</h3>
                     <p className="text-sm text-muted-foreground mb-6">Hãy khám phá và theo dõi những giảng viên yêu thích của bạn.</p>
                     <Link to="/instructors">
-                        <Button className="bg-primary hover:bg-primary/90 font-bold px-6">Khám phá ngay</Button>
+                        <AppButton appVariant="gradient" className="font-bold px-6">Khám phá ngay</AppButton>
                     </Link>
                 </div>
             )}

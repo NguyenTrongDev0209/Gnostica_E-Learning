@@ -8,43 +8,45 @@ import {
 
 const FooterBrand = () => (
     <div className="flex flex-col gap-6">
-        <div className="flex flex-col gap-1">
-            <h2 className="text-3xl font-black text-foreground tracking-tighter uppercase">Gnostica</h2>
-            <span className="text-sm text-primary font-bold tracking-tight uppercase">Nền tảng học tập thông minh</span>
+        <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-1">
+                <h2 className="text-3xl font-black text-foreground tracking-tighter uppercase">Gnostica</h2>
+                <span className="text-sm text-primary font-bold tracking-tight uppercase">Nền tảng học tập thông minh</span>
+            </div>
+
+            <div className="w-40 h-[2px] bg-muted"></div>
+
+            <p className="text-sm text-muted-foreground max-w-xs leading-relaxed">
+                Gnostica là nền tảng học tập trực tuyến hiện đại, giúp bạn khai phá tiềm năng và phát triển kỹ năng mỗi ngày.
+            </p>
         </div>
-
-        <div className="w-40 h-[2px] bg-muted"></div>
-
-        <p className="text-sm text-muted-foreground max-w-xs leading-relaxed">
-            Gnostica là nền tảng học tập trực tuyến hiện đại, giúp bạn khai phá tiềm năng và phát triển kỹ năng mỗi ngày.
-        </p>
 
         <div className="flex gap-4">
             {[
-                { Icon: Facebook, color: 'bg-primary' },
-                { Icon: Twitter, color: 'bg-muted text-muted-foreground' },
-                { Icon: Linkedin, color: 'bg-muted text-muted-foreground' },
-                { Icon: Send, color: 'bg-muted text-muted-foreground' }
-            ].map(({ Icon, color }, i) => (
-                <div
+                { src: "/Facebook.webp", alt: "Facebook" },
+                { src: "/Tiktok.webp", alt: "Tiktok" },
+                { src: "/Youtube.webp", alt: "Youtube" },
+                { src: "/Zalo.webp", alt: "Zalo" }
+            ].map(({ src, alt }, i) => (
+                <a
                     key={i}
-                    className={`w-10 h-10 rounded-full flex items-center justify-center transition-all cursor-pointer border border-transparent hover:scale-110 ${color}`}
+                    href="#"
+                    className="w-10 h-10 rounded-full flex items-center justify-center transition-all cursor-pointer hover:scale-110 overflow-hidden"
                 >
-                    <Icon className="h-4 w-4 fill-current" />
-                </div>
+                    <img src={src} alt={alt} className="w-full h-full object-cover" />
+                </a>
             ))}
         </div>
     </div>
 )
 
 const FooterLinks = ({ title, links }) => (
-    <div className="flex flex-col gap-8">
-        <h3 className="font-bold text-xl text-foreground tracking-tight">{title}</h3>
-        <ul className="flex flex-col gap-5">
+    <div>
+        <h3 className="font-bold text-xl text-foreground tracking-tight mb-8">{title}</h3>
+        <ul style={{ padding: 0, margin: 0, listStyleType: 'none' }}>
             {links.map((link) => (
-                <li key={link}>
-                    <a href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-3 font-medium">
-                        <div className="w-1.5 h-1.5 rounded-full bg-muted"></div>
+                <li key={link} className="mb-5 last:mb-0">
+                    <a href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors font-medium block">
                         {link}
                     </a>
                 </li>
@@ -55,7 +57,7 @@ const FooterLinks = ({ title, links }) => (
 
 const MainFooter = () => {
     return (
-        <footer className="w-full bg-white pt-6">
+        <footer className="w-full bg-primary/10 pt-6">
 
             {/* Main Sections */}
             <div className="app-container pb-9">
@@ -73,18 +75,21 @@ const MainFooter = () => {
                             <FooterLinks title="Dịch vụ" links={['Học trực tuyến', 'Cố vấn 1-1', 'Chứng chỉ', 'Cộng đồng']} />
 
                             {/* Contact Column */}
-                            <div className="flex flex-col gap-8">
-                                <h3 className="font-bold text-xl text-foreground tracking-tight">Liên hệ</h3>
-                                <div className="flex flex-col gap-6">
-                                    <div className="flex flex-col gap-2">
-                                        <span className="text-sm font-bold text-foreground">Điện thoại :</span>
-                                        <a href="tel:+012345678900" className="text-sm text-muted-foreground hover:text-primary transition-colors font-medium">
-                                            +0123 456 789 00
+                            <div style={{ textAlign: 'left' }}>
+                                <h3 className="font-bold text-xl text-foreground tracking-tight mb-8" style={{ textAlign: 'left' }}>Liên hệ</h3>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', textAlign: 'left' }}>
+                                        <span className="text-sm font-bold text-foreground" style={{ textAlign: 'left' }}>Điện thoại :</span>
+                                        <a href="tel:+0978070553" className="text-sm text-muted-foreground hover:text-primary transition-colors font-medium" style={{ textAlign: 'left' }}>
+                                            0978 070 553
+                                        </a>
+                                        <a href="tel:+0365623653" className="text-sm text-muted-foreground hover:text-primary transition-colors font-medium" style={{ textAlign: 'left' }}>
+                                            0365 623 653
                                         </a>
                                     </div>
-                                    <div className="flex flex-col gap-2">
-                                        <span className="text-sm font-bold text-foreground">Email :</span>
-                                        <a href="mailto:gnostica.team@gmail.com" className="text-sm text-muted-foreground hover:text-primary transition-colors font-medium">
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', textAlign: 'left' }}>
+                                        <span className="text-sm font-bold text-foreground" style={{ textAlign: 'left' }}>Email :</span>
+                                        <a href="mailto:gnostica.team@gmail.com" className="text-sm text-muted-foreground hover:text-primary transition-colors font-medium" style={{ textAlign: 'left' }}>
                                             gnostica.team@gmail.com
                                         </a>
                                     </div>
@@ -93,7 +98,7 @@ const MainFooter = () => {
                         </div>
 
                         {/* Thank You Bar */}
-                        <div className="w-full py-5 px-6 border-2 border-border rounded-lg flex items-center justify-center bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,0.05)]">
+                        <div className="w-full py-5 px-6 border-2 border-border rounded-lg flex items-center justify-center bg-white shadow-md">
                             <span className="text-foreground font-bold text-sm lg:text-[15px] text-center leading-relaxed">
                                 Cảm ơn bạn đã tin tưởng và đồng hành cùng Gnostica
                             </span>
@@ -103,10 +108,13 @@ const MainFooter = () => {
                     {/* Map */}
                     <div className="lg:col-span-3 h-full flex flex-col justify-start">
                         <div className="overflow-hidden shadow-sm border border-border aspect-square group">
-                            <img
-                                src="/footer_map_location.png"
-                                alt="Location Map"
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                            <iframe
+                                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d988.6924000753803!2d105.75821718944135!3d9.981928106454333!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31a08906415c355f%3A0x416815a99ebd841e!2zVHLGsOG7nW5nIENhbyDEkeG6s25nIEZQVCBQb2x5dGVjaG5pYw!5e1!3m2!1svi!2s!4v1784347006312!5m2!1svi!2s"
+                                className="w-full h-full border-0"
+                                allowFullScreen=""
+                                loading="lazy"
+                                referrerPolicy="no-referrer-when-downgrade"
+                                title="Google Map"
                             />
                         </div>
                     </div>
@@ -114,7 +122,7 @@ const MainFooter = () => {
             </div>
 
             {/* Bottom Bar */}
-            <div className="w-full bg-[#11141D] text-white">
+            <div className="w-full bg-foreground text-background">
                 <div className="h-[3px] w-full bg-primary"></div>
                 <div className="app-container py-4 flex flex-col md:flex-row justify-between items-center gap-6">
                     <div className="flex gap-4 items-center">

@@ -1,179 +1,145 @@
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import courseService from "@/services/courseService";
+import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import adminCourseService from "@/services/admin/adminCourseService";
 import { toast } from "sonner";
 
-export default function useAdminCourseModeration() {
-  const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState("all");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [pagination, setPagination] = useState({
-    currentPage: 0,
-    totalPages: 0,
-    totalElements: 0,
-  });
+export default function useAdminCourseModeration(slug) {
+  const navigate = useNavigate();
 
+  const [course, setCourse] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
-  const [selectedCourse, setSelectedCourse] = useState(null);
-  const [rejectReason, setRejectReason] = useState("");
-
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-  const [activeInstructor, setActiveInstructor] = useState(null);
+  const [rejectReason, setRejectReason] = useState("");
+  const [activePreview, setActivePreview] = useState(null);
 
-  const extractPageData = (res) => {
-    if (!res) return null;
-    if (res.data !== undefined) return res.data;
-    return res;
-  };
+  const playerRef = useRef(null);
 
-  const { data: pageData, isLoading: loading } = useQuery({
-    queryKey: ['admin_moderation_courses', activeTab, pagination.currentPage],
-    queryFn: async () => {
-      let statusParam = null;
-      if (activeTab === "pending") statusParam = 4;
-      else if (activeTab === "approved") statusParam = 1;
-      else if (activeTab === "rejected") statusParam = 3;
 
-      const resRaw = await courseService.getModerationCourses(statusParam, pagination.currentPage, 10);
-      return extractPageData(resRaw) || {};
-    },
-    staleTime: 1000 * 60,
-  });
-
-  const courses = pageData?.content || [];
-  const currentPagination = {
-    currentPage: pageData?.number || 0,
-    totalPages: pageData?.totalPages || 0,
-    totalElements: pageData?.totalElements || 0,
-  };
-
-  const { data: stats = { pending: 0, approved: 0, rejected: 0 } } = useQuery({
-    queryKey: ['admin_moderation_stats'],
-    queryFn: async () => {
-      const res = await courseService.getModerationStats();
-      const statsData = res?.data !== undefined ? res.data : res;
-      return {
-        pending: statsData?.pending || 0,
-        approved: statsData?.approved || 0,
-        rejected: statsData?.rejected || 0,
-      };
-    },
-    staleTime: 1000 * 60 * 2,
-  });
-
-  const loadCourses = (page = 0) => {
-    setPagination(prev => ({ ...prev, currentPage: page }));
-  };
-
-  const approveMutation = useMutation({
-    mutationFn: async (slug) => {
-      return await courseService.approveCourse(slug);
-    },
-    onSuccess: () => {
-      toast.success("Phê duyệt và xuất bản khóa học thành công!");
-      queryClient.invalidateQueries({ queryKey: ['admin_moderation_courses'] });
-      queryClient.invalidateQueries({ queryKey: ['admin_moderation_stats'] });
-    },
-    onError: (err) => {
-      toast.error(err.response?.data?.error || "Không thể phê duyệt khóa học này.");
+  const isEmbedLink = (url) => {
+    if (!url) return false;
+    const isDirectVideo = /\.(m3u8|mp4|mov|webm)($|\?)/i.test(url);
+    if (isDirectVideo) return false;
+    const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+    if (uuidRegex.test(url)) return true;
+    if (url.includes("/")) {
+      const parts = url.split("/");
+      if (uuidRegex.test(parts[parts.length - 1])) return true;
     }
-  });
-
-  const rejectMutation = useMutation({
-    mutationFn: async ({ slug, reason }) => {
-      return await courseService.rejectCourse(slug, reason);
-    },
-    onSuccess: () => {
-      toast.success("Đã gửi lý do từ chối phê duyệt khóa học.");
-      setIsRejectModalOpen(false);
-      setSelectedCourse(null);
-      queryClient.invalidateQueries({ queryKey: ['admin_moderation_courses'] });
-      queryClient.invalidateQueries({ queryKey: ['admin_moderation_stats'] });
-    },
-    onError: (err) => {
-      toast.error(err.response?.data?.error || "Lỗi khi từ chối khóa học.");
-    }
-  });
-
-  const handleApprove = async (course) => {
-    if (!window.confirm(`Bạn có chắc chắn phê duyệt công khai khóa học "${course.title}"?`)) return;
-    await approveMutation.mutateAsync(course.slug);
+    const lowUrl = url.toLowerCase();
+    return (lowUrl.includes("mediadelivery.net") || lowUrl.includes("bunny.net") || lowUrl.includes("vimeo.com")) && !lowUrl.includes("b-cdn.net");
   };
 
-  const handleOpenRejectModal = (course) => {
-    setSelectedCourse(course);
-    setRejectReason("");
-    setIsRejectModalOpen(true);
+  const jumpToTime = (timeString) => {
+    if (!playerRef.current) {
+      toast.error("Vui lòng phát Video trước khi tua tới thời gian!");
+      return;
+    }
+    const parts = timeString.split(":").map(Number);
+    let seconds = 0;
+    if (parts.length === 3) {
+      seconds = parts[0] * 3600 + parts[1] * 60 + parts[2];
+    } else if (parts.length === 2) {
+      seconds = parts[0] * 60 + parts[1];
+    }
+    const isEmbed = isEmbedLink(activePreview?.data?.videoUrl);
+    if (isEmbed) {
+      try {
+        playerRef.current.contentWindow?.postMessage(JSON.stringify({ type: "seek", value: seconds }), "*");
+        playerRef.current.contentWindow?.postMessage(JSON.stringify({ type: "play" }), "*");
+      } catch (e) {
+        console.error("PostMessage seek error:", e);
+      }
+    } else {
+      playerRef.current.currentTime = seconds;
+      playerRef.current.play().catch(() => {});
+    }
+    toast.info(`Tua video đến ${timeString}`);
+  };
+
+
+
+  const focusAndPreviewLesson = (lesson, mod) => {
+    setActivePreview({
+      type: "lesson",
+      data: lesson,
+      moduleAttachments: mod?.attachments?.filter(a => !a.deleted) || []
+    });
+    window.scrollTo({ top: 180, behavior: "smooth" });
+    toast.info(`Chuyển chế độ xem: ${lesson.title}`);
+  };
+
+  const fetchCourseDetail = async () => {
+    try {
+      setLoading(true);
+      const res = await adminCourseService.getCourseForModeration(slug);
+      setCourse(res);
+      setActivePreview(null);
+    } catch (err) {
+      toast.error("Không thể tải nội dung chi tiết của khóa học.");
+      navigate("/admin/course-moderation");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (slug) {
+      fetchCourseDetail();
+    }
+  }, [slug]);
+
+  const handleApprove = async () => {
+    if (!course) return;
+    if (!window.confirm(`Phê duyệt và công khai khóa học "${course.title}" lên hệ thống?`)) return;
+    try {
+      setIsSubmitting(true);
+      await adminCourseService.approveCourse(course.slug);
+      toast.success("Phê duyệt thành công!");
+      navigate("/admin/course-moderation");
+    } catch (err) {
+      toast.error(err.response?.data?.error || "Lỗi xảy ra trong quá trình phê duyệt.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleConfirmReject = async () => {
     if (!rejectReason.trim()) {
-      toast.warning("Vui lòng điền lý do từ chối kiểm duyệt.");
+      toast.warning("Vui lòng nhập phản hồi lý do từ chối.");
       return;
     }
-    await rejectMutation.mutateAsync({ slug: selectedCourse.slug, reason: rejectReason });
+    try {
+      setIsSubmitting(true);
+      await adminCourseService.rejectCourse(course.slug, rejectReason);
+      toast.success("Đã từ chối phê duyệt khóa học.");
+      setIsRejectModalOpen(false);
+      navigate("/admin/course-moderation");
+    } catch (err) {
+      toast.error(err.response?.data?.error || "Lỗi khi gửi từ chối.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
-
-  const formatFriendlyDate = (dateStr) => {
-    if (!dateStr) return "--";
-    const d = new Date(dateStr);
-    return `${d.toLocaleDateString("vi-VN")} ${d.toLocaleTimeString("vi-VN", { hour: '2-digit', minute: '2-digit' })}`;
-  };
-
-  const handleOpenInstructorProfile = (course) => {
-    if (!course.instructorId && !course.instructorName) return;
-    setActiveInstructor({
-       name: course.instructorName || "Chưa cập nhật",
-       avatar: course.instructorAvatar,
-       email: course.instructorEmail || "---",
-       phone: course.instructorPhone || "---",
-       cccd: "---",
-       address: "Việt Nam",
-       joinedDate: formatFriendlyDate(course.instructorCreatedAt),
-       job: "Giảng viên Gnostica",
-       bio: "Thông tin chi tiết về kinh nghiệm giảng dạy của tác giả khóa học.",
-       bankName: "Ngân hàng liên kết",
-       bankNumber: "---",
-       bankHolder: (course.instructorName || "").toUpperCase(),
-       courses: 1,
-       students: "--",
-       rating: "4.8"
-    });
-    setIsProfileModalOpen(true);
- };
-
-  const filteredCourses = courses.filter(c => 
-    c.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.instructorName?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   return {
-    activeTab,
-    setActiveTab,
-    courses: filteredCourses,
+    course,
     loading,
-    pagination: currentPagination,
-    searchTerm,
-    setSearchTerm,
-    stats,
-    loadCourses,
-    
+    isSubmitting,
     isRejectModalOpen,
     setIsRejectModalOpen,
-    selectedCourse,
-    rejectReason,
-    setRejectReason,
-    
     isProfileModalOpen,
     setIsProfileModalOpen,
-    activeInstructor,
-    
+    rejectReason,
+    setRejectReason,
+    activePreview,
+    setActivePreview,
+    playerRef,
+    isEmbedLink,
+    jumpToTime,
+    focusAndPreviewLesson,
     handleApprove,
-    handleOpenRejectModal,
-    handleConfirmReject,
-    handleOpenInstructorProfile,
-    formatFriendlyDate,
-    
-    isSubmitting: approveMutation.isPending || rejectMutation.isPending
+    handleConfirmReject
   };
 }

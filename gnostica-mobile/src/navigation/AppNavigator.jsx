@@ -4,12 +4,12 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Home, Compass, BookOpen, User, Zap, MessageSquare, Settings } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
-import HomeScreen from '../screens/client/HomeScreen';
-import SearchScreen from '../screens/client/SearchScreen';
-import MyCoursesScreen from '../screens/client/MyCoursesScreen';
-import SettingsScreen from '../screens/client/SettingsScreen';
-import HighlightsScreen from '../screens/client/HighlightsScreen';
-import ForumScreen from '../screens/client/ForumScreen';
+import HomeScreen from '../screens/home/HomeScreen';
+import SearchScreen from '../screens/home/SearchScreen';
+import MyCoursesScreen from '../screens/course/MyCoursesScreen';
+import SettingsScreen from '../screens/profile/SettingsScreen';
+import HighlightsScreen from '../screens/home/HighlightsScreen';
+import ForumScreen from '../screens/forum/ForumScreen';
 
 const Tab = createBottomTabNavigator();
 
