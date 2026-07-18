@@ -77,7 +77,7 @@ const MainHeader = ({
                                 className="text-white"
                             />
                         </div>
-                        <AppLogo src="/Gnostica_Mark.webp" />
+                        <AppLogo />
                     </div>
 
                     {/* Search - Center */}

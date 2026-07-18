@@ -3,49 +3,130 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/common/mi
 import AppTextarea from "@/components/common/micro/AppTextarea";
 import { Switch } from "@/components/common/micro/AppSwitch";
 // Fix imported
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { AppButton } from "@/components/common/micro/AppButton";
 import AppSelect from "@/components/common/micro/AppSelect";
 import AppInput from "@/components/common/micro/AppInput";
-import {Globe, ShieldCheck, CreditCard, Lock, Shield, Server, Activity, Settings} from "lucide-react";
+import { Label } from "@/components/common/micro/AppLabel";
+import {
+  Activity,
+  CreditCard,
+  Globe,
+  Image as ImageIcon,
+  Key,
+  Landmark,
+  Loader2,
+  Lock,
+  Mail,
+  MapPin,
+  Phone,
+  Save,
+  Server,
+  Settings,
+  Shield,
+  ShieldCheck,
+  Smartphone,
+  UserCheck,
+} from "lucide-react";
 import { toast } from "sonner";
+import SockJS from "sockjs-client";
+import { Stomp } from "stompjs/lib/stomp.js";
+import { Area, AreaChart, CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 import AppCard, { AppCardContent, AppCardHeader, AppCardTitle } from "@/components/common/micro/AppCard";
 import AppBadge from "@/components/common/micro/AppBadge";
+import {
+  ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/common/micro/AppChart";
+import { useAdminSettings } from "@/hooks/settings/useSiteSettings";
+
+const DEFAULT_SETTINGS = {
+  "site.name": "Gnostica",
+  "site.tagline": "Nền tảng học tập thông minh",
+  "site.logo_url": "/Gnostica_Mark.webp",
+  "site.favicon_url": "",
+  "site.contact_email": "gnostica.team@gmail.com",
+  "site.contact_phone": "0978 070 553",
+  "site.address": "",
+  "site.map_embed_url": "",
+  "footer.description": "",
+  "footer.copyright": "© 2026 Gnostica. Bản quyền thuộc về đội ngũ phát triển.",
+  "footer.social_links": "[]",
+  "footer.link_groups": "[]",
+};
 
 export default function AdminSettings() {
-  const [isSaving, setIsSaving] = useState(false);
+  const { data, isLoading, updateMutation, uploadMutation } = useAdminSettings();
+  const [overrides, setOverrides] = useState({});
+  const values = { ...DEFAULT_SETTINGS, ...data, ...overrides };
 
-  const handleSave = () => {
-    setIsSaving(true);
-    // Simulate API call
-    setTimeout(() => {
-      setIsSaving(false);
-      toast.success("Đã lưu các thay đổi thành công!");
-    }, 1500);
+  const updateValue = (key, value) => {
+    setOverrides((current) => ({ ...current, [key]: value }));
   };
+
+  const handleSave = async () => {
+    try {
+      await updateMutation.mutateAsync(values);
+      setOverrides({});
+      toast.success("Đã lưu các thay đổi thành công!");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Không thể lưu cấu hình hệ thống");
+    }
+  };
+
+  const handleLogoUpload = async (file) => {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Vui lòng chọn một tệp ảnh");
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Ảnh logo không được vượt quá 2MB");
+      return;
+    }
+    try {
+      const url = await uploadMutation.mutateAsync(file);
+      updateValue("site.logo_url", url);
+      toast.success("Đã tải logo lên. Nhấn Lưu thay đổi để áp dụng.");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Không thể tải logo lên");
+    }
+  };
+
+  if (isLoading) {
+    return <div className="flex min-h-64 items-center justify-center"><Loader2 className="size-7 animate-spin text-primary" /></div>;
+  }
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <SettingsHeader onSave={handleSave} isSaving={isSaving} />
+      <SettingsHeader onSave={handleSave} isSaving={updateMutation.isPending} />
 
       <Tabs defaultValue="general" className="w-full">
-        <TabsList className="bg-secondary border border-border p-1 mb-6">
-          <TabsTrigger value="general" className="gap-2 data-active:bg-white data-active:shadow-sm">
+        <TabsList className="mb-6">
+          <TabsTrigger value="general" className="gap-2">
             <Globe className="w-4 h-4" />
             Cài đặt chung
           </TabsTrigger>
-          <TabsTrigger value="payment" className="gap-2 data-active:bg-white data-active:shadow-sm">
+          <TabsTrigger value="payment" className="gap-2">
             <CreditCard className="w-4 h-4" />
             Thanh toán
           </TabsTrigger>
-          <TabsTrigger value="security" className="gap-2 data-active:bg-white data-active:shadow-sm">
+          <TabsTrigger value="security" className="gap-2">
             <Shield className="w-4 h-4" />
             Bảo mật
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="general" className="animate-in fade-in duration-300">
-          <GeneralSettings />
+          <GeneralSettings
+            values={values}
+            onChange={updateValue}
+            onLogoUpload={handleLogoUpload}
+            isUploadingLogo={uploadMutation.isPending}
+          />
         </TabsContent>
 
         <TabsContent value="payment" className="animate-in fade-in duration-300">
@@ -85,7 +166,7 @@ function SettingsHeader({ onSave, isSaving }) {
   );
 }
 
-function GeneralSettings() {
+function GeneralSettings({ values, onChange, onLogoUpload, isUploadingLogo }) {
   return (
     <div className="space-y-6">
       <AppCard appVariant="default" className="border-border shadow-sm">
@@ -100,30 +181,35 @@ function GeneralSettings() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="siteName" className="text-xs font-bold uppercase text-muted-foreground">Tên Website</Label>
-              <AppInput id="siteName" placeholder="Gnostica E-Learning" defaultValue="Gnostica E-Learning" className="border-border" />
+              <AppInput id="siteName" placeholder="Gnostica E-Learning" value={values["site.name"]} onChange={(event) => onChange("site.name", event.target.value)} className="border-border" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="tagline" className="text-xs font-bold uppercase text-muted-foreground">Slogan</Label>
-              <AppInput id="tagline" placeholder="Tri thức không giới hạn" defaultValue="Tri thức không giới hạn" className="border-border" />
+              <AppInput id="tagline" placeholder="Tri thức không giới hạn" value={values["site.tagline"]} onChange={(event) => onChange("site.tagline", event.target.value)} className="border-border" />
             </div>
           </div>
           
           <div className="space-y-2">
             <Label className="text-xs font-bold uppercase text-muted-foreground">Logo Website</Label>
-            <div className="flex items-center gap-4 p-4 border-2 border-dashed border-border rounded-xl bg-muted hover:bg-muted transition-colors cursor-pointer">
+            <label htmlFor="siteLogo" className="flex items-center gap-4 p-4 border-2 border-dashed border-border rounded-xl bg-muted hover:bg-muted/80 transition-colors cursor-pointer">
               <div className="w-12 h-12 rounded-lg bg-white border border-border flex items-center justify-center shadow-sm">
-                <ImageIcon className="w-6 h-6 text-slate-300" />
+                {isUploadingLogo ? <Loader2 className="w-6 h-6 animate-spin text-primary" /> : values["site.logo_url"] ? <img src={values["site.logo_url"]} alt="Logo preview" className="h-full w-full object-contain p-1" /> : <ImageIcon className="w-6 h-6 text-slate-300" />}
               </div>
               <div className="flex flex-col">
                 <span className="text-sm font-semibold text-foreground">Tải lên logo mới</span>
                 <span className="text-xs text-muted-foreground">PNG, JPG hoặc SVG (Max 2MB)</span>
               </div>
-            </div>
+              <input id="siteLogo" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" className="sr-only" disabled={isUploadingLogo} onChange={(event) => onLogoUpload(event.target.files?.[0])} />
+            </label>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="footerText" className="text-xs font-bold uppercase text-muted-foreground">Văn bản chân trang (Footer)</Label>
-            <AppTextarea id="footerText" placeholder="Nhập nội dung hiển thị ở cuối trang..." className="min-h-[100px] border-border focus:bg-white" />
+            <AppTextarea id="footerText" placeholder="Nhập nội dung hiển thị ở cuối trang..." value={values["footer.description"]} onChange={(event) => onChange("footer.description", event.target.value)} className="min-h-[100px] border-border focus:bg-white" />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="copyright" className="text-xs font-bold uppercase text-muted-foreground">Thông tin bản quyền</Label>
+            <AppInput id="copyright" value={values["footer.copyright"]} onChange={(event) => onChange("footer.copyright", event.target.value)} className="border-border" />
           </div>
         </AppCardContent>
       </AppCard>
@@ -142,22 +228,26 @@ function GeneralSettings() {
               <Label htmlFor="email" className="text-xs font-bold uppercase text-muted-foreground">Email liên hệ</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <AppInput id="email" defaultValue="contact@gnostica.com" className="pl-9 border-border" />
+                <AppInput id="email" type="email" value={values["site.contact_email"]} onChange={(event) => onChange("site.contact_email", event.target.value)} className="pl-9 border-border" />
               </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="phone" className="text-xs font-bold uppercase text-muted-foreground">Số điện thoại</Label>
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <AppInput id="phone" defaultValue="0987 654 321" className="pl-9 border-border" />
+                <AppInput id="phone" value={values["site.contact_phone"]} onChange={(event) => onChange("site.contact_phone", event.target.value)} className="pl-9 border-border" />
               </div>
             </div>
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="address" className="text-xs font-bold uppercase text-muted-foreground">Địa chỉ văn phòng</Label>
               <div className="relative">
                 <MapPin className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
-                <AppTextarea id="address" defaultValue="Số 1 Trịnh Văn Bô, Nam Từ Liêm, Hà Nội" className="pl-9 min-h-[80px] border-border" />
+                <AppTextarea id="address" value={values["site.address"]} onChange={(event) => onChange("site.address", event.target.value)} className="pl-9 min-h-[80px] border-border" />
               </div>
+            </div>
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="mapEmbedUrl" className="text-xs font-bold uppercase text-muted-foreground">URL bản đồ nhúng</Label>
+              <AppInput id="mapEmbedUrl" type="url" placeholder="https://www.google.com/maps/embed?..." value={values["site.map_embed_url"]} onChange={(event) => onChange("site.map_embed_url", event.target.value)} className="border-border" />
             </div>
           </div>
         </AppCardContent>

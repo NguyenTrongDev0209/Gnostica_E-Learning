@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { Link } from 'react-router-dom'
 import { cva } from "class-variance-authority"
+import { usePublicSiteConfig } from "@/hooks/settings/useSiteSettings"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -217,15 +218,18 @@ export const AppUserMenu = ({ user = { name: "Học viên", avatar: "https://git
   )
 }
 
-export const AppLogo = ({ src = "/Gnostica_Mark.webp", className }) => {
+export const AppLogo = ({ src, className }) => {
+  const { data: siteConfig } = usePublicSiteConfig();
+  const resolvedSrc = src || siteConfig?.["site.logo_url"] || "/Gnostica_Mark.webp";
+  const siteName = siteConfig?.["site.name"] || "Gnostica";
   return (
     <Link
       to="/"
       className={cn("flex items-center h-10 md:h-10 hover:opacity-90 transition-opacity", className)}
     >
       <img
-        src={src}
-        alt="Gnostica Logo"
+        src={resolvedSrc}
+        alt={`${siteName} Logo`}
         className="h-full w-auto object-contain"
       />
     </Link>
