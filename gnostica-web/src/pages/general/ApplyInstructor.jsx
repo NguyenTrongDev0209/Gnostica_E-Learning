@@ -154,17 +154,17 @@ const ApplyInstructor = () => {
     const createApplicationMutation = useMutation({
         mutationFn: (data) => instructorService.createApplication(data),
         onSuccess: () => {
-            toast.success("N?p don th�nh c�ng! Ch�ng t�i s? ph?n h?i s?m nh?t c� th?.");
+            toast.success("Nộp đơn thành công! Chúng tôi sẽ phản hồi sớm nhất có thể.");
             navigate('/');
         },
         onError: (error) => {
-            toast.error(error.response?.data?.message || "L?i h? th?ng khi g?i don");
+            toast.error(error.response?.data?.message || "Lỗi hệ thống khi gửi đơn");
         }
     });
 
     const onSubmit = async (data) => {
         if (!agreedTerms) {
-            toast.error("B?n chua d?ng � v?i di?u kho?n d?ch v?");
+            toast.error("Bạn chưa đồng ý với điều khoản dịch vụ");
             return;
         }
 
@@ -418,14 +418,14 @@ const ApplyInstructor = () => {
 
                                         <div className="space-y-4">
                                             <Label className="text-muted-foreground font-bold flex items-center gap-2">
-                                                Bằng cấp, chứng chỉ liên quan (Nhiều tệp) <span className="text-destructive">*</span>
+                                                Bằng cấp chuyên môn (Nhiều tệp) <span className="text-destructive">*</span>
                                             </Label>
                                             <p className="text-xs text-slate-400 -mt-2">Ví dụ: Bằng Đại học, Cao đẳng, Thạc sĩ, Tiến sĩ...</p>
                                             <div className="flex items-center justify-center w-full group">
                                                 <label className="flex flex-col items-center justify-center w-full h-40 border-4 border-dashed border-border rounded-[2.5rem] cursor-pointer bg-muted/30 hover:bg-white hover:border-primary/20 transition-all duration-500 shadow-inner">
                                                     <div className="flex flex-col items-center justify-center pt-5 pb-6">
                                                         <UploadCloud className="w-12 h-12 mb-4 text-muted-foreground/30 group-hover:text-primary/40 group-hover:scale-110 transition-all duration-500" />
-                                                        <p className="mb-2 text-base text-muted-foreground font-bold">Thanh bằng cấp (Ảnh/PDF)</p>
+                                                        <p className="mb-2 text-base text-muted-foreground font-bold">Thêm bằng cấp (Ảnh/PDF)</p>
                                                         <p className="text-xs text-muted-foreground">Nhấp để chọn hoặc kéo thả nhiều tệp cùng lúc</p>
                                                     </div>
                                                     <input type="file" className="hidden" multiple accept="image/*,application/pdf" onChange={(e) => handleFileChange(e, 'degreeUrls')} />
@@ -452,7 +452,51 @@ const ApplyInstructor = () => {
                                                                     <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">{file.type.split('/')[1]}</p>
                                                                 </div>
                                                             </div>
-                                                            <button type="button" onClick={() => removeDegreeFile(index)} className="p-2 text-muted-foreground/50 hover:text-destructive hover:bg-destructive/10 rounded-full transition-all opacity-0 group-hover:opacity-100">
+                                                            <button type="button" onClick={() => removeFile(index, 'degreeUrls')} className="p-2 text-muted-foreground/50 hover:text-destructive hover:bg-destructive/10 rounded-full transition-all opacity-0 group-hover:opacity-100">
+                                                                <X className="w-5 h-5" />
+                                                            </button>
+                                                        </motion.div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div className="space-y-4">
+                                            <Label className="text-muted-foreground font-bold flex items-center gap-2">
+                                                Chứng chỉ liên quan (Nhiều tệp)
+                                            </Label>
+                                            <p className="text-xs text-slate-400 -mt-2">Ví dụ: Chứng chỉ ngoại ngữ (IELTS, TOEIC), chứng chỉ sư phạm, chứng chỉ tin học...</p>
+                                            <div className="flex items-center justify-center w-full group">
+                                                <label className="flex flex-col items-center justify-center w-full h-40 border-4 border-dashed border-border rounded-[2.5rem] cursor-pointer bg-muted/30 hover:bg-white hover:border-primary/20 transition-all duration-500 shadow-inner">
+                                                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                                        <UploadCloud className="w-12 h-12 mb-4 text-muted-foreground/30 group-hover:text-primary/40 group-hover:scale-110 transition-all duration-500" />
+                                                        <p className="mb-2 text-base text-muted-foreground font-bold">Thêm chứng chỉ (Ảnh/PDF)</p>
+                                                        <p className="text-xs text-muted-foreground">Nhấp để chọn hoặc kéo thả nhiều tệp cùng lúc</p>
+                                                    </div>
+                                                    <input type="file" className="hidden" multiple accept="image/*,application/pdf" onChange={(e) => handleFileChange(e, 'certificateUrls')} />
+                                                </label>
+                                            </div>
+
+                                            {files.certificateUrls.length > 0 && (
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
+                                                    {files.certificateUrls.map((file, index) => (
+                                                        <motion.div
+                                                            key={index}
+                                                            initial={{ scale: 0.9, opacity: 0 }}
+                                                            animate={{ scale: 1, opacity: 1 }}
+                                                            className="flex items-center justify-between p-4 bg-white border-2 border-border rounded-2xl shadow-sm hover:shadow-md transition-all group"
+                                                        >
+                                                            <div className="flex items-center space-x-4 overflow-hidden">
+                                                                <div className={`p-2 rounded-lg 
+                                                                    ${file.type === 'application/pdf' ? 'bg-destructive/10 text-destructive' : 'bg-info/10 text-info'}`}>
+                                                                    {file.type === 'application/pdf' ? <FileText className="w-5 h-5" /> : <ImageIcon className="w-5 h-5" />}
+                                                                </div>
+                                                                <div className="overflow-hidden">
+                                                                    <p className="text-sm font-bold text-foreground truncate max-w-[160px]" title={file.name}>{file.name}</p>
+                                                                    <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">{file.type.split('/')[1]}</p>
+                                                                </div>
+                                                            </div>
+                                                            <button type="button" onClick={() => removeFile(index, 'certificateUrls')} className="p-2 text-muted-foreground/50 hover:text-destructive hover:bg-destructive/10 rounded-full transition-all opacity-0 group-hover:opacity-100">
                                                                 <X className="w-5 h-5" />
                                                             </button>
                                                         </motion.div>
