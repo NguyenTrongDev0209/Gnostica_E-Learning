@@ -11,6 +11,7 @@ import { Label } from "@/components/common/micro/AppLabel";
 import {
   Activity,
   CreditCard,
+  FileText,
   Globe,
   Image as ImageIcon,
   Key,
@@ -20,6 +21,7 @@ import {
   Mail,
   MapPin,
   Phone,
+  Percent,
   Save,
   Server,
   Settings,
@@ -42,6 +44,9 @@ import {
   ChartTooltipContent,
 } from "@/components/common/micro/AppChart";
 import { useAdminSettings } from "@/hooks/settings/useSiteSettings";
+import BannerSettings from "@/pages/admin/components/BannerSettings";
+import PageSettings from "@/pages/admin/components/PageSettings";
+import Skeleton from "@/components/common/micro/AppSkeleton";
 
 const DEFAULT_SETTINGS = {
   "site.name": "Gnostica",
@@ -56,6 +61,8 @@ const DEFAULT_SETTINGS = {
   "footer.copyright": "© 2026 Gnostica. Bản quyền thuộc về đội ngũ phát triển.",
   "footer.social_links": "[]",
   "footer.link_groups": "[]",
+  "finance.instructor_ratio": "90",
+  "finance.platform_ratio": "10",
 };
 
 export default function AdminSettings() {
@@ -97,7 +104,7 @@ export default function AdminSettings() {
   };
 
   if (isLoading) {
-    return <div className="flex min-h-64 items-center justify-center"><Loader2 className="size-7 animate-spin text-primary" /></div>;
+    return <SettingsPageSkeleton />;
   }
 
   return (
@@ -110,9 +117,21 @@ export default function AdminSettings() {
             <Globe className="w-4 h-4" />
             Cài đặt chung
           </TabsTrigger>
+          <TabsTrigger value="home" className="gap-2">
+            <ImageIcon className="w-4 h-4" />
+            Trang chủ
+          </TabsTrigger>
+          <TabsTrigger value="pages" className="gap-2">
+            <FileText className="w-4 h-4" />
+            Nội dung
+          </TabsTrigger>
           <TabsTrigger value="payment" className="gap-2">
             <CreditCard className="w-4 h-4" />
             Thanh toán
+          </TabsTrigger>
+          <TabsTrigger value="finance" className="gap-2">
+            <Percent className="w-4 h-4" />
+            Tài chính
           </TabsTrigger>
           <TabsTrigger value="security" className="gap-2">
             <Shield className="w-4 h-4" />
@@ -129,8 +148,20 @@ export default function AdminSettings() {
           />
         </TabsContent>
 
+        <TabsContent value="home" className="animate-in fade-in duration-300">
+          <BannerSettings />
+        </TabsContent>
+
+        <TabsContent value="pages" className="animate-in fade-in duration-300">
+          <PageSettings />
+        </TabsContent>
+
         <TabsContent value="payment" className="animate-in fade-in duration-300">
           <PaymentConfigSettings />
+        </TabsContent>
+
+        <TabsContent value="finance" className="animate-in fade-in duration-300">
+          <FinanceSettings values={values} onChange={updateValue} />
         </TabsContent>
 
         <TabsContent value="security" className="animate-in fade-in duration-300">
@@ -324,6 +355,51 @@ function PaymentConfigSettings() {
             <Label htmlFor="currencyPrefix" className="text-xs font-bold uppercase text-muted-foreground">Đơn vị tiền tệ hiển thị</Label>
             <AppInput id="currencyPrefix" defaultValue="đ" className="w-[100px] border-border" />
           </div>
+        </AppCardContent>
+      </AppCard>
+    </div>
+  );
+}
+
+function FinanceSettings({ values, onChange }) {
+  const platformRatio = Number(values["finance.platform_ratio"] || 0);
+  const instructorRatio = Number(values["finance.instructor_ratio"] || 0);
+
+  const updatePlatformRatio = (rawValue) => {
+    const value = Math.min(100, Math.max(0, Number(rawValue) || 0));
+    onChange("finance.platform_ratio", String(value));
+    onChange("finance.instructor_ratio", String(100 - value));
+  };
+
+  return (
+    <div className="space-y-6">
+      <AppCard appVariant="default" className="border-border shadow-sm">
+        <AppCardHeader>
+          <AppCardTitle className="flex items-center gap-2 text-lg font-bold">
+            <Percent className="size-5 text-warning" />
+            Tỷ lệ phân chia doanh thu mặc định
+          </AppCardTitle>
+          <CardDescription>Tỷ lệ này được áp dụng cho giao dịch mới khi giảng viên không có mức hoa hồng riêng.</CardDescription>
+        </AppCardHeader>
+        <AppCardContent className="space-y-6">
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="platformRatio" className="text-xs font-bold uppercase text-muted-foreground">Hoa hồng nền tảng (%)</Label>
+              <AppInput id="platformRatio" type="number" min="0" max="100" step="0.01" value={values["finance.platform_ratio"]} onChange={(event) => updatePlatformRatio(event.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="instructorRatio" className="text-xs font-bold uppercase text-muted-foreground">Doanh thu giảng viên (%)</Label>
+              <AppInput id="instructorRatio" type="number" value={values["finance.instructor_ratio"]} readOnly className="cursor-not-allowed opacity-75" />
+            </div>
+          </div>
+
+          <div className="grid gap-4 rounded-xl border border-border bg-muted/50 p-5 md:grid-cols-3">
+            <div><p className="text-xs font-bold uppercase text-muted-foreground">Ví dụ doanh thu</p><p className="mt-1 text-xl font-black text-foreground">1.000.000đ</p></div>
+            <div><p className="text-xs font-bold uppercase text-muted-foreground">Nền tảng nhận ({platformRatio}%)</p><p className="mt-1 text-xl font-black text-warning">{Math.round(1_000_000 * platformRatio / 100).toLocaleString("vi-VN")}đ</p></div>
+            <div><p className="text-xs font-bold uppercase text-muted-foreground">Giảng viên nhận ({instructorRatio}%)</p><p className="mt-1 text-xl font-black text-success">{Math.round(1_000_000 * instructorRatio / 100).toLocaleString("vi-VN")}đ</p></div>
+          </div>
+
+          <p className="text-xs leading-relaxed text-muted-foreground">Thay đổi chỉ ảnh hưởng giao dịch phát sinh sau khi lưu. Các giao dịch đã thanh toán giữ nguyên snapshot tỷ lệ và số tiền phân chia.</p>
         </AppCardContent>
       </AppCard>
     </div>
@@ -571,4 +647,24 @@ function InfrastructureMonitor() {
             </AppCard>
         </div>
     );
+}
+
+function SettingsPageSkeleton() {
+  return (
+    <div className="space-y-7 animate-pulse">
+      <div className="flex items-start justify-between">
+        <div className="space-y-3"><Skeleton className="h-8 w-64" /><Skeleton className="h-4 w-96" /></div>
+        <Skeleton className="h-11 w-36" />
+      </div>
+      <div className="flex gap-3">{Array.from({ length: 7 }).map((_, index) => <Skeleton key={index} className="h-11 w-28" />)}</div>
+      <div className="space-y-5 rounded-xl border border-border bg-card p-5">
+        <Skeleton className="h-6 w-56" />
+        <Skeleton className="h-4 w-80" />
+        <div className="grid gap-4 md:grid-cols-2"><Skeleton className="h-11 w-full" /><Skeleton className="h-11 w-full" /></div>
+        <Skeleton className="h-24 w-full" />
+        <Skeleton className="h-28 w-full" />
+      </div>
+      <div className="space-y-4 rounded-xl border border-border bg-card p-5"><Skeleton className="h-6 w-48" /><Skeleton className="h-11 w-full" /><Skeleton className="h-20 w-full" /></div>
+    </div>
+  );
 }

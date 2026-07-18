@@ -14,15 +14,16 @@ import useCategories from '@/hooks/course/useCategories';
 import useFeaturedCourses from "@/hooks/course/useFeaturedCourses";
 import useRecommendedCourses from '@/hooks/course/useRecommendedCourses';
 import useHomeData from '@/hooks/home/useHomeData';
+import { usePublicBanners } from '@/hooks/settings/useSiteSettings';
 
 // --- DATA CONSTANTS ---
 
-const slides = [
+const fallbackSlides = [
   { img: "/banner1.webp", alt: "Banner khuyến mãi 1" },
   { img: "/banner2.webp", alt: "Banner khuyến mãi 2" },
 ];
 
-const subBanners = [
+const fallbackSubBanners = [
   { img: "/banner_small1.webp", alt: "Sub banner khuyến mãi 1" },
   { img: "/banner_small2.webp", alt: "Sub banner khuyến mãi 2" },
   { img: "/banner_small3.webp", alt: "Sub banner khuyến mãi 3" },
@@ -63,16 +64,23 @@ const faqs = [
 // --- COMPONENTS ---
 
 function MainHeroCarousel() {
+  const { data: bannerData = [], isSuccess } = usePublicBanners("HOME_HERO");
+  const slides = isSuccess
+    ? bannerData.map((banner) => ({ img: banner.imageUrl, alt: banner.altText || banner.title, link: banner.linkUrl, external: banner.targetType === "EXTERNAL" }))
+    : fallbackSlides;
   const [api, setApi] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
     if (!api) return;
-    setCurrentIndex(api.selectedScrollSnap());
-    api.on("select", () => {
+    const handleSelect = () => {
       setCurrentIndex(api.selectedScrollSnap());
-    });
+    };
+    api.on("select", handleSelect);
+    return () => api.off("select", handleSelect);
   }, [api]);
+
+  if (isSuccess && slides.length === 0) return null;
 
   return (
     <div className="app-container py-0 md:py-6 relative z-10 w-full overflow-hidden">
@@ -81,13 +89,13 @@ function MainHeroCarousel() {
           {slides.map((slide, index) => (
             <CarouselItem key={index} className="w-full">
               {/* Box chứa ảnh giữ nguyên tỷ lệ */}
-              <div className="relative w-full aspect-[25/9] md:aspect-[4/1] flex items-center justify-center">
+              <a href={slide.link || undefined} target={slide.external ? "_blank" : undefined} rel={slide.external ? "noreferrer" : undefined} className="relative w-full aspect-[25/9] md:aspect-[4/1] flex items-center justify-center" onClick={(event) => !slide.link && event.preventDefault()}>
                 <img
                   src={slide.img}
                   alt={slide.alt}
                   className="w-full h-full object-contain"
                 />
-              </div>
+              </a>
             </CarouselItem>
           ))}
         </CarouselContent>
@@ -165,6 +173,11 @@ const PlatformStats = () => {
 };
 
 function SubBannerCarousel() {
+  const { data: bannerData = [], isSuccess } = usePublicBanners("HOME_SUB");
+  const subBanners = isSuccess
+    ? bannerData.map((banner) => ({ img: banner.imageUrl, alt: banner.altText || banner.title, link: banner.linkUrl, external: banner.targetType === "EXTERNAL" }))
+    : fallbackSubBanners;
+  if (isSuccess && subBanners.length === 0) return null;
   return (
     <div className="w-full px-2 md:px-0 mt-3 md:mt-0 mb-6 md:mb-0 block">
       <Carousel
@@ -183,7 +196,7 @@ function SubBannerCarousel() {
         <CarouselContent className="-ml-2 md:-ml-4">
           {subBanners.map((banner, index) => (
             <CarouselItem key={index} className="pl-2 md:pl-4 basis-full md:basis-1/2">
-              <div className="w-full rounded-lg overflow-hidden bg-muted flex items-center justify-center shadow-sm hover:shadow-md transition-shadow">
+              <a href={banner.link || undefined} target={banner.external ? "_blank" : undefined} rel={banner.external ? "noreferrer" : undefined} onClick={(event) => !banner.link && event.preventDefault()} className="w-full rounded-lg overflow-hidden bg-muted flex items-center justify-center shadow-sm hover:shadow-md transition-shadow">
                 <img
                   src={banner.img}
                   alt={banner.alt}
@@ -192,7 +205,7 @@ function SubBannerCarousel() {
                     e.target.src = "https://via.placeholder.com/600x180?text=Khuyen+Mai";
                   }}
                 />
-              </div>
+              </a>
             </CarouselItem>
           ))}
         </CarouselContent>
@@ -455,11 +468,11 @@ function CardCarousel() {
 
   useEffect(() => {
     if (!api) return;
-
-    setActiveIndex(api.selectedScrollSnap());
-    api.on("select", () => {
+    const handleSelect = () => {
       setActiveIndex(api.selectedScrollSnap());
-    });
+    };
+    api.on("select", handleSelect);
+    return () => api.off("select", handleSelect);
   }, [api]);
 
   if (loading) {

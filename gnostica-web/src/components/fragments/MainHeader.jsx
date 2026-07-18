@@ -97,7 +97,10 @@ const MainHeader = ({
                                 <AppUserMenu
                                     user={{
                                         name: currentUser.fullName || currentUser.username || "Người dùng",
-                                        avatar: currentUser.avatar || "https://github.com/shadcn.png"
+                                        avatar: currentUser.avatar || "https://github.com/shadcn.png",
+                                        role: currentUser.role || currentUser.roles?.[0],
+                                        roles: currentUser.roles,
+                                        token: currentUser.token
                                     }}
                                     onLogout={handleLogout}
                                 />
