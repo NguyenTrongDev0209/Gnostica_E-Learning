@@ -1,33 +1,19 @@
-import { CheckCircle2, XCircle, CreditCard, Wallet, QrCode, Building2 } from "lucide-react";
+import { CheckCircle2, XCircle, CreditCard, QrCode } from "lucide-react";
 
 export const paymentMethodsMock = [
   {
-    id: "credit-card",
-    label: "Thẻ tín dụng / Ghi nợ",
-    description: "Visa, Mastercard, JCB",
-    icon: CreditCard,
-    color: "text-info bg-blue-50",
-  },
-  {
-    id: "e-wallet",
-    label: "Ví điện tử",
-    description: "MoMo, ZaloPay, VNPay",
-    icon: Wallet,
-    color: "text-pink-600 bg-pink-50",
-  },
-  {
-    id: "qr-code",
-    label: "QR Code",
-    description: "Quét mã để thanh toán",
+    id: "PAYOS",
+    label: "PayOS",
+    description: "QR Code hoặc chuyển khoản ngân hàng",
     icon: QrCode,
     color: "text-success bg-green-50",
   },
   {
-    id: "bank-transfer",
-    label: "Chuyển khoản ngân hàng",
-    description: "Chuyển khoản trực tiếp",
-    icon: Building2,
-    color: "text-amber-600 bg-amber-50",
+    id: "VNPAY",
+    label: "VNPay",
+    description: "Thẻ ATM, tài khoản ngân hàng hoặc QR",
+    icon: CreditCard,
+    color: "text-info bg-blue-50",
   },
 ];
 
@@ -46,18 +32,18 @@ export const checkoutStatusConfig = {
     iconBg: "bg-green-50",
     ringColor: "ring-green-100",
     title: "Thanh toán thành công!",
-    description: "Đơn hàng của bạn đã được xác nhận. Khóa học sẽ được kích hoạt ngay lập tức.",
+    description: "Đơn hàng đã được xác nhận và khóa học đã được kích hoạt.",
     badgeText: "Đã thanh toán",
-    badgeColor: "bg-success/10 text-success text-success",
+    badgeColor: "bg-success/10 text-success",
   },
   cancel: {
     icon: XCircle,
     iconColor: "text-error",
     iconBg: "bg-red-50",
     ringColor: "ring-red-100",
-    title: "Thanh toán đã bị hủy",
-    description: "Đơn hàng của bạn chưa được thanh toán. Các khóa học vẫn còn trong giỏ hàng.",
-    badgeText: "Đã hủy",
-    badgeColor: "bg-error/10 text-error text-error",
+    title: "Thanh toán chưa hoàn tất",
+    description: "Đơn hàng chưa được thanh toán. Bạn có thể quay lại và thử lại.",
+    badgeText: "Chưa thanh toán",
+    badgeColor: "bg-error/10 text-error",
   },
 };

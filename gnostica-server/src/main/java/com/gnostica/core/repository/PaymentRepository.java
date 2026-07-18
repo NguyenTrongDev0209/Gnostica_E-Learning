@@ -13,6 +13,7 @@ import java.math.BigDecimal;
 @Repository
 public interface PaymentRepository extends JpaRepository<Payment, java.util.UUID> {
     boolean existsByTransactionCode(String transactionCode);
+    boolean existsByGatewayAndGatewayTransactionNo(String gateway, String gatewayTransactionNo);
     List<Payment> findByOrder(Order order);
     List<Payment> findByCreatedAtAfter(LocalDateTime createdAt);
 

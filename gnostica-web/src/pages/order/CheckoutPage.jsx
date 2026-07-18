@@ -304,7 +304,7 @@ function CheckoutOrderSummary({
 // ── Page ──
 export default function CheckoutPage() {
   const { state } = useLocation();
-  const [paymentMethod, setPaymentMethod] = useState("credit-card");
+  const [paymentMethod, setPaymentMethod] = useState("PAYOS");
   const [loading, setLoading] = useState(false);
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState(null);
@@ -373,7 +373,7 @@ export default function CheckoutPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (paymentMethod === "qr-code") {
+    if (paymentMethod === "PAYOS" || paymentMethod === "VNPAY") {
       setLoading(true);
       try {
         // Kiểm tra đăng nhập
@@ -390,6 +390,8 @@ export default function CheckoutPage() {
           productName: orderItems.length === 1 ? orderItems[0].title : `Đơn hàng ${orderItems.length} khóa học`,
           description: `Thanh toan khoa hoc`,
           price: subtotal,
+          paymentMethod,
+          couponCode: appliedCoupon ? couponCode : null,
           returnUrl: `${window.location.origin}/checkout/success`,
           cancelUrl: `${window.location.origin}/checkout/cancel`
         };
@@ -399,12 +401,21 @@ export default function CheckoutPage() {
         if (response.status === "success" || response.code === "success" || response.data) {
           const paymentData = response.data;
           toast.success("Tạo đơn hàng thành công!");
-          navigate("/checkout/payos", {
-            state: {
-              paymentData,
-              orderItems
+          if (paymentData.status === "PAID") {
+            window.location.assign(paymentData.checkoutUrl);
+          } else if (paymentMethod === "VNPAY") {
+            if (!paymentData.checkoutUrl) {
+              throw new Error("VNPay không trả về đường dẫn thanh toán");
             }
-          });
+            window.location.assign(paymentData.checkoutUrl);
+          } else {
+            navigate("/checkout/payos", {
+              state: {
+                paymentData,
+                orderItems
+              }
+            });
+          }
         } else {
           toast.error(response.message || "Không thể tạo đơn hàng. Vui lòng thử lại!");
         }
