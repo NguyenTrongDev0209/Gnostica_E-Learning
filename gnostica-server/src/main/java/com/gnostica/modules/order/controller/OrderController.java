@@ -61,8 +61,11 @@ public class OrderController {
 				UUID id = UUID.fromString(idOrCode);
 				order = orderService.getOrderById(id);
 			} catch (IllegalArgumentException e) {
-				// Not a valid UUID, might be a transaction code
-				order = orderService.getOrderByTransactionId(idOrCode);
+				try {
+					order = orderService.getOrderByOrderCode(Long.valueOf(idOrCode));
+				} catch (NumberFormatException ignored) {
+					order = orderService.getOrderByTransactionId(idOrCode);
+				}
 			}
 			return ApiResponse.success(order);
 		} catch (Exception e) {

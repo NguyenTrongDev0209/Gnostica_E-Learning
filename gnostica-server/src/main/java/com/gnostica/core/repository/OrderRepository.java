@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import jakarta.persistence.LockModeType;
+import java.time.LocalDateTime;
 
 public interface OrderRepository extends JpaRepository<Order, java.util.UUID> {
     List<Order> findByAccountOrderByIdDesc(Account account);
@@ -19,4 +20,6 @@ public interface OrderRepository extends JpaRepository<Order, java.util.UUID> {
     @Query("select o from Order o where o.orderCode = :orderCode")
     Optional<Order> findByOrderCodeForUpdate(@Param("orderCode") Long orderCode);
     long countByCreatedAtAfter(java.time.LocalDateTime date);
+    List<Order> findTop50ByStatusAndPaymentMethodIgnoreCaseAndCreatedAtAfterOrderByCreatedAtAsc(
+            Integer status, String paymentMethod, LocalDateTime createdAfter);
 }

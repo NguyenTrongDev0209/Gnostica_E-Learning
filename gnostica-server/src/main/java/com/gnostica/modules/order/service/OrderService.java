@@ -85,12 +85,18 @@ public class OrderService {
         return mapToResponse(checkAndReturnOrder(order));
     }
 
+    public OrderResponse getOrderByOrderCode(Long orderCode) throws Exception {
+        Order order = orderRepository.findByOrderCode(orderCode)
+                .orElseThrow(() -> new IllegalArgumentException("Order not found with orderCode: " + orderCode));
+        return mapToResponse(checkAndReturnOrder(order));
+    }
+
     private Order checkAndReturnOrder(Order order) throws Exception {
         // 0: PENDING
         if (order.getStatus() == 0) {
             try {
                 paymentService.checkPaymentStatus(order);
-            } catch (RuntimeException e) {
+            } catch (Exception e) {
                 log.warn("Không thể kiểm tra trạng thái PayOS cho order {}: {}", order.getId(), e.getMessage());
             }
             return orderRepository.findById(order.getId()).orElse(order);

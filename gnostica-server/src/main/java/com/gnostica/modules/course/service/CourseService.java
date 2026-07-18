@@ -566,10 +566,12 @@ public class CourseService {
             String level, int page, int size) {
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size,
                 org.springframework.data.domain.Sort.by("id").descending());
-        // Chuyển level sang lowercase hoặc xử lý null
-        String levelFilter = (level != null && !level.trim().isEmpty() && !level.equalsIgnoreCase("all")) ? level
-                : null;
-        org.springframework.data.domain.Page<Course> coursesPage = courseRepository.findPublicCourses(categoryId, categorySlug, levelFilter, pageable);
+        int categoryIdFilter = categoryId == null ? -1 : categoryId;
+        String categorySlugFilter = categorySlug == null ? "" : categorySlug.trim();
+        String levelFilter = (level != null && !level.trim().isEmpty() && !level.equalsIgnoreCase("all"))
+                ? level.trim() : "";
+        org.springframework.data.domain.Page<Course> coursesPage = courseRepository.findPublicCourses(
+                categoryIdFilter, categorySlugFilter, levelFilter, pageable);
         return coursesPage.map(this::mapToCourseResponse);
     }
 
@@ -626,10 +628,16 @@ public class CourseService {
     }
 
     @Transactional(readOnly = true)
-    public org.springframework.data.domain.Page<CourseResponse> getModerationCourses(Integer status, int page, int size) {
+    public org.springframework.data.domain.Page<CourseResponse> getModerationCourses(
+            Integer status, String search, Integer categoryId, int page, int size) {
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size,
                 org.springframework.data.domain.Sort.by("updatedAt").descending());
-        return courseRepository.findModerationCourses(status, pageable).map(this::mapToCourseResponse);
+        String normalizedSearch = search == null ? "" : search.trim();
+        int normalizedStatus = status == null ? -1 : status;
+        int normalizedCategoryId = categoryId == null ? -1 : categoryId;
+        return courseRepository.findModerationCourses(
+                        normalizedStatus, normalizedSearch, normalizedCategoryId, pageable)
+                .map(this::mapToCourseResponse);
     }
 
     @Transactional(readOnly = true)
@@ -639,12 +647,14 @@ public class CourseService {
         stats.put("pending", 0L);
         stats.put("approved", 0L);
         stats.put("rejected", 0L);
+        stats.put("total", 0L);
         
         if (results != null) {
             for (Object[] row : results) {
                 if (row != null && row.length >= 2 && row[0] != null && row[1] != null) {
                     Integer status = (Integer) row[0];
                     Long count = (Long) row[1];
+                    stats.put("total", stats.get("total") + count);
                     if (status == 4) stats.put("pending", count);
                     else if (status == 1) stats.put("approved", count);
                     else if (status == 3) stats.put("rejected", count);

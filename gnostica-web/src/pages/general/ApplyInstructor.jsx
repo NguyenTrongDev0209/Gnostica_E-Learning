@@ -406,12 +406,22 @@ const ApplyInstructor = () => {
                                                         </div>
                                                     )}
                                                 </div>
-                                                <div className="relative">
-                                                    <Button type="button" variant={watch('cvUrl') ? 'outline' : 'default'} className="rounded-xl h-11 px-6 font-bold shadow-sm">
-                                                        {watch('cvUrl') ? "Thay đổi" : "Chọn tệp"}
-                                                        <Input type="file" accept="application/pdf" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => handleFileChange(e, 'cvUrl')} />
-                                                    </Button>
-                                                </div>
+                                                <label
+                                                    htmlFor="instructor-cv-file"
+                                                    className={`inline-flex h-11 cursor-pointer items-center justify-center rounded-xl px-6 font-bold shadow-sm transition-colors
+                                                        ${watch('cvUrl')
+                                                            ? 'border border-border bg-white text-foreground hover:bg-muted'
+                                                            : 'bg-primary text-primary-foreground hover:bg-primary/90'}`}
+                                                >
+                                                    {watch('cvUrl') ? "Thay đổi" : "Chọn tệp"}
+                                                </label>
+                                                <input
+                                                    id="instructor-cv-file"
+                                                    type="file"
+                                                    accept="application/pdf"
+                                                    className="sr-only"
+                                                    onChange={(e) => handleFileChange(e, 'cvUrl')}
+                                                />
                                             </div>
                                             {errors.cvUrl && <p className="text-destructive text-xs font-semibold ml-1">{errors.cvUrl.message}</p>}
                                         </div>

@@ -1,20 +1,36 @@
 import React, { useState } from "react";
 import couponService from "@/services/order/couponService";
-import { Home, Star, CheckCircle2, ShieldCheck, Lock } from "lucide-react";
+import { Home, Star, CheckCircle2, ShieldCheck, Lock, QrCode, CreditCard } from "lucide-react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
 import { checkoutOrderItemsMock } from "@/mocks/cart";
-import { paymentMethodsMock } from "@/mocks/checkout";
 import orderService from "@/services/order/orderService";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/common/micro/AppCard";
 import Separator from "@/components/common/micro/AppSeparator";
 import Badge from "@/components/common/micro/AppBadge";
 import { Button } from "@/components/common/micro/AppButton";
-import { AppRadioGroup as RadioGroup, AppRadioGroupItem as RadioGroupItem } from "@/components/common/micro/AppRadioGroup";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { AppButton } from "@/components/common/micro/AppButton";
 import PageContainer from "@/components/common/core/PageContainer";
 import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
 import AppInput from "@/components/common/micro/AppInput";
+
+const PAYMENT_METHODS = [
+  {
+    id: "PAYOS",
+    label: "PayOS",
+    description: "Thanh toán bằng mã QR hoặc chuyển khoản ngân hàng",
+    icon: QrCode,
+    color: "text-success bg-green-50"
+  },
+  {
+    id: "VNPAY",
+    label: "VNPay",
+    description: "Thanh toán bằng QR, thẻ ATM hoặc tài khoản ngân hàng",
+    icon: CreditCard,
+    color: "text-info bg-blue-50"
+  }
+];
 
 // ── CheckoutOrderHeader ──
 function CheckoutOrderHeader({ breadcrumbItems }) {
@@ -244,7 +260,9 @@ function CheckoutOrderSummary({
             <Button
               type="button"
               variant={appliedCoupon ? "outline" : "default"}
-              className={appliedCoupon ? "text-error hover:text-error hover:bg-red-50 border-error/20" : "bg-muted border-none"}
+              className={appliedCoupon
+                ? "text-error hover:text-error hover:bg-red-50 border-error/20"
+                : "bg-accent text-accent-foreground hover:bg-accent/90 border-none disabled:bg-muted disabled:text-muted-foreground"}
               onClick={appliedCoupon ? removeCoupon : applyCoupon}
               disabled={isCouponLoading || (!couponCode && !appliedCoupon)}
             >
@@ -373,6 +391,11 @@ export default function CheckoutPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (paymentMethod === "VNPAY" && subtotal < 10_000) {
+      toast.error("VNPay yêu cầu đơn thanh toán tối thiểu 10.000đ. Vui lòng chọn PayOS cho đơn hàng này.");
+      return;
+    }
+
     if (paymentMethod === "PAYOS" || paymentMethod === "VNPAY") {
       setLoading(true);
       try {
@@ -440,7 +463,7 @@ export default function CheckoutPage() {
             <div className="lg:col-span-8 space-y-6">
               <CheckoutOrderItemList orderItems={orderItems} />
               <CheckoutPaymentMethod
-                paymentMethods={paymentMethodsMock}
+                paymentMethods={PAYMENT_METHODS}
                 paymentMethod={paymentMethod}
                 setPaymentMethod={setPaymentMethod}
               />

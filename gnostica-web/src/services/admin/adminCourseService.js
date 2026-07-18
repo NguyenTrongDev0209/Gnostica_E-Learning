@@ -17,9 +17,11 @@ const getAuthHeaders = () => {
     return {};
 };
 
-const getModerationCourses = async (status = null, page = 0, size = 10) => {
+const getModerationCourses = async ({ status = null, search = '', categoryId = null, page = 0, size = 10 } = {}) => {
     const params = { page, size };
     if (status !== null && status !== undefined && status !== "") params.status = status;
+    if (search.trim()) params.search = search.trim();
+    if (categoryId !== null && categoryId !== undefined && categoryId !== "") params.categoryId = categoryId;
     const response = await axiosClient.get(`${ADMIN_API_URL}/moderation`, {
         params,
         headers: getAuthHeaders()

@@ -282,7 +282,7 @@ const CategoryGrid = () => {
               <Icon className="w-6 h-6" />
             </div>
             <h3 className="font-semibold text-lg mb-1 group-hover:text-primary transition-colors">{cat.name || cat.title}</h3>
-            <p className="text-sm text-muted-foreground">{cat.coursesCount || Math.floor(Math.random() * 50) + 10} khóa học</p>
+            <p className="text-sm text-muted-foreground">{cat.coursesCount ?? 0} khóa học</p>
           </Card>
         );
       })}

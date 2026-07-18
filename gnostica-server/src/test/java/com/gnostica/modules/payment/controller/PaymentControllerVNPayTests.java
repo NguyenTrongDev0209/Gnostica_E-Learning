@@ -26,18 +26,18 @@ class PaymentControllerVNPayTests {
     }
 
     @Test
-    void returnUrlOnlyVerifiesAndRedirects() throws Exception {
+    void successfulReturnProcessesPaymentAndRedirects() throws Exception {
         Map<String, String> parameters = Map.of("vnp_TxnRef", "123");
         when(paymentService.verifyWebhook("VNPAY", parameters)).thenReturn(PaymentWebhookData.builder()
                 .orderCode(123L)
                 .status("PAID")
                 .build());
+        when(paymentService.handleVNPayIpn(parameters)).thenReturn(VNPayIpnResponse.success());
 
         RedirectView result = controller.vnPayReturn(parameters);
 
         assertThat(result.getUrl()).isEqualTo("https://app.example.com/checkout/success?orderCode=123&gateway=VNPAY&paymentStatus=PAID&verified=true");
-        verify(paymentService, never()).handleVNPayIpn(any());
-        verify(paymentService, never()).processSuccessfulOrder(any());
+        verify(paymentService).handleVNPayIpn(parameters);
     }
 
     @Test

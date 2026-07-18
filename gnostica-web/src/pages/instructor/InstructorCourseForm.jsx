@@ -1459,7 +1459,7 @@ function BackgroundVideoUploader({ label, value, onChange, onUploadStart, onUplo
       setProcessingProgress(0);
       setUploadPhase("uploading");
       
-      const updateGlobalState = ($2) => {
+      const updateGlobalState = (u, p, phase) => {
          globalUploadProgress[id] = { upload: u, processing: p, phase };
          if (uploadCallbacks[id]) {
             uploadCallbacks[id]({ upload: u, processing: p, phase });
@@ -1490,8 +1490,9 @@ function BackgroundVideoUploader({ label, value, onChange, onUploadStart, onUplo
       onChange(videoId);
     } catch (err) {
       console.error("Upload error:", err);
-      setError("Lỗi tải lên");
-      toast.error(`Không thể tải lên ${label}`);
+      const message = err instanceof Error ? err.message : "Lỗi tải lên";
+      setError(message);
+      toast.error(`Không thể tải lên ${label}: ${message}`);
     } finally {
       setIsUploading(false);
       delete globalUploadProgress[id];

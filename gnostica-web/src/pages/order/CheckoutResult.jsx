@@ -20,7 +20,11 @@ export default function CheckoutResult() {
   const [loading, setLoading] = useState(true);
   const [statusChecksFinished, setStatusChecksFinished] = useState(false);
   const orderCode = searchParams.get("orderCode");
+  const callbackStatus = searchParams.get("paymentStatus")?.toUpperCase();
+  const callbackVerified = searchParams.get("verified") === "true";
   const returnWasCancelled = location.pathname.includes("cancel");
+  const returnWasFailed = callbackVerified && ["FAILED", "CANCELLED"].includes(callbackStatus);
+  const hasTerminalReturnStatus = returnWasCancelled || returnWasFailed;
 
   useEffect(() => {
     let active = true;
@@ -36,20 +40,23 @@ export default function CheckoutResult() {
         const response = await orderService.getOrderById(orderCode);
         if (!active) return;
         const nextOrder = response?.data;
+        setLoading(false);
         if (nextOrder) {
           setOrder(nextOrder);
-          setLoading(false);
-          if (nextOrder.status === 1 || nextOrder.status === -1 || attempt >= MAX_STATUS_CHECKS - 1) {
+          if (nextOrder.status === 1 || nextOrder.status === -1 || hasTerminalReturnStatus || attempt >= MAX_STATUS_CHECKS - 1) {
             setStatusChecksFinished(true);
             return;
           }
+        } else if (hasTerminalReturnStatus) {
+          setStatusChecksFinished(true);
+          return;
         }
       } catch (error) {
         console.error("Không thể kiểm tra trạng thái đơn hàng:", error);
         setLoading(false);
       }
 
-      if (attempt < MAX_STATUS_CHECKS - 1 && active && !returnWasCancelled) {
+      if (attempt < MAX_STATUS_CHECKS - 1 && active && !hasTerminalReturnStatus) {
         timeoutId = window.setTimeout(() => checkOrder(attempt + 1), STATUS_CHECK_INTERVAL_MS);
       } else {
         setStatusChecksFinished(true);
@@ -61,14 +68,14 @@ export default function CheckoutResult() {
       active = false;
       if (timeoutId) window.clearTimeout(timeoutId);
     };
-  }, [orderCode, returnWasCancelled]);
+  }, [orderCode, hasTerminalReturnStatus]);
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-10 h-10 animate-spin text-primary" /></div>;
   }
 
   const isPaid = order?.status === 1;
-  const isPending = !isPaid && order?.status === 0 && !returnWasCancelled;
+  const isPending = !isPaid && order?.status === 0 && !hasTerminalReturnStatus;
   const config = isPaid ? checkoutStatusConfig.success : checkoutStatusConfig.cancel;
   const StatusIcon = isPending ? Clock3 : config.icon;
   const title = isPaid
@@ -133,7 +140,7 @@ export default function CheckoutResult() {
               ) : (
                 <>
                   <ActionLink to="/account/orders" icon={FileText} label="Xem đơn hàng" outline />
-                  <ActionLink to="/checkout" icon={returnWasCancelled ? RotateCcw : ShoppingBag} label={returnWasCancelled ? "Thử lại" : "Tiếp tục mua sắm"} />
+                  <ActionLink to="/checkout" icon={hasTerminalReturnStatus ? RotateCcw : ShoppingBag} label={hasTerminalReturnStatus ? "Thử lại" : "Tiếp tục mua sắm"} />
                 </>
               )}
             </div>

@@ -18,11 +18,13 @@ import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.web.util.UriComponentsBuilder;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/api/payment")
 @CrossOrigin(origins = "*")
 @RequiredArgsConstructor
+@Slf4j
 public class PaymentController {
 	private final PaymentService paymentService;
 	private final VNPayProperties vnPayProperties;
@@ -51,16 +53,31 @@ public class PaymentController {
 	@GetMapping(path = "/vnpay/return")
 	public RedirectView vnPayReturn(@RequestParam Map<String, String> parameters) {
 		UriComponentsBuilder redirect = UriComponentsBuilder.fromUriString(vnPayProperties.getFrontendReturnUrl());
+		PaymentWebhookData data;
 		try {
-			PaymentWebhookData data = paymentService.verifyWebhook("VNPAY", parameters);
-			redirect.queryParam("orderCode", data.getOrderCode())
-					.queryParam("gateway", "VNPAY")
-					.queryParam("paymentStatus", data.getStatus())
-					.queryParam("verified", true);
+			data = paymentService.verifyWebhook("VNPAY", parameters);
 		} catch (Exception exception) {
+			log.warn("Rejected VNPay return callback: {}", exception.getMessage());
 			redirect.queryParam("gateway", "VNPAY")
 					.queryParam("paymentStatus", "INVALID")
 					.queryParam("verified", false);
+			return new RedirectView(redirect.build().encode().toUriString());
+		}
+
+		try {
+			VNPayIpnResponse processingResult = paymentService.handleVNPayIpn(parameters);
+			boolean processed = "00".equals(processingResult.responseCode())
+					|| "02".equals(processingResult.responseCode());
+			redirect.queryParam("orderCode", data.getOrderCode())
+					.queryParam("gateway", "VNPAY")
+					.queryParam("paymentStatus", processed ? data.getStatus() : "PENDING")
+					.queryParam("verified", true);
+		} catch (Exception exception) {
+			log.error("Verified VNPay callback could not be processed for order {}", data.getOrderCode(), exception);
+			redirect.queryParam("orderCode", data.getOrderCode())
+					.queryParam("gateway", "VNPAY")
+					.queryParam("paymentStatus", "PENDING")
+					.queryParam("verified", true);
 		}
 		return new RedirectView(redirect.build().encode().toUriString());
 	}

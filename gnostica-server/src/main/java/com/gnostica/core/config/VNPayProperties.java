@@ -17,4 +17,5 @@ public class VNPayProperties {
     private String ipnUrl;
     private String version = "2.1.0";
     private int expireMinutes = 15;
+    private long pollingIntervalMs = 2000;
 }

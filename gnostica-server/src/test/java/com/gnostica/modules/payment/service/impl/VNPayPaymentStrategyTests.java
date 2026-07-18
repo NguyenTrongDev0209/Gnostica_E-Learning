@@ -89,7 +89,7 @@ class VNPayPaymentStrategyTests {
 
         assertThatThrownBy(() -> strategy.createPaymentLink(order, null, null))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("5,000");
+                .hasMessageContaining("10,000");
     }
 
     private Map<String, String> signedCallback() {

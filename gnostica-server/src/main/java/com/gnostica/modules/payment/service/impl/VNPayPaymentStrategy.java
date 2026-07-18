@@ -27,6 +27,9 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.TreeMap;
+import java.security.KeyStore;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
 
 @Service
 @RequiredArgsConstructor
@@ -41,8 +44,8 @@ public class VNPayPaymentStrategy implements PaymentStrategy {
     public PaymentLinkResponse createPaymentLink(Order order, String returnUrl, String cancelUrl) {
         validateConfiguration();
         long amount = order.getTotalPrice().longValueExact();
-        if (amount < 5_000) {
-            throw new IllegalArgumentException("VNPay requires a minimum payment amount of 5,000 VND");
+        if (amount < 10_000) {
+            throw new IllegalArgumentException("VNPay requires a minimum payment amount of 10,000 VND");
         }
 
         LocalDateTime now = LocalDateTime.now(VIETNAM_ZONE);
@@ -90,8 +93,26 @@ public class VNPayPaymentStrategy implements PaymentStrategy {
         parameters.remove("vnp_SecureHashType");
         String expectedSignature = VNPaySigner.hmacSha512(
                 properties.getHashSecret(), VNPaySigner.buildSortedQuery(parameters));
-        if (!VNPaySigner.secureEquals(expectedSignature, receivedSignature)) {
-            throw new IllegalArgumentException("Invalid VNPay callback signature");
+        String plainExpectedSignature = null;
+        String rawExpectedSignature = null;
+        boolean validSignature = VNPaySigner.secureEquals(expectedSignature, receivedSignature);
+        if (!validSignature) {
+            String plainSignedData = VNPaySigner.buildSortedPlainQuery(parameters);
+            plainExpectedSignature = VNPaySigner.hmacSha512(properties.getHashSecret(), plainSignedData);
+            validSignature = VNPaySigner.secureEquals(plainExpectedSignature, receivedSignature);
+        }
+        if (!validSignature
+                && RequestContextHolder.getRequestAttributes() instanceof ServletRequestAttributes attributes) {
+            String rawSignedData = VNPaySigner.buildSortedRawQuery(attributes.getRequest().getQueryString());
+            if (!rawSignedData.isBlank()) {
+                rawExpectedSignature = VNPaySigner.hmacSha512(properties.getHashSecret(), rawSignedData);
+                validSignature = VNPaySigner.secureEquals(rawExpectedSignature, receivedSignature);
+            }
+        }
+        if (!validSignature) {
+            throw new IllegalArgumentException("Invalid VNPay callback signature [encoded="
+                    + prefix(expectedSignature) + ", plain=" + prefix(plainExpectedSignature)
+                    + ", raw=" + prefix(rawExpectedSignature) + ", received=" + prefix(receivedSignature) + "]");
         }
         if (!properties.getTmnCode().equals(parameters.get("vnp_TmnCode"))) {
             throw new IllegalArgumentException("Invalid VNPay merchant code");
@@ -166,7 +187,7 @@ public class VNPayPaymentStrategy implements PaymentStrategy {
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(payload), StandardCharsets.UTF_8))
                 .build();
-        HttpResponse<String> response = HttpClient.newHttpClient()
+        HttpResponse<String> response = createHttpClient()
                 .send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
         if (response.statusCode() < 200 || response.statusCode() >= 300) {
             throw new IllegalStateException("VNPay query failed with HTTP " + response.statusCode());
@@ -238,6 +259,28 @@ public class VNPayPaymentStrategy implements PaymentStrategy {
             return LocalDateTime.parse(value, VNPAY_DATE);
         } catch (Exception ignored) {
             return null;
+        }
+    }
+
+    private String prefix(String value) {
+        return value == null ? "none" : value.substring(0, Math.min(12, value.length()));
+    }
+
+    private HttpClient createHttpClient() {
+        if (!System.getProperty("os.name", "").toLowerCase().contains("windows")) {
+            return HttpClient.newHttpClient();
+        }
+        try {
+            KeyStore windowsRoots = KeyStore.getInstance("Windows-ROOT");
+            windowsRoots.load(null, null);
+            TrustManagerFactory trustManagers = TrustManagerFactory.getInstance(
+                    TrustManagerFactory.getDefaultAlgorithm());
+            trustManagers.init(windowsRoots);
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(null, trustManagers.getTrustManagers(), null);
+            return HttpClient.newBuilder().sslContext(sslContext).build();
+        } catch (Exception ignored) {
+            return HttpClient.newHttpClient();
         }
     }
 

@@ -1,38 +1,15 @@
-import { useState, useEffect } from 'react';
-import { MOCK_COURSES } from '@/mocks/homeMocks';
+import { useQuery } from '@tanstack/react-query';
+import courseService from '@/services/course/courseService';
 
 export default function useFeaturedCourses(size = 8) {
-  const [courses, setCourses] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const query = useQuery({
+    queryKey: ['courses', 'featured', size],
+    queryFn: async () => {
+      const response = await courseService.getPublicCourses({ page: 0, size });
+      return response?.content || [];
+    },
+    staleTime: 60_000
+  });
 
-  useEffect(() => {
-    let isMounted = true;
-    
-    const fetchCourses = async () => {
-      try {
-        setLoading(true);
-        // Mock delay
-        await new Promise(r => setTimeout(r, 600));
-        if (isMounted) {
-          setCourses(MOCK_COURSES.slice(0, size));
-        }
-      } catch (error) {
-        if (isMounted) {
-          console.error("Lỗi khi tải khóa học thịnh hành:", error);
-        }
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
-      }
-    };
-
-    fetchCourses();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [size]);
-
-  return { courses, loading };
+  return { courses: query.data || [], loading: query.isLoading, error: query.error };
 }

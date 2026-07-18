@@ -37,10 +37,12 @@ public class AdminCourseController {
     @GetMapping("/moderation")
     public ResponseEntity<Page<CourseResponse>> getModerationCourses(
             @RequestParam(required = false) Integer status,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) Integer categoryId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        return ResponseEntity.ok(courseService.getModerationCourses(status, page, size));
+        return ResponseEntity.ok(courseService.getModerationCourses(status, search, categoryId, page, size));
     }
 
     /**
