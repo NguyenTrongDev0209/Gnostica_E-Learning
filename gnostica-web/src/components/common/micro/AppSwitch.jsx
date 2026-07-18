@@ -69,3 +69,5 @@ export const AppSwitch = forwardRef(({
 
 AppSwitch.displayName = "AppSwitch";
 export default AppSwitch;
+
+export { AppSwitch as Switch };

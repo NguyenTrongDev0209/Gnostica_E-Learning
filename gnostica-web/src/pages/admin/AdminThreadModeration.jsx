@@ -1,4 +1,4 @@
-import { CardDescription } from "@/components/ui/card";
+import { AppCardDescription as CardDescription } from "@/components/common/micro/AppCard";
 // Fix imported
 import React, { useState, useEffect } from "react";
 import threadService from "@/services/forum/threadService";
@@ -16,7 +16,7 @@ import {ShieldCheck,
 import AppCard, { AppCardContent, AppCardHeader, AppCardTitle, AppCardDescription } from "@/components/common/micro/AppCard";
 import { AppButton } from "@/components/common/micro/AppButton";
 import AppBadge from "@/components/common/micro/AppBadge";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/common/micro/AppAvatar";
 import { toast } from "sonner";
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from "framer-motion";
@@ -30,7 +30,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+} from "@/components/common/micro/AppAlertDialog";
 import AppSelect from "@/components/common/micro/AppSelect";
 import AppTextarea from "@/components/common/micro/AppTextarea";
 

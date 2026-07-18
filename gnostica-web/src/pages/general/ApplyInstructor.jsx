@@ -4,13 +4,13 @@ import { useForm } from 'react-hook-form';
 import { useMutation } from '@tanstack/react-query';
 import instructorService from '@/services/instructor/instructorService';
 import { toast } from 'sonner';
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/common/micro/AppButton";
+import Input from "@/components/common/micro/AppInput";
+import Textarea from "@/components/common/micro/AppTextarea";
+import Label from "@/components/common/micro/AppLabel";
+import { AppCheckbox as Checkbox } from "@/components/common/micro/AppCheckbox";
 import PageContainer from '@/components/common/core/PageContainer';
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/common/micro/AppCard";
 import {
     Loader2,
     UploadCloud,

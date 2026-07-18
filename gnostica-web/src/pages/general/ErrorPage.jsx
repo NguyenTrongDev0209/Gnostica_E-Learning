@@ -1,10 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { AppButton } from "@/components/common/micro/AppButton";
+import PageContainer from "@/components/common/core/PageContainer";
 
 const ErrorPage = () => {
   return (
-    <div className="relative min-h-screen w-full flex flex-col items-center justify-center bg-background text-foreground overflow-hidden font-sans">
+    <PageContainer className="relative items-center justify-center overflow-hidden font-sans">
       {/* City Skyline Background (SVG) */}
       <div className="absolute inset-0 z-0 pointer-events-none opacity-20 flex items-end justify-center">
         <svg
@@ -57,7 +58,7 @@ const ErrorPage = () => {
 
       {/* Subtle bottom gradient for depth */}
       <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent pointer-events-none" />
-    </div>
+    </PageContainer>
   );
 };
 

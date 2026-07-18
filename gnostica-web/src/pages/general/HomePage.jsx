@@ -4,10 +4,11 @@ import { Users, BookOpen, ArrowRight, Sparkles } from 'lucide-react';
 
 import PageContainer from "@/components/common/core/PageContainer";
 import CourseCard from "@/components/common/composite/CourseCard";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { Card } from '@/components/ui/card';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Skeleton } from '@/components/ui/skeleton';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/common/micro/AppCarousel";
+import { Card } from '@/components/common/micro/AppCard';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/common/micro/AppAccordion";
+import Skeleton from '@/components/common/micro/AppSkeleton';
+import { Button } from '@/components/common/micro/AppButton';
 
 import useCategories from '@/hooks/course/useCategories';
 import useFeaturedCourses from "@/hooks/course/useFeaturedCourses";
@@ -96,7 +97,8 @@ function MainHeroCarousel() {
 
         <div className="hidden md:flex absolute bottom-4 left-1/2 -translate-x-1/2 items-center gap-1.5 md:gap-2 px-2 py-1 md:px-3 md:py-1.5 bg-foreground/20 backdrop-blur-md rounded-full border border-foreground/10">
           {slides.map((_, index) => (
-            <button
+            <Button
+              variant="ghost"
               key={index}
               onClick={() => api?.scrollTo(index)}
               className={`transition-all duration-300 rounded-full ${currentIndex === index

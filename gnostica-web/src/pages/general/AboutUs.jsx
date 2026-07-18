@@ -1,12 +1,13 @@
 import React from "react";
 import { TestimonialCarousel } from "@/components/common/composite/TestimonialCarousel";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import Badge from "@/components/common/micro/AppBadge";
+import { Button } from "@/components/common/micro/AppButton";
+import { Card, CardContent } from "@/components/common/micro/AppCard";
 import { ArrowRight, Monitor } from "lucide-react";
 import { AppButton } from "@/components/common/micro/AppButton";
 import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
 import { Home } from "lucide-react";
+import PageContainer from "@/components/common/core/PageContainer";
 
 // Mock Data
 import {
@@ -199,7 +200,8 @@ function AboutCTA({ data }) {
 // ── Page ──
 export default function AboutUs() {
   return (
-    <div className="flex flex-col w-full overflow-hidden">
+    <PageContainer className="overflow-hidden">
+      <PageContainer.Content disableContainer className="gap-0 pb-0">
       <AboutHero data={aboutHeroMock} />
 
       <AboutTools tools={aboutToolsMock} />
@@ -213,6 +215,7 @@ export default function AboutUs() {
       </section>
 
       <AboutCTA data={aboutCTAMock} />
-    </div>
+      </PageContainer.Content>
+    </PageContainer>
   );
 }

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Card, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/common/micro/AppCard";
+import Separator from "@/components/common/micro/AppSeparator";
+import { Button } from "@/components/common/micro/AppButton";
 import {
   Copy,
   Clock,
@@ -15,6 +15,7 @@ import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
 import { toast } from "sonner";
 import { payosPaymentMock } from "@/mocks/payment";
 import orderService from "@/services/order/orderService";
+import PageContainer from "@/components/common/core/PageContainer";
 
 export default function PayosQR() {
   const { state } = useLocation();
@@ -124,7 +125,7 @@ export default function PayosQR() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <PageContainer className="pb-20">
       {/* Header */}
       <section className="bg-muted py-12 text-white">
         <div className="app-container">
@@ -142,7 +143,7 @@ export default function PayosQR() {
 
       {/* Main Content */}
       <main className="app-container mt-[-40px]">
-        <Card className="border-none shadow-xl shadow-slate-200/50 bg-white overflow-hidden max-w-4xl mx-auto">
+        <Card className="border-none shadow-xl bg-card overflow-hidden max-w-4xl mx-auto">
           <CardContent className="p-0">
             <div className="grid grid-cols-1 md:grid-cols-5">
               {/* Left: QR Code */}
@@ -208,12 +209,13 @@ export default function PayosQR() {
                       <span className="text-sm font-bold text-foreground tracking-wide">
                         {paymentData?.accountNumber || payosPaymentMock.accountNumber}
                       </span>
-                      <button
+                      <Button
+                        variant="ghost"
                         onClick={() => copyToClipboard(paymentData?.accountNumber || payosPaymentMock.accountNumber, "số tài khoản")}
                         className="text-muted-foreground hover:text-primary transition-colors p-1 rounded hover:bg-primary/5"
                       >
                         <Copy className="w-4 h-4" />
-                      </button>
+                      </Button>
                     </div>
                   </div>
 
@@ -247,20 +249,21 @@ export default function PayosQR() {
                       <span className="text-sm font-bold text-foreground">
                         {paymentData?.description || payosPaymentMock.transferContent}
                       </span>
-                      <button
+                      <Button
+                        variant="ghost"
                         onClick={() => copyToClipboard(paymentData?.description || payosPaymentMock.transferContent, "nội dung")}
                         className="text-muted-foreground hover:text-primary transition-colors p-1 rounded hover:bg-primary/5"
                       >
                         <Copy className="w-4 h-4" />
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 </div>
 
                 {/* Warning */}
-                <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-xl flex gap-3">
-                  <Info className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
-                  <p className="text-sm text-amber-800 leading-relaxed">
+                <div className="mt-6 p-4 bg-warning-soft border border-warning/20 rounded-xl flex gap-3">
+                  <Info className="w-5 h-5 text-warning shrink-0 mt-0.5" />
+                  <p className="text-sm text-foreground leading-relaxed">
                     Vui lòng nhập chính xác{" "}
                     <span className="font-bold">Nội dung chuyển khoản</span> để đơn hàng được
                     duyệt tự động.
@@ -272,14 +275,14 @@ export default function PayosQR() {
                   <Button
                     variant="outline"
                     onClick={handleCancel}
-                    className="flex-1 h-12 text-error border-error/20 hover:bg-red-50 hover:text-error font-bold rounded-xl"
+                    className="flex-1 h-12 text-error border-error/20 hover:bg-error-soft hover:text-error font-bold rounded-xl"
                   >
                     Hủy thanh toán
                   </Button>
                   <Button
                     variant="outline"
                     disabled
-                    className="flex-1 h-12 font-bold rounded-xl border-warning/20 text-warning bg-orange-50/50 gap-2"
+                    className="flex-1 h-12 font-bold rounded-xl border-warning/20 text-warning bg-warning-soft gap-2"
                   >
                     <span className="w-2.5 h-2.5 rounded-full bg-warning/10 text-warning animate-pulse" />
                     Đang chờ thanh toán
@@ -290,6 +293,6 @@ export default function PayosQR() {
           </CardContent>
         </Card>
       </main>
-    </div>
+    </PageContainer>
   );
 }

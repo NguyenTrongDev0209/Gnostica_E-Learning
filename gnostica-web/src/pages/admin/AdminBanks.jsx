@@ -5,7 +5,7 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AppDialogRoot as Dialog, AppDialogContent as DialogContent, AppDialogHeader as DialogHeader, AppDialogTitle as DialogTitle, AppDialogFooter as DialogFooter, AppDialogDescription as DialogDescription } from "@/components/common/micro/AppDialog";
-import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/common/micro/AppForm";
 import DataTable from "@/components/common/composite/DataTable";
 import { TableActionIconButton } from "@/components/common/micro/AppButton";
 

@@ -92,3 +92,5 @@ export function AppAvatarGroup({
     </AvatarGroup>
   );
 }
+
+export { Avatar, AvatarImage, AvatarFallback, AvatarBadge, AvatarGroup, AvatarGroupCount };

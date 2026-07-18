@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useLocation, useSearchParams } from "react-router-dom";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/common/micro/AppCard";
 import {
   Home,
   ShoppingBag,
@@ -10,11 +10,12 @@ import {
   Loader2,
 } from "lucide-react";
 import { AppButton } from "@/components/common/micro/AppButton";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/common/micro/AppButton";
+import Separator from "@/components/common/micro/AppSeparator";
 import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
 import { checkoutStatusConfig } from "@/mocks/checkout";
 import orderService from "@/services/order/orderService";
+import PageContainer from "@/components/common/core/PageContainer";
 
 export default function CheckoutResult() {
   const [searchParams] = useSearchParams();
@@ -64,7 +65,7 @@ export default function CheckoutResult() {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <PageContainer className="pb-20">
       {/* Header */}
       <section className="bg-muted py-12 text-white">
         <div className="app-container">
@@ -173,6 +174,6 @@ export default function CheckoutResult() {
           </CardContent>
         </Card>
       </main>
-    </div>
+    </PageContainer>
   );
 }

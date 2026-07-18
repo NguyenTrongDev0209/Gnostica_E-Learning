@@ -195,3 +195,5 @@ export function AppChart({
 }
 
 export default AppChart;
+
+export { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent };

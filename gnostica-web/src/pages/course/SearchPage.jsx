@@ -4,8 +4,8 @@ import PageContainer from "@/components/common/core/PageContainer";
 import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
 import { DataFilterSidebar } from "@/components/common/composite/DataFilter";
 import { CourseCardHorizontal } from "@/components/common/composite/CourseCard";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
+import { AppSheetRoot as Sheet, AppSheetContent as SheetContent, AppSheetTrigger as SheetTrigger } from "@/components/common/micro/AppSheet";
+import { Button } from "@/components/common/micro/AppButton";
 import {
   Pagination,
   PaginationContent,
@@ -13,7 +13,7 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from "@/components/ui/pagination";
+} from "@/components/common/micro/AppPagination";
 import { Home, Loader2, SearchX } from "lucide-react";
 import { useSearch } from "@/hooks/course/useSearch";
 

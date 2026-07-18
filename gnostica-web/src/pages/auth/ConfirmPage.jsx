@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ShieldCheck, ArrowLeft } from 'lucide-react';
 import { AppButton } from "@/components/common/micro/AppButton";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/common/micro/AppCard";
 import { useConfirm } from '@/hooks/auth/useConfirm';
 
 const ConfirmPage = () => {

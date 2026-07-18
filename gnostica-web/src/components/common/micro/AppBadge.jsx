@@ -72,3 +72,5 @@ export default function AppBadge({
     </Badge>
   );
 }
+
+export { AppBadge as Badge };

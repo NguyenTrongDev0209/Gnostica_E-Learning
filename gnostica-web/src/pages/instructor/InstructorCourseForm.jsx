@@ -1,6 +1,6 @@
 import "react-quill-new/dist/quill.snow.css";
 import React from "react";
-import { Label } from "@/components/ui/label";
+import { Label } from "@/components/common/micro/AppLabel";
 import { useFormContext, useWatch, Controller, useFieldArray, FormProvider } from "react-hook-form";
 import AppInput from "@/components/common/micro/AppInput";
 import AppSelect, { Select as AppSelectRoot, SelectContent as AppSelectContent, SelectItem as AppSelectItem, SelectTrigger as AppSelectTrigger, SelectValue as AppSelectValue } from "@/components/common/micro/AppSelect";

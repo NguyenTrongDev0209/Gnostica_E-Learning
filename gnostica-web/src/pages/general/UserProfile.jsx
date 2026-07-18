@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import PageContainer from "@/components/common/core/PageContainer";
-import { Card, CardContent } from "@/components/ui/card";
-import { Avatar, AvatarImage, AvatarFallback, AvatarBadge } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent } from "@/components/common/micro/AppCard";
+import { Avatar, AvatarImage, AvatarFallback, AvatarBadge } from "@/components/common/micro/AppAvatar";
+import Badge from "@/components/common/micro/AppBadge";
+import { Button } from "@/components/common/micro/AppButton";
+import Separator from "@/components/common/micro/AppSeparator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/common/micro/AppTabs";
 import CourseCard, { ForumPostCard } from "@/components/common/composite/CourseCard";
 import {
   MessageSquare, ThumbsUp, Eye, Clock, MapPin, Link as LinkIcon,
@@ -26,8 +26,8 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from "@/components/ui/dialog";
-import { Checkbox } from "@/components/ui/checkbox";
+} from "@/components/common/micro/AppDialog";
+import { AppCheckbox as Checkbox } from "@/components/common/micro/AppCheckbox";
 import authService from '@/services/auth/authService';
 import { useQuery } from '@tanstack/react-query';
 import instructorService from '@/services/instructor/instructorService';

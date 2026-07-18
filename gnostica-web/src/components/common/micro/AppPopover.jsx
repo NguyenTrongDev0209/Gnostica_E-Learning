@@ -6,6 +6,10 @@ export default function AppPopover(props) {
 }
 
 export {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  PopoverAnchor,
   PopoverTrigger as AppPopoverTrigger,
   PopoverContent as AppPopoverContent,
   PopoverAnchor as AppPopoverAnchor,

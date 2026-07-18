@@ -7,7 +7,7 @@ import useChangePassword from "@/hooks/account/useChangePassword";
 import AppCard, { AppCardContent } from "@/components/common/micro/AppCard";
 import AppInput from "@/components/common/micro/AppInput";
 import { AppButton } from "@/components/common/micro/AppButton";
-import { Label } from "@/components/ui/label";
+import { Label } from "@/components/common/micro/AppLabel";
 
 export default function ChangePassword() {
   const user = useAuthStore(state => state.user);

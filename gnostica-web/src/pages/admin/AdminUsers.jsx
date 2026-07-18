@@ -23,7 +23,7 @@ import AppCard, { AppCardContent, AppCardHeader, AppCardTitle } from "@/componen
 import AppBadge from "@/components/common/micro/AppBadge";
 import { AppButton } from "@/components/common/micro/AppButton";
 import AppInput from "@/components/common/micro/AppInput";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/common/micro/AppAvatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/common/micro/AppTabs";
 import {
   AppDialogRoot as Dialog,

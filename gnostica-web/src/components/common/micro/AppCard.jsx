@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
-export default function AppCard({
+export function AppCard({
   children,
   className,
   appVariant = "glass", // "default", "glass", "outline"
@@ -25,9 +25,20 @@ export default function AppCard({
 }
 
 export { 
+  AppCard as Card,
   CardHeader as AppCardHeader, 
   CardFooter as AppCardFooter, 
   CardTitle as AppCardTitle, 
   CardDescription as AppCardDescription, 
   CardContent as AppCardContent 
 };
+
+export {
+  CardHeader,
+  CardFooter,
+  CardTitle,
+  CardDescription,
+  CardContent,
+};
+
+export default AppCard;

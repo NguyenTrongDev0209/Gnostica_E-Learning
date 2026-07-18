@@ -63,6 +63,10 @@ export default function AppAccordion({
 }
 
 export {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
   Accordion as AppAccordionRoot,
   AccordionContent as AppAccordionContent,
   AccordionItem as AppAccordionItem,

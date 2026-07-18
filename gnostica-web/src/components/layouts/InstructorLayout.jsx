@@ -3,6 +3,7 @@ import { Outlet } from "react-router-dom";
 import useAuthStore from "@/store/useAuthStore";
 import InstructorSidebar from "@/components/fragments/InstructorSidebar";
 import InstructorHeader from "@/components/fragments/InstructorHeader";
+import PageContainer from "@/components/common/core/PageContainer";
 
 export default function InstructorLayout() {
   const user = useAuthStore(state => state.user);
@@ -13,7 +14,7 @@ export default function InstructorLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-muted flex">
+    <PageContainer className="bg-muted flex-row">
       {/* Sidebar - Reusable Component */}
       <InstructorSidebar user={user} handleLogout={handleLogout} />
 
@@ -23,10 +24,10 @@ export default function InstructorLayout() {
         <InstructorHeader />
 
         {/* Page Content */}
-        <main className="flex-1 p-6 md:p-8 overflow-y-auto scrollbar-hide">
+        <PageContainer.Content disableContainer className="flex-1 p-6 md:p-8 overflow-y-auto scrollbar-hide gap-0">
           <Outlet />
-        </main>
+        </PageContainer.Content>
       </div>
-    </div>
+    </PageContainer>
   );
 }
