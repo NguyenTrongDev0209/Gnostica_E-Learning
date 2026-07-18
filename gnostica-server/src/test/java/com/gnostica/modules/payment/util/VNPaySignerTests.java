@@ -1,3 +1,37 @@
+package com.gnostica.modules.payment.util;
+
+import org.junit.jupiter.api.Test;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+class VNPaySignerTests {
+
+    @Test
+    void secureEqualsAcceptsUppercaseHexFromGateway() {
+        String lowercase = VNPaySigner.hmacSha512("secret", "payload");
+
+        assertThat(VNPaySigner.secureEquals(lowercase, lowercase.toUpperCase())).isTrue();
+    }
+    @Test
+    void buildsSortedAndEncodedQuery() {
+        Map<String, String> parameters = new LinkedHashMap<>();
+        parameters.put("vnp_TxnRef", "123");
+        parameters.put("vnp_OrderInfo", "Thanh toan don hang 123");
+        parameters.put("empty", "");
+
+        assertThat(VNPaySigner.buildSortedQuery(parameters))
+                .isEqualTo("vnp_OrderInfo=Thanh+toan+don+hang+123&vnp_TxnRef=123");
+    }
+
+    @Test
+    void ignoresNonVnpFieldsWhenBuildingChecksum() {
+        Map<String, String> parameters = new LinkedHashMap<>();
+        parameters.put("tracking", "must-not-be-signed");
+        parameters.put("vnp_TxnRef", "123");
+        parameters.put("vnp_SecureHash", "signature");
 
         assertThat(VNPaySigner.buildSortedQuery(parameters)).isEqualTo("vnp_TxnRef=123");
     }
