@@ -3,7 +3,6 @@ import AboutUs from "@/pages/general/AboutUs";
 import CourseCatalog from "@/pages/course/CourseCatalog";
 import CourseCategory from "@/pages/course/CourseCategory";
 import CourseDetail from "@/pages/course/CourseDetail";
-import CourseCart from "@/pages/order/CourseCart";
 import SearchPage from "@/pages/course/SearchPage";
 import ForumPage from "@/pages/forum/ForumPage";
 import ForumDetail from "@/pages/forum/ForumDetail";
@@ -29,7 +28,6 @@ export const publicRoutes = {
     { path: "/courses/category", component: CourseCategory },
     { path: "/courses/category/:categorySlug", component: CourseCategory },
     { path: "/courses/:slug", component: CourseDetail },
-    { path: "/cart", component: CourseCart },
     { path: "/search", component: SearchPage },
     { path: "/forum", component: ForumPage },
     { path: "/forum/:slug", component: ForumDetail },

@@ -121,7 +121,7 @@ export default function PayosQR() {
 
   const handleCancel = () => {
     setStatus("cancelled");
-    setTimeout(() => navigate("/cart"), 1000);
+    setTimeout(() => navigate("/checkout"), 1000);
   };
 
   return (

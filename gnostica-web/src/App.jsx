@@ -101,6 +101,7 @@ function App() {
           </Route>
 
           <Route path="/certificate/:certifiUrl" element={<CertificatePage />} />
+          <Route path="/404" element={<ErrorPage />} />
           <Route path="*" element={<ErrorPage />} />
         </Routes>
       </Router>

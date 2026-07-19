@@ -382,7 +382,6 @@ export default function CheckoutPage() {
 
   const breadcrumbItems = [
     { label: "Trang chủ", href: "/", icon: Home },
-    { label: "Giỏ hàng", href: "/cart" },
     { label: "Thanh toán", isLast: true },
   ];
 

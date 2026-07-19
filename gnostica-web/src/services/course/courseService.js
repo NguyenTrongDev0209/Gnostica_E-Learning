@@ -103,7 +103,14 @@ const getPublicCourses = async ({ categoryId, categorySlug, categorySlugs, level
     if (search && search.trim() !== "") params.search = search.trim();
 
     const response = await axiosClient.get(API_URL, { params, signal });
-    return response.data;
+    const data = response.data || {};
+    return {
+        ...data,
+        totalElements: data.totalElements ?? data.page?.totalElements ?? 0,
+        totalPages: data.totalPages ?? data.page?.totalPages ?? 0,
+        number: data.number ?? data.page?.number ?? page,
+        size: data.size ?? data.page?.size ?? size,
+    };
 };
 
 const getPublicLevels = async () => {
