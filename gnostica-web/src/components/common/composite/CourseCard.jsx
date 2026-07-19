@@ -1,5 +1,5 @@
 import React from 'react';
-import { Star, BookOpen, Users, Clock, Flame, ThumbsUp, MessageSquare, Eye, ArrowUp, ArrowDown, Share2, PlayCircle } from 'lucide-react';
+import { Star, BookOpen, Users, Clock, ThumbsUp, MessageSquare, Eye, ArrowUp, ArrowDown, Share2, PlayCircle } from 'lucide-react';
 import AppCard, { AppCardContent } from "@/components/common/micro/AppCard";
 import AppBadge from "@/components/common/micro/AppBadge";
 import AppAvatar from "@/components/common/micro/AppAvatar";
@@ -9,6 +9,7 @@ import { Link } from 'react-router-dom';
 import useAuthStore from '@/store/useAuthStore';
 import threadService from '@/services/forum/threadService';
 import { toast } from 'sonner';
+import RenderContent from '@/components/common/core/RenderContent';
 
 const COURSE_IMAGE_FALLBACK = "https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=600&auto=format&fit=crop";
 const handleCourseImageError = (event) => {
@@ -362,25 +363,25 @@ export const CourseCardHorizontal = ({
  *  - post: { id, title, content, author: { name, avatar, status }, category, tags, createdAt, stats: { replies, views, likes }, isHot }
  *  - className
  */
-export const ForumPostCard = ({ post, className }) => {
-  if (!post) return null;
-
+export const ForumPostCard = ({ post, className, displayMode = "compact" }) => {
   const currentUser = useAuthStore(state => state.user);
-  const isPending = post.status === 1 || post.status === 3;
-  const [voteScore, setVoteScore] = React.useState(post.voteScore || 0);
-  const [userVote, setUserVote] = React.useState(post.userVote || 0);
-  const [likesCount, setLikesCount] = React.useState(post.stats?.likes || 0);
-  const [userLiked, setUserLiked] = React.useState(post.userLiked || false);
+  const isPending = post?.status === 1 || post?.status === 3;
+  const [voteScore, setVoteScore] = React.useState(post?.voteScore || 0);
+  const [userVote, setUserVote] = React.useState(post?.userVote || 0);
+  const [likesCount, setLikesCount] = React.useState(post?.stats?.likes || 0);
+  const [userLiked, setUserLiked] = React.useState(post?.userLiked || false);
 
   React.useEffect(() => {
-    if (post.voteScore !== undefined) setVoteScore(post.voteScore);
-    if (post.userVote !== undefined) setUserVote(post.userVote);
-  }, [post.voteScore, post.userVote]);
+    if (post?.voteScore !== undefined) setVoteScore(post.voteScore);
+    if (post?.userVote !== undefined) setUserVote(post.userVote);
+  }, [post?.voteScore, post?.userVote]);
 
   React.useEffect(() => {
-    if (post.stats?.likes !== undefined) setLikesCount(post.stats.likes);
-    if (post.userLiked !== undefined) setUserLiked(post.userLiked);
-  }, [post.stats?.likes, post.userLiked]);
+    if (post?.stats?.likes !== undefined) setLikesCount(post.stats.likes);
+    if (post?.userLiked !== undefined) setUserLiked(post.userLiked);
+  }, [post?.stats?.likes, post?.userLiked]);
+
+  if (!post) return null;
 
   const handleLike = async (e) => {
     e.preventDefault();
@@ -472,9 +473,9 @@ export const ForumPostCard = ({ post, className }) => {
         <AppCardContent className="p-4 sm:p-5">
           <div className="flex items-start gap-4">
             {/* Avatar - ẩn trên mobile nhỏ */}
-            <div className="hidden sm:block shrink-0 mt-1">
+            <div className="hidden sm:block shrink-0 -mt-2">
               <AppAvatar 
-                size="md" 
+                size="lg"
                 className="ring-2 ring-transparent group-hover:ring-primary/20 transition-all"
                 src={post.author.avatar}
                 alt={post.author.name}
@@ -485,7 +486,7 @@ export const ForumPostCard = ({ post, className }) => {
             {/* Content */}
             <div className="flex-1 min-w-0">
               {/* Meta */}
-              <div className="flex items-center gap-2 mb-2 text-xs text-muted-foreground flex-wrap">
+              <div className="flex items-center gap-2 mb-2 text-sm text-muted-foreground flex-wrap">
                 <span className="font-semibold text-primary">{post.category}</span>
                 <span>•</span>
                 <span className="flex items-center gap-1">
@@ -502,57 +503,40 @@ export const ForumPostCard = ({ post, className }) => {
                   <Clock className="w-3.5 h-3.5" />
                   {post.createdAt}
                 </span>
-                {post.status !== undefined && post.status !== null && (
-                  <>
-                    <span>•</span>
-                    <span className="flex items-center">
-                      {post.status === 1 && (
-                        <AppBadge variant="warning" soft className="text-[10px] py-0 px-1.5 h-5 font-semibold shrink-0">
-                          Đang duyệt
-                        </AppBadge>
-                      )}
-                      {post.status === 2 && (
-                        <AppBadge variant="success" soft className="text-[10px] py-0 px-1.5 h-5 font-semibold shrink-0">
-                          Đã duyệt
-                        </AppBadge>
-                      )}
-                      {post.status === 3 && (
-                        <AppBadge variant="error" soft className="text-[10px] py-0 px-1.5 h-5 font-semibold shrink-0">
-                          Từ chối
-                        </AppBadge>
-                      )}
-                      {post.status === 0 && (
-                        <AppBadge variant="secondary" soft className="text-[10px] py-0 px-1.5 h-5 font-semibold shrink-0">
-                          Ẩn
-                        </AppBadge>
-                      )}
-                    </span>
-                  </>
-                )}
               </div>
 
               {/* Title */}
               <h3 className="text-lg font-bold text-foreground mb-1 group-hover:text-primary transition-colors flex items-center gap-2">
-                {post.isHot && <Flame className="w-4 h-4 text-warning fill-orange-500 shrink-0" />}
                 <span className="line-clamp-2">{post.title}</span>
               </h3>
 
-              {/* Snippet */}
-              <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{post.content}</p>
+              {/* Content */}
+              {displayMode === "detailed" ? (
+                <div className="mb-4 rounded-xl border border-border/70 bg-muted/30 p-4 sm:-ml-14 [&_img]:mt-4 [&_img]:max-h-[520px] [&_img]:w-full [&_img]:rounded-xl [&_img]:object-cover [&_iframe]:mt-4 [&_iframe]:aspect-video [&_iframe]:w-full [&_iframe]:rounded-xl">
+                  <RenderContent text={post.rawContent || post.content} />
+                </div>
+              ) : (
+                <p className="mb-3 text-base text-muted-foreground line-clamp-2 sm:-ml-14">{post.content}</p>
+              )}
 
               {/* Tags & Stats */}
-              <div className="flex flex-col items-start gap-3 mt-auto">
+              <div className="flex flex-col items-start gap-3 mt-auto sm:-ml-14">
                 {post.tags && post.tags.length > 0 && (
                   <div className="flex items-center gap-1.5 flex-wrap">
                     {post.tags.map(tag => (
-                      <AppBadge key={tag} variant="secondary" soft className="text-[10px] px-1.5 py-0 font-medium">
+                      <AppBadge
+                        key={tag}
+                        variant="secondary"
+                        soft
+                        className="px-2 py-0.5 text-sm font-medium"
+                      >
                         {tag}
                       </AppBadge>
                     ))}
                   </div>
                 )}
                 <div className={cn(
-                  "flex items-center gap-4 text-xs font-medium text-muted-foreground shrink-0",
+                  "flex items-center gap-4 text-sm font-medium text-muted-foreground shrink-0",
                   isPending && "opacity-40 pointer-events-none select-none"
                 )}>
                   {/* Voting Pill */}
@@ -568,7 +552,7 @@ export const ForumPostCard = ({ post, className }) => {
                       <ArrowUp className="w-3.5 h-3.5" />
                     </button>
                     <span className={cn(
-                      "px-1 font-semibold text-[11px] min-w-[12px] text-center",
+                      "px-1 text-sm font-semibold min-w-[12px] text-center",
                       userVote === 1 && "text-orange-500",
                       userVote === -1 && "text-blue-500"
                     )}>
