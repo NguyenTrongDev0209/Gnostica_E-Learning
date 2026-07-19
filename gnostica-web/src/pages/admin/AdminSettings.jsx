@@ -10,6 +10,7 @@ import AppInput from "@/components/common/micro/AppInput";
 import { Label } from "@/components/common/micro/AppLabel";
 import {
   Activity,
+  BookOpenText,
   CreditCard,
   FileText,
   Globe,
@@ -46,6 +47,7 @@ import {
 import { useAdminSettings } from "@/hooks/settings/useSiteSettings";
 import BannerSettings from "@/pages/admin/components/BannerSettings";
 import PageSettings from "@/pages/admin/components/PageSettings";
+import AboutSettings from "@/pages/admin/components/AboutSettings";
 import Skeleton from "@/components/common/micro/AppSkeleton";
 
 const DEFAULT_SETTINGS = {
@@ -63,6 +65,10 @@ const DEFAULT_SETTINGS = {
   "footer.link_groups": "[]",
   "finance.instructor_ratio": "90",
   "finance.platform_ratio": "10",
+  "about.content": "",
+  "about.hero_banner_url": "",
+  "about.solutions_banner_url": "",
+  "about.vision_banner_url": "",
 };
 
 export default function AdminSettings() {
@@ -103,6 +109,18 @@ export default function AdminSettings() {
     }
   };
 
+  const handleAboutImageUpload = async (file, key) => {
+    if (!file?.type.startsWith("image/")) return toast.error("Vui lòng chọn một tệp ảnh");
+    if (file.size > 5 * 1024 * 1024) return toast.error("Ảnh không được vượt quá 5MB");
+    try {
+      const url = await uploadMutation.mutateAsync(file);
+      updateValue(key, url);
+      toast.success("Đã tải ảnh lên. Nhấn Lưu thay đổi để áp dụng.");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Không thể tải ảnh lên");
+    }
+  };
+
   if (isLoading) {
     return <SettingsPageSkeleton />;
   }
@@ -124,6 +142,10 @@ export default function AdminSettings() {
           <TabsTrigger value="pages" className="gap-2">
             <FileText className="w-4 h-4" />
             Nội dung
+          </TabsTrigger>
+          <TabsTrigger value="about" className="gap-2">
+            <BookOpenText className="w-4 h-4" />
+            Giới thiệu
           </TabsTrigger>
           <TabsTrigger value="payment" className="gap-2">
             <CreditCard className="w-4 h-4" />
@@ -154,6 +176,10 @@ export default function AdminSettings() {
 
         <TabsContent value="pages" className="animate-in fade-in duration-300">
           <PageSettings />
+        </TabsContent>
+
+        <TabsContent value="about" className="animate-in fade-in duration-300">
+          <AboutSettings values={values} onChange={updateValue} onImageUpload={handleAboutImageUpload} isUploading={uploadMutation.isPending} />
         </TabsContent>
 
         <TabsContent value="payment" className="animate-in fade-in duration-300">

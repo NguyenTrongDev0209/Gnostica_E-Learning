@@ -91,11 +91,13 @@ const deleteDraft = async ({ courseId, slug } = {}) => {
     return response.data;
 };
 
-const getPublicCourses = async ({ categoryId, categorySlug, level, search, page = 0, size = 9, signal } = {}) => {
+const getPublicCourses = async ({ categoryId, categorySlug, categorySlugs, level, levels, search, page = 0, size = 9, signal } = {}) => {
     const params = { page, size };
     if (categoryId) params.categoryId = categoryId;
-    if (categorySlug) params.categorySlug = categorySlug;
-    if (level && level !== 'all') params.level = level;
+    const normalizedCategorySlugs = categorySlugs?.length ? categorySlugs : (categorySlug ? [categorySlug] : []);
+    const normalizedLevels = levels?.length ? levels : (level && level !== 'all' ? [level] : []);
+    if (normalizedCategorySlugs.length) params.categorySlug = normalizedCategorySlugs.join(',');
+    if (normalizedLevels.length) params.level = normalizedLevels.join(',');
     if (search && search.trim() !== "") params.search = search.trim();
 
     const response = await axiosClient.get(API_URL, { params, signal });

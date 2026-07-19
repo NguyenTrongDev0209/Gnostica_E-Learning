@@ -1,4 +1,4 @@
-import React, { useState, useEffect, forwardRef, useId } from "react";
+import React, { useState, useEffect, forwardRef, useId, useMemo } from "react";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { Search, ChevronDown, Calendar as CalendarIcon, SlidersHorizontal } from "lucide-react";
@@ -10,8 +10,6 @@ import AppInput from "@/components/common/micro/AppInput";
 import AppSelect from "@/components/common/micro/AppSelect";
 import AppCard, { AppCardHeader, AppCardTitle, AppCardContent } from "@/components/common/micro/AppCard";
 import AppSeparator from "@/components/common/micro/AppSeparator";
-import { AppRadioGroupItem } from "@/components/common/micro/AppRadioGroup";
-import { RadioGroup } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { AppCheckbox } from "@/components/common/micro/AppCheckbox";
 import AppPopover, { AppPopoverContent, AppPopoverTrigger } from "@/components/common/micro/AppPopover";
@@ -172,12 +170,12 @@ const levels = [
 export function DataFilterSidebar({ categories = [], selectedFilters = {}, onFilterChange, className }) {
   const [expandedId, setExpandedId] = useState(null);
 
-  const categoryTree = categories
+  const categoryTree = useMemo(() => categories
     .map(cat => ({
       ...cat,
       subcategories: cat.subcategories?.filter(sub => sub.courses > 0) || []
     }))
-    .filter(cat => cat.courses > 0);
+    .filter(cat => cat.courses > 0 || cat.subcategories.length > 0), [categories]);
 
   const [activeLevels, setActiveLevels] = useState([]);
 
@@ -193,20 +191,32 @@ export function DataFilterSidebar({ categories = [], selectedFilters = {}, onFil
     l => l.value === "all" || activeLevels.includes(l.value)
   );
 
+  const selectedCategorySlugs = selectedFilters.categorySlugs
+    || (selectedFilters.categorySlug ? [selectedFilters.categorySlug] : []);
+  const selectedLevels = selectedFilters.levels
+    || (selectedFilters.level && selectedFilters.level !== "all" ? [selectedFilters.level] : []);
+
+  const toggleFilterValue = (key, values, value, checked) => {
+    const nextValues = checked
+      ? [...new Set([...values, value])]
+      : values.filter((item) => item !== value);
+    onFilterChange(key, nextValues);
+  };
+
   useEffect(() => {
-    if (selectedFilters.categorySlug && categoryTree.length > 0) {
+    if (selectedCategorySlugs.length > 0 && categoryTree.length > 0) {
       const activeParent = categoryTree.find(p =>
-        p.slug === selectedFilters.categorySlug ||
-        p.subcategories?.some(c => c.slug === selectedFilters.categorySlug)
+        selectedCategorySlugs.includes(p.slug) ||
+        p.subcategories?.some(c => selectedCategorySlugs.includes(c.slug))
       );
       if (activeParent) setExpandedId(activeParent.id);
     }
-  }, [selectedFilters.categorySlug, categoryTree]);
+  }, [selectedCategorySlugs, categoryTree]);
 
   return (
     <AppCard appVariant="default" className={cn("z-10 max-h-[calc(100vh-6rem)] overflow-y-auto scrollbar-thin", className)}>
       <AppCardHeader className="pb-3 border-b border-border mb-4">
-        <AppCardTitle className="text-lg font-bold text-center uppercase tracking-tighter">
+        <AppCardTitle className="app-section-title text-center">
           Lọc kết quả
         </AppCardTitle>
       </AppCardHeader>
@@ -214,15 +224,17 @@ export function DataFilterSidebar({ categories = [], selectedFilters = {}, onFil
 
         {/* Category Filter */}
         <div className="flex flex-col gap-3">
-          <h4 className="text-xs font-bold text-foreground uppercase tracking-widest">Danh mục</h4>
-          <RadioGroup
-            value={selectedFilters.categorySlug || "all"}
-            onValueChange={(val) => onFilterChange("categorySlug", val === "all" ? null : val)}
-            className="flex flex-col gap-1"
-          >
+          <h4 className="app-section-title">Danh mục</h4>
+          <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2 group cursor-pointer py-1.5" onClick={() => setExpandedId(null)}>
-              <AppRadioGroupItem value="all" id="cat-all" appVariant="warning" className="border-border" />
-              <Label htmlFor="cat-all" className="text-sm font-bold text-muted-foreground group-hover:text-foreground cursor-pointer transition-colors">
+              <AppCheckbox
+                id="cat-all"
+                appVariant="accent"
+                appSize="sm"
+                checked={selectedCategorySlugs.length === 0}
+                onCheckedChange={() => onFilterChange("categorySlugs", [])}
+              />
+              <Label htmlFor="cat-all" className="app-body-text text-foreground cursor-pointer">
                 Tất cả danh mục
               </Label>
             </div>
@@ -235,17 +247,18 @@ export function DataFilterSidebar({ categories = [], selectedFilters = {}, onFil
                 <React.Fragment key={parent.id}>
                   {/* Parent Category */}
                   <div
-                    className="flex items-center justify-between group cursor-pointer py-1.5 border-t border-slate-50 mt-1"
+                    className="flex items-center justify-between group cursor-pointer py-1.5"
                     onClick={() => setExpandedId(isExpanded ? null : parent.id)}
                   >
                     <div className="flex items-center gap-2">
-                      <AppRadioGroupItem
-                        value={parent.slug}
+                      <AppCheckbox
                         id={`cat-${parent.id}`}
-                        appVariant="warning"
-                        className="border-border"
+                        appVariant="accent"
+                        appSize="sm"
+                        checked={selectedCategorySlugs.includes(parent.slug)}
+                        onCheckedChange={(checked) => toggleFilterValue("categorySlugs", selectedCategorySlugs, parent.slug, checked)}
                       />
-                      <Label htmlFor={`cat-${parent.id}`} className="text-sm font-bold text-foreground group-hover:text-foreground cursor-pointer transition-colors">
+                      <Label htmlFor={`cat-${parent.id}`} className="app-body-text text-foreground cursor-pointer">
                         {parent.name}
                       </Label>
                     </div>
@@ -259,13 +272,14 @@ export function DataFilterSidebar({ categories = [], selectedFilters = {}, onFil
                     <div className="flex flex-col gap-1 animate-fade-up">
                       {parent.subcategories.map(child => (
                         <div key={child.id} className="flex items-center gap-2 group cursor-pointer py-1 ml-6">
-                          <AppRadioGroupItem
-                            value={child.slug}
+                          <AppCheckbox
                             id={`cat-${child.id}`}
-                            appVariant="warning"
-                            className="border-border"
+                            appVariant="accent"
+                            appSize="sm"
+                            checked={selectedCategorySlugs.includes(child.slug)}
+                            onCheckedChange={(checked) => toggleFilterValue("categorySlugs", selectedCategorySlugs, child.slug, checked)}
                           />
-                          <Label htmlFor={`cat-${child.id}`} className="text-sm font-medium text-muted-foreground group-hover:text-foreground cursor-pointer transition-colors">
+                          <Label htmlFor={`cat-${child.id}`} className="app-body-text text-foreground cursor-pointer">
                             {child.name}
                           </Label>
                         </div>
@@ -275,28 +289,32 @@ export function DataFilterSidebar({ categories = [], selectedFilters = {}, onFil
                 </React.Fragment>
               );
             })}
-          </RadioGroup>
+          </div>
         </div>
 
         <AppSeparator className="bg-secondary my-0" />
 
         {/* Level Filter */}
         <div className="flex flex-col gap-3">
-          <h4 className="text-xs font-bold text-foreground uppercase tracking-widest">Trình độ</h4>
-          <RadioGroup
-            value={selectedFilters.level || "all"}
-            onValueChange={(val) => onFilterChange("level", val)}
-            className="flex flex-col gap-2.5"
-          >
+          <h4 className="app-section-title">Trình độ</h4>
+          <div className="flex flex-col gap-1">
             {filteredLevels.map((level) => (
-              <div key={level.value} className="flex items-center gap-2 group cursor-pointer">
-                <AppRadioGroupItem value={level.value} id={`level-${level.value}`} appVariant="warning" className="border-border" />
-                <Label htmlFor={`level-${level.value}`} className="text-sm font-medium text-muted-foreground group-hover:text-foreground cursor-pointer transition-colors">
+              <div key={level.value} className="flex items-center gap-2 group cursor-pointer py-1.5">
+                <AppCheckbox
+                  id={`level-${level.value}`}
+                  appVariant="accent"
+                  appSize="sm"
+                  checked={level.value === "all" ? selectedLevels.length === 0 : selectedLevels.includes(level.value)}
+                  onCheckedChange={(checked) => level.value === "all"
+                    ? onFilterChange("levels", [])
+                    : toggleFilterValue("levels", selectedLevels, level.value, checked)}
+                />
+                <Label htmlFor={`level-${level.value}`} className="app-body-text text-foreground cursor-pointer">
                   {level.label}
                 </Label>
               </div>
             ))}
-          </RadioGroup>
+          </div>
         </div>
 
         <AppSeparator className="bg-secondary my-0" />
@@ -304,8 +322,8 @@ export function DataFilterSidebar({ categories = [], selectedFilters = {}, onFil
         <div className="pt-2">
           <button
             onClick={() => {
-              onFilterChange("categoryId", null);
-              onFilterChange("level", "all");
+              onFilterChange("categorySlugs", []);
+              onFilterChange("levels", []);
             }}
             className="w-full h-10 rounded-lg border border-border text-xs font-bold text-muted-foreground hover:bg-muted transition-colors uppercase"
           >
@@ -336,7 +354,7 @@ export function DataFilterSidebarChecklist({
   return (
     <AppCard appVariant="default" className={cn("z-10 max-h-[calc(100vh-6rem)] overflow-y-auto scrollbar-thin", className)}>
       <AppCardHeader className="pb-3 border-b border-border mb-4">
-        <AppCardTitle className="text-lg font-bold text-center uppercase tracking-tighter">
+        <AppCardTitle className="app-section-title text-center">
           {title}
         </AppCardTitle>
       </AppCardHeader>
@@ -344,7 +362,7 @@ export function DataFilterSidebarChecklist({
         
         {onDateRangeChange && (
           <div className="flex flex-col gap-3">
-            <h4 className="text-xs font-bold text-foreground uppercase tracking-widest">{dateRangeTitle}</h4>
+            <h4 className="app-section-title">{dateRangeTitle}</h4>
             <AppDateRangePicker 
               date={dateRange}
               onSelect={onDateRangeChange}
@@ -357,19 +375,20 @@ export function DataFilterSidebarChecklist({
         )}
 
         <div className="flex flex-col gap-3">
-          <h4 className="text-xs font-bold text-foreground uppercase tracking-widest">{categoryTitle}</h4>
+          <h4 className="app-section-title">{categoryTitle}</h4>
           <div className="space-y-3">
             {items.map((item) => (
               <AppCheckbox
                 key={item}
                 id={`chk-${item}`}
                 label={item}
+                labelClassName="app-body-text"
                 checked={selectedItems.includes(item)}
                 onCheckedChange={() => onItemToggle(item)}
               />
             ))}
             {items.length === 0 && (
-              <p className="text-sm text-muted-foreground">{emptyMessage}</p>
+              <p className="app-body-text text-muted-foreground">{emptyMessage}</p>
             )}
           </div>
         </div>

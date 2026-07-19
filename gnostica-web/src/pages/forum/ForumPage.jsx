@@ -219,7 +219,7 @@ const ForumPage = () => {
       <PageContainer.Section className="w-full app-container">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 sm:mb-12 gap-4">
           <PageContainer.Header
-            title={<>Diễn đàn <span className="bg-accent-gradient bg-clip-text text-transparent italic">Cộng đồng</span></>}
+            title={<>Diễn đàn <span className="text-accent-highlight">Cộng đồng</span></>}
             description="Nơi giao lưu, hỏi đáp và chia sẻ kiến thức về lập trình, công nghệ."
             className="mb-0 sm:mb-0"
           />

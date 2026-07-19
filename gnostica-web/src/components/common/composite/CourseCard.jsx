@@ -10,6 +10,31 @@ import useAuthStore from '@/store/useAuthStore';
 import threadService from '@/services/forum/threadService';
 import { toast } from 'sonner';
 
+const COURSE_IMAGE_FALLBACK = "https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=600&auto=format&fit=crop";
+const handleCourseImageError = (event) => {
+  event.currentTarget.onerror = null;
+  event.currentTarget.src = COURSE_IMAGE_FALLBACK;
+};
+
+const parsePriceValue = (value) => {
+  if (typeof value === "number") return value;
+  const digits = String(value ?? "").replace(/[^0-9]/g, "");
+  return digits ? Number(digits) : 0;
+};
+
+const formatPriceValue = (value) => new Intl.NumberFormat("vi-VN").format(value);
+
+const resolveDiscountedPrice = (price, originalPrice, discountPercentage) => {
+  const currentValue = parsePriceValue(price);
+  const originalValue = parsePriceValue(originalPrice);
+
+  if (discountPercentage > 0 && originalValue > 0 && currentValue >= originalValue) {
+    return formatPriceValue(Math.round(originalValue * (100 - discountPercentage) / 100));
+  }
+
+  return typeof price === "number" ? formatPriceValue(price) : price;
+};
+
 const CourseCard = ({
   image,
   category = "Data Science",
@@ -29,6 +54,8 @@ const CourseCard = ({
   link = "/courses/1",
   className
 }) => {
+  const displayedPrice = resolveDiscountedPrice(price, originalPrice, discountPercentage);
+
   return (
     <Link to={link} className="block w-full h-full">
       <AppCard appVariant="default" className={cn("w-full h-full flex flex-col group hover-lift p-0 gap-0", className)}>
@@ -36,8 +63,11 @@ const CourseCard = ({
         <div className="p-2 sm:p-3 pb-0">
           <div className="relative aspect-video overflow-hidden shadow-sm rounded-md bg-muted">
             <img
-              src={image || "https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=400&auto=format&fit=crop"}
+              src={image || COURSE_IMAGE_FALLBACK}
               alt={title}
+              loading="lazy"
+              decoding="async"
+              onError={handleCourseImageError}
               className="w-full h-full object-cover"
             />
           </div>
@@ -94,7 +124,7 @@ const CourseCard = ({
           <div className="flex items-center justify-between gap-1 flex-wrap mt-auto pt-1">
             <div className="flex items-center gap-1.5 flex-wrap">
               <div className="text-sm sm:text-xl font-bold text-gradient-button leading-none">
-                {price}<span className="text-[10px] sm:text-lg ml-0.5">{currency}</span>
+                {displayedPrice}<span className="text-[10px] sm:text-lg ml-0.5">{currency}</span>
               </div>
 
               {originalPrice && (
@@ -141,6 +171,9 @@ export const CourseProgressCard = ({
               <img
                 src={image}
                 alt={title}
+                loading="lazy"
+                decoding="async"
+                onError={handleCourseImageError}
                 className="w-full h-full object-cover"
               />
             ) : (
@@ -234,6 +267,8 @@ export const CourseCardHorizontal = ({
   className
 }) => {
   const to = link || `/courses/${id}`;
+  const displayedPrice = resolveDiscountedPrice(price, originalPrice, discountPercentage);
+
   return (
     <Link to={to} className="block w-full">
       <AppCard appVariant="default" className={cn("w-full flex flex-row group hover-lift p-0 gap-0", className)}>
@@ -241,8 +276,11 @@ export const CourseCardHorizontal = ({
         <div className="shrink-0 w-56 sm:w-72 md:w-80 p-3 pr-0">
           <div className="relative w-full h-full min-h-[120px] overflow-hidden rounded-lg bg-muted">
             <img
-              src={image || "https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=400&auto=format&fit=crop"}
+              src={image || COURSE_IMAGE_FALLBACK}
               alt={title}
+              loading="lazy"
+              decoding="async"
+              onError={handleCourseImageError}
               className="w-full h-full object-cover"
             />
           </div>
@@ -299,7 +337,7 @@ export const CourseCardHorizontal = ({
           {/* Price */}
           <div className="flex items-center gap-2 flex-wrap mt-auto">
             <div className="text-lg font-bold text-gradient-button leading-none">
-              {price}<span className="text-base ml-0.5">{currency}</span>
+              {displayedPrice}<span className="text-base ml-0.5">{currency}</span>
             </div>
             {originalPrice && (
               <div className="text-sm text-muted-foreground line-through decoration-muted-foreground/50">

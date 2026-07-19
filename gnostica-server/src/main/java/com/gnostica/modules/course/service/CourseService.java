@@ -562,17 +562,22 @@ public class CourseService {
     }
 
     @Transactional(readOnly = true)
-    public org.springframework.data.domain.Page<CourseResponse> getPublicCourses(Integer categoryId, String categorySlug,
-            String level, String search, int page, int size) {
+    public org.springframework.data.domain.Page<CourseResponse> getPublicCourses(Integer categoryId, java.util.List<String> categorySlugs,
+            java.util.List<String> levels, String search, int page, int size) {
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size,
                 org.springframework.data.domain.Sort.by("id").descending());
         int categoryIdFilter = categoryId == null ? -1 : categoryId;
-        String categorySlugFilter = categorySlug == null ? "" : categorySlug.trim();
-        String levelFilter = (level != null && !level.trim().isEmpty() && !level.equalsIgnoreCase("all"))
-                ? level.trim() : "";
+        java.util.List<String> categorySlugFilters = categorySlugs == null ? java.util.List.of() : categorySlugs.stream()
+                .filter(value -> value != null && !value.isBlank()).map(String::trim).toList();
+        java.util.List<String> levelFilters = levels == null ? java.util.List.of() : levels.stream()
+                .filter(value -> value != null && !value.isBlank() && !value.equalsIgnoreCase("all"))
+                .map(String::trim).toList();
         String searchFilter = search == null ? "" : search.trim();
         org.springframework.data.domain.Page<Course> coursesPage = courseRepository.findPublicCourses(
-                categoryIdFilter, categorySlugFilter, levelFilter, searchFilter, pageable);
+                categoryIdFilter,
+                !categorySlugFilters.isEmpty(), categorySlugFilters.isEmpty() ? java.util.List.of("") : categorySlugFilters,
+                !levelFilters.isEmpty(), levelFilters.isEmpty() ? java.util.List.of("") : levelFilters,
+                searchFilter, pageable);
         return coursesPage.map(this::mapToCourseResponse);
     }
 

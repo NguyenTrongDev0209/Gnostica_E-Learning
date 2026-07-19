@@ -116,7 +116,7 @@ const MyForumPosts = () => {
             <PageContainer.Section className="w-full app-container">
                 <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 sm:mb-12 gap-4">
                     <PageContainer.Header
-                        title={<>Bài viết <span className="bg-accent-gradient bg-clip-text text-transparent italic">{activeTab === 'liked' ? "đã thích" : "của tôi"}</span></>}
+                        title={<>Bài viết <span className="text-accent-highlight">{activeTab === 'liked' ? "đã thích" : "của tôi"}</span></>}
                         description={activeTab === 'liked' ? "Xem lại danh sách tất cả các bài viết bạn đã bày tỏ thái độ yêu thích." : "Quản lý và xem lại tất cả các nội dung bạn đã chia sẻ trên diễn đàn."}
                         className="mb-0 sm:mb-0"
                     >

@@ -17,8 +17,8 @@ export function useSearch(query, filters, pagination) {
     queryFn: async () => {
       return await courseService.getPublicCourses({
         search: query,
-        level: filters.level,
-        categorySlug: filters.categorySlug,
+        levels: filters.levels,
+        categorySlugs: filters.categorySlugs,
         categoryId: filters.categoryId,
         page: pagination.page,
         size: pagination.size

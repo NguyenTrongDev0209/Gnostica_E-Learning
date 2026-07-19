@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useLocation, useParams, useSearchParams } from "react-router-dom";
 import PageContainer from "@/components/common/core/PageContainer";
 import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
 import { DataFilterSidebar } from "@/components/common/composite/DataFilter";
@@ -14,11 +14,11 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/common/micro/AppPagination";
-import { Home, Loader2, SearchX } from "lucide-react";
+import { Loader2, SearchX } from "lucide-react";
 import { useSearch } from "@/hooks/course/useSearch";
 
 // ── CourseListSection ──
-function CourseListSection({
+export function CourseResultsLayout({
   courses = [],
   loading = false,
   categories = [],
@@ -156,8 +156,8 @@ function CourseListSection({
               variant="outline"
               className="mt-6 font-bold border-border"
               onClick={() => {
-                onFilterChange("categoryId", null);
-                onFilterChange("level", "all");
+                onFilterChange("categorySlugs", []);
+                onFilterChange("levels", []);
               }}
             >
               Xóa các bộ lọc
@@ -170,18 +170,18 @@ function CourseListSection({
 }
 
 // ── Page ──
-const SearchPage = () => {
+const SearchPageContent = ({ categorySlug }) => {
   const [searchParams] = useSearchParams();
   const query = searchParams.get("q") || "";
 
   const [filters, setFilters] = useState({
-    level: "all",
-    categorySlug: null,
+    levels: [],
+    categorySlugs: categorySlug ? [categorySlug] : [],
     categoryId: null
   });
   
   const [page, setPage] = useState(0);
-  const size = 9;
+  const size = 5;
 
   const { courses, categories, loading, totalElements, totalPages } = useSearch(query, filters, { page, size });
 
@@ -190,8 +190,8 @@ const SearchPage = () => {
   const handleFilterChange = (key, value) => {
     setFilters(prev => {
       const newFilters = { ...prev, [key]: value };
-      if (key === 'categorySlug' && value) newFilters.categoryId = null;
-      if (key === 'categoryId' && value) newFilters.categorySlug = null;
+      if (key === 'categorySlugs' && value?.length) newFilters.categoryId = null;
+      if (key === 'categoryId' && value) newFilters.categorySlugs = [];
       return newFilters;
     });
     setPage(0);
@@ -202,22 +202,25 @@ const SearchPage = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const breadcrumbItems = [
-    { label: "Trang chủ", href: "/", icon: Home },
-    { label: "Tìm kiếm", isLast: true }
-  ];
+  const displayCategory = categorySlug
+    ? categorySlug.split("-").map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(" ")
+    : null;
+
+  const breadcrumbItems = displayCategory
+    ? [{ label: "Khóa học", href: "/courses" }, { label: displayCategory }]
+    : [{ label: query ? "Tìm kiếm" : "Khóa học" }];
 
   return (
     <div className="min-h-screen bg-background">
       <div className="app-container py-8 md:py-12">
         <PageContainer.Header
-          title={`Kết quả tìm kiếm ${query ? `cho "${query}"` : ""}`}
+          title={displayCategory ? `Khóa học ${displayCategory}` : `Kết quả tìm kiếm ${query ? `cho "${query}"` : ""}`}
           description={loading ? "Đang tìm kiếm khóa học..." : `Tìm thấy ${totalElements} khóa học phù hợp với yêu cầu của bạn.`}
         >
           <AppBreadcrumb paths={breadcrumbItems} />
         </PageContainer.Header>
 
-        <CourseListSection
+        <CourseResultsLayout
           courses={courses}
           loading={loading}
           categories={categories}
@@ -226,11 +229,17 @@ const SearchPage = () => {
           pagination={paginationInfo}
           onPageChange={handlePageChange}
           emptyMessage="Rất tiếc, chúng tôi không tìm thấy khóa học nào phù hợp với từ khóa của bạn."
-          sectionTitle="Kết quả tìm kiếm"
+          sectionTitle={displayCategory ? `Tất cả khóa học ${displayCategory}` : "Kết quả tìm kiếm"}
         />
       </div>
     </div>
   );
+};
+
+const SearchPage = () => {
+  const { categorySlug } = useParams();
+  const { search } = useLocation();
+  return <SearchPageContent key={`${categorySlug || "search"}:${search}`} categorySlug={categorySlug} />;
 };
 
 export default SearchPage;

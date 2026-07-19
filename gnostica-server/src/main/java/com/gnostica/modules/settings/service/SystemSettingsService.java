@@ -31,6 +31,10 @@ public class SystemSettingsService {
         define("footer.copyright", "STRING", "Thông tin bản quyền", true, 500);
         define("footer.social_links", "JSON", "Liên kết mạng xã hội", true, 5000);
         define("footer.link_groups", "JSON", "Nhóm liên kết chân trang", true, 10000);
+        define("about.content", "JSON", "Nội dung trang Giới thiệu", true, 50000);
+        define("about.hero_banner_url", "URL", "Banner đầu trang Giới thiệu", true, 1000);
+        define("about.solutions_banner_url", "URL", "Banner giải pháp trang Giới thiệu", true, 1000);
+        define("about.vision_banner_url", "URL", "Banner tầm nhìn trang Giới thiệu", true, 1000);
         define("finance.instructor_ratio", "DECIMAL", "Tỷ lệ doanh thu của giảng viên", false, 6);
         define("finance.platform_ratio", "DECIMAL", "Tỷ lệ hoa hồng nền tảng", false, 6);
     }

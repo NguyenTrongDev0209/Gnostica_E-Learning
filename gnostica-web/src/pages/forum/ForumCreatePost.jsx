@@ -47,7 +47,7 @@ const ForumCreatePost = () => {
         <div className="min-h-screen bg-muted pb-16 pt-8">
             <PageContainer.Section className="max-w-4xl mx-auto w-full app-container">
                 <PageContainer.Header
-                    title={<>Tạo bài viết <span className="bg-accent-gradient bg-clip-text text-transparent italic">Mới</span></>}
+                    title={<>Tạo bài viết <span className="text-accent-highlight">Mới</span></>}
                     description="Chia sẻ kiến thức, câu hỏi hoặc thảo luận cùng cộng đồng."
                 />
 
