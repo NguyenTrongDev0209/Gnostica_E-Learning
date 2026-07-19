@@ -62,7 +62,9 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
                     "WHERE c.status = 1 " +
                     "AND (:categoryId = -1 OR cat.id = :categoryId OR parent.id = :categoryId) " +
                     "AND (:filterCategorySlugs = false OR cat.slug IN :categorySlugs OR parent.slug IN :categorySlugs) " +
-                    "AND (:filterLevels = false OR c.level IN :levels) " +
+                    "AND (:filterLevels = false OR LOWER(c.level) IN :levels) " +
+                    "AND (:minPrice < 0 OR (c.price * (100 - COALESCE(c.discount, 0)) / 100) >= :minPrice) " +
+                    "AND (:maxPrice < 0 OR (c.price * (100 - COALESCE(c.discount, 0)) / 100) <= :maxPrice) " +
                     "AND (:search = '' OR LOWER(c.title) LIKE LOWER(CONCAT('%', :search, '%')) " +
                     "OR LOWER(cat.name) LIKE LOWER(CONCAT('%', :search, '%')) " +
                     "OR LOWER(c.account.fullName) LIKE LOWER(CONCAT('%', :search, '%'))) " +
@@ -71,7 +73,9 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
                     "WHERE c.status = 1 " +
                     "AND (:categoryId = -1 OR cat.id = :categoryId OR parent.id = :categoryId) " +
                     "AND (:filterCategorySlugs = false OR cat.slug IN :categorySlugs OR parent.slug IN :categorySlugs) " +
-                    "AND (:filterLevels = false OR c.level IN :levels) " +
+                    "AND (:filterLevels = false OR LOWER(c.level) IN :levels) " +
+                    "AND (:minPrice < 0 OR (c.price * (100 - COALESCE(c.discount, 0)) / 100) >= :minPrice) " +
+                    "AND (:maxPrice < 0 OR (c.price * (100 - COALESCE(c.discount, 0)) / 100) <= :maxPrice) " +
                     "AND (:search = '' OR LOWER(c.title) LIKE LOWER(CONCAT('%', :search, '%')) " +
                     "OR LOWER(cat.name) LIKE LOWER(CONCAT('%', :search, '%')) " +
                     "OR LOWER(c.account.fullName) LIKE LOWER(CONCAT('%', :search, '%'))) " +
@@ -82,6 +86,8 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
             @org.springframework.data.repository.query.Param("categorySlugs") java.util.Collection<String> categorySlugs,
             @org.springframework.data.repository.query.Param("filterLevels") boolean filterLevels,
             @org.springframework.data.repository.query.Param("levels") java.util.Collection<String> levels,
+            @org.springframework.data.repository.query.Param("minPrice") java.math.BigDecimal minPrice,
+            @org.springframework.data.repository.query.Param("maxPrice") java.math.BigDecimal maxPrice,
             @org.springframework.data.repository.query.Param("search") String search,
             org.springframework.data.domain.Pageable pageable);
 

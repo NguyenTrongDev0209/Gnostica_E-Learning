@@ -563,7 +563,8 @@ public class CourseService {
 
     @Transactional(readOnly = true)
     public org.springframework.data.domain.Page<CourseResponse> getPublicCourses(Integer categoryId, java.util.List<String> categorySlugs,
-            java.util.List<String> levels, String search, int page, int size) {
+            java.util.List<String> levels, java.math.BigDecimal minPrice, java.math.BigDecimal maxPrice,
+            String search, int page, int size) {
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size,
                 org.springframework.data.domain.Sort.by("id").descending());
         int categoryIdFilter = categoryId == null ? -1 : categoryId;
@@ -573,10 +574,13 @@ public class CourseService {
                 .filter(value -> value != null && !value.isBlank() && !value.equalsIgnoreCase("all"))
                 .map(String::trim).toList();
         String searchFilter = search == null ? "" : search.trim();
+        java.math.BigDecimal minPriceFilter = minPrice == null ? java.math.BigDecimal.valueOf(-1) : minPrice.max(java.math.BigDecimal.ZERO);
+        java.math.BigDecimal maxPriceFilter = maxPrice == null ? java.math.BigDecimal.valueOf(-1) : maxPrice.max(java.math.BigDecimal.ZERO);
         org.springframework.data.domain.Page<Course> coursesPage = courseRepository.findPublicCourses(
                 categoryIdFilter,
                 !categorySlugFilters.isEmpty(), categorySlugFilters.isEmpty() ? java.util.List.of("") : categorySlugFilters,
                 !levelFilters.isEmpty(), levelFilters.isEmpty() ? java.util.List.of("") : levelFilters,
+                minPriceFilter, maxPriceFilter,
                 searchFilter, pageable);
         return coursesPage.map(this::mapToCourseResponse);
     }

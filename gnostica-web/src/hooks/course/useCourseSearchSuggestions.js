@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import courseService from "@/services/course/courseService"
+import categoryService from "@/services/course/categoryService"
 
 const useDebouncedValue = (value, delay) => {
   const [debouncedValue, setDebouncedValue] = useState(value)
@@ -28,27 +29,44 @@ export const useCourseSearchSuggestions = (query) => {
   const isSearchable = debouncedQuery.length >= 2
 
   const searchQuery = useQuery({
-    queryKey: ["header-course-suggestions", debouncedQuery.toLocaleLowerCase("vi")],
-    queryFn: ({ signal }) => courseService.getPublicCourses({
-      search: debouncedQuery,
-      page: 0,
-      size: 5,
-      signal,
-    }),
-    enabled: isSearchable,
+    queryKey: ["header-course-suggestion-catalog"],
+    queryFn: async ({ signal }) => {
+      const firstPage = await courseService.getPublicCourses({ page: 0, size: 20, signal })
+      const pageCount = Math.min(firstPage?.totalPages || 1, 5)
+      if (pageCount <= 1) return firstPage?.content || []
+      const remainingPages = await Promise.all(
+        Array.from({ length: pageCount - 1 }, (_, index) =>
+          courseService.getPublicCourses({ page: index + 1, size: 20, signal })
+        )
+      )
+      return [firstPage, ...remainingPages].flatMap((result) => result?.content || [])
+    },
     staleTime: 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
     retry: false,
   })
 
+  const categoriesQuery = useQuery({
+    queryKey: ["header-category-suggestions"],
+    queryFn: async () => {
+      const response = await categoryService.getAllCategories(1, 100)
+      const parents = response?.data?.content || response?.content || []
+      return parents.flatMap((category) => [category, ...(category.subcategories || [])])
+        .filter((category) => category.status !== false)
+        .map((category) => ({ id: category.id, label: category.name, slug: category.slug }))
+    },
+    staleTime: 5 * 60 * 1000,
+  })
+
   const courses = useMemo(() =>
-    (searchQuery.data?.content || []).map(mapCourseSuggestion),
+    (searchQuery.data || []).map(mapCourseSuggestion),
   [searchQuery.data])
 
   return {
     courses,
-    isLoading: isSearchable && searchQuery.isFetching,
-    hasServerResult: isSearchable && searchQuery.isSuccess,
+    categories: categoriesQuery.data || [],
+    isLoading: isSearchable && (searchQuery.isFetching || categoriesQuery.isFetching),
+    hasServerResult: searchQuery.isSuccess,
     debouncedQuery,
   }
 }

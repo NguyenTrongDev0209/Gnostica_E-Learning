@@ -287,7 +287,7 @@ export const CourseCardHorizontal = ({
         </div>
 
         {/* Right Content */}
-        <AppCardContent className="flex-1 p-4 flex flex-col gap-2 justify-between min-w-0">
+        <AppCardContent className="flex-1 p-4 flex flex-col gap-2 min-w-0">
           {/* Top: Instructor & Rating */}
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
@@ -320,7 +320,7 @@ export const CourseCardHorizontal = ({
           </AppBadge>
 
           {/* Info Row */}
-          <div className="flex items-center gap-4 text-muted-foreground text-xs">
+          <div className="mt-auto flex items-center gap-4 text-muted-foreground text-xs">
             <div className="flex items-center gap-1.5">
               <BookOpen className="w-4 h-4 text-primary/70" />
               <span className="font-medium">{classes} bài học</span>
@@ -335,7 +335,7 @@ export const CourseCardHorizontal = ({
           <div className="border-t border-border" />
 
           {/* Price */}
-          <div className="flex items-center gap-2 flex-wrap mt-auto">
+          <div className="flex items-center gap-2 flex-wrap">
             <div className="text-lg font-bold text-gradient-button leading-none">
               {displayedPrice}<span className="text-base ml-0.5">{currency}</span>
             </div>

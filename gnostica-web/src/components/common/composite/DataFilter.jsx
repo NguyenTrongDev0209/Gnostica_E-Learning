@@ -169,6 +169,8 @@ const levels = [
  */
 export function DataFilterSidebar({ categories = [], selectedFilters = {}, onFilterChange, className }) {
   const [expandedId, setExpandedId] = useState(null);
+  const selectedPriceRange = selectedFilters.priceRange || [0, 2000000];
+  const [draftPriceRange, setDraftPriceRange] = useState(selectedPriceRange);
 
   const categoryTree = useMemo(() => categories
     .map(cat => ({
@@ -319,11 +321,39 @@ export function DataFilterSidebar({ categories = [], selectedFilters = {}, onFil
 
         <AppSeparator className="bg-secondary my-0" />
 
+        {/* Price Filter */}
+        <div className="flex flex-col gap-4">
+          <h4 className="app-section-title">Khoảng giá</h4>
+          <div className="flex items-center justify-between gap-2 text-xs font-semibold text-foreground">
+            <span className="rounded-md bg-accent/10 px-2 py-1 text-accent">
+              {new Intl.NumberFormat("vi-VN").format(draftPriceRange[0])}đ
+            </span>
+            <span className="text-muted-foreground">—</span>
+            <span className="rounded-md bg-accent/10 px-2 py-1 text-accent">
+              {new Intl.NumberFormat("vi-VN").format(draftPriceRange[1])}đ
+            </span>
+          </div>
+          <Slider
+            min={0}
+            max={2000000}
+            step={50000}
+            value={draftPriceRange}
+            onValueChange={setDraftPriceRange}
+            onValueCommit={(value) => onFilterChange("priceRange", value)}
+            className="[&_[data-slot=slider-range]]:bg-accent [&_[data-slot=slider-thumb]]:border-accent [&_[data-slot=slider-thumb]]:ring-accent/40"
+            aria-label="Lọc khóa học theo khoảng giá"
+          />
+        </div>
+
+        <AppSeparator className="bg-secondary my-0" />
+
         <div className="pt-2">
           <button
             onClick={() => {
               onFilterChange("categorySlugs", []);
               onFilterChange("levels", []);
+              setDraftPriceRange([0, 2000000]);
+              onFilterChange("priceRange", [0, 2000000]);
             }}
             className="w-full h-10 rounded-lg border border-border text-xs font-bold text-muted-foreground hover:bg-muted transition-colors uppercase"
           >

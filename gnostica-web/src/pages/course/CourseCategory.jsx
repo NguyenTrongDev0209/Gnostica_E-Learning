@@ -92,6 +92,7 @@ function CourseCategoryContent({ categorySlug }) {
     levels: [],
     categorySlugs: initialCategorySlugs,
     categoryId: null,
+    priceRange: [0, 2000000],
   });
   const [page, setPage] = useState(0);
   const size = 9;

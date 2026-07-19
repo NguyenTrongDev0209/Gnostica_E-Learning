@@ -3,7 +3,6 @@ import { ArrowUpRight, History, Loader2, Search, Trash2, X } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { Input } from "@/components/ui/input"
 import { AppButton } from "@/components/common/micro/AppButton"
-import { categorySuggestionMocks, searchSuggestionMocks } from "@/mocks/searchSuggestions"
 import { useRecentSearchHistory } from "@/hooks/useRecentSearchHistory"
 import { useTypewriterPlaceholder } from "@/hooks/useTypewriterPlaceholder"
 import { useCourseSearchSuggestions } from "@/hooks/course/useCourseSearchSuggestions"
@@ -37,6 +36,7 @@ const AppSearchInput = ({ className = "", storageScope = "guest" }) => {
   const navigate = useNavigate()
   const {
     courses: serverCourses,
+    categories: serverCategories,
     isLoading: isLoadingServerCourses,
     hasServerResult,
   } = useCourseSearchSuggestions(searchQuery)
@@ -47,7 +47,7 @@ const AppSearchInput = ({ className = "", storageScope = "guest" }) => {
     rememberSearch: persistRecentSearch,
     rememberCourse,
     clearHistory,
-  } = useRecentSearchHistory(storageScope, searchSuggestionMocks)
+  } = useRecentSearchHistory(storageScope, serverCourses)
 
   const handleFocus = () => {
     setIsFocused(true)
@@ -62,18 +62,16 @@ const AppSearchInput = ({ className = "", storageScope = "guest" }) => {
 
   const { categorySuggestions, courseSuggestions } = useMemo(() => {
     const tokens = getSearchTokens(searchQuery)
-    const courseSource = hasServerResult && serverCourses.length > 0
-      ? serverCourses
-      : searchSuggestionMocks
+    const courseSource = hasServerResult ? serverCourses : []
     if (tokens.length === 0) {
       return {
-        categorySuggestions: categorySuggestionMocks,
+        categorySuggestions: serverCategories,
         courseSuggestions: courseSource,
       }
     }
 
     return {
-      categorySuggestions: categorySuggestionMocks
+      categorySuggestions: serverCategories
         .filter((category) => matchesSearchTokens(category.label, tokens))
         .sort((first, second) =>
           getSearchScore(second.label, tokens) - getSearchScore(first.label, tokens)
@@ -91,15 +89,15 @@ const AppSearchInput = ({ className = "", storageScope = "guest" }) => {
           return getCourseScore(second) - getCourseScore(first)
         }),
     }
-  }, [hasServerResult, searchQuery, serverCourses])
+  }, [hasServerResult, searchQuery, serverCategories, serverCourses])
 
   const isMeaningfulSearch = (query) => {
     const tokens = getSearchTokens(query)
     if (tokens.length === 0) return false
 
-    return categorySuggestionMocks.some((category) =>
+    return serverCategories.some((category) =>
       matchesSearchTokens(category.label, tokens)
-    ) || [...searchSuggestionMocks, ...serverCourses].some((course) =>
+    ) || serverCourses.some((course) =>
       matchesSearchTokens(`${course.title} ${course.category} ${course.instructor}`, tokens)
     )
   }
