@@ -57,6 +57,7 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
             title: "",
             content: "",
             videoFile: null,
+            metadata: null,
             status: 1,
             createdAt: new Date().toISOString(),
             updatedAt: null

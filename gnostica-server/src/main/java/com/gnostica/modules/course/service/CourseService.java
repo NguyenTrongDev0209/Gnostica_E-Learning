@@ -19,10 +19,12 @@ import com.gnostica.core.model.Lesson;
 import com.gnostica.core.model.Module;
 import com.gnostica.core.model.Quiz;
 import com.gnostica.core.model.Question;
+import com.gnostica.core.model.Review;
 import com.gnostica.core.repository.AccountRepository;
 import com.gnostica.core.repository.CategoryRepository;
 import com.gnostica.core.repository.CourseRepository;
 import com.gnostica.core.repository.LessonRepository;
+import com.gnostica.core.repository.ReviewRepository;
 import com.gnostica.modules.user.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -45,6 +47,7 @@ public class CourseService {
     private final QuizService quizService;
     private final QuestionBankService questionBankService;
     private final LessonRepository lessonRepository;
+    private final ReviewRepository reviewRepository;
     private final BunnyNetService bunnyNetService;
     private final NotificationService notificationService;
 
@@ -116,6 +119,7 @@ public class CourseService {
                         lesson.setTitle(lReq.getTitle());
                         lesson.setContent(lReq.getContent());
                         lesson.setVideoUrl(lReq.getVideoUrl());
+                        lesson.setMetadata(lReq.getMetadata());
                         lesson.setVersionNumber(1);
                         lesson.setSortOrder(lessonSortOrder++);
                         // Nếu khóa học đang ẩn thì bài học buộc phải ẩn
@@ -230,6 +234,24 @@ public class CourseService {
         }
 
         CourseDetailResponse response = mapToCourseDetailResponse(course);
+        List<Review> publishedReviews = reviewRepository
+                .findByCourseAndStatusAndDeletedAtIsNullOrderByCreatedAtDesc(course, 1);
+        response.setReviewCount(publishedReviews.size());
+        response.setRating(publishedReviews.stream()
+                .mapToInt(Review::getRating)
+                .average()
+                .orElse(0.0));
+        response.setReviews(publishedReviews.stream()
+                .map(review -> CourseReviewResponse.builder()
+                        .id(review.getId())
+                        .accountId(review.getAccount() != null ? review.getAccount().getId() : null)
+                        .studentName(review.getAccount() != null ? review.getAccount().getFullName() : "Học viên")
+                        .studentAvatar(review.getAccount() != null ? review.getAccount().getAvatar() : null)
+                        .rating(review.getRating())
+                        .comment(review.getComment())
+                        .createdAt(review.getCreatedAt())
+                        .build())
+                .collect(Collectors.toList()));
         response.setIsEnrolled(isEnrolled);
         return response;
     }
@@ -443,6 +465,7 @@ public class CourseService {
                         lesson.setTitle(lReq.getTitle());
                         lesson.setContent(lReq.getContent());
                         lesson.setVideoUrl(lReq.getVideoUrl());
+                        lesson.setMetadata(lReq.getMetadata());
                         lesson.setSortOrder(lessonSortOrder++);
 
                         // Nếu khóa học đang ẩn thì bài học buộc phải ẩn
@@ -770,6 +793,7 @@ public class CourseService {
                             targetLes.setTitle(newLes.getTitle());
                             targetLes.setContent(newLes.getContent());
                             targetLes.setVideoUrl(newLes.getVideoUrl());
+                            targetLes.setMetadata(newLes.getMetadata());
                             targetLes.setStatus(1);
                         }
                     }
@@ -990,6 +1014,7 @@ public class CourseService {
         response.setTitle(lesson.getTitle());
         response.setContent(lesson.getContent());
         response.setVideoUrl(lesson.getVideoUrl());
+        response.setMetadata(lesson.getMetadata());
         response.setStatus(lesson.getStatus());
         response.setDeleted(lesson.getDeleted());
         response.setCreatedAt(lesson.getCreatedAt());

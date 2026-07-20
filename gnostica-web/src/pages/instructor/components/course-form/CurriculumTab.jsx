@@ -31,6 +31,7 @@ export function CurriculumTab({ uploadVideoToBunny, setActiveUploads }) {
                 title: "",
                 content: "",
                 videoFile: null,
+                metadata: null,
                 status: currentCourseStatus,
                 createdAt: new Date().toISOString(),
                 updatedAt: null

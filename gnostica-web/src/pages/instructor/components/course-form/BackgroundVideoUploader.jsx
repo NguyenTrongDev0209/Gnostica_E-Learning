@@ -7,7 +7,7 @@ import courseService from "@/services/course/courseService";
 const globalUploadProgress = {};
 const uploadCallbacks = {};
 
-export function BackgroundVideoUploader({ label, value, onChange, onUploadStart, onUploadEnd, uploadVideoToBunny, id = "v-upload" }) {
+export function BackgroundVideoUploader({ label, value, onChange, onMetadata, onUploadStart, onUploadEnd, uploadVideoToBunny, id = "v-upload" }) {
   const [uploadProgress, setUploadProgress] = React.useState(0);
   const [processingProgress, setProcessingProgress] = React.useState(0);
   const [uploadPhase, setUploadPhase] = React.useState("idle"); // idle, uploading, processing, completed
@@ -50,6 +50,33 @@ export function BackgroundVideoUploader({ label, value, onChange, onUploadStart,
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
+    if (onMetadata) {
+      const objectUrl = URL.createObjectURL(file);
+      const video = document.createElement("video");
+      video.preload = "metadata";
+      video.src = objectUrl;
+
+      try {
+        const metadata = await new Promise((resolve, reject) => {
+          video.onloadedmetadata = () => resolve({
+            durationSeconds: Math.max(0, Math.round(video.duration || 0)),
+            width: video.videoWidth || null,
+            height: video.videoHeight || null,
+            fileSize: file.size,
+            mimeType: file.type || null,
+          });
+          video.onerror = () => reject(new Error("Không thể đọc metadata video"));
+        });
+        onMetadata(metadata);
+      } catch (metadataError) {
+        console.warn("Không thể đọc metadata video:", metadataError);
+      } finally {
+        URL.revokeObjectURL(objectUrl);
+        video.removeAttribute("src");
+        video.load();
+      }
+    }
 
     // Lớp bảo vệ 2: Nếu người dùng đang thay thế một video trung gian (vừa tải lên trong phiên này nhưng chưa lưu)
     // thì gọi Bunny xóa video cũ đi để tránh sinh rác

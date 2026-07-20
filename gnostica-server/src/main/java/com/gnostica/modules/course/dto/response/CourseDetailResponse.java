@@ -46,6 +46,9 @@ public class CourseDetailResponse {
 
     private Integer classes;
     private Integer students;
+    private Double rating;
+    private Integer reviewCount;
+    private List<CourseReviewResponse> reviews;
 
     private List<ModuleResponse> modules;
 }

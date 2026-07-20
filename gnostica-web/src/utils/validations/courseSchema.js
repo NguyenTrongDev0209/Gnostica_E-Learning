@@ -41,6 +41,7 @@ const lessonSchema = z.object({
   videoFile: z.any({ required_error: "Video bài học không được để trống" })
     .refine(val => val !== null && val !== undefined && val !== "", "Video bài học không được để trống"),
   videoUrl: z.string().optional(),
+  metadata: z.string().nullable().optional(),
   status: z.coerce.number().default(1),
   createdAt: z.any().nullable().optional(),
   updatedAt: z.any().nullable().optional(),
