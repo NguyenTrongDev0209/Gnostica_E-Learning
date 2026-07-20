@@ -166,7 +166,7 @@ export const CourseProgressCard = ({
     <Link to={to} className="block w-full">
       <AppCard appVariant="default" className={cn("w-full flex flex-row group hover-lift p-0 gap-0", className)}>
         {/* Left Image */}
-        <div className="shrink-0 w-32 sm:w-48 p-2 sm:p-3 pr-0">
+        <div className="shrink-0 w-36 sm:w-56 md:w-60 p-2 sm:p-3 pr-0">
           <div className="relative w-full h-full min-h-[80px] sm:min-h-[100px] overflow-hidden rounded-lg bg-muted">
             {image ? (
               <img

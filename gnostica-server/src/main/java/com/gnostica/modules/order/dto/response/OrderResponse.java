@@ -15,6 +15,7 @@ import java.util.List;
 @AllArgsConstructor
 public class OrderResponse {
     private UUID id;
+    private Long orderCode;
     private UUID accountId;
     private String accountName;
     private String accountEmail;

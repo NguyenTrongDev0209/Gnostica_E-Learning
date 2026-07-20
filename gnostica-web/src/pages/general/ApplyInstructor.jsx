@@ -36,7 +36,101 @@ const steps = [
     { id: 4, title: 'Kế hoạch & Điều khoản', icon: BookOpen }
 ];
 
-const ApplyInstructor = () => {
+function InstructorApplicationStepper({ currentStep, embedded, onStepSelect }) {
+    const radius = embedded ? 14 : 17;
+    const size = embedded ? 42 : 48;
+    const strokeWidth = embedded ? 4.5 : 5;
+    const circumference = 2 * Math.PI * radius;
+    const lineProgress = ((currentStep - 1) / (steps.length - 1)) * 100;
+
+    return (
+        <div className={embedded ? "mb-6 px-4 pb-3" : "mb-12 px-8 pb-4"}>
+            <div className={`relative mx-auto grid w-full grid-cols-4 ${embedded ? "h-20 max-w-2xl" : "h-24 max-w-4xl"}`}>
+                <div className={`absolute left-[12.5%] right-[12.5%] rounded-full bg-secondary ${embedded ? "top-[20px] h-[3px]" : "top-[25px] h-[3px]"}`}>
+                    <div
+                        className="h-full rounded-full bg-success transition-all duration-700 ease-out"
+                        style={{ width: `${lineProgress}%` }}
+                    />
+                </div>
+                {steps.map((step, idx) => {
+                    const Icon = step.icon;
+                    const isActive = currentStep === step.id;
+                    const isCompleted = currentStep > step.id;
+                    const isAvailable = step.id <= currentStep;
+                    const progress = isCompleted ? 100 : isActive ? 35 : 0;
+                    const offset = circumference - (progress / 100) * circumference;
+
+                    return (
+                        <button
+                            key={step.id}
+                            type="button"
+                            disabled={!isAvailable}
+                            onClick={() => onStepSelect(step.id)}
+                            className={`relative z-10 flex min-w-0 flex-col items-center text-center group ${isAvailable ? "cursor-pointer" : "cursor-not-allowed"}`}
+                        >
+                            <span className="relative flex items-center justify-center rounded-full bg-card" style={{ width: size, height: size }}>
+                                <svg
+                                    className="absolute inset-0 -rotate-90 transform transition-transform duration-300 group-hover:scale-105"
+                                    width={size}
+                                    height={size}
+                                    viewBox={`0 0 ${size} ${size}`}
+                                >
+                                    <circle
+                                        cx={size / 2}
+                                        cy={size / 2}
+                                        r={radius}
+                                        stroke="currentColor"
+                                        strokeWidth={strokeWidth}
+                                        fill="transparent"
+                                        className="text-secondary"
+                                    />
+                                    <circle
+                                        cx={size / 2}
+                                        cy={size / 2}
+                                        r={radius}
+                                        stroke="currentColor"
+                                        strokeWidth={strokeWidth}
+                                        fill="transparent"
+                                        strokeDasharray={circumference}
+                                        strokeDashoffset={offset}
+                                        className="text-success transition-all duration-500 ease-out"
+                                        strokeLinecap="round"
+                                    />
+                                </svg>
+
+                                <span
+                                    className={`
+                                        z-10 flex items-center justify-center rounded-full font-bold transition-all duration-300
+                                        ${embedded ? "h-7 w-7 text-xs" : "h-8 w-8 text-sm"}
+                                        ${isActive
+                                            ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-105"
+                                            : isCompleted
+                                                ? "bg-success text-success-foreground"
+                                                : "bg-card text-muted-foreground shadow-sm"}
+                                    `}
+                                >
+                                    {isCompleted ? <ShieldCheck className={embedded ? "h-4 w-4" : "h-5 w-5"} /> : <Icon className={embedded ? "h-4 w-4" : "h-5 w-5"} />}
+                                </span>
+                            </span>
+
+                            <span
+                                className={`
+                                    mt-2 block w-full px-1 text-center font-medium leading-snug text-muted-foreground transition-colors duration-300
+                                    ${embedded ? "max-w-[132px] text-sm" : "max-w-[160px] text-sm"}
+                                `}
+                                title={step.title}
+                            >
+                                {step.title}
+                            </span>
+                        </button>
+                    );
+                })}
+            </div>
+        </div>
+    );
+}
+
+const ApplyInstructor = ({ embedded = false, onSubmitted } = {}) => {
     const navigate = useNavigate();
     const [currentStep, setCurrentStep] = useState(1);
     const { register, handleSubmit, formState: { errors }, watch, setValue, trigger } = useForm({
@@ -155,7 +249,11 @@ const ApplyInstructor = () => {
         mutationFn: (data) => instructorService.createApplication(data),
         onSuccess: () => {
             toast.success("Nộp đơn thành công! Chúng tôi sẽ phản hồi sớm nhất có thể.");
-            navigate('/');
+            if (onSubmitted) {
+                onSubmitted();
+            } else {
+                navigate('/');
+            }
         },
         onError: (error) => {
             toast.error(error.response?.data?.message || "Lỗi hệ thống khi gửi đơn");
@@ -202,52 +300,33 @@ const ApplyInstructor = () => {
         </div>
     );
 
+    const Container = embedded ? "div" : PageContainer;
+
     return (
-        <PageContainer className="py-12 px-4 sm:px-6">
-            <div className="max-w-4xl mx-auto">
+        <Container className={embedded ? "overflow-x-hidden px-0 pb-1" : "py-12 px-4 sm:px-6"}>
+            <div className={embedded ? "mx-auto max-w-full overflow-x-hidden" : "max-w-4xl mx-auto"}>
                 {/* Header */}
-                <div className="text-center mb-10">
-                    <h1 className="text-4xl font-extrabold text-foreground tracking-tight mb-3">
+                <div className={embedded ? "text-center mb-4 px-8" : "text-center mb-10"}>
+                    <h1 className={embedded ? "text-xl font-bold text-foreground tracking-tight mb-1.5" : "text-4xl font-extrabold text-foreground tracking-tight mb-3"}>
                         Trở thành Giảng viên Gnostica
                     </h1>
-                    <p className="text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed">
+                    <p className={embedded ? "text-muted-foreground text-sm max-w-2xl mx-auto leading-relaxed" : "text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed"}>
                         Chia sẻ kiến thức của bạn với cộng đồng hơn 50.000 học viên năng động.
                         Quy trình xét duyệt nhanh chóng trong vòng 48 giờ.
                     </p>
                 </div>
 
                 {/* Progress Stepper */}
-                <div className="mb-12 relative">
-                    <div className="absolute top-1/2 left-0 w-full h-[2px] bg-border -translate-y-1/2 z-0 hidden sm:block" />
-                    <div className="flex flex-wrap justify-between items-center relative z-10 gap-y-4">
-                        {steps.map((step) => {
-                            const Icon = step.icon;
-                            const isActive = currentStep === step.id;
-                            const isCompleted = currentStep > step.id;
+                <InstructorApplicationStepper
+                    currentStep={currentStep}
+                    embedded={embedded}
+                    onStepSelect={(stepId) => {
+                        if (stepId <= currentStep) setCurrentStep(stepId);
+                    }}
+                />
 
-                            return (
-                                <div key={step.id} className="flex flex-col items-center group">
-                                    <div className={`
-                                        w-12 h-12 rounded-full flex items-center justify-center border-4 transition-all duration-500
-                                        ${isActive ? 'border-primary bg-primary text-white scale-110 shadow-lg shadow-primary/20' :
-                                            isCompleted ? 'border-success bg-success text-white' :
-                                                'border-white bg-white text-muted-foreground shadow-sm'}
-                                    `}>
-                                        {isCompleted ? <ShieldCheck className="w-6 h-6" /> : <Icon className="w-6 h-6" />}
-                                    </div>
-                                    <span className={`mt-3 text-sm font-bold tracking-tight transition-colors duration-300
-                                        ${isActive ? 'text-primary' : isCompleted ? 'text-success' : 'text-muted-foreground'}
-                                    `}>
-                                        {step.title}
-                                    </span>
-                                </div>
-                            );
-                        })}
-                    </div>
-                </div>
-
-                <Card className="border-none shadow-[0_20px_50px_rgba(0,0,0,0.05)] overflow-hidden bg-white/80 backdrop-blur-sm">
-                    <CardContent className="p-8 sm:p-10">
+                <Card className={embedded ? "border border-border/60 shadow-none overflow-hidden bg-card" : "border-none shadow-xl overflow-hidden bg-card/80 backdrop-blur-sm"}>
+                    <CardContent className={embedded ? "p-4 sm:p-6" : "p-8 sm:p-10"}>
                         <form onSubmit={handleSubmit(onSubmit)}>
                             <AnimatePresence mode="wait">
                                 {/* STEP 1: Basic Info */}
@@ -257,24 +336,24 @@ const ApplyInstructor = () => {
                                         initial={{ opacity: 0, x: 20 }}
                                         animate={{ opacity: 1, x: 0 }}
                                         exit={{ opacity: 0, x: -20 }}
-                                        className="space-y-8"
+                                        className={embedded ? "space-y-5" : "space-y-8"}
                                     >
                                         <div className="flex items-center gap-3 border-l-4 border-primary pl-4 py-1">
-                                            <h2 className="text-2xl font-bold text-foreground tracking-tight">Hồ sơ cá nhân công khai</h2>
+                                            <h2 className={embedded ? "text-xl font-bold text-foreground tracking-tight" : "text-2xl font-bold text-foreground tracking-tight"}>Hồ sơ cá nhân công khai</h2>
                                         </div>
 
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                        <div className={embedded ? "grid grid-cols-1 md:grid-cols-2 gap-5" : "grid grid-cols-1 md:grid-cols-2 gap-8"}>
                                             <div className="space-y-2.5">
                                                 <Label className="text-muted-foreground font-bold ml-1">Họ và tên hiển thị</Label>
                                                 <div className="relative">
-                                                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-muted-foreground" />
+                                                    <User className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                                                     <Input value={currentUser.fullName} disabled className="pl-10 h-12 bg-muted border-border font-semibold cursor-not-allowed opacity-80" />
                                                 </div>
                                             </div>
                                             <div className="space-y-2.5">
                                                 <Label className="text-muted-foreground font-bold ml-1">Địa chỉ Email</Label>
                                                 <div className="relative">
-                                                    <CheckCircle2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-success" />
+                                                    <CheckCircle2 className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-success" />
                                                     <Input title="Email đã được xác thực" value={currentUser.email} disabled className="pl-10 h-12 bg-muted border-border font-semibold cursor-not-allowed opacity-80" />
                                                 </div>
                                             </div>
@@ -282,20 +361,18 @@ const ApplyInstructor = () => {
                                                 <Label className="text-muted-foreground font-bold ml-1 flex items-center gap-1.5">
                                                     Số điện thoại chính xác <span className="text-destructive">*</span>
                                                 </Label>
-                                                <div className="relative">
-                                                    <Smartphone className="absolute left-3 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-muted-foreground group-focus-within:text-primary" />
-                                                    <Input
-                                                        {...register('contactPhone', {
-                                                            required: "Số điện thoại là bắt buộc",
-                                                            pattern: {
-                                                                value: /^(0|\+84)(\s|\.)?((3[2-9])|(5[689])|(7[06-9])|(8[1-689])|(9[0-46-9]))(\d)(\s|\.)?(\d{3})(\s|\.)?(\d{3})$/,
-                                                                message: "Định dạng số điện thoại Việt Nam không hợp lệ"
-                                                            }
-                                                        })}
-                                                        placeholder="Nhập số điện thoại để chúng tôi liên hệ phỏng vấn"
-                                                        className={`pl-10 h-14 text-lg border-2 ring-offset-background focus-visible:ring-0 transition-all ${errors.contactPhone ? 'border-destructive/40 bg-destructive/10' : 'border-border focus:border-primary/30 focus:bg-white'}`}
-                                                    />
-                                                </div>
+                                                <Input
+                                                    icon={Smartphone}
+                                                    {...register('contactPhone', {
+                                                        required: "Số điện thoại là bắt buộc",
+                                                        pattern: {
+                                                            value: /^(0|\+84)(\s|\.)?((3[2-9])|(5[689])|(7[06-9])|(8[1-689])|(9[0-46-9]))(\d)(\s|\.)?(\d{3})(\s|\.)?(\d{3})$/,
+                                                            message: "Định dạng số điện thoại Việt Nam không hợp lệ"
+                                                        }
+                                                    })}
+                                                    placeholder="Nhập số điện thoại để chúng tôi liên hệ phỏng vấn"
+                                                    className={`pl-10 h-14 text-lg border ring-offset-background focus-visible:ring-0 transition-all ${errors.contactPhone ? 'border-destructive/50 bg-error-soft' : 'border-border focus:border-primary/40 focus:bg-card'}`}
+                                                />
                                                 {errors.contactPhone && <p className="text-destructive text-sm font-medium animate-in fade-in slide-in-from-left-2">{errors.contactPhone.message}</p>}
                                                 <p className="text-muted-foreground text-xs ml-1">Chúng tôi sẽ bảo mật số điện thoại này và chỉ dùng cho mục đích xác thực hồ sơ.</p>
                                             </div>
@@ -321,8 +398,8 @@ const ApplyInstructor = () => {
                                                 <Label className="text-muted-foreground font-bold flex items-center gap-2">
                                                     CCCD Mặt trước <span className="text-destructive">*</span>
                                                 </Label>
-                                                <div className={`relative border-2 border-dashed rounded-2xl transition-all duration-300 h-48 group overflow-hidden
-                                                    ${watch('idCardFront') ? 'border-success/40 bg-success/10' : 'border-border hover:border-primary/40 hover:bg-background'}`}
+                                                <div className={`relative border border-dashed rounded-2xl transition-all duration-300 h-48 group overflow-hidden
+                                                    ${watch('idCardFront') ? 'border-success/40 bg-success-soft' : 'border-border hover:border-primary/40 hover:bg-muted/40'}`}
                                                 >
                                                     {watch('idCardFront') ? (
                                                         <div className="flex flex-col items-center justify-center h-full gap-3">
@@ -347,8 +424,8 @@ const ApplyInstructor = () => {
                                                 <Label className="text-muted-foreground font-bold flex items-center gap-2">
                                                     CCCD Mặt sau <span className="text-destructive">*</span>
                                                 </Label>
-                                                <div className={`relative border-2 border-dashed rounded-2xl transition-all duration-300 h-48 group overflow-hidden
-                                                    ${watch('idCardBack') ? 'border-success/40 bg-success/10' : 'border-border hover:border-primary/40 hover:bg-background'}`}
+                                                <div className={`relative border border-dashed rounded-2xl transition-all duration-300 h-48 group overflow-hidden
+                                                    ${watch('idCardBack') ? 'border-success/40 bg-success-soft' : 'border-border hover:border-primary/40 hover:bg-muted/40'}`}
                                                 >
                                                     {watch('idCardBack') ? (
                                                         <div className="flex flex-col items-center justify-center h-full gap-3">
@@ -389,11 +466,11 @@ const ApplyInstructor = () => {
                                             <Label className="text-muted-foreground font-bold flex items-center gap-2">
                                                 CV / Resume chuyên môn <span className="text-destructive">*</span>
                                             </Label>
-                                            <div className={`p-6 border-2 rounded-2xl transition-all duration-300 flex items-center gap-5
-                                                ${watch('cvUrl') ? 'border-success/40 bg-success/5' : 'border-border bg-background hover:bg-muted'}`}
+                                            <div className={`p-6 border rounded-2xl transition-all duration-300 flex items-center gap-5
+                                                ${watch('cvUrl') ? 'border-success/40 bg-success-soft' : 'border-border bg-background hover:bg-muted'}`}
                                             >
                                                 <div className={`w-14 h-14 rounded-xl flex items-center justify-center shadow-sm 
-                                                    ${watch('cvUrl') ? 'bg-success/20 text-success' : 'bg-white text-muted-foreground/50'}`}>
+                                                    ${watch('cvUrl') ? 'bg-success-soft text-success' : 'bg-card text-muted-foreground/50'}`}>
                                                     <FileText className="w-8 h-8" />
                                                 </div>
                                                 <div className="flex-1 overflow-hidden">
@@ -410,7 +487,7 @@ const ApplyInstructor = () => {
                                                     htmlFor="instructor-cv-file"
                                                     className={`inline-flex h-11 cursor-pointer items-center justify-center rounded-xl px-6 font-bold shadow-sm transition-colors
                                                         ${watch('cvUrl')
-                                                            ? 'border border-border bg-white text-foreground hover:bg-muted'
+                                                            ? 'border border-border bg-card text-foreground hover:bg-muted'
                                                             : 'bg-primary text-primary-foreground hover:bg-primary/90'}`}
                                                 >
                                                     {watch('cvUrl') ? "Thay đổi" : "Chọn tệp"}
@@ -430,9 +507,9 @@ const ApplyInstructor = () => {
                                             <Label className="text-muted-foreground font-bold flex items-center gap-2">
                                                 Bằng cấp chuyên môn (Nhiều tệp) <span className="text-destructive">*</span>
                                             </Label>
-                                            <p className="text-xs text-slate-400 -mt-2">Ví dụ: Bằng Đại học, Cao đẳng, Thạc sĩ, Tiến sĩ...</p>
+                                            <p className="text-xs text-muted-foreground -mt-2">Ví dụ: Bằng Đại học, Cao đẳng, Thạc sĩ, Tiến sĩ...</p>
                                             <div className="flex items-center justify-center w-full group">
-                                                <label className="flex flex-col items-center justify-center w-full h-40 border-4 border-dashed border-border rounded-[2.5rem] cursor-pointer bg-muted/30 hover:bg-white hover:border-primary/20 transition-all duration-500 shadow-inner">
+                                                <label className="flex flex-col items-center justify-center w-full h-40 border border-dashed border-border rounded-2xl cursor-pointer bg-muted/30 hover:bg-card hover:border-primary/30 transition-all duration-500 shadow-inner">
                                                     <div className="flex flex-col items-center justify-center pt-5 pb-6">
                                                         <UploadCloud className="w-12 h-12 mb-4 text-muted-foreground/30 group-hover:text-primary/40 group-hover:scale-110 transition-all duration-500" />
                                                         <p className="mb-2 text-base text-muted-foreground font-bold">Thêm bằng cấp (Ảnh/PDF)</p>
@@ -450,7 +527,7 @@ const ApplyInstructor = () => {
                                                             key={index}
                                                             initial={{ scale: 0.9, opacity: 0 }}
                                                             animate={{ scale: 1, opacity: 1 }}
-                                                            className="flex items-center justify-between p-4 bg-white border-2 border-border rounded-2xl shadow-sm hover:shadow-md transition-all group"
+                                                            className="flex items-center justify-between p-4 bg-card border border-border/70 rounded-2xl shadow-sm hover:shadow-md transition-all group"
                                                         >
                                                             <div className="flex items-center space-x-4 overflow-hidden">
                                                                 <div className={`p-2 rounded-lg 
@@ -475,9 +552,9 @@ const ApplyInstructor = () => {
                                             <Label className="text-muted-foreground font-bold flex items-center gap-2">
                                                 Chứng chỉ liên quan (Nhiều tệp)
                                             </Label>
-                                            <p className="text-xs text-slate-400 -mt-2">Ví dụ: Chứng chỉ ngoại ngữ (IELTS, TOEIC), chứng chỉ sư phạm, chứng chỉ tin học...</p>
+                                            <p className="text-xs text-muted-foreground -mt-2">Ví dụ: Chứng chỉ ngoại ngữ (IELTS, TOEIC), chứng chỉ sư phạm, chứng chỉ tin học...</p>
                                             <div className="flex items-center justify-center w-full group">
-                                                <label className="flex flex-col items-center justify-center w-full h-40 border-4 border-dashed border-border rounded-[2.5rem] cursor-pointer bg-muted/30 hover:bg-white hover:border-primary/20 transition-all duration-500 shadow-inner">
+                                                <label className="flex flex-col items-center justify-center w-full h-40 border border-dashed border-border rounded-2xl cursor-pointer bg-muted/30 hover:bg-card hover:border-primary/30 transition-all duration-500 shadow-inner">
                                                     <div className="flex flex-col items-center justify-center pt-5 pb-6">
                                                         <UploadCloud className="w-12 h-12 mb-4 text-muted-foreground/30 group-hover:text-primary/40 group-hover:scale-110 transition-all duration-500" />
                                                         <p className="mb-2 text-base text-muted-foreground font-bold">Thêm chứng chỉ (Ảnh/PDF)</p>
@@ -494,7 +571,7 @@ const ApplyInstructor = () => {
                                                             key={index}
                                                             initial={{ scale: 0.9, opacity: 0 }}
                                                             animate={{ scale: 1, opacity: 1 }}
-                                                            className="flex items-center justify-between p-4 bg-white border-2 border-border rounded-2xl shadow-sm hover:shadow-md transition-all group"
+                                                            className="flex items-center justify-between p-4 bg-card border border-border/70 rounded-2xl shadow-sm hover:shadow-md transition-all group"
                                                         >
                                                             <div className="flex items-center space-x-4 overflow-hidden">
                                                                 <div className={`p-2 rounded-lg 
@@ -539,49 +616,49 @@ const ApplyInstructor = () => {
                                                 {...register('courseOutline')}
                                                 placeholder="Bạn dự định dạy chủ đề gì? Cấu trúc bài học ra sao? Học viên sẽ nhận được giá trị gì sau khóa học của bạn?"
                                                 rows={7}
-                                                className="border-2 border-border focus:border-success/40 focus:bg-white bg-background rounded-2xl p-5 text-base leading-relaxed transition-all resize-none shadow-inner"
+                                                className="border border-border focus:border-success/40 focus:bg-card bg-background rounded-2xl p-5 text-base leading-relaxed transition-all resize-none shadow-inner"
                                             />
                                         </div>
 
                                         <div className="space-y-6">
-                                            <div className="bg-card rounded-[2rem] p-8 text-muted-foreground/50 shadow-2xl relative overflow-hidden">
+                                            <div className="bg-foreground rounded-3xl p-8 text-background/70 shadow-xl relative overflow-hidden">
                                                 <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 blur-3xl -translate-y-1/2 translate-x-1/2" />
-                                                <div className="flex items-center gap-3 mb-6 text-white border-b border-white/10 pb-4">
+                                                <div className="flex items-center gap-3 mb-6 text-background border-b border-background/10 pb-4">
                                                     <ShieldCheck className="w-6 h-6 text-primary" />
-                                                    <h3 className="font-extrabold text-lg uppercase tracking-widest">Quy tắc ứng xử giảng viên</h3>
+                                                    <h3 className="font-bold text-lg uppercase tracking-widest">Quy tắc ứng xử giảng viên</h3>
                                                 </div>
-                                                <div className="space-y-4 h-56 overflow-y-auto pr-4 custom-scrollbar text-sm font-medium">
-                                                    <div className="flex gap-4 p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors">
-                                                        <span className="text-primary font-black">01.</span>
+                                                <div className="space-y-4 h-56 overflow-y-auto pr-4 scrollbar-thin text-sm font-medium">
+                                                    <div className="flex gap-4 p-4 rounded-2xl bg-background/5 hover:bg-background/10 transition-colors">
+                                                        <span className="text-primary font-bold">01.</span>
                                                         <p>Cam kết tuyệt đối về tính trung thực của hồ sơ năng lực và các chứng chỉ chuyên môn cung cấp.</p>
                                                     </div>
-                                                    <div className="flex gap-4 p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors">
-                                                        <span className="text-primary font-black">02.</span>
+                                                    <div className="flex gap-4 p-4 rounded-2xl bg-background/5 hover:bg-background/10 transition-colors">
+                                                        <span className="text-primary font-bold">02.</span>
                                                         <p>Nội dung bài học phải tự biên soạn hoặc có bản quyền hợp pháp, không vi phạm sở hữu trí tuệ của bên thứ ba.</p>
                                                     </div>
-                                                    <div className="flex gap-4 p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors">
-                                                        <span className="text-primary font-black">03.</span>
+                                                    <div className="flex gap-4 p-4 rounded-2xl bg-background/5 hover:bg-background/10 transition-colors">
+                                                        <span className="text-primary font-bold">03.</span>
                                                         <p>Luôn duy trì thái độ chuyên nghiệp, hỗ trợ giải đáp thắc mắc của học viên trong vòng 24 - 48 giờ làm việc.</p>
                                                     </div>
-                                                    <div className="flex gap-4 p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors">
-                                                        <span className="text-primary font-black">04.</span>
+                                                    <div className="flex gap-4 p-4 rounded-2xl bg-background/5 hover:bg-background/10 transition-colors">
+                                                        <span className="text-primary font-bold">04.</span>
                                                         <p>Gnostica giữ quyền kiểm duyệt chất lượng kỹ thuật (âm thanh/hình ảnh) trước khi khóa học xuất bản chính thức.</p>
                                                     </div>
-                                                    <div className="flex gap-4 p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors">
-                                                        <span className="text-primary font-black">05.</span>
+                                                    <div className="flex gap-4 p-4 rounded-2xl bg-background/5 hover:bg-background/10 transition-colors">
+                                                        <span className="text-primary font-bold">05.</span>
                                                         <p>Thỏa thuận chia sẻ doanh thu và hoa hồng sẽ được quy định cụ thể trong hợp đồng điện tử sau khi hồ sơ được duyệt.</p>
                                                     </div>
                                                 </div>
                                             </div>
 
-                                            <div className="flex items-center space-x-3 bg-white p-6 rounded-2xl shadow-sm border border-border group transition-all hover:border-primary/30">
+                                            <div className="flex items-center space-x-3 bg-card p-6 rounded-2xl shadow-sm border border-border/70 group transition-all hover:border-primary/30">
                                                 <Checkbox
                                                     id="terms"
                                                     checked={agreedTerms}
                                                     onCheckedChange={setAgreedTerms}
-                                                    className="w-6 h-6 border-2 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                                                    className="w-6 h-6 border data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                                                 />
-                                                <label htmlFor="terms" className="text-sm sm:text-base font-extrabold text-foreground cursor-pointer select-none group-hover:text-primary transition-colors leading-tight">
+                                                <label htmlFor="terms" className="text-sm sm:text-base font-bold text-foreground cursor-pointer select-none group-hover:text-primary transition-colors leading-tight">
                                                     Tôi đã đọc, hiểu rõ và cam kết tuân thủ các điều khoản trên
                                                 </label>
                                             </div>
@@ -591,13 +668,14 @@ const ApplyInstructor = () => {
                             </AnimatePresence>
 
                             {/* Actions Navigation */}
-                            <div className="mt-12 flex items-center justify-between gap-4 pt-10 border-t border-border">
+                            <div className={embedded ? "mt-7 flex items-center justify-between gap-4 pt-6 border-t border-border" : "mt-12 flex items-center justify-between gap-4 pt-10 border-t border-border"}>
                                 {currentStep > 1 && (
                                     <Button
                                         type="button"
                                         variant="outline"
+                                        appVariant="ghostMuted"
                                         onClick={() => setCurrentStep(prev => prev - 1)}
-                                        className="h-14 px-8 rounded-2xl font-bold text-muted-foreground border-2 hover:bg-muted gap-2 min-w-[140px]"
+                                        className="h-14 px-8 rounded-2xl font-bold border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground gap-2 min-w-[140px] shadow-sm"
                                     >
                                         <ChevronLeft className="w-5 h-5" /> Quay lại
                                     </Button>
@@ -615,7 +693,7 @@ const ApplyInstructor = () => {
                                     <Button
                                         type="submit"
                                         disabled={createApplicationMutation.isPending || !agreedTerms}
-                                        className="h-14 px-12 rounded-2xl font-black ml-auto shadow-xl shadow-primary/25 gap-2 min-w-[200px]"
+                                        className="h-14 px-12 rounded-2xl font-bold ml-auto shadow-xl shadow-primary/25 gap-2 min-w-[200px]"
                                     >
                                         {createApplicationMutation.isPending ? (
                                             <><Loader2 className="w-6 h-6 animate-spin" /> Đang gửi hồ sơ...</>
@@ -629,12 +707,13 @@ const ApplyInstructor = () => {
                     </CardContent>
                 </Card>
 
-                {/* Footer Info */}
-                <p className="mt-10 text-center text-muted-foreground text-sm font-medium">
-                    Bạn cần trợ giúp? Liên hệ ban đào tạo tại <a href="mailto:instructor@gnostica.edu.vn" className="text-primary hover:underline font-bold">instructor@gnostica.edu.vn</a>
-                </p>
+                {!embedded && (
+                    <p className="mt-10 text-center text-muted-foreground text-sm font-medium">
+                        Bạn cần trợ giúp? Liên hệ ban đào tạo tại <a href="mailto:instructor@gnostica.edu.vn" className="text-primary hover:underline font-bold">instructor@gnostica.edu.vn</a>
+                    </p>
+                )}
             </div>
-        </PageContainer>
+        </Container>
     );
 };
 

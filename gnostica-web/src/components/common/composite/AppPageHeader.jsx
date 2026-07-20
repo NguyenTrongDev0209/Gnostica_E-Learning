@@ -1,10 +1,10 @@
 import React from "react";
 
-export default function AppPageHeader({ icon: Icon, iconNode, title, description, actions }) {
+export default function AppPageHeader({ icon: Icon, iconNode, title, description, actions, titleClassName = "font-bold" }) {
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
       <div>
-        <h1 className="text-2xl font-extrabold text-foreground flex items-center gap-3">
+        <h1 className={`text-2xl ${titleClassName} text-foreground flex items-center gap-3`}>
           {iconNode ? iconNode : Icon && <Icon className="w-7 h-7 text-primary" />}
           {title}
         </h1>
