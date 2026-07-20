@@ -1,26 +1,13 @@
 import React from "react";
-import { useFormContext, Controller, useFieldArray } from "react-hook-form";
-import { Input } from "@/components/common/micro/AppInput";
+import { useFormContext, useFieldArray } from "react-hook-form";
+import { Plus, Trash2 } from "lucide-react";
+import { AppButton } from "@/components/common/micro/AppButton";
+import { AppAccordionRoot, AppAccordionItem, AppAccordionTrigger, AppAccordionContent } from "@/components/common/micro/AppAccordion";
+import { SectionItem } from "./SectionItem";
 
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/common/micro/AppSelect";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/common/micro/AppPopover";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/common/micro/AppAccordion";
-import { Textarea } from "@/components/common/micro/AppTextarea";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/common/micro/AppDialog";
-import { ArrowLeft, ArrowRight, Video, GripVertical, Trash2, Plus, PlayCircle, FileText, Check, Loader2, Sparkles, Database, CheckCircle2, ListOrdered, Search, Pencil } from "lucide-react";
-import ReactQuill from "react-quill-new";
-import "react-quill-new/dist/quill.snow.css";
-import { ChevronDown, ChevronRight } from "lucide-react";
-import { Badge } from "@/components/common/micro/AppBadge";
-
-import SectionItem from "./SectionItem";
-
-export default function CurriculumTab({ uploadVideoToBunny, setActiveUploads }) {
+export function CurriculumTab({ uploadVideoToBunny, setActiveUploads }) {
   const { control, watch, formState: { errors } } = useFormContext();
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: "sections",
-  });
+  const { fields, append, remove } = useFieldArray({ control, name: 'sections' });
   const currentCourseStatus = watch("status") ?? 1;
 
   return (
@@ -34,7 +21,7 @@ export default function CurriculumTab({ uploadVideoToBunny, setActiveUploads }) 
             Xây dựng kiến trúc bài giảng rõ ràng, rành mạch.
           </p>
         </div>
-        <button
+        <AppButton appVariant="ghostMuted"
           type="button"
           onClick={() =>
             append({
@@ -56,29 +43,29 @@ export default function CurriculumTab({ uploadVideoToBunny, setActiveUploads }) 
           className="flex items-center gap-1.5 text-sm font-bold border border-border px-3 py-1.5 rounded-lg bg-muted hover:bg-secondary transition-colors"
         >
           <Plus size={16} className="text-muted-foreground" /> Thêm Chương
-        </button>
+        </AppButton>
       </div>
 
       {errors.sections?.root && (
-        <div className="text-sm font-bold text-error bg-red-50 border border-error/20 p-3 rounded-lg">
+        <div className="text-sm font-bold text-error bg-error/10 border border-error/20 p-3 rounded-lg">
           {errors.sections.root.message}
         </div>
       )}
 
       {/* Dùng div với overflow-y-auto đơn giản để đảm bảo cuộn luôn hoạt động */}
       <div className="max-h-[850px] overflow-y-auto pr-2 custom-scrollbar scroll-smooth">
-        <Accordion
+        <AppAccordionRoot
           type="multiple"
           defaultValue={[fields[0]?.id]}
           className="space-y-4 pb-24"
         >
           {fields.map((section, sectionIdx) => (
-            <AccordionItem
+            <AppAccordionItem
               value={section.id}
               key={section.id}
-              className="border border-border rounded-xl bg-muted overflow-hidden shadow-sm"
+              className="border border-border rounded-lg bg-muted overflow-hidden shadow-sm"
             >
-              <AccordionTrigger className="px-5 py-4 hover:bg-secondary hover:no-underline border-b border-transparent data-[state=open]:border-border">
+              <AppAccordionTrigger className="px-5 py-4 hover:bg-secondary hover:no-underline border-b border-transparent data-[state=open]:border-border">
                 <div className="flex items-center w-full pr-4 text-left">
                   <div className="flex flex-col gap-0.5 flex-1">
                     <span className="text-xs font-bold text-success uppercase tracking-widest">
@@ -107,28 +94,24 @@ export default function CurriculumTab({ uploadVideoToBunny, setActiveUploads }) 
                         }
                       }
                     }}
-                    className="p-2 text-muted-foreground hover:text-error hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                    className="p-2 text-muted-foreground hover:text-error hover:bg-error/10 rounded-lg transition-colors cursor-pointer"
                   >
                     <Trash2 size={16} />
                   </div>
                 </div>
-              </AccordionTrigger>
-              <AccordionContent className="p-0 bg-white border-t border-slate-50">
+              </AppAccordionTrigger>
+              <AppAccordionContent className="p-0 bg-white border-t border-slate-50">
                 <SectionItem
                   sectionIndex={sectionIdx}
                   control={control}
                   uploadVideoToBunny={uploadVideoToBunny}
                   setActiveUploads={setActiveUploads}
                 />
-              </AccordionContent>
-            </AccordionItem>
+              </AppAccordionContent>
+            </AppAccordionItem>
           ))}
-        </Accordion>
+        </AppAccordionRoot>
       </div>
     </div>
   );
 }
-
-// ------------------------------------------
-// COMPONENT LESSON QUẢN LÝ ITEM CON
-// ------------------------------------------

@@ -1,19 +1,12 @@
-import { toast } from "sonner";
 import React from "react";
 import { useFormContext, useWatch, Controller } from "react-hook-form";
-import { Input } from "@/components/common/micro/AppInput";
-
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/common/micro/AppSelect";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/common/micro/AppPopover";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/common/micro/AppAccordion";
-import { Textarea } from "@/components/common/micro/AppTextarea";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/common/micro/AppDialog";
-import { ArrowLeft, ArrowRight, Video, GripVertical, Trash2, Plus, PlayCircle, FileText, Check, Loader2, Sparkles, Database, CheckCircle2, ListOrdered, Search, Pencil } from "lucide-react";
+import { toast } from "sonner";
+import { Label } from "@/components/common/micro/AppLabel";
+import AppInput from "@/components/common/micro/AppInput";
+import AppSelect from "@/components/common/micro/AppSelect";
 import ReactQuill from "react-quill-new";
+import { CategoryCascader } from "./CategoryCascader";
 import "react-quill-new/dist/quill.snow.css";
-import { ChevronDown, ChevronRight } from "lucide-react";
-import { Badge } from "@/components/common/micro/AppBadge";
-import CategoryCascader from "./CategoryCascader";
 
 const quillModules = {
   toolbar: [
@@ -23,7 +16,7 @@ const quillModules = {
   ],
 };
 
-export default function BasicInfoTab({ categories }) {
+export function BasicInfoTab({ categories }) {
   const {
     register,
     control,
@@ -36,6 +29,7 @@ export default function BasicInfoTab({ categories }) {
   const title = useWatch({ control, name: "title" });
   const categoryId = useWatch({ control, name: "categoryId" });
   const currentStatus = useWatch({ control, name: "status" });
+  const aiModerationReport = useWatch({ control, name: "aiModerationReport" });
 
   // Logic tìm danh mục được chọn (bao gồm đệ quy cấp 2)
   const selectedCategory = React.useMemo(() => {
@@ -109,11 +103,11 @@ export default function BasicInfoTab({ categories }) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
-          <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
+          <Label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
             Tên Khóa Học <span className="text-error">*</span>
-          </label>
-          <Input
-            className="h-11 border-border focus:border-success/20 font-medium"
+          </Label>
+          <AppInput
+            className="h-12 border-border focus-visible:ring-success focus-visible:bg-white bg-muted font-medium "
             placeholder="Ví dụ: React Native Masterclass 2026..."
             {...register("title")}
           />
@@ -125,11 +119,11 @@ export default function BasicInfoTab({ categories }) {
         </div>
 
         <div className="space-y-2">
-          <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
+          <Label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
             Slug <span className="text-error">*</span>
-          </label>
-          <Input
-            className="h-11 border-border bg-muted font-medium cursor-not-allowed"
+          </Label>
+          <AppInput
+            className="h-12 border-border focus-visible:ring-success focus-visible:bg-white bg-muted font-medium cursor-not-allowed"
             placeholder="react-native-masterclass-2026"
             {...register("slug")}
             readOnly
@@ -146,9 +140,9 @@ export default function BasicInfoTab({ categories }) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
-          <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
+          <Label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
             Danh Mục <span className="text-error">*</span>
-          </label>
+          </Label>
           <Controller
             name="categoryId"
             control={control}
@@ -168,24 +162,24 @@ export default function BasicInfoTab({ categories }) {
         </div>
 
         <div className="space-y-2">
-          <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
+          <Label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
             Cấp Độ <span className="text-error">*</span>
-          </label>
+          </Label>
           <Controller
             name="level"
             control={control}
             render={({ field }) => (
-              <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
-                <SelectTrigger className="w-full !h-11 border-border focus:border-success/20 font-medium bg-white data-[state=open]:ring-1 data-[state=open]:ring-green-500">
-                  <SelectValue placeholder="Chọn cấp độ" />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  <SelectItem value="beginner">Người mới bắt đầu</SelectItem>
-                  <SelectItem value="intermediate">Trung bình</SelectItem>
-                  <SelectItem value="advanced">Nâng cao</SelectItem>
-                  <SelectItem value="all">Dành cho mọi đối tượng</SelectItem>
-                </SelectContent>
-              </Select>
+              <AppSelect 
+                value={field.value} 
+                onValueChange={field.onChange}
+                placeholder="Chọn cấp độ"
+                options={[
+                  { label: "Người mới bắt đầu", value: "beginner" },
+                  { label: "Trung bình", value: "intermediate" },
+                  { label: "Nâng cao", value: "advanced" },
+                  { label: "Dành cho mọi đối tượng", value: "all" },
+                ]}
+              />
             )}
           />
           {errors.level && (
@@ -195,15 +189,15 @@ export default function BasicInfoTab({ categories }) {
           )}
         </div>
         <div className="space-y-2">
-          <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
+          <Label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
             Trạng Thái <span className="text-error">*</span>
-          </label>
+          </Label>
           <Controller
             name="status"
             control={control}
             render={({ field }) => (
-              <Select
-                onValueChange={(val) => {
+              <AppSelect
+  onValueChange={(val) => {
                   const newStatus = Number(val);
 
                   // Chặn bật hoạt động nếu danh mục đang ẩn
@@ -230,26 +224,24 @@ export default function BasicInfoTab({ categories }) {
                   // replace giúp cập nhật ngay lập tức giao diện Accordion/FieldArray của chương
                   if (replace) replace(updatedSections);
                 }}
-                value={(field.value ?? 1).toString()}
-                disabled={isCategoryHidden}
-              >
-                <SelectTrigger className={`w-full !h-11 border-border focus:border-success/20 font-medium ${isCategoryHidden ? 'bg-muted opacity-80' : 'bg-white'}`}>
-                  <SelectValue placeholder="Chọn trạng thái" />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  <SelectItem value="1" disabled={isCategoryHidden}>Hoạt động {isCategoryHidden && "(Danh mục cha đang ẩn)"}</SelectItem>
-                  <SelectItem value="2">Ẩn</SelectItem>
-                </SelectContent>
-              </Select>
+  value={(field.value ?? 1).toString()}
+  disabled={isCategoryHidden}
+  placeholder="Chọn trạng thái"
+  options={[
+    { value: "1", label: `Hoạt động ${isCategoryHidden ? "(Danh mục cha đang ẩn)" : ""}`, disabled: isCategoryHidden },
+    { value: "2", label: "Ẩn" }
+  ]}
+  triggerClassName={`w-full ${isCategoryHidden ? 'bg-muted opacity-80' : ''}`}
+/>
             )}
           />
         </div>
       </div>
 
       <div className="space-y-2">
-        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
+        <Label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
           Mô Tả Khóa Học (Tuỳ chọn)
-        </label>
+        </Label>
         <div className="rounded-lg border border-border overflow-hidden focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50 transition-all bg-white">
           <Controller
             name="description"
@@ -273,4 +265,3 @@ export default function BasicInfoTab({ categories }) {
     </div>
   );
 }
-

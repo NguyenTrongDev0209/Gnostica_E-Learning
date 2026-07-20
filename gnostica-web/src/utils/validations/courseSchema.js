@@ -62,6 +62,7 @@ const sectionSchema = z.object({
 });
 
 export const courseSchema = z.object({
+  id: z.any().optional(),
   title: z.preprocess((val) => (val === null || val === undefined ? "" : String(val)),
     z.string({ required_error: "Tên khóa học là bắt buộc" }).min(1, "Tên khóa học là bắt buộc")
   ),
@@ -98,4 +99,5 @@ export const courseSchema = z.object({
   createdAt: z.any().nullable().optional(),
   updatedAt: z.any().nullable().optional(),
   questionBank: z.any().nullable().optional(),
+  draftToken: z.any().nullable().optional(),
 });
