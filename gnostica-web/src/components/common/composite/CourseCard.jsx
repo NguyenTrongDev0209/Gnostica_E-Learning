@@ -389,6 +389,7 @@ export const ForumPostCard = ({ post, className, displayMode = "compact", topicC
   const topicSlug = post.topic?.slug || post.topicSlug;
   const postUrl = topicSlug ? `/forum/${topicSlug}/${post.slug || post.id}` : `/forum/${post.slug || post.id}`;
   const topicUrl = topicSlug ? `/forum/topic/${topicSlug}` : "/forum";
+  const isTopicOwner = topicContext && post.isTopicOwner;
 
   const handleLike = async (e) => {
     e.preventDefault();
@@ -476,7 +477,14 @@ export const ForumPostCard = ({ post, className, displayMode = "compact", topicC
 
   return (
     <div className="block">
-      <AppCard appVariant="default" className={cn("hover:border-primary/50 transition-colors bg-card overflow-hidden group cursor-pointer p-0 gap-0", className)}>
+      <AppCard
+        appVariant="default"
+        className={cn(
+          "hover:border-primary/50 transition-colors bg-card overflow-hidden group cursor-pointer p-0 gap-0",
+          isTopicOwner && "border-primary/45 ring-1 ring-primary/20 shadow-sm",
+          className
+        )}
+      >
         <AppCardContent className="p-4 sm:p-5">
           <div className="flex items-start gap-4">
             {/* Avatar - ẩn trên mobile nhỏ */}
@@ -484,7 +492,10 @@ export const ForumPostCard = ({ post, className, displayMode = "compact", topicC
               {topicContext ? (
                 <AppAvatar
                   size="lg"
-                  className="ring-2 ring-transparent transition-all group-hover:ring-primary/20"
+                  className={cn(
+                    "ring-2 ring-transparent transition-all group-hover:ring-primary/20",
+                    isTopicOwner && "ring-primary/35"
+                  )}
                   src={post.author.avatar}
                   alt={post.author.name}
                   online={post.author.status === 'online'}
@@ -545,6 +556,11 @@ export const ForumPostCard = ({ post, className, displayMode = "compact", topicC
                     </Link>
                   )}
                   <span className="font-medium text-foreground">{post.author.name}</span>
+                  {isTopicOwner && (
+                    <span className="inline-flex h-5 items-center rounded-sm border border-primary/20 bg-primary/10 px-1.5 text-[10px] font-bold leading-none text-primary">
+                      MOD
+                    </span>
+                  )}
                 </span>
                 <span>•</span>
                 <span className="flex items-center gap-1">
