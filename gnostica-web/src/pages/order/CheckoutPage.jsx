@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import couponService from "@/services/order/couponService";
 import { Star, CheckCircle2, QrCode, CreditCard, Loader2 } from "lucide-react";
-import { useLocation, useNavigate, Link } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
 import { toast } from "sonner";
 import { checkoutOrderItemsMock } from "@/mocks/cart";
 import orderService from "@/services/order/orderService";
@@ -14,6 +14,15 @@ import PageContainer from "@/components/common/core/PageContainer";
 import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
 import AppInput from "@/components/common/micro/AppInput";
 import AppPageHeader from "@/components/common/composite/AppPageHeader";
+import {
+  AppDialogRoot,
+  AppDialogContent,
+  AppDialogHeader,
+  AppDialogTitle,
+  AppDialogDescription,
+} from "@/components/common/micro/AppDialog";
+import PayosQR from "@/pages/order/PayosQR";
+import AppAlertDialog from "@/components/common/micro/AppAlertDialog";
 
 const PAYMENT_METHODS = [
   {
@@ -263,6 +272,8 @@ export default function CheckoutPage() {
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [couponMessage, setCouponMessage] = useState("");
   const [isCouponLoading, setIsCouponLoading] = useState(false);
+  const [payosDialogData, setPayosDialogData] = useState(null);
+  const [isPayosCancelConfirmOpen, setIsPayosCancelConfirmOpen] = useState(false);
 
   // Dùng dữ liệu từ CourseDetail nếu có, fallback về mock
   const orderItems = state?.orderItems ?? checkoutOrderItemsMock;
@@ -319,8 +330,6 @@ export default function CheckoutPage() {
     { label: "Thanh toán", isLast: true },
   ];
 
-  const navigate = useNavigate();
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -365,12 +374,7 @@ export default function CheckoutPage() {
             }
             window.location.assign(paymentData.checkoutUrl);
           } else {
-            navigate("/checkout/payos", {
-              state: {
-                paymentData,
-                orderItems
-              }
-            });
+            setPayosDialogData({ paymentData, orderItems });
           }
         } else {
           toast.error(response.message || "Không thể tạo đơn hàng. Vui lòng thử lại!");
@@ -426,6 +430,57 @@ export default function CheckoutPage() {
             </div>
           </div>
         </form>
+
+        <AppDialogRoot
+          open={payosDialogData != null && !isPayosCancelConfirmOpen}
+          onOpenChange={(open) => {
+            if (!open && payosDialogData && !isPayosCancelConfirmOpen) {
+              setIsPayosCancelConfirmOpen(true);
+            }
+          }}
+        >
+          <AppDialogContent
+            appVariant="default"
+            className="max-h-[92vh] gap-0 overflow-hidden p-0 sm:max-w-5xl"
+          >
+            <AppDialogHeader className="border-b border-border bg-muted px-6 py-5 pr-16 text-left">
+              <AppDialogTitle className="text-left text-xl">
+                Thanh toán đơn hàng
+                {payosDialogData?.paymentData?.orderCode
+                  ? ` #${payosDialogData.paymentData.orderCode}`
+                  : ""}
+              </AppDialogTitle>
+              <AppDialogDescription className="text-sm text-muted-foreground">
+                Quét mã QR hoặc chuyển khoản theo thông tin bên dưới để hoàn tất đơn hàng.
+              </AppDialogDescription>
+            </AppDialogHeader>
+            <div className="max-h-[calc(92vh-92px)] overflow-y-auto">
+              {payosDialogData && (
+                <PayosQR
+                  embedded
+                  paymentData={payosDialogData.paymentData}
+                  orderItems={payosDialogData.orderItems}
+                  onCancel={() => setIsPayosCancelConfirmOpen(true)}
+                />
+              )}
+            </div>
+          </AppDialogContent>
+        </AppDialogRoot>
+
+        <AppAlertDialog
+          open={isPayosCancelConfirmOpen}
+          onOpenChange={setIsPayosCancelConfirmOpen}
+          variant="destructive"
+          title="Hủy thanh toán?"
+          description="Giao dịch hiện vẫn đang chờ thanh toán. Bạn có chắc chắn muốn đóng mã QR và hủy quá trình này không?"
+          cancelText="Tiếp tục thanh toán"
+          confirmText="Hủy thanh toán"
+          onConfirm={() => {
+            setIsPayosCancelConfirmOpen(false);
+            setPayosDialogData(null);
+          }}
+          contentClassName="shadow-none"
+        />
       </PageContainer.Content>
     </PageContainer>
   );

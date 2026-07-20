@@ -16,15 +16,20 @@ import orderService from "@/services/order/orderService";
 import PageContainer from "@/components/common/core/PageContainer";
 import AppPageHeader from "@/components/common/composite/AppPageHeader";
 
-export default function PayosQR() {
+export default function PayosQR({
+  embedded = false,
+  paymentData: paymentDataProp,
+  orderItems: orderItemsProp,
+  onCancel,
+}) {
   const { state } = useLocation();
   const [timeLeft, setTimeLeft] = useState(payosPaymentMock.expiresInSeconds);
   const [status, setStatus] = useState("waiting"); // waiting, success, cancelled, paid
   const navigate = useNavigate();
 
   // Dữ liệu đơn hàng từ PayOS truyền qua state
-  const paymentData = state?.paymentData;
-  const orderItems = state?.orderItems || [];
+  const paymentData = paymentDataProp || state?.paymentData;
+  const orderItems = orderItemsProp || state?.orderItems || [];
 
   const totalAmount = paymentData?.amount || (orderItems.length > 0
     ? orderItems.reduce((sum, item) => sum + item.price, 0)
@@ -119,6 +124,10 @@ export default function PayosQR() {
 
   const handleCancel = () => {
     setStatus("cancelled");
+    if (onCancel) {
+      onCancel();
+      return;
+    }
     navigate("/checkout", {
       replace: true,
       state: { orderItems },
@@ -126,16 +135,23 @@ export default function PayosQR() {
   };
 
   return (
-    <PageContainer className="pb-20">
-      <PageContainer.Content className="gap-y-0 pt-6 md:gap-y-0 md:pt-12">
-        <AppBreadcrumb paths={breadcrumbItems} className="mb-8" />
-        <AppPageHeader
-          title={`Thanh toán đơn hàng${paymentData?.orderCode ? ` #${paymentData.orderCode}` : ""}`}
-          description="Quét mã QR hoặc chuyển khoản theo thông tin bên dưới để hoàn tất đơn hàng."
-          titleClassName="text-3xl font-bold md:text-4xl"
-        />
+    <PageContainer className={embedded ? "min-h-0 pb-0" : "pb-20"}>
+      <PageContainer.Content
+        disableContainer={embedded}
+        className={embedded ? "gap-y-0 p-0" : "gap-y-0 pt-6 md:gap-y-0 md:pt-12"}
+      >
+        {!embedded && (
+          <>
+            <AppBreadcrumb paths={breadcrumbItems} className="mb-8" />
+            <AppPageHeader
+              title={`Thanh toán đơn hàng${paymentData?.orderCode ? ` #${paymentData.orderCode}` : ""}`}
+              description="Quét mã QR hoặc chuyển khoản theo thông tin bên dưới để hoàn tất đơn hàng."
+              titleClassName="text-3xl font-bold md:text-4xl"
+            />
+          </>
+        )}
 
-        <Card appVariant="default" className="mx-auto max-w-4xl gap-0 overflow-hidden py-0 shadow-none">
+        <Card appVariant="default" className={`mx-auto w-full gap-0 overflow-hidden py-0 shadow-none ${embedded ? "max-w-none border-0" : "max-w-4xl"}`}>
           <CardContent className="p-0">
             <div className="grid grid-cols-1 md:grid-cols-5">
               {/* Left: QR Code */}
@@ -205,7 +221,7 @@ export default function PayosQR() {
                         icon={Copy}
                         aria-label="Sao chép số tài khoản"
                         onClick={() => copyToClipboard(paymentData?.accountNumber || payosPaymentMock.accountNumber, "số tài khoản")}
-                        className="!size-8 !bg-transparent !text-muted-foreground shadow-none hover:!bg-primary/5 hover:!text-primary"
+                        className="!size-8 !bg-accent !text-white shadow-none hover:!bg-accent/90 hover:!text-white"
                       />
                     </div>
                   </div>
@@ -244,7 +260,7 @@ export default function PayosQR() {
                         icon={Copy}
                         aria-label="Sao chép nội dung chuyển khoản"
                         onClick={() => copyToClipboard(paymentData?.description || payosPaymentMock.transferContent, "nội dung")}
-                        className="!size-8 !bg-transparent !text-muted-foreground shadow-none hover:!bg-primary/5 hover:!text-primary"
+                        className="!size-8 !bg-accent !text-white shadow-none hover:!bg-accent/90 hover:!text-white"
                       />
                     </div>
                   </div>
@@ -263,18 +279,23 @@ export default function PayosQR() {
                 {/* Action Buttons */}
                 <div className="mt-6 flex flex-col sm:flex-row gap-3">
                   <AppButton
-                    appVariant="ghostMuted"
+                    appVariant="accent"
                     onClick={handleCancel}
-                    className="h-12 flex-1 rounded-xl border border-error/20 font-bold text-error hover:bg-error-soft hover:text-error"
+                    className="h-12 flex-1 rounded-xl border border-error bg-error font-bold text-error-foreground hover:bg-error/90 hover:text-error-foreground"
                   >
                     Hủy thanh toán
                   </AppButton>
                   <AppButton
                     appVariant="ghostMuted"
-                    disabled
-                    className="h-12 flex-1 gap-2 rounded-xl border border-warning/20 bg-warning-soft font-bold text-warning"
+                    type="button"
+                    aria-disabled="true"
+                    tabIndex={-1}
+                    className="pointer-events-none h-12 flex-1 gap-2 rounded-xl border border-warning bg-transparent font-bold text-warning opacity-100"
                   >
-                    <span className="w-2.5 h-2.5 rounded-full bg-warning/10 text-warning animate-pulse" />
+                    <span className="relative flex size-3" aria-hidden="true">
+                      <span className="absolute inline-flex size-full animate-ping rounded-full bg-warning opacity-75" />
+                      <span className="relative inline-flex size-3 rounded-full bg-warning" />
+                    </span>
                     Đang chờ thanh toán
                   </AppButton>
                 </div>
