@@ -20,7 +20,9 @@ export default function useNotifications() {
           id: n.id,
           title: n.title,
           message: n.message,
+          content: n.message,
           time: n.createdAt ? new Date(n.createdAt).toLocaleString("vi-VN") : "Gần đây",
+          createdAt: n.createdAt,
           isRead: n.isRead,
           type: n.type || "system"
         }));
