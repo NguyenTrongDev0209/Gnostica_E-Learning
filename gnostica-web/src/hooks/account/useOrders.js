@@ -1,6 +1,41 @@
 import { useState, useEffect } from "react";
 import useAuthStore from "@/store/useAuthStore";
 
+const getCourseName = (detail) => (
+  detail?.courseName ||
+  detail?.courseTitle ||
+  detail?.course?.title ||
+  detail?.course?.courseTitle ||
+  detail?.title ||
+  "Khóa học"
+);
+
+const getStatusMeta = (status) => {
+  if (status === "SUCCESS" || status === "PAID" || status === 1) {
+    return {
+      status: "Thành công",
+      statusColor: "bg-success-soft text-success",
+    };
+  }
+
+  if (status === "FAILED" || status === "CANCELLED" || status === 2) {
+    return {
+      status: "Đã hủy",
+      statusColor: "bg-error-soft text-error",
+    };
+  }
+
+  return {
+    status: "Đang xử lý",
+    statusColor: "bg-warning-soft text-warning",
+  };
+};
+
+const formatCurrency = (value) => {
+  const amount = Number(value || 0);
+  return `${amount.toLocaleString("vi-VN")}đ`;
+};
+
 export default function useOrders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -11,39 +46,38 @@ export default function useOrders() {
   const token = useAuthStore(state => state.user?.token);
 
   useEffect(() => {
-    if (!token) { setLoading(false); return; }
+    if (!token) {
+      setLoading(false);
+      return;
+    }
 
     const fetchOrders = async () => {
       setLoading(true);
       try {
         const res = await fetch("http://localhost:8080/api/order/my-orders", {
-          headers: { "Authorization": `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
+
         if (res.ok) {
           const data = await res.json();
-          const mapped = (data.data || []).map(o => {
-            // Determine status text & color
-            let statusText = "Đang xử lý";
-            let statusColor = "bg-warning/10 text-warning";
-            
-            if (o.status === "SUCCESS" || o.status === 1) {
-              statusText = "Thành công";
-              statusColor = "bg-emerald-100 text-emerald-700";
-            } else if (o.status === "FAILED" || o.status === "CANCELLED" || o.status === 2) {
-              statusText = "Đã hủy";
-              statusColor = "bg-error/10 text-error";
-            }
+          const mapped = (data.data || []).map((order) => {
+            const rawDetails = order.details || order.orderDetails || order.items || [];
+            const orderCode = order.order_code || order.orderCode || order.transactionCode || order.transactionId || order.id;
+            const orderDate = order.orderDate || order.createdAt;
+            const totalAmount = order.finalAmount ?? order.totalPrice ?? 0;
+            const statusMeta = getStatusMeta(order.status);
 
             return {
-              id: o.transactionCode || o.id,
-              date: o.orderDate ? new Date(o.orderDate).toLocaleDateString("vi-VN") : "N/A",
-              courses: o.orderDetails?.map(d => ({ name: d.courseName })) || [],
-              total: o.finalAmount ? o.finalAmount.toLocaleString("vi-VN") + "đ" : "0đ",
-              method: o.paymentMethod || "N/A",
-              status: statusText,
-              statusColor: statusColor
+              id: order.id,
+              orderCode,
+              date: orderDate ? new Date(orderDate).toLocaleDateString("vi-VN") : "N/A",
+              courses: rawDetails.map((detail) => ({ name: getCourseName(detail) })),
+              total: formatCurrency(totalAmount),
+              method: order.paymentMethod || "N/A",
+              ...statusMeta,
             };
           });
+
           setOrders(mapped);
         }
       } catch (error) {
@@ -56,22 +90,32 @@ export default function useOrders() {
     fetchOrders();
   }, [token]);
 
-  const filteredOrders = orders.filter(order => {
-    const matchesSearch = order.id.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    // Mock logic for dateRange
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, dateRange, pageSize]);
+
+  const filteredOrders = orders.filter((order) => {
+    const normalizedQuery = searchQuery.trim().toLowerCase();
+    const matchesSearch = !normalizedQuery ||
+      String(order.orderCode || order.id || "").toLowerCase().includes(normalizedQuery);
+
     let matchesDate = true;
     if (dateRange?.from) {
-      matchesDate = true; // In a real app, parse order.date and compare
+      matchesDate = true;
     }
 
     return matchesSearch && matchesDate;
   });
 
-  return { 
-    orders: filteredOrders, 
+  const totalItems = filteredOrders.length;
+  const totalPages = Math.ceil(totalItems / pageSize) || 1;
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const paginatedOrders = filteredOrders.slice((safeCurrentPage - 1) * pageSize, safeCurrentPage * pageSize);
+
+  return {
+    orders: paginatedOrders,
     loading,
-    currentPage,
+    currentPage: safeCurrentPage,
     setCurrentPage,
     pageSize,
     setPageSize,
@@ -79,7 +123,7 @@ export default function useOrders() {
     setSearchQuery,
     dateRange,
     setDateRange,
-    totalItems: filteredOrders.length,
-    totalPages: Math.ceil(filteredOrders.length / pageSize) || 1
+    totalItems,
+    totalPages,
   };
 }

@@ -101,7 +101,7 @@ export default function MyCourses() {
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">{stat.label}</p>
-                    <p className="text-2xl font-black text-foreground mt-0.5">{stat.value}</p>
+                    <p className="text-2xl font-bold text-foreground mt-0.5">{stat.value}</p>
                   </div>
                 </AppCardContent>
               </AppCard>

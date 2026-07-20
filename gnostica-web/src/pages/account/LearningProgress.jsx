@@ -7,10 +7,9 @@ import { AppButton } from "@/components/common/micro/AppButton";
 import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
 import AppPageHeader from "@/components/common/composite/AppPageHeader";
 import useLearningProgress from "@/hooks/account/useLearningProgress";
+import {
   Activity,
   Trophy,
-  Target,
-  Flame,
   BookOpen,
   Clock,
 } from "lucide-react";
@@ -73,7 +72,7 @@ export default function LearningProgress() {
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">{stat.label}</p>
-                    <p className="text-2xl font-black text-foreground mt-0.5">{stat.value}</p>
+                    <p className="text-2xl font-bold text-foreground mt-0.5">{stat.value}</p>
                   </div>
                 </AppCardContent>
               </AppCard>
@@ -157,7 +156,7 @@ function LearningProgressList({ loading, courses }) {
                 <div>
                   <div className="flex justify-between items-end mb-2">
                     <span className="text-xs font-semibold text-muted-foreground">Tiến độ tổng thể</span>
-                    <span className={`text-lg font-black ${course.progressPercent === 100 ? "text-emerald-500" : "text-primary"}`}>
+                    <span className={`text-lg font-bold ${course.progressPercent === 100 ? "text-emerald-500" : "text-primary"}`}>
                       {course.progressPercent}%
                     </span>
                   </div>

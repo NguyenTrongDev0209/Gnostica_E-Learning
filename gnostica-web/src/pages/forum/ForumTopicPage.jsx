@@ -83,6 +83,7 @@ const mapThreadToPost = (thread) => {
     author: {
       name: thread.account?.fullName || "Ẩn danh",
       avatar: thread.account?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${thread.account?.email || "default"}`,
+      email: thread.account?.email || "",
       status: "online",
     },
     category: thread.topic?.title || thread.category?.name || "",
@@ -247,7 +248,13 @@ const ForumTopicPage = () => {
   const posts = useMemo(() => {
     const mappedPosts = (threadsQuery.data || [])
       .filter(thread => (thread.topic?.slug || thread.category?.slug) === topicSlug)
-      .map(mapThreadToPost);
+      .map(thread => {
+        const post = mapThreadToPost(thread);
+        return {
+          ...post,
+          isTopicOwner: Boolean(topic?.ownerEmail && post.author.email && topic.ownerEmail === post.author.email),
+        };
+      });
 
     const filteredPosts = mappedPosts.filter(post => {
       const normalizedSearch = searchQuery.toLowerCase();
@@ -266,7 +273,7 @@ const ForumTopicPage = () => {
       if (sortMode === "rising") return engagement(second) / Math.pow(ageInHours(second), 0.35) - engagement(first) / Math.pow(ageInHours(first), 0.35);
       return engagement(second) - engagement(first) || second.createdAtValue - first.createdAtValue;
     });
-  }, [threadsQuery.data, topicSlug, searchQuery, sortMode]);
+  }, [threadsQuery.data, topicSlug, topic?.ownerEmail, searchQuery, sortMode]);
 
   const isLoading = categoriesQuery.isLoading || threadsQuery.isLoading;
   const breadcrumbItems = [

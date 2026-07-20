@@ -30,10 +30,9 @@ const flattenReplies = (replies = [], parentAuthorName) => replies.flatMap((repl
 
 const getCommentBadges = (comment, threadAuthorEmail, topicOwnerEmail) => {
   const email = comment?.author?.email || comment?.account?.email;
-  return [
-    email && threadAuthorEmail && email === threadAuthorEmail ? "OP" : null,
-    email && topicOwnerEmail && email === topicOwnerEmail ? "MOD" : null,
-  ].filter(Boolean);
+  if (email && threadAuthorEmail && email === threadAuthorEmail) return ["OP"];
+  if (email && topicOwnerEmail && email === topicOwnerEmail) return ["MOD"];
+  return [];
 };
 
 export default function CommentCard({
@@ -53,6 +52,7 @@ export default function CommentCard({
   const [isExpanded, setIsExpanded] = useState(false);
   const [shouldShowMore, setShouldShowMore] = useState(false);
   const contentRef = React.useRef(null);
+  const previousReplyTotalRef = React.useRef(null);
 
   React.useEffect(() => {
     setIsExpanded(false);
@@ -138,6 +138,22 @@ export default function CommentCard({
   const visibleReplies = flattenedReplies.slice(0, visibleReplyCount);
   const remainingReplies = Math.max(flattenedReplies.length - visibleReplyCount, 0);
   const commentBadges = getCommentBadges(comment, threadAuthorEmail, topicOwnerEmail);
+
+  React.useEffect(() => {
+    if (isReply) return;
+
+    const previousTotal = previousReplyTotalRef.current;
+    if (previousTotal === null) {
+      previousReplyTotalRef.current = flattenedReplies.length;
+      return;
+    }
+
+    if (flattenedReplies.length > previousTotal) {
+      setVisibleReplyCount(flattenedReplies.length);
+    }
+
+    previousReplyTotalRef.current = flattenedReplies.length;
+  }, [flattenedReplies.length, isReply]);
 
   return (
     <div className={`flex gap-3 ${isReply ? 'ml-8 sm:ml-16 mt-4' : ''}`}>

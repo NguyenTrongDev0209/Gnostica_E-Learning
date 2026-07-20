@@ -220,6 +220,7 @@ public class OrderService {
     private OrderResponse mapToResponse(Order order) {
         OrderResponse resp = new OrderResponse();
         resp.setId(order.getId());
+        resp.setOrderCode(order.getOrderCode());
         if (order.getAccount() != null) {
             resp.setAccountId(order.getAccount().getId());
             resp.setAccountName(order.getAccount().getFullName());

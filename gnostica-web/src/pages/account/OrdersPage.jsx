@@ -29,11 +29,20 @@ export default function Orders() {
   const [selectedOrder, setSelectedOrder] = useState(null);
 
   const columns = [
+    {
+      accessor: "index",
+      header: "STT",
+      width: "72px",
+      sortable: false,
+      className: "whitespace-nowrap py-4 text-center",
+      cellClassName: "py-4 text-center font-bold text-muted-foreground",
+      render: (_order, rowIndex) => (currentPage - 1) * pageSize + rowIndex + 1,
+    },
     { 
-      accessor: "id", 
+      accessor: "orderCode", 
       header: "Mã đơn hàng", 
       className: "whitespace-nowrap py-4 text-center",
-      cellClassName: "py-4",
+      cellClassName: "py-4 font-semibold text-foreground",
     },
     { 
       accessor: "date", 
@@ -43,18 +52,22 @@ export default function Orders() {
     },
     { 
       accessor: "courses", 
-      header: "Sản phẩm",
+      header: "Khóa học",
       width: "300px",
       className: "py-4 text-center",
       render: (order) => (
         <div className="py-4">
-          <div className="space-y-1">
-            {order.courses.map((course, idx) => (
-              <p key={idx} className="text-sm text-foreground line-clamp-1">
-                {course.name || course}
-              </p>
-            ))}
-          </div>
+          {order.courses.length > 0 ? (
+            <div className="space-y-1">
+              {order.courses.map((course, idx) => (
+                <p key={idx} className="text-sm text-foreground line-clamp-1">
+                  {course.name || course}
+                </p>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm font-medium text-muted-foreground">Chưa có thông tin khóa học</p>
+          )}
           {order.courses.length > 1 && (
             <span className="text-xs text-muted-foreground mt-1 inline-block">
               +{order.courses.length - 1} khóa học khác
@@ -67,7 +80,7 @@ export default function Orders() {
       accessor: "total", 
       header: "Tổng tiền",
       className: "whitespace-nowrap py-4 text-center",
-      cellClassName: "font-black bg-accent-gradient bg-clip-text text-transparent py-4 text-center",
+      cellClassName: "font-bold bg-accent-gradient bg-clip-text text-transparent py-4 text-center",
     },
     { 
       accessor: "status", 
@@ -164,7 +177,7 @@ function OrderDetailModal({ open, onOpenChange, order }) {
       open={open}
       onOpenChange={onOpenChange}
       title="Chi tiết đơn hàng"
-      description={`Mã đơn: ${order.id}`}
+      description={`Mã đơn: ${order.orderCode || order.id}`}
       appVariant="glass"
       className="max-w-2xl [&>button]:bg-error [&>button]:text-white [&>button]:opacity-100 hover:[&>button]:bg-red-600 [&>button]:w-8 [&>button]:h-8 [&>button>svg]:w-5 [&>button>svg]:h-5 [&>button]:rounded-lg [&>button]:shadow-sm"
     >
@@ -200,10 +213,10 @@ function OrderDetailModal({ open, onOpenChange, order }) {
         <div>
           <h4 className="flex items-center gap-2 font-bold text-foreground mb-3">
             <ShoppingBag className="w-5 h-5 text-primary" />
-            Sản phẩm đã mua
+            Khóa học đã mua
           </h4>
           <div className="space-y-3">
-            {order.courses.map((course, idx) => (
+            {order.courses.length > 0 ? order.courses.map((course, idx) => (
               <div key={idx} className="flex justify-between items-center p-3 rounded-xl border border-border hover:bg-muted/30 transition-colors">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold">
@@ -219,7 +232,11 @@ function OrderDetailModal({ open, onOpenChange, order }) {
                   </div>
                 </div>
               </div>
-            ))}
+            )) : (
+              <div className="p-3 rounded-xl border border-border text-sm font-medium text-muted-foreground">
+                Chưa có thông tin khóa học
+              </div>
+            )}
           </div>
         </div>
 

@@ -23,6 +23,7 @@ export default function AppPagination({
   totalPages = 1,
   onPageChange,
   siblingCount = 1,
+  scrollOnPageChange = true,
   className,
   ...props
 }) {
@@ -56,6 +57,17 @@ export default function AppPagination({
   };
 
   const pages = generatePagination();
+  const handlePageChange = (page) => {
+    if (page === currentPage || page < 1 || page > totalPages || !onPageChange) return;
+
+    onPageChange(page);
+
+    if (scrollOnPageChange && typeof window !== "undefined") {
+      window.requestAnimationFrame(() => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    }
+  };
 
   return (
     <Pagination className={className} {...props}>
@@ -65,10 +77,10 @@ export default function AppPagination({
             href="#" 
             onClick={(e) => {
               e.preventDefault();
-              if (currentPage > 1 && onPageChange) onPageChange(currentPage - 1);
+              handlePageChange(currentPage - 1);
             }}
             className={cn(
-              "h-9 px-3 font-semibold text-muted-foreground hover:text-foreground hover:bg-white hover:shadow-sm hover:border hover:border-border rounded-xl transition-all",
+              "h-9 px-3 font-semibold text-muted-foreground hover:text-foreground hover:bg-card hover:shadow-sm hover:border hover:border-border rounded-xl transition-all",
               currentPage <= 1 ? "opacity-30 pointer-events-none" : "cursor-pointer"
             )}
             size="sm"
@@ -93,13 +105,13 @@ export default function AppPagination({
                 isActive={isActive}
                 onClick={(e) => {
                   e.preventDefault();
-                  if (page !== currentPage && onPageChange) onPageChange(page);
+                  handlePageChange(page);
                 }}
                 className={cn(
                   "w-9 h-9 shrink-0 flex items-center justify-center rounded-lg text-sm font-semibold transition-all cursor-pointer border",
                   isActive 
-                    ? "bg-primary text-white border-primary shadow-sm hover:bg-primary/90 hover:text-white" 
-                    : "text-foreground bg-white border-border hover:bg-muted/50 hover:border-border"
+                    ? "bg-primary text-primary-foreground border-primary shadow-sm hover:bg-primary/90 hover:text-primary-foreground" 
+                    : "text-foreground bg-card border-border hover:bg-muted/50 hover:border-border"
                 )}
               >
                 {page}
@@ -113,10 +125,10 @@ export default function AppPagination({
             href="#" 
             onClick={(e) => {
               e.preventDefault();
-              if (currentPage < totalPages && onPageChange) onPageChange(currentPage + 1);
+              handlePageChange(currentPage + 1);
             }}
             className={cn(
-              "h-9 px-3 font-semibold text-muted-foreground hover:text-foreground hover:bg-white hover:shadow-sm hover:border hover:border-border rounded-xl transition-all",
+              "h-9 px-3 font-semibold text-muted-foreground hover:text-foreground hover:bg-card hover:shadow-sm hover:border hover:border-border rounded-xl transition-all",
               currentPage >= Math.max(1, totalPages) ? "opacity-30 pointer-events-none" : "cursor-pointer"
             )}
             size="sm"

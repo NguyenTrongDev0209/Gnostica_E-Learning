@@ -17,7 +17,7 @@ export default function Wishlist() {
       <AppBreadcrumb paths={[{ label: "Tài khoản", href: "/account" }, { label: "Danh sách yêu thích" }]} />
 
       <AppPageHeader
-        iconNode={<Heart className="w-7 h-7 text-error fill-red-100/50" />}
+        icon={Heart}
         title="Danh sách yêu thích"
         description={loading ? "Đang tải..." : `Bạn đã lưu lại ${courses.length} khóa học vào danh sách quan tâm.`}
       />

@@ -68,14 +68,7 @@ export default function Notifications() {
       <AppBreadcrumb paths={[{ label: "Tài khoản", href: "/account" }, { label: "Thông báo" }]} />
 
       <AppPageHeader
-        iconNode={
-          <div className="relative">
-            <Bell className="w-7 h-7 text-primary" />
-            {unreadCount > 0 && (
-              <span className="absolute top-0 right-0 w-2.5 h-2.5 rounded-full bg-error/10 text-error ring-2 ring-white"></span>
-            )}
-          </div>
-        }
+        icon={Bell}
         title="Thông báo của bạn"
         description={`Bạn có ${unreadCount} thông báo chưa đọc.`}
         actions={
