@@ -10,9 +10,14 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Link } from "react-router-dom";
 
-export default function AppBreadcrumb({ paths = [] }) {
+export default function AppBreadcrumb({ paths = [], className = "mb-6" }) {
+  const normalizedPaths = paths.filter((path, index) => {
+    if (index !== 0) return true;
+    return path.href !== "/" && path.label !== "Trang chủ";
+  });
+
   return (
-    <Breadcrumb className="mb-6">
+    <Breadcrumb className={className}>
       <BreadcrumbList>
         <BreadcrumbItem>
           <BreadcrumbLink asChild>
@@ -22,8 +27,8 @@ export default function AppBreadcrumb({ paths = [] }) {
           </BreadcrumbLink>
         </BreadcrumbItem>
 
-        {paths.map((path, index) => {
-          const isLast = index === paths.length - 1;
+        {normalizedPaths.map((path, index) => {
+          const isLast = index === normalizedPaths.length - 1;
 
           return (
             <React.Fragment key={index}>

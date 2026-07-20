@@ -16,5 +16,7 @@ public class LessonRequest {
     @NotBlank(message = "Video bài học không được để trống")
     private String videoUrl;
 
+    private String metadata;
+
     private Integer status;
 }

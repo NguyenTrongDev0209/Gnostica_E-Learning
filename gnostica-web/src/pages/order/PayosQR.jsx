@@ -1,31 +1,35 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Card, CardContent } from "@/components/common/micro/AppCard";
 import Separator from "@/components/common/micro/AppSeparator";
-import { Button } from "@/components/common/micro/AppButton";
+import { AppButton, AppIconButton } from "@/components/common/micro/AppButton";
 import {
   Copy,
   Clock,
   Info,
   ExternalLink,
-  Home,
-  CheckCircle2,
 } from "lucide-react";
 import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
 import { toast } from "sonner";
 import { payosPaymentMock } from "@/mocks/payment";
 import orderService from "@/services/order/orderService";
 import PageContainer from "@/components/common/core/PageContainer";
+import AppPageHeader from "@/components/common/composite/AppPageHeader";
 
-export default function PayosQR() {
+export default function PayosQR({
+  embedded = false,
+  paymentData: paymentDataProp,
+  orderItems: orderItemsProp,
+  onCancel,
+}) {
   const { state } = useLocation();
   const [timeLeft, setTimeLeft] = useState(payosPaymentMock.expiresInSeconds);
   const [status, setStatus] = useState("waiting"); // waiting, success, cancelled, paid
   const navigate = useNavigate();
 
   // Dữ liệu đơn hàng từ PayOS truyền qua state
-  const paymentData = state?.paymentData;
-  const orderItems = state?.orderItems || [];
+  const paymentData = paymentDataProp || state?.paymentData;
+  const orderItems = orderItemsProp || state?.orderItems || [];
 
   const totalAmount = paymentData?.amount || (orderItems.length > 0
     ? orderItems.reduce((sum, item) => sum + item.price, 0)
@@ -39,9 +43,8 @@ export default function PayosQR() {
     : `https://img.vietqr.io/image/${paymentData?.bin || "MB"}-${paymentData?.accountNumber || payosPaymentMock.accountNumber}-compact2.png?amount=${totalAmount}&addInfo=${encodeURIComponent(paymentData?.description || payosPaymentMock.transferContent)}&accountName=${encodeURIComponent(paymentData?.accountName || payosPaymentMock.accountHolder)}`;
 
   const breadcrumbItems = [
-    { label: "Trang chủ", href: "/", icon: Home },
     { label: "Thanh toán", href: "/checkout" },
-    { label: "PayOS QR", isLast: true }
+    { label: paymentData?.orderCode ? String(paymentData.orderCode) : "Mã đơn hàng", isLast: true }
   ];
 
   // Cơ chế Polling kiểm tra trạng thái thanh toán
@@ -121,35 +124,40 @@ export default function PayosQR() {
 
   const handleCancel = () => {
     setStatus("cancelled");
-    setTimeout(() => navigate("/checkout"), 1000);
+    if (onCancel) {
+      onCancel();
+      return;
+    }
+    navigate("/checkout", {
+      replace: true,
+      state: { orderItems },
+    });
   };
 
   return (
-    <PageContainer className="pb-20">
-      {/* Header */}
-      <section className="bg-muted py-12 text-white">
-        <div className="app-container">
-          <AppBreadcrumb
-            paths={breadcrumbItems}
-          />
-          <h1 className="text-3xl md:text-4xl font-extrabold uppercase tracking-tight">
-            Thanh toán đơn hàng {paymentData?.orderCode ? `#${paymentData.orderCode}` : ""}
-          </h1>
-          <p className="text-muted-foreground mt-2 font-medium">
-            Quét mã QR hoặc chuyển khoản theo thông tin bên dưới để hoàn tất đơn hàng.
-          </p>
-        </div>
-      </section>
+    <PageContainer className={embedded ? "min-h-0 pb-0" : "pb-20"}>
+      <PageContainer.Content
+        disableContainer={embedded}
+        className={embedded ? "gap-y-0 p-0" : "gap-y-0 pt-6 md:gap-y-0 md:pt-12"}
+      >
+        {!embedded && (
+          <>
+            <AppBreadcrumb paths={breadcrumbItems} className="mb-8" />
+            <AppPageHeader
+              title={`Thanh toán đơn hàng${paymentData?.orderCode ? ` #${paymentData.orderCode}` : ""}`}
+              description="Quét mã QR hoặc chuyển khoản theo thông tin bên dưới để hoàn tất đơn hàng."
+              titleClassName="text-3xl font-bold md:text-4xl"
+            />
+          </>
+        )}
 
-      {/* Main Content */}
-      <main className="app-container mt-[-40px]">
-        <Card className="border-none shadow-xl bg-card overflow-hidden max-w-4xl mx-auto">
+        <Card appVariant="default" className={`mx-auto w-full gap-0 overflow-hidden py-0 shadow-none ${embedded ? "max-w-none border-0" : "max-w-4xl"}`}>
           <CardContent className="p-0">
             <div className="grid grid-cols-1 md:grid-cols-5">
               {/* Left: QR Code */}
               <div className="md:col-span-2 p-6 sm:p-8 flex flex-col items-center justify-center bg-muted border-b md:border-b-0 md:border-r border-border">
                 {/* QR Image */}
-                <div className="w-56 h-56 sm:w-60 sm:h-60 bg-white rounded-2xl shadow-lg p-3 border border-border">
+                <div className="h-56 w-56 rounded-xl border border-border bg-white p-3 sm:h-60 sm:w-60">
                   <img
                     src={dynamicQrCodeUrl}
                     alt="QR Code thanh toán"
@@ -168,7 +176,7 @@ export default function PayosQR() {
                   href={paymentData?.checkoutUrl || "#"}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm text-primary hover:underline font-medium mt-3 flex items-center gap-1"
+                  className="mt-3 flex items-center gap-1 text-sm font-bold text-primary hover:underline"
                 >
                   Hoặc thanh toán qua trình duyệt
                   <ExternalLink className="w-3.5 h-3.5" />
@@ -188,7 +196,7 @@ export default function PayosQR() {
 
               {/* Right: Payment Info */}
               <div className="md:col-span-3 p-6 sm:p-8">
-                <h2 className="text-xl sm:text-2xl font-extrabold text-foreground mb-6">
+                <h2 className="mb-6 text-xl font-bold text-foreground sm:text-2xl">
                   Thanh toán đơn hàng
                 </h2>
 
@@ -196,7 +204,7 @@ export default function PayosQR() {
                 <div className="space-y-4">
                   {/* Ngân hàng */}
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground font-medium">Ngân hàng</span>
+                    <span className="text-sm font-normal text-muted-foreground">Ngân hàng</span>
                     <span className="text-sm font-bold text-foreground">{paymentData?.bin === "970422" ? "MB Bank" : "Ngân hàng đối tác"}</span>
                   </div>
 
@@ -204,18 +212,17 @@ export default function PayosQR() {
 
                   {/* Số tài khoản */}
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground font-medium">Số tài khoản</span>
+                    <span className="text-sm font-normal text-muted-foreground">Số tài khoản</span>
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-bold text-foreground tracking-wide">
                         {paymentData?.accountNumber || payosPaymentMock.accountNumber}
                       </span>
-                      <Button
-                        variant="ghost"
+                      <AppIconButton
+                        icon={Copy}
+                        aria-label="Sao chép số tài khoản"
                         onClick={() => copyToClipboard(paymentData?.accountNumber || payosPaymentMock.accountNumber, "số tài khoản")}
-                        className="text-muted-foreground hover:text-primary transition-colors p-1 rounded hover:bg-primary/5"
-                      >
-                        <Copy className="w-4 h-4" />
-                      </Button>
+                        className="!size-8 !bg-accent !text-white shadow-none hover:!bg-accent/90 hover:!text-white"
+                      />
                     </div>
                   </div>
 
@@ -223,7 +230,7 @@ export default function PayosQR() {
 
                   {/* Chủ tài khoản */}
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground font-medium">Chủ tài khoản</span>
+                    <span className="text-sm font-normal text-muted-foreground">Chủ tài khoản</span>
                     <span className="text-sm font-bold text-foreground">
                       {paymentData?.accountName || payosPaymentMock.accountHolder}
                     </span>
@@ -233,8 +240,8 @@ export default function PayosQR() {
 
                   {/* Số tiền */}
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground font-medium">Số tiền</span>
-                    <span className="text-lg font-black text-primary">
+                    <span className="text-sm font-normal text-muted-foreground">Số tiền</span>
+                    <span className="text-gradient-button text-lg font-bold">
                       {totalAmount.toLocaleString()}{" "}
                       <span className="text-sm font-bold">VNĐ</span>
                     </span>
@@ -244,18 +251,17 @@ export default function PayosQR() {
 
                   {/* Nội dung */}
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground font-medium">Nội dung</span>
+                    <span className="text-sm font-normal text-muted-foreground">Nội dung</span>
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-bold text-foreground">
                         {paymentData?.description || payosPaymentMock.transferContent}
                       </span>
-                      <Button
-                        variant="ghost"
+                      <AppIconButton
+                        icon={Copy}
+                        aria-label="Sao chép nội dung chuyển khoản"
                         onClick={() => copyToClipboard(paymentData?.description || payosPaymentMock.transferContent, "nội dung")}
-                        className="text-muted-foreground hover:text-primary transition-colors p-1 rounded hover:bg-primary/5"
-                      >
-                        <Copy className="w-4 h-4" />
-                      </Button>
+                        className="!size-8 !bg-accent !text-white shadow-none hover:!bg-accent/90 hover:!text-white"
+                      />
                     </div>
                   </div>
                 </div>
@@ -272,27 +278,32 @@ export default function PayosQR() {
 
                 {/* Action Buttons */}
                 <div className="mt-6 flex flex-col sm:flex-row gap-3">
-                  <Button
-                    variant="outline"
+                  <AppButton
+                    appVariant="accent"
                     onClick={handleCancel}
-                    className="flex-1 h-12 text-error border-error/20 hover:bg-error-soft hover:text-error font-bold rounded-xl"
+                    className="h-12 flex-1 rounded-xl border border-error bg-error font-bold text-error-foreground hover:bg-error/90 hover:text-error-foreground"
                   >
                     Hủy thanh toán
-                  </Button>
-                  <Button
-                    variant="outline"
-                    disabled
-                    className="flex-1 h-12 font-bold rounded-xl border-warning/20 text-warning bg-warning-soft gap-2"
+                  </AppButton>
+                  <AppButton
+                    appVariant="ghostMuted"
+                    type="button"
+                    aria-disabled="true"
+                    tabIndex={-1}
+                    className="pointer-events-none h-12 flex-1 gap-2 rounded-xl border border-warning bg-transparent font-bold text-warning opacity-100"
                   >
-                    <span className="w-2.5 h-2.5 rounded-full bg-warning/10 text-warning animate-pulse" />
+                    <span className="relative flex size-3" aria-hidden="true">
+                      <span className="absolute inline-flex size-full animate-ping rounded-full bg-warning opacity-75" />
+                      <span className="relative inline-flex size-3 rounded-full bg-warning" />
+                    </span>
                     Đang chờ thanh toán
-                  </Button>
+                  </AppButton>
                 </div>
               </div>
             </div>
           </CardContent>
         </Card>
-      </main>
+      </PageContainer.Content>
     </PageContainer>
   );
 }

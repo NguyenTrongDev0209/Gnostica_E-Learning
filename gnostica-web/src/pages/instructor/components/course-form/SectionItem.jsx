@@ -226,6 +226,7 @@ export function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActi
               title: "",
               content: "",
               videoFile: null,
+              metadata: null,
               status: currentSectionStatus,
               createdAt: new Date().toISOString(),
               updatedAt: null
@@ -327,6 +328,13 @@ export function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActi
                         onChange={(val) => {
                           field.onChange(val);
                           setValue(`sections.${sectionIndex}.lessons.${lessonIdx}.videoUrl`, val);
+                        }}
+                        onMetadata={(metadata) => {
+                          setValue(
+                            `sections.${sectionIndex}.lessons.${lessonIdx}.metadata`,
+                            JSON.stringify(metadata),
+                            { shouldDirty: true }
+                          );
                         }}
                         onUploadStart={() => setActiveUploads(prev => prev + 1)}
                         onUploadEnd={() => setActiveUploads(prev => prev - 1)}

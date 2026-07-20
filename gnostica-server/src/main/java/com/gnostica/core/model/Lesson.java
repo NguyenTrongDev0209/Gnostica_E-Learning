@@ -5,6 +5,8 @@ import lombok.*;
 import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import jakarta.validation.constraints.*;
 
 @Data
@@ -37,6 +39,10 @@ public class Lesson {
 
     @Size(max = 255)
     private String videoUrl;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "JSONB")
+    private String metadata;
 
     @NotNull
     private Integer versionNumber;

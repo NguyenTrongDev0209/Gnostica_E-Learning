@@ -23,6 +23,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class PayOSPaymentStrategy implements PaymentStrategy {
 
+    private static final int PAYOS_DESCRIPTION_MAX_LENGTH = 25;
+
     private final PayOS payOS;
     private final OrderDetailRepository orderDetailRepository;
 
@@ -36,10 +38,12 @@ public class PayOSPaymentStrategy implements PaymentStrategy {
                 .price((long) d.getPrice().doubleValue())
                 .build()).collect(Collectors.toList());
 
+        String description = limitDescription("DH " + order.getOrderCode());
+
         CreatePaymentLinkRequest paymentData = CreatePaymentLinkRequest.builder()
                 .orderCode(order.getOrderCode())
                 .amount((long) order.getTotalPrice().doubleValue())
-                .description("Thanh toan don hang " + order.getId())
+                .description(description)
                 .items(items)
                 .returnUrl(returnUrl != null && !returnUrl.isEmpty() ? returnUrl : "http://localhost:5173/payment/success")
                 .cancelUrl(cancelUrl != null && !cancelUrl.isEmpty() ? cancelUrl : "http://localhost:5173/payment/cancel")
@@ -123,5 +127,12 @@ public class PayOSPaymentStrategy implements PaymentStrategy {
         } catch (Exception ignored) {
             return null;
         }
+    }
+
+    private String limitDescription(String description) {
+        if (description == null || description.length() <= PAYOS_DESCRIPTION_MAX_LENGTH) {
+            return description;
+        }
+        return description.substring(0, PAYOS_DESCRIPTION_MAX_LENGTH);
     }
 }
