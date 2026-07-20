@@ -363,7 +363,7 @@ export const CourseCardHorizontal = ({
  *  - post: { id, title, content, author: { name, avatar, status }, category, tags, createdAt, stats: { replies, views, likes }, isHot }
  *  - className
  */
-export const ForumPostCard = ({ post, className, displayMode = "compact" }) => {
+export const ForumPostCard = ({ post, className, displayMode = "compact", topicContext = false }) => {
   const currentUser = useAuthStore(state => state.user);
   const isPending = post?.status === 1 || post?.status === 3;
   const [voteScore, setVoteScore] = React.useState(post?.voteScore || 0);
@@ -388,6 +388,7 @@ export const ForumPostCard = ({ post, className, displayMode = "compact" }) => {
   const topicInitial = topicName.trim().substring(0, 1).toUpperCase() || "G";
   const topicSlug = post.topic?.slug || post.topicSlug;
   const postUrl = topicSlug ? `/forum/${topicSlug}/${post.slug || post.id}` : `/forum/${post.slug || post.id}`;
+  const topicUrl = topicSlug ? `/forum/topic/${topicSlug}` : "/forum";
 
   const handleLike = async (e) => {
     e.preventDefault();
@@ -474,48 +475,75 @@ export const ForumPostCard = ({ post, className, displayMode = "compact" }) => {
   };
 
   return (
-    <Link to={postUrl} className="block">
+    <div className="block">
       <AppCard appVariant="default" className={cn("hover:border-primary/50 transition-colors bg-card overflow-hidden group cursor-pointer p-0 gap-0", className)}>
         <AppCardContent className="p-4 sm:p-5">
           <div className="flex items-start gap-4">
             {/* Avatar - ẩn trên mobile nhỏ */}
             <div className="hidden sm:block shrink-0 -mt-2">
-              <div
-                className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-md border border-border bg-primary/10 text-sm font-bold text-primary shadow-sm ring-2 ring-transparent transition-all group-hover:ring-primary/20"
-                title={topicName}
-                aria-label={`Chủ đề ${topicName}`}
-              >
-                {topicAvatar ? (
-                  <img
-                    src={topicAvatar}
-                    alt={topicName}
-                    className="h-full w-full object-cover"
-                    loading="lazy"
-                    decoding="async"
-                  />
-                ) : (
-                  <span>{topicInitial}</span>
-                )}
-              </div>
+              {topicContext ? (
+                <AppAvatar
+                  size="lg"
+                  className="ring-2 ring-transparent transition-all group-hover:ring-primary/20"
+                  src={post.author.avatar}
+                  alt={post.author.name}
+                  online={post.author.status === 'online'}
+                />
+              ) : (
+                <Link
+                  to={topicUrl}
+                  className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-md border border-border bg-primary/10 text-sm font-bold text-primary shadow-sm ring-2 ring-transparent transition-all hover:ring-primary/30"
+                  title={topicName}
+                  aria-label={`Topic ${topicName}`}
+                >
+                  {topicAvatar ? (
+                    <img
+                      src={topicAvatar}
+                      alt={topicName}
+                      className="h-full w-full object-cover"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  ) : (
+                    <span>{topicInitial}</span>
+                  )}
+                </Link>
+              )}
             </div>
 
             {/* Content */}
             <div className="flex-1 min-w-0">
               {/* Meta */}
               <div className="flex items-center gap-2 mb-2 text-sm text-muted-foreground flex-wrap">
-                <span className="font-semibold text-primary">{post.category}</span>
-                <span>•</span>
+                {!topicContext && (
+                  <>
+                    <Link to={topicUrl} className="font-semibold text-primary hover:text-primary/80">
+                      {post.category}
+                    </Link>
+                    <span>•</span>
+                  </>
+                )}
                 <span className="flex items-center gap-1">
-                  <span
-                    className="flex h-4 w-4 items-center justify-center overflow-hidden rounded-sm border border-border bg-primary/10 text-[10px] font-bold text-primary sm:hidden"
-                    title={topicName}
-                  >
-                    {topicAvatar ? (
-                      <img src={topicAvatar} alt={topicName} className="h-full w-full object-cover" loading="lazy" decoding="async" />
-                    ) : (
-                      topicInitial
-                    )}
-                  </span>
+                  {topicContext ? (
+                    <AppAvatar
+                      size="sm"
+                      className="h-4 w-4 sm:hidden"
+                      src={post.author.avatar}
+                      alt={post.author.name}
+                    />
+                  ) : (
+                    <Link
+                      to={topicUrl}
+                      className="flex h-4 w-4 items-center justify-center overflow-hidden rounded-sm border border-border bg-primary/10 text-[10px] font-bold text-primary sm:hidden"
+                      title={topicName}
+                    >
+                      {topicAvatar ? (
+                        <img src={topicAvatar} alt={topicName} className="h-full w-full object-cover" loading="lazy" decoding="async" />
+                      ) : (
+                        topicInitial
+                      )}
+                    </Link>
+                  )}
                   <span className="font-medium text-foreground">{post.author.name}</span>
                 </span>
                 <span>•</span>
@@ -527,7 +555,9 @@ export const ForumPostCard = ({ post, className, displayMode = "compact" }) => {
 
               {/* Title */}
               <h3 className="text-lg font-bold text-foreground mb-1 group-hover:text-primary transition-colors flex items-center gap-2">
-                <span className="line-clamp-2">{post.title}</span>
+                <Link to={postUrl} className="line-clamp-2 hover:text-primary">
+                  {post.title}
+                </Link>
               </h3>
 
               {/* Content */}
@@ -536,7 +566,9 @@ export const ForumPostCard = ({ post, className, displayMode = "compact" }) => {
                   <RenderContent text={post.rawContent || post.content} />
                 </div>
               ) : (
-                <p className="mb-3 text-base text-muted-foreground line-clamp-2 sm:-ml-14">{post.content}</p>
+                <Link to={postUrl} className="mb-3 block text-base text-muted-foreground line-clamp-2 hover:text-foreground sm:-ml-14">
+                  {post.content}
+                </Link>
               )}
 
               {/* Tags & Stats */}
@@ -622,18 +654,18 @@ export const ForumPostCard = ({ post, className, displayMode = "compact" }) => {
 
             {/* Right Image Thumbnail */}
             {post.images && post.images.length > 0 && (
-              <div className="hidden md:block w-32 h-24 shrink-0 rounded-md overflow-hidden border border-border mt-1">
+              <Link to={postUrl} className="hidden md:block w-32 h-24 shrink-0 rounded-md overflow-hidden border border-border mt-1">
                 <img
                   src={post.images[0].imageUrl}
                   alt="preview"
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                 />
-              </div>
+              </Link>
             )}
           </div>
         </AppCardContent>
       </AppCard>
-    </Link>
+    </div>
   );
 };
 

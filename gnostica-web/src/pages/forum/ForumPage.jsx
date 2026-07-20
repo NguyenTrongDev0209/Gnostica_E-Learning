@@ -113,15 +113,14 @@ const ForumSidebar = ({ categories, activeCategory, setActiveCategory, currentUs
                   Tất cả chủ đề
                 </button>
                 {categories.map((category) => (
-                  <button
+                  <Link
                     key={category.id}
-                    type="button"
-                    onClick={() => setActiveCategory(category.name)}
+                    to={`/forum/topic/${category.slug}`}
                     className={`flex items-center justify-between rounded-md px-3 py-2 text-left text-sm ${activeCategory === category.name ? "font-semibold text-primary" : "text-muted-foreground hover:bg-muted"}`}
                   >
                     <span className="truncate pr-2">{category.name}</span>
                     <span className="text-xs">{category.threadCount || 0}</span>
-                  </button>
+                  </Link>
                 ))}
               </div>
             )}

@@ -46,6 +46,9 @@ public class ForumCategoryController {
                     .description(topic.getDescription())
                     .avatarUrl(topic.getAvatarUrl())
                     .bannerUrl(topic.getBannerUrl())
+                    .ownerName(topic.getAccount() != null ? topic.getAccount().getFullName() : null)
+                    .ownerEmail(topic.getAccount() != null ? topic.getAccount().getEmail() : null)
+                    .ownerAvatar(topic.getAccount() != null ? topic.getAccount().getAvatar() : null)
                     .status(topic.getStatus() != null && topic.getStatus() == 1)
                     .threadCount(count)
                     .build();
@@ -78,6 +81,9 @@ public class ForumCategoryController {
                 .description(saved.getDescription())
                 .avatarUrl(saved.getAvatarUrl())
                 .bannerUrl(saved.getBannerUrl())
+                .ownerName(saved.getAccount() != null ? saved.getAccount().getFullName() : null)
+                .ownerEmail(saved.getAccount() != null ? saved.getAccount().getEmail() : null)
+                .ownerAvatar(saved.getAccount() != null ? saved.getAccount().getAvatar() : null)
                 .status(saved.getStatus() == 1)
                 .threadCount(0L)
                 .build());
@@ -107,6 +113,9 @@ public class ForumCategoryController {
                 .description(saved.getDescription())
                 .avatarUrl(saved.getAvatarUrl())
                 .bannerUrl(saved.getBannerUrl())
+                .ownerName(saved.getAccount() != null ? saved.getAccount().getFullName() : null)
+                .ownerEmail(saved.getAccount() != null ? saved.getAccount().getEmail() : null)
+                .ownerAvatar(saved.getAccount() != null ? saved.getAccount().getAvatar() : null)
                 .status(saved.getStatus() == 1)
                 .threadCount(count)
                 .build());

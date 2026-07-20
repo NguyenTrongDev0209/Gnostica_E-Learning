@@ -347,7 +347,7 @@ const ForumDetail = () => {
 
   const topicName = getTopicName(post);
   const topicSlug = getTopicSlug(post);
-  const topicHref = topicSlug ? `/forum?topic=${encodeURIComponent(topicSlug)}` : "/forum";
+  const topicHref = topicSlug ? `/forum/topic/${topicSlug}` : "/forum";
   const viewCount = post.viewCount ?? post.views ?? 0;
   const breadcrumbItems = [
     { label: "Diễn đàn", href: "/forum" },

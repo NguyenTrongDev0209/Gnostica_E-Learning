@@ -5,6 +5,7 @@ import CourseCategory from "@/pages/course/CourseCategory";
 import CourseDetail from "@/pages/course/CourseDetail";
 import SearchPage from "@/pages/course/SearchPage";
 import ForumPage from "@/pages/forum/ForumPage";
+import ForumTopicPage from "@/pages/forum/ForumTopicPage";
 import ForumDetail from "@/pages/forum/ForumDetail";
 import UserProfile from "@/pages/general/UserProfile";
 import TermsPage from "@/pages/general/TermsPage";
@@ -30,6 +31,7 @@ export const publicRoutes = {
     { path: "/courses/:slug", component: CourseDetail },
     { path: "/search", component: SearchPage },
     { path: "/forum", component: ForumPage },
+    { path: "/forum/topic/:topicSlug", component: ForumTopicPage },
     { path: "/forum/:topicSlug/:slug", component: ForumDetail },
     { path: "/forum/:slug", component: ForumDetail },
     { path: "/profile/:id", component: UserProfile },

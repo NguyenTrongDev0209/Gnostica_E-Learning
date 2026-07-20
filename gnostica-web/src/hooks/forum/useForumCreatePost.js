@@ -1,15 +1,16 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import threadService from '@/services/forum/threadService';
 import forumCategoryService from '@/services/forum/forumCategoryService';
 import { toast } from "sonner";
 
 export default function useForumCreatePost() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [categoryId, setCategoryId] = useState('');
+  const [categoryId, setCategoryId] = useState(location.state?.topicId || '');
   const [hashtags, setHashtags] = useState([]); // array of tag strings
   const [tagInput, setTagInput] = useState('');
   const [errors, setErrors] = useState({});
@@ -23,6 +24,12 @@ export default function useForumCreatePost() {
     },
     staleTime: 1000 * 60 * 30, // 30 min cache
   });
+
+  useEffect(() => {
+    if (location.state?.topicId) {
+      setCategoryId(location.state.topicId);
+    }
+  }, [location.state?.topicId]);
 
   const validateForm = () => {
     const newErrors = {};
