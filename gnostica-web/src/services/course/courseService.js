@@ -91,15 +91,26 @@ const deleteDraft = async ({ courseId, slug } = {}) => {
     return response.data;
 };
 
-const getPublicCourses = async ({ categoryId, categorySlug, level, search, page = 0, size = 9 } = {}) => {
+const getPublicCourses = async ({ categoryId, categorySlug, categorySlugs, level, levels, minPrice, maxPrice, search, page = 0, size = 9, signal } = {}) => {
     const params = { page, size };
     if (categoryId) params.categoryId = categoryId;
-    if (categorySlug) params.categorySlug = categorySlug;
-    if (level && level !== 'all') params.level = level;
+    const normalizedCategorySlugs = categorySlugs?.length ? categorySlugs : (categorySlug ? [categorySlug] : []);
+    const normalizedLevels = levels?.length ? levels : (level && level !== 'all' ? [level] : []);
+    if (normalizedCategorySlugs.length) params.categorySlug = normalizedCategorySlugs.join(',');
+    if (normalizedLevels.length) params.level = normalizedLevels.join(',');
+    if (Number.isFinite(minPrice)) params.minPrice = minPrice;
+    if (Number.isFinite(maxPrice)) params.maxPrice = maxPrice;
     if (search && search.trim() !== "") params.search = search.trim();
 
-    const response = await axiosClient.get(API_URL, { params });
-    return response.data;
+    const response = await axiosClient.get(API_URL, { params, signal });
+    const data = response.data || {};
+    return {
+        ...data,
+        totalElements: data.totalElements ?? data.page?.totalElements ?? 0,
+        totalPages: data.totalPages ?? data.page?.totalPages ?? 0,
+        number: data.number ?? data.page?.number ?? page,
+        size: data.size ?? data.page?.size ?? size,
+    };
 };
 
 const getPublicLevels = async () => {

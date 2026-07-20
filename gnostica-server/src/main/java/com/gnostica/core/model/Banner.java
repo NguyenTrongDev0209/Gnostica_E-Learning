@@ -24,10 +24,15 @@ public class Banner {
     private String title;
 
     @NotBlank
-    @Size(max = 255)
+    @Size(max = 1000)
+    @Column(length = 1000)
     private String imageUrl;
 
     @Size(max = 255)
+    private String altText;
+
+    @Size(max = 1000)
+    @Column(length = 1000)
     private String linkUrl;
 
     @Size(max = 50)

@@ -1,6 +1,11 @@
 package com.gnostica.modules.payment.service.impl;
 
 import com.gnostica.modules.payment.dto.response.PaymentLinkResponse;
+import com.gnostica.modules.payment.dto.response.PaymentDetails;
+import com.gnostica.modules.payment.dto.response.PaymentWebhookData;
+import com.gnostica.modules.payment.dto.response.VNPayIpnResponse;
+import com.gnostica.core.constant.OrderStatus;
+import com.gnostica.core.constant.PaymentStatus;
 import com.gnostica.core.event.PaymentSuccessEvent;
 import com.gnostica.core.model.Order;
 import com.gnostica.core.model.Payment;
@@ -16,7 +21,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import vn.payos.model.webhooks.WebhookData;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -49,7 +53,7 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public WebhookData verifyWebhook(String gateway, Object body) throws Exception {
+    public PaymentWebhookData verifyWebhook(String gateway, Object body) throws Exception {
         PaymentStrategy strategy = paymentStrategyFactory.getStrategy(gateway);
         return strategy.verifyWebhook(body);
     }
@@ -57,11 +61,11 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     @Transactional
     public void checkPaymentStatus(Order order) throws Exception {
-        if (order == null || order.getStatus() == 1) {
+        if (order == null || order.getStatus() == OrderStatus.PAID) {
             return;
         }
 
-        PaymentStrategy strategy = paymentStrategyFactory.getStrategy("PAYOS");
+        PaymentStrategy strategy = paymentStrategyFactory.getStrategy(order.getPaymentMethod());
         boolean isPaid = strategy.checkPaymentStatus(order);
 
         if (isPaid) {
@@ -70,7 +74,7 @@ public class PaymentServiceImpl implements PaymentService {
 
             // Lấy thêm details từ PayOS để lưu transaction với bank info
             try {
-                vn.payos.model.v2.paymentRequests.PaymentLink paymentLink = strategy.getPaymentDetails(order);
+                PaymentDetails paymentLink = strategy.getPaymentDetails(order);
                 if (paymentLink != null) {
                     saveTransactionFromPolling(paymentLink, order);
                 }
@@ -82,14 +86,14 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     @Transactional
-    public void handlePaymentWebhook(WebhookData data) {
+    public void handlePaymentWebhook(PaymentWebhookData data) {
         Long orderCode = data.getOrderCode();
         log.info("Webhook triggered for orderCode: {}", orderCode);
 
         Order order = orderRepository.findByOrderCode(orderCode)
                 .orElse(null);
 
-        if (order != null && order.getStatus() == 0) {
+        if (order != null && order.getStatus() == OrderStatus.PENDING) {
             processSuccessfulOrder(order);
             saveTransaction(data, order);
             log.info("Payment processed successfully for order: {}", order.getId());
@@ -99,11 +103,11 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     @Transactional
     public void processSuccessfulOrder(Order order) {
-        if (order == null || order.getStatus() == 1) {
+        if (order == null || order.getStatus() == OrderStatus.PAID) {
             return;
         }
 
-        order.setStatus(1);
+        order.setStatus(OrderStatus.PAID);
         orderRepository.save(order);
 
         eventPublisher.publishEvent(new PaymentSuccessEvent(this, order, order.getTotalPrice()));
@@ -111,39 +115,101 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     @Transactional
-    public void saveTransaction(WebhookData data, Order order) {
+    public void saveTransaction(PaymentWebhookData data, Order order) {
         // Tránh tạo transaction trùng lặp
-        boolean paymentExists = paymentRepository.existsByTransactionCode(data.getPaymentLinkId());
+        String gateway = data.getGateway() != null ? data.getGateway() : order.getPaymentMethod();
+        boolean paymentExists = paymentRepository.existsByGatewayAndGatewayTransactionNo(
+                gateway, data.getTransactionCode());
         if (paymentExists) {
             return;
         }
 
         Payment payment = new Payment();
-        payment.setTransactionCode(data.getPaymentLinkId());
+        payment.setTransactionCode(data.getTransactionCode());
         payment.setAmount(BigDecimal.valueOf(data.getAmount()));
-        payment.setStatus(2); // 2: Success
+        payment.setStatus(PaymentStatus.SUCCESS);
         payment.setAccountNumber(data.getAccountNumber());
-        payment.setSenderBankBin(getBinFromCitad(data.getCounterAccountBankId()));
-        payment.setSenderAccountNumber(data.getCounterAccountNumber());
+        payment.setSenderBankBin(getBinFromCitad(data.getSenderBankCode()));
+        payment.setSenderAccountNumber(data.getSenderAccountNumber());
+        payment.setGateway(gateway);
+        payment.setGatewayTransactionNo(data.getTransactionCode());
+        payment.setBankCode(data.getBankCode());
+        payment.setCardType(data.getCardType());
+        payment.setGatewayResponseCode(data.getResponseCode());
+        payment.setGatewayTransactionStatus(data.getTransactionStatus());
+        payment.setPaidAt(data.getPaidAt() != null ? data.getPaidAt() : LocalDateTime.now());
+        payment.setRawCallback(data.getRawCallback());
         payment.setOrder(order);
 
         paymentRepository.save(payment);
     }
 
+    @Override
     @Transactional
-    public void saveTransactionFromPolling(vn.payos.model.v2.paymentRequests.PaymentLink link, Order order) {
+    public VNPayIpnResponse handleVNPayIpn(Map<String, String> parameters) {
+        PaymentWebhookData data;
+        try {
+            data = paymentStrategyFactory.getStrategy("VNPAY").verifyWebhook(parameters);
+        } catch (IllegalArgumentException exception) {
+            log.warn("Rejected VNPay IPN: {}", exception.getMessage());
+            if (exception.getMessage() != null
+                    && (exception.getMessage().contains("signature") || exception.getMessage().contains("merchant"))) {
+                return VNPayIpnResponse.invalidSignature();
+            }
+            return VNPayIpnResponse.invalidRequest();
+        } catch (Exception exception) {
+            log.error("Unable to verify VNPay IPN", exception);
+            return VNPayIpnResponse.invalidRequest();
+        }
+
+        Order order = orderRepository.findByOrderCodeForUpdate(data.getOrderCode()).orElse(null);
+        if (order == null || !"VNPAY".equalsIgnoreCase(order.getPaymentMethod())) {
+            return VNPayIpnResponse.orderNotFound();
+        }
+        if (order.getStatus() == OrderStatus.PAID) {
+            return VNPayIpnResponse.alreadyProcessed();
+        }
+        if (data.getAmount() == null
+                || order.getTotalPrice().compareTo(BigDecimal.valueOf(data.getAmount())) != 0) {
+            return VNPayIpnResponse.invalidAmount();
+        }
+        if (!"PAID".equals(data.getStatus())) {
+            log.info("VNPay reported non-successful transaction for order {}", order.getId());
+            return VNPayIpnResponse.success();
+        }
+        if (data.getTransactionCode() == null || data.getTransactionCode().isBlank()) {
+            return VNPayIpnResponse.invalidRequest();
+        }
+
+        processSuccessfulOrder(order);
+        saveTransaction(data, order);
+        log.info("VNPay payment processed successfully for order {}", order.getId());
+        return VNPayIpnResponse.success();
+    }
+
+    @Transactional
+    public void saveTransactionFromPolling(PaymentDetails link, Order order) {
         // Tránh tạo transaction trùng lặp (bỏ qua giao dịch REVENUE)
-        boolean paymentExists = paymentRepository.existsByTransactionCode(String.valueOf(link.getOrderCode()));
+        String gateway = link.getGateway() != null ? link.getGateway() : order.getPaymentMethod();
+        boolean paymentExists = paymentRepository.existsByGatewayAndGatewayTransactionNo(
+                gateway, link.getTransactionCode());
 
         if (paymentExists) {
             return;
         }
 
         Payment payment = new Payment();
-        payment.setTransactionCode(String.valueOf(link.getOrderCode()));
-        payment.setAmount(BigDecimal.valueOf(link.getAmountPaid()));
+        payment.setTransactionCode(link.getTransactionCode());
+        payment.setAmount(BigDecimal.valueOf(link.getAmount()));
         payment.setStatus(2); // 2: Thành công
         payment.setOrder(order);
+        payment.setGateway(gateway);
+        payment.setGatewayTransactionNo(link.getTransactionCode());
+        payment.setBankCode(link.getBankCode());
+        payment.setCardType(link.getCardType());
+        payment.setGatewayResponseCode(link.getResponseCode());
+        payment.setGatewayTransactionStatus(link.getTransactionStatus());
+        payment.setPaidAt(link.getPaidAt() != null ? link.getPaidAt() : LocalDateTime.now());
 
         // Lấy thông tin người chuyển từ transaction cuối cùng của link (nếu có)
         if (link.getTransactions() != null && !link.getTransactions().isEmpty()) {

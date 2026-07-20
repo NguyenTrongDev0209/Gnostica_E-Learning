@@ -1,35 +1,38 @@
-import { mockPlatformStats, mockInstructors } from '@/mocks/home';
+import axiosClient from '@/lib/axiosClient';
+import courseService from '@/services/course/courseService';
+import categoryService from '@/services/course/categoryService';
 
-/**
- * Service cho trang chủ (Home Page)
- */
-
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
-export const getPlatformStats = async () => {
-    // Giả lập network request
-    await delay(500);
-    return mockPlatformStats;
-};
+const unwrapCategoryPage = (response) => response?.data?.content || response?.content || [];
 
 export const getInstructors = async () => {
-    try {
-        const response = await axiosClient.get('/instructors/list');
-        if (Array.isArray(response.data)) {
-            // Map backend response fields to the frontend structure
-            return response.data.map(inst => ({
-                id: inst.id,
-                name: inst.fullName,
-                avatar: inst.avatar || `https://i.pravatar.cc/300?u=${inst.email}`,
-                role: inst.title || 'Giảng viên',
-                students: inst.studentsCount,
-                courses: inst.coursesCount
-            }));
-        }
-        return [];
-    } catch (error) {
-        console.error("Lỗi khi tải danh sách giảng viên từ backend:", error);
-        // Trả về dữ liệu mock dự phòng nếu API gặp lỗi
-        return mockInstructors;
-    }
+    const response = await axiosClient.get('/instructors/list');
+    const instructors = Array.isArray(response.data) ? response.data : [];
+
+    return instructors.map((instructor) => ({
+        id: instructor.id,
+        name: instructor.fullName || instructor.email,
+        avatar: instructor.avatar || '/default-avatar.png',
+        role: instructor.title || 'Giảng viên',
+        students: Number(instructor.studentsCount || 0),
+        courses: Number(instructor.coursesCount || 0)
+    }));
+};
+
+export const getPlatformStats = async () => {
+    const [coursePage, instructors, categoryResponse] = await Promise.all([
+        courseService.getPublicCourses({ page: 0, size: 1 }),
+        getInstructors(),
+        categoryService.getAllCategories(1, 1000, '', 'active')
+    ]);
+
+    const courseCount = Number(coursePage?.page?.totalElements ?? coursePage?.totalElements ?? 0);
+    const studentCount = instructors.reduce((total, instructor) => total + instructor.students, 0);
+    const categories = unwrapCategoryPage(categoryResponse);
+
+    return [
+        { value: courseCount.toLocaleString('vi-VN'), label: 'Khóa học', iconName: 'BookOpen' },
+        { value: studentCount.toLocaleString('vi-VN'), label: 'Lượt học viên', iconName: 'Users' },
+        { value: instructors.length.toLocaleString('vi-VN'), label: 'Giảng viên', iconName: 'Award' },
+        { value: categories.length.toLocaleString('vi-VN'), label: 'Danh mục', iconName: 'Layers3' }
+    ];
 };

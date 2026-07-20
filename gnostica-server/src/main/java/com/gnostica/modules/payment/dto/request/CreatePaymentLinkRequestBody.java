@@ -17,4 +17,5 @@ public class CreatePaymentLinkRequestBody {
   private Long price;
   private String cancelUrl;
   private String couponCode;
+  private String paymentMethod;
 }

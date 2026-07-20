@@ -29,6 +29,8 @@ const MainHeader = ({
     flatCategories,
     categoryTree
 }) => {
+    const searchStorageScope = currentUser?.id || currentUser?.userId || currentUser?.username || "guest";
+
     // Hàm đệ quy để render menu danh mục đa cấp (Giới hạn tối đa 2 cấp)
     const renderCategoryItems = (items, depth = 1) => {
         return items.map((category) => {
@@ -75,12 +77,16 @@ const MainHeader = ({
                                 className="text-white"
                             />
                         </div>
-                        <AppLogo src="/Gnostica_Mark.webp" />
+                        <AppLogo />
                     </div>
 
                     {/* Search - Center */}
                     <div className="flex-[2] max-w-xl hidden lg:flex justify-center">
-                        <AppSearchInput className="w-full" />
+                        <AppSearchInput
+                            key={`desktop-search-${searchStorageScope}`}
+                            className="w-full"
+                            storageScope={searchStorageScope}
+                        />
                     </div>
 
                     {/* User Actions */}
@@ -91,7 +97,10 @@ const MainHeader = ({
                                 <AppUserMenu
                                     user={{
                                         name: currentUser.fullName || currentUser.username || "Người dùng",
-                                        avatar: currentUser.avatar || "https://github.com/shadcn.png"
+                                        avatar: currentUser.avatar || "https://github.com/shadcn.png",
+                                        role: currentUser.role || currentUser.roles?.[0],
+                                        roles: currentUser.roles,
+                                        token: currentUser.token
                                     }}
                                     onLogout={handleLogout}
                                 />
@@ -110,7 +119,11 @@ const MainHeader = ({
                 {/* Mobile Menu Content (Inside sticky header to stay visible) */}
                 {isMenuOpen && (
                     <div className="lg:hidden border-t border-header-orange/10 bg-header-bg px-4 pb-8 animate-in slide-in-from-top-4 duration-300">
-                        <AppSearchInput className="mt-3 mb-2" />
+                        <AppSearchInput
+                            key={`mobile-search-${searchStorageScope}`}
+                            className="mt-3 mb-2"
+                            storageScope={searchStorageScope}
+                        />
                         <nav className="flex flex-col mt-4 text-header-text">
                             <Link to="/" className="py-3 border-b border-header-orange/5 font-bold text-lg">Trang chủ</Link>
                             <button

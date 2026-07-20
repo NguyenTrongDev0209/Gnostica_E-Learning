@@ -29,6 +29,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Locale;
+import java.util.Set;
+import com.gnostica.core.constant.OrderStatus;
 import java.util.List;
 import java.util.UUID;
 import java.math.BigDecimal;
@@ -38,6 +41,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class OrderService {
+    private static final Set<String> SUPPORTED_PAYMENT_METHODS = Set.of("PAYOS", "VNPAY");
     private final OrderRepository orderRepository;
     private final OrderDetailRepository orderDetailRepository;
     private final AccountRepository accountRepository;
@@ -81,12 +85,18 @@ public class OrderService {
         return mapToResponse(checkAndReturnOrder(order));
     }
 
+    public OrderResponse getOrderByOrderCode(Long orderCode) throws Exception {
+        Order order = orderRepository.findByOrderCode(orderCode)
+                .orElseThrow(() -> new IllegalArgumentException("Order not found with orderCode: " + orderCode));
+        return mapToResponse(checkAndReturnOrder(order));
+    }
+
     private Order checkAndReturnOrder(Order order) throws Exception {
         // 0: PENDING
         if (order.getStatus() == 0) {
             try {
                 paymentService.checkPaymentStatus(order);
-            } catch (RuntimeException e) {
+            } catch (Exception e) {
                 log.warn("Không thể kiểm tra trạng thái PayOS cho order {}: {}", order.getId(), e.getMessage());
             }
             return orderRepository.findById(order.getId()).orElse(order);
@@ -108,8 +118,10 @@ public class OrderService {
                 .orElseThrow(() -> new IllegalArgumentException("Course not found for ID: " + requestBody.getCourseId()));
 
         long orderCode = System.currentTimeMillis();
+        String paymentMethod = normalizePaymentMethod(requestBody.getPaymentMethod());
 
-        BigDecimal actualPrice = (requestBody.getPrice() != null) ? BigDecimal.valueOf(requestBody.getPrice()) : course.getSalePrice();
+        // The server is the source of truth for pricing. Never trust a client-submitted total.
+        BigDecimal actualPrice = course.getSalePrice();
         
         Coupon appliedCoupon = null;
         if (requestBody.getCouponCode() != null && !requestBody.getCouponCode().trim().isEmpty()) {
@@ -143,7 +155,7 @@ public class OrderService {
             }
         }
 
-        Order order = saveOrder(account, appliedCoupon, actualPrice, String.valueOf(orderCode));
+        Order order = saveOrder(account, appliedCoupon, actualPrice, String.valueOf(orderCode), paymentMethod);
         OrderDetail detail = saveOrderDetail(order, course, actualPrice);
 
         List<OrderDetail> details = new ArrayList<>();
@@ -152,7 +164,7 @@ public class OrderService {
 
         // If price is 0, we can bypass payment gateway
         if (actualPrice.compareTo(BigDecimal.ZERO) == 0) {
-            order.setStatus(2); // PAID
+            order.setStatus(OrderStatus.PAID);
             order.setPaymentMethod("FREE/COUPON");
             orderRepository.save(order);
             // Return a dummy link or custom response
@@ -168,13 +180,14 @@ public class OrderService {
         return paymentService.createPaymentLink(order, requestBody.getReturnUrl(), requestBody.getCancelUrl());
     }
 
-    private Order saveOrder(Account account, Coupon coupon, BigDecimal totalPrice, String transactionId) {
+    private Order saveOrder(Account account, Coupon coupon, BigDecimal totalPrice, String transactionId,
+            String paymentMethod) {
         Order order = new Order();
         order.setAccount(account);
         order.setCoupon(coupon);
         order.setTotalPrice(totalPrice);
-        order.setPaymentMethod("PAYOS"); // Default
-        order.setStatus(0); // 0: PENDING
+        order.setPaymentMethod(paymentMethod);
+        order.setStatus(OrderStatus.PENDING);
         try {
             order.setOrderCode(Long.parseLong(transactionId));
         } catch (NumberFormatException e) {
@@ -182,6 +195,16 @@ public class OrderService {
         }
         order.setCreatedAt(LocalDateTime.now());
         return orderRepository.save(order);
+    }
+
+    private String normalizePaymentMethod(String paymentMethod) {
+        String normalized = paymentMethod == null || paymentMethod.isBlank()
+                ? "PAYOS"
+                : paymentMethod.trim().toUpperCase(Locale.ROOT);
+        if (!SUPPORTED_PAYMENT_METHODS.contains(normalized)) {
+            throw new IllegalArgumentException("Unsupported payment method: " + paymentMethod);
+        }
+        return normalized;
     }
 
     private OrderDetail saveOrderDetail(Order order, Course course, BigDecimal actualPrice) {

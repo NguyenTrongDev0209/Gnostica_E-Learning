@@ -1,9 +1,10 @@
 import React from 'react'
-import { User, BookOpen, LogOut, ChevronDown } from "lucide-react"
+import { User, BookOpen, LogOut, ChevronDown, Settings } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { Link } from 'react-router-dom'
 import { cva } from "class-variance-authority"
+import { usePublicSiteConfig } from "@/hooks/settings/useSiteSettings"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -184,7 +185,28 @@ export const AppNavLink = ({ href = "#", children, onClick, className }) => {
   )
 }
 
+const resolveUserRole = (user) => {
+  let rawRole = user?.role?.name || user?.role || user?.roles?.[0]?.name || user?.roles?.[0] || "";
+
+  if (!rawRole && user?.token) {
+    try {
+      const payload = JSON.parse(window.atob(user.token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+      rawRole = payload.roles || payload.role || "";
+    } catch {
+      rawRole = "";
+    }
+  }
+
+  const roles = String(rawRole).split(',').map((role) => role.trim().replace(/^ROLE_/, '').toUpperCase());
+  if (roles.includes("ADMIN")) return "ADMIN";
+  if (roles.includes("INSTRUCTOR") || roles.includes("TEACHER")) return "INSTRUCTOR";
+  return "USER";
+};
+
 export const AppUserMenu = ({ user = { name: "Học viên", avatar: "https://github.com/shadcn.png" }, onLogout }) => {
+  const role = resolveUserRole(user);
+  const managementPath = role === "ADMIN" ? "/admin" : role === "INSTRUCTOR" ? "/instructor" : null;
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -207,6 +229,14 @@ export const AppUserMenu = ({ user = { name: "Học viên", avatar: "https://git
             Khóa học
           </Link>
         </DropdownMenuItem>
+        {managementPath && (
+          <DropdownMenuItem asChild className="px-4 py-2 cursor-pointer rounded-lg hover:bg-muted text-base font-semibold text-foreground focus:bg-muted focus:text-foreground">
+            <Link to={managementPath} className="flex items-center gap-3">
+              <Settings className="size-5 text-warning" />
+              Quản lý
+            </Link>
+          </DropdownMenuItem>
+        )}
         <div className="h-[2px] bg-secondary my-2 mx-2" />
         <DropdownMenuItem onClick={onLogout} className="px-4 py-2 cursor-pointer rounded-lg hover:bg-red-50 focus:bg-red-50 text-base font-bold text-error focus:text-error flex items-center gap-3">
           <LogOut className="size-5 text-error" />
@@ -217,15 +247,18 @@ export const AppUserMenu = ({ user = { name: "Học viên", avatar: "https://git
   )
 }
 
-export const AppLogo = ({ src = "/Gnostica_Mark.webp", className }) => {
+export const AppLogo = ({ src, className }) => {
+  const { data: siteConfig } = usePublicSiteConfig();
+  const resolvedSrc = src || siteConfig?.["site.logo_url"] || "/Gnostica_Mark.webp";
+  const siteName = siteConfig?.["site.name"] || "Gnostica";
   return (
     <Link
       to="/"
       className={cn("flex items-center h-10 md:h-10 hover:opacity-90 transition-opacity", className)}
     >
       <img
-        src={src}
-        alt="Gnostica Logo"
+        src={resolvedSrc}
+        alt={`${siteName} Logo`}
         className="h-full w-auto object-contain"
       />
     </Link>

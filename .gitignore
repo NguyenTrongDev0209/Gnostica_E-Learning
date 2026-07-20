@@ -55,6 +55,8 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+.pnpm-store/
+gnostica-web/.vite/
 
 # ==========================================
 # 4. MÔI TRƯỜNG & BẢO MẬT (Environment)

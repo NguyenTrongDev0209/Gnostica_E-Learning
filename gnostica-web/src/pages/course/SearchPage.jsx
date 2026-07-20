@@ -1,24 +1,17 @@
 import React, { useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useLocation, useParams, useSearchParams } from "react-router-dom";
 import PageContainer from "@/components/common/core/PageContainer";
 import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
 import { DataFilterSidebar } from "@/components/common/composite/DataFilter";
-import { CourseCardHorizontal } from "@/components/common/composite/CourseCard";
+import CourseCard, { CourseCardHorizontal } from "@/components/common/composite/CourseCard";
 import { AppSheetRoot as Sheet, AppSheetContent as SheetContent, AppSheetTrigger as SheetTrigger } from "@/components/common/micro/AppSheet";
 import { Button } from "@/components/common/micro/AppButton";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/common/micro/AppPagination";
-import { Home, Loader2, SearchX } from "lucide-react";
+import AppPagination from "@/components/common/micro/AppPagination";
+import { Loader2, SearchX } from "lucide-react";
 import { useSearch } from "@/hooks/course/useSearch";
 
 // ── CourseListSection ──
-function CourseListSection({
+export function CourseResultsLayout({
   courses = [],
   loading = false,
   categories = [],
@@ -29,32 +22,13 @@ function CourseListSection({
   emptyMessage,
   sectionTitle
 }) {
-  const renderPaginationItems = () => {
-    const items = [];
-    const { page, totalPages } = pagination;
-
-    for (let i = 0; i < totalPages; i++) {
-      items.push(
-        <PaginationItem key={i}>
-          <PaginationLink
-            onClick={() => onPageChange(i)}
-            isActive={page === i}
-            className="cursor-pointer"
-          >
-            {i + 1}
-          </PaginationLink>
-        </PaginationItem>
-      );
-    }
-    return items;
-  };
-
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
       {/* Sidebar Filters */}
       <aside className="hidden lg:block lg:col-span-3">
         <div className="sticky top-24">
           <DataFilterSidebar
+            key={`desktop-filter-${filters?.priceRange?.join("-")}`}
             categories={categories}
             selectedFilters={filters}
             onFilterChange={onFilterChange}
@@ -78,6 +52,7 @@ function CourseListSection({
             </SheetTrigger>
             <SheetContent side="right" className="w-[300px] sm:w-[400px] overflow-y-auto p-4 bg-muted border-l-slate-200">
               <DataFilterSidebar
+                key={`mobile-filter-${filters?.priceRange?.join("-")}`}
                 categories={categories}
                 selectedFilters={filters}
                 onFilterChange={onFilterChange}
@@ -122,27 +97,12 @@ function CourseListSection({
 
             {/* Pagination Controls */}
             {pagination.totalPages > 1 && (
-              <div className="mt-8">
-                <Pagination>
-                  <PaginationContent>
-                    <PaginationItem>
-                      <PaginationPrevious
-                        onClick={() => pagination.page > 0 && onPageChange(pagination.page - 1)}
-                        className={pagination.page === 0 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                      />
-                    </PaginationItem>
-
-                    {renderPaginationItems()}
-
-                    <PaginationItem>
-                      <PaginationNext
-                        onClick={() => pagination.page < pagination.totalPages - 1 && onPageChange(pagination.page + 1)}
-                        className={pagination.page === pagination.totalPages - 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                      />
-                    </PaginationItem>
-                  </PaginationContent>
-                </Pagination>
-              </div>
+              <AppPagination
+                className="mt-8"
+                currentPage={pagination.page + 1}
+                totalPages={pagination.totalPages}
+                onPageChange={(nextPage) => onPageChange(nextPage - 1)}
+              />
             )}
           </>
         ) : (
@@ -156,8 +116,9 @@ function CourseListSection({
               variant="outline"
               className="mt-6 font-bold border-border"
               onClick={() => {
-                onFilterChange("categoryId", null);
-                onFilterChange("level", "all");
+                onFilterChange("categorySlugs", []);
+                onFilterChange("levels", []);
+                onFilterChange("priceRange", [0, 2000000]);
               }}
             >
               Xóa các bộ lọc
@@ -170,28 +131,29 @@ function CourseListSection({
 }
 
 // ── Page ──
-const SearchPage = () => {
+const SearchPageContent = ({ categorySlug }) => {
   const [searchParams] = useSearchParams();
   const query = searchParams.get("q") || "";
 
   const [filters, setFilters] = useState({
-    level: "all",
-    categorySlug: null,
-    categoryId: null
+    levels: [],
+    categorySlugs: categorySlug ? [categorySlug] : [],
+    categoryId: null,
+    priceRange: [0, 2000000]
   });
   
   const [page, setPage] = useState(0);
-  const size = 9;
+  const size = 5;
 
-  const { courses, categories, loading, totalElements, totalPages } = useSearch(query, filters, { page, size });
+  const { courses, suggestedCourses, categories, loading, suggestionsLoading, totalElements, totalPages } = useSearch(query, filters, { page, size });
 
   const paginationInfo = { page, size, totalElements, totalPages };
 
   const handleFilterChange = (key, value) => {
     setFilters(prev => {
       const newFilters = { ...prev, [key]: value };
-      if (key === 'categorySlug' && value) newFilters.categoryId = null;
-      if (key === 'categoryId' && value) newFilters.categorySlug = null;
+      if (key === 'categorySlugs' && value?.length) newFilters.categoryId = null;
+      if (key === 'categoryId' && value) newFilters.categorySlugs = [];
       return newFilters;
     });
     setPage(0);
@@ -202,22 +164,25 @@ const SearchPage = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const breadcrumbItems = [
-    { label: "Trang chủ", href: "/", icon: Home },
-    { label: "Tìm kiếm", isLast: true }
-  ];
+  const displayCategory = categorySlug
+    ? categorySlug.split("-").map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(" ")
+    : null;
+
+  const breadcrumbItems = displayCategory
+    ? [{ label: "Khóa học", href: "/courses" }, { label: displayCategory }]
+    : [{ label: query ? "Tìm kiếm" : "Khóa học" }];
 
   return (
     <div className="min-h-screen bg-background">
       <div className="app-container py-8 md:py-12">
         <PageContainer.Header
-          title={`Kết quả tìm kiếm ${query ? `cho "${query}"` : ""}`}
+          title={displayCategory ? `Khóa học ${displayCategory}` : `Kết quả tìm kiếm ${query ? `cho "${query}"` : ""}`}
           description={loading ? "Đang tìm kiếm khóa học..." : `Tìm thấy ${totalElements} khóa học phù hợp với yêu cầu của bạn.`}
         >
           <AppBreadcrumb paths={breadcrumbItems} />
         </PageContainer.Header>
 
-        <CourseListSection
+        <CourseResultsLayout
           courses={courses}
           loading={loading}
           categories={categories}
@@ -226,11 +191,55 @@ const SearchPage = () => {
           pagination={paginationInfo}
           onPageChange={handlePageChange}
           emptyMessage="Rất tiếc, chúng tôi không tìm thấy khóa học nào phù hợp với từ khóa của bạn."
-          sectionTitle="Kết quả tìm kiếm"
+          sectionTitle={displayCategory ? `Tất cả khóa học ${displayCategory}` : "Kết quả tìm kiếm"}
         />
+
+        {query.trim() && (suggestionsLoading || suggestedCourses.length > 0) && (
+          <section className="mt-12 md:mt-16" aria-labelledby="search-suggestions-title">
+            <div className="border-b border-border pb-3 mb-5">
+              <h2 id="search-suggestions-title" className="text-2xl font-bold text-foreground">Gợi ý tìm kiếm</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Các khóa học gần với nội dung “{query}” mà bạn có thể quan tâm.
+              </p>
+            </div>
+
+            {suggestionsLoading ? (
+              <div className="flex items-center justify-center py-12 text-muted-foreground">
+                <Loader2 className="mr-2 h-5 w-5 animate-spin text-primary" />
+                Đang tìm khóa học liên quan...
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+                {suggestedCourses.map((course) => (
+                  <CourseCard
+                    key={course.id}
+                    image={course.thumbnail}
+                    title={course.title}
+                    price={new Intl.NumberFormat("vi-VN").format(course.salePrice)}
+                    originalPrice={course.discount > 0 ? new Intl.NumberFormat("vi-VN").format(course.price) : null}
+                    discountPercentage={course.discount}
+                    category={course.categoryName || course.category?.name || "Chưa phân loại"}
+                    link={`/courses/${course.slug || course.id}`}
+                    classes={course.classes || 0}
+                    students={course.students || 0}
+                    rating={course.rating || 4.9}
+                    instructor={{ name: course.instructorName || "Giảng viên", avatar: course.instructorAvatar, status: "online" }}
+                    className="h-full"
+                  />
+                ))}
+              </div>
+            )}
+          </section>
+        )}
       </div>
     </div>
   );
+};
+
+const SearchPage = () => {
+  const { categorySlug } = useParams();
+  const { search } = useLocation();
+  return <SearchPageContent key={`${categorySlug || "search"}:${search}`} categorySlug={categorySlug} />;
 };
 
 export default SearchPage;

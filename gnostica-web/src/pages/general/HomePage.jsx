@@ -14,15 +14,16 @@ import useCategories from '@/hooks/course/useCategories';
 import useFeaturedCourses from "@/hooks/course/useFeaturedCourses";
 import useRecommendedCourses from '@/hooks/course/useRecommendedCourses';
 import useHomeData from '@/hooks/home/useHomeData';
+import { usePublicBanners } from '@/hooks/settings/useSiteSettings';
 
 // --- DATA CONSTANTS ---
 
-const slides = [
+const fallbackSlides = [
   { img: "/banner1.webp", alt: "Banner khuyến mãi 1" },
   { img: "/banner2.webp", alt: "Banner khuyến mãi 2" },
 ];
 
-const subBanners = [
+const fallbackSubBanners = [
   { img: "/banner_small1.webp", alt: "Sub banner khuyến mãi 1" },
   { img: "/banner_small2.webp", alt: "Sub banner khuyến mãi 2" },
   { img: "/banner_small3.webp", alt: "Sub banner khuyến mãi 3" },
@@ -63,16 +64,23 @@ const faqs = [
 // --- COMPONENTS ---
 
 function MainHeroCarousel() {
+  const { data: bannerData = [], isSuccess } = usePublicBanners("HOME_HERO");
+  const slides = isSuccess
+    ? bannerData.map((banner) => ({ img: banner.imageUrl, alt: banner.altText || banner.title, link: banner.linkUrl, external: banner.targetType === "EXTERNAL" }))
+    : fallbackSlides;
   const [api, setApi] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
     if (!api) return;
-    setCurrentIndex(api.selectedScrollSnap());
-    api.on("select", () => {
+    const handleSelect = () => {
       setCurrentIndex(api.selectedScrollSnap());
-    });
+    };
+    api.on("select", handleSelect);
+    return () => api.off("select", handleSelect);
   }, [api]);
+
+  if (isSuccess && slides.length === 0) return null;
 
   return (
     <div className="app-container py-0 md:py-6 relative z-10 w-full overflow-hidden">
@@ -81,13 +89,13 @@ function MainHeroCarousel() {
           {slides.map((slide, index) => (
             <CarouselItem key={index} className="w-full">
               {/* Box chứa ảnh giữ nguyên tỷ lệ */}
-              <div className="relative w-full aspect-[25/9] md:aspect-[4/1] flex items-center justify-center">
+              <a href={slide.link || undefined} target={slide.external ? "_blank" : undefined} rel={slide.external ? "noreferrer" : undefined} className="relative w-full aspect-[25/9] md:aspect-[4/1] flex items-center justify-center" onClick={(event) => !slide.link && event.preventDefault()}>
                 <img
                   src={slide.img}
                   alt={slide.alt}
                   className="w-full h-full object-contain"
                 />
-              </div>
+              </a>
             </CarouselItem>
           ))}
         </CarouselContent>
@@ -148,7 +156,7 @@ const PlatformStats = () => {
                   <Icon className="w-7 h-7 stroke-[1.5]" />
                 </div>
                 <div className="flex flex-col items-center gap-1 text-center">
-                  <span className="text-3xl md:text-4xl font-black text-foreground tracking-tight drop-shadow-sm">
+                  <span className="text-3xl md:text-4xl font-bold text-foreground tracking-tight drop-shadow-sm">
                     {stat.value}
                   </span>
                   <span className="text-xs md:text-sm font-bold text-muted-foreground uppercase tracking-widest">
@@ -165,6 +173,11 @@ const PlatformStats = () => {
 };
 
 function SubBannerCarousel() {
+  const { data: bannerData = [], isSuccess } = usePublicBanners("HOME_SUB");
+  const subBanners = isSuccess
+    ? bannerData.map((banner) => ({ img: banner.imageUrl, alt: banner.altText || banner.title, link: banner.linkUrl, external: banner.targetType === "EXTERNAL" }))
+    : fallbackSubBanners;
+  if (isSuccess && subBanners.length === 0) return null;
   return (
     <div className="w-full px-2 md:px-0 mt-3 md:mt-0 mb-6 md:mb-0 block">
       <Carousel
@@ -183,7 +196,7 @@ function SubBannerCarousel() {
         <CarouselContent className="-ml-2 md:-ml-4">
           {subBanners.map((banner, index) => (
             <CarouselItem key={index} className="pl-2 md:pl-4 basis-full md:basis-1/2">
-              <div className="w-full rounded-lg overflow-hidden bg-muted flex items-center justify-center shadow-sm hover:shadow-md transition-shadow">
+              <a href={banner.link || undefined} target={banner.external ? "_blank" : undefined} rel={banner.external ? "noreferrer" : undefined} onClick={(event) => !banner.link && event.preventDefault()} className="w-full rounded-lg overflow-hidden bg-muted flex items-center justify-center shadow-sm hover:shadow-md transition-shadow">
                 <img
                   src={banner.img}
                   alt={banner.alt}
@@ -192,7 +205,7 @@ function SubBannerCarousel() {
                     e.target.src = "https://via.placeholder.com/600x180?text=Khuyen+Mai";
                   }}
                 />
-              </div>
+              </a>
             </CarouselItem>
           ))}
         </CarouselContent>
@@ -277,12 +290,12 @@ const CategoryGrid = () => {
         const colorClass = cat.colorClass || defaultColors[idx % defaultColors.length];
 
         return (
-          <Card key={cat.id || idx} className="group relative overflow-hidden p-6 w-full hover:shadow-lg transition-all hover:-translate-y-1 cursor-pointer">
+          <Card appVariant="default" key={cat.id || idx} className="group relative overflow-hidden p-6 w-full hover-lift cursor-pointer">
             <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${colorClass}`}>
               <Icon className="w-6 h-6" />
             </div>
             <h3 className="font-semibold text-lg mb-1 group-hover:text-primary transition-colors">{cat.name || cat.title}</h3>
-            <p className="text-sm text-muted-foreground">{cat.coursesCount || Math.floor(Math.random() * 50) + 10} khóa học</p>
+            <p className="text-sm text-muted-foreground">{cat.coursesCount ?? 0} khóa học</p>
           </Card>
         );
       })}
@@ -353,11 +366,11 @@ const InstructorGrid = () => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
       {instructors.map((instructor, idx) => (
-        <Card key={idx} className="flex flex-col items-center p-6 text-center w-full hover:shadow-lg transition-all hover:-translate-y-1 cursor-pointer">
-          <img src={instructor.avatar} alt={instructor.name} className="w-24 h-24 rounded-full mb-4 object-cover border-4 border-background shadow-sm" />
-          <h3 className="font-bold text-lg">{instructor.name}</h3>
+        <Card appVariant="default" key={idx} className="flex flex-col items-center p-6 text-center w-full hover-lift cursor-pointer">
+          <img src={instructor.avatar} alt={instructor.name} className="w-24 h-24 rounded-full mb-4 object-cover border-2 border-background shadow-sm" />
+          <h3 className="font-semibold text-lg">{instructor.name}</h3>
           <p className="text-primary text-sm font-medium mb-3">{instructor.role}</p>
-          <div className="flex items-center gap-4 text-xs text-muted-foreground w-full justify-center border-t pt-3 mt-auto">
+          <div className="flex items-center gap-4 text-xs text-muted-foreground w-full justify-center border-t border-border/60 pt-3 mt-auto">
             <div className="flex items-center gap-1">
               <Users className="w-4 h-4" />
               <span>{instructor.students} hb</span>
@@ -440,7 +453,7 @@ const OutcomeBanner = () => {
             </defs>
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-2xl md:text-3xl font-black text-background">95%</span>
+            <span className="text-2xl md:text-3xl font-bold text-background">95%</span>
           </div>
         </div>
       </div>
@@ -455,11 +468,11 @@ function CardCarousel() {
 
   useEffect(() => {
     if (!api) return;
-
-    setActiveIndex(api.selectedScrollSnap());
-    api.on("select", () => {
+    const handleSelect = () => {
       setActiveIndex(api.selectedScrollSnap());
-    });
+    };
+    api.on("select", handleSelect);
+    return () => api.off("select", handleSelect);
   }, [api]);
 
   if (loading) {

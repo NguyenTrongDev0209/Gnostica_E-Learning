@@ -7,7 +7,7 @@ import AppAvatar from "@/components/common/micro/AppAvatar";
 import AppBadge from "@/components/common/micro/AppBadge";
 import AppSeparator from "@/components/common/micro/AppSeparator";
 import {
-  Clock, Eye, Tag, Flame, ThumbsUp, ArrowUp, ArrowDown, Share2, Flag, MessageSquare, Send, ChevronLeft
+  Clock, Eye, Tag, ThumbsUp, ArrowUp, ArrowDown, Share2, Flag, MessageSquare, Send, ChevronLeft, UserRound
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import RenderContent from '@/components/common/core/RenderContent';
@@ -29,13 +29,26 @@ import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 
 // ── ForumDetailSidebar ──
+const getTopicName = (post) => post?.topic?.title || post?.category?.name || "Thảo luận";
+const getTopicSlug = (post) => post?.topic?.slug || post?.category?.slug || "";
+const getPostUrl = (post) => {
+  const postSlug = post?.slug || post?.id;
+  const topicSlug = getTopicSlug(post);
+  return topicSlug ? `/forum/${topicSlug}/${postSlug}` : `/forum/${postSlug}`;
+};
+
 const ForumDetailSidebar = ({ post, relatedPosts }) => {
+  const viewCount = post.viewCount ?? post.views ?? 0;
+
   return (
-    <div className="w-full lg:w-72 xl:w-80 flex flex-col gap-6 shrink-0">
+    <div className="w-full lg:w-72 xl:w-80 flex flex-col gap-6 shrink-0 lg:sticky lg:top-24 lg:self-start">
       {/* Author Info */}
       <AppCard appVariant="default" className="bg-white shadow-sm border-border">
         <AppCardContent className="p-5">
-          <h3 className="text-sm font-bold text-foreground mb-4">Thông tin tác giả</h3>
+          <h3 className="font-bold text-base mb-4 flex items-center gap-2">
+            <UserRound className="w-5 h-5 text-primary" />
+            Thông tin tác giả
+          </h3>
           <div className="flex items-center gap-3 mb-4">
             <AppAvatar 
               className="w-12 h-12 ring-2 ring-primary/10"
@@ -54,30 +67,9 @@ const ForumDetailSidebar = ({ post, relatedPosts }) => {
               <p className="text-xs text-muted-foreground">Lượt thích</p>
             </div>
             <div>
-              <p className="font-bold text-foreground">{post.commentCount || 0}</p>
-              <p className="text-xs text-muted-foreground">Bình luận</p>
+              <p className="font-bold text-foreground">{viewCount}</p>
+              <p className="text-xs text-muted-foreground">Lượt xem</p>
             </div>
-          </div>
-        </AppCardContent>
-      </AppCard>
-
-      {/* Post Stats */}
-      <AppCard appVariant="default" className="bg-white shadow-sm border-border">
-        <AppCardContent className="p-5">
-          <h3 className="text-sm font-bold text-foreground mb-4">Thống kê bài viết</h3>
-          <div className="flex flex-col gap-3">
-            {[
-              { icon: Eye, label: 'Lượt xem', value: post.views || 0 },
-              { icon: ThumbsUp, label: 'Lượt thích', value: post.likes || 0 },
-              { icon: MessageSquare, label: 'Bình luận', value: post.commentCount || 0 },
-            ].map(({ icon: Icon, label, value }) => (
-              <div key={label} className="flex items-center justify-between text-sm">
-                <span className="flex items-center gap-2 text-muted-foreground">
-                  <Icon className="w-4 h-4 text-primary/70" /> {label}
-                </span>
-                <span className="font-semibold text-foreground">{value}</span>
-              </div>
-            ))}
           </div>
         </AppCardContent>
       </AppCard>
@@ -85,16 +77,19 @@ const ForumDetailSidebar = ({ post, relatedPosts }) => {
       {/* Related Posts */}
       <AppCard appVariant="default" className="bg-white shadow-sm border-border">
         <AppCardContent className="p-5">
-          <h3 className="text-sm font-bold text-foreground mb-4">Bài viết liên quan</h3>
+          <h3 className="font-bold text-base mb-4 flex items-center gap-2">
+            <MessageSquare className="w-5 h-5 text-primary" />
+            Bài viết liên quan
+          </h3>
           <div className="flex flex-col gap-3">
             {relatedPosts && relatedPosts.length > 0 ? (
               relatedPosts.map(p => (
                 <Link
                   key={p.id}
-                  to={`/forum/${p.id}`}
+                  to={getPostUrl(p)}
                   className="group flex flex-col gap-1 hover:bg-muted rounded-md p-2 -mx-2 transition-colors"
                 >
-                  <span className="text-xs text-primary font-medium">{p.topic?.title || "Thảo luận"}</span>
+                  <span className="text-xs text-primary font-medium">{getTopicName(p)}</span>
                   <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors line-clamp-2 leading-snug">
                     {(p.title || '').substring(0, 70)}{(p.title || '').length > 70 ? '...' : ''}
                   </span>
@@ -215,6 +210,7 @@ const CommentSection = ({
                 ...comment,
                 author: {
                   name: comment.account?.fullName || "Ẩn danh",
+                  email: comment.account?.email,
                   avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${comment.account?.email || 'default'}`,
                   status: "online",
                   role: comment.account?.role?.name || "Member"
@@ -230,6 +226,8 @@ const CommentSection = ({
                 threadId={post.id}
                 onCommentAdded={(newReply) => handleCommentAdded(newReply, c.id)}
                 onCommentDeleted={(deletedId) => handleCommentDeleted(deletedId)}
+                threadAuthorEmail={post.account?.email}
+                topicOwnerEmail={post.topic?.ownerEmail || post.topic?.account?.email}
               />
             ));
           })()}
@@ -307,7 +305,7 @@ const ForumDetail = () => {
   };
 
   const handleShare = () => {
-    const shareUrl = `${window.location.origin}/forum/${slug}`;
+    const shareUrl = `${window.location.origin}${getPostUrl(post)}`;
     navigator.clipboard.writeText(shareUrl)
       .then(() => {
         toast.success("Đã sao chép liên kết chia sẻ!");
@@ -347,10 +345,14 @@ const ForumDetail = () => {
     );
   }
 
+  const topicName = getTopicName(post);
+  const topicSlug = getTopicSlug(post);
+  const topicHref = topicSlug ? `/forum/topic/${topicSlug}` : "/forum";
+  const viewCount = post.viewCount ?? post.views ?? 0;
   const breadcrumbItems = [
-    { component: <Link to="/">Trang chủ</Link> },
-    { component: <Link to="/forum">Diễn đàn</Link> },
-    { label: post.title ? (post.title.length > 30 ? post.title.substring(0, 30) + '...' : post.title) : '', isLast: true }
+    { label: "Diễn đàn", href: "/forum" },
+    { label: topicName, href: topicHref },
+    { label: post.title ? (post.title.length > 38 ? post.title.substring(0, 38) + '...' : post.title) : '', isLast: true }
   ];
 
   return (
@@ -366,14 +368,12 @@ const ForumDetail = () => {
             <AppCard appVariant="default" className="bg-white border-border shadow-sm">
               <AppCardContent className="p-5 sm:p-7">
                 <div className="flex items-center gap-2 mb-3 flex-wrap">
-                  <AppBadge variant="primary" soft className="text-xs font-semibold">
-                    {post.topic?.title || "Thảo luận"}
-                  </AppBadge>
-                  {(post.views || 0) > 100 && (
-                    <AppBadge variant="warning" soft className="text-xs font-semibold gap-1">
-                      <Flame className="w-3 h-3 fill-warning" /> Đang hot
-                    </AppBadge>
-                  )}
+                  <Link
+                    to={topicHref}
+                    className="inline-flex items-center rounded-md border border-primary/20 bg-primary/5 px-2.5 py-1 text-xs font-semibold text-primary transition-colors hover:bg-primary/10"
+                  >
+                    {topicName}
+                  </Link>
                 </div>
 
                 <h1 className="text-xl sm:text-2xl font-bold text-foreground mb-5 leading-snug">
@@ -392,7 +392,7 @@ const ForumDetail = () => {
                     <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
                       <Clock className="w-3 h-3" /> {new Date(post.createdAt).toLocaleDateString('vi-VN')}
                       <span className="mx-1">·</span>
-                      <Eye className="w-3 h-3" /> {post.views || 0} lượt xem
+                      <Eye className="w-3 h-3" /> {viewCount} lượt xem
                     </p>
                   </div>
                 </div>
@@ -425,15 +425,15 @@ const ForumDetail = () => {
                         to={`/forum?tag=${encodeURIComponent(th.hashtag?.name || '')}`}
                         className="inline-flex"
                       >
-                        <AppBadge variant="primary" soft className="text-xs font-semibold cursor-pointer">
+                        <span className="inline-flex items-center rounded-md border border-border bg-white px-2.5 py-1 text-xs font-semibold text-muted-foreground transition-colors hover:border-primary/30 hover:text-primary">
                           #{th.hashtag?.name}
-                        </AppBadge>
+                        </span>
                       </Link>
                     ))
                   ) : (
-                    <AppBadge variant="secondary" soft className="text-xs">
+                    <span className="inline-flex items-center rounded-md border border-border bg-white px-2.5 py-1 text-xs font-semibold text-muted-foreground">
                       Thảo luận
-                    </AppBadge>
+                    </span>
                   )}
                 </div>
 

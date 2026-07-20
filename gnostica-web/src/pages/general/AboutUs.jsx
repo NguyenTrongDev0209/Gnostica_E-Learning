@@ -6,8 +6,8 @@ import { Card, CardContent } from "@/components/common/micro/AppCard";
 import { ArrowRight, Monitor } from "lucide-react";
 import { AppButton } from "@/components/common/micro/AppButton";
 import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
-import { Home } from "lucide-react";
 import PageContainer from "@/components/common/core/PageContainer";
+import { usePublicSiteConfig } from "@/hooks/settings/useSiteSettings";
 
 // Mock Data
 import {
@@ -19,9 +19,8 @@ import {
 } from "@/mocks/staticPages";
 
 // ── AboutHero ──
-function AboutHero({ data }) {
+function AboutHero({ data, bannerUrl }) {
   const breadcrumbItems = [
-    { label: "Trang chủ", href: "/", icon: Home },
     { label: "Về chúng tôi", isLast: true }
   ];
 
@@ -36,7 +35,7 @@ function AboutHero({ data }) {
             {data.badge}
           </Badge>
           <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-foreground leading-tight">
-            {data.title} <span className="bg-accent-gradient bg-clip-text text-transparent italic">{data.highlight}</span>
+            {data.title} <span className="text-accent-highlight">{data.highlight}</span>
           </h1>
           <p className="text-lg text-muted-foreground max-w-lg leading-relaxed">
             {data.description}
@@ -51,6 +50,8 @@ function AboutHero({ data }) {
           </div>
         </div>
         <div className="relative aspect-square md:aspect-[4/3] bg-primary text-primary-foreground rounded-3xl overflow-hidden shadow-2xl flex items-center justify-center transform transition-all hover:scale-[1.02] cursor-pointer">
+           {bannerUrl && <img src={bannerUrl} alt={data.title} className="absolute inset-0 w-full h-full object-cover" />}
+           {!bannerUrl && <>
            <div className="text-white text-center flex flex-col items-center gap-4">
                <div className="w-24 h-24 border-2 border-white/20 rounded-full flex items-center justify-center opacity-40">
                 <Monitor size={48} />
@@ -59,6 +60,7 @@ function AboutHero({ data }) {
            </div>
            {/* Decorative hand icon simulation */}
            <div className="absolute bottom-12 right-12 w-32 h-16 border-b-4 border-white/30 rounded-full rotate-[-15deg]"></div>
+           </>}
         </div>
       </div>
     </section>
@@ -66,19 +68,19 @@ function AboutHero({ data }) {
 }
 
 // ── AboutTools ──
-function AboutTools({ tools }) {
+function AboutTools({ tools, heading, description }) {
   return (
     <section className="bg-muted py-8">
       <div className="app-container">
         <div className="text-center mb-4">
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-2">Công cụ Học tập Chuyên biệt của Chúng tôi</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-2">{heading}</h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Công nghệ tiên tiến kết hợp với thiết kế tinh tế để mang lại hành trình giáo dục liền mạch, phù hợp với tiềm năng độc nhất của bạn.
+            {description}
           </p>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {tools.map((tool, index) => {
-            const ToolIcon = tool.icon;
+            const ToolIcon = tool.icon || aboutToolsMock[index % aboutToolsMock.length].icon;
             return (
               <Card key={index} className="border-none shadow-sm hover:shadow-md transition-all group overflow-hidden bg-white">
                 <CardContent className="p-5 flex flex-col gap-3">
@@ -103,11 +105,13 @@ function AboutTools({ tools }) {
 }
 
 // ── AboutSolutions ──
-function AboutSolutions({ steps }) {
+function AboutSolutions({ steps, eyebrow, title, bannerUrl }) {
   return (
     <section className="app-container py-8 lg:py-12">
       <div className="grid lg:grid-cols-2 items-center gap-6 lg:gap-10">
         <div className="aspect-square bg-primary text-primary-foreground rounded-3xl shadow-2xl flex items-center justify-center relative overflow-hidden group">
+          {bannerUrl && <img src={bannerUrl} alt={title} className="absolute inset-0 w-full h-full object-cover" />}
+          {!bannerUrl && <>
           <div className="text-white text-center p-8 z-10">
              <h4 className="text-2xl font-black tracking-wide mb-2 opacity-60">TẦM NHÌN</h4>
              <div className="w-16 h-0.5 bg-primary/50 mx-auto mb-4"></div>
@@ -115,11 +119,12 @@ function AboutSolutions({ steps }) {
           </div>
           {/* Overlay glow */}
           <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          </>}
         </div>
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
-            <span className="bg-accent-gradient bg-clip-text text-transparent font-bold tracking-widest text-xs uppercase">CÁCH CHÚNG TÔI LÀM VIỆC</span>
-            <h2 className="text-3xl md:text-5xl font-bold text-foreground">Giải pháp Học tập Đơn giản!</h2>
+            <span className="bg-accent-gradient bg-clip-text text-transparent font-bold tracking-widest text-xs uppercase">{eyebrow}</span>
+            <h2 className="text-3xl md:text-5xl font-bold text-foreground">{title}</h2>
           </div>
           <div className="flex flex-col gap-6">
             {steps.map((step, index) => (
@@ -145,7 +150,7 @@ function AboutSolutions({ steps }) {
 }
 
 // ── AboutVision ──
-function AboutVision({ data }) {
+function AboutVision({ data, bannerUrl }) {
   return (
     <section className="bg-primary/5 py-10">
       <div className="app-container">
@@ -163,12 +168,15 @@ function AboutVision({ data }) {
             </div>
           </div>
           <div className="aspect-square bg-primary text-primary-foreground rounded-3xl shadow-2xl relative overflow-hidden flex items-center justify-center group">
+             {bannerUrl && <img src={bannerUrl} alt={data.title} className="absolute inset-0 w-full h-full object-cover" />}
+             {!bannerUrl &&
              <div className="flex flex-col items-center gap-4 text-white p-12">
                 <div className="w-20 h-28 border border-white/20 rounded-t-full flex items-center justify-center">
                   <div className="w-8 h-8 rounded-full bg-warning/10 text-warning shadow-glow"></div>
                 </div>
                 <div className="text-sm tracking-[0.4em] opacity-40 uppercase">CÁNH CỬA NGHỀ NGHIỆP</div>
              </div>
+             }
           </div>
         </div>
       </div>
@@ -179,8 +187,8 @@ function AboutVision({ data }) {
 // ── AboutCTA ──
 function AboutCTA({ data }) {
   return (
-    <section className="app-container pb-8">
-      <div className="w-full bg-accent-gradient md:bg-primary rounded-[2rem] py-8 px-6 text-center text-white flex flex-col items-center gap-4 shadow-2xl shadow-primary/30 relative overflow-hidden">
+    <section className="app-container py-8">
+      <div className="w-full bg-accent-gradient md:bg-primary rounded-[2rem] py-8 px-6 text-center text-white flex flex-col items-center gap-4 relative overflow-hidden">
         {/* Decorative patterns */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2"></div>
         <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2"></div>
@@ -199,22 +207,28 @@ function AboutCTA({ data }) {
 
 // ── Page ──
 export default function AboutUs() {
+  const { data: settings = {} } = usePublicSiteConfig();
+  let saved = {};
+  try { saved = settings["about.content"] ? JSON.parse(settings["about.content"]) : {}; } catch { saved = {}; }
+  const hero = { ...aboutHeroMock, ...saved.hero };
+  const vision = { ...aboutVisionMock, ...saved.vision };
+  const cta = { ...aboutCTAMock, ...saved.cta };
+  const tools = saved.tools?.length ? saved.tools : aboutToolsMock;
+  const steps = saved.steps?.length ? saved.steps : aboutStepsMock;
   return (
     <PageContainer className="overflow-hidden">
-      <PageContainer.Content disableContainer className="gap-0 pb-0">
-      <AboutHero data={aboutHeroMock} />
+      <PageContainer.Content disableContainer className="!gap-y-0 pb-0">
+      <AboutHero data={hero} bannerUrl={settings["about.hero_banner_url"]} />
 
-      <AboutTools tools={aboutToolsMock} />
+      <AboutTools tools={tools} heading={saved.toolsHeading || "Công cụ Học tập Chuyên biệt của Chúng tôi"} description={saved.toolsDescription || "Công nghệ tiên tiến kết hợp với thiết kế tinh tế để mang lại hành trình giáo dục liền mạch, phù hợp với tiềm năng độc nhất của bạn."} />
 
-      <AboutSolutions steps={aboutStepsMock} />
+      <AboutSolutions steps={steps} eyebrow={saved.solutionsEyebrow || "CÁCH CHÚNG TÔI LÀM VIỆC"} title={saved.solutionsTitle || "Giải pháp Học tập Đơn giản!"} bannerUrl={settings["about.solutions_banner_url"]} />
 
-      <AboutVision data={aboutVisionMock} />
+      <AboutVision data={vision} bannerUrl={settings["about.vision_banner_url"]} />
 
-      <section className="py-10">
-        <TestimonialCarousel />
-      </section>
+      <TestimonialCarousel />
 
-      <AboutCTA data={aboutCTAMock} />
+      <AboutCTA data={cta} />
       </PageContainer.Content>
     </PageContainer>
   );

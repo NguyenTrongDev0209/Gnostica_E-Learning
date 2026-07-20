@@ -1,31 +1,23 @@
-import { useState, useEffect } from 'react';
-import { MOCK_STATS, MOCK_INSTRUCTORS } from '@/mocks/homeMocks';
+import { useQuery } from '@tanstack/react-query';
+import { getInstructors, getPlatformStats } from '@/services/home/homeService';
 
 export default function useHomeData() {
-    const [stats, setStats] = useState([]);
-    const [instructors, setInstructors] = useState([]);
-    const [loadingStats, setLoadingStats] = useState(true);
-    const [loadingInstructors, setLoadingInstructors] = useState(true);
-    const [error, setError] = useState(null);
-
-    useEffect(() => {
-        // Mock data loading
-        setTimeout(() => {
-            setStats(MOCK_STATS);
-            setLoadingStats(false);
-        }, 500);
-        
-        setTimeout(() => {
-            setInstructors(MOCK_INSTRUCTORS);
-            setLoadingInstructors(false);
-        }, 800);
-    }, []);
+    const statsQuery = useQuery({
+        queryKey: ['home', 'platform-stats'],
+        queryFn: getPlatformStats,
+        staleTime: 60_000
+    });
+    const instructorsQuery = useQuery({
+        queryKey: ['home', 'instructors'],
+        queryFn: getInstructors,
+        staleTime: 60_000
+    });
 
     return {
-        stats,
-        instructors,
-        loadingStats,
-        loadingInstructors,
-        error
+        stats: statsQuery.data || [],
+        instructors: instructorsQuery.data || [],
+        loadingStats: statsQuery.isLoading,
+        loadingInstructors: instructorsQuery.isLoading,
+        error: statsQuery.error || instructorsQuery.error
     };
 }

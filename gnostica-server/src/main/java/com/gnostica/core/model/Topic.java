@@ -36,6 +36,12 @@ public class Topic {
     @Size(max = 255)
     private String description;
 
+    @Size(max = 2048)
+    private String avatarUrl;
+
+    @Size(max = 2048)
+    private String bannerUrl;
+
     /**
      * Status: 0: Hidden (Ẩn), 1: Active (Hiển thị)
      */
@@ -50,5 +56,10 @@ public class Topic {
     private LocalDateTime updatedAt;
 
     private LocalDateTime deletedAt;
+
+    @Transient
+    public String getOwnerEmail() {
+        return account != null ? account.getEmail() : null;
+    }
 
 }

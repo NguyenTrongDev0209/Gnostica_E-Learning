@@ -34,7 +34,11 @@ export default function useAdminCourseModeration() {
       else if (activeTab === "approved") statusParam = 1;
       else if (activeTab === "rejected") statusParam = 3;
 
-      const resRaw = await adminCourseService.getModerationCourses(statusParam, pagination.currentPage, 10);
+      const resRaw = await adminCourseService.getModerationCourses({
+        status: statusParam,
+        page: pagination.currentPage,
+        size: 10
+      });
       return extractPageData(resRaw) || {};
     },
     staleTime: 1000 * 60,

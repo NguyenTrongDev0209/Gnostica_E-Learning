@@ -1,40 +1,18 @@
-import { useState, useEffect } from 'react';
-import { MOCK_COURSES } from '@/mocks/homeMocks';
+import { useQuery } from '@tanstack/react-query';
+import courseService from '@/services/course/courseService';
+import useAuthStore from '@/store/useAuthStore';
 
 export default function useRecommendedCourses(size = 4) {
-    const [courses, setCourses] = useState([]);
-    const [loading, setLoading] = useState(true);
-    // Hardcode user so recommended courses show up without login during testing
-    const user = { email: "test@example.com" }; 
+    const user = useAuthStore((state) => state.user);
+    const query = useQuery({
+        queryKey: ['courses', 'recommendations', user?.id, size],
+        queryFn: async () => {
+            const response = await courseService.getRecommendedCourses(0, size);
+            return response?.content || [];
+        },
+        enabled: Boolean(user),
+        staleTime: 60_000
+    });
 
-    useEffect(() => {
-        let isMounted = true;
-
-        const fetchRecommendations = async () => {
-            try {
-                setLoading(true);
-                // Mock delay
-                await new Promise(r => setTimeout(r, 600));
-                if (isMounted) {
-                    setCourses(MOCK_COURSES.slice(0, size));
-                }
-            } catch (error) {
-                if (isMounted) {
-                    console.error('Error fetching recommendations:', error);
-                }
-            } finally {
-                if (isMounted) {
-                    setLoading(false);
-                }
-            }
-        };
-
-        fetchRecommendations();
-
-        return () => {
-            isMounted = false;
-        };
-    }, [size]);
-
-    return { courses, loading, user };
+    return { courses: query.data || [], loading: query.isLoading, error: query.error, user };
 }

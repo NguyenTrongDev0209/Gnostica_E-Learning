@@ -40,6 +40,7 @@ public class EnrollmentListener {
                 Enrollment enrollment = new Enrollment();
                 enrollment.setAccount(order.getAccount());
                 enrollment.setCourse(detail.getCourse());
+                enrollment.setOrderDetail(detail);
                 enrollment.setProgressPercent(0);
                 enrollment.setStatus(1); // 1: Active
                 enrollmentRepository.save(enrollment);

@@ -28,21 +28,6 @@ import { QuizTab } from './components/course-form/QuizTab';
 import { CategoryCascader } from './components/course-form/CategoryCascader';
 import { BackgroundVideoUploader } from './components/course-form/BackgroundVideoUploader';
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 export default function InstructorCourseForm() {
   const navigate = useNavigate();
 

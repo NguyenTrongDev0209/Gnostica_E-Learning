@@ -562,14 +562,26 @@ public class CourseService {
     }
 
     @Transactional(readOnly = true)
-    public org.springframework.data.domain.Page<CourseResponse> getPublicCourses(Integer categoryId, String categorySlug,
-            String level, int page, int size) {
+    public org.springframework.data.domain.Page<CourseResponse> getPublicCourses(Integer categoryId, java.util.List<String> categorySlugs,
+            java.util.List<String> levels, java.math.BigDecimal minPrice, java.math.BigDecimal maxPrice,
+            String search, int page, int size) {
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size,
                 org.springframework.data.domain.Sort.by("id").descending());
-        // Chuyển level sang lowercase hoặc xử lý null
-        String levelFilter = (level != null && !level.trim().isEmpty() && !level.equalsIgnoreCase("all")) ? level
-                : null;
-        org.springframework.data.domain.Page<Course> coursesPage = courseRepository.findPublicCourses(categoryId, categorySlug, levelFilter, pageable);
+        int categoryIdFilter = categoryId == null ? -1 : categoryId;
+        java.util.List<String> categorySlugFilters = categorySlugs == null ? java.util.List.of() : categorySlugs.stream()
+                .filter(value -> value != null && !value.isBlank()).map(String::trim).toList();
+        java.util.List<String> levelFilters = levels == null ? java.util.List.of() : levels.stream()
+                .filter(value -> value != null && !value.isBlank() && !value.equalsIgnoreCase("all"))
+                .map(String::trim).toList();
+        String searchFilter = search == null ? "" : search.trim();
+        java.math.BigDecimal minPriceFilter = minPrice == null ? java.math.BigDecimal.valueOf(-1) : minPrice.max(java.math.BigDecimal.ZERO);
+        java.math.BigDecimal maxPriceFilter = maxPrice == null ? java.math.BigDecimal.valueOf(-1) : maxPrice.max(java.math.BigDecimal.ZERO);
+        org.springframework.data.domain.Page<Course> coursesPage = courseRepository.findPublicCourses(
+                categoryIdFilter,
+                !categorySlugFilters.isEmpty(), categorySlugFilters.isEmpty() ? java.util.List.of("") : categorySlugFilters,
+                !levelFilters.isEmpty(), levelFilters.isEmpty() ? java.util.List.of("") : levelFilters,
+                minPriceFilter, maxPriceFilter,
+                searchFilter, pageable);
         return coursesPage.map(this::mapToCourseResponse);
     }
 
@@ -626,10 +638,16 @@ public class CourseService {
     }
 
     @Transactional(readOnly = true)
-    public org.springframework.data.domain.Page<CourseResponse> getModerationCourses(Integer status, int page, int size) {
+    public org.springframework.data.domain.Page<CourseResponse> getModerationCourses(
+            Integer status, String search, Integer categoryId, int page, int size) {
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size,
                 org.springframework.data.domain.Sort.by("updatedAt").descending());
-        return courseRepository.findModerationCourses(status, pageable).map(this::mapToCourseResponse);
+        String normalizedSearch = search == null ? "" : search.trim();
+        int normalizedStatus = status == null ? -1 : status;
+        int normalizedCategoryId = categoryId == null ? -1 : categoryId;
+        return courseRepository.findModerationCourses(
+                        normalizedStatus, normalizedSearch, normalizedCategoryId, pageable)
+                .map(this::mapToCourseResponse);
     }
 
     @Transactional(readOnly = true)
@@ -639,12 +657,14 @@ public class CourseService {
         stats.put("pending", 0L);
         stats.put("approved", 0L);
         stats.put("rejected", 0L);
+        stats.put("total", 0L);
         
         if (results != null) {
             for (Object[] row : results) {
                 if (row != null && row.length >= 2 && row[0] != null && row[1] != null) {
                     Integer status = (Integer) row[0];
                     Long count = (Long) row[1];
+                    stats.put("total", stats.get("total") + count);
                     if (status == 4) stats.put("pending", count);
                     else if (status == 1) stats.put("approved", count);
                     else if (status == 3) stats.put("rejected", count);

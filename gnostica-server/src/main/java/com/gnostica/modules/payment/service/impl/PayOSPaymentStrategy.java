@@ -1,6 +1,8 @@
 package com.gnostica.modules.payment.service.impl;
 
 import com.gnostica.modules.payment.dto.response.PaymentLinkResponse;
+import com.gnostica.modules.payment.dto.response.PaymentDetails;
+import com.gnostica.modules.payment.dto.response.PaymentWebhookData;
 import com.gnostica.core.model.Order;
 import com.gnostica.core.model.OrderDetail;
 import com.gnostica.core.repository.OrderDetailRepository;
@@ -61,19 +63,44 @@ public class PayOSPaymentStrategy implements PaymentStrategy {
     }
 
     @Override
-    public WebhookData verifyWebhook(Object body) throws Exception {
-        return payOS.webhooks().verify(body);
+    public PaymentWebhookData verifyWebhook(Object body) throws Exception {
+        WebhookData data = payOS.webhooks().verify(body);
+        return PaymentWebhookData.builder()
+                .orderCode(data.getOrderCode())
+                .transactionCode(data.getPaymentLinkId())
+                .amount(data.getAmount())
+                .status("PAID")
+                .accountNumber(data.getAccountNumber())
+                .senderBankCode(data.getCounterAccountBankId())
+                .senderAccountNumber(data.getCounterAccountNumber())
+                .gateway("PAYOS")
+                .bankCode(data.getCounterAccountBankId())
+                .build();
     }
 
     @Override
-    public PaymentLink getPaymentDetails(Order order) throws Exception {
-        return payOS.paymentRequests().get(order.getOrderCode());
+    public PaymentDetails getPaymentDetails(Order order) throws Exception {
+        PaymentLink link = payOS.paymentRequests().get(order.getOrderCode());
+        PaymentDetails.PaymentDetailsBuilder details = PaymentDetails.builder()
+                .transactionCode(String.valueOf(link.getOrderCode()))
+                .amount(link.getAmountPaid())
+                .status(link.getStatus() != null ? link.getStatus().toString() : "")
+                .gateway("PAYOS")
+                .transactions(link.getTransactions());
+
+        if (link.getTransactions() != null && !link.getTransactions().isEmpty()) {
+            Object lastTx = link.getTransactions().get(link.getTransactions().size() - 1);
+            details.senderAccountNumber(readString(lastTx, "getCounterAccountNumber"));
+            details.senderBankCode(readString(lastTx, "getCounterAccountBankId"));
+            details.accountNumber(readString(lastTx, "getAccountNumber"));
+        }
+        return details.build();
     }
 
     @Override
     public boolean checkPaymentStatus(Order order) throws Exception {
-        PaymentLink paymentLink = getPaymentDetails(order);
-        String status = paymentLink.getStatus() != null ? paymentLink.getStatus().toString() : "";
+        PaymentDetails paymentLink = getPaymentDetails(order);
+        String status = paymentLink.getStatus() != null ? paymentLink.getStatus() : "";
         boolean isPaid = "PAID".equals(status);
 
         if (isPaid) {
@@ -88,5 +115,13 @@ public class PayOSPaymentStrategy implements PaymentStrategy {
     @Override
     public String getGatewayName() {
         return "PAYOS";
+    }
+
+    private String readString(Object target, String methodName) {
+        try {
+            return (String) target.getClass().getMethod(methodName).invoke(target);
+        } catch (Exception ignored) {
+            return null;
+        }
     }
 }

@@ -24,21 +24,19 @@ export default function useCourses({ initialPageSize = 9 } = {}) {
   
   const [filters, setFilters] = useState({
     categoryId: searchParams.get("categoryId") || null,
-    categorySlug: categorySlug || null,
-    level: "all"
+    categorySlugs: categorySlug ? [categorySlug] : [],
+    levels: []
   });
 
   // Đồng bộ filters khi URL thay đổi (cả path params và search params)
   useEffect(() => {
     const cid = searchParams.get("categoryId");
-    if (cid !== filters.categoryId || categorySlug !== filters.categorySlug) {
-      setFilters(prev => ({ 
-        ...prev, 
-        categoryId: cid,
-        categorySlug: categorySlug || null 
-      }));
-      setPagination(prev => ({ ...prev, page: 0 }));
-    }
+    const routeSlugs = categorySlug ? [categorySlug] : [];
+    setFilters(prev => {
+      if (cid === prev.categoryId && routeSlugs.join(",") === prev.categorySlugs.join(",")) return prev;
+      return { ...prev, categoryId: cid, categorySlugs: routeSlugs };
+    });
+    setPagination(prev => ({ ...prev, page: 0 }));
   }, [searchParams, categorySlug]);
 
   // Hàm xử lý thay đổi bộ lọc
@@ -52,7 +50,7 @@ export default function useCourses({ initialPageSize = 9 } = {}) {
             navigate(`/courses/category/${value}`);
         } else {
             // Fallback cho ID nếu cần
-            setFilters(prev => ({ ...prev, categoryId: value, categorySlug: null }));
+            setFilters(prev => ({ ...prev, categoryId: value, categorySlugs: [] }));
         }
     } else {
         setFilters(prev => ({ ...prev, [key]: value }));
@@ -65,8 +63,8 @@ export default function useCourses({ initialPageSize = 9 } = {}) {
       setLoading(true);
       const res = await courseService.getPublicCourses({
         categoryId: filters.categoryId,
-        categorySlug: filters.categorySlug,
-        level: filters.level,
+        categorySlugs: filters.categorySlugs,
+        levels: filters.levels,
         page: pagination.page,
         size: pagination.size
       });

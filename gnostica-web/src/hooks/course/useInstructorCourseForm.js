@@ -129,6 +129,9 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
         const upload = new tus.Upload(file, {
           endpoint: "https://video.bunnycdn.com/tusupload",
           retryDelays: [0, 3000, 5000, 10000, 20000],
+          // A new videoId and signature are issued above for every attempt.
+          // Never reuse a stored TUS URL belonging to an older videoId.
+          removeFingerprintOnSuccess: true,
           headers: {
             AuthorizationSignature: authorizationSignature,
             AuthorizationExpire: String(authorizationExpire),
@@ -137,12 +140,15 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
           },
           metadata: {
             filetype: file.type,
-            title: title || file.name,
-            collection: ""
+            title: title || file.name
           },
           onError: function (error) {
-            console.error("Failed because: " + error);
-            reject(new Error("Upload video failed to Bunny CDN via TUS"));
+            const status = error.originalResponse?.getStatus?.();
+            const body = error.originalResponse?.getBody?.();
+            console.error("Bunny TUS upload failed", { status, body, error });
+            reject(new Error(
+              `Upload video failed to Bunny CDN via TUS${status ? ` (HTTP ${status})` : ""}`
+            ));
           },
           onProgress: function (bytesUploaded, bytesTotal) {
             const percentComplete = Math.round((bytesUploaded / bytesTotal) * 100);
@@ -153,12 +159,7 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
           }
         });
 
-        upload.findPreviousUploads().then(function (previousUploads) {
-          if (previousUploads.length) {
-            upload.resumeFromPreviousUpload(previousUploads[0]);
-          }
-          upload.start();
-        });
+        upload.start();
       }).catch(err => {
         console.error("Failed to load tus-js-client", err);
         reject(err);

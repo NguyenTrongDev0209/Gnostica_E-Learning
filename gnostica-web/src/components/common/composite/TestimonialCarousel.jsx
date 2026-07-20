@@ -55,11 +55,12 @@ export function TestimonialCarousel() {
   );
 
   return (
-    <PageContainer.Section
-      title={titleNode}
-      description="Khám phá hành trình thay đổi của những học viên đã tin tưởng và đồng hành cùng Gnostica."
-      className="py-8 md:py-12 bg-muted dark:bg-transparent items-center text-center"
-    >
+    <section className="w-full bg-muted dark:bg-transparent">
+      <PageContainer.Section
+        title={titleNode}
+        description="Khám phá hành trình thay đổi của những học viên đã tin tưởng và đồng hành cùng Gnostica."
+        className="app-container py-8 md:py-12 items-center text-center"
+      >
       <div className="relative w-full px-2 md:px-12 pt-4">
       <AppCarousel
         variant="centered-focus"
@@ -107,7 +108,8 @@ export function TestimonialCarousel() {
         )}
       />
       </div>
-    </PageContainer.Section>
+      </PageContainer.Section>
+    </section>
   );
 }
 export default TestimonialCarousel;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Star, BookOpen, Users, Clock, Flame, ThumbsUp, MessageSquare, Eye, ArrowUp, ArrowDown, Share2, PlayCircle } from 'lucide-react';
+import { Star, BookOpen, Users, Clock, ThumbsUp, MessageSquare, Eye, ArrowUp, ArrowDown, Share2, PlayCircle } from 'lucide-react';
 import AppCard, { AppCardContent } from "@/components/common/micro/AppCard";
 import AppBadge from "@/components/common/micro/AppBadge";
 import AppAvatar from "@/components/common/micro/AppAvatar";
@@ -9,6 +9,32 @@ import { Link } from 'react-router-dom';
 import useAuthStore from '@/store/useAuthStore';
 import threadService from '@/services/forum/threadService';
 import { toast } from 'sonner';
+import RenderContent from '@/components/common/core/RenderContent';
+
+const COURSE_IMAGE_FALLBACK = "https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=600&auto=format&fit=crop";
+const handleCourseImageError = (event) => {
+  event.currentTarget.onerror = null;
+  event.currentTarget.src = COURSE_IMAGE_FALLBACK;
+};
+
+const parsePriceValue = (value) => {
+  if (typeof value === "number") return value;
+  const digits = String(value ?? "").replace(/[^0-9]/g, "");
+  return digits ? Number(digits) : 0;
+};
+
+const formatPriceValue = (value) => new Intl.NumberFormat("vi-VN").format(value);
+
+const resolveDiscountedPrice = (price, originalPrice, discountPercentage) => {
+  const currentValue = parsePriceValue(price);
+  const originalValue = parsePriceValue(originalPrice);
+
+  if (discountPercentage > 0 && originalValue > 0 && currentValue >= originalValue) {
+    return formatPriceValue(Math.round(originalValue * (100 - discountPercentage) / 100));
+  }
+
+  return typeof price === "number" ? formatPriceValue(price) : price;
+};
 
 const CourseCard = ({
   image,
@@ -29,6 +55,8 @@ const CourseCard = ({
   link = "/courses/1",
   className
 }) => {
+  const displayedPrice = resolveDiscountedPrice(price, originalPrice, discountPercentage);
+
   return (
     <Link to={link} className="block w-full h-full">
       <AppCard appVariant="default" className={cn("w-full h-full flex flex-col group hover-lift p-0 gap-0", className)}>
@@ -36,8 +64,11 @@ const CourseCard = ({
         <div className="p-2 sm:p-3 pb-0">
           <div className="relative aspect-video overflow-hidden shadow-sm rounded-md bg-muted">
             <img
-              src={image || "https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=400&auto=format&fit=crop"}
+              src={image || COURSE_IMAGE_FALLBACK}
               alt={title}
+              loading="lazy"
+              decoding="async"
+              onError={handleCourseImageError}
               className="w-full h-full object-cover"
             />
           </div>
@@ -94,7 +125,7 @@ const CourseCard = ({
           <div className="flex items-center justify-between gap-1 flex-wrap mt-auto pt-1">
             <div className="flex items-center gap-1.5 flex-wrap">
               <div className="text-sm sm:text-xl font-bold text-gradient-button leading-none">
-                {price}<span className="text-[10px] sm:text-lg ml-0.5">{currency}</span>
+                {displayedPrice}<span className="text-[10px] sm:text-lg ml-0.5">{currency}</span>
               </div>
 
               {originalPrice && (
@@ -141,6 +172,9 @@ export const CourseProgressCard = ({
               <img
                 src={image}
                 alt={title}
+                loading="lazy"
+                decoding="async"
+                onError={handleCourseImageError}
                 className="w-full h-full object-cover"
               />
             ) : (
@@ -234,6 +268,8 @@ export const CourseCardHorizontal = ({
   className
 }) => {
   const to = link || `/courses/${id}`;
+  const displayedPrice = resolveDiscountedPrice(price, originalPrice, discountPercentage);
+
   return (
     <Link to={to} className="block w-full">
       <AppCard appVariant="default" className={cn("w-full flex flex-row group hover-lift p-0 gap-0", className)}>
@@ -241,15 +277,18 @@ export const CourseCardHorizontal = ({
         <div className="shrink-0 w-56 sm:w-72 md:w-80 p-3 pr-0">
           <div className="relative w-full h-full min-h-[120px] overflow-hidden rounded-lg bg-muted">
             <img
-              src={image || "https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=400&auto=format&fit=crop"}
+              src={image || COURSE_IMAGE_FALLBACK}
               alt={title}
+              loading="lazy"
+              decoding="async"
+              onError={handleCourseImageError}
               className="w-full h-full object-cover"
             />
           </div>
         </div>
 
         {/* Right Content */}
-        <AppCardContent className="flex-1 p-4 flex flex-col gap-2 justify-between min-w-0">
+        <AppCardContent className="flex-1 p-4 flex flex-col gap-2 min-w-0">
           {/* Top: Instructor & Rating */}
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
@@ -282,7 +321,7 @@ export const CourseCardHorizontal = ({
           </AppBadge>
 
           {/* Info Row */}
-          <div className="flex items-center gap-4 text-muted-foreground text-xs">
+          <div className="mt-auto flex items-center gap-4 text-muted-foreground text-xs">
             <div className="flex items-center gap-1.5">
               <BookOpen className="w-4 h-4 text-primary/70" />
               <span className="font-medium">{classes} bài học</span>
@@ -297,9 +336,9 @@ export const CourseCardHorizontal = ({
           <div className="border-t border-border" />
 
           {/* Price */}
-          <div className="flex items-center gap-2 flex-wrap mt-auto">
+          <div className="flex items-center gap-2 flex-wrap">
             <div className="text-lg font-bold text-gradient-button leading-none">
-              {price}<span className="text-base ml-0.5">{currency}</span>
+              {displayedPrice}<span className="text-base ml-0.5">{currency}</span>
             </div>
             {originalPrice && (
               <div className="text-sm text-muted-foreground line-through decoration-muted-foreground/50">
@@ -324,25 +363,32 @@ export const CourseCardHorizontal = ({
  *  - post: { id, title, content, author: { name, avatar, status }, category, tags, createdAt, stats: { replies, views, likes }, isHot }
  *  - className
  */
-export const ForumPostCard = ({ post, className }) => {
+export const ForumPostCard = ({ post, className, displayMode = "compact", topicContext = false }) => {
+  const currentUser = useAuthStore(state => state.user);
+  const isPending = post?.status === 1 || post?.status === 3;
+  const [voteScore, setVoteScore] = React.useState(post?.voteScore || 0);
+  const [userVote, setUserVote] = React.useState(post?.userVote || 0);
+  const [likesCount, setLikesCount] = React.useState(post?.stats?.likes || 0);
+  const [userLiked, setUserLiked] = React.useState(post?.userLiked || false);
+
+  React.useEffect(() => {
+    if (post?.voteScore !== undefined) setVoteScore(post.voteScore);
+    if (post?.userVote !== undefined) setUserVote(post.userVote);
+  }, [post?.voteScore, post?.userVote]);
+
+  React.useEffect(() => {
+    if (post?.stats?.likes !== undefined) setLikesCount(post.stats.likes);
+    if (post?.userLiked !== undefined) setUserLiked(post.userLiked);
+  }, [post?.stats?.likes, post?.userLiked]);
+
   if (!post) return null;
 
-  const currentUser = useAuthStore(state => state.user);
-  const isPending = post.status === 1 || post.status === 3;
-  const [voteScore, setVoteScore] = React.useState(post.voteScore || 0);
-  const [userVote, setUserVote] = React.useState(post.userVote || 0);
-  const [likesCount, setLikesCount] = React.useState(post.stats?.likes || 0);
-  const [userLiked, setUserLiked] = React.useState(post.userLiked || false);
-
-  React.useEffect(() => {
-    if (post.voteScore !== undefined) setVoteScore(post.voteScore);
-    if (post.userVote !== undefined) setUserVote(post.userVote);
-  }, [post.voteScore, post.userVote]);
-
-  React.useEffect(() => {
-    if (post.stats?.likes !== undefined) setLikesCount(post.stats.likes);
-    if (post.userLiked !== undefined) setUserLiked(post.userLiked);
-  }, [post.stats?.likes, post.userLiked]);
+  const topicName = post.topic?.title || post.category || "Thảo luận";
+  const topicAvatar = post.topic?.avatarUrl || post.topicAvatar;
+  const topicInitial = topicName.trim().substring(0, 1).toUpperCase() || "G";
+  const topicSlug = post.topic?.slug || post.topicSlug;
+  const postUrl = topicSlug ? `/forum/${topicSlug}/${post.slug || post.id}` : `/forum/${post.slug || post.id}`;
+  const topicUrl = topicSlug ? `/forum/topic/${topicSlug}` : "/forum";
 
   const handleLike = async (e) => {
     e.preventDefault();
@@ -382,7 +428,7 @@ export const ForumPostCard = ({ post, className }) => {
       return;
     }
 
-    const shareUrl = `${window.location.origin}/forum/${post.slug || post.id}`;
+    const shareUrl = `${window.location.origin}${postUrl}`;
     navigator.clipboard.writeText(shareUrl)
       .then(() => {
         toast.success("Đã sao chép liên kết chia sẻ!");
@@ -429,34 +475,75 @@ export const ForumPostCard = ({ post, className }) => {
   };
 
   return (
-    <Link to={`/forum/${post.slug || post.id}`} className="block">
+    <div className="block">
       <AppCard appVariant="default" className={cn("hover:border-primary/50 transition-colors bg-card overflow-hidden group cursor-pointer p-0 gap-0", className)}>
         <AppCardContent className="p-4 sm:p-5">
           <div className="flex items-start gap-4">
             {/* Avatar - ẩn trên mobile nhỏ */}
-            <div className="hidden sm:block shrink-0 mt-1">
-              <AppAvatar 
-                size="md" 
-                className="ring-2 ring-transparent group-hover:ring-primary/20 transition-all"
-                src={post.author.avatar}
-                alt={post.author.name}
-                online={post.author.status === 'online'}
-              />
+            <div className="hidden sm:block shrink-0 -mt-2">
+              {topicContext ? (
+                <AppAvatar
+                  size="lg"
+                  className="ring-2 ring-transparent transition-all group-hover:ring-primary/20"
+                  src={post.author.avatar}
+                  alt={post.author.name}
+                  online={post.author.status === 'online'}
+                />
+              ) : (
+                <Link
+                  to={topicUrl}
+                  className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-md border border-border bg-primary/10 text-sm font-bold text-primary shadow-sm ring-2 ring-transparent transition-all hover:ring-primary/30"
+                  title={topicName}
+                  aria-label={`Topic ${topicName}`}
+                >
+                  {topicAvatar ? (
+                    <img
+                      src={topicAvatar}
+                      alt={topicName}
+                      className="h-full w-full object-cover"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  ) : (
+                    <span>{topicInitial}</span>
+                  )}
+                </Link>
+              )}
             </div>
 
             {/* Content */}
             <div className="flex-1 min-w-0">
               {/* Meta */}
-              <div className="flex items-center gap-2 mb-2 text-xs text-muted-foreground flex-wrap">
-                <span className="font-semibold text-primary">{post.category}</span>
-                <span>•</span>
+              <div className="flex items-center gap-2 mb-2 text-sm text-muted-foreground flex-wrap">
+                {!topicContext && (
+                  <>
+                    <Link to={topicUrl} className="font-semibold text-primary hover:text-primary/80">
+                      {post.category}
+                    </Link>
+                    <span>•</span>
+                  </>
+                )}
                 <span className="flex items-center gap-1">
-                  <AppAvatar 
-                    size="sm" 
-                    className="w-4 h-4 sm:hidden"
-                    src={post.author.avatar}
-                    alt={post.author.name}
-                  />
+                  {topicContext ? (
+                    <AppAvatar
+                      size="sm"
+                      className="h-4 w-4 sm:hidden"
+                      src={post.author.avatar}
+                      alt={post.author.name}
+                    />
+                  ) : (
+                    <Link
+                      to={topicUrl}
+                      className="flex h-4 w-4 items-center justify-center overflow-hidden rounded-sm border border-border bg-primary/10 text-[10px] font-bold text-primary sm:hidden"
+                      title={topicName}
+                    >
+                      {topicAvatar ? (
+                        <img src={topicAvatar} alt={topicName} className="h-full w-full object-cover" loading="lazy" decoding="async" />
+                      ) : (
+                        topicInitial
+                      )}
+                    </Link>
+                  )}
                   <span className="font-medium text-foreground">{post.author.name}</span>
                 </span>
                 <span>•</span>
@@ -464,57 +551,44 @@ export const ForumPostCard = ({ post, className }) => {
                   <Clock className="w-3.5 h-3.5" />
                   {post.createdAt}
                 </span>
-                {post.status !== undefined && post.status !== null && (
-                  <>
-                    <span>•</span>
-                    <span className="flex items-center">
-                      {post.status === 1 && (
-                        <AppBadge variant="warning" soft className="text-[10px] py-0 px-1.5 h-5 font-semibold shrink-0">
-                          Đang duyệt
-                        </AppBadge>
-                      )}
-                      {post.status === 2 && (
-                        <AppBadge variant="success" soft className="text-[10px] py-0 px-1.5 h-5 font-semibold shrink-0">
-                          Đã duyệt
-                        </AppBadge>
-                      )}
-                      {post.status === 3 && (
-                        <AppBadge variant="error" soft className="text-[10px] py-0 px-1.5 h-5 font-semibold shrink-0">
-                          Từ chối
-                        </AppBadge>
-                      )}
-                      {post.status === 0 && (
-                        <AppBadge variant="secondary" soft className="text-[10px] py-0 px-1.5 h-5 font-semibold shrink-0">
-                          Ẩn
-                        </AppBadge>
-                      )}
-                    </span>
-                  </>
-                )}
               </div>
 
               {/* Title */}
               <h3 className="text-lg font-bold text-foreground mb-1 group-hover:text-primary transition-colors flex items-center gap-2">
-                {post.isHot && <Flame className="w-4 h-4 text-warning fill-orange-500 shrink-0" />}
-                <span className="line-clamp-2">{post.title}</span>
+                <Link to={postUrl} className="line-clamp-2 hover:text-primary">
+                  {post.title}
+                </Link>
               </h3>
 
-              {/* Snippet */}
-              <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{post.content}</p>
+              {/* Content */}
+              {displayMode === "detailed" ? (
+                <div className="mb-4 rounded-xl border border-border/70 bg-muted/30 p-4 sm:-ml-14 [&_img]:mt-4 [&_img]:max-h-[520px] [&_img]:w-full [&_img]:rounded-xl [&_img]:object-cover [&_iframe]:mt-4 [&_iframe]:aspect-video [&_iframe]:w-full [&_iframe]:rounded-xl">
+                  <RenderContent text={post.rawContent || post.content} />
+                </div>
+              ) : (
+                <Link to={postUrl} className="mb-3 block text-base text-muted-foreground line-clamp-2 hover:text-foreground sm:-ml-14">
+                  {post.content}
+                </Link>
+              )}
 
               {/* Tags & Stats */}
-              <div className="flex flex-col items-start gap-3 mt-auto">
+              <div className="flex flex-col items-start gap-3 mt-auto sm:-ml-14">
                 {post.tags && post.tags.length > 0 && (
                   <div className="flex items-center gap-1.5 flex-wrap">
                     {post.tags.map(tag => (
-                      <AppBadge key={tag} variant="secondary" soft className="text-[10px] px-1.5 py-0 font-medium">
+                      <AppBadge
+                        key={tag}
+                        variant="secondary"
+                        soft
+                        className="px-2 py-0.5 text-sm font-medium"
+                      >
                         {tag}
                       </AppBadge>
                     ))}
                   </div>
                 )}
                 <div className={cn(
-                  "flex items-center gap-4 text-xs font-medium text-muted-foreground shrink-0",
+                  "flex items-center gap-4 text-sm font-medium text-muted-foreground shrink-0",
                   isPending && "opacity-40 pointer-events-none select-none"
                 )}>
                   {/* Voting Pill */}
@@ -530,7 +604,7 @@ export const ForumPostCard = ({ post, className }) => {
                       <ArrowUp className="w-3.5 h-3.5" />
                     </button>
                     <span className={cn(
-                      "px-1 font-semibold text-[11px] min-w-[12px] text-center",
+                      "px-1 text-sm font-semibold min-w-[12px] text-center",
                       userVote === 1 && "text-orange-500",
                       userVote === -1 && "text-blue-500"
                     )}>
@@ -580,18 +654,18 @@ export const ForumPostCard = ({ post, className }) => {
 
             {/* Right Image Thumbnail */}
             {post.images && post.images.length > 0 && (
-              <div className="hidden md:block w-32 h-24 shrink-0 rounded-md overflow-hidden border border-border mt-1">
+              <Link to={postUrl} className="hidden md:block w-32 h-24 shrink-0 rounded-md overflow-hidden border border-border mt-1">
                 <img
                   src={post.images[0].imageUrl}
                   alt="preview"
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                 />
-              </div>
+              </Link>
             )}
           </div>
         </AppCardContent>
       </AppCard>
-    </Link>
+    </div>
   );
 };
 

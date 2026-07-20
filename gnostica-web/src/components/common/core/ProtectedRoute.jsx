@@ -1,6 +1,7 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import useAuthStore from '@/store/useAuthStore';
+import ErrorPage from '@/pages/general/ErrorPage';
 
 // Helper to decode base64url-encoded JSON payload from JWT token
 const parseJwt = (token) => {
@@ -14,7 +15,7 @@ const parseJwt = (token) => {
         .join('')
     );
     return JSON.parse(jsonPayload);
-  } catch (e) {
+  } catch {
     return null;
   }
 };
@@ -62,7 +63,7 @@ const ProtectedRoute = ({ children, roles }) => {
   if (roles && Array.isArray(roles) && roles.length > 0) {
     const hasRole = roles.map(r => r.toUpperCase()).includes(userRole);
     if (!hasRole) {
-      return <Navigate to="/" replace />;
+      return <ErrorPage />;
     }
   }
   return children;
