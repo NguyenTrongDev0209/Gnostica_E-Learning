@@ -43,6 +43,9 @@ public class ForumCategoryController {
                     .id(topic.getId())
                     .name(topic.getTitle())
                     .slug(topic.getSlug())
+                    .description(topic.getDescription())
+                    .avatarUrl(topic.getAvatarUrl())
+                    .bannerUrl(topic.getBannerUrl())
                     .status(topic.getStatus() != null && topic.getStatus() == 1)
                     .threadCount(count)
                     .build();
@@ -60,6 +63,9 @@ public class ForumCategoryController {
         Topic topic = Topic.builder()
                 .title(request.getName())
                 .slug(request.getSlug())
+                .description(request.getDescription())
+                .avatarUrl(request.getAvatarUrl())
+                .bannerUrl(request.getBannerUrl())
                 .status(request.getStatus() != null && request.getStatus() ? 1 : 0)
                 .account(account)
                 .build();
@@ -69,6 +75,9 @@ public class ForumCategoryController {
                 .id(saved.getId())
                 .name(saved.getTitle())
                 .slug(saved.getSlug())
+                .description(saved.getDescription())
+                .avatarUrl(saved.getAvatarUrl())
+                .bannerUrl(saved.getBannerUrl())
                 .status(saved.getStatus() == 1)
                 .threadCount(0L)
                 .build());
@@ -82,6 +91,9 @@ public class ForumCategoryController {
 
         topic.setTitle(request.getName());
         topic.setSlug(request.getSlug());
+        topic.setDescription(request.getDescription());
+        topic.setAvatarUrl(request.getAvatarUrl());
+        topic.setBannerUrl(request.getBannerUrl());
         if (request.getStatus() != null) {
             topic.setStatus(request.getStatus() ? 1 : 0);
         }
@@ -92,6 +104,9 @@ public class ForumCategoryController {
                 .id(saved.getId())
                 .name(saved.getTitle())
                 .slug(saved.getSlug())
+                .description(saved.getDescription())
+                .avatarUrl(saved.getAvatarUrl())
+                .bannerUrl(saved.getBannerUrl())
                 .status(saved.getStatus() == 1)
                 .threadCount(count)
                 .build());

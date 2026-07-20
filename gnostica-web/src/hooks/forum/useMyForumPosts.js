@@ -86,6 +86,9 @@ export default function useMyForumPosts(postsPerPage = 5) {
         status: "online"
       },
       category: thread.topic?.title || thread.category?.name || "Thảo luận",
+      topic: thread.topic || thread.category || null,
+      topicAvatar: thread.topic?.avatarUrl || thread.category?.avatarUrl || "",
+      topicSlug: thread.topic?.slug || thread.category?.slug || "",
       tags: [],
       createdAt: new Date(thread.createdAt).toLocaleDateString('vi-VN', {
         day: '2-digit',

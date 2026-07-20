@@ -13,7 +13,7 @@ import {
 import { cn } from "@/lib/utils";
 
 const dialogVariants = cva(
-  "transition-all duration-300",
+  "transition-all duration-300 [&_[data-slot=dialog-close]]:!right-3 [&_[data-slot=dialog-close]]:!top-3 [&_[data-slot=dialog-close]]:!size-[var(--btn-md-h)] [&_[data-slot=dialog-close]]:!bg-error [&_[data-slot=dialog-close]]:!text-error-foreground [&_[data-slot=dialog-close]]:hover:!bg-error/90 [&_[data-slot=dialog-close]_svg]:!size-[var(--btn-lg-icon)]",
   {
     variants: {
       appVariant: {
@@ -40,9 +40,7 @@ export {
   Dialog as AppDialogRoot,
   DialogTrigger as AppDialogTrigger,
   DialogHeader as AppDialogHeader,
-  DialogTitle as AppDialogTitle,
   DialogDescription as AppDialogDescription,
-  DialogFooter as AppDialogFooter,
   DialogClose as AppDialogClose,
 };
 
@@ -59,6 +57,30 @@ export const AppDialogContent = React.forwardRef(({ className, appVariant, ...pr
   );
 });
 AppDialogContent.displayName = "AppDialogContent";
+
+export const AppDialogTitle = React.forwardRef(({ className, ...props }, ref) => (
+  <DialogTitle
+    ref={ref}
+    className={cn(
+      "text-center text-[length:var(--type-size-xl)] font-bold leading-tight text-foreground",
+      className
+    )}
+    {...props}
+  />
+));
+AppDialogTitle.displayName = "AppDialogTitle";
+
+export const AppDialogFooter = React.forwardRef(({ className, ...props }, ref) => (
+  <DialogFooter
+    ref={ref}
+    className={cn(
+      "mt-2 bg-muted/50 px-[var(--container-px)] py-4",
+      className
+    )}
+    {...props}
+  />
+));
+AppDialogFooter.displayName = "AppDialogFooter";
 
 /**
  * Data-Driven AppDialog
@@ -83,7 +105,7 @@ export function AppDialog({
       <AppDialogContent appVariant={appVariant} className={className} showCloseButton={showCloseButton}>
         {(title || description) && (
           <DialogHeader>
-            {title && <DialogTitle>{title}</DialogTitle>}
+            {title && <AppDialogTitle>{title}</AppDialogTitle>}
             {description && <DialogDescription>{description}</DialogDescription>}
           </DialogHeader>
         )}
@@ -91,9 +113,9 @@ export function AppDialog({
           {children}
         </div>
         {footer && (
-          <DialogFooter>
+          <AppDialogFooter>
             {footer}
-          </DialogFooter>
+          </AppDialogFooter>
         )}
       </AppDialogContent>
     </Dialog>

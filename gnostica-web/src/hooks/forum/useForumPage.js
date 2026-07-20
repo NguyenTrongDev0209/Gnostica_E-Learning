@@ -14,15 +14,6 @@ export function useForumPage() {
     staleTime: 1000 * 60 * 5,
   });
 
-  const contributorsQuery = useQuery({
-    queryKey: ['forum_top_contributors'],
-    queryFn: async () => {
-      const res = await threadService.getTopContributors();
-      return res || [];
-    },
-    staleTime: 1000 * 60 * 10,
-  });
-
   const threadsQuery = useInfiniteQuery({
     queryKey: ['forum_threads'],
     queryFn: async ({ pageParam }) => {
@@ -42,9 +33,9 @@ export function useForumPage() {
 
   return {
     categories: categoriesQuery.data || [],
-    topContributors: contributorsQuery.data || [],
+    refetchCategories: categoriesQuery.refetch,
     threads,
-    isLoading: categoriesQuery.isLoading || contributorsQuery.isLoading || threadsQuery.isLoading,
+    isLoading: categoriesQuery.isLoading || threadsQuery.isLoading,
     hasNextPage: threadsQuery.hasNextPage,
     fetchNextPage: threadsQuery.fetchNextPage,
     isFetchingNextPage: threadsQuery.isFetchingNextPage,

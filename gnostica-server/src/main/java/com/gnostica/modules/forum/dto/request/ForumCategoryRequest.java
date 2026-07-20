@@ -14,5 +14,14 @@ public class ForumCategoryRequest {
     @Size(max = 255)
     private String slug;
 
+    @Size(max = 255)
+    private String description;
+
+    @Size(max = 2048)
+    private String avatarUrl;
+
+    @Size(max = 2048)
+    private String bannerUrl;
+
     private Boolean status;
 }

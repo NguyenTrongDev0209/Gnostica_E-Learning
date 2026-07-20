@@ -30,6 +30,7 @@ export const publicRoutes = {
     { path: "/courses/:slug", component: CourseDetail },
     { path: "/search", component: SearchPage },
     { path: "/forum", component: ForumPage },
+    { path: "/forum/:topicSlug/:slug", component: ForumDetail },
     { path: "/forum/:slug", component: ForumDetail },
     { path: "/profile/:id", component: UserProfile },
     { path: "/terms", component: TermsPage },
