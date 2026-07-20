@@ -1,28 +1,13 @@
-import courseService from "@/services/course/courseService";
-import { toast } from "sonner";
 import React from "react";
-import {   Controller } from "react-hook-form";
-import { Input } from "@/components/common/micro/AppInput";
-
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/common/micro/AppSelect";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/common/micro/AppPopover";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/common/micro/AppAccordion";
-import { Textarea } from "@/components/common/micro/AppTextarea";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/common/micro/AppDialog";
-import { ArrowLeft, ArrowRight, Video, GripVertical, Trash2, Plus, PlayCircle, FileText, Check, Loader2, Sparkles, Database, CheckCircle2, ListOrdered, Search, Pencil } from "lucide-react";
-import ReactQuill from "react-quill-new";
-import "react-quill-new/dist/quill.snow.css";
-import { ChevronDown, ChevronRight } from "lucide-react";
-import { Badge } from "@/components/common/micro/AppBadge";
-
-import VideoProgressCircle from "./VideoProgressCircle";
-import { CheckIcon } from "./CheckIcon";
+import { toast } from "sonner";
+import { Check, Video } from "lucide-react";
+import { VideoProgressCircle } from "./SharedUI";
+import courseService from "@/services/course/courseService";
 
 const globalUploadProgress = {};
 const uploadCallbacks = {};
 
-export default function BackgroundVideoUploader({ label, value, onChange, onUploadStart, onUploadEnd, uploadVideoToBunny, id = "v-upload" }) {
-  const fileInputRef = React.useRef(null);
+export function BackgroundVideoUploader({ label, value, onChange, onUploadStart, onUploadEnd, uploadVideoToBunny, id = "v-upload" }) {
   const [uploadProgress, setUploadProgress] = React.useState(0);
   const [processingProgress, setProcessingProgress] = React.useState(0);
   const [uploadPhase, setUploadPhase] = React.useState("idle"); // idle, uploading, processing, completed
@@ -126,13 +111,12 @@ export default function BackgroundVideoUploader({ label, value, onChange, onUplo
 
   return (
     <div
-      onClick={() => !isUploading && fileInputRef.current?.click()}
-      className={`relative aspect-video rounded-xl border-2 border-dashed flex flex-col items-center justify-center p-4 transition-all cursor-pointer group/upload
-        ${isCompleted ? "border-success/20 bg-green-50/30" : isCurrentlyUploading ? "border-success/20 bg-green-50/10" : "border-border bg-muted hover:bg-secondary hover:border-success/20"}`}
+      onClick={() => !isUploading && document.getElementById(id).click()}
+      className={`relative aspect-video rounded-lg border-2 border-dashed flex flex-col items-center justify-center p-4 transition-all cursor-pointer group/upload
+        ${isCompleted ? "border-success/20 bg-success/10" : isCurrentlyUploading ? "border-success/20 bg-success/10" : "border-border bg-muted hover:bg-secondary hover:border-success/20"}`}
     >
       <input
         type="file"
-        ref={fileInputRef}
         id={id}
         className="hidden"
         accept="video/*"
@@ -170,8 +154,6 @@ export default function BackgroundVideoUploader({ label, value, onChange, onUplo
           <p className="text-[9px] text-muted-foreground mt-0.5">MP4, MOV hoặc AVI</p>
         </>
       )}
-
-      {error && <p className="absolute bottom-2 text-[9px] font-bold text-error">{error}</p>}
     </div>
   );
 }

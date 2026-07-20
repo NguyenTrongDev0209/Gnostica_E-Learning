@@ -1,21 +1,16 @@
 import React from "react";
-import { useFormContext, Controller, useFieldArray } from "react-hook-form";
-import { Input } from "@/components/common/micro/AppInput";
-import { Textarea } from "@/components/common/micro/AppTextarea";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/common/micro/AppDialog";
-import { ArrowLeft, ArrowRight, Video, GripVertical, Trash2, Plus, PlayCircle, FileText, Check, Loader2, Sparkles, Database, CheckCircle2, ListOrdered, Search, Pencil, Save } from "lucide-react";
-import ReactQuill from "react-quill-new";
-import "react-quill-new/dist/quill.snow.css";
-import { ChevronDown, ChevronRight } from "lucide-react";
-import { Badge } from "@/components/common/micro/AppBadge";
-import { toast } from "sonner";
 import { useParams } from "react-router-dom";
+import { useFormContext, useFieldArray, Controller } from "react-hook-form";
+import { toast } from "sonner";
 import { AppButton } from "@/components/common/micro/AppButton";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/common/micro/AppSelect";
+import { Label } from "@/components/common/micro/AppLabel";
+import AppInput from "@/components/common/micro/AppInput";
+import AppSelect from "@/components/common/micro/AppSelect";
+import AppTextarea from "@/components/common/micro/AppTextarea";
+import { CheckCircle2, Database, Plus, Trash2, GripVertical, Search, Check, Save, ListOrdered } from "lucide-react";
+import { BackgroundVideoUploader } from "./BackgroundVideoUploader";
 
-import BackgroundVideoUploader from "./BackgroundVideoUploader";
-
-export default function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploads }) {
+export function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploads }) {
   const { slug } = useParams();
   const {
     register,
@@ -33,7 +28,6 @@ export default function SectionItem({ sectionIndex, control, uploadVideoToBunny,
   const [bankQuestions, setBankQuestions] = React.useState([]);
   const [searchTerm, setSearchTerm] = React.useState("");
   const [filterLevel, setFilterLevel] = React.useState("all");
-
 
   // Load real bank questions and pre-populate quiz data when modal opens
   React.useEffect(() => {
@@ -108,11 +102,11 @@ export default function SectionItem({ sectionIndex, control, uploadVideoToBunny,
       <div className="h-2" /> {/* Spacer extra giúp né Header Accordion */}
       {/* Tên Chương */}
       <div className="space-y-2">
-        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
+        <Label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
           Tiêu đề chương <span className="text-error">*</span>
-        </label>
-        <Input
-          className="h-10 border-border focus:border-success/20 font-bold shadow-sm"
+        </Label>
+        <AppInput
+          className="h-12 border-border focus-visible:ring-success focus-visible:bg-white bg-muted font-medium "
           placeholder="Vd: Chương 1: Giới thiệu tổng quan"
           {...register(`sections.${sectionIndex}.title`)}
           autoComplete="off"
@@ -127,30 +121,30 @@ export default function SectionItem({ sectionIndex, control, uploadVideoToBunny,
       {/* Attachments & Status */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
-          <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
+          <Label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
             Tài liệu đính kèm (PDF, ZIP,...) (Nếu có)
-          </label>
+          </Label>
           <div className="flex flex-col gap-3">
             <Controller
               name={`sections.${sectionIndex}.attachments`}
               control={control}
               render={({ field }) => (
                 field.value && typeof field.value === "string" ? (
-                  <div className="flex items-center gap-2 p-2 border border-success/20 rounded-md bg-green-50/50 h-10">
+                  <div className="flex items-center gap-2 p-2 border border-success/20 rounded-md bg-success/10 h-10">
                     <span className="text-xs text-success font-bold flex-1 truncate">Đã có tài liệu</span>
                     <a href={field.value} target="_blank" rel="noreferrer" className="text-xs text-info hover:underline px-2 border-r border-success/20">Xem file</a>
-                    <button
+                    <AppButton appVariant="ghostMuted"
                       type="button"
                       className="text-xs font-bold text-error hover:text-error px-2"
                       onClick={() => field.onChange(null)}
                     >
                       Đổi file khác
-                    </button>
+                    </AppButton>
                   </div>
                 ) : (
-                  <Input
+                  <AppInput
                     type="file"
-                    className="h-10 text-xs pt-2 cursor-pointer w-full"
+                    className="h-12 border-border focus-visible:ring-success focus-visible:bg-white bg-muted font-medium text-xs pt-2 cursor-pointer w-full"
                     onChange={(e) => field.onChange(e.target.files[0])}
                   />
                 )
@@ -160,16 +154,16 @@ export default function SectionItem({ sectionIndex, control, uploadVideoToBunny,
               <AppButton appVariant="gradient"
                 type="button"
                 onClick={() => setIsQuizModalOpen(true)}
-                className="w-full h-10 border-emerald-300 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 hover:text-emerald-800 font-bold gap-2 shadow-sm transition-all border"
+                className="w-full h-10 border-success/30 text-success bg-success/10 hover:bg-success/20 hover:text-success font-bold gap-2 shadow-sm transition-all border"
               >
-                <CheckCircle2 size={16} className="text-emerald-600" />
+                <CheckCircle2 size={16} className="text-success" />
                 <span>Đã có bài Quiz ({watch(`sections.${sectionIndex}.quiz.questionIds`).length} câu) - Chỉnh sửa</span>
               </AppButton>
             ) : (
               <AppButton appVariant="gradient"
                 type="button"
                 onClick={() => setIsQuizModalOpen(true)}
-                className="w-full h-10 border-indigo-200 text-indigo-700 hover:bg-indigo-50 hover:text-indigo-800 font-bold gap-2 border-dashed bg-transparent shadow-none"
+                className="w-full h-10 border-success/30 text-success hover:bg-success/10 hover:text-success font-bold gap-2 border-dashed bg-transparent shadow-none"
               >
                 <Database size={16} />
                 Tạo bài Quiz cho chương này
@@ -178,14 +172,14 @@ export default function SectionItem({ sectionIndex, control, uploadVideoToBunny,
           </div>
         </div>
         <div className="space-y-2">
-          <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
+          <Label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
             Trạng thái chương <span className="text-error">*</span>
-          </label>
+          </Label>
           <Controller
             name={`sections.${sectionIndex}.status`}
             control={control}
             render={({ field }) => (
-              <Select
+              <AppSelect
                 onValueChange={(val) => {
                   const newStatus = Number(val);
 
@@ -207,15 +201,13 @@ export default function SectionItem({ sectionIndex, control, uploadVideoToBunny,
                   setValue(`sections.${sectionIndex}.lessons`, updatedLessons, { shouldDirty: true });
                 }}
                 value={(field.value ?? 1).toString()}
-              >
-                <SelectTrigger className="h-10 border-border focus:border-success/20 font-medium bg-white">
-                  <SelectValue placeholder="Chọn trạng thái" />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  <SelectItem value="1" disabled={currentCourseStatus === 2}>Hoạt động {currentCourseStatus === 2 && "(Bị khóa)"}</SelectItem>
-                  <SelectItem value="2">Ẩn</SelectItem>
-                </SelectContent>
-              </Select>
+                placeholder="Chọn trạng thái"
+                options={[
+                  { value: "1", label: `Hoạt động ${currentCourseStatus === 2 ? "(Bị khóa)" : ""}`, disabled: currentCourseStatus === 2 },
+                  { value: "2", label: "Ẩn" }
+                ]}
+                triggerClassName="h-10"
+              />
             )}
           />
         </div>
@@ -224,12 +216,12 @@ export default function SectionItem({ sectionIndex, control, uploadVideoToBunny,
       {/* Danh sách Bài học */}
       <div className="pt-2">
         <div className="flex items-center justify-between mb-3">
-          <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
+          <Label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
             Danh Sách Bài Học ({fields.length})
-          </label>
-          <button
+          </Label>
+          <AppButton appVariant="ghostMuted"
             type="button"
-            className="flex items-center gap-1.5 text-xs font-bold text-success hover:text-success bg-green-50 hover:bg-success/10 text-success px-2 py-1.5 rounded-md transition-colors"
+            className="flex items-center gap-1.5 text-xs font-bold text-success hover:text-success bg-success/10 hover:bg-success/10 text-success px-2 py-1.5 rounded-md transition-colors"
             onClick={() => append({
               title: "",
               content: "",
@@ -240,14 +232,14 @@ export default function SectionItem({ sectionIndex, control, uploadVideoToBunny,
             })}
           >
             <Plus size={14} /> Bài học mới
-          </button>
+          </AppButton>
         </div>
 
         <div className="space-y-6 pb-4 pt-2 border-t border-slate-50 mt-3">
           {fields.map((lesson, lessonIdx) => (
             <div
               key={lesson.id}
-              className="group flex gap-4 p-5 border border-border rounded-2xl bg-white hover:border-success/20 hover:shadow-lg transition-all duration-300 relative"
+              className="group flex gap-4 p-5 border border-border rounded-lg bg-white hover:border-success/20 hover:shadow-lg transition-all duration-300 relative"
             >
 
 
@@ -259,11 +251,11 @@ export default function SectionItem({ sectionIndex, control, uploadVideoToBunny,
                 {/* Left side: Information (Title + Description + Dates) */}
                 <div className="space-y-4">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1">
+                    <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1">
                       Tiêu đề bài học <span className="text-error">*</span>
-                    </label>
-                    <Input
-                      className="h-10 font-bold border-border focus:ring-0 focus:border-success/20 transition-all text-foreground"
+                    </Label>
+                    <AppInput
+                      className="h-12 border-border focus-visible:ring-success focus-visible:bg-white bg-muted font-medium "
                       placeholder={`Ví dụ: Bài giảng số ${lessonIdx + 1}: Giới thiệu ngôn ngữ`}
                       {...register(`sections.${sectionIndex}.lessons.${lessonIdx}.title`)}
                       autoComplete="off"
@@ -274,11 +266,11 @@ export default function SectionItem({ sectionIndex, control, uploadVideoToBunny,
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1">
+                    <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1">
                       Mô tả nội dung bài học
-                    </label>
-                    <Textarea
-                      className="min-h-[80px] text-xs resize-none border-border focus:ring-0 focus:border-success/20"
+                    </Label>
+                    <AppTextarea
+                      className="min-h-[120px] resize-y border-border focus-visible:ring-success focus-visible:bg-white bg-muted font-medium p-4 leading-relaxed text-xs "
                       placeholder="Một đoạn mô tả ngắn về những gì học viên sẽ được học trong bài này..."
                       {...register(`sections.${sectionIndex}.lessons.${lessonIdx}.content`)}
                     />
@@ -288,14 +280,14 @@ export default function SectionItem({ sectionIndex, control, uploadVideoToBunny,
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1">
+                    <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1">
                       Trạng thái bài học <span className="text-error">*</span>
-                    </label>
+                    </Label>
                     <Controller
                       name={`sections.${sectionIndex}.lessons.${lessonIdx}.status`}
                       control={control}
                       render={({ field }) => (
-                        <Select
+                        <AppSelect
                           onValueChange={(val) => {
                             const newStatus = Number(val);
 
@@ -308,15 +300,13 @@ export default function SectionItem({ sectionIndex, control, uploadVideoToBunny,
                             field.onChange(newStatus);
                           }}
                           value={(field.value ?? 1).toString()}
-                        >
-                          <SelectTrigger className="h-9 border-border focus:border-success/20 font-medium bg-white text-xs">
-                            <SelectValue placeholder="Chọn trạng thái" />
-                          </SelectTrigger>
-                          <SelectContent className="bg-white">
-                            <SelectItem value="1" disabled={currentSectionStatus === 2}>Hoạt động {currentSectionStatus === 2 && "(Bị khóa)"}</SelectItem>
-                            <SelectItem value="2">Ẩn</SelectItem>
-                          </SelectContent>
-                        </Select>
+                          placeholder="Chọn trạng thái"
+                          options={[
+                            { value: "1", label: `Hoạt động ${currentSectionStatus === 2 ? "(Bị khóa)" : ""}`, disabled: currentSectionStatus === 2 },
+                            { value: "2", label: "Ẩn" }
+                          ]}
+                          triggerClassName="h-9 text-xs"
+                        />
                       )}
                     />
                   </div>
@@ -324,9 +314,9 @@ export default function SectionItem({ sectionIndex, control, uploadVideoToBunny,
 
                 {/* Right side: Video Upload Box */}
                 <div className="space-y-1.5 flex flex-col justify-between">
-                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1">
+                  <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1">
                     Video bài học
-                  </label>
+                  </Label>
                   <Controller
                     name={`sections.${sectionIndex}.lessons.${lessonIdx}.videoFile`}
                     control={control}
@@ -352,14 +342,14 @@ export default function SectionItem({ sectionIndex, control, uploadVideoToBunny,
               </div>
 
               {/* Nút Xóa bài học */}
-              <button
+              <AppButton appVariant="ghostMuted"
                 type="button"
                 onClick={() => remove(lessonIdx)}
-                className="absolute -top-2 -right-2 w-8 h-8 flex items-center justify-center bg-white border border-border text-muted-foreground hover:text-error hover:border-error/20 hover:bg-red-50 rounded-full transition-all opacity-0 group-hover:opacity-100 shadow-md z-30"
+                className="absolute -top-2 -right-2 w-8 h-8 flex items-center justify-center bg-white border border-border text-muted-foreground hover:text-error hover:border-error/20 hover:bg-error/10 rounded-full transition-all opacity-0 group-hover:opacity-100 shadow-md z-30"
                 title="Xóa bài học"
               >
                 <Trash2 size={14} />
-              </button>
+              </AppButton>
             </div>
           ))}
         </div>
@@ -367,7 +357,7 @@ export default function SectionItem({ sectionIndex, control, uploadVideoToBunny,
 
       {/* Error level Section */}
       {errors.sections?.[sectionIndex]?.lessons?.root && (
-        <p className="text-xs font-bold text-error bg-red-50 p-2 rounded-md mt-2">
+        <p className="text-xs font-bold text-error bg-error/10 p-2 rounded-md mt-2">
           {errors.sections[sectionIndex].lessons.root.message}
         </p>
       )}
@@ -375,19 +365,19 @@ export default function SectionItem({ sectionIndex, control, uploadVideoToBunny,
       {/* Quiz Modal */}
       {isQuizModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-muted/50 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-7xl max-h-[95vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-7xl max-h-[95vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="px-6 py-4 border-b border-border flex items-center justify-between bg-muted">
               <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
-                <Database className="w-5 h-5 text-indigo-500" />
+                <Database className="w-5 h-5 text-success" />
                 Tạo Bài Quiz - Chương {sectionIndex + 1}
               </h3>
-              <button
+              <AppButton appVariant="ghostMuted"
                 type="button"
                 onClick={() => setIsQuizModalOpen(false)}
                 className="w-8 h-8 flex items-center justify-center rounded-full bg-secondary text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
               >
                 <Plus className="w-5 h-5 rotate-45" />
-              </button>
+              </AppButton>
             </div>
 
             <div className="p-6 flex flex-col flex-1 overflow-hidden space-y-6">
@@ -395,27 +385,27 @@ export default function SectionItem({ sectionIndex, control, uploadVideoToBunny,
                 {/* L Pane: Bài Quiz */}
                 <div className="flex flex-col gap-4 overflow-hidden h-full">
                   <div className="space-y-2 shrink-0">
-                    <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
+                    <Label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
                       Tên bài Quiz <span className="text-error">*</span>
-                    </label>
-                    <Input
+                    </Label>
+                    <AppInput
                       value={quizTitle}
                       onChange={(e) => setQuizTitle(e.target.value)}
                       placeholder="Ví dụ: Kiểm tra kiến thức chương"
-                      className="h-11 border-border focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 font-bold bg-white"
+                      className="h-11 border-border focus:border-success focus:ring-1 focus:ring-success font-bold bg-white"
                     />
                   </div>
 
-                  <div className="border border-border rounded-xl flex flex-col flex-1 overflow-hidden bg-white shadow-sm">
-                    <div className="bg-indigo-50/50 px-4 py-3 border-b border-indigo-100 flex items-center justify-between">
+                  <div className="border border-border rounded-lg flex flex-col flex-1 overflow-hidden bg-white shadow-sm">
+                    <div className="bg-success/10/50 px-4 py-3 border-b border-success/20 flex items-center justify-between">
                       <div>
-                        <span className="text-sm font-bold text-indigo-900 block">Nội dung bài Quiz</span>
-                        <span className="text-[11px] text-indigo-600 font-bold">{selectedQuizQuestions.length} câu hỏi được chọn</span>
+                        <span className="text-sm font-bold text-success block">Nội dung bài Quiz</span>
+                        <span className="text-[11px] text-success font-bold">{selectedQuizQuestions.length} câu hỏi được chọn</span>
                       </div>
                     </div>
                     <div className="p-4 flex-1 overflow-y-auto custom-scrollbar bg-muted">
                       {selectedQuizQuestions.length === 0 ? (
-                        <div className="h-full flex flex-col justify-center items-center text-muted-foreground border-dashed border-2 border-border rounded-xl p-8 bg-white">
+                        <div className="h-full flex flex-col justify-center items-center text-muted-foreground border-dashed border-2 border-border rounded-lg p-8 bg-white">
                           <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center mb-3">
                             <ListOrdered className="w-6 h-6 text-slate-300" />
                           </div>
@@ -427,23 +417,23 @@ export default function SectionItem({ sectionIndex, control, uploadVideoToBunny,
                           {selectedQuizQuestions.map((qId, idx) => {
                             const qDetails = bankQuestions.find(item => item.id === qId);
                             return (
-                              <div key={qId} className="border border-indigo-500/20 rounded-lg p-3 bg-white shadow-sm flex items-center justify-between gap-3 hover:border-error/20 transition-colors">
+                              <div key={qId} className="border border-success/20 rounded-lg p-3 bg-white shadow-sm flex items-center justify-between gap-3 hover:border-error/20 transition-colors">
                                 <div className="flex gap-3 items-start flex-1">
                                   <div className="pt-0.5 shrink-0">
-                                    <div className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-[10px] font-bold">{idx + 1}</div>
+                                    <div className="w-5 h-5 rounded-full bg-success/20 text-success flex items-center justify-center text-[10px] font-bold">{idx + 1}</div>
                                   </div>
                                   <div className="flex-1">
                                     <div className="text-xs font-bold text-foreground leading-relaxed prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: qDetails?.text || "Đang tải câu hỏi..." }} />
                                   </div>
                                 </div>
-                                <button
+                                <AppButton appVariant="ghostMuted"
                                   type="button"
                                   onClick={() => setSelectedQuizQuestions(selectedQuizQuestions.filter(id => id !== qId))}
-                                  className="w-7 h-7 flex items-center justify-center rounded-full text-muted-foreground hover:text-error hover:bg-red-50 transition-all shrink-0"
+                                  className="w-7 h-7 flex items-center justify-center rounded-full text-muted-foreground hover:text-error hover:bg-error/10 transition-all shrink-0"
                                   title="Xóa khỏi bài Quiz"
                                 >
                                   <Trash2 size={13} />
-                                </button>
+                                </AppButton>
                               </div>
                             );
                           })}
@@ -456,7 +446,7 @@ export default function SectionItem({ sectionIndex, control, uploadVideoToBunny,
                 {/* R Pane: Question Bank */}
                 <div className="flex flex-col h-full overflow-hidden">
                   <div className="h-[24px] shrink-0"></div>
-                  <div className="border border-border rounded-xl flex flex-col flex-1 overflow-hidden bg-white shadow-sm">
+                  <div className="border border-border rounded-lg flex flex-col flex-1 overflow-hidden bg-white shadow-sm">
                     <div className="bg-muted px-4 py-3 border-b border-border flex flex-col gap-3">
                       <div className="flex items-center justify-between">
                         <div>
@@ -467,17 +457,17 @@ export default function SectionItem({ sectionIndex, control, uploadVideoToBunny,
                       <div className="flex items-center gap-2">
                         <div className="relative flex-1">
                           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-                          <Input 
+                          <AppInput 
                             placeholder="Tìm kiếm theo từ khóa..." 
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="pl-8 h-8 text-xs border-border bg-white focus:ring-indigo-500 focus:border-indigo-500" 
+                            className="pl-8 h-8 text-xs border-border bg-white focus:ring-success focus:border-success" 
                           />
                         </div>
                         <select 
                           value={filterLevel} 
                           onChange={(e) => setFilterLevel(e.target.value)}
-                          className="w-[110px] h-8 border border-border bg-white text-xs font-bold rounded-md px-2 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer shadow-sm text-foreground"
+                          className="w-[110px] h-8 border border-border bg-white text-xs font-bold rounded-md px-2 focus:outline-none focus:ring-1 focus:ring-success cursor-pointer shadow-sm text-foreground"
                         >
                           <option value="all">Tất cả độ khó</option>
                           <option value="easy">Dễ</option>
@@ -491,7 +481,7 @@ export default function SectionItem({ sectionIndex, control, uploadVideoToBunny,
                         <div className="text-center py-8 text-xs text-muted-foreground">Không tìm thấy câu hỏi phù hợp trong ngân hàng.</div>
                       ) : (
                         filteredQuestions.map((q) => (
-                          <div key={q.id} className="border border-border rounded-lg p-3 hover:border-indigo-200 transition-colors flex gap-3 cursor-pointer group bg-white">
+                          <div key={q.id} className="border border-border rounded-lg p-3 hover:border-success/30 transition-colors flex gap-3 cursor-pointer group bg-white">
                             <div className="pt-0.5">
                               <input
                                 type="checkbox"
@@ -503,7 +493,7 @@ export default function SectionItem({ sectionIndex, control, uploadVideoToBunny,
                                     setSelectedQuizQuestions(selectedQuizQuestions.filter(id => id !== q.id));
                                   }
                                 }}
-                                className="w-4 h-4 rounded border-border text-indigo-600 focus:ring-indigo-600 cursor-pointer"
+                                className="w-4 h-4 rounded border-border text-success focus:ring-success cursor-pointer"
                               />
                             </div>
                             <div className="flex-1">
@@ -514,10 +504,10 @@ export default function SectionItem({ sectionIndex, control, uploadVideoToBunny,
                                   const isCorrect = q.correct === opt;
                                   return (
                                     <div key={opt} className={`flex items-start gap-2 px-2.5 py-1.5 rounded border ${
-                                      isCorrect ? "bg-emerald-50 border-emerald-200 text-emerald-700 font-bold" : "bg-muted border-border text-muted-foreground"
+                                      isCorrect ? "bg-success/10 border-success/30 text-success font-bold" : "bg-muted border-border text-muted-foreground"
                                     }`}>
                                       <span className={`w-4 h-4 rounded flex items-center justify-center font-bold text-[9px] shrink-0 mt-0.5 ${
-                                        isCorrect ? "bg-emerald-500 text-white" : "bg-indigo-50 text-indigo-600"
+                                        isCorrect ? "bg-success/100 text-white" : "bg-success/10 text-success"
                                       }`}>
                                         {isCorrect ? <Check size={10} strokeWidth={3} /> : opt}
                                       </span>
@@ -529,9 +519,9 @@ export default function SectionItem({ sectionIndex, control, uploadVideoToBunny,
 
                               <div className="flex items-center gap-2 mt-3">
                                 <span className={`text-[10px] border px-2 py-0.5 rounded font-bold uppercase ${
-                                  q.level === "hard" ? "text-error bg-red-50 border-error/20" :
-                                  q.level === "medium" ? "text-amber-600 bg-amber-50 border-amber-100" :
-                                  "text-success bg-green-50 border-success/20"
+                                  q.level === "hard" ? "text-error bg-error/10 border-error/20" :
+                                  q.level === "medium" ? "text-warning bg-warning/10 border-warning/20" :
+                                  "text-success bg-success/10 border-success/20"
                                 }`}>
                                   {q.level === "hard" ? "Khó" : q.level === "medium" ? "Trung bình" : "Dễ"}
                                 </span>
@@ -550,7 +540,7 @@ export default function SectionItem({ sectionIndex, control, uploadVideoToBunny,
               <AppButton appVariant="ghostMuted" variant="ghost" type="button" onClick={handleCancelQuiz} className="h-11 px-6 font-bold border border-border bg-white hover:bg-secondary text-muted-foreground">
                 Hủy
               </AppButton>
-              <AppButton appVariant="gradient" type="button" onClick={handleSaveQuiz} className="h-11 px-8 font-bold bg-indigo-600 hover:bg-indigo-700 text-white gap-2 shadow-md shadow-indigo-100 border-none">
+              <AppButton appVariant="gradient" type="button" onClick={handleSaveQuiz} className="h-11 px-8 font-bold bg-success hover:bg-success text-white gap-2 shadow-md shadow-success/20 border-none">
                 <Save size={16} />
                 Lưu Bài Quiz
               </AppButton>
@@ -561,4 +551,3 @@ export default function SectionItem({ sectionIndex, control, uploadVideoToBunny,
     </div>
   );
 }
-
