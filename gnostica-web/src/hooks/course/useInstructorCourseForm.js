@@ -40,6 +40,7 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
   const methods = useForm({
     resolver: zodResolver(courseSchema, { errorMap: viErrorMap }),
     defaultValues: {
+      id: "",
       title: "",
       slug: "",
       categoryId: "",
@@ -309,6 +310,7 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
             ...data,
             categoryId: data.categoryId?.toString() || "",
             status: (data.status !== null && data.status !== undefined) ? Number(data.status) : 1,
+            promoVideo: data.promoVideo || null,
             questionBank: bankQuestions,
             sections: data.modules?.map(m => ({
               ...m,
@@ -419,13 +421,12 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
   }, [saveDraft, methods]);
 
   // --- AUTO SAVE & UPLOAD LOGIC ---
-  const formData = methods.watch();
   useEffect(() => {
-    const timer = setTimeout(() => {
-      saveDraft(formData, false);
+    const timer = setInterval(() => {
+      saveDraft(methods.getValues(), false);
     }, 10000);
-    return () => clearTimeout(timer);
-  }, [formData, saveDraft]);
+    return () => clearInterval(timer);
+  }, [methods, saveDraft]);
 
   const watchThumbnail = methods.watch("thumbnail");
   useEffect(() => {
