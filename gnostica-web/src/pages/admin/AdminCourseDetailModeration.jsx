@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { AppButton } from "@/components/common/micro/AppButton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/common/micro/AppTabs";
 import { AppAccordionRoot as Accordion, AppAccordionItem as AccordionItem, AppAccordionTrigger as AccordionTrigger, AppAccordionContent as AccordionContent } from "@/components/common/micro/AppAccordion";
@@ -107,9 +107,9 @@ export default function AdminCourseDetailModeration() {
 
   const getStatusBadge = (status) => {
     switch (status) {
-      case 4: return <AppBadge className="bg-amber-50 text-amber-700 border-amber-200"><span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse mr-1"></span> Chờ duyệt</AppBadge>;
-      case 1: return <AppBadge className="bg-emerald-50 text-emerald-700 border-emerald-200">Đã duyệt</AppBadge>;
-      case 3: return <AppBadge className="bg-rose-50 text-rose-700 border-rose-200">Bị từ chối</AppBadge>;
+      case 4: return <AppBadge className="bg-warning/10 text-warning border-warning/20"><span className="w-1.5 h-1.5 rounded-full bg-warning animate-pulse mr-1"></span> Chờ duyệt</AppBadge>;
+      case 1: return <AppBadge className="bg-success/10 text-success border-success/20">Đã duyệt</AppBadge>;
+      case 3: return <AppBadge className="bg-error/10 text-error border-error/20">Bị từ chối</AppBadge>;
       default: return <AppBadge className="bg-muted text-muted-foreground border-border">Khác</AppBadge>;
     }
   };
@@ -117,15 +117,15 @@ export default function AdminCourseDetailModeration() {
   return (
     <div className="max-w-[1400px] mx-auto space-y-6 animate-in fade-in duration-500 pb-10">
       {course.isVersionUpdate && (
-        <div className="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-xl flex items-start gap-3 shadow-sm">
-          <AlertTriangle className="w-5 h-5 text-blue-600 mt-0.5 shrink-0" />
+        <div className="bg-info/10 border border-info/20 text-info p-4 rounded-xl flex items-start gap-3 shadow-sm">
+          <AlertTriangle className="w-5 h-5 text-info mt-0.5 shrink-0" />
           <div className="flex-1">
             <h3 className="font-bold text-sm">Đây là bản cập nhật của khóa học "{course.originalCourseName}"</h3>
             <p className="text-sm mt-1 opacity-90">
               Khi bạn nhấn Phê duyệt, nội dung của phiên bản này sẽ được gộp và ghi đè lên khóa học gốc đang hoạt động.
             </p>
           </div>
-          <AppButton appVariant="outline" size="sm" className="bg-white hover:bg-blue-100 text-blue-700 font-bold shrink-0 border-blue-300" onClick={() => window.open(`/courses/${course.originalCourseSlug}`, "_blank")}>
+          <AppButton appVariant="outline" size="sm" className="bg-white hover:bg-info/10 text-info font-bold shrink-0 border-info/30" onClick={() => window.open(`/courses/${course.originalCourseSlug}`, "_blank")}>
             Xem khóa gốc <ExternalLink className="w-3.5 h-3.5 ml-1.5" />
           </AppButton>
         </div>
@@ -147,10 +147,10 @@ export default function AdminCourseDetailModeration() {
         <div className="flex items-center gap-3 shrink-0 ml-14 md:ml-0">
           {course.status === 4 && (
             <>
-              <AppButton appVariant="ghostMuted" variant="ghost" onClick={() => setIsRejectModalOpen(true)} disabled={isSubmitting} className="font-bold text-rose-600 border border-rose-200 bg-white hover:bg-rose-50 hover:text-rose-700 h-10 px-5">
+              <AppButton appVariant="ghostMuted" variant="ghost" onClick={() => setIsRejectModalOpen(true)} disabled={isSubmitting} className="font-bold text-error border border-error/20 bg-white hover:bg-error/10 hover:text-error h-10 px-5">
                 Từ chối kiểm duyệt
               </AppButton>
-              <AppButton appVariant="gradient" onClick={handleApprove} disabled={isSubmitting} className="font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-md gap-2 border-none px-6 h-10">
+              <AppButton appVariant="gradient" onClick={handleApprove} disabled={isSubmitting} className="font-bold bg-success hover:bg-success/90 text-white shadow-md gap-2 border-none px-6 h-10">
                 <CheckCircle2 className="w-4.5 h-4.5" /> Phê duyệt khóa học
               </AppButton>
             </>
@@ -166,17 +166,17 @@ export default function AdminCourseDetailModeration() {
                 {activePreview ? (
                   <>
                     {activePreview.type === "lesson" && <Video className="w-5 h-5 text-info" />}
-                    {activePreview.type === "quiz" && <Trophy className="w-5 h-5 text-violet-500" />}
+                    {activePreview.type === "quiz" && <Trophy className="w-5 h-5 text-primary" />}
                     Xem trước: {activePreview.data.title || "Nội dung bài"}
                   </>
                 ) : (
                   <>
-                    <Video className="w-5 h-5 text-indigo-500" /> Video giới thiệu (Promo Video)
+                    <Video className="w-5 h-5 text-primary" /> Video giới thiệu (Promo Video)
                   </>
                 )}
               </h2>
               {activePreview && (
-                <AppButton appVariant="ghostMuted" variant="ghost" size="sm" className="text-indigo-600 border-none font-bold hover:bg-indigo-50 gap-1 text-xs" onClick={() => setActivePreview(null)}>
+                <AppButton appVariant="ghostMuted" variant="ghost" size="sm" className="text-primary border-none font-bold hover:bg-primary/10 gap-1 text-xs" onClick={() => setActivePreview(null)}>
                   Xem Promo Video
                 </AppButton>
               )}
@@ -187,7 +187,7 @@ export default function AdminCourseDetailModeration() {
                   {activePreview.type === "lesson" ? (
                     <div className="space-y-4">
                       {activePreview.data.videoUrl ? (
-                        <div className="aspect-video rounded-xl bg-slate-950 overflow-hidden shadow-lg border border-border relative">
+                        <div className="aspect-video rounded-xl bg-foreground overflow-hidden shadow-lg border border-border relative">
                           {isEmbedLink(activePreview.data.videoUrl) ? (
                             <iframe
                               ref={playerRef}
@@ -211,9 +211,9 @@ export default function AdminCourseDetailModeration() {
                         <TabsList className="grid w-full grid-cols-2 mb-4 bg-secondary p-1 rounded-xl h-11">
                           <TabsTrigger value="content" className="font-bold text-xs">Tóm tắt bài giảng</TabsTrigger>
                           <TabsTrigger value="attachments" className="font-bold text-xs flex items-center gap-2">
-                            <FileText className="w-3.5 h-3.5 text-indigo-600" /> Tài liệu chương
+                            <FileText className="w-3.5 h-3.5 text-primary" /> Tài liệu chương
                             {activePreview.moduleAttachments?.length > 0 && (
-                              <AppBadge className="h-4 px-1.5 py-0 text-[10px] bg-indigo-100 text-indigo-700">{activePreview.moduleAttachments.length}</AppBadge>
+                              <AppBadge className="h-4 px-1.5 py-0 text-[10px] bg-primary/10 text-primary">{activePreview.moduleAttachments.length}</AppBadge>
                             )}
                           </TabsTrigger>
                         </TabsList>
@@ -227,9 +227,9 @@ export default function AdminCourseDetailModeration() {
                            {activePreview.moduleAttachments?.length > 0 ? (
                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                {activePreview.moduleAttachments.map((file, i) => (
-                                 <div key={i} className="flex items-center justify-between p-4 bg-white border border-border rounded-xl shadow-sm hover:border-indigo-200">
+                                 <div key={i} className="flex items-center justify-between p-4 bg-white border border-border rounded-xl shadow-sm hover:border-primary/20">
                                    <div className="flex items-center gap-3">
-                                     <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 border border-amber-100"><FileText className="w-5 h-5" /></div>
+                                     <div className="w-10 h-10 rounded-xl bg-warning/10 flex items-center justify-center text-warning border border-warning/20"><FileText className="w-5 h-5" /></div>
                                      <div className="min-w-0">
                                        <p className="text-[13px] font-bold truncate">{file.fileUrl?.split('/').pop()}</p>
                                        <p className="text-[10px] text-muted-foreground uppercase">{file.fileType || "DOCUMENT"}</p>
@@ -241,7 +241,7 @@ export default function AdminCourseDetailModeration() {
                              </div>
                            ) : (
                              <div className="p-10 text-center border border-dashed rounded-xl flex flex-col items-center justify-center">
-                               <FileText className="w-8 h-8 text-slate-300 mb-2" />
+                               <FileText className="w-8 h-8 text-muted-foreground/40 mb-2" />
                                <p className="text-muted-foreground text-xs font-bold italic">Chương này chưa có tài liệu đính kèm.</p>
                              </div>
                            )}
@@ -249,9 +249,9 @@ export default function AdminCourseDetailModeration() {
                       </Tabs>
                     </div>
                   ) : (
-                    <div className="min-h-[350px] bg-gradient-to-br from-violet-50 to-white border border-violet-100 rounded-xl p-6">
-                      <div className="flex items-center gap-3 mb-4 border-b border-violet-100 pb-3">
-                        <div className="w-10 h-10 rounded-full bg-violet-600 text-white flex items-center justify-center"><Trophy className="w-5 h-5" /></div>
+                    <div className="min-h-[350px] bg-gradient-to-br from-primary/10 to-white border border-primary/20 rounded-xl p-6">
+                      <div className="flex items-center gap-3 mb-4 border-b border-primary/20 pb-3">
+                        <div className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center"><Trophy className="w-5 h-5" /></div>
                         <div>
                           <h3 className="font-black">Bài kiểm tra Trắc nghiệm: {activePreview.data.title}</h3>
                           <p className="text-[11px] text-muted-foreground font-bold mt-0.5">Bao gồm {activePreview.data.questions?.length || 0} câu hỏi trắc nghiệm</p>
@@ -263,19 +263,19 @@ export default function AdminCourseDetailModeration() {
                             <p className="font-bold text-sm mb-3">Câu {idx + 1}: {q.text || q.content}</p>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                               {q.options ? Object.entries(q.options).map(([key, val]) => (
-                                <div key={key} className={`p-2.5 rounded-lg border text-sm font-medium flex items-center justify-between ${q.correct === key ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-muted border-transparent text-muted-foreground'}`}>
+                                <div key={key} className={`p-2.5 rounded-lg border text-sm font-medium flex items-center justify-between ${q.correct === key ? 'bg-success/10 border-success/20 text-success' : 'bg-muted border-transparent text-muted-foreground'}`}>
                                   <div className="flex gap-2">
                                     <span className="font-bold">{key}.</span> 
                                     <span>{val}</span>
                                   </div>
                                 </div>
                               )) : q.answers?.map((a) => (
-                                <div key={a.id} className={`p-2.5 rounded-lg border text-sm font-medium flex items-center justify-between ${a.isCorrect ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-muted border-transparent text-muted-foreground'}`}>
+                                <div key={a.id} className={`p-2.5 rounded-lg border text-sm font-medium flex items-center justify-between ${a.isCorrect ? 'bg-success/10 border-success/20 text-success' : 'bg-muted border-transparent text-muted-foreground'}`}>
                                   {a.content}
                                 </div>
                               ))}
                             </div>
-                            {q.explanation && <div className="mt-3 p-3 bg-indigo-50 border border-indigo-100 rounded-lg text-xs font-medium text-indigo-900"><strong className="text-indigo-700">Giải thích:</strong> {q.explanation}</div>}
+                            {q.explanation && <div className="mt-3 p-3 bg-primary/10 border border-primary/20 rounded-lg text-xs font-medium text-foreground"><strong className="text-primary">Giải thích:</strong> {q.explanation}</div>}
                           </div>
                         ))}
                       </div>
@@ -283,7 +283,7 @@ export default function AdminCourseDetailModeration() {
                   )}
                 </div>
               ) : (
-                <div className="aspect-video rounded-xl bg-slate-950 overflow-hidden shadow-lg border border-border relative">
+                <div className="aspect-video rounded-xl bg-foreground overflow-hidden shadow-lg border border-border relative">
                   {course.promoVideo ? (
                     isEmbedLink(course.promoVideo) ? (
                       <iframe ref={playerRef} width="100%" height="100%" src={getEmbedUrl(course.promoVideo)} title="Promo" frameBorder="0" allowFullScreen className="w-full h-full"></iframe>
@@ -337,14 +337,14 @@ function CourseCurriculumSidebar({ course, validModules, totalLessons, setIsProf
       <div className="bg-white p-5 rounded-2xl border border-border/60 shadow-sm flex items-center gap-4">
         <div className="relative shrink-0 flex items-center justify-center">
           {course.instructorAvatar ? (
-            <img src={course.instructorAvatar} alt="avt" className="w-14 h-14 rounded-full object-cover ring-4 ring-slate-50 shadow-sm" />
+            <img src={course.instructorAvatar} alt="avt" className="w-14 h-14 rounded-full object-cover ring-4 ring-muted shadow-sm" />
           ) : (
             <div className="w-14 h-14 bg-secondary rounded-full flex items-center justify-center text-muted-foreground font-bold shadow-sm">
                GV
             </div>
           )}
-          <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-500 rounded-full border-2 border-white flex items-center justify-center text-white shadow">
-            <CheckCircle2 className="w-3 h-3 fill-white text-emerald-500" />
+          <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-success rounded-full border-2 border-white flex items-center justify-center text-white shadow">
+            <CheckCircle2 className="w-3 h-3 fill-white text-success" />
           </div>
         </div>
         <div className="flex-1 min-w-0">
@@ -358,18 +358,18 @@ function CourseCurriculumSidebar({ course, validModules, totalLessons, setIsProf
         <AppButton appVariant="ghostMuted" variant="ghost"
           size="sm"
           onClick={() => setIsProfileModalOpen(true)}
-          className="font-bold text-xs rounded-lg hover:bg-indigo-50 hover:text-indigo-700 transition-colors shrink-0 border border-border"
+          className="font-bold text-xs rounded-lg hover:bg-primary/10 hover:text-primary transition-colors shrink-0 border border-border"
         >
           Hồ sơ
         </AppButton>
       </div>
 
       <div className="bg-white rounded-2xl border border-border/60 shadow-sm flex flex-col overflow-hidden max-h-[calc(100vh-200px)]">
-        <div className="p-5 bg-slate-900 text-white flex-shrink-0">
+        <div className="p-5 bg-foreground text-white flex-shrink-0">
           <h3 className="font-black flex items-center gap-2.5 tracking-tight text-[17px]">
-            <BookOpen className="w-5 h-5 text-indigo-400" /> Chương trình đào tạo
+            <BookOpen className="w-5 h-5 text-primary" /> Chương trình đào tạo
           </h3>
-          <p className="text-slate-300 text-xs font-bold mt-1 flex items-center gap-2">
+          <p className="text-muted-foreground/40 text-xs font-bold mt-1 flex items-center gap-2">
             <Layers className="w-3.5 h-3.5" /> {validModules.length} Chương • {totalLessons} Bài giảng
           </p>
         </div>
@@ -391,11 +391,11 @@ function CourseCurriculumSidebar({ course, validModules, totalLessons, setIsProf
                                  setActivePreview({ type: "lesson", data: les, moduleAttachments: mod.attachments });
                                  window.scrollTo({ top: 0, behavior: "smooth" });
                               }}
-                              className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-all group/item border ${activePreview?.type === "lesson" && activePreview.data.id === les.id ? 'bg-indigo-50 border-indigo-200 text-indigo-900' : 'border-transparent hover:bg-muted text-muted-foreground'}`}
+                              className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-all group/item border ${activePreview?.type === "lesson" && activePreview.data.id === les.id ? 'bg-primary/10 border-primary/20 text-foreground' : 'border-transparent hover:bg-muted text-muted-foreground'}`}
                             >
                                <div className="flex items-center gap-2 min-w-0">
-                                  <Video className={`w-3.5 h-3.5 shrink-0 ${activePreview?.type === "lesson" && activePreview.data.id === les.id ? 'text-indigo-600' : 'text-info opacity-70'}`} />
-                                  <span className={`text-xs truncate font-bold ${activePreview?.type === "lesson" && activePreview.data.id === les.id ? 'text-indigo-950' : 'text-foreground'}`}>
+                                  <Video className={`w-3.5 h-3.5 shrink-0 ${activePreview?.type === "lesson" && activePreview.data.id === les.id ? 'text-primary' : 'text-info opacity-70'}`} />
+                                  <span className={`text-xs truncate font-bold ${activePreview?.type === "lesson" && activePreview.data.id === les.id ? 'text-foreground' : 'text-foreground'}`}>
                                      {lIdx + 1}. {les.title}
                                   </span>
                                </div>
@@ -408,11 +408,11 @@ function CourseCurriculumSidebar({ course, validModules, totalLessons, setIsProf
                                  setActivePreview({ type: "quiz", data: mod.quiz });
                                  window.scrollTo({ top: 0, behavior: "smooth" });
                               }}
-                              className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-all group/item border ${activePreview?.type === "quiz" && activePreview.data.id === mod.quiz.id ? 'bg-violet-50 border-violet-200 text-violet-900' : 'border-transparent hover:bg-muted text-muted-foreground'}`}
+                              className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-all group/item border ${activePreview?.type === "quiz" && activePreview.data.id === mod.quiz.id ? 'bg-primary/10 border-primary/20 text-foreground' : 'border-transparent hover:bg-muted text-muted-foreground'}`}
                             >
                                <div className="flex items-center gap-2 min-w-0">
-                                  <Trophy className="w-3.5 h-3.5 text-violet-600 opacity-80 shrink-0" />
-                                  <span className="text-xs truncate font-black text-violet-700 uppercase tracking-wide">
+                                  <Trophy className="w-3.5 h-3.5 text-primary opacity-80 shrink-0" />
+                                  <span className="text-xs truncate font-black text-primary uppercase tracking-wide">
                                      Quiz: {mod.quiz.title || "Kiểm tra kiến thức"}
                                   </span>
                                </div>

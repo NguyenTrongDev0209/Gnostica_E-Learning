@@ -1,4 +1,4 @@
-import { AppCardDescription as CardDescription } from "@/components/common/micro/AppCard";
+﻿import { AppCardDescription as CardDescription } from "@/components/common/micro/AppCard";
 // Fix imported
 import React, { useState, useEffect } from "react";
 import threadService from "@/services/forum/threadService";
@@ -165,7 +165,7 @@ export default function AdminThreadModeration() {
 
       {/* Stats Widget */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <AppCard className="bg-gradient-to-r from-blue-50 to-indigo-50 border-info/20 shadow-sm">
+        <AppCard className="bg-gradient-to-r from-info/10 to-primary/10 border-info/20 shadow-sm">
           <AppCardContent className="p-5 flex items-center justify-between">
             <div className="space-y-1">
               <p className="text-sm font-semibold text-info/80">Bài viết chờ duyệt</p>
@@ -196,7 +196,7 @@ export default function AdminThreadModeration() {
             </div>
           ) : pendingThreads.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-center gap-4">
-              <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center text-success border border-success/20 shadow-sm">
+              <div className="w-16 h-16 bg-success/10 rounded-full flex items-center justify-center text-success border border-success/20 shadow-sm">
                 <ShieldCheck className="w-8 h-8" />
               </div>
               <div className="space-y-1">
@@ -306,14 +306,14 @@ export default function AdminThreadModeration() {
                       <div className="md:w-36 shrink-0 flex md:flex-col items-center justify-end md:justify-start gap-2 pt-2 md:pt-0">
                         <AppButton appVariant="gradient"
                           size="sm"
-                          className="w-full md:w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-9 gap-1.5 shadow-md transition-all border-none"
+                          className="w-full md:w-full bg-success hover:bg-success/90 text-white font-bold h-9 gap-1.5 shadow-md transition-all border-none"
                           onClick={() => openConfirm(thread.id, "approve")}
                         >
                           <CheckCircle2 className="w-4 h-4" /> Duyệt bài
                         </AppButton>
                         <AppButton appVariant="ghostMuted" variant="ghost"
                           size="sm"
-                          className="w-full md:w-full border border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 font-bold h-9 gap-1.5 transition-all bg-white"
+                          className="w-full md:w-full border border-error/20 text-error hover:bg-error/10 hover:text-error font-bold h-9 gap-1.5 transition-all bg-white"
                           onClick={() => openConfirm(thread.id, "delete")}
                         >
                           <Trash2 className="w-4 h-4" /> Từ chối
@@ -332,7 +332,7 @@ export default function AdminThreadModeration() {
         <AlertDialogContent className="bg-white sm:max-w-md">
           <AlertDialogHeader>
             <div className="flex items-center gap-2">
-              <AlertCircle className={`w-5 h-5 ${confirmState.type === "approve" ? "text-emerald-500" : "text-rose-500"}`} />
+              <AlertCircle className={`w-5 h-5 ${confirmState.type === "approve" ? "text-success" : "text-error"}`} />
               <AlertDialogTitle className="text-lg font-bold">{confirmState.title}</AlertDialogTitle>
             </div>
             <AlertDialogDescription className="mt-2 text-sm text-muted-foreground leading-relaxed">
@@ -343,7 +343,7 @@ export default function AdminThreadModeration() {
           {confirmState.type === "delete" && (
             <div className="flex flex-col gap-4 py-2 text-left">
               <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium text-foreground">Loại vi phạm <span className="text-rose-500 font-bold">*</span></label>
+                <label className="text-sm font-medium text-foreground">Loại vi phạm <span className="text-error font-bold">*</span></label>
                 <AppSelect
                   value={rejectType} 
                   onValueChange={setRejectType}
@@ -376,8 +376,8 @@ export default function AdminThreadModeration() {
               disabled={confirmState.type === "delete" && !rejectType}
               className={`h-9 font-bold text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
                 confirmState.type === "approve"
-                  ? "bg-emerald-600 hover:bg-emerald-700"
-                  : "bg-rose-600 hover:bg-rose-700"
+                  ? "bg-success hover:bg-success/90"
+                  : "bg-error hover:bg-error/90"
               }`}
             >
               Xác nhận

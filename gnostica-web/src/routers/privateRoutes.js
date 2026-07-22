@@ -13,7 +13,6 @@ import FavoriteInstructors from "@/pages/account/FavoriteInstructors";
 
 import CheckoutPage from "@/pages/order/CheckoutPage";
 import PayosQR from "@/pages/order/PayosQR";
-import CheckoutResult from "@/pages/order/CheckoutResult";
 import ForumCreatePost from "@/pages/forum/ForumCreatePost";
 import MyForumPosts from "@/pages/forum/MyForumPosts";
 import ApplyInstructor from "@/pages/general/ApplyInstructor";
@@ -90,8 +89,9 @@ export const privateRoutes = {
   checkout: [
     { path: "/checkout", component: CheckoutPage },
     { path: "/checkout/payos", component: PayosQR },
-    { path: "/checkout/success", component: CheckoutResult },
-    { path: "/checkout/cancel", component: CheckoutResult },
+    { path: "/checkout/:orderCode", component: CheckoutPage },
+    { path: "/checkout/success", component: CheckoutPage },
+    { path: "/checkout/cancel", component: CheckoutPage },
   ],
   forum: [
     { path: "/forum/create", component: ForumCreatePost },

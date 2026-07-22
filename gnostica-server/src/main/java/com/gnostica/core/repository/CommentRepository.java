@@ -8,14 +8,16 @@ import java.util.List;
 
 @Repository
 public interface CommentRepository extends JpaRepository<Comment, Integer> {
-    List<Comment> findByThreadIdAndParentIsNullOrderByCreatedAtDesc(Integer threadId);
+    List<Comment> findByTargetTypeAndTargetIdAndParentIsNullOrderByCreatedAtDesc(String targetType, String targetId);
     List<Comment> findByParentIdOrderByCreatedAtAsc(Integer parentId);
-    long countByThreadId(Integer threadId);
+    long countByTargetTypeAndTargetId(String targetType, String targetId);
 
     @org.springframework.transaction.annotation.Transactional
     @org.springframework.data.jpa.repository.Modifying
-    void deleteByThreadId(Integer threadId);
+    void deleteByTargetTypeAndTargetId(String targetType, String targetId);
 
-    @org.springframework.data.jpa.repository.Query("SELECT c FROM Comment c WHERE c.thread.id IN :threadIds AND c.parent IS NULL ORDER BY c.createdAt DESC")
-    List<Comment> findByThreadIdInAndParentIsNullOrderByCreatedAtDesc(@org.springframework.data.repository.query.Param("threadIds") java.util.Collection<Integer> threadIds);
+    @org.springframework.data.jpa.repository.Query("SELECT c FROM Comment c WHERE c.targetType = :targetType AND c.targetId IN :targetIds AND c.parent IS NULL ORDER BY c.createdAt DESC")
+    List<Comment> findByTargetTypeAndTargetIdInAndParentIsNullOrderByCreatedAtDesc(
+            @org.springframework.data.repository.query.Param("targetType") String targetType,
+            @org.springframework.data.repository.query.Param("targetIds") java.util.Collection<String> targetIds);
 }

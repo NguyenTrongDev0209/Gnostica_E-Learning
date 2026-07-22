@@ -11,6 +11,8 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Integer>
     Optional<Enrollment> findByAccountAndCourse(Account account, Course course);
 
     List<Enrollment> findByAccount(Account account);
+
+    boolean existsByAccountAndCourseAndStatusIn(Account account, Course course, java.util.Collection<Integer> statuses);
     
     List<Enrollment> findByAccountAndCertificateUrlIsNotNull(Account account);
 

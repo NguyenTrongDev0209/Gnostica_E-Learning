@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import useAuthStore from "@/store/useAuthStore";
-import { MOCK_MY_COURSES, MOCK_MY_COURSES_STATS } from "@/mocks/myCoursesMocks";
+import enrollmentService from "@/services/course/enrollmentService";
 
 export default function useMyCourses() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -20,15 +20,23 @@ export default function useMyCourses() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        // MOCK DATA DELAY
-        await new Promise(resolve => setTimeout(resolve, 800));
+        const [coursesResponse, statsResponse] = await Promise.all([
+          enrollmentService.getMyCourses(),
+          enrollmentService.getMyStats(),
+        ]);
 
-        setCourses(MOCK_MY_COURSES);
-        const uniqueCategories = [...new Set(MOCK_MY_COURSES.map(c => c.category).filter(Boolean))];
+        const nextCourses = Array.isArray(coursesResponse?.data) ? coursesResponse.data : [];
+        const nextStats = statsResponse?.data || null;
+
+        setCourses(nextCourses);
+        const uniqueCategories = [...new Set(nextCourses.map(c => c.category).filter(Boolean))];
         setCategories(uniqueCategories);
-        setStats(MOCK_MY_COURSES_STATS);
+        setStats(nextStats);
       } catch (error) {
         console.error("Failed to fetch my courses:", error);
+        setCourses([]);
+        setCategories([]);
+        setStats(null);
       } finally {
         setLoading(false);
       }
@@ -44,7 +52,7 @@ export default function useMyCourses() {
   };
 
   const filteredCourses = courses.filter((course) => {
-    const matchesSearch = course.courseTitle.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = (course.courseTitle || "").toLowerCase().includes(searchQuery.toLowerCase());
     const status = getStatus(course.progressPercent);
     const matchesStatus = statusFilter === "all" || status === statusFilter;
     const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(course.category);

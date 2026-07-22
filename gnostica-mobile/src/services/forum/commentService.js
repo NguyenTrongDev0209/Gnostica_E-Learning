@@ -6,15 +6,22 @@ const commentService = {
      * @param {string} threadId
      */
     getByThreadId: (threadId) => {
-        return api.get(`/comments/thread/${threadId}`);
+        return api.get(`/comments/target/THREAD/${threadId}`);
+    },
+
+    getByTarget: (targetType, targetId) => {
+        return api.get(`/comments/target/${targetType}/${targetId}`);
     },
 
     /**
      * ThÃªm comment má»›i
-     * @param {Object} body - { content, objectId, userEmail, parentId? }
+     * @param {Object} body - { content, targetType, targetId, userEmail, parentId? }
      */
     create: (body) => {
-        return api.post('/comments', body);
+        const normalizedBody = body.threadId && !body.targetType
+            ? { ...body, targetType: 'THREAD', targetId: body.threadId }
+            : body;
+        return api.post('/comments', normalizedBody);
     },
 
     /**

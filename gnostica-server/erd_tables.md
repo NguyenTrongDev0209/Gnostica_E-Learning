@@ -149,15 +149,20 @@
 |---|--------|---------------|---------|-------|
 | 1 | id | IDENTITY(1,1) | PK | |
 | 2 | account_id | UUID | FK | |
-| 3 | thread_id | INT | FK | |
-| 4 | parent_id | INT | FK | |
-| 5 | mention_id | UUID | FK | |
-| 6 | content | TEXT | | |
-| 7 | status | INT | | |
-| 8 | created_at | DATETIME | | |
-| 9 | updated_at | DATETIME | | |
-| 10 | deleted_at | DATETIME | | |
-> **Note:** `parent_id` hỗ trợ trả lời lồng nhau; `mention_id` lưu account được nhắc đến trong bình luận.
+| 3 | target_type | VARCHAR(50) | IDX | |
+| 4 | target_id | VARCHAR(255) | IDX | |
+| 5 | parent_id | INT | FK, IDX | |
+| 6 | mention_id | UUID | FK | |
+| 7 | content | TEXT | | |
+| 8 | status | INT | | |
+| 9 | created_at | DATETIME | | |
+| 10 | updated_at | DATETIME | | |
+| 11 | deleted_at | DATETIME | | |
+> **Target:** `target_type + target_id` xác định đối tượng được bình luận theo mô hình polymorphic target. Forum dùng `THREAD`, hỏi đáp bài học dùng `LESSON`; dữ liệu cũ không xác định được đối tượng có thể dùng `LEGACY`.
+>
+> **Index:** Tạo index `(target_type, target_id)` để tải danh sách bình luận theo đối tượng và index `parent_id` để lấy reply nhanh.
+>
+> **Note:** `parent_id` hỗ trợ trả lời lồng nhau; `mention_id` lưu account được nhắc đến trong bình luận. `thread_id` đã được thay thế bằng `target_type/target_id` để bảng `Comments` dùng chung cho nhiều ngữ cảnh.
 >
 > **Status:** 0: Hidden (Ẩn), 1: Published (Hiển thị), 2: Spam/Reported (Vi phạm)
 
