@@ -332,7 +332,7 @@ export function QuizTab({ courseId }) {
                   max={100}
                   disabled={isExcelFile}
                   placeholder={isExcelFile ? "Tự động (theo file)" : ""}
-                  className={`h-11 border-border font-bold ${isExcelFile ? "bg-muted cursor-not-allowed text-muted-foreground opacity-60" : "bg-white focus:border-success focus:ring-1 focus:ring-success"}`}
+                  className={`h-11 border-border font-bold hover:border-success/50 transition-all ${isExcelFile ? "bg-muted cursor-not-allowed text-muted-foreground opacity-60" : "bg-white focus:border-success focus:ring-1 focus:ring-success/30"}`}
                 />
 
                 <div className="space-y-1.5 w-full">
@@ -432,19 +432,19 @@ export function QuizTab({ courseId }) {
                     <input
                       type="radio"
                       name="correctAnswer"
-                      className="w-4 h-4 text-success focus:ring-success border-border cursor-pointer"
+                      className="w-4 h-4 text-success focus:ring-success/30 border-border cursor-pointer hover:border-success/50 transition-all"
                       checked={manualCorrect === opt}
                       onChange={() => setManualCorrect(opt)}
                     />
                   </div>
                   <div className="flex-1 relative">
-                    <span className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-md flex items-center justify-center font-bold text-[10px] ${manualCorrect === opt ? 'bg-success/20 text-success' : 'bg-muted text-muted-foreground'}`}>
+                    <span className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-md flex items-center justify-center font-bold text-[10px] ${manualCorrect === opt ? 'bg-success/20 text-success' : 'bg-gray-200 text-muted-foreground'}`}>
                       {opt}
                     </span>
                     <AppInput
                       value={manualOptions[opt]}
                       onChange={(e) => setManualOptions({ ...manualOptions, [opt]: e.target.value })}
-                      className={`h-10 pl-10 border-transparent bg-white shadow-sm focus:border-success focus:ring-1 focus:ring-success text-sm`}
+                      className={`h-10 pl-10 border-transparent bg-white shadow-sm hover:border-success/50 focus:border-success focus:ring-1 focus:ring-success/30 text-sm transition-all`}
                       placeholder={`Nhập đáp án ${opt}`}
                     />
                   </div>
@@ -460,7 +460,7 @@ export function QuizTab({ courseId }) {
               value={manualExplanation}
               onChange={(e) => setManualExplanation(e.target.value)}
               rows={3}
-              className="w-full rounded-lg border border-border p-3 bg-white focus:border-success focus:ring-1 focus:ring-success focus:outline-none text-sm text-foreground transition-all font-sans placeholder:text-muted-foreground"
+              className="w-full rounded-lg border border-border p-3 bg-white hover:border-success/50 focus:border-success focus:ring-1 focus:ring-success/30 focus:outline-none text-sm text-foreground transition-all font-sans placeholder:text-muted-foreground"
               placeholder="Nhập giải thích chi tiết tại sao đáp án đúng là chính xác..."
             />
           </div>
@@ -526,7 +526,7 @@ export function QuizTab({ courseId }) {
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   containerClassName="w-full"
-                  className="pl-9 h-9 w-full border-border text-sm focus:ring-success focus:border-success bg-muted"
+                  className="pl-9 h-9 w-full border-border text-sm hover:border-success/50 focus:border-success focus:ring-1 focus:ring-success/30 bg-white transition-all"
                 />
               </div>
               <AppSelect

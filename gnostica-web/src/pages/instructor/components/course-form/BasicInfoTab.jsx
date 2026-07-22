@@ -107,7 +107,7 @@ export function BasicInfoTab({ categories }) {
             Tên Khóa Học <span className="text-error">*</span>
           </Label>
           <AppInput
-            className="h-12 border-border focus-visible:ring-success focus-visible:bg-white bg-muted font-medium "
+            className="h-12 border-border hover:border-success/50 focus-visible:border-success focus-visible:ring-success/30 bg-white font-medium "
             placeholder="Ví dụ: React Native Masterclass 2026..."
             {...register("title")}
           />
@@ -123,7 +123,7 @@ export function BasicInfoTab({ categories }) {
             Slug <span className="text-error">*</span>
           </Label>
           <AppInput
-            className="h-12 border-border focus-visible:ring-success focus-visible:bg-white bg-muted font-medium cursor-not-allowed"
+            className="h-12 border-border hover:border-success/50 focus-visible:border-success focus-visible:ring-success/30 focus-visible:bg-white bg-muted font-medium cursor-not-allowed"
             placeholder="react-native-masterclass-2026"
             {...register("slug")}
             readOnly
@@ -242,7 +242,7 @@ export function BasicInfoTab({ categories }) {
         <Label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">
           Mô Tả Khóa Học (Tuỳ chọn)
         </Label>
-        <div className="rounded-lg border border-border overflow-hidden focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50 transition-all bg-white">
+        <div className="rounded-lg border border-border overflow-hidden hover:border-success/50 focus-within:border-success focus-within:ring-1 focus-within:ring-success/30 transition-all bg-white">
           <Controller
             name="description"
             control={control}

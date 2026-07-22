@@ -17,7 +17,7 @@ import java.util.List;
 
 @Data
 public class CourseRequest {
-    private Integer id;
+    private String id;
 
     @NotBlank(message = "Tên khóa học là bắt buộc")
     private String title;

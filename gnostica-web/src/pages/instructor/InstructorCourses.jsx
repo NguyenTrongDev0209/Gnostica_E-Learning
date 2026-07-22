@@ -56,8 +56,8 @@ function InstructorCourseTable({
             header: "Khóa học",
             className: "text-center",
             render: (row) => (
-                <div className="flex gap-4 items-center">
-                    <div className="w-24 h-16 rounded-md overflow-hidden shrink-0 border border-border relative bg-muted flex items-center justify-center">
+                <div className="flex gap-4 items-start py-2">
+                    <div className="w-32 h-20 rounded-md overflow-hidden shrink-0 border border-border relative bg-muted flex items-center justify-center">
                         {row.thumbnail ? (
                             <img src={row.thumbnail} alt={row.title} className="w-full h-full object-cover" />
                         ) : (
@@ -75,13 +75,18 @@ function InstructorCourseTable({
                         )}
                     </div>
                     <div className="flex flex-col">
-                        <span className="font-bold text-foreground line-clamp-2" title={row.title}>
+                        <span className="font-bold text-[15px] text-foreground line-clamp-2 leading-snug" title={row.title}>
                             {row.title || <span className="italic text-muted-foreground">Chưa đặt tên</span>}
                         </span>
                         {row.isVirtualDraft ? (
                             <span className="text-xs text-amber-600 font-medium mt-1">Bản nháp chưa lưu</span>
                         ) : (
-                            <span className="text-xs text-muted-foreground font-medium mt-1">ID: #{row.id}</span>
+                            <div className="flex flex-col items-start gap-1 mt-1">
+                                <span className="text-xs text-muted-foreground font-medium">ID: #{row.id}</span>
+                                {row.hasDraftVersion && (
+                                    <span className="text-[11px] text-amber-600 font-semibold bg-amber-50/80 border border-amber-200/50 px-2 py-0.5 w-max rounded-sm" title="Bản cập nhật của khóa học này đang chờ duyệt. Bạn có thể nhấn Chỉnh sửa để sửa tiếp.">Có bản cập nhật đang chờ duyệt của khóa học này</span>
+                                )}
+                            </div>
                         )}
                     </div>
                 </div>
@@ -333,6 +338,8 @@ export default function InstructorCourses() {
   const handleEdit = (course) => {
     if (course.isVirtualDraft) {
       navigate("/instructor/courses/edit/new");
+    } else if (course.hasDraftVersion && course.draftCourseSlug) {
+      navigate(`/instructor/courses/edit/${course.draftCourseSlug}`);
     } else {
       navigate(`/instructor/courses/edit/${course.slug}`);
     }

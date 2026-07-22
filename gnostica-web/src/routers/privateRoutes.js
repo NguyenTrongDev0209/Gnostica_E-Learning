@@ -25,6 +25,7 @@ import AdminOrders from "@/pages/admin/AdminOrders";
 import AdminCoupons from "@/pages/admin/AdminCoupons";
 import AdminReviews from "@/pages/admin/AdminReviews";
 import AdminReports from "@/pages/admin/AdminReports";
+import AdminRequests from "@/pages/admin/AdminRequests";
 import AdminSettings from "@/pages/admin/AdminSettings";
 import AdminBanks from "@/pages/admin/AdminBanks";
 import AdminTransactions from "@/pages/admin/AdminTransactions";
@@ -63,6 +64,7 @@ export const privateRoutes = {
     { path: "/admin/coupons", component: AdminCoupons },
     { path: "/admin/reviews", component: AdminReviews },
     { path: "/admin/reports", component: AdminReports },
+    { path: "/admin/requests", component: AdminRequests },
     { path: "/admin/settings", component: AdminSettings },
     { path: "/admin/banks", component: AdminBanks },
     { path: "/admin/transactions", component: AdminTransactions },

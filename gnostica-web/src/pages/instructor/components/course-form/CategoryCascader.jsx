@@ -28,7 +28,7 @@ export function CategoryCascader({ categories, value, onChange }) {
           onClick={() => {
             if (!open) setActiveParent(null);
           }}
-          className="flex h-11 w-full items-center justify-between rounded-md border border-border bg-white px-3 py-2 text-sm font-medium focus:outline-none focus:border-warning/20 focus:ring-1 focus:ring-success disabled:cursor-not-allowed disabled:opacity-50 data-[state=open]:border-warning/20 data-[state=open]:ring-1 data-[state=open]:ring-success transition-all font-sans"
+          className="flex h-11 w-full items-center justify-between rounded-md border border-border bg-white px-3 py-2 text-sm font-medium focus:outline-none hover:border-success/50 focus:border-success focus:ring-1 focus:ring-success/30 disabled:cursor-not-allowed disabled:opacity-50 data-[state=open]:border-success data-[state=open]:ring-1 data-[state=open]:ring-success/30 transition-all font-sans"
         >
           <span className={value ? "text-foreground" : "text-muted-foreground"}>
             {selectedName || "Chọn danh mục khóa học"}

@@ -13,7 +13,8 @@ import {
   LayoutList,
   Building2,
   History,
-  ShieldCheck
+  ShieldCheck,
+  Headphones
 } from "lucide-react";
 import { AppLogo } from "@/components/common/micro/AppButton";
 
@@ -52,6 +53,7 @@ export const ADMIN_MENU_GROUPS = [
     items: [
       { label: "Đánh giá", icon: MessageSquare, href: "/admin/reviews" },
       { label: "Báo cáo", icon: MessageCircleWarning, href: "/admin/reports" },
+      { label: "Yêu cầu", icon: Headphones, href: "/admin/requests" },
     ]
   },
   {

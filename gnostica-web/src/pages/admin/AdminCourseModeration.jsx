@@ -187,10 +187,10 @@ export default function AdminCourseModeration() {
               header: "Thông tin khóa học",
               className: "pl-6 min-w-[300px]",
               render: (item) => (
-                <div className="flex gap-4 items-center pl-6">
+                <div className="flex gap-4 items-start pl-6 py-2">
                   <div
                     onClick={() => handleOpenPreview(item)}
-                    className="w-24 h-16 rounded-lg overflow-hidden border border-border shadow-sm shrink-0 relative group-hover:shadow-md transition-shadow cursor-pointer bg-secondary flex items-center justify-center"
+                    className="w-32 h-20 rounded-lg overflow-hidden border border-border shadow-sm shrink-0 relative group-hover:shadow-md transition-shadow cursor-pointer bg-secondary flex items-center justify-center"
                   >
                     {item.thumbnail ? (
                       <img
@@ -208,15 +208,20 @@ export default function AdminCourseModeration() {
                   <div className="flex flex-col min-w-0 flex-1">
                     <span
                       onClick={() => handleOpenPreview(item)}
-                      className="font-bold text-foreground truncate group-hover:text-primary transition-colors cursor-pointer leading-tight"
+                      className="font-bold text-[15px] text-foreground line-clamp-2 group-hover:text-primary transition-colors cursor-pointer leading-snug"
                       title={item.title}
                     >
                       {item.title || <i className="text-muted-foreground font-normal">Chưa đặt tên</i>}
                     </span>
-                    <div className="flex items-center gap-2 mt-1">
+                    <div className="flex flex-col items-start gap-0.5 mt-1">
                       <AppBadge variant="outline" className="text-[10px] font-extrabold uppercase tracking-wide px-1 bg-transparent border-transparent text-muted-foreground opacity-50">
                         ID: {item.id}
                       </AppBadge>
+                      {item.isVersionUpdate && (
+                        <AppBadge className="text-[9px] font-black uppercase text-amber-600 bg-amber-50/80 border border-amber-200/50 ml-1">
+                          Bản cập nhật của khóa học: {item.originalCourseName || "Khóa học gốc"}
+                        </AppBadge>
+                      )}
                     </div>
                   </div>
                 </div>
