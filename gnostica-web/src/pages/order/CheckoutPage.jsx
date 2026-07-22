@@ -1,9 +1,8 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import couponService from "@/services/order/couponService";
 import { Star, CheckCircle2, QrCode, CreditCard, Loader2 } from "lucide-react";
-import { useLocation, Link } from "react-router-dom";
+import { useLocation, Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import { checkoutOrderItemsMock } from "@/mocks/cart";
 import orderService from "@/services/order/orderService";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/common/micro/AppCard";
 import Separator from "@/components/common/micro/AppSeparator";
@@ -22,6 +21,7 @@ import {
   AppDialogDescription,
 } from "@/components/common/micro/AppDialog";
 import PayosQR from "@/pages/order/PayosQR";
+import CheckoutResultDialog from "@/pages/order/CheckoutResultDialog";
 import AppAlertDialog from "@/components/common/micro/AppAlertDialog";
 
 const PAYMENT_METHODS = [
@@ -265,7 +265,10 @@ function CheckoutOrderSummary({
 
 // ── Page ──
 export default function CheckoutPage() {
-  const { state } = useLocation();
+  const { state, pathname } = useLocation();
+  const navigate = useNavigate();
+  const { orderCode: routeOrderCode } = useParams();
+  const [searchParams] = useSearchParams();
   const [paymentMethod, setPaymentMethod] = useState("PAYOS");
   const [loading, setLoading] = useState(false);
   const [couponCode, setCouponCode] = useState("");
@@ -274,9 +277,46 @@ export default function CheckoutPage() {
   const [isCouponLoading, setIsCouponLoading] = useState(false);
   const [payosDialogData, setPayosDialogData] = useState(null);
   const [isPayosCancelConfirmOpen, setIsPayosCancelConfirmOpen] = useState(false);
+  const [checkoutResult, setCheckoutResult] = useState(null);
 
   // Dùng dữ liệu từ CourseDetail nếu có, fallback về mock
-  const orderItems = state?.orderItems ?? checkoutOrderItemsMock;
+  const orderItems = Array.isArray(state?.orderItems) ? state.orderItems : [];
+  const hasCheckoutDraft = orderItems.length > 0;
+  const queryOrderCode = searchParams.get("orderCode");
+  const callbackOrderCode = queryOrderCode || routeOrderCode;
+  const hasCheckoutCallback =
+    Boolean(callbackOrderCode) ||
+    Boolean(searchParams.get("gateway")) ||
+    Boolean(searchParams.get("paymentStatus")) ||
+    Boolean(searchParams.get("verified")) ||
+    searchParams.get("cancelled") === "true" ||
+    pathname.includes("/checkout/success") ||
+    pathname.includes("/checkout/cancel");
+
+  useEffect(() => {
+    const gateway = searchParams.get("gateway");
+    const paymentStatus = searchParams.get("paymentStatus");
+    const verified = searchParams.get("verified");
+    const cancelled = searchParams.get("cancelled") === "true" || pathname.includes("/checkout/cancel");
+    const isLegacyResultPath = pathname.includes("/checkout/success") || pathname.includes("/checkout/cancel");
+
+    if (callbackOrderCode || gateway || paymentStatus || verified || cancelled || isLegacyResultPath) {
+      setCheckoutResult({
+        orderCode: callbackOrderCode,
+        gateway,
+        paymentStatus,
+        verified,
+        cancelled,
+      });
+    }
+  }, [callbackOrderCode, pathname, searchParams]);
+
+  useEffect(() => {
+    if (!hasCheckoutDraft && !hasCheckoutCallback) {
+      toast.error("Vui lòng chọn khóa học trước khi thanh toán.");
+      navigate("/courses", { replace: true });
+    }
+  }, [hasCheckoutCallback, hasCheckoutDraft, navigate]);
 
   // Calculators
   let currentSubtotal = orderItems.reduce((sum, item) => sum + item.price, 0);
@@ -357,17 +397,30 @@ export default function CheckoutPage() {
           price: subtotal,
           paymentMethod,
           couponCode: appliedCoupon ? couponCode : null,
-          returnUrl: `${window.location.origin}/checkout/success`,
-          cancelUrl: `${window.location.origin}/checkout/cancel`
+          returnUrl: `${window.location.origin}/checkout`,
+          cancelUrl: `${window.location.origin}/checkout?cancelled=true`
         };
 
         const response = await orderService.createOrder(requestBody);
 
         if (response.status === "success" || response.code === "success" || response.data) {
           const paymentData = response.data;
+          const checkoutUrl = paymentData.orderCode
+            ? `/checkout?orderCode=${paymentData.orderCode}`
+            : "/checkout";
+
+          if (paymentData.orderCode) {
+            navigate(checkoutUrl, { replace: true, state: { orderItems } });
+          }
           toast.success("Tạo đơn hàng thành công!");
           if (paymentData.status === "PAID") {
-            window.location.assign(paymentData.checkoutUrl);
+            setCheckoutResult({
+              orderCode: paymentData.orderCode,
+              gateway: paymentMethod,
+              paymentStatus: "PAID",
+              verified: true,
+              amount: paymentData.amount,
+            });
           } else if (paymentMethod === "VNPAY") {
             if (!paymentData.checkoutUrl) {
               throw new Error("VNPay không trả về đường dẫn thanh toán");
@@ -389,6 +442,40 @@ export default function CheckoutPage() {
       toast.info("Phương thức thanh toán này hiện đang được bảo trì. Vui lòng chọn phương thức thanh toán khác.");
     }
   };
+
+  const handleCheckoutResultOpenChange = (open) => {
+    if (open) return;
+
+    const isPaidResult = checkoutResult?.paymentStatus?.toUpperCase() === "PAID";
+    setCheckoutResult(null);
+
+    if (isPaidResult) {
+      navigate("/account/my-courses", { replace: true });
+      return;
+    }
+
+    if (hasCheckoutDraft) {
+      const checkoutUrl = callbackOrderCode ? `/checkout?orderCode=${callbackOrderCode}` : "/checkout";
+      navigate(checkoutUrl, { replace: true, state: { orderItems } });
+      return;
+    }
+
+    navigate("/account/orders", { replace: true });
+  };
+
+  if (!hasCheckoutDraft) {
+    return (
+      <PageContainer className="pb-20">
+        <PageContainer.Content className="min-h-[60vh] gap-y-0 pt-6 md:gap-y-0 md:pt-12">
+          <CheckoutResultDialog
+            open={checkoutResult != null}
+            result={checkoutResult}
+            onOpenChange={handleCheckoutResultOpenChange}
+          />
+        </PageContainer.Content>
+      </PageContainer>
+    );
+  }
 
   return (
     <PageContainer className="pb-20">
@@ -461,6 +548,10 @@ export default function CheckoutPage() {
                   paymentData={payosDialogData.paymentData}
                   orderItems={payosDialogData.orderItems}
                   onCancel={() => setIsPayosCancelConfirmOpen(true)}
+                  onPaid={(result) => {
+                    setPayosDialogData(null);
+                    setCheckoutResult(result);
+                  }}
                 />
               )}
             </div>
@@ -480,6 +571,12 @@ export default function CheckoutPage() {
             setPayosDialogData(null);
           }}
           contentClassName="shadow-none"
+        />
+
+        <CheckoutResultDialog
+          open={checkoutResult != null}
+          result={checkoutResult}
+          onOpenChange={handleCheckoutResultOpenChange}
         />
       </PageContainer.Content>
     </PageContainer>
