@@ -333,6 +333,8 @@ export default function InstructorCourses() {
   const handleEdit = (course) => {
     if (course.isVirtualDraft) {
       navigate("/instructor/courses/edit/new");
+    } else if (course.hasDraftVersion && course.draftCourseSlug) {
+      navigate(`/instructor/courses/edit/${course.draftCourseSlug}`);
     } else {
       navigate(`/instructor/courses/edit/${course.slug}`);
     }

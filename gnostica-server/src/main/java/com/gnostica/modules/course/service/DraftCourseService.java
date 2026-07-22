@@ -118,11 +118,7 @@ public class DraftCourseService {
                         String[] parts = key.split(":");
                         String idPart = parts[parts.length - 1];
                         if (!idPart.equals("new")) {
-                            try {
-                                draft.setId(Integer.parseInt(idPart));
-                            } catch (NumberFormatException e) {
-                                // Bỏ qua nếu không phải số (ví dụ: 'new')
-                            }
+                            draft.setId(idPart);
                         }
                     }
                     return draft;

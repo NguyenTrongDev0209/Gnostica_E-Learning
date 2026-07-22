@@ -44,4 +44,11 @@ public class CourseResponse {
 
     private Integer classes;
     private Integer students;
+
+    private Boolean hasDraftVersion;
+    private String draftCourseSlug;
+
+    private Boolean isVersionUpdate;
+    private String originalCourseName;
+    private String originalCourseSlug;
 }

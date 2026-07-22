@@ -21,12 +21,12 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
                 "AND (CAST(:search AS String) IS NULL OR LOWER(c.title) LIKE :search) " +
                 "AND (CAST(:categoryId AS integer) IS NULL OR cat.id = :categoryId OR p.id = :categoryId) " +
                 "AND (CAST(:status AS integer) IS NULL OR c.status = :status) " +
-                "AND c.deletedAt IS NULL",
+                "AND c.deletedAt IS NULL AND c.originalCourse IS NULL",
         countQuery = "SELECT COUNT(c) FROM Course c LEFT JOIN c.category cat LEFT JOIN cat.parent p WHERE c.account.email = :email " +
                      "AND (CAST(:search AS String) IS NULL OR LOWER(c.title) LIKE :search) " +
                      "AND (CAST(:categoryId AS integer) IS NULL OR cat.id = :categoryId OR p.id = :categoryId) " +
                      "AND (CAST(:status AS integer) IS NULL OR c.status = :status) " +
-                     "AND c.deletedAt IS NULL"
+                     "AND c.deletedAt IS NULL AND c.originalCourse IS NULL"
     )
     org.springframework.data.domain.Page<Course> findInstructorCourses(
             @org.springframework.data.repository.query.Param("email") String email,
