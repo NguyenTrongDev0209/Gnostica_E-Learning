@@ -1,11 +1,11 @@
-# ERD - Danh sách bảng và trường (Đối chiếu)
+﻿# ERD - Danh sách bảng và trường (Đối chiếu)
 
 > [!NOTE]
-> **Phiên bản 4** — Đã bổ sung: DECIMAL cho điểm số, cấu hình bài thi (max_attempts, passing_score), 2 bảng mới `Course_Cert_Requirements` và `Revenue_Shares`, cùng cơ chế Versioning (phiên bản hóa) cho Khóa học và các thành phần con.
+> **Phiên bản 5** — Cập nhật mô hình gọn hơn: thêm `metadata` cho `Courses` và `Coupons`, bỏ `Coupon_Rules`, bỏ `Cert_Requirements`, bỏ `Revenue_Shares`; `Order_Details` tham chiếu trực tiếp `Commissions` bằng `commission_id`.
 >
 > **Ký hiệu cột Ghi chú:** PK · FK · `UQ` (Unique) · `IDX` (Index) · `C-UQ` (Composite Unique) · `C-IDX` (Composite Index)
 
-**Tổng số bảng: 41**
+**Tổng số bảng: 39**
 
 ---
 
@@ -26,6 +26,8 @@
 > **C-UQ:** `(account_id, bank_id, account_number)` — Mỗi tài khoản chỉ liên kết 1 lần với 1 số tài khoản ngân hàng.
 >
 > **Status:** 0: Inactive (Ngừng dùng), 1: Active (Đang sử dụng)
+>
+> **Note:** Mỗi account chỉ nên có một tài khoản ngân hàng active tại một thời điểm nếu dùng làm tài khoản nhận payout mặc định.
 
 
 ---
@@ -48,6 +50,8 @@
 | 12 | created_at | DATETIME | | |
 | 13 | updated_at | DATETIME | | |
 | 14 | deleted_at | DATETIME | | |
+> **Metadata:** Lưu hồ sơ mở rộng không cố định như thông tin đăng ký instructor, bio, social links, trạng thái xác minh bổ sung.
+>
 > **Status:** 0: Unverified (Chưa xác thực), 1: Active (Hoạt động), 2: Banned (Bị khoá), 3: Deleted (Chờ xoá)
 
 
@@ -65,6 +69,8 @@
 | 6 | created_at | DATETIME | | |
 | 7 | updated_at | DATETIME | | |
 | 8 | deleted_at | DATETIME | | |
+> **Note:** Attachment gắn với `Modules`; tài nguyên chính của lesson như video nên nằm ở `Lessons.video_url` hoặc `Lessons.metadata`.
+>
 > **Status:** 0: Hidden (Ẩn), 1: Available (Có sẵn)
 
 
@@ -84,12 +90,14 @@
 | 8 | created_at | DATETIME | | |
 | 9 | updated_at | DATETIME | | |
 | 10 | deleted_at | DATETIME | | |
+> **Note:** Dữ liệu ngân hàng có thể đồng bộ từ nhà cung cấp bên ngoài qua `external_id`, `bank_code`, `bin`.
+>
 > **Status:** 0: Maintenance (Bảo trì), 1: Active (Hoạt động)
 
 
 ---
 
-## Banners
+## 5. Banners
 
 | # | Trường | Kiểu dữ liệu | Ghi chú | CHECK |
 |---|--------|---------------|---------|-------|
@@ -116,7 +124,7 @@
 |---|--------|---------------|---------|-------|
 | 1 | id | IDENTITY(1,1) | PK | |
 | 2 | account_id | UUID | FK | |
-| 3 | parent_id | INT | | |
+| 3 | parent_id | INT | FK | |
 | 4 | name | VARCHAR(255) | | |
 | 5 | slug | VARCHAR(255) | UQ | |
 | 6 | description | VARCHAR(255) | | |
@@ -127,28 +135,14 @@
 | 11 | created_at | DATETIME | | |
 | 12 | updated_at | DATETIME | | |
 | 13 | deleted_at | DATETIME | | |
+> **Note:** `parent_id` tự tham chiếu `Categories.id`, hỗ trợ cây danh mục nhiều cấp. Khi ẩn danh mục cha cần đồng bộ hoặc chặn hiển thị khóa học thuộc danh mục con.
+>
 > **Status:** 0: Hidden (Ẩn), 1: Active (Hiển thị)
 
 
 ---
 
-## 7. Cert_Requirements
-
-| # | Trường | Kiểu dữ liệu | Ghi chú | CHECK |
-|---|--------|---------------|---------|-------|
-| 1 | id | IDENTITY(1,1) | PK | |
-| 2 | course_id | UUID | FK, UQ | |
-| 3 | min_progress | INT | | `>= 0 AND <= 100` |
-| 4 | quizzes_passed | BIT | | |
-| 5 | created_at | DATETIME | | |
-| 6 | updated_at | DATETIME | | |
-
-> **Bảng mới** — Định nghĩa điều kiện để được cấp chứng chỉ (tiến độ tối thiểu, bài kiểm tra bắt buộc).
-
-
----
-
-## 8. Comments
+## 7. Comments
 
 | # | Trường | Kiểu dữ liệu | Ghi chú | CHECK |
 |---|--------|---------------|---------|-------|
@@ -162,12 +156,14 @@
 | 8 | created_at | DATETIME | | |
 | 9 | updated_at | DATETIME | | |
 | 10 | deleted_at | DATETIME | | |
+> **Note:** `parent_id` hỗ trợ trả lời lồng nhau; `mention_id` lưu account được nhắc đến trong bình luận.
+>
 > **Status:** 0: Hidden (Ẩn), 1: Published (Hiển thị), 2: Spam/Reported (Vi phạm)
 
 
 ---
 
-## 9. Commissions
+## 8. Commissions
 
 | # | Trường | Kiểu dữ liệu | Ghi chú | CHECK |
 |---|--------|---------------|---------|-------|
@@ -183,29 +179,14 @@
 
 > **Bảng mới** — Quản lý phần trăm ăn chia doanh thu theo thời gian của từng giảng viên (Account).
 >
+> **Note:** Bảng nên vận hành append-only: đổi tỷ lệ thì tạo bản ghi mới, không sửa bản ghi đã được `Order_Details.commission_id` tham chiếu. Nên ràng buộc `instructor_ratio + platform_ratio = 100`.
+>
 > **Status:** 0: Inactive (Đã cũ), 1: Active (Đang áp dụng)
 
 
 ---
 
-## 10. Coupon_Rules
-
-| # | Trường | Kiểu dữ liệu | Ghi chú | CHECK |
-|---|--------|---------------|---------|-------|
-| 1 | id | IDENTITY(1,1) | PK | |
-| 2 | coupon_id | UUID | FK | |
-| 3 | rule_type | VARCHAR(255) | | |
-| 4 | rule_value | VARCHAR(255) | | |
-| 5 | start_date | DATETIME | | |
-| 6 | created_at | DATETIME | | |
-| 7 | updated_at | DATETIME | | |
-| 8 | deleted_at | DATETIME | | |
-> **Status:** 0: Inactive (Tạm dừng), 1: Active (Hoạt động)
-
-
----
-
-## 11. Coupons
+## 9. Coupons
 
 | # | Trường | Kiểu dữ liệu | Ghi chú | CHECK |
 |---|--------|---------------|---------|-------|
@@ -221,15 +202,20 @@
 | 10 | valid_from | DATETIME | | |
 | 11 | valid_until | DATETIME | | |
 | 12 | status | INT | | |
-| 13 | created_at | DATETIME | | |
-| 14 | updated_at | DATETIME | | |
-| 15 | deleted_at | DATETIME | | |
+| 13 | metadata | JSONB | | |
+| 14 | created_at | DATETIME | | |
+| 15 | updated_at | DATETIME | | |
+| 16 | deleted_at | DATETIME | | |
+> **Metadata:** Lưu các rule mềm của coupon như danh sách khóa học/danh mục áp dụng, giới hạn số lần dùng mỗi user, first purchase only, segment người dùng...
+>
+> **Note:** `discount_type`: 1 = phần trăm, 2 = số tiền cố định. Các rule cần query/report thường xuyên nên tách thành cột hoặc bảng riêng thay vì chỉ để trong metadata.
+>
 > **Status:** 0: Inactive (Tạm dừng), 1: Active (Đang áp dụng), 2: Expired (Hết hạn)
 
 
 ---
 
-## 12. Courses
+## 10. Courses
 
 | # | Trường | Kiểu dữ liệu | Ghi chú | CHECK |
 |---|--------|---------------|---------|-------|
@@ -248,19 +234,24 @@
 | 13 | shared_count | INT | | `>= 0` |
 | 14 | version_number | INT | | `>= 1` |
 | 15 | status | INT | C-IDX | |
-| 16 | created_at | DATETIME | | |
-| 17 | updated_at | DATETIME | | |
-| 18 | published_at | DATETIME | C-IDX | |
-| 19 | deleted_at | DATETIME | | |
+| 16 | metadata | JSONB | | |
+| 17 | created_at | DATETIME | | |
+| 18 | updated_at | DATETIME | | |
+| 19 | published_at | DATETIME | C-IDX | |
+| 20 | deleted_at | DATETIME | | |
 
 > **Versioning:** `original_course_id` trỏ về phiên bản gốc, `version_number` quản lý các bản Draft/Published.
 >
-> **Status:** 0: Rejected (Từ chối), 1: Draft (Bản nháp), 2: Pending (Chờ duyệt), 3: Published (Đã xuất bản), 4: Archived (Lưu trữ)
+> **Metadata:** Lưu thông tin mở rộng như điều kiện cấp chứng chỉ, lý do từ chối gần nhất, SEO, outcomes, requirements.
+>
+> **Note:** `original_course_id` dùng cho versioning. Bản chỉnh sửa có thể trỏ về khóa học gốc; khi được duyệt thì merge nội dung về bản gốc.
+>
+> **Status:** 0: Hidden/Inactive (Ẩn/không hoạt động), 1: Published/Approved (Đã xuất bản/đã duyệt), 2: Draft (Bản nháp), 3: Rejected (Từ chối), 4: Pending (Chờ duyệt)
 
 
 ---
 
-## 13. Devices
+## 11. Devices
 
 | # | Trường | Kiểu dữ liệu | Ghi chú | CHECK |
 |---|--------|---------------|---------|-------|
@@ -276,12 +267,14 @@
 | 10 | created_at | DATETIME | | |
 | 11 | updated_at | DATETIME | | |
 | 12 | deleted_at | DATETIME | | |
+> **Note:** Dùng để quản lý phiên đăng nhập/thiết bị nhận thông báo. `device_token` cần được revoke khi đăng xuất hoặc token hết hạn.
+>
 > **Status:** 0: Revoked (Đã đăng xuất), 1: Active (Đang đăng nhập)
 
 
 ---
 
-## 14. Enrollments
+## 12. Enrollments
 
 | # | Trường | Kiểu dữ liệu | Ghi chú | CHECK |
 |---|--------|---------------|---------|-------|
@@ -290,16 +283,18 @@
 | 3 | course_id | UUID | FK, C-UQ | |
 | 4 | order_detail_id | UUID | FK | |
 | 5 | progress | INT | | `>= 0 AND <= 100` |
-| 6 | certifi_url | VARCHAR(255) | | |
+| 6 | certificate_url | VARCHAR(255) | | |
 | 7 | status | INT | | |
 | 8 | created_at | DATETIME | | |
 | 9 | completed_at | DATETIME | | |
+> **Note:** Enrollment được tạo sau thanh toán thành công và liên kết về `order_detail_id` để truy vết quyền học phát sinh từ dòng đơn hàng nào.
+>
 > **Status:** 0: Dropped/Refunded (Đã huỷ/Hoàn tiền), 1: In Progress (Đang học), 2: Completed (Hoàn thành)
 
 
 ---
 
-## 15. Favorites
+## 13. Favorites
 
 | # | Trường | Kiểu dữ liệu | Ghi chú | CHECK |
 |---|--------|---------------|---------|-------|
@@ -308,12 +303,14 @@
 | 3 | course_id | UUID | FK, C-UQ | |
 | 4 | status | INT | | |
 | 5 | created_at | DATETIME | | |
+> **Note:** Bảng wishlist/favorite mềm; không xóa cứng khi user bỏ yêu thích để giữ lịch sử tương tác.
+>
 > **Status:** 0: Removed (Đã bỏ), 1: Active (Yêu thích)
 
 
 ---
 
-## 16. Follows
+## 14. Follows
 
 | # | Trường | Kiểu dữ liệu | Ghi chú | CHECK |
 |---|--------|---------------|---------|-------|
@@ -322,10 +319,12 @@
 | 3 | followee_id | UUID | FK, C-UQ | |
 | 4 | created_at | DATETIME | | |
 
+> **Note:** `follower_id` là người theo dõi, `followee_id` là người được theo dõi. Cần chặn self-follow ở tầng service hoặc CHECK nếu DB hỗ trợ.
+
 
 ---
 
-## 17. Hashtags
+## 15. Hashtags
 
 | # | Trường | Kiểu dữ liệu | Ghi chú | CHECK |
 |---|--------|---------------|---------|-------|
@@ -335,12 +334,14 @@
 | 4 | status | INT | | |
 | 5 | created_at | DATETIME | | |
 | 6 | deleted_at | DATETIME | | |
+> **Note:** `usage_count` nên được cập nhật khi gắn/bỏ hashtag khỏi thread; có thể rebuild định kỳ từ `Thread_Hashtags` nếu lệch số liệu.
+>
 > **Status:** 0: Hidden (Ẩn), 1: Active (Hoạt động)
 
 
 ---
 
-## 18. Lesson_Progress
+## 16. Lesson_Progress
 
 | # | Trường | Kiểu dữ liệu | Ghi chú | CHECK |
 |---|--------|---------------|---------|-------|
@@ -352,12 +353,14 @@
 | 6 | created_at | DATETIME | | |
 | 7 | updated_at | DATETIME | | |
 | 8 | completed_at | DATETIME | | |
+> **Note:** Mỗi account chỉ có một progress record cho một lesson. `last_watched_at` nên chuẩn hóa sang timestamp/duration nếu cần phân tích học tập.
+>
 > **Status:** 1: In Progress (Đang học), 2: Completed (Hoàn thành)
 
 
 ---
 
-## 19. Lessons
+## 17. Lessons
 
 | # | Trường | Kiểu dữ liệu | Ghi chú | CHECK |
 |---|--------|---------------|---------|-------|
@@ -367,21 +370,26 @@
 | 4 | title | VARCHAR(255) | | |
 | 5 | content | TEXT | | |
 | 6 | video_url | VARCHAR(255) | | |
-| 7 | version_number | INT | | `>= 1` |
-| 8 | sort_order | INT | | `>= 0` |
-| 9 | status | INT | | |
-| 10 | created_at | DATETIME | | |
-| 11 | updated_at | DATETIME | | |
-| 12 | deleted_at | DATETIME | | |
+| 7 | metadata | JSONB | | |
+| 8 | version_number | INT | | `>= 1` |
+| 9 | sort_order | INT | | `>= 0` |
+| 10 | status | INT | | |
+| 11 | created_at | DATETIME | | |
+| 12 | updated_at | DATETIME | | |
+| 13 | deleted_at | DATETIME | | |
 
 > **Versioning:** Hỗ trợ versioning cho bài giảng tương tự Khóa học.
+>
+> **Metadata:** Lưu thông tin mở rộng của bài giảng như thời lượng video, tài nguyên nhúng, transcript, cấu hình preview/free lesson.
+>
+> **Note:** `original_lesson_id` trỏ về lesson gốc khi tạo phiên bản chỉnh sửa; `sort_order` quyết định thứ tự trong module.
 >
 > **Status:** 0: Hidden (Ẩn), 1: Draft (Bản nháp), 2: Published (Đã xuất bản)
 
 
 ---
 
-## 20. Logs
+## 18. Logs
 
 | # | Trường | Kiểu dữ liệu | Ghi chú | CHECK |
 |---|--------|---------------|---------|-------|
@@ -391,10 +399,12 @@
 | 4 | payload | JSONB | | |
 | 5 | created_at | DATETIME | | |
 
+> **Note:** Dùng cho audit/event log. `payload` nên lưu JSON có `target_type`, `target_id` khi log liên quan đến một thực thể cụ thể.
+
 
 ---
 
-## 21. Members
+## 19. Members
 
 | # | Trường | Kiểu dữ liệu | Ghi chú | CHECK |
 |---|--------|---------------|---------|-------|
@@ -403,10 +413,12 @@
 | 3 | topic_id | INT | FK, C-UQ | |
 | 4 | created_at | DATETIME | | |
 
+> **Note:** Bảng thành viên topic/forum; dùng để phân quyền, theo dõi hoặc notification theo topic.
+
 
 ---
 
-## 22. Modules
+## 20. Modules
 
 | # | Trường | Kiểu dữ liệu | Ghi chú | CHECK |
 |---|--------|---------------|---------|-------|
@@ -414,21 +426,26 @@
 | 2 | course_id | UUID | FK | |
 | 3 | original_module_id | INT | FK | |
 | 4 | title | VARCHAR(255) | | |
-| 5 | version_number | INT | | `>= 1` |
-| 6 | sort_order | INT | | `>= 0` |
-| 7 | status | INT | | |
-| 8 | created_at | DATETIME | | |
-| 9 | updated_at | DATETIME | | |
-| 10 | deleted_at | DATETIME | | |
+| 5 | metadata | JSONB | | |
+| 6 | version_number | INT | | `>= 1` |
+| 7 | sort_order | INT | | `>= 0` |
+| 8 | status | INT | | |
+| 9 | created_at | DATETIME | | |
+| 10 | updated_at | DATETIME | | |
+| 11 | deleted_at | DATETIME | | |
 
 > **Versioning:** Hỗ trợ versioning cho module tương tự Khóa học.
+>
+> **Metadata:** Lưu thông tin mở rộng của module như mục tiêu học tập, mô tả ngắn, thời lượng ước tính, cấu hình mở khóa.
+>
+> **Note:** `original_module_id` trỏ về module gốc khi tạo phiên bản chỉnh sửa; module bị xóa nên dùng `deleted_at` thay vì xóa cứng nếu đã có progress.
 >
 > **Status:** 0: Hidden (Ẩn), 1: Draft (Bản nháp), 2: Published (Đã xuất bản)
 
 
 ---
 
-## 23. Notifications
+## 21. Notifications
 
 | # | Trường | Kiểu dữ liệu | Ghi chú | CHECK |
 |---|--------|---------------|---------|-------|
@@ -440,27 +457,34 @@
 | 6 | created_at | DATETIME | | |
 | 7 | updated_at | DATETIME | | |
 
+> **Note:** Nên index `(account_id, is_read, created_at)` nếu màn hình thông báo thường xuyên lọc unread và sắp xếp mới nhất.
+
 
 ---
 
-## 24. Order_Details
+## 22. Order_Details
 
 | # | Trường | Kiểu dữ liệu | Ghi chú | CHECK |
 |---|--------|---------------|---------|-------|
 | 1 | id | UUID | PK | |
 | 2 | order_id | UUID | FK | |
 | 3 | course_id | UUID | FK | |
-| 4 | price | DECIMAL(18,6) | | `>= 0` |
-| 5 | discount | INT | | `>= 0 AND <= 100` |
-| 6 | status | INT | | |
-| 7 | created_at | DATETIME | | |
-| 8 | updated_at | DATETIME | | |
+| 4 | commission_id | INT | FK | |
+| 5 | price | DECIMAL(18,6) | | `>= 0` |
+| 6 | discount | INT | | `>= 0 AND <= 100` |
+| 7 | status | INT | | |
+| 8 | created_at | DATETIME | | |
+| 9 | updated_at | DATETIME | | |
+> **Commission:** `commission_id` trỏ tới bản ghi `Commissions` được áp dụng tại thời điểm tạo dòng đơn hàng. `Commissions` nên vận hành theo hướng append-only: đổi tỷ lệ thì tạo bản ghi mới, không sửa bản ghi cũ.
+>
+> **Note:** `price` là giá thực tính cho dòng đơn hàng sau discount/coupon theo logic hiện tại. Nếu sau này cần đối soát sâu hơn, cân nhắc đặt tên rõ hơn hoặc bổ sung snapshot.
+>
 > **Status:** 0: Refunded (Đã hoàn tiền), 1: Valid (Hợp lệ)
 
 
 ---
 
-## 25. Orders
+## 23. Orders
 
 | # | Trường | Kiểu dữ liệu | Ghi chú | CHECK |
 |---|--------|---------------|---------|-------|
@@ -473,12 +497,14 @@
 | 7 | status | INT | | |
 | 8 | created_at | DATETIME | C-IDX | |
 | 9 | updated_at | DATETIME | | |
-> **Status:** 1: Pending (Chờ thanh toán), 2: Paid (Đã thanh toán), 3: Cancelled (Đã huỷ), 4: Refunded (Đã hoàn tiền)
+> **Note:** `total_price` là tổng tiền phải thanh toán của đơn sau khi áp dụng coupon. `order_code` dùng cho đối soát với cổng thanh toán.
+>
+> **Status:** 0: Pending (Chờ thanh toán), 1: Paid (Đã thanh toán), 2: Refunded (Đã hoàn tiền), 3: Cancelled (Đã huỷ)
 
 
 ---
 
-## Pages
+## 24. Pages
 
 | # | Trường | Kiểu dữ liệu | Ghi chú | CHECK |
 |---|--------|---------------|---------|-------|
@@ -492,11 +518,13 @@
 
 > **Bảng mới** — Quản lý các trang tĩnh (Điều khoản, Chính sách...).
 >
+> **Note:** `slug` là khóa public để truy cập trang; nội dung có thể là HTML/Markdown tùy convention của frontend.
+>
 > **Status:** 0: Hidden (Ẩn), 1: Published (Hiển thị)
 
 ---
 
-## 27. Payments
+## 25. Payments
 
 | # | Trường | Kiểu dữ liệu | Ghi chú | CHECK |
 |---|--------|---------------|---------|-------|
@@ -510,12 +538,14 @@
 | 8 | status | INT | | |
 | 9 | created_at | DATETIME | | |
 | 10 | updated_at | DATETIME | | |
+> **Note:** Một order có thể có nhiều payment attempts nếu retry/cổng thanh toán khác nhau; `transaction_code` dùng để chống xử lý trùng webhook.
+>
 > **Status:** 1: Pending (Chờ xử lý), 2: Success (Thành công), 3: Failed (Thất bại), 4: Refunded (Đã hoàn tiền)
 
 
 ---
 
-## 28. Payouts
+## 26. Payouts
 
 | # | Trường | Kiểu dữ liệu | Ghi chú | CHECK |
 |---|--------|---------------|---------|-------|
@@ -527,12 +557,14 @@
 | 6 | status | INT | | |
 | 7 | created_at | DATETIME | | |
 | 8 | updated_at | DATETIME | | |
+> **Note:** Payout là yêu cầu rút tiền từ wallet về account bank. Nên khóa/ghi nhận số dư tại thời điểm tạo payout ở tầng nghiệp vụ để tránh chi vượt.
+>
 > **Status:** 1: Pending (Chờ duyệt), 2: Processing (Đang chuyển), 3: Completed (Hoàn tất), 4: Failed (Lỗi), 5: Rejected (Từ chối)
 
 
 ---
 
-## 29. Questions
+## 27. Questions
 
 | # | Trường | Kiểu dữ liệu | Ghi chú | CHECK |
 |---|--------|---------------|---------|-------|
@@ -550,12 +582,14 @@
 
 > **Versioning:** Hỗ trợ versioning cho câu hỏi tương tự Khóa học.
 >
+> **Note:** `answer` lưu đáp án/cấu hình chấm điểm dạng JSONB; nếu cần phân tích từng lựa chọn, cân nhắc chuẩn hóa thành bảng con.
+>
 > **Status:** 0: Inactive (Không dùng), 1: Active (Sử dụng)
 
 
 ---
 
-## 30. Quiz_Questions
+## 28. Quiz_Questions
 
 | # | Trường | Kiểu dữ liệu | Ghi chú | CHECK |
 |---|--------|---------------|---------|-------|
@@ -567,10 +601,12 @@
 | 6 | updated_at | DATETIME | | |
 | 7 | deleted_at | DATETIME | | |
 
+> **Note:** Bảng nối quiz-question, giữ thứ tự câu hỏi bằng `sort_order`. Composite unique `(quiz_id, question_id)` tránh gắn trùng câu hỏi vào cùng quiz.
+
 
 ---
 
-## 31. Quiz_Results
+## 29. Quiz_Results
 
 | # | Trường | Kiểu dữ liệu | Ghi chú | CHECK |
 |---|--------|---------------|---------|-------|
@@ -588,12 +624,14 @@
 
 > **Cập nhật:** Đổi `point` thành `DECIMAL(5,2)` để lưu điểm chính xác tuyệt đối.
 >
+> **Note:** `response_detail` lưu câu trả lời của học viên và thông tin chấm điểm tại thời điểm nộp bài.
+>
 > **Status:** 1: In Progress (Đang làm), 2: Submitted (Đã nộp/Chấm điểm)
 
 
 ---
 
-## 32. Quizzes
+## 30. Quizzes
 
 | # | Trường | Kiểu dữ liệu | Ghi chú | CHECK |
 |---|--------|---------------|---------|-------|
@@ -609,12 +647,14 @@
 
 > **Cập nhật:** Thêm `max_attempts` và `passing_score (DECIMAL)` cho cấu hình bài thi. Thêm versioning.
 >
+> **Note:** `passing_score` nên thống nhất là thang điểm hoặc phần trăm trong API; nếu là phần trăm nên thêm CHECK `<= 100`.
+>
 > **Status:** 0: Hidden (Ẩn), 1: Draft (Bản nháp), 2: Published (Đã xuất bản)
 
 
 ---
 
-## 33. Reports
+## 31. Reports
 
 | # | Trường | Kiểu dữ liệu | Ghi chú | CHECK |
 |---|--------|---------------|---------|-------|
@@ -629,11 +669,13 @@
 | 9 | updated_at | DATETIME | | |
 | 10 | deleted_at | DATETIME | | |
 > **Status:** 1: Pending (Chờ xử lý), 2: Processing (Đang xử lý), 3: Resolved (Đã giải quyết), 4: Dismissed (Bỏ qua)
+>
+> **Target:** `target_type + target_id` xác định đối tượng bị báo cáo theo mô hình polymorphic target (vd: COURSE, THREAD, COMMENT, REVIEW). Nên tạo index `(target_type, target_id)` nếu thường xuyên tra cứu theo đối tượng.
 
 
 ---
 
-## 34. Reviews
+## 32. Reviews
 
 | # | Trường | Kiểu dữ liệu | Ghi chú | CHECK |
 |---|--------|---------------|---------|-------|
@@ -648,11 +690,13 @@
 | 9 | updated_at | DATETIME | | |
 | 10 | deleted_at | DATETIME | | |
 > **Status:** 0: Hidden (Ẩn), 1: Published (Hiển thị), 2: Spam (Vi phạm)
+>
+> **Note:** `parent_id` hỗ trợ phản hồi review; nên giới hạn một review gốc cho mỗi `(account_id, course_id)` nếu chỉ cho phép mỗi học viên đánh giá một lần.
 
 
 ---
 
-## 35. Roles
+## 33. Roles
 
 | # | Trường | Kiểu dữ liệu | Ghi chú | CHECK |
 |---|--------|---------------|---------|-------|
@@ -662,12 +706,14 @@
 | 4 | status | INT | | |
 | 5 | created_at | DATETIME | | |
 | 6 | updated_at | DATETIME | | |
+> **Note:** Role là dữ liệu nền tảng cho phân quyền; nên seed tối thiểu ADMIN, INSTRUCTOR, USER và không xóa cứng role đã gắn account.
+>
 > **Status:** 0: Inactive (Tạm khoá), 1: Active (Hoạt động)
 
 
 ---
 
-## System_Configs
+## 34. System_Configs
 
 | # | Trường | Kiểu dữ liệu | Ghi chú | CHECK |
 |---|--------|---------------|---------|-------|
@@ -680,10 +726,12 @@
 | 7 | updated_at | DATETIME | | |
 
 > **Bảng mới** — Cấu hình hệ thống động thay vì dùng file .env (vd: MAX_UPLOAD_SIZE, DEFAULT_COMMISSION).
+>
+> **Note:** `config_type` nên giới hạn giá trị như STRING, NUMBER, DECIMAL, BOOLEAN, JSON để service parse ổn định.
 
 ---
 
-## 37. Thread_Hashtags
+## 35. Thread_Hashtags
 
 | # | Trường | Kiểu dữ liệu | Ghi chú | CHECK |
 |---|--------|---------------|---------|-------|
@@ -692,10 +740,12 @@
 | 3 | hashtag_id | INT | FK, C-UQ | |
 | 4 | created_at | DATETIME | | |
 
+> **Note:** Bảng nối thread-hashtag. Composite unique `(thread_id, hashtag_id)` tránh gắn trùng hashtag vào cùng thread.
+
 
 ---
 
-## 38. Threads
+## 36. Threads
 
 | # | Trường | Kiểu dữ liệu | Ghi chú | CHECK |
 |---|--------|---------------|---------|-------|
@@ -713,12 +763,14 @@
 | 12 | created_at | DATETIME | C-IDX | |
 | 13 | updated_at | DATETIME | | |
 | 14 | deleted_at | DATETIME | | |
-> **Status:** 0: Hidden (Ẩn), 1: Draft (Bản nháp), 2: Published (Đã xuất bản), 3: Banned (Vi phạm)
+> **Note:** `is_locked` chặn bình luận mới; `is_pinned` ưu tiên hiển thị trong topic/forum. `status = 1` hiện được dùng như pending/draft trong luồng duyệt forum.
+>
+> **Status:** 0: Hidden (Ẩn), 1: Pending/Draft (Chờ duyệt/Bản nháp), 2: Published (Đã xuất bản), 3: Rejected/Banned (Từ chối/Vi phạm)
 
 
 ---
 
-## 39. Topics
+## 37. Topics
 
 | # | Trường | Kiểu dữ liệu | Ghi chú | CHECK |
 |---|--------|---------------|---------|-------|
@@ -731,39 +783,47 @@
 | 7 | created_at | DATETIME | | |
 | 8 | updated_at | DATETIME | | |
 | 9 | deleted_at | DATETIME | | |
+> **Note:** Topic là danh mục forum. `account_id` là người tạo/quản trị topic; `slug` dùng cho URL public.
+>
 > **Status:** 0: Hidden (Ẩn), 1: Active (Hiển thị)
 
 
 ---
 
-## 40. Votes
+## 38. Votes
 
 | # | Trường | Kiểu dữ liệu | Ghi chú | CHECK |
 |---|--------|---------------|---------|-------|
 | 1 | id | IDENTITY(1,1) | PK | |
 | 2 | account_id | UUID | FK | |
 | 3 | target_id | VARCHAR(255) | | |
-| 4 | type | INT | | |
-| 5 | value | BIT | | |
-| 6 | created_at | DATETIME | | |
-| 7 | updated_at | DATETIME | | |
-| 8 | deleted_at | DATETIME | | |
+| 4 | target_type | VARCHAR(255) | | |
+| 5 | type | INT | | |
+| 6 | value | BIT | | |
+| 7 | created_at | DATETIME | | |
+| 8 | updated_at | DATETIME | | |
+| 9 | deleted_at | DATETIME | | |
+
+> **Target:** `target_type + target_id` xác định đối tượng được vote theo mô hình polymorphic target (vd: THREAD, COMMENT, REVIEW). Nên tạo index `(target_type, target_id)` nếu thường xuyên tra cứu theo đối tượng.
+>
+> **Note:** `type` nên dùng để phân biệt hành động vote/reaction nếu cần nhiều loại tương tác; `value` biểu diễn chiều vote như up/down hoặc liked/unliked.
 
 
 ---
 
-## 41. Wallets
+## 39. Wallets
 
 | # | Trường | Kiểu dữ liệu | Ghi chú | CHECK |
 |---|--------|---------------|---------|-------|
 | 1 | id | UUID | PK | |
 | 2 | account_id | UUID | FK | |
 | 3 | remain | DECIMAL(18,6) | | `>= 0` |
-| 4 | daily_withdrawal_count | INT | | `>= 0` |
-| 5 | type | INT | | |
-| 6 | status | INT | | |
-| 7 | created_at | DATETIME | | |
-| 8 | available_at | DATETIME | | |
+| 4 | type | INT | | |
+| 5 | status | INT | | |
+| 6 | created_at | DATETIME | | |
+| 7 | available_at | DATETIME | | |
+> **Note:** `remain` là số dư hiện có; `available_at` dùng cho thời điểm tiền có thể rút nếu có cơ chế giữ tiền/chờ đối soát.
+>
 > **Status:** 0: Locked/Frozen (Đóng băng), 1: Active (Hoạt động)
 
 
