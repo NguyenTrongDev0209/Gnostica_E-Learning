@@ -114,6 +114,20 @@ export default function AdminCourseDetailModeration() {
 
   return (
     <div className="max-w-[1400px] mx-auto space-y-6 animate-in fade-in duration-500 pb-10">
+      {course.isVersionUpdate && (
+        <div className="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-xl flex items-start gap-3 shadow-sm">
+          <AlertTriangle className="w-5 h-5 text-blue-600 mt-0.5 shrink-0" />
+          <div className="flex-1">
+            <h3 className="font-bold text-sm">Đây là bản cập nhật của khóa học "{course.originalCourseName}"</h3>
+            <p className="text-sm mt-1 opacity-90">
+              Khóa học này là bản nháp cập nhật (V2). Khi bạn nhấn Phê duyệt, nội dung của phiên bản này sẽ được gộp và ghi đè lên khóa học gốc đang hoạt động.
+            </p>
+          </div>
+          <AppButton appVariant="outline" size="sm" className="bg-white hover:bg-blue-100 text-blue-700 font-bold shrink-0 border-blue-300" onClick={() => window.open(`/courses/${course.originalCourseSlug}`, "_blank")}>
+            Xem khóa gốc <ExternalLink className="w-3.5 h-3.5 ml-1.5" />
+          </AppButton>
+        </div>
+      )}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-border/60 shadow-sm sticky top-4 z-20 backdrop-blur-md bg-white/95">
         <div className="flex items-center gap-4 min-w-0">
           <AppButton appVariant="ghostMuted" variant="ghost" size="icon" onClick={() => navigate("/admin/course-moderation")} className="h-10 w-10 rounded-xl shrink-0 border border-border bg-white hover:bg-muted hover:text-primary transition-colors">

@@ -217,6 +217,11 @@ export default function AdminCourseModeration() {
                       <AppBadge variant="outline" className="text-[10px] font-extrabold uppercase tracking-wide px-1 bg-transparent border-transparent text-muted-foreground opacity-50">
                         ID: {item.id}
                       </AppBadge>
+                      {item.isVersionUpdate && (
+                        <AppBadge className="text-[9px] font-black uppercase bg-blue-100 text-blue-700 border border-blue-200">
+                          Bản cập nhật v2
+                        </AppBadge>
+                      )}
                     </div>
                   </div>
                 </div>

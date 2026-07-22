@@ -205,8 +205,8 @@ export function CheckIcon({ className = "w-6 h-6" }) {
 
 export function VideoProgressCircle({ progress, size = 60 }) {
   const radius = size * 0.4;
-  const stroke = size * 0.08;
-  const normalizedRadius = radius - stroke * 2;
+  const stroke = size * 0.12;
+  const normalizedRadius = radius - stroke * 1.5;
   const circumference = normalizedRadius * 2 * Math.PI;
   const strokeDashoffset = circumference - (progress / 100) * circumference;
 
@@ -226,7 +226,7 @@ export function VideoProgressCircle({ progress, size = 60 }) {
           cy={size / 2}
         />
         <circle
-          stroke="#22c55e"
+          stroke="#16a34a"
           fill="transparent"
           strokeWidth={stroke}
           strokeDasharray={circumference + ' ' + circumference}

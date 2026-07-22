@@ -52,4 +52,8 @@ public class CourseDetailResponse {
     private List<CourseReviewResponse> reviews;
 
     private List<ModuleResponse> modules;
+
+    private Boolean isVersionUpdate;
+    private String originalCourseName;
+    private String originalCourseSlug;
 }

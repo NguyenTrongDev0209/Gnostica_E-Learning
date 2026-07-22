@@ -380,7 +380,7 @@ public class CourseService {
                 if (mReq.getId() != null) {
                     // Update existing
                     Module found = currentModules.stream()
-                            .filter(m -> m.getId().equals(mReq.getId()))
+                            .filter(m -> m.getId() != null && m.getId().equals(mReq.getId()))
                             .findFirst()
                             .orElse(null);
                     if (found != null) {
@@ -447,7 +447,7 @@ public class CourseService {
                         Lesson lesson;
                         if (lReq.getId() != null) {
                             lesson = currentLessons.stream()
-                                    .filter(l -> l.getId().equals(lReq.getId()))
+                                    .filter(l -> l.getId() != null && l.getId().equals(lReq.getId()))
                                     .findFirst()
                                     .orElse(null);
                             if (lesson == null) {
@@ -624,7 +624,17 @@ public class CourseService {
         }
         
         org.springframework.data.domain.Page<Course> coursesPage = courseRepository.findInstructorCourses(email, formattedSearch, categoryId, status, pageable);
-        return coursesPage.map(this::mapToCourseResponse);
+        return coursesPage.map(course -> {
+            CourseResponse response = mapToCourseResponse(course);
+            Course draft = courseRepository.findFirstByOriginalCourseAndDeletedAtIsNullOrderByIdDesc(course).orElse(null);
+            if (draft != null) {
+                response.setHasDraftVersion(true);
+                response.setDraftCourseSlug(draft.getSlug());
+            } else {
+                response.setHasDraftVersion(false);
+            }
+            return response;
+        });
     }
 
     @Transactional(readOnly = true)
@@ -674,7 +684,17 @@ public class CourseService {
         int normalizedCategoryId = categoryId == null ? -1 : categoryId;
         return courseRepository.findModerationCourses(
                         normalizedStatus, normalizedSearch, normalizedCategoryId, pageable)
-                .map(this::mapToCourseResponse);
+                .map(course -> {
+                    CourseResponse response = mapToCourseResponse(course);
+                    if (course.getOriginalCourse() != null) {
+                        response.setIsVersionUpdate(true);
+                        response.setOriginalCourseName(course.getOriginalCourse().getTitle());
+                        response.setOriginalCourseSlug(course.getOriginalCourse().getSlug());
+                    } else {
+                        response.setIsVersionUpdate(false);
+                    }
+                    return response;
+                });
     }
 
     @Transactional(readOnly = true)
@@ -705,7 +725,15 @@ public class CourseService {
     public CourseDetailResponse getCourseForModerationBySlug(String slug) {
         Course course = courseRepository.findFirstBySlugAndDeletedAtIsNullOrderByIdDesc(slug)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học để kiểm duyệt"));
-        return mapToCourseDetailResponse(course);
+        CourseDetailResponse response = mapToCourseDetailResponse(course);
+        if (course.getOriginalCourse() != null) {
+            response.setIsVersionUpdate(true);
+            response.setOriginalCourseName(course.getOriginalCourse().getTitle());
+            response.setOriginalCourseSlug(course.getOriginalCourse().getSlug());
+        } else {
+            response.setIsVersionUpdate(false);
+        }
+        return response;
     }
 
     @Transactional(readOnly = true)
