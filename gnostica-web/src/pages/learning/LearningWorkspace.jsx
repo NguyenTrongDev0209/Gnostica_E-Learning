@@ -9,8 +9,8 @@ import {
   Info,
   FileText,
   MoreVertical,
-  LayoutDashboard,
   Loader2,
+  Clock,
   Download,
   Trophy,
   Award,
@@ -18,13 +18,17 @@ import {
   XCircle,
   Send,
   Trash,
+  Pencil,
   User,
   CornerDownRight,
   ChevronDown,
   ChevronUp,
   Target,
   AlertTriangle,
-  RefreshCw
+  RefreshCw,
+  Star,
+  Moon,
+  Sun
 } from "lucide-react";
 import {
   Accordion,
@@ -43,6 +47,7 @@ import enrollmentService from "@/services/course/enrollmentService";
 import commentService from "@/services/forum/commentService";
 import useAuthStore from "@/store/useAuthStore";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/common/micro/AppAvatar";
+import { cn } from "@/lib/utils";
 
 const FALLBACK_LESSON_THUMBNAIL = "https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=320&auto=format&fit=crop";
 
@@ -68,34 +73,91 @@ const formatLessonDuration = (metadata) => {
   }
 };
 
-// ── Component Hỗ Trợ: Giao Diện Hỏi Đáp Q&A ──
+const getCourseRatingSummary = (course) => {
+  const reviews = Array.isArray(course?.reviews) ? course.reviews : [];
+  const reviewCount = Number(course?.reviewCount ?? reviews.length ?? 0);
+  const averageRating = Math.max(0, Math.min(5, Number(course?.rating || 0)));
+  const distribution = [5, 4, 3, 2, 1].map((rating) => {
+    const count = reviews.filter((review) => Number(review.rating) === rating).length;
+
+    return {
+      rating,
+      count,
+      percentage: reviewCount > 0 ? Math.round((count / reviewCount) * 100) : 0,
+    };
+  });
+
+  return { averageRating, reviewCount, distribution };
+};
+
+const getInitialDarkMode = () => {
+  if (typeof window === "undefined") return false;
+
+  const savedTheme = window.localStorage.getItem("gnostica-theme");
+  if (savedTheme === "dark") return true;
+  if (savedTheme === "light") return false;
+
+  return window.matchMedia?.("(prefers-color-scheme: dark)")?.matches || false;
+};
+
+// Component ho tro: giao dien Hoi dap Q&A
+const getCommentAuthorName = (comment) => comment?.account?.fullName || "Học viên Gnostica";
+const getCurrentUserName = (user) => user?.fullName || user?.name || "Bạn";
+const countCommentTree = (items = []) => items.reduce((total, item) => total + 1 + countCommentTree(item.replies || []), 0);
+const flattenLessonReplies = (replies = [], parentAuthorName) => replies.flatMap((reply) => [
+  { ...reply, parentAuthorName },
+  ...flattenLessonReplies(reply.replies || [], getCommentAuthorName(reply)),
+]);
+
 function LessonQA({ lesson }) {
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
   const [newComment, setNewComment] = useState("");
   const [replyingTo, setReplyingTo] = useState(null);
+  const [replyParentId, setReplyParentId] = useState(null);
+  const [replyTargetName, setReplyTargetName] = useState("");
   const [replyContent, setReplyContent] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [collapsedComments, setCollapsedComments] = useState(new Set());
+  const [editingCommentId, setEditingCommentId] = useState(null);
+  const [editingContent, setEditingContent] = useState("");
   const currentUser = useAuthStore(state => state.user);
+  const commentCount = countCommentTree(comments);
 
   const toggleCollapse = (id) => {
     setCollapsedComments(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(id)) newSet.delete(id);
-      else newSet.add(id);
-      return newSet;
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
     });
+  };
+
+  const startReplying = (comment, parentId) => {
+    setReplyingTo(comment.id);
+    setReplyParentId(parentId);
+    setReplyTargetName(getCommentAuthorName(comment));
+    setEditingCommentId(null);
+  };
+
+  const cancelReplying = () => {
+    setReplyingTo(null);
+    setReplyParentId(null);
+    setReplyTargetName("");
+    setReplyContent("");
   };
 
   const fetchComments = useCallback(async () => {
     if (!lesson?.id) return;
     setLoading(true);
+    setErrorMessage("");
     try {
       const data = await commentService.getCommentsByTarget("LESSON", lesson.id);
       setComments(data || []);
     } catch (error) {
       console.error("Failed to fetch comments", error);
+      setErrorMessage(error?.response?.data || "Không thể tải thảo luận của bài học.");
     } finally {
       setLoading(false);
     }
@@ -103,6 +165,11 @@ function LessonQA({ lesson }) {
 
   useEffect(() => {
     fetchComments();
+    setReplyingTo(null);
+    setReplyParentId(null);
+    setReplyTargetName("");
+    setEditingCommentId(null);
+    setEditingContent("");
   }, [fetchComments]);
 
   const handleSubmit = async (e, parentId = null) => {
@@ -111,23 +178,55 @@ function LessonQA({ lesson }) {
     if (!content.trim() || !currentUser?.email) return;
 
     setIsSubmitting(true);
+    setErrorMessage("");
     try {
       await commentService.addComment({
-        content,
+        content: content.trim(),
         targetType: "LESSON",
         targetId: lesson.id,
         userEmail: currentUser.email,
-        parentId
+        parentId,
       });
+
       if (parentId) {
-        setReplyContent("");
-        setReplyingTo(null);
+        cancelReplying();
       } else {
         setNewComment("");
       }
-      fetchComments();
+      await fetchComments();
     } catch (error) {
-      alert(error?.response?.data || "Đã xảy ra lỗi khi gửi bình luận.");
+      setErrorMessage(error?.response?.data || "Đã xảy ra lỗi khi gửi bình luận.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const startEditing = (comment) => {
+    setEditingCommentId(comment.id);
+    setEditingContent(comment.content || "");
+    cancelReplying();
+  };
+
+  const cancelEditing = () => {
+    setEditingCommentId(null);
+    setEditingContent("");
+  };
+
+  const handleUpdate = async (e, commentId) => {
+    e.preventDefault();
+    if (!editingContent.trim() || !currentUser?.email) return;
+
+    setIsSubmitting(true);
+    setErrorMessage("");
+    try {
+      await commentService.updateComment(commentId, {
+        content: editingContent.trim(),
+        userEmail: currentUser.email,
+      });
+      cancelEditing();
+      await fetchComments();
+    } catch (error) {
+      setErrorMessage(error?.response?.data || "Cập nhật bình luận thất bại.");
     } finally {
       setIsSubmitting(false);
     }
@@ -135,144 +234,228 @@ function LessonQA({ lesson }) {
 
   const handleDelete = async (id) => {
     if (!window.confirm("Bạn có chắc chắn muốn xóa bình luận này?")) return;
+    setErrorMessage("");
     try {
       await commentService.deleteComment(id, currentUser.email);
-      fetchComments();
+      await fetchComments();
     } catch (error) {
-      alert("Xóa bình luận thất bại.");
+      setErrorMessage(error?.response?.data || "Xóa bình luận thất bại.");
     }
   };
 
   const formatDate = (dateString) => {
+    if (!dateString) return "Vừa xong";
     return new Date(dateString).toLocaleDateString("vi-VN", {
       day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit"
     });
   };
 
-  const renderComment = (comment, isReply = false) => (
-    <div key={comment.id} className={`flex gap-4 ${isReply ? 'mt-4' : 'mt-6 pt-6 border-t border-border'}`}>
-      <Avatar className="w-10 h-10 border border-border shrink-0">
-        <AvatarImage src={comment.account?.avatar} />
-        <AvatarFallback className="bg-primary/10 text-primary font-bold">
-          {comment.account?.fullName?.charAt(0) || <User className="w-5 h-5" />}
-        </AvatarFallback>
-      </Avatar>
-      <div className="flex-1 min-w-0">
-        <div className="relative rounded-lg rounded-tl-none border border-border bg-muted p-4 group">
-          <div className="flex items-center justify-between mb-1">
-            <span className="font-bold text-sm text-foreground">{comment.account?.fullName || "Người dùng"}</span>
-            <span className="text-xs text-muted-foreground font-medium">{formatDate(comment.createdAt)}</span>
-          </div>
-          <p className="text-sm text-muted-foreground whitespace-pre-wrap">{comment.content}</p>
-          
-          {currentUser?.email === comment.account?.email && (
-            <button 
-              onClick={() => handleDelete(comment.id)}
-              className="absolute top-4 right-4 text-muted-foreground hover:text-error opacity-0 group-hover:opacity-100 transition-opacity"
-            >
-              <Trash className="w-4 h-4" />
-            </button>
-          )}
-        </div>
-        
-        <div className="flex items-center gap-4 mt-2 ml-2">
-          <button 
-            onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
-            className="text-xs font-bold text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
-          >
-            <CornerDownRight className="w-3.5 h-3.5" /> Phản hồi
-          </button>
-          {comment.replies && comment.replies.length > 0 && (
-            <button 
-              onClick={() => toggleCollapse(comment.id)}
-              className="text-xs font-bold text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
-            >
-              {collapsedComments.has(comment.id) ? (
-                <><ChevronDown className="w-3.5 h-3.5" /> Hiển thị {comment.replies.length} phản hồi</>
-              ) : (
-                <><ChevronUp className="w-3.5 h-3.5" /> Ẩn phản hồi</>
-              )}
-            </button>
-          )}
-        </div>
+  const renderComment = (comment, isReply = false, parentAuthorName = "", rootCommentId = null) => {
+    const isOwner = currentUser?.email === comment.account?.email;
+    const isEditing = editingCommentId === comment.id;
+    const flattenedReplies = isReply ? [] : flattenLessonReplies(comment.replies || [], getCommentAuthorName(comment));
+    const hasReplies = flattenedReplies.length > 0;
+    const isCollapsed = collapsedComments.has(comment.id);
+    const isEdited = comment.updatedAt && comment.createdAt && comment.updatedAt !== comment.createdAt;
+    const replyRootId = rootCommentId || comment.id;
 
-        {replyingTo === comment.id && (
-          <form onSubmit={(e) => handleSubmit(e, comment.id)} className="mt-3 flex gap-2">
-            <input
-              type="text"
-              value={replyContent}
-              onChange={(e) => setReplyContent(e.target.value)}
-              placeholder="Viết phản hồi..."
-              className="flex-1 text-sm rounded-md border-border focus:border-primary focus:ring-primary/20"
-              autoFocus
-            />
-            <Button type="submit" size="sm" disabled={isSubmitting || !replyContent.trim()} className="rounded-md px-4">
-              <Send className="w-4 h-4" />
-            </Button>
-          </form>
-        )}
-
-        {comment.replies && comment.replies.length > 0 && !collapsedComments.has(comment.id) && (
-          <div className="pl-4 border-l-2 border-border mt-2">
-            {comment.replies.map(reply => renderComment(reply, true))}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-
-  return (
-    <div className="rounded-xl border border-border bg-card p-6 shadow-sm md:p-8">
-      <h3 className="app-section-title mb-6 flex items-center gap-3">
-        <MessageSquare className="size-5 text-primary" /> Thảo luận bài học
-      </h3>
-
-      <form onSubmit={(e) => handleSubmit(e, null)} className="mb-8">
-        <div className="flex gap-4">
-          <Avatar className="w-12 h-12 border border-border shrink-0">
-            <AvatarImage src={currentUser?.avatar} />
+    return (
+      <div key={comment.id} className={cn("flex gap-3", isReply ? "ml-8 mt-4 sm:ml-16" : "")}>
+        <div className="mt-1 shrink-0">
+          <Avatar className="size-9 border border-border ring-2 ring-transparent transition-all hover:ring-primary/20">
+            <AvatarImage src={comment.account?.avatar} />
             <AvatarFallback className="bg-primary/10 text-primary font-bold">
-              {currentUser?.fullName?.charAt(0) || <User className="w-6 h-6" />}
+              {getCommentAuthorName(comment).charAt(0) || <User className="size-4" />}
             </AvatarFallback>
           </Avatar>
-          <div className="flex-1 relative">
-            <textarea
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              placeholder="Bạn có câu hỏi gì về bài học này?"
-              className="min-h-[100px] w-full resize-y rounded-lg border-border p-4 text-sm shadow-sm focus:border-primary focus:ring-primary/20"
-            />
-            <Button 
-              type="submit" 
-              disabled={isSubmitting || !newComment.trim()} 
-              className="absolute bottom-3 right-3 h-9 gap-2 rounded-lg px-4 font-semibold shadow-sm"
-            >
-              Gửi <Send className="w-4 h-4" />
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <div className={cn("rounded-xl bg-card p-4 shadow-sm", isEditing ? "border border-primary/30" : "border border-border")}>
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-sm font-semibold text-foreground">{getCommentAuthorName(comment)}</span>
+                {isReply && parentAuthorName && (
+                  <span className="inline-flex items-center rounded-md border border-primary/20 bg-primary/5 px-2 py-0.5 text-xs font-semibold text-primary">
+                    trả lời @{parentAuthorName}
+                  </span>
+                )}
+                {isEdited && <span className="text-xs font-medium text-muted-foreground">Đã chỉnh sửa</span>}
+              </div>
+              <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                <Clock className="size-3" /> {formatDate(comment.createdAt)}
+              </span>
+            </div>
+
+            {isEditing ? (
+              <form onSubmit={(e) => handleUpdate(e, comment.id)} className="space-y-3">
+                <textarea
+                  value={editingContent}
+                  onChange={(e) => setEditingContent(e.target.value)}
+                  className="min-h-[88px] w-full resize-y rounded-lg border border-border bg-background p-3 text-sm text-foreground outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15"
+                  autoFocus
+                />
+                <div className="flex justify-end gap-2">
+                  <Button type="button" appVariant="ghostMuted" variant="ghost" size="sm" onClick={cancelEditing} className="h-8 rounded-md px-3">
+                    Hủy
+                  </Button>
+                  <Button type="submit" size="sm" disabled={isSubmitting || !editingContent.trim()} className="h-8 gap-2 rounded-md px-3">
+                    <CheckCircle2 className="size-4" /> Lưu
+                  </Button>
+                </div>
+              </form>
+            ) : (
+              <p className="whitespace-pre-wrap text-sm leading-6 text-foreground">{comment.content}</p>
+            )}
+          </div>
+
+          {!isEditing && (
+            <div className="mt-2 flex items-center gap-3 px-1">
+              <button
+                type="button"
+                onClick={() => replyingTo === comment.id ? cancelReplying() : startReplying(comment, replyRootId)}
+                className="flex items-center gap-1 text-xs font-medium text-muted-foreground transition-colors hover:text-primary"
+              >
+                <CornerDownRight className="size-3.5" /> Trả lời
+              </button>
+              {hasReplies && (
+                <button
+                  type="button"
+                  onClick={() => toggleCollapse(comment.id)}
+                  className="flex items-center gap-1 text-xs font-medium text-muted-foreground transition-colors hover:text-primary"
+                >
+                  {isCollapsed ? (
+                    <><MessageSquare className="size-3.5" /> {flattenedReplies.length} phản hồi</>
+                  ) : (
+                    <><ChevronUp className="size-3.5" /> Ẩn phản hồi</>
+                  )}
+                </button>
+              )}
+              {isOwner && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => startEditing(comment)}
+                    className="flex items-center gap-1 text-xs font-medium text-muted-foreground transition-colors hover:text-primary"
+                  >
+                    <Pencil className="size-3.5" /> Sửa
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(comment.id)}
+                    className="text-xs font-medium text-muted-foreground transition-colors hover:text-error"
+                  >
+                    Xóa
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+
+          {replyingTo === comment.id && (
+            <form onSubmit={(e) => handleSubmit(e, replyParentId || replyRootId)} className="mt-3 rounded-lg border border-border bg-card p-3 shadow-sm">
+              <input
+                type="text"
+                value={replyContent}
+                onChange={(e) => setReplyContent(e.target.value)}
+                placeholder={`Trả lời @${replyTargetName || getCommentAuthorName(comment)}...`}
+                className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15"
+                autoFocus
+              />
+              <div className="mt-3 flex justify-end gap-2">
+                <Button type="button" appVariant="ghostMuted" variant="ghost" size="sm" onClick={cancelReplying} className="h-8 rounded-md px-3">
+                  Hủy
+                </Button>
+                <Button type="submit" size="sm" disabled={isSubmitting || !replyContent.trim()} className="h-8 gap-2 rounded-md px-3">
+                  {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : <><Send className="size-4" /> Trả lời</>}
+                </Button>
+              </div>
+            </form>
+          )}
+
+          {hasReplies && !isCollapsed && (
+            <div className="mt-4">
+              {flattenedReplies.map(reply => renderComment(reply, true, reply.parentAuthorName, comment.id))}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="py-2">
+        <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h3 className="app-section-title flex items-center gap-3">
+              <MessageSquare className="size-5 text-primary" /> Thảo luận bài học
+            </h3>
+            <p className="mt-1 text-sm font-medium text-muted-foreground">
+              Đặt câu hỏi theo bài học hiện tại để giảng viên và học viên khác cùng trao đổi.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="inline-flex h-8 items-center rounded-lg border border-primary/20 bg-primary/10 px-3 text-xs font-semibold text-primary">
+              {commentCount} bình luận
+            </span>
+            <Button type="button" appVariant="ghostMuted" variant="ghost" size="sm" onClick={fetchComments} disabled={loading} className="h-8 gap-2 rounded-md px-3">
+              <RefreshCw className={cn("size-4", loading && "animate-spin")} /> Làm mới
             </Button>
           </div>
         </div>
-      </form>
 
-      {loading ? (
-        <div className="flex justify-center py-8 text-muted-foreground">
-          <Loader2 className="w-8 h-8 animate-spin" />
-        </div>
-      ) : comments.length > 0 ? (
-        <div className="space-y-2">
-          {comments.map(c => renderComment(c, false))}
-        </div>
-      ) : (
-        <div className="rounded-lg border border-dashed border-border bg-muted py-12 text-center text-muted-foreground">
-          <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-20" />
-          <p className="font-bold">Chưa có bình luận nào.</p>
-          <p className="text-sm mt-1 opacity-80">Hãy là người đầu tiên đặt câu hỏi!</p>
-        </div>
-      )}
+        <form onSubmit={(e) => handleSubmit(e, null)} className="mb-8">
+          <div className="flex gap-3">
+            <Avatar className="size-11 shrink-0 border border-border">
+              <AvatarImage src={currentUser?.avatar} />
+              <AvatarFallback className="bg-primary/10 text-primary font-bold">
+                {getCurrentUserName(currentUser).charAt(0) || <User className="size-5" />}
+              </AvatarFallback>
+            </Avatar>
+            <div className="relative flex-1 overflow-hidden rounded-lg border border-border bg-card shadow-sm transition-all focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/15">
+              <textarea
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                placeholder="Nhập câu hỏi về bài học này..."
+                className="min-h-[112px] w-full resize-y border-0 bg-card p-4 pr-24 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:ring-0"
+              />
+              <Button
+                type="submit"
+                disabled={isSubmitting || !newComment.trim() || !currentUser?.email}
+                className="absolute bottom-3 right-3 h-9 gap-2 rounded-lg px-4 font-semibold shadow-sm"
+              >
+                {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : <>Gửi <Send className="size-4" /></>}
+              </Button>
+            </div>
+          </div>
+        </form>
+
+        {errorMessage && (
+          <div className="mb-5 rounded-lg border border-error/20 bg-error-soft px-4 py-3 text-sm font-medium text-error">
+            {errorMessage}
+          </div>
+        )}
+
+        {loading ? (
+          <div className="flex items-center justify-center gap-3 rounded-lg border border-dashed border-border bg-muted/60 py-10 text-sm font-semibold text-muted-foreground">
+            <Loader2 className="size-5 animate-spin" />
+            Đang tải thảo luận...
+          </div>
+        ) : comments.length > 0 ? (
+          <div className="space-y-5">
+            {comments.map(c => renderComment(c, false))}
+          </div>
+        ) : (
+          <div className="rounded-lg border border-dashed border-border bg-muted/70 py-12 text-center text-muted-foreground">
+            <MessageSquare className="mx-auto mb-3 size-11 opacity-25" />
+            <p className="font-semibold text-foreground">Chưa có bình luận nào.</p>
+            <p className="mt-1 text-sm">Hãy là người đầu tiên đặt câu hỏi!</p>
+          </div>
+        )}
     </div>
   );
 }
 
-// ── Component Hỗ Trợ: Giao Diện Làm Bài Quiz Cho Học Viên ──
 function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }) {
   const [userAnswers, setUserAnswers] = useState({});
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -310,7 +493,7 @@ function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }
 
   if (!quiz || questions.length === 0) {
     return (
-      <div className="w-full bg-white rounded-2xl border border-border p-20 text-center shadow-sm">
+      <div className="w-full bg-card rounded-2xl border border-border p-20 text-center shadow-sm">
         <div className="w-24 h-24 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-6 border border-indigo-100">
             <HelpCircle className="w-10 h-10 text-indigo-400" />
         </div>
@@ -395,7 +578,7 @@ function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }
 
   return (
     <div ref={quizTopRef} className="w-full space-y-6 max-w-5xl mx-auto pb-12 pt-2">
-        <div className="bg-white rounded-xl border border-border/60 shadow-sm p-6 md:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-in fade-in duration-500">
+        <div className="bg-card rounded-xl border border-border/60 shadow-sm p-6 md:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-in fade-in duration-500">
             <div className="flex items-center gap-4">
                 <div className="w-14 h-14 rounded-full bg-violet-600 flex items-center justify-center text-white shadow-lg shadow-violet-200 shrink-0">
                     <Trophy className="w-7 h-7" />
@@ -452,7 +635,7 @@ function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }
 
         <div className="space-y-5">
             {questions.map((q, idx) => (
-                <div key={q.id} className="bg-white rounded-xl p-6 md:p-8 border border-border/60 shadow-sm space-y-6 transition-all duration-300 hover:shadow-md">
+                <div key={q.id} className="bg-card rounded-xl p-6 md:p-8 border border-border/60 shadow-sm space-y-6 transition-all duration-300 hover:shadow-md">
                     <h3 className="text-sm md:text-[15px] font-extrabold text-foreground leading-relaxed flex gap-1.5 items-start">
                         <span className="shrink-0">Câu {idx + 1}:</span>
                         <span dangerouslySetInnerHTML={{ __html: q.content }}></span>
@@ -552,6 +735,7 @@ export default function LearningWorkspace() {
   const [quizProgress, setQuizProgress] = useState([]); // Track existing quiz results
   const [certifiUrl, setCertifiUrl] = useState(null);
   const [currentTime, setCurrentTime] = useState(0);
+  const [isDarkMode, setIsDarkMode] = useState(getInitialDarkMode);
 
   // === REFS để tránh stale closure trong interval/listener ===
   const currentTimeRef = useRef(0);
@@ -559,6 +743,11 @@ export default function LearningWorkspace() {
   const completedIdsRef = useRef([]);
   const hasEndedRef = useRef(false); // Chặn gọi completed nhiều lần
   const activePlaylistItemRef = useRef(null);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", isDarkMode);
+    window.localStorage.setItem("gnostica-theme", isDarkMode ? "dark" : "light");
+  }, [isDarkMode]);
 
   useEffect(() => {
     const checkAccessAndFetch = async () => {
@@ -610,7 +799,7 @@ export default function LearningWorkspace() {
       setQuizProgress(progressData?.quizzes || []);
       setCertifiUrl(progressData?.certifiUrl || null);
 
-      // Khôi phục phiên học: 
+      // Khôi phục phiên học:
       // 1. Ưu tiên lesson trong URL
       // 2. Sau đó mới đến bài học vừa xem gần nhất trong DB
       let lessonFound = false;
@@ -665,6 +854,7 @@ export default function LearningWorkspace() {
   const currentSectionLessonCount = currentSection?.lessons?.length || 0;
   const currentLessonNumber = activeLessonIdx + 1;
   const isCurrentLessonCompleted = Boolean(currentLessonProgress?.isCompleted);
+  const courseRatingSummary = getCourseRatingSummary(course);
 
   // === Sync quiz results callbacks ===
   const onQuizCompleted = (quizId, point, correctAnswers, totalQuestions) => {
@@ -1026,7 +1216,7 @@ export default function LearningWorkspace() {
 
   if (!isEnrolled) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-white p-6 text-center">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background p-6 text-center">
         <div className="w-24 h-24 bg-red-50 rounded-full flex items-center justify-center mb-6 border border-error/20 shadow-inner">
           <Info className="w-10 h-10 text-error" />
         </div>
@@ -1118,10 +1308,11 @@ export default function LearningWorkspace() {
           <Button
             variant="ghost"
             size="sm"
+            onClick={() => setIsDarkMode((value) => !value)}
             className="hidden items-center gap-2 rounded-lg border border-border bg-card font-semibold text-foreground hover:bg-muted lg:flex"
           >
-            <LayoutDashboard className="size-4" />
-            Giao diện
+            {isDarkMode ? <Sun className="size-4" /> : <Moon className="size-4" />}
+            {isDarkMode ? "Chế độ sáng" : "Chế độ tối"}
           </Button>
           {progressValue === 100 && certifiUrl && (
             <Button
@@ -1254,18 +1445,66 @@ export default function LearningWorkspace() {
                     </TabsList>
 
                     <TabsContent value="overview" className="mt-6 outline-none">
-                      <AppCard appVariant="default" className="shadow-sm">
-                        <AppCardContent className="p-6 md:p-8">
-                        <h3 className="app-section-title mb-6 flex items-center gap-3">
+                      <div className="space-y-6">
+                        <AppCard appVariant="default" className="shadow-sm">
+                          <AppCardContent className="p-6 md:p-8">
+                          <h3 className="app-section-title mb-6 flex items-center gap-3">
                             <Info className="size-5 text-primary" />
                             Nội dung bài học
-                        </h3>
-                        <div 
-                          className="html-content app-body-text max-w-none leading-7 text-muted-foreground"
-                          dangerouslySetInnerHTML={{ __html: currentLesson?.content }}
-                        />
-                        </AppCardContent>
-                      </AppCard>
+                          </h3>
+                          <div 
+                            className="html-content app-body-text max-w-none leading-7 text-muted-foreground"
+                            dangerouslySetInnerHTML={{ __html: currentLesson?.content }}
+                          />
+                          </AppCardContent>
+                        </AppCard>
+
+                        <AppCard appVariant="default" className="shadow-sm">
+                          <AppCardContent className="p-6 md:p-8">
+                            <h3 className="app-section-title mb-6 flex items-center gap-3">
+                              <Star className="size-5 fill-warning text-warning" />
+                              Đánh giá khóa học
+                            </h3>
+                            <div className="grid gap-8 md:grid-cols-[180px_1fr] md:items-center">
+                              <div className="text-center md:text-left">
+                                <div className="text-5xl font-bold text-warning">
+                                  {courseRatingSummary.averageRating.toFixed(1)}
+                                </div>
+                                <div
+                                  className="mt-3 flex justify-center gap-1 md:justify-start"
+                                  aria-label={`${courseRatingSummary.averageRating.toFixed(1)} trên 5 sao`}
+                                >
+                                  {Array.from({ length: 5 }).map((_, index) => (
+                                    <Star
+                                      key={index}
+                                      className={`h-5 w-5 text-warning ${index < Math.round(courseRatingSummary.averageRating) ? "fill-warning" : "fill-transparent"}`}
+                                    />
+                                  ))}
+                                </div>
+                                <p className="mt-2 text-sm text-muted-foreground">
+                                  {courseRatingSummary.reviewCount} đánh giá
+                                </p>
+                              </div>
+
+                              <div className="space-y-3">
+                                {courseRatingSummary.distribution.map((item) => (
+                                  <div key={item.rating} className="grid grid-cols-[52px_1fr_42px] items-center gap-3 text-sm">
+                                    <div className="flex items-center gap-1 font-medium text-foreground">
+                                      <span>{item.rating}</span>
+                                      <Star className="h-4 w-4 fill-warning text-warning" />
+                                    </div>
+                                    <Progress
+                                      value={item.percentage}
+                                      className="h-2 bg-muted [&>div]:bg-warning"
+                                    />
+                                    <span className="text-right text-muted-foreground">{item.percentage}%</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </AppCardContent>
+                        </AppCard>
+                      </div>
                     </TabsContent>
 
                     <TabsContent value="qa" className="mt-6 outline-none">

@@ -49,6 +49,16 @@ const commentService = {
       throw error;
     }
   },
+
+  updateComment: async (id, payload) => {
+    try {
+      const response = await axiosClient.put(`${API_URL}/${id}`, payload, { headers: getAuthHeaders() });
+      return response.data;
+    } catch (error) {
+      console.error("Error updating comment:", error);
+      throw error;
+    }
+  },
   
   deleteComment: async (id, userEmail) => {
     try {

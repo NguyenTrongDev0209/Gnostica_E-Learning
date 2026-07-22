@@ -4,6 +4,7 @@ import com.gnostica.core.model.Comment;
 import com.gnostica.modules.forum.service.CommentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -22,8 +23,16 @@ public class CommentController {
     }
 
     @GetMapping("/target/{targetType}/{targetId}")
-    public ResponseEntity<?> getCommentsByTarget(@PathVariable String targetType, @PathVariable String targetId) {
-        return ResponseEntity.ok(commentService.getCommentsByTarget(targetType, targetId));
+    public ResponseEntity<?> getCommentsByTarget(
+            @PathVariable String targetType,
+            @PathVariable String targetId,
+            Authentication authentication) {
+        try {
+            String userEmail = authentication != null ? authentication.getName() : null;
+            return ResponseEntity.ok(commentService.getCommentsByTarget(targetType, targetId, userEmail));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @PostMapping
@@ -62,6 +71,23 @@ public class CommentController {
         try {
             commentService.deleteComment(id, userEmail);
             return ResponseEntity.ok("Comment deleted successfully");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateComment(@PathVariable Integer id, @RequestBody Map<String, Object> payload) {
+        String content = (String) payload.get("content");
+        String userEmail = (String) payload.get("userEmail");
+
+        if (userEmail == null || userEmail.isBlank()) {
+            return ResponseEntity.status(401).body("Loi: Khong tim thay email nguoi dung!");
+        }
+
+        try {
+            Comment comment = commentService.updateComment(id, content, userEmail);
+            return ResponseEntity.ok(comment);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

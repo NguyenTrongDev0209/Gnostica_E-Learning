@@ -2,9 +2,12 @@ package com.gnostica.modules.forum.service.impl;
 
 import com.gnostica.core.model.Account;
 import com.gnostica.core.model.Comment;
+import com.gnostica.core.model.Course;
+import com.gnostica.core.model.Lesson;
 import com.gnostica.core.model.Thread;
 import com.gnostica.core.repository.AccountRepository;
 import com.gnostica.core.repository.CommentRepository;
+import com.gnostica.core.repository.EnrollmentRepository;
 import com.gnostica.core.repository.LessonRepository;
 import com.gnostica.core.repository.ThreadRepository;
 import com.gnostica.modules.forum.service.CommentService;
@@ -29,6 +32,9 @@ public class CommentServiceImpl implements CommentService {
     @Autowired
     private LessonRepository lessonRepository;
 
+    @Autowired
+    private EnrollmentRepository enrollmentRepository;
+
     @Override
     public List<Comment> getCommentsByThreadId(Integer threadId) {
         return getCommentsByTarget("THREAD", threadId.toString());
@@ -39,6 +45,27 @@ public class CommentServiceImpl implements CommentService {
         return commentRepository.findByTargetTypeAndTargetIdAndParentIsNullOrderByCreatedAtDesc(
                 normalizeTargetType(targetType),
                 normalizeTargetId(targetId));
+    }
+
+    @Override
+    public List<Comment> getCommentsByTarget(String targetType, String targetId, String userEmail) {
+        String normalizedTargetType = normalizeTargetType(targetType);
+        String normalizedTargetId = normalizeTargetId(targetId);
+
+        if ("LESSON".equals(normalizedTargetType)) {
+            if (userEmail == null || userEmail.isBlank()) {
+                throw new RuntimeException("User email is required");
+            }
+            Account account = accountRepository.findByEmail(userEmail)
+                    .orElseThrow(() -> new RuntimeException("Account not found"));
+            Lesson lesson = lessonRepository.findById(Integer.parseInt(normalizedTargetId))
+                    .orElseThrow(() -> new RuntimeException("Lesson not found"));
+            ensureLessonCommentAccess(account, lesson);
+        }
+
+        return commentRepository.findByTargetTypeAndTargetIdAndParentIsNullOrderByCreatedAtDesc(
+                normalizedTargetType,
+                normalizedTargetId);
     }
 
     @Override
@@ -60,8 +87,9 @@ public class CommentServiceImpl implements CommentService {
             threadRepository.findById(Integer.parseInt(normalizedTargetId))
                     .orElseThrow(() -> new RuntimeException("Thread not found"));
         } else if ("LESSON".equals(normalizedTargetType)) {
-            lessonRepository.findById(Integer.parseInt(normalizedTargetId))
+            Lesson lesson = lessonRepository.findById(Integer.parseInt(normalizedTargetId))
                     .orElseThrow(() -> new RuntimeException("Lesson not found"));
+            ensureLessonCommentAccess(account, lesson);
         }
 
         Comment comment = new Comment();
@@ -85,24 +113,69 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     @Transactional
+    public Comment updateComment(Integer commentId, String content, String userEmail) {
+        if (content == null || content.isBlank()) {
+            throw new RuntimeException("Content is required");
+        }
+
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new RuntimeException("Comment not found"));
+
+        if (!comment.getAccount().getEmail().equals(userEmail)) {
+            throw new RuntimeException("You are not authorized to update this comment");
+        }
+
+        comment.setContent(content.trim());
+        return commentRepository.save(comment);
+    }
+
+    @Override
+    @Transactional
     public void deleteComment(Integer commentId, String userEmail) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new RuntimeException("Comment not found"));
 
         boolean isCommentAuthor = comment.getAccount().getEmail().equals(userEmail);
         boolean isThreadAuthor = false;
+        boolean isLessonInstructor = false;
         if ("THREAD".equals(comment.getTargetType())) {
             isThreadAuthor = threadRepository.findById(Integer.parseInt(comment.getTargetId()))
                     .map(Thread::getAccount)
                     .map(account -> account.getEmail().equals(userEmail))
                     .orElse(false);
+        } else if ("LESSON".equals(comment.getTargetType())) {
+            isLessonInstructor = lessonRepository.findById(Integer.parseInt(comment.getTargetId()))
+                    .map(this::resolveLessonCourse)
+                    .map(Course::getAccount)
+                    .map(account -> account.getEmail().equals(userEmail))
+                    .orElse(false);
         }
 
-        if (!isCommentAuthor && !isThreadAuthor) {
+        if (!isCommentAuthor && !isThreadAuthor && !isLessonInstructor) {
             throw new RuntimeException("You are not authorized to delete this comment");
         }
 
         commentRepository.delete(comment);
+    }
+
+    private void ensureLessonCommentAccess(Account account, Lesson lesson) {
+        Course course = resolveLessonCourse(lesson);
+        boolean isInstructor = course.getAccount() != null && course.getAccount().getEmail().equals(account.getEmail());
+        boolean isEnrolled = enrollmentRepository.existsByAccountAndCourseAndStatusIn(account, course, List.of(1, 2));
+        boolean isAdmin = account.getRole() != null
+                && account.getRole().getName() != null
+                && account.getRole().getName().toUpperCase().contains("ADMIN");
+
+        if (!isInstructor && !isEnrolled && !isAdmin) {
+            throw new RuntimeException("You are not authorized to comment on this lesson");
+        }
+    }
+
+    private Course resolveLessonCourse(Lesson lesson) {
+        if (lesson.getModule() == null || lesson.getModule().getCourse() == null) {
+            throw new RuntimeException("Lesson course not found");
+        }
+        return lesson.getModule().getCourse();
     }
 
     private String normalizeTargetType(String targetType) {
