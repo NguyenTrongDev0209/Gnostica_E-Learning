@@ -12,7 +12,13 @@ import jakarta.validation.constraints.*;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "comments")
+@Table(
+    name = "comments",
+    indexes = {
+        @Index(name = "idx_comments_target", columnList = "target_type,target_id"),
+        @Index(name = "idx_comments_parent_id", columnList = "parent_id")
+    }
+)
 public class Comment {
 
     @Id
@@ -24,10 +30,15 @@ public class Comment {
     @JoinColumn(name = "account_id", updatable = false)
     private Account account;
 
-    @NotNull
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "thread_id", updatable = false)
-    private Thread thread;
+    @NotBlank
+    @Size(max = 50)
+    @Column(name = "target_type", updatable = false)
+    private String targetType;
+
+    @NotBlank
+    @Size(max = 255)
+    @Column(name = "target_id", updatable = false)
+    private String targetId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")

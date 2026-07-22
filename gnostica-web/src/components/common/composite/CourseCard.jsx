@@ -161,9 +161,12 @@ export const CourseProgressCard = ({
   className,
   link
 }) => {
-  const to = link || `/courses/${id}/learn`;
+  const to = link === null ? null : (link || `/courses/${id}/learn`);
+  const Wrapper = to ? Link : "div";
+  const wrapperProps = to ? { to } : { role: "presentation" };
+
   return (
-    <Link to={to} className="block w-full">
+    <Wrapper {...wrapperProps} className="block w-full">
       <AppCard appVariant="default" className={cn("w-full flex flex-row group hover-lift p-0 gap-0", className)}>
         {/* Left Image */}
         <div className="shrink-0 w-36 sm:w-56 md:w-60 p-2 sm:p-3 pr-0">
@@ -240,7 +243,7 @@ export const CourseProgressCard = ({
           </div>
         </AppCardContent>
       </AppCard>
-    </Link>
+    </Wrapper>
   );
 };
 /**

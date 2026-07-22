@@ -189,24 +189,34 @@ function MyCourseGrid({ loading, courses }) {
 
   return (
     <div className="space-y-4">
-      {courses.map((course) => (
-        <CourseProgressCard
-          key={course.id}
-          id={course.id}
-          title={course.courseTitle}
-          category={course.category}
-          image={course.courseThumbnail}
-          instructor={course.instructorName}
-          progressPercent={course.progressPercent}
-          lastAccessed={course.lastAccessed}
-          completedAt={course.completedAt}
-          joinedAt={course.joinedAt}
-          firstLessonId={course.firstLessonId}
-          lastWatchedLessonSlug={course.lastWatchedLessonSlug}
-          certifiUrl={course.certifiUrl}
-          link={`/learning/${course.courseSlug}${course.progressPercent === 100 ? `?lesson=${course.firstLessonId}&restart=true` : (course.lastWatchedLessonSlug ? `?lesson=${course.lastWatchedLessonSlug}` : "")}`}
-        />
-      ))}
+      {courses.map((course) => {
+        const courseSlug = course.courseSlug || course.slug;
+        const lessonQuery = course.progressPercent === 100
+          ? `?lesson=${course.firstLessonId}&restart=true`
+          : course.lastWatchedLessonSlug
+            ? `?lesson=${course.lastWatchedLessonSlug}`
+            : "";
+        const learningLink = courseSlug ? `/learning/${courseSlug}${lessonQuery}` : null;
+
+        return (
+          <CourseProgressCard
+            key={course.id}
+            id={course.id}
+            title={course.courseTitle}
+            category={course.category}
+            image={course.courseThumbnail}
+            instructor={course.instructorName}
+            progressPercent={course.progressPercent}
+            lastAccessed={course.lastAccessed}
+            completedAt={course.completedAt}
+            joinedAt={course.joinedAt}
+            firstLessonId={course.firstLessonId}
+            lastWatchedLessonSlug={course.lastWatchedLessonSlug}
+            certifiUrl={course.certifiUrl || course.certificateUrl}
+            link={learningLink}
+          />
+        );
+      })}
     </div>
   );
 }
