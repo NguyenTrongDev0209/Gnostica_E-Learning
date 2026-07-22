@@ -8,6 +8,8 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.util.UUID;
 import java.math.BigDecimal;
 import jakarta.validation.constraints.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Data
 @NoArgsConstructor
@@ -65,6 +67,7 @@ public class Coupon {
     @NotNull
     private Integer status;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private String metadata;
 

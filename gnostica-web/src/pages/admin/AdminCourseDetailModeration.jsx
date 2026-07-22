@@ -8,6 +8,8 @@ import AppSelect from "@/components/common/micro/AppSelect";
 import AppInput from "@/components/common/micro/AppInput";
 import { CheckCircle2, BookOpen, Layers, Video, ArrowLeft, Loader2, Sparkles, AlertTriangle, ShieldCheck, ShieldAlert, FileText, Trophy, ExternalLink, ChevronRight, Download } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
+import CourseRejectModal from "@/components/modals/CourseRejectModal";
+import InstructorProfileModal from "@/components/modals/InstructorProfileModal";
 
 import useAdminCourseModeration from "@/hooks/admin/useAdminCourseModeration";
 
@@ -120,7 +122,7 @@ export default function AdminCourseDetailModeration() {
           <div className="flex-1">
             <h3 className="font-bold text-sm">Đây là bản cập nhật của khóa học "{course.originalCourseName}"</h3>
             <p className="text-sm mt-1 opacity-90">
-              Khóa học này là bản nháp cập nhật (V2). Khi bạn nhấn Phê duyệt, nội dung của phiên bản này sẽ được gộp và ghi đè lên khóa học gốc đang hoạt động.
+              Khi bạn nhấn Phê duyệt, nội dung của phiên bản này sẽ được gộp và ghi đè lên khóa học gốc đang hoạt động.
             </p>
           </div>
           <AppButton appVariant="outline" size="sm" className="bg-white hover:bg-blue-100 text-blue-700 font-bold shrink-0 border-blue-300" onClick={() => window.open(`/courses/${course.originalCourseSlug}`, "_blank")}>

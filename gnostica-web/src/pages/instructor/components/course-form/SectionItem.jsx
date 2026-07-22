@@ -88,7 +88,18 @@ export function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActi
   const filteredQuestions = bankQuestions.filter(q => {
     const matchesSearch = q.text.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesLevel = filterLevel === "all" || q.level === filterLevel;
-    return matchesSearch && matchesLevel;
+    
+    // Check if question is used in OTHER quizzes
+    const allSections = getValues("sections") || [];
+    const usedInOther = allSections.some((sec, idx) => {
+      return idx !== sectionIndex && sec.quiz && sec.quiz.questionIds && sec.quiz.questionIds.includes(q.id);
+    });
+
+    // Also exclude if it's already selected in the CURRENT quiz
+    // so it moves to the left pane and disappears from the right pane.
+    const usedInCurrent = selectedQuizQuestions.includes(q.id);
+
+    return matchesSearch && matchesLevel && !usedInOther && !usedInCurrent;
   });
 
   const { fields, append, remove } = useFieldArray({
@@ -106,7 +117,7 @@ export function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActi
           Tiêu đề chương <span className="text-error">*</span>
         </Label>
         <AppInput
-          className="h-12 border-border focus-visible:ring-success focus-visible:bg-white bg-muted font-medium "
+          className="h-12 border-border hover:border-success/50 focus-visible:border-success focus-visible:ring-success/30 bg-white font-medium transition-all"
           placeholder="Vd: Chương 1: Giới thiệu tổng quan"
           {...register(`sections.${sectionIndex}.title`)}
           autoComplete="off"
@@ -144,7 +155,7 @@ export function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActi
                 ) : (
                   <AppInput
                     type="file"
-                    className="h-12 border-border focus-visible:ring-success focus-visible:bg-white bg-muted font-medium text-xs pt-2 cursor-pointer w-full"
+                    className="h-12 border-border hover:border-success/50 focus-visible:border-success focus-visible:ring-success/30 focus-visible:bg-white bg-muted font-medium text-xs pt-2 cursor-pointer w-full transition-all"
                     onChange={(e) => field.onChange(e.target.files[0])}
                   />
                 )
@@ -256,7 +267,7 @@ export function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActi
                       Tiêu đề bài học <span className="text-error">*</span>
                     </Label>
                     <AppInput
-                      className="h-12 border-border focus-visible:ring-success focus-visible:bg-white bg-muted font-medium "
+                      className="h-12 border-border hover:border-success/50 focus-visible:border-success focus-visible:ring-success/30 bg-white font-medium transition-all"
                       placeholder={`Ví dụ: Bài giảng số ${lessonIdx + 1}: Giới thiệu ngôn ngữ`}
                       {...register(`sections.${sectionIndex}.lessons.${lessonIdx}.title`)}
                       autoComplete="off"
@@ -271,7 +282,7 @@ export function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActi
                       Mô tả nội dung bài học
                     </Label>
                     <AppTextarea
-                      className="min-h-[120px] resize-y border-border focus-visible:ring-success focus-visible:bg-white bg-muted font-medium p-4 leading-relaxed text-xs "
+                      className="min-h-[120px] resize-y border-border hover:border-success/50 focus-visible:border-success focus-visible:ring-success/30 bg-white font-medium p-4 leading-relaxed text-xs transition-all"
                       placeholder="Một đoạn mô tả ngắn về những gì học viên sẽ được học trong bài này..."
                       {...register(`sections.${sectionIndex}.lessons.${lessonIdx}.content`)}
                     />

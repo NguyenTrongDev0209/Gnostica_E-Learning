@@ -64,10 +64,13 @@ export default function InstructorCourseTable({
                         </span>
                         {row.isVirtualDraft ? (
                             <span className="text-xs text-amber-600 font-medium mt-1">Bản nháp chưa lưu</span>
-                        ) : row.hasDraftVersion ? (
-                            <span className="text-xs text-blue-600 font-bold mt-1 bg-blue-50 px-2 py-0.5 w-max rounded-md border border-blue-100 shadow-sm" title="Bản cập nhật của khóa học này đang chờ duyệt. Bạn có thể nhấn Chỉnh sửa để sửa tiếp.">Đang có bản nháp cập nhật (v2)</span>
                         ) : (
-                            <span className="text-xs text-muted-foreground font-medium mt-1">ID: #{row.id}</span>
+                            <div className="flex flex-col">
+                                <span className="text-xs text-muted-foreground font-medium mt-1">ID: #{row.id}</span>
+                                {row.hasDraftVersion && (
+                                    <span className="text-[11px] text-error font-semibold mt-1 bg-error/10 px-2 py-0.5 w-max rounded-sm" title="Bản cập nhật của khóa học này đang chờ duyệt. Bạn có thể nhấn Chỉnh sửa để sửa tiếp.">Có bản cập nhật đang chờ duyệt của khóa học này</span>
+                                )}
+                            </div>
                         )}
                     </div>
                 </div>

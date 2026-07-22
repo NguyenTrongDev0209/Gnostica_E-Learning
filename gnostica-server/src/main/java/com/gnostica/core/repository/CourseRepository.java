@@ -12,6 +12,8 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
     java.util.Optional<Course> findFirstByOriginalCourseAndDeletedAtIsNullOrderByIdDesc(Course originalCourse);
     boolean existsBySlugAndDeletedAtIsNull(String slug);
     boolean existsBySlugAndIdNotAndDeletedAtIsNull(String slug, java.util.UUID id);
+    boolean existsBySlug(String slug);
+    boolean existsBySlugAndIdNot(String slug, java.util.UUID id);
     
     @org.springframework.data.jpa.repository.Query("SELECT COUNT(c) > 0 FROM Course c WHERE c.promoVideo = :promoVideo AND c.deletedAt IS NULL")
     boolean existsByPromoVideo(@org.springframework.data.repository.query.Param("promoVideo") String promoVideo);

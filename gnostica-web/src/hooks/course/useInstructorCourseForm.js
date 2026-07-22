@@ -117,7 +117,7 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
     return response.data?.url || response.data;
   }, []);
 
-  const uploadVideoToBunny = useCallback(async (file, title, onProgress) => {
+  const uploadVideoToBunny = useCallback(async (file, title, onProgress, abortSignal) => {
     if (typeof file === "string") return file;
     if (!file || file === "mock-url") return file;
 
@@ -130,6 +130,7 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
         const upload = new tus.Upload(file, {
           endpoint: "https://video.bunnycdn.com/tusupload",
           retryDelays: [0, 3000, 5000, 10000, 20000],
+          chunkSize: 5 * 1024 * 1024, // 5MB chunks
           // A new videoId and signature are issued above for every attempt.
           // Never reuse a stored TUS URL belonging to an older videoId.
           removeFingerprintOnSuccess: true,
@@ -159,6 +160,16 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
             resolve(`${libraryId}/${videoId}`);
           }
         });
+
+        if (abortSignal) {
+          abortSignal.addEventListener('abort', () => {
+            upload.abort(true).then(() => {
+              reject(new Error("Upload cancelled by user"));
+            }).catch(() => {
+              reject(new Error("Upload cancelled by user"));
+            });
+          });
+        }
 
         upload.start();
       }).catch(err => {

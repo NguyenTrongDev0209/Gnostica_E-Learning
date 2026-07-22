@@ -16,11 +16,8 @@ import useFeaturedCourses from "@/hooks/course/useFeaturedCourses";
 import useRecommendedCourses from "@/hooks/course/useRecommendedCourses";
 import { useRecentSearchHistory } from "@/hooks/useRecentSearchHistory";
 import useAuthStore from "@/store/useAuthStore";
-import { popularCoursesMock } from "@/mocks/courses";
+// Removed popularCoursesMock import
 import { ChevronRight } from "lucide-react";
-
-// Mock "thịnh hành" = reversed order for differentiation
-const trendingCoursesMock = [...popularCoursesMock].reverse();
 
 const TABS = [
   { value: "popular", label: "Phổ biến nhất" },
@@ -118,7 +115,7 @@ export default function CourseCatalog() {
   const user = useAuthStore((state) => state.user);
   const { courses: publicCourses, loading: publicCoursesLoading } = useFeaturedCourses(12);
   const { courses: recommendedCourses, loading: recommendationsLoading } = useRecommendedCourses(8);
-  const historyCourses = [...publicCourses, ...popularCoursesMock];
+  const historyCourses = [...publicCourses];
   const { recentCourses } = useRecentSearchHistory(user?.id || "guest", historyCourses);
   const relatedCategory = recentCourses[0]?.categoryName
     || recentCourses[0]?.category
@@ -148,11 +145,11 @@ export default function CourseCatalog() {
         </TabsList>
 
         <TabsContent value="popular" className="animate-in fade-in duration-300">
-          <FeaturedCourseCarousel courses={popularCoursesMock} />
+          <FeaturedCourseCarousel courses={publicCourses} loading={publicCoursesLoading} />
         </TabsContent>
 
         <TabsContent value="trending" className="animate-in fade-in duration-300">
-          <FeaturedCourseCarousel courses={trendingCoursesMock} />
+          <FeaturedCourseCarousel courses={[...publicCourses].reverse()} loading={publicCoursesLoading} />
         </TabsContent>
       </Tabs>
 

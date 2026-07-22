@@ -205,7 +205,7 @@ export function CheckIcon({ className = "w-6 h-6" }) {
 
 export function VideoProgressCircle({ progress, size = 60 }) {
   const radius = size * 0.4;
-  const stroke = size * 0.12;
+  const stroke = size * 0.10; // Tăng độ dày viền
   const normalizedRadius = radius - stroke * 1.5;
   const circumference = normalizedRadius * 2 * Math.PI;
   const strokeDashoffset = circumference - (progress / 100) * circumference;
@@ -218,7 +218,7 @@ export function VideoProgressCircle({ progress, size = 60 }) {
         className="transform -rotate-90"
       >
         <circle
-          stroke="#f1f5f9"
+          stroke="#e2e8f0" // Track đậm hơn
           fill="transparent"
           strokeWidth={stroke}
           r={normalizedRadius}
@@ -226,7 +226,8 @@ export function VideoProgressCircle({ progress, size = 60 }) {
           cy={size / 2}
         />
         <circle
-          stroke="#16a34a"
+          stroke="#16a34a" // Xanh lá đậm mượt
+
           fill="transparent"
           strokeWidth={stroke}
           strokeDasharray={circumference + ' ' + circumference}
