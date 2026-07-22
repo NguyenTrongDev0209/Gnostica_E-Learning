@@ -1,4 +1,4 @@
-import threadReportService from "@/services/forum/threadReportService";
+﻿import threadReportService from "@/services/forum/threadReportService";
 import { supportService } from "@/services/admin/supportService";
 import React, { useState, useEffect } from "react";
 import {
@@ -21,16 +21,16 @@ const violationTypes = {
 };
 
 const SUPPORT_STATUS = {
-  0: { label: "Chờ xử lý", variant: "bg-amber-100 text-amber-700" },
-  1: { label: "Đang xử lý", variant: "bg-blue-100 text-blue-700" },
-  3: { label: "Đã giải quyết", variant: "bg-emerald-100 text-emerald-700" },
-  4: { label: "Đã đóng", variant: "bg-slate-100 text-slate-500" },
+  0: { label: "Chờ xử lý", variant: "bg-warning/10 text-warning" },
+  1: { label: "Đang xử lý", variant: "bg-info/10 text-info" },
+  3: { label: "Đã giải quyết", variant: "bg-success/10 text-success" },
+  4: { label: "Đã đóng", variant: "bg-muted text-muted-foreground" },
 };
 
 const SUPPORT_PRIORITY = {
-  1: { label: "Thấp", variant: "bg-slate-100 text-slate-600" },
-  2: { label: "Trung bình", variant: "bg-amber-100 text-amber-700" },
-  3: { label: "Cao", variant: "bg-red-100 text-red-700" },
+  1: { label: "Thấp", variant: "bg-muted text-muted-foreground" },
+  2: { label: "Trung bình", variant: "bg-warning/10 text-warning" },
+  3: { label: "Cao", variant: "bg-error/10 text-error" },
 };
 
 const SUPPORT_TYPE = {
@@ -82,7 +82,7 @@ function AdminSupportTickets() {
   };
 
   const getStatusBadge = (status) => {
-    const s = SUPPORT_STATUS[status] || { label: "Không rõ", variant: "bg-slate-100 text-slate-500" };
+    const s = SUPPORT_STATUS[status] || { label: "Không rõ", variant: "bg-muted text-muted-foreground" };
     return (
       <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-md ${s.variant}`}>
         {status === 0 && <Clock className="w-3 h-3" />}
@@ -94,7 +94,7 @@ function AdminSupportTickets() {
   };
 
   const getPriorityBadge = (priority) => {
-    const p = SUPPORT_PRIORITY[priority] || { label: "N/A", variant: "bg-slate-100 text-slate-500" };
+    const p = SUPPORT_PRIORITY[priority] || { label: "N/A", variant: "bg-muted text-muted-foreground" };
     return (
       <span className={`inline-flex items-center text-[11px] font-semibold px-2 py-0.5 rounded ${p.variant}`}>
         {p.label}
@@ -114,9 +114,9 @@ function AdminSupportTickets() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
           { label: "Tổng yêu cầu", value: total, icon: <Headphones className="w-4 h-4" />, color: "text-primary bg-primary/10" },
-          { label: "Chờ xử lý", value: open, icon: <Clock className="w-4 h-4" />, color: "text-amber-600 bg-amber-50" },
-          { label: "Đang xử lý", value: inProgress, icon: <RefreshCw className="w-4 h-4" />, color: "text-blue-600 bg-blue-50" },
-          { label: "Đã giải quyết", value: resolved, icon: <CheckCheck className="w-4 h-4" />, color: "text-emerald-600 bg-emerald-50" },
+          { label: "Chờ xử lý", value: open, icon: <Clock className="w-4 h-4" />, color: "text-warning bg-warning/10" },
+          { label: "Đang xử lý", value: inProgress, icon: <RefreshCw className="w-4 h-4" />, color: "text-info bg-info/10" },
+          { label: "Đã giải quyết", value: resolved, icon: <CheckCheck className="w-4 h-4" />, color: "text-success bg-success/10" },
         ].map((s, i) => (
           <div key={i} className="bg-white border border-border rounded-xl p-3.5 flex items-center gap-3">
             <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${s.color}`}>{s.icon}</div>
@@ -255,14 +255,14 @@ function AdminSupportTickets() {
                   <>
                     <AppButton
                       appVariant="ghostMuted" variant="ghost" size="sm"
-                      className="h-7 text-xs gap-1 text-blue-600 border border-blue-200 bg-white hover:bg-blue-50"
+                      className="h-7 text-xs gap-1 text-info border border-info/20 bg-white hover:bg-info/10"
                       onClick={() => handleUpdateStatus(t.id, 1)}
                     >
                       <RefreshCw className="w-3 h-3" /> Xử lý
                     </AppButton>
                     <AppButton
                       appVariant="ghostMuted" variant="ghost" size="sm"
-                      className="h-7 text-xs gap-1 text-emerald-600 border border-emerald-200 bg-white hover:bg-emerald-50"
+                      className="h-7 text-xs gap-1 text-success border border-success/20 bg-white hover:bg-success/10"
                       onClick={() => handleUpdateStatus(t.id, 3)}
                     >
                       <CheckCircle2 className="w-3 h-3" /> Giải quyết
@@ -272,7 +272,7 @@ function AdminSupportTickets() {
                 {t.status === 1 && (
                   <AppButton
                     appVariant="ghostMuted" variant="ghost" size="sm"
-                    className="h-7 text-xs gap-1 text-emerald-600 border border-emerald-200 bg-white hover:bg-emerald-50"
+                    className="h-7 text-xs gap-1 text-success border border-success/20 bg-white hover:bg-success/10"
                     onClick={() => handleUpdateStatus(t.id, 3)}
                   >
                     <CheckCircle2 className="w-3 h-3" /> Hoàn tất
@@ -377,7 +377,7 @@ export default function AdminReports() {
 
         <TabsContent value="stats">
           <div className="flex flex-col items-center justify-center h-64 bg-white rounded-xl border border-border border-dashed gap-4">
-            <BarChart3 className="w-12 h-12 text-slate-300" />
+            <BarChart3 className="w-12 h-12 text-muted-foreground/40" />
             <p className="text-muted-foreground font-medium">Trang Thống Kê đang được xây dựng</p>
           </div>
         </TabsContent>
@@ -465,7 +465,7 @@ export default function AdminReports() {
                     ) : (
                       <>
                         <AppButton appVariant="ghostMuted" variant="ghost" size="sm"
-                          className="h-8 gap-1 text-error border border-error/20 bg-white hover:bg-red-50 hover:text-error"
+                          className="h-8 gap-1 text-error border border-error/20 bg-white hover:bg-error/10 hover:text-error"
                           onClick={() => handleUpdateStatus(report.id, "RESOLVED")}
                         >
                           <CheckCircle2 className="w-3.5 h-3.5" /> Duyệt

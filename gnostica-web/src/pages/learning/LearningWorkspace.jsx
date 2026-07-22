@@ -48,6 +48,7 @@ import commentService from "@/services/forum/commentService";
 import useAuthStore from "@/store/useAuthStore";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/common/micro/AppAvatar";
 import { cn } from "@/lib/utils";
+import { AppToast } from "@/components/common/micro/AppToast";
 
 const FALLBACK_LESSON_THUMBNAIL = "https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=320&auto=format&fit=crop";
 
@@ -87,7 +88,7 @@ const getCourseRatingSummary = (course) => {
     };
   });
 
-  return { averageRating, reviewCount, distribution };
+  return { averageRating, reviewCount, distribution, reviews };
 };
 
 const getInitialDarkMode = () => {
@@ -122,8 +123,14 @@ function LessonQA({ lesson }) {
   const [collapsedComments, setCollapsedComments] = useState(new Set());
   const [editingCommentId, setEditingCommentId] = useState(null);
   const [editingContent, setEditingContent] = useState("");
+  const [qaFilter, setQaFilter] = useState("all");
   const currentUser = useAuthStore(state => state.user);
   const commentCount = countCommentTree(comments);
+  const filteredComments = comments.filter((comment) => {
+    if (qaFilter === "mine") return comment.account?.email === currentUser?.email;
+    if (qaFilter === "answered") return (comment.replies || []).length > 0;
+    return true;
+  });
 
   const toggleCollapse = (id) => {
     setCollapsedComments(prev => {
@@ -404,6 +411,28 @@ function LessonQA({ lesson }) {
           </div>
         </div>
 
+        <div className="mb-5 flex flex-wrap gap-2">
+          {[
+            { value: "all", label: "Tất cả" },
+            { value: "mine", label: "Câu hỏi của tôi" },
+            { value: "answered", label: "Có phản hồi" },
+          ].map((filter) => (
+            <button
+              key={filter.value}
+              type="button"
+              onClick={() => setQaFilter(filter.value)}
+              className={cn(
+                "h-8 rounded-lg border px-3 text-xs font-semibold transition-colors",
+                qaFilter === filter.value
+                  ? "border-primary/30 bg-primary/10 text-primary"
+                  : "border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground"
+              )}
+            >
+              {filter.label}
+            </button>
+          ))}
+        </div>
+
         <form onSubmit={(e) => handleSubmit(e, null)} className="mb-8">
           <div className="flex gap-3">
             <Avatar className="size-11 shrink-0 border border-border">
@@ -441,15 +470,19 @@ function LessonQA({ lesson }) {
             <Loader2 className="size-5 animate-spin" />
             Đang tải thảo luận...
           </div>
-        ) : comments.length > 0 ? (
+        ) : filteredComments.length > 0 ? (
           <div className="space-y-5">
-            {comments.map(c => renderComment(c, false))}
+            {filteredComments.map(c => renderComment(c, false))}
           </div>
         ) : (
           <div className="rounded-lg border border-dashed border-border bg-muted/70 py-12 text-center text-muted-foreground">
             <MessageSquare className="mx-auto mb-3 size-11 opacity-25" />
-            <p className="font-semibold text-foreground">Chưa có bình luận nào.</p>
-            <p className="mt-1 text-sm">Hãy là người đầu tiên đặt câu hỏi!</p>
+            <p className="font-semibold text-foreground">
+              {comments.length > 0 ? "Không có bình luận phù hợp." : "Chưa có bình luận nào."}
+            </p>
+            <p className="mt-1 text-sm">
+              {comments.length > 0 ? "Thử đổi bộ lọc để xem thêm thảo luận." : "Hãy là người đầu tiên đặt câu hỏi!"}
+            </p>
           </div>
         )}
     </div>
@@ -465,6 +498,8 @@ function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }
   const quizTopRef = useRef(null);
 
   const questions = quiz?.questions || [];
+  const answeredCount = Object.keys(userAnswers).length;
+  const answeredPercent = questions.length > 0 ? Math.round((answeredCount / questions.length) * 100) : 0;
 
   useEffect(() => {
       setUserAnswers({});
@@ -493,13 +528,12 @@ function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }
 
   if (!quiz || questions.length === 0) {
     return (
-      <div className="w-full bg-card rounded-2xl border border-border p-20 text-center shadow-sm">
-        <div className="w-24 h-24 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-6 border border-indigo-100">
-            <HelpCircle className="w-10 h-10 text-indigo-400" />
+      <div className="w-full rounded-xl border border-border bg-card p-10 text-center shadow-sm md:p-16">
+        <div className="mx-auto mb-6 flex size-20 items-center justify-center rounded-xl border border-info/20 bg-info-soft text-info">
+            <HelpCircle className="size-9" />
         </div>
-        <h2 className="text-2xl font-black text-foreground mb-2">Chương học chưa có bài tập</h2>
-        <p className="text-muted-foreground font-bold mb-8">Bài quiz này hiện chưa chứa câu hỏi nào.</p>
-        <Button onClick={onBack} className="rounded-lg font-bold">Quay lại xem Video</Button>
+        <h2 className="mb-2 text-2xl font-bold text-foreground">Chương học chưa có bài tập</h2>
+        <p className="text-sm font-medium text-muted-foreground">Bài quiz này hiện chưa chứa câu hỏi nào.</p>
       </div>
     );
   }
@@ -511,7 +545,7 @@ function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }
 
   const handleSubmitQuiz = async () => {
     if (Object.keys(userAnswers).length === 0) {
-        alert("Vui lòng trả lời ít nhất một câu hỏi trước khi nộp bài!");
+        AppToast.warning("Vui lòng trả lời ít nhất một câu hỏi trước khi nộp bài!");
         return;
     }
     
@@ -545,7 +579,7 @@ function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }
 
         quizTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } catch (err) {
-        alert("Đã xảy ra lỗi khi gửi bài làm, vui lòng thử lại sau!");
+        AppToast.error("Đã xảy ra lỗi khi gửi bài làm, vui lòng thử lại sau!");
     } finally {
         setIsSyncing(false);
     }
@@ -568,7 +602,7 @@ function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }
               onQuizReset(quiz.id);
           }
       } catch (err) {
-          alert("Đã xảy ra lỗi khi reset bài tập. Vui lòng thử lại sau!");
+          AppToast.error("Đã xảy ra lỗi khi reset bài tập. Vui lòng thử lại sau!");
       } finally {
           setIsSyncing(false);
       }
@@ -577,43 +611,67 @@ function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }
   const isPassed = scorePercent >= 50;
 
   return (
-    <div ref={quizTopRef} className="w-full space-y-6 max-w-5xl mx-auto pb-12 pt-2">
-        <div className="bg-card rounded-xl border border-border/60 shadow-sm p-6 md:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-in fade-in duration-500">
-            <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-full bg-violet-600 flex items-center justify-center text-white shadow-lg shadow-violet-200 shrink-0">
-                    <Trophy className="w-7 h-7" />
+    <div ref={quizTopRef} className="mx-auto w-full max-w-5xl space-y-6 pb-12 pt-2">
+        <div className="animate-in fade-in rounded-xl border border-border bg-card p-6 shadow-sm duration-500 md:p-8">
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex items-center gap-4">
+                <div className="flex size-14 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary shadow-sm">
+                    <Trophy className="size-7" />
                 </div>
-                <div>
-                    <h2 className="text-xl md:text-2xl font-black text-foreground leading-tight">
-                        Bài kiểm tra Trắc nghiệm: {quiz.title}
+                <div className="min-w-0">
+                    <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-primary">Bài kiểm tra trắc nghiệm</p>
+                    <h2 className="text-xl font-bold leading-tight text-foreground md:text-2xl">
+                        {quiz.title}
                     </h2>
-                    <p className="text-muted-foreground text-xs font-bold mt-1 flex items-center gap-1.5">
-                        Bao gồm {questions.length} câu hỏi trắc nghiệm
-                    </p>
+                    <div className="mt-3 flex flex-wrap items-center gap-2 text-xs font-medium text-muted-foreground">
+                        <span className="inline-flex h-7 items-center gap-1.5 rounded-lg border border-border bg-muted px-2.5">
+                          <HelpCircle className="size-3.5" />
+                          {questions.length} câu hỏi
+                        </span>
+                        <span className="inline-flex h-7 items-center gap-1.5 rounded-lg border border-border bg-muted px-2.5">
+                          <CheckCircle2 className="size-3.5" />
+                          {answeredCount}/{questions.length} đã trả lời
+                        </span>
+                    </div>
                 </div>
+              </div>
             </div>
-            
-            <Button onClick={onBack} variant="ghost" className="font-extrabold text-xs gap-1 text-muted-foreground hover:bg-muted rounded-lg self-end sm:self-center">
-                <ChevronLeft className="w-3.5 h-3.5" /> Quay lại xem Video
-            </Button>
+
+            {!isSubmitted && (
+              <div className="mt-6">
+                <div className="mb-2 flex items-center justify-between text-xs font-semibold text-muted-foreground">
+                  <span>Tiến độ làm bài</span>
+                  <span>{answeredPercent}%</span>
+                </div>
+                <Progress value={answeredPercent} className="h-2 bg-muted [&>div]:bg-primary" />
+              </div>
+            )}
         </div>
 
         {isSubmitted && (
-            <div className="bg-gradient-to-br from-slate-900 to-indigo-950 rounded-xl p-6 md:p-8 text-white shadow-xl border border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-6 animate-in slide-in-from-top duration-500">
+            <div className={`animate-in slide-in-from-top flex flex-col gap-6 rounded-xl border p-6 shadow-sm duration-500 md:flex-row md:items-center md:justify-between md:p-8 ${
+              isPassed
+                ? "border-success/20 bg-success-soft text-success"
+                : "border-warning/20 bg-warning-soft text-warning"
+            }`}>
                 <div className="flex items-center gap-5">
-                    <div className={`w-16 h-16 ${isPassed ? 'bg-emerald-500' : 'bg-warning/10 text-warning'} rounded-full flex items-center justify-center shadow-lg shrink-0`}>
-                        {isPassed ? <Award className="w-8 h-8 text-white" /> : <HelpCircle className="w-8 h-8 text-white" />}
+                    <div className={`flex size-16 shrink-0 items-center justify-center rounded-xl border shadow-sm ${
+                      isPassed
+                        ? "border-success/20 bg-success text-success-foreground"
+                        : "border-warning/20 bg-warning text-warning-foreground"
+                    }`}>
+                        {isPassed ? <Award className="size-8" /> : <HelpCircle className="size-8" />}
                     </div>
-                    <div>
-                        <h3 className="text-xl font-black leading-none">
-                            {isPassed ? "Hoàn Thành Xuất Sắc!" : "Cần Cố Gắng Thêm"}
+                    <div className="min-w-0">
+                        <h3 className="text-xl font-bold leading-tight text-foreground">
+                            {isPassed ? "Bạn đã vượt qua bài kiểm tra" : "Bạn cần ôn lại thêm"}
                         </h3>
-                        <p className="text-indigo-200/80 text-sm font-medium mt-2">
-                            Kết quả bài thi: <strong className="text-white font-black">{correctCount}/{questions.length}</strong> đáp án đúng (Đạt {scorePercent}%)
+                        <p className="mt-2 text-sm font-medium text-muted-foreground">
+                            Kết quả: <strong className="font-bold text-foreground">{correctCount}/{questions.length}</strong> đáp án đúng, đạt <strong className="font-bold text-foreground">{scorePercent}%</strong>.
                         </p>
                         {!isPassed && (
-                            <p className="text-warning/90 text-[13px] font-bold mt-1 flex items-center gap-1.5">
-                                <Info className="w-3.5 h-3.5" /> Bạn cần đạt từ 50% trở lên để vượt qua bài kiểm tra này.
+                            <p className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-warning">
+                                <Info className="size-3.5" /> Bạn cần đạt từ 50% trở lên để vượt qua bài kiểm tra này.
                             </p>
                         )}
                     </div>
@@ -624,9 +682,9 @@ function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }
                        onClick={handleReset} 
                        disabled={isSyncing}
                        variant="outline" 
-                       className="rounded-lg font-extrabold border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white gap-2 text-xs h-11 px-5"
+                       className="h-10 rounded-lg gap-2 font-semibold"
                     >
-                        {isSyncing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
+                        {isSyncing ? <Loader2 className="size-4 animate-spin" /> : null}
                         Làm lại bài thi
                     </Button>
                 </div>
@@ -635,10 +693,12 @@ function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }
 
         <div className="space-y-5">
             {questions.map((q, idx) => (
-                <div key={q.id} className="bg-card rounded-xl p-6 md:p-8 border border-border/60 shadow-sm space-y-6 transition-all duration-300 hover:shadow-md">
-                    <h3 className="text-sm md:text-[15px] font-extrabold text-foreground leading-relaxed flex gap-1.5 items-start">
-                        <span className="shrink-0">Câu {idx + 1}:</span>
-                        <span dangerouslySetInnerHTML={{ __html: q.content }}></span>
+                <div key={q.id} className="space-y-6 rounded-xl border border-border bg-card p-6 shadow-sm transition-all duration-300 md:p-8">
+                    <h3 className="flex items-start gap-3 text-base font-semibold leading-relaxed text-foreground">
+                        <span className="flex h-8 shrink-0 items-center rounded-lg border border-primary/20 bg-primary/10 px-3 text-sm font-bold text-primary">
+                          Câu {idx + 1}
+                        </span>
+                        <span className="pt-1" dangerouslySetInnerHTML={{ __html: q.content }}></span>
                     </h3>
 
                     <div className="grid grid-cols-1 gap-3">
@@ -647,32 +707,39 @@ function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }
                             const isSelected = userAnswers[q.id] == opt.id; 
                             const isCorrect = opt.isCorrect;
 
-                            let buttonClass = "w-full flex items-center justify-between p-4 text-left border rounded-lg transition-all duration-200 text-xs md:text-[13px] font-medium ";
+                            let buttonClass = "w-full flex items-center justify-between gap-4 rounded-lg border p-4 text-left text-sm font-medium transition-all duration-200 ";
                             let icon = null;
 
                             if (!isSubmitted) {
                                 if (isSelected) {
-                                    buttonClass += "bg-violet-50/50 border-violet-500 text-violet-900 font-bold shadow-sm";
+                                    buttonClass += "border-primary/40 bg-primary/10 text-primary shadow-sm";
                                 } else {
-                                    buttonClass += "bg-muted/40 border-border/60 text-muted-foreground hover:bg-muted hover:border-border";
+                                    buttonClass += "border-border bg-muted/30 text-foreground hover:border-primary/30 hover:bg-primary/5";
                                 }
                             } else {
                                 if (isSelected && isCorrect) {
-                                    buttonClass += "bg-emerald-50/40 border-emerald-500 text-emerald-900 font-bold shadow-sm";
+                                    buttonClass += "border-success/40 bg-success-soft text-success shadow-sm";
                                     icon = (
-                                        <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-700 px-2 py-1 rounded-lg flex items-center gap-1 shadow-sm shrink-0">
-                                            <CheckCircle2 className="w-3 h-3" /> Lựa chọn đúng
+                                        <span className="flex shrink-0 items-center gap-1 rounded-lg border border-success/20 bg-card px-2 py-1 text-xs font-semibold text-success">
+                                            <CheckCircle2 className="size-3" /> Đúng
                                         </span>
                                     );
                                 } else if (isSelected && !isCorrect) {
-                                    buttonClass += "bg-rose-50/40 border-rose-500 text-rose-900 font-bold shadow-sm";
+                                    buttonClass += "border-error/40 bg-error-soft text-error shadow-sm";
                                     icon = (
-                                        <span className="text-[10px] font-black uppercase tracking-wider bg-rose-100 text-rose-700 px-2 py-1 rounded-lg flex items-center gap-1 shadow-sm shrink-0">
-                                            <XCircle className="w-3 h-3" /> Lựa chọn sai
+                                        <span className="flex shrink-0 items-center gap-1 rounded-lg border border-error/20 bg-card px-2 py-1 text-xs font-semibold text-error">
+                                            <XCircle className="size-3" /> Sai
+                                        </span>
+                                    );
+                                } else if (isCorrect) {
+                                    buttonClass += "border-success/30 bg-success-soft/60 text-success";
+                                    icon = (
+                                        <span className="flex shrink-0 items-center gap-1 rounded-lg border border-success/20 bg-card px-2 py-1 text-xs font-semibold text-success">
+                                            <CheckCircle2 className="size-3" /> Đáp án
                                         </span>
                                     );
                                 } else {
-                                    buttonClass += "bg-muted/20 border-border text-muted-foreground opacity-60";
+                                    buttonClass += "border-border bg-muted/20 text-muted-foreground opacity-75";
                                 }
                             }
 
@@ -683,15 +750,24 @@ function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }
                                     onClick={() => handleOptionSelect(q.id, opt.id)}
                                     className={buttonClass}
                                 >
-                                    <span className="pr-4">{optionLabel}. {opt.answerText}</span>
+                                    <span className="flex min-w-0 items-start gap-3">
+                                      <span className={`flex size-7 shrink-0 items-center justify-center rounded-full border text-xs font-bold ${
+                                        isSelected
+                                          ? "border-current bg-card/70"
+                                          : "border-border bg-card text-muted-foreground"
+                                      }`}>
+                                        {optionLabel}
+                                      </span>
+                                      <span className="pt-1 leading-5">{opt.answerText}</span>
+                                    </span>
                                     {icon}
                                 </button>
                             );
                         })}
                     </div>
-                    {isSubmitted && q.answers.some(opt => opt.id == userAnswers[q.id] && opt.isCorrect) && q.explanation && (
-                        <div className="mt-4 p-4 rounded-lg bg-emerald-50 border border-emerald-100 text-emerald-800 text-sm animate-in fade-in slide-in-from-top-2">
-                            <p className="font-bold mb-1 flex items-center gap-1.5"><Info className="w-4 h-4" /> Giải thích:</p>
+                    {isSubmitted && q.explanation && (
+                        <div className="animate-in fade-in slide-in-from-top-2 mt-4 rounded-lg border border-info/20 bg-info-soft p-4 text-sm text-info">
+                            <p className="mb-1 flex items-center gap-1.5 font-semibold text-foreground"><Info className="size-4 text-info" /> Giải thích</p>
                             <div dangerouslySetInnerHTML={{ __html: q.explanation }}></div>
                         </div>
                     )}
@@ -704,10 +780,10 @@ function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }
                 <Button 
                     onClick={handleSubmitQuiz}
                     disabled={isSyncing}
-                    className="h-12 px-12 rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-black text-xs uppercase tracking-wider shadow-lg shadow-violet-100 transition-all hover:scale-[1.02] active:scale-95 gap-2"
+                    className="h-12 gap-2 rounded-lg px-8 font-semibold shadow-sm"
                 >
-                    {isSyncing ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                    NỘP BÀI THI VÀ CHẤM ĐIỂM
+                    {isSyncing ? <Loader2 className="size-4 animate-spin" /> : <CheckCircle2 className="size-4" />}
+                    Nộp bài
                 </Button>
             </div>
         )}
@@ -720,6 +796,7 @@ function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }
 export default function LearningWorkspace() {
   const { id: slug } = useParams();
   const navigate = useNavigate();
+  const currentUser = useAuthStore(state => state.user);
   const searchParams = new URLSearchParams(window.location.search);
   const targetLessonSlug = searchParams.get("lesson");
   const isRestart = searchParams.get("restart") === "true";
@@ -736,6 +813,12 @@ export default function LearningWorkspace() {
   const [certifiUrl, setCertifiUrl] = useState(null);
   const [currentTime, setCurrentTime] = useState(0);
   const [isDarkMode, setIsDarkMode] = useState(getInitialDarkMode);
+  const [lastProgressSavedAt, setLastProgressSavedAt] = useState(null);
+  const [isProgressSaving, setIsProgressSaving] = useState(false);
+  const [showRatingForm, setShowRatingForm] = useState(false);
+  const [draftRating, setDraftRating] = useState(0);
+  const [draftReviewComment, setDraftReviewComment] = useState("");
+  const [localCourseReview, setLocalCourseReview] = useState(null);
 
   // === REFS để tránh stale closure trong interval/listener ===
   const currentTimeRef = useRef(0);
@@ -855,6 +938,26 @@ export default function LearningWorkspace() {
   const currentLessonNumber = activeLessonIdx + 1;
   const isCurrentLessonCompleted = Boolean(currentLessonProgress?.isCompleted);
   const courseRatingSummary = getCourseRatingSummary(course);
+  const serverUserReview = courseRatingSummary.reviews.find((review) => String(review.accountId) === String(currentUser?.id));
+  const currentUserReview = localCourseReview || serverUserReview;
+  const progressSavedLabel = lastProgressSavedAt
+    ? lastProgressSavedAt.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })
+    : null;
+
+  const handleSaveDraftReview = (event) => {
+    event.preventDefault();
+    if (!draftRating) return;
+
+    setLocalCourseReview({
+      id: "local-draft",
+      rating: draftRating,
+      comment: draftReviewComment.trim(),
+      studentName: currentUser?.fullName || currentUser?.name || "Bạn",
+      createdAt: new Date().toISOString(),
+    });
+    setShowRatingForm(false);
+    AppToast.info("Đã lưu bản nháp đánh giá trên trang học. Khi có API đánh giá, phần này có thể đồng bộ lên hệ thống.");
+  };
 
   // === Sync quiz results callbacks ===
   const onQuizCompleted = (quizId, point, correctAnswers, totalQuestions) => {
@@ -948,6 +1051,7 @@ export default function LearningWorkspace() {
     if (completedIdsRef.current.includes(lessonId)) return;
     try {
         await progressService.markLessonCompleted(lessonId);
+        setLastProgressSavedAt(new Date());
         setLessonProgress(prev => {
             const existing = prev.find(p => p.lessonId === lessonId);
             if (existing) {
@@ -1192,7 +1296,10 @@ export default function LearningWorkspace() {
     // 4. AUTO-SYNC: Mỗi 10s, gửi thời gian hiện tại lên server
     const syncInterval = setInterval(() => {
         if (currentTimeRef.current > 0) {
-            progressService.updateLastWatchedTime(lessonId, currentTimeRef.current);
+            setIsProgressSaving(true);
+            progressService.updateLastWatchedTime(lessonId, currentTimeRef.current)
+              .then(() => setLastProgressSavedAt(new Date()))
+              .finally(() => setIsProgressSaving(false));
         }
     }, 10000);
 
@@ -1296,9 +1403,14 @@ export default function LearningWorkspace() {
 
         <div className="flex-1 max-w-xl px-12 hidden md:block">
           <div className="flex flex-col gap-1.5">
-            <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground">
-                <span>Tiến độ hoàn thành</span>
-                <span>{completedLessonIds.length}/{totalLessonsCount} BÀI HỌC</span>
+            <div className="flex items-center justify-between gap-3 text-xs font-semibold">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <span>Tiến độ</span>
+                  <span className="rounded-md border border-primary/20 bg-primary/10 px-2 py-0.5 text-primary">
+                    {progressValue}%
+                  </span>
+                </div>
+                <span className="text-muted-foreground">{completedLessonIds.length}/{totalLessonsCount} BÀI HỌC</span>
             </div>
             <Progress value={progressValue} className="h-2 bg-muted [&>div]:bg-primary" />
           </div>
@@ -1307,12 +1419,13 @@ export default function LearningWorkspace() {
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"
-            size="sm"
+            size="icon"
             onClick={() => setIsDarkMode((value) => !value)}
-            className="hidden items-center gap-2 rounded-lg border border-border bg-card font-semibold text-foreground hover:bg-muted lg:flex"
+            title={isDarkMode ? "Chế độ sáng" : "Chế độ tối"}
+            aria-label={isDarkMode ? "Chế độ sáng" : "Chế độ tối"}
+            className="hidden size-10 rounded-lg border border-border bg-card text-foreground hover:bg-muted lg:flex"
           >
             {isDarkMode ? <Sun className="size-4" /> : <Moon className="size-4" />}
-            {isDarkMode ? "Chế độ sáng" : "Chế độ tối"}
           </Button>
           {progressValue === 100 && certifiUrl && (
             <Button
@@ -1418,6 +1531,14 @@ export default function LearningWorkspace() {
                           <CheckCircle2 className="size-3.5" />
                           {isCurrentLessonCompleted ? "Hoàn thành" : "Đang học"}
                         </span>
+                        <span className="inline-flex h-8 items-center gap-2 rounded-lg border border-border bg-muted px-3 font-medium text-muted-foreground">
+                          {isProgressSaving ? <Loader2 className="size-3.5 animate-spin" /> : <CheckCircle2 className="size-3.5" />}
+                          {isProgressSaving
+                            ? "Đang lưu tiến độ"
+                            : progressSavedLabel
+                              ? `Đã lưu ${progressSavedLabel}`
+                              : "Tự động lưu tiến độ"}
+                        </span>
                     </div>
                   </div>
 
@@ -1501,6 +1622,94 @@ export default function LearningWorkspace() {
                                   </div>
                                 ))}
                               </div>
+                            </div>
+
+                            <div className="mt-8 border-t border-border pt-6">
+                              {currentUserReview ? (
+                                <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
+                                  <div className="flex flex-wrap items-center justify-between gap-3">
+                                    <div>
+                                      <p className="text-sm font-semibold text-foreground">Đánh giá của tôi</p>
+                                      <div className="mt-2 flex items-center gap-1" aria-label={`${currentUserReview.rating} trên 5 sao`}>
+                                        {Array.from({ length: 5 }).map((_, index) => (
+                                          <Star
+                                            key={index}
+                                            className={`h-4 w-4 text-warning ${index < Number(currentUserReview.rating) ? "fill-warning" : "fill-transparent"}`}
+                                          />
+                                        ))}
+                                      </div>
+                                    </div>
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => {
+                                        setDraftRating(Number(currentUserReview.rating || 0));
+                                        setDraftReviewComment(currentUserReview.comment || "");
+                                        setShowRatingForm(true);
+                                      }}
+                                      className="h-9 rounded-lg"
+                                    >
+                                      Sửa đánh giá
+                                    </Button>
+                                  </div>
+                                  {currentUserReview.comment && (
+                                    <p className="mt-3 text-sm leading-6 text-muted-foreground">{currentUserReview.comment}</p>
+                                  )}
+                                </div>
+                              ) : (
+                                <div className="flex flex-col gap-4 rounded-xl border border-border bg-muted/50 p-4 sm:flex-row sm:items-center sm:justify-between">
+                                  <div>
+                                    <p className="text-sm font-semibold text-foreground">Bạn chưa đánh giá khóa học này.</p>
+                                    <p className="mt-1 text-sm text-muted-foreground">Ghi lại cảm nhận của bạn để giảng viên cải thiện nội dung tốt hơn.</p>
+                                  </div>
+                                  <Button
+                                    type="button"
+                                    onClick={() => setShowRatingForm((value) => !value)}
+                                    className="h-10 shrink-0 rounded-lg"
+                                  >
+                                    Đánh giá khóa học
+                                  </Button>
+                                </div>
+                              )}
+
+                              {showRatingForm && (
+                                <form onSubmit={handleSaveDraftReview} className="mt-4 rounded-xl border border-border bg-card p-4">
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    {Array.from({ length: 5 }).map((_, index) => {
+                                      const value = index + 1;
+                                      return (
+                                        <button
+                                          key={value}
+                                          type="button"
+                                          onClick={() => setDraftRating(value)}
+                                          className="rounded-md p-1 text-warning transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                          aria-label={`${value} sao`}
+                                        >
+                                          <Star className={`h-6 w-6 ${value <= draftRating ? "fill-warning" : "fill-transparent"}`} />
+                                        </button>
+                                      );
+                                    })}
+                                    <span className="ml-1 text-sm font-medium text-muted-foreground">
+                                      {draftRating > 0 ? `${draftRating}/5 sao` : "Chọn số sao"}
+                                    </span>
+                                  </div>
+                                  <textarea
+                                    value={draftReviewComment}
+                                    onChange={(event) => setDraftReviewComment(event.target.value)}
+                                    placeholder="Chia sẻ ngắn về trải nghiệm học của bạn..."
+                                    className="mt-4 min-h-[96px] w-full resize-y rounded-lg border border-border bg-background p-3 text-sm text-foreground outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15"
+                                  />
+                                  <div className="mt-4 flex justify-end gap-2">
+                                    <Button type="button" variant="ghost" size="sm" onClick={() => setShowRatingForm(false)} className="h-9 rounded-lg">
+                                      Hủy
+                                    </Button>
+                                    <Button type="submit" size="sm" disabled={!draftRating} className="h-9 rounded-lg">
+                                      Lưu bản nháp
+                                    </Button>
+                                  </div>
+                                </form>
+                              )}
                             </div>
                           </AppCardContent>
                         </AppCard>
@@ -1620,10 +1829,10 @@ export default function LearningWorkspace() {
                                   key={lesson.id || lIdx}
                                   ref={isCurrent ? activePlaylistItemRef : null}
                                   onClick={() => handleLessonSelect(sIdx, lIdx)}
-                                  className={`flex items-start gap-3 border px-5 py-4 text-left transition-colors
+                                  className={`relative flex items-start gap-3 border px-5 py-4 text-left transition-colors before:absolute before:bottom-3 before:left-0 before:top-3 before:w-1 before:rounded-r-full before:transition-colors
                                     ${isCurrent 
-                                        ? "border-primary/30 bg-primary/10 text-primary" 
-                                        : "border-transparent text-foreground hover:bg-muted"}`}
+                                        ? "border-primary/30 bg-primary/10 text-primary before:bg-primary" 
+                                        : "border-transparent text-foreground before:bg-transparent hover:bg-muted"}`}
                                 >
                                   <div className="relative mt-0.5 h-12 w-20 shrink-0 overflow-hidden rounded-md border border-border bg-muted">
                                     {lessonThumbnail ? (
@@ -1673,10 +1882,10 @@ export default function LearningWorkspace() {
                               <button
                                 ref={isQuizCurrent ? activePlaylistItemRef : null}
                                 onClick={() => handleQuizSelect(sIdx)}
-                                className={`flex items-start gap-3 border px-5 py-4 text-left transition-colors
+                                className={`relative flex items-start gap-3 border px-5 py-4 text-left transition-colors before:absolute before:bottom-3 before:left-0 before:top-3 before:w-1 before:rounded-r-full before:transition-colors
                                   ${isQuizCurrent
-                                      ? "border-info/30 bg-info/10 text-info" 
-                                      : "border-transparent text-foreground hover:bg-muted"}`}
+                                      ? "border-info/30 bg-info/10 text-info before:bg-info" 
+                                      : "border-transparent text-foreground before:bg-transparent hover:bg-muted"}`}
                               >
                                 <div className="shrink-0">
                                    {completedQuizIds.includes(section.quiz.id) ? (

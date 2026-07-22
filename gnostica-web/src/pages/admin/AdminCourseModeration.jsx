@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+﻿import { format } from "date-fns";
 // eslint-disable-next-line no-unused-vars
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -107,32 +107,32 @@ export default function AdminCourseModeration() {
 
       {/* Status Grid Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="p-5 bg-gradient-to-br from-white to-amber-50/20 border border-border rounded-xl shadow-sm">
+        <div className="p-5 bg-gradient-to-br from-white to-warning/10 border border-border rounded-xl shadow-sm">
           <h4 className="text-sm font-bold text-muted-foreground tracking-wide uppercase mb-1">
             Đang chờ phê duyệt
           </h4>
           <div className="flex items-end justify-between mt-2">
-            <span className="text-3xl font-black text-amber-700">{stats.pending}</span>
+            <span className="text-3xl font-black text-warning">{stats.pending}</span>
             <AppBadge variant="warning" soft>Cần duyệt</AppBadge>
           </div>
         </div>
 
-        <div className="p-5 bg-gradient-to-br from-white to-emerald-50/20 border border-border rounded-xl shadow-sm">
+        <div className="p-5 bg-gradient-to-br from-white to-success/10 border border-border rounded-xl shadow-sm">
           <h4 className="text-sm font-bold text-muted-foreground tracking-wide uppercase mb-1">
             Đã phê duyệt
           </h4>
           <div className="flex items-end justify-between mt-2">
-            <span className="text-3xl font-black text-emerald-700">{stats.approved}</span>
+            <span className="text-3xl font-black text-success">{stats.approved}</span>
             <AppBadge variant="success" soft>Hoạt động</AppBadge>
           </div>
         </div>
 
-        <div className="p-5 bg-gradient-to-br from-white to-rose-50/20 border border-border rounded-xl shadow-sm">
+        <div className="p-5 bg-gradient-to-br from-white to-error/10 border border-border rounded-xl shadow-sm">
           <h4 className="text-sm font-bold text-muted-foreground tracking-wide uppercase mb-1">
             Đã từ chối duyệt
           </h4>
           <div className="flex items-end justify-between mt-2">
-            <span className="text-3xl font-black text-rose-700">{stats.rejected}</span>
+            <span className="text-3xl font-black text-error">{stats.rejected}</span>
             <AppBadge variant="error" soft>Yêu cầu sửa</AppBadge>
           </div>
         </div>
@@ -218,7 +218,7 @@ export default function AdminCourseModeration() {
                         ID: {item.id}
                       </AppBadge>
                       {item.isVersionUpdate && (
-                        <AppBadge className="text-[9px] font-black uppercase text-amber-600 bg-amber-50/80 border border-amber-200/50 ml-1">
+                        <AppBadge className="text-[9px] font-black uppercase text-warning bg-warning/10 border border-warning/20 ml-1">
                           Bản cập nhật của khóa học: {item.originalCourseName || "Khóa học gốc"}
                         </AppBadge>
                       )}
@@ -293,7 +293,7 @@ export default function AdminCourseModeration() {
                         size="sm"
                         disabled={isSubmitting}
                         onClick={() => handleApprove(item)}
-                        className="h-8 font-bold gap-1.5 shadow-sm bg-emerald-600 hover:bg-emerald-700 text-white px-3 border-none"
+                        className="h-8 font-bold gap-1.5 shadow-sm bg-success hover:bg-success/90 text-white px-3 border-none"
                       >
                         <CheckCircle2 className="w-3.5 h-3.5" />
                         Duyệt
@@ -302,7 +302,7 @@ export default function AdminCourseModeration() {
                         size="sm"
                         disabled={isSubmitting}
                         onClick={() => handleOpenRejectModal(item)}
-                        className="h-8 font-bold border border-border text-muted-foreground hover:text-rose-600 hover:bg-rose-50 hover:border-rose-200"
+                        className="h-8 font-bold border border-border text-muted-foreground hover:text-error hover:bg-error/10 hover:border-error/20"
                       >
                         Từ chối
                       </AppButton>

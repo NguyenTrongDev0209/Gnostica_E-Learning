@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+﻿import React, { useState, useEffect, useMemo } from "react";
 import { supportService } from "@/services/admin/supportService";
 import {
   Headphones,
@@ -26,16 +26,16 @@ import { AppButton } from "@/components/common/micro/AppButton";
 import { toast } from "sonner";
 
 const SUPPORT_STATUS = {
-  0: { label: "Chờ xử lý", variant: "bg-amber-500/10 text-amber-600 border-amber-500/20", icon: Clock },
-  1: { label: "Đang xử lý", variant: "bg-blue-500/10 text-blue-600 border-blue-500/20", icon: RefreshCw },
-  3: { label: "Đã giải quyết", variant: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20", icon: CheckCheck },
-  4: { label: "Đã đóng", variant: "bg-slate-500/10 text-slate-500 border-slate-500/20", icon: XCircle },
+  0: { label: "Chờ xử lý", variant: "bg-warning/10 text-warning border-warning/20", icon: Clock },
+  1: { label: "Đang xử lý", variant: "bg-info/10 text-info border-info/20", icon: RefreshCw },
+  3: { label: "Đã giải quyết", variant: "bg-success/10 text-success border-success/20", icon: CheckCheck },
+  4: { label: "Đã đóng", variant: "bg-muted text-muted-foreground border-border", icon: XCircle },
 };
 
 const SUPPORT_PRIORITY = {
-  1: { label: "Thấp", variant: "bg-slate-100 text-slate-600 border-slate-200" },
-  2: { label: "Trung bình", variant: "bg-amber-100 text-amber-700 border-amber-200" },
-  3: { label: "Cao", variant: "bg-red-100 text-red-700 border-red-200" },
+  1: { label: "Thấp", variant: "bg-muted text-muted-foreground border-border" },
+  2: { label: "Trung bình", variant: "bg-warning/10 text-warning border-warning/20" },
+  3: { label: "Cao", variant: "bg-error/10 text-error border-error/20" },
 };
 
 const SUPPORT_TYPE = {
@@ -165,7 +165,7 @@ export default function AdminRequests() {
   }, [tickets, statusFilter, priorityFilter, typeFilter, searchQuery]);
 
   const renderStatusBadge = (status) => {
-    const s = SUPPORT_STATUS[status] || { label: "Chưa rõ", variant: "bg-slate-100 text-slate-600 border-slate-200", icon: Clock };
+    const s = SUPPORT_STATUS[status] || { label: "Chưa rõ", variant: "bg-muted text-muted-foreground border-border", icon: Clock };
     const IconComponent = s.icon;
     return (
       <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border ${s.variant}`}>
@@ -176,7 +176,7 @@ export default function AdminRequests() {
   };
 
   const renderPriorityBadge = (priority) => {
-    const p = SUPPORT_PRIORITY[priority] || { label: "Thường", variant: "bg-slate-100 text-slate-600 border-slate-200" };
+    const p = SUPPORT_PRIORITY[priority] || { label: "Thường", variant: "bg-muted text-muted-foreground border-border" };
     return (
       <span className={`inline-flex items-center text-[11px] font-semibold px-2 py-0.5 rounded border ${p.variant}`}>
         {p.label}
@@ -186,7 +186,7 @@ export default function AdminRequests() {
 
   // Badge ưu tiên có thể click để thay đổi – hiển thị dropdown native select
   const renderPrioritySelect = (t) => {
-    const p = SUPPORT_PRIORITY[t.priority] || { label: "Thường", variant: "bg-slate-100 text-slate-600 border-slate-200" };
+    const p = SUPPORT_PRIORITY[t.priority] || { label: "Thường", variant: "bg-muted text-muted-foreground border-border" };
     return (
       <div className="relative inline-block">
         <select
@@ -256,60 +256,60 @@ export default function AdminRequests() {
         <div
           onClick={() => setStatusFilter("0")}
           className={`cursor-pointer transition-all bg-white border rounded-xl p-4 flex items-center gap-3.5 shadow-sm hover:shadow-md ${
-            statusFilter === "0" ? "border-amber-500 ring-2 ring-amber-500/20" : "border-border"
+            statusFilter === "0" ? "border-warning ring-2 ring-warning/20" : "border-border"
           }`}
         >
-          <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-warning/10 text-warning flex items-center justify-center shrink-0">
             <Clock className="w-5 h-5" />
           </div>
           <div>
             <p className="text-xs font-medium text-muted-foreground">Chờ xử lý</p>
-            <p className="text-2xl font-bold text-amber-600">{stats.open}</p>
+            <p className="text-2xl font-bold text-warning">{stats.open}</p>
           </div>
         </div>
 
         <div
           onClick={() => setStatusFilter("1")}
           className={`cursor-pointer transition-all bg-white border rounded-xl p-4 flex items-center gap-3.5 shadow-sm hover:shadow-md ${
-            statusFilter === "1" ? "border-blue-500 ring-2 ring-blue-500/20" : "border-border"
+            statusFilter === "1" ? "border-info ring-2 ring-info/20" : "border-border"
           }`}
         >
-          <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-info/10 text-info flex items-center justify-center shrink-0">
             <RefreshCw className="w-5 h-5" />
           </div>
           <div>
             <p className="text-xs font-medium text-muted-foreground">Đang xử lý</p>
-            <p className="text-2xl font-bold text-blue-600">{stats.inProgress}</p>
+            <p className="text-2xl font-bold text-info">{stats.inProgress}</p>
           </div>
         </div>
 
         <div
           onClick={() => setStatusFilter("3")}
           className={`cursor-pointer transition-all bg-white border rounded-xl p-4 flex items-center gap-3.5 shadow-sm hover:shadow-md ${
-            statusFilter === "3" ? "border-emerald-500 ring-2 ring-emerald-500/20" : "border-border"
+            statusFilter === "3" ? "border-success ring-2 ring-success/20" : "border-border"
           }`}
         >
-          <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-success/10 text-success flex items-center justify-center shrink-0">
             <CheckCheck className="w-5 h-5" />
           </div>
           <div>
             <p className="text-xs font-medium text-muted-foreground">Đã giải quyết</p>
-            <p className="text-2xl font-bold text-emerald-600">{stats.resolved}</p>
+            <p className="text-2xl font-bold text-success">{stats.resolved}</p>
           </div>
         </div>
 
         <div
           onClick={() => setStatusFilter("4")}
           className={`cursor-pointer transition-all bg-white border rounded-xl p-4 flex items-center gap-3.5 shadow-sm hover:shadow-md ${
-            statusFilter === "4" ? "border-slate-500 ring-2 ring-slate-500/20" : "border-border"
+            statusFilter === "4" ? "border-muted-foreground/30 ring-2 ring-muted-foreground/20" : "border-border"
           }`}
         >
-          <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-muted text-muted-foreground flex items-center justify-center shrink-0">
             <XCircle className="w-5 h-5" />
           </div>
           <div>
             <p className="text-xs font-medium text-muted-foreground">Đã đóng</p>
-            <p className="text-2xl font-bold text-slate-600">{stats.closed}</p>
+            <p className="text-2xl font-bold text-muted-foreground">{stats.closed}</p>
           </div>
         </div>
       </div>
@@ -443,7 +443,7 @@ export default function AdminRequests() {
             header: "Phân loại",
             width: "130px",
             render: (t) => (
-              <span className="text-xs font-medium text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+              <span className="text-xs font-medium text-foreground bg-muted px-2 py-0.5 rounded border border-border">
                 {SUPPORT_TYPE[t.type] || t.type || "Chung"}
               </span>
             ),
@@ -506,7 +506,7 @@ export default function AdminRequests() {
                       appVariant="ghostMuted"
                       variant="ghost"
                       size="sm"
-                      className="h-7 text-xs gap-1 text-blue-600 border border-blue-200 bg-white hover:bg-blue-50"
+                      className="h-7 text-xs gap-1 text-info border border-info/20 bg-white hover:bg-info/10"
                       onClick={() => handleUpdateStatus(t.id, 1)}
                     >
                       <RefreshCw className="w-3 h-3" /> Xử lý
@@ -515,7 +515,7 @@ export default function AdminRequests() {
                       appVariant="ghostMuted"
                       variant="ghost"
                       size="sm"
-                      className="h-7 text-xs gap-1 text-emerald-600 border border-emerald-200 bg-white hover:bg-emerald-50"
+                      className="h-7 text-xs gap-1 text-success border border-success/20 bg-white hover:bg-success/10"
                       onClick={() => handleUpdateStatus(t.id, 3)}
                     >
                       <CheckCircle2 className="w-3 h-3" /> Xong
@@ -528,7 +528,7 @@ export default function AdminRequests() {
                     appVariant="ghostMuted"
                     variant="ghost"
                     size="sm"
-                    className="h-7 text-xs gap-1 text-emerald-600 border border-emerald-200 bg-white hover:bg-emerald-50"
+                    className="h-7 text-xs gap-1 text-success border border-success/20 bg-white hover:bg-success/10"
                     onClick={() => handleUpdateStatus(t.id, 3)}
                   >
                     <CheckCircle2 className="w-3 h-3" /> Hoàn tất
@@ -540,7 +540,7 @@ export default function AdminRequests() {
                     appVariant="ghostMuted"
                     variant="ghost"
                     size="sm"
-                    className="h-7 text-xs gap-1 text-slate-600 border border-slate-200 bg-white hover:bg-slate-50"
+                    className="h-7 text-xs gap-1 text-muted-foreground border border-border bg-white hover:bg-muted"
                     onClick={() => handleUpdateStatus(t.id, 4)}
                   >
                     <XCircle className="w-3 h-3" /> Đóng
@@ -659,7 +659,7 @@ export default function AdminRequests() {
                     <Tag className="w-3.5 h-3.5 text-primary" /> Phân loại & Ưu tiên:
                   </span>
                   <div className="flex items-center gap-2 pt-0.5">
-                    <span className="text-xs font-medium text-slate-700 bg-white px-2 py-0.5 rounded border border-border">
+                    <span className="text-xs font-medium text-foreground bg-white px-2 py-0.5 rounded border border-border">
                       {SUPPORT_TYPE[selectedTicket.type] || selectedTicket.type || "Chung"}
                     </span>
                     {renderPrioritySelect(selectedTicket)}
@@ -723,7 +723,7 @@ export default function AdminRequests() {
                 {selectedTicket.status !== 1 && (
                   <AppButton
                     appVariant="ghostMuted" variant="ghost" size="sm"
-                    className="text-xs gap-1 text-blue-600 border border-blue-200 bg-white hover:bg-blue-50"
+                    className="text-xs gap-1 text-info border border-info/20 bg-white hover:bg-info/10"
                     onClick={() => handleUpdateStatus(selectedTicket.id, 1)}
                   >
                     <RefreshCw className="w-3.5 h-3.5" /> Đang xử lý
@@ -732,7 +732,7 @@ export default function AdminRequests() {
                 {selectedTicket.status !== 3 && (
                   <AppButton
                     appVariant="ghostMuted" variant="ghost" size="sm"
-                    className="text-xs gap-1 text-emerald-600 border border-emerald-200 bg-white hover:bg-emerald-50"
+                    className="text-xs gap-1 text-success border border-success/20 bg-white hover:bg-success/10"
                     onClick={() => handleUpdateStatus(selectedTicket.id, 3)}
                   >
                     <CheckCircle2 className="w-3.5 h-3.5" /> Đã giải quyết
@@ -741,7 +741,7 @@ export default function AdminRequests() {
                 {selectedTicket.status !== 4 && (
                   <AppButton
                     appVariant="ghostMuted" variant="ghost" size="sm"
-                    className="text-xs gap-1 text-slate-600 border border-slate-200 bg-white hover:bg-slate-50"
+                    className="text-xs gap-1 text-muted-foreground border border-border bg-white hover:bg-muted"
                     onClick={() => handleUpdateStatus(selectedTicket.id, 4)}
                   >
                     <XCircle className="w-3.5 h-3.5" /> Đóng ticket
@@ -750,7 +750,7 @@ export default function AdminRequests() {
                 {selectedTicket.status === 4 && (
                   <AppButton
                     appVariant="ghostMuted" variant="ghost" size="sm"
-                    className="text-xs gap-1 text-amber-600 border border-amber-200 bg-white hover:bg-amber-50"
+                    className="text-xs gap-1 text-warning border border-warning/20 bg-white hover:bg-warning/10"
                     onClick={() => handleUpdateStatus(selectedTicket.id, 0)}
                   >
                     <Clock className="w-3.5 h-3.5" /> Mở lại

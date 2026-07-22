@@ -1,4 +1,4 @@
-import { toast } from "sonner";
+﻿import { toast } from "sonner";
 import { format } from "date-fns";
 import DataTable from "@/components/common/composite/DataTable";
 import React, { useState } from "react";
@@ -187,7 +187,7 @@ function CouponStatsFilter({
               />
             </div>
             
-            <div className="hidden md:flex items-center text-slate-300">-</div>
+            <div className="hidden md:flex items-center text-muted-foreground/40">-</div>
 
             <div className="w-full md:w-[140px]">
               <AppInput
