@@ -903,7 +903,7 @@ public class CourseService {
         String slug = baseSlug;
         int count = 1;
 
-        while (id == null ? courseRepository.existsBySlugAndDeletedAtIsNull(slug) : courseRepository.existsBySlugAndIdNotAndDeletedAtIsNull(slug, id)) {
+        while (id == null ? courseRepository.existsBySlug(slug) : courseRepository.existsBySlugAndIdNot(slug, id)) {
             slug = baseSlug + "-" + count;
             count++;
         }

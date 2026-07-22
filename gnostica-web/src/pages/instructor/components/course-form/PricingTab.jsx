@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { useFormContext, Controller } from "react-hook-form";
 import { Label } from "@/components/common/micro/AppLabel";
 import AppInput from "@/components/common/micro/AppInput";
@@ -38,7 +38,7 @@ export function PricingTab() {
                 control={useFormContext().control}
                 render={({ field }) => (
                   <AppInput
-                    className="h-12 border-border focus-visible:ring-success focus-visible:bg-white bg-muted font-medium focus: pl-10"
+                    className="h-12 border-border hover:border-success/50 focus-visible:border-success focus-visible:ring-success/30 bg-white font-medium focus: pl-10"
                     placeholder="Ví dụ: 500.000"
                     value={field.value ? new Intl.NumberFormat("vi-VN").format(field.value) : ""}
                     onChange={(e) => {
@@ -63,7 +63,7 @@ export function PricingTab() {
             </Label>
             <div className="relative">
               <AppInput
-                className="h-12 border-border focus-visible:ring-success focus-visible:bg-white bg-muted font-medium pl-10 cursor-not-allowed"
+                className="h-12 border-border hover:border-success/50 focus-visible:border-success focus-visible:ring-success/30 focus-visible:bg-white bg-muted font-medium pl-10 cursor-not-allowed"
                 value={new Intl.NumberFormat("vi-VN").format(finalPrice)}
                 readOnly
               />
@@ -81,7 +81,7 @@ export function PricingTab() {
             <div className="relative">
               <AppInput
                 type="number"
-                className="h-12 border-border focus-visible:ring-success focus-visible:bg-white bg-muted font-medium focus: pl-10 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                className="h-12 border-border hover:border-success/50 focus-visible:border-success focus-visible:ring-success/30 bg-white font-medium focus: pl-10 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 placeholder="0 - 100"
                 {...register("discount")}
               />

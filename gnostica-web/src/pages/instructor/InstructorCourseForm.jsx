@@ -64,7 +64,7 @@ export default function InstructorCourseForm() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 animate-in fade-in duration-500">
+    <div className="w-full max-w-7xl mx-auto py-6 px-2 sm:px-4 lg:px-4 animate-in fade-in duration-500">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div className="flex items-center gap-3">
           <AppButton appVariant="ghostMuted"
@@ -101,27 +101,6 @@ export default function InstructorCourseForm() {
               </div>
             )}
 
-            <AppButton appVariant="ghostMuted" variant="ghost"
-              type="button"
-              onClick={() => setShowAiReportModal(true)}
-              className={`h-9 sm:h-10 px-3 sm:px-5 rounded-lg font-bold border shadow-sm text-xs sm:text-sm flex items-center gap-2 transition-all duration-300 hover:-translate-y-0.5 shrink-0 ${
-                (() => {
-                  try {
-                    const rep = overallAiReport ? JSON.parse(overallAiReport) : null;
-                    if (!rep) return "text-muted-foreground bg-muted border-border border-dashed";
-                    const sc = rep.safetyScore ?? 100;
-                    const hasV = rep.violations && rep.violations.length > 0;
-                    if (sc < 70 || hasV) return "bg-error/10 hover:bg-rose-100 text-rose-700 border-rose-200 animate-pulse shadow-rose-100/40 shadow-lg";
-                    return "bg-primary/10 hover:bg-primary/20 text-primary border-success/30";
-                  // eslint-disable-next-line no-unused-vars
-                  } catch(e) { return "text-muted-foreground border-border"; }
-                })()
-              }`}
-            >
-              <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              <span className="hidden md:inline">Kết quả kiểm duyệt AI</span>
-              <span className="md:hidden">AI Report</span>
-            </AppButton>
 
             <AppButton appVariant="ghostMuted" variant="ghost"
               type="button"
@@ -154,19 +133,19 @@ export default function InstructorCourseForm() {
             <CourseStepper activeTab={activeTab} onTabChange={setActiveTab} />
           </div>
           <AppTabsRoot value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <AppTabsContent value="basic" className="bg-white p-6 md:p-8 rounded-lg border border-border shadow-sm mt-0">
+            <AppTabsContent value="basic" className="w-full bg-white p-4 md:p-5 rounded-lg border border-border shadow-sm mt-0 min-h-[700px]">
               <BasicInfoTab categories={categories} />
             </AppTabsContent>
 
-            <AppTabsContent value="quiz" className="bg-white p-6 md:p-8 rounded-lg border border-border shadow-sm mt-0">
+            <AppTabsContent value="quiz" className="w-full bg-white p-4 md:p-5 rounded-lg border border-border shadow-sm mt-0 min-h-[700px]">
               <QuizTab courseId={methods.watch("id")} />
             </AppTabsContent>
 
-            <AppTabsContent value="curriculum" className="bg-white p-6 md:p-8 rounded-lg border border-border shadow-sm mt-0">
+            <AppTabsContent value="curriculum" className="w-full bg-white p-4 md:p-5 rounded-lg border border-border shadow-sm mt-0 min-h-[700px]">
               <CurriculumTab uploadVideoToBunny={uploadVideoToBunny} setActiveUploads={setActiveUploads} />
             </AppTabsContent>
 
-            <AppTabsContent value="settings" className="bg-white p-6 md:p-8 rounded-lg border border-border shadow-sm mt-0">
+            <AppTabsContent value="settings" className="w-full bg-white p-4 md:p-5 rounded-lg border border-border shadow-sm mt-0 min-h-[700px]">
               <SettingsTab uploadVideoToBunny={uploadVideoToBunny} setActiveUploads={setActiveUploads} />
             </AppTabsContent>
           </AppTabsRoot>
@@ -181,7 +160,7 @@ export default function InstructorCourseForm() {
                     const currentIdx = sequence.indexOf(activeTab);
                     if (currentIdx > 0) setActiveTab(sequence[currentIdx - 1]);
                   }}
-                  className="flex items-center gap-2 h-11 px-5 rounded-lg font-bold text-muted-foreground hover:bg-secondary transition-all"
+                  className="flex items-center gap-2 h-11 px-5 rounded-lg font-bold text-muted-foreground hover:bg-success/10 hover:text-success transition-all"
                 >
                   <ArrowLeft size={18} /> Quay lại
                 </AppButton>
@@ -198,26 +177,19 @@ export default function InstructorCourseForm() {
                     if (currentIdx < sequence.length - 1) setActiveTab(sequence[currentIdx + 1]);
                     window.scrollTo({ top: 0, behavior: "smooth" });
                   }}
-                  className="flex items-center gap-2 h-11 px-8 rounded-lg font-bold bg-success text-white hover:bg-success/90 transition-all shadow-lg shadow-primary/20"
+                  className="flex items-center gap-2 h-11 px-8 rounded-lg font-bold bg-success text-white hover:text-white hover:bg-success/90 transition-all shadow-lg shadow-success/20"
                 >
                   Tiếp theo <ArrowRight size={18} />
                 </AppButton>
               ) : (
                 <>
-                  <AppButton appVariant="ghostMuted" variant="ghost"
-                    type="button"
-                    onClick={() => setShowAiReportModal(true)}
-                    className="h-11 px-6 rounded-lg font-bold border border-border shadow-sm text-xs sm:text-sm flex items-center gap-2"
-                  >
-                    <Sparkles className="w-4 h-4" />
-                    Kết quả kiểm duyệt AI
-                  </AppButton>
+
 
                   <AppButton appVariant="ghostMuted"
                     type="button"
                     disabled={activeUploads > 0}
                     onClick={methods.handleSubmit(onSubmit, onError)}
-                    className="flex items-center gap-2 h-11 px-8 rounded-lg font-bold bg-success text-white hover:bg-success/90 transition-all shadow-lg shadow-primary/20 disabled:opacity-50"
+                    className="flex items-center gap-2 h-11 px-8 rounded-lg font-bold bg-success text-white hover:text-white hover:bg-success/90 transition-all shadow-lg shadow-success/20 disabled:opacity-50"
                   >
                     <CircleFadingArrowUp size={18} /> {activeUploads > 0 ? "Đang tải video..." : "Xuất bản"}
                   </AppButton>
