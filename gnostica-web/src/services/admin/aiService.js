@@ -16,3 +16,20 @@ export const sendChatMessage = async (messages) => {
         throw error;
     }
 };
+
+export const uploadChatImage = async (file) => {
+    try {
+        const formData = new FormData();
+        formData.append('file', file);
+        const response = await axiosClient.post('/upload/image', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+        return response.data.url;
+    } catch (error) {
+        console.error('Error uploading chat image:', error);
+        throw error;
+    }
+};
+
