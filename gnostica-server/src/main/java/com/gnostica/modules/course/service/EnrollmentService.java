@@ -146,17 +146,17 @@ public class EnrollmentService {
                                 .filter(lp -> lp.getStatus() != null && lp.getStatus() == 2)
                                 .count();
 
-                // Auto generate certifiUrl if missing
+                // Auto generate certificateUrl if missing
                 if (enrollment.getProgressPercent() != null && enrollment.getProgressPercent() == 100
-                                && enrollment.getCertifiUrl() == null) {
-                        enrollment.setCertifiUrl("UC-" + java.util.UUID.randomUUID().toString());
+                                && enrollment.getCertificateUrl() == null) {
+                        enrollment.setCertificateUrl("UC-" + java.util.UUID.randomUUID().toString());
                         if (enrollment.getCompletedAt() == null) {
                                 enrollment.setCompletedAt(LocalDateTime.now());
                         }
                         enrollmentRepository.save(enrollment);
                         mailService.sendCourseCompletionEmail(enrollment);
                         System.out.println(
-                                        ">>> DEBUG [getMyCourses] Generated certifiUrl: " + enrollment.getCertifiUrl());
+                                        ">>> DEBUG [getMyCourses] Generated certificateUrl: " + enrollment.getCertificateUrl());
                 }
 
                 return EnrollmentDTO.builder()
@@ -176,7 +176,7 @@ public class EnrollmentService {
                                 .firstLessonId(firstLessonIdStr)
                                 .totalLessons(totalLessons)
                                 .completedLessons(completedLessons)
-                                .certifiUrl(enrollment.getCertifiUrl())
+                                .certificateUrl(enrollment.getCertificateUrl())
                                 .build();
         }
 
@@ -243,8 +243,8 @@ public class EnrollmentService {
                         if (enrollment.getCompletedAt() == null) {
                                 enrollment.setCompletedAt(LocalDateTime.now());
                         }
-                        if (enrollment.getCertifiUrl() == null) {
-                                enrollment.setCertifiUrl("UC-" + java.util.UUID.randomUUID().toString());
+                        if (enrollment.getCertificateUrl() == null) {
+                                enrollment.setCertificateUrl("UC-" + java.util.UUID.randomUUID().toString());
                                 mailService.sendCourseCompletionEmail(enrollment);
                         }
                 }

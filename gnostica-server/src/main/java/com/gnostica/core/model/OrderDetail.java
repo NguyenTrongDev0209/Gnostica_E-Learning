@@ -31,6 +31,10 @@ public class OrderDetail {
     @JoinColumn(name = "course_id", updatable = false)
     private Course course;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "commission_id")
+    private Commission commission;
+
     @NotNull
     @Min(0)
     @Column(precision = 18, scale = 6)

@@ -54,6 +54,7 @@ public class CouponService {
         coupon.setValidUntil(request.getValidUntil());
         coupon.setQuantity(request.getQuantity());
         coupon.setStatus(request.getStatus() != null ? request.getStatus() : 0); // 0: Inactive
+        coupon.setMetadata(request.getMetadata());
         coupon.setAccount(account);
 
         Coupon savedCoupon = couponRepository.save(coupon);
@@ -140,6 +141,7 @@ public class CouponService {
                 .validUntil(coupon.getValidUntil())
                 .quantity(coupon.getQuantity())
                 .status(coupon.getStatus())
+                .metadata(coupon.getMetadata())
                 .createdAt(coupon.getCreatedAt())
                 .accountId(coupon.getAccount().getId())
                 .accountName(coupon.getAccount().getFullName())

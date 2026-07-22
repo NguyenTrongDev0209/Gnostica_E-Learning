@@ -12,9 +12,9 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Integer>
 
     List<Enrollment> findByAccount(Account account);
     
-    List<Enrollment> findByAccountAndCertifiUrlIsNotNull(Account account);
+    List<Enrollment> findByAccountAndCertificateUrlIsNotNull(Account account);
 
-    Optional<Enrollment> findByCertifiUrl(String certifiUrl);
+    Optional<Enrollment> findByCertificateUrl(String certificateUrl);
 
 
 

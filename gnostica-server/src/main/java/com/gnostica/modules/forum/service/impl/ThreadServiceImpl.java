@@ -184,6 +184,7 @@ public class ThreadServiceImpl implements ThreadService {
             Vote newVote = new Vote();
             newVote.setAccount(account);
             newVote.setTargetId(id.toString());
+            newVote.setTargetType("THREAD");
             newVote.setType(1); // 1 for Thread
             newVote.setValue(true); // true for like
             voteRepository.save(newVote);
@@ -363,6 +364,7 @@ public class ThreadServiceImpl implements ThreadService {
                 Vote newVote = new Vote();
                 newVote.setAccount(account);
                 newVote.setTargetId(threadIdStr);
+                newVote.setTargetType("THREAD");
                 newVote.setType(2); // 2 for Upvote/Downvote
                 newVote.setValue(true); // true for Upvote
                 voteRepository.save(newVote);
@@ -380,6 +382,7 @@ public class ThreadServiceImpl implements ThreadService {
                 Vote newVote = new Vote();
                 newVote.setAccount(account);
                 newVote.setTargetId(threadIdStr);
+                newVote.setTargetType("THREAD");
                 newVote.setType(2); // 2 for Upvote/Downvote
                 newVote.setValue(false); // false for Downvote
                 voteRepository.save(newVote);

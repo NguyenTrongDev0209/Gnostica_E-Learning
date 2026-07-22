@@ -17,6 +17,8 @@ public class ModuleRequest {
     // Optional URL string provided by the React form representing the attachment
     private String attachments;
 
+    private String metadata;
+
     private Integer status;
 
     @Valid

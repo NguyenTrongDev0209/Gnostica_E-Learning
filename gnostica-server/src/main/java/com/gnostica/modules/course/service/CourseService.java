@@ -72,6 +72,7 @@ public class CourseService {
         course.setDiscount(request.getDiscount() != null ? request.getDiscount() : 0);
 
         course.setLevel(request.getLevel() != null ? request.getLevel() : "Beginner");
+        course.setMetadata(request.getMetadata());
         course.setPromoVideo(request.getPromoVideo());
 
         course.setCategory(category);
@@ -95,6 +96,7 @@ public class CourseService {
                 module.setTitle(mReq.getTitle());
                 module.setStatus(mReq.getStatus() != null ? mReq.getStatus() : course.getStatus());
                 module.setCourse(course);
+                module.setMetadata(mReq.getMetadata());
                 module.setVersionNumber(1);
                 module.setSortOrder(moduleSortOrder++);
 
@@ -346,6 +348,7 @@ public class CourseService {
         course.setDiscount(request.getDiscount());
 
         course.setLevel(request.getLevel());
+        course.setMetadata(request.getMetadata());
         course.setCategory(category);
 
         if (category.getStatus() == null || category.getStatus() == 0) {
@@ -401,6 +404,7 @@ public class CourseService {
                 }
 
                 module.setTitle(mReq.getTitle());
+                module.setMetadata(mReq.getMetadata());
                 module.setSortOrder(moduleSortOrder++);
                 module.setStatus(mReq.getStatus() != null ? mReq.getStatus() : course.getStatus());
 
@@ -727,6 +731,7 @@ public class CourseService {
             original.setPrice(course.getPrice());
             original.setDiscount(course.getDiscount());
             original.setLevel(course.getLevel());
+            original.setMetadata(course.getMetadata());
             original.setCategory(course.getCategory());
             original.setPromoVideo(course.getPromoVideo());
             original.setVersionNumber(course.getVersionNumber());
@@ -760,6 +765,7 @@ public class CourseService {
                     
                     targetMod.setDeleted(false);
                     targetMod.setTitle(newMod.getTitle());
+                    targetMod.setMetadata(newMod.getMetadata());
                     targetMod.setStatus(1);
                     targetMod.setVersionNumber(newMod.getVersionNumber());
                     targetMod.setSortOrder(newMod.getSortOrder());
@@ -908,6 +914,7 @@ public class CourseService {
         response.setDiscount(course.getDiscount());
         response.setSalePrice(course.getSalePrice());
         response.setLevel(course.getLevel());
+        response.setMetadata(course.getMetadata());
         response.setStatus(course.getStatus());
         response.setDeleted(course.getDeleted());
         response.setRejectReason(course.getRejectReason() != null ? course.getRejectReason() : "");
@@ -947,6 +954,7 @@ public class CourseService {
         response.setDiscount(course.getDiscount());
         response.setSalePrice(course.getSalePrice());
         response.setLevel(course.getLevel());
+        response.setMetadata(course.getMetadata());
         response.setStatus(course.getStatus());
         response.setDeleted(course.getDeleted());
         response.setRejectReason(course.getRejectReason() != null ? course.getRejectReason() : "");
@@ -985,6 +993,7 @@ public class CourseService {
         com.gnostica.modules.course.dto.response.ModuleResponse response = new com.gnostica.modules.course.dto.response.ModuleResponse();
         response.setId(module.getId());
         response.setTitle(module.getTitle());
+        response.setMetadata(module.getMetadata());
         response.setCreatedAt(module.getCreatedAt());
         response.setUpdatedAt(module.getUpdatedAt());
         response.setStatus(module.getStatus());

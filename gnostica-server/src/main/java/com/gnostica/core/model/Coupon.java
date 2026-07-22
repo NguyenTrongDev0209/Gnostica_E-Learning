@@ -65,6 +65,9 @@ public class Coupon {
     @NotNull
     private Integer status;
 
+    @Column(columnDefinition = "jsonb")
+    private String metadata;
+
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime createdAt;

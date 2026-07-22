@@ -5,7 +5,7 @@
 >
 > **Ký hiệu cột Ghi chú:** PK · FK · `UQ` (Unique) · `IDX` (Index) · `C-UQ` (Composite Unique) · `C-IDX` (Composite Index)
 
-**Tổng số bảng: 39**
+**Tổng số bảng: 40**
 
 ---
 
@@ -103,16 +103,17 @@
 |---|--------|---------------|---------|-------|
 | 1 | id | IDENTITY(1,1) | PK | |
 | 2 | title | VARCHAR(255) | | |
-| 3 | image_url | VARCHAR(255) | | |
-| 4 | link_url | VARCHAR(255) | | |
-| 5 | target_type | VARCHAR(50) | IDX | |
-| 6 | position | VARCHAR(50) | | |
-| 7 | sort_order | INT | | `>= 0` |
-| 8 | status | INT | | |
-| 9 | created_at | DATETIME | | |
-| 10 | updated_at | DATETIME | | |
+| 3 | image_url | VARCHAR(1000) | | |
+| 4 | link_url | VARCHAR(1000) | | |
+| 5 | alt_text | VARCHAR(255) | | |
+| 6 | target_type | VARCHAR(50) | IDX | |
+| 7 | position | VARCHAR(50) | | |
+| 8 | sort_order | INT | | `>= 0` |
+| 9 | status | INT | | |
+| 10 | created_at | DATETIME | | |
+| 11 | updated_at | DATETIME | | |
 
-> **Note:** `target_type` dùng để phân loại banner (vd: WEB, MOBILE, APP_POPUP). `position` dùng để chỉ định vị trí (vd: HERO, SIDEBAR).
+> **Note:** `target_type` dùng để phân loại banner (vd: WEB, MOBILE, APP_POPUP). `position` dùng để chỉ định vị trí (vd: HERO, SIDEBAR). `alt_text` hỗ trợ accessibility/SEO cho ảnh banner.
 >
 > **Status:** 0: Hidden (Ẩn), 1: Active (Hiển thị)
 
@@ -535,10 +536,18 @@
 | 5 | account_number | VARCHAR(255) | | |
 | 6 | sender_bank_bin | VARCHAR(255) | | |
 | 7 | sender_account_number | VARCHAR(255) | | |
-| 8 | status | INT | | |
-| 9 | created_at | DATETIME | | |
-| 10 | updated_at | DATETIME | | |
-> **Note:** Một order có thể có nhiều payment attempts nếu retry/cổng thanh toán khác nhau; `transaction_code` dùng để chống xử lý trùng webhook.
+| 8 | gateway | VARCHAR(32) | IDX | |
+| 9 | gateway_transaction_no | VARCHAR(255) | C-UQ | |
+| 10 | bank_code | VARCHAR(32) | | |
+| 11 | card_type | VARCHAR(32) | | |
+| 12 | gateway_response_code | VARCHAR(16) | | |
+| 13 | gateway_transaction_status | VARCHAR(16) | | |
+| 14 | paid_at | DATETIME | IDX | |
+| 15 | raw_callback | JSONB | | |
+| 16 | status | INT | | |
+| 17 | created_at | DATETIME | | |
+| 18 | updated_at | DATETIME | | |
+> **Note:** Một order có thể có nhiều payment attempts nếu retry/cổng thanh toán khác nhau; `transaction_code` dùng để chống xử lý trùng webhook. `gateway + gateway_transaction_no` là unique có điều kiện khi `gateway_transaction_no` khác null.
 >
 > **Status:** 1: Pending (Chờ xử lý), 2: Success (Thành công), 3: Failed (Thất bại), 4: Refunded (Đã hoàn tiền)
 
@@ -731,7 +740,34 @@
 
 ---
 
-## 35. Thread_Hashtags
+## 35. Supports
+
+| # | Trường | Kiểu dữ liệu | Ghi chú | CHECK |
+|---|--------|---------------|---------|-------|
+| 1 | id | IDENTITY(1,1) | PK | |
+| 2 | account_id | UUID | FK | |
+| 3 | assignee_id | UUID | FK | |
+| 4 | subject | VARCHAR(255) | | |
+| 5 | content | TEXT | | |
+| 6 | type | VARCHAR(50) | | |
+| 7 | priority | INT | | |
+| 8 | status | INT | IDX | |
+| 9 | metadata | JSONB | | |
+| 10 | created_at | DATETIME | | |
+| 11 | updated_at | DATETIME | | |
+| 12 | closed_at | DATETIME | | |
+| 13 | deleted_at | DATETIME | | |
+
+> **Metadata:** Lưu dữ liệu mở rộng như `related_type`, `related_id`, lịch sử trao đổi, file đính kèm, ghi chú nội bộ hoặc thông tin thiết bị/trình duyệt.
+>
+> **Note:** Dùng cho yêu cầu hỗ trợ/chăm sóc khách hàng dạng một bảng gọn. Nếu hội thoại hỗ trợ tăng nhiều, cân nhắc tách `Support_Messages`.
+>
+> **Status:** 0: Open (Mới), 1: In Progress (Đang xử lý), 2: Waiting Customer (Chờ khách hàng), 3: Resolved (Đã giải quyết), 4: Closed (Đã đóng), 5: Spam (Spam)
+
+
+---
+
+## 36. Thread_Hashtags
 
 | # | Trường | Kiểu dữ liệu | Ghi chú | CHECK |
 |---|--------|---------------|---------|-------|
@@ -745,7 +781,7 @@
 
 ---
 
-## 36. Threads
+## 37. Threads
 
 | # | Trường | Kiểu dữ liệu | Ghi chú | CHECK |
 |---|--------|---------------|---------|-------|
@@ -770,7 +806,7 @@
 
 ---
 
-## 37. Topics
+## 38. Topics
 
 | # | Trường | Kiểu dữ liệu | Ghi chú | CHECK |
 |---|--------|---------------|---------|-------|
@@ -779,10 +815,12 @@
 | 3 | title | VARCHAR(255) | | |
 | 4 | slug | VARCHAR(255) | UQ | |
 | 5 | description | VARCHAR(255) | | |
-| 6 | status | INT | | |
-| 7 | created_at | DATETIME | | |
-| 8 | updated_at | DATETIME | | |
-| 9 | deleted_at | DATETIME | | |
+| 6 | avatar_url | VARCHAR(2048) | | |
+| 7 | banner_url | VARCHAR(2048) | | |
+| 8 | status | INT | | |
+| 9 | created_at | DATETIME | | |
+| 10 | updated_at | DATETIME | | |
+| 11 | deleted_at | DATETIME | | |
 > **Note:** Topic là danh mục forum. `account_id` là người tạo/quản trị topic; `slug` dùng cho URL public.
 >
 > **Status:** 0: Hidden (Ẩn), 1: Active (Hiển thị)
@@ -790,7 +828,7 @@
 
 ---
 
-## 38. Votes
+## 39. Votes
 
 | # | Trường | Kiểu dữ liệu | Ghi chú | CHECK |
 |---|--------|---------------|---------|-------|
@@ -811,7 +849,7 @@
 
 ---
 
-## 39. Wallets
+## 40. Wallets
 
 | # | Trường | Kiểu dữ liệu | Ghi chú | CHECK |
 |---|--------|---------------|---------|-------|

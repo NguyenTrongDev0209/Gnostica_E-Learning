@@ -10,6 +10,7 @@ import com.gnostica.core.model.Course;
 import com.gnostica.core.model.Order;
 import com.gnostica.core.model.OrderDetail;
 import com.gnostica.core.model.Coupon;
+import com.gnostica.modules.settings.service.CommissionResolver;
 import com.gnostica.core.repository.AccountRepository;
 import com.gnostica.core.repository.CourseRepository;
 import com.gnostica.core.repository.OrderDetailRepository;
@@ -49,6 +50,7 @@ public class OrderService {
     private final CouponRepository couponRepository;
     private final CouponService couponService;
     private final PaymentService paymentService;
+    private final CommissionResolver commissionResolver;
 
     public List<OrderResponse> getAllOrders() {
         return orderRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt")).stream()
@@ -211,6 +213,9 @@ public class OrderService {
         OrderDetail detail = new OrderDetail();
         detail.setOrder(order);
         detail.setCourse(course);
+        if (course.getAccount() != null) {
+            detail.setCommission(commissionResolver.resolve(course.getAccount(), LocalDateTime.now()).source());
+        }
         detail.setPrice(actualPrice);
         detail.setDiscount(course.getDiscount() != null ? course.getDiscount().intValue() : 0);
         detail.setStatus(1); // 1: Valid

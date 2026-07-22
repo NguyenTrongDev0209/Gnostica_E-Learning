@@ -32,6 +32,9 @@ public class Module {
     @Size(max = 255)
     private String title;
 
+    @Column(columnDefinition = "jsonb")
+    private String metadata;
+
     @NotNull
     private Integer versionNumber;
 

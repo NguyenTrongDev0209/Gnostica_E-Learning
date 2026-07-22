@@ -29,6 +29,10 @@ public class Vote {
     @Column(updatable = false)
     private String targetId;
 
+    @Size(max = 255)
+    @Column(updatable = false)
+    private String targetType;
+
     @NotNull
     private Integer type;
 
