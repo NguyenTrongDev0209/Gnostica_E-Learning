@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
-  BookOpenText,
   ChevronDown,
   CreditCard,
   FileText,
@@ -28,9 +27,14 @@ import { AppLogo } from "@/components/common/micro/AppButton";
 
 export const ADMIN_SETTINGS_SUB_ITEMS = [
   { label: "Cài đặt chung", icon: Globe, href: "/admin/settings?tab=general", tab: "general" },
-  { label: "Trang chủ", icon: ImageIcon, href: "/admin/settings?tab=home", tab: "home" },
+  {
+    label: "Cài đặt trang",
+    icon: ImageIcon,
+    href: "/admin/settings?tab=site-pages&page=home",
+    tab: "site-pages",
+    legacyTabs: ["home", "about"],
+  },
   { label: "Nội dung", icon: FileText, href: "/admin/settings?tab=pages", tab: "pages" },
-  { label: "Giới thiệu", icon: BookOpenText, href: "/admin/settings?tab=about", tab: "about" },
   { label: "Thanh toán", icon: CreditCard, href: "/admin/settings?tab=payment", tab: "payment" },
   { label: "Tài chính", icon: Percent, href: "/admin/settings?tab=finance", tab: "finance" },
   { label: "Bảo mật", icon: Shield, href: "/admin/settings?tab=security", tab: "security" },
@@ -143,7 +147,8 @@ export default function AdminSidebar({ user, handleLogout }) {
                                 const params = new URLSearchParams(location.search);
                                 const activeTab = params.get("tab") || "general";
                                 const isChildActive =
-                                  location.pathname === item.href && activeTab === child.tab;
+                                  location.pathname === item.href &&
+                                  (activeTab === child.tab || child.legacyTabs?.includes(activeTab));
 
                                 return (
                                   <div key={child.href} className="relative">

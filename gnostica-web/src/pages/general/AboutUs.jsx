@@ -15,7 +15,7 @@ import {
   aboutStepsMock,
   aboutHeroMock,
   aboutVisionMock,
-  aboutCTAMock
+  aboutCTAMock,
 } from "@/mocks/staticPages";
 
 // ── AboutHero ──
@@ -41,12 +41,12 @@ function AboutHero({ data, bannerUrl }) {
             {data.description}
           </p>
           <div className="flex items-center gap-4 mt-2">
-            <AppButton appVariant="gradient" size="lg" className="min-w-[120px] shadow-lg shadow-orange-500/20">
+            <AboutActionButton href={data.primaryCtaUrl} appVariant="gradient" size="lg" className="min-w-[120px] shadow-lg shadow-orange-500/20">
               {data.primaryCta}
-            </AppButton>
-            <AppButton appVariant="gradient" size="lg" variant="outline" className="min-w-[120px] bg-transparent border-warning/20 text-warning hover:bg-orange-50">
+            </AboutActionButton>
+            <AboutActionButton href={data.secondaryCtaUrl} appVariant="gradient" size="lg" variant="outline" className="min-w-[120px] bg-transparent border-warning/20 text-warning hover:bg-orange-50">
               {data.secondaryCta}
-            </AppButton>
+            </AboutActionButton>
           </div>
         </div>
         <div className="relative aspect-square md:aspect-[4/3] bg-primary text-primary-foreground rounded-3xl overflow-hidden shadow-2xl flex items-center justify-center transform transition-all hover:scale-[1.02] cursor-pointer">
@@ -91,8 +91,16 @@ function AboutTools({ tools, heading, description }) {
                   <p className="text-muted-foreground text-sm leading-relaxed">
                     {tool.description}
                   </p>
-                  <Button variant="link" className="p-0 h-auto bg-accent-gradient bg-clip-text text-transparent font-bold w-fit group-hover:gap-2 transition-all">
+                  <Button asChild={Boolean(tool.url)} variant="link" className="p-0 h-auto bg-accent-gradient bg-clip-text text-transparent font-bold w-fit group-hover:gap-2 transition-all">
+                    {tool.url ? (
+                      <a href={tool.url}>
+                        Đọc thêm <ArrowRight className="ml-1 w-4 h-4 opacity-0 group-hover:opacity-100 transition-all text-warning" />
+                      </a>
+                    ) : (
+                      <>
                     Đọc thêm <ArrowRight className="ml-1 w-4 h-4 opacity-0 group-hover:opacity-100 transition-all text-warning" />
+                      </>
+                    )}
                   </Button>
                 </CardContent>
               </Card>
@@ -105,7 +113,7 @@ function AboutTools({ tools, heading, description }) {
 }
 
 // ── AboutSolutions ──
-function AboutSolutions({ steps, eyebrow, title, bannerUrl }) {
+function AboutSolutions({ steps, eyebrow, title, bannerUrl, primaryCta, primaryCtaUrl, secondaryCta, secondaryCtaUrl }) {
   return (
     <section className="app-container py-8 lg:py-12">
       <div className="grid lg:grid-cols-2 items-center gap-6 lg:gap-10">
@@ -140,8 +148,8 @@ function AboutSolutions({ steps, eyebrow, title, bannerUrl }) {
             ))}
           </div>
           <div className="flex items-center gap-4 pt-4">
-            <AppButton appVariant="gradient" size="lg" className="min-w-[120px]">Tìm hiểu thêm</AppButton>
-            <AppButton appVariant="gradient" size="lg" variant="outline" className="min-w-[120px] bg-transparent border-warning/20 text-warning hover:bg-orange-50">Triết lý của Chúng tôi</AppButton>
+            <AboutActionButton href={primaryCtaUrl} appVariant="gradient" size="lg" className="min-w-[120px]">{primaryCta}</AboutActionButton>
+            <AboutActionButton href={secondaryCtaUrl} appVariant="gradient" size="lg" variant="outline" className="min-w-[120px] bg-transparent border-warning/20 text-warning hover:bg-orange-50">{secondaryCta}</AboutActionButton>
           </div>
         </div>
       </div>
@@ -197,12 +205,18 @@ function AboutCTA({ data }) {
         <p className="text-white/80 max-w-xl text-lg relative z-10">
           {data.description}
         </p>
-        <AppButton appVariant="gradient" size="lg" variant="secondary" className="py-2 text-warning h-auto font-bold text-lg hover:scale-105 transition-transform bg-white border-none shadow-xl mt-4 relative z-10">
+        <AboutActionButton href={data.buttonUrl} appVariant="gradient" size="lg" variant="secondary" className="py-2 text-warning h-auto font-bold text-lg hover:scale-105 transition-transform bg-white border-none shadow-xl mt-4 relative z-10">
           {data.buttonText}
-        </AppButton>
+        </AboutActionButton>
       </div>
     </section>
   );
+}
+
+function AboutActionButton({ href, children, ...buttonProps }) {
+  if (!href) return <AppButton {...buttonProps}>{children}</AppButton>;
+
+  return <AppButton asChild {...buttonProps}><a href={href}>{children}</a></AppButton>;
 }
 
 // ── Page ──
@@ -215,6 +229,7 @@ export default function AboutUs() {
   const cta = { ...aboutCTAMock, ...saved.cta };
   const tools = saved.tools?.length ? saved.tools : aboutToolsMock;
   const steps = saved.steps?.length ? saved.steps : aboutStepsMock;
+  const testimonials = saved.testimonials || [];
   return (
     <PageContainer className="overflow-hidden">
       <PageContainer.Content disableContainer className="!gap-y-0 pb-0">
@@ -222,11 +237,20 @@ export default function AboutUs() {
 
       <AboutTools tools={tools} heading={saved.toolsHeading || "Công cụ Học tập Chuyên biệt của Chúng tôi"} description={saved.toolsDescription || "Công nghệ tiên tiến kết hợp với thiết kế tinh tế để mang lại hành trình giáo dục liền mạch, phù hợp với tiềm năng độc nhất của bạn."} />
 
-      <AboutSolutions steps={steps} eyebrow={saved.solutionsEyebrow || "CÁCH CHÚNG TÔI LÀM VIỆC"} title={saved.solutionsTitle || "Giải pháp Học tập Đơn giản!"} bannerUrl={settings["about.solutions_banner_url"]} />
+      <AboutSolutions
+        steps={steps}
+        eyebrow={saved.solutionsEyebrow || "CÁCH CHÚNG TÔI LÀM VIỆC"}
+        title={saved.solutionsTitle || "Giải pháp Học tập Đơn giản!"}
+        bannerUrl={settings["about.solutions_banner_url"]}
+        primaryCta={saved.solutionsPrimaryCta || "Tìm hiểu thêm"}
+        primaryCtaUrl={saved.solutionsPrimaryCtaUrl}
+        secondaryCta={saved.solutionsSecondaryCta || "Triết lý của Chúng tôi"}
+        secondaryCtaUrl={saved.solutionsSecondaryCtaUrl}
+      />
 
       <AboutVision data={vision} bannerUrl={settings["about.vision_banner_url"]} />
 
-      <TestimonialCarousel />
+      <TestimonialCarousel testimonials={testimonials} description={saved.testimonialsDescription} />
 
       <AboutCTA data={cta} />
       </PageContainer.Content>

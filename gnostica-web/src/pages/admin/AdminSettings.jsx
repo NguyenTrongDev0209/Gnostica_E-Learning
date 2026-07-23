@@ -1,5 +1,5 @@
 ﻿import { AppCardDescription as CardDescription } from "@/components/common/micro/AppCard";
-import { Tabs, TabsContent } from "@/components/common/micro/AppTabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/common/micro/AppTabs";
 import AppTextarea from "@/components/common/micro/AppTextarea";
 import { Switch } from "@/components/common/micro/AppSwitch";
 // Fix imported
@@ -73,9 +73,8 @@ const DEFAULT_SETTINGS = {
 
 const SETTINGS_TABS = new Set([
   "general",
-  "home",
+  "site-pages",
   "pages",
-  "about",
   "payment",
   "finance",
   "security",
@@ -84,9 +83,15 @@ const SETTINGS_TABS = new Set([
 export default function AdminSettings() {
   const { data, isLoading, updateMutation, uploadMutation } = useAdminSettings();
   const [overrides, setOverrides] = useState({});
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const requestedTab = searchParams.get("tab") || "general";
-  const activeTab = SETTINGS_TABS.has(requestedTab) ? requestedTab : "general";
+  const isLegacySitePageTab = requestedTab === "home" || requestedTab === "about";
+  const activeTab = isLegacySitePageTab
+    ? "site-pages"
+    : SETTINGS_TABS.has(requestedTab) ? requestedTab : "general";
+  const activeSitePage = requestedTab === "about" || searchParams.get("page") === "about"
+    ? "about"
+    : "home";
   const values = { ...DEFAULT_SETTINGS, ...data, ...overrides };
 
   const updateValue = (key, value) => {
@@ -94,8 +99,13 @@ export default function AdminSettings() {
   };
 
   const handleSave = async () => {
+    if (Object.keys(overrides).length === 0) {
+      toast.info("Chưa có thay đổi để lưu.");
+      return;
+    }
+
     try {
-      await updateMutation.mutateAsync(values);
+      await updateMutation.mutateAsync(overrides);
       setOverrides({});
       toast.success("Đã lưu các thay đổi thành công!");
     } catch (error) {
@@ -134,6 +144,25 @@ export default function AdminSettings() {
     }
   };
 
+  const handleTestimonialAvatarUpload = async (file) => {
+    if (!file?.type.startsWith("image/")) {
+      toast.error("Vui lòng chọn một tệp ảnh");
+      return undefined;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Ảnh không được vượt quá 5MB");
+      return undefined;
+    }
+    try {
+      const url = await uploadMutation.mutateAsync(file);
+      toast.success("Đã tải ảnh đại diện lên. Nhấn Lưu thay đổi để áp dụng.");
+      return url;
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Không thể tải ảnh lên");
+      return undefined;
+    }
+  };
+
   if (isLoading) {
     return <SettingsPageSkeleton />;
   }
@@ -152,16 +181,27 @@ export default function AdminSettings() {
           />
         </TabsContent>
 
-        <TabsContent value="home" className="animate-in fade-in duration-300">
-          <BannerSettings />
-        </TabsContent>
-
         <TabsContent value="pages" className="animate-in fade-in duration-300">
           <PageSettings />
         </TabsContent>
 
-        <TabsContent value="about" className="animate-in fade-in duration-300">
-          <AboutSettings values={values} onChange={updateValue} onImageUpload={handleAboutImageUpload} isUploading={uploadMutation.isPending} />
+        <TabsContent value="site-pages" className="animate-in fade-in duration-300">
+          <SitePageSettings
+            activePage={activeSitePage}
+            onPageChange={(page) => {
+              setSearchParams((current) => {
+                const next = new URLSearchParams(current);
+                next.set("tab", "site-pages");
+                next.set("page", page);
+                return next;
+              });
+            }}
+            values={values}
+            onChange={updateValue}
+            onImageUpload={handleAboutImageUpload}
+            onTestimonialAvatarUpload={handleTestimonialAvatarUpload}
+            isUploading={uploadMutation.isPending}
+          />
         </TabsContent>
 
         <TabsContent value="payment" className="animate-in fade-in duration-300">
@@ -177,6 +217,42 @@ export default function AdminSettings() {
         </TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+function SitePageSettings({
+  activePage,
+  onPageChange,
+  values,
+  onChange,
+  onImageUpload,
+  onTestimonialAvatarUpload,
+  isUploading,
+}) {
+  return (
+    <Tabs value={activePage} onValueChange={onPageChange} className="space-y-6">
+      <TabsList className="grid h-11 w-full grid-cols-2 bg-secondary p-1 sm:w-80">
+        <TabsTrigger value="home" className="font-semibold">
+          Trang chủ
+        </TabsTrigger>
+        <TabsTrigger value="about" className="font-semibold">
+          Giới thiệu
+        </TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="home" className="mt-0 animate-in fade-in duration-300">
+        <BannerSettings />
+      </TabsContent>
+      <TabsContent value="about" className="mt-0 animate-in fade-in duration-300">
+        <AboutSettings
+          values={values}
+          onChange={onChange}
+          onImageUpload={onImageUpload}
+          onTestimonialAvatarUpload={onTestimonialAvatarUpload}
+          isUploading={isUploading}
+        />
+      </TabsContent>
+    </Tabs>
   );
 }
 

@@ -152,7 +152,9 @@ export const aboutHeroMock = {
   highlight: "Học tập.",
   description: "Tiếp sức cho những bộ óc tò mò thông qua những trải nghiệm học tập hiện đại, kết hợp trí tuệ nhân tạo với môi trường cộng tác lấy con người làm trung tâm.",
   primaryCta: "Bắt đầu ngay",
-  secondaryCta: "Khám phá thêm"
+  primaryCtaUrl: "",
+  secondaryCta: "Khám phá thêm",
+  secondaryCtaUrl: ""
 };
 
 export const aboutVisionMock = {
@@ -168,5 +170,6 @@ export const aboutVisionMock = {
 export const aboutCTAMock = {
   title: "Sẵn sàng bắt đầu chưa?",
   description: "Tham gia cùng hàng ngàn học viên đã thay đổi hành trình học tập của họ với nền tảng thông minh của chúng tôi.",
-  buttonText: "Liên hệ với chúng tôi"
+  buttonText: "Liên hệ với chúng tôi",
+  buttonUrl: ""
 };
