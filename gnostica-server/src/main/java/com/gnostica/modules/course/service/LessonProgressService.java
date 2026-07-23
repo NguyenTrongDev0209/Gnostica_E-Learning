@@ -118,6 +118,7 @@ public class LessonProgressService {
                                                 .totalQuestions(qr.getTotalQuestions())
                                                 .correctAnswers(qr.getCorrectAnswers())
                                                 .completedAt(qr.getCompletedAt())
+                                                .status(qr.getStatus())
                                                 .build())
                                 .collect(Collectors.toList());
 
