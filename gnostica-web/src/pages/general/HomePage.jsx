@@ -1,4 +1,5 @@
 import React, { Suspense, useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import * as LucideIcons from 'lucide-react';
 import { Users, BookOpen, ArrowRight, Sparkles } from 'lucide-react';
 
@@ -9,6 +10,7 @@ import { Card } from '@/components/common/micro/AppCard';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/common/micro/AppAccordion";
 import Skeleton from '@/components/common/micro/AppSkeleton';
 import { Button } from '@/components/common/micro/AppButton';
+import AppPagination from '@/components/common/micro/AppPagination';
 
 import useCategories from '@/hooks/course/useCategories';
 import useFeaturedCourses from "@/hooks/course/useFeaturedCourses";
@@ -121,15 +123,42 @@ function MainHeroCarousel() {
   );
 }
 
+const statThemes = [
+  {
+    gradient: "from-blue-600 via-indigo-500 to-cyan-500",
+    iconBg: "bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400 border-blue-200 dark:border-blue-800/60",
+    borderHover: "hover:border-blue-500/80 hover:shadow-blue-500/15",
+    glow: "from-blue-500/15"
+  },
+  {
+    gradient: "from-emerald-600 via-teal-500 to-green-500",
+    iconBg: "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/60",
+    borderHover: "hover:border-emerald-500/80 hover:shadow-emerald-500/15",
+    glow: "from-emerald-500/15"
+  },
+  {
+    gradient: "from-amber-500 via-orange-500 to-rose-500",
+    iconBg: "bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400 border-amber-200 dark:border-amber-800/60",
+    borderHover: "hover:border-amber-500/80 hover:shadow-amber-500/15",
+    glow: "from-amber-500/15"
+  },
+  {
+    gradient: "from-violet-600 via-purple-500 to-fuchsia-500",
+    iconBg: "bg-violet-50 text-violet-600 dark:bg-violet-950/60 dark:text-violet-400 border-violet-200 dark:border-violet-800/60",
+    borderHover: "hover:border-violet-500/80 hover:shadow-violet-500/15",
+    glow: "from-violet-500/15"
+  }
+];
+
 const PlatformStats = () => {
   const { stats, loadingStats } = useHomeData();
 
   if (loadingStats) {
     return (
-      <div className="app-container mb-8">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+      <div className="app-container mb-12 -mt-4 relative z-20">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
           {[...Array(4)].map((_, i) => (
-            <Skeleton key={i} className="h-32 w-full rounded-2xl" />
+            <Skeleton key={i} className="h-36 w-full rounded-2xl border-2 border-border" />
           ))}
         </div>
       </div>
@@ -143,23 +172,31 @@ const PlatformStats = () => {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
         {stats.map((stat, idx) => {
           const Icon = LucideIcons[stat.iconName] || LucideIcons.Users;
+          const theme = statThemes[idx % statThemes.length];
+
           return (
             <div
               key={idx}
-              className="group relative flex flex-col items-center justify-center rounded-3xl bg-card/80 backdrop-blur-sm border border-border/50 p-6 shadow-sm hover:shadow-xl hover:-translate-y-2 hover:border-primary/40 transition-all duration-500 overflow-hidden"
+              className={`group relative flex flex-col items-center justify-center rounded-2xl bg-card border-2 border-slate-200/90 dark:border-slate-800/90 shadow-md hover:shadow-2xl hover:-translate-y-1.5 ${theme.borderHover} transition-all duration-300 overflow-hidden p-5 sm:p-6`}
             >
-              {/* Subtle background gradient that appears on hover */}
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              {/* Top Accent Gradient Line */}
+              <div className={`absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r ${theme.gradient}`} />
 
-              <div className="relative z-10 flex flex-col items-center gap-4">
-                <div className="p-4 rounded-2xl bg-primary/10 text-primary group-hover:scale-110 group-hover:bg-primary group-hover:text-primary-foreground group-hover:shadow-md transition-all duration-500">
-                  <Icon className="w-7 h-7 stroke-[1.5]" />
+              {/* Subtle background glow on hover */}
+              <div className={`absolute inset-0 bg-gradient-to-br ${theme.glow} via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none`} />
+
+              <div className="relative z-10 flex flex-col items-center gap-3 sm:gap-4">
+                {/* Icon Container with rich theme styling */}
+                <div className={`p-3.5 rounded-2xl border-2 ${theme.iconBg} shadow-sm group-hover:scale-110 transition-transform duration-300`}>
+                  <Icon className="w-6 h-6 sm:w-7 sm:h-7 stroke-[2.2]" />
                 </div>
+
+                {/* Value & Label */}
                 <div className="flex flex-col items-center gap-1 text-center">
-                  <span className="text-3xl md:text-4xl font-bold text-foreground tracking-tight drop-shadow-sm">
+                  <span className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight">
                     {stat.value}
                   </span>
-                  <span className="text-xs md:text-sm font-bold text-muted-foreground uppercase tracking-widest">
+                  <span className="text-xs sm:text-sm font-bold text-muted-foreground uppercase tracking-wider">
                     {stat.label}
                   </span>
                 </div>
@@ -264,41 +301,71 @@ const RecommendedCourses = () => {
   );
 };
 
+const formatCourseCount = (count) => {
+  const num = Number(count || 0);
+  if (num < 10) return `${num} khóa học`;
+  const rounded = Math.floor(num / 10) * 10;
+  return `${rounded}+ khóa học`;
+};
+
 const CategoryGrid = () => {
   const { categories, loading } = useCategories();
 
   if (loading) {
     return (
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 w-full">
-        {[...Array(4)].map((_, i) => (
-          <div key={i} className="h-40 w-full bg-muted animate-pulse rounded-2xl border" />
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-3 sm:gap-4 w-full">
+        {[...Array(8)].map((_, i) => (
+          <div key={i} className="h-28 w-full bg-muted animate-pulse rounded-xl border" />
         ))}
       </div>
     );
   }
 
-  // Lấy 4 danh mục đầu tiên
-  const displayCategories = categories.slice(0, 4);
+  if (!categories || categories.length === 0) return null;
 
-  if (displayCategories.length === 0) return null;
+  // Lấy 8 danh mục tiêu biểu có số lượng khóa học/bài giảng nhiều nhất
+  const topCategories = [...categories]
+    .sort((a, b) => (b.coursesCount || 0) - (a.coursesCount || 0))
+    .slice(0, 8);
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 w-full">
-      {displayCategories.map((cat, idx) => {
-        // Fallback icon 'Code'
-        const Icon = LucideIcons[cat.iconName || 'Code'] || LucideIcons.Code;
-        const colorClass = cat.colorClass || defaultColors[idx % defaultColors.length];
+    <div className="flex flex-col items-center gap-6 w-full">
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-3 sm:gap-4 w-full">
+        {topCategories.map((cat, idx) => {
+          // Fallback icon 'Code'
+          const Icon = LucideIcons[cat.iconName || 'Code'] || LucideIcons.Code;
+          const colorClass = cat.colorClass || defaultColors[idx % defaultColors.length];
 
-        return (
-          <Card appVariant="default" key={cat.id || idx} className="group relative overflow-hidden p-6 w-full hover-lift cursor-pointer">
-            <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${colorClass}`}>
-              <Icon className="w-6 h-6" />
-            </div>
-            <h3 className="font-semibold text-lg mb-1 group-hover:text-primary transition-colors">{cat.name || cat.title}</h3>
-            <p className="text-sm text-muted-foreground">{cat.coursesCount ?? 0} khóa học</p>
-          </Card>
-        );
-      })}
+          return (
+            <Link key={cat.id || cat.slug || idx} to={`/courses/category/${cat.slug || cat.id}`}>
+              <Card appVariant="default" className="group relative overflow-hidden p-3.5 sm:p-4 w-full h-full hover-lift cursor-pointer border-2 border-border/80 shadow-sm hover:shadow-md hover:border-primary transition-all duration-300 flex flex-col justify-between rounded-xl">
+                <div className="flex items-center gap-3">
+                  <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0 ${colorClass}`}>
+                    <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
+                  </div>
+                  <h3 className="font-semibold text-sm sm:text-base group-hover:text-primary transition-colors line-clamp-2 leading-snug">
+                    {cat.name || cat.title}
+                  </h3>
+                </div>
+                <div className="mt-3 pt-2.5 border-t border-border/50 flex items-center justify-between">
+                  <span className="text-xs font-medium text-muted-foreground">{formatCourseCount(cat.coursesCount)}</span>
+                  <ArrowRight className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                </div>
+              </Card>
+            </Link>
+          );
+        })}
+      </div>
+
+      <div className="flex justify-center mt-2">
+        <Link
+          to="/courses/category"
+          className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary/10 hover:bg-primary text-primary hover:text-primary-foreground font-semibold text-sm transition-all duration-300 shadow-sm hover:shadow-md group"
+        >
+          <span>Xem thêm tất cả danh mục</span>
+          <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+        </Link>
+      </div>
     </div>
   );
 };

@@ -21,21 +21,44 @@ export const useOAuth2Callback = () => {
                     if (response.data.status === 200 || response.data.status === 'success') {
                         const user = response.data.data;
                         const roleName = (user.role?.name || user.role || 'USER').toUpperCase();
+                        
+                        // Trích xuất trạng thái cá nhân hóa từ trường metadata của DB
+                        let onboardingCompleted = false;
+                        let selectedCategories = [];
+                        let level = null;
+
+                        if (user.metadata) {
+                            try {
+                                const meta = typeof user.metadata === 'string' ? JSON.parse(user.metadata) : user.metadata;
+                                if (meta.onboardingCompleted) onboardingCompleted = true;
+                                if (meta.interests && Array.isArray(meta.interests)) selectedCategories = meta.interests;
+                                if (meta.level) level = meta.level;
+                            } catch (e) {
+                                console.error("Lỗi parse metadata user:", e);
+                            }
+                        }
+
                         const normalizedUser = {
-                            id: user.id || user.id,
+                            id: user.id,
                             fullName: user.fullName,
                             email: user.email,
                             role: roleName,
                             token: tokenFromParams || user.token,
                             avatar: user.avatar,
-                            provider: user.provider,
-                            onboardingCompleted: user.onboardingCompleted
+                            provider: user.provider || 'GOOGLE',
+                            onboardingCompleted: onboardingCompleted,
+                            selectedCategories: selectedCategories,
+                            level: level
                         };
+
+                        // Dọn dẹp cờ phiên làm việc cũ để đảm bảo tự động bật Bảng cá nhân hóa cho người dùng Google mới
+                        sessionStorage.removeItem(`personalization_skipped_${user.email}`);
+                        sessionStorage.removeItem('personalization_skipped');
 
                         localStorage.setItem('user', JSON.stringify(normalizedUser));
                         setUser(normalizedUser);
 
-                        toast.success('Đăng nhập thành công!');
+                        toast.success('Đăng nhập bằng Google thành công!');
 
                         setTimeout(() => {
                             if (roleName === 'ADMIN') {

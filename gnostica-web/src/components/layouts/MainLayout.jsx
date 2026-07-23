@@ -17,13 +17,19 @@ const MainLayout = () => {
     await logout();
   };
 
-  // Lọc chỉ giữ lại những danh mục có khóa học
-  const categoryTree = flatCategories
-    .map(cat => ({
-      ...cat,
-      subcategories: cat.subcategories?.filter(sub => sub.courses > 0) || []
-    }))
-    .filter(cat => cat.courses > 0);
+  // Xây dựng cây danh mục cha - con cho menu Header
+  const parentCategories = flatCategories.filter(cat => !cat.parentId && !cat.parent_id && !cat.parent);
+
+  const categoryTree = (parentCategories.length > 0 ? parentCategories : flatCategories).map(parent => {
+    const children = parent.subcategories && parent.subcategories.length > 0
+      ? parent.subcategories
+      : flatCategories.filter(c => c.parentId === parent.id || c.parent_id === parent.id || c.parent?.id === parent.id);
+
+    return {
+      ...parent,
+      subcategories: children
+    };
+  });
 
   return (
     <div className="flex flex-col min-h-screen">

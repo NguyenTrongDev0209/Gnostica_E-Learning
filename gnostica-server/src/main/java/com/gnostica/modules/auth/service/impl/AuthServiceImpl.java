@@ -104,11 +104,21 @@ public class AuthServiceImpl implements AuthService {
         String token = tokenProvider.generateToken(authentication);
 
         boolean onboardingCompleted = false;
+        java.util.List<Long> selectedCategories = null;
+        String level = null;
         try {
             if (account.getMetadata() != null && !account.getMetadata().trim().isEmpty()) {
                 java.util.Map<String, Object> metaMap = objectMapper.readValue(account.getMetadata(), new com.fasterxml.jackson.core.type.TypeReference<java.util.Map<String, Object>>() {});
                 if (metaMap.containsKey("onboardingCompleted")) {
                     onboardingCompleted = (Boolean) metaMap.get("onboardingCompleted");
+                }
+                if (metaMap.containsKey("interests") && metaMap.get("interests") instanceof java.util.List) {
+                    selectedCategories = ((java.util.List<?>) metaMap.get("interests")).stream()
+                            .map(item -> Long.valueOf(item.toString()))
+                            .collect(java.util.stream.Collectors.toList());
+                }
+                if (metaMap.containsKey("level")) {
+                    level = (String) metaMap.get("level");
                 }
             }
         } catch (Exception e) {
@@ -123,6 +133,8 @@ public class AuthServiceImpl implements AuthService {
                 .avatar(account.getAvatar())
                 .provider(account.getProvider())
                 .onboardingCompleted(onboardingCompleted)
+                .selectedCategories(selectedCategories)
+                .level(level)
                 .id(account.getId())
                 .build();
 

@@ -22,7 +22,15 @@ const login = async (email, password) => {
             password
         });
         if (response.data.status === 200 || response.data.status === 'success') {
-            localStorage.setItem('user', JSON.stringify(response.data.data));
+            const userData = response.data.data;
+            if (userData && (userData.onboardingCompleted === undefined || userData.onboardingCompleted === null)) {
+                userData.onboardingCompleted = false;
+            }
+            localStorage.setItem('user', JSON.stringify(userData));
+            if (userData?.email) {
+                sessionStorage.removeItem(`personalization_skipped_${userData.email}`);
+            }
+            sessionStorage.removeItem('personalization_skipped');
         }
         return response.data;
     } catch (error) {
@@ -36,6 +44,11 @@ const logout = async () => {
     } catch (error) {
         // Bỏ qua lỗi nếu backend chưa kịp xử lý
     }
+    const currentUser = getCurrentUser();
+    if (currentUser?.email) {
+        sessionStorage.removeItem(`personalization_skipped_${currentUser.email}`);
+    }
+    sessionStorage.removeItem('personalization_skipped');
     localStorage.removeItem('user');
 };
 

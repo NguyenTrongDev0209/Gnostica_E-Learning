@@ -159,7 +159,7 @@ const MainHeader = ({
                                     <ChevronDown className="pointer-events-none" />
                                 </AppButton>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="start" className="w-[280px] bg-white border-none shadow-2xl rounded-lg p-2 animate-in fade-in slide-in-from-top-2 z-[101]">
+                            <DropdownMenuContent align="start" className="w-[280px] max-h-[460px] overflow-y-auto scrollbar-hide bg-white border border-border/60 shadow-2xl rounded-xl p-2 animate-in fade-in slide-in-from-top-2 z-[101]">
                                 {categoryTree && categoryTree.length > 0 ? (
                                     renderCategoryItems(categoryTree)
                                 ) : (

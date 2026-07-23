@@ -42,7 +42,10 @@ function CategoryDirectory({ categories, loading }) {
                   <Layers3 className="size-5" />
                 </div>
                 <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
-                  {Number(category.courses || 0)} khóa học
+                  {(() => {
+                    const num = Number(category.courses || 0);
+                    return num < 10 ? `${num} khóa học` : `${Math.floor(num / 10) * 10}+ khóa học`;
+                  })()}
                 </span>
               </div>
               <AppCardTitle className="text-lg font-bold">
@@ -63,7 +66,10 @@ function CategoryDirectory({ categories, loading }) {
                     {child.name}
                   </span>
                   <span className="flex items-center gap-1 text-xs">
-                    {Number(child.courses || 0)}
+                    {(() => {
+                      const num = Number(child.courses || 0);
+                      return num < 10 ? `${num}` : `${Math.floor(num / 10) * 10}+`;
+                    })()}
                     <ChevronRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
                   </span>
                 </Link>
