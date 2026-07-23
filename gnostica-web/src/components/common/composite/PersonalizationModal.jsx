@@ -3,26 +3,50 @@ import { useLocation } from 'react-router-dom';
 import {
     AppDialog,
     AppDialogContent,
-    AppDialogHeader,
     AppDialogTitle,
     AppDialogDescription,
-    AppDialogFooter,
 } from "@/components/common/micro/AppDialog";
 import { AppButton } from "@/components/common/micro/AppButton";
-import AppBadge from "@/components/common/micro/AppBadge";
 import AppCard, { AppCardContent } from "@/components/common/micro/AppCard";
 import categoryService from '@/services/course/categoryService';
 import accountService from '@/services/user/accountService';
 import authService from '@/services/auth/authService';
-import { Check, Loader2 } from 'lucide-react';
+import { 
+    Check, 
+    Loader2, 
+    Code, 
+    Palette, 
+    Megaphone, 
+    Briefcase, 
+    DollarSign, 
+    Languages, 
+    Brain, 
+    Cpu, 
+    Sparkles, 
+    BookOpen,
+    Layers
+} from 'lucide-react';
 import { toast } from 'sonner';
 
 const levels = [
-    { id: 'NEWBIE', name: 'Người mới', desc: 'Chưa biết gì về lĩnh vực này' },
-    { id: 'BEGINNER', name: 'Sơ cấp', desc: 'Đã có kiến thức cơ bản' },
-    { id: 'INTERMEDIATE', name: 'Trung cấp', desc: 'Muốn nâng cao kỹ năng chuyên sâu' },
-    { id: 'ADVANCED', name: 'Cao cấp', desc: 'Nghiên cứu và tối ưu hóa' },
+    { id: 'NEWBIE', name: 'Người mới bắt đầu', desc: 'Chưa từng có kinh nghiệm trong lĩnh vực này' },
+    { id: 'BEGINNER', name: 'Sơ cấp', desc: 'Đã nắm được kiến thức nền tảng cơ bản' },
+    { id: 'INTERMEDIATE', name: 'Trung cấp', desc: 'Muốn rèn luyện kỹ năng thực chiến chuyên sâu' },
+    { id: 'ADVANCED', name: 'Cao cấp', desc: 'Nghiên cứu kiến thức nâng cao & tối ưu hóa' },
 ];
+
+const getCategoryIcon = (name = '') => {
+    const n = name.toLowerCase();
+    if (n.includes('lập trình') || n.includes('phần mềm') || n.includes('code') || n.includes('it')) return Code;
+    if (n.includes('thiết kế') || n.includes('ui') || n.includes('ux') || n.includes('đồ họa')) return Palette;
+    if (n.includes('marketing') || n.includes('truyền thông') || n.includes('seo')) return Megaphone;
+    if (n.includes('kinh doanh') || n.includes('quản trị') || n.includes('sales')) return Briefcase;
+    if (n.includes('tài chính') || n.includes('đầu tư') || n.includes('kế toán')) return DollarSign;
+    if (n.includes('ngoại ngữ') || n.includes('tiếng') || n.includes('chứng chỉ')) return Languages;
+    if (n.includes('phát triển') || n.includes('bản thân') || n.includes('kỹ năng')) return Brain;
+    if (n.includes('nhân tạo') || n.includes('ai') || n.includes('dữ liệu')) return Cpu;
+    return Sparkles;
+};
 
 const PersonalizationModal = ({ forceOpen, onClose }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -35,17 +59,34 @@ const PersonalizationModal = ({ forceOpen, onClose }) => {
     const location = useLocation();
 
     useEffect(() => {
+        // Tự động khôi phục các danh mục và trình độ từ metadata trong Database của tài khoản
+        const user = authService.getCurrentUser();
+        if (user) {
+            const savedCats = user.selectedCategories || user.categoryIds;
+            if (Array.isArray(savedCats) && savedCats.length > 0) {
+                setSelectedCategories(savedCats);
+            }
+            if (user.level) {
+                setSelectedLevel(user.level);
+            }
+        }
+
         if (forceOpen) {
             setIsOpen(true);
             fetchCategories();
             return;
         }
 
-        // Chỉ hiện popup ở trang chủ hoặc khi mới login xong đối với USER bình thường
-        const user = authService.getCurrentUser();
-        if (user && user.onboardingCompleted === false && !isOpen) {
-            // Không hiển thị cho Admin và Giảng viên
-            if (user.role === 'ADMIN' || user.role === 'INSTRUCTOR' || user.role === 'TEACHER') {
+        // Tự động hiển thị popup cho tài khoản mới chưa hoàn thành cá nhân hóa (onboarding)
+        if (user && user.onboardingCompleted !== true && !isOpen) {
+            // Bỏ qua với tài khoản Quản trị viên và Giảng viên
+            const role = (user.role || '').toUpperCase();
+            if (role === 'ADMIN' || role === 'INSTRUCTOR' || role === 'TEACHER') {
+                return;
+            }
+
+            // Bỏ qua nếu người dùng của tài khoản này đã bấm tắt trong phiên làm việc hiện tại
+            if (user.email && sessionStorage.getItem(`personalization_skipped_${user.email}`)) {
                 return;
             }
 
@@ -56,6 +97,11 @@ const PersonalizationModal = ({ forceOpen, onClose }) => {
 
     const handleClose = () => {
         setIsOpen(false);
+        const user = authService.getCurrentUser();
+        if (user?.email) {
+            sessionStorage.setItem(`personalization_skipped_${user.email}`, 'true');
+        }
+        sessionStorage.setItem('personalization_skipped', 'true');
         if (onClose) onClose();
     };
 
@@ -63,7 +109,6 @@ const PersonalizationModal = ({ forceOpen, onClose }) => {
         setLoading(true);
         try {
             const response = await categoryService.getAllCategories();
-            // Xử lý linh hoạt theo cấu trúc trả về của API (có phân trang hoặc không)
             let categoriesList = [];
             if (response?.data?.content && Array.isArray(response.data.content)) {
                 categoriesList = response.data.content;
@@ -95,18 +140,25 @@ const PersonalizationModal = ({ forceOpen, onClose }) => {
         const user = authService.getCurrentUser();
         setSaving(true);
         try {
+            // Gửi dữ liệu cá nhân hóa lên lưu trực tiếp vào trường metadata của DB trong backend
             await accountService.updatePersonalization(user.email, {
                 level: selectedLevel,
                 categoryIds: selectedCategories
             });
 
-            // Cập nhật lại user trong localStorage
-            const updatedUser = { ...user, onboardingCompleted: true };
+            // Cập nhật lại thông tin user trong bộ nhớ phiên làm việc
+            const updatedUser = { 
+                ...user, 
+                onboardingCompleted: true,
+                selectedCategories,
+                categoryIds: selectedCategories,
+                level: selectedLevel
+            };
             localStorage.setItem('user', JSON.stringify(updatedUser));
 
-            toast.success("Tuyệt vời! Lộ trình của bạn đã sẵn sàng.");
+            toast.success("Tuyệt vời! Lộ trình của bạn đã được cập nhật.");
             setIsOpen(false);
-            window.location.reload(); // Refresh to update recommendations
+            window.location.reload();
         } catch (error) {
             toast.error(error);
         } finally {
@@ -116,122 +168,163 @@ const PersonalizationModal = ({ forceOpen, onClose }) => {
 
     return (
         <AppDialog open={isOpen} onOpenChange={handleClose}>
-            <AppDialogContent className="sm:max-w-[600px] p-0 overflow-hidden rounded-2xl border-none shadow-2xl flex flex-col max-h-[90vh]">
-                <div className="bg-gradient-to-br from-primary to-primary/80 p-8 text-primary-foreground relative shrink-0">
-                    <div className="relative z-10">
-                        <AppDialogTitle className="text-3xl font-bold mb-2">Chào mừng bạn đến với Gnostica!</AppDialogTitle>
-                        <AppDialogDescription className="text-primary-foreground/80 text-lg">
-                            Hãy cho chúng tôi biết sở thích của bạn để cá nhân hóa trải nghiệm học tập.
-                        </AppDialogDescription>
+            <AppDialogContent className="sm:max-w-[480px] w-[92vw] p-0 overflow-hidden rounded-2xl border-none shadow-2xl flex flex-col max-h-[85vh] [&_[data-slot=dialog-close]]:!bg-white/20 [&_[data-slot=dialog-close]]:!text-white [&_[data-slot=dialog-close]]:hover:!bg-white/30 [&_[data-slot=dialog-close]]:!rounded-full [&_[data-slot=dialog-close]]:!right-4 [&_[data-slot=dialog-close]]:!top-4 [&_[data-slot=dialog-close]]:!border-none [&_[data-slot=dialog-close]]:!size-7">
+                {/* Header Banner */}
+                <div className="bg-gradient-to-r from-primary via-primary/95 to-indigo-600 p-5 text-white relative shrink-0">
+                    <div className="relative z-10 flex items-start justify-between gap-3 pr-6">
+                        <div>
+                            <AppDialogTitle className="text-lg sm:text-xl font-bold tracking-tight mb-1 text-white">
+                                Cá nhân hóa trải nghiệm
+                            </AppDialogTitle>
+                            <AppDialogDescription className="text-white/80 text-xs sm:text-sm font-normal leading-relaxed">
+                                {step === 1 
+                                    ? "Chọn những lĩnh vực bạn hứng thú để nhận gợi ý bài giảng phù hợp."
+                                    : "Xác định trình độ học tập của bạn để xây dựng lộ trình chuẩn xác."}
+                            </AppDialogDescription>
+                        </div>
+                        <span className="shrink-0 px-2.5 py-0.5 rounded-full bg-white/20 text-white text-xs font-semibold backdrop-blur-md border border-white/20">
+                            {step}/2
+                        </span>
                     </div>
-                    {/* Background circles for aesthetic */}
-                    <div className="absolute top-[-20px] right-[-20px] w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
-                    <div className="absolute bottom-[-10px] left-[10%] w-24 h-24 bg-primary/20 rounded-full blur-xl"></div>
                 </div>
 
-                <div className="p-6 sm:p-8 bg-card overflow-y-auto flex-1">
+                {/* Body Content with Explicit Wheel Scroll Handler */}
+                <div 
+                    onWheel={(e) => {
+                        e.currentTarget.scrollTop += e.deltaY;
+                    }}
+                    className="p-4 sm:p-5 bg-card max-h-[320px] sm:max-h-[360px] overflow-y-auto scrollbar-hide space-y-4 touch-pan-y overscroll-contain"
+                >
                     {step === 1 ? (
-                        <div className="space-y-6">
-                            <div className="flex justify-between items-center">
-                                <h3 className="text-xl font-semibold text-foreground">1. Bạn quan tâm đến lĩnh vực nào?</h3>
-                                <span className="text-sm font-medium px-3 py-1 bg-primary/10 text-primary rounded-full">Bước 1/2</span>
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                                    <Layers className="w-4 h-4 text-primary" />
+                                    <span>Lĩnh vực quan tâm ({selectedCategories.length} đã chọn)</span>
+                                </h3>
                             </div>
 
                             {loading ? (
-                                <div className="flex justify-center py-12">
-                                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                                <div className="flex justify-center py-10">
+                                    <Loader2 className="w-7 h-7 animate-spin text-primary" />
                                 </div>
                             ) : (
-                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                                    {categories.map((cat) => (
-                                        <div
-                                            key={cat.id}
-                                            onClick={() => toggleCategory(cat.id)}
-                                            className={`
-                        cursor-pointer transition-all duration-300 rounded-xl p-4 border-2 flex flex-col items-center justify-center gap-2 text-center
-                        ${selectedCategories.includes(cat.id)
-                                                    ? 'border-primary bg-primary/5 shadow-md transform scale-[1.02]'
-                                                    : 'border-border hover:border-primary/30 hover:bg-muted'}
-                      `}
-                                        >
-                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${selectedCategories.includes(cat.id) ? 'bg-primary text-white' : 'bg-secondary text-muted-foreground'}`}>
-                                                {selectedCategories.includes(cat.id) ? <Check className="w-5 h-5" /> : null}
+                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                                    {categories.map((cat) => {
+                                        const isSelected = selectedCategories.includes(cat.id);
+                                        const IconComp = getCategoryIcon(cat.name);
+
+                                        return (
+                                            <div
+                                                key={cat.id}
+                                                onClick={() => toggleCategory(cat.id)}
+                                                className={`
+                                                    relative cursor-pointer transition-all duration-200 rounded-xl p-3 border flex flex-col items-center justify-center gap-2 text-center group hover:-translate-y-0.5
+                                                    ${isSelected
+                                                        ? 'border-primary bg-primary/5 shadow-xs font-semibold'
+                                                        : 'border-border/80 hover:border-primary/40 hover:bg-muted/50 text-foreground'}
+                                                `}
+                                            >
+                                                {isSelected && (
+                                                    <span className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-primary text-white flex items-center justify-center">
+                                                        <Check className="w-2.5 h-2.5 stroke-[3]" />
+                                                    </span>
+                                                )}
+                                                <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105 ${
+                                                    isSelected ? 'bg-primary text-white shadow-xs' : 'bg-primary/10 text-primary'
+                                                }`}>
+                                                    <IconComp className="w-4 h-4" />
+                                                </div>
+                                                <span className={`text-xs leading-snug line-clamp-2 ${
+                                                    isSelected ? 'font-bold text-primary' : 'font-medium text-foreground'
+                                                }`}>
+                                                    {cat.name}
+                                                </span>
                                             </div>
-                                            <span className={`font-medium ${selectedCategories.includes(cat.id) ? 'text-primary' : 'text-muted-foreground'}`}>
-                                                {cat.name}
-                                            </span>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             )}
                         </div>
                     ) : (
-                        <div className="space-y-6">
-                            <div className="flex justify-between items-center">
-                                <h3 className="text-xl font-semibold text-foreground">2. Trình độ hiện tại của bạn?</h3>
-                                <span className="text-sm font-medium px-3 py-1 bg-primary/10 text-primary rounded-full">Bước 2/2</span>
-                            </div>
+                        <div className="space-y-3">
+                            <h3 className="text-sm font-bold text-foreground flex items-center gap-2 mb-3">
+                                <BookOpen className="w-4 h-4 text-primary" />
+                                <span>Trình độ kiến thức hiện tại</span>
+                            </h3>
 
-                            <div className="space-y-3">
-                                {levels.map((lvl) => (
-                                    <AppCard
-                                        key={lvl.id}
-                                        onClick={() => setSelectedLevel(lvl.id)}
-                                        className={`
-                      cursor-pointer transition-all duration-300 border-2 shadow-none
-                      ${selectedLevel === lvl.id
-                                                ? 'border-primary bg-primary/5'
-                                                : 'border-border hover:border-primary/30 hover:bg-muted'}
-                    `}
-                                    >
-                                        <AppCardContent className="p-4 flex items-center gap-4">
-                                            <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${selectedLevel === lvl.id ? 'border-primary bg-primary' : 'border-border/80'}`}>
-                                                {selectedLevel === lvl.id && <Check className="w-4 h-4 text-white" />}
+                            <div className="space-y-2.5">
+                                {levels.map((lvl) => {
+                                    const isSelected = selectedLevel === lvl.id;
+                                    return (
+                                        <div
+                                            key={lvl.id}
+                                            onClick={() => setSelectedLevel(lvl.id)}
+                                            className={`
+                                                cursor-pointer transition-all duration-200 p-3.5 rounded-xl border flex items-center gap-3.5
+                                                ${isSelected
+                                                    ? 'border-primary bg-primary/5 shadow-xs'
+                                                    : 'border-border/80 hover:border-primary/40 hover:bg-muted/50'}
+                                            `}
+                                        >
+                                            <div className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 ${
+                                                isSelected ? 'border-primary bg-primary text-white' : 'border-border'
+                                            }`}>
+                                                {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
                                             </div>
                                             <div>
-                                                <p className={`font-bold ${selectedLevel === lvl.id ? 'text-primary' : 'text-foreground'}`}>{lvl.name}</p>
-                                                <p className="text-sm text-muted-foreground">{lvl.desc}</p>
+                                                <p className={`text-xs sm:text-sm font-bold ${isSelected ? 'text-primary' : 'text-foreground'}`}>
+                                                    {lvl.name}
+                                                </p>
+                                                <p className="text-[11px] sm:text-xs text-muted-foreground">
+                                                    {lvl.desc}
+                                                </p>
                                             </div>
-                                        </AppCardContent>
-                                    </AppCard>
-                                ))}
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </div>
                     )}
+                </div>
 
-                    <div className="mt-10 flex justify-between gap-4">
-                        {step === 2 && (
-                            <AppButton
-                                variant="outline"
-                                onClick={() => setStep(1)}
-                                className="flex-1 py-6 text-lg border-2"
-                            >
-                                Quay lại
-                            </AppButton>
-                        )}
-                        {step === 1 ? (
-                            <AppButton
-                                className="flex-2 py-6 text-lg w-full"
-                                onClick={() => setStep(2)}
-                                disabled={selectedCategories.length === 0}
-                            >
-                                Tiếp tục
-                            </AppButton>
-                        ) : (
-                            <AppButton
-                                className="flex-2 py-6 text-lg w-full"
-                                disabled={!selectedLevel || saving}
-                                onClick={handleComplete}
-                            >
-                                {saving ? (
-                                    <>
-                                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                                        Đang lưu...
-                                    </>
-                                ) : "Hoàn tất"}
-                            </AppButton>
-                        )}
-                    </div>
+                {/* Footer Action Buttons */}
+                <div className="p-4 bg-slate-50 border-t border-border/80 flex items-center justify-between gap-3 shrink-0">
+                    {step === 2 && (
+                        <button
+                            type="button"
+                            onClick={() => setStep(1)}
+                            className="flex-1 h-10 px-4 text-xs font-semibold rounded-xl border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 transition-colors shadow-xs"
+                        >
+                            Quay lại
+                        </button>
+                    )}
+                    {step === 1 ? (
+                        <button
+                            type="button"
+                            onClick={() => setStep(2)}
+                            disabled={selectedCategories.length === 0}
+                            className="w-full h-10 px-4 text-xs font-semibold rounded-xl bg-primary text-white hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
+                        >
+                            Tiếp tục ({selectedCategories.length})
+                        </button>
+                    ) : (
+                        <button
+                            type="button"
+                            disabled={!selectedLevel || saving}
+                            onClick={handleComplete}
+                            className="flex-2 w-full h-10 px-4 text-xs font-semibold rounded-xl bg-primary text-white hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm flex items-center justify-center gap-2"
+                        >
+                            {saving ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                    <span>Đang hoàn tất...</span>
+                                </>
+                            ) : (
+                                <span>Hoàn tất cá nhân hóa</span>
+                            )}
+                        </button>
+                    )}
                 </div>
             </AppDialogContent>
         </AppDialog>
