@@ -16,7 +16,7 @@ public class PageRequest {
 
     @NotBlank
     @Size(max = 255)
-    @Pattern(regexp = "^[a-z0-9]+(?:-[a-z0-9]+)*$", message = "Slug chỉ gồm chữ thường, số và dấu gạch ngang")
+    @Pattern(regexp = "^[a-z0-9]+(?:-[a-z0-9]+)*(?:/[a-z0-9]+(?:-[a-z0-9]+)*)*$", message = "Đường dẫn URL chỉ gồm chữ thường, số, dấu gạch ngang và dấu gạch chéo")
     private String slug;
 
     @NotBlank

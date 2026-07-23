@@ -13,6 +13,7 @@ import PrivacyPage from "@/pages/general/PrivacyPage";
 import Showcase from "@/pages/Showcase";
 import ErrorPage from "@/pages/general/ErrorPage";
 import InstructorList from "@/pages/general/InstructorList";
+import ContentPage from "@/pages/general/ContentPage";
 
 import LoginPage from "@/pages/auth/LoginPage";
 import RegisterPage from "@/pages/auth/RegisterPage";
@@ -38,6 +39,7 @@ export const publicRoutes = {
     { path: "/terms", component: TermsPage },
     { path: "/privacy", component: PrivacyPage },
     { path: "/instructors", component: InstructorList },
+    { path: "/*", component: ContentPage },
   ],
   noLayout: [
     { path: "/showcase", component: Showcase },

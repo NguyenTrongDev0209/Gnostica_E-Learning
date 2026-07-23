@@ -12,21 +12,29 @@ import { Switch } from "@/components/ui/switch";
 import { useAdminPages } from "@/hooks/settings/useSiteSettings";
 import Skeleton from "@/components/common/micro/AppSkeleton";
 
-const EMPTY_PAGE = { title: "", slug: "", content: "<p>Nhập nội dung trang...</p>", status: 0 };
+const EMPTY_PAGE = { title: "", slug: "", urlPath: "", content: "<p>Nhập nội dung trang...</p>", status: 0 };
+
+const createPageDraft = (page) => ({ ...(page || EMPTY_PAGE), urlPath: page?.slug ? `/${page.slug}` : "" });
+const toSlug = (urlPath) => {
+  const normalizedPath = urlPath.trim().toLowerCase();
+  if (!/^\/[a-z0-9]+(?:-[a-z0-9]+)*(?:\/[a-z0-9]+(?:-[a-z0-9]+)*)*$/.test(normalizedPath)) return null;
+  return normalizedPath.slice(1);
+};
 
 function PageEditor({ page, createMutation, updateMutation, deleteMutation, onSaved, onDeleted }) {
-  const [draft, setDraft] = useState(page || EMPTY_PAGE);
+  const [draft, setDraft] = useState(() => createPageDraft(page));
   const [showPreview, setShowPreview] = useState(false);
   const isSaving = createMutation.isPending || updateMutation.isPending;
 
   const savePage = async () => {
-    if (!draft.title.trim() || !draft.slug.trim() || !draft.content.trim()) {
-      toast.error("Vui lòng nhập đầy đủ tiêu đề, slug và nội dung");
+    const slug = toSlug(draft.urlPath);
+    if (!draft.title.trim() || !slug || !draft.content.trim()) {
+      toast.error("Vui lòng nhập tiêu đề, đường dẫn URL dạng /ten-trang và nội dung");
       return;
     }
     const payload = {
       title: draft.title.trim(),
-      slug: draft.slug.trim().toLowerCase(),
+      slug,
       content: draft.content,
       status: draft.status,
     };
@@ -34,7 +42,7 @@ function PageEditor({ page, createMutation, updateMutation, deleteMutation, onSa
       const saved = page?.id
         ? await updateMutation.mutateAsync({ id: page.id, ...payload })
         : await createMutation.mutateAsync(payload);
-      setDraft(saved);
+      setDraft(createPageDraft(saved));
       onSaved(saved);
       toast.success("Đã lưu trang nội dung");
     } catch (error) {
@@ -69,8 +77,8 @@ function PageEditor({ page, createMutation, updateMutation, deleteMutation, onSa
             <AppInput id="pageTitle" value={draft.title} onChange={(event) => setDraft({ ...draft, title: event.target.value })} />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="pageSlug">Slug</Label>
-            <AppInput id="pageSlug" value={draft.slug} onChange={(event) => setDraft({ ...draft, slug: event.target.value.replace(/[^a-z0-9-]/g, "") })} placeholder="privacy-policy" />
+            <Label htmlFor="pageSlug">Đường dẫn URL</Label>
+            <AppInput id="pageSlug" value={draft.urlPath} onChange={(event) => setDraft({ ...draft, urlPath: event.target.value })} placeholder="/privacy-policy" />
           </div>
         </div>
 
