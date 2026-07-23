@@ -184,6 +184,7 @@ public class ThreadServiceImpl implements ThreadService {
             Vote newVote = new Vote();
             newVote.setAccount(account);
             newVote.setTargetId(id.toString());
+            newVote.setTargetType("THREAD");
             newVote.setType(1); // 1 for Thread
             newVote.setValue(true); // true for like
             voteRepository.save(newVote);
@@ -292,7 +293,7 @@ public class ThreadServiceImpl implements ThreadService {
 
         voteRepository.deleteByTargetIdAndType(id.toString(), 1);
         reportRepository.deleteByTargetIdAndTargetType(id.toString(), "THREAD");
-        commentRepository.deleteByThreadId(id);
+        commentRepository.deleteByTargetTypeAndTargetId("THREAD", id.toString());
         threadRepository.delete(thread);
     }
 
@@ -363,6 +364,7 @@ public class ThreadServiceImpl implements ThreadService {
                 Vote newVote = new Vote();
                 newVote.setAccount(account);
                 newVote.setTargetId(threadIdStr);
+                newVote.setTargetType("THREAD");
                 newVote.setType(2); // 2 for Upvote/Downvote
                 newVote.setValue(true); // true for Upvote
                 voteRepository.save(newVote);
@@ -380,6 +382,7 @@ public class ThreadServiceImpl implements ThreadService {
                 Vote newVote = new Vote();
                 newVote.setAccount(account);
                 newVote.setTargetId(threadIdStr);
+                newVote.setTargetType("THREAD");
                 newVote.setType(2); // 2 for Upvote/Downvote
                 newVote.setValue(false); // false for Downvote
                 voteRepository.save(newVote);
@@ -416,7 +419,7 @@ public class ThreadServiceImpl implements ThreadService {
         thread.setLikes(likesCount);
 
         // Count comments
-        long commentCount = commentRepository.countByThreadId(thread.getId());
+        long commentCount = commentRepository.countByTargetTypeAndTargetId("THREAD", thread.getId().toString());
         thread.setCommentCount(commentCount);
 
         // Count votes (type = 2)
@@ -469,7 +472,7 @@ public class ThreadServiceImpl implements ThreadService {
         for (Thread thread : expiredThreads) {
             voteRepository.deleteByTargetIdAndType(thread.getId().toString(), 1);
             reportRepository.deleteByTargetIdAndTargetType(thread.getId().toString(), "THREAD");
-            commentRepository.deleteByThreadId(thread.getId());
+            commentRepository.deleteByTargetTypeAndTargetId("THREAD", thread.getId().toString());
             threadRepository.delete(thread);
         }
     }

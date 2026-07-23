@@ -31,10 +31,6 @@ public class Wallet {
     private BigDecimal remain;
 
     @NotNull
-    @Min(0)
-    private Integer dailyWithdrawalCount;
-
-    @NotNull
     private Integer type;
 
     /**

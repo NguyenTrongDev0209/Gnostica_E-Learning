@@ -23,6 +23,7 @@ public class CourseDetailResponse {
     private Integer discount;
     private BigDecimal salePrice;
     private String level;
+    private String metadata;
     private Integer status;
     private Boolean deleted;
     private String rejectReason;
@@ -51,4 +52,8 @@ public class CourseDetailResponse {
     private List<CourseReviewResponse> reviews;
 
     private List<ModuleResponse> modules;
+
+    private Boolean isVersionUpdate;
+    private String originalCourseName;
+    private String originalCourseSlug;
 }

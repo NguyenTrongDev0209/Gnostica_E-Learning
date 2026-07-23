@@ -1,6 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
+  BookOpenText,
+  ChevronDown,
+  CreditCard,
+  FileText,
+  Globe,
+  Image as ImageIcon,
   LayoutDashboard,
   Users,
   BookOpen,
@@ -13,9 +19,22 @@ import {
   LayoutList,
   Building2,
   History,
-  ShieldCheck
+  Percent,
+  ShieldCheck,
+  Headphones,
+  Shield
 } from "lucide-react";
 import { AppLogo } from "@/components/common/micro/AppButton";
+
+export const ADMIN_SETTINGS_SUB_ITEMS = [
+  { label: "Cài đặt chung", icon: Globe, href: "/admin/settings?tab=general", tab: "general" },
+  { label: "Trang chủ", icon: ImageIcon, href: "/admin/settings?tab=home", tab: "home" },
+  { label: "Nội dung", icon: FileText, href: "/admin/settings?tab=pages", tab: "pages" },
+  { label: "Giới thiệu", icon: BookOpenText, href: "/admin/settings?tab=about", tab: "about" },
+  { label: "Thanh toán", icon: CreditCard, href: "/admin/settings?tab=payment", tab: "payment" },
+  { label: "Tài chính", icon: Percent, href: "/admin/settings?tab=finance", tab: "finance" },
+  { label: "Bảo mật", icon: Shield, href: "/admin/settings?tab=security", tab: "security" },
+];
 
 export const ADMIN_MENU_GROUPS = [
   {
@@ -52,19 +71,21 @@ export const ADMIN_MENU_GROUPS = [
     items: [
       { label: "Đánh giá", icon: MessageSquare, href: "/admin/reviews" },
       { label: "Báo cáo", icon: MessageCircleWarning, href: "/admin/reports" },
+      { label: "Yêu cầu", icon: Headphones, href: "/admin/requests" },
     ]
   },
   {
     title: "HỆ THỐNG",
     items: [
       { label: "Ngân hàng", icon: Building2, href: "/admin/banks" },
-      { label: "Cài đặt", icon: Settings, href: "/admin/settings" },
+      { label: "Cài đặt", icon: Settings, href: "/admin/settings", children: ADMIN_SETTINGS_SUB_ITEMS },
     ]
   }
 ];
 
 export default function AdminSidebar({ user, handleLogout }) {
   const location = useLocation();
+  const [openGroups, setOpenGroups] = useState({});
 
   return (
     <aside className="w-64 bg-card border-r border-border min-h-screen fixed left-0 top-0 bottom-0 flex flex-col z-50">
@@ -82,10 +103,79 @@ export default function AdminSidebar({ user, handleLogout }) {
               <div className="flex flex-col gap-1">
                 {group.items.map((item) => {
                   const Icon = item.icon;
+                  const hasChildren = Boolean(item.children?.length);
                   const isActive =
                     item.href === "/admin"
                       ? location.pathname === "/admin" || location.pathname === "/admin/"
                       : location.pathname.startsWith(item.href);
+                  const isOpen = openGroups[item.href] ?? isActive;
+
+                  if (hasChildren) {
+                    return (
+                      <div key={item.href} className="space-y-1">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setOpenGroups((current) => ({
+                              ...current,
+                              [item.href]: !isOpen,
+                            }))
+                          }
+                          className={`
+                            flex w-full items-center gap-3 px-3 py-3 rounded-lg text-base font-medium transition-all group
+                            ${isActive
+                              ? "bg-primary text-white font-bold shadow-md shadow-primary/20"
+                              : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                            }
+                          `}
+                        >
+                          <Icon className={`w-5 h-5 shrink-0 ${isActive ? "text-white" : "text-muted-foreground group-hover:text-foreground"}`} />
+                          <span className="flex-1 text-left">{item.label}</span>
+                          <ChevronDown className={`w-4 h-4 shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+                        </button>
+
+                        {isOpen && (
+                          <div className="relative ml-5 pl-3">
+                            <span className="absolute left-0 top-1 bottom-1 w-px bg-border" aria-hidden="true" />
+                            <div className="flex flex-col gap-1 py-1">
+                              {item.children.map((child) => {
+                                const ChildIcon = child.icon;
+                                const params = new URLSearchParams(location.search);
+                                const activeTab = params.get("tab") || "general";
+                                const isChildActive =
+                                  location.pathname === item.href && activeTab === child.tab;
+
+                                return (
+                                  <div key={child.href} className="relative">
+                                    <span
+                                      className={`
+                                        absolute -left-3 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-card transition-all
+                                        ${isChildActive ? "h-3 w-3 bg-primary" : "h-2 w-2 bg-border"}
+                                      `}
+                                      aria-hidden="true"
+                                    />
+                                    <Link
+                                      to={child.href}
+                                      className={`
+                                        flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-semibold transition-all
+                                        ${isChildActive
+                                          ? "bg-primary/10 text-primary"
+                                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                                        }
+                                      `}
+                                    >
+                                      <ChildIcon className="h-4 w-4 shrink-0" />
+                                      {child.label}
+                                    </Link>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  }
 
                   return (
                     <Link

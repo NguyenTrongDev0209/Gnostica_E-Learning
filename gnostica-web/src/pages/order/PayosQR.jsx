@@ -21,6 +21,7 @@ export default function PayosQR({
   paymentData: paymentDataProp,
   orderItems: orderItemsProp,
   onCancel,
+  onPaid,
 }) {
   const { state } = useLocation();
   const [timeLeft, setTimeLeft] = useState(payosPaymentMock.expiresInSeconds);
@@ -42,8 +43,10 @@ export default function PayosQR({
       : `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(paymentData.qrCode)}`)
     : `https://img.vietqr.io/image/${paymentData?.bin || "MB"}-${paymentData?.accountNumber || payosPaymentMock.accountNumber}-compact2.png?amount=${totalAmount}&addInfo=${encodeURIComponent(paymentData?.description || payosPaymentMock.transferContent)}&accountName=${encodeURIComponent(paymentData?.accountName || payosPaymentMock.accountHolder)}`;
 
+  const checkoutPath = paymentData?.orderCode ? `/checkout?orderCode=${paymentData.orderCode}` : "/account/orders";
+
   const breadcrumbItems = [
-    { label: "Thanh toán", href: "/checkout" },
+    { label: "Thanh toán", href: checkoutPath },
     { label: paymentData?.orderCode ? String(paymentData.orderCode) : "Mã đơn hàng", isLast: true }
   ];
 
@@ -71,9 +74,19 @@ export default function PayosQR({
           setStatus("paid");
           toast.success("Thanh toán thành công! Đang kích hoạt khóa học...");
 
-          // Chuyển hướng sang trang kết quả kèm orderCode để hiển thị chi tiết
+          // Report the paid order to the checkout page when embedded.
           setTimeout(() => {
-            navigate(`/checkout/success?orderCode=${paymentData.orderCode}`);
+            if (onPaid) {
+              onPaid({
+                orderCode: paymentData.orderCode,
+                gateway: "PAYOS",
+                paymentStatus: "PAID",
+                verified: true,
+                amount: totalAmount,
+              });
+            } else {
+              navigate(`/checkout?orderCode=${paymentData.orderCode}&gateway=PAYOS&paymentStatus=PAID&verified=true`);
+            }
           }, 500);
           return;
         } else if (response.error !== 0) {
@@ -100,7 +113,7 @@ export default function PayosQR({
       isPolling = false;
       if (pollTimeout) clearTimeout(pollTimeout);
     };
-  }, [paymentData?.orderCode, status, navigate]);
+  }, [paymentData?.orderCode, status, navigate, onPaid, totalAmount]);
 
   // Countdown timer
   useEffect(() => {
@@ -128,7 +141,7 @@ export default function PayosQR({
       onCancel();
       return;
     }
-    navigate("/checkout", {
+    navigate(paymentData?.orderCode ? `/checkout?orderCode=${paymentData.orderCode}&cancelled=true` : "/account/orders", {
       replace: true,
       state: { orderItems },
     });

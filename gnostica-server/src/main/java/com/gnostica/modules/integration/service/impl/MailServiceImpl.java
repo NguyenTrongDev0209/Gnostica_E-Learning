@@ -91,7 +91,7 @@ public class MailServiceImpl implements MailService {
     public void sendCourseCompletionEmail(Enrollment enrollment) {
         String to = enrollment.getAccount().getEmail();
         String subject = "Chúc mừng bạn đã hoàn thành khóa học - Gnostica E-Learning";
-        String certificateLink = "http://localhost:5173/certificate/" + enrollment.getCertifiUrl();
+        String certificateLink = "http://localhost:5173/certificate/" + enrollment.getCertificateUrl();
         
         Context context = new Context();
         context.setVariable("accountName", enrollment.getAccount().getFullName());

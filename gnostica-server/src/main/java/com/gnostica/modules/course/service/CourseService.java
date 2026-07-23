@@ -72,6 +72,7 @@ public class CourseService {
         course.setDiscount(request.getDiscount() != null ? request.getDiscount() : 0);
 
         course.setLevel(request.getLevel() != null ? request.getLevel() : "Beginner");
+        course.setMetadata(request.getMetadata());
         course.setPromoVideo(request.getPromoVideo());
 
         course.setCategory(category);
@@ -95,6 +96,7 @@ public class CourseService {
                 module.setTitle(mReq.getTitle());
                 module.setStatus(mReq.getStatus() != null ? mReq.getStatus() : course.getStatus());
                 module.setCourse(course);
+                module.setMetadata(mReq.getMetadata());
                 module.setVersionNumber(1);
                 module.setSortOrder(moduleSortOrder++);
 
@@ -346,6 +348,7 @@ public class CourseService {
         course.setDiscount(request.getDiscount());
 
         course.setLevel(request.getLevel());
+        course.setMetadata(request.getMetadata());
         course.setCategory(category);
 
         if (category.getStatus() == null || category.getStatus() == 0) {
@@ -377,7 +380,7 @@ public class CourseService {
                 if (mReq.getId() != null) {
                     // Update existing
                     Module found = currentModules.stream()
-                            .filter(m -> m.getId().equals(mReq.getId()))
+                            .filter(m -> m.getId() != null && m.getId().equals(mReq.getId()))
                             .findFirst()
                             .orElse(null);
                     if (found != null) {
@@ -401,6 +404,7 @@ public class CourseService {
                 }
 
                 module.setTitle(mReq.getTitle());
+                module.setMetadata(mReq.getMetadata());
                 module.setSortOrder(moduleSortOrder++);
                 module.setStatus(mReq.getStatus() != null ? mReq.getStatus() : course.getStatus());
 
@@ -443,7 +447,7 @@ public class CourseService {
                         Lesson lesson;
                         if (lReq.getId() != null) {
                             lesson = currentLessons.stream()
-                                    .filter(l -> l.getId().equals(lReq.getId()))
+                                    .filter(l -> l.getId() != null && l.getId().equals(lReq.getId()))
                                     .findFirst()
                                     .orElse(null);
                             if (lesson == null) {
@@ -620,7 +624,17 @@ public class CourseService {
         }
         
         org.springframework.data.domain.Page<Course> coursesPage = courseRepository.findInstructorCourses(email, formattedSearch, categoryId, status, pageable);
-        return coursesPage.map(this::mapToCourseResponse);
+        return coursesPage.map(course -> {
+            CourseResponse response = mapToCourseResponse(course);
+            Course draft = courseRepository.findFirstByOriginalCourseAndDeletedAtIsNullOrderByIdDesc(course).orElse(null);
+            if (draft != null) {
+                response.setHasDraftVersion(true);
+                response.setDraftCourseSlug(draft.getSlug());
+            } else {
+                response.setHasDraftVersion(false);
+            }
+            return response;
+        });
     }
 
     @Transactional(readOnly = true)
@@ -670,7 +684,17 @@ public class CourseService {
         int normalizedCategoryId = categoryId == null ? -1 : categoryId;
         return courseRepository.findModerationCourses(
                         normalizedStatus, normalizedSearch, normalizedCategoryId, pageable)
-                .map(this::mapToCourseResponse);
+                .map(course -> {
+                    CourseResponse response = mapToCourseResponse(course);
+                    if (course.getOriginalCourse() != null) {
+                        response.setIsVersionUpdate(true);
+                        response.setOriginalCourseName(course.getOriginalCourse().getTitle());
+                        response.setOriginalCourseSlug(course.getOriginalCourse().getSlug());
+                    } else {
+                        response.setIsVersionUpdate(false);
+                    }
+                    return response;
+                });
     }
 
     @Transactional(readOnly = true)
@@ -701,7 +725,15 @@ public class CourseService {
     public CourseDetailResponse getCourseForModerationBySlug(String slug) {
         Course course = courseRepository.findFirstBySlugAndDeletedAtIsNullOrderByIdDesc(slug)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học để kiểm duyệt"));
-        return mapToCourseDetailResponse(course);
+        CourseDetailResponse response = mapToCourseDetailResponse(course);
+        if (course.getOriginalCourse() != null) {
+            response.setIsVersionUpdate(true);
+            response.setOriginalCourseName(course.getOriginalCourse().getTitle());
+            response.setOriginalCourseSlug(course.getOriginalCourse().getSlug());
+        } else {
+            response.setIsVersionUpdate(false);
+        }
+        return response;
     }
 
     @Transactional(readOnly = true)
@@ -727,6 +759,7 @@ public class CourseService {
             original.setPrice(course.getPrice());
             original.setDiscount(course.getDiscount());
             original.setLevel(course.getLevel());
+            original.setMetadata(course.getMetadata());
             original.setCategory(course.getCategory());
             original.setPromoVideo(course.getPromoVideo());
             original.setVersionNumber(course.getVersionNumber());
@@ -760,6 +793,7 @@ public class CourseService {
                     
                     targetMod.setDeleted(false);
                     targetMod.setTitle(newMod.getTitle());
+                    targetMod.setMetadata(newMod.getMetadata());
                     targetMod.setStatus(1);
                     targetMod.setVersionNumber(newMod.getVersionNumber());
                     targetMod.setSortOrder(newMod.getSortOrder());
@@ -869,7 +903,7 @@ public class CourseService {
         String slug = baseSlug;
         int count = 1;
 
-        while (id == null ? courseRepository.existsBySlugAndDeletedAtIsNull(slug) : courseRepository.existsBySlugAndIdNotAndDeletedAtIsNull(slug, id)) {
+        while (id == null ? courseRepository.existsBySlug(slug) : courseRepository.existsBySlugAndIdNot(slug, id)) {
             slug = baseSlug + "-" + count;
             count++;
         }
@@ -908,6 +942,7 @@ public class CourseService {
         response.setDiscount(course.getDiscount());
         response.setSalePrice(course.getSalePrice());
         response.setLevel(course.getLevel());
+        response.setMetadata(course.getMetadata());
         response.setStatus(course.getStatus());
         response.setDeleted(course.getDeleted());
         response.setRejectReason(course.getRejectReason() != null ? course.getRejectReason() : "");
@@ -947,6 +982,7 @@ public class CourseService {
         response.setDiscount(course.getDiscount());
         response.setSalePrice(course.getSalePrice());
         response.setLevel(course.getLevel());
+        response.setMetadata(course.getMetadata());
         response.setStatus(course.getStatus());
         response.setDeleted(course.getDeleted());
         response.setRejectReason(course.getRejectReason() != null ? course.getRejectReason() : "");
@@ -985,6 +1021,7 @@ public class CourseService {
         com.gnostica.modules.course.dto.response.ModuleResponse response = new com.gnostica.modules.course.dto.response.ModuleResponse();
         response.setId(module.getId());
         response.setTitle(module.getTitle());
+        response.setMetadata(module.getMetadata());
         response.setCreatedAt(module.getCreatedAt());
         response.setUpdatedAt(module.getUpdatedAt());
         response.setStatus(module.getStatus());

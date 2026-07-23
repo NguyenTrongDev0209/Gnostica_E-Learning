@@ -7,11 +7,9 @@ import com.gnostica.core.model.Order;
 import com.gnostica.core.model.OrderDetail;
 import com.gnostica.core.model.Log;
 import com.gnostica.core.model.Wallet;
-import com.gnostica.core.model.RevenueShare;
 import com.gnostica.core.repository.OrderDetailRepository;
 import com.gnostica.core.repository.LogRepository;
 import com.gnostica.core.repository.WalletRepository;
-import com.gnostica.core.repository.RevenueShareRepository;
 import com.gnostica.modules.settings.service.CommissionResolver;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +33,6 @@ public class WalletListener {
     private final LogRepository logRepository;
     private final OrderDetailRepository orderDetailRepository;
     private final ObjectMapper objectMapper;
-    private final RevenueShareRepository revenueShareRepository;
     private final CommissionResolver commissionResolver;
 
     @EventListener
@@ -46,10 +43,6 @@ public class WalletListener {
 
         List<OrderDetail> details = orderDetailRepository.findByOrder(order);
         for (OrderDetail detail : details) {
-            if (revenueShareRepository.existsByOrderDetail(detail)) {
-                log.info("Revenue share already exists for order detail {}, skipping", detail.getId());
-                continue;
-            }
             Account instructor = detail.getCourse().getAccount();
             if (instructor != null) {
                 // OrderDetail.price is already the server-calculated amount after course discount and coupon.
@@ -59,7 +52,12 @@ public class WalletListener {
                         ? coursePrice.setScale(6, RoundingMode.HALF_UP)
                         : netSaleAmount;
                 BigDecimal discountAmount = grossAmount.subtract(netSaleAmount).setScale(6, RoundingMode.HALF_UP);
-                CommissionResolver.ResolvedCommission commission = commissionResolver.resolve(instructor, LocalDateTime.now());
+                CommissionResolver.ResolvedCommission commission = detail.getCommission() != null
+                        ? new CommissionResolver.ResolvedCommission(
+                                detail.getCommission().getInstructorRatio(),
+                                detail.getCommission().getPlatformRatio(),
+                                detail.getCommission())
+                        : commissionResolver.resolve(instructor, LocalDateTime.now());
                 BigDecimal instructorAmount = netSaleAmount.multiply(commission.instructorRatio())
                         .divide(new BigDecimal("100"), 6, RoundingMode.HALF_UP);
                 BigDecimal platformAmount = netSaleAmount.subtract(instructorAmount).setScale(6, RoundingMode.HALF_UP);
@@ -68,7 +66,6 @@ public class WalletListener {
                     Wallet newWallet = new Wallet();
                     newWallet.setAccount(instructor);
                     newWallet.setRemain(BigDecimal.ZERO);
-                    newWallet.setDailyWithdrawalCount(0);
                     newWallet.setType(1);
                     newWallet.setStatus(1);
                     return newWallet;
@@ -77,21 +74,6 @@ public class WalletListener {
                 BigDecimal currentRemain = wallet.getRemain() != null ? wallet.getRemain() : BigDecimal.ZERO;
                 wallet.setRemain(currentRemain.add(instructorAmount));
                 walletRepository.save(wallet);
-
-                RevenueShare revenueShare = RevenueShare.builder()
-                        .orderDetail(detail)
-                        .instructor(instructor)
-                        .commission(commission.source())
-                        .grossAmount(grossAmount)
-                        .discountAmount(discountAmount)
-                        .netSaleAmount(netSaleAmount)
-                        .instructorRatio(commission.instructorRatio())
-                        .platformRatio(commission.platformRatio())
-                        .instructorAmount(instructorAmount)
-                        .platformAmount(platformAmount)
-                        .status(1)
-                        .build();
-                revenueShareRepository.save(revenueShare);
 
                 // Log Revenue
                 Log revenueLog = new Log();

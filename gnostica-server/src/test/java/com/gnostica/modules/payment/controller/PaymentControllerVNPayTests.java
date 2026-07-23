@@ -21,7 +21,7 @@ class PaymentControllerVNPayTests {
     void setUp() {
         paymentService = mock(PaymentService.class);
         VNPayProperties properties = new VNPayProperties();
-        properties.setFrontendReturnUrl("https://app.example.com/checkout/success");
+        properties.setFrontendReturnUrl("https://app.example.com/checkout");
         controller = new PaymentController(paymentService, properties);
     }
 
@@ -36,7 +36,7 @@ class PaymentControllerVNPayTests {
 
         RedirectView result = controller.vnPayReturn(parameters);
 
-        assertThat(result.getUrl()).isEqualTo("https://app.example.com/checkout/success?orderCode=123&gateway=VNPAY&paymentStatus=PAID&verified=true");
+        assertThat(result.getUrl()).isEqualTo("https://app.example.com/checkout?orderCode=123&gateway=VNPAY&paymentStatus=PAID&verified=true");
         verify(paymentService).handleVNPayIpn(parameters);
     }
 
@@ -46,7 +46,7 @@ class PaymentControllerVNPayTests {
 
         RedirectView result = controller.vnPayReturn(Map.of());
 
-        assertThat(result.getUrl()).isEqualTo("https://app.example.com/checkout/success?gateway=VNPAY&paymentStatus=INVALID&verified=false");
+        assertThat(result.getUrl()).isEqualTo("https://app.example.com/checkout?gateway=VNPAY&paymentStatus=INVALID&verified=false");
     }
 
     @Test

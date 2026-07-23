@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 public class ModuleResponse {
     private Integer id;
     private String title;
+    private String metadata;
     private LocalDateTime createdAt;
     private Integer status;
     private Boolean deleted;

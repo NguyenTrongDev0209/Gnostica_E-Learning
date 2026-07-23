@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import {
   Plus,
   Search,
@@ -168,7 +168,7 @@ export default function AdminUsers() {
           {acc.status === 2 ? (
             <AppButton appVariant="gradient"
               size="sm"
-              className={`h-9 font-bold gap-2 bg-emerald-600 hover:bg-emerald-700 text-white border-none`}
+              className={`h-9 font-bold gap-2 bg-success hover:bg-success/90 text-white border-none`}
               onClick={() => handleToggleLock(acc)}
             >
               <Unlock className="w-4 h-4" /> Mở khóa
@@ -176,7 +176,7 @@ export default function AdminUsers() {
           ) : (
             <AppButton appVariant="ghostMuted" variant="ghost"
               size="sm"
-              className={`h-9 font-bold gap-2 border border-error/20 text-error hover:bg-red-50 hover:text-error bg-white`}
+              className={`h-9 font-bold gap-2 border border-error/20 text-error hover:bg-error/10 hover:text-error bg-white`}
               onClick={() => handleToggleLock(acc)}
             >
               <Lock className="w-4 h-4" /> Khóa
@@ -231,14 +231,14 @@ export default function AdminUsers() {
         <div className="flex justify-end items-center gap-2">
           <AppButton appVariant="ghostMuted" variant="ghost"
             size="sm"
-            className="border border-success/20 text-success hover:bg-green-50 bg-white font-bold"
+            className="border border-success/20 text-success hover:bg-success/10 bg-white font-bold"
             onClick={() => handleApprove(app.accountId)}
           >
             Phê duyệt
           </AppButton>
           <AppButton appVariant="ghostMuted" variant="ghost"
             size="sm"
-            className="border border-error/20 text-error hover:bg-red-50 bg-white font-bold"
+            className="border border-error/20 text-error hover:bg-error/10 bg-white font-bold"
             onClick={() => {
               setSelectedApp(app.accountId);
               setRejectReason("");
@@ -399,14 +399,14 @@ export default function AdminUsers() {
       <Dialog open={!!previewDocument?.url} onOpenChange={(open) => !open && setPreviewDocument({ url: null, title: "" })}>
         <DialogContent className="sm:max-w-[900px] h-[85vh] flex flex-col p-4 sm:p-6">
           <DialogHeader className="mb-2 shrink-0">
-            <DialogTitle className="text-xl font-bold flex justify-between items-center pr-6 text-slate-800">
+            <DialogTitle className="text-xl font-bold flex justify-between items-center pr-6 text-foreground">
               {previewDocument?.title || "Xem trước tài liệu"}
               <AppButton appVariant="ghostMuted" variant="ghost" size="sm" className="h-8 border border-border bg-white hover:bg-muted font-bold" onClick={() => window.open(previewDocument?.url, '_blank')}>
                 Mở trong tab mới
               </AppButton>
             </DialogTitle>
           </DialogHeader>
-          <div className="flex-1 w-full bg-slate-100/50 overflow-hidden border border-border flex items-center justify-center relative">
+          <div className="flex-1 w-full bg-muted/50 overflow-hidden border border-border flex items-center justify-center relative">
             {previewDocument?.url && (
               (() => {
                 const isPdf = previewDocument.url.split('?')[0].toLowerCase().endsWith('.pdf') ||
@@ -440,12 +440,12 @@ export default function AdminUsers() {
       {/* Lecturer Application Review Dialog */}
       <Dialog open={!!selectedAppDetail} onOpenChange={(open) => !open && setSelectedAppDetail(null)}>
         <DialogContent className="sm:max-w-[1000px] h-[85vh] flex flex-col p-0 overflow-hidden bg-white" showCloseButton={false}>
-          <DialogHeader className="p-5 border-b border-border shrink-0 bg-slate-50 flex flex-row items-center justify-between">
+          <DialogHeader className="p-5 border-b border-border shrink-0 bg-muted flex flex-row items-center justify-between">
             <div>
-              <DialogTitle className="text-xl font-bold text-slate-800">
+              <DialogTitle className="text-xl font-bold text-foreground">
                 Thẩm định Hồ sơ Giảng viên
               </DialogTitle>
-              <DialogDescription className="text-sm text-slate-500 mt-1">
+              <DialogDescription className="text-sm text-muted-foreground mt-1">
                 Duyệt chi tiết hồ sơ đăng ký của <strong>{selectedAppDetail?.fullName}</strong>.
               </DialogDescription>
             </div>
@@ -457,7 +457,7 @@ export default function AdminUsers() {
           {selectedAppDetail && (
             <div className="flex flex-1 overflow-hidden min-h-0">
               {/* Left Column: Sidebar with details & menu */}
-              <div className="w-[320px] border-r border-border bg-slate-50/50 p-5 overflow-y-auto flex flex-col justify-between shrink-0">
+              <div className="w-[320px] border-r border-border bg-muted/50 p-5 overflow-y-auto flex flex-col justify-between shrink-0">
                 <div className="space-y-6">
                   {/* User Profile Info Card */}
                   <div className="bg-white p-4 rounded-xl border border-border shadow-sm flex flex-col items-center text-center">
@@ -466,14 +466,14 @@ export default function AdminUsers() {
                         {selectedAppDetail.fullName?.charAt(0)}
                       </AvatarFallback>
                     </Avatar>
-                    <h3 className="font-extrabold text-base text-slate-800">{selectedAppDetail.fullName}</h3>
+                    <h3 className="font-extrabold text-base text-foreground">{selectedAppDetail.fullName}</h3>
                     <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1.5 justify-center"><Mail className="w-3.5 h-3.5" /> {selectedAppDetail.email}</p>
                     <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1.5 justify-center"><Phone className="w-3.5 h-3.5" /> {selectedAppDetail.contactPhone}</p>
                   </div>
 
                   {/* Document Review List */}
                   <div className="space-y-2">
-                    <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block px-1">Danh mục tài liệu</span>
+                    <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground block px-1">Danh mục tài liệu</span>
                     <div className="space-y-1">
                       {getDocumentList(selectedAppDetail).map((doc) => {
                         const Icon = doc.icon;
@@ -485,7 +485,7 @@ export default function AdminUsers() {
                             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-all text-left ${
                               isSelected
                                 ? "bg-primary text-white shadow-sm"
-                                : "text-slate-600 hover:bg-slate-100 hover:text-slate-800"
+                                : "text-muted-foreground hover:bg-muted hover:text-foreground"
                             }`}
                             onClick={() => setActiveDoc(doc)}
                           >
@@ -506,8 +506,8 @@ export default function AdminUsers() {
               {/* Right Column: Preview pane & actions */}
               <div className="flex-1 flex flex-col overflow-hidden min-h-0">
                 {/* Active Document Header */}
-                <div className="px-5 py-3 border-b border-border bg-slate-50 flex items-center justify-between shrink-0">
-                  <span className="text-sm font-bold text-slate-700">
+                <div className="px-5 py-3 border-b border-border bg-muted flex items-center justify-between shrink-0">
+                  <span className="text-sm font-bold text-foreground">
                     Đang xem: <span className="text-primary">{activeDoc?.title}</span>
                   </span>
                   {activeDoc && activeDoc.type !== "text" && (
@@ -524,7 +524,7 @@ export default function AdminUsers() {
                 </div>
 
                 {/* Active Document Viewer Pane */}
-                <div className="flex-1 w-full bg-slate-100/50 overflow-hidden relative flex items-center justify-center">
+                <div className="flex-1 w-full bg-muted/50 overflow-hidden relative flex items-center justify-center">
                   {activeDoc && (
                     (() => {
                       if (activeDoc.type === "pdf") {
@@ -539,10 +539,10 @@ export default function AdminUsers() {
                       } else if (activeDoc.type === "text") {
                         return (
                           <div className="w-full h-full overflow-y-auto p-6 bg-white flex flex-col justify-start">
-                            <h4 className="text-lg font-bold text-slate-800 mb-4 border-b pb-2 flex items-center gap-2">
+                            <h4 className="text-lg font-bold text-foreground mb-4 border-b pb-2 flex items-center gap-2">
                               <BookOpen className="w-5 h-5 text-primary" /> Đề cương bài giảng dự kiến
                             </h4>
-                            <p className="text-base text-slate-600 leading-relaxed whitespace-pre-line">
+                            <p className="text-base text-muted-foreground leading-relaxed whitespace-pre-line">
                               {activeDoc.url || "Giảng viên chưa cung cấp đề cương chi tiết."}
                             </p>
                           </div>
@@ -563,12 +563,12 @@ export default function AdminUsers() {
                 </div>
 
                 {/* Review Action Buttons */}
-                <div className="p-4 border-t border-border bg-slate-50 flex justify-end items-center gap-3 shrink-0">
+                <div className="p-4 border-t border-border bg-muted flex justify-end items-center gap-3 shrink-0">
                   <AppButton
                     appVariant="ghostMuted"
                     variant="ghost"
                     size="sm"
-                    className="h-10 px-5 border border-error/20 text-error hover:bg-red-50 bg-white font-extrabold text-sm"
+                    className="h-10 px-5 border border-error/20 text-error hover:bg-error/10 bg-white font-extrabold text-sm"
                     onClick={() => {
                       setSelectedApp(selectedAppDetail.accountId);
                       setRejectReason("");
@@ -582,7 +582,7 @@ export default function AdminUsers() {
                     appVariant="ghostMuted"
                     variant="ghost"
                     size="sm"
-                    className="h-10 px-5 border border-success/20 text-success hover:bg-green-50 bg-white font-extrabold text-sm"
+                    className="h-10 px-5 border border-success/20 text-success hover:bg-success/10 bg-white font-extrabold text-sm"
                     onClick={() => {
                       handleApprove(selectedAppDetail.accountId);
                       setSelectedAppDetail(null);

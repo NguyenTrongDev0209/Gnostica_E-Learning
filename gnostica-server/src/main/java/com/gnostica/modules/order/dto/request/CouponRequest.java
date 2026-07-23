@@ -29,4 +29,5 @@ public class CouponRequest {
     private LocalDateTime validUntil;
     private Integer quantity;
     private Integer status;
+    private String metadata;
 }

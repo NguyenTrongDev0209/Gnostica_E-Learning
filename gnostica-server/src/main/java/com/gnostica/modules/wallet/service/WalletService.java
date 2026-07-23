@@ -53,14 +53,8 @@ public class WalletService {
             newWallet.setRemain(BigDecimal.ZERO);
             newWallet.setStatus(1);
             newWallet.setType(1);
-            newWallet.setDailyWithdrawalCount(0);
             return walletRepository.save(newWallet);
         });
-
-        // Đếm số lượt rút tiền trong ngày (type = 2 ở old model, giờ đếm Payout)
-        java.time.LocalDateTime startOfDay = java.time.LocalDate.now().atStartOfDay();
-        long count = payoutRepository.countByAccountAndCreatedAtAfter(account, startOfDay);
-        wallet.setDailyWithdrawalCount((int) count);
 
         return wallet;
     }

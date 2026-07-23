@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import LineChart from "@/components/common/composite/LineChart";
 import { ChartDateFilters } from "@/components/common/composite/DataFilter";
 
@@ -124,8 +124,8 @@ function RevenueCharts({ revenueData, stats }) {
             data={revenueData}
             dataKey="revenue"
             xAxisKey="month"
-            strokeColor="hsl(221, 83%, 53%)"
-            fillColor="hsl(221, 83%, 53%)"
+            strokeColor="var(--info)"
+            fillColor="var(--info)"
             gradientId="colorRevenue"
             yAxisFormatter={(value) => `${(value / 1000000).toFixed(0)}M`}
             tooltipFormatter={(value) => [`${value.toLocaleString()}đ`, "Doanh thu"]}
@@ -141,7 +141,7 @@ function StatsGrid({ stats }) {
             trend: stats?.revenueTrend ? `+${stats.revenueTrend}%` : "+0%",
             isPositive: true,
             icon: TrendingUp,
-            color: "text-info bg-blue-50 border-info/20"
+            color: "text-info bg-info/10 border-info/20"
         },
         {
             title: "Học Viên Mới",
@@ -149,7 +149,7 @@ function StatsGrid({ stats }) {
             trend: stats?.studentTrend ? `+${stats.studentTrend}%` : "+0%",
             isPositive: true,
             icon: Users,
-            color: "text-success bg-green-50 border-success/20"
+            color: "text-success bg-success/10 border-success/20"
         },
         {
             title: "Khóa Học Đang Bán",
@@ -157,7 +157,7 @@ function StatsGrid({ stats }) {
             trend: stats?.courseTrend ? `+${stats.courseTrend}%` : "0%",
             isPositive: true,
             icon: BookOpen,
-            color: "text-warning bg-orange-50 border-warning/20"
+            color: "text-warning bg-warning/10 border-warning/20"
         },
         {
             title: "Đơn Hàng Hôm Nay",
@@ -165,7 +165,7 @@ function StatsGrid({ stats }) {
             trend: stats?.orderTrend ? `${stats.orderTrend}%` : "0%",
             isPositive: stats?.orderTrend >= 0,
             icon: ShoppingCart,
-            color: "text-purple-600 bg-purple-50 border-purple-100"
+            color: "text-primary bg-primary/10 border-primary/20"
         },
     ];
 
@@ -180,7 +180,7 @@ function StatsGrid({ stats }) {
                                 <div className={`w-12 h-12 rounded-xl flex items-center justify-center border ${stat.color}`}>
                                     <Icon className="w-6 h-6" />
                                 </div>
-                                <div className={`flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full ${stat.isPositive ? 'text-success bg-green-50/80 border border-success/20' : 'text-error bg-red-50/80 border border-error/20'}`}>
+                                <div className={`flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full ${stat.isPositive ? 'text-success bg-success/10 border border-success/20' : 'text-error bg-error/10 border border-error/20'}`}>
                                     {stat.isPositive ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
                                     {stat.trend}
                                 </div>
@@ -198,7 +198,7 @@ function StatsGrid({ stats }) {
 }
 
 const topCoursesConfig = {
-    students: { label: "Học viên", color: "hsl(221, 83%, 53%)" },
+    students: { label: "Học viên", color: "var(--info)" },
 };
 
 function TopCourses({ data }) {
@@ -215,7 +215,7 @@ function TopCourses({ data }) {
                         layout="vertical"
                         margin={{ left: 0, right: 24, top: 4, bottom: 0 }}
                     >
-                        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
+                        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--border)" />
                         <XAxis type="number" tickLine={false} axisLine={false} tick={{ fontSize: 11 }} />
                         <YAxis
                             type="category"
@@ -226,7 +226,7 @@ function TopCourses({ data }) {
                             width={130}
                         />
                         <ChartTooltip content={<ChartTooltipContent />} />
-                        <Bar dataKey="students" fill="hsl(221, 83%, 53%)" radius={[0, 4, 4, 0]} maxBarSize={28} />
+                        <Bar dataKey="students" fill="var(--info)" radius={[0, 4, 4, 0]} maxBarSize={28} />
                     </BarChart>
                 </ChartContainer>
             </AppCardContent>
@@ -258,8 +258,8 @@ function MemberGrowthChart({ data, stats }) {
             data={data}
             dataKey="students"
             xAxisKey="month"
-            strokeColor="#3b82f6"
-            fillColor="#3b82f6"
+            strokeColor="var(--info)"
+            fillColor="var(--info)"
             gradientId="colorStudents"
             tooltipFormatter={(value) => [`${value.toLocaleString()} HV`, "Học viên"]}
             height={300}
@@ -315,7 +315,7 @@ function RecentOrders({ orders }) {
                             render: (order) => (
                                 <>
                                     {order.status === "completed" && <AppBadge className="bg-success/10 text-success text-success hover:bg-success/10 text-success shadow-none border-success/20">Hoàn thành</AppBadge>}
-                                    {order.status === "pending" && <AppBadge className="bg-amber-100 text-amber-700 hover:bg-amber-100 shadow-none border-amber-200">Chờ xử lý</AppBadge>}
+                                    {order.status === "pending" && <AppBadge className="bg-warning/10 text-warning hover:bg-warning/10 shadow-none border-warning/20">Chờ xử lý</AppBadge>}
                                     {order.status === "failed" && <AppBadge className="bg-error/10 text-error text-error hover:bg-error/10 text-error shadow-none border-error/20">Thất bại</AppBadge>}
                                 </>
                             ),

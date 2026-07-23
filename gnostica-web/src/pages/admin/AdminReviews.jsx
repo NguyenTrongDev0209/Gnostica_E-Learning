@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import {MessageSquare, Star} from "lucide-react";
 import AppCard, { AppCardContent, AppCardHeader, AppCardTitle } from "@/components/common/micro/AppCard";
 import AppBadge from "@/components/common/micro/AppBadge";
@@ -16,7 +16,7 @@ export default function AdminReviews() {
         </p>
       </div>
       <div className="flex flex-col items-center justify-center h-64 bg-white rounded-xl border border-border border-dashed gap-4">
-        <MessageSquare className="w-12 h-12 text-slate-300" />
+        <MessageSquare className="w-12 h-12 text-muted-foreground/40" />
         <p className="text-muted-foreground font-medium">Trang Đánh Giá &amp; Bình Luận đang được xây dựng</p>
       </div>
     </div>

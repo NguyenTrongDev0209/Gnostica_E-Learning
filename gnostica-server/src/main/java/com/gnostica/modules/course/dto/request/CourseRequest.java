@@ -17,7 +17,7 @@ import java.util.List;
 
 @Data
 public class CourseRequest {
-    private Integer id;
+    private String id;
 
     @NotBlank(message = "Tên khóa học là bắt buộc")
     private String title;
@@ -45,6 +45,8 @@ public class CourseRequest {
     private String level;
     
     private String promoVideo;
+
+    private String metadata;
 
     private Integer status;
 

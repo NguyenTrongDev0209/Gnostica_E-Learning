@@ -1,18 +1,18 @@
-import { AppCardDescription as CardDescription } from "@/components/common/micro/AppCard";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/common/micro/AppTabs";
+﻿import { AppCardDescription as CardDescription } from "@/components/common/micro/AppCard";
+import { Tabs, TabsContent } from "@/components/common/micro/AppTabs";
 import AppTextarea from "@/components/common/micro/AppTextarea";
 import { Switch } from "@/components/common/micro/AppSwitch";
 // Fix imported
 import React, { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { AppButton } from "@/components/common/micro/AppButton";
 import AppSelect from "@/components/common/micro/AppSelect";
 import AppInput from "@/components/common/micro/AppInput";
 import { Label } from "@/components/common/micro/AppLabel";
+import { AppDialog } from "@/components/common/micro/AppDialog";
 import {
   Activity,
-  BookOpenText,
   CreditCard,
-  FileText,
   Globe,
   Image as ImageIcon,
   Key,
@@ -71,9 +71,22 @@ const DEFAULT_SETTINGS = {
   "about.vision_banner_url": "",
 };
 
+const SETTINGS_TABS = new Set([
+  "general",
+  "home",
+  "pages",
+  "about",
+  "payment",
+  "finance",
+  "security",
+]);
+
 export default function AdminSettings() {
   const { data, isLoading, updateMutation, uploadMutation } = useAdminSettings();
   const [overrides, setOverrides] = useState({});
+  const [searchParams] = useSearchParams();
+  const requestedTab = searchParams.get("tab") || "general";
+  const activeTab = SETTINGS_TABS.has(requestedTab) ? requestedTab : "general";
   const values = { ...DEFAULT_SETTINGS, ...data, ...overrides };
 
   const updateValue = (key, value) => {
@@ -129,38 +142,7 @@ export default function AdminSettings() {
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <SettingsHeader onSave={handleSave} isSaving={updateMutation.isPending} />
 
-      <Tabs defaultValue="general" className="w-full">
-        <TabsList className="mb-6">
-          <TabsTrigger value="general" className="gap-2">
-            <Globe className="w-4 h-4" />
-            Cài đặt chung
-          </TabsTrigger>
-          <TabsTrigger value="home" className="gap-2">
-            <ImageIcon className="w-4 h-4" />
-            Trang chủ
-          </TabsTrigger>
-          <TabsTrigger value="pages" className="gap-2">
-            <FileText className="w-4 h-4" />
-            Nội dung
-          </TabsTrigger>
-          <TabsTrigger value="about" className="gap-2">
-            <BookOpenText className="w-4 h-4" />
-            Giới thiệu
-          </TabsTrigger>
-          <TabsTrigger value="payment" className="gap-2">
-            <CreditCard className="w-4 h-4" />
-            Thanh toán
-          </TabsTrigger>
-          <TabsTrigger value="finance" className="gap-2">
-            <Percent className="w-4 h-4" />
-            Tài chính
-          </TabsTrigger>
-          <TabsTrigger value="security" className="gap-2">
-            <Shield className="w-4 h-4" />
-            Bảo mật
-          </TabsTrigger>
-        </TabsList>
-
+      <Tabs value={activeTab} className="w-full">
         <TabsContent value="general" className="animate-in fade-in duration-300">
           <GeneralSettings
             values={values}
@@ -225,90 +207,451 @@ function SettingsHeader({ onSave, isSaving }) {
 
 function GeneralSettings({ values, onChange, onLogoUpload, isUploadingLogo }) {
   return (
-    <div className="space-y-6">
-      <AppCard appVariant="default" className="border-border shadow-sm">
-        <AppCardHeader>
-          <AppCardTitle className="text-lg font-bold flex items-center gap-2">
-            <Globe className="w-5 h-5 text-primary" />
-            Thông tin thương hiệu
-          </AppCardTitle>
-          <CardDescription>Cấu hình tên website và các thông tin cơ bản xuất hiện trên nền tảng.</CardDescription>
-        </AppCardHeader>
-        <AppCardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="siteName" className="text-xs font-bold uppercase text-muted-foreground">Tên Website</Label>
-              <AppInput id="siteName" placeholder="Gnostica E-Learning" value={values["site.name"]} onChange={(event) => onChange("site.name", event.target.value)} className="border-border" />
+    <div className="grid grid-cols-1 items-stretch gap-6 xl:grid-cols-2">
+      <div className="space-y-6">
+        <AppCard appVariant="default" className="border-border shadow-sm">
+          <AppCardHeader>
+            <AppCardTitle className="text-lg font-bold flex items-center gap-2">
+              <Globe className="w-5 h-5 text-primary" />
+              Thông tin thương hiệu
+            </AppCardTitle>
+            <CardDescription>Cấu hình tên website và các thông tin cơ bản xuất hiện trên nền tảng.</CardDescription>
+          </AppCardHeader>
+          <AppCardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="siteName" className="text-xs font-bold uppercase text-muted-foreground">Tên Website</Label>
+                  <AppInput id="siteName" placeholder="Gnostica E-Learning" value={values["site.name"]} onChange={(event) => onChange("site.name", event.target.value)} className="border-border" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="tagline" className="text-xs font-bold uppercase text-muted-foreground">Slogan</Label>
+                  <AppInput id="tagline" placeholder="Tri thức không giới hạn" value={values["site.tagline"]} onChange={(event) => onChange("site.tagline", event.target.value)} className="border-border" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-[160px_minmax(0,1fr)]">
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold uppercase text-muted-foreground">Logo Website</Label>
+                  <label htmlFor="siteLogo" className="flex aspect-square cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-border bg-muted p-4 text-center transition-colors hover:bg-muted/80">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-lg border border-border bg-white shadow-sm">
+                      {isUploadingLogo ? <Loader2 className="w-6 h-6 animate-spin text-primary" /> : values["site.logo_url"] ? <img src={values["site.logo_url"]} alt="Logo preview" className="h-full w-full object-contain p-2" /> : <ImageIcon className="w-7 h-7 text-muted-foreground/40" />}
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-semibold text-foreground">Tải logo</span>
+                      <span className="text-xs text-muted-foreground">PNG, JPG, SVG</span>
+                    </div>
+                    <input id="siteLogo" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" className="sr-only" disabled={isUploadingLogo} onChange={(event) => onLogoUpload(event.target.files?.[0])} />
+                  </label>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="footerText" className="text-xs font-bold uppercase text-muted-foreground">Văn bản chân trang (Footer)</Label>
+                  <AppTextarea id="footerText" placeholder="Nhập nội dung hiển thị ở cuối trang..." value={values["footer.description"]} onChange={(event) => onChange("footer.description", event.target.value)} className="min-h-[160px] border-border focus:bg-white" />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="copyright" className="text-xs font-bold uppercase text-muted-foreground">Thông tin bản quyền</Label>
+                <AppInput id="copyright" value={values["footer.copyright"]} onChange={(event) => onChange("footer.copyright", event.target.value)} className="border-border" />
+              </div>
+          </AppCardContent>
+        </AppCard>
+
+        <AppCard appVariant="default" className="border-border shadow-sm">
+          <AppCardHeader>
+            <AppCardTitle className="text-lg font-bold flex items-center gap-2">
+              <Phone className="w-5 h-5 text-primary" />
+              Thông tin liên hệ
+            </AppCardTitle>
+            <CardDescription>Các thông tin này sẽ hiển thị công khai để khách hàng liên hệ.</CardDescription>
+          </AppCardHeader>
+          <AppCardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-xs font-bold uppercase text-muted-foreground">Email liên hệ</Label>
+                <AppInput id="email" type="email" value={values["site.contact_email"]} onChange={(event) => onChange("site.contact_email", event.target.value)} className="border-border" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="phone" className="text-xs font-bold uppercase text-muted-foreground">Số điện thoại</Label>
+                <AppInput id="phone" value={values["site.contact_phone"]} onChange={(event) => onChange("site.contact_phone", event.target.value)} className="border-border" />
+              </div>
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="address" className="text-xs font-bold uppercase text-muted-foreground">Địa chỉ văn phòng</Label>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+                  <AppTextarea id="address" value={values["site.address"]} onChange={(event) => onChange("site.address", event.target.value)} className="pl-9 min-h-[80px] border-border" />
+                </div>
+              </div>
+              <MapLocationPickerField values={values} onChange={onChange} />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="tagline" className="text-xs font-bold uppercase text-muted-foreground">Slogan</Label>
-              <AppInput id="tagline" placeholder="Tri thức không giới hạn" value={values["site.tagline"]} onChange={(event) => onChange("site.tagline", event.target.value)} className="border-border" />
-            </div>
+          </AppCardContent>
+        </AppCard>
+      </div>
+
+      <BrandPreview values={values} />
+    </div>
+  );
+}
+
+function createMapEmbedUrl(query) {
+  const trimmedQuery = query?.trim();
+  if (!trimmedQuery) return "";
+  return `https://www.google.com/maps?q=${encodeURIComponent(trimmedQuery)}&output=embed`;
+}
+
+const DEFAULT_MAP_CENTER = { lat: 10.8231, lng: 106.6297 };
+const TILE_SIZE = 256;
+
+function parseCoordinates(value) {
+  const match = String(value || "").match(/(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)/);
+  if (!match) return null;
+  const lat = Number(match[1]);
+  const lng = Number(match[2]);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  if (lat < -85 || lat > 85 || lng < -180 || lng > 180) return null;
+  return { lat, lng };
+}
+
+function coordinatesToText(coords) {
+  return `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`;
+}
+
+function latLngToPoint({ lat, lng }, zoom) {
+  const scale = TILE_SIZE * 2 ** zoom;
+  const sinLat = Math.sin((Math.max(-85.0511, Math.min(85.0511, lat)) * Math.PI) / 180);
+  return {
+    x: ((lng + 180) / 360) * scale,
+    y: (0.5 - Math.log((1 + sinLat) / (1 - sinLat)) / (4 * Math.PI)) * scale,
+  };
+}
+
+function pointToLatLng(point, zoom) {
+  const scale = TILE_SIZE * 2 ** zoom;
+  const lng = (point.x / scale) * 360 - 180;
+  const n = Math.PI - (2 * Math.PI * point.y) / scale;
+  const lat = (Math.atan(Math.sinh(n)) * 180) / Math.PI;
+  return {
+    lat: Math.max(-85.0511, Math.min(85.0511, lat)),
+    lng: ((((lng + 180) % 360) + 360) % 360) - 180,
+  };
+}
+
+function InteractiveMapPicker({ center, zoom, onCenterChange, onZoomChange }) {
+  const mapRef = useRef(null);
+  const dragRef = useRef(null);
+  const [size, setSize] = useState({ width: 720, height: 360 });
+
+  useEffect(() => {
+    if (!mapRef.current) return undefined;
+    const observer = new ResizeObserver(([entry]) => {
+      setSize({
+        width: entry.contentRect.width,
+        height: entry.contentRect.height,
+      });
+    });
+    observer.observe(mapRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  const setZoom = (nextZoom) => {
+    onZoomChange(Math.max(3, Math.min(18, nextZoom)));
+  };
+
+  const tiles = React.useMemo(() => {
+    const centerPoint = latLngToPoint(center, zoom);
+    const startX = Math.floor((centerPoint.x - size.width / 2) / TILE_SIZE);
+    const endX = Math.floor((centerPoint.x + size.width / 2) / TILE_SIZE);
+    const startY = Math.floor((centerPoint.y - size.height / 2) / TILE_SIZE);
+    const endY = Math.floor((centerPoint.y + size.height / 2) / TILE_SIZE);
+    const maxTile = 2 ** zoom;
+    const nextTiles = [];
+
+    for (let x = startX; x <= endX; x += 1) {
+      for (let y = startY; y <= endY; y += 1) {
+        if (y < 0 || y >= maxTile) continue;
+        const wrappedX = ((x % maxTile) + maxTile) % maxTile;
+        nextTiles.push({
+          key: `${x}-${y}`,
+          src: `https://tile.openstreetmap.org/${zoom}/${wrappedX}/${y}.png`,
+          left: x * TILE_SIZE - (centerPoint.x - size.width / 2),
+          top: y * TILE_SIZE - (centerPoint.y - size.height / 2),
+        });
+      }
+    }
+
+    return nextTiles;
+  }, [center, size.height, size.width, zoom]);
+
+  const handlePointerDown = (event) => {
+    event.currentTarget.setPointerCapture(event.pointerId);
+    dragRef.current = {
+      x: event.clientX,
+      y: event.clientY,
+      center,
+    };
+  };
+
+  const handlePointerMove = (event) => {
+    if (!dragRef.current) return;
+    const deltaX = event.clientX - dragRef.current.x;
+    const deltaY = event.clientY - dragRef.current.y;
+    const startPoint = latLngToPoint(dragRef.current.center, zoom);
+    onCenterChange(pointToLatLng({ x: startPoint.x - deltaX, y: startPoint.y - deltaY }, zoom));
+  };
+
+  const stopDrag = (event) => {
+    dragRef.current = null;
+    if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+  };
+
+  return (
+    <div
+      ref={mapRef}
+      className="relative h-[360px] overflow-hidden rounded-xl border border-border bg-muted"
+      onWheel={(event) => {
+        event.preventDefault();
+        setZoom(zoom + (event.deltaY < 0 ? 1 : -1));
+      }}
+    >
+      <div
+        className="absolute inset-0 cursor-grab touch-none active:cursor-grabbing"
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={stopDrag}
+        onPointerCancel={stopDrag}
+      >
+        {tiles.map((tile) => (
+          <img
+            key={tile.key}
+            src={tile.src}
+            alt=""
+            draggable={false}
+            className="pointer-events-none absolute h-64 w-64 select-none"
+            style={{ left: tile.left, top: tile.top }}
+          />
+        ))}
+      </div>
+
+      <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-full">
+        <div className="flex flex-col items-center">
+          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-white shadow-lg ring-4 ring-white">
+            <MapPin className="h-5 w-5 fill-primary-foreground" />
           </div>
-          
+          <div className="h-3 w-1 rounded-b-full bg-primary" />
+        </div>
+      </div>
+
+      <div className="absolute right-3 top-3 flex flex-col overflow-hidden rounded-lg border border-border bg-white shadow-sm">
+        <button type="button" className="h-9 w-9 text-lg font-bold text-foreground hover:bg-muted" onClick={() => setZoom(zoom + 1)}>+</button>
+        <button type="button" className="h-9 w-9 border-t border-border text-lg font-bold text-foreground hover:bg-muted" onClick={() => setZoom(zoom - 1)}>-</button>
+      </div>
+
+      <div className="absolute bottom-3 left-3 rounded-md bg-white/95 px-3 py-1.5 text-xs font-semibold text-foreground shadow-sm">
+        {coordinatesToText(center)} · Zoom {zoom}
+      </div>
+    </div>
+  );
+}
+
+function MapLocationPickerField({ values, onChange }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [draftLocation, setDraftLocation] = useState(values["site.address"] || "");
+  const [selectedCenter, setSelectedCenter] = useState(parseCoordinates(values["site.address"]) || DEFAULT_MAP_CENTER);
+  const [zoom, setZoom] = useState(12);
+  const mapEmbedUrl = values["site.map_embed_url"];
+
+  const confirmLocation = () => {
+    const locationText = coordinatesToText(selectedCenter);
+    const nextMapUrl = createMapEmbedUrl(locationText);
+    if (!nextMapUrl) {
+      toast.error("Vui lòng chọn vị trí trên bản đồ.");
+      return;
+    }
+    onChange("site.address", draftLocation?.trim() || locationText);
+    onChange("site.map_embed_url", nextMapUrl);
+    setIsOpen(false);
+    toast.success("Đã chọn vị trí bản đồ. Nhấn Lưu thay đổi để áp dụng.");
+  };
+
+  return (
+    <div className="space-y-3 md:col-span-2">
+      <div>
+        <h3 className="text-lg font-bold text-foreground tracking-tight flex items-center gap-2">
+          <MapPin className="w-5 h-5 text-primary" />
+          Vị trí bản đồ
+        </h3>
+        <p className="text-sm text-muted-foreground mt-1">
+          Chọn vị trí để hiển thị bản đồ công khai trên trang liên hệ.
+        </p>
+      </div>
+      <div className="flex flex-col gap-3 rounded-xl border border-border bg-muted/50 p-4 md:flex-row md:items-center md:justify-between">
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <MapPin className="h-5 w-5" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-bold text-foreground">{mapEmbedUrl ? "Đã chọn vị trí bản đồ" : "Chưa chọn vị trí bản đồ"}</p>
+            <p className="truncate text-xs text-muted-foreground">{values["site.address"] || "Chọn vị trí để tự tạo bản đồ nhúng."}</p>
+          </div>
+        </div>
+        <AppButton appVariant="ghostMuted" variant="ghost" className="shrink-0 gap-2 border border-border bg-white text-sm font-bold text-foreground hover:bg-primary/10 hover:text-primary" onClick={() => {
+          setDraftLocation(values["site.address"] || "");
+          setSelectedCenter(parseCoordinates(values["site.address"]) || selectedCenter || DEFAULT_MAP_CENTER);
+          setIsOpen(true);
+        }}>
+          <MapPin className="h-4 w-4 text-primary" />
+          Chọn trên bản đồ
+        </AppButton>
+      </div>
+
+      <AppDialog
+        open={isOpen}
+        onOpenChange={setIsOpen}
+        title="Chọn vị trí bản đồ"
+        description="Kéo bản đồ để đưa vị trí cần chọn vào đúng ghim ở giữa, dùng nút + / - hoặc cuộn chuột để phóng to thu nhỏ."
+        appVariant="outline"
+        className="sm:max-w-3xl"
+        footer={
+          <div className="flex w-full flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <AppButton appVariant="ghostMuted" variant="ghost" className="border border-border" onClick={() => setIsOpen(false)}>
+              Hủy
+            </AppButton>
+            <AppButton appVariant="gradient" className="font-bold" onClick={confirmLocation}>
+              Đồng ý chọn vị trí
+            </AppButton>
+          </div>
+        }
+      >
+        <div className="space-y-4">
           <div className="space-y-2">
-            <Label className="text-xs font-bold uppercase text-muted-foreground">Logo Website</Label>
-            <label htmlFor="siteLogo" className="flex items-center gap-4 p-4 border-2 border-dashed border-border rounded-xl bg-muted hover:bg-muted/80 transition-colors cursor-pointer">
-              <div className="w-12 h-12 rounded-lg bg-white border border-border flex items-center justify-center shadow-sm">
-                {isUploadingLogo ? <Loader2 className="w-6 h-6 animate-spin text-primary" /> : values["site.logo_url"] ? <img src={values["site.logo_url"]} alt="Logo preview" className="h-full w-full object-contain p-1" /> : <ImageIcon className="w-6 h-6 text-slate-300" />}
+            <Label htmlFor="mapLocationQuery" className="text-xs font-bold uppercase text-muted-foreground">Tên địa chỉ hiển thị hoặc tọa độ</Label>
+            <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
+              <div className="relative">
+              <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <AppInput
+                id="mapLocationQuery"
+                value={draftLocation}
+                onChange={(event) => setDraftLocation(event.target.value)}
+                placeholder="Ví dụ: Trường Cao đẳng FPT Polytechnic hoặc 10.841, 106.809"
+                className="pl-9 border-border"
+              />
               </div>
-              <div className="flex flex-col">
-                <span className="text-sm font-semibold text-foreground">Tải lên logo mới</span>
-                <span className="text-xs text-muted-foreground">PNG, JPG hoặc SVG (Max 2MB)</span>
-              </div>
-              <input id="siteLogo" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" className="sr-only" disabled={isUploadingLogo} onChange={(event) => onLogoUpload(event.target.files?.[0])} />
-            </label>
+              <AppButton
+                appVariant="ghostMuted"
+                variant="ghost"
+                className="border border-border bg-white font-bold"
+                onClick={() => {
+                  const parsed = parseCoordinates(draftLocation);
+                  if (!parsed) {
+                    toast.error("Chưa nhận diện được tọa độ. Dùng định dạng: 10.841000, 106.809000");
+                    return;
+                  }
+                  setSelectedCenter(parsed);
+                  setZoom(16);
+                }}
+              >
+                Dùng tọa độ
+              </AppButton>
+            </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="footerText" className="text-xs font-bold uppercase text-muted-foreground">Văn bản chân trang (Footer)</Label>
-            <AppTextarea id="footerText" placeholder="Nhập nội dung hiển thị ở cuối trang..." value={values["footer.description"]} onChange={(event) => onChange("footer.description", event.target.value)} className="min-h-[100px] border-border focus:bg-white" />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="copyright" className="text-xs font-bold uppercase text-muted-foreground">Thông tin bản quyền</Label>
-            <AppInput id="copyright" value={values["footer.copyright"]} onChange={(event) => onChange("footer.copyright", event.target.value)} className="border-border" />
-          </div>
-        </AppCardContent>
-      </AppCard>
+          <InteractiveMapPicker center={selectedCenter} zoom={zoom} onCenterChange={setSelectedCenter} onZoomChange={setZoom} />
+        </div>
+      </AppDialog>
+    </div>
+  );
+}
 
-      <AppCard appVariant="default" className="border-border shadow-sm">
-        <AppCardHeader>
-          <AppCardTitle className="text-lg font-bold flex items-center gap-2">
-            <Phone className="w-5 h-5 text-primary" />
-            Thông tin liên hệ
-          </AppCardTitle>
-          <CardDescription>Các thông tin này sẽ hiển thị công khai để khách hàng liên hệ.</CardDescription>
-        </AppCardHeader>
-        <AppCardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-xs font-bold uppercase text-muted-foreground">Email liên hệ</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <AppInput id="email" type="email" value={values["site.contact_email"]} onChange={(event) => onChange("site.contact_email", event.target.value)} className="pl-9 border-border" />
-              </div>
+function BrandPreview({ values }) {
+  const siteName = values["site.name"] || "Gnostica";
+  const tagline = values["site.tagline"] || "Nền tảng học tập thông minh";
+  const logoUrl = values["site.logo_url"];
+  const footerDescription = values["footer.description"] || "Mô tả chân trang sẽ hiển thị tại đây.";
+  const copyright = values["footer.copyright"] || "© 2026 Gnostica.";
+  const email = values["site.contact_email"] || "gnostica.team@gmail.com";
+  const phone = values["site.contact_phone"] || "0978 070 553";
+  const address = values["site.address"] || "Địa chỉ văn phòng sẽ hiển thị tại đây.";
+  const hasMap = Boolean(values["site.map_embed_url"]);
+
+  return (
+    <div className="flex h-full flex-col space-y-2">
+      <Label className="text-xs font-bold uppercase text-muted-foreground">Xem trước</Label>
+      <div className="flex flex-1 flex-col overflow-hidden rounded-xl border border-border bg-white shadow-sm">
+        <div className="flex items-center justify-between border-b border-border bg-card px-4 py-3">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl border border-border bg-white">
+              {logoUrl ? (
+                <img src={logoUrl} alt="Logo preview" className="h-full w-full object-contain p-2" />
+              ) : (
+                <Globe className="h-7 w-7 text-primary" />
+              )}
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="phone" className="text-xs font-bold uppercase text-muted-foreground">Số điện thoại</Label>
-              <div className="relative">
-                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <AppInput id="phone" value={values["site.contact_phone"]} onChange={(event) => onChange("site.contact_phone", event.target.value)} className="pl-9 border-border" />
-              </div>
-            </div>
-            <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="address" className="text-xs font-bold uppercase text-muted-foreground">Địa chỉ văn phòng</Label>
-              <div className="relative">
-                <MapPin className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
-                <AppTextarea id="address" value={values["site.address"]} onChange={(event) => onChange("site.address", event.target.value)} className="pl-9 min-h-[80px] border-border" />
-              </div>
-            </div>
-            <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="mapEmbedUrl" className="text-xs font-bold uppercase text-muted-foreground">URL bản đồ nhúng</Label>
-              <AppInput id="mapEmbedUrl" type="url" placeholder="https://www.google.com/maps/embed?..." value={values["site.map_embed_url"]} onChange={(event) => onChange("site.map_embed_url", event.target.value)} className="border-border" />
+            <div className="min-w-0">
+              <p className="truncate text-sm font-black text-foreground">{siteName}</p>
+              <p className="truncate text-xs text-muted-foreground">{tagline}</p>
             </div>
           </div>
-        </AppCardContent>
-      </AppCard>
+          <span className="shrink-0 rounded-md bg-primary/10 px-3 py-1.5 text-xs font-bold text-primary">Header</span>
+        </div>
+
+        <div className="flex flex-1 flex-col gap-3 bg-muted/30 p-4">
+          <div className="rounded-lg border border-border bg-white p-4">
+            <p className="text-[10px] font-bold uppercase text-muted-foreground">Đầu trang</p>
+            <h3 className="mt-2 line-clamp-2 text-lg font-black leading-tight text-foreground">{siteName}</h3>
+            <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{tagline}</p>
+          </div>
+
+          <div className="rounded-lg border border-border bg-white p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-[10px] font-bold uppercase text-muted-foreground">Khối liên hệ</p>
+                <p className="mt-1 text-sm font-bold text-foreground">Liên hệ Gnostica</p>
+              </div>
+              <span className="shrink-0 rounded-md border border-border bg-muted/60 px-3 py-2 text-[10px] font-bold uppercase text-muted-foreground">Bên phải</span>
+            </div>
+            <div className="mt-3 grid gap-2">
+              <div className="flex min-w-0 items-center gap-2 rounded-md bg-muted/50 px-3 py-2">
+                <Mail className="h-3.5 w-3.5 shrink-0 text-primary" />
+                <span className="truncate text-xs font-semibold text-foreground">{email}</span>
+              </div>
+              <div className="flex min-w-0 items-center gap-2 rounded-md bg-muted/50 px-3 py-2">
+                <Phone className="h-3.5 w-3.5 shrink-0 text-primary" />
+                <span className="truncate text-xs font-semibold text-foreground">{phone}</span>
+              </div>
+              <div className="flex min-w-0 items-start gap-2 rounded-md bg-muted/50 px-3 py-2">
+                <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
+                <span className="line-clamp-2 text-xs font-semibold text-foreground">{address}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            <div className="rounded-md border border-border bg-white p-3">
+              <p className="text-[10px] font-bold uppercase text-muted-foreground">Bản đồ</p>
+              <p className="mt-1 truncate text-xs font-semibold text-foreground">{hasMap ? "Đã cấu hình" : "Chưa cấu hình"}</p>
+            </div>
+            <div className="rounded-md border border-border bg-white p-3">
+              <p className="text-[10px] font-bold uppercase text-muted-foreground">Footer</p>
+              <p className="mt-1 truncate text-xs font-semibold text-foreground">Cuối trang</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-2 border-t border-border bg-foreground px-4 py-4 text-white">
+          <div className="flex items-center gap-2">
+            {logoUrl ? (
+              <img src={logoUrl} alt="Footer logo preview" className="h-11 w-11 rounded bg-white object-contain p-1.5" />
+            ) : (
+              <Globe className="h-6 w-6 text-primary" />
+            )}
+            <span className="truncate text-sm font-bold">{siteName}</span>
+          </div>
+          <p className="line-clamp-3 text-xs leading-relaxed text-white/80">{footerDescription}</p>
+          <p className="truncate border-t border-white/10 pt-2 text-[11px] text-white/60">{copyright}</p>
+        </div>
+      </div>
     </div>
   );
 }
@@ -505,12 +848,12 @@ function SecuritySettings() {
 }
 
 const resourceConfig = {
-    cpu: { label: "CPU Usage (%)", color: "hsl(221, 83%, 53%)" },
-    ram: { label: "RAM Usage (%)", color: "hsl(38, 92%, 50%)" },
+    cpu: { label: "CPU Usage (%)", color: "var(--info)" },
+    ram: { label: "RAM Usage (%)", color: "var(--warning)" },
 };
 
 const ccuConfig = {
-    active: { label: "Concurrent Users (CCU)", color: "hsl(271, 81%, 56%)" },
+    active: { label: "Concurrent Users (CCU)", color: "var(--primary)" },
 };
 
 function InfrastructureMonitor() {
@@ -590,21 +933,21 @@ function InfrastructureMonitor() {
                             <AreaChart data={history} margin={{ left: 0, right: 8, top: 4, bottom: 0 }}>
                                 <defs>
                                     <linearGradient id="cpuGradient" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="hsl(221, 83%, 53%)" stopOpacity={0.25} />
-                                        <stop offset="95%" stopColor="hsl(221, 83%, 53%)" stopOpacity={0} />
+                                        <stop offset="5%" stopColor="var(--info)" stopOpacity={0.25} />
+                                        <stop offset="95%" stopColor="var(--info)" stopOpacity={0} />
                                     </linearGradient>
                                     <linearGradient id="ramGradient" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="hsl(38, 92%, 50%)" stopOpacity={0.25} />
-                                        <stop offset="95%" stopColor="hsl(38, 92%, 50%)" stopOpacity={0} />
+                                        <stop offset="5%" stopColor="var(--warning)" stopOpacity={0.25} />
+                                        <stop offset="95%" stopColor="var(--warning)" stopOpacity={0} />
                                     </linearGradient>
                                 </defs>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
                                 <XAxis dataKey="time" tickLine={false} axisLine={false} tick={{ fontSize: 10 }} />
                                 <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 11 }} tickFormatter={(v) => `${v}%`} domain={[0, 100]} />
                                 <ChartTooltip content={<ChartTooltipContent />} />
                                 <ChartLegend content={<ChartLegendContent />} />
-                                <Area type="monotone" dataKey="ram" stroke="hsl(38, 92%, 50%)" strokeWidth={2} fill="url(#ramGradient)" isAnimationActive={false} />
-                                <Area type="monotone" dataKey="cpu" stroke="hsl(221, 83%, 53%)" strokeWidth={2} fill="url(#cpuGradient)" isAnimationActive={false} />
+                                <Area type="monotone" dataKey="ram" stroke="var(--warning)" strokeWidth={2} fill="url(#ramGradient)" isAnimationActive={false} />
+                                <Area type="monotone" dataKey="cpu" stroke="var(--info)" strokeWidth={2} fill="url(#cpuGradient)" isAnimationActive={false} />
                             </AreaChart>
                         </ChartContainer>
                     </AppCardContent>
@@ -619,7 +962,7 @@ function InfrastructureMonitor() {
                         <div className="space-y-5">
                             {[
                                 { label: "CPU Usage Hiện Tại", value: liveMetrics.cpu, color: "bg-info/10 text-info" },
-                                { label: "RAM Usage Hiện Tại", value: liveMetrics.ram, color: "bg-amber-500" },
+                                { label: "RAM Usage Hiện Tại", value: liveMetrics.ram, color: "bg-warning" },
                             ].map((item) => (
                                 <div key={item.label} className="space-y-1.5">
                                     <div className="flex justify-between text-sm">
@@ -637,14 +980,14 @@ function InfrastructureMonitor() {
                                     <span className="font-bold text-foreground">{liveMetrics.ccu}</span>
                                 </div>
                                 <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                                    <div className={`h-full bg-indigo-500 rounded-full transition-all duration-500`} style={{ width: `${(liveMetrics.ccu / 5000) * 100}%` }} />
+                                    <div className={`h-full bg-primary rounded-full transition-all duration-500`} style={{ width: `${(liveMetrics.ccu / 5000) * 100}%` }} />
                                 </div>
                             </div>
                         </div>
 
                         <div className="mt-auto p-4 bg-muted rounded-xl border border-border flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                                <div className={`w-3 h-3 rounded-full ${status === "OK" ? "bg-success/10 text-success animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]" : "bg-error/10 text-error"}`} />
+                                <div className={`w-3 h-3 rounded-full ${status === "OK" ? "bg-success animate-pulse shadow-sm" : "bg-error"}`} />
                                 <div>
                                     <p className="text-sm font-bold text-foreground">System Status: {status}</p>
                                     <p className="text-xs text-muted-foreground mt-0.5">WebSocket Live Stream</p>
@@ -662,11 +1005,11 @@ function InfrastructureMonitor() {
                 <AppCardContent className="pt-4 flex-1">
                     <ChartContainer config={ccuConfig} className="h-[240px] w-full">
                         <LineChart data={history} margin={{ left: 8, right: 8, top: 4, bottom: 0 }}>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
                             <XAxis dataKey="time" tickLine={false} axisLine={false} tick={{ fontSize: 10 }} />
                             <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 11 }} />
                             <ChartTooltip content={<ChartTooltipContent />} />
-                            <Line type="monotone" dataKey="active" stroke="hsl(271, 81%, 56%)" strokeWidth={3} dot={false} isAnimationActive={false} />
+                            <Line type="monotone" dataKey="active" stroke="var(--primary)" strokeWidth={3} dot={false} isAnimationActive={false} />
                         </LineChart>
                     </ChartContainer>
                 </AppCardContent>

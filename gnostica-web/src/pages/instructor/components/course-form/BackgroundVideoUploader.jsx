@@ -1,23 +1,41 @@
 import React from "react";
 import { toast } from "sonner";
-import { Check, Video } from "lucide-react";
+import { Check, Video, X } from "lucide-react";
 import { VideoProgressCircle } from "./SharedUI";
 import courseService from "@/services/course/courseService";
 
 const globalUploadProgress = {};
 const uploadCallbacks = {};
+const globalAbortControllers = {};
+const globalCompletedUploads = {};
 
 export function BackgroundVideoUploader({ label, value, onChange, onMetadata, onUploadStart, onUploadEnd, uploadVideoToBunny, id = "v-upload" }) {
   const [uploadProgress, setUploadProgress] = React.useState(0);
   const [processingProgress, setProcessingProgress] = React.useState(0);
-  const [uploadPhase, setUploadPhase] = React.useState("idle"); // idle, uploading, processing, completed
+  const [uploadPhase, setUploadPhase] = React.useState("idle"); // idle, uploading, processing, completed, done, error
   const [isUploading, setIsUploading] = React.useState(false);
   const [error, setError] = React.useState(null);
+  const [completedVideoId, setCompletedVideoId] = React.useState(null);
   
   // Lưu lại giá trị video gốc ban đầu khi component mới render (để không xóa nhầm video đã publish)
   const originalValueRef = React.useRef(value);
+  const hasNotifiedStartRef = React.useRef(false);
 
   // Effect để "kết nối" lại với tiến trình tải lên nếu có (khi quay lại tab)
+  React.useEffect(() => {
+    if (globalCompletedUploads[id]) {
+      setCompletedVideoId(globalCompletedUploads[id]);
+      delete globalCompletedUploads[id];
+    }
+  }, [id]);
+
+  React.useEffect(() => {
+    if (completedVideoId) {
+      onChange(completedVideoId);
+      setCompletedVideoId(null);
+    }
+  }, [completedVideoId, onChange]);
+
   React.useEffect(() => {
     // Đăng ký callback để nhận cập nhật tiến trình mới nhất
     uploadCallbacks[id] = (state) => {
@@ -27,18 +45,34 @@ export function BackgroundVideoUploader({ label, value, onChange, onMetadata, on
          setUploadProgress(state.upload || 0);
          setProcessingProgress(state.processing || 0);
          setUploadPhase(state.phase || "idle");
+         if (state.phase === "done" || state.phase === "error") {
+            setIsUploading(false);
+            if (hasNotifiedStartRef.current) {
+               onUploadEnd?.();
+               hasNotifiedStartRef.current = false;
+            }
+            if (state.videoId) {
+               setCompletedVideoId(state.videoId);
+            }
+         }
       }
     };
 
     // Nếu đang có tiến trình chạy ngầm, lấy giá trị hiện tại ngay lập tức
     if (globalUploadProgress[id] !== undefined) {
+      if (!hasNotifiedStartRef.current) {
+         onUploadStart?.();
+         hasNotifiedStartRef.current = true;
+      }
       const state = globalUploadProgress[id];
       if (typeof state === 'number') {
          setUploadProgress(state);
+         setIsUploading(true);
       } else {
          setUploadProgress(state.upload || 0);
          setProcessingProgress(state.processing || 0);
          setUploadPhase(state.phase || "idle");
+         setIsUploading(true);
       }
     }
 
@@ -101,13 +135,19 @@ export function BackgroundVideoUploader({ label, value, onChange, onMetadata, on
       };
 
       updateGlobalState(0, 0, "uploading");
-      onUploadStart();
+      if (!hasNotifiedStartRef.current) {
+         onUploadStart?.();
+         hasNotifiedStartRef.current = true;
+      }
+      
+      const abortController = new AbortController();
+      globalAbortControllers[id] = abortController;
 
       // Bước 1: Tải video lên Bunny.net sử dụng TUS Protocol
       const videoId = await uploadVideoToBunny(file, file.name, (pct) => {
         setUploadProgress(pct);
         updateGlobalState(pct, 0, "uploading");
-      });
+      }, abortController.signal);
 
       // Upload xong 100%, chuyển phase
       setUploadProgress(100);
@@ -121,16 +161,44 @@ export function BackgroundVideoUploader({ label, value, onChange, onMetadata, on
 
       await new Promise(resolve => setTimeout(resolve, 800)); // Giữ trạng thái 100% cho sướng mắt
 
+      globalCompletedUploads[id] = videoId;
       onChange(videoId);
     } catch (err) {
+      if (err.message === "Upload cancelled by user") {
+        console.log("Upload cancelled");
+        return;
+      }
       console.error("Upload error:", err);
       setError("Lỗi tải lên");
       toast.error(`Không thể tải lên ${label}`);
+      if (uploadCallbacks[id]) uploadCallbacks[id]({ upload: 0, processing: 0, phase: "error" });
     } finally {
       setIsUploading(false);
       delete globalUploadProgress[id];
-      onUploadEnd();
+      delete globalAbortControllers[id];
+      if (uploadCallbacks[id]) {
+         const isSuccess = !!globalCompletedUploads[id];
+         if (isSuccess) {
+            uploadCallbacks[id]({ upload: 100, processing: 100, phase: "done", videoId: globalCompletedUploads[id] });
+         } else {
+            uploadCallbacks[id]({ upload: 0, processing: 0, phase: "error" });
+         }
+      }
     }
+  };
+
+  const handleCancelUpload = (e) => {
+    e.stopPropagation();
+    if (globalAbortControllers[id]) {
+      globalAbortControllers[id].abort();
+      delete globalAbortControllers[id];
+    }
+    setIsUploading(false);
+    onChange(null);
+    setUploadPhase("idle");
+    delete globalUploadProgress[id];
+    if (uploadCallbacks[id]) uploadCallbacks[id]({ upload: 0, processing: 0, phase: "idle" });
+    onUploadEnd();
   };
 
   const isCompleted = value && typeof value === 'string' && !isUploading;
@@ -152,13 +220,20 @@ export function BackgroundVideoUploader({ label, value, onChange, onMetadata, on
       />
 
       {isCurrentlyUploading ? (
-        <div className="flex flex-col items-center gap-2">
+        <div className="flex flex-col items-center gap-2 relative w-full h-full justify-center">
+           <div 
+             className="absolute top-0 right-0 w-6 h-6 bg-error hover:bg-error/80 text-white rounded-full flex items-center justify-center cursor-pointer shadow-md z-10 transition-colors"
+             onClick={handleCancelUpload}
+             title="Hủy tải lên"
+           >
+             <X size={14} strokeWidth={3} />
+           </div>
            <VideoProgressCircle 
               key={uploadPhase}
               progress={uploadPhase === "uploading" ? uploadProgress : processingProgress} 
               size={80} 
            />
-           <p className={`text-[10px] font-bold text-center leading-tight animate-pulse ${uploadPhase === "uploading" ? "text-muted-foreground" : "text-success"}`}>
+           <p className={`text-[10px] font-bold text-center leading-tight ${uploadPhase === "uploading" ? "text-foreground" : "text-success"}`}>
              {uploadPhase === "uploading" ? "ĐANG TIẾN HÀNH UPLOAD VIDEO..." : "ĐANG HOÀN TẤT..."}
            </p>
         </div>

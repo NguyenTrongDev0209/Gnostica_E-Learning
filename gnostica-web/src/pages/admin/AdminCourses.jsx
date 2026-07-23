@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Search, Star, Users, BookOpen, Check } from 'lucide-react';
@@ -12,9 +12,9 @@ import adminCourseService from '@/services/admin/adminCourseService';
 import categoryService from '@/services/course/categoryService';
 
 const STATUS_META = {
-  1: { label: 'Đã xuất bản', className: 'text-success bg-green-50 border-success/20', dot: 'bg-success' },
-  3: { label: 'Bị từ chối', className: 'text-error bg-red-50 border-error/20', dot: 'bg-error' },
-  4: { label: 'Chờ duyệt', className: 'text-amber-600 bg-amber-50 border-amber-200', dot: 'bg-amber-500' }
+  1: { label: 'Đã xuất bản', className: 'text-success bg-success/10 border-success/20', dot: 'bg-success' },
+  3: { label: 'Bị từ chối', className: 'text-error bg-error/10 border-error/20', dot: 'bg-error' },
+  4: { label: 'Chờ duyệt', className: 'text-warning bg-warning/10 border-warning/20', dot: 'bg-warning' }
 };
 
 const formatPrice = (value) => `${Number(value || 0).toLocaleString('vi-VN')}đ`;

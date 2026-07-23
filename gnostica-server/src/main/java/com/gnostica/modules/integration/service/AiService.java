@@ -6,10 +6,15 @@ import com.gnostica.modules.integration.dto.response.AiChatResponse;
 import com.gnostica.core.model.Course;
 import com.gnostica.core.model.Topic;
 import com.gnostica.core.model.Thread;
+import com.gnostica.core.model.Enrollment;
+import com.gnostica.core.model.Order;
+import com.gnostica.core.model.Account;
 import com.gnostica.core.repository.CourseRepository;
 import com.gnostica.core.repository.TopicRepository;
 import com.gnostica.core.repository.ThreadRepository;
 import com.gnostica.core.repository.AccountRepository;
+import com.gnostica.core.repository.EnrollmentRepository;
+import com.gnostica.core.repository.OrderRepository;
 import com.gnostica.modules.integration.model.mongo.ChatSession;
 import com.gnostica.modules.integration.repository.mongo.ChatSessionRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,6 +40,9 @@ public class AiService {
     private final CourseRepository courseRepository;
     private final ChatSessionRepository chatSessionRepository;
     private final AccountRepository accountRepository;
+    private final EnrollmentRepository enrollmentRepository;
+    private final OrderRepository orderRepository;
+    private final SupportTicketService supportTicketService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Value("${openrouter.api-key}")
@@ -98,21 +106,7 @@ public class AiService {
         
         Map<String, Object> systemMap = new HashMap<>();
         systemMap.put("role", "system");
-        systemMap.put("content", "Bạn là một trợ lý ảo của Gnostica E-Learning. Bạn có thể truy cập DB để tìm bài viết và khóa học. " +
-                "\nQUY TẮC BẮT BUỘC:" +
-                "\n1. TUYỆT ĐỐI KHÔNG LẤY DỮ LIỆU GIẢ, ẢO HOẶC DỮ LIỆU DO AI TỰ PHÁT SINH/TỰ BỊA RA. Chỉ lấy dữ liệu thực tế tồn tại trong cơ sở dữ liệu thông qua việc gọi hàm (tools) kết nối Database. Nếu Database trống hoặc không tìm thấy, bạn bắt buộc phải báo là không có kết quả thực tế, tuyệt đối không được tự ý điền thông tin giả mạo vào các thẻ CARD." +
-                "\n2. KHÔNG ĐƯỢC trả lời bằng danh sách thuần văn bản thô (bullet points, plain text, hyphens, v.v.). Khi hiển thị bất kỳ danh sách nào (khóa học, bài viết, chuyên mục, hay người đóng góp), bạn BẮT BUỘC phải chuyển đổi từng phần tử trong danh sách thành định dạng thẻ Card sau để giao diện hiển thị đẹp mắt: `[[CARD:TYPE|id|title|info|author|category|imageUrl]]`." +
-                "\n3. KHÔNG trả lời bằng khoảng trắng hoặc tin nhắn trống. Nếu không có hoặc không tìm thấy dữ liệu, hãy phản hồi rõ ràng bằng câu chữ lịch sự." +
-                "\n4. NẾU kết quả từ database (gọi hàm/tool) trả về chứa cụm từ 'DATABASE_EMPTY' hoặc báo không tìm thấy kết quả, bạn BẮT BUỘC phải thông báo lại trực tiếp và lịch sự với người dùng rằng không có kết quả phù hợp trong hệ thống (ví dụ: 'Rất tiếc, hiện tại hệ thống chưa có khóa học nào như vậy.'). CẤM TUYỆT ĐỐI việc tự bịa ra thông tin giả mạo để điền vào thẻ CARD." +
-                "\n\nChi tiết định dạng thẻ Card:" +
-                "\n- TYPE: 'course' (Khóa học), 'forum' (Bài viết/Thread), 'category' (Chuyên mục diễn đàn), 'contributor' (Thành viên đóng góp)." +
-                "QUAN TRỌNG: Khi gợi ý danh sách (bài viết hoặc khóa học) cho người dùng, hãy LUÔN luôn sử dụng định dạng chuỗi sau để UI có thể vẽ thành Thẻ Card: `[[CARD:TYPE|id|title|info|author|category|imageUrl]]`. " +
-                "\n- TYPE: 'forum' (nếu là bài viết/thread) hoặc 'course' (nếu là khóa học)." +
-                "\n- id: SLUG của bài viết (nếu là forum) hoặc SLUG của khóa học (nếu là course)." +
-                "\n- info: Số lượt thích (nếu là forum) hoặc Giá tiền kèm đơn vị (nếu là khóa học)." +
-                "\nVí dụ bài viết: `[[CARD:forum|huong-dan-spring|Hướng dẫn Spring|54|Tuấn|Lập trình|none]]`." +
-                "\nVí dụ khóa học: `[[CARD:course|java-co-ban-101|Java Cơ Bản|500.000đ|Thầy Nam|Lập trình|http://...]]`." +
-                "\nNếu không có link ảnh thì để là chữ `none` ở trường imageUrl. Không được tự ý viết text thông thường cho danh sách.");
+        systemMap.put("content", buildSystemPrompt(accountId));
         currentMessages.add(systemMap);
 
         if (useMongo && session != null && session.getMessages() != null) {
@@ -214,14 +208,15 @@ public class AiService {
             }
         }
 
+        // Truyền accountId vào context để tools có thể dùng
         AiChatResponse chatResponse;
         try {
-            chatResponse = processChatLoop(baseUrl, apiKey, model, currentMessages);
+            chatResponse = processChatLoop(baseUrl, apiKey, model, currentMessages, accountId);
         } catch (Exception e) {
             log.warn("OpenRouter API failed: {}. Fallback to DeepSeek...", e.getMessage());
             if (deepseekApiKey != null && !deepseekApiKey.isEmpty()) {
                 try {
-                    chatResponse = processChatLoop(deepseekBaseUrl, deepseekApiKey, deepseekModel, currentMessages);
+                    chatResponse = processChatLoop(deepseekBaseUrl, deepseekApiKey, deepseekModel, currentMessages, accountId);
                 } catch (Exception ex) {
                     log.error("DeepSeek Fallback also failed: {}", ex.getMessage(), ex);
                     chatResponse = new AiChatResponse("Dịch vụ AI đang gặp sự cố, vui lòng thử lại trong ít phút.", "assistant");
@@ -254,7 +249,8 @@ public class AiService {
         return chatResponse;
     }
 
-    private AiChatResponse processChatLoop(String apiUrl, String key, String modelName, List<Map<String, Object>> currentMessages) throws Exception {
+    private AiChatResponse processChatLoop(String apiUrl, String key, String modelName,
+                                           List<Map<String, Object>> currentMessages, String accountId) throws Exception {
         String url = apiUrl + "/chat/completions";
 
         HttpHeaders headers = new HttpHeaders();
@@ -263,13 +259,13 @@ public class AiService {
         headers.set("HTTP-Referer", "http://localhost:5173"); 
         headers.set("X-Title", "Gnostica E-Learning");
 
-        // Vòng lặp function calling (tối đa 3 lần để tránh lặp vô hạn)
-        int maxAttempts = 3;
+        // Vòng lặp function calling (tối đa 5 lần để xử lý đa bước: hỏi -> thu thập -> tạo ticket)
+        int maxAttempts = 5;
         for (int attempt = 0; attempt < maxAttempts; attempt++) {
             Map<String, Object> body = new HashMap<>();
             body.put("model", modelName);
             body.put("messages", currentMessages);
-            body.put("tools", getAiTools());
+            body.put("tools", getAiTools(accountId));
 
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
 
@@ -290,7 +286,7 @@ public class AiService {
                             String funcName = (String) function.get("name");
                             String arguments = (String) function.get("arguments"); // Chuỗi Json
 
-                            String result = executeTool(funcName, arguments);
+                            String result = executeTool(funcName, arguments, accountId);
 
                             Map<String, Object> toolMessage = new HashMap<>();
                             toolMessage.put("role", "tool");
@@ -315,7 +311,7 @@ public class AiService {
         return new AiChatResponse("Tôi đã phân tích xong nhưng không thể tổng hợp kết quả lúc này.", "assistant");
     }
 
-    private String executeTool(String functionName, String arguments) {
+    private String executeTool(String functionName, String arguments, String accountId) {
         log.info("AI is calling tool: {} with args: {}", functionName, arguments);
         try {
             switch (functionName) {
@@ -369,6 +365,74 @@ public class AiService {
                     List<Course> searchedCourses = courseRepository.findCoursesByCategoryAndPrice(courseCategory, maxPrice, PageRequest.of(0, 5));
                     return buildCourseResponse(searchedCourses);
 
+                // =====================================================================
+                // TOOLS HỖ TRỢ KHÁCH HÀNG
+                // =====================================================================
+
+                case "create_support_ticket":
+                    if (accountId == null || accountId.trim().isEmpty()) {
+                        return "ERROR: Bạn cần đăng nhập để gửi yêu cầu hỗ trợ. Vui lòng đăng nhập và thử lại.";
+                    }
+                    Map<String, Object> ticketArgs = objectMapper.readValue(arguments, Map.class);
+                    String subject = (String) ticketArgs.get("subject");
+                    String ticketContent = (String) ticketArgs.get("content");
+                    if (subject == null || subject.trim().isEmpty()) {
+                        subject = "Yêu cầu hỗ trợ từ học viên";
+                    }
+                    if (ticketContent == null || ticketContent.trim().isEmpty()) {
+                        ticketContent = "Học viên đã gửi yêu cầu hỗ trợ qua Chatbox AI.";
+                    }
+                    String ticketType = (String) ticketArgs.getOrDefault("type", "GENERAL");
+                    int priority = ticketArgs.get("priority") != null ? Integer.parseInt(ticketArgs.get("priority").toString()) : 2;
+                    String imageUrl = (String) ticketArgs.getOrDefault("imageUrl", null);
+
+                    int ticketId = supportTicketService.createTicket(accountId, subject, ticketContent, ticketType, priority, imageUrl);
+                    if (ticketId > 0) {
+                        String priorityLabel = priority == 3 ? "Cao" : priority == 2 ? "Trung bình" : "Thấp";
+                        String hasImage = (imageUrl != null && !imageUrl.trim().isEmpty() && !"none".equalsIgnoreCase(imageUrl.trim())) ? "Có đính kèm ảnh minh họa." : "";
+                        return String.format("TICKET_CREATED|%d|%s|%s|%s|%s",
+                                ticketId, subject, ticketType, priorityLabel, hasImage);
+                    } else {
+                        return "DATABASE_ERROR: Không thể tạo yêu cầu hỗ trợ. Vui lòng thử lại sau.";
+                    }
+
+                case "get_my_orders":
+                    if (accountId == null || accountId.trim().isEmpty()) {
+                        return "ERROR: Bạn cần đăng nhập để xem lịch sử đơn hàng.";
+                    }
+                    Account orderAccount = accountRepository.findById(UUID.fromString(accountId)).orElse(null);
+                    if (orderAccount == null) {
+                        return "DATABASE_ERROR: Không tìm thấy thông tin tài khoản.";
+                    }
+                    List<Order> orders = orderRepository.findByAccountOrderByIdDesc(orderAccount);
+                    return buildOrderResponse(orders);
+
+                // =====================================================================
+                // TOOLS HỌC TẬP CÁ NHÂN HÓA
+                // =====================================================================
+
+                case "get_my_courses":
+                    if (accountId == null || accountId.trim().isEmpty()) {
+                        return "ERROR: Bạn cần đăng nhập để xem danh sách khóa học của mình.";
+                    }
+                    Account enrollAccount = accountRepository.findById(UUID.fromString(accountId)).orElse(null);
+                    if (enrollAccount == null) {
+                        return "DATABASE_ERROR: Không tìm thấy thông tin tài khoản.";
+                    }
+                    List<Enrollment> enrollments = enrollmentRepository.findByAccount(enrollAccount);
+                    return buildEnrollmentResponse(enrollments);
+
+                case "get_my_learning_progress":
+                    if (accountId == null || accountId.trim().isEmpty()) {
+                        return "ERROR: Bạn cần đăng nhập để xem tiến độ học tập.";
+                    }
+                    Account progressAccount = accountRepository.findById(UUID.fromString(accountId)).orElse(null);
+                    if (progressAccount == null) {
+                        return "DATABASE_ERROR: Không tìm thấy thông tin tài khoản.";
+                    }
+                    List<Enrollment> progressEnrollments = enrollmentRepository.findByAccount(progressAccount);
+                    return buildLearningProgressResponse(progressEnrollments);
+
                 default:
                     return "Tool không tồn tại.";
             }
@@ -378,13 +442,17 @@ public class AiService {
         }
     }
 
+    // =====================================================================
+    // BUILD RESPONSES
+    // =====================================================================
+
     public List<String> getTopLikedThreadCards() {
         List<Thread> topThreads = threadRepository.findTop5ByStatusOrderByViewCountDesc(2);
         List<String> cards = new ArrayList<>();
         for (Thread t : topThreads) {
             String author = t.getAccount() != null ? t.getAccount().getFullName() : "Ẩn danh";
             String category = t.getTopic() != null ? t.getTopic().getTitle() : "Không rõ";
-            String imgUrl = "none"; // placeholder, could be generated
+            String imgUrl = "none";
             String title = cleanHtml(t.getTitle() != null ? t.getTitle() : "(Không tiêu đề)");
             String slug = t.getSlug() != null ? t.getSlug() : String.valueOf(t.getId());
             String card = String.format("[[CARD:forum|%s|%s|%d|%s|%s|%s]]",
@@ -408,14 +476,10 @@ public class AiService {
             if (plainContent.isEmpty()) {
                 plainContent = "Không có nội dung";
             }
-
-            // Create preview: first 200 chars
             String contentPreview = plainContent.length() > 200 
                 ? plainContent.substring(0, 200) + "..." 
                 : plainContent;
             
-            String imageUrl = "none";
-
             sb.append(String.format("ID Bài viết: %d\n", t.getId()));
             sb.append(String.format("Slug Bài viết: %s\n", t.getSlug() != null ? t.getSlug() : String.valueOf(t.getId())));
             sb.append(String.format("Tiêu đề: %s\n", title));
@@ -423,7 +487,7 @@ public class AiService {
             sb.append(String.format("Lượt xem (Views): %d\n", t.getViewCount()));
             sb.append(String.format("Tác giả: %s\n", t.getAccount() != null ? t.getAccount().getFullName() : "Ẩn danh"));
             sb.append(String.format("Mục chuyên đề: %s\n", t.getTopic() != null ? t.getTopic().getTitle() : "Không rõ"));
-            sb.append(String.format("Ảnh: %s\n", imageUrl));
+            sb.append(String.format("Ảnh: none\n"));
             sb.append("---\n");
         }
         return sb.toString();
@@ -444,23 +508,98 @@ public class AiService {
         return sb.toString();
     }
 
-    private List<Map<String, Object>> getAiTools() {
-        return Arrays.asList(
+    private String buildOrderResponse(List<Order> orders) {
+        if (orders == null || orders.isEmpty()) {
+            return "DATABASE_EMPTY: Bạn chưa có đơn hàng nào trong hệ thống.";
+        }
+        StringBuilder sb = new StringBuilder("Lịch sử đơn hàng của bạn (tối đa 5 đơn gần nhất):\n");
+        int count = Math.min(orders.size(), 5);
+        for (int i = 0; i < count; i++) {
+            Order o = orders.get(i);
+            String statusLabel = switch (o.getStatus()) {
+                case 1 -> "Chờ thanh toán";
+                case 2 -> "Đã thanh toán";
+                case 3 -> "Đã huỷ";
+                case 4 -> "Đã hoàn tiền";
+                default -> "Không xác định";
+            };
+            sb.append(String.format("- Đơn hàng #%s | Tổng tiền: %s VNĐ | Phương thức: %s | Trạng thái: %s | Ngày đặt: %s\n",
+                    o.getOrderCode() != null ? o.getOrderCode() : o.getId().toString().substring(0, 8).toUpperCase(),
+                    o.getTotalPrice().toPlainString(),
+                    o.getPaymentMethod(),
+                    statusLabel,
+                    o.getCreatedAt() != null ? o.getCreatedAt().toLocalDate().toString() : "N/A"
+            ));
+        }
+        return sb.toString();
+    }
+
+    private String buildEnrollmentResponse(List<Enrollment> enrollments) {
+        if (enrollments == null || enrollments.isEmpty()) {
+            return "DATABASE_EMPTY: Bạn chưa tham gia khóa học nào trong hệ thống.";
+        }
+        StringBuilder sb = new StringBuilder("Danh sách khóa học của bạn:\n");
+        for (Enrollment e : enrollments) {
+            String courseTitle = e.getCourse() != null ? e.getCourse().getTitle() : "Không rõ";
+            String courseSlug = e.getCourse() != null ? e.getCourse().getSlug() : "N/A";
+            String statusLabel = switch (e.getStatus()) {
+                case 0 -> "Đã huỷ/Hoàn tiền";
+                case 1 -> "Đang học";
+                case 2 -> "Hoàn thành";
+                default -> "Không xác định";
+            };
+            String thumbnail = (e.getCourse() != null && e.getCourse().getThumbnail() != null) ? e.getCourse().getThumbnail() : "none";
+            String author = (e.getCourse() != null && e.getCourse().getAccount() != null) ? e.getCourse().getAccount().getFullName() : "Không rõ";
+            String categoryName = (e.getCourse() != null && e.getCourse().getCategory() != null) ? e.getCourse().getCategory().getName() : "Không rõ";
+            // Trả về dưới dạng CARD để UI render đẹp
+            sb.append(String.format("[[CARD:course|%s|%s|%d%% - %s|%s|%s|%s]]\n",
+                    courseSlug, courseTitle, e.getProgressPercent(), statusLabel, author, categoryName, thumbnail));
+        }
+        return sb.toString();
+    }
+
+    private String buildLearningProgressResponse(List<Enrollment> enrollments) {
+        if (enrollments == null || enrollments.isEmpty()) {
+            return "DATABASE_EMPTY: Bạn chưa tham gia khóa học nào để theo dõi tiến độ.";
+        }
+        StringBuilder sb = new StringBuilder("Tiến độ học tập của bạn:\n");
+        for (Enrollment e : enrollments) {
+            if (e.getStatus() == 0) continue; // Bỏ qua đã huỷ
+            String courseTitle = e.getCourse() != null ? e.getCourse().getTitle() : "Không rõ";
+            String statusLabel = e.getStatus() == 2 ? "✅ Hoàn thành" : "📚 Đang học";
+            sb.append(String.format("- Khóa học: %s | Tiến độ: %d%% | Trạng thái: %s\n",
+                    courseTitle, e.getProgressPercent(), statusLabel));
+            if (e.getCompletedAt() != null) {
+                sb.append(String.format("  Hoàn thành lúc: %s\n", e.getCompletedAt().toLocalDate()));
+            }
+        }
+        if (sb.toString().equals("Tiến độ học tập của bạn:\n")) {
+            return "DATABASE_EMPTY: Không có khóa học nào đang học hoặc đã hoàn thành.";
+        }
+        return sb.toString();
+    }
+
+    // =====================================================================
+    // AI TOOLS DEFINITION
+    // =====================================================================
+
+    private List<Map<String, Object>> getAiTools(String accountId) {
+        List<Map<String, Object>> tools = new ArrayList<>(Arrays.asList(
+            // --- Tools công khai (không cần đăng nhập) ---
             createTool("get_top_liked_threads", "Lấy top 5 bài viết có nhiều lượt thích (like) nhất trong diễn đàn.", Collections.emptyMap()),
             createTool("get_top_contributors", "Lấy thông tin những người dùng đăng bài nhiều nhất hoặc nhận được tổng số like cao nhất.", Collections.emptyMap()),
             createTool("get_forum_categories", "Xem danh sách các chủ đề (categories) của diễn đàn hiện đang có để biết người dùng đang quan tâm điều gì.", Collections.emptyMap()),
             createTool(
                 "get_threads_by_category", 
-                "Lấy danh sách tối đa 5 bài viết mới nhất thuộc một chuyên mục (category) cụ thể bằng tên chuyên mục (ví dụ: 'Hỏi đáp lập trình', 'Chia sẻ kinh nghiệm').", 
+                "Lấy danh sách tối đa 5 bài viết mới nhất thuộc một chuyên mục (category) cụ thể bằng tên chuyên mục.", 
                 Map.of(
                     "type", "object",
                     "properties", Map.of(
-                        "categoryName", Map.of("type", "string", "description", "Tên của chuyên mục cần lấy bài viết (ví dụ: 'Hỏi đáp lập trình', 'Chia sẻ kinh nghiệm').")
+                        "categoryName", Map.of("type", "string", "description", "Tên của chuyên mục cần lấy bài viết.")
                     ),
                     "required", List.of("categoryName")
                 )
             ),
-
             createTool(
                 "search_courses", 
                 "Tìm kiếm khóa học theo tên danh mục (ví dụ: Java, Web,...) và/hoặc theo giá tối đa.", 
@@ -471,8 +610,50 @@ public class AiService {
                         "maxPrice", Map.of("type", "number", "description", "Giá tối đa của khóa học.")
                     )
                 )
+            ),
+            // --- Tool hỗ trợ khách hàng (yêu cầu đăng nhập) ---
+            createTool(
+                "create_support_ticket",
+                "Tạo yêu cầu hỗ trợ kỹ thuật gửi đến Admin. Chỉ gọi sau khi đã hỏi và thu thập đầy đủ thông tin mô tả vấn đề từ người dùng.",
+                Map.of(
+                    "type", "object",
+                    "properties", Map.of(
+                        "subject", Map.of("type", "string", "description", "Tiêu đề ngắn tóm tắt sự cố (ví dụ: 'Video bài 3 không tải được')."),
+                        "content", Map.of("type", "string", "description", "Mô tả chi tiết sự cố do người dùng cung cấp."),
+                        "type", Map.of("type", "string", "description", "Phân loại: TECHNICAL_ISSUE (lỗi kỹ thuật), PAYMENT_ERROR (lỗi thanh toán), COURSE_ACCESS (không vào được khóa học), GENERAL (chung)."),
+                        "priority", Map.of("type", "integer", "description", "Độ ưu tiên: 1 (Thấp), 2 (Trung bình), 3 (Cao)."),
+                        "imageUrl", Map.of("type", "string", "description", "URL ảnh đính kèm minh họa sự cố. Để trống nếu người dùng không cung cấp.")
+                    ),
+                    "required", List.of("subject", "content", "type", "priority")
+                )
+            ),
+            createTool(
+                "get_my_orders",
+                "Lấy lịch sử đơn hàng và trạng thái thanh toán của người dùng hiện tại. Dùng khi người dùng hỏi về đơn hàng hoặc trạng thái thanh toán.",
+                Collections.emptyMap()
             )
-        );
+        ));
+
+        // Tools cá nhân hóa - chỉ thêm khi người dùng đã đăng nhập
+        if (accountId != null && !accountId.trim().isEmpty()) {
+            tools.add(createTool(
+                "get_my_courses",
+                "Lấy danh sách các khóa học mà người dùng hiện tại đã đăng ký. Dùng khi người dùng hỏi 'khóa học của tôi', 'tôi đang học gì'.",
+                Collections.emptyMap()
+            ));
+            tools.add(createTool(
+                "get_my_learning_progress",
+                "Lấy tiến độ học tập (% hoàn thành, trạng thái) của từng khóa học mà người dùng đang học. Dùng khi người dùng hỏi 'tôi học đến đâu rồi', 'tiến độ của tôi'.",
+                Collections.emptyMap()
+            ));
+        }
+
+        return tools;
+    }
+
+    // Giữ tương thích ngược với các nơi gọi không truyền accountId
+    private List<Map<String, Object>> getAiTools() {
+        return getAiTools(null);
     }
 
     private Map<String, Object> createTool(String name, String description, Map<String, Object> parameters) {
@@ -482,7 +663,7 @@ public class AiService {
         Map<String, Object> function = new HashMap<>();
         function.put("name", name);
         function.put("description", description);
-        if(!parameters.isEmpty()){
+        if (!parameters.isEmpty()) {
             function.put("parameters", parameters);
         } else {
              Map<String, Object> emptyParams = new HashMap<>();
@@ -495,13 +676,62 @@ public class AiService {
         return tool;
     }
 
+    // =====================================================================
+    // SYSTEM PROMPT BUILDER
+    // =====================================================================
+
+    private String buildSystemPrompt(String accountId) {
+        boolean isLoggedIn = accountId != null && !accountId.trim().isEmpty();
+
+        StringBuilder prompt = new StringBuilder();
+        prompt.append("Bạn là Gnostica AI - trợ lý học tập thông minh của nền tảng Gnostica E-Learning. ");
+        prompt.append("Bạn có thể truy cập database để tìm khóa học, bài viết, hỗ trợ kỹ thuật và theo dõi tiến độ học tập.");
+
+        prompt.append("\n\n### QUY TẮC BẮT BUỘC:");
+        prompt.append("\n1. TUYỆT ĐỐI KHÔNG LẤY DỮ LIỆU GIẢ. Chỉ dùng dữ liệu từ database thông qua tool. Nếu không tìm thấy, báo rõ ràng.");
+        prompt.append("\n2. KHÔNG trả lời bằng danh sách thuần văn bản thô. Khi hiển thị khóa học, bài viết, chuyên mục: PHẢI dùng định dạng Card: `[[CARD:TYPE|id|title|info|author|category|imageUrl]]`.");
+        prompt.append("\n3. KHÔNG trả lời bằng khoảng trắng hoặc tin nhắn trống.");
+        prompt.append("\n4. NẾU kết quả trả về 'DATABASE_EMPTY' hoặc 'DATABASE_ERROR': Thông báo lịch sự, không bịa dữ liệu.");
+
+        prompt.append("\n\n### ĐỊNH DẠNG CARD:");
+        prompt.append("\n- TYPE 'course': `[[CARD:course|slug|Tiêu đề|Giá|Tác giả|Danh mục|URL ảnh]]`");
+        prompt.append("\n- TYPE 'forum': `[[CARD:forum|slug|Tiêu đề|Lượt xem|Tác giả|Chuyên mục|none]]`");
+        prompt.append("\n- TYPE 'category': `[[CARD:category|id|Tên|Mô tả|Diễn đàn|Gnostica|none]]`");
+        prompt.append("\n- TYPE 'contributor': `[[CARD:contributor|id|Tên|Số bài|Tên|Thành viên|none]]`");
+        prompt.append("\n- TYPE 'ticket': `[[CARD:ticket|ticketId|subject|Loại|Mức ưu tiên|Ngày]]`");
+
+        prompt.append("\n\n### XỬ LÝ HỖ TRỢ KỸ THUẬT (Customer Support):");
+        prompt.append("\nKhi người dùng báo gặp sự cố, lỗi, hoặc vấn đề cần hỗ trợ:");
+        prompt.append("\n  Bước 1: Hỏi rõ chi tiết vấn đề nếu thông tin chưa rõ.");
+        prompt.append("\n  Bước 2: Gợi ý đính kèm ảnh chụp màn hình bằng cách chèn thẻ `[[CARD:upload_image]]` vào tin nhắn của bạn.");
+        prompt.append("\n  Bước 3: SAU KHI người dùng tải ảnh hoặc gửi thông điệp yêu cầu hỗ trợ (tin nhắn chứa '(TẠO TICKET NGAY DÙM TÔI)' hoặc 'Tôi đã gửi yêu cầu hỗ trợ'):");
+        prompt.append("\n    - BẮT BUỘC GỌI TOOL `create_support_ticket` NGAY LẬP TỨC để tạo ticket hỗ trợ gửi tới Admin.");
+        prompt.append("\n    - NẾU chưa có đủ tiêu đề/mô tả trong các câu nói trước, hãy TỰ TẠO tiêu đề tóm tắt (ví dụ: subject='Yêu cầu hỗ trợ từ học viên', content='Học viên đã gửi yêu cầu hỗ trợ qua Chatbox'). TUYỆT ĐỐI KHÔNG ĐƯỢC HỎI LẠI NGƯỜI DÙNG CÂU NÀO KHÁC.");
+        prompt.append("\n    - TUYỆT ĐỐI KHÔNG chèn thẻ `[[CARD:upload_image]]` nữa và KHÔNG hỏi thêm thông tin hay yêu cầu tải ảnh lại nữa.");
+        prompt.append("\n    - Phản hồi duy nhất tới học viên BẮT BUỘC phải là: 'Tôi đã tiếp nhận yêu cầu hỗ trợ của bạn và chuyển đến Admin. Xin vui lòng quay lại sau!' kèm theo thẻ `[[CARD:ticket|id|subject|type|priority|Vừa tạo]]`.");
+
+        if (isLoggedIn) {
+            prompt.append("\n\n### NGƯỜI DÙNG HIỆN TẠI: Đã đăng nhập (Account ID: ").append(accountId).append(")");
+            prompt.append("\nBạn CÓ THỂ dùng tools: `get_my_courses`, `get_my_learning_progress`, `get_my_orders`, `create_support_ticket`.");
+            prompt.append("\nKhi người dùng hỏi về tiến độ, khóa học của họ, hoặc đơn hàng - hãy gọi tool phù hợp để trả lời chính xác.");
+        } else {
+            prompt.append("\n\n### NGƯỜI DÙNG HIỆN TẠI: Chưa đăng nhập.");
+            prompt.append("\nNếu người dùng hỏi về khóa học của họ, tiến độ, hay đơn hàng - hãy nhắc đăng nhập để sử dụng tính năng này.");
+            prompt.append("\nTool `create_support_ticket` vẫn có thể hỗ trợ nếu người dùng muốn liên hệ admin.");
+        }
+
+        return prompt.toString();
+    }
+
+    // =====================================================================
+    // HELPERS
+    // =====================================================================
+
     private String cleanHtml(String html) {
         if (html == null) {
             return "";
         }
-        // Remove HTML tags
         String cleaned = html.replaceAll("<[^>]*>", " ");
-        // Replace common HTML entities
         cleaned = cleaned.replaceAll("(?i)&nbsp;", " ")
                          .replaceAll("(?i)&amp;", "&")
                          .replaceAll("(?i)&lt;", "<")
@@ -509,7 +739,6 @@ public class AiService {
                          .replaceAll("(?i)&quot;", "\"")
                          .replaceAll("(?i)&#39;", "'")
                          .replaceAll("(?i)&apos;", "'");
-        // Normalize spaces
         cleaned = cleaned.replaceAll("\\s+", " ").trim();
         return cleaned;
     }

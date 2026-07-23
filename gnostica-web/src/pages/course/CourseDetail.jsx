@@ -15,16 +15,54 @@ import AppProgress from "@/components/common/micro/AppProgress";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/common/micro/AppAvatar";
 import { AppButton, AppIconButton } from "@/components/common/micro/AppButton";
 import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import PageContainer from "@/components/common/core/PageContainer";
 import courseService from "@/services/course/courseService";
 import instructorService from "@/services/instructor/instructorService";
 
 // ── CourseDetailVideo ──
-const BUNNY_LIBRARY_ID = "635422";
+const BUNNY_GUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const isBunnyGuid = (str) => {
   if (!str) return false;
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+  return BUNNY_GUID_REGEX.test(str);
+};
+
+const getBunnyEmbedUrl = (url) => {
+  if (!url) return null;
+
+  const normalizedUrl = String(url).trim();
+  const buildEmbedUrl = (libraryId, videoId) => (
+    `https://player.mediadelivery.net/embed/${libraryId}/${videoId}?autoplay=true&loop=false&muted=false&preload=true`
+  );
+
+  const fullUrlMatch = normalizedUrl.match(
+    /(?:iframe|player)\.mediadelivery\.net\/(?:embed|play)\/([^/?#]+)\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/i
+  );
+  if (fullUrlMatch) {
+    return buildEmbedUrl(fullUrlMatch[1], fullUrlMatch[2]);
+  }
+
+  const bunnyUrlMatch = normalizedUrl.match(
+    /video\.bunny\.net\/(?:embed|play)\/([^/?#]+)\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/i
+  );
+  if (bunnyUrlMatch) {
+    return buildEmbedUrl(bunnyUrlMatch[1], bunnyUrlMatch[2]);
+  }
+
+  const compositeMatch = normalizedUrl.match(
+    /^([^/?#]+)\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i
+  );
+  if (compositeMatch) {
+    return buildEmbedUrl(compositeMatch[1], compositeMatch[2]);
+  }
+
+  const fallbackLibraryId = import.meta.env.VITE_BUNNY_LIBRARY_ID;
+  if (fallbackLibraryId && isBunnyGuid(normalizedUrl)) {
+    return buildEmbedUrl(fallbackLibraryId, normalizedUrl);
+  }
+
+  return null;
 };
 
 const getYoutubeId = (url) => {
@@ -56,57 +94,25 @@ const formatLessonDuration = (metadata) => {
 };
 
 const CourseDetailVideo = ({ courseImage, courseTitle, promoVideo }) => {
-  const [isPlaying, setIsPlaying] = React.useState(false);
-
-  if (isPlaying && promoVideo) {
-    const youtubeId = getYoutubeId(promoVideo);
-    const bunnyGuid = isBunnyGuid(promoVideo) ? promoVideo : null;
-
-    return (
-      <div className="relative aspect-video overflow-hidden rounded-xl shadow-2xl shadow-slate-200 border-none bg-black">
-        {youtubeId ? (
-          <iframe
-            src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1`}
-            title="Course Trailer"
-            className="w-full h-full"
-            frameBorder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          />
-        ) : bunnyGuid ? (
-          <iframe
-            src={`https://iframe.mediadelivery.net/embed/${BUNNY_LIBRARY_ID}/${bunnyGuid}?autoplay=true&loop=false&muted=false&preload=true`}
-            title="Course Trailer"
-            className="w-full h-full"
-            frameBorder="0"
-            allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
-            allowFullScreen
-          />
-        ) : (
-          <video
-            src={promoVideo}
-            controls
-            autoPlay
-            className="w-full h-full object-contain bg-black"
-          />
-        )}
-      </div>
-    );
-  }
+  const [isVideoOpen, setIsVideoOpen] = React.useState(false);
+  const youtubeId = getYoutubeId(promoVideo);
+  const bunnyEmbedUrl = getBunnyEmbedUrl(promoVideo);
+  const hasPromoVideo = Boolean(promoVideo);
 
   return (
+    <>
     <div
-      className="relative aspect-video overflow-hidden rounded-xl shadow-2xl shadow-slate-200 group cursor-pointer border border-border/50 bg-muted"
-      onClick={() => promoVideo && setIsPlaying(true)}
+      className={`relative aspect-video overflow-hidden rounded-xl shadow-2xl shadow-slate-200 group border border-border/50 bg-muted ${hasPromoVideo ? "cursor-pointer" : ""}`}
+      onClick={() => hasPromoVideo && setIsVideoOpen(true)}
     >
       <img
         src={courseImage}
         alt={courseTitle}
-        className={`w-full h-full object-cover transition-all duration-700 ease-out ${promoVideo ? 'group-hover:scale-105 group-hover:opacity-60' : ''}`}
+        className={`w-full h-full object-cover transition-all duration-700 ease-out ${hasPromoVideo ? 'group-hover:scale-105 group-hover:opacity-60' : ''}`}
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80" />
 
-      {promoVideo && (
+      {hasPromoVideo && (
         <div className="absolute inset-0">
           <button
             type="button"
@@ -126,6 +132,42 @@ const CourseDetailVideo = ({ courseImage, courseTitle, promoVideo }) => {
         </div>
       )}
     </div>
+
+      <Dialog open={isVideoOpen} onOpenChange={setIsVideoOpen}>
+        <DialogContent
+          showCloseButton={false}
+          className="aspect-video w-[min(82vw,1180px)] max-w-none gap-0 overflow-hidden rounded-xl border-0 bg-black p-0 shadow-2xl ring-0 sm:max-w-none"
+        >
+          <DialogTitle className="sr-only">Trailer khoa hoc</DialogTitle>
+          {youtubeId ? (
+            <iframe
+              src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1`}
+              title="Course Trailer"
+              className="h-full w-full"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          ) : bunnyEmbedUrl ? (
+            <iframe
+              src={bunnyEmbedUrl}
+              title="Course Trailer"
+              className="h-full w-full"
+              frameBorder="0"
+              allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
+              allowFullScreen
+            />
+          ) : (
+            <video
+              src={promoVideo}
+              controls
+              autoPlay
+              className="h-full w-full bg-black object-contain"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 

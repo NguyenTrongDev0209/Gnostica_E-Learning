@@ -13,7 +13,6 @@ import FavoriteInstructors from "@/pages/account/FavoriteInstructors";
 
 import CheckoutPage from "@/pages/order/CheckoutPage";
 import PayosQR from "@/pages/order/PayosQR";
-import CheckoutResult from "@/pages/order/CheckoutResult";
 import ForumCreatePost from "@/pages/forum/ForumCreatePost";
 import MyForumPosts from "@/pages/forum/MyForumPosts";
 import ApplyInstructor from "@/pages/general/ApplyInstructor";
@@ -26,6 +25,7 @@ import AdminOrders from "@/pages/admin/AdminOrders";
 import AdminCoupons from "@/pages/admin/AdminCoupons";
 import AdminReviews from "@/pages/admin/AdminReviews";
 import AdminReports from "@/pages/admin/AdminReports";
+import AdminRequests from "@/pages/admin/AdminRequests";
 import AdminSettings from "@/pages/admin/AdminSettings";
 import AdminBanks from "@/pages/admin/AdminBanks";
 import AdminTransactions from "@/pages/admin/AdminTransactions";
@@ -64,6 +64,7 @@ export const privateRoutes = {
     { path: "/admin/coupons", component: AdminCoupons },
     { path: "/admin/reviews", component: AdminReviews },
     { path: "/admin/reports", component: AdminReports },
+    { path: "/admin/requests", component: AdminRequests },
     { path: "/admin/settings", component: AdminSettings },
     { path: "/admin/banks", component: AdminBanks },
     { path: "/admin/transactions", component: AdminTransactions },
@@ -88,8 +89,9 @@ export const privateRoutes = {
   checkout: [
     { path: "/checkout", component: CheckoutPage },
     { path: "/checkout/payos", component: PayosQR },
-    { path: "/checkout/success", component: CheckoutResult },
-    { path: "/checkout/cancel", component: CheckoutResult },
+    { path: "/checkout/:orderCode", component: CheckoutPage },
+    { path: "/checkout/success", component: CheckoutPage },
+    { path: "/checkout/cancel", component: CheckoutPage },
   ],
   forum: [
     { path: "/forum/create", component: ForumCreatePost },

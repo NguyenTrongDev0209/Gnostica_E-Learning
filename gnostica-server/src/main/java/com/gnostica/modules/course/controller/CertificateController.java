@@ -27,9 +27,9 @@ public class CertificateController {
         }
         return accountRepository.findByEmail(authentication.getName())
                 .map(account -> {
-                    java.util.List<CertificateDTO> dtos = enrollmentRepository.findByAccountAndCertifiUrlIsNotNull(account).stream()
+                    java.util.List<CertificateDTO> dtos = enrollmentRepository.findByAccountAndCertificateUrlIsNotNull(account).stream()
                             .map(enrollment -> CertificateDTO.builder()
-                                    .certifiUrl(enrollment.getCertifiUrl())
+                                    .certificateUrl(enrollment.getCertificateUrl())
                                     .courseTitle(enrollment.getCourse() != null ? enrollment.getCourse().getTitle() : "Unknown Course")
                                     .studentName(enrollment.getAccount() != null ? enrollment.getAccount().getFullName() : "Unknown Student")
                                     .instructorName(enrollment.getCourse() != null && enrollment.getCourse().getAccount() != null 
@@ -42,12 +42,12 @@ public class CertificateController {
                 .orElseGet(() -> ResponseEntity.status(404).build());
     }
 
-    @GetMapping("/{certifiUrl}")
-    public ResponseEntity<CertificateDTO> getCertificate(@PathVariable String certifiUrl) {
-        return enrollmentRepository.findByCertifiUrl(certifiUrl)
+    @GetMapping("/{certificateUrl}")
+    public ResponseEntity<CertificateDTO> getCertificate(@PathVariable String certificateUrl) {
+        return enrollmentRepository.findByCertificateUrl(certificateUrl)
                 .map(enrollment -> {
                     CertificateDTO dto = CertificateDTO.builder()
-                            .certifiUrl(enrollment.getCertifiUrl())
+                            .certificateUrl(enrollment.getCertificateUrl())
                             .courseTitle(enrollment.getCourse() != null ? enrollment.getCourse().getTitle() : "Unknown Course")
                             .studentName(enrollment.getAccount() != null ? enrollment.getAccount().getFullName() : "Unknown Student")
                             .instructorName(enrollment.getCourse() != null && enrollment.getCourse().getAccount() != null 
