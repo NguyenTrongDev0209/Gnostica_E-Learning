@@ -16,10 +16,10 @@ export default function useFavoriteInstructors() {
             });
             const data = await res.json();
             if (res.ok) {
-                // Map to UI model
                 const mapped = (data.data || []).map(inst => ({
                     id: inst.instructorId,
-                    name: inst.instructorName,
+                    fullName: inst.instructorName,
+                    email: inst.instructorEmail || "",
                     avatar: inst.instructorAvatar || "https://images.unsplash.com/photo-1568602471122-7832951cc4c5?w=150&h=150&fit=crop",
                     title: inst.instructorTitle || "Giảng viên",
                     coursesCount: inst.totalCourses || 0,

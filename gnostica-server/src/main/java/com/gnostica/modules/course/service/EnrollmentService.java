@@ -28,7 +28,8 @@ public class EnrollmentService {
         private final EnrollmentRepository enrollmentRepository;
         private final AccountRepository accountRepository;
         private final LessonProgressRepository lessonProgressRepository;
-        private final com.gnostica.core.repository.QuizResultRepository quizResultRepository; // Inject Quiz Repo
+        private final com.gnostica.core.repository.QuizResultRepository quizResultRepository; 
+        private final com.gnostica.core.repository.QuizRepository quizRepository;
         private final MailService mailService;
 
         @Transactional
@@ -89,12 +90,26 @@ public class EnrollmentService {
                                 .count();
 
                 // Tính số giờ đã học dựa trên số bài học đã hoàn thành
-                // Tạm thời giả định mỗi bài học trung bình 0.5 giờ (30 phút)
-                long completedLessons = lessonProgressRepository.findByAccount(account).stream()
-                                .filter(lp -> lp.getStatus() != null && lp.getStatus() == 2)
-                                .count();
+                // Tính tổng thời gian đã học thực tế từ metadata của video (tính theo giờ)
+                List<LessonProgress> completedLps = lessonProgressRepository.findByAccount(account).stream()
+                                .filter(lp -> lp.getStatus() != null && lp.getStatus() == 2 && lp.getLesson() != null)
+                                .collect(Collectors.toList());
 
-                double hoursStudied = completedLessons * 0.5;
+                double totalSeconds = 0;
+                com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                for (LessonProgress lp : completedLps) {
+                        Lesson lesson = lp.getLesson();
+                        if (lesson.getMetadata() != null) {
+                                try {
+                                        com.fasterxml.jackson.databind.JsonNode node = mapper.readTree(lesson.getMetadata());
+                                        if (node.has("duration")) {
+                                                totalSeconds += node.get("duration").asDouble();
+                                        }
+                                } catch (Exception e) {}
+                        }
+                }
+                
+                double hoursStudied = totalSeconds > 0 ? (Math.round((totalSeconds / 3600.0) * 10) / 10.0) : 0;
 
                 return com.gnostica.modules.user.dto.response.StudentStatsResponse.builder()
                                 .enrolledCourses(enrolledCourses)
@@ -177,6 +192,7 @@ public class EnrollmentService {
                                 .totalLessons(totalLessons)
                                 .completedLessons(completedLessons)
                                 .certificateUrl(enrollment.getCertificateUrl())
+                                .category(course.getCategory() != null ? course.getCategory().getName() : "Khác")
                                 .build();
         }
 
@@ -198,7 +214,9 @@ public class EnrollmentService {
                                 .flatMap(m -> m.getLessons().stream())
                                 .count();
 
-                long totalQuizzes = 0;
+                long totalQuizzes = course.getModules().stream()
+                                .filter(m -> quizRepository.findByModule_Id(m.getId()).isPresent())
+                                .count();
 
                 long totalSteps = totalLessons + totalQuizzes;
                 if (totalSteps == 0)
