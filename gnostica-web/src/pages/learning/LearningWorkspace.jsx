@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ChevronLeft,
@@ -495,14 +495,34 @@ function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }
   const [scorePercent, setScorePercent] = useState(0);
   const [correctCount, setCorrectCount] = useState(0);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
   const quizTopRef = useRef(null);
 
-  const questions = quiz?.questions || [];
+  const questions = useMemo(() => {
+    return (quiz?.questions || []).map(q => {
+      if (q.text && q.options) {
+        const answersArray = Object.entries(q.options).map(([key, val]) => ({
+          id: key,
+          optionLabel: key,
+          content: val,
+          isCorrect: q.correct === key
+        }));
+        return {
+          ...q,
+          content: q.text,
+          answers: answersArray
+        };
+      }
+      return q;
+    });
+  }, [quiz?.questions]);
+
   const answeredCount = Object.keys(userAnswers).length;
   const answeredPercent = questions.length > 0 ? Math.round((answeredCount / questions.length) * 100) : 0;
 
   useEffect(() => {
       setUserAnswers({});
+      setCurrentQuestionIdx(0);
   }, [quiz?.id]);
 
   useEffect(() => {
@@ -523,6 +543,7 @@ function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }
           setScorePercent(0);
           setCorrectCount(0);
           setUserAnswers({});
+          setCurrentQuestionIdx(0);
       }
   }, [existingResult, quiz?.id]);
 
@@ -596,6 +617,7 @@ function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }
           setUserAnswers({});
           setScorePercent(0);
           setCorrectCount(0);
+          setCurrentQuestionIdx(0);
           localStorage.removeItem(`quiz_answers_${quiz.id}`);
 
           if (onQuizReset) {
@@ -609,6 +631,90 @@ function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }
   };
 
   const isPassed = scorePercent >= 50;
+
+  const renderQuestion = (q, idx, isReviewMode) => {
+      return (
+          <div key={q.id} className="space-y-6 rounded-xl border border-border bg-card p-6 shadow-sm transition-all duration-300 md:p-8 animate-in fade-in">
+              <h3 className="flex items-start gap-3 text-base font-semibold leading-relaxed text-foreground">
+                  <span className="flex h-8 shrink-0 items-center rounded-lg border border-primary/20 bg-primary/10 px-3 text-sm font-bold text-primary">
+                    Câu {idx + 1}
+                  </span>
+                  <span className="pt-1" dangerouslySetInnerHTML={{ __html: q.content }}></span>
+              </h3>
+
+              <div className="grid grid-cols-1 gap-3">
+                  {(q.answers || []).map((opt, oIdx) => {
+                      const optionLabel = opt.optionLabel || String.fromCharCode(65 + oIdx);
+                      const isSelected = userAnswers[q.id] == opt.id; 
+                      const isCorrect = opt.isCorrect;
+
+                      let buttonClass = "w-full flex items-center justify-between gap-4 rounded-lg border p-4 text-left text-sm font-medium transition-all duration-200 ";
+                      let icon = null;
+
+                      if (!isSubmitted) {
+                          if (isSelected) {
+                              buttonClass += "border-primary/40 bg-primary/10 text-primary shadow-sm";
+                          } else {
+                              buttonClass += "border-border bg-muted/30 text-foreground hover:border-primary/30 hover:bg-primary/5";
+                          }
+                      } else {
+                          if (isSelected && isCorrect) {
+                              buttonClass += "border-success/40 bg-success-soft text-success shadow-sm";
+                              icon = (
+                                  <span className="flex shrink-0 items-center gap-1 rounded-lg border border-success/20 bg-card px-2 py-1 text-xs font-semibold text-success">
+                                      <CheckCircle2 className="size-3" /> Đúng
+                                  </span>
+                              );
+                          } else if (isSelected && !isCorrect) {
+                              buttonClass += "border-error/40 bg-error-soft text-error shadow-sm";
+                              icon = (
+                                  <span className="flex shrink-0 items-center gap-1 rounded-lg border border-error/20 bg-card px-2 py-1 text-xs font-semibold text-error">
+                                      <XCircle className="size-3" /> Sai
+                                  </span>
+                              );
+                          } else if (isCorrect) {
+                              buttonClass += "border-success/30 bg-success-soft/60 text-success";
+                              icon = (
+                                  <span className="flex shrink-0 items-center gap-1 rounded-lg border border-success/20 bg-card px-2 py-1 text-xs font-semibold text-success">
+                                      <CheckCircle2 className="size-3" /> Đáp án
+                                  </span>
+                              );
+                          } else {
+                              buttonClass += "border-border bg-muted/20 text-muted-foreground opacity-75";
+                          }
+                      }
+
+                      return (
+                          <button
+                              key={opt.id}
+                              disabled={isSyncing || isSubmitted}
+                              onClick={() => handleOptionSelect(q.id, opt.id)}
+                              className={buttonClass}
+                          >
+                              <span className="flex min-w-0 items-start gap-3">
+                                <span className={`flex size-7 shrink-0 items-center justify-center rounded-full border text-xs font-bold ${
+                                  isSelected
+                                    ? "border-current bg-card/70"
+                                    : "border-border bg-card text-muted-foreground"
+                                }`}>
+                                  {optionLabel}
+                                </span>
+                                <span className="pt-1 leading-5">{opt.content || opt.answerText}</span>
+                              </span>
+                              {icon}
+                          </button>
+                      );
+                  })}
+              </div>
+              {isSubmitted && q.explanation && (
+                  <div className="animate-in fade-in slide-in-from-top-2 mt-4 rounded-lg border border-info/20 bg-info-soft p-4 text-sm text-info">
+                      <p className="mb-1 flex items-center gap-1.5 font-semibold text-foreground"><Info className="size-4 text-info" /> Giải thích</p>
+                      <div dangerouslySetInnerHTML={{ __html: q.explanation }}></div>
+                  </div>
+              )}
+          </div>
+      );
+  };
 
   return (
     <div ref={quizTopRef} className="mx-auto w-full max-w-5xl space-y-6 pb-12 pt-2">
@@ -640,7 +746,7 @@ function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }
             {!isSubmitted && (
               <div className="mt-6">
                 <div className="mb-2 flex items-center justify-between text-xs font-semibold text-muted-foreground">
-                  <span>Tiến độ làm bài</span>
+                  <span>Tiến độ làm bài (Câu {currentQuestionIdx + 1}/{questions.length})</span>
                   <span>{answeredPercent}%</span>
                 </div>
                 <Progress value={answeredPercent} className="h-2 bg-muted [&>div]:bg-primary" />
@@ -691,100 +797,47 @@ function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }
             </div>
         )}
 
-        <div className="space-y-5">
-            {questions.map((q, idx) => (
-                <div key={q.id} className="space-y-6 rounded-xl border border-border bg-card p-6 shadow-sm transition-all duration-300 md:p-8">
-                    <h3 className="flex items-start gap-3 text-base font-semibold leading-relaxed text-foreground">
-                        <span className="flex h-8 shrink-0 items-center rounded-lg border border-primary/20 bg-primary/10 px-3 text-sm font-bold text-primary">
-                          Câu {idx + 1}
-                        </span>
-                        <span className="pt-1" dangerouslySetInnerHTML={{ __html: q.content }}></span>
-                    </h3>
-
-                    <div className="grid grid-cols-1 gap-3">
-                        {(q.answers || []).map((opt, oIdx) => {
-                            const optionLabel = opt.optionLabel || String.fromCharCode(65 + oIdx);
-                            const isSelected = userAnswers[q.id] == opt.id; 
-                            const isCorrect = opt.isCorrect;
-
-                            let buttonClass = "w-full flex items-center justify-between gap-4 rounded-lg border p-4 text-left text-sm font-medium transition-all duration-200 ";
-                            let icon = null;
-
-                            if (!isSubmitted) {
-                                if (isSelected) {
-                                    buttonClass += "border-primary/40 bg-primary/10 text-primary shadow-sm";
-                                } else {
-                                    buttonClass += "border-border bg-muted/30 text-foreground hover:border-primary/30 hover:bg-primary/5";
-                                }
-                            } else {
-                                if (isSelected && isCorrect) {
-                                    buttonClass += "border-success/40 bg-success-soft text-success shadow-sm";
-                                    icon = (
-                                        <span className="flex shrink-0 items-center gap-1 rounded-lg border border-success/20 bg-card px-2 py-1 text-xs font-semibold text-success">
-                                            <CheckCircle2 className="size-3" /> Đúng
-                                        </span>
-                                    );
-                                } else if (isSelected && !isCorrect) {
-                                    buttonClass += "border-error/40 bg-error-soft text-error shadow-sm";
-                                    icon = (
-                                        <span className="flex shrink-0 items-center gap-1 rounded-lg border border-error/20 bg-card px-2 py-1 text-xs font-semibold text-error">
-                                            <XCircle className="size-3" /> Sai
-                                        </span>
-                                    );
-                                } else if (isCorrect) {
-                                    buttonClass += "border-success/30 bg-success-soft/60 text-success";
-                                    icon = (
-                                        <span className="flex shrink-0 items-center gap-1 rounded-lg border border-success/20 bg-card px-2 py-1 text-xs font-semibold text-success">
-                                            <CheckCircle2 className="size-3" /> Đáp án
-                                        </span>
-                                    );
-                                } else {
-                                    buttonClass += "border-border bg-muted/20 text-muted-foreground opacity-75";
-                                }
-                            }
-
-                            return (
-                                <button
-                                    key={opt.id}
-                                    disabled={isSyncing || isSubmitted}
-                                    onClick={() => handleOptionSelect(q.id, opt.id)}
-                                    className={buttonClass}
-                                >
-                                    <span className="flex min-w-0 items-start gap-3">
-                                      <span className={`flex size-7 shrink-0 items-center justify-center rounded-full border text-xs font-bold ${
-                                        isSelected
-                                          ? "border-current bg-card/70"
-                                          : "border-border bg-card text-muted-foreground"
-                                      }`}>
-                                        {optionLabel}
-                                      </span>
-                                      <span className="pt-1 leading-5">{opt.answerText}</span>
-                                    </span>
-                                    {icon}
-                                </button>
-                            );
-                        })}
-                    </div>
-                    {isSubmitted && q.explanation && (
-                        <div className="animate-in fade-in slide-in-from-top-2 mt-4 rounded-lg border border-info/20 bg-info-soft p-4 text-sm text-info">
-                            <p className="mb-1 flex items-center gap-1.5 font-semibold text-foreground"><Info className="size-4 text-info" /> Giải thích</p>
-                            <div dangerouslySetInnerHTML={{ __html: q.explanation }}></div>
-                        </div>
-                    )}
+        <div className="space-y-5 relative">
+            {!isSubmitted ? (
+                <div className="animate-in slide-in-from-right-4 duration-300">
+                    {questions[currentQuestionIdx] && renderQuestion(questions[currentQuestionIdx], currentQuestionIdx, false)}
                 </div>
-            ))}
+            ) : (
+                <div className="space-y-6">
+                    {questions.map((q, idx) => renderQuestion(q, idx, true))}
+                </div>
+            )}
         </div>
 
         {!isSubmitted && (
-            <div className="pt-4 flex justify-end">
+            <div className="pt-4 flex justify-between items-center bg-card p-4 rounded-xl border border-border shadow-sm">
                 <Button 
-                    onClick={handleSubmitQuiz}
-                    disabled={isSyncing}
-                    className="h-12 gap-2 rounded-lg px-8 font-semibold shadow-sm"
+                    variant="outline"
+                    onClick={() => setCurrentQuestionIdx(prev => Math.max(0, prev - 1))}
+                    disabled={currentQuestionIdx === 0 || isSyncing}
+                    className="h-11 px-6 font-semibold"
                 >
-                    {isSyncing ? <Loader2 className="size-4 animate-spin" /> : <CheckCircle2 className="size-4" />}
-                    Nộp bài
+                    Quay lại
                 </Button>
+                
+                {currentQuestionIdx < questions.length - 1 ? (
+                    <Button 
+                        onClick={() => setCurrentQuestionIdx(prev => Math.min(questions.length - 1, prev + 1))}
+                        disabled={isSyncing}
+                        className="h-11 px-8 font-semibold bg-primary text-primary-foreground hover:bg-primary/90"
+                    >
+                        Tiếp theo
+                    </Button>
+                ) : (
+                    <Button 
+                        onClick={handleSubmitQuiz}
+                        disabled={isSyncing}
+                        className="h-11 px-8 font-semibold bg-success hover:bg-success/90 text-white gap-2 shadow-md shadow-success/20"
+                    >
+                        {isSyncing ? <Loader2 className="size-4 animate-spin" /> : <CheckCircle2 className="size-4" />}
+                        Nộp bài
+                    </Button>
+                )}
             </div>
         )}
     </div>

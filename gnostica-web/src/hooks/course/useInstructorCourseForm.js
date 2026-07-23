@@ -352,26 +352,14 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
     const isDirty = methods.formState.isDirty;
 
     if (isDirty) {
-      const confirmMsg = isEditMode 
-        ? "Bạn có các thay đổi chưa lưu. Bạn có chắc chắn muốn thoát và HỦY BỎ toàn bộ các thay đổi mới không?" 
-        : "Bạn đang tạo khóa học mới nhưng chưa xuất bản. Bạn có chắc chắn muốn thoát và xóa bỏ bản nháp hiện tại không?";
-        
-      if (window.confirm(confirmMsg)) {
-        try {
-          const idToUse = isEditMode ? (methods.getValues().id?.toString() || "") : "";
-          const slugToUse = isEditMode ? (slug || "") : null;
-          await courseService.deleteDraft({ courseId: idToUse, slug: slugToUse });
-          isSubmittingRef.current = true;
-          navigate("/instructor/courses");
-        } catch (error) {
-          isSubmittingRef.current = true;
-          navigate("/instructor/courses");
-        }
-      }
-    } else {
-      navigate("/instructor/courses");
+      // Tự động lưu nháp nếu có thay đổi thay vì xóa bỏ
+      await saveDraft(methods.getValues(), false);
+      toast.info("Đã tự động lưu nháp các thay đổi của bạn.");
     }
-  }, [isEditMode, slug, methods, navigate]);
+    
+    isSubmittingRef.current = true;
+    navigate("/instructor/courses");
+  }, [methods, saveDraft, navigate]);
 
   // --- GLOBAL CLICK & UNLOAD EVENTS ---
   useEffect(() => {
@@ -392,32 +380,14 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
       
       const isDirty = methods.formState.isDirty;
       if (isDirty) {
-        const confirmMsg = isEditMode
-          ? "Bạn có các thay đổi chưa lưu. Bạn có chắc chắn muốn thoát và HỦY BỎ toàn bộ các thay đổi mới này để quay lại dữ liệu gốc không?"
-          : "Bạn đang tạo khóa học mới nhưng chưa xuất bản. Bạn có chắc chắn muốn thoát và xóa bỏ bản nháp hiện tại không?";
-
-        if (!window.confirm(confirmMsg)) {
-          e.preventDefault();
-          e.stopPropagation();
-        } else {
-          try {
-            let originalData = {};
-            try {
-               originalData = JSON.parse(originalDataRef.current || "{}");
-            } catch (err) {}
-            const idToUse = isEditMode ? (originalData?.id?.toString() || "") : "";
-            const slugToUse = isEditMode ? (slug || "") : null;
-            isSubmittingRef.current = true;
-            courseService.deleteDraft({ courseId: idToUse, slug: slugToUse });
-          } catch (err) {
-            isSubmittingRef.current = true;
-          }
-        }
+        // Tự động lưu nháp thay vì hỏi xóa
+        saveDraft(methods.getValues(), false);
+        toast.info("Đã tự động lưu nháp các thay đổi của bạn.");
       }
     };
     document.addEventListener('click', handleGlobalClick, true);
     return () => document.removeEventListener('click', handleGlobalClick, true);
-  }, [isEditMode, slug, methods, originalDataRef, isSubmittingRef]);
+  }, [methods, saveDraft, isSubmittingRef]);
 
   useEffect(() => {
     const handleBeforeUnload = (e) => {
@@ -511,32 +481,47 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
       isSubmittingRef.current = true;
 
       const sanitizeId = (id) => (typeof id === 'number' || (!isNaN(id) && id !== "")) ? Number(id) : null;
+      const allFormValues = methods.getValues();
 
       const finalData = {
         ...data,
         categoryId: Number(data.categoryId),
         price: Number(data.price),
-        questionBank: data.questionBank || [],
-        sections: data.sections?.map(s => ({
-          ...s,
-          id: sanitizeId(s.id),
-          lessons: s.lessons?.map(l => ({
-            ...l,
-            id: sanitizeId(l.id),
-            videoUrl: typeof l.videoFile === "string" ? l.videoFile : l.videoUrl
-          }))
-        }))
+        questionBank: allFormValues.questionBank || [],
+        sections: data.sections?.map((s, index) => {
+          const rawSection = allFormValues.sections?.[index] || {};
+          return {
+            ...s,
+            id: sanitizeId(s.id),
+            quiz: rawSection.quiz || null,
+            lessons: s.lessons?.map(l => ({
+              ...l,
+              id: sanitizeId(l.id),
+              videoUrl: typeof l.videoFile === "string" ? l.videoFile : l.videoUrl
+            }))
+          };
+        })
       };
 
       if (isEditMode && slug !== "new") {
         await courseService.updateCourse(slug, finalData);
+        toast.success("Cập nhật khóa học thành công!");
       } else {
         await courseService.createCourse(finalData);
+        toast.success("Tạo khóa học thành công!");
+      }
+
+      // Xóa bản nháp trên Redis sau khi lưu vào CSDL thành công
+      try {
+        const idToUse = isEditMode ? (finalData.id?.toString() || "") : "";
+        const slugToUse = isEditMode ? (slug || "") : null;
+        await courseService.deleteDraft({ courseId: idToUse, slug: slugToUse });
+      } catch (err) {
+        console.error("Lỗi xóa bản nháp Redis:", err);
       }
 
       localStorage.removeItem(`course_questions_${slug || 'new'}`);
-      toast.success(isEditMode && slug !== "new" ? "Cập nhật khóa học thành công!" : "Lưu khóa học thành công!");
-      setTimeout(() => navigate("/instructor/courses"), 1500);
+      setTimeout(() => navigate("/instructor/courses"), 1200);
     } catch (error) {
       console.error("Submit Error:", error);
       toast.error(error.response?.data?.error || "Lỗi tải lên hoặc lưu khóa học.");
