@@ -201,16 +201,16 @@ export default function InstructorCourseForm() {
 
         {isUploading && (
           <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] w-full max-w-md px-4">
-            <div className="bg-muted text-white p-4 rounded-lg shadow-2xl flex items-center gap-4 animate-in slide-in-from-bottom-10">
+            <div className="bg-white dark:bg-slate-800 border border-border text-slate-800 dark:text-slate-100 p-4 rounded-lg shadow-2xl flex items-center gap-4 animate-in slide-in-from-bottom-10">
               <Loader2 className="w-6 h-6 animate-spin text-primary" />
               <div className="flex-1">
                 <p className="text-sm font-bold">{uploadStatus}</p>
-                <div className="w-full bg-muted h-1.5 rounded-full mt-2 overflow-hidden">
-                  <div className="bg-primary/10 text-primary h-full transition-all duration-300" style={{ width: '45%' }} />
+                <div className="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full mt-2 overflow-hidden">
+                  <div className="bg-primary h-full transition-all duration-300 animate-[progress-indeterminate_1.5s_infinite_linear]" style={{ width: '100%' }} />
                 </div>
               </div>
               {activeUploads > 0 && (
-                <div className="bg-muted px-2 py-1 rounded text-[10px] font-bold text-muted-foreground uppercase">
+                <div className="bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase">
                   {activeUploads} Files
                 </div>
               )}

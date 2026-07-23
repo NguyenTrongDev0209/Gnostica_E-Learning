@@ -26,4 +26,5 @@ public class EnrollmentDTO {
     private Integer totalLessons;
     private Integer completedLessons;
     private String certificateUrl;
+    private String category;
 }

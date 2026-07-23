@@ -1,6 +1,7 @@
 package com.gnostica.modules.course.service;
 
 import com.gnostica.modules.course.dto.request.QuizSubmitRequest;
+import java.time.LocalDateTime;
 import com.gnostica.core.model.Account;
 import com.gnostica.core.model.Quiz;
 import com.gnostica.core.model.QuizResult;
@@ -37,6 +38,8 @@ public class QuizResultService {
         result.setTotalQuestions(req.getTotalQuestions());
         result.setCorrectAnswers(req.getCorrectAnswers());
         result.setTime(0); // Reset time fields since user doesn't care about constraints
+        result.setStatus(2); // 2: Submitted
+        result.setCompletedAt(LocalDateTime.now());
 
         quizResultRepository.save(result);
 
