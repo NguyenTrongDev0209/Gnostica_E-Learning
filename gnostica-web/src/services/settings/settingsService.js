@@ -56,6 +56,11 @@ export const getPublicPage = async (slug) => {
   return unwrap(response);
 };
 
+export const getPublicTermsMenu = async () => {
+  const response = await axiosClient.get("/public/pages/terms-menu");
+  return unwrap(response) || [];
+};
+
 export const getAdminPages = async () => {
   const response = await axiosClient.get("/admin/pages");
   return unwrap(response) || [];
@@ -75,3 +80,7 @@ export const deleteAdminPage = async (id) => {
   await axiosClient.delete(`/admin/pages/${id}`);
   return id;
 };
+
+export const getAdminTerms = async () => unwrap(await axiosClient.get("/admin/terms")) || [];
+export const createAdminTermModule = async (payload) => unwrap(await axiosClient.post("/admin/terms/modules", payload));
+export const createAdminTerm = async (payload) => unwrap(await axiosClient.post("/admin/terms", payload));

@@ -5,7 +5,7 @@
 >
 > **Ký hiệu cột Ghi chú:** PK · FK · `UQ` (Unique) · `IDX` (Index) · `C-UQ` (Composite Unique) · `C-IDX` (Composite Index)
 
-**Tổng số bảng: 40**
+**Tổng số bảng: 42**
 
 ---
 
@@ -518,13 +518,16 @@
 | 2 | title | VARCHAR(255) | | |
 | 3 | slug | VARCHAR(255) | UQ | |
 | 4 | content | TEXT | | |
-| 5 | status | INT | | |
-| 6 | created_at | DATETIME | | |
-| 7 | updated_at | DATETIME | | |
+| 5 | metadata | JSONB | | |
+| 6 | status | INT | | |
+| 7 | created_at | DATETIME | | |
+| 8 | updated_at | DATETIME | | |
 
 > **Bảng mới** — Quản lý các trang tĩnh (Điều khoản, Chính sách...).
 >
 > **Note:** `slug` là khóa public để truy cập trang; nội dung có thể là HTML/Markdown tùy convention của frontend.
+>
+> **Metadata:** Lưu cấu hình hiển thị mở rộng, ví dụ `menuGroup`, `menuOrder`, `pageOrder`, `showInTermsMenu` cho các trang `/terms/...`.
 >
 > **Status:** 0: Hidden (Ẩn), 1: Published (Hiển thị)
 
@@ -868,6 +871,49 @@
 > **Note:** `remain` là số dư hiện có; `available_at` dùng cho thời điểm tiền có thể rút nếu có cơ chế giữ tiền/chờ đối soát.
 >
 > **Status:** 0: Locked/Frozen (Đóng băng), 1: Active (Hoạt động)
+
+---
+
+## 41. Term_Modules
+
+| # | Trường | Kiểu dữ liệu | Ghi chú | CHECK |
+|---|--------|---------------|---------|-------|
+| 1 | id | IDENTITY(1,1) | PK | |
+| 2 | title | VARCHAR(255) | | |
+| 3 | sort_order | INT | IDX | `>= 0` |
+| 4 | status | INT | IDX | `IN (0, 1)` |
+| 5 | metadata | JSONB | | |
+| 6 | created_at | DATETIME | | |
+| 7 | updated_at | DATETIME | | |
+
+> **Note:** Đại diện cho một mục/menu cha trong trang Điều khoản. Có thể tồn tại khi chưa có trang con để quản trị viên tạo mục trước rồi thêm trang sau.
+>
+> **Metadata:** Cấu hình hiển thị bổ sung như icon, mô tả ngắn hoặc trạng thái mở rộng mặc định.
+>
+> **Status:** 0: Hidden (Ẩn), 1: Published (Hiển thị)
+
+---
+
+## 42. Terms
+
+| # | Trường | Kiểu dữ liệu | Ghi chú | CHECK |
+|---|--------|---------------|---------|-------|
+| 1 | id | IDENTITY(1,1) | PK | |
+| 2 | term_module_id | INT | FK, C-IDX | |
+| 3 | title | VARCHAR(255) | | |
+| 4 | url_path | VARCHAR(255) | UQ | |
+| 5 | content | TEXT | | |
+| 6 | sort_order | INT | C-IDX | `>= 0` |
+| 7 | status | INT | C-IDX | `IN (0, 1)` |
+| 8 | metadata | JSONB | | |
+| 9 | created_at | DATETIME | | |
+| 10 | updated_at | DATETIME | | |
+
+> **Note:** Mỗi bản ghi là một trang điều khoản/chính sách thuộc một `Term_Module`. `url_path` lưu URL do quản trị viên nhập, không kèm dấu `/` ở đầu; ví dụ `terms/instructor/rewards`.
+>
+> **Metadata:** Lưu SEO hoặc các cấu hình nội dung mở rộng không cần dùng để lọc/sắp xếp thường xuyên.
+>
+> **Status:** 0: Draft/Hidden (Nháp/Ẩn), 1: Published (Hiển thị)
 
 
 

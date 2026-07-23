@@ -8,6 +8,8 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
+import java.util.Map;
+
 @Data
 public class PageRequest {
     @NotBlank
@@ -22,6 +24,8 @@ public class PageRequest {
     @NotBlank
     @Size(max = 200000)
     private String content;
+
+    private Map<String, Object> metadata;
 
     @NotNull
     @Min(0)

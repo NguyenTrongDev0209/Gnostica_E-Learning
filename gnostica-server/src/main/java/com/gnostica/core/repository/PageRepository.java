@@ -13,5 +13,7 @@ public interface PageRepository extends JpaRepository<Page, Integer> {
     Optional<Page> findBySlugAndStatus(String slug, Integer status);
 
     List<Page> findAllByOrderByTitleAsc();
+
+    List<Page> findAllByStatusAndSlugStartingWith(Integer status, String slugPrefix);
 }
 
