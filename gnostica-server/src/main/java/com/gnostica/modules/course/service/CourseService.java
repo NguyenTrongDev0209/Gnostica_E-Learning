@@ -105,6 +105,7 @@ public class CourseService {
                     Attachment attachment = new Attachment();
                     attachment.setFileUrl(mReq.getAttachments());
                     attachment.setFileType("document");
+                    attachment.setStatus(1);
                     attachment.setModule(module);
 
                     List<Attachment> moduleAttachments = new ArrayList<>();
@@ -417,6 +418,7 @@ public class CourseService {
                         Attachment attachment = new Attachment();
                         attachment.setFileUrl(mReq.getAttachments());
                         attachment.setFileType("document");
+                        attachment.setStatus(1);
                         attachment.setModule(module);
                         module.getAttachments().add(attachment);
                     } else {
@@ -798,6 +800,24 @@ public class CourseService {
                     targetMod.setVersionNumber(newMod.getVersionNumber());
                     targetMod.setSortOrder(newMod.getSortOrder());
                     
+                    // Xử lý Attachments (Copy from draft to original)
+                    List<Attachment> originalAttachments = targetMod.getAttachments();
+                    if (originalAttachments == null) {
+                        originalAttachments = new ArrayList<>();
+                        targetMod.setAttachments(originalAttachments);
+                    }
+                    originalAttachments.clear();
+                    if (newMod.getAttachments() != null) {
+                        for (Attachment newAtt : newMod.getAttachments()) {
+                            Attachment targetAtt = new Attachment();
+                            targetAtt.setFileUrl(newAtt.getFileUrl());
+                            targetAtt.setFileType(newAtt.getFileType());
+                            targetAtt.setStatus(newAtt.getStatus());
+                            targetAtt.setModule(targetMod);
+                            originalAttachments.add(targetAtt);
+                        }
+                    }
+                    
                     // Xử lý bài học
                     List<Lesson> originalLessons = targetMod.getLessons();
                     if (originalLessons == null) {
@@ -841,13 +861,25 @@ public class CourseService {
                 questionIdMap = questionBankService.saveQuestionBankAndGetMap(original, v2Questions);
             }
             
+            // Save original course first to generate IDs for any newly added modules
+            courseRepository.save(original);
+
             // Cập nhật lại câu hỏi cho Quiz (nếu có Quiz)
             for (Module newMod : course.getModules()) {
-                if (!Boolean.TRUE.equals(newMod.getDeleted()) && newMod.getOriginalModule() != null) {
-                    Module targetMod = originalModules.stream()
-                        .filter(m -> m.getId().equals(newMod.getOriginalModule().getId()))
-                        .findFirst()
-                        .orElse(null);
+                if (!Boolean.TRUE.equals(newMod.getDeleted())) {
+                    Module targetMod = null;
+                    if (newMod.getOriginalModule() != null) {
+                        targetMod = originalModules.stream()
+                            .filter(m -> m.getId() != null && m.getId().equals(newMod.getOriginalModule().getId()))
+                            .findFirst()
+                            .orElse(null);
+                    } else {
+                        // Match newly added module by title
+                        targetMod = originalModules.stream()
+                            .filter(m -> m.getTitle().equals(newMod.getTitle()))
+                            .findFirst()
+                            .orElse(null);
+                    }
                         
                     if (targetMod != null) {
                         quizService.mergeQuizFromV2ToV1(targetMod, newMod, questionIdMap);
@@ -949,6 +981,13 @@ public class CourseService {
         response.setCreatedAt(course.getCreatedAt());
         response.setUpdatedAt(course.getUpdatedAt());
         response.setIsEnrolled(false);
+        
+        List<Review> publishedReviews = reviewRepository.findByCourseAndStatusAndDeletedAtIsNullOrderByCreatedAtDesc(course, 1);
+        response.setReviewCount(publishedReviews.size());
+        response.setRating(publishedReviews.stream()
+                .mapToInt(Review::getRating)
+                .average()
+                .orElse(0.0));
 
         if (course.getCategory() != null) {
             response.setCategoryId(course.getCategory().getId());

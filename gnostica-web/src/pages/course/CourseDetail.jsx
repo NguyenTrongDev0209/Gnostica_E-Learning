@@ -408,7 +408,14 @@ const CourseDetailReviews = ({ course }) => {
                 </Avatar>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <h3 className="text-base font-bold text-foreground">{review.studentName || "Học viên"}</h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-base font-bold text-foreground">{review.studentName || "Học viên"}</h3>
+                      {review.accountId === course?.instructorId && (
+                        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary flex-shrink-0">
+                          Tác giả
+                        </span>
+                      )}
+                    </div>
                     <time className="text-sm text-muted-foreground">
                       {review.createdAt ? new Date(review.createdAt).toLocaleDateString("vi-VN") : ""}
                     </time>

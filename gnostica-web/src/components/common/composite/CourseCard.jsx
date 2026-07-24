@@ -1,5 +1,5 @@
 import React from 'react';
-import { Star, BookOpen, Users, Clock, ThumbsUp, MessageSquare, Eye, ArrowUp, ArrowDown, Share2, PlayCircle } from 'lucide-react';
+import { Star, BookOpen, Users, Clock, ThumbsUp, MessageSquare, Eye, ArrowUp, ArrowDown, Share2, PlayCircle, RotateCcw } from 'lucide-react';
 import AppCard, { AppCardContent } from "@/components/common/micro/AppCard";
 import AppBadge from "@/components/common/micro/AppBadge";
 import AppAvatar from "@/components/common/micro/AppAvatar";
@@ -159,7 +159,8 @@ export const CourseProgressCard = ({
   lastAccessed,
   joinedAt,
   className,
-  link
+  link,
+  restartLink
 }) => {
   const to = link === null ? null : (link || `/courses/${id}/learn`);
   const Wrapper = to ? Link : "div";
@@ -237,8 +238,21 @@ export const CourseProgressCard = ({
               </div>
               <AppProgress value={progressPercent} className={cn("h-1.5 sm:h-2", progressPercent === 100 && "[&>div]:bg-success")} />
             </div>
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center bg-secondary hover:bg-primary group-hover:bg-primary group-hover:text-white text-muted-foreground transition-colors shrink-0 shadow-sm hover:shadow-md">
-              <PlayCircle className="w-4 h-4 sm:w-5 sm:h-5" />
+            <div className="flex items-center gap-2 shrink-0">
+              {progressPercent === 100 && restartLink && (
+                  <object>
+                      <Link 
+                          to={restartLink}
+                          className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center bg-muted text-muted-foreground hover:bg-primary hover:text-white transition-colors shadow-sm hover:shadow-md"
+                          title="Học lại từ đầu"
+                      >
+                          <RotateCcw className="w-4 h-4 sm:w-5 sm:h-5" />
+                      </Link>
+                  </object>
+              )}
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center bg-secondary hover:bg-primary group-hover:bg-primary group-hover:text-white text-muted-foreground transition-colors shrink-0 shadow-sm hover:shadow-md" title="Tiếp tục học">
+                <PlayCircle className="w-4 h-4 sm:w-5 sm:h-5" />
+              </div>
             </div>
           </div>
         </AppCardContent>

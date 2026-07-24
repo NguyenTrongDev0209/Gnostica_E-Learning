@@ -13,6 +13,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +22,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class DraftCourseService {
@@ -28,6 +31,7 @@ public class DraftCourseService {
     private final CourseRepository courseRepository;
     private final LessonRepository lessonRepository;
     private final BunnyNetService bunnyNetService;
+    private final ObjectMapper objectMapper;
 
     @Value("${app.course.draft.ttl-hours:24}")
     private int ttlHours;
@@ -97,7 +101,7 @@ public class DraftCourseService {
                 }
             }
         } catch (Exception e) {
-            System.err.println("Error cleaning up draft orphaned videos: " + e.getMessage());
+            log.error("Lỗi khi dọn rác video bản nháp: ", e);
         }
 
         redisTemplate.delete(key);
