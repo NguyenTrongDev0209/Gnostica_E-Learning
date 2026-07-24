@@ -18,6 +18,11 @@ import {
   getAdminTerms,
   createAdminTermModule,
   createAdminTerm,
+  getGlobalCommissions,
+  getActiveCommission,
+  createCommission,
+  notifyCommission,
+  updateCommission,
 } from "@/services/settings/settingsService";
 
 export const SITE_CONFIG_QUERY_KEY = ["site-config"];
@@ -112,4 +117,21 @@ export function useAdminTerms() {
   const refresh = () => queryClient.invalidateQueries({ queryKey: ["admin", "terms"] });
   const query = useQuery({ queryKey: ["admin", "terms"], queryFn: getAdminTerms });
   return { ...query, createModuleMutation: useMutation({ mutationFn: createAdminTermModule, onSuccess: refresh }), createTermMutation: useMutation({ mutationFn: createAdminTerm, onSuccess: refresh }) };
+}
+
+export function useCommissions() {
+  const queryClient = useQueryClient();
+  const refresh = () => {
+    queryClient.invalidateQueries({ queryKey: ["admin", "commissions"] });
+    queryClient.invalidateQueries({ queryKey: ["admin", "commission-active"] });
+  };
+
+  const listQuery = useQuery({ queryKey: ["admin", "commissions"], queryFn: getGlobalCommissions });
+  const activeQuery = useQuery({ queryKey: ["admin", "commission-active"], queryFn: getActiveCommission });
+  
+  const createMutation = useMutation({ mutationFn: createCommission, onSuccess: refresh });
+  const notifyMutation = useMutation({ mutationFn: notifyCommission, onSuccess: refresh });
+  const updateMutation = useMutation({ mutationFn: ({ id, formData }) => updateCommission(id, formData), onSuccess: refresh });
+
+  return { listQuery, activeQuery, createMutation, notifyMutation, updateMutation };
 }

@@ -84,3 +84,29 @@ export const deleteAdminPage = async (id) => {
 export const getAdminTerms = async () => unwrap(await axiosClient.get("/admin/terms")) || [];
 export const createAdminTermModule = async (payload) => unwrap(await axiosClient.post("/admin/terms/modules", payload));
 export const createAdminTerm = async (payload) => unwrap(await axiosClient.post("/admin/terms", payload));
+
+export const getGlobalCommissions = async () => unwrap(await axiosClient.get("/admin/commissions")) || [];
+export const getActiveCommission = async () => unwrap(await axiosClient.get("/admin/commissions/active"));
+export const createCommission = async (payload) => {
+  const formData = new FormData();
+  formData.append("data", new Blob([JSON.stringify({
+    platformRatio: payload.platformRatio,
+    instructorRatio: payload.instructorRatio,
+    applyAfterDays: payload.applyAfterDays,
+  })], { type: "application/json" }));
+  if (payload.file) {
+    formData.append("file", payload.file);
+  }
+  return unwrap(await axiosClient.post("/admin/commissions", formData, {
+    headers: { "Content-Type": "multipart/form-data" }
+  }));
+};
+
+export const notifyCommission = async (id) => {
+  return unwrap(await axiosClient.post(`/admin/commissions/${id}/notify`));
+};
+export const updateCommission = async (id, formData) => {
+  return unwrap(await axiosClient.put(`/admin/commissions/${id}`, formData, {
+    headers: { "Content-Type": "multipart/form-data" }
+  }));
+};

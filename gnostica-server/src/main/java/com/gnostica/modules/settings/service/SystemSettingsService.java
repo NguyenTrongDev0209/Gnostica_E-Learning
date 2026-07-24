@@ -35,8 +35,6 @@ public class SystemSettingsService {
         define("about.hero_banner_url", "URL", "Banner đầu trang Giới thiệu", true, 1000);
         define("about.solutions_banner_url", "URL", "Banner giải pháp trang Giới thiệu", true, 1000);
         define("about.vision_banner_url", "URL", "Banner tầm nhìn trang Giới thiệu", true, 1000);
-        define("finance.instructor_ratio", "DECIMAL", "Tỷ lệ doanh thu của giảng viên", false, 6);
-        define("finance.platform_ratio", "DECIMAL", "Tỷ lệ hoa hồng nền tảng", false, 6);
     }
 
     private final SystemConfigRepository repository;
@@ -57,8 +55,6 @@ public class SystemSettingsService {
         if (values == null) {
             throw new IllegalArgumentException("Danh sách cấu hình không được để trống");
         }
-
-        validateFinanceRatios(values);
 
         for (Map.Entry<String, String> entry : values.entrySet()) {
             SettingDefinition definition = DEFINITIONS.get(entry.getKey());
@@ -100,25 +96,7 @@ public class SystemSettingsService {
                 .orElse(fallback);
     }
 
-    private void validateFinanceRatios(Map<String, String> incoming) {
-        if (!incoming.containsKey("finance.instructor_ratio") && !incoming.containsKey("finance.platform_ratio")) return;
 
-        Map<String, String> current = getAdminSettings();
-        current.putAll(incoming);
-        try {
-            BigDecimal instructor = new BigDecimal(current.getOrDefault("finance.instructor_ratio", "90"));
-            BigDecimal platform = new BigDecimal(current.getOrDefault("finance.platform_ratio", "10"));
-            if (instructor.compareTo(BigDecimal.ZERO) < 0 || instructor.compareTo(new BigDecimal("100")) > 0
-                    || platform.compareTo(BigDecimal.ZERO) < 0 || platform.compareTo(new BigDecimal("100")) > 0) {
-                throw new IllegalArgumentException("Tỷ lệ hoa hồng phải nằm trong khoảng 0 đến 100");
-            }
-            if (instructor.add(platform).compareTo(new BigDecimal("100")) != 0) {
-                throw new IllegalArgumentException("Tổng tỷ lệ giảng viên và nền tảng phải bằng 100%");
-            }
-        } catch (NumberFormatException exception) {
-            throw new IllegalArgumentException("Tỷ lệ hoa hồng phải là số hợp lệ");
-        }
-    }
 
     private Map<String, String> getSettings(Set<String> keys) {
         Map<String, String> result = new LinkedHashMap<>();

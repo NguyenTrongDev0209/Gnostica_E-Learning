@@ -1,8 +1,9 @@
-﻿import { AppCardDescription as CardDescription } from "@/components/common/micro/AppCard";
+import { AppCardDescription as CardDescription } from "@/components/common/micro/AppCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/common/micro/AppTabs";
 import AppTextarea from "@/components/common/micro/AppTextarea";
 import { Switch } from "@/components/common/micro/AppSwitch";
 // Fix imported
+import { cn } from "@/lib/utils";
 import React, { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { AppButton } from "@/components/common/micro/AppButton";
@@ -41,6 +42,7 @@ import {
   UserCheck,
   Wallet,
   X,
+  Pen,
 } from "lucide-react";
 import { toast } from "sonner";
 import SockJS from "sockjs-client";
@@ -55,7 +57,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/common/micro/AppChart";
-import { useAdminSettings } from "@/hooks/settings/useSiteSettings";
+import { useAdminSettings, useCommissions } from "@/hooks/settings/useSiteSettings";
 import BannerSettings from "@/pages/admin/components/BannerSettings";
 import PageSettings from "@/pages/admin/components/PageSettings";
 import AboutSettings from "@/pages/admin/components/AboutSettings";
@@ -224,12 +226,7 @@ export default function AdminSettings() {
         </TabsContent>
 
         <TabsContent value="finance" className="animate-in fade-in duration-300">
-          <FinanceSettings
-            values={values}
-            onChange={updateValue}
-            onApply={handleSave}
-            isApplying={updateMutation.isPending}
-          />
+          <FinanceSettings />
         </TabsContent>
 
         <TabsContent value="security" className="animate-in fade-in duration-300">
@@ -828,13 +825,24 @@ function PaymentConfigSettings() {
   );
 }
 
-function FinanceSettings({ values, onChange, onApply, isApplying }) {
+function FinanceSettings() {
+  const { activeQuery, createMutation } = useCommissions();
   const [noticeFile, setNoticeFile] = useState(null);
   const [isNoticeDialogOpen, setIsNoticeDialogOpen] = useState(false);
   const [applyAfterDays, setApplyAfterDays] = useState("7");
   const fileInputRef = useRef(null);
-  const platformRatio = Number(values["finance.platform_ratio"] || 0);
-  const instructorRatio = Number(values["finance.instructor_ratio"] || 0);
+  
+  const [platformRatio, setPlatformRatio] = useState(10);
+  const [instructorRatio, setInstructorRatio] = useState(90);
+  const [formError, setFormError] = useState("");
+
+  useEffect(() => {
+    if (activeQuery.data) {
+      setPlatformRatio(activeQuery.data.platformRatio || 0);
+      setInstructorRatio(activeQuery.data.instructorRatio || 0);
+    }
+  }, [activeQuery.data]);
+
   const sampleRevenue = 1_000_000;
   const platformAmount = Math.round(sampleRevenue * platformRatio / 100);
   const instructorAmount = Math.round(sampleRevenue * instructorRatio / 100);
@@ -842,9 +850,38 @@ function FinanceSettings({ values, onChange, onApply, isApplying }) {
 
   const updatePlatformRatio = (rawValue) => {
     const value = Math.min(100, Math.max(0, Number(rawValue) || 0));
-    onChange("finance.platform_ratio", String(value));
-    onChange("finance.instructor_ratio", String(100 - value));
+    setPlatformRatio(value);
+    setInstructorRatio(100 - value);
   };
+
+  const handleApply = async () => {
+    setFormError("");
+    if (!noticeFile) {
+      setFormError("file");
+      toast.error("Vui lòng đính kèm file quyết định!");
+      return;
+    }
+    
+    try {
+      await createMutation.mutateAsync({
+        platformRatio,
+        instructorRatio,
+        applyAfterDays: Number(applyAfterDays),
+        file: noticeFile,
+      });
+      toast.success("Đã tạo lịch sử áp dụng tỷ lệ mới");
+      setNoticeFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    } catch (error) {
+      const msg = error.response?.data?.message || error.message || "Có lỗi xảy ra khi tạo tỷ lệ";
+      toast.error(msg);
+      if (msg.includes("Đã tồn tại một Quyết định")) {
+        setFormError("date");
+      }
+    }
+  };
+
+  const isApplying = createMutation.isPending;
 
   return (
     <div className="grid gap-6 xl:grid-cols-[minmax(0,0.62fr)_minmax(0,1.38fr)]">
@@ -870,39 +907,60 @@ function FinanceSettings({ values, onChange, onApply, isApplying }) {
             <div className="space-y-4 rounded-lg border border-border bg-card p-4 shadow-sm">
               <div className="flex items-center justify-between gap-3">
                 <p className="text-sm font-bold text-foreground">Hoa hồng nền tảng</p>
-                <span className="rounded-md bg-muted px-2 py-1 text-sm font-bold text-muted-foreground">
-                  {formatPercent(platformRatio)}
-                </span>
+                <AppBadge variant="secondary" soft className="px-2 font-bold">{platformRatio}%</AppBadge>
               </div>
-              <RevenueSplitBar platformRatio={platformRatio} instructorRatio={instructorRatio} />
-
-              <div className="grid gap-4 md:grid-cols-2">
-                <RatioField
-                  id="platformRatio"
-                  label="Hoa hồng nền tảng"
-                  value={values["finance.platform_ratio"]}
-                  icon={Wallet}
-                  onChange={(event) => updatePlatformRatio(event.target.value)}
-                />
-                <RatioField
-                  id="instructorRatio"
-                  label="Doanh thu giảng viên"
-                  value={values["finance.instructor_ratio"]}
-                  icon={TrendingUp}
-                  readOnly
-                />
+              
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between text-xs font-bold">
+                  <span className="text-muted-foreground uppercase">Nền tảng {platformRatio}%</span>
+                  <span className="text-muted-foreground uppercase">Giảng viên {instructorRatio}%</span>
+                </div>
+                <div className="relative h-2 w-full overflow-hidden rounded-full bg-border">
+                  <div className="absolute left-0 top-0 h-full bg-success transition-all duration-500 ease-out" style={{ width: `${platformRatio}%` }} />
+                  <div className="absolute right-0 top-0 h-full bg-warning transition-all duration-500 ease-out" style={{ width: `${instructorRatio}%` }} />
+                </div>
               </div>
 
-              <div className="space-y-2">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold uppercase text-muted-foreground">Hoa hồng nền tảng (%)</Label>
+                  <AppInput 
+                    type="number" 
+                    min="0" 
+                    max="100" 
+                    icon={Wallet} 
+                    rightElement={<span className="text-sm font-bold text-muted-foreground">%</span>}
+                    value={platformRatio}
+                    onChange={(e) => updatePlatformRatio(e.target.value)}
+                    className="bg-white border-border"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold uppercase text-muted-foreground">Doanh thu giảng viên (%)</Label>
+                  <AppInput 
+                    type="number"
+                    icon={TrendingUp}
+                    rightElement={<span className="text-sm font-bold text-muted-foreground">%</span>}
+                    value={instructorRatio}
+                    readOnly
+                    className="bg-muted text-muted-foreground border-transparent opacity-80"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2 border-t border-border pt-4 mt-2">
                 <Label className="text-xs font-bold uppercase text-muted-foreground">File thông báo</Label>
-                <div className="grid gap-3 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-center">
+                <div className="flex gap-2">
                   <AppButton
                     type="button"
                     appVariant="ghostMuted"
                     appSize="sm"
                     variant="ghost"
                     className="w-fit border border-border bg-muted text-sm font-bold text-foreground hover:bg-primary/10 hover:text-primary"
-                    onClick={() => fileInputRef.current?.click()}
+                    onClick={() => {
+                      setFormError("");
+                      fileInputRef.current?.click();
+                    }}
                   >
                     <Upload className="size-4" />
                     Thông báo
@@ -910,7 +968,12 @@ function FinanceSettings({ values, onChange, onApply, isApplying }) {
                   <div className="group relative min-w-0">
                     <button
                       type="button"
-                      className="w-full min-w-0 truncate rounded-lg border border-border bg-muted py-2 pl-3 pr-9 text-left text-sm font-semibold text-muted-foreground transition-colors hover:border-primary/30 hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
+                      className={cn(
+                        "w-full min-w-0 truncate rounded-lg border bg-muted py-2 pl-3 pr-9 text-left text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60",
+                        formError === "file" 
+                          ? "border-error text-error shadow-[0_0_0_1px_rgba(239,68,68,0.2)]" 
+                          : "border-border text-muted-foreground hover:border-primary/30 hover:text-primary"
+                      )}
                       onClick={() => setIsNoticeDialogOpen(true)}
                       disabled={!noticeFile}
                     >
@@ -937,7 +1000,10 @@ function FinanceSettings({ values, onChange, onApply, isApplying }) {
                     type="file"
                     accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                     className="sr-only"
-                    onChange={(event) => setNoticeFile(event.target.files?.[0] || null)}
+                    onChange={(event) => {
+                      setFormError("");
+                      setNoticeFile(event.target.files?.[0] || null);
+                    }}
                   />
                 </div>
               </div>
@@ -945,16 +1011,20 @@ function FinanceSettings({ values, onChange, onApply, isApplying }) {
 
             <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] sm:items-end">
               <div className="space-y-2">
-                <Label className="text-xs font-bold uppercase text-muted-foreground">Ngày áp dụng</Label>
+                <Label className={cn("text-xs font-bold uppercase", formError === "date" ? "text-error" : "text-muted-foreground")}>Ngày áp dụng</Label>
                 <AppSelect
                   value={applyAfterDays}
-                  onValueChange={setApplyAfterDays}
+                  onValueChange={(val) => {
+                    setApplyAfterDays(val);
+                    if (formError === "date") setFormError("");
+                  }}
+                  error={formError === "date"}
                   options={[
                     { label: "Sau 7 ngày", value: "7" },
                     { label: "Sau 15 ngày", value: "15" },
                     { label: "Sau 30 ngày", value: "30" },
                   ]}
-                  className="bg-card"
+                  className={cn("bg-card", formError === "date" ? "border-error ring-1 ring-error/20" : "")}
                 />
               </div>
               <div className="space-y-2">
@@ -1003,7 +1073,7 @@ function FinanceSettings({ values, onChange, onApply, isApplying }) {
               type="button"
               appVariant="gradient"
               className="font-bold"
-              onClick={onApply}
+              onClick={handleApply}
               disabled={isApplying}
             >
               <Save className="size-4" />
@@ -1019,32 +1089,50 @@ function FinanceSettings({ values, onChange, onApply, isApplying }) {
         onOpenChange={setIsNoticeDialogOpen}
       />
 
-      <FinanceHistoryPanel
-        platformRatio={platformRatio}
-        instructorRatio={instructorRatio}
-        sampleRevenue={sampleRevenue}
-      />
+      <FinanceHistoryPanel sampleRevenue={sampleRevenue} />
     </div>
   );
 }
 
-function FinanceHistoryPanel({ platformRatio, instructorRatio, sampleRevenue }) {
+function safeFormatDateTime(dateValue) {
+  if (!dateValue) return "--:-- --/--/----";
+  try {
+    let d = dateValue;
+    if (Array.isArray(dateValue)) {
+      d = new Date(dateValue[0], dateValue[1] - 1, dateValue[2], dateValue[3] || 0, dateValue[4] || 0, dateValue[5] || 0);
+    } else if (typeof dateValue === "string") {
+      d = new Date(dateValue);
+    }
+    if (!(d instanceof Date) || isNaN(d)) return "--:-- --/--/----";
+    return formatDateTime(d);
+  } catch {
+    return "--:-- --/--/----";
+  }
+}
+
+function FinanceHistoryPanel({ sampleRevenue }) {
+  const { listQuery, notifyMutation } = useCommissions();
   const [selectedDecision, setSelectedDecision] = useState(null);
-  const historyRows = [
-    {
-      id: "current-default",
-      index: 1,
-      commissionRatio: platformRatio,
-      platformRatio,
-      instructorRatio,
-      startAt: "00:00 24/07/2026",
-      endAt: "--:-- --/--/----",
-      status: "active",
-      statusLabel: "Đang áp dụng",
-      decisionNo: "QD-HH-0001",
-      decisionTitle: "Quyết định áp dụng tỷ lệ hoa hồng mặc định",
-    },
-  ];
+  const [selectedEditDecision, setSelectedEditDecision] = useState(null);
+
+  const historyRows = (listQuery.data || []).map((c, index) => ({
+    id: c.id || index,
+    index: index + 1,
+    commissionRatio: c.platformRatio,
+    platformRatio: c.platformRatio,
+    instructorRatio: c.instructorRatio,
+    startAt: safeFormatDateTime(c.validFrom),
+    endAt: safeFormatDateTime(c.validUntil),
+    status: c.status === 1 ? "active" : c.status === 2 ? "inactive" : "draft",
+    statusLabel: c.status === 1 ? "Áp dụng" : c.status === 2 ? "Hết hạn" : "Sắp tới",
+    decisionNo: `QD-HH-${String(c.id).padStart(4, "0")}`,
+      decisionTitle: "Thông báo thay đổi tỷ lệ doanh thu",
+      noticeFileUrl: c.noticeFileUrl,
+      notified: c.notified,
+      editable: c.editable,
+      startDate: safeFormatDateTime(c.validFrom),
+      endDate: safeFormatDateTime(c.validUntil),
+    }));
 
   const columns = [
     {
@@ -1062,7 +1150,7 @@ function FinanceHistoryPanel({ platformRatio, instructorRatio, sampleRevenue }) 
       sortable: false,
       align: "center",
       headerAlign: "center",
-      cellClassName: "min-w-[104px]",
+      width: 160,
       render: (row) => (
         <span className="block text-center text-sm font-black text-warning">
           {formatPercent(row.commissionRatio)}
@@ -1075,7 +1163,7 @@ function FinanceHistoryPanel({ platformRatio, instructorRatio, sampleRevenue }) 
       sortable: false,
       align: "center",
       headerAlign: "center",
-      cellClassName: "min-w-[104px]",
+      width: 160,
       render: (row) => <DateTimeCell value={row.startAt} />,
     },
     {
@@ -1084,8 +1172,8 @@ function FinanceHistoryPanel({ platformRatio, instructorRatio, sampleRevenue }) 
       sortable: false,
       align: "center",
       headerAlign: "center",
-      cellClassName: "min-w-[104px]",
-      render: (row) => <DateTimeCell value={row.endAt} muted />,
+      width: 160,
+      render: (row) => <DateTimeCell value={row.endAt} />,
     },
     {
       key: "status",
@@ -1093,9 +1181,9 @@ function FinanceHistoryPanel({ platformRatio, instructorRatio, sampleRevenue }) 
       sortable: false,
       align: "center",
       headerAlign: "center",
-      cellClassName: "min-w-[96px]",
+      width: 120,
       render: (row) => (
-        <AppBadge variant={row.status === "active" ? "success" : "secondary"} soft className="rounded-md">
+        <AppBadge variant={row.status === "active" ? "success" : row.status === "inactive" ? "error" : "warning"} soft className="rounded-md">
           {row.statusLabel}
         </AppBadge>
       ),
@@ -1106,20 +1194,51 @@ function FinanceHistoryPanel({ platformRatio, instructorRatio, sampleRevenue }) 
       sortable: false,
       align: "center",
       headerAlign: "center",
-      cellClassName: "min-w-[104px]",
-      render: (row) => (
-        <AppButton
-          type="button"
-          appVariant="ghostMuted"
-          appSize="sm"
-          variant="ghost"
-          className="border border-border bg-card px-3 text-xs"
-          onClick={() => setSelectedDecision(row)}
-        >
-          <FileText className="size-4" />
-          Xem file
-        </AppButton>
-      ),
+      width: 140,
+      render: (row) => {
+        if (!row.notified) {
+          return (
+            <AppButton
+              type="button"
+              appVariant="primary"
+              appSize="sm"
+              className="px-3 text-xs font-bold text-white shadow-sm"
+              onClick={() => {
+                const promise = notifyMutation.mutateAsync(row.id);
+                toast.promise(promise, {
+                  loading: "Đang gửi email thông báo...",
+                  success: "Đã gửi email thông báo thành công",
+                  error: "Gửi thông báo thất bại",
+                });
+              }}
+              disabled={notifyMutation.isPending}
+            >
+              <Mail className="mr-1.5 size-4" />
+              Thông báo
+            </AppButton>
+          );
+        }
+
+        return (
+          <AppButton
+            type="button"
+            appVariant="ghostMuted"
+            appSize="sm"
+            variant="ghost"
+            className="border border-border bg-card px-3 text-xs"
+            onClick={() => {
+              if (row.noticeFileUrl) {
+                window.open(row.noticeFileUrl, "_blank");
+              } else {
+                toast.error("Không có file thông báo đính kèm");
+              }
+            }}
+          >
+            <FileText className="mr-1.5 size-4 text-muted-foreground" />
+            Xem file
+          </AppButton>
+        );
+      },
     },
     {
       key: "actions",
@@ -1127,20 +1246,37 @@ function FinanceHistoryPanel({ platformRatio, instructorRatio, sampleRevenue }) 
       sortable: false,
       align: "center",
       headerAlign: "center",
-      cellClassName: "min-w-[96px]",
-      render: (row) => (
-        <AppButton
-          type="button"
-          appVariant="ghostMuted"
-          appSize="sm"
-          variant="ghost"
-          className="border border-border bg-card px-3 text-xs"
-          onClick={() => setSelectedDecision(row)}
-        >
-          <Eye className="size-4" />
-          Chi tiết
-        </AppButton>
-      ),
+      width: 140,
+      render: (row) => {
+        if (row.editable) {
+          return (
+            <AppButton
+              type="button"
+              appVariant="ghost"
+              appSize="icon"
+              variant="outline"
+              title="Chỉnh sửa"
+              className="border border-border bg-white text-primary hover:bg-primary/10"
+              onClick={() => setSelectedEditDecision(row)}
+            >
+              <Pen className="size-4" />
+            </AppButton>
+          );
+        }
+        return (
+          <AppButton
+            type="button"
+            appVariant="ghostMuted"
+            appSize="icon"
+            variant="ghost"
+            title="Chi tiết"
+            className="border border-border bg-card text-muted-foreground"
+            onClick={() => setSelectedDecision(row)}
+          >
+            <Eye className="size-4" />
+          </AppButton>
+        );
+      },
     },
   ];
 
@@ -1172,6 +1308,13 @@ function FinanceHistoryPanel({ platformRatio, instructorRatio, sampleRevenue }) 
         sampleRevenue={sampleRevenue}
         onOpenChange={(open) => {
           if (!open) setSelectedDecision(null);
+        }}
+      />
+      <EditCommissionDialog
+        decision={selectedEditDecision}
+        open={!!selectedEditDecision}
+        onOpenChange={(open) => {
+          if (!open) setSelectedEditDecision(null);
         }}
       />
     </>
@@ -1245,6 +1388,147 @@ function NoticeFileDialog({ file, open, onOpenChange }) {
   );
 }
 
+function EditCommissionDialog({ decision, open, onOpenChange }) {
+  const { updateMutation } = useCommissions();
+  const [platformRatio, setPlatformRatio] = useState(10);
+  const [applyAfterDays, setApplyAfterDays] = useState("7");
+  const [noticeFile, setNoticeFile] = useState(null);
+  const [formError, setFormError] = useState("");
+  const fileInputRef = useRef(null);
+  
+  useEffect(() => {
+    if (decision && open) {
+      setPlatformRatio(decision.platformRatio);
+      setNoticeFile(null); // File is required to be re-uploaded or we just send null to keep old file? The backend accepts file=null to keep the old noticeFileUrl.
+      setApplyAfterDays("7");
+      setFormError("");
+    }
+  }, [decision, open]);
+
+  const instructorRatio = 100 - platformRatio;
+  
+  const updatePlatformRatio = (val) => {
+    const num = Math.min(100, Math.max(0, Number(val) || 0));
+    setPlatformRatio(num);
+  };
+  
+  const handleUpdate = () => {
+    if (!decision) return;
+    setFormError("");
+    const formData = new FormData();
+    formData.append(
+      "data",
+      new Blob(
+        [JSON.stringify({ platformRatio, instructorRatio, applyAfterDays: Number(applyAfterDays) })],
+        { type: "application/json" }
+      )
+    );
+    if (noticeFile) formData.append("file", noticeFile);
+
+    const promise = updateMutation.mutateAsync({ id: decision.id, formData })
+      .then(() => {
+        onOpenChange(false);
+      })
+      .catch((err) => {
+        const msg = err?.response?.data?.message || err?.message || "";
+        if (msg.includes("Đã tồn tại một Quyết định")) {
+           setFormError("date");
+        }
+        throw err;
+      });
+    
+    toast.promise(promise, {
+      loading: "Đang cập nhật...",
+      success: "Cập nhật tỷ lệ hoa hồng thành công",
+      error: (err) => err?.response?.data?.message || err?.message || "Cập nhật thất bại",
+    });
+  };
+
+  return (
+    <AppDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Chỉnh sửa tỷ lệ hoa hồng"
+      description="Thay đổi thông tin tỷ lệ hoa hồng chưa áp dụng."
+      appVariant="default"
+      className="max-w-2xl"
+    >
+      <div className="space-y-6">
+        <div className="grid gap-4 md:grid-cols-2">
+          <RatioField
+            id="editPlatformRatio"
+            label="Hoa hồng nền tảng"
+            value={String(platformRatio)}
+            icon={Wallet}
+            onChange={(event) => updatePlatformRatio(event.target.value)}
+          />
+          <RatioField
+            id="editInstructorRatio"
+            label="Doanh thu giảng viên"
+            value={String(instructorRatio)}
+            icon={TrendingUp}
+            readOnly
+          />
+        </div>
+        <div className="space-y-2">
+          <Label className="text-xs font-bold uppercase text-muted-foreground">File thông báo mới (Tùy chọn)</Label>
+          <div className="flex items-center gap-3">
+            <AppButton
+              type="button"
+              appVariant="ghostMuted"
+              appSize="sm"
+              variant="ghost"
+              className="w-fit border border-border bg-muted text-sm font-bold text-foreground hover:bg-primary/10 hover:text-primary"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Upload className="size-4" />
+              Tải file
+            </AppButton>
+            <span className="text-sm text-muted-foreground">
+              {noticeFile ? noticeFile.name : (decision?.noticeFileUrl ? "Đã có file đính kèm" : "Chưa chọn file")}
+            </span>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+              className="sr-only"
+              onChange={(event) => setNoticeFile(event.target.files?.[0] || null)}
+            />
+          </div>
+        </div>
+        <div className="space-y-2">
+          <Label className={cn("text-xs font-bold uppercase", formError === "date" ? "text-error" : "text-muted-foreground")}>Ngày áp dụng</Label>
+          <AppSelect
+            value={applyAfterDays}
+            onValueChange={(val) => {
+              setApplyAfterDays(val);
+              if (formError === "date") setFormError("");
+            }}
+            error={formError === "date"}
+            options={[
+              { label: "Sau 7 ngày", value: "7" },
+              { label: "Sau 15 ngày", value: "15" },
+              { label: "Sau 30 ngày", value: "30" },
+            ]}
+            className={cn("bg-card", formError === "date" ? "border-error ring-1 ring-error/20" : "")}
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            * Thời gian áp dụng sẽ được tính lại từ ngày hôm nay cộng thêm số ngày đã chọn.
+          </p>
+        </div>
+        <div className="flex justify-end gap-3 pt-4">
+          <AppButton type="button" appVariant="ghostMuted" onClick={() => onOpenChange(false)}>
+            Hủy
+          </AppButton>
+          <AppButton type="button" appVariant="primary" onClick={handleUpdate} disabled={updateMutation.isPending}>
+            Lưu thay đổi
+          </AppButton>
+        </div>
+      </div>
+    </AppDialog>
+  );
+}
+
 function DateTimeCell({ value, muted = false }) {
   return (
     <span className={`block whitespace-nowrap text-center text-xs font-semibold ${muted ? "text-muted-foreground" : "text-foreground"}`}>
@@ -1253,15 +1537,12 @@ function DateTimeCell({ value, muted = false }) {
   );
 }
 
-function CommissionDecisionDialog({ decision, sampleRevenue, onOpenChange }) {
-  const platformAmount = Math.round(sampleRevenue * Number(decision?.platformRatio || 0) / 100);
-  const instructorAmount = Math.round(sampleRevenue * Number(decision?.instructorRatio || 0) / 100);
-
+function CommissionDecisionDialog({ decision, onOpenChange }) {
   return (
     <AppDialog
       open={Boolean(decision)}
       onOpenChange={onOpenChange}
-      title="File quyết định hoa hồng"
+      title="Thông báo thay đổi tỷ lệ doanh thu"
       description={decision?.decisionNo}
       appVariant="default"
       className="max-w-3xl"
@@ -1284,9 +1565,6 @@ function CommissionDecisionDialog({ decision, sampleRevenue, onOpenChange }) {
               <DecisionInfo label="Tỷ lệ hoa hồng nền tảng" value={formatPercent(decision.platformRatio)} />
               <DecisionInfo label="Tỷ lệ doanh thu giảng viên" value={formatPercent(decision.instructorRatio)} />
               <DecisionInfo label="Ngày bắt đầu" value={decision.startDate} />
-              <DecisionInfo label="Ngày kết thúc" value={decision.endDate} />
-              <DecisionInfo label="Nền tảng nhận trên 1.000.000đ" value={formatCurrency(platformAmount)} />
-              <DecisionInfo label="Giảng viên nhận trên 1.000.000đ" value={formatCurrency(instructorAmount)} />
             </div>
 
             <p className="text-sm leading-relaxed text-muted-foreground">

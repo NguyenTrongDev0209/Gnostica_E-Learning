@@ -13,7 +13,6 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class CommissionResolver {
     private final CommissionRepository commissionRepository;
-    private final SystemSettingsService settingsService;
 
     public ResolvedCommission resolve(Account instructor, LocalDateTime at) {
         Commission override = commissionRepository.findByAccountAndStatusOrderByValidFromDesc(instructor, 1)
@@ -27,12 +26,21 @@ public class CommissionResolver {
             return new ResolvedCommission(override.getInstructorRatio(), override.getPlatformRatio(), override);
         }
 
-        BigDecimal instructorRatio = settingsService.getDecimal("finance.instructor_ratio", new BigDecimal("90"));
-        BigDecimal platformRatio = settingsService.getDecimal("finance.platform_ratio", new BigDecimal("10"));
-        if (instructorRatio.add(platformRatio).compareTo(new BigDecimal("100")) != 0) {
-            instructorRatio = new BigDecimal("90");
-            platformRatio = new BigDecimal("10");
+        Commission global = commissionRepository.findAllByOrderByValidFromDesc()
+                .stream()
+                .filter(item -> item.getAccount() == null
+                        && (item.getStatus() == 1 || item.getStatus() == 0)
+                        && (item.getValidFrom() == null || !item.getValidFrom().isAfter(at))
+                        && (item.getValidUntil() == null || item.getValidUntil().isAfter(at)))
+                .findFirst()
+                .orElse(null);
+
+        if (global != null && global.getInstructorRatio().add(global.getPlatformRatio()).compareTo(new BigDecimal("100")) == 0) {
+            return new ResolvedCommission(global.getInstructorRatio(), global.getPlatformRatio(), global);
         }
+
+        BigDecimal instructorRatio = new BigDecimal("90");
+        BigDecimal platformRatio = new BigDecimal("10");
         return new ResolvedCommission(instructorRatio, platformRatio, null);
     }
 
