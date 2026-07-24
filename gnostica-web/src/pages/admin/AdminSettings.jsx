@@ -8,13 +8,20 @@ import { useSearchParams } from "react-router-dom";
 import { AppButton } from "@/components/common/micro/AppButton";
 import AppSelect from "@/components/common/micro/AppSelect";
 import AppInput from "@/components/common/micro/AppInput";
+import AppTable from "@/components/common/micro/AppTable";
 import { Label } from "@/components/common/micro/AppLabel";
 import { AppDialog } from "@/components/common/micro/AppDialog";
 import {
   Activity,
+  AlertTriangle,
+  Calculator,
   CreditCard,
+  Eye,
+  FileText,
   Globe,
+  History,
   Image as ImageIcon,
+  Info,
   Key,
   Landmark,
   Loader2,
@@ -29,7 +36,11 @@ import {
   Shield,
   ShieldCheck,
   Smartphone,
+  TrendingUp,
+  Upload,
   UserCheck,
+  Wallet,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import SockJS from "sockjs-client";
@@ -169,7 +180,11 @@ export default function AdminSettings() {
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <SettingsHeader onSave={handleSave} isSaving={updateMutation.isPending} />
+      <SettingsHeader
+        onSave={handleSave}
+        isSaving={updateMutation.isPending}
+        showSaveButton={activeTab !== "finance"}
+      />
 
       <Tabs value={activeTab} className="w-full">
         <TabsContent value="general" className="animate-in fade-in duration-300">
@@ -209,7 +224,12 @@ export default function AdminSettings() {
         </TabsContent>
 
         <TabsContent value="finance" className="animate-in fade-in duration-300">
-          <FinanceSettings values={values} onChange={updateValue} />
+          <FinanceSettings
+            values={values}
+            onChange={updateValue}
+            onApply={handleSave}
+            isApplying={updateMutation.isPending}
+          />
         </TabsContent>
 
         <TabsContent value="security" className="animate-in fade-in duration-300">
@@ -257,7 +277,7 @@ function SitePageSettings({
 }
 
 
-function SettingsHeader({ onSave, isSaving }) {
+function SettingsHeader({ onSave, isSaving, showSaveButton = true }) {
   return (
     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
       <div>
@@ -269,14 +289,16 @@ function SettingsHeader({ onSave, isSaving }) {
           Cấu hình các tham số và tùy chọn hệ thống của Gnostica.
         </p>
       </div>
-      <AppButton appVariant="gradient" 
-        className="font-bold flex items-center gap-2 bg-primary hover:bg-primary/90 shadow-sm"
-        onClick={onSave}
-        disabled={isSaving}
-      >
-        <Save className="w-4 h-4" />
-        {isSaving ? "Đang lưu..." : "Lưu thay đổi"}
-      </AppButton>
+      {showSaveButton && (
+        <AppButton appVariant="gradient" 
+          className="font-bold flex items-center gap-2 bg-primary hover:bg-primary/90 shadow-sm"
+          onClick={onSave}
+          disabled={isSaving}
+        >
+          <Save className="w-4 h-4" />
+          {isSaving ? "Đang lưu..." : "Lưu thay đổi"}
+        </AppButton>
+      )}
     </div>
   );
 }
@@ -806,9 +828,17 @@ function PaymentConfigSettings() {
   );
 }
 
-function FinanceSettings({ values, onChange }) {
+function FinanceSettings({ values, onChange, onApply, isApplying }) {
+  const [noticeFile, setNoticeFile] = useState(null);
+  const [isNoticeDialogOpen, setIsNoticeDialogOpen] = useState(false);
+  const [applyAfterDays, setApplyAfterDays] = useState("7");
+  const fileInputRef = useRef(null);
   const platformRatio = Number(values["finance.platform_ratio"] || 0);
   const instructorRatio = Number(values["finance.instructor_ratio"] || 0);
+  const sampleRevenue = 1_000_000;
+  const platformAmount = Math.round(sampleRevenue * platformRatio / 100);
+  const instructorAmount = Math.round(sampleRevenue * instructorRatio / 100);
+  const applyStartDate = getApplyStartDate(Number(applyAfterDays));
 
   const updatePlatformRatio = (rawValue) => {
     const value = Math.min(100, Math.max(0, Number(rawValue) || 0));
@@ -817,38 +847,556 @@ function FinanceSettings({ values, onChange }) {
   };
 
   return (
-    <div className="space-y-6">
-      <AppCard appVariant="default" className="border-border shadow-sm">
-        <AppCardHeader>
-          <AppCardTitle className="flex items-center gap-2 text-lg font-bold">
-            <Percent className="size-5 text-warning" />
-            Tỷ lệ phân chia doanh thu mặc định
-          </AppCardTitle>
-          <CardDescription>Tỷ lệ này được áp dụng cho giao dịch mới khi giảng viên không có mức hoa hồng riêng.</CardDescription>
-        </AppCardHeader>
-        <AppCardContent className="space-y-6">
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="platformRatio" className="text-xs font-bold uppercase text-muted-foreground">Hoa hồng nền tảng (%)</Label>
-              <AppInput id="platformRatio" type="number" min="0" max="100" step="0.01" value={values["finance.platform_ratio"]} onChange={(event) => updatePlatformRatio(event.target.value)} />
+    <div className="grid gap-6 xl:grid-cols-[minmax(0,0.62fr)_minmax(0,1.38fr)]">
+      <AppCard appVariant="default" className="overflow-hidden border-border shadow-sm">
+        <AppCardContent className="space-y-5 p-5 md:p-6">
+          <div className="space-y-1.5">
+            <div className="flex items-start justify-between gap-3">
+              <h2 className="app-section-title flex items-center gap-2">
+                <Percent className="size-5 text-warning" />
+                Tỷ lệ doanh thu
+              </h2>
+              <AppBadge variant="info" soft className="w-fit shrink-0 gap-1 rounded-md px-2.5 py-1 text-xs">
+                <Info className="size-3.5" />
+                Tổng tỷ lệ luôn bằng 100%
+              </AppBadge>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="instructorRatio" className="text-xs font-bold uppercase text-muted-foreground">Doanh thu giảng viên (%)</Label>
-              <AppInput id="instructorRatio" type="number" value={values["finance.instructor_ratio"]} readOnly className="cursor-not-allowed opacity-75" />
+            <p className="app-body-text max-w-none text-muted-foreground">
+              Áp dụng cho giao dịch mới khi giảng viên không có mức hoa hồng riêng.
+            </p>
+          </div>
+
+          <div className="space-y-5">
+            <div className="space-y-4 rounded-lg border border-border bg-card p-4 shadow-sm">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-sm font-bold text-foreground">Hoa hồng nền tảng</p>
+                <span className="rounded-md bg-muted px-2 py-1 text-sm font-bold text-muted-foreground">
+                  {formatPercent(platformRatio)}
+                </span>
+              </div>
+              <RevenueSplitBar platformRatio={platformRatio} instructorRatio={instructorRatio} />
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <RatioField
+                  id="platformRatio"
+                  label="Hoa hồng nền tảng"
+                  value={values["finance.platform_ratio"]}
+                  icon={Wallet}
+                  onChange={(event) => updatePlatformRatio(event.target.value)}
+                />
+                <RatioField
+                  id="instructorRatio"
+                  label="Doanh thu giảng viên"
+                  value={values["finance.instructor_ratio"]}
+                  icon={TrendingUp}
+                  readOnly
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-xs font-bold uppercase text-muted-foreground">File thông báo</Label>
+                <div className="grid gap-3 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-center">
+                  <AppButton
+                    type="button"
+                    appVariant="ghostMuted"
+                    appSize="sm"
+                    variant="ghost"
+                    className="w-fit border border-border bg-muted text-sm font-bold text-foreground hover:bg-primary/10 hover:text-primary"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <Upload className="size-4" />
+                    Thông báo
+                  </AppButton>
+                  <div className="group relative min-w-0">
+                    <button
+                      type="button"
+                      className="w-full min-w-0 truncate rounded-lg border border-border bg-muted py-2 pl-3 pr-9 text-left text-sm font-semibold text-muted-foreground transition-colors hover:border-primary/30 hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
+                      onClick={() => setIsNoticeDialogOpen(true)}
+                      disabled={!noticeFile}
+                    >
+                      {noticeFile?.name || "Chưa chọn file"}
+                    </button>
+                    {noticeFile && (
+                      <button
+                        type="button"
+                        aria-label="Xóa file thông báo"
+                        className="absolute right-2 top-1/2 flex size-6 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground opacity-0 transition-all hover:bg-error-soft hover:text-error group-hover:opacity-100"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setNoticeFile(null);
+                          setIsNoticeDialogOpen(false);
+                          if (fileInputRef.current) fileInputRef.current.value = "";
+                        }}
+                      >
+                        <X className="size-4" />
+                      </button>
+                    )}
+                  </div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    className="sr-only"
+                    onChange={(event) => setNoticeFile(event.target.files?.[0] || null)}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] sm:items-end">
+              <div className="space-y-2">
+                <Label className="text-xs font-bold uppercase text-muted-foreground">Ngày áp dụng</Label>
+                <AppSelect
+                  value={applyAfterDays}
+                  onValueChange={setApplyAfterDays}
+                  options={[
+                    { label: "Sau 7 ngày", value: "7" },
+                    { label: "Sau 15 ngày", value: "15" },
+                    { label: "Sau 30 ngày", value: "30" },
+                  ]}
+                  className="bg-card"
+                />
+              </div>
+              <div className="space-y-2">
+                <p className="text-xs font-bold uppercase text-muted-foreground">Thời gian bắt đầu</p>
+                <p className="text-sm font-semibold text-foreground">
+                  {formatDateTime(applyStartDate)}
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-4 rounded-lg border border-border bg-muted/40 p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs font-bold uppercase text-muted-foreground">Ví dụ doanh thu</p>
+                  <p className="app-section-title mt-1">{formatCurrency(sampleRevenue)}</p>
+                </div>
+                <div className="flex size-10 items-center justify-center rounded-lg bg-info-soft text-info">
+                  <Calculator className="size-5" />
+                </div>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
+                <FinanceMetric
+                  label={`Nền tảng nhận (${formatPercent(platformRatio)})`}
+                  value={formatCurrency(platformAmount)}
+                  variant="warning"
+                />
+                <FinanceMetric
+                  label={`Giảng viên nhận (${formatPercent(instructorRatio)})`}
+                  value={formatCurrency(instructorAmount)}
+                  variant="success"
+                />
+              </div>
             </div>
           </div>
 
-          <div className="grid gap-4 rounded-xl border border-border bg-muted/50 p-5 md:grid-cols-3">
-            <div><p className="text-xs font-bold uppercase text-muted-foreground">Ví dụ doanh thu</p><p className="mt-1 text-xl font-black text-foreground">1.000.000đ</p></div>
-            <div><p className="text-xs font-bold uppercase text-muted-foreground">Nền tảng nhận ({platformRatio}%)</p><p className="mt-1 text-xl font-black text-warning">{Math.round(1_000_000 * platformRatio / 100).toLocaleString("vi-VN")}đ</p></div>
-            <div><p className="text-xs font-bold uppercase text-muted-foreground">Giảng viên nhận ({instructorRatio}%)</p><p className="mt-1 text-xl font-black text-success">{Math.round(1_000_000 * instructorRatio / 100).toLocaleString("vi-VN")}đ</p></div>
+          <div className="flex flex-col gap-3 rounded-lg border border-warning/30 bg-warning-soft/60 p-4 text-warning-foreground sm:flex-row sm:items-start">
+            <AlertTriangle className="size-5 shrink-0 text-warning" />
+            <p className="text-sm leading-relaxed">
+              Thay đổi chỉ ảnh hưởng giao dịch phát sinh sau khi lưu. Các giao dịch đã thanh toán giữ nguyên snapshot tỷ lệ và số tiền phân chia.
+            </p>
           </div>
 
-          <p className="text-xs leading-relaxed text-muted-foreground">Thay đổi chỉ ảnh hưởng giao dịch phát sinh sau khi lưu. Các giao dịch đã thanh toán giữ nguyên snapshot tỷ lệ và số tiền phân chia.</p>
+          <div className="flex justify-end">
+            <AppButton
+              type="button"
+              appVariant="gradient"
+              className="font-bold"
+              onClick={onApply}
+              disabled={isApplying}
+            >
+              <Save className="size-4" />
+              {isApplying ? "Đang áp dụng..." : "Áp dụng"}
+            </AppButton>
+          </div>
         </AppCardContent>
       </AppCard>
+
+      <NoticeFileDialog
+        file={noticeFile}
+        open={isNoticeDialogOpen}
+        onOpenChange={setIsNoticeDialogOpen}
+      />
+
+      <FinanceHistoryPanel
+        platformRatio={platformRatio}
+        instructorRatio={instructorRatio}
+        sampleRevenue={sampleRevenue}
+      />
     </div>
   );
+}
+
+function FinanceHistoryPanel({ platformRatio, instructorRatio, sampleRevenue }) {
+  const [selectedDecision, setSelectedDecision] = useState(null);
+  const historyRows = [
+    {
+      id: "current-default",
+      index: 1,
+      commissionRatio: platformRatio,
+      platformRatio,
+      instructorRatio,
+      startAt: "00:00 24/07/2026",
+      endAt: "--:-- --/--/----",
+      status: "active",
+      statusLabel: "Đang áp dụng",
+      decisionNo: "QD-HH-0001",
+      decisionTitle: "Quyết định áp dụng tỷ lệ hoa hồng mặc định",
+    },
+  ];
+
+  const columns = [
+    {
+      key: "index",
+      header: "STT",
+      sortable: false,
+      align: "center",
+      headerAlign: "center",
+      width: 52,
+      render: (row) => <span className="text-sm font-bold text-foreground">{row.index}</span>,
+    },
+    {
+      key: "commissionRatio",
+      header: "Tỷ lệ doanh thu",
+      sortable: false,
+      align: "center",
+      headerAlign: "center",
+      cellClassName: "min-w-[104px]",
+      render: (row) => (
+        <span className="block text-center text-sm font-black text-warning">
+          {formatPercent(row.commissionRatio)}
+        </span>
+      ),
+    },
+    {
+      key: "startAt",
+      header: "Ngày bắt đầu",
+      sortable: false,
+      align: "center",
+      headerAlign: "center",
+      cellClassName: "min-w-[104px]",
+      render: (row) => <DateTimeCell value={row.startAt} />,
+    },
+    {
+      key: "endAt",
+      header: "Ngày kết thúc",
+      sortable: false,
+      align: "center",
+      headerAlign: "center",
+      cellClassName: "min-w-[104px]",
+      render: (row) => <DateTimeCell value={row.endAt} muted />,
+    },
+    {
+      key: "status",
+      header: "Trạng thái",
+      sortable: false,
+      align: "center",
+      headerAlign: "center",
+      cellClassName: "min-w-[96px]",
+      render: (row) => (
+        <AppBadge variant={row.status === "active" ? "success" : "secondary"} soft className="rounded-md">
+          {row.statusLabel}
+        </AppBadge>
+      ),
+    },
+    {
+      key: "decision",
+      header: "Quyết định",
+      sortable: false,
+      align: "center",
+      headerAlign: "center",
+      cellClassName: "min-w-[104px]",
+      render: (row) => (
+        <AppButton
+          type="button"
+          appVariant="ghostMuted"
+          appSize="sm"
+          variant="ghost"
+          className="border border-border bg-card px-3 text-xs"
+          onClick={() => setSelectedDecision(row)}
+        >
+          <FileText className="size-4" />
+          Xem file
+        </AppButton>
+      ),
+    },
+    {
+      key: "actions",
+      header: "Thao tác",
+      sortable: false,
+      align: "center",
+      headerAlign: "center",
+      cellClassName: "min-w-[96px]",
+      render: (row) => (
+        <AppButton
+          type="button"
+          appVariant="ghostMuted"
+          appSize="sm"
+          variant="ghost"
+          className="border border-border bg-card px-3 text-xs"
+          onClick={() => setSelectedDecision(row)}
+        >
+          <Eye className="size-4" />
+          Chi tiết
+        </AppButton>
+      ),
+    },
+  ];
+
+  return (
+    <>
+      <div className="h-fit space-y-4">
+        <div className="space-y-1.5">
+          <h2 className="app-section-title flex items-center gap-2">
+            <History className="size-5 text-primary" />
+            Lịch sử tỷ lệ
+          </h2>
+          <p className="app-body-text text-muted-foreground">
+            Theo dõi các phiên bản tỷ lệ hoa hồng đã và đang áp dụng.
+          </p>
+        </div>
+
+        <AppTable
+          columns={columns}
+          data={historyRows}
+          rowKey={(row) => row.id}
+          hideWrapperStyle
+          className="rounded-lg border border-border bg-card shadow-sm"
+          emptyState="Chưa có dữ liệu lịch sử."
+        />
+      </div>
+
+      <CommissionDecisionDialog
+        decision={selectedDecision}
+        sampleRevenue={sampleRevenue}
+        onOpenChange={(open) => {
+          if (!open) setSelectedDecision(null);
+        }}
+      />
+    </>
+  );
+}
+
+function NoticeFileDialog({ file, open, onOpenChange }) {
+  const previewUrl = React.useMemo(() => (file ? URL.createObjectURL(file) : ""), [file]);
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
+
+  return (
+    <AppDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title="File thông báo"
+      description={file?.name || "Chưa chọn file"}
+      appVariant="default"
+      className="max-w-2xl"
+    >
+      <div className="rounded-lg border border-border bg-white p-6 shadow-inner">
+        <div className="space-y-5">
+          <div className="space-y-1 text-center">
+            <p className="text-sm font-bold uppercase text-foreground">Gnostica E-Learning</p>
+            <p className="text-xs text-muted-foreground">Tài liệu thông báo thay đổi tỷ lệ doanh thu</p>
+          </div>
+
+          {file ? (
+            <div className="space-y-4">
+              <div className="rounded-lg border border-border bg-muted/40 p-4">
+                <p className="text-xs font-bold uppercase text-muted-foreground">Tên file</p>
+                <p className="mt-1 break-words text-sm font-black text-foreground">{file.name}</p>
+                <p className="mt-3 text-xs font-bold uppercase text-muted-foreground">Dung lượng</p>
+                <p className="mt-1 text-sm font-semibold text-foreground">{formatFileSize(file.size)}</p>
+              </div>
+              <div className="max-h-[46vh] overflow-hidden rounded-lg border border-border bg-muted/30">
+                <object
+                  data={previewUrl}
+                  type={file.type || "application/octet-stream"}
+                  className="h-[46vh] w-full bg-white"
+                >
+                  <div className="flex h-[260px] flex-col items-center justify-center gap-3 p-6 text-center">
+                    <FileText className="size-8 text-muted-foreground" />
+                    <p className="text-sm font-semibold text-foreground">
+                      Trình duyệt chưa hỗ trợ xem trực tiếp nội dung file này.
+                    </p>
+                    <a
+                      href={previewUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-sm font-bold text-primary hover:underline"
+                    >
+                      Mở file trong tab mới
+                    </a>
+                  </div>
+                </object>
+              </div>
+            </div>
+          ) : (
+            <p className="text-center text-sm text-muted-foreground">
+              Chưa có file thông báo nào được chọn.
+            </p>
+          )}
+        </div>
+      </div>
+    </AppDialog>
+  );
+}
+
+function DateTimeCell({ value, muted = false }) {
+  return (
+    <span className={`block whitespace-nowrap text-center text-xs font-semibold ${muted ? "text-muted-foreground" : "text-foreground"}`}>
+      {value}
+    </span>
+  );
+}
+
+function CommissionDecisionDialog({ decision, sampleRevenue, onOpenChange }) {
+  const platformAmount = Math.round(sampleRevenue * Number(decision?.platformRatio || 0) / 100);
+  const instructorAmount = Math.round(sampleRevenue * Number(decision?.instructorRatio || 0) / 100);
+
+  return (
+    <AppDialog
+      open={Boolean(decision)}
+      onOpenChange={onOpenChange}
+      title="File quyết định hoa hồng"
+      description={decision?.decisionNo}
+      appVariant="default"
+      className="max-w-3xl"
+    >
+      {decision && (
+        <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-border bg-white p-6 shadow-inner">
+          <div className="mx-auto max-w-2xl space-y-6 text-foreground">
+            <div className="space-y-1 text-center">
+              <p className="text-sm font-bold uppercase">Gnostica E-Learning</p>
+              <p className="text-xs text-muted-foreground">Ban quản trị hệ thống</p>
+            </div>
+
+            <div className="space-y-2 text-center">
+              <p className="text-sm font-bold uppercase">Quyết định</p>
+              <h3 className="text-xl font-black">{decision.decisionTitle}</h3>
+              <p className="text-sm text-muted-foreground">Số: {decision.decisionNo}</p>
+            </div>
+
+            <div className="grid gap-3 rounded-lg border border-border bg-muted/40 p-4 sm:grid-cols-2">
+              <DecisionInfo label="Tỷ lệ hoa hồng nền tảng" value={formatPercent(decision.platformRatio)} />
+              <DecisionInfo label="Tỷ lệ doanh thu giảng viên" value={formatPercent(decision.instructorRatio)} />
+              <DecisionInfo label="Ngày bắt đầu" value={decision.startDate} />
+              <DecisionInfo label="Ngày kết thúc" value={decision.endDate} />
+              <DecisionInfo label="Nền tảng nhận trên 1.000.000đ" value={formatCurrency(platformAmount)} />
+              <DecisionInfo label="Giảng viên nhận trên 1.000.000đ" value={formatCurrency(instructorAmount)} />
+            </div>
+
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              Quyết định này được dùng để đối chiếu tỷ lệ phân chia doanh thu mặc định. Các giao dịch đã thanh toán trước khi thay đổi vẫn giữ snapshot tỷ lệ tại thời điểm phát sinh.
+            </p>
+
+            <div className="flex justify-end pt-4 text-sm font-semibold text-muted-foreground">
+              Đại diện hệ thống Gnostica
+            </div>
+          </div>
+        </div>
+      )}
+    </AppDialog>
+  );
+}
+
+function DecisionInfo({ label, value }) {
+  return (
+    <div>
+      <p className="text-xs font-bold uppercase text-muted-foreground">{label}</p>
+      <p className="mt-1 text-sm font-black text-foreground">{value}</p>
+    </div>
+  );
+}
+
+function RatioField({ id, label, value, icon: Icon, onChange, readOnly = false }) {
+  return (
+    <div className="space-y-2">
+      <Label htmlFor={id} className="text-xs font-bold uppercase text-muted-foreground">
+        {label} (%)
+      </Label>
+      <AppInput
+        id={id}
+        type="number"
+        min="0"
+        max="100"
+        step="0.01"
+        value={value}
+        onChange={onChange}
+        readOnly={readOnly}
+        icon={Icon}
+        rightElement={<span className="text-xs font-bold text-muted-foreground">%</span>}
+        className={readOnly ? "cursor-not-allowed bg-secondary text-muted-foreground" : "bg-muted"}
+      />
+    </div>
+  );
+}
+
+function RevenueSplitBar({ platformRatio, instructorRatio }) {
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between text-xs font-bold uppercase text-muted-foreground">
+        <span>Nền tảng {formatPercent(platformRatio)}</span>
+        <span>Giảng viên {formatPercent(instructorRatio)}</span>
+      </div>
+      <div className="flex h-3 overflow-hidden rounded-full bg-secondary ring-1 ring-border">
+        <div
+          className="h-full bg-warning transition-all duration-300"
+          style={{ width: `${platformRatio}%` }}
+        />
+        <div
+          className="h-full bg-success transition-all duration-300"
+          style={{ width: `${instructorRatio}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function FinanceMetric({ label, value, variant }) {
+  const colorClass = variant === "success" ? "text-success" : "text-warning";
+
+  return (
+    <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
+      <p className="text-xs font-bold uppercase text-muted-foreground">{label}</p>
+      <p className={`app-section-title mt-2 ${colorClass}`}>
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function formatCurrency(value) {
+  return `${Number(value || 0).toLocaleString("vi-VN")}đ`;
+}
+
+function formatPercent(value) {
+  return `${Number(value || 0).toLocaleString("vi-VN")}%`;
+}
+
+function getApplyStartDate(daysToAdd) {
+  const date = new Date();
+  date.setDate(date.getDate() + daysToAdd + 1);
+  date.setHours(0, 0, 0, 0);
+  return date;
+}
+
+function formatDateTime(date) {
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+  return `${hours}:${minutes} ${day}/${month}/${year}`;
+}
+
+function formatFileSize(bytes) {
+  if (!bytes) return "0 KB";
+  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024)).toLocaleString("vi-VN")} KB`;
+  return `${(bytes / (1024 * 1024)).toLocaleString("vi-VN", { maximumFractionDigits: 1 })} MB`;
 }
 
 function SecuritySettings() {

@@ -4,7 +4,9 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.type.SqlTypes;
 import java.math.BigDecimal;
 import jakarta.validation.constraints.*;
 
@@ -46,6 +48,11 @@ public class Commission {
      */
     @NotNull
     private Integer status;
+
+    @Builder.Default
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "JSONB", nullable = false)
+    private String metadata = "{}";
 
     @CreationTimestamp
     @Column(updatable = false)

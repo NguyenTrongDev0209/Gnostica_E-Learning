@@ -180,8 +180,9 @@
 | 5 | valid_from | DATETIME | | |
 | 6 | valid_until | DATETIME | | |
 | 7 | status | INT | | |
-| 8 | created_at | DATETIME | | |
-| 9 | updated_at | DATETIME | | |
+| 8 | metadata | JSONB | | |
+| 9 | created_at | DATETIME | | |
+| 10 | updated_at | DATETIME | | |
 
 > **Bảng mới** — Quản lý phần trăm ăn chia doanh thu theo thời gian của từng giảng viên (Account).
 >
