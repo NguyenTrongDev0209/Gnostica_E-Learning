@@ -8,8 +8,6 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
-import java.util.Map;
-
 @Data
 public class PageRequest {
     @NotBlank
@@ -18,14 +16,12 @@ public class PageRequest {
 
     @NotBlank
     @Size(max = 255)
-    @Pattern(regexp = "^[a-z0-9]+(?:-[a-z0-9]+)*(?:/[a-z0-9]+(?:-[a-z0-9]+)*)*$", message = "Đường dẫn URL chỉ gồm chữ thường, số, dấu gạch ngang và dấu gạch chéo")
+    @Pattern(regexp = "^[a-z0-9]+(?:-[a-z0-9]+)*$", message = "Slug chỉ gồm chữ thường, số và dấu gạch ngang")
     private String slug;
 
     @NotBlank
     @Size(max = 200000)
     private String content;
-
-    private Map<String, Object> metadata;
 
     @NotNull
     @Min(0)

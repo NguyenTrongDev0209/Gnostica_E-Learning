@@ -48,8 +48,7 @@ BEGIN
             ('Kỹ năng cá nhân', 'ky-nang-ca-nhan', 'Tư duy, giao tiếp, năng suất và phát triển bản thân.', '#65A30D', 70, 1),
             ('Tài chính & kế toán', 'tai-chinh-ke-toan', 'Quản lý tiền, đầu tư, kế toán và tài chính doanh nghiệp.', '#CA8A04', 80, 1),
             ('Công nghệ văn phòng', 'cong-nghe-van-phong', 'Ứng dụng công cụ số trong công việc hằng ngày.', '#475569', 90, 0),
-            ('Sức khỏe & đời sống', 'suc-khoe-doi-song', 'Sống lành mạnh, cân bằng, chăm sóc sức khỏe và lối sống.', '#DC2626', 100, 1),
-            ('Âm nhạc & Nghệ thuật', 'am-nhac-nghe-thuat', 'Sáng tác, nhạc cụ, thanh nhạc và cảm thụ nghệ thuật.', '#F59E0B', 110, 1)
+            ('Sức khỏe & đời sống', 'suc-khoe-doi-song', 'Sống lành mạnh, cân bằng, chăm sóc sức khỏe và lối sống.', '#DC2626', 100, 1)
     )
     INSERT INTO categories (
         account_id, parent_id, name, slug, description, thumbnail, color, sort_order, status, created_at, updated_at
@@ -143,7 +142,7 @@ FROM categories
 WHERE slug IN (
     'lap-trinh-phat-trien-phan-mem', 'du-lieu-tri-tue-nhan-tao', 'thiet-ke-sang-tao',
     'kinh-doanh-khoi-nghiep', 'marketing-truyen-thong', 'ngoai-ngu', 'ky-nang-ca-nhan',
-    'tai-chinh-ke-toan', 'cong-nghe-van-phong', 'suc-khoe-doi-song', 'am-nhac-nghe-thuat',
+    'tai-chinh-ke-toan', 'cong-nghe-van-phong', 'suc-khoe-doi-song',
     'frontend-web', 'backend-api', 'mobile-development', 'devops-cloud',
     'data-analysis', 'machine-learning', 'generative-ai', 'data-engineering',
     'ui-ux-design', 'graphic-design', 'video-editing', '3d-motion',

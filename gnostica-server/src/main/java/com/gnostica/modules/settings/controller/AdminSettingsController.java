@@ -44,8 +44,8 @@ public class AdminSettingsController {
         if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("Tệp ảnh không được để trống");
         }
-        if (file.getSize() > 10 * 1024 * 1024) {
-            throw new IllegalArgumentException("Tệp ảnh không được vượt quá 10MB");
+        if (file.getSize() > 2 * 1024 * 1024) {
+            throw new IllegalArgumentException("Tệp ảnh không được vượt quá 2MB");
         }
         String contentType = file.getContentType();
         if (contentType == null || !Set.of("image/png", "image/jpeg", "image/webp", "image/svg+xml").contains(contentType)) {

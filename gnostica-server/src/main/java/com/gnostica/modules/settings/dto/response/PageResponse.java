@@ -5,7 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDateTime;
-import java.util.Map;
 
 @Data
 @Builder
@@ -14,7 +13,6 @@ public class PageResponse {
     private String title;
     private String slug;
     private String content;
-    private Map<String, Object> metadata;
     private Integer status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -25,7 +23,6 @@ public class PageResponse {
                 .title(page.getTitle())
                 .slug(page.getSlug())
                 .content(page.getContent())
-                .metadata(page.getMetadata())
                 .status(page.getStatus())
                 .createdAt(page.getCreatedAt())
                 .updatedAt(page.getUpdatedAt())
