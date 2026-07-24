@@ -526,7 +526,9 @@ function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }
   }, [quiz?.id]);
 
   useEffect(() => {
-      if (existingResult) {
+      // Chi xem la da nop bai khi status === 2 (Submitted)
+      // status === 1 la dang lam lai (reset) -> cho phep lam lai
+      if (existingResult && existingResult.status === 2) {
           setIsSubmitted(true);
           setScorePercent(existingResult.point || 0);
           setCorrectCount(existingResult.correctAnswers || 0);
@@ -863,6 +865,7 @@ export default function LearningWorkspace() {
   const [openSectionValues, setOpenSectionValues] = useState([]);
   const [lessonProgress, setLessonProgress] = useState([]);
   const [quizProgress, setQuizProgress] = useState([]); // Track existing quiz results
+  const [serverProgressPercent, setServerProgressPercent] = useState(null); // Từ server, nguồn sự thật
   const [certifiUrl, setCertifiUrl] = useState(null);
   const [currentTime, setCurrentTime] = useState(0);
   const [isDarkMode, setIsDarkMode] = useState(getInitialDarkMode);
@@ -929,11 +932,15 @@ export default function LearningWorkspace() {
       setCourse({ ...courseData, modules: activeModules });
       setOpenSectionValues(activeModules.map((_, index) => `section-${index}`));
       
-      // Nhận data gộp: { lessons: [], quizzes: [] }
+      // Nhận data gộp: { lessons: [], quizzes: [], progressPercent }
       const lessonsList = progressData?.lessons || [];
       setLessonProgress(lessonsList);
       setQuizProgress(progressData?.quizzes || []);
-      setCertifiUrl(progressData?.certifiUrl || null);
+      setCertifiUrl(progressData?.certificateUrl || progressData?.certifiUrl || null);
+      // Lưu progressPercent từ server làm nguồn sự thật
+      if (typeof progressData?.progressPercent === 'number') {
+        setServerProgressPercent(progressData.progressPercent);
+      }
 
       // Khôi phục phiên học:
       // 1. Ưu tiên lesson trong URL
@@ -974,12 +981,19 @@ export default function LearningWorkspace() {
 
   // === Derived values ===
   const completedLessonIds = lessonProgress.filter(lp => lp.isCompleted).map(lp => lp.lessonId);
-  const completedQuizIds = quizProgress.filter(qp => qp.point >= 50).map(qp => qp.quizId);
+  // Quizzes đã pass = point >= 50 (bao gồm cả sau khi reset vì backend giữ point)
+  const completedQuizIds = quizProgress.filter(qp => (qp.point ?? 0) >= 50).map(qp => qp.quizId);
   const allLessons = course?.modules?.flatMap((section) => section.lessons) || [];
   const totalLessonsCount = allLessons.length;
-  const progressValue = totalLessonsCount > 0 
-    ? Math.round((completedLessonIds.length / totalLessonsCount) * 100) 
-    : 0;
+  // Tổng số quiz trong khóa học
+  const totalQuizzesCount = course?.modules?.filter(m => m.quiz != null).length || 0;
+  const totalSteps = totalLessonsCount + totalQuizzesCount;
+  // Dùng progressPercent từ server nếu có (đồng bộ với My Courses)
+  const progressValue = serverProgressPercent != null
+    ? serverProgressPercent
+    : (totalSteps > 0
+        ? Math.round(((completedLessonIds.length + completedQuizIds.length) / totalSteps) * 100)
+        : 0);
 
   const currentSection = course?.modules?.[activeSectionIdx];
   const currentLesson = currentSection?.lessons?.[activeLessonIdx];
@@ -1021,10 +1035,23 @@ export default function LearningWorkspace() {
           }
           return [...prev, { quizId, point, correctAnswers, totalQuestions, completedAt: new Date().toISOString() }];
       });
+      // Cập nhật server progress
+      progressService.getCourseProgress(slug).then(res => {
+          if (typeof res?.progressPercent === 'number') {
+              setServerProgressPercent(res.progressPercent);
+          }
+      }).catch(() => {});
   };
 
   const onQuizReset = (quizId) => {
-      setQuizProgress(prev => prev.filter(q => q.quizId != quizId));
+      // KHÔNG xóa khỏi local state để giữ tiến độ đã đạt được
+      // Chỉ cần re-fetch để lấy lại trạng thái từ server
+      progressService.getCourseProgress(slug).then(res => {
+          setQuizProgress(res?.quizzes || []);
+          if (typeof res?.progressPercent === 'number') {
+              setServerProgressPercent(res.progressPercent);
+          }
+      }).catch(() => {});
   };
 
   // === Đồng bộ refs mỗi khi giá trị thay đổi ===
@@ -1112,9 +1139,15 @@ export default function LearningWorkspace() {
             }
             return [...prev, { lessonId, isCompleted: true, lastWatchedTime: 0 }];
         });
+        // Đồng bộ progressPercent từ server
+        progressService.getCourseProgress(slug).then(res => {
+            if (typeof res?.progressPercent === 'number') {
+                setServerProgressPercent(res.progressPercent);
+            }
+        }).catch(() => {});
     } catch (err) {
     }
-  }, []);
+  }, [slug]);
 
   const handleLessonEnded = useCallback(async () => {
     const lesson = currentLessonRef.current;

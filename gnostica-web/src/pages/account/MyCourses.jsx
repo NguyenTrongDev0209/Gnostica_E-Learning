@@ -191,12 +191,8 @@ function MyCourseGrid({ loading, courses }) {
     <div className="space-y-4">
       {courses.map((course) => {
         const courseSlug = course.courseSlug || course.slug;
-        const lessonQuery = course.progressPercent === 100
-          ? `?lesson=${course.firstLessonId}&restart=true`
-          : course.lastWatchedLessonSlug
-            ? `?lesson=${course.lastWatchedLessonSlug}`
-            : "";
-        const learningLink = courseSlug ? `/learning/${courseSlug}${lessonQuery}` : null;
+        const learningLink = courseSlug ? `/learning/${courseSlug}` : null;
+        const restartLink = courseSlug ? `/learning/${courseSlug}?lesson=${course.firstLessonId}&restart=true` : null;
 
         return (
           <CourseProgressCard
@@ -214,6 +210,7 @@ function MyCourseGrid({ loading, courses }) {
             lastWatchedLessonSlug={course.lastWatchedLessonSlug}
             certifiUrl={course.certifiUrl || course.certificateUrl}
             link={learningLink}
+            restartLink={restartLink}
           />
         );
       })}

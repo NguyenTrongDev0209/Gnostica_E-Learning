@@ -102,7 +102,10 @@ public class EnrollmentService {
                         if (lesson.getMetadata() != null) {
                                 try {
                                         com.fasterxml.jackson.databind.JsonNode node = mapper.readTree(lesson.getMetadata());
-                                        if (node.has("duration")) {
+                                        // Ho tro ca hai truong: durationSeconds va duration
+                                        if (node.has("durationSeconds")) {
+                                                totalSeconds += node.get("durationSeconds").asDouble();
+                                        } else if (node.has("duration")) {
                                                 totalSeconds += node.get("duration").asDouble();
                                         }
                                 } catch (Exception e) {}
@@ -234,6 +237,8 @@ public class EnrollmentService {
                                 .count();
 
                 // 3. Đếm số Quizzes đã hoàn thành (Chỉ tính các bài quiz có điểm >= 50)
+                // Dem so Quizzes da hoan thanh: dua tren point >= 50, bat ke status
+                // (ke ca sau khi reset (status=1), neu point >= 50 thi van tinh la da pass)
                 long completedQuizzes = quizResultRepository.findByAccount(account).stream()
                                 .filter(qr -> qr != null && qr.getQuiz() != null &&
                                                 qr.getQuiz().getModule() != null &&

@@ -131,6 +131,29 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     @Transactional
+    public Comment updateCommentStatus(Integer commentId, Integer status, String userEmail) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new RuntimeException("Comment not found"));
+
+        boolean isLessonInstructor = false;
+        if ("LESSON".equals(comment.getTargetType())) {
+            isLessonInstructor = lessonRepository.findById(Integer.parseInt(comment.getTargetId()))
+                    .map(this::resolveLessonCourse)
+                    .map(Course::getAccount)
+                    .map(account -> account.getEmail().equals(userEmail))
+                    .orElse(false);
+        }
+
+        if (!isLessonInstructor) {
+            throw new RuntimeException("Chỉ giảng viên của khóa học mới có quyền đổi trạng thái bình luận này");
+        }
+
+        comment.setStatus(status);
+        return commentRepository.save(comment);
+    }
+
+    @Override
+    @Transactional
     public void deleteComment(Integer commentId, String userEmail) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new RuntimeException("Comment not found"));

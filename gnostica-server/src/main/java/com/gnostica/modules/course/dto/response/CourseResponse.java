@@ -45,6 +45,9 @@ public class CourseResponse {
     private Integer classes;
     private Integer students;
 
+    private Double rating;
+    private Integer reviewCount;
+
     private Boolean hasDraftVersion;
     private String draftCourseSlug;
 
