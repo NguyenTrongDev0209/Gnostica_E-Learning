@@ -37,12 +37,13 @@ import java.util.List;
 import java.util.UUID;
 import java.math.BigDecimal;
 import java.util.stream.Collectors;
+import com.gnostica.modules.wallet.service.WalletService;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class OrderService {
-    private static final Set<String> SUPPORTED_PAYMENT_METHODS = Set.of("PAYOS", "VNPAY");
+    private static final Set<String> SUPPORTED_PAYMENT_METHODS = Set.of("PAYOS", "VNPAY", "WALLET");
     private final OrderRepository orderRepository;
     private final OrderDetailRepository orderDetailRepository;
     private final AccountRepository accountRepository;
@@ -51,6 +52,7 @@ public class OrderService {
     private final CouponService couponService;
     private final PaymentService paymentService;
     private final CommissionResolver commissionResolver;
+    private final WalletService walletService;
 
     public List<OrderResponse> getAllOrders() {
         return orderRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt")).stream()
@@ -175,6 +177,37 @@ public class OrderService {
                 .amount(0L).description("Miễn phí")
                 .orderCode(orderCode)
                 .paymentLinkId("FREE-" + orderCode).status("PAID")
+                .checkoutUrl(requestBody.getReturnUrl() + "?orderCode=" + orderCode)
+                .qrCode("").build();
+        }
+
+        if ("WALLET".equals(paymentMethod)) {
+            com.gnostica.core.model.Wallet walletBalance = walletService.getWalletByAccount(account);
+            if (walletBalance.getRemain().compareTo(actualPrice) < 0) {
+                throw new IllegalArgumentException("Số dư khả dụng không đủ để thanh toán!");
+            }
+
+            // Create a pseudo webhook data to save transaction
+            com.gnostica.modules.payment.dto.response.PaymentWebhookData data = com.gnostica.modules.payment.dto.response.PaymentWebhookData.builder()
+                .gateway("WALLET")
+                .transactionCode("WALLET-" + orderCode)
+                .amount(actualPrice.longValue())
+                .status("PAID")
+                .paidAt(java.time.LocalDateTime.now())
+                .payload(new java.util.HashMap<>())
+                .build();
+            
+            paymentService.saveTransaction(data, order);
+            
+            order.setStatus(OrderStatus.PAID);
+            orderRepository.save(order);
+            paymentService.processSuccessfulOrder(order);
+            
+            return PaymentLinkResponse.builder()
+                .bin("N/A").accountNumber("N/A").accountName(account.getFullName())
+                .amount(actualPrice.longValue()).description("Thanh toán bằng số dư ví")
+                .orderCode(orderCode)
+                .paymentLinkId("WALLET-" + orderCode).status("PAID")
                 .checkoutUrl(requestBody.getReturnUrl() + "?orderCode=" + orderCode)
                 .qrCode("").build();
         }

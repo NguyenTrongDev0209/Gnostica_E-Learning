@@ -39,15 +39,6 @@ public class Payment {
     @Column(precision = 18, scale = 6)
     private BigDecimal amount;
 
-    @Size(max = 255)
-    private String accountNumber;
-
-    @Size(max = 255)
-    private String senderBankBin;
-
-    @Size(max = 255)
-    private String senderAccountNumber;
-
     @NotBlank
     @Size(max = 32)
     private String gateway;
@@ -55,23 +46,11 @@ public class Payment {
     @Size(max = 255)
     private String gatewayTransactionNo;
 
-    @Size(max = 32)
-    private String bankCode;
-
-    @Size(max = 32)
-    private String cardType;
-
-    @Size(max = 16)
-    private String gatewayResponseCode;
-
-    @Size(max = 16)
-    private String gatewayTransactionStatus;
-
     private LocalDateTime paidAt;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
-    private Map<String, Object> rawCallback;
+    private Map<String, Object> payload;
 
     /**
      * Status: 1: Pending (Chờ xử lý), 2: Success (Thành công), 3: Failed (Thất bại), 4: Refunded (Đã hoàn tiền)

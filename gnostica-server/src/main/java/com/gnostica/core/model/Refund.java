@@ -2,8 +2,9 @@ package com.gnostica.core.model;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+import java.time.LocalDateTime;
 import java.util.UUID;
 import java.math.BigDecimal;
 import jakarta.validation.constraints.*;
@@ -13,12 +14,17 @@ import jakarta.validation.constraints.*;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "wallets")
-public class Wallet {
+@Table(name = "refunds")
+public class Refund {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_detail_id", updatable = false)
+    private OrderDetail orderDetail;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
@@ -28,27 +34,22 @@ public class Wallet {
     @NotNull
     @Min(0)
     @Column(precision = 18, scale = 6)
-    private BigDecimal remain;
+    private BigDecimal amount;
 
-    @NotNull
-    private Integer type;
+    @Column(columnDefinition = "TEXT")
+    private String reason;
 
     /**
-     * Status: 0: Locked/Frozen (Đóng băng), 1: Active (Hoạt động)
+     * Status: 1: PENDING, 2: APPROVED, 3: REJECTED
      */
     @NotNull
     private Integer status;
 
     @CreationTimestamp
-    @Column(updatable = false)
+    @Column(updatable = false, name = "created_at")
     private LocalDateTime createdAt;
 
-    private LocalDateTime availableAt;
-
-    @Column(name = "target_type", length = 50)
-    private String targetType;
-
-    @Column(name = "target_id")
-    private UUID targetId;
-
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 }

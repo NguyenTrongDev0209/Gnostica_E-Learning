@@ -15,21 +15,9 @@ public class CommissionResolver {
     private final CommissionRepository commissionRepository;
 
     public ResolvedCommission resolve(Account instructor, LocalDateTime at) {
-        Commission override = commissionRepository.findByAccountAndStatusOrderByValidFromDesc(instructor, 1)
-                .stream()
-                .filter(item -> (item.getValidFrom() == null || !item.getValidFrom().isAfter(at))
-                        && (item.getValidUntil() == null || item.getValidUntil().isAfter(at)))
-                .findFirst()
-                .orElse(null);
-
-        if (override != null && override.getInstructorRatio().add(override.getPlatformRatio()).compareTo(new BigDecimal("100")) == 0) {
-            return new ResolvedCommission(override.getInstructorRatio(), override.getPlatformRatio(), override);
-        }
-
         Commission global = commissionRepository.findAllByOrderByValidFromDesc()
                 .stream()
-                .filter(item -> item.getAccount() == null
-                        && (item.getStatus() == 1 || item.getStatus() == 0)
+                .filter(item -> item.getStatus() == 1
                         && (item.getValidFrom() == null || !item.getValidFrom().isAfter(at))
                         && (item.getValidUntil() == null || item.getValidUntil().isAfter(at)))
                 .findFirst()

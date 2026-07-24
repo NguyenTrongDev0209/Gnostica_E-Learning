@@ -12,6 +12,7 @@ import com.gnostica.core.repository.WalletRepository;
 import com.gnostica.core.repository.PayoutRepository;
 import com.gnostica.core.repository.AccountBankRepository;
 import com.gnostica.core.repository.BankRepository;
+import com.gnostica.core.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -31,6 +32,7 @@ public class WalletService {
     private final AccountRepository accountRepository;
     private final AccountBankRepository accountBankRepository;
     private final BankRepository bankRepository;
+    private final PaymentRepository paymentRepository;
     private final PayoutsService payoutsService;
     private final BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
 
@@ -46,17 +48,26 @@ public class WalletService {
 
     @Transactional(readOnly = true)
     public Wallet getMyWallet() {
-        Account account = getCurrentAccount();
-        Wallet wallet = walletRepository.findByAccount(account).orElseGet(() -> {
-            Wallet newWallet = new Wallet();
-            newWallet.setAccount(account);
-            newWallet.setRemain(BigDecimal.ZERO);
-            newWallet.setStatus(1);
-            newWallet.setType(1);
-            return walletRepository.save(newWallet);
-        });
+        return getWalletByAccount(getCurrentAccount());
+    }
 
-        return wallet;
+    @Transactional(readOnly = true)
+    public Wallet getWalletByAccount(Account account) {
+        BigDecimal totalEarning = walletRepository.sumAvailableRemainByAccount(account);
+        BigDecimal totalPayout = payoutRepository.sumPayoutsByAccount(account, List.of(1, 2, 3)); // 1: Pending, 2: Processing, 3: Completed
+        BigDecimal totalWalletPayment = paymentRepository.sumWalletPaymentsByAccount(account);
+        
+        BigDecimal balance = totalEarning.subtract(totalPayout).subtract(totalWalletPayment);
+        if (balance.compareTo(BigDecimal.ZERO) < 0) {
+            balance = BigDecimal.ZERO;
+        }
+
+        Wallet dummyWallet = new Wallet();
+        dummyWallet.setAccount(account);
+        dummyWallet.setRemain(balance);
+        dummyWallet.setStatus(1);
+        dummyWallet.setType(1);
+        return dummyWallet;
     }
 
     @Transactional(readOnly = true)
@@ -157,19 +168,32 @@ public class WalletService {
 
         vn.payos.model.v1.payouts.Payout payosPayout = payoutsService.createPayout(payoutRequest);
 
-        wallet.setRemain(wallet.getRemain().subtract(amount));
-        walletRepository.save(wallet);
-
         // Lưu vào bảng Payout
         Payout localPayout = new Payout();
         localPayout.setAmount(amount);
         localPayout.setStatus(1); // Pending
         localPayout.setAccount(account);
-        localPayout.setWallet(wallet);
         localPayout.setAccountBank(accountBank);
-        
         payoutRepository.save(localPayout);
 
         return payosPayout;
     }
+
+    @Transactional
+    public Wallet addDeposit(Account account, BigDecimal amount, String referenceId) {
+        Wallet wallet = new Wallet();
+        wallet.setAccount(account);
+        wallet.setRemain(amount);
+        wallet.setStatus(1);
+        wallet.setType(4); // DEPOSIT_OVERDUE
+        wallet.setTargetType("PAYMENT_ID");
+        if (referenceId != null) {
+            try {
+                wallet.setTargetId(java.util.UUID.fromString(referenceId));
+            } catch (Exception e) {}
+        }
+        return walletRepository.save(wallet);
+    }
+
+
 }

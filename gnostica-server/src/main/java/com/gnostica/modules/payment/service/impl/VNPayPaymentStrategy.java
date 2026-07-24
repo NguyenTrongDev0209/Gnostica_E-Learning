@@ -138,14 +138,9 @@ public class VNPayPaymentStrategy implements PaymentStrategy {
                 .transactionCode(parameters.get("vnp_TransactionNo"))
                 .amount(rawAmount / 100)
                 .status(paid ? "PAID" : "FAILED")
-                .senderBankCode(parameters.get("vnp_BankCode"))
                 .gateway("VNPAY")
-                .bankCode(parameters.get("vnp_BankCode"))
-                .cardType(parameters.get("vnp_CardType"))
-                .responseCode(parameters.get("vnp_ResponseCode"))
-                .transactionStatus(parameters.get("vnp_TransactionStatus"))
                 .paidAt(paidAt)
-                .rawCallback(new LinkedHashMap<>(parameters))
+                .payload(new LinkedHashMap<>(parameters))
                 .build();
     }
 
@@ -199,16 +194,19 @@ public class VNPayPaymentStrategy implements PaymentStrategy {
         String transactionStatus = result.path("vnp_TransactionStatus").asText();
         String status = "00".equals(responseCode) && "00".equals(transactionStatus) ? "PAID" : "PENDING";
         long amount = result.path("vnp_Amount").asLong(0L) / 100L;
+        java.util.Map<String, Object> detailsPayload = new java.util.HashMap<>();
+        detailsPayload.put("senderBankCode", result.path("vnp_BankCode").asText(null));
+        detailsPayload.put("bankCode", result.path("vnp_BankCode").asText(null));
+        detailsPayload.put("responseCode", responseCode);
+        detailsPayload.put("transactionStatus", transactionStatus);
+        
         return PaymentDetails.builder()
                 .transactionCode(result.path("vnp_TransactionNo").asText(txnRef))
                 .amount(amount)
                 .status(status)
-                .senderBankCode(result.path("vnp_BankCode").asText(null))
                 .gateway("VNPAY")
-                .bankCode(result.path("vnp_BankCode").asText(null))
-                .responseCode(responseCode)
-                .transactionStatus(transactionStatus)
                 .paidAt(parseVNPayDate(result.path("vnp_PayDate").asText(null)))
+                .payload(detailsPayload)
                 .build();
     }
 
