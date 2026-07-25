@@ -246,7 +246,10 @@ export default function InstructorCoupons() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 text-foreground">
         <div className="space-y-1">
-          <h1 className="text-2xl font-bold text-foreground tracking-tight leading-none">Phiếu Giảm Giá</h1>
+          <h1 className="text-2xl font-bold text-foreground tracking-tight leading-none flex items-center gap-2">
+            <Ticket className="w-6 h-6 text-primary" />
+            Phiếu Giảm Giá
+          </h1>
           <p className="text-sm font-medium text-muted-foreground">
             Tạo và quản lý các mã giảm giá để thúc đẩy doanh số bán khóa học của bạn.
           </p>

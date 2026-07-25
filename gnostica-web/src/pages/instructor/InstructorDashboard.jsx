@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { AppButton } from "@/components/common/micro/AppButton";
-import { Loader2, ArrowUpRight, ArrowDownRight, ChevronRight, CheckCircle2, Star } from "lucide-react";
+import { Loader2, ArrowUpRight, ArrowDownRight, ChevronRight, CheckCircle2, Star, LayoutDashboard } from "lucide-react";
 import useInstructorDashboard from "@/hooks/dashboard/useInstructorDashboard";
 import AppCard, { AppCardContent, AppCardHeader, AppCardTitle, AppCardDescription } from "@/components/common/micro/AppCard";
 import LineChart from "@/components/common/composite/LineChart";
@@ -219,6 +219,7 @@ export default function InstructorDashboard() {
     <div className="space-y-6 animate-in fade-in duration-700">
       {/* Page Header */}
       <AppPageHeader 
+        icon={LayoutDashboard}
         title="Tổng Quan Giảng Viên"
         description="Theo dõi hiệu suất và tăng trưởng của các khóa học bạn đang giảng dạy."
         actions={
