@@ -56,7 +56,7 @@ function InstructorCouponTable({
                         <span className="text-sm font-bold tracking-widest font-mono">{coupon.code}</span>
                     </div>
                     <AppBadge className="bg-success/10 text-success border-success/20 shadow-none hover:bg-success/20 text-[10px] font-bold uppercase tracking-wider h-5 flex items-center gap-1">
-                        Giảm {coupon.discountPercent}%
+                        Giảm {coupon.discountValue}%
                     </AppBadge>
                 </div>
             )
@@ -84,7 +84,7 @@ function InstructorCouponTable({
                 <div className="flex flex-col items-center gap-1">
                     <Calendar className="w-4 h-4 text-muted-foreground" />
                     <span className="text-xs font-semibold text-foreground">
-                        {new Date(coupon.expiryDate).toLocaleDateString('vi-VN', {
+                        {new Date(coupon.validUntil).toLocaleDateString('vi-VN', {
                             day: '2-digit', month: '2-digit', year: 'numeric'
                         })}
                     </span>
@@ -215,8 +215,8 @@ export default function InstructorCoupons() {
 
     let matchDate = true;
     if (dateRange?.from) {
-      // Dựa vào ngày tạo (createdAt) hoặc startDate của coupon
-      const dateVal = coupon.startDate || coupon.createdAt;
+      // Dựa vào ngày tạo (createdAt) hoặc validFrom của coupon
+      const dateVal = coupon.validFrom || coupon.createdAt;
       if (dateVal) {
         const itemDate = new Date(dateVal);
         const from = new Date(dateRange.from);

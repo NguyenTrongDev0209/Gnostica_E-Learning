@@ -16,14 +16,14 @@ const couponSchema = z.object({
     .min(3, "Mã giảm giá phải có ít nhất 3 ký tự")
     .max(50, "Mã giảm giá không vượt quá 50 ký tự")
     .toUpperCase(),
-  discountPercent: z.coerce
+  discountValue: z.coerce
     .number()
     .min(1, "Giảm giá tối thiểu là 1%")
     .max(100, "Giảm giá tối đa là 100%"),
   minDiscount: z.coerce.number().min(0, "Giá trị tối thiểu không được âm"),
   maxDiscount: z.coerce.number().min(0, "Giá trị tối đa không được âm"),
-  startDate: z.string().min(1, "Ngày bắt đầu không được để trống"),
-  expiryDate: z.string().min(1, "Ngày hết hạn không được để trống"),
+  validFrom: z.string().min(1, "Ngày bắt đầu không được để trống"),
+  validUntil: z.string().min(1, "Ngày hết hạn không được để trống"),
   quantity: z.coerce.number().min(0, "Số lượng không được âm"),
 });
 
@@ -43,11 +43,11 @@ export function CouponFormModal({ isOpen, onOpenChange, onSave }) {
     defaultValues: {
       name: "",
       code: "",
-      discountPercent: 10,
+      discountValue: 10,
       minDiscount: 0,
       maxDiscount: 0,
-      startDate: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
-      expiryDate: "",
+      validFrom: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
+      validUntil: "",
       quantity: 100,
     },
   });
@@ -55,8 +55,9 @@ export function CouponFormModal({ isOpen, onOpenChange, onSave }) {
   const onSubmit = async (data) => {
     const payload = {
       ...data,
-      startDate: new Date(data.startDate).toISOString(),
-      expiryDate: new Date(data.expiryDate).toISOString(),
+      discountType: 1,
+      validFrom: new Date(data.validFrom).toISOString(),
+      validUntil: new Date(data.validUntil).toISOString(),
     };
     const result = await onSave(payload);
     if (result && result.success) {
@@ -123,7 +124,7 @@ export function CouponFormModal({ isOpen, onOpenChange, onSave }) {
 
               <FormField
                 control={form.control}
-                name="discountPercent"
+                name="discountValue"
                 render={({ field }) => (
                   <FormItem className="col-span-1">
                     <FormLabel className="flex items-center gap-2">
@@ -242,7 +243,7 @@ export function CouponFormModal({ isOpen, onOpenChange, onSave }) {
 
               <FormField
                 control={form.control}
-                name="startDate"
+                name="validFrom"
                 render={({ field }) => (
                   <FormItem className="col-span-2">
                     <FormLabel className="flex items-center gap-2">
@@ -264,7 +265,7 @@ export function CouponFormModal({ isOpen, onOpenChange, onSave }) {
 
               <FormField
                 control={form.control}
-                name="expiryDate"
+                name="validUntil"
                 render={({ field }) => (
                   <FormItem className="col-span-2">
                     <FormLabel className="flex items-center gap-2">

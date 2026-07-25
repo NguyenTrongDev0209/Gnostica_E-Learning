@@ -326,8 +326,10 @@ export default function CheckoutPage() {
   let extraDiscount = 0;
 
   if (appliedCoupon) {
-    if (appliedCoupon.discountPercent) {
-      extraDiscount = currentSubtotal * (appliedCoupon.discountPercent / 100);
+    if (appliedCoupon.discountType === 1) {
+      extraDiscount = currentSubtotal * (appliedCoupon.discountValue / 100);
+    } else if (appliedCoupon.discountType === 2) {
+      extraDiscount = appliedCoupon.discountValue;
     }
     if (appliedCoupon.maxDiscount && extraDiscount > appliedCoupon.maxDiscount) {
       extraDiscount = appliedCoupon.maxDiscount;

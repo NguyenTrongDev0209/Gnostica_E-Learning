@@ -109,10 +109,6 @@ export const MOCK_REVENUE = {
   ]
 };
 
-export const MOCK_COUPONS = [
-  { id: 1, code: "SUMMER2024", discountPercent: 20, minDiscount: 500000, maxDiscount: 1000000, startDate: twoDaysAgo, endDate: "2024-12-31T00:00:00.000Z", usageLimit: 100, usedCount: 45, status: 1, courseId: null },
-  { id: 2, code: "REACT50", discountPercent: 50, minDiscount: 0, maxDiscount: 2000000, startDate: yesterday, endDate: "2024-08-31T00:00:00.000Z", usageLimit: 50, usedCount: 50, status: 0, courseId: 1 },
-];
 
 export const MOCK_QA = {
   questions: [
