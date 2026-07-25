@@ -70,6 +70,19 @@ public class WalletService {
         return dummyWallet;
     }
 
+    @Transactional
+    public void addBalance(java.util.UUID accountId, double amount, String reason) {
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new RuntimeException("Account not found: " + accountId));
+        
+        Wallet wallet = new Wallet();
+        wallet.setAccount(account);
+        wallet.setRemain(BigDecimal.valueOf(amount));
+        wallet.setStatus(1); // 1: Active
+        wallet.setType(1); // Assuming 1 means available immediately
+        walletRepository.save(wallet);
+    }
+
     @Transactional(readOnly = true)
     public List<Payout> getMyTransactions() {
         Account account = getCurrentAccount();

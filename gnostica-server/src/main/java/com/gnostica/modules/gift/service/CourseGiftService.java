@@ -18,6 +18,7 @@ import com.gnostica.core.util.AuthUtil;
 import com.gnostica.modules.gift.dto.request.GiftCourseRequest;
 import com.gnostica.modules.gift.dto.response.GiftDetailResponse;
 import com.gnostica.modules.gift.dto.response.GiftSearchResponse;
+import com.gnostica.modules.user.service.NotificationService;
 import com.gnostica.modules.integration.service.MailService;
 import com.gnostica.modules.order.service.OrderService;
 import com.gnostica.modules.payment.dto.request.CreatePaymentLinkRequestBody;
@@ -48,6 +49,7 @@ public class CourseGiftService {
     private final OrderService orderService;
     private final WalletService walletService;
     private final MailService mailService;
+    private final NotificationService notificationService;
 
     public GiftSearchResponse searchReceiver(String senderEmail, String receiverEmail, UUID courseId) {
         if (senderEmail.equalsIgnoreCase(receiverEmail)) {
@@ -93,10 +95,15 @@ public class CourseGiftService {
                     .build();
         }
 
-        // Check if there is a pending gift for this course
-        boolean hasPending = giftRepository.existsBySenderAndReceiverAndCourseAndStatus(
+        // Check if there is a valid pending gift (where Order is PAID or free)
+        List<Gift> pendingGifts = giftRepository.findBySenderAndReceiverAndCourseAndStatus(
                 sender, receiver, course, GiftStatus.PENDING);
-        if (hasPending) {
+        
+        boolean hasValidPending = pendingGifts.stream().anyMatch(g -> 
+                g.getOrder() == null || g.getOrder().getStatus() == 1 // 1 is PAID
+        );
+
+        if (hasValidPending) {
             return GiftSearchResponse.builder()
                     .valid(false)
                     .errorMessage("Bạn đã tặng khóa học này cho người này và đang chờ phản hồi")
@@ -104,7 +111,7 @@ public class CourseGiftService {
         }
 
         // Check if previously rejected
-        Optional<Gift> rejectedGift = giftRepository.findBySenderAndReceiverAndCourseAndStatus(
+        List<Gift> rejectedGifts = giftRepository.findBySenderAndReceiverAndCourseAndStatus(
                 sender, receiver, course, GiftStatus.REJECTED);
 
         return GiftSearchResponse.builder()
@@ -113,7 +120,7 @@ public class CourseGiftService {
                 .email(receiver.getEmail())
                 .avatar(receiver.getAvatar())
                 .valid(true)
-                .previouslyRejected(rejectedGift.isPresent())
+                .previouslyRejected(!rejectedGifts.isEmpty())
                 .build();
     }
 
@@ -182,6 +189,15 @@ public class CourseGiftService {
                 giftLink,
                 gift.getMessage()
         );
+        
+        // Tạo thông báo trong hệ thống
+        notificationService.createNotification(
+                gift.getReceiver(),
+                "Bạn nhận được quà tặng khóa học",
+                gift.getSender().getFullName() + " đã tặng bạn khóa học " + gift.getCourse().getTitle(),
+                "GIFT_PENDING",
+                gift.getToken()
+        );
     }
 
     public GiftDetailResponse getGiftByToken(String token) {
@@ -229,6 +245,13 @@ public class CourseGiftService {
             gift.setStatus(GiftStatus.REJECTED);
             giftRepository.save(gift);
             refundGift(gift);
+            
+            notificationService.updateGiftNotificationStatus(
+                gift.getToken(), 
+                "GIFT_REJECTED", 
+                "Hệ thống đã tự động từ chối quà tặng do bạn đã sở hữu khóa học này."
+            );
+
             throw new IllegalStateException("ALREADY_OWNED");
         }
 
@@ -250,6 +273,12 @@ public class CourseGiftService {
         
         gift.setStatus(GiftStatus.ACCEPTED);
         giftRepository.save(gift);
+        
+        notificationService.updateGiftNotificationStatus(
+            gift.getToken(), 
+            "GIFT_ACCEPTED", 
+            "Bạn đã chấp nhận khóa học " + gift.getCourse().getTitle() + " từ " + gift.getSender().getFullName()
+        );
     }
 
     @Transactional
@@ -269,6 +298,12 @@ public class CourseGiftService {
         giftRepository.save(gift);
 
         refundGift(gift);
+        
+        notificationService.updateGiftNotificationStatus(
+            gift.getToken(), 
+            "GIFT_REJECTED", 
+            "Bạn đã từ chối khóa học " + gift.getCourse().getTitle() + " từ " + gift.getSender().getFullName()
+        );
         
         mailService.sendGiftCourseRejectedEmail(
                 gift.getSender().getEmail(),

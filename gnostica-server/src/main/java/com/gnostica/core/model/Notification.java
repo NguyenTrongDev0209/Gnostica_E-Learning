@@ -41,4 +41,10 @@ public class Notification {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
+    @Column(name = "type", length = 50)
+    private String type;
+
+    @Column(name = "reference_id")
+    private String referenceId;
+
 }

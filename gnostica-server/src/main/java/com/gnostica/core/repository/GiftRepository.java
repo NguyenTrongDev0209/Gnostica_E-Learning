@@ -20,7 +20,7 @@ public interface GiftRepository extends JpaRepository<Gift, UUID> {
 
     boolean existsByOrder(Order order);
 
-    Optional<Gift> findBySenderAndReceiverAndCourseAndStatus(
+    List<Gift> findBySenderAndReceiverAndCourseAndStatus(
             Account sender, Account receiver, Course course, Integer status);
 
     List<Gift> findByStatusAndExpiredAtBefore(Integer status, LocalDateTime now);

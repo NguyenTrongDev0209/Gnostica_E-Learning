@@ -1,14 +1,43 @@
-import React from "react";
+import React, { useState } from "react";
 import AppCard, { AppCardContent } from "@/components/common/micro/AppCard";
-import { Bell, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Bell, AlertCircle, CheckCircle2, Gift } from "lucide-react";
 import AppSkeleton from "@/components/common/micro/AppSkeleton";
 import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
 import AppPageHeader from "@/components/common/composite/AppPageHeader";
 import useNotifications from "@/hooks/account/useNotifications";
+import { AppButton } from "@/components/common/micro/AppButton";
+import giftService from "@/services/course/giftService";
+import { toast } from "sonner";
+import useAuthStore from "@/store/useAuthStore";
+
 export default function Notifications() {
-  const { notifications, loading, unreadCount, markAllAsRead, markAsRead } = useNotifications();
+  const { notifications, loading, unreadCount, markAllAsRead, markAsRead, fetchNotifications } = useNotifications();
+  const [processing, setProcessing] = useState(false);
+  const user = useAuthStore(state => state.user);
+
+  const handleGiftResponse = async (token, action, e) => {
+    e.stopPropagation(); // prevent clicking on notification body
+    if (processing) return;
+    setProcessing(true);
+    try {
+      if (action === 'accept') {
+        await giftService.acceptGift(token, user?.email);
+        toast.success("Đã chấp nhận quà tặng thành công!");
+      } else {
+        await giftService.rejectGift(token, user?.email);
+        toast.success("Đã từ chối quà tặng.");
+      }
+      // Refresh notifications to reflect the updated type and message
+      fetchNotifications();
+    } catch (error) {
+      toast.error(error.message || "Có lỗi xảy ra, vui lòng thử lại sau.");
+    } finally {
+      setProcessing(false);
+    }
+  };
 
   const getNotificationIcon = (type) => {
+    if (type?.startsWith('GIFT')) return Gift;
     switch (type) {
       case 'ENROLLMENT': return CheckCircle2;
       case 'SYSTEM': return AlertCircle;
@@ -17,6 +46,9 @@ export default function Notifications() {
   };
   
   const getNotificationColor = (type) => {
+    if (type === 'GIFT_PENDING') return "text-orange-500 bg-orange-50";
+    if (type === 'GIFT_ACCEPTED') return "text-emerald-500 bg-emerald-50";
+    if (type === 'GIFT_REJECTED') return "text-red-500 bg-red-50";
     switch (type) {
       case 'ENROLLMENT': return "text-emerald-500 bg-emerald-50";
       case 'SYSTEM': return "text-info bg-blue-50";
@@ -112,6 +144,26 @@ export default function Notifications() {
                     <p className={`text-sm line-clamp-2 ${notification.isRead ? 'text-muted-foreground' : 'text-foreground font-medium'}`}>
                       {notification.content}
                     </p>
+                    {notification.type === 'GIFT_PENDING' && (
+                      <div className="flex gap-3 mt-4">
+                        <AppButton 
+                          appVariant="primary" 
+                          size="sm" 
+                          onClick={(e) => handleGiftResponse(notification.referenceId, 'accept', e)}
+                          disabled={processing}
+                        >
+                          Chấp nhận
+                        </AppButton>
+                        <AppButton 
+                          appVariant="outline" 
+                          size="sm" 
+                          onClick={(e) => handleGiftResponse(notification.referenceId, 'reject', e)}
+                          disabled={processing}
+                        >
+                          Từ chối
+                        </AppButton>
+                      </div>
+                    )}
                   </div>
                 </div>
               );

@@ -24,7 +24,8 @@ export default function useNotifications() {
           time: n.createdAt ? new Date(n.createdAt).toLocaleString("vi-VN") : "Gần đây",
           createdAt: n.createdAt,
           isRead: n.isRead,
-          type: n.type || "system"
+          type: n.type || "system",
+          referenceId: n.referenceId || null
         }));
         setNotifications(mapped);
       }
