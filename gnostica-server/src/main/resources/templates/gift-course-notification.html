@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Bạn nhận được quà tặng khóa học</title>
+</head>
+<body>
+    <div style='font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px; background-color: #ffffff;'>
+        <h2 style='color: #2D3FE3; text-align: center; margin-top: 10px;'>Bạn Nhận Được Quà Tặng Khóa Học!</h2>
+        <p style='font-size: 16px; color: #333;'>Chào <b th:text="${receiverEmail}">Bạn</b>,</p>
+        <p style='font-size: 16px; color: #333; line-height: 1.5;'>Bạn vừa nhận được một món quà khóa học từ <b><span th:text="${senderName}">Người tặng</span></b> trên Gnostica:</p>
+        
+        <div style="display: flex; align-items: center; background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin: 20px 0;">
+            <img th:src="${courseThumbnail}" alt="Thumbnail" style="width: 100px; height: auto; border-radius: 6px; margin-right: 15px;">
+            <div>
+                <b style='font-size: 18px; color: #2D3FE3;' th:text="${courseTitle}">Course</b>
+            </div>
+        </div>
+
+        <div th:if="${message != null and !message.isEmpty()}" style="background-color: #eef2ff; padding: 15px; border-left: 4px solid #2D3FE3; font-style: italic; color: #333; margin-bottom: 20px;">
+            "<span th:text="${message}">Lời nhắn</span>"
+        </div>
+        
+        <p style='font-size: 16px; color: #333; line-height: 1.5;'>Hãy nhấn nút bên dưới để xem chi tiết và nhận khóa học nhé!</p>
+        
+        <div style='text-align: center; margin: 30px 0;'>
+            <a th:href="${giftLink}" style='background-color: #2D3FE3; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;'>Xem Khóa Học</a>
+        </div>
+        
+        <p style='color: #e11d48; font-size: 14px; text-align: center;'>Lưu ý: Quà tặng này có hiệu lực trong 7 ngày. Quá hạn sẽ tự động bị hủy.</p>
+        <hr style='border: 0; border-top: 1px solid #eee; margin: 20px 0;'>
+        <p style='font-size: 12px; color: #999; text-align: center;'>© Gnostica E-Learning.</p>
+    </div>
+</body>
+</html>

@@ -6,6 +6,7 @@ import com.gnostica.core.model.Order;
 import com.gnostica.core.model.OrderDetail;
 import com.gnostica.core.repository.EnrollmentRepository;
 import com.gnostica.core.repository.OrderDetailRepository;
+import com.gnostica.core.repository.GiftRepository;
 import com.gnostica.modules.user.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,11 +25,21 @@ public class EnrollmentListener {
     private final EnrollmentRepository enrollmentRepository;
     private final OrderDetailRepository orderDetailRepository;
     private final NotificationService notificationService;
+    private final GiftRepository giftRepository;
+    private final com.gnostica.modules.gift.service.CourseGiftService courseGiftService;
 
     @EventListener
     @Transactional
     public void onPaymentSuccess(PaymentSuccessEvent event) {
         Order order = event.getOrder();
+        
+        // Skip auto-enrollment for gift orders
+        if (giftRepository.existsByOrder(order)) {
+            log.info("Gift order {} - skip auto enrollment and process gift", order.getId());
+            courseGiftService.processPaidGiftOrder(order);
+            return;
+        }
+        
         log.info("Processing enrollment for order ID: {}", order.getId());
 
         List<OrderDetail> details = orderDetailRepository.findByOrder(order);
