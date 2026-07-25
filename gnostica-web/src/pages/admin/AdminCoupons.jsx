@@ -1,4 +1,4 @@
-﻿import { toast } from "sonner";
+import { toast } from "sonner";
 import { format } from "date-fns";
 import DataTable from "@/components/common/composite/DataTable";
 import React, { useState } from "react";
@@ -38,17 +38,17 @@ export default function AdminCoupons() {
     }
 
     let matchesStartDate = true;
-    if (startDateFilter && coupon.startDate) {
+    if (startDateFilter && coupon.validFrom) {
       const filterStart = new Date(startDateFilter);
       filterStart.setHours(0, 0, 0, 0);
-      matchesStartDate = new Date(coupon.startDate) >= filterStart;
+      matchesStartDate = new Date(coupon.validFrom) >= filterStart;
     }
 
     let matchesEndDate = true;
-    if (endDateFilter && coupon.startDate) {
+    if (endDateFilter && coupon.validFrom) {
       const filterEnd = new Date(endDateFilter);
       filterEnd.setHours(23, 59, 59, 999);
-      matchesEndDate = new Date(coupon.startDate) <= filterEnd;
+      matchesEndDate = new Date(coupon.validFrom) <= filterEnd;
     }
 
     return matchesSearch && matchesStatus && matchesStartDate && matchesEndDate;
@@ -257,7 +257,7 @@ function CouponTable({ coupons, isLoading, onDelete, onToggleStatus, pagination 
           cellClassName: "text-center",
           render: (coupon) => (
             <div className="flex flex-col items-center">
-              <span className="text-lg font-bold text-primary">-{coupon.discountPercent}%</span>
+              <span className="text-lg font-bold text-primary">-{coupon.discountValue}%</span>
             </div>
           ),
         },
@@ -290,12 +290,12 @@ function CouponTable({ coupons, isLoading, onDelete, onToggleStatus, pagination 
                 <div className="flex items-center gap-1.5 text-muted-foreground">
                   <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
                   <span className="text-[10px] uppercase font-bold opacity-50 w-8">Từ:</span>
-                  <span className="text-xs">{coupon.startDate ? format(new Date(coupon.startDate), "dd/MM/yyyy HH:mm") : "N/A"}</span>
+                  <span className="text-xs">{coupon.validFrom ? format(new Date(coupon.validFrom), "dd/MM/yyyy HH:mm") : "N/A"}</span>
                 </div>
                 <div className="flex items-center gap-1.5 text-muted-foreground">
                   <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
                   <span className="text-[10px] uppercase font-bold opacity-50 w-8">Đến:</span>
-                  <span className="text-xs">{coupon.expiryDate ? format(new Date(coupon.expiryDate), "dd/MM/yyyy HH:mm") : "N/A"}</span>
+                  <span className="text-xs">{coupon.validUntil ? format(new Date(coupon.validUntil), "dd/MM/yyyy HH:mm") : "N/A"}</span>
                 </div>
               </div>
             </div>
@@ -381,14 +381,14 @@ const couponSchema = z.object({
     .min(3, "Mã giảm giá phải có ít nhất 3 ký tự")
     .max(50, "Mã giảm giá không vượt quá 50 ký tự")
     .toUpperCase(),
-  discountPercent: z.coerce
+  discountValue: z.coerce
     .number()
     .min(1, "Giảm giá tối thiểu là 1%")
     .max(100, "Giảm giá tối đa là 100%"),
   minDiscount: z.coerce.number().min(0, "Giá trị tối thiểu không được âm"),
   maxDiscount: z.coerce.number().min(0, "Giá trị tối đa không được âm"),
-  startDate: z.string().min(1, "Ngày bắt đầu không được để trống"),
-  expiryDate: z.string().min(1, "Ngày hết hạn không được để trống"),
+  validFrom: z.string().min(1, "Ngày bắt đầu không được để trống"),
+  validUntil: z.string().min(1, "Ngày hết hạn không được để trống"),
   quantity: z.coerce.number().min(0, "Số lượng không được âm"),
 });
 
@@ -408,11 +408,11 @@ function CouponFormModal({ isOpen, onOpenChange, onSave }) {
     defaultValues: {
       name: "",
       code: "",
-      discountPercent: 10,
+      discountValue: 10,
       minDiscount: 0,
       maxDiscount: 0,
-      startDate: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
-      expiryDate: "",
+      validFrom: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
+      validUntil: "",
       quantity: 100,
     },
   });
@@ -420,8 +420,9 @@ function CouponFormModal({ isOpen, onOpenChange, onSave }) {
   const onSubmit = async (data) => {
     const payload = {
       ...data,
-      startDate: new Date(data.startDate).toISOString(),
-      expiryDate: new Date(data.expiryDate).toISOString(),
+      discountType: 1,
+      validFrom: new Date(data.validFrom).toISOString(),
+      validUntil: new Date(data.validUntil).toISOString(),
     };
     const result = await onSave(payload);
     if (result && result.success) {
@@ -473,7 +474,7 @@ function CouponFormModal({ isOpen, onOpenChange, onSave }) {
 
             <Controller
               control={form.control}
-              name="discountPercent"
+              name="discountValue"
               render={({ field, fieldState: { error } }) => (
                 <AppInput
                   label={<span className="flex items-center gap-2"><Percent className="w-4 h-4" /> Phần trăm giảm</span>}
@@ -548,7 +549,7 @@ function CouponFormModal({ isOpen, onOpenChange, onSave }) {
 
             <Controller
               control={form.control}
-              name="startDate"
+              name="validFrom"
               render={({ field, fieldState: { error } }) => (
                 <AppInput
                   type="datetime-local"
@@ -562,7 +563,7 @@ function CouponFormModal({ isOpen, onOpenChange, onSave }) {
 
             <Controller
               control={form.control}
-              name="expiryDate"
+              name="validUntil"
               render={({ field, fieldState: { error } }) => (
                 <AppInput
                   type="datetime-local"

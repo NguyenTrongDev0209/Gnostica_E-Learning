@@ -21,13 +21,31 @@ public class NotificationService {
 
     @Transactional
     public void createNotification(Account account, String title, String content, String type) {
+        createNotification(account, title, content, type, null);
+    }
+
+    @Transactional
+    public void createNotification(Account account, String title, String content, String type, String referenceId) {
         if (account == null) return;
         Notification notification = new Notification();
         notification.setAccount(account);
         notification.setTitle(title);
         notification.setMessage(content);
+        notification.setType(type);
+        notification.setReferenceId(referenceId);
         notification.setIsRead(false);
         notificationRepository.save(notification);
+    }
+
+    @Transactional
+    public void updateGiftNotificationStatus(String referenceId, String newType, String newMessage) {
+        notificationRepository.findByReferenceIdAndType(referenceId, "GIFT_PENDING").ifPresent(notification -> {
+            notification.setType(newType);
+            if (newMessage != null) {
+                notification.setMessage(newMessage);
+            }
+            notificationRepository.save(notification);
+        });
     }
 
     public List<Notification> getMyNotifications(String email) {

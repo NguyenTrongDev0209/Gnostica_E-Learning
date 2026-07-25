@@ -19,6 +19,7 @@ import {
   MessageSquareWarning,
   Users,
   Star,
+  BookOpen,
 } from "lucide-react";
 import AppCard, { AppCardContent } from "@/components/common/micro/AppCard";
 import { AppButton, TableActionIconButton } from "@/components/common/micro/AppButton";
@@ -356,7 +357,10 @@ export default function InstructorCourses() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
         <div className="space-y-1">
-          <h1 className="text-2xl font-bold text-foreground tracking-tight leading-none">Khóa Học Của Tôi</h1>
+          <h1 className="text-2xl font-bold text-foreground tracking-tight leading-none flex items-center gap-2">
+            <BookOpen className="w-6 h-6 text-primary" />
+            Khóa Học Của Tôi
+          </h1>
           <p className="text-sm font-medium text-muted-foreground">
             Quản lý, chỉnh sửa và theo dõi hiệu suất các khóa học bạn đang giảng dạy.
           </p>

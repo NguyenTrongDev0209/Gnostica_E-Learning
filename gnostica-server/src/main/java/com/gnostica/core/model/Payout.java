@@ -26,10 +26,7 @@ public class Payout {
     @JoinColumn(name = "account_id", updatable = false)
     private Account account;
 
-    @NotNull
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "wallet_id", updatable = false)
-    private Wallet wallet;
+
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)

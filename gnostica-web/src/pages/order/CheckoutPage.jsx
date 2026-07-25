@@ -4,6 +4,7 @@ import { Star, CheckCircle2, QrCode, CreditCard, Loader2 } from "lucide-react";
 import { useLocation, Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import orderService from "@/services/order/orderService";
+import giftService from "@/services/course/giftService";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/common/micro/AppCard";
 import Separator from "@/components/common/micro/AppSeparator";
 import { AppButton } from "@/components/common/micro/AppButton";
@@ -265,7 +266,6 @@ function CheckoutOrderSummary({
 
 // ── Page ──
 export default function CheckoutPage() {
-  const { state, pathname } = useLocation();
   const navigate = useNavigate();
   const { orderCode: routeOrderCode } = useParams();
   const [searchParams] = useSearchParams();
@@ -280,8 +280,11 @@ export default function CheckoutPage() {
   const [checkoutResult, setCheckoutResult] = useState(null);
 
   // Dùng dữ liệu từ CourseDetail nếu có, fallback về mock
-  const orderItems = Array.isArray(state?.orderItems) ? state.orderItems : [];
-  const hasCheckoutDraft = orderItems.length > 0;
+  const location = useLocation();
+  const state = location.state || {};
+  const { isGift, giftDetails } = state;
+  const orderItems = state.orderItems || [];
+  const hasCheckoutDraft = Array.isArray(orderItems) && orderItems.length > 0;
   const queryOrderCode = searchParams.get("orderCode");
   const callbackOrderCode = queryOrderCode || routeOrderCode;
   const hasCheckoutCallback =
@@ -290,15 +293,15 @@ export default function CheckoutPage() {
     Boolean(searchParams.get("paymentStatus")) ||
     Boolean(searchParams.get("verified")) ||
     searchParams.get("cancelled") === "true" ||
-    pathname.includes("/checkout/success") ||
-    pathname.includes("/checkout/cancel");
+    location.pathname.includes("/checkout/success") ||
+    location.pathname.includes("/checkout/cancel");
 
   useEffect(() => {
     const gateway = searchParams.get("gateway");
     const paymentStatus = searchParams.get("paymentStatus");
     const verified = searchParams.get("verified");
-    const cancelled = searchParams.get("cancelled") === "true" || pathname.includes("/checkout/cancel");
-    const isLegacyResultPath = pathname.includes("/checkout/success") || pathname.includes("/checkout/cancel");
+    const cancelled = searchParams.get("cancelled") === "true" || location.pathname.includes("/checkout/cancel");
+    const isLegacyResultPath = location.pathname.includes("/checkout/success") || location.pathname.includes("/checkout/cancel");
 
     if (callbackOrderCode || gateway || paymentStatus || verified || cancelled || isLegacyResultPath) {
       setCheckoutResult({
@@ -309,7 +312,7 @@ export default function CheckoutPage() {
         cancelled,
       });
     }
-  }, [callbackOrderCode, pathname, searchParams]);
+  }, [callbackOrderCode, location.pathname, searchParams]);
 
   useEffect(() => {
     if (!hasCheckoutDraft && !hasCheckoutCallback) {
@@ -323,8 +326,10 @@ export default function CheckoutPage() {
   let extraDiscount = 0;
 
   if (appliedCoupon) {
-    if (appliedCoupon.discountPercent) {
-      extraDiscount = currentSubtotal * (appliedCoupon.discountPercent / 100);
+    if (appliedCoupon.discountType === 1) {
+      extraDiscount = currentSubtotal * (appliedCoupon.discountValue / 100);
+    } else if (appliedCoupon.discountType === 2) {
+      extraDiscount = appliedCoupon.discountValue;
     }
     if (appliedCoupon.maxDiscount && extraDiscount > appliedCoupon.maxDiscount) {
       extraDiscount = appliedCoupon.maxDiscount;
@@ -389,19 +394,31 @@ export default function CheckoutPage() {
           return;
         }
 
-        // Chuẩn bị dữ liệu tạo đơn hàng theo CreatePaymentLinkRequestBody
-        const requestBody = {
-          courseId: orderItems[0]?.id,
-          productName: orderItems.length === 1 ? orderItems[0].title : `Đơn hàng ${orderItems.length} khóa học`,
-          description: `Thanh toan khoa hoc`,
-          price: subtotal,
-          paymentMethod,
-          couponCode: appliedCoupon ? couponCode : null,
-          returnUrl: `${window.location.origin}/checkout`,
-          cancelUrl: `${window.location.origin}/checkout?cancelled=true`
-        };
-
-        const response = await orderService.createOrder(requestBody);
+        let response;
+        if (isGift) {
+          const requestBody = {
+            courseId: orderItems[0]?.id,
+            receiverEmail: giftDetails?.receiverEmail,
+            message: giftDetails?.message,
+            paymentMethod,
+            couponCode: appliedCoupon ? couponCode : null,
+            returnUrl: `${window.location.origin}/checkout`,
+            cancelUrl: `${window.location.origin}/checkout?cancelled=true`
+          };
+          response = await giftService.createGift(requestBody);
+        } else {
+          const requestBody = {
+            courseId: orderItems[0]?.id,
+            productName: orderItems.length === 1 ? orderItems[0].title : `Đơn hàng ${orderItems.length} khóa học`,
+            description: `Thanh toan khoa hoc`,
+            price: subtotal,
+            paymentMethod,
+            couponCode: appliedCoupon ? couponCode : null,
+            returnUrl: `${window.location.origin}/checkout`,
+            cancelUrl: `${window.location.origin}/checkout?cancelled=true`
+          };
+          response = await orderService.createOrder(requestBody);
+        }
 
         if (response.status === "success" || response.code === "success" || response.data) {
           const paymentData = response.data;
@@ -450,13 +467,17 @@ export default function CheckoutPage() {
     setCheckoutResult(null);
 
     if (isPaidResult) {
-      navigate("/account/my-courses", { replace: true });
+      if (isGift) {
+        navigate("/account/orders", { replace: true });
+      } else {
+        navigate("/account/my-courses", { replace: true });
+      }
       return;
     }
 
     if (hasCheckoutDraft) {
       const checkoutUrl = callbackOrderCode ? `/checkout?orderCode=${callbackOrderCode}` : "/checkout";
-      navigate(checkoutUrl, { replace: true, state: { orderItems } });
+      navigate(checkoutUrl, { replace: true, state: { orderItems, isGift, giftDetails } });
       return;
     }
 

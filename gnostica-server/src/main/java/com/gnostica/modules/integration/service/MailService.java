@@ -102,6 +102,54 @@ public class MailService {
     }
 
     @org.springframework.scheduling.annotation.Async
+    public void sendGiftCourseNotificationEmail(String receiverEmail, String senderName, String courseTitle, String courseThumbnail, String giftLink, String message) {
+        try {
+            Context context = new Context();
+            context.setVariable("receiverEmail", receiverEmail);
+            context.setVariable("senderName", senderName);
+            context.setVariable("courseTitle", courseTitle);
+            context.setVariable("courseThumbnail", courseThumbnail);
+            context.setVariable("giftLink", giftLink);
+            context.setVariable("message", message);
+            String htmlContent = templateEngine.process("gift-course-notification", context);
+            sendEmail(receiverEmail, "Bạn nhận được quà tặng khóa học từ " + senderName, htmlContent);
+            log.info("Sent gift notification email to {}", receiverEmail);
+        } catch (MessagingException e) {
+            log.error("Failed to send gift notification email to {}", receiverEmail, e);
+        }
+    }
+
+    @org.springframework.scheduling.annotation.Async
+    public void sendGiftCourseRejectedEmail(String senderEmail, String receiverName, String courseTitle, java.math.BigDecimal refundAmount) {
+        try {
+            Context context = new Context();
+            context.setVariable("receiverName", receiverName);
+            context.setVariable("courseTitle", courseTitle);
+            context.setVariable("refundAmount", refundAmount);
+            String htmlContent = templateEngine.process("gift-course-rejected", context);
+            sendEmail(senderEmail, "Quà tặng khóa học của bạn đã bị từ chối", htmlContent);
+            log.info("Sent gift rejected email to {}", senderEmail);
+        } catch (MessagingException e) {
+            log.error("Failed to send gift rejected email to {}", senderEmail, e);
+        }
+    }
+
+    @org.springframework.scheduling.annotation.Async
+    public void sendGiftCourseExpiredEmail(String senderEmail, String courseTitle, String receiverName, java.math.BigDecimal refundAmount) {
+        try {
+            Context context = new Context();
+            context.setVariable("receiverName", receiverName);
+            context.setVariable("courseTitle", courseTitle);
+            context.setVariable("refundAmount", refundAmount);
+            String htmlContent = templateEngine.process("gift-course-expired", context);
+            sendEmail(senderEmail, "Quà tặng khóa học của bạn đã hết hạn", htmlContent);
+            log.info("Sent gift expired email to {}", senderEmail);
+        } catch (MessagingException e) {
+            log.error("Failed to send gift expired email to {}", senderEmail, e);
+        }
+    }
+
+    @org.springframework.scheduling.annotation.Async
     public void sendCommissionNoticeEmail(String to, String instructorName, String applyDate, java.math.BigDecimal platformRatio, java.math.BigDecimal instructorRatio, String noticeFileUrl) {
         String subject = "Thông báo quyết định tỷ lệ hoa hồng mới - Gnostica E-Learning";
         

@@ -35,7 +35,7 @@ export default function useInstructorDashboard() {
             trend: `${statsData?.revenueTrend > 0 ? '+' : ''}${statsData?.revenueTrend?.toFixed(1) || 0}%`,
             isPositive: statsData?.revenueTrend >= 0,
             icon: DollarSign,
-            color: "text-success bg-success/10 border-success/20"
+            color: "bg-success text-white border-success"
           },
           {
             title: "Học Viên Mới",
@@ -43,7 +43,7 @@ export default function useInstructorDashboard() {
             trend: `${statsData?.studentTrend > 0 ? '+' : ''}${statsData?.studentTrend?.toFixed(1) || 0}%`,
             isPositive: statsData?.studentTrend >= 0,
             icon: Users,
-            color: "text-info bg-info/10 border-info/20"
+            color: "bg-info text-white border-info"
           },
           {
             title: "Điểm Đánh Giá",
@@ -51,7 +51,7 @@ export default function useInstructorDashboard() {
             trend: "+0.0", 
             isPositive: true,
             icon: Star,
-            color: "text-warning bg-warning/10 border-warning/20"
+            color: "bg-warning text-white border-warning"
           },
           {
             title: "Tỷ Lệ Hoàn Thành",
@@ -59,7 +59,7 @@ export default function useInstructorDashboard() {
             trend: "+0.0%", 
             isPositive: true,
             icon: Activity,
-            color: "text-primary bg-primary/10 border-primary/20"
+            color: "bg-primary text-white border-primary"
           },
         ];
 

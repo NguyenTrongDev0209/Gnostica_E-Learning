@@ -62,17 +62,14 @@ public class WalletListener {
                         .divide(new BigDecimal("100"), 6, RoundingMode.HALF_UP);
                 BigDecimal platformAmount = netSaleAmount.subtract(instructorAmount).setScale(6, RoundingMode.HALF_UP);
 
-                Wallet wallet = walletRepository.findByAccount(instructor).orElseGet(() -> {
-                    Wallet newWallet = new Wallet();
-                    newWallet.setAccount(instructor);
-                    newWallet.setRemain(BigDecimal.ZERO);
-                    newWallet.setType(1);
-                    newWallet.setStatus(1);
-                    return newWallet;
-                });
-
-                BigDecimal currentRemain = wallet.getRemain() != null ? wallet.getRemain() : BigDecimal.ZERO;
-                wallet.setRemain(currentRemain.add(instructorAmount));
+                Wallet wallet = new Wallet();
+                wallet.setAccount(instructor);
+                wallet.setRemain(instructorAmount);
+                wallet.setType(1); // Earning
+                wallet.setStatus(1); // Active
+                wallet.setAvailableAt(LocalDateTime.now().plusDays(14));
+                wallet.setTargetType("ORDER_DETAIL");
+                wallet.setTargetId(detail.getId());
                 walletRepository.save(wallet);
 
                 // Log Revenue

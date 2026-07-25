@@ -8,4 +8,5 @@ import com.gnostica.core.model.Account;
 public interface NotificationRepository extends JpaRepository<Notification, Integer> {
     List<Notification> findByAccountOrderByCreatedAtDesc(Account account);
     int countByAccountAndIsReadFalse(Account account);
+    java.util.Optional<Notification> findByReferenceIdAndType(String referenceId, String type);
 }

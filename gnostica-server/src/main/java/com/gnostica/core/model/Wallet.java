@@ -45,4 +45,10 @@ public class Wallet {
 
     private LocalDateTime availableAt;
 
+    @Column(name = "target_type", length = 50)
+    private String targetType;
+
+    @Column(name = "target_id")
+    private UUID targetId;
+
 }

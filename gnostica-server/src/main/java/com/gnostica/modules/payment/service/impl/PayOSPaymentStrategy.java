@@ -69,36 +69,44 @@ public class PayOSPaymentStrategy implements PaymentStrategy {
     @Override
     public PaymentWebhookData verifyWebhook(Object body) throws Exception {
         WebhookData data = payOS.webhooks().verify(body);
+        
+        java.util.Map<String, Object> payload = new java.util.HashMap<>();
+        payload.put("accountNumber", data.getAccountNumber());
+        payload.put("senderBankCode", data.getCounterAccountBankId());
+        payload.put("senderAccountNumber", data.getCounterAccountNumber());
+        payload.put("bankCode", data.getCounterAccountBankId());
+        payload.put("description", data.getDescription());
+        
         return PaymentWebhookData.builder()
                 .orderCode(data.getOrderCode())
                 .transactionCode(data.getPaymentLinkId())
                 .amount(data.getAmount())
                 .status("PAID")
-                .accountNumber(data.getAccountNumber())
-                .senderBankCode(data.getCounterAccountBankId())
-                .senderAccountNumber(data.getCounterAccountNumber())
                 .gateway("PAYOS")
-                .bankCode(data.getCounterAccountBankId())
+                .payload(payload)
                 .build();
     }
 
     @Override
     public PaymentDetails getPaymentDetails(Order order) throws Exception {
         PaymentLink link = payOS.paymentRequests().get(order.getOrderCode());
-        PaymentDetails.PaymentDetailsBuilder details = PaymentDetails.builder()
+        
+        java.util.Map<String, Object> payload = new java.util.HashMap<>();
+        if (link.getTransactions() != null && !link.getTransactions().isEmpty()) {
+            Object lastTx = link.getTransactions().get(link.getTransactions().size() - 1);
+            payload.put("senderAccountNumber", readString(lastTx, "getCounterAccountNumber"));
+            payload.put("senderBankCode", readString(lastTx, "getCounterAccountBankId"));
+            payload.put("accountNumber", readString(lastTx, "getAccountNumber"));
+        }
+        
+        return PaymentDetails.builder()
                 .transactionCode(String.valueOf(link.getOrderCode()))
                 .amount(link.getAmountPaid())
                 .status(link.getStatus() != null ? link.getStatus().toString() : "")
                 .gateway("PAYOS")
-                .transactions(link.getTransactions());
-
-        if (link.getTransactions() != null && !link.getTransactions().isEmpty()) {
-            Object lastTx = link.getTransactions().get(link.getTransactions().size() - 1);
-            details.senderAccountNumber(readString(lastTx, "getCounterAccountNumber"));
-            details.senderBankCode(readString(lastTx, "getCounterAccountBankId"));
-            details.accountNumber(readString(lastTx, "getAccountNumber"));
-        }
-        return details.build();
+                .transactions(link.getTransactions())
+                .payload(payload)
+                .build();
     }
 
     @Override

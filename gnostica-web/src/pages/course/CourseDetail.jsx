@@ -19,6 +19,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import PageContainer from "@/components/common/core/PageContainer";
 import courseService from "@/services/course/courseService";
 import instructorService from "@/services/instructor/instructorService";
+import GiftCourseDialog from '@/components/modals/GiftCourseDialog';
 
 // ── CourseDetailVideo ──
 const BUNNY_GUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -444,14 +445,15 @@ const CourseDetailReviews = ({ course }) => {
 // ── CourseDetailPricingCard ──
 const CourseDetailPricingCard = ({ course: initialCourse }) => {
   const navigate = useNavigate();
+  const [giftDialogOpen, setGiftDialogOpen] = useState(false);
   const totalLessons = initialCourse?.curriculum?.reduce((acc, section) => acc + (section.lessons?.length || 0), 0) || 0;
 
+  const parsePrice = (priceStr) => {
+    if (typeof priceStr === 'number') return priceStr;
+    return parseInt(String(priceStr).replace(/\./g, '').replace(/,/g, ''), 10) || 0;
+  };
+
   const handleCheckout = () => {
-    // Chuyển đổi giá từ chuỗi có dấu phẩy sang số nguyên
-    const parsePrice = (priceStr) => {
-      if (typeof priceStr === 'number') return priceStr;
-      return parseInt(String(priceStr).replace(/\./g, '').replace(/,/g, ''), 10) || 0;
-    };
 
     const orderItem = {
       id: initialCourse.id,
@@ -467,8 +469,36 @@ const CourseDetailPricingCard = ({ course: initialCourse }) => {
     navigate('/checkout', { state: { orderItems: [orderItem] } });
   };
 
+  const handleGiftConfirm = (giftDetails) => {
+    const orderItem = {
+      id: initialCourse.id,
+      title: initialCourse.title,
+      instructor: initialCourse.instructor?.name || 'Ẩn danh',
+      price: parsePrice(initialCourse.salePrice),
+      originalPrice: parsePrice(initialCourse.originalPrice) || parsePrice(initialCourse.price),
+      image: initialCourse.image,
+      rating: initialCourse.rating,
+      slug: initialCourse.slug,
+    };
+
+    navigate('/checkout', { 
+      state: { 
+        orderItems: [orderItem], 
+        isGift: true, 
+        giftDetails 
+      } 
+    });
+  };
+
   return (
     <Card appVariant="default" className="border-border/80 shadow-none rounded-2xl overflow-hidden">
+      <GiftCourseDialog 
+        open={giftDialogOpen} 
+        setOpen={setGiftDialogOpen} 
+        courseId={initialCourse.id}
+        coursePrice={parsePrice(initialCourse.salePrice)}
+        onGiftConfirm={handleGiftConfirm}
+      />
       <CardContent className="px-7 pb-7 pt-5 md:px-8 md:pb-8 md:pt-5">
         <div className="mb-4 flex items-start">
           <Badge
@@ -503,6 +533,7 @@ const CourseDetailPricingCard = ({ course: initialCourse }) => {
             icon={Gift}
             variant="outline"
             className="flex-none !h-auto !w-auto p-4 !rounded-xl !bg-accent !text-white !border-2 !border-accent hover:!bg-accent hover:!text-white hover:!border-accent"
+            onClick={() => setGiftDialogOpen(true)}
           />
         </div>
 

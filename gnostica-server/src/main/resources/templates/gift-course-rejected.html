@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Quà tặng khóa học đã bị từ chối</title>
+</head>
+<body>
+    <div style='font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px; background-color: #ffffff;'>
+        <h2 style='color: #e11d48; text-align: center; margin-top: 10px;'>Quà Tặng Bị Từ Chối</h2>
+        <p style='font-size: 16px; color: #333;'>Chào bạn,</p>
+        <p style='font-size: 16px; color: #333; line-height: 1.5;'>Quà tặng khóa học <b><span th:text="${courseTitle}">Course</span></b> mà bạn dành cho <b><span th:text="${receiverName}">Người nhận</span></b> đã bị từ chối nhận hoặc người nhận đã sở hữu khóa học này từ trước.</p>
+        
+        <p style='font-size: 16px; color: #333; line-height: 1.5;'>Số tiền <b><span th:text="${refundAmount}">0</span> VND</b> đã được tự động hoàn lại vào <b>Ví Gnostica</b> của bạn. Bạn có thể sử dụng số dư này để mua các khóa học khác hoặc rút tiền.</p>
+        
+        <p style='color: #666; font-style: italic; text-align: center; margin-top: 30px;'>Cảm ơn bạn đã luôn đồng hành cùng Gnostica!</p>
+        <hr style='border: 0; border-top: 1px solid #eee; margin: 20px 0;'>
+        <p style='font-size: 12px; color: #999; text-align: center;'>© Gnostica E-Learning.</p>
+    </div>
+</body>
+</html>

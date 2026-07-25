@@ -513,7 +513,10 @@ export default function InstructorRevenue() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
         <div className="space-y-1">
-          <h1 className="text-2xl font-bold text-foreground tracking-tight leading-none">Doanh Thu & Thanh Toán</h1>
+          <h1 className="text-2xl font-bold text-foreground tracking-tight leading-none flex items-center gap-2">
+            <DollarSign className="w-6 h-6 text-primary" />
+            Doanh Thu & Thanh Toán
+          </h1>
           <p className="text-sm font-medium text-muted-foreground">
             Theo dõi dòng tiền, sao kê giao dịch và yêu cầu rút tiền của bạn.
           </p>
