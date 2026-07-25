@@ -39,7 +39,7 @@ export default function AppSelect({
       <SelectTrigger 
         aria-invalid={error}
         className={cn(
-          "w-full !h-11 bg-card transition-all duration-300 hover:shadow-[0_0_20px_color-mix(in_srgb,var(--color-primary),transparent_70%)] border font-sans",
+          "w-full !h-11 bg-card transition-all duration-300 border font-sans",
           className
         )}
       >

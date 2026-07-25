@@ -1,41 +1,107 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { AppButton } from "@/components/common/micro/AppButton";
-import { Loader2, ArrowUpRight, ArrowDownRight, ChevronRight, CheckCircle2, Star, LayoutDashboard } from "lucide-react";
+import { Loader2, ArrowUpRight, ArrowDownRight, ChevronRight, CheckCircle2, Star, LayoutDashboard, Download, RefreshCw, Book, UserSquare2, CheckCircle, RotateCcw } from "lucide-react";
 import useInstructorDashboard from "@/hooks/dashboard/useInstructorDashboard";
 import AppCard, { AppCardContent, AppCardHeader, AppCardTitle, AppCardDescription } from "@/components/common/micro/AppCard";
+import AppProgress from "@/components/common/micro/AppProgress";
 import LineChart from "@/components/common/composite/LineChart";
 import { ChartDateFilters } from "@/components/common/composite/DataFilter";
 import AppPageHeader from "@/components/common/composite/AppPageHeader";
 import AppTable from "@/components/common/micro/AppTable";
 import AppBadge from "@/components/common/micro/AppBadge";
-import AppProgress from "@/components/common/micro/AppProgress";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
+import AppSelect from "@/components/common/micro/AppSelect";
 
 function StatsGrid({ stats }) {
     return (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {stats.map((stat, i) => {
                 const Icon = stat.icon;
+                const trendValue = stat.trend ? parseFloat(stat.trend.replace(/[^0-9.-]+/g,"")) : 0;
+                const progressValue = isNaN(trendValue) ? 0 : Math.min(100, Math.max(5, Math.abs(trendValue) * 4));
+
                 return (
-                    <AppCard key={i} className="border-border shadow-sm border-b-4 border-b-success/10 hover:border-b-success/50 transition-all hover-lift">
-                        <AppCardContent className="p-5 flex flex-col gap-4">
+                    <AppCard appVariant="default" key={i} className="bg-card text-card-foreground border-none p-0">
+                        <AppCardContent className="p-5 flex flex-col gap-3">
                             <div className="flex justify-between items-start">
                                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center border ${stat.color}`}>
                                     <Icon className="w-5 h-5" />
                                 </div>
-                                <AppBadge variant={stat.isPositive ? "success" : "error"} soft className="h-6 flex items-center gap-1">
-                                    {stat.isPositive ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-                                    {stat.trend}
-                                </AppBadge>
+                                <AppSelect 
+                                    value="this-month" 
+                                    onValueChange={() => {}}
+                                    options={[
+                                        { label: "Hôm nay", value: "today" },
+                                        { label: "Hôm qua", value: "yesterday" },
+                                        { label: "Tháng trước", value: "last-month" },
+                                        { label: "Tháng này", value: "this-month" },
+                                    ]}
+                                    className="!h-8 !py-1 !px-2 bg-transparent border-none shadow-none text-xs font-medium text-muted-foreground hover:bg-muted/50 rounded-md focus:ring-0 w-auto min-w-[100px]"
+                                />
                             </div>
                             <div>
                                 <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">{stat.title}</h3>
                                 <div className="text-2xl font-semibold text-foreground">{stat.value}</div>
                             </div>
+                            
+                            <div className="mt-1">
+                                <div className="flex justify-end mb-1">
+                                    <span className="text-xs font-semibold text-foreground">
+                                        {Math.round(progressValue)}%
+                                    </span>
+                                </div>
+                                <AppProgress 
+                                    value={progressValue} 
+                                    heightClass="h-1.5" 
+                                    indicatorClassName={stat.isPositive ? "bg-success" : "bg-error"} 
+                                    className="bg-muted"
+                                />
+                                <div className="flex justify-between items-center mt-1.5">
+                                    <span className="text-xs font-medium text-muted-foreground">So với tháng trước</span>
+                                    <span className={`text-xs font-bold flex items-center gap-0.5 ${stat.isPositive ? 'text-success' : 'text-error'}`}>
+                                        {stat.isPositive ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+                                        {stat.trend}
+                                    </span>
+                                </div>
+                            </div>
                         </AppCardContent>
                     </AppCard>
                 );
+            })}
+        </div>
+    );
+}
+
+function InstructorOverview({ stats }) {
+    // Thống kê mẫu vì trong hook chưa có dữ liệu thật
+    const data = [
+        { title: "Khóa học", value: stats?.totalCourses || 15, icon: Book, subtitle: "Tổng khóa học của bạn", color: "bg-info" },
+        { title: "Học viên", value: stats?.uniqueStudents || 1250, icon: UserSquare2, subtitle: "Tổng học viên duy nhất", color: "bg-success" },
+        { title: "Hoàn thành", value: `${stats?.completionRate || 68}%`, icon: CheckCircle, subtitle: "Tỷ lệ hoàn thành khóa học", color: "bg-primary" },
+        { title: "Hoàn tiền", value: `${stats?.refundRate || 1.2}%`, icon: RotateCcw, subtitle: "Tỷ lệ yêu cầu hoàn tiền", color: "bg-error" },
+    ];
+
+    return (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            {data.map((item, index) => {
+                const Icon = item.icon;
+                return (
+                    <AppCard key={index} className="border-none shadow-sm bg-card hover:shadow-md transition-shadow">
+                        <AppCardContent className="p-4 flex flex-col gap-2">
+                            <div className="flex items-center gap-3">
+                                <div className={`p-2 text-white rounded-md flex items-center justify-center ${item.color}`}>
+                                    <Icon className="w-5 h-5" />
+                                </div>
+                                <div>
+                                    <p className="text-xs font-medium text-muted-foreground uppercase">{item.title}</p>
+                                    <h4 className="text-xl font-bold text-foreground">{item.toLocaleString ? item.value.toLocaleString() : item.value}</h4>
+                                </div>
+                            </div>
+                            <p className="text-[11px] text-muted-foreground">{item.subtitle}</p>
+                        </AppCardContent>
+                    </AppCard>
+                )
             })}
         </div>
     );
@@ -217,25 +283,46 @@ export default function InstructorDashboard() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-700">
-      {/* Page Header */}
-      <AppPageHeader 
-        icon={LayoutDashboard}
-        title="Tổng Quan Giảng Viên"
-        description="Theo dõi hiệu suất và tăng trưởng của các khóa học bạn đang giảng dạy."
-        actions={
-          <div className="flex gap-2">
-            <AppButton appVariant="ghostMuted" variant="ghost" className="border border-border">Xuất báo cáo</AppButton>
-            <Link to="/instructor/courses/courses-form">
-              <AppButton appVariant="gradient" className="bg-success/10 text-success hover:bg-success/20 font-bold">
-                Tạo Khóa Học Mới
+      {/* Banner Section */}
+      <div className="bg-success text-success-foreground rounded-3xl p-6 md:p-8 mb-8 relative overflow-hidden shadow-lg">
+        {/* Background Decorative Elements */}
+        <div className="absolute inset-0 bg-noise opacity-20 mix-blend-overlay pointer-events-none"></div>
+        <div className="absolute -top-24 -right-24 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
+        
+        <div className="relative z-10 flex flex-col gap-8">
+          {/* Top Section */}
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+            <div>
+              <div className="flex flex-wrap items-center gap-3 mb-2">
+                <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+                  Tổng quan <span className="text-gradient-button drop-shadow-sm opacity-90">Giảng viên</span>
+                </h1>
+                <AppBadge variant="secondary" className="bg-success-foreground/20 text-success-foreground hover:bg-success-foreground/30 border-none font-medium backdrop-blur-sm shadow-none">
+                  {new Date().toLocaleDateString('vi-VN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                </AppBadge>
+              </div>
+              <p className="text-success-foreground/90 text-sm md:text-base max-w-xl">
+                Theo dõi hiệu suất và tăng trưởng của các khóa học bạn đang giảng dạy.
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-3 shrink-0">
+              <AppButton appVariant="default" className="bg-success-foreground text-success hover:bg-success-foreground/90 font-bold shadow-sm" size="sm">
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Đồng bộ
               </AppButton>
-            </Link>
+              <AppButton appVariant="default" className="bg-success-foreground text-success hover:bg-success-foreground/90 font-bold shadow-sm" size="sm">
+                <Download className="w-4 h-4 mr-2" />
+                Xuất báo cáo
+              </AppButton>
+            </div>
           </div>
-        }
-      />
 
-      {/* Stats Grid */}
-      <StatsGrid stats={STATS} />
+          {/* Stats Grid inside Banner */}
+          <StatsGrid stats={STATS} />
+        </div>
+      </div>
+
+      <InstructorOverview stats={data} />
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
