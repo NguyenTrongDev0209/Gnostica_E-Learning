@@ -338,7 +338,7 @@ const CategoryGrid = () => {
 
           return (
             <Link key={cat.id || cat.slug || idx} to={`/courses/category/${cat.slug || cat.id}`}>
-              <Card appVariant="default" className="group relative overflow-hidden p-3.5 sm:p-4 w-full h-full hover-lift cursor-pointer border-2 border-border/80 shadow-sm hover:shadow-md hover:border-primary transition-all duration-300 flex flex-col justify-between rounded-xl">
+              <Card appVariant="default" className="group relative overflow-hidden p-3.5 sm:p-4 w-full h-full hover-lift cursor-pointer border shadow-sm hover:shadow-md hover:border-primary transition-all duration-300 flex flex-col justify-between rounded-xl">
                 <div className="flex items-center gap-3">
                   <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0 ${colorClass}`}>
                     <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
