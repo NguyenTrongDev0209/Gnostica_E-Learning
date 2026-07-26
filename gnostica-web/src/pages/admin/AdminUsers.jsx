@@ -26,6 +26,7 @@ import AppCard, { AppCardContent, AppCardHeader, AppCardTitle } from "@/componen
 import AppBadge from "@/components/common/micro/AppBadge";
 import { AppButton } from "@/components/common/micro/AppButton";
 import AppInput from "@/components/common/micro/AppInput";
+import AppSelect from "@/components/common/micro/AppSelect";
 import { ArrowLeft } from "lucide-react";
 import DataFilter, { DataFilterPriceRange } from "@/components/common/composite/DataFilter";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/common/micro/AppAvatar";
@@ -55,6 +56,8 @@ export default function AdminUsers() {
     setDateRange,
     priceRange,
     setPriceRange,
+    pricePreset,
+    setPricePreset,
     lockDialogOpen,
     setLockDialogOpen,
     selectedUser,
@@ -166,7 +169,7 @@ export default function AdminUsers() {
       align: "center",
       headerAlign: "center",
       className: "py-4 whitespace-nowrap",
-      cellClassName: "text-sm font-medium text-muted-foreground py-4 text-center whitespace-nowrap",
+      cellClassName: "text-sm font-medium text-foreground py-4 text-center whitespace-nowrap",
       render: (acc) => `Đã mua ${acc.courseCount || 0} Khóa học`
     },
     {
@@ -183,8 +186,8 @@ export default function AdminUsers() {
       headerAlign: "center",
       width: "1%",
       className: "py-4 whitespace-nowrap",
-      cellClassName: "text-sm text-muted-foreground font-medium py-4 text-center whitespace-nowrap",
-      render: (acc) => acc.createdAt ? new Date(acc.createdAt).toLocaleDateString("vi-VN") : "--"
+      cellClassName: "text-sm text-foreground font-medium py-4 text-center whitespace-nowrap",
+      render: (acc) => acc.createdAt ? new Intl.DateTimeFormat('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(acc.createdAt)).replace(/,/, '') : "--"
     },
     {
       header: "Trạng thái",
@@ -194,13 +197,15 @@ export default function AdminUsers() {
       className: "py-4 whitespace-nowrap",
       cellClassName: "py-4 whitespace-nowrap",
       render: (acc) => (
-        acc.status === 2 ? (
-          <AppBadge variant="error">Bị khóa</AppBadge>
-        ) : acc.status === 1 ? (
-          <AppBadge variant="success">Hoạt động</AppBadge>
-        ) : (
-          <AppBadge variant="secondary" className="text-muted-foreground">Chưa xác thực</AppBadge>
-        )
+        <div className="flex justify-center w-full">
+          {acc.status === 2 ? (
+            <AppBadge variant="error" className="w-[100px] justify-center px-2.5 py-1 text-white">Bị khóa</AppBadge>
+          ) : acc.status === 1 ? (
+            <AppBadge variant="success" className="w-[100px] justify-center px-2.5 py-1 text-white">Hoạt động</AppBadge>
+          ) : (
+            <AppBadge variant="secondary" className="w-[100px] justify-center px-2.5 py-1 text-white">Chưa xác thực</AppBadge>
+          )}
+        </div>
       )
     },
     {
@@ -293,7 +298,7 @@ export default function AdminUsers() {
       width: "1%",
       className: "py-4 whitespace-nowrap",
       cellClassName: "text-sm text-muted-foreground font-medium py-4 text-center whitespace-nowrap",
-      render: (app) => app.createdAt ? new Date(app.createdAt).toLocaleDateString("vi-VN") : "--"
+      render: (app) => app.createdAt ? new Intl.DateTimeFormat('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(app.createdAt)).replace(/,/, '') : "--"
     },
     {
       header: "Thao tác",
@@ -366,15 +371,31 @@ export default function AdminUsers() {
               onDateRangeChange={setDateRange}
               dateRangePlaceholder="Ngày đăng ký"
             >
-              <DataFilterPriceRange
-                title="Giao dịch"
-                min={0}
-                max={10000000}
-                step={50000}
-                value={priceRange}
-                onValueChange={setPriceRange}
-                onClear={() => setPriceRange([0, 10000000])}
-              />
+              <div className="flex items-center gap-3 w-full xl:w-auto">
+                <div className="w-full xl:w-[200px] shrink-0">
+                  <AppSelect 
+                    value={pricePreset} 
+                    onValueChange={setPricePreset}
+                    options={[
+                      ...(pricePreset === "custom" ? [{ label: "Tùy chọn", value: "custom" }] : []),
+                      { label: "Tất cả số tiền", value: "all" },
+                      { label: "Dưới 500.000 đ", value: "under_500k" },
+                      { label: "500.000 đ - 1.000.000 đ", value: "500k_1m" },
+                      { label: "Trên 1.000.000 đ", value: "over_1m" }
+                    ]}
+                    placeholder="Chọn khoảng tiền"
+                  />
+                </div>
+                <DataFilterPriceRange
+                  title="Giao dịch"
+                  min={0}
+                  max={10000000}
+                  step={50000}
+                  value={priceRange}
+                  onValueChange={setPriceRange}
+                  onClear={() => setPricePreset("all")}
+                />
+              </div>
             </DataFilter>
           </div>
 
@@ -696,53 +717,86 @@ function AdminUserDetail({ user, onBack }) {
   const [courseDateRange, setCourseDateRange] = useState({ from: undefined, to: undefined });
   const [expandedCourseId, setExpandedCourseId] = useState(null);
   const [expandedChapterId, setExpandedChapterId] = useState(null);
+  const [expandedOrderId, setExpandedOrderId] = useState(null);
 
   const [orderSearch, setOrderSearch] = useState("");
   const [orderStatus, setOrderStatus] = useState([]);
+  const [orderAmountRange, setOrderAmountRange] = useState([0, 10000000]);
+  const [orderAmountPreset, setOrderAmountPreset] = useState("all");
   const [orderDateRange, setOrderDateRange] = useState({ from: undefined, to: undefined });
 
+  const handleOrderAmountPresetChange = (preset) => {
+    setOrderAmountPreset(preset);
+    if (preset === "all") setOrderAmountRange([0, 10000000]);
+    else if (preset === "under_500k") setOrderAmountRange([0, 500000]);
+    else if (preset === "500k_1m") setOrderAmountRange([500000, 1000000]);
+    else if (preset === "over_1m") setOrderAmountRange([1000000, 10000000]);
+  };
+
+  const handleOrderAmountSliderChange = (val) => {
+    setOrderAmountRange(val);
+    if (val[0] === 0 && val[1] === 10000000) setOrderAmountPreset("all");
+    else if (val[0] === 0 && val[1] === 500000) setOrderAmountPreset("under_500k");
+    else if (val[0] === 500000 && val[1] === 1000000) setOrderAmountPreset("500k_1m");
+    else if (val[0] === 1000000 && val[1] === 10000000) setOrderAmountPreset("over_1m");
+    else setOrderAmountPreset("custom");
+  };
+
+
   const [postSearch, setPostSearch] = useState("");
+  const [postStatus, setPostStatus] = useState([]);
   const [postDateRange, setPostDateRange] = useState({ from: undefined, to: undefined });
 
   if (!user) return null;
 
   // Mock data for UI testing
   const mockCourses = [
-    { id: 1, title: "React.js Từ Cơ Bản Đến Nâng Cao - Trở Thành Lập Trình Viên Chuyên Nghiệp Thực Chiến Cùng Đội Ngũ", instructor: "Lê Quốc Minh", orderId: "ORD-98231", enrollDate: "15/07/2026", progress: 85, thumbnail: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=400&q=80", status: "Đang học" },
-    { id: 2, title: "Spring Boot 3 & Microservices", instructor: "Phạm Văn Nam", orderId: "ORD-98105", enrollDate: "10/06/2026", progress: 100, thumbnail: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=80", status: "Hoàn thành" },
-    { id: 3, title: "Lập trình C++ căn bản", instructor: "Trần Thế Tuấn", orderId: "ORD-97554", enrollDate: "25/07/2026", progress: 12, thumbnail: "https://images.unsplash.com/photo-1526379095098-d400fd0bfce8?w=400&q=80", status: "Đang học" },
+    { id: 1, title: "React.js Từ Cơ Bản Đến Nâng Cao - Trở Thành Lập Trình Viên Chuyên Nghiệp Thực Chiến Cùng Đội Ngũ", instructor: "Lê Quốc Minh", orderId: "ORD-98231", enrollDate: "14:30 15/07/2026", progress: 85, thumbnail: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=400&q=80", status: "Đang học" },
+    { id: 2, title: "Spring Boot 3 & Microservices", instructor: "Phạm Văn Nam", orderId: "ORD-98105", enrollDate: "09:15 10/06/2026", progress: 100, thumbnail: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=80", status: "Hoàn thành" },
+    { id: 3, title: "Lập trình C++ căn bản", instructor: "Trần Thế Tuấn", orderId: "ORD-97554", enrollDate: "10:00 25/07/2026", progress: 12, thumbnail: "https://images.unsplash.com/photo-1526379095098-d400fd0bfce8?w=400&q=80", status: "Đang học" },
   ];
 
   const mockChapters = {
     1: [
-      { id: 101, title: "Chương 1: Mở đầu", lessons: [
-          { id: 1001, title: "Bài 1: Giới thiệu khóa học", duration: "05:20" },
-          { id: 1002, title: "Bài 2: Cài đặt môi trường", duration: "12:15" },
+      { id: 101, title: "Chương 1: Mở đầu", progress: 100, completedDate: "17:35 16/07/2026", status: "Hoàn thành", lessons: [
+          { id: 1001, title: "Bài 1: Giới thiệu khóa học", duration: "05:20", progress: 100, completedDate: "14:50 15/07/2026", status: "Hoàn thành" },
+          { id: 1002, title: "Bài 2: Cài đặt môi trường", duration: "12:15", progress: 100, completedDate: "17:35 16/07/2026", status: "Hoàn thành" },
       ] },
-      { id: 102, title: "Chương 2: React Core", lessons: [
-          { id: 1003, title: "Bài 3: JSX cơ bản", duration: "08:45" },
-          { id: 1004, title: "Bài 4: State và Props", duration: "15:30" },
+      { id: 102, title: "Chương 2: React Core", progress: 50, completedDate: null, status: "Đang học", lessons: [
+          { id: 1003, title: "Bài 3: JSX cơ bản", duration: "08:45", progress: 100, completedDate: "20:10 18/07/2026", status: "Hoàn thành" },
+          { id: 1004, title: "Bài 4: State và Props", duration: "15:30", progress: 0, completedDate: null, status: "Chưa học" },
       ] }
     ],
     2: [
-      { id: 201, title: "Chương 1: Tổng quan Spring Boot", lessons: [
-          { id: 2001, title: "Bài 1: Khởi tạo project với Spring Initializr", duration: "10:00" },
+      { id: 201, title: "Chương 1: Tổng quan Spring Boot", progress: 100, completedDate: "12:00 12/06/2026", status: "Hoàn thành", lessons: [
+          { id: 2001, title: "Bài 1: Khởi tạo project với Spring Initializr", duration: "10:00", progress: 100, completedDate: "12:00 12/06/2026", status: "Hoàn thành" },
       ]}
     ]
   };
 
   const mockOrders = [
-    { id: "ORD-98231", date: "15/07/2026", amount: 1599000, method: "VNPay", status: "Thành công" },
-    { id: "ORD-98105", date: "02/07/2026", amount: 850000, method: "Chuyển khoản", status: "Thành công" },
+    { id: "ORD-98231", date: "14:30 15/07/2026", type: "Mua hàng", amount: 1599000, method: "VNPay", status: "Thành công", coupon: "SUMMER30", couponDiscount: 150000 },
+    { id: "ORD-98105", date: "09:15 02/07/2026", type: "Quà tặng", amount: 850000, method: "Chuyển khoản", status: "Thành công", couponDiscount: 0, recipient: { name: "Nguyễn Văn A", email: "nva@gmail.com", avatar: "https://github.com/shadcn.png" } },
   ];
 
+  const mockOrderDetails = {
+    "ORD-98231": [
+      { id: 1, courseName: "React.js Từ Cơ Bản Đến Nâng Cao - Trở Thành Lập Trình Viên Chuyên Nghiệp Thực Chiến Cùng Đội Ngũ", thumbnail: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=400&q=80", instructor: "Lê Quốc Minh", price: 1899000, discount: 150000, couponDiscount: 150000, finalPrice: 1599000, platformFeeRate: 30 }
+    ],
+    "ORD-98105": [
+      { id: 2, courseName: "Spring Boot 3 & Microservices", thumbnail: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=80", instructor: "Phạm Văn Nam", price: 1000000, discount: 150000, couponDiscount: 0, finalPrice: 850000, platformFeeRate: 30 }
+    ]
+  };
+
   const mockPosts = [
-    { id: 1, title: "Lỗi CORS khi gọi API từ React sang Spring Boot?", date: "24/07/2026", likes: 12, comments: 5 },
-    { id: 2, title: "Chia sẻ lộ trình học Backend Java cho người mới", date: "10/07/2026", likes: 45, comments: 18 },
+    { id: 1, topic: "Hỏi đáp Lập trình", title: "Lỗi CORS khi gọi API từ React sang Spring Boot?", views: 120, shares: 2, date: "15:45 24/07/2026", likes: 12, comments: 5, status: 2 },
+    { id: 2, topic: "Chia sẻ kinh nghiệm", title: "Chia sẻ lộ trình học Backend Java cho người mới", views: 540, shares: 10, date: "20:00 10/07/2026", likes: 45, comments: 18, status: 2 },
+    { id: 3, topic: "Thảo luận chung", title: "Cần tìm đồng đội làm dự án cuối kỳ môn Web", views: 56, shares: 0, date: "09:15 05/07/2026", likes: 3, comments: 1, status: 0 },
+    { id: 4, topic: "Hỏi đáp Lập trình", title: "Cách cài đặt biến môi trường trong Windows 11", views: 320, shares: 1, date: "14:20 01/07/2026", likes: 15, comments: 8, status: 3 },
   ];
 
   return (
-    <div className="space-y-6 animate-in fade-in zoom-in-95 duration-300">
+    <div className="space-y-6 animate-in fade-in zoom-in-95 duration-300 pb-10">
       <div className="flex items-center gap-4 border-b border-border pb-4">
         <AppButton variant="outline" size="sm" onClick={onBack} className="gap-2">
           <ArrowLeft className="w-4 h-4" /> Trở lại
@@ -784,7 +838,7 @@ function AdminUserDetail({ user, onBack }) {
               <span className="font-medium">{user.phone || "(Chưa thiết lập)"}</span>
               <span className="text-muted-foreground">Ngày đăng ký:</span>
               <span className="font-medium">
-                {user.createdAt ? new Intl.DateTimeFormat('vi-VN').format(new Date(user.createdAt)) : "Không xác định"}
+                {user.createdAt ? new Intl.DateTimeFormat('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(user.createdAt)).replace(/,/, '') : "Không xác định"}
               </span>
             </div>
           </div>
@@ -842,9 +896,10 @@ function AdminUserDetail({ user, onBack }) {
               columns={[
                 {
                   header: "STT",
-                  width: "60px",
+                  width: "70px",
                   className: "text-center",
-                  render: (_, idx) => <div className="text-center w-full text-muted-foreground font-semibold">{idx + 1}</div>
+                  cellClassName: "text-center",
+                  render: (_, idx) => <div className="text-center w-full text-foreground font-semibold text-sm">{idx + 1}</div>
                 },
                 { 
                   header: "Khóa học",
@@ -871,7 +926,7 @@ function AdminUserDetail({ user, onBack }) {
                   header: "Ngày đăng ký",
                   width: "120px",
                   className: "text-center",
-                  render: (c) => <div className="text-center w-full text-sm text-muted-foreground">{c.enrollDate}</div>
+                  render: (c) => <div className="text-center w-full text-sm text-foreground">{c.enrollDate}</div>
                 },
                 { 
                   header: "Tiến độ", 
@@ -893,9 +948,8 @@ function AdminUserDetail({ user, onBack }) {
                   width: "140px",
                   className: "text-center",
                   render: (c) => (
-                    <div className="text-center w-full">
-                      <AppBadge variant={c.progress === 100 ? "success" : "info"} className="gap-1.5 px-2.5 py-1 text-white">
-                        {c.progress === 100 ? <CheckCircle2 className="w-3.5 h-3.5" /> : <PlayCircle className="w-3.5 h-3.5" />}
+                    <div className="text-center w-full flex justify-center">
+                      <AppBadge variant={c.progress === 100 ? "success" : "info"} className="w-[100px] justify-center px-2.5 py-1 text-white">
                         {c.status}
                       </AppBadge>
                     </div>
@@ -919,14 +973,51 @@ function AdminUserDetail({ user, onBack }) {
                 
                 return (
                   <TableRow className="bg-muted/10 border-b border-border/50 hover:bg-muted/10">
-                    <TableCell colSpan={6} className="p-4 border-l-4 border-l-primary">
-                      <div className="pl-4">
-                        <h5 className="font-semibold text-sm mb-3">Nội dung khóa học: {course.title}</h5>
+                    <TableCell colSpan={6} className="p-0 border-l-4 border-l-primary">
+                      <div className="flex flex-col w-full">
+                        <h5 className="font-semibold text-sm py-4 text-center">Chi tiết tiến độ</h5>
                         {chapters.length > 0 ? (
                           <DataTable 
+                            className="border-0 shadow-none rounded-none"
                             columns={[
-                              { header: "Chương", render: (ch) => <span className="font-medium">{ch.title}</span> },
-                              { header: "Số bài học", width: "120px", className: "text-center", render: (ch) => <div className="text-center w-full text-muted-foreground text-sm">{ch.lessons.length} bài</div> }
+                              { 
+                                header: "STT", 
+                                width: "70px", 
+                                className: "text-center",
+                                cellClassName: "text-center", 
+                                render: (_, idx) => <div className="text-center w-full text-foreground font-semibold text-sm">{idx + 1}</div> 
+                              },
+                              { header: "Chương", width: "220px", render: (ch) => <div className="font-medium truncate text-foreground text-sm" title={ch.title}>{ch.title}</div> },
+                              { header: "Thời lượng", width: "100px", className: "text-center", render: (ch) => {
+                                const totalSecs = ch.lessons.reduce((acc, curr) => {
+                                  const parts = (curr.duration || "0:0").split(':').map(Number);
+                                  return acc + (parts.length === 3 ? parts[0]*3600 + parts[1]*60 + parts[2] : parts[0]*60 + parts[1]);
+                                }, 0);
+                                const h = Math.floor(totalSecs / 3600);
+                                const m = Math.floor((totalSecs % 3600) / 60);
+                                const s = totalSecs % 60;
+                                const str = h > 0 ? `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}` : `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+                                return <div className="text-center w-full text-foreground text-sm">{str}</div>;
+                              }},
+                              { header: "Số bài học", width: "100px", className: "text-center", render: (ch) => <div className="text-center w-full text-foreground text-sm">{ch.lessons.length} bài</div> },
+                              { header: "Ngày hoàn thành", width: "160px", className: "text-center", render: (ch) => <div className="text-center w-full text-sm text-foreground">{ch.completedDate || <span className="italic text-muted-foreground">(Chưa hoàn thành)</span>}</div> },
+                              { header: "Tiến độ", width: "150px", className: "text-center", render: (ch) => (
+                                <div className="w-full mx-auto">
+                                  <div className="flex justify-between text-sm mb-1 font-semibold text-foreground">
+                                    <span className={ch.progress === 100 ? "text-success" : "text-primary"}>{ch.progress || 0}%</span>
+                                  </div>
+                                  <div className="w-full bg-secondary h-1.5 rounded-full overflow-hidden">
+                                    <div className={`h-full rounded-full ${ch.progress === 100 ? "bg-success" : "bg-primary"}`} style={{ width: `${ch.progress || 0}%` }}></div>
+                                  </div>
+                                </div>
+                              )},
+                              { header: "Trạng thái", width: "130px", className: "text-center", render: (ch) => (
+                                <div className="text-center w-full flex justify-center">
+                                  <AppBadge variant={ch.progress === 100 ? "success" : (ch.progress > 0 ? "info" : "secondary")} className="w-[100px] justify-center px-2.5 py-1 text-white">
+                                    {ch.status}
+                                  </AppBadge>
+                                </div>
+                              )}
                             ]}
                             data={chapters}
                             pagination={false}
@@ -934,23 +1025,49 @@ function AdminUserDetail({ user, onBack }) {
                             renderExpandedRow={(chapter) => {
                               if (expandedChapterId !== chapter.id) return null;
                               return (
-                                <TableRow className="bg-background hover:bg-background">
-                                  <TableCell colSpan={2} className="p-3 border-l-4 border-l-secondary pl-6">
-                                    <div className="space-y-1">
-                                      {chapter.lessons.map(lesson => (
-                                        <div key={lesson.id} className="flex justify-between items-center text-sm py-2 px-3 hover:bg-muted/50 rounded transition-colors cursor-default">
-                                          <span className="font-medium text-muted-foreground hover:text-foreground transition-colors">{lesson.title}</span>
-                                          <span className="text-muted-foreground text-xs">{lesson.duration}</span>
+                                <>
+                                  {chapter.lessons.map((lesson, idx) => (
+                                    <TableRow key={lesson.id} className="bg-background hover:bg-muted/30 transition-colors cursor-default border-b border-border/50">
+                                      <TableCell className="py-2 text-center text-xs text-muted-foreground/70" style={{ width: "70px", minWidth: "70px", maxWidth: "70px" }}>
+                                      </TableCell>
+                                      <TableCell className="py-2 px-4 text-left" style={{ width: "220px", minWidth: "220px", maxWidth: "220px" }}>
+                                        <div className="text-sm font-medium text-foreground flex items-center gap-2">
+                                          <div className="w-1.5 h-1.5 rounded-full bg-foreground shrink-0"></div>
+                                          <span className="truncate" title={lesson.title}>{lesson.title}</span>
                                         </div>
-                                      ))}
-                                    </div>
-                                  </TableCell>
-                                </TableRow>
-                              )
+                                      </TableCell>
+                                      <TableCell className="py-2 px-4 text-center" style={{ width: "100px", minWidth: "100px", maxWidth: "100px" }}>
+                                        <span className="text-foreground text-sm font-medium">{lesson.duration}</span>
+                                      </TableCell>
+                                      <TableCell className="p-0" style={{ width: "100px", minWidth: "100px", maxWidth: "100px" }}></TableCell>
+                                      <TableCell className="py-2 px-4 text-center" style={{ width: "160px", minWidth: "160px", maxWidth: "160px" }}>
+                                        <span className="text-foreground text-sm">{lesson.completedDate || <span className="italic text-muted-foreground">(Chưa hoàn thành)</span>}</span>
+                                      </TableCell>
+                                      <TableCell className="py-2 px-4 text-center" style={{ width: "150px", minWidth: "150px", maxWidth: "150px" }}>
+                                        <div className="w-full mx-auto">
+                                          <div className="flex justify-between text-sm mb-1 font-semibold text-foreground">
+                                            <span className={lesson.progress === 100 ? "text-success" : "text-primary"}>{lesson.progress || 0}%</span>
+                                          </div>
+                                          <div className="w-full bg-secondary h-1.5 rounded-full overflow-hidden">
+                                            <div className={`h-full rounded-full ${lesson.progress === 100 ? "bg-success" : "bg-primary"}`} style={{ width: `${lesson.progress || 0}%` }}></div>
+                                          </div>
+                                        </div>
+                                      </TableCell>
+                                      <TableCell className="py-2 px-4 text-center" style={{ width: "130px", minWidth: "130px", maxWidth: "130px" }}>
+                                        <div className="flex justify-center w-full">
+                                          <AppBadge variant={lesson.progress === 100 ? "success" : (lesson.progress > 0 ? "info" : "secondary")} className="w-[100px] justify-center px-2.5 py-1 text-white">
+                                            {lesson.status}
+                                          </AppBadge>
+                                        </div>
+                                      </TableCell>
+                                    </TableRow>
+                                  ))}
+                                </>
+                              );
                             }}
                           />
                         ) : (
-                          <div className="text-sm text-muted-foreground italic">Chưa có nội dung chương học.</div>
+                          <div className="text-sm text-muted-foreground italic px-4 py-4">Chưa có nội dung chương học.</div>
                         )}
                       </div>
                     </TableCell>
@@ -989,29 +1106,124 @@ function AdminUserDetail({ user, onBack }) {
               dateRange={orderDateRange}
               onDateRangeChange={setOrderDateRange}
               dateRangePlaceholder="Thời gian đặt hàng"
-            />
+            >
+              <div className="flex items-center gap-3 w-full xl:w-auto">
+                <div className="w-full xl:w-[200px] shrink-0">
+                  <AppSelect 
+                    value={orderAmountPreset} 
+                    onValueChange={handleOrderAmountPresetChange}
+                    options={[
+                      ...(orderAmountPreset === "custom" ? [{ label: "Tùy chọn", value: "custom" }] : []),
+                      { label: "Tất cả số tiền", value: "all" },
+                      { label: "Dưới 500.000 đ", value: "under_500k" },
+                      { label: "500.000 đ - 1.000.000 đ", value: "500k_1m" },
+                      { label: "Trên 1.000.000 đ", value: "over_1m" }
+                    ]}
+                    placeholder="Chọn khoảng tiền"
+                  />
+                </div>
+                <DataFilterPriceRange
+                  title="Giao dịch"
+                  min={0}
+                  max={10000000}
+                  step={50000}
+                  value={orderAmountRange}
+                  onValueChange={handleOrderAmountSliderChange}
+                  onClear={() => handleOrderAmountPresetChange("all")}
+                />
+              </div>
+            </DataFilter>
           </div>
           <DataTable
             columns={[
-              { header: "Mã đơn hàng", render: (o) => <span className="font-bold text-foreground">{o.id}</span> },
-              { header: "Ngày giao dịch", render: (o) => <span className="text-muted-foreground">{o.date}</span> },
-              { header: "Thanh toán", render: (o) => <span className="font-medium">{o.method}</span> },
-              { header: "Tổng tiền", render: (o) => <span className="font-bold text-primary">{new Intl.NumberFormat('vi-VN').format(o.amount)} đ</span> },
-              { header: "Trạng thái", width: "120px", render: (o) => <AppBadge variant="success" soft>{o.status}</AppBadge> },
               {
-                header: "Thao tác",
-                width: "100px",
-                className: "text-right",
-                render: () => (
-                  <AppButton size="sm" className="w-8 h-8 p-0 bg-info hover:bg-info/90 text-white border-none shrink-0" title="Tùy chọn">
-                    <MoreHorizontal className="w-4 h-4" />
-                  </AppButton>
-                )
+                header: "STT",
+                width: "70px",
+                className: "text-center",
+                cellClassName: "text-center",
+                render: (_, idx) => <div className="text-center w-full text-foreground font-semibold text-sm">{idx + 1}</div>
+              },
+              { header: "Mã đơn hàng", width: "160px", className: "text-center", render: (o) => <div className="text-center w-full"><span className="font-bold text-foreground">{o.id}</span></div> },
+              { header: "Phân loại", width: "120px", className: "text-center", render: (o) => <div className="text-center w-full"><span className="font-medium text-foreground">{o.type || "Mua hàng"}</span></div> },
+              { header: "Ngày giao dịch", width: "160px", className: "text-center", render: (o) => <div className="text-center w-full"><span className="text-foreground text-sm font-medium">{o.date}</span></div> },
+              { header: "Phương thức", width: "140px", className: "text-center", render: (o) => <div className="text-center w-full"><span className="font-medium">{o.method}</span></div> },
+              { header: "Mã giảm", width: "120px", className: "text-center", render: (o) => <div className="text-center w-full"><span className="font-medium text-foreground">{o.coupon || "--"}</span></div> },
+              { header: "Giảm Coupon", width: "140px", className: "text-center", render: (o) => <div className="text-center w-full"><span className="font-medium text-error">-{new Intl.NumberFormat('vi-VN').format(o.couponDiscount || 0)} đ</span></div> },
+              { header: "Tổng tiền", width: "160px", className: "text-center", render: (o) => <div className="text-center w-full"><span className="font-bold text-primary">{new Intl.NumberFormat('vi-VN').format(o.amount)} đ</span></div> },
+              { header: "Trạng thái", width: "140px", className: "text-center", render: (o) => (
+                  <div className="text-center w-full flex justify-center">
+                    <AppBadge variant={o.status === "Thành công" ? "success" : (o.status === "Thất bại" ? "error" : "warning")} className="w-[100px] justify-center px-2.5 py-1 text-white">
+                      {o.status}
+                    </AppBadge>
+                  </div>
+                ) 
               }
             ]}
             data={mockOrders}
             emptyState="Không có lịch sử giao dịch nào."
-            pagination={false}
+            pagination={{
+              currentPage: 1,
+              totalPages: 1,
+              totalItems: mockOrders.length,
+              onPageChange: () => { },
+              zeroIndexed: false,
+              pageSize: mockOrders.length || 10,
+            }}
+            onRowClick={(row) => setExpandedOrderId(row.id === expandedOrderId ? null : row.id)}
+            renderExpandedRow={(order) => {
+              if (expandedOrderId !== order.id) return null;
+              const details = mockOrderDetails[order.id] || [];
+              
+              return (
+                <TableRow className="bg-muted/10 border-b border-border/50 hover:bg-muted/10">
+                  <TableCell colSpan={9} className="p-0 border-l-4 border-l-primary">
+                    <div className="flex flex-col w-full">
+                      <h5 className="font-semibold text-sm py-4 text-center">Chi tiết đơn hàng</h5>
+                      {order.type === "Quà tặng" && order.recipient && (
+                        <div className="flex items-center justify-center gap-2 mb-4">
+                          <span className="text-sm font-medium text-muted-foreground">Tặng cho:</span>
+                          <div className="flex items-center gap-2 bg-muted/30 px-3 py-1.5 rounded-full border border-border">
+                            <Avatar className="w-6 h-6">
+                              <AvatarImage src={order.recipient.avatar} alt={order.recipient.name} />
+                              <AvatarFallback className="text-[10px]">{order.recipient.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+                            </Avatar>
+                            <span className="text-sm font-semibold text-foreground">{order.recipient.name}</span>
+                            <span className="text-xs text-muted-foreground">({order.recipient.email})</span>
+                          </div>
+                        </div>
+                      )}
+                      {details.length > 0 ? (
+                        <DataTable 
+                          className="border-0 shadow-none rounded-none"
+                          columns={[
+                            { header: "Khóa học", width: "350px", className: "pl-6", render: (d) => (
+                              <div className="flex items-center gap-3 pl-6">
+                                <img src={d.thumbnail} alt={d.courseName} className="w-16 h-10 object-cover rounded border border-border shrink-0" />
+                                <div className="flex flex-col">
+                                  <span className="font-semibold text-foreground line-clamp-1" title={d.courseName}>
+                                    {d.courseName.length > 50 ? d.courseName.substring(0, 50) + '...' : d.courseName}
+                                  </span>
+                                  <span className="text-xs text-muted-foreground mt-0.5">Giảng viên: {d.instructor}</span>
+                                </div>
+                              </div>
+                            )},
+                            { header: "Giá gốc", width: "150px", className: "text-center", render: (d) => <div className="text-center w-full text-muted-foreground line-through text-sm">{new Intl.NumberFormat('vi-VN').format(d.price)} đ</div> },
+                            { header: "Khuyến mãi", width: "150px", className: "text-center", render: (d) => <div className="text-center w-full text-error font-medium text-sm">-{new Intl.NumberFormat('vi-VN').format(d.discount)} đ</div> },
+                            { header: "Giảm Coupon", width: "150px", className: "text-center", render: (d) => <div className="text-center w-full text-error font-medium text-sm">-{new Intl.NumberFormat('vi-VN').format(d.couponDiscount || 0)} đ</div> },
+                            { header: "Tỷ lệ nền tảng", width: "150px", className: "text-center", render: (d) => <div className="text-center w-full font-medium text-sm text-foreground">{d.platformFeeRate}%</div> },
+                            { header: "Giá thực tế", width: "150px", className: "text-center pr-10", render: (d) => <div className="text-center w-full pr-10 text-primary font-bold text-sm">{new Intl.NumberFormat('vi-VN').format(d.finalPrice)} đ</div> }
+                          ]}
+                          data={details}
+                          pagination={false}
+                        />
+                      ) : (
+                        <div className="text-center text-sm text-muted-foreground py-4">Không có chi tiết đơn hàng</div>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              );
+            }}
           />
         </TabsContent>
         
@@ -1021,6 +1233,20 @@ function AdminUserDetail({ user, onBack }) {
               searchQuery={postSearch}
               onSearchChange={setPostSearch}
               searchPlaceholder="Tìm kiếm bài viết..."
+              dropdownChecklists={[
+                {
+                  title: "Trạng thái",
+                  items: [
+                    { label: "Ẩn", value: 0 },
+                    { label: "Bản nháp", value: 1 },
+                    { label: "Đã xuất bản", value: 2 },
+                    { label: "Vi phạm", value: 3 }
+                  ],
+                  selectedItems: postStatus,
+                  onItemToggle: (val) => setPostStatus(prev => prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val]),
+                  onClear: () => setPostStatus([])
+                }
+              ]}
               dateRange={postDateRange}
               onDateRangeChange={setPostDateRange}
               dateRangePlaceholder="Khoảng thời gian đăng"
@@ -1028,43 +1254,78 @@ function AdminUserDetail({ user, onBack }) {
           </div>
           <DataTable
             columns={[
+              {
+                header: "STT",
+                width: "70px",
+                className: "text-center",
+                cellClassName: "text-center",
+                render: (_, idx) => <div className="text-center w-full text-foreground font-semibold text-sm">{idx + 1}</div>
+              },
+              {
+                header: "Chủ đề",
+                width: "180px",
+                className: "text-center",
+                render: (p) => <div className="text-center w-full"><span className="font-medium text-foreground">{p.topic}</span></div>
+              },
               { 
                 header: "Bài viết", 
+                width: "300px",
                 render: (p) => (
                   <div className="flex flex-col">
-                    <span className="font-bold text-foreground line-clamp-1">{p.title}</span>
+                    <span className="font-bold text-foreground line-clamp-1" title={p.title}>{p.title.length > 50 ? p.title.substring(0, 50) + "..." : p.title}</span>
+                  </div>
+                ) 
+              },
+              { 
+                header: "Lượt xem", 
+                width: "120px",
+                className: "text-center",
+                render: (p) => <div className="text-center w-full"><span className="text-muted-foreground text-sm">{p.views || 0}</span></div> 
+              },
+              { 
+                header: "Tương tác", 
+                width: "180px",
+                className: "text-center",
+                render: (p) => (
+                  <div className="flex items-center justify-center gap-4 text-sm font-semibold text-muted-foreground">
+                    <span className="flex items-center gap-1" title="Lượt thích"><span className="text-error">♥</span> {p.likes || 0}</span>
+                    <span className="flex items-center gap-1" title="Bình luận"><span className="text-info">💬</span> {p.comments || 0}</span>
+                    <span className="flex items-center gap-1" title="Chia sẻ"><span className="text-success">↪</span> {p.shares || 0}</span>
                   </div>
                 ) 
               },
               { 
                 header: "Ngày đăng", 
-                width: "120px",
-                render: (p) => <span className="text-muted-foreground text-sm">{p.date}</span> 
+                width: "140px",
+                className: "text-center",
+                render: (p) => <div className="text-center w-full"><span className="text-muted-foreground text-sm">{p.date}</span></div> 
               },
               { 
-                header: "Tương tác", 
-                width: "150px",
+                header: "Trạng thái", 
+                width: "130px",
+                className: "text-center",
                 render: (p) => (
-                  <div className="flex items-center gap-3 text-sm font-semibold text-muted-foreground">
-                    <span className="flex items-center gap-1"><span className="text-error">♥</span> {p.likes}</span>
-                    <span className="flex items-center gap-1"><span className="text-info">💬</span> {p.comments}</span>
+                  <div className="text-center w-full flex justify-center">
+                    <AppBadge 
+                      variant={p.status === 2 ? "success" : (p.status === 3 ? "error" : (p.status === 0 ? "secondary" : "warning"))} 
+                      className="w-[100px] justify-center px-2.5 py-1 text-white"
+                    >
+                      {p.status === 2 ? "Đã xuất bản" : (p.status === 3 ? "Vi phạm" : (p.status === 0 ? "Ẩn" : "Bản nháp"))}
+                    </AppBadge>
                   </div>
                 ) 
-              },
-              {
-                header: "Thao tác",
-                width: "100px",
-                className: "text-right",
-                render: () => (
-                  <AppButton size="sm" className="w-8 h-8 p-0 bg-info hover:bg-info/90 text-white border-none shrink-0" title="Tùy chọn">
-                    <MoreHorizontal className="w-4 h-4" />
-                  </AppButton>
-                )
               }
             ]}
             data={mockPosts}
             emptyState="Không có bài viết nào."
-            pagination={false}
+            pagination={{
+              currentPage: 1,
+              totalPages: 1,
+              totalItems: mockPosts.length,
+              onPageChange: () => { },
+              zeroIndexed: false,
+              pageSize: mockPosts.length || 10,
+            }}
           />
         </TabsContent>
       </Tabs>

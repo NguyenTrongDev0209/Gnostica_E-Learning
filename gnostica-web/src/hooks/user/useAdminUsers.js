@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import authService from "@/services/auth/authService";
@@ -13,17 +13,42 @@ export default function useAdminUsers() {
   const [statusFilter, setStatusFilter] = useState([]);
   const [dateRange, setDateRange] = useState({ from: undefined, to: undefined });
   const [priceRange, setPriceRange] = useState([0, 10000000]);
+  const [pricePreset, setPricePreset] = useState("all");
+
+  const handlePricePresetChange = (preset) => {
+    setPricePreset(preset);
+    if (preset === "all") setPriceRange([0, 10000000]);
+    else if (preset === "under_500k") setPriceRange([0, 500000]);
+    else if (preset === "500k_1m") setPriceRange([500000, 1000000]);
+    else if (preset === "over_1m") setPriceRange([1000000, 10000000]);
+  };
+
+  const handlePriceRangeChange = (val) => {
+    setPriceRange(val);
+    if (val[0] === 0 && val[1] === 10000000) setPricePreset("all");
+    else if (val[0] === 0 && val[1] === 500000) setPricePreset("under_500k");
+    else if (val[0] === 500000 && val[1] === 1000000) setPricePreset("500k_1m");
+    else if (val[0] === 1000000 && val[1] === 10000000) setPricePreset("over_1m");
+    else setPricePreset("custom");
+  };
+
 
   const [lockDialogOpen, setLockDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedUserDetail, setSelectedUserDetail] = useState(null);
   const [lockReason, setLockReason] = useState("");
 
+
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
   const [selectedApp, setSelectedApp] = useState(null);
 
   const [previewDocument, setPreviewDocument] = useState({ url: null, title: "" });
+
+  useEffect(() => {
+    setSelectedUserDetail(null);
+    setSelectedApp(null);
+  }, [activeTab]);
 
   const { data: accounts = [], isLoading: isAccountsLoading } = useQuery({
     queryKey: ['admin_accounts', activeTab],
@@ -177,7 +202,9 @@ export default function useAdminUsers() {
     dateRange,
     setDateRange,
     priceRange,
-    setPriceRange,
+    setPriceRange: handlePriceRangeChange,
+    pricePreset,
+    setPricePreset: handlePricePresetChange,
     lockDialogOpen,
     setLockDialogOpen,
     selectedUser,

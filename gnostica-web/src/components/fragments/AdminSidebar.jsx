@@ -27,7 +27,7 @@ import {
 import { AppLogo } from "@/components/common/micro/AppButton";
 
 export const ADMIN_USERS_SUB_ITEMS = [
-  { label: "Học viên", icon: Users, href: "/admin/users?tab=USER", tab: "USER" },
+  { label: "Người dùng", icon: Users, href: "/admin/users?tab=USER", tab: "USER" },
   { label: "Giảng viên", icon: GraduationCap, href: "/admin/users?tab=INSTRUCTOR", tab: "INSTRUCTOR" },
   { label: "Chờ duyệt", icon: ShieldCheck, href: "/admin/users?tab=PENDING_APP", tab: "PENDING_APP" },
 ];

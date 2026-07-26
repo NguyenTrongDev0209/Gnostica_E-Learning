@@ -58,7 +58,7 @@ export default function AppTable({
                   "py-3 px-4 font-semibold text-foreground align-middle text-center", 
                   col.className
                 )} 
-                style={{ width: col.width }}
+                style={{ width: col.width, minWidth: col.width, maxWidth: col.width }}
               >
                 {col.sortable !== false && typeof col.header !== "function" && col.header !== "Thao tác" ? (
                   <div className={cn(
@@ -120,6 +120,7 @@ export default function AppTable({
                           col.align === "left" && "text-left",
                           col.cellClassName
                         )}
+                        style={{ width: col.width, minWidth: col.width, maxWidth: col.width }}
                       >
                         {col.render ? col.render(row, rowIndex) : row[col.key || col.accessor]}
                       </TableCell>
