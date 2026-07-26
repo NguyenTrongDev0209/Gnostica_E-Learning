@@ -826,6 +826,7 @@ export function DataFilterPriceRange({
   onValueChange,
   onClear,
   formatValue,
+  align = "end",
   className
 }) {
   const defaultFormat = (v) => new Intl.NumberFormat('vi-VN').format(v) + ' đ';
@@ -840,7 +841,7 @@ export function DataFilterPriceRange({
           <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </AppPopoverTrigger>
-      <AppPopoverContent align="start" className="w-[300px] p-5 bg-card rounded-xl shadow-lg border-border z-[100]">
+      <AppPopoverContent align={align} className="w-[300px] p-5 bg-card rounded-xl shadow-lg border-border z-[100]">
         <div className="flex flex-col gap-5">
           <h4 className="font-bold text-sm text-foreground uppercase tracking-widest">{title}</h4>
           

@@ -14,12 +14,12 @@ export default function AdminLayout() {
   };
 
   return (
-    <PageContainer className="bg-muted flex-row">
+    <PageContainer className="bg-muted flex-row h-screen overflow-hidden">
       {/* Sidebar - Reusable Component */}
       <AdminSidebar user={user} handleLogout={handleLogout} />
 
       {/* Main Content Area */}
-      <div className="flex-1 ml-64 flex flex-col min-h-screen">
+      <div className="flex-1 ml-64 flex flex-col h-screen overflow-hidden">
         {/* Top Header */}
         <AdminHeader user={user} />
 
