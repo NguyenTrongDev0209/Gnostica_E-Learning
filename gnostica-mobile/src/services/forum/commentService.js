@@ -1,4 +1,4 @@
-﻿import api from '../../config/api';
+import api from '../../config/api';
 
 const commentService = {
     /**
@@ -18,9 +18,13 @@ const commentService = {
      * @param {Object} body - { content, targetType, targetId, userEmail, parentId? }
      */
     create: (body) => {
-        const normalizedBody = body.threadId && !body.targetType
-            ? { ...body, targetType: 'THREAD', targetId: body.threadId }
-            : body;
+        const targetType = body.targetType || 'THREAD';
+        const targetId = body.targetId || body.threadId || body.objectId;
+        const normalizedBody = {
+            ...body,
+            targetType,
+            targetId: targetId != null ? String(targetId) : null
+        };
         return api.post('/comments', normalizedBody);
     },
 

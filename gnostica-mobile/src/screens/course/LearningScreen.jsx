@@ -28,15 +28,10 @@ const LearningScreen = () => {
     useEffect(() => {
         if (course?.curriculum?.length > 0) {
             const firstSection = course.curriculum[0];
-            // Mock lessons array if backend didn't return
-            const lessons = firstSection.lessons || [
-                { id: 1, title: 'Bài 1: Giới thiệu', videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4', duration: '12:45' },
-                { id: 2, title: 'Bài 2: Cài đặt môi trường', videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4', duration: '15:20' }
-            ];
-            setActiveLesson(lessons[0]);
-        } else {
-             // Fallback mock if curriculum is missing
-            setActiveLesson({ id: 1, title: 'Bài 1: Giới thiệu khóa học', videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4', duration: '12:45' });
+            const lessons = firstSection.lessons || [];
+            if (lessons.length > 0) {
+                setActiveLesson(lessons[0]);
+            }
         }
     }, [course]);
 
@@ -114,8 +109,7 @@ const LearningScreen = () => {
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1, backgroundColor: '#F8FAFC' }}>
                 {activeTab === 'curriculum' && (
                     <View className="pb-10">
-                        {/* Fallback to 1 section if course.curriculum is empty */}
-                        {(course.curriculum || [{ section: 'Phần 1: Bắt đầu' }]).map((section, secIdx) => (
+                        {(course.curriculum || []).map((section, secIdx) => (
                             <View key={secIdx} className="bg-white mb-2 border-b border-slate-100">
                                 <View className="p-4 bg-slate-50">
                                     <AppText className="text-[13px] text-slate-500 font-medium mb-1">
@@ -126,11 +120,7 @@ const LearningScreen = () => {
                                     </AppText>
                                 </View>
                                 
-                                {/* Fallback lessons */}
-                                {(section.lessons || [
-                                    { id: secIdx*10+1, title: `Bài học 1`, videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4', duration: '12:45' },
-                                    { id: secIdx*10+2, title: `Bài học 2`, videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4', duration: '15:00' }
-                                ]).map((lesson, lessIdx) => {
+                                {(section.lessons || []).map((lesson, lessIdx) => {
                                     const isCurrent = activeLesson?.id === lesson.id;
                                     const isCompleted = false; // Need to map from progress data
 

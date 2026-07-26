@@ -54,7 +54,12 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         }
 
         // Chuyển hướng kèm theo Token và Email
-        String targetUrl = "http://localhost:5173/auth/callback?token=" + token + "&email=" + email;
+        String redirectUri = request.getParameter("redirect_uri");
+        if (redirectUri == null || redirectUri.isBlank()) {
+            redirectUri = "http://localhost:5173/auth/callback";
+        }
+        String separator = redirectUri.contains("?") ? "&" : "?";
+        String targetUrl = redirectUri + separator + "token=" + token + "&email=" + email;
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
 }

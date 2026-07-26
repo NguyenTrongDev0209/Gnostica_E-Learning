@@ -365,9 +365,9 @@ const ForumDetail = () => {
           <div className="flex-1 flex flex-col gap-6 min-w-0">
 
             {/* Post Card */}
-            <AppCard appVariant="default" className="bg-white border-border shadow-sm">
-              <AppCardContent className="p-5 sm:p-7">
-                <div className="flex items-center gap-2 mb-3 flex-wrap">
+            <AppCard appVariant="default" className="bg-white border-border shadow-sm overflow-hidden w-full min-w-0">
+              <AppCardContent className="p-5 sm:p-7 w-full min-w-0 overflow-hidden">
+                <div className="flex items-center gap-2 mb-3 flex-wrap max-w-full">
                   <Link
                     to={topicHref}
                     className="inline-flex items-center rounded-md border border-primary/20 bg-primary/5 px-2.5 py-1 text-xs font-semibold text-primary transition-colors hover:bg-primary/10"
@@ -376,7 +376,7 @@ const ForumDetail = () => {
                   </Link>
                 </div>
 
-                <h1 className="text-xl sm:text-2xl font-bold text-foreground mb-5 leading-snug">
+                <h1 className="text-xl sm:text-2xl font-bold text-foreground mb-5 leading-snug break-words [word-break:break-word] [overflow-wrap:anywhere] max-w-full">
                   {post.title || ''}
                 </h1>
 
