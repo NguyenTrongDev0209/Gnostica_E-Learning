@@ -1,9 +1,27 @@
-﻿import api from '../../config/api';
+import api from '../../config/api';
 
 const authService = {
     login: async (email, password) => {
         try {
             const response = await api.post('/auth/login', { email, password });
+            return response;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    googleLogin: async (payload) => {
+        try {
+            const response = await api.post('/auth/google', payload);
+            return response;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    getOAuth2User: async (email) => {
+        try {
+            const response = await api.get('/auth/user', { params: { email } });
             return response;
         } catch (error) {
             throw error;

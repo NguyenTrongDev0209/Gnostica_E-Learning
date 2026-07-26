@@ -1,6 +1,7 @@
 import AppText from '../../components/ui/AppText';
 import React, { useState } from 'react';
-import { View, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, TextInput } from 'react-native';
+import { View, TouchableOpacity, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, TextInput } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChevronLeft, Phone } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import Input from '../../components/ui/Input';

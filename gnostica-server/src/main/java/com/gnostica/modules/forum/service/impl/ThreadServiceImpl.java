@@ -87,9 +87,8 @@ public class ThreadServiceImpl implements ThreadService {
         thread.setAccount(account);
         thread.setTopic(topic);
         
-        // Auto-approve thread (Status 2 = Published) if author is an ADMIN
-        boolean isAdmin = account.getRole() != null && "ADMIN".equalsIgnoreCase(account.getRole().getName());
-        thread.setStatus(isAdmin ? 2 : 1); // 1 = Draft or Pending, 2 = Published
+        // Newly created threads require moderation (Status 1 = Pending) so they appear in Admin Thread Moderation
+        thread.setStatus(1); // 1 = Draft/Pending moderation, 2 = Published
         
         thread.setViewCount(0);
         thread.setSharedCount(0);
