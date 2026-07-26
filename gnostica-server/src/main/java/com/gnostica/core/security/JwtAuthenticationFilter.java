@@ -25,6 +25,8 @@ import lombok.RequiredArgsConstructor;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtProvider tokenProvider;
+    private final TokenBlacklistService tokenBlacklistService;
+    private final com.gnostica.core.repository.AccountRepository accountRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -33,12 +35,35 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String jwt = getJwtFromRequest(request);
 
             if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)) {
-                String username = tokenProvider.getUsernameFromJWT(jwt);
-                String roles = tokenProvider.getRolesFromJWT(jwt);
+                if (tokenBlacklistService.isBlacklisted(jwt)) {
+                    filterChain.doFilter(request, response);
+                    return;
+                }
 
-                Collection<? extends GrantedAuthority> authorities = Arrays.stream(roles.split(","))
-                        .map(SimpleGrantedAuthority::new)
-                        .collect(Collectors.toList());
+                String username = tokenProvider.getUsernameFromJWT(jwt);
+
+                // Verify user exists and is active in database
+                java.util.Optional<com.gnostica.core.model.Account> accountOpt = accountRepository.findByEmailWithRole(username);
+                if (accountOpt.isEmpty() || Integer.valueOf(2).equals(accountOpt.get().getStatus())) {
+                    filterChain.doFilter(request, response);
+                    return;
+                }
+
+                String roles = tokenProvider.getRolesFromJWT(jwt);
+                java.util.Set<GrantedAuthority> authorities = new java.util.HashSet<>();
+                if (roles != null && !roles.isEmpty()) {
+                    for (String role : roles.split(",")) {
+                        String r = role.trim();
+                        if (!r.isEmpty()) {
+                            authorities.add(new SimpleGrantedAuthority(r));
+                            if (r.startsWith("ROLE_")) {
+                                authorities.add(new SimpleGrantedAuthority(r.substring(5)));
+                            } else {
+                                authorities.add(new SimpleGrantedAuthority("ROLE_" + r.toUpperCase()));
+                            }
+                        }
+                    }
+                }
 
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                         username, null, authorities);

@@ -24,7 +24,10 @@ export default function useAdminUsers() {
     queryFn: async () => {
       const response = await authService.getAccountsByRole(activeTab);
       console.log('API getAccountsByRole:', response);
-      if (response && response.data) return response.data;
+      if (response && response.data) {
+        if (Array.isArray(response.data.content)) return response.data.content;
+        if (Array.isArray(response.data)) return response.data;
+      }
       if (Array.isArray(response)) return response;
       return [];
     },

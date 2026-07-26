@@ -52,11 +52,19 @@ public class SecurityConfig {
                 })
             )
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/error", "/favicon.ico", "/**/*.html", "/**/*.css", "/**/*.js", "/ws/**").permitAll()
-                .requestMatchers("/api/auth/**", "/api/account/**", "/api/upload/**", "/api/follow/**", "/oauth2/**", "/login/oauth2/**", "/api/threads/**", "/api/forum-categories/**", "/api/comments/**", "/api/progress/**", "/api/ai/**", "/api/thread-reports/**", "/api/dashboard/**", "/api/payment/**",
-                                                                "/api/order/**", "/api/certificates/**").permitAll()
+                .requestMatchers("/", "/error", "/favicon.ico", "/**/*.html", "/**/*.css", "/**/*.js", "/ws/**", "/oauth2/**", "/login/oauth2/**").permitAll()
+                .requestMatchers(HttpMethod.POST,
+                        "/api/auth/register",
+                        "/api/auth/login",
+                        "/api/auth/verify",
+                        "/api/auth/resend-otp",
+                        "/api/auth/forgot-password",
+                        "/api/auth/reset-password"
+                ).permitAll()
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/courses/draft/**", "/api/courses/draft", "/api/courses/instructor").authenticated()
                 .requestMatchers(HttpMethod.GET, "/api/courses/**", "/api/categories/**", "/api/instructors/**", "/api/public/**").permitAll()
+                .requestMatchers("/api/account/**", "/api/upload/**", "/api/follow/**", "/api/threads/**", "/api/forum-categories/**", "/api/comments/**", "/api/progress/**", "/api/ai/**", "/api/thread-reports/**", "/api/dashboard/**", "/api/payment/**", "/api/order/**", "/api/certificates/**").permitAll()
                 .anyRequest().authenticated()
             )
 

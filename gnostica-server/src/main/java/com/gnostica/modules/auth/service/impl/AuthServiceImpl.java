@@ -208,54 +208,6 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public void becomeInstructor(String email) {
-        Account account = accountRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Khong tim thay tai khoan."));
-
-        Role instructorRole = roleRepository.findByName("INSTRUCTOR")
-                .orElseGet(() -> {
-                    Role newRole = new Role();
-                    newRole.setName("INSTRUCTOR");
-                    newRole.setStatus(1);
-                    newRole.setDescription("Default Instructor Role");
-                    return roleRepository.save(newRole);
-                });
-
-        account.setRole(instructorRole);
-        accountRepository.save(account);
-    }
-
-    @Override
-    public java.util.List<Account> getAllAccounts() {
-        return accountRepository.findAll();
-    }
-
-    @Override
-    public java.util.List<Account> getAccountsByRole(String roleName) {
-        roleRepository.findByName(roleName)
-                .orElseThrow(() -> new RuntimeException("Role khong ton tai."));
-        return accountRepository.findAll().stream()
-                .filter(a -> a.getRole() != null && a.getRole().getName().equalsIgnoreCase(roleName))
-                .collect(java.util.stream.Collectors.toList());
-    }
-
-    @Override
-    public void lockAccount(UUID id, String reason) {
-        Account account = accountRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Tai khoan khong ton tai."));
-        account.setStatus(STATUS_BANNED);
-        accountRepository.save(account);
-    }
-
-    @Override
-    public void unlockAccount(UUID id) {
-        Account account = accountRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Tai khoan khong ton tai."));
-        account.setStatus(STATUS_ACTIVE);
-        accountRepository.save(account);
-    }
-
-    @Override
     public void updateAvatar(String email, String avatarUrl) {
         Account account = accountRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Tai khoan khong ton tai."));

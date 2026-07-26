@@ -13,13 +13,6 @@ public interface AuthService {
     Account findByEmail(String email);
     void forgotPassword(String email);
     void resetPassword(String email, String code, String newPassword);
-    void becomeInstructor(String email);
-    
-    // Quản lý Account cho Admin
-    java.util.List<Account> getAllAccounts();
-    java.util.List<Account> getAccountsByRole(String roleName);
-    void lockAccount(java.util.UUID id, String reason);
-    void unlockAccount(java.util.UUID id);
     void updateAvatar(String email, String avatarUrl);
 
     void updatePersonalization(String email, com.gnostica.modules.user.dto.request.PersonalizationDTO dto);
