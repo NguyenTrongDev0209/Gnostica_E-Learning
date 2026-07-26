@@ -1,305 +1,169 @@
-import React from 'react';
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/common/micro/AppForm";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/common/micro/AppDialog";
-import { Input } from "@/components/common/micro/AppInput";
-import { AppButton } from "@/components/common/micro/AppButton";
-import { Ticket, Percent, CircleDollarSign, Package, Calendar } from "lucide-react";
-import { format } from "date-fns";
+import { useEffect } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { format } from 'date-fns';
+import { z } from 'zod';
+import { Calendar, CircleDollarSign, Package, Percent, Tag, Ticket } from 'lucide-react';
 
-const couponSchema = z.object({
-  name: z.string().min(1, "Tên phiếu không được để trống"),
-  code: z
-    .string()
-    .min(3, "Mã giảm giá phải có ít nhất 3 ký tự")
-    .max(50, "Mã giảm giá không vượt quá 50 ký tự")
-    .toUpperCase(),
-  discountValue: z.coerce
-    .number()
-    .min(1, "Giảm giá tối thiểu là 1%")
-    .max(100, "Giảm giá tối đa là 100%"),
-  minDiscount: z.coerce.number().min(0, "Giá trị tối thiểu không được âm"),
-  maxDiscount: z.coerce.number().min(0, "Giá trị tối đa không được âm"),
-  validFrom: z.string().min(1, "Ngày bắt đầu không được để trống"),
-  validUntil: z.string().min(1, "Ngày hết hạn không được để trống"),
-  quantity: z.coerce.number().min(0, "Số lượng không được âm"),
-});
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/common/micro/AppDialog';
+import { AppButton } from '@/components/common/micro/AppButton';
+import AppInput from '@/components/common/micro/AppInput';
+import AppSelect from '@/components/common/micro/AppSelect';
 
-const formatVNNumber = (value) => {
-  if (value === null || value === undefined || value === "") return "";
-  const stringValue = value.toString();
-  const parts = stringValue.split(".");
-  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-  return parts.join(",");
+const toLocalDateTimeInput = (value) =>
+  value ? format(new Date(value), "yyyy-MM-dd'T'HH:mm") : '';
+
+const defaultValues = {
+  name: '',
+  code: '',
+  discountType: '1',
+  discountValue: 10,
+  minDiscount: 0,
+  maxDiscount: 0,
+  validFrom: toLocalDateTimeInput(new Date()),
+  validUntil: '',
+  quantity: 100,
+  status: '0',
 };
 
+const couponSchema = z.object({
+  name: z.string().trim().min(1, 'Tên phiếu giảm giá không được để trống').max(255),
+  code: z.string().trim().min(3, 'Mã giảm giá cần ít nhất 3 ký tự').max(255)
+    .regex(/^[A-Za-z0-9_-]+$/, 'Chỉ dùng chữ, số, dấu gạch dưới hoặc gạch ngang'),
+  discountType: z.enum(['1', '2']),
+  discountValue: z.coerce.number().positive('Giá trị giảm phải lớn hơn 0'),
+  minDiscount: z.coerce.number().min(0, 'Giá trị đơn hàng tối thiểu không được âm'),
+  maxDiscount: z.coerce.number().min(0, 'Mức giảm tối đa không được âm'),
+  validFrom: z.string().min(1, 'Chọn thời điểm bắt đầu'),
+  validUntil: z.string().min(1, 'Chọn thời điểm kết thúc'),
+  quantity: z.coerce.number().int().min(0, 'Số lượng không được âm'),
+  status: z.enum(['0', '1', '2']),
+}).superRefine((value, context) => {
+  if (value.discountType === '1' && value.discountValue > 100) {
+    context.addIssue({ code: 'custom', path: ['discountValue'], message: 'Giảm theo phần trăm không vượt quá 100%' });
+  }
+  if (new Date(value.validUntil) <= new Date(value.validFrom)) {
+    context.addIssue({ code: 'custom', path: ['validUntil'], message: 'Thời điểm kết thúc phải sau thời điểm bắt đầu' });
+  }
+});
 
+function buildFormValues(coupon) {
+  if (!coupon) return defaultValues;
+  return {
+    name: coupon.name ?? '',
+    code: coupon.code ?? '',
+    discountType: String(coupon.discountType ?? 1),
+    discountValue: coupon.discountValue ?? 0,
+    minDiscount: coupon.minDiscount ?? 0,
+    maxDiscount: coupon.maxDiscount ?? 0,
+    validFrom: toLocalDateTimeInput(coupon.validFrom),
+    validUntil: toLocalDateTimeInput(coupon.validUntil),
+    quantity: coupon.quantity ?? 0,
+    status: String(coupon.status ?? 0),
+  };
+}
 
-export function CouponFormModal({ isOpen, onOpenChange, onSave }) {
+export function CouponFormModal({ coupon, isOpen, onOpenChange, onSave }) {
   const form = useForm({
     resolver: zodResolver(couponSchema),
-    defaultValues: {
-      name: "",
-      code: "",
-      discountValue: 10,
-      minDiscount: 0,
-      maxDiscount: 0,
-      validFrom: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
-      validUntil: "",
-      quantity: 100,
-    },
+    defaultValues,
   });
+  const discountType = form.watch('discountType');
+  const isEditing = Boolean(coupon?.id);
+
+  useEffect(() => {
+    if (isOpen) form.reset(buildFormValues(coupon));
+  }, [coupon, form, isOpen]);
+
+  const closeModal = (open) => {
+    if (!open) form.reset(defaultValues);
+    onOpenChange(open);
+  };
 
   const onSubmit = async (data) => {
     const payload = {
-      ...data,
-      discountType: 1,
+      name: data.name.trim(),
+      code: data.code.trim().toUpperCase(),
+      discountType: Number(data.discountType),
+      discountValue: Number(data.discountValue),
+      minDiscount: Number(data.minDiscount),
+      maxDiscount: data.discountType === '1' ? Number(data.maxDiscount) : null,
       validFrom: new Date(data.validFrom).toISOString(),
       validUntil: new Date(data.validUntil).toISOString(),
+      quantity: Number(data.quantity),
+      status: Number(data.status),
     };
     const result = await onSave(payload);
-    if (result && result.success) {
-      onOpenChange(false);
-      form.reset();
-    }
+    if (result?.success) closeModal(false);
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+    <Dialog open={isOpen} onOpenChange={closeModal}>
+      <DialogContent className="sm:max-w-[640px]">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold flex items-center gap-2">
-            Tạo mã Phiếu giảm giá
+          <DialogTitle className="flex items-center gap-2 text-left">
+            <Ticket className="size-5 text-primary" />
+            {isEditing ? 'Cập nhật mã giảm giá' : 'Tạo mã giảm giá'}
           </DialogTitle>
         </DialogHeader>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 py-4">
-            <div className="grid grid-cols-4 gap-4">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem className="col-span-4">
-                    <FormLabel className="flex items-center gap-2">
-                      <Ticket className="w-4 h-4" /> Tên phiếu giảm giá
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        placeholder="Nhập tên chương trình giảm giá..."
-                        className="h-11 border-border bg-white"
-                      />
-                    </FormControl>
-                    <div className="min-h-[20px]">
-                      <FormMessage className="text-[11px]" />
-                    </div>
-                  </FormItem>
-                )}
-              />
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 py-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Controller control={form.control} name="name" render={({ field, fieldState }) => (
+              <AppInput {...field} label="Tên chương trình" containerClassName="sm:col-span-2"
+                placeholder="Ví dụ: Khuyến mãi khai giảng" error={fieldState.error?.message} />
+            )} />
+            <Controller control={form.control} name="code" render={({ field, fieldState }) => (
+              <AppInput {...field} label="Mã giảm giá" icon={Tag} className="font-mono uppercase tracking-wider"
+                placeholder="KHAIGIANG2026" error={fieldState.error?.message}
+                onChange={(event) => field.onChange(event.target.value.toUpperCase())} />
+            )} />
+            <Controller control={form.control} name="status" render={({ field, fieldState }) => (
+              <div className="space-y-1.5">
+                <p className="text-sm font-medium text-foreground">Trạng thái</p>
+                <AppSelect {...field} value={field.value} onValueChange={field.onChange} error={Boolean(fieldState.error)}
+                  options={[{ value: '0', label: 'Tạm ẩn' }, { value: '1', label: 'Hoạt động' }, { value: '2', label: 'Hết hạn' }]} />
+                {fieldState.error && <p className="text-xs text-error">{fieldState.error.message}</p>}
+              </div>
+            )} />
+            <Controller control={form.control} name="discountType" render={({ field, fieldState }) => (
+              <div className="space-y-1.5">
+                <p className="text-sm font-medium text-foreground">Loại giảm giá</p>
+                <AppSelect {...field} value={field.value} onValueChange={field.onChange} error={Boolean(fieldState.error)}
+                  options={[{ value: '1', label: 'Theo phần trăm' }, { value: '2', label: 'Theo số tiền' }]} />
+                {fieldState.error && <p className="text-xs text-error">{fieldState.error.message}</p>}
+              </div>
+            )} />
+            <Controller control={form.control} name="discountValue" render={({ field, fieldState }) => (
+              <AppInput {...field} type="number" min="0" step="1" label={discountType === '1' ? 'Phần trăm giảm' : 'Số tiền giảm'}
+                icon={discountType === '1' ? Percent : CircleDollarSign} rightElement={discountType === '1' ? '%' : 'đ'}
+                error={fieldState.error?.message} onChange={(event) => field.onChange(event.target.value)} />
+            )} />
+            <Controller control={form.control} name="minDiscount" render={({ field, fieldState }) => (
+              <AppInput {...field} type="number" min="0" step="1000" label="Giá trị đơn hàng tối thiểu" icon={CircleDollarSign}
+                rightElement="đ" error={fieldState.error?.message} onChange={(event) => field.onChange(event.target.value)} />
+            )} />
+            {discountType === '1' && <Controller control={form.control} name="maxDiscount" render={({ field, fieldState }) => (
+              <AppInput {...field} type="number" min="0" step="1000" label="Mức giảm tối đa" icon={CircleDollarSign}
+                rightElement="đ" error={fieldState.error?.message} onChange={(event) => field.onChange(event.target.value)} />
+            )} />}
+            <Controller control={form.control} name="quantity" render={({ field, fieldState }) => (
+              <AppInput {...field} type="number" min="0" step="1" label="Số lượng phát hành" icon={Package}
+                error={fieldState.error?.message} onChange={(event) => field.onChange(event.target.value)} />
+            )} />
+            <Controller control={form.control} name="validFrom" render={({ field, fieldState }) => (
+              <AppInput {...field} type="datetime-local" label="Bắt đầu áp dụng" icon={Calendar} error={fieldState.error?.message} />
+            )} />
+            <Controller control={form.control} name="validUntil" render={({ field, fieldState }) => (
+              <AppInput {...field} type="datetime-local" label="Kết thúc áp dụng" icon={Calendar} error={fieldState.error?.message} />
+            )} />
+          </div>
 
-              <FormField
-                control={form.control}
-                name="code"
-                render={({ field }) => (
-                  <FormItem className="col-span-2">
-                    <FormLabel className="flex items-center gap-2">
-                      <Ticket className="w-4 h-4" /> Mã giảm giá (VD: GS2024)
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        placeholder="NHẬP MÃ TẠI ĐÂY"
-                        className="h-11 border-border bg-white font-bold tracking-widest uppercase focus-visible:ring-primary"
-                      />
-                    </FormControl>
-                    <div className="min-h-[20px]">
-                      <FormMessage className="text-[11px]" />
-                    </div>
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="discountValue"
-                render={({ field }) => (
-                  <FormItem className="col-span-1">
-                    <FormLabel className="flex items-center gap-2">
-                      <Percent className="w-4 h-4" /> Phần trăm giảm
-                    </FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Input
-                          type="text"
-                          className="h-11 border-border bg-white pr-8 text-right font-medium"
-                          value={field.value}
-                          onChange={(e) => {
-                            const clean = e.target.value.replace(/[^0-9]/g, '');
-                            field.onChange(clean === '' ? 0 : Number(clean));
-                          }}
-                        />
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold pointer-events-none">
-                          %
-                        </span>
-                      </div>
-                    </FormControl>
-                    <div className="min-h-[20px]">
-                      <FormMessage className="text-[11px]" />
-                    </div>
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="quantity"
-                render={({ field }) => (
-                  <FormItem className="col-span-1">
-                    <FormLabel className="flex items-center gap-2">
-                      <Package className="w-4 h-4" /> Số lượng
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        type="text"
-                        className="h-11 border-border bg-white text-right font-medium"
-                        value={formatVNNumber(field.value)}
-                        onChange={(e) => {
-                          const clean = e.target.value.replace(/[^0-9]/g, '');
-                          field.onChange(clean === '' ? 0 : Number(clean));
-                        }}
-                      />
-                    </FormControl>
-                    <div className="min-h-[20px]">
-                      <FormMessage className="text-[11px]" />
-                    </div>
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="minDiscount"
-                render={({ field }) => (
-                  <FormItem className="col-span-2">
-                    <FormLabel className="flex items-center gap-2">
-                      <CircleDollarSign className="w-4 h-4" /> Giảm tối thiểu
-                    </FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Input
-                          type="text"
-                          className="h-11 border-border bg-white pr-8 text-right font-medium"
-                          value={formatVNNumber(field.value)}
-                          onChange={(e) => {
-                            const clean = e.target.value.replace(/[^0-9]/g, '');
-                            field.onChange(clean === '' ? 0 : Number(clean));
-                          }}
-                        />
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold pointer-events-none">
-                          đ
-                        </span>
-                      </div>
-                    </FormControl>
-                    <div className="min-h-[20px]">
-                      <FormMessage className="text-[11px]" />
-                    </div>
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="maxDiscount"
-                render={({ field }) => (
-                  <FormItem className="col-span-2">
-                    <FormLabel className="flex items-center gap-2">
-                      <CircleDollarSign className="w-4 h-4" /> Giảm tối đa
-                    </FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Input
-                          type="text"
-                          className="h-11 border-border bg-white pr-8 text-right font-medium"
-                          value={formatVNNumber(field.value)}
-                          onChange={(e) => {
-                            const clean = e.target.value.replace(/[^0-9]/g, '');
-                            field.onChange(clean === '' ? 0 : Number(clean));
-                          }}
-                        />
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold pointer-events-none">
-                          đ
-                        </span>
-                      </div>
-                    </FormControl>
-                    <div className="min-h-[20px]">
-                      <FormMessage className="text-[11px]" />
-                    </div>
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="validFrom"
-                render={({ field }) => (
-                  <FormItem className="col-span-2">
-                    <FormLabel className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4" /> Ngày bắt đầu
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        type="datetime-local"
-                        {...field}
-                        className="h-11 border-border bg-white"
-                      />
-                    </FormControl>
-                    <div className="min-h-[20px]">
-                      <FormMessage className="text-[11px]" />
-                    </div>
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="validUntil"
-                render={({ field }) => (
-                  <FormItem className="col-span-2">
-                    <FormLabel className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4" /> Ngày hết hạn
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        type="datetime-local"
-                        {...field}
-                        className="h-11 border-border bg-white"
-                      />
-                    </FormControl>
-                    <div className="min-h-[20px]">
-                      <FormMessage className="text-[11px]" />
-                    </div>
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <DialogFooter className="pt-4 gap-2">
-              <AppButton appVariant="ghostMuted" variant="ghost"
-                type="button"
-                onClick={() => form.reset()}
-                className="px-6 border border-border"
-              >
-                Tạo lại
-              </AppButton>
-              <AppButton appVariant="gradient" type="submit" className="px-8 font-bold">
-                Tạo mã ngay
-              </AppButton>
-            </DialogFooter>
-          </form>
-        </Form>
+          <DialogFooter className="gap-2">
+            <AppButton type="button" appVariant="ghostMuted" onClick={() => closeModal(false)}>Hủy</AppButton>
+            <AppButton type="submit" appVariant="gradient">{isEditing ? 'Lưu thay đổi' : 'Tạo mã giảm giá'}</AppButton>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );

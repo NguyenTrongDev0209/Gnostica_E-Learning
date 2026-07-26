@@ -27,6 +27,7 @@ public class CouponResponse {
     private Integer status;
     private String metadata;
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
     private UUID accountId;
     private String accountName;
 }

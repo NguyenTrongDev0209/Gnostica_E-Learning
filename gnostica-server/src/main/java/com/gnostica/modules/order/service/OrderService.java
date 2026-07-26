@@ -132,7 +132,7 @@ public class OrderService {
             // Validate coupon (throws exception if invalid)
             couponService.validateCoupon(requestBody.getCouponCode());
             
-            appliedCoupon = couponRepository.findByCode(requestBody.getCouponCode().toUpperCase())
+            appliedCoupon = couponRepository.findByCodeAndDeletedAtIsNull(requestBody.getCouponCode().toUpperCase())
                     .orElseThrow(() -> new IllegalArgumentException("Mã giảm giá không tồn tại"));
             
             // Deduct coupon quantity
