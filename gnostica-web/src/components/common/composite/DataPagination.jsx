@@ -22,7 +22,7 @@ export default function DataPagination({
 
     return (
         <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-t border-border/50 bg-muted/30 gap-4">
-            <div className="flex flex-col sm:flex-row items-center gap-4 text-sm font-medium text-muted-foreground whitespace-nowrap">
+            <div className="flex flex-col sm:flex-row items-center gap-4 text-sm font-medium text-foreground whitespace-nowrap">
                 <div className="flex items-center gap-2">
                     <span>Xem</span>
                     <AppSelect 

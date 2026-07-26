@@ -21,9 +21,16 @@ import {
   Percent,
   ShieldCheck,
   Headphones,
-  Shield
+  Shield,
+  GraduationCap
 } from "lucide-react";
 import { AppLogo } from "@/components/common/micro/AppButton";
+
+export const ADMIN_USERS_SUB_ITEMS = [
+  { label: "Người dùng", icon: Users, href: "/admin/users?tab=USER", tab: "USER" },
+  { label: "Giảng viên", icon: GraduationCap, href: "/admin/users?tab=INSTRUCTOR", tab: "INSTRUCTOR" },
+  { label: "Chờ duyệt", icon: ShieldCheck, href: "/admin/users?tab=PENDING_APP", tab: "PENDING_APP" },
+];
 
 export const ADMIN_SETTINGS_SUB_ITEMS = [
   { label: "Cài đặt chung", icon: Globe, href: "/admin/settings?tab=general", tab: "general" },
@@ -45,7 +52,7 @@ export const ADMIN_MENU_GROUPS = [
     title: "QUẢN LÝ CHUNG",
     items: [
       { label: "Tổng quan", icon: LayoutDashboard, href: "/admin" },
-      { label: "Người dùng", icon: Users, href: "/admin/users" },
+      { label: "Người dùng", icon: Users, href: "/admin/users", children: ADMIN_USERS_SUB_ITEMS },
     ]
   },
   {

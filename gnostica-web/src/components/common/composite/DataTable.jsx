@@ -35,23 +35,21 @@ export default function DataTable({
 }) {
 
     return (
-        <div className={cn("w-full bg-white border border-border rounded-xl shadow-sm overflow-hidden flex flex-col", className)}>
-            <div className="flex-1 overflow-hidden">
-                <AppTable 
-                    columns={columns}
-                    data={data}
-                    isLoading={isLoading}
-                    loadingState={loadingState}
-                    emptyState={emptyState}
-                    rowClassName={rowClassName}
-                    onRowClick={onRowClick}
-                    rowKey={rowKey}
-                    renderExpandedRow={renderExpandedRow}
-                    hideWrapperStyle={true}
-                    className="border-0 shadow-none rounded-none"
-                    {...props}
-                />
-            </div>
+        <div className={cn("w-full bg-white border border-border rounded-xl shadow-sm overflow-hidden", className)}>
+            <AppTable 
+                columns={columns}
+                data={data}
+                isLoading={isLoading}
+                loadingState={loadingState}
+                emptyState={emptyState}
+                rowClassName={rowClassName}
+                onRowClick={onRowClick}
+                rowKey={rowKey}
+                renderExpandedRow={renderExpandedRow}
+                hideWrapperStyle={true}
+                className="border-0 shadow-none rounded-none"
+                {...props}
+            />
 
             {/* Pagination & Display Info */}
             <DataPagination pagination={pagination} dataLength={data?.length || 0} />

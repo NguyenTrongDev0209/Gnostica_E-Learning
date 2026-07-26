@@ -24,13 +24,13 @@ public class Coupon {
     private UUID id;
 
     @NotNull
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "account_id", updatable = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "account_id", nullable = false, updatable = false)
     private Account account;
 
     @NotBlank
     @Size(max = 255)
-    @Column(unique = true)
+    @Column(nullable = false, unique = true)
     private String code;
 
     @NotBlank
