@@ -5,14 +5,16 @@ import couponService from '@/services/order/couponService';
 const getErrorMessage = (error, fallback) =>
   error?.response?.data?.message || fallback;
 
-export function useCoupons() {
+export function useCoupons({ adminOwnerType } = {}) {
   const [coupons, setCoupons] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const fetchCoupons = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await couponService.getMyCoupons();
+      const response = adminOwnerType
+        ? await couponService.getAdminCoupons(adminOwnerType)
+        : await couponService.getMyCoupons();
       setCoupons(Array.isArray(response?.data) ? response.data : []);
     } catch (error) {
       console.error('Failed to fetch coupons', error);
@@ -20,7 +22,7 @@ export function useCoupons() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [adminOwnerType]);
 
   useEffect(() => {
     fetchCoupons();

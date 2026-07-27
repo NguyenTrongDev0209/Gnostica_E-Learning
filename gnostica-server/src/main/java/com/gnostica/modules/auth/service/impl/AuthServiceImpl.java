@@ -320,12 +320,15 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public java.util.List<Account> getAccountsByRole(String roleName) {
+    public org.springframework.data.domain.Page<Account> getAccountsByRole(String roleName, int page, int size) {
         roleRepository.findByName(roleName)
                 .orElseThrow(() -> new RuntimeException("Role khong ton tai."));
-        return accountRepository.findAll().stream()
-                .filter(a -> a.getRole() != null && a.getRole().getName().equalsIgnoreCase(roleName))
-                .collect(java.util.stream.Collectors.toList());
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(
+                page,
+                size,
+                org.springframework.data.domain.Sort.by("createdAt").descending()
+        );
+        return accountRepository.findByRoleNameIgnoreCase(roleName, pageable);
     }
 
     @Override

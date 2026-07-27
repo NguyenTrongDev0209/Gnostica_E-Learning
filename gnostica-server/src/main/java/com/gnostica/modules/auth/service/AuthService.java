@@ -18,7 +18,7 @@ public interface AuthService {
     
     // Quản lý Account cho Admin
     java.util.List<Account> getAllAccounts();
-    java.util.List<Account> getAccountsByRole(String roleName);
+    org.springframework.data.domain.Page<Account> getAccountsByRole(String roleName, int page, int size);
     void lockAccount(java.util.UUID id, String reason);
     void unlockAccount(java.util.UUID id);
     void updateAvatar(String email, String avatarUrl);

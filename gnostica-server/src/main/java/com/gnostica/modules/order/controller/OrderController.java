@@ -8,6 +8,7 @@ import com.gnostica.modules.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 import java.util.UUID;
 import java.util.List;
 
@@ -20,6 +21,7 @@ public class OrderController {
 	private final OrderService orderService;
 
 	@GetMapping(value = "/all")
+	@PreAuthorize("hasRole('ADMIN')")
 	public ApiResponse<List<OrderResponse>> getAllOrders() {
 		try {
 			return ApiResponse.success(orderService.getAllOrders());
@@ -75,6 +77,7 @@ public class OrderController {
 	}
 
 	@GetMapping("/paged")
+	@PreAuthorize("hasRole('ADMIN')")
 	public ApiResponse<org.springframework.data.domain.Page<OrderResponse>> getOrdersPaginated(
 			@RequestParam(defaultValue = "0") int page,
 			@RequestParam(defaultValue = "10") int size) {

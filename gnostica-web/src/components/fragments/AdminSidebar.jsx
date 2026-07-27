@@ -47,6 +47,11 @@ export const ADMIN_SETTINGS_SUB_ITEMS = [
   { label: "Bảo mật", icon: Shield, href: "/admin/settings?tab=security", tab: "security" },
 ];
 
+export const ADMIN_COUPONS_SUB_ITEMS = [
+  { label: "Nền tảng", icon: Globe, href: "/admin/coupons?tab=platform", tab: "platform" },
+  { label: "Giảng viên", icon: GraduationCap, href: "/admin/coupons?tab=instructors", tab: "instructors" },
+];
+
 export const ADMIN_MENU_GROUPS = [
   {
     title: "QUẢN LÝ CHUNG",
@@ -73,7 +78,7 @@ export const ADMIN_MENU_GROUPS = [
     title: "KINH DOANH",
     items: [
       { label: "Đơn hàng", icon: ShoppingCart, href: "/admin/orders" },
-      { label: "Phiếu giảm", icon: Ticket, href: "/admin/coupons" },
+      { label: "Phiếu giảm", icon: Ticket, href: "/admin/coupons", children: ADMIN_COUPONS_SUB_ITEMS },
       { label: "Giao dịch", icon: History, href: "/admin/transactions" },
     ]
   },

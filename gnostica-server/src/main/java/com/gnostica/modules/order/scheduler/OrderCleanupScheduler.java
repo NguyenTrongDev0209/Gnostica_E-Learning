@@ -3,6 +3,7 @@ package com.gnostica.modules.order.scheduler;
 import com.gnostica.core.constant.OrderStatus;
 import com.gnostica.core.model.Order;
 import com.gnostica.core.repository.OrderRepository;
+import com.gnostica.core.repository.CouponRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -18,6 +19,7 @@ import java.util.List;
 public class OrderCleanupScheduler {
 
     private final OrderRepository orderRepository;
+    private final CouponRepository couponRepository;
 
     /**
      * Chạy định kỳ mỗi 1 tiếng (3600000 ms)
@@ -35,6 +37,10 @@ public class OrderCleanupScheduler {
             for (Order order : expiredOrders) {
                 order.setStatus(OrderStatus.CANCELLED);
                 orderRepository.save(order);
+                if (order.getCoupon() != null && order.getCoupon().getReservedQuantity() != null) {
+                    order.getCoupon().setReservedQuantity(Math.max(0, order.getCoupon().getReservedQuantity() - 1));
+                    couponRepository.save(order.getCoupon());
+                }
             }
             log.info("Finished cancelling expired orders.");
         }

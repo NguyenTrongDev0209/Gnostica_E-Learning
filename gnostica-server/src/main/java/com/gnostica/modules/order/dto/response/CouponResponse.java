@@ -24,10 +24,16 @@ public class CouponResponse {
     private LocalDateTime validFrom;
     private LocalDateTime validUntil;
     private Integer quantity;
+    private Long usedCount;
+    private Integer totalQuantity;
     private Integer status;
     private String metadata;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private UUID accountId;
     private String accountName;
+    private String accountEmail;
+    private String accountAvatar;
+    /** PLATFORM for an administrator-funded coupon, otherwise INSTRUCTOR. */
+    private String sponsorType;
 }
