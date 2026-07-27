@@ -1,19 +1,65 @@
 import AppText from '../../../components/ui/AppText';
-import React from 'react';
-import { View, Image, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { Star, Users } from 'lucide-react-native';
+import { Star, Users, Bookmark } from 'lucide-react-native';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { LinearGradient } from 'expo-linear-gradient';
 import Avatar from '../../../components/ui/Avatar';
+import wishlistService from '../../../services/course/wishlistService';
+import { useAuth } from '../../../context/AuthContext';
 
 const CourseCard = ({ course, width }) => {
     const navigation = useNavigation();
+    const { user } = useAuth();
+
+    const [isSaved, setIsSaved] = useState(false);
+    const [loadingSave, setLoadingSave] = useState(false);
 
     // Calculate discount
     const currentPrice = parseInt(course?.price?.replace(/\D/g, '')) || 0;
     const originalPrice = parseInt(course?.originalPrice?.replace(/\D/g, '')) || 0;
     const discount = originalPrice > 0 ? Math.round(((originalPrice - currentPrice) / originalPrice) * 100) : 0;
+
+    const courseId = course?.id || course?.courseId;
+
+    useEffect(() => {
+        if (!user || !courseId) return;
+        wishlistService.check(courseId)
+            .then(res => {
+                const data = res?.data ?? res;
+                setIsSaved(
+                    data === true ||
+                    data?.isFavourite === true ||
+                    data?.wishlisted === true ||
+                    data?.saved === true
+                );
+            })
+            .catch(() => {});
+    }, [user, courseId]);
+
+    const handleToggleSave = async (e) => {
+        e?.stopPropagation?.();
+        if (!user) {
+            navigation.navigate('Login');
+            return;
+        }
+        if (!courseId) return;
+        setLoadingSave(true);
+        try {
+            const res = await wishlistService.toggle(courseId);
+            const data = res?.data ?? res;
+            if (data?.isFavourite !== undefined) {
+                setIsSaved(data.isFavourite);
+            } else {
+                setIsSaved(prev => !prev);
+            }
+        } catch (err) {
+            console.error('Toggle wishlist error:', err);
+        } finally {
+            setLoadingSave(false);
+        }
+    };
 
     return (
         <TouchableOpacity
@@ -81,7 +127,7 @@ const CourseCard = ({ course, width }) => {
                 {/* Separator Line */}
                 <View className="h-[1px] bg-slate-100 mb-2" />
 
-                {/* Footer Row (Price) */}
+                {/* Footer Row: Price + Bookmark */}
                 <View className="flex-row items-center justify-between">
                     <View className="flex-row items-end gap-1.5 flex-wrap flex-1">
                         <MaskedView
@@ -107,13 +153,54 @@ const CourseCard = ({ course, width }) => {
                             </AppText>
                         )}
                     </View>
-                    {discount > 0 && (
-                        <View className="bg-red-50 px-1.5 py-0.5 rounded ml-1">
-                            <AppText className="text-red-500 text-[10px] font-bold">
-                                -{discount}%
-                            </AppText>
-                        </View>
-                    )}
+
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        {discount > 0 && (
+                            <View className="bg-red-50 px-1.5 py-0.5 rounded">
+                                <AppText className="text-red-500 text-[10px] font-bold">
+                                    -{discount}%
+                                </AppText>
+                            </View>
+                        )}
+
+                        {/* Bookmark button */}
+                        <TouchableOpacity
+                            onPress={handleToggleSave}
+                            activeOpacity={0.8}
+                            style={{
+                                width: 30,
+                                height: 30,
+                                borderRadius: 15,
+                                backgroundColor: 'transparent',
+                                overflow: 'hidden',
+                            }}
+                        >
+                            {loadingSave ? (
+                                <View style={{
+                                    width: 30, height: 30, borderRadius: 15,
+                                    backgroundColor: '#FFF7ED',
+                                    alignItems: 'center', justifyContent: 'center',
+                                }}>
+                                    <ActivityIndicator size="small" color="#ea580c" />
+                                </View>
+                            ) : (
+                                <LinearGradient
+                                    colors={isSaved ? ['#fb923c', '#ea580c'] : ['#f1f5f9', '#e2e8f0']}
+                                    style={{
+                                        width: 30, height: 30, borderRadius: 15,
+                                        alignItems: 'center', justifyContent: 'center',
+                                    }}
+                                >
+                                    <Bookmark
+                                        size={15}
+                                        color={isSaved ? '#fff' : '#94a3b8'}
+                                        fill={isSaved ? '#fff' : 'transparent'}
+                                        strokeWidth={2}
+                                    />
+                                </LinearGradient>
+                            )}
+                        </TouchableOpacity>
+                    </View>
                 </View>
             </View>
         </TouchableOpacity>

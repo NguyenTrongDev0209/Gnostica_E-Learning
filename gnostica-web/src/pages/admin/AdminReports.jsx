@@ -1,4 +1,4 @@
-﻿import threadReportService from "@/services/forum/threadReportService";
+import threadReportService from "@/services/forum/threadReportService";
 import { supportService } from "@/services/admin/supportService";
 import React, { useState, useEffect } from "react";
 import {
@@ -318,8 +318,7 @@ export default function AdminReports() {
     try {
       const data = await threadReportService.getReports(0, 50);
       const allReports = data.content || data || [];
-      const activeReports = allReports.filter(report => report.status !== "DISMISSED");
-      setReports(activeReports);
+      setReports(allReports);
     } catch (error) {
       console.error("Error fetching reports:", error);
       toast.error("Không thể tải danh sách báo cáo");

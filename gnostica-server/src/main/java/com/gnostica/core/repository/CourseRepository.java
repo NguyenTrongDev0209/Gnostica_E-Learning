@@ -135,12 +135,19 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
     )
     java.util.List<Object[]> countModerationStats();
     @org.springframework.data.jpa.repository.Query(
-        "SELECT c FROM Course c WHERE c.status = 1 AND c.deletedAt IS NULL " +
-        "AND (CAST(:level AS String) IS NULL OR c.level = :level) " +
-        "AND (CAST(:categoryIds AS integer) IS NULL OR c.category.id IN :categoryIds OR c.category.parent.id IN :categoryIds)"
+        value = "SELECT c FROM Course c JOIN FETCH c.account JOIN FETCH c.category cat LEFT JOIN cat.parent parent " +
+                "WHERE c.status = 1 AND c.deletedAt IS NULL " +
+                "AND (:filterLevel = false OR c.level = :level) " +
+                "AND (:filterCategory = false OR cat.id IN :categoryIds OR parent.id IN :categoryIds)",
+        countQuery = "SELECT COUNT(c) FROM Course c JOIN c.category cat LEFT JOIN cat.parent parent " +
+                "WHERE c.status = 1 AND c.deletedAt IS NULL " +
+                "AND (:filterLevel = false OR c.level = :level) " +
+                "AND (:filterCategory = false OR cat.id IN :categoryIds OR parent.id IN :categoryIds)"
     )
     org.springframework.data.domain.Page<Course> findRecommendedCourses(
+            @org.springframework.data.repository.query.Param("filterLevel") boolean filterLevel,
             @org.springframework.data.repository.query.Param("level") String level,
+            @org.springframework.data.repository.query.Param("filterCategory") boolean filterCategory,
             @org.springframework.data.repository.query.Param("categoryIds") java.util.Collection<Integer> categoryIds,
             org.springframework.data.domain.Pageable pageable);
 }

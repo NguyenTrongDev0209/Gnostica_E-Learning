@@ -386,9 +386,29 @@ export const ForumPostCard = ({ post, className, displayMode = "compact", topicC
 
   if (!post) return null;
 
-  const topicName = post.topic?.title || post.category || "Thảo luận";
+  const getDisplayHashtag = (postObj) => {
+    if (postObj.tags && Array.isArray(postObj.tags) && postObj.tags.length > 0) {
+      const valid = postObj.tags.filter(Boolean).slice(0, 3);
+      if (valid.length > 0) {
+        return valid.map(t => (t.startsWith('#') ? t : `#${t}`)).join(' ');
+      }
+    }
+    if (postObj.hashtags && Array.isArray(postObj.hashtags) && postObj.hashtags.length > 0) {
+      const valid = postObj.hashtags.map(h => h.hashtag?.name || h.name || String(h)).filter(Boolean).slice(0, 3);
+      if (valid.length > 0) {
+        return valid.map(t => (t.startsWith('#') ? t : `#${t}`)).join(' ');
+      }
+    }
+    const cat = postObj.topic?.title || postObj.topic?.name || postObj.category;
+    if (!cat || cat === "Thảo luận" || cat === "Chung") {
+      return "#Gnostica";
+    }
+    return cat.startsWith('#') ? cat : `#${cat.replace(/\s+/g, '')}`;
+  };
+
+  const topicName = getDisplayHashtag(post);
   const topicAvatar = post.topic?.avatarUrl || post.topicAvatar;
-  const topicInitial = topicName.trim().substring(0, 1).toUpperCase() || "G";
+  const topicInitial = topicName.trim().replace(/^#/, '').substring(0, 1).toUpperCase() || "G";
   const topicSlug = post.topic?.slug || post.topicSlug;
   const postUrl = topicSlug ? `/forum/${topicSlug}/${post.slug || post.id}` : `/forum/${post.slug || post.id}`;
   const topicUrl = topicSlug ? `/forum/topic/${topicSlug}` : "/forum";
@@ -535,8 +555,8 @@ export const ForumPostCard = ({ post, className, displayMode = "compact", topicC
                 <div className="flex items-center gap-2 mb-2 text-sm text-muted-foreground flex-wrap max-w-full">
                   {!topicContext && (
                     <>
-                      <Link to={topicUrl} className="font-semibold text-primary hover:text-primary/80 truncate max-w-[200px]">
-                        {post.category}
+                      <Link to={topicUrl} className="font-semibold text-primary hover:text-primary/80 truncate max-w-[250px]">
+                        {topicName}
                       </Link>
                       <span>•</span>
                     </>

@@ -7,5 +7,5 @@ import com.gnostica.core.model.Report;
 @Repository
 public interface ReportRepository extends JpaRepository<Report, Integer> {
     void deleteByTargetIdAndTargetType(String targetId, String targetType);
+    boolean existsByTargetIdAndTargetTypeAndAccount_Email(String targetId, String targetType, String email);
 }
-

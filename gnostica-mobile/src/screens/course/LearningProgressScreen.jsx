@@ -28,10 +28,23 @@ export default function LearningProgressScreen() {
 
                 const statsData = statsRes.data || statsRes;
                 if (statsData) {
+                    const activeCount = statsData.enrolledCourses != null
+                        ? Math.max(0, statsData.enrolledCourses - (statsData.completedCourses || 0))
+                        : (courseData?.filter?.(c => !c.completed && c.progress < 100)?.length || 0);
+
+                    const completedCount = statsData.completedCourses != null
+                        ? statsData.completedCourses
+                        : (courseData?.filter?.(c => c.completed || c.progress === 100)?.length || 0);
+
+                    // hoursStudied trả về từ backend /api/enrollments/stats dựa trên thời lượng video bài học đã xem
+                    const hours = statsData.hoursStudied != null
+                        ? statsData.hoursStudied
+                        : (statsData.totalHours || statsData.hours || 0);
+
                     setStats({
-                        active: statsData.active || courseData?.filter?.(c => c.progress < 100).length || 0,
-                        completed: statsData.completed || courseData?.filter?.(c => c.progress === 100).length || 0,
-                        hours: statsData.totalHours || statsData.hours || 0
+                        active: activeCount,
+                        completed: completedCount,
+                        hours: hours
                     });
                 }
             } catch (error) {
@@ -81,7 +94,7 @@ export default function LearningProgressScreen() {
                             </View>
                         ) : (
                             courses.map(course => {
-                                const progress = course.progress || 0;
+                                const progress = course.progress != null ? course.progress : (course.progressPercent || 0);
                                 const completedLessons = course.completedLessons || 0;
                                 const totalLessons = course.totalLessons || 0;
 
@@ -90,15 +103,17 @@ export default function LearningProgressScreen() {
                                         <AppText className="text-sm font-bold text-slate-800 mb-3" numberOfLines={2}>{course.title || course.courseTitle}</AppText>
                                         <View className="flex-row justify-between mb-1.5 items-end">
                                             <AppText className="text-xs text-slate-500 font-medium">Tiến độ {progress}%</AppText>
-                                            <AppText className="text-[10px] text-slate-400">{completedLessons}/{totalLessons} bài</AppText>
+                                            {totalLessons > 0 && (
+                                                <AppText className="text-[10px] text-slate-400">{completedLessons}/{totalLessons} bài</AppText>
+                                            )}
                                         </View>
                                         <View className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                                            <View 
-                                                className={`h-full ${progress === 100 ? 'bg-emerald-500' : 'bg-blue-500'}`} 
-                                                style={{ width: `${progress}%` }} 
+                                            <View
+                                                className={`h-full ${progress === 100 ? 'bg-emerald-500' : 'bg-blue-500'}`}
+                                                style={{ width: `${progress}%` }}
                                             />
                                         </View>
-                                        {progress === 100 && (
+                                        {(progress === 100 || course.completed) && (
                                             <View className="flex-row items-center mt-3 gap-1">
                                                 <CheckCircle2 size={14} color="#10B981" />
                                                 <AppText className="text-xs font-semibold text-emerald-500">Đã hoàn thành</AppText>
