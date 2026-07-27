@@ -1,14 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Calendar, Copy, Edit, Plus, RotateCw, Ticket, Trash2 } from 'lucide-react';
+import { Copy, Edit, Eye, Plus, RotateCw, Ticket, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import DataTable from '@/components/common/composite/DataTable';
 import { AppButton, TableActionIconButton } from '@/components/common/micro/AppButton';
-import AppCard, { AppCardContent } from '@/components/common/micro/AppCard';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/common/micro/AppDialog';
-import AppInput from '@/components/common/micro/AppInput';
 import AppBadge from '@/components/common/micro/AppBadge';
-import AppSelect from '@/components/common/micro/AppSelect';
+import AppAvatar from '@/components/common/micro/AppAvatar';
 import DataFilter from '@/components/common/composite/DataFilter';
 import { Tabs, TabsList, TabsTrigger } from '@/components/common/micro/AppTabs';
 import { useCoupons } from '@/hooks/order/useCoupons';
@@ -39,14 +37,13 @@ export function CouponManagementPage({ title, description, adminLayout = false, 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState([]);
   const [dateRange, setDateRange] = useState({ from: undefined, to: undefined });
-  const [discountType, setDiscountType] = useState(adminLayout ? '1' : 'all');
+  const [discountType, setDiscountType] = useState('1');
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingCoupon, setEditingCoupon] = useState(null);
   const [couponToDelete, setCouponToDelete] = useState(null);
-  const status = statusFilter[0] ?? 'all';
-  const setStatus = (value) => setStatusFilter(value === 'all' ? [] : [value]);
+  const [couponToView, setCouponToView] = useState(null);
 
   const filteredCoupons = useMemo(() => coupons.filter((coupon) => {
     const query = search.trim().toLowerCase();
@@ -64,9 +61,7 @@ export function CouponManagementPage({ title, description, adminLayout = false, 
   }, [dateRange, discountType, pageSize, search, statusFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filteredCoupons.length / pageSize));
-  const paginatedCoupons = adminLayout
-    ? filteredCoupons.slice(currentPage * pageSize, (currentPage + 1) * pageSize)
-    : filteredCoupons;
+  const paginatedCoupons = filteredCoupons.slice(currentPage * pageSize, (currentPage + 1) * pageSize);
 
   const openCreateForm = () => {
     setEditingCoupon(null);
@@ -97,11 +92,11 @@ export function CouponManagementPage({ title, description, adminLayout = false, 
   };
 
   const columns = [
-    ...(adminLayout ? [{
+    {
       header: 'STT', width: '72px', align: 'center', headerAlign: 'center',
       className: 'py-4 whitespace-nowrap', cellClassName: 'py-4 text-center font-bold text-muted-foreground whitespace-nowrap',
       render: (_coupon, index) => currentPage * pageSize + index + 1,
-    }] : []),
+    },
     {
       header: 'Chương trình',
       className: 'py-4', cellClassName: 'py-4',
@@ -110,12 +105,12 @@ export function CouponManagementPage({ title, description, adminLayout = false, 
         : <div className="space-y-1"><p className="text-sm font-bold text-foreground">{coupon.name}</p><div className="flex items-center gap-1"><TableActionIconButton icon={Copy} title="Sao chép mã giảm giá" className="h-6 w-6" onClick={() => copyCouponCode(coupon.code)} /><span className="font-mono text-xs font-semibold tracking-wide text-primary">{coupon.code}</span></div></div>,
     },
     ...(adminOwnerType === 'INSTRUCTOR' ? [{
-      header: 'Giảng viên',
-      className: 'py-4 whitespace-nowrap', cellClassName: 'py-4 text-sm font-medium text-foreground whitespace-nowrap',
-      render: (coupon) => coupon.accountName || <span className="text-xs italic text-muted-foreground">(Chưa xác định)</span>,
+      header: 'Tác giả',
+      className: 'py-4 whitespace-nowrap', cellClassName: 'py-4 whitespace-nowrap',
+      render: (coupon) => <div className="flex items-center gap-3"><AppAvatar src={coupon.accountAvatar} alt={coupon.accountName} size="sm" /><div className="min-w-0"><p className="truncate text-sm font-bold text-foreground">{coupon.accountName || 'Chưa xác định'}</p><p className="truncate text-xs text-muted-foreground">{coupon.accountEmail || '--'}</p></div></div>,
     }] : []),
     {
-      header: 'Giảm giá',
+      header: 'Giá trị',
       align: 'center', headerAlign: 'center', className: 'py-4 whitespace-nowrap', cellClassName: 'py-4 text-center whitespace-nowrap',
       render: (coupon) => <span className="font-bold text-primary">{formatDiscount(coupon)}</span>,
     },
@@ -130,18 +125,21 @@ export function CouponManagementPage({ title, description, adminLayout = false, 
       ),
     },
     {
-      header: 'Thời hạn',
-      align: 'center', headerAlign: 'center', className: 'py-4 whitespace-nowrap', cellClassName: 'py-4 text-center whitespace-nowrap',
-      render: (coupon) => (
-        <div className="text-xs leading-5 text-muted-foreground">
-          <p className="font-medium text-foreground">{formatDateTime(coupon.validFrom)}</p>
-          <p>đến {formatDateTime(coupon.validUntil)}</p>
-        </div>
-      ),
+      header: 'Bắt đầu', align: 'center', headerAlign: 'center', className: 'py-4 whitespace-nowrap', cellClassName: 'py-4 text-center text-sm font-medium whitespace-nowrap',
+      render: (coupon) => formatDateTime(coupon.validFrom),
     },
     {
-      header: 'Phát hành', align: 'center', headerAlign: 'center', className: 'py-4 whitespace-nowrap', cellClassName: 'py-4 text-center text-sm font-medium whitespace-nowrap',
-      render: (coupon) => Number(coupon.quantity ?? 0).toLocaleString('vi-VN'),
+      header: 'Hết hạn', align: 'center', headerAlign: 'center', className: 'py-4 whitespace-nowrap', cellClassName: 'py-4 text-center text-sm font-medium whitespace-nowrap',
+      render: (coupon) => formatDateTime(coupon.validUntil),
+    },
+    {
+      header: 'Lượt dùng', align: 'center', headerAlign: 'center', className: 'py-4 whitespace-nowrap', cellClassName: 'py-4 text-center whitespace-nowrap',
+      render: (coupon) => {
+        const usedCount = Number(coupon.usedCount ?? 0);
+        const totalQuantity = Number(coupon.totalQuantity ?? coupon.quantity ?? 0);
+        const usagePercent = totalQuantity > 0 ? Math.min(100, Math.round((usedCount / totalQuantity) * 100)) : 0;
+        return <div className="mx-auto w-[130px] space-y-1.5"><div className="flex items-center justify-between text-xs"><span className="font-semibold text-foreground">{usedCount}/{totalQuantity}</span><span className="font-medium text-muted-foreground">{usagePercent}%</span></div><div className="h-1.5 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-primary transition-all" style={{ width: `${usagePercent}%` }} /></div></div>;
+      },
     },
     {
       header: 'Trạng thái', align: 'center', headerAlign: 'center', className: 'py-4 whitespace-nowrap', cellClassName: 'py-4 whitespace-nowrap',
@@ -159,7 +157,10 @@ export function CouponManagementPage({ title, description, adminLayout = false, 
           <AppButton appVariant="ghostMuted" appSize="sm" className="w-9 p-0 bg-error text-white hover:bg-error/90" title="Xóa" onClick={() => setCouponToDelete(coupon)}><Trash2 className="size-4" /></AppButton>
         </div>
       ),
-    }] : []),
+    }] : [{
+      header: 'Thao tác', align: 'center', headerAlign: 'center', className: 'py-4 whitespace-nowrap', cellClassName: 'py-4 text-center whitespace-nowrap',
+      render: (coupon) => <AppButton appVariant="ghostMuted" appSize="sm" className="w-9 p-0 border border-border bg-card text-primary hover:bg-primary/10" title="Xem chi tiết" onClick={() => setCouponToView(coupon)}><Eye className="size-4" /></AppButton>,
+    }]),
   ];
 
   return (
@@ -172,7 +173,7 @@ export function CouponManagementPage({ title, description, adminLayout = false, 
         {!readOnly && <AppButton appVariant="gradient" onClick={openCreateForm}><Plus className="size-4" />Tạo mã giảm giá</AppButton>}
       </div>
 
-      {adminLayout ? (<div className="space-y-4">
+      <div className="space-y-4">
         <Tabs value={discountType} onValueChange={setDiscountType}>
           <TabsList className="bg-secondary p-1">
             <TabsTrigger value="1" className="px-6 font-semibold">Theo %</TabsTrigger>
@@ -201,23 +202,9 @@ export function CouponManagementPage({ title, description, adminLayout = false, 
           dateRangePlaceholder="Ngày bắt đầu"
         />
       </div>
-      ) : (
-      <div className="grid gap-4 md:grid-cols-3">
-        <AppCard className="md:col-span-2"><AppCardContent className="grid gap-3 p-4 sm:grid-cols-2">
-          <AppInput value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Tìm theo mã hoặc tên" />
-          <AppSelect value={status} onValueChange={setStatus} options={[
-            { value: 'all', label: 'Tất cả trạng thái' }, { value: '0', label: 'Tạm ẩn' },
-            { value: '1', label: 'Hoạt động' }, { value: '2', label: 'Hết hạn' },
-          ]} />
-        </AppCardContent></AppCard>
-        <AppCard><AppCardContent className="flex items-center gap-3 p-4">
-          <Calendar className="size-5 text-primary" /><div><p className="text-xs text-muted-foreground">Tổng số mã</p><p className="text-2xl font-bold">{coupons.length}</p></div>
-        </AppCardContent></AppCard>
-      </div>
-      )}
 
       <DataTable columns={columns} data={paginatedCoupons} isLoading={isLoading}
-        pagination={adminLayout ? {
+        pagination={{
           currentPage,
           totalPages,
           totalItems: filteredCoupons.length,
@@ -225,7 +212,7 @@ export function CouponManagementPage({ title, description, adminLayout = false, 
           zeroIndexed: true,
           onPageChange: setCurrentPage,
           onPageSizeChange: setPageSize,
-        } : undefined}
+        }}
         loadingState="Đang tải mã giảm giá..."
         emptyState={<div className="flex flex-col items-center gap-2 py-10 text-muted-foreground"><Ticket className="size-10 opacity-30" /><p>Chưa có mã giảm giá phù hợp.</p></div>} />
 
@@ -235,6 +222,13 @@ export function CouponManagementPage({ title, description, adminLayout = false, 
         <DialogContent className="sm:max-w-md"><DialogHeader><DialogTitle>Xóa mã giảm giá?</DialogTitle></DialogHeader>
           <p className="text-sm text-muted-foreground">Mã <span className="font-mono font-semibold text-foreground">{couponToDelete?.code}</span> sẽ không còn hiển thị hoặc áp dụng được. Dữ liệu đơn hàng cũ vẫn được giữ lại.</p>
           <DialogFooter><AppButton appVariant="ghostMuted" onClick={() => setCouponToDelete(null)}>Hủy</AppButton><AppButton appVariant="primary" onClick={confirmDelete}>Xóa mã</AppButton></DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={Boolean(couponToView)} onOpenChange={(open) => !open && setCouponToView(null)}>
+        <DialogContent className="sm:max-w-md"><DialogHeader><DialogTitle>Chi tiết mã giảm giá</DialogTitle></DialogHeader>
+          <div className="space-y-4 py-2 text-sm"><div><p className="text-xs font-medium text-muted-foreground">Chương trình</p><p className="mt-1 font-semibold text-foreground">{couponToView?.name}</p></div><div><p className="text-xs font-medium text-muted-foreground">Mã giảm giá</p><p className="mt-1 font-mono font-semibold text-primary">{couponToView?.code}</p></div><div className="grid grid-cols-2 gap-4"><div><p className="text-xs font-medium text-muted-foreground">Giá trị</p><p className="mt-1 font-semibold text-foreground">{couponToView && formatDiscount(couponToView)}</p></div><div><p className="text-xs font-medium text-muted-foreground">Lượt dùng</p><p className="mt-1 font-semibold text-foreground">{couponToView?.usedCount ?? 0}/{couponToView?.totalQuantity ?? couponToView?.quantity ?? 0}</p></div></div><div className="grid grid-cols-2 gap-4"><div><p className="text-xs font-medium text-muted-foreground">Bắt đầu</p><p className="mt-1 font-medium text-foreground">{formatDateTime(couponToView?.validFrom)}</p></div><div><p className="text-xs font-medium text-muted-foreground">Hết hạn</p><p className="mt-1 font-medium text-foreground">{formatDateTime(couponToView?.validUntil)}</p></div></div></div>
+          <DialogFooter><AppButton appVariant="ghostMuted" onClick={() => setCouponToView(null)}>Đóng</AppButton></DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

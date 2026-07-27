@@ -1,9 +1,11 @@
 package com.gnostica.modules.order.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
@@ -33,10 +35,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gnostica.core.constant.CouponStatus;
 import com.gnostica.core.model.Account;
 import com.gnostica.core.model.Coupon;
+import com.gnostica.core.model.Course;
+import com.gnostica.core.security.CouponCodeCipher;
 import com.gnostica.core.repository.AccountRepository;
 import com.gnostica.core.repository.CategoryRepository;
 import com.gnostica.core.repository.CouponRepository;
 import com.gnostica.core.repository.CourseRepository;
+import com.gnostica.core.repository.OrderRepository;
 import com.gnostica.modules.order.dto.request.CouponRequest;
 import com.gnostica.modules.order.dto.response.CouponResponse;
 
@@ -61,17 +66,22 @@ class CouponServiceTest {
     private CategoryRepository categoryRepository;
 
     @Mock
+    private OrderRepository orderRepository;
+
+    @Mock
     private ApplicationEventPublisher eventPublisher;
 
-    @InjectMocks
     private CouponService couponService;
+
+    private CouponCodeCipher couponCodeCipher;
 
     private Account owner;
 
     @BeforeEach
     void setUp() {
+        couponCodeCipher = new CouponCodeCipher("test-coupon-master-key-long-enough");
         couponService = new CouponService(couponRepository, accountRepository, courseRepository, categoryRepository,
-                eventPublisher, new ObjectMapper());
+                orderRepository, couponCodeCipher, eventPublisher, new ObjectMapper());
         owner = account(OWNER_EMAIL);
         SecurityContextHolder.getContext().setAuthentication(
                 new UsernamePasswordAuthenticationToken(OWNER_EMAIL, null, Collections.emptyList()));
@@ -85,7 +95,7 @@ class CouponServiceTest {
     @Test
     void createCouponAssignsTheAuthenticatedAccountAndNormalizesTheCode() {
         when(accountRepository.findByEmail(OWNER_EMAIL)).thenReturn(Optional.of(owner));
-        when(couponRepository.existsByCode("WELCOME_2026")).thenReturn(false);
+        when(couponRepository.existsByCodeHash(anyString())).thenReturn(false);
         when(couponRepository.save(any(Coupon.class))).thenAnswer(invocation -> {
             Coupon coupon = invocation.getArgument(0);
             coupon.setId(UUID.randomUUID());
@@ -98,7 +108,8 @@ class CouponServiceTest {
         verify(couponRepository).save(couponCaptor.capture());
         Coupon savedCoupon = couponCaptor.getValue();
         assertEquals(owner, savedCoupon.getAccount());
-        assertEquals("WELCOME_2026", savedCoupon.getCode());
+        assertEquals("WELCOME_2026", couponCodeCipher.decrypt(owner.getId(), savedCoupon.getEncryptedCode()));
+        assertNotNull(savedCoupon.getCodeHash());
         assertEquals(CouponStatus.INACTIVE, savedCoupon.getStatus());
         assertEquals(owner.getId(), response.getAccountId());
     }
@@ -156,6 +167,32 @@ class CouponServiceTest {
         assertFalse(validator.validate(invalidRequest).isEmpty());
     }
 
+    @Test
+    void requestValidationRequiresGeneratedCouponCodeFormat() {
+        Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+        CouponRequest validRequest = request("GNS-E4S5TM");
+        CouponRequest invalidRequest = request("SUMMER2026");
+
+        assertTrue(validator.validate(validRequest).isEmpty());
+        assertFalse(validator.validate(invalidRequest).isEmpty());
+    }
+
+    @Test
+    void selectedCourseScopeRejectsCoursesOutsideCouponMetadata() {
+        UUID selectedCourseId = UUID.randomUUID();
+        Coupon coupon = coupon(owner, "GNS-E4S5TM");
+        coupon.setMetadata("{\"scope\":\"COURSES\",\"courseIds\":[\"" + selectedCourseId
+                + "\"],\"categoryIds\":[]}");
+        Course selectedCourse = new Course();
+        selectedCourse.setId(selectedCourseId);
+        Course otherCourse = new Course();
+        otherCourse.setId(UUID.randomUUID());
+
+        assertDoesNotThrow(() -> couponService.assertCouponAppliesToCourse(coupon, selectedCourse));
+        assertThrows(IllegalArgumentException.class,
+                () -> couponService.assertCouponAppliesToCourse(coupon, otherCourse));
+    }
+
     private CouponRequest request(String code) {
         LocalDateTime now = LocalDateTime.now().withNano(0);
         return CouponRequest.builder()
@@ -184,7 +221,8 @@ class CouponServiceTest {
         coupon.setId(UUID.randomUUID());
         coupon.setAccount(account);
         coupon.setName("Coupon " + code);
-        coupon.setCode(code);
+        coupon.setEncryptedCode(couponCodeCipher.encrypt(account.getId(), code));
+        coupon.setCodeHash(couponCodeCipher.hash(code));
         coupon.setDiscountType(1);
         coupon.setDiscountValue(BigDecimal.TEN);
         coupon.setMinDiscount(BigDecimal.ZERO);

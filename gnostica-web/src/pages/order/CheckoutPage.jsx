@@ -351,7 +351,7 @@ export default function CheckoutPage() {
     setIsCouponLoading(true);
     setCouponMessage("");
     try {
-      const response = await couponService.validateCoupon(couponCode);
+      const response = await couponService.validateCoupon(couponCode, orderItems[0]?.id);
       if (response && response.data) {
         setAppliedCoupon(response.data);
         setCouponMessage(`Áp dụng thành công mã giảm giá!`);

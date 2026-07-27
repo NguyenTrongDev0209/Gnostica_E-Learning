@@ -129,11 +129,7 @@ public class OrderService {
         
         Coupon appliedCoupon = null;
         if (requestBody.getCouponCode() != null && !requestBody.getCouponCode().trim().isEmpty()) {
-            // Validate coupon (throws exception if invalid)
-            couponService.validateCoupon(requestBody.getCouponCode());
-            
-            appliedCoupon = couponRepository.findByCodeAndDeletedAtIsNull(requestBody.getCouponCode().toUpperCase())
-                    .orElseThrow(() -> new IllegalArgumentException("Mã giảm giá không tồn tại"));
+            appliedCoupon = couponService.getValidCoupon(requestBody.getCouponCode());
             
             couponService.assertCouponAppliesToCourse(appliedCoupon, course);
 
@@ -268,7 +264,7 @@ public class OrderService {
         }
         if (order.getCoupon() != null) {
             resp.setCouponId(order.getCoupon().getId());
-            resp.setCouponCode(order.getCoupon().getCode());
+            resp.setCouponCode(couponService.getDisplayCode(order.getCoupon()));
         }
         resp.setTotalPrice(order.getTotalPrice());
         resp.setPaymentMethod(order.getPaymentMethod());

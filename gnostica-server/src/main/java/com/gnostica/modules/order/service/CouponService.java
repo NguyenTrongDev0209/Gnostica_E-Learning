@@ -27,6 +27,8 @@ import com.gnostica.core.repository.AccountRepository;
 import com.gnostica.core.repository.CategoryRepository;
 import com.gnostica.core.repository.CouponRepository;
 import com.gnostica.core.repository.CourseRepository;
+import com.gnostica.core.repository.OrderRepository;
+import com.gnostica.core.security.CouponCodeCipher;
 import com.gnostica.core.util.AuthUtil;
 import com.gnostica.modules.order.dto.request.CouponRequest;
 import com.gnostica.modules.order.dto.request.CouponScopeMetadata;
@@ -45,13 +47,15 @@ public class CouponService {
     private final AccountRepository accountRepository;
     private final CourseRepository courseRepository;
     private final CategoryRepository categoryRepository;
+    private final OrderRepository orderRepository;
+    private final CouponCodeCipher couponCodeCipher;
     private final ApplicationEventPublisher eventPublisher;
     private final ObjectMapper objectMapper;
 
     @Transactional
     public CouponResponse createCoupon(CouponRequest request) {
         String code = normalizeCode(request.getCode());
-        if (couponRepository.existsByCode(code)) {
+        if (couponRepository.existsByCodeHash(couponCodeCipher.hash(code))) {
             throw new IllegalArgumentException("Coupon code already exists");
         }
 
@@ -108,7 +112,7 @@ public class CouponService {
     public CouponResponse updateCoupon(UUID id, CouponRequest request) {
         Coupon coupon = getOwnedCoupon(id);
         String code = normalizeCode(request.getCode());
-        if (couponRepository.existsByCodeAndIdNot(code, id)) {
+        if (couponRepository.existsByCodeHashAndIdNot(couponCodeCipher.hash(code), id)) {
             throw new IllegalArgumentException("Coupon code already exists");
         }
 
@@ -145,7 +149,20 @@ public class CouponService {
 
     @Transactional(readOnly = true)
     public CouponResponse validateCoupon(String code) {
-        Coupon coupon = couponRepository.findByCodeAndDeletedAtIsNull(normalizeCode(code))
+        return mapToResponse(getValidCoupon(code));
+    }
+
+    @Transactional(readOnly = true)
+    public CouponResponse validateCoupon(String code, UUID courseId) {
+        Coupon coupon = getValidCoupon(code);
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new IllegalArgumentException("Course does not exist"));
+        assertCouponAppliesToCourse(coupon, course);
+        return mapToResponse(coupon);
+    }
+
+    public Coupon getValidCoupon(String code) {
+        Coupon coupon = couponRepository.findByCodeHashAndDeletedAtIsNull(couponCodeCipher.hash(normalizeCode(code)))
                 .orElseThrow(() -> new IllegalArgumentException("Coupon does not exist"));
 
         if (coupon.getStatus() != CouponStatus.ACTIVE) {
@@ -161,7 +178,11 @@ public class CouponService {
             throw new IllegalArgumentException("Coupon has no remaining uses");
         }
 
-        return mapToResponse(coupon);
+        return coupon;
+    }
+
+    public String getDisplayCode(Coupon coupon) {
+        return couponCodeCipher.decrypt(coupon.getAccount().getId(), coupon.getEncryptedCode());
     }
 
     @Transactional(readOnly = true)
@@ -201,18 +222,26 @@ public class CouponService {
             if (course.getAccount() != null && course.getAccount().getId().equals(coupon.getAccount().getId())) {
                 return;
             }
-            throw new IllegalArgumentException("Coupon only applies to courses created by its owner");
+            throw new IllegalArgumentException("Mã giảm chỉ khả dụng với một số khóa học");
         }
         if (CouponScope.COURSES.equals(scope) && metadata.getCourseIds().contains(course.getId())) {
             return;
         }
-        if (CouponScope.CATEGORIES.equals(scope) && course.getCategory() != null
-                && (metadata.getCategoryIds().contains(course.getCategory().getId())
-                    || (course.getCategory().getParent() != null
-                        && metadata.getCategoryIds().contains(course.getCategory().getParent().getId())))) {
+        if (CouponScope.CATEGORIES.equals(scope) && isCourseInSelectedCategoryScope(course, metadata.getCategoryIds())) {
             return;
         }
-        throw new IllegalArgumentException("Coupon does not apply to this course");
+        throw new IllegalArgumentException("Mã giảm chỉ khả dụng với một số khóa học");
+    }
+
+    private boolean isCourseInSelectedCategoryScope(Course course, List<Integer> selectedCategoryIds) {
+        Category category = course.getCategory();
+        while (category != null) {
+            if (selectedCategoryIds.contains(category.getId())) {
+                return true;
+            }
+            category = category.getParent();
+        }
+        return false;
     }
 
     private Account getCurrentAccount() {
@@ -237,7 +266,8 @@ public class CouponService {
     private void applyRequest(Coupon coupon, CouponRequest request, String code, Account account) {
         validateInstructorQuantityLimit(request, account);
         coupon.setName(request.getName().trim());
-        coupon.setCode(code);
+        coupon.setEncryptedCode(couponCodeCipher.encrypt(account.getId(), code));
+        coupon.setCodeHash(couponCodeCipher.hash(code));
         coupon.setDiscountType(request.getDiscountType());
         coupon.setDiscountValue(request.getDiscountValue());
         coupon.setMaxDiscount(request.getMaxDiscount());
@@ -372,7 +402,7 @@ public class CouponService {
             String payload = objectMapper.writeValueAsString(Map.of(
                     "target_type", "Coupon",
                     "target_id", coupon.getId().toString(),
-                    "code", coupon.getCode(),
+                    "code_hash", coupon.getCodeHash(),
                     "discount_value", coupon.getDiscountValue()));
             eventPublisher.publishEvent(new LogEvent(this, action, payload, account.getId()));
         } catch (com.fasterxml.jackson.core.JsonProcessingException exception) {
@@ -381,10 +411,12 @@ public class CouponService {
     }
 
     private CouponResponse mapToResponse(Coupon coupon) {
+        long usedCount = orderRepository.countByCoupon_Id(coupon.getId());
+        int totalQuantity = (coupon.getQuantity() == null ? 0 : coupon.getQuantity()) + Math.toIntExact(usedCount);
         return CouponResponse.builder()
                 .id(coupon.getId())
                 .name(coupon.getName())
-                .code(coupon.getCode())
+                .code(getDisplayCode(coupon))
                 .discountType(coupon.getDiscountType())
                 .discountValue(coupon.getDiscountValue())
                 .maxDiscount(coupon.getMaxDiscount())
@@ -392,12 +424,16 @@ public class CouponService {
                 .validFrom(coupon.getValidFrom())
                 .validUntil(coupon.getValidUntil())
                 .quantity(coupon.getQuantity())
+                .usedCount(usedCount)
+                .totalQuantity(totalQuantity)
                 .status(coupon.getStatus())
                 .metadata(coupon.getMetadata())
                 .createdAt(coupon.getCreatedAt())
                 .updatedAt(coupon.getUpdatedAt())
                 .accountId(coupon.getAccount().getId())
                 .accountName(coupon.getAccount().getFullName())
+                .accountEmail(coupon.getAccount().getEmail())
+                .accountAvatar(coupon.getAccount().getAvatar())
                 .build();
     }
 }

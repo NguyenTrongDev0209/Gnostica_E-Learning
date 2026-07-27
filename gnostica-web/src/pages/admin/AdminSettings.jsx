@@ -1114,6 +1114,7 @@ function FinanceHistoryPanel({ sampleRevenue }) {
   const { listQuery, notifyMutation } = useCommissions();
   const [selectedDecision, setSelectedDecision] = useState(null);
   const [selectedEditDecision, setSelectedEditDecision] = useState(null);
+  const [selectedHistoryRowKeys, setSelectedHistoryRowKeys] = useState([]);
 
   const historyRows = (listQuery.data || []).map((c, index) => ({
     id: c.id || index,
@@ -1297,6 +1298,7 @@ function FinanceHistoryPanel({ sampleRevenue }) {
           columns={columns}
           data={historyRows}
           rowKey={(row) => row.id}
+          selection={{ selectedRowKeys: selectedHistoryRowKeys, onSelectionChange: setSelectedHistoryRowKeys }}
           hideWrapperStyle
           className="rounded-lg border border-border bg-card shadow-sm"
           emptyState="Chưa có dữ liệu lịch sử."

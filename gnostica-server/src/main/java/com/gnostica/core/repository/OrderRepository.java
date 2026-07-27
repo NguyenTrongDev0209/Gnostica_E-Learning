@@ -20,6 +20,7 @@ public interface OrderRepository extends JpaRepository<Order, java.util.UUID> {
     @Query("select o from Order o where o.orderCode = :orderCode")
     Optional<Order> findByOrderCodeForUpdate(@Param("orderCode") Long orderCode);
     long countByCreatedAtAfter(java.time.LocalDateTime date);
+    long countByCoupon_Id(java.util.UUID couponId);
     List<Order> findTop50ByStatusAndPaymentMethodIgnoreCaseAndCreatedAtAfterOrderByCreatedAtAsc(
             Integer status, String paymentMethod, LocalDateTime createdAfter);
     List<Order> findByStatusAndCreatedAtBefore(Integer status, LocalDateTime date);

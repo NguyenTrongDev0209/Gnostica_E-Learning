@@ -94,8 +94,10 @@ public class CouponController {
     }
 
     @GetMapping("/validate/{code}")
-    public ResponseEntity<ResponseDTO<CouponResponse>> validateCoupon(@PathVariable String code) {
-        CouponResponse response = couponService.validateCoupon(code);
+    public ResponseEntity<ResponseDTO<CouponResponse>> validateCoupon(
+            @PathVariable String code,
+            @RequestParam UUID courseId) {
+        CouponResponse response = couponService.validateCoupon(code, courseId);
         return ResponseEntity.ok(new ResponseDTO<>(200, "Coupon is valid", response));
     }
 }

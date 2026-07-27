@@ -74,9 +74,10 @@ const updateCoupon = async (id, data) => {
     return response.data;
 };
 
-const validateCoupon = async (code) => {
+const validateCoupon = async (code, courseId) => {
     const response = await axiosClient.get(`${API_URL}/validate/${code}`, {
-        headers: getAuthHeaders()
+        headers: getAuthHeaders(),
+        params: { courseId },
     });
     return response.data;
 };

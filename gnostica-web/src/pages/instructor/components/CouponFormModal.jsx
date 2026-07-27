@@ -3,7 +3,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { z } from 'zod';
-import { Calendar, ChevronDown, ChevronLeft, ChevronRight, CircleDollarSign, Package, Percent, Search } from 'lucide-react';
+import { Calendar, ChevronDown, ChevronLeft, ChevronRight, CircleDollarSign, Package, Percent, RotateCw, Search } from 'lucide-react';
 
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/common/micro/AppDialog';
 import { AppButton } from '@/components/common/micro/AppButton';
@@ -18,7 +18,8 @@ const parseMetadata = (metadata) => {
 };
 const formatCurrency = (value) => {
   const digits = String(value ?? '').replace(/\D/g, '');
-  return digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  const normalizedDigits = digits.replace(/^0+(?=\d)/, '');
+  return normalizedDigits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 };
 const getFixedAmountQuantityLimit = (value) => {
   const amount = Number(value);
@@ -27,16 +28,25 @@ const getFixedAmountQuantityLimit = (value) => {
   if (amount >= 100000) return 5;
   return null;
 };
+const COUPON_CODE_PATTERN = /^GNS-[A-Z0-9]{6}$/;
+const generateCouponCode = () => {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  const randomValues = new Uint32Array(6);
+  const values = globalThis.crypto?.getRandomValues
+    ? globalThis.crypto.getRandomValues(randomValues)
+    : Array.from({ length: 6 }, () => Math.floor(Math.random() * characters.length));
+  return `GNS-${Array.from(values, (value) => characters[value % characters.length]).join('')}`;
+};
 
 const makeDefaultValues = (isAdmin) => ({
-  name: '', code: '', discountType: '1', discountValue: 10, minDiscount: 0, maxDiscount: 0,
+  name: '', code: generateCouponCode(), discountType: '1', discountValue: 10, minDiscount: 0, maxDiscount: 0,
   validFrom: toLocalDateTimeInput(new Date()), validUntil: '', quantity: 100,
   scope: isAdmin ? 'ALL_PLATFORM' : 'ALL_OWNER_COURSES', courseIds: [], categoryIds: [],
 });
 
 const makeCouponSchema = (isAdmin) => z.object({
   name: z.string().trim().min(1, 'Tên phiếu giảm giá không được để trống').max(255),
-  code: z.string().trim().min(3, 'Mã giảm giá cần ít nhất 3 ký tự').max(255).regex(/^[A-Za-z0-9_-]+$/, 'Mã chỉ gồm chữ, số, _ hoặc -'),
+  code: z.string().regex(COUPON_CODE_PATTERN, 'Mã giảm giá phải theo dạng GNS-XXXXXX'),
   discountType: z.enum(['1', '2']),
   discountValue: z.coerce.number().positive('Giá trị giảm phải lớn hơn 0'),
   minDiscount: z.coerce.number().min(0, 'Giá trị đơn hàng tối thiểu không được âm'),
@@ -60,7 +70,7 @@ function buildFormValues(coupon, isAdmin) {
   if (!coupon) return makeDefaultValues(isAdmin);
   const metadata = parseMetadata(coupon.metadata);
   return {
-    ...makeDefaultValues(isAdmin), name: coupon.name ?? '', code: coupon.code ?? '',
+    ...makeDefaultValues(isAdmin), name: coupon.name ?? '', code: COUPON_CODE_PATTERN.test(coupon.code ?? '') ? coupon.code : generateCouponCode(),
     discountType: String(coupon.discountType ?? 1), discountValue: coupon.discountValue ?? 0,
     minDiscount: coupon.minDiscount ?? 0, maxDiscount: coupon.maxDiscount ?? 0,
     validFrom: toLocalDateTimeInput(coupon.validFrom), validUntil: toLocalDateTimeInput(coupon.validUntil),
@@ -174,7 +184,7 @@ export function CouponFormModal({ coupon, isAdmin, isOpen, onOpenChange, onSave 
   return <><Dialog open={isOpen && !pickerType} onOpenChange={closeModal}><DialogContent className="sm:max-w-[640px]"><DialogHeader><DialogTitle>{isEditing ? 'Cập nhật mã giảm giá' : 'Tạo mã giảm giá'}</DialogTitle></DialogHeader>
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 py-3"><div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
       <Controller control={form.control} name="name" render={({ field, fieldState }) => <AppInput {...field} label="Tên chương trình" containerClassName="sm:col-span-2" placeholder="Ví dụ: Khuyến mãi khai giảng" error={fieldState.error?.message} />} />
-      <Controller control={form.control} name="code" render={({ field, fieldState }) => <AppInput {...field} label="Mã giảm giá" className="font-mono uppercase tracking-wider" placeholder="KHAIGIANG2026" error={fieldState.error?.message} onChange={(event) => field.onChange(event.target.value.toUpperCase())} />} />
+      <Controller control={form.control} name="code" render={({ field, fieldState }) => <AppInput {...field} label="Mã giảm giá" className="font-mono uppercase tracking-wider" readOnly error={fieldState.error?.message} rightElement={<AppButton type="button" appVariant="ghostMuted" appSize="sm" className="h-8 w-8 p-0" title="Tạo mã mới" aria-label="Tạo mã giảm giá mới" onClick={() => field.onChange(generateCouponCode())}><RotateCw className="size-4" /></AppButton>} />} />
       <Controller control={form.control} name="scope" render={({ field, fieldState }) => <div className="space-y-1.5"><p className="text-sm font-medium text-foreground">Phân loại</p><AppSelect value={field.value} onValueChange={field.onChange} options={scopeOptions} error={Boolean(fieldState.error)} />{fieldState.error && <p className="text-xs text-error">{fieldState.error.message}</p>}</div>} />
       {scope === 'COURSES' && <div className="sm:col-span-2"><AppInput label="Chọn khóa học" value={selectionSummary('COURSES')} readOnly icon={Search} className="cursor-pointer" onClick={() => openPicker('COURSES')} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openPicker('COURSES'); } }} error={form.formState.errors.courseIds?.message} /></div>}
       {scope === 'CATEGORIES' && <div className="sm:col-span-2"><AppInput label="Chọn danh mục" value={selectionSummary('CATEGORIES')} readOnly icon={Search} className="cursor-pointer" onClick={() => openPicker('CATEGORIES')} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openPicker('CATEGORIES'); } }} error={form.formState.errors.categoryIds?.message} /></div>}

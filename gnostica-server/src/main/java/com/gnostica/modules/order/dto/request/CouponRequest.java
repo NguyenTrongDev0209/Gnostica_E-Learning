@@ -30,8 +30,7 @@ public class CouponRequest {
     private String name;
 
     @NotBlank(message = "Ma giam gia khong duoc de trong")
-    @Size(max = 255, message = "Ma giam gia khong duoc vuot qua 255 ky tu")
-    @Pattern(regexp = "^[A-Za-z0-9_-]+$", message = "Ma giam gia chi gom chu, so, dau gach duoi hoac gach ngang")
+    @Pattern(regexp = "^GNS-[A-Z0-9]{6}$", message = "Ma giam gia phai theo dang GNS-XXXXXX")
     private String code;
 
     @NotNull(message = "Loai giam gia khong duoc de trong")
