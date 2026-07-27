@@ -146,6 +146,13 @@ export default function useForumDetail(slug) {
             return;
         }
 
+        // Không thể like bài viết của chính mình
+        const authorEmail = post?.authorEmail || post?.account?.email;
+        if (authorEmail && authorEmail === userEmail) {
+            toast.warning("Bạn không thể thích bài viết của chính mình!");
+            return;
+        }
+
         const updatedPost = await threadService.toggleLike(post.id, userEmail);
         setPost(updatedPost);
         

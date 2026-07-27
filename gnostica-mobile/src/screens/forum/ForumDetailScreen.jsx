@@ -1,13 +1,15 @@
 import AppText from '../../components/ui/AppText';
 import React, { useState, useEffect, useRef } from 'react';
-import { View, ScrollView, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, Alert, Image, useWindowDimensions } from 'react-native';
+import { View, ScrollView, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, Alert, Image, useWindowDimensions, Modal, Share } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { MessageCircle, Send, ArrowBigUp, ArrowBigDown, Heart, X, CornerDownRight, Trash2 } from 'lucide-react-native';
+import { MessageCircle, Send, ArrowBigUp, ArrowBigDown, Heart, X, CornerDownRight, Trash2, MoreHorizontal, Share2, Flag } from 'lucide-react-native';
 import RenderHtml from 'react-native-render-html';
 import AppHeader from '../../components/ui/AppHeader';
 import commentService from '../../services/forum/commentService';
 import threadService from '../../services/forum/threadService';
+import threadReportService from '../../services/forum/threadReportService';
 import { useAuth } from '../../context/AuthContext';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const addReplyToTree = (list, parentId, newReply) => {
     return list.map(c => {
@@ -48,7 +50,7 @@ const ForumDetailScreen = () => {
     const { width } = useWindowDimensions();
     const { user } = useAuth();
     const { post: initialPost } = route.params || { post: {} };
-    
+
     const [post, setPost] = useState(initialPost);
     const [comments, setComments] = useState([]);
     const [reply, setReply] = useState('');
@@ -57,6 +59,12 @@ const ForumDetailScreen = () => {
     const [submitting, setSubmitting] = useState(false);
     const [isLiked, setIsLiked] = useState(initialPost.userLiked || false);
     const [likesCount, setLikesCount] = useState(initialPost.likes || 0);
+    const [showMenu, setShowMenu] = useState(false);
+    const [showReportModal, setShowReportModal] = useState(false);
+    const [reportType, setReportType] = useState('');
+    const [reportDetail, setReportDetail] = useState('');
+    const [hasReported, setHasReported] = useState(false);
+    const [submittingReport, setSubmittingReport] = useState(false);
 
     useEffect(() => {
         const fetchDetails = async () => {
@@ -84,6 +92,16 @@ const ForumDetailScreen = () => {
                 } else if (commentsData?.content && Array.isArray(commentsData.content)) {
                     setComments(commentsData.content);
                 }
+
+                // Check report status
+                if (user?.email) {
+                    threadReportService.checkReportStatus(post.id, user.email)
+                        .then(res => {
+                            const isRep = res?.data ?? res;
+                            if (isRep === true) setHasReported(true);
+                        })
+                        .catch(() => {});
+                }
             } catch (error) {
                 console.error('Error fetching thread details:', error);
             } finally {
@@ -100,20 +118,33 @@ const ForumDetailScreen = () => {
             return;
         }
         const currentVote = post.userVote || 0;
-        const newVoteValue = currentVote === targetVoteValue ? 0 : targetVoteValue;
-        const oldScore = post.voteScore != null ? post.voteScore : 0;
-        const diff = newVoteValue - currentVote;
+        const oldScore = post.voteScore || 0;
+        let newVote = 0;
+        let newScore = oldScore;
+
+        if (targetVoteValue === 1) {
+            newVote = currentVote === 1 ? 0 : 1;
+        } else {
+            newVote = currentVote === -1 ? 0 : -1;
+        }
+
+        if (currentVote === 1 && newVote === 0) newScore -= 1;
+        else if (currentVote === 1 && newVote === -1) newScore -= 2;
+        else if (currentVote === -1 && newVote === 0) newScore += 1;
+        else if (currentVote === -1 && newVote === 1) newScore += 2;
+        else if (currentVote === 0 && newVote === 1) newScore += 1;
+        else if (currentVote === 0 && newVote === -1) newScore -= 1;
 
         setPost(prev => ({
             ...prev,
-            userVote: newVoteValue,
-            voteScore: oldScore + diff
+            userVote: newVote,
+            voteScore: newScore
         }));
 
         try {
-            await threadService.vote(post.id, user.email, newVoteValue);
+            await threadService.vote(post.id, user.email, newVote);
         } catch (error) {
-            console.error('Error voting post:', error);
+            console.error('Error voting post', error);
             setPost(prev => ({
                 ...prev,
                 userVote: currentVote,
@@ -127,6 +158,14 @@ const ForumDetailScreen = () => {
             Alert.alert('Thông báo', 'Vui lòng đăng nhập để thích bài viết.');
             return;
         }
+
+        // Không thể like bài viết của chính mình
+        const authorEmail = post?.authorEmail || post?.account?.email;
+        if (authorEmail && authorEmail === user.email) {
+            Alert.alert('Thông báo', 'Bạn không thể thích bài viết của chính mình!');
+            return;
+        }
+
         const nextLiked = !isLiked;
         const diff = nextLiked ? 1 : -1;
         setIsLiked(nextLiked);
@@ -138,6 +177,60 @@ const ForumDetailScreen = () => {
             console.error('Error liking post', error);
             setIsLiked(!nextLiked);
             setLikesCount(prev => prev - diff);
+        }
+    };
+
+    const handleShare = async () => {
+        setShowMenu(false);
+        try {
+            await Share.share({
+                message: `${post.title}\n\nXem bài viết tại Gnostica`,
+                title: post.title,
+            });
+        } catch (e) {
+            console.error('Share error:', e);
+        }
+    };
+
+    const handleOpenReport = () => {
+        setShowMenu(false);
+        if (!user) {
+            Alert.alert('Thông báo', 'Vui lòng đăng nhập để tố cáo bài viết.');
+            return;
+        }
+        if (hasReported) {
+            Alert.alert('Thông báo', 'Bạn đã tố cáo bài viết này rồi.');
+            return;
+        }
+        setReportType('');
+        setReportDetail('');
+        setShowReportModal(true);
+    };
+
+    const handleSubmitReport = async () => {
+        if (!reportType) {
+            Alert.alert('Lỗi', 'Vui lòng chọn loại vi phạm.');
+            return;
+        }
+        setSubmittingReport(true);
+        try {
+            await threadReportService.createReport(post.id, user.email, reportType, reportDetail);
+            setHasReported(true);
+            setShowReportModal(false);
+            Alert.alert('Thành công', 'Báo cáo của bạn đã được gửi. Cảm ơn bạn!');
+        } catch (e) {
+            const errorMsg = e?.message || e?.response?.data?.message || (typeof e === 'string' ? e : '');
+            if (errorMsg.includes('đã báo cáo')) {
+                setHasReported(true);
+                setShowReportModal(false);
+                Alert.alert('Thông báo', 'Bạn đã tố cáo bài viết này rồi.');
+            } else if (errorMsg) {
+                Alert.alert('Lỗi', errorMsg);
+            } else {
+                Alert.alert('Lỗi', 'Không thể gửi báo cáo. Vui lòng thử lại.');
+            }
+        } finally {
+            setSubmittingReport(false);
         }
     };
 
@@ -190,7 +283,7 @@ const ForumDetailScreen = () => {
                 ...(replyTarget?.id && { parentId: replyTarget.id })
             };
             const newComment = await commentService.create(payload);
-            
+
             const rawRes = newComment?.data || newComment;
             const createdId = rawRes?.id || `temp-${Date.now()}-${Math.random()}`;
             const userName = user.fullName || user.name || (user.email ? user.email.split('@')[0] : 'Học viên');
@@ -212,7 +305,7 @@ const ForumDetailScreen = () => {
                     parent: replyTarget ? { id: replyTarget.id } : null
                 };
             }
-            
+
             if (replyTarget?.id) {
                 setComments(prev => addReplyToTree(prev, replyTarget.id, created));
             } else {
@@ -231,7 +324,27 @@ const ForumDetailScreen = () => {
 
     const authorName = post.account?.fullName || post.account?.name || post.account?.username || post.authorName || 'Học viên';
     const avatarUrl = post.account?.avatarUrl || post.authorAvatar;
-    const categoryName = post.topic?.name || post.category?.name || 'Thảo luận';
+    const getHashtagBadge = (p) => {
+        if (p?.hashtags && p.hashtags.length > 0) {
+            const list = p.hashtags
+                .map(h => h?.hashtag?.name || h?.name)
+                .filter(Boolean)
+                .slice(0, 3)
+                .map(name => (name.startsWith('#') ? name : `#${name}`));
+            if (list.length > 0) return list.join(' ');
+        }
+        if (p?.tags && p.tags.length > 0) {
+            const list = p.tags
+                .filter(Boolean)
+                .slice(0, 3)
+                .map(t => (t.startsWith('#') ? t : `#${t}`));
+            if (list.length > 0) return list.join(' ');
+        }
+        const cat = p?.topic?.name || p?.topic?.title || p?.category?.name;
+        if (!cat || cat === 'Thảo luận') return '#Gnostica';
+        return cat.startsWith('#') ? cat : `#${cat.replace(/\s+/g, '')}`;
+    };
+    const categoryName = getHashtagBadge(post);
     const formattedDate = post.createdAt ? new Date(post.createdAt).toLocaleDateString('vi-VN') : (post.time || 'Gần đây');
 
     const renderCommentItem = (comment, depth = 0, parentAuthorName = null, index = 0) => {
@@ -246,8 +359,8 @@ const ForumDetailScreen = () => {
         const isPostOwner = user?.email && postAuthorEmail && user.email.toLowerCase() === postAuthorEmail.toLowerCase();
         const canDelete = isCommentOwner || isPostOwner;
 
-        const indentClass = depth > 0 
-            ? (depth === 1 ? 'ml-4 pl-3 border-l-2 border-blue-400 bg-blue-50/40' : 'ml-3 pl-2 border-l-2 border-slate-300 bg-slate-100/50') 
+        const indentClass = depth > 0
+            ? (depth === 1 ? 'ml-4 pl-3 border-l-2 border-blue-400 bg-blue-50/40' : 'ml-3 pl-2 border-l-2 border-slate-300 bg-slate-100/50')
             : 'bg-slate-50';
 
         return (
@@ -276,8 +389,8 @@ const ForumDetailScreen = () => {
 
                 {/* Action Buttons: Reply & Delete */}
                 <View className="flex-row items-center gap-4 mt-1 pt-1">
-                    <TouchableOpacity 
-                        className="flex-row items-center self-start" 
+                    <TouchableOpacity
+                        className="flex-row items-center self-start"
                         onPress={() => handleStartReply(comment)}
                     >
                         <MessageCircle size={14} color="#2563eb" />
@@ -285,8 +398,8 @@ const ForumDetailScreen = () => {
                     </TouchableOpacity>
 
                     {canDelete && (
-                        <TouchableOpacity 
-                            className="flex-row items-center self-start" 
+                        <TouchableOpacity
+                            className="flex-row items-center self-start"
                             onPress={() => handleDeleteComment(comment.id)}
                         >
                             <Trash2 size={14} color="#ef4444" />
@@ -324,7 +437,7 @@ const ForumDetailScreen = () => {
                     </View>
                     <View className="ml-3">
                         <AppText className="text-slate-900 font-bold text-sm">{authorName}</AppText>
-                        <AppText className="text-slate-400 text-xs">{formattedDate} • Trong {categoryName}</AppText>
+                        <AppText className="text-slate-400 text-xs">{formattedDate} • Trong {categoryName} • {post.viewCount ?? post.views ?? 1} lượt xem</AppText>
                     </View>
                 </View>
 
@@ -350,44 +463,167 @@ const ForumDetailScreen = () => {
                     </View>
                 ) : null}
 
-                <View className="flex-row items-center gap-3 border-t border-b border-slate-100 py-3.5 mb-6">
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, borderTopWidth: 1, borderBottomWidth: 1, borderColor: '#f1f5f9', paddingVertical: 12, marginBottom: 24 }}>
                     {/* Vote controls */}
-                    <View className="flex-row items-center bg-slate-100 rounded-full px-3 py-1.5 gap-1.5">
+                    <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#f1f5f9', borderRadius: 99, paddingHorizontal: 10, paddingVertical: 6, gap: 4 }}>
                         <TouchableOpacity onPress={() => handleVote(1)} activeOpacity={0.7}>
-                            <ArrowBigUp 
-                                size={22} 
-                                color={post.userVote === 1 ? '#2563eb' : '#64748b'} 
-                                fill={post.userVote === 1 ? '#2563eb' : 'transparent'} 
-                            />
+                            <ArrowBigUp size={22} color={post.userVote === 1 ? '#2563eb' : '#64748b'} fill={post.userVote === 1 ? '#2563eb' : 'transparent'} />
                         </TouchableOpacity>
-                        <AppText className={`text-sm font-bold px-1 ${post.userVote === 1 ? 'text-blue-600' : post.userVote === -1 ? 'text-red-500' : 'text-slate-700'}`}>
+                        <AppText style={{ fontSize: 13, fontWeight: 'bold', paddingHorizontal: 2, color: post.userVote === 1 ? '#2563eb' : post.userVote === -1 ? '#ef4444' : '#334155' }}>
                             {post.voteScore != null ? post.voteScore : 0}
                         </AppText>
                         <TouchableOpacity onPress={() => handleVote(-1)} activeOpacity={0.7}>
-                            <ArrowBigDown 
-                                size={22} 
-                                color={post.userVote === -1 ? '#ef4444' : '#64748b'} 
-                                fill={post.userVote === -1 ? '#ef4444' : 'transparent'} 
-                            />
+                            <ArrowBigDown size={22} color={post.userVote === -1 ? '#ef4444' : '#64748b'} fill={post.userVote === -1 ? '#ef4444' : 'transparent'} />
                         </TouchableOpacity>
                     </View>
 
-                    {/* Like Button (Heart) */}
-                    <TouchableOpacity className="flex-row items-center bg-slate-100 rounded-full px-3 py-1.5" onPress={handleLike} activeOpacity={0.7}>
-                        <Heart size={18} color={isLiked ? "#ef4444" : "#64748b"} fill={isLiked ? "#ef4444" : "transparent"} />
-                        <AppText className={`text-sm ml-1.5 ${isLiked ? 'text-red-500 font-bold' : 'text-slate-600'}`}>{likesCount} Thích</AppText>
+                    {/* Like Button */}
+                    <TouchableOpacity onPress={handleLike} activeOpacity={0.7}
+                        style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#f1f5f9', borderRadius: 99, paddingHorizontal: 12, paddingVertical: 7 }}>
+                        <Heart size={17} color={isLiked ? '#ef4444' : '#64748b'} fill={isLiked ? '#ef4444' : 'transparent'} />
+                        <AppText style={{ fontSize: 13, marginLeft: 5, color: isLiked ? '#ef4444' : '#64748b', fontWeight: isLiked ? 'bold' : 'normal' }}>{likesCount}</AppText>
                     </TouchableOpacity>
 
-                    {/* Comments Count */}
-                    <View className="flex-row items-center ml-auto">
-                        <MessageCircle size={18} color="#64748b" />
-                        <AppText className="text-slate-500 text-sm ml-1.5">{comments.length || post.comments || 0} Bình luận</AppText>
+                    {/* Comment Count (no label) */}
+                    <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#f1f5f9', borderRadius: 99, paddingHorizontal: 12, paddingVertical: 7 }}>
+                        <MessageCircle size={17} color="#64748b" />
+                        <AppText style={{ fontSize: 13, marginLeft: 5, color: '#64748b' }}>{comments.length || post.commentCount || post.comments || 0}</AppText>
                     </View>
+
+                    {/* More (...) button */}
+                    <TouchableOpacity
+                        onPress={() => setShowMenu(true)}
+                        activeOpacity={0.7}
+                        style={{ marginLeft: 'auto', width: 36, height: 36, borderRadius: 18, backgroundColor: '#f1f5f9', alignItems: 'center', justifyContent: 'center' }}
+                    >
+                        <MoreHorizontal size={20} color="#64748b" />
+                    </TouchableOpacity>
                 </View>
+
+                {/* More Menu Modal (bottom sheet style) */}
+                <Modal visible={showMenu} transparent animationType="fade" onRequestClose={() => setShowMenu(false)}>
+                    <TouchableOpacity
+                        style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.45)' }}
+                        activeOpacity={1}
+                        onPress={() => setShowMenu(false)}
+                    >
+                        <View style={{
+                            position: 'absolute', bottom: 0, left: 0, right: 0,
+                            backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24,
+                            paddingBottom: 36, paddingTop: 8,
+                        }}>
+                            {/* Handle */}
+                            <View style={{ width: 40, height: 4, backgroundColor: '#e2e8f0', borderRadius: 2, alignSelf: 'center', marginBottom: 16 }} />
+
+                            {/* Share */}
+                            <TouchableOpacity onPress={handleShare} activeOpacity={0.8}
+                                style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 16, paddingHorizontal: 24, gap: 14 }}>
+                                <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: '#eff6ff', alignItems: 'center', justifyContent: 'center' }}>
+                                    <Share2 size={22} color="#2563eb" />
+                                </View>
+                                <View>
+                                    <AppText style={{ fontSize: 15, fontWeight: '700', color: '#1e293b' }}>Chia sẻ</AppText>
+                                    <AppText style={{ fontSize: 12, color: '#94a3b8', marginTop: 1 }}>Chia sẻ bài viết với bạn bè</AppText>
+                                </View>
+                            </TouchableOpacity>
+
+                            {/* Report */}
+                            <TouchableOpacity onPress={handleOpenReport} activeOpacity={0.8}
+                                style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 16, paddingHorizontal: 24, gap: 14,
+                                    opacity: hasReported ? 0.5 : 1 }}>
+                                <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: hasReported ? '#fef2f2' : '#fff5f5', alignItems: 'center', justifyContent: 'center' }}>
+                                    <Flag size={22} color={hasReported ? '#dc2626' : '#ef4444'} fill={hasReported ? '#dc2626' : 'transparent'} />
+                                </View>
+                                <View>
+                                    <AppText style={{ fontSize: 15, fontWeight: '700', color: hasReported ? '#dc2626' : '#ef4444' }}>
+                                        {hasReported ? 'Đã tố cáo' : 'Tố cáo'}
+                                    </AppText>
+                                    <AppText style={{ fontSize: 12, color: '#94a3b8', marginTop: 1 }}>Báo cáo nội dung vi phạm</AppText>
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </TouchableOpacity>
+                </Modal>
+
+                {/* Report Form Modal */}
+                <Modal visible={showReportModal} transparent animationType="slide" onRequestClose={() => setShowReportModal(false)}>
+                    <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.45)' }} activeOpacity={1} onPress={() => setShowReportModal(false)} />
+                    <View style={{
+                        position: 'absolute', bottom: 0, left: 0, right: 0,
+                        backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24,
+                        paddingBottom: 36, paddingHorizontal: 20, paddingTop: 8,
+                    }}>
+                        <View style={{ width: 40, height: 4, backgroundColor: '#e2e8f0', borderRadius: 2, alignSelf: 'center', marginBottom: 20 }} />
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+                            <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#fef2f2', alignItems: 'center', justifyContent: 'center' }}>
+                                <Flag size={20} color="#ef4444" />
+                            </View>
+                            <View>
+                                <AppText style={{ fontSize: 17, fontWeight: 'bold', color: '#1e293b' }}>Tố cáo bài viết</AppText>
+                                <AppText style={{ fontSize: 12, color: '#94a3b8' }}>Vui lòng chọn loại vi phạm</AppText>
+                            </View>
+                        </View>
+
+                        {/* Report types */}
+                        {[
+                            { value: 'spam', label: 'Spam / Quảng cáo' },
+                            { value: 'harassment', label: 'Quấy rối / Lăng mạ' },
+                            { value: 'inappropriate', label: 'Nội dung không phù hợp' },
+                            { value: 'copyright', label: 'Vi phạm bản quyền' },
+                            { value: 'other', label: 'Khác' },
+                        ].map(opt => (
+                            <TouchableOpacity key={opt.value} onPress={() => setReportType(opt.value)} activeOpacity={0.8}
+                                style={{
+                                    flexDirection: 'row', alignItems: 'center', paddingVertical: 12,
+                                    paddingHorizontal: 14, marginBottom: 8, borderRadius: 12,
+                                    borderWidth: 1.5,
+                                    borderColor: reportType === opt.value ? '#ef4444' : '#e2e8f0',
+                                    backgroundColor: reportType === opt.value ? '#fef2f2' : '#f8fafc',
+                                }}>
+                                <View style={{
+                                    width: 18, height: 18, borderRadius: 9, borderWidth: 2,
+                                    borderColor: reportType === opt.value ? '#ef4444' : '#cbd5e1',
+                                    backgroundColor: reportType === opt.value ? '#ef4444' : 'transparent',
+                                    marginRight: 10,
+                                }} />
+                                <AppText style={{ fontSize: 14, fontWeight: '600', color: reportType === opt.value ? '#dc2626' : '#334155' }}>
+                                    {opt.label}
+                                </AppText>
+                            </TouchableOpacity>
+                        ))}
+
+                        <TextInput
+                            placeholder="Chi tiết vi phạm (không bắt buộc)..."
+                            placeholderTextColor="#94a3b8"
+                            value={reportDetail}
+                            onChangeText={setReportDetail}
+                            multiline
+                            style={{
+                                borderWidth: 1, borderColor: '#e2e8f0', borderRadius: 12,
+                                padding: 12, marginTop: 8, marginBottom: 16,
+                                minHeight: 80, fontSize: 14, color: '#334155', textAlignVertical: 'top',
+                            }}
+                        />
+
+                        <View style={{ flexDirection: 'row', gap: 10 }}>
+                            <TouchableOpacity onPress={() => setShowReportModal(false)} style={{ flex: 1, paddingVertical: 14, borderRadius: 14, borderWidth: 1, borderColor: '#e2e8f0', alignItems: 'center' }}>
+                                <AppText style={{ fontWeight: '700', color: '#64748b' }}>Hủy</AppText>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={handleSubmitReport} disabled={submittingReport} activeOpacity={0.85} style={{ flex: 1.5, borderRadius: 14, overflow: 'hidden' }}>
+                                <LinearGradient colors={['#f87171', '#dc2626']} style={{ paddingVertical: 14, alignItems: 'center' }}>
+                                    {submittingReport
+                                        ? <ActivityIndicator size="small" color="#fff" />
+                                        : <AppText style={{ fontWeight: 'bold', color: '#fff', fontSize: 15 }}>Gửi báo cáo</AppText>
+                                    }
+                                </LinearGradient>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </Modal>
 
                 {/* Comments Section */}
                 <AppText className="text-slate-900 font-bold text-base mb-4">Bình luận ({comments.length || post.comments || 0})</AppText>
-                
+
                 {loadingComments ? (
                     <ActivityIndicator size="small" color="#2563EB" className="my-4" />
                 ) : comments.length === 0 ? (
@@ -419,7 +655,7 @@ const ForumDetailScreen = () => {
                         onChangeText={setReply}
                         multiline
                     />
-                    <TouchableOpacity 
+                    <TouchableOpacity
                         className="bg-blue-600 w-12 h-12 rounded-2xl items-center justify-center shadow-md opacity-90"
                         onPress={handleSendComment}
                         disabled={submitting}

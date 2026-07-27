@@ -1,8 +1,8 @@
 import AppText from '../../components/ui/AppText';
-import React, { useEffect, useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, ScrollView, TouchableOpacity, Image, ActivityIndicator, Alert } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { Trash2, ShoppingCart, Star } from 'lucide-react-native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { Trash2, ShoppingCart, Star, Heart, ArrowRight } from 'lucide-react-native';
 import Button from '../../components/ui/Button';
 import AppHeader from '../../components/ui/AppHeader';
 import favouriteService from '../../services/instructor/favouriteService';
@@ -12,97 +12,135 @@ const WishlistScreen = () => {
     const [wishlist, setWishlist] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    const fetchWishlist = async () => {
-        try {
-            const response = await favouriteService.getWishlist();
-            const data = response.data || response.content || response;
-            if (Array.isArray(data)) {
-                setWishlist(data);
-            }
-        } catch (error) {
-            console.error('Error fetching wishlist:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
+    useFocusEffect(
+        useCallback(() => {
+            let isMounted = true;
+            setLoading(true);
+            
+            favouriteService.getWishlist()
+                .then(response => {
+                    if (!isMounted) return;
+                    const raw = response?.data || response;
+                    const list = Array.isArray(raw) ? raw : (raw?.content || []);
+                    setWishlist(list);
+                })
+                .catch(error => {
+                    console.error('Error fetching wishlist:', error);
+                })
+                .finally(() => {
+                    if (isMounted) setLoading(false);
+                });
 
-    useEffect(() => {
-        fetchWishlist();
-    }, []);
+            return () => {
+                isMounted = false;
+            };
+        }, [])
+    );
 
     const handleRemove = async (courseId) => {
         try {
             await favouriteService.toggle(courseId);
-            setWishlist(prev => prev.filter(c => c.id !== courseId && c.courseId !== courseId));
+            setWishlist(prev => prev.filter(c => (c.id || c.courseId) !== courseId));
         } catch (error) {
             Alert.alert('Lỗi', 'Không thể xóa khỏi danh sách yêu thích.');
         }
     };
 
-    const formatPrice = (priceNum) => {
-        if (!priceNum) return 'Miễn phí';
-        return priceNum.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") + ' đ';
+    const formatPrice = (value) => {
+        if (value == null) return 'Miễn phí';
+        if (typeof value === 'string' && value.includes('đ')) return value;
+        const num = typeof value === 'number' ? value : parseInt(value, 10);
+        if (isNaN(num) || num === 0) return 'Miễn phí';
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") + ' đ';
     };
 
     return (
         <View className="flex-1 bg-slate-50">
             <AppHeader title="Danh sách yêu thích" />
 
-            <ScrollView className="flex-1 p-4">
+            <ScrollView className="flex-1 p-4" showsVerticalScrollIndicator={false}>
                 {loading ? (
-                    <View className="flex-1 items-center justify-center mt-20">
+                    <View className="flex-1 items-center justify-center py-20">
                         <ActivityIndicator size="large" color="#2563EB" />
                     </View>
                 ) : wishlist.length === 0 ? (
-                    <View className="items-center justify-center mt-20">
-                        <AppText className="text-6xl mb-4">💔</AppText>
-                        <AppText className="text-lg font-bold text-slate-800">Trống trải quá...</AppText>
-                        <AppText className="text-slate-500 text-center mt-2">Hãy lưu lại những khóa học bạn yêu thích nhé!</AppText>
+                    <View className="items-center justify-center py-16 px-4 bg-white rounded-2xl border border-slate-100 mt-4">
+                        <View className="w-16 h-16 rounded-full bg-pink-50 items-center justify-center mb-4">
+                            <Heart size={32} color="#EC4899" />
+                        </View>
+                        <AppText className="text-lg font-bold text-slate-800">Danh sách lưu đang trống</AppText>
+                        <AppText className="text-slate-500 text-center mt-2 text-sm leading-5">
+                            Hãy lưu lại những khóa học bạn quan tâm để dễ dàng xem và đăng ký học nhé!
+                        </AppText>
                         <Button
                             variant="primary"
-                            className="mt-6 px-8"
+                            className="mt-6 px-6 py-3 rounded-xl"
                             onPress={() => navigation.navigate('CourseCatalog')}
                         >
-                            Khám phá ngay
+                            Khám phá khóa học ngay
                         </Button>
                     </View>
                 ) : (
-                    wishlist.map(item => (
-                        <View key={item.id || item.courseId} className="bg-white rounded-2xl p-3 mb-4 shadow-sm border border-slate-100 flex-row">
-                            <Image
-                                source={{ uri: item.thumbnail || item.image || 'https://picsum.photos/200' }}
-                                className="w-24 h-24 rounded-xl"
-                            />
-                            <View className="flex-1 ml-4 justify-between">
-                                <View>
-                                    <AppText className="text-slate-900 font-bold text-base" numberOfLines={2}>{item.title || item.courseTitle}</AppText>
-                                    <AppText className="text-slate-500 text-xs mt-1">{item.instructor || item.instructorName || 'Giảng viên'}</AppText>
-                                    <View className="flex-row items-center mt-1">
-                                        <Star size={12} color="#fbbf24" fill="#fbbf24" />
-                                        <AppText className="text-slate-700 text-xs font-medium ml-1">{item.rating || 4.5}</AppText>
+                    wishlist.map(item => {
+                        const targetId = item.id || item.courseId;
+                        const thumbnail = item.thumbnail || item.courseThumbnail || item.image || 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&q=80';
+                        const title = item.title || item.courseTitle || 'Khóa học Gnostica';
+                        const instructor = item.instructor || item.instructorName || item.account?.fullName || 'Giảng viên Gnostica';
+                        const price = item.salePrice || item.price;
+                        const rating = item.rating || 5.0;
+
+                        return (
+                            <TouchableOpacity
+                                key={targetId}
+                                activeOpacity={0.85}
+                                onPress={() => navigation.navigate('CourseDetail', { course: item })}
+                                className="bg-white rounded-2xl p-3 mb-3 shadow-sm border border-slate-100 flex-row"
+                            >
+                                <Image
+                                    source={{ uri: thumbnail }}
+                                    className="w-24 h-24 rounded-xl bg-slate-100"
+                                    resizeMode="cover"
+                                />
+                                <View className="flex-1 ml-3.5 justify-between">
+                                    <View>
+                                        <AppText className="text-slate-800 font-bold text-[15px] leading-5" numberOfLines={2}>
+                                            {title}
+                                        </AppText>
+                                        <AppText className="text-slate-500 text-xs mt-1 font-medium">
+                                            {instructor}
+                                        </AppText>
+                                        <View className="flex-row items-center mt-1 gap-1">
+                                            <Star size={12} color="#fbbf24" fill="#fbbf24" />
+                                            <AppText className="text-slate-700 text-xs font-bold">{rating}</AppText>
+                                        </View>
+                                    </View>
+
+                                    <View className="flex-row justify-between items-center mt-2 pt-2 border-t border-slate-50">
+                                        <AppText className="text-blue-600 font-extrabold text-base">
+                                            {formatPrice(price)}
+                                        </AppText>
+                                        
+                                        <View className="flex-row items-center gap-2">
+                                            <TouchableOpacity 
+                                                className="p-2 bg-red-50 rounded-full"
+                                                onPress={() => handleRemove(targetId)}
+                                                activeOpacity={0.7}
+                                            >
+                                                <Trash2 size={16} color="#ef4444" />
+                                            </TouchableOpacity>
+
+                                            <View className="flex-row items-center gap-1 bg-blue-50 px-3 py-1.5 rounded-full">
+                                                <AppText className="text-xs font-bold text-blue-600">Xem khóa học</AppText>
+                                                <ArrowRight size={13} color="#2563eb" />
+                                            </View>
+                                        </View>
                                     </View>
                                 </View>
-                                <View className="flex-row justify-between items-center">
-                                    <AppText className="text-primary font-bold text-base">{formatPrice(item.price || item.salePrice)}</AppText>
-                                    <View className="flex-row gap-2">
-                                        <TouchableOpacity 
-                                            className="p-2 bg-slate-50 rounded-full"
-                                            onPress={() => handleRemove(item.id || item.courseId)}
-                                        >
-                                            <Trash2 size={16} color="#ef4444" />
-                                        </TouchableOpacity>
-                                        <TouchableOpacity 
-                                            className="p-2 bg-blue-50 rounded-full"
-                                            onPress={() => navigation.navigate('CourseDetail', { course: item })}
-                                        >
-                                            <ShoppingCart size={16} color="#2563eb" />
-                                        </TouchableOpacity>
-                                    </View>
-                                </View>
-                            </View>
-                        </View>
-                    ))
+                            </TouchableOpacity>
+                        );
+                    })
                 )}
+                <View className="h-20" />
             </ScrollView>
         </View>
     );

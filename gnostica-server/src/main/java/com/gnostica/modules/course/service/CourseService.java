@@ -23,6 +23,7 @@ import com.gnostica.core.model.Review;
 import com.gnostica.core.repository.AccountRepository;
 import com.gnostica.core.repository.CategoryRepository;
 import com.gnostica.core.repository.CourseRepository;
+import com.gnostica.core.repository.EnrollmentRepository;
 import com.gnostica.core.repository.LessonRepository;
 import com.gnostica.core.repository.ReviewRepository;
 import com.gnostica.modules.user.service.NotificationService;
@@ -50,6 +51,7 @@ public class CourseService {
     private final ReviewRepository reviewRepository;
     private final BunnyNetService bunnyNetService;
     private final NotificationService notificationService;
+    private final EnrollmentRepository enrollmentRepository;
 
     @Transactional
     public Course createCourse(CourseRequest request, String email) {
@@ -950,16 +952,32 @@ public class CourseService {
     }
 
     @Transactional(readOnly = true)
-    public org.springframework.data.domain.Page<Course> getRecommendedCourses(String email, int page, int size) {
+    public org.springframework.data.domain.Page<CourseResponse> getRecommendedCourses(String email, int page, int size) {
         Account account = accountRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại"));
 
         java.util.List<Integer> categoryIds = null;
+        java.util.List<com.gnostica.core.model.Enrollment> userEnrollments = enrollmentRepository.findByAccount(account);
+        if (userEnrollments != null && !userEnrollments.isEmpty()) {
+            categoryIds = userEnrollments.stream()
+                    .map(e -> e.getCourse())
+                    .filter(c -> c != null && c.getCategory() != null)
+                    .map(c -> c.getCategory().getId())
+                    .distinct()
+                    .collect(java.util.stream.Collectors.toList());
+        }
 
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size,
                 org.springframework.data.domain.Sort.by("id").descending());
 
-        return courseRepository.findRecommendedCourses("Beginner", categoryIds, pageable);
+        boolean filterCategory = categoryIds != null && !categoryIds.isEmpty();
+
+        org.springframework.data.domain.Page<Course> coursesPage = courseRepository.findRecommendedCourses(
+                false, null,
+                filterCategory, filterCategory ? categoryIds : java.util.List.of(-1),
+                pageable
+        );
+        return coursesPage.map(this::mapToCourseResponse);
     }
 
     public CourseResponse mapToCourseResponse(Course course) {

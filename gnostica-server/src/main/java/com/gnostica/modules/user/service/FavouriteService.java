@@ -6,11 +6,14 @@ import com.gnostica.core.model.Favorite;
 import com.gnostica.core.repository.AccountRepository;
 import com.gnostica.core.repository.CourseRepository;
 import com.gnostica.core.repository.FavoriteRepository;
+import com.gnostica.modules.course.dto.response.CourseResponse;
+import com.gnostica.modules.course.service.CourseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -21,6 +24,7 @@ public class FavouriteService {
     private final FavoriteRepository favoriteRepository;
     private final AccountRepository accountRepository;
     private final CourseRepository courseRepository;
+    private final CourseService courseService;
 
     @Transactional
     public boolean toggleFavourite(String email, UUID courseId) {
@@ -54,13 +58,15 @@ public class FavouriteService {
     }
 
     @Transactional(readOnly = true)
-    public List<Course> getFavouriteCourses(String email) {
+    public List<CourseResponse> getFavouriteCourses(String email) {
         Account account = accountRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại"));
         
         return favoriteRepository.findByAccount(account).stream()
-                .filter(fav -> fav.getStatus() == 1)
+                .filter(fav -> fav.getStatus() != null && fav.getStatus() == 1)
                 .map(Favorite::getCourse)
+                .filter(Objects::nonNull)
+                .map(courseService::mapToCourseResponse)
                 .collect(Collectors.toList());
     }
 

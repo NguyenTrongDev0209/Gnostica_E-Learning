@@ -1,12 +1,32 @@
-﻿import api from '../../config/api';
+import api from '../../config/api';
 
 const enrollmentService = {
     /**
      * Láº¥y danh sÃ¡ch khÃ³a há»c Ä‘Ã£ Ä‘Äƒng kÃ½
      * Response: ApiResponse<List<EnrollmentDTO>>
      */
-    getMyCourses: () => {
-        return api.get('/enrollments/my-courses');
+    getMyCourses: async () => {
+        const response = await api.get('/enrollments/my-courses');
+        const rawData = response?.data || response;
+        const list = Array.isArray(rawData) ? rawData : (rawData?.content || []);
+        
+        const formatted = list.map(item => ({
+            ...item,
+            id: item.id || item.courseId,
+            courseId: item.courseId || item.id,
+            title: item.title || item.courseTitle || '',
+            courseTitle: item.courseTitle || item.title || '',
+            slug: item.slug || item.courseSlug || '',
+            courseSlug: item.courseSlug || item.slug || '',
+            thumbnail: item.thumbnail || item.courseThumbnail || '',
+            courseThumbnail: item.courseThumbnail || item.thumbnail || '',
+            progress: item.progress !== undefined ? item.progress : (item.progressPercent ?? 0),
+            progressPercent: item.progressPercent !== undefined ? item.progressPercent : (item.progress ?? 0),
+            completed: !!item.completedAt || item.progress === 100 || item.progressPercent === 100 || item.completed || false,
+            lastLesson: item.lastLesson || item.lastWatchedLessonSlug || 'Bài học tiếp theo',
+        }));
+
+        return { ...response, data: formatted };
     },
 
     /**

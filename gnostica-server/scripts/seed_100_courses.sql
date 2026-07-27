@@ -5,7 +5,7 @@
 DO $$
 DECLARE
     thumbnail_url CONSTANT TEXT := 'https://res.cloudinary.com/dhvlhfmlo/image/upload/v1784171548/gnostica_forum/ai%20agents%201_25b46548-5396-41ca-824d-679ac115a407.jpg';
-    video_ref CONSTANT TEXT := '635422/f2b4d8a5-e075-441d-bd31-e69b3419229b';
+    video_ref CONSTANT TEXT := '655066/74fc281a-fee1-46ac-b53b-60ffe75fb891';
     seed_group CONSTANT TEXT := 'gnostica_100_courses';
 
     instructor_ids UUID[];
