@@ -23,6 +23,7 @@ import com.gnostica.modules.integration.service.MailService;
 import com.gnostica.modules.order.service.OrderService;
 import com.gnostica.modules.payment.dto.request.CreatePaymentLinkRequestBody;
 import com.gnostica.modules.payment.dto.response.PaymentLinkResponse;
+import com.gnostica.modules.payment.service.PaymentService;
 import com.gnostica.modules.wallet.service.WalletService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,6 +49,7 @@ public class CourseGiftService {
     private final OrderDetailRepository orderDetailRepository;
     private final OrderService orderService;
     private final WalletService walletService;
+    private final PaymentService paymentService;
     private final MailService mailService;
     private final NotificationService notificationService;
 
@@ -144,7 +146,7 @@ public class CourseGiftService {
         paymentReq.setPaymentMethod(request.getPaymentMethod());
         paymentReq.setCouponCode(request.getCouponCode());
 
-        PaymentLinkResponse paymentResponse = orderService.createPaymentLink(paymentReq);
+        PaymentLinkResponse paymentResponse = orderService.createPaymentLink(paymentReq, true);
         Order order = orderRepository.findByOrderCode(paymentResponse.getOrderCode()).orElse(null);
 
         // Save Gift
@@ -158,6 +160,12 @@ public class CourseGiftService {
         gift.setStatus(GiftStatus.PENDING);
         gift.setExpiredAt(LocalDateTime.now().plusDays(7));
         giftRepository.save(gift);
+
+        // Wallet/free gifts are already paid locally. Emit the event only after the
+        // gift exists so EnrollmentListener routes access to the recipient.
+        if (order != null && ("FREE/COUPON".equals(order.getPaymentMethod()) || "WALLET".equals(order.getPaymentMethod()))) {
+            paymentService.processSuccessfulOrder(order);
+        }
 
         // Gửi email luôn nếu là khóa học miễn phí (đã PAID)
         if (order != null && order.getStatus() == OrderStatus.PAID) {

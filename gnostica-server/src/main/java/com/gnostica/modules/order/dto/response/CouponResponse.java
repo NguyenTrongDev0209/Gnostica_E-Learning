@@ -34,4 +34,6 @@ public class CouponResponse {
     private String accountName;
     private String accountEmail;
     private String accountAvatar;
+    /** PLATFORM for an administrator-funded coupon, otherwise INSTRUCTOR. */
+    private String sponsorType;
 }

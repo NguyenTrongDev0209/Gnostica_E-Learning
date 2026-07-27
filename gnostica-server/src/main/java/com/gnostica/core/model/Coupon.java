@@ -60,6 +60,12 @@ public class Coupon {
     private Integer quantity;
 
     @NotNull
+    @Min(0)
+    @Column(name = "reserved_quantity", nullable = false)
+    @Builder.Default
+    private Integer reservedQuantity = 0;
+
+    @NotNull
     private LocalDateTime validFrom;
 
     @NotNull

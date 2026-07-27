@@ -111,6 +111,8 @@ public class CouponService {
     @Transactional
     public CouponResponse updateCoupon(UUID id, CouponRequest request) {
         Coupon coupon = getOwnedCoupon(id);
+        assertCouponHasNoSuccessfulUse(coupon, "chỉnh sửa");
+        assertCouponHasNoPendingReservation(coupon, "chỉnh sửa");
         String code = normalizeCode(request.getCode());
         if (couponRepository.existsByCodeHashAndIdNot(couponCodeCipher.hash(code), id)) {
             throw new IllegalArgumentException("Coupon code already exists");
@@ -133,6 +135,10 @@ public class CouponService {
         }
 
         Coupon coupon = getOwnedCoupon(id);
+        if (orderRepository.countByCoupon_IdAndStatus(coupon.getId(), com.gnostica.core.constant.OrderStatus.PAID) > 0
+                && status != CouponStatus.INACTIVE) {
+            throw new IllegalStateException("Coupon đã có lượt dùng chỉ có thể được tắt.");
+        }
         coupon.setStatus(status);
         Coupon updatedCoupon = couponRepository.save(coupon);
         publishAuditLog("UPDATE_COUPON_STATUS", updatedCoupon, getCurrentAccount());
@@ -142,6 +148,8 @@ public class CouponService {
     @Transactional
     public void deleteCoupon(UUID id) {
         Coupon coupon = getOwnedCoupon(id);
+        assertCouponHasNoSuccessfulUse(coupon, "xóa");
+        assertCouponHasNoPendingReservation(coupon, "xóa");
         coupon.setDeletedAt(LocalDateTime.now());
         couponRepository.save(coupon);
         publishAuditLog("DELETE_COUPON", coupon, getCurrentAccount());
@@ -174,7 +182,8 @@ public class CouponService {
         if (coupon.getValidFrom().isAfter(LocalDateTime.now())) {
             throw new IllegalArgumentException("Coupon is not active yet");
         }
-        if (coupon.getQuantity() <= 0) {
+        int reservedQuantity = coupon.getReservedQuantity() == null ? 0 : coupon.getReservedQuantity();
+        if (coupon.getQuantity() == null || coupon.getQuantity() - reservedQuantity <= 0) {
             throw new IllegalArgumentException("Coupon has no remaining uses");
         }
 
@@ -276,6 +285,24 @@ public class CouponService {
         coupon.setValidUntil(request.getValidUntil());
         coupon.setQuantity(request.getQuantity());
         coupon.setMetadata(normalizeScopeMetadata(request.getMetadata(), account));
+    }
+
+    /**
+     * A paid redemption is an accounting record. Its coupon must remain immutable
+     * so historical orders can always be reconstructed from their references.
+     */
+    private void assertCouponHasNoSuccessfulUse(Coupon coupon, String action) {
+        if (orderRepository.countByCoupon_IdAndStatus(coupon.getId(), com.gnostica.core.constant.OrderStatus.PAID) > 0) {
+            throw new IllegalStateException("Không thể " + action
+                    + " coupon đã có lượt dùng thành công. Hãy tắt coupon và tạo coupon mới.");
+        }
+    }
+
+    private void assertCouponHasNoPendingReservation(Coupon coupon, String action) {
+        if (orderRepository.countByCoupon_IdAndStatus(coupon.getId(), com.gnostica.core.constant.OrderStatus.PENDING) > 0) {
+            throw new IllegalStateException("Không thể " + action
+                    + " coupon đang được giữ bởi đơn chờ thanh toán.");
+        }
     }
 
     private void validateInstructorQuantityLimit(CouponRequest request, Account account) {
@@ -411,8 +438,10 @@ public class CouponService {
     }
 
     private CouponResponse mapToResponse(Coupon coupon) {
-        long usedCount = orderRepository.countByCoupon_Id(coupon.getId());
-        int totalQuantity = (coupon.getQuantity() == null ? 0 : coupon.getQuantity()) + Math.toIntExact(usedCount);
+        long usedCount = orderRepository.countByCoupon_IdAndStatus(coupon.getId(), com.gnostica.core.constant.OrderStatus.PAID);
+        int totalQuantity = (coupon.getQuantity() == null ? 0 : coupon.getQuantity())
+                + (coupon.getReservedQuantity() == null ? 0 : coupon.getReservedQuantity())
+                + Math.toIntExact(usedCount);
         return CouponResponse.builder()
                 .id(coupon.getId())
                 .name(coupon.getName())
@@ -434,6 +463,7 @@ public class CouponService {
                 .accountName(coupon.getAccount().getFullName())
                 .accountEmail(coupon.getAccount().getEmail())
                 .accountAvatar(coupon.getAccount().getAvatar())
+                .sponsorType(isAdmin(coupon.getAccount()) ? "PLATFORM" : "INSTRUCTOR")
                 .build();
     }
 }

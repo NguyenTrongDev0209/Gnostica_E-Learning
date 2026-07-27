@@ -531,6 +531,13 @@ export default function CheckoutPage() {
                   couponMessage={couponMessage}
                   isCouponLoading={isCouponLoading}
                 />
+                {appliedCoupon?.sponsorType && (
+                  <div className="rounded-xl border border-primary/10 bg-primary/5 p-4 text-center text-xs font-bold text-primary">
+                    {appliedCoupon.sponsorType === "PLATFORM"
+                      ? "Mã do Gnostica tài trợ — giảng viên vẫn nhận doanh thu theo tỷ lệ hoa hồng."
+                      : "Ưu đãi từ giảng viên — phần giảm giá do giảng viên tài trợ."}
+                  </div>
+                )}
                 <div className="rounded-xl border border-primary/10 bg-primary/5 p-4">
                   <p className="text-center text-xs font-bold text-primary">
                     * Khóa học sẽ được kích hoạt ngay sau khi thanh toán thành công

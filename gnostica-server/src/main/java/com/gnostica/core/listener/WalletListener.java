@@ -45,11 +45,12 @@ public class WalletListener {
         for (OrderDetail detail : details) {
             Account instructor = detail.getCourse().getAccount();
             if (instructor != null) {
-                // OrderDetail.price is already the server-calculated amount after course discount and coupon.
+                // OrderDetail.price is the amount actually paid by the customer.
                 BigDecimal netSaleAmount = detail.getPrice().setScale(6, RoundingMode.HALF_UP);
                 BigDecimal coursePrice = detail.getCourse().getPrice();
-                BigDecimal grossAmount = coursePrice != null && coursePrice.compareTo(netSaleAmount) >= 0
-                        ? coursePrice.setScale(6, RoundingMode.HALF_UP)
+                BigDecimal baseSaleAmount = detail.getCourse().getSalePrice();
+                BigDecimal grossAmount = baseSaleAmount != null && baseSaleAmount.compareTo(netSaleAmount) >= 0
+                        ? baseSaleAmount.setScale(6, RoundingMode.HALF_UP)
                         : netSaleAmount;
                 BigDecimal discountAmount = grossAmount.subtract(netSaleAmount).setScale(6, RoundingMode.HALF_UP);
                 CommissionResolver.ResolvedCommission commission = detail.getCommission() != null
@@ -58,9 +59,23 @@ public class WalletListener {
                                 detail.getCommission().getPlatformRatio(),
                                 detail.getCommission())
                         : commissionResolver.resolve(instructor, LocalDateTime.now());
-                BigDecimal instructorAmount = netSaleAmount.multiply(commission.instructorRatio())
-                        .divide(new BigDecimal("100"), 6, RoundingMode.HALF_UP);
-                BigDecimal platformAmount = netSaleAmount.subtract(instructorAmount).setScale(6, RoundingMode.HALF_UP);
+                boolean platformSponsoredCoupon = order.getCoupon() != null
+                        && order.getCoupon().getAccount() != null
+                        && order.getCoupon().getAccount().getRole() != null
+                        && "ADMIN".equalsIgnoreCase(order.getCoupon().getAccount().getRole().getName());
+                BigDecimal instructorAmount;
+                BigDecimal platformAmount;
+                if (platformSponsoredCoupon) {
+                    // Platform campaigns never reduce the instructor's agreed share.
+                    instructorAmount = grossAmount.multiply(commission.instructorRatio())
+                            .divide(new BigDecimal("100"), 6, RoundingMode.HALF_UP);
+                    platformAmount = netSaleAmount.subtract(instructorAmount).setScale(6, RoundingMode.HALF_UP);
+                } else {
+                    // Instructor coupons are funded entirely by the instructor.
+                    platformAmount = grossAmount.multiply(commission.platformRatio())
+                            .divide(new BigDecimal("100"), 6, RoundingMode.HALF_UP);
+                    instructorAmount = netSaleAmount.subtract(platformAmount).setScale(6, RoundingMode.HALF_UP);
+                }
 
                 Wallet wallet = new Wallet();
                 wallet.setAccount(instructor);
@@ -90,6 +105,7 @@ public class WalletListener {
                     logData.put("instructor_ratio", commission.instructorRatio());
                     logData.put("platform_ratio", commission.platformRatio());
                     logData.put("platform_amount", platformAmount);
+                    logData.put("coupon_cost_bearer", platformSponsoredCoupon ? "PLATFORM" : "INSTRUCTOR");
                     revenueLog.setPayload(objectMapper.writeValueAsString(logData));
                 } catch (Exception e) {
                     log.error("Error logging revenue JSON", e);
