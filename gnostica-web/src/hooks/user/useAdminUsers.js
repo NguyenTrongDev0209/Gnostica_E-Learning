@@ -14,6 +14,8 @@ export default function useAdminUsers() {
   const [dateRange, setDateRange] = useState({ from: undefined, to: undefined });
   const [priceRange, setPriceRange] = useState([0, 10000000]);
   const [pricePreset, setPricePreset] = useState("all");
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(20);
 
   const handlePricePresetChange = (preset) => {
     setPricePreset(preset);
@@ -48,16 +50,25 @@ export default function useAdminUsers() {
   useEffect(() => {
     setSelectedUserDetail(null);
     setSelectedApp(null);
+    setPage(0);
   }, [activeTab]);
 
-  const { data: accounts = [], isLoading: isAccountsLoading } = useQuery({
-    queryKey: ['admin_accounts', activeTab],
+  const { data: accountsPage = { content: [], totalElements: 0, totalPages: 0 }, isLoading: isAccountsLoading } = useQuery({
+    queryKey: ['admin_accounts', activeTab, page, pageSize],
     queryFn: async () => {
-      const response = await authService.getAccountsByRole(activeTab);
-      console.log('API getAccountsByRole:', response);
-      if (response && response.data) return response.data;
-      if (Array.isArray(response)) return response;
-      return [];
+      const response = await authService.getAccountsByRole(activeTab, { page, size: pageSize });
+      const pageData = response?.data ?? response;
+      if (Array.isArray(pageData)) {
+        return { content: pageData, totalElements: pageData.length, totalPages: 1 };
+      }
+      // Spring Data's VIA_DTO serializer puts pagination metadata under `page`.
+      // Keep the root-level fallback for older server responses.
+      const pageMetadata = pageData?.page ?? pageData;
+      return {
+        content: pageData?.content ?? [],
+        totalElements: pageMetadata?.totalElements ?? 0,
+        totalPages: pageMetadata?.totalPages ?? 0,
+      };
     },
     enabled: activeTab !== 'PENDING_APP',
     staleTime: 1000 * 60, // 1 min
@@ -159,7 +170,7 @@ export default function useAdminUsers() {
     await lockMutation.mutateAsync({ id: selectedUser.id, reason: lockReason });
   };
 
-  const filteredAccounts = accounts.filter(acc => {
+  const filteredAccounts = accountsPage.content.filter(acc => {
     const searchString = searchTerm.toLowerCase();
     const matchSearch = (acc.fullName || "").toLowerCase().includes(searchString) || 
       (acc.email || "").toLowerCase().includes(searchString);
@@ -190,9 +201,23 @@ export default function useAdminUsers() {
     return matchSearch && matchStatus && matchDate && matchPrice;
   });
 
+  const handlePageSizeChange = (size) => {
+    setPageSize(size);
+    setPage(0);
+  };
+
   return {
     activeTab,
     accounts: filteredAccounts,
+    pagination: {
+      currentPage: page,
+      totalPages: accountsPage.totalPages,
+      totalItems: accountsPage.totalElements,
+      pageSize,
+      onPageChange: setPage,
+      onPageSizeChange: handlePageSizeChange,
+      zeroIndexed: true,
+    },
     applications,
     loading,
     searchTerm,

@@ -48,7 +48,7 @@ const AppInput = forwardRef(({
           id={id}
           ref={ref}
           className={cn(
-            "h-11 bg-muted border-border focus:bg-white transition-colors",
+            "h-11 bg-card border-border focus:bg-card transition-colors",
             Icon ? "pl-9" : "",
             rightElement ? "pr-10" : "",
             error ? "border-error/20 focus:ring-red-500" : "",
@@ -210,7 +210,7 @@ export const AppInputGroup = forwardRef(({
         <p className="text-[0.8rem] text-muted-foreground">{description}</p>
       )}
 
-      <InputGroup className={cn("h-11 bg-muted border-border focus-within:bg-white transition-colors", error && "border-error/20 focus-within:ring-red-500")}>
+      <InputGroup className={cn("h-11 bg-card border-border focus-within:bg-card transition-colors", error && "border-error/20 focus-within:ring-red-500")}>
         {leftAddon && (
           <InputGroupAddon align="inline-start">
             <InputGroupText>{leftAddon}</InputGroupText>

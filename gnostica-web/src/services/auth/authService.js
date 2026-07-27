@@ -125,9 +125,11 @@ const getAllAccounts = async () => {
     }
 };
 
-const getAccountsByRole = async (role) => {
+const getAccountsByRole = async (role, { page = 0, size = 20 } = {}) => {
     try {
-        const response = await axiosClient.get(`${API_URL}/accounts/role/${role}`);
+        const response = await axiosClient.get(`${API_URL}/accounts/role/${role}`, {
+            params: { page, size }
+        });
         return response.data;
     } catch (error) {
         throw error.response?.data?.message || 'Không thể lấy danh sách tài khoản theo role!';

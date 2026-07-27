@@ -16,4 +16,6 @@ public interface CouponRepository extends JpaRepository<Coupon, UUID> {
     java.util.Optional<Coupon> findByIdAndDeletedAtIsNull(UUID id);
 
     java.util.List<Coupon> findAllByAccountAndDeletedAtIsNullOrderByCreatedAtDesc(Account account);
+
+    java.util.List<Coupon> findAllByDeletedAtIsNullOrderByCreatedAtDesc();
 }

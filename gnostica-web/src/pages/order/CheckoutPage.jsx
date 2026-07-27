@@ -206,7 +206,7 @@ function CheckoutOrderSummary({
           </span>
         </div>
 
-        <div className="pt-2 pb-4 space-y-2">
+        <div className="min-h-[100px] pt-2 pb-4 space-y-2">
           <div className="flex gap-2">
             <div className="relative flex-1">
               {appliedCoupon && (
@@ -225,17 +225,19 @@ function CheckoutOrderSummary({
               type="button"
               appVariant={appliedCoupon ? "ghostMuted" : "accent"}
               className={appliedCoupon
-                ? "border border-error/20 text-error hover:bg-error-soft hover:text-error"
-                : "disabled:bg-muted disabled:text-muted-foreground"}
+                ? "w-[104px] border border-error/20 text-error hover:bg-error-soft hover:text-error"
+                : "w-[104px] disabled:bg-muted disabled:text-muted-foreground"}
               onClick={appliedCoupon ? removeCoupon : applyCoupon}
               disabled={isCouponLoading || (!couponCode && !appliedCoupon)}
             >
               {isCouponLoading ? "..." : appliedCoupon ? "Bỏ" : "Áp dụng"}
             </AppButton>
           </div>
-          {couponMessage && (
-            <p className={`ml-1 text-sm font-normal ${appliedCoupon ? 'text-success' : 'text-error'}`}>{couponMessage}</p>
-          )}
+          <div className="min-h-5">
+            {couponMessage && (
+              <p className={`ml-1 text-sm font-normal ${appliedCoupon ? 'text-success' : 'text-error'}`}>{couponMessage}</p>
+            )}
+          </div>
         </div>
 
         <div className="pt-2">

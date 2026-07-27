@@ -51,6 +51,21 @@ public class CouponController {
         return ResponseEntity.ok(new ResponseDTO<>(200, "Success", couponService.getMyCoupons()));
     }
 
+    @GetMapping("/admin")
+    public ResponseEntity<ResponseDTO<List<CouponResponse>>> getAdminCoupons(@RequestParam String ownerType) {
+        return ResponseEntity.ok(new ResponseDTO<>(200, "Success", couponService.getAdminCoupons(ownerType)));
+    }
+
+    @GetMapping("/scope-options/courses")
+    public ResponseEntity<ResponseDTO<List<com.gnostica.modules.order.dto.response.CouponScopeOptionResponse>>> getScopeCourseOptions() {
+        return ResponseEntity.ok(new ResponseDTO<>(200, "Success", couponService.getScopeCourseOptions()));
+    }
+
+    @GetMapping("/scope-options/categories")
+    public ResponseEntity<ResponseDTO<List<com.gnostica.modules.order.dto.response.CouponScopeOptionResponse>>> getScopeCategoryOptions() {
+        return ResponseEntity.ok(new ResponseDTO<>(200, "Success", couponService.getScopeCategoryOptions()));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ResponseDTO<CouponResponse>> getCouponById(@PathVariable UUID id) {
         return ResponseEntity.ok(new ResponseDTO<>(200, "Success", couponService.getCouponById(id)));

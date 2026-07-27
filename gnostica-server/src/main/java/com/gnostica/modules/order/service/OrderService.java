@@ -135,6 +135,8 @@ public class OrderService {
             appliedCoupon = couponRepository.findByCodeAndDeletedAtIsNull(requestBody.getCouponCode().toUpperCase())
                     .orElseThrow(() -> new IllegalArgumentException("Mã giảm giá không tồn tại"));
             
+            couponService.assertCouponAppliesToCourse(appliedCoupon, course);
+
             // Deduct coupon quantity
             if (appliedCoupon.getQuantity() != null) {
                 appliedCoupon.setQuantity(appliedCoupon.getQuantity() - 1);

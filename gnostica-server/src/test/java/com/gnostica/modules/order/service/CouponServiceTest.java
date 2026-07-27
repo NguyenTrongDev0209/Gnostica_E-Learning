@@ -34,7 +34,9 @@ import com.gnostica.core.constant.CouponStatus;
 import com.gnostica.core.model.Account;
 import com.gnostica.core.model.Coupon;
 import com.gnostica.core.repository.AccountRepository;
+import com.gnostica.core.repository.CategoryRepository;
 import com.gnostica.core.repository.CouponRepository;
+import com.gnostica.core.repository.CourseRepository;
 import com.gnostica.modules.order.dto.request.CouponRequest;
 import com.gnostica.modules.order.dto.response.CouponResponse;
 
@@ -53,6 +55,12 @@ class CouponServiceTest {
     private AccountRepository accountRepository;
 
     @Mock
+    private CourseRepository courseRepository;
+
+    @Mock
+    private CategoryRepository categoryRepository;
+
+    @Mock
     private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
@@ -62,7 +70,8 @@ class CouponServiceTest {
 
     @BeforeEach
     void setUp() {
-        couponService = new CouponService(couponRepository, accountRepository, eventPublisher, new ObjectMapper());
+        couponService = new CouponService(couponRepository, accountRepository, courseRepository, categoryRepository,
+                eventPublisher, new ObjectMapper());
         owner = account(OWNER_EMAIL);
         SecurityContextHolder.getContext().setAuthentication(
                 new UsernamePasswordAuthenticationToken(OWNER_EMAIL, null, Collections.emptyList()));

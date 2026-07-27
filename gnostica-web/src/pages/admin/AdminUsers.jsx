@@ -49,6 +49,7 @@ export default function AdminUsers() {
   const {
     activeTab,
     accounts,
+    pagination,
     applications,
     loading,
     searchTerm,
@@ -135,7 +136,7 @@ export default function AdminUsers() {
       headerAlign: "center",
       className: "py-4",
       cellClassName: "font-bold text-muted-foreground py-4 text-center",
-      render: (_acc, rowIndex) => rowIndex + 1,
+      render: (_acc, rowIndex) => pagination.currentPage * pagination.pageSize + rowIndex + 1,
     },
     {
       header: "Người dùng",
@@ -260,7 +261,7 @@ export default function AdminUsers() {
       headerAlign: "center",
       className: "py-4",
       cellClassName: "font-bold text-muted-foreground py-4 text-center",
-      render: (_acc, rowIndex) => rowIndex + 1,
+      render: (_acc, rowIndex) => pagination.currentPage * pagination.pageSize + rowIndex + 1,
     },
     {
       header: "Người dùng",
@@ -534,14 +535,7 @@ export default function AdminUsers() {
               isLoading={loading}
               rowClassName={(acc) => acc.status === 2 ? "bg-error/5 hover:bg-error/10" : ""}
               emptyState="Không tìm thấy người dùng nào."
-              pagination={{
-                currentPage: 1,
-                totalPages: 1,
-                totalItems: filteredAccounts.length,
-                onPageChange: () => { },
-                zeroIndexed: false,
-                pageSize: filteredAccounts.length || 10,
-              }}
+              pagination={pagination}
             />
           </TabsContent>
 
@@ -552,14 +546,7 @@ export default function AdminUsers() {
               isLoading={loading}
               rowClassName={(acc) => acc.status === 2 ? "bg-error/5 hover:bg-error/10" : ""}
               emptyState="Không tìm thấy người dùng nào."
-              pagination={{
-                currentPage: 1,
-                totalPages: 1,
-                totalItems: filteredAccounts.length,
-                onPageChange: () => { },
-                zeroIndexed: false,
-                pageSize: filteredAccounts.length || 10,
-              }}
+              pagination={pagination}
             />
           </TabsContent>
 

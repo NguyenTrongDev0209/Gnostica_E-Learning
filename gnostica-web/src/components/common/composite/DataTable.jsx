@@ -18,6 +18,7 @@ import DataPagination from "@/components/common/composite/DataPagination";
  * @param {Object} props.pagination - Pagination data { currentPage, totalItems, totalPages, onPageChange, zeroIndexed }
  * @param {Function} props.rowKey - Optional function to get row key. Defaults to row.id or index.
  * @param {Function} props.renderExpandedRow - Render expanded content for row
+ * @param {Object} props.selection - Optional row selection: { selectedRowKeys, onSelectionChange }
  */
 export default function DataTable({
     columns = [],

@@ -166,10 +166,19 @@ public class AuthController {
     }
 
     @GetMapping("/accounts/role/{role}")
-    public ResponseEntity<?> getAccountsByRole(@PathVariable String role) {
+    public ResponseEntity<?> getAccountsByRole(
+            @PathVariable String role,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        if (page < 0 || size < 1 || size > 100) {
+            return ResponseEntity.badRequest().body(ResponseDTO.builder()
+                    .status(400)
+                    .message("page phai >= 0 va size nam trong khoang 1-100.")
+                    .build());
+        }
         return ResponseEntity.ok(ResponseDTO.builder()
             .status(200)
-            .data(authService.getAccountsByRole(role))
+            .data(authService.getAccountsByRole(role, page, size))
             .build());
     }
 
