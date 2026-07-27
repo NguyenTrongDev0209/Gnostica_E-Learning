@@ -8,6 +8,7 @@ import com.gnostica.core.model.QuizQuestion;
 import com.gnostica.core.repository.QuestionRepository;
 import com.gnostica.core.repository.QuizQuestionRepository;
 import com.gnostica.core.repository.QuizRepository;
+import com.gnostica.core.repository.QuizResultRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +23,7 @@ public class QuizService {
     private final QuizRepository quizRepository;
     private final QuizQuestionRepository quizQuestionRepository;
     private final QuestionRepository questionRepository;
+    private final QuizResultRepository quizResultRepository;
 
     @Transactional
     public void saveQuizForModule(Module module, QuizRequest quizReq) {
@@ -74,6 +76,7 @@ public class QuizService {
             Quiz v1Quiz = quizRepository.findByModule_Id(v1Module.getId()).orElse(null);
             if (v1Quiz != null) {
                 quizQuestionRepository.deleteByQuiz_Id(v1Quiz.getId());
+                quizResultRepository.deleteByQuiz_Id(v1Quiz.getId());
                 quizRepository.delete(v1Quiz);
             }
             return;

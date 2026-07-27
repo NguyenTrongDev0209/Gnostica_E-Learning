@@ -45,9 +45,39 @@ const deleteCoupon = async (id) => {
     return response.data;
 };
 
-const validateCoupon = async (code) => {
-    const response = await axiosClient.get(`${API_URL}/validate/${code}`, {
+const getAdminCoupons = async (ownerType) => {
+    const response = await axiosClient.get(`${API_URL}/admin`, {
+        params: { ownerType },
         headers: getAuthHeaders()
+    });
+    return response.data;
+};
+
+const getScopeCourses = async () => {
+    const response = await axiosClient.get(`${API_URL}/scope-options/courses`, {
+        headers: getAuthHeaders()
+    });
+    return response.data;
+};
+
+const getScopeCategories = async () => {
+    const response = await axiosClient.get(`${API_URL}/scope-options/categories`, {
+        headers: getAuthHeaders()
+    });
+    return response.data;
+};
+
+const updateCoupon = async (id, data) => {
+    const response = await axiosClient.put(`${API_URL}/${id}`, data, {
+        headers: getAuthHeaders()
+    });
+    return response.data;
+};
+
+const validateCoupon = async (code, courseId) => {
+    const response = await axiosClient.get(`${API_URL}/validate/${code}`, {
+        headers: getAuthHeaders(),
+        params: { courseId },
     });
     return response.data;
 };
@@ -64,7 +94,11 @@ const couponService = {
     createCoupon,
     getCoupons,
     getMyCoupons,
+    getAdminCoupons,
+    getScopeCourses,
+    getScopeCategories,
     deleteCoupon,
+    updateCoupon,
     validateCoupon,
     updateCouponStatus,
 };

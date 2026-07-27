@@ -13,6 +13,6 @@ import java.util.List;
 public class CourseProgressResponse {
     private List<LessonProgressDTO> lessons;
     private List<QuizResultDTO> quizzes;
-    private String certifiUrl;
+    private String certificateUrl;
     private Integer progressPercent;
 }

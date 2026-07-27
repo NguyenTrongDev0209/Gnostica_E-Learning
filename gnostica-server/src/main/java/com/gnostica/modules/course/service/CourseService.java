@@ -19,10 +19,12 @@ import com.gnostica.core.model.Lesson;
 import com.gnostica.core.model.Module;
 import com.gnostica.core.model.Quiz;
 import com.gnostica.core.model.Question;
+import com.gnostica.core.model.Review;
 import com.gnostica.core.repository.AccountRepository;
 import com.gnostica.core.repository.CategoryRepository;
 import com.gnostica.core.repository.CourseRepository;
 import com.gnostica.core.repository.LessonRepository;
+import com.gnostica.core.repository.ReviewRepository;
 import com.gnostica.modules.user.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -45,6 +47,7 @@ public class CourseService {
     private final QuizService quizService;
     private final QuestionBankService questionBankService;
     private final LessonRepository lessonRepository;
+    private final ReviewRepository reviewRepository;
     private final BunnyNetService bunnyNetService;
     private final NotificationService notificationService;
 
@@ -69,6 +72,7 @@ public class CourseService {
         course.setDiscount(request.getDiscount() != null ? request.getDiscount() : 0);
 
         course.setLevel(request.getLevel() != null ? request.getLevel() : "Beginner");
+        course.setMetadata(request.getMetadata());
         course.setPromoVideo(request.getPromoVideo());
 
         course.setCategory(category);
@@ -92,6 +96,7 @@ public class CourseService {
                 module.setTitle(mReq.getTitle());
                 module.setStatus(mReq.getStatus() != null ? mReq.getStatus() : course.getStatus());
                 module.setCourse(course);
+                module.setMetadata(mReq.getMetadata());
                 module.setVersionNumber(1);
                 module.setSortOrder(moduleSortOrder++);
 
@@ -100,6 +105,7 @@ public class CourseService {
                     Attachment attachment = new Attachment();
                     attachment.setFileUrl(mReq.getAttachments());
                     attachment.setFileType("document");
+                    attachment.setStatus(1);
                     attachment.setModule(module);
 
                     List<Attachment> moduleAttachments = new ArrayList<>();
@@ -116,6 +122,7 @@ public class CourseService {
                         lesson.setTitle(lReq.getTitle());
                         lesson.setContent(lReq.getContent());
                         lesson.setVideoUrl(lReq.getVideoUrl());
+                        lesson.setMetadata(lReq.getMetadata());
                         lesson.setVersionNumber(1);
                         lesson.setSortOrder(lessonSortOrder++);
                         // Nếu khóa học đang ẩn thì bài học buộc phải ẩn
@@ -230,6 +237,24 @@ public class CourseService {
         }
 
         CourseDetailResponse response = mapToCourseDetailResponse(course);
+        List<Review> publishedReviews = reviewRepository
+                .findByCourseAndStatusAndDeletedAtIsNullOrderByCreatedAtDesc(course, 1);
+        response.setReviewCount(publishedReviews.size());
+        response.setRating(publishedReviews.stream()
+                .mapToInt(Review::getRating)
+                .average()
+                .orElse(0.0));
+        response.setReviews(publishedReviews.stream()
+                .map(review -> CourseReviewResponse.builder()
+                        .id(review.getId())
+                        .accountId(review.getAccount() != null ? review.getAccount().getId() : null)
+                        .studentName(review.getAccount() != null ? review.getAccount().getFullName() : "Học viên")
+                        .studentAvatar(review.getAccount() != null ? review.getAccount().getAvatar() : null)
+                        .rating(review.getRating())
+                        .comment(review.getComment())
+                        .createdAt(review.getCreatedAt())
+                        .build())
+                .collect(Collectors.toList()));
         response.setIsEnrolled(isEnrolled);
         return response;
     }
@@ -324,6 +349,7 @@ public class CourseService {
         course.setDiscount(request.getDiscount());
 
         course.setLevel(request.getLevel());
+        course.setMetadata(request.getMetadata());
         course.setCategory(category);
 
         if (category.getStatus() == null || category.getStatus() == 0) {
@@ -355,7 +381,7 @@ public class CourseService {
                 if (mReq.getId() != null) {
                     // Update existing
                     Module found = currentModules.stream()
-                            .filter(m -> m.getId().equals(mReq.getId()))
+                            .filter(m -> m.getId() != null && m.getId().equals(mReq.getId()))
                             .findFirst()
                             .orElse(null);
                     if (found != null) {
@@ -379,6 +405,7 @@ public class CourseService {
                 }
 
                 module.setTitle(mReq.getTitle());
+                module.setMetadata(mReq.getMetadata());
                 module.setSortOrder(moduleSortOrder++);
                 module.setStatus(mReq.getStatus() != null ? mReq.getStatus() : course.getStatus());
 
@@ -391,6 +418,7 @@ public class CourseService {
                         Attachment attachment = new Attachment();
                         attachment.setFileUrl(mReq.getAttachments());
                         attachment.setFileType("document");
+                        attachment.setStatus(1);
                         attachment.setModule(module);
                         module.getAttachments().add(attachment);
                     } else {
@@ -421,7 +449,7 @@ public class CourseService {
                         Lesson lesson;
                         if (lReq.getId() != null) {
                             lesson = currentLessons.stream()
-                                    .filter(l -> l.getId().equals(lReq.getId()))
+                                    .filter(l -> l.getId() != null && l.getId().equals(lReq.getId()))
                                     .findFirst()
                                     .orElse(null);
                             if (lesson == null) {
@@ -443,6 +471,7 @@ public class CourseService {
                         lesson.setTitle(lReq.getTitle());
                         lesson.setContent(lReq.getContent());
                         lesson.setVideoUrl(lReq.getVideoUrl());
+                        lesson.setMetadata(lReq.getMetadata());
                         lesson.setSortOrder(lessonSortOrder++);
 
                         // Nếu khóa học đang ẩn thì bài học buộc phải ẩn
@@ -562,14 +591,26 @@ public class CourseService {
     }
 
     @Transactional(readOnly = true)
-    public org.springframework.data.domain.Page<CourseResponse> getPublicCourses(Integer categoryId, String categorySlug,
-            String level, int page, int size) {
+    public org.springframework.data.domain.Page<CourseResponse> getPublicCourses(Integer categoryId, java.util.List<String> categorySlugs,
+            java.util.List<String> levels, java.math.BigDecimal minPrice, java.math.BigDecimal maxPrice,
+            String search, int page, int size) {
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size,
                 org.springframework.data.domain.Sort.by("id").descending());
-        // Chuyển level sang lowercase hoặc xử lý null
-        String levelFilter = (level != null && !level.trim().isEmpty() && !level.equalsIgnoreCase("all")) ? level
-                : null;
-        org.springframework.data.domain.Page<Course> coursesPage = courseRepository.findPublicCourses(categoryId, categorySlug, levelFilter, pageable);
+        int categoryIdFilter = categoryId == null ? -1 : categoryId;
+        java.util.List<String> categorySlugFilters = categorySlugs == null ? java.util.List.of() : categorySlugs.stream()
+                .filter(value -> value != null && !value.isBlank()).map(String::trim).toList();
+        java.util.List<String> levelFilters = levels == null ? java.util.List.of() : levels.stream()
+                .filter(value -> value != null && !value.isBlank() && !value.equalsIgnoreCase("all"))
+                .map(String::trim).toList();
+        String searchFilter = search == null ? "" : search.trim();
+        java.math.BigDecimal minPriceFilter = minPrice == null ? java.math.BigDecimal.valueOf(-1) : minPrice.max(java.math.BigDecimal.ZERO);
+        java.math.BigDecimal maxPriceFilter = maxPrice == null ? java.math.BigDecimal.valueOf(-1) : maxPrice.max(java.math.BigDecimal.ZERO);
+        org.springframework.data.domain.Page<Course> coursesPage = courseRepository.findPublicCourses(
+                categoryIdFilter,
+                !categorySlugFilters.isEmpty(), categorySlugFilters.isEmpty() ? java.util.List.of("") : categorySlugFilters,
+                !levelFilters.isEmpty(), levelFilters.isEmpty() ? java.util.List.of("") : levelFilters,
+                minPriceFilter, maxPriceFilter,
+                searchFilter, pageable);
         return coursesPage.map(this::mapToCourseResponse);
     }
 
@@ -585,7 +626,17 @@ public class CourseService {
         }
         
         org.springframework.data.domain.Page<Course> coursesPage = courseRepository.findInstructorCourses(email, formattedSearch, categoryId, status, pageable);
-        return coursesPage.map(this::mapToCourseResponse);
+        return coursesPage.map(course -> {
+            CourseResponse response = mapToCourseResponse(course);
+            Course draft = courseRepository.findFirstByOriginalCourseAndDeletedAtIsNullOrderByIdDesc(course).orElse(null);
+            if (draft != null) {
+                response.setHasDraftVersion(true);
+                response.setDraftCourseSlug(draft.getSlug());
+            } else {
+                response.setHasDraftVersion(false);
+            }
+            return response;
+        });
     }
 
     @Transactional(readOnly = true)
@@ -626,10 +677,26 @@ public class CourseService {
     }
 
     @Transactional(readOnly = true)
-    public org.springframework.data.domain.Page<CourseResponse> getModerationCourses(Integer status, int page, int size) {
+    public org.springframework.data.domain.Page<CourseResponse> getModerationCourses(
+            Integer status, String search, Integer categoryId, int page, int size) {
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size,
                 org.springframework.data.domain.Sort.by("updatedAt").descending());
-        return courseRepository.findModerationCourses(status, pageable).map(this::mapToCourseResponse);
+        String normalizedSearch = search == null ? "" : search.trim();
+        int normalizedStatus = status == null ? -1 : status;
+        int normalizedCategoryId = categoryId == null ? -1 : categoryId;
+        return courseRepository.findModerationCourses(
+                        normalizedStatus, normalizedSearch, normalizedCategoryId, pageable)
+                .map(course -> {
+                    CourseResponse response = mapToCourseResponse(course);
+                    if (course.getOriginalCourse() != null) {
+                        response.setIsVersionUpdate(true);
+                        response.setOriginalCourseName(course.getOriginalCourse().getTitle());
+                        response.setOriginalCourseSlug(course.getOriginalCourse().getSlug());
+                    } else {
+                        response.setIsVersionUpdate(false);
+                    }
+                    return response;
+                });
     }
 
     @Transactional(readOnly = true)
@@ -639,12 +706,14 @@ public class CourseService {
         stats.put("pending", 0L);
         stats.put("approved", 0L);
         stats.put("rejected", 0L);
+        stats.put("total", 0L);
         
         if (results != null) {
             for (Object[] row : results) {
                 if (row != null && row.length >= 2 && row[0] != null && row[1] != null) {
                     Integer status = (Integer) row[0];
                     Long count = (Long) row[1];
+                    stats.put("total", stats.get("total") + count);
                     if (status == 4) stats.put("pending", count);
                     else if (status == 1) stats.put("approved", count);
                     else if (status == 3) stats.put("rejected", count);
@@ -658,7 +727,15 @@ public class CourseService {
     public CourseDetailResponse getCourseForModerationBySlug(String slug) {
         Course course = courseRepository.findFirstBySlugAndDeletedAtIsNullOrderByIdDesc(slug)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học để kiểm duyệt"));
-        return mapToCourseDetailResponse(course);
+        CourseDetailResponse response = mapToCourseDetailResponse(course);
+        if (course.getOriginalCourse() != null) {
+            response.setIsVersionUpdate(true);
+            response.setOriginalCourseName(course.getOriginalCourse().getTitle());
+            response.setOriginalCourseSlug(course.getOriginalCourse().getSlug());
+        } else {
+            response.setIsVersionUpdate(false);
+        }
+        return response;
     }
 
     @Transactional(readOnly = true)
@@ -684,6 +761,7 @@ public class CourseService {
             original.setPrice(course.getPrice());
             original.setDiscount(course.getDiscount());
             original.setLevel(course.getLevel());
+            original.setMetadata(course.getMetadata());
             original.setCategory(course.getCategory());
             original.setPromoVideo(course.getPromoVideo());
             original.setVersionNumber(course.getVersionNumber());
@@ -717,9 +795,28 @@ public class CourseService {
                     
                     targetMod.setDeleted(false);
                     targetMod.setTitle(newMod.getTitle());
+                    targetMod.setMetadata(newMod.getMetadata());
                     targetMod.setStatus(1);
                     targetMod.setVersionNumber(newMod.getVersionNumber());
                     targetMod.setSortOrder(newMod.getSortOrder());
+                    
+                    // Xử lý Attachments (Copy from draft to original)
+                    List<Attachment> originalAttachments = targetMod.getAttachments();
+                    if (originalAttachments == null) {
+                        originalAttachments = new ArrayList<>();
+                        targetMod.setAttachments(originalAttachments);
+                    }
+                    originalAttachments.clear();
+                    if (newMod.getAttachments() != null) {
+                        for (Attachment newAtt : newMod.getAttachments()) {
+                            Attachment targetAtt = new Attachment();
+                            targetAtt.setFileUrl(newAtt.getFileUrl());
+                            targetAtt.setFileType(newAtt.getFileType());
+                            targetAtt.setStatus(newAtt.getStatus());
+                            targetAtt.setModule(targetMod);
+                            originalAttachments.add(targetAtt);
+                        }
+                    }
                     
                     // Xử lý bài học
                     List<Lesson> originalLessons = targetMod.getLessons();
@@ -750,6 +847,7 @@ public class CourseService {
                             targetLes.setTitle(newLes.getTitle());
                             targetLes.setContent(newLes.getContent());
                             targetLes.setVideoUrl(newLes.getVideoUrl());
+                            targetLes.setMetadata(newLes.getMetadata());
                             targetLes.setStatus(1);
                         }
                     }
@@ -763,13 +861,25 @@ public class CourseService {
                 questionIdMap = questionBankService.saveQuestionBankAndGetMap(original, v2Questions);
             }
             
+            // Save original course first to generate IDs for any newly added modules
+            courseRepository.save(original);
+
             // Cập nhật lại câu hỏi cho Quiz (nếu có Quiz)
             for (Module newMod : course.getModules()) {
-                if (!Boolean.TRUE.equals(newMod.getDeleted()) && newMod.getOriginalModule() != null) {
-                    Module targetMod = originalModules.stream()
-                        .filter(m -> m.getId().equals(newMod.getOriginalModule().getId()))
-                        .findFirst()
-                        .orElse(null);
+                if (!Boolean.TRUE.equals(newMod.getDeleted())) {
+                    Module targetMod = null;
+                    if (newMod.getOriginalModule() != null) {
+                        targetMod = originalModules.stream()
+                            .filter(m -> m.getId() != null && m.getId().equals(newMod.getOriginalModule().getId()))
+                            .findFirst()
+                            .orElse(null);
+                    } else {
+                        // Match newly added module by title
+                        targetMod = originalModules.stream()
+                            .filter(m -> m.getTitle().equals(newMod.getTitle()))
+                            .findFirst()
+                            .orElse(null);
+                    }
                         
                     if (targetMod != null) {
                         quizService.mergeQuizFromV2ToV1(targetMod, newMod, questionIdMap);
@@ -825,7 +935,7 @@ public class CourseService {
         String slug = baseSlug;
         int count = 1;
 
-        while (id == null ? courseRepository.existsBySlugAndDeletedAtIsNull(slug) : courseRepository.existsBySlugAndIdNotAndDeletedAtIsNull(slug, id)) {
+        while (id == null ? courseRepository.existsBySlug(slug) : courseRepository.existsBySlugAndIdNot(slug, id)) {
             slug = baseSlug + "-" + count;
             count++;
         }
@@ -864,12 +974,20 @@ public class CourseService {
         response.setDiscount(course.getDiscount());
         response.setSalePrice(course.getSalePrice());
         response.setLevel(course.getLevel());
+        response.setMetadata(course.getMetadata());
         response.setStatus(course.getStatus());
         response.setDeleted(course.getDeleted());
         response.setRejectReason(course.getRejectReason() != null ? course.getRejectReason() : "");
         response.setCreatedAt(course.getCreatedAt());
         response.setUpdatedAt(course.getUpdatedAt());
         response.setIsEnrolled(false);
+        
+        List<Review> publishedReviews = reviewRepository.findByCourseAndStatusAndDeletedAtIsNullOrderByCreatedAtDesc(course, 1);
+        response.setReviewCount(publishedReviews.size());
+        response.setRating(publishedReviews.stream()
+                .mapToInt(Review::getRating)
+                .average()
+                .orElse(0.0));
 
         if (course.getCategory() != null) {
             response.setCategoryId(course.getCategory().getId());
@@ -903,6 +1021,7 @@ public class CourseService {
         response.setDiscount(course.getDiscount());
         response.setSalePrice(course.getSalePrice());
         response.setLevel(course.getLevel());
+        response.setMetadata(course.getMetadata());
         response.setStatus(course.getStatus());
         response.setDeleted(course.getDeleted());
         response.setRejectReason(course.getRejectReason() != null ? course.getRejectReason() : "");
@@ -941,6 +1060,7 @@ public class CourseService {
         com.gnostica.modules.course.dto.response.ModuleResponse response = new com.gnostica.modules.course.dto.response.ModuleResponse();
         response.setId(module.getId());
         response.setTitle(module.getTitle());
+        response.setMetadata(module.getMetadata());
         response.setCreatedAt(module.getCreatedAt());
         response.setUpdatedAt(module.getUpdatedAt());
         response.setStatus(module.getStatus());
@@ -970,6 +1090,7 @@ public class CourseService {
         response.setTitle(lesson.getTitle());
         response.setContent(lesson.getContent());
         response.setVideoUrl(lesson.getVideoUrl());
+        response.setMetadata(lesson.getMetadata());
         response.setStatus(lesson.getStatus());
         response.setDeleted(lesson.getDeleted());
         response.setCreatedAt(lesson.getCreatedAt());

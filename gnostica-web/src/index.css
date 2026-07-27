@@ -391,6 +391,19 @@
     @apply absolute bottom-0 left-0 right-0 h-0.5 bg-header-orange scale-x-0 group-hover:scale-x-100 transition-transform origin-left;
   }
 
+  /* Shared content typography */
+  .app-section-title {
+    @apply font-sans text-xl font-bold tracking-tight text-foreground;
+  }
+
+  .app-body-text {
+    @apply font-sans text-sm md:text-base font-normal;
+  }
+
+  .text-accent-highlight {
+    @apply text-accent not-italic;
+  }
+
   .btn-base, .btn-lg, .btn-md, .btn-sm {
     @apply inline-flex items-center justify-center font-medium transition-all active:scale-95 cursor-pointer disabled:opacity-50 disabled:pointer-events-none whitespace-nowrap select-none;
   }

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Home, Loader2 } from "lucide-react";
-import { Star, Users, Calendar, Globe, PlayCircle, CheckCircle2, Heart, Clock, FileText, Infinity as InfinityIcon, Smartphone, Trophy, Gift } from "lucide-react";
+import { Star, Users, Calendar, Play, PlayCircle, FileText, Infinity as InfinityIcon, Smartphone, Trophy, Gift } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
@@ -12,60 +11,59 @@ import Badge from "@/components/common/micro/AppBadge";
 import { Button } from "@/components/common/micro/AppButton";
 import { Card, CardContent } from "@/components/common/micro/AppCard";
 import Separator from "@/components/common/micro/AppSeparator";
+import AppProgress from "@/components/common/micro/AppProgress";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/common/micro/AppAvatar";
-import { AppButton } from "@/components/common/micro/AppButton";
+import { AppButton, AppIconButton } from "@/components/common/micro/AppButton";
 import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import PageContainer from "@/components/common/core/PageContainer";
 import courseService from "@/services/course/courseService";
-import wishlistService from "@/services/course/wishlistService";
 import instructorService from "@/services/instructor/instructorService";
-import { toast } from "sonner";
-
-// ── CourseDetailHeader ──
-const CourseDetailHeader = ({ course }) => {
-  return (
-    <div>
-      <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-foreground mb-5 leading-tight">
-        {course.title}
-      </h1>
-      {/* Tạm thời ẩn phần mô tả
-      <div 
-        className="text-lg md:text-xl text-muted-foreground mb-6 leading-relaxed prose prose-slate max-w-none [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:mb-4 [&_p]:mb-4"
-        dangerouslySetInnerHTML={{ __html: course.description }}
-      />
-      */}
-
-      <div className="flex flex-wrap items-center gap-y-3 gap-x-6 text-sm font-medium">
-        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-yellow-50 rounded-lg text-warning">
-          <Star className="w-4 h-4 fill-yellow-500 text-warning" />
-          <span className="font-bold">{course.rating || "4.8"}</span>
-          <span className="opacity-80 underline decoration-yellow-600/30 hover:decoration-yellow-600 cursor-pointer">
-            ({course.reviews || "120"} đánh giá)
-          </span>
-        </div>
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <Users className="w-4 h-4" />
-          <span>{(course.studentsCount || 0).toLocaleString()} học viên đã tham gia</span>
-        </div>
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <Calendar className="w-4 h-4" />
-          <span>Cập nhật lần cuối {course.updatedAt ? new Date(course.updatedAt).toLocaleDateString('vi-VN') : 'Gần đây'}</span>
-        </div>
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <Globe className="w-4 h-4" />
-          <span>Tiếng Việt</span>
-        </div>
-      </div>
-    </div>
-  );
-};
+import GiftCourseDialog from '@/components/modals/GiftCourseDialog';
 
 // ── CourseDetailVideo ──
-const BUNNY_LIBRARY_ID = "635422";
+const BUNNY_GUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const isBunnyGuid = (str) => {
   if (!str) return false;
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+  return BUNNY_GUID_REGEX.test(str);
+};
+
+const getBunnyEmbedUrl = (url) => {
+  if (!url) return null;
+
+  const normalizedUrl = String(url).trim();
+  const buildEmbedUrl = (libraryId, videoId) => (
+    `https://player.mediadelivery.net/embed/${libraryId}/${videoId}?autoplay=true&loop=false&muted=false&preload=true`
+  );
+
+  const fullUrlMatch = normalizedUrl.match(
+    /(?:iframe|player)\.mediadelivery\.net\/(?:embed|play)\/([^/?#]+)\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/i
+  );
+  if (fullUrlMatch) {
+    return buildEmbedUrl(fullUrlMatch[1], fullUrlMatch[2]);
+  }
+
+  const bunnyUrlMatch = normalizedUrl.match(
+    /video\.bunny\.net\/(?:embed|play)\/([^/?#]+)\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/i
+  );
+  if (bunnyUrlMatch) {
+    return buildEmbedUrl(bunnyUrlMatch[1], bunnyUrlMatch[2]);
+  }
+
+  const compositeMatch = normalizedUrl.match(
+    /^([^/?#]+)\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i
+  );
+  if (compositeMatch) {
+    return buildEmbedUrl(compositeMatch[1], compositeMatch[2]);
+  }
+
+  const fallbackLibraryId = import.meta.env.VITE_BUNNY_LIBRARY_ID;
+  if (fallbackLibraryId && isBunnyGuid(normalizedUrl)) {
+    return buildEmbedUrl(fallbackLibraryId, normalizedUrl);
+  }
+
+  return null;
 };
 
 const getYoutubeId = (url) => {
@@ -75,78 +73,152 @@ const getYoutubeId = (url) => {
   return (match && match[2].length === 11) ? match[2] : null;
 };
 
-const CourseDetailVideo = ({ courseImage, courseTitle, promoVideo }) => {
-  const [isPlaying, setIsPlaying] = React.useState(false);
+const formatLessonDuration = (metadata) => {
+  if (!metadata) return "--:--";
 
-  if (isPlaying && promoVideo) {
-    const youtubeId = getYoutubeId(promoVideo);
-    const bunnyGuid = isBunnyGuid(promoVideo) ? promoVideo : null;
+  try {
+    const parsedMetadata = typeof metadata === "string" ? JSON.parse(metadata) : metadata;
+    const totalSeconds = Math.max(0, Math.round(Number(parsedMetadata?.durationSeconds)));
+    if (!Number.isFinite(totalSeconds) || totalSeconds === 0) return "--:--";
 
-    return (
-      <div className="relative aspect-video overflow-hidden shadow-2xl shadow-slate-200 border-none bg-black">
-        {youtubeId ? (
-          <iframe
-            src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1`}
-            title="Course Trailer"
-            className="w-full h-full"
-            frameBorder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          />
-        ) : bunnyGuid ? (
-          <iframe
-            src={`https://iframe.mediadelivery.net/embed/${BUNNY_LIBRARY_ID}/${bunnyGuid}?autoplay=true&loop=false&muted=false&preload=true`}
-            title="Course Trailer"
-            className="w-full h-full"
-            frameBorder="0"
-            allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
-            allowFullScreen
-          />
-        ) : (
-          <video
-            src={promoVideo}
-            controls
-            autoPlay
-            className="w-full h-full object-contain bg-black"
-          />
-        )}
-      </div>
-    );
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    if (hours > 0) {
+      return `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+    }
+    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  } catch {
+    return "--:--";
   }
+};
+
+const CourseDetailVideo = ({ courseImage, courseTitle, promoVideo }) => {
+  const [isVideoOpen, setIsVideoOpen] = React.useState(false);
+  const youtubeId = getYoutubeId(promoVideo);
+  const bunnyEmbedUrl = getBunnyEmbedUrl(promoVideo);
+  const hasPromoVideo = Boolean(promoVideo);
 
   return (
+    <>
     <div
-      className="relative aspect-video overflow-hidden shadow-2xl shadow-slate-200 group cursor-pointer border border-border/50 bg-muted"
-      onClick={() => promoVideo && setIsPlaying(true)}
+      className={`relative aspect-video overflow-hidden rounded-xl shadow-2xl shadow-slate-200 group border border-border/50 bg-muted ${hasPromoVideo ? "cursor-pointer" : ""}`}
+      onClick={() => hasPromoVideo && setIsVideoOpen(true)}
     >
       <img
         src={courseImage}
         alt={courseTitle}
-        className={`w-full h-full object-cover transition-all duration-700 ease-out ${promoVideo ? 'group-hover:scale-105 group-hover:opacity-60' : ''}`}
+        className={`w-full h-full object-cover transition-all duration-700 ease-out ${hasPromoVideo ? 'group-hover:scale-105 group-hover:opacity-60' : ''}`}
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80" />
 
-      {promoVideo && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 group-hover:scale-110 group-hover:bg-primary/90 group-hover:border-primary transition-all duration-300 shadow-[0_0_40px_rgba(0,0,0,0.3)]">
-            <PlayCircle className="w-10 h-10 md:w-12 md:h-12 fill-white text-white translate-x-0.5" />
-          </div>
-          <span className="text-white font-extrabold tracking-widest uppercase mt-4 text-xs md:text-sm drop-shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-y-2 group-hover:translate-y-0">
+      {hasPromoVideo && (
+        <div className="absolute inset-0">
+          <button
+            type="button"
+            aria-label="Phát trailer khóa học"
+            className="absolute left-1/2 top-1/2 flex h-12 w-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-accent text-accent-foreground shadow-xl shadow-accent/30 md:h-14 md:w-14"
+          >
+            <Play
+              aria-hidden="true"
+              className="h-5 w-5 fill-current md:h-6 md:w-6"
+              strokeWidth={0}
+              viewBox="-1.333 0 24 24"
+            />
+          </button>
+          <span className="absolute left-1/2 top-[calc(50%+2.25rem)] -translate-x-1/2 text-white font-extrabold tracking-widest uppercase text-xs md:text-sm drop-shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             Xem Trailer Khóa Học
           </span>
         </div>
       )}
     </div>
+
+      <Dialog open={isVideoOpen} onOpenChange={setIsVideoOpen}>
+        <DialogContent
+          showCloseButton={false}
+          className="aspect-video w-[min(82vw,1180px)] max-w-none gap-0 overflow-hidden rounded-xl border-0 bg-black p-0 shadow-2xl ring-0 sm:max-w-none"
+        >
+          <DialogTitle className="sr-only">Trailer khoa hoc</DialogTitle>
+          {youtubeId ? (
+            <iframe
+              src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1`}
+              title="Course Trailer"
+              className="h-full w-full"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          ) : bunnyEmbedUrl ? (
+            <iframe
+              src={bunnyEmbedUrl}
+              title="Course Trailer"
+              className="h-full w-full"
+              frameBorder="0"
+              allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
+              allowFullScreen
+            />
+          ) : (
+            <video
+              src={promoVideo}
+              controls
+              autoPlay
+              className="h-full w-full bg-black object-contain"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
 // ── CourseDetailOutcomes ──
 const CourseDetailOutcomes = ({ course }) => {
+  const rating = Number(course.rating || 0).toFixed(1);
+  const studentsCount = course.students ?? course.instructor?.studentsCount ?? 0;
+  const updatedLabel = course.updatedAt
+    ? new Date(course.updatedAt).toLocaleDateString("vi-VN")
+    : course.lastUpdated || "Gần đây";
+
   return (
-    <section className="bg-muted/80 border border-border/60 rounded-[24px] p-6 md:p-10">
-      <h2 className="text-2xl font-extrabold mb-6 text-foreground">Nội dung bài học</h2>
+    <section className="bg-muted/80 border border-border/60 rounded-2xl p-6 md:p-8">
+      <div className="mb-6 border-b border-border/70 pb-6">
+        <h1 className="text-2xl font-bold leading-tight text-foreground sm:text-3xl md:text-4xl">
+          {course.title}
+        </h1>
+
+        <div className="mt-5 space-y-3 text-sm text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
+            <span className="font-semibold text-warning">{rating}</span>
+            <div className="flex items-center gap-1" aria-label={`${rating} trên 5 sao`}>
+              {Array.from({ length: 5 }).map((_, index) => (
+                <Star
+                  key={index}
+                  className={`h-4 w-4 text-warning ${index < Math.round(Number(rating)) ? "fill-warning" : "fill-transparent"}`}
+                />
+              ))}
+            </div>
+            <div className="flex items-center gap-2 font-medium text-foreground">
+              <Users className="h-4 w-4 text-muted-foreground" />
+              <span>{studentsCount.toLocaleString("vi-VN")} học viên</span>
+            </div>
+          </div>
+          <p>
+            Được tạo bởi{" "}
+            <span className="font-semibold text-primary">
+              {course.instructor?.name || "Giảng viên Gnostica"}
+            </span>
+          </p>
+          <p className="flex items-center gap-2">
+            <Calendar className="h-4 w-4 shrink-0" />
+            <span>Lần cập nhật cuối {updatedLabel}</span>
+          </p>
+        </div>
+      </div>
+
+      <h2 className="mb-1 text-lg font-bold text-foreground">Nội dung bài học</h2>
       <div
-        className="text-foreground text-[15px] leading-relaxed prose prose-slate max-w-none"
+        className="mt-2 max-w-none text-sm font-normal leading-6 text-muted-foreground prose prose-slate md:text-base [&_p]:m-0 [&_p]:font-normal [&_p]:text-muted-foreground"
         dangerouslySetInnerHTML={{ __html: course.description }}
       />
     </section>
@@ -161,14 +233,14 @@ const CourseDetailCurriculum = ({ curriculum }) => {
     <section>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <h2 className="text-2xl font-extrabold text-foreground">Nội dung bài giảng</h2>
-        <div className="text-sm text-muted-foreground font-semibold bg-secondary px-4 py-2 rounded-full">
+        <div className="text-sm text-muted-foreground font-bold bg-secondary px-4 py-2 rounded-full">
           {curriculum.length} chương • {totalLessons} bài học
         </div>
       </div>
 
       <Accordion
         type="multiple"
-        className="w-full bg-white border border-border rounded-[20px] overflow-hidden shadow-sm"
+        className="w-full bg-card border border-border rounded-2xl overflow-hidden shadow-sm"
       >
         {curriculum.map((section, idx) => (
           <AccordionItem
@@ -176,12 +248,12 @@ const CourseDetailCurriculum = ({ curriculum }) => {
             value={`item-${idx}`}
             className="border-b border-border last:border-b-0"
           >
-            <AccordionTrigger className="px-6 py-5 hover:bg-muted hover:no-underline [&[data-state=open]]:bg-muted/80 transition-colors">
+            <AccordionTrigger className="items-center px-6 py-5 transition-colors hover:bg-muted hover:no-underline [&[data-state=open]]:bg-muted/80 [&_[data-slot=accordion-trigger-icon]]:!size-6 [&_[data-slot=accordion-trigger-icon]]:self-center">
               <div className="flex items-center gap-3 text-left">
                 <div className="font-extrabold text-lg text-foreground">{section.title}</div>
               </div>
             </AccordionTrigger>
-            <AccordionContent className="bg-white pb-0">
+            <AccordionContent className="bg-card pb-0">
               <div className="divide-y divide-slate-100/80 border-t border-border">
                 {section.lessons.map((lesson, lIdx) => (
                   <div
@@ -198,12 +270,12 @@ const CourseDetailCurriculum = ({ curriculum }) => {
                         <PlayCircle className="w-4 h-4" />
                       </div>
                       <span
-                        className="text-[15px] font-semibold text-muted-foreground"
+                        className="text-[15px] font-bold text-muted-foreground"
                       >
                         {lesson.title}
                       </span>
                     </div>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground font-medium">
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground font-bold">
                       <span>{lesson.duration || ""}</span>
                     </div>
                   </div>
@@ -223,7 +295,7 @@ const CourseDetailInstructor = ({ instructor }) => {
   return (
     <section>
       <h2 className="text-2xl font-extrabold mb-8 text-foreground">Giảng viên của bạn</h2>
-      <div className="flex flex-col sm:flex-row gap-8 items-start p-8 rounded-[24px] bg-white border border-border shadow-sm">
+      <div className="flex flex-col sm:flex-row gap-8 items-start p-8 rounded-2xl bg-card border border-border shadow-sm">
         <div className="flex flex-col items-center gap-4 shrink-0">
           <Avatar className="w-32 h-32 ring-4 ring-primary/10 border-4 border-white shadow-xl">
             <AvatarImage src={instructor.avatar} />
@@ -259,9 +331,9 @@ const CourseDetailInstructor = ({ instructor }) => {
                 Pro Mentor
               </span>
             </h3>
-            <p className="text-muted-foreground font-medium">{instructor.role}</p>
+            <p className="text-muted-foreground font-bold">{instructor.role}</p>
           </div>
-          <p className="text-foreground leading-relaxed text-[15px]">
+          <p className="text-foreground font-bold leading-relaxed text-[15px]">
             {instructor.bio}
           </p>
           <Button
@@ -277,20 +349,111 @@ const CourseDetailInstructor = ({ instructor }) => {
   );
 };
 
+const CourseDetailReviews = ({ course }) => {
+  const reviews = Array.isArray(course.reviews) ? course.reviews : [];
+  const reviewCount = course.reviewCount ?? reviews.length;
+  const averageRating = Number(course.rating || 0);
+  const ratingDistribution = [5, 4, 3, 2, 1].map((rating) => {
+    const count = reviews.filter((review) => Number(review.rating) === rating).length;
+    return {
+      rating,
+      count,
+      percentage: reviewCount > 0 ? Math.round((count / reviewCount) * 100) : 0,
+    };
+  });
+
+  return (
+    <section>
+      <h2 className="mb-6 text-2xl font-bold text-foreground">Đánh giá khóa học</h2>
+
+      <div className="rounded-2xl border border-border bg-card p-6 md:p-8">
+        <div className="grid gap-8 border-b border-border pb-8 md:grid-cols-[180px_1fr] md:items-center">
+          <div className="text-center md:text-left">
+            <div className="text-5xl font-bold text-warning">{averageRating.toFixed(1)}</div>
+            <div className="mt-3 flex justify-center gap-1 md:justify-start" aria-label={`${averageRating.toFixed(1)} trên 5 sao`}>
+              {Array.from({ length: 5 }).map((_, index) => (
+                <Star
+                  key={index}
+                  className={`h-5 w-5 text-warning ${index < Math.round(averageRating) ? "fill-warning" : "fill-transparent"}`}
+                />
+              ))}
+            </div>
+            <p className="mt-2 text-sm text-muted-foreground">{reviewCount} đánh giá</p>
+          </div>
+
+          <div className="space-y-3">
+            {ratingDistribution.map((item) => (
+              <div key={item.rating} className="grid grid-cols-[52px_1fr_42px] items-center gap-3 text-sm">
+                <div className="flex items-center gap-1 font-medium text-foreground">
+                  <span>{item.rating}</span>
+                  <Star className="h-4 w-4 fill-warning text-warning" />
+                </div>
+                <AppProgress
+                  value={item.percentage}
+                  heightClass="h-2"
+                  className="[&>[data-slot=progress-indicator]]:bg-warning"
+                />
+                <span className="text-right text-muted-foreground">{item.percentage}%</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {reviews.length > 0 ? (
+          <div className="divide-y divide-border">
+            {reviews.map((review) => (
+              <article key={review.id} className="flex gap-4 py-6 last:pb-0">
+                <Avatar className="h-11 w-11 shrink-0">
+                  <AvatarImage src={review.studentAvatar} alt={review.studentName} />
+                  <AvatarFallback>{review.studentName?.charAt(0)?.toUpperCase() || "H"}</AvatarFallback>
+                </Avatar>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-base font-bold text-foreground">{review.studentName || "Học viên"}</h3>
+                      {review.accountId === course?.instructorId && (
+                        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary flex-shrink-0">
+                          Tác giả
+                        </span>
+                      )}
+                    </div>
+                    <time className="text-sm text-muted-foreground">
+                      {review.createdAt ? new Date(review.createdAt).toLocaleDateString("vi-VN") : ""}
+                    </time>
+                  </div>
+                  <div className="mt-2 flex gap-1" aria-label={`${review.rating} trên 5 sao`}>
+                    {Array.from({ length: 5 }).map((_, index) => (
+                      <Star
+                        key={index}
+                        className={`h-4 w-4 text-warning ${index < Number(review.rating) ? "fill-warning" : "fill-transparent"}`}
+                      />
+                    ))}
+                  </div>
+                  <p className="mt-3 text-base leading-6 text-muted-foreground">{review.comment}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <p className="pt-8 text-center text-base text-muted-foreground">Chưa có đánh giá nào cho khóa học này.</p>
+        )}
+      </div>
+    </section>
+  );
+};
+
 // ── CourseDetailPricingCard ──
 const CourseDetailPricingCard = ({ course: initialCourse }) => {
   const navigate = useNavigate();
-  const [isFavourite, setIsFavourite] = React.useState(initialCourse?.isFavourite || false);
-  const [isToggling, setIsToggling] = React.useState(false);
-
+  const [giftDialogOpen, setGiftDialogOpen] = useState(false);
   const totalLessons = initialCourse?.curriculum?.reduce((acc, section) => acc + (section.lessons?.length || 0), 0) || 0;
 
+  const parsePrice = (priceStr) => {
+    if (typeof priceStr === 'number') return priceStr;
+    return parseInt(String(priceStr).replace(/\./g, '').replace(/,/g, ''), 10) || 0;
+  };
+
   const handleCheckout = () => {
-    // Chuyển đổi giá từ chuỗi có dấu phẩy sang số nguyên
-    const parsePrice = (priceStr) => {
-      if (typeof priceStr === 'number') return priceStr;
-      return parseInt(String(priceStr).replace(/\./g, '').replace(/,/g, ''), 10) || 0;
-    };
 
     const orderItem = {
       id: initialCourse.id,
@@ -306,54 +469,52 @@ const CourseDetailPricingCard = ({ course: initialCourse }) => {
     navigate('/checkout', { state: { orderItems: [orderItem] } });
   };
 
-  const handleToggleWishlist = async () => {
-    if (isToggling) return;
-    try {
-      setIsToggling(true);
-      const res = await wishlistService.toggleWishlist(initialCourse.id);
-      if (res.success) {
-        setIsFavourite(res.data.isFavourite);
-        if (res.data.isFavourite) {
-          toast.success("Đã thêm vào danh sách yêu thích");
-        } else {
-          toast.info("Đã xóa khỏi danh sách yêu thích");
-        }
-      }
-    } catch (error) {
-      toast.error("Vui lòng đăng nhập để thực hiện chức năng này");
-    } finally {
-      setIsToggling(false);
-    }
+  const handleGiftConfirm = (giftDetails) => {
+    const orderItem = {
+      id: initialCourse.id,
+      title: initialCourse.title,
+      instructor: initialCourse.instructor?.name || 'Ẩn danh',
+      price: parsePrice(initialCourse.salePrice),
+      originalPrice: parsePrice(initialCourse.originalPrice) || parsePrice(initialCourse.price),
+      image: initialCourse.image,
+      rating: initialCourse.rating,
+      slug: initialCourse.slug,
+    };
+
+    navigate('/checkout', { 
+      state: { 
+        orderItems: [orderItem], 
+        isGift: true, 
+        giftDetails 
+      } 
+    });
   };
 
   return (
-    <Card className="border-border/80 shadow-2xl shadow-slate-200/50 rounded-[28px] overflow-hidden bg-white">
-      <CardContent className="p-7 md:p-8">
-        <div className="flex items-start justify-between mb-2">
+    <Card appVariant="default" className="border-border/80 shadow-none rounded-2xl overflow-hidden">
+      <GiftCourseDialog 
+        open={giftDialogOpen} 
+        setOpen={setGiftDialogOpen} 
+        courseId={initialCourse.id}
+        coursePrice={parsePrice(initialCourse.salePrice)}
+        onGiftConfirm={handleGiftConfirm}
+      />
+      <CardContent className="px-7 pb-7 pt-5 md:px-8 md:pb-8 md:pt-5">
+        <div className="mb-4 flex items-start">
           <Badge
             variant="destructive"
-            className="bg-error/10 text-error text-error hover:bg-error/10 text-error border-none font-bold px-3 py-1"
+            className="bg-error/10 text-error hover:bg-error/10 border-none font-bold px-3 py-1"
           >
             Giảm giá {initialCourse.discount}%
           </Badge>
-          <button
-            onClick={handleToggleWishlist}
-            disabled={isToggling}
-            className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${isFavourite
-                ? "bg-red-50 text-error shadow-sm"
-                : "bg-muted text-muted-foreground hover:text-error hover:bg-red-50"
-              }`}
-          >
-            <Heart className={`w-5 h-5 ${isFavourite ? "fill-red-500" : ""}`} />
-          </button>
         </div>
 
-        <div className="flex items-end gap-3 mb-8 mt-4">
+        <div className="flex items-end gap-3 mb-8">
           <span className="text-[40px] leading-none font-black text-foreground tracking-tight">
             {new Intl.NumberFormat("vi-VN").format(initialCourse.salePrice)}đ
           </span>
           {initialCourse.discount > 0 && (
-            <span className="text-lg text-muted-foreground line-through font-semibold mb-1">
+            <span className="text-lg text-muted-foreground line-through font-bold mb-1">
               {new Intl.NumberFormat("vi-VN").format(initialCourse.price)}đ
             </span>
           )}
@@ -362,21 +523,22 @@ const CourseDetailPricingCard = ({ course: initialCourse }) => {
         <div className="flex items-stretch gap-3 mb-6">
           <AppButton appVariant="gradient"
             size="lg"
-            className="flex-1 py-7 text-lg font-bold rounded-2xl"
+            className="flex-1 py-7 text-lg font-bold rounded-xl"
             onClick={handleCheckout}
             disabled={initialCourse.isEnrolled}
           >
             {initialCourse.isEnrolled ? "Đã đăng ký" : "Đăng ký học ngay"}
           </AppButton>
-          <button
-            className="flex-none p-4 rounded-2xl border-2 border-border text-foreground hover:bg-muted hover:text-primary hover:border-primary transition-all flex items-center justify-center cursor-pointer"
-          >
-            <Gift className="size-6" />
-          </button>
+          <AppIconButton
+            icon={Gift}
+            variant="outline"
+            className="flex-none !h-auto !w-auto p-4 !rounded-xl !bg-accent !text-white !border-2 !border-accent hover:!bg-accent hover:!text-white hover:!border-accent"
+            onClick={() => setGiftDialogOpen(true)}
+          />
         </div>
 
-        <p className="text-center text-[13px] font-semibold text-muted-foreground mb-8">
-          Cam kết hoàn tiền trong 30 ngày nếu không hài lòng.
+        <p className="text-center text-[13px] font-bold text-muted-foreground mb-8">
+          Cam kết hoàn tiền trong 14 ngày nếu không hài lòng.
         </p>
 
         <div>
@@ -384,23 +546,23 @@ const CourseDetailPricingCard = ({ course: initialCourse }) => {
             Khóa học này bao gồm:
           </h4>
           <ul className="space-y-4">
-            <li className="flex items-start gap-4 text-[15px] text-foreground font-medium">
+            <li className="flex items-start gap-4 text-[15px] text-foreground font-bold">
               <PlayCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
               <span>{totalLessons} bài học trực tuyến</span>
             </li>
-            <li className="flex items-start gap-4 text-[15px] text-foreground font-medium">
+            <li className="flex items-start gap-4 text-[15px] text-foreground font-bold">
               <FileText className="w-5 h-5 text-primary shrink-0 mt-0.5" />
               <span>Tài liệu tham khảo chuyên sâu</span>
             </li>
-            <li className="flex items-start gap-4 text-[15px] text-foreground font-medium">
+            <li className="flex items-start gap-4 text-[15px] text-foreground font-bold">
               <InfinityIcon className="w-5 h-5 text-primary shrink-0 mt-0.5" />
               <span>Truy cập và học tập trọn đời</span>
             </li>
-            <li className="flex items-start gap-4 text-[15px] text-foreground font-medium">
+            <li className="flex items-start gap-4 text-[15px] text-foreground font-bold">
               <Smartphone className="w-5 h-5 text-primary shrink-0 mt-0.5" />
               <span>Hỗ trợ học trên điện thoại và TV</span>
             </li>
-            <li className="flex items-start gap-4 text-[15px] text-foreground font-medium">
+            <li className="flex items-start gap-4 text-[15px] text-foreground font-bold">
               <Trophy className="w-5 h-5 text-primary shrink-0 mt-0.5" />
               <span>Nhận chứng chỉ chuyên môn sau khi hoàn thành</span>
             </li>
@@ -450,11 +612,12 @@ export default function CourseDetail() {
           originalPrice: data.price || 0,
           discountPercentage: data.discount || 0,
           discount: data.discount || 0,
-          rating: 5.0,
-          reviews: 0,
+          rating: Number(data.rating || 0),
+          reviewCount: Number(data.reviewCount || 0),
+          reviews: Array.isArray(data.reviews) ? data.reviews : [],
           isEnrolled: data.isEnrolled || false,
-          isFavourite: false, // Default
           students: data.students || 0,
+          updatedAt: data.updatedAt || data.updatedDate || null,
           lastUpdated: "Mới đây",
           language: "Tiếng Việt",
           outcomes: [
@@ -467,7 +630,7 @@ export default function CourseDetail() {
             title: module.title,
             lessons: module.lessons ? module.lessons.map(lesson => ({
               title: lesson.title,
-              duration: "00:00",
+              duration: formatLessonDuration(lesson.metadata),
               preview: false
             })) : []
           })) : [],
@@ -483,16 +646,6 @@ export default function CourseDetail() {
             status: "online"
           }
         };
-
-        // Check if favorite
-        try {
-          const wishRes = await wishlistService.checkWishlist(data.id);
-          if (wishRes.success) {
-            formattedCourse.isFavourite = wishRes.data.isFavourite;
-          }
-        } catch (e) {
-          console.warn("Could not check wishlist status");
-        }
 
         setCourse(formattedCourse);
 
@@ -530,7 +683,7 @@ export default function CourseDetail() {
     return (
       <div className="bg-background min-h-screen pt-24 text-center">
         <h2 className="text-2xl font-bold text-foreground mb-4">{error || "Khóa học không tồn tại"}</h2>
-        <a href="/courses" className="text-primary hover:underline font-medium">Quay lại danh sách khóa học</a>
+        <a href="/courses" className="text-primary hover:underline font-bold">Quay lại danh sách khóa học</a>
       </div>
     );
   }
@@ -548,41 +701,43 @@ export default function CourseDetail() {
   };
 
   const breadcrumbItems = [
-    { label: "Trang chủ", href: "/", icon: Home },
-    { label: "Khoá học", href: "/courses" },
-    { label: course.category?.name || "Chi tiết", isLast: true },
+    { label: "Khóa học", href: "/courses" },
+    { label: course.title, isLast: true },
   ];
 
   return (
     <PageContainer className="pb-24">
-      <PageContainer.Content className="pt-8 md:pt-12">
-        <div className="mb-6">
+      <PageContainer.Content className="gap-y-0 pt-6 md:gap-y-0 md:pt-12">
+        <div className="mb-8">
           <AppBreadcrumb
             paths={breadcrumbItems}
+            className="mb-0"
           />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 xl:gap-12">
-          <div className="lg:col-span-8 flex flex-col gap-10">
-            <CourseDetailHeader course={course} />
-
-            <CourseDetailVideo
-              courseImage={course.thumbnail}
-              courseTitle={course.title}
-              promoVideo={course.promoVideo}
-            />
-
+          <div className="order-2 lg:order-1 lg:col-span-8 flex flex-col gap-8">
             <CourseDetailOutcomes course={course} />
 
             <CourseDetailCurriculum curriculum={course.curriculum || []} />
 
             <Separator className="bg-muted/60" />
 
+            <CourseDetailReviews course={course} />
+
+            <Separator className="bg-muted/60" />
+
             <CourseDetailInstructor instructor={instructorData} />
           </div>
 
-          <div className="lg:col-span-4 relative">
-            <div className="sticky top-28 mb-12 lg:mb-0">
+          <div className="order-1 lg:order-2 lg:col-span-4 relative flex flex-col gap-6">
+            <CourseDetailVideo
+              courseImage={course.thumbnail}
+              courseTitle={course.title}
+              promoVideo={course.promoVideo}
+            />
+
+            <div className="sticky top-28 mb-12 w-full self-start lg:mb-0">
               <CourseDetailPricingCard course={course} />
             </div>
           </div>

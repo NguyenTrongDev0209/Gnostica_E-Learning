@@ -86,10 +86,10 @@ public class LessonProgressService {
                                 .findFirst()
                                 .orElse(null);
 
-                // Auto generate certifiUrl if missing
+                // Auto generate certificateUrl if missing
                 if (enrollment != null && enrollment.getProgressPercent() != null
-                                && enrollment.getProgressPercent() == 100 && enrollment.getCertifiUrl() == null) {
-                        enrollment.setCertifiUrl("UC-" + java.util.UUID.randomUUID().toString());
+                                && enrollment.getProgressPercent() == 100 && enrollment.getCertificateUrl() == null) {
+                        enrollment.setCertificateUrl("UC-" + java.util.UUID.randomUUID().toString());
                         enrollmentRepository.save(enrollment);
                 }
 
@@ -118,6 +118,7 @@ public class LessonProgressService {
                                                 .totalQuestions(qr.getTotalQuestions())
                                                 .correctAnswers(qr.getCorrectAnswers())
                                                 .completedAt(qr.getCompletedAt())
+                                                .status(qr.getStatus())
                                                 .build())
                                 .collect(Collectors.toList());
 
@@ -125,7 +126,7 @@ public class LessonProgressService {
                 return com.gnostica.modules.course.dto.response.CourseProgressResponse.builder()
                                 .lessons(lessons)
                                 .quizzes(quizzes)
-                                .certifiUrl(enrollment != null ? enrollment.getCertifiUrl() : null)
+                                .certificateUrl(enrollment != null ? enrollment.getCertificateUrl() : null)
                                 .progressPercent(enrollment != null ? enrollment.getProgressPercent() : 0)
                                 .build();
         }

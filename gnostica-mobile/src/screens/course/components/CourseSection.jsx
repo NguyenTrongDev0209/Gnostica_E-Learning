@@ -4,9 +4,11 @@ import { View, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-nat
 import CourseCard from './CourseCard';
 import courseService from '../../../services/course/courseService';
 import { useNavigation } from '@react-navigation/native';
+import { useAuth } from '../../../context/AuthContext';
 
 const CourseSection = ({ title, variant = 'trending', customData, limit = 5 }) => {
     const navigation = useNavigation();
+    const { isAuthenticated } = useAuth();
     const [data, setData] = useState(customData || []);
     const [loading, setLoading] = useState(!customData);
 
@@ -17,11 +19,16 @@ const CourseSection = ({ title, variant = 'trending', customData, limit = 5 }) =
             return;
         }
 
+        // Nếu là 'foryou' mà chưa đăng nhập → bỏ qua, không fetch
+        if (variant === 'foryou' && !isAuthenticated) {
+            setLoading(false);
+            return;
+        }
+
         const fetchCourses = async () => {
             try {
                 let response;
                 if (variant === 'featured') {
-                    // Tạm dùng getAll cho nổi bật
                     response = await courseService.getAll({ size: limit });
                 } else if (variant === 'foryou') {
                     response = await courseService.getRecommendations({ size: limit });
@@ -29,7 +36,7 @@ const CourseSection = ({ title, variant = 'trending', customData, limit = 5 }) =
                     response = await courseService.getAll({ size: limit });
                 }
                 
-                if (response.content) {
+                if (response && response.content && response.content.length > 0) {
                     const formatted = response.content.map(course => ({
                         id: course.id.toString(),
                         slug: course.slug,
@@ -43,16 +50,19 @@ const CourseSection = ({ title, variant = 'trending', customData, limit = 5 }) =
                         originalPrice: course.discount > 0 ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(course.price) : null
                     }));
                     setData(formatted);
+                } else {
+                    setData([]);
                 }
             } catch (error) {
-                console.error(`Error fetching ${variant} courses:`, error);
+                console.warn(`Unable to fetch ${variant} courses from server: ${error.message || error}.`);
+                setData([]);
             } finally {
                 setLoading(false);
             }
         };
 
         fetchCourses();
-    }, [variant, customData, limit]);
+    }, [variant, customData, limit, isAuthenticated]);
 
     if (loading) {
         return (

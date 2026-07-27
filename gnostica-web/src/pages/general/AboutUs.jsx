@@ -6,8 +6,8 @@ import { Card, CardContent } from "@/components/common/micro/AppCard";
 import { ArrowRight, Monitor } from "lucide-react";
 import { AppButton } from "@/components/common/micro/AppButton";
 import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
-import { Home } from "lucide-react";
 import PageContainer from "@/components/common/core/PageContainer";
+import { usePublicSiteConfig } from "@/hooks/settings/useSiteSettings";
 
 // Mock Data
 import {
@@ -15,13 +15,12 @@ import {
   aboutStepsMock,
   aboutHeroMock,
   aboutVisionMock,
-  aboutCTAMock
+  aboutCTAMock,
 } from "@/mocks/staticPages";
 
 // ── AboutHero ──
-function AboutHero({ data }) {
+function AboutHero({ data, bannerUrl }) {
   const breadcrumbItems = [
-    { label: "Trang chủ", href: "/", icon: Home },
     { label: "Về chúng tôi", isLast: true }
   ];
 
@@ -36,21 +35,23 @@ function AboutHero({ data }) {
             {data.badge}
           </Badge>
           <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-foreground leading-tight">
-            {data.title} <span className="bg-accent-gradient bg-clip-text text-transparent italic">{data.highlight}</span>
+            {data.title} <span className="text-accent-highlight">{data.highlight}</span>
           </h1>
           <p className="text-lg text-muted-foreground max-w-lg leading-relaxed">
             {data.description}
           </p>
           <div className="flex items-center gap-4 mt-2">
-            <AppButton appVariant="gradient" size="lg" className="min-w-[120px] shadow-lg shadow-orange-500/20">
+            <AboutActionButton href={data.primaryCtaUrl} appVariant="gradient" size="lg" className="min-w-[120px] shadow-lg shadow-orange-500/20">
               {data.primaryCta}
-            </AppButton>
-            <AppButton appVariant="gradient" size="lg" variant="outline" className="min-w-[120px] bg-transparent border-warning/20 text-warning hover:bg-orange-50">
+            </AboutActionButton>
+            <AboutActionButton href={data.secondaryCtaUrl} appVariant="gradient" size="lg" variant="outline" className="min-w-[120px] bg-transparent border-warning/20 text-warning hover:bg-orange-50">
               {data.secondaryCta}
-            </AppButton>
+            </AboutActionButton>
           </div>
         </div>
         <div className="relative aspect-square md:aspect-[4/3] bg-primary text-primary-foreground rounded-3xl overflow-hidden shadow-2xl flex items-center justify-center transform transition-all hover:scale-[1.02] cursor-pointer">
+           {bannerUrl && <img src={bannerUrl} alt={data.title} className="absolute inset-0 w-full h-full object-cover" />}
+           {!bannerUrl && <>
            <div className="text-white text-center flex flex-col items-center gap-4">
                <div className="w-24 h-24 border-2 border-white/20 rounded-full flex items-center justify-center opacity-40">
                 <Monitor size={48} />
@@ -59,6 +60,7 @@ function AboutHero({ data }) {
            </div>
            {/* Decorative hand icon simulation */}
            <div className="absolute bottom-12 right-12 w-32 h-16 border-b-4 border-white/30 rounded-full rotate-[-15deg]"></div>
+           </>}
         </div>
       </div>
     </section>
@@ -66,19 +68,19 @@ function AboutHero({ data }) {
 }
 
 // ── AboutTools ──
-function AboutTools({ tools }) {
+function AboutTools({ tools, heading, description }) {
   return (
     <section className="bg-muted py-8">
       <div className="app-container">
         <div className="text-center mb-4">
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-2">Công cụ Học tập Chuyên biệt của Chúng tôi</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-2">{heading}</h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Công nghệ tiên tiến kết hợp với thiết kế tinh tế để mang lại hành trình giáo dục liền mạch, phù hợp với tiềm năng độc nhất của bạn.
+            {description}
           </p>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {tools.map((tool, index) => {
-            const ToolIcon = tool.icon;
+            const ToolIcon = tool.icon || aboutToolsMock[index % aboutToolsMock.length].icon;
             return (
               <Card key={index} className="border-none shadow-sm hover:shadow-md transition-all group overflow-hidden bg-white">
                 <CardContent className="p-5 flex flex-col gap-3">
@@ -89,8 +91,16 @@ function AboutTools({ tools }) {
                   <p className="text-muted-foreground text-sm leading-relaxed">
                     {tool.description}
                   </p>
-                  <Button variant="link" className="p-0 h-auto bg-accent-gradient bg-clip-text text-transparent font-bold w-fit group-hover:gap-2 transition-all">
+                  <Button asChild={Boolean(tool.url)} variant="link" className="p-0 h-auto bg-accent-gradient bg-clip-text text-transparent font-bold w-fit group-hover:gap-2 transition-all">
+                    {tool.url ? (
+                      <a href={tool.url}>
+                        Đọc thêm <ArrowRight className="ml-1 w-4 h-4 opacity-0 group-hover:opacity-100 transition-all text-warning" />
+                      </a>
+                    ) : (
+                      <>
                     Đọc thêm <ArrowRight className="ml-1 w-4 h-4 opacity-0 group-hover:opacity-100 transition-all text-warning" />
+                      </>
+                    )}
                   </Button>
                 </CardContent>
               </Card>
@@ -103,11 +113,13 @@ function AboutTools({ tools }) {
 }
 
 // ── AboutSolutions ──
-function AboutSolutions({ steps }) {
+function AboutSolutions({ steps, eyebrow, title, bannerUrl, primaryCta, primaryCtaUrl, secondaryCta, secondaryCtaUrl }) {
   return (
     <section className="app-container py-8 lg:py-12">
       <div className="grid lg:grid-cols-2 items-center gap-6 lg:gap-10">
         <div className="aspect-square bg-primary text-primary-foreground rounded-3xl shadow-2xl flex items-center justify-center relative overflow-hidden group">
+          {bannerUrl && <img src={bannerUrl} alt={title} className="absolute inset-0 w-full h-full object-cover" />}
+          {!bannerUrl && <>
           <div className="text-white text-center p-8 z-10">
              <h4 className="text-2xl font-black tracking-wide mb-2 opacity-60">TẦM NHÌN</h4>
              <div className="w-16 h-0.5 bg-primary/50 mx-auto mb-4"></div>
@@ -115,11 +127,12 @@ function AboutSolutions({ steps }) {
           </div>
           {/* Overlay glow */}
           <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          </>}
         </div>
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
-            <span className="bg-accent-gradient bg-clip-text text-transparent font-bold tracking-widest text-xs uppercase">CÁCH CHÚNG TÔI LÀM VIỆC</span>
-            <h2 className="text-3xl md:text-5xl font-bold text-foreground">Giải pháp Học tập Đơn giản!</h2>
+            <span className="bg-accent-gradient bg-clip-text text-transparent font-bold tracking-widest text-xs uppercase">{eyebrow}</span>
+            <h2 className="text-3xl md:text-5xl font-bold text-foreground">{title}</h2>
           </div>
           <div className="flex flex-col gap-6">
             {steps.map((step, index) => (
@@ -135,8 +148,8 @@ function AboutSolutions({ steps }) {
             ))}
           </div>
           <div className="flex items-center gap-4 pt-4">
-            <AppButton appVariant="gradient" size="lg" className="min-w-[120px]">Tìm hiểu thêm</AppButton>
-            <AppButton appVariant="gradient" size="lg" variant="outline" className="min-w-[120px] bg-transparent border-warning/20 text-warning hover:bg-orange-50">Triết lý của Chúng tôi</AppButton>
+            <AboutActionButton href={primaryCtaUrl} appVariant="gradient" size="lg" className="min-w-[120px]">{primaryCta}</AboutActionButton>
+            <AboutActionButton href={secondaryCtaUrl} appVariant="gradient" size="lg" variant="outline" className="min-w-[120px] bg-transparent border-warning/20 text-warning hover:bg-orange-50">{secondaryCta}</AboutActionButton>
           </div>
         </div>
       </div>
@@ -145,7 +158,7 @@ function AboutSolutions({ steps }) {
 }
 
 // ── AboutVision ──
-function AboutVision({ data }) {
+function AboutVision({ data, bannerUrl }) {
   return (
     <section className="bg-primary/5 py-10">
       <div className="app-container">
@@ -163,12 +176,15 @@ function AboutVision({ data }) {
             </div>
           </div>
           <div className="aspect-square bg-primary text-primary-foreground rounded-3xl shadow-2xl relative overflow-hidden flex items-center justify-center group">
+             {bannerUrl && <img src={bannerUrl} alt={data.title} className="absolute inset-0 w-full h-full object-cover" />}
+             {!bannerUrl &&
              <div className="flex flex-col items-center gap-4 text-white p-12">
                 <div className="w-20 h-28 border border-white/20 rounded-t-full flex items-center justify-center">
                   <div className="w-8 h-8 rounded-full bg-warning/10 text-warning shadow-glow"></div>
                 </div>
                 <div className="text-sm tracking-[0.4em] opacity-40 uppercase">CÁNH CỬA NGHỀ NGHIỆP</div>
              </div>
+             }
           </div>
         </div>
       </div>
@@ -179,8 +195,8 @@ function AboutVision({ data }) {
 // ── AboutCTA ──
 function AboutCTA({ data }) {
   return (
-    <section className="app-container pb-8">
-      <div className="w-full bg-accent-gradient md:bg-primary rounded-[2rem] py-8 px-6 text-center text-white flex flex-col items-center gap-4 shadow-2xl shadow-primary/30 relative overflow-hidden">
+    <section className="app-container py-8">
+      <div className="w-full bg-accent-gradient md:bg-primary rounded-[2rem] py-8 px-6 text-center text-white flex flex-col items-center gap-4 relative overflow-hidden">
         {/* Decorative patterns */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2"></div>
         <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2"></div>
@@ -189,32 +205,54 @@ function AboutCTA({ data }) {
         <p className="text-white/80 max-w-xl text-lg relative z-10">
           {data.description}
         </p>
-        <AppButton appVariant="gradient" size="lg" variant="secondary" className="py-2 text-warning h-auto font-bold text-lg hover:scale-105 transition-transform bg-white border-none shadow-xl mt-4 relative z-10">
+        <AboutActionButton href={data.buttonUrl} appVariant="gradient" size="lg" variant="secondary" className="py-2 text-warning h-auto font-bold text-lg hover:scale-105 transition-transform bg-white border-none shadow-xl mt-4 relative z-10">
           {data.buttonText}
-        </AppButton>
+        </AboutActionButton>
       </div>
     </section>
   );
 }
 
+function AboutActionButton({ href, children, ...buttonProps }) {
+  if (!href) return <AppButton {...buttonProps}>{children}</AppButton>;
+
+  return <AppButton asChild {...buttonProps}><a href={href}>{children}</a></AppButton>;
+}
+
 // ── Page ──
 export default function AboutUs() {
+  const { data: settings = {} } = usePublicSiteConfig();
+  let saved = {};
+  try { saved = settings["about.content"] ? JSON.parse(settings["about.content"]) : {}; } catch { saved = {}; }
+  const hero = { ...aboutHeroMock, ...saved.hero };
+  const vision = { ...aboutVisionMock, ...saved.vision };
+  const cta = { ...aboutCTAMock, ...saved.cta };
+  const tools = saved.tools?.length ? saved.tools : aboutToolsMock;
+  const steps = saved.steps?.length ? saved.steps : aboutStepsMock;
+  const testimonials = saved.testimonials || [];
   return (
     <PageContainer className="overflow-hidden">
-      <PageContainer.Content disableContainer className="gap-0 pb-0">
-      <AboutHero data={aboutHeroMock} />
+      <PageContainer.Content disableContainer className="!gap-y-0 pb-0">
+      <AboutHero data={hero} bannerUrl={settings["about.hero_banner_url"]} />
 
-      <AboutTools tools={aboutToolsMock} />
+      <AboutTools tools={tools} heading={saved.toolsHeading || "Công cụ Học tập Chuyên biệt của Chúng tôi"} description={saved.toolsDescription || "Công nghệ tiên tiến kết hợp với thiết kế tinh tế để mang lại hành trình giáo dục liền mạch, phù hợp với tiềm năng độc nhất của bạn."} />
 
-      <AboutSolutions steps={aboutStepsMock} />
+      <AboutSolutions
+        steps={steps}
+        eyebrow={saved.solutionsEyebrow || "CÁCH CHÚNG TÔI LÀM VIỆC"}
+        title={saved.solutionsTitle || "Giải pháp Học tập Đơn giản!"}
+        bannerUrl={settings["about.solutions_banner_url"]}
+        primaryCta={saved.solutionsPrimaryCta || "Tìm hiểu thêm"}
+        primaryCtaUrl={saved.solutionsPrimaryCtaUrl}
+        secondaryCta={saved.solutionsSecondaryCta || "Triết lý của Chúng tôi"}
+        secondaryCtaUrl={saved.solutionsSecondaryCtaUrl}
+      />
 
-      <AboutVision data={aboutVisionMock} />
+      <AboutVision data={vision} bannerUrl={settings["about.vision_banner_url"]} />
 
-      <section className="py-10">
-        <TestimonialCarousel />
-      </section>
+      <TestimonialCarousel testimonials={testimonials} description={saved.testimonialsDescription} />
 
-      <AboutCTA data={aboutCTAMock} />
+      <AboutCTA data={cta} />
       </PageContainer.Content>
     </PageContainer>
   );

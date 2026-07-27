@@ -18,6 +18,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -33,12 +34,16 @@ public class CourseController {
     @GetMapping
     public ResponseEntity<?> getPublicCourses(
             @RequestParam(required = false) Integer categoryId,
-            @RequestParam(required = false) String categorySlug,
-            @RequestParam(required = false) String level,
+            @RequestParam(required = false) List<String> categorySlug,
+            @RequestParam(required = false) List<String> level,
+            @RequestParam(required = false) java.math.BigDecimal minPrice,
+            @RequestParam(required = false) java.math.BigDecimal maxPrice,
+            @RequestParam(required = false) String search,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "9") int size
     ) {
-        return ResponseEntity.ok(courseService.getPublicCourses(categoryId, categorySlug, level, page, size));
+        return ResponseEntity.ok(courseService.getPublicCourses(
+                categoryId, categorySlug, level, minPrice, maxPrice, search, page, Math.min(size, 20)));
     }
 
     @GetMapping("/public-levels")

@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CertificateDTO {
-    private String certifiUrl;
+    private String certificateUrl;
     private String courseTitle;
     private String studentName;
     private String instructorName;

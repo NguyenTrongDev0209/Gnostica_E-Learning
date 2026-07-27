@@ -10,6 +10,7 @@ import com.gnostica.core.model.Course;
 import com.gnostica.core.model.Order;
 import com.gnostica.core.model.OrderDetail;
 import com.gnostica.core.model.Coupon;
+import com.gnostica.modules.settings.service.CommissionResolver;
 import com.gnostica.core.repository.AccountRepository;
 import com.gnostica.core.repository.CourseRepository;
 import com.gnostica.core.repository.OrderDetailRepository;
@@ -29,15 +30,20 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Locale;
+import java.util.Set;
+import com.gnostica.core.constant.OrderStatus;
 import java.util.List;
 import java.util.UUID;
 import java.math.BigDecimal;
 import java.util.stream.Collectors;
+import com.gnostica.modules.wallet.service.WalletService;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class OrderService {
+    private static final Set<String> SUPPORTED_PAYMENT_METHODS = Set.of("PAYOS", "VNPAY", "WALLET");
     private final OrderRepository orderRepository;
     private final OrderDetailRepository orderDetailRepository;
     private final AccountRepository accountRepository;
@@ -45,6 +51,8 @@ public class OrderService {
     private final CouponRepository couponRepository;
     private final CouponService couponService;
     private final PaymentService paymentService;
+    private final CommissionResolver commissionResolver;
+    private final WalletService walletService;
 
     public List<OrderResponse> getAllOrders() {
         return orderRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt")).stream()
@@ -68,6 +76,7 @@ public class OrderService {
     public OrderResponse getOrderById(UUID id) throws Exception {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found with ID: " + id));
+        assertCanReadOrder(order);
         return mapToResponse(checkAndReturnOrder(order));
     }
 
@@ -78,6 +87,14 @@ public class OrderService {
                 .filter(o -> transactionId.equals(o.getId().toString())) // Assuming transactionId might just be the order ID for now
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Order not found with Transaction ID: " + transactionId));
+        assertCanReadOrder(order);
+        return mapToResponse(checkAndReturnOrder(order));
+    }
+
+    public OrderResponse getOrderByOrderCode(Long orderCode) throws Exception {
+        Order order = orderRepository.findByOrderCode(orderCode)
+                .orElseThrow(() -> new IllegalArgumentException("Order not found with orderCode: " + orderCode));
+        assertCanReadOrder(order);
         return mapToResponse(checkAndReturnOrder(order));
     }
 
@@ -86,7 +103,7 @@ public class OrderService {
         if (order.getStatus() == 0) {
             try {
                 paymentService.checkPaymentStatus(order);
-            } catch (RuntimeException e) {
+            } catch (Exception e) {
                 log.warn("Không thể kiểm tra trạng thái PayOS cho order {}: {}", order.getId(), e.getMessage());
             }
             return orderRepository.findById(order.getId()).orElse(order);
@@ -94,8 +111,30 @@ public class OrderService {
         return order;
     }
 
+    private void assertCanReadOrder(Order order) {
+        String email = AuthUtil.getCurrentUserEmail();
+        if (email == null) {
+            throw new org.springframework.security.access.AccessDeniedException("Authentication is required");
+        }
+        Account current = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new org.springframework.security.access.AccessDeniedException("Current account does not exist"));
+        boolean isAdmin = current.getRole() != null && "ADMIN".equalsIgnoreCase(current.getRole().getName());
+        if (!isAdmin && (order.getAccount() == null || !current.getId().equals(order.getAccount().getId()))) {
+            throw new org.springframework.security.access.AccessDeniedException("You cannot access another user's order");
+        }
+    }
+
     @Transactional
     public PaymentLinkResponse createPaymentLink(CreatePaymentLinkRequestBody requestBody) throws Exception {
+        return createPaymentLink(requestBody, false);
+    }
+
+    /**
+     * Gift orders are persisted before an already-paid free/wallet order emits its
+     * success event; otherwise the buyer would be enrolled instead of the recipient.
+     */
+    @Transactional
+    public PaymentLinkResponse createPaymentLink(CreatePaymentLinkRequestBody requestBody, boolean deferImmediateSuccess) throws Exception {
         String email = AuthUtil.getCurrentUserEmail();
         if (email == null) {
             throw new IllegalArgumentException("User not authenticated");
@@ -108,20 +147,22 @@ public class OrderService {
                 .orElseThrow(() -> new IllegalArgumentException("Course not found for ID: " + requestBody.getCourseId()));
 
         long orderCode = System.currentTimeMillis();
+        String paymentMethod = normalizePaymentMethod(requestBody.getPaymentMethod());
 
-        BigDecimal actualPrice = (requestBody.getPrice() != null) ? BigDecimal.valueOf(requestBody.getPrice()) : course.getSalePrice();
+        // The server is the source of truth for pricing. Never trust a client-submitted total.
+        BigDecimal actualPrice = course.getSalePrice();
         
         Coupon appliedCoupon = null;
         if (requestBody.getCouponCode() != null && !requestBody.getCouponCode().trim().isEmpty()) {
-            // Validate coupon (throws exception if invalid)
-            couponService.validateCoupon(requestBody.getCouponCode());
+            appliedCoupon = couponService.getValidCoupon(requestBody.getCouponCode());
             
-            appliedCoupon = couponRepository.findByCode(requestBody.getCouponCode().toUpperCase())
-                    .orElseThrow(() -> new IllegalArgumentException("Mã giảm giá không tồn tại"));
-            
-            // Deduct coupon quantity
+            couponService.assertCouponAppliesToCourse(appliedCoupon, course);
+
+            // Reserve a use while the payment link is pending. It is consumed only
+            // after a successful payment and released by the expiry scheduler.
             if (appliedCoupon.getQuantity() != null) {
-                appliedCoupon.setQuantity(appliedCoupon.getQuantity() - 1);
+                int reserved = appliedCoupon.getReservedQuantity() == null ? 0 : appliedCoupon.getReservedQuantity();
+                appliedCoupon.setReservedQuantity(reserved + 1);
                 couponRepository.save(appliedCoupon);
             }
             
@@ -143,7 +184,7 @@ public class OrderService {
             }
         }
 
-        Order order = saveOrder(account, appliedCoupon, actualPrice, String.valueOf(orderCode));
+        Order order = saveOrder(account, appliedCoupon, actualPrice, String.valueOf(orderCode), paymentMethod);
         OrderDetail detail = saveOrderDetail(order, course, actualPrice);
 
         List<OrderDetail> details = new ArrayList<>();
@@ -152,9 +193,11 @@ public class OrderService {
 
         // If price is 0, we can bypass payment gateway
         if (actualPrice.compareTo(BigDecimal.ZERO) == 0) {
-            order.setStatus(2); // PAID
             order.setPaymentMethod("FREE/COUPON");
             orderRepository.save(order);
+            if (!deferImmediateSuccess) {
+                paymentService.processSuccessfulOrder(order);
+            }
             // Return a dummy link or custom response
             return PaymentLinkResponse.builder()
                 .bin("N/A").accountNumber("N/A").accountName("FREE")
@@ -165,16 +208,48 @@ public class OrderService {
                 .qrCode("").build();
         }
 
+        if ("WALLET".equals(paymentMethod)) {
+            com.gnostica.core.model.Wallet walletBalance = walletService.getWalletByAccount(account);
+            if (walletBalance.getRemain().compareTo(actualPrice) < 0) {
+                throw new IllegalArgumentException("Số dư khả dụng không đủ để thanh toán!");
+            }
+
+            // Create a pseudo webhook data to save transaction
+            com.gnostica.modules.payment.dto.response.PaymentWebhookData data = com.gnostica.modules.payment.dto.response.PaymentWebhookData.builder()
+                .gateway("WALLET")
+                .transactionCode("WALLET-" + orderCode)
+                .amount(actualPrice.longValue())
+                .status("PAID")
+                .paidAt(java.time.LocalDateTime.now())
+                .payload(new java.util.HashMap<>())
+                .build();
+            
+            paymentService.saveTransaction(data, order);
+            
+            if (!deferImmediateSuccess) {
+                paymentService.processSuccessfulOrder(order);
+            }
+            
+            return PaymentLinkResponse.builder()
+                .bin("N/A").accountNumber("N/A").accountName(account.getFullName())
+                .amount(actualPrice.longValue()).description("Thanh toán bằng số dư ví")
+                .orderCode(orderCode)
+                .paymentLinkId("WALLET-" + orderCode).status("PAID")
+                .checkoutUrl(requestBody.getReturnUrl() + "?orderCode=" + orderCode)
+                .qrCode("").build();
+        }
+
         return paymentService.createPaymentLink(order, requestBody.getReturnUrl(), requestBody.getCancelUrl());
     }
 
-    private Order saveOrder(Account account, Coupon coupon, BigDecimal totalPrice, String transactionId) {
+    private Order saveOrder(Account account, Coupon coupon, BigDecimal totalPrice, String transactionId,
+            String paymentMethod) {
         Order order = new Order();
         order.setAccount(account);
         order.setCoupon(coupon);
         order.setTotalPrice(totalPrice);
-        order.setPaymentMethod("PAYOS"); // Default
-        order.setStatus(0); // 0: PENDING
+        order.setPaymentMethod(paymentMethod);
+        order.setStatus(OrderStatus.PENDING);
         try {
             order.setOrderCode(Long.parseLong(transactionId));
         } catch (NumberFormatException e) {
@@ -184,10 +259,23 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
+    private String normalizePaymentMethod(String paymentMethod) {
+        String normalized = paymentMethod == null || paymentMethod.isBlank()
+                ? "PAYOS"
+                : paymentMethod.trim().toUpperCase(Locale.ROOT);
+        if (!SUPPORTED_PAYMENT_METHODS.contains(normalized)) {
+            throw new IllegalArgumentException("Unsupported payment method: " + paymentMethod);
+        }
+        return normalized;
+    }
+
     private OrderDetail saveOrderDetail(Order order, Course course, BigDecimal actualPrice) {
         OrderDetail detail = new OrderDetail();
         detail.setOrder(order);
         detail.setCourse(course);
+        if (course.getAccount() != null) {
+            detail.setCommission(commissionResolver.resolve(course.getAccount(), LocalDateTime.now()).source());
+        }
         detail.setPrice(actualPrice);
         detail.setDiscount(course.getDiscount() != null ? course.getDiscount().intValue() : 0);
         detail.setStatus(1); // 1: Valid
@@ -197,6 +285,7 @@ public class OrderService {
     private OrderResponse mapToResponse(Order order) {
         OrderResponse resp = new OrderResponse();
         resp.setId(order.getId());
+        resp.setOrderCode(order.getOrderCode());
         if (order.getAccount() != null) {
             resp.setAccountId(order.getAccount().getId());
             resp.setAccountName(order.getAccount().getFullName());
@@ -204,7 +293,7 @@ public class OrderService {
         }
         if (order.getCoupon() != null) {
             resp.setCouponId(order.getCoupon().getId());
-            resp.setCouponCode(order.getCoupon().getCode());
+            resp.setCouponCode(couponService.getDisplayCode(order.getCoupon()));
         }
         resp.setTotalPrice(order.getTotalPrice());
         resp.setPaymentMethod(order.getPaymentMethod());

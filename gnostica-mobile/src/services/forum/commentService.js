@@ -1,4 +1,4 @@
-﻿import api from '../../config/api';
+import api from '../../config/api';
 
 const commentService = {
     /**
@@ -6,15 +6,26 @@ const commentService = {
      * @param {string} threadId
      */
     getByThreadId: (threadId) => {
-        return api.get(`/comments/thread/${threadId}`);
+        return api.get(`/comments/target/THREAD/${threadId}`);
+    },
+
+    getByTarget: (targetType, targetId) => {
+        return api.get(`/comments/target/${targetType}/${targetId}`);
     },
 
     /**
      * ThÃªm comment má»›i
-     * @param {Object} body - { content, objectId, userEmail, parentId? }
+     * @param {Object} body - { content, targetType, targetId, userEmail, parentId? }
      */
     create: (body) => {
-        return api.post('/comments', body);
+        const targetType = body.targetType || 'THREAD';
+        const targetId = body.targetId || body.threadId || body.objectId;
+        const normalizedBody = {
+            ...body,
+            targetType,
+            targetId: targetId != null ? String(targetId) : null
+        };
+        return api.post('/comments', normalizedBody);
     },
 
     /**

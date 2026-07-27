@@ -15,4 +15,5 @@ public class QuizResultDTO {
     private Integer totalQuestions;
     private Integer correctAnswers;
     private java.time.LocalDateTime completedAt;
+    private Integer status; // 1: In Progress (reset), 2: Submitted
 }

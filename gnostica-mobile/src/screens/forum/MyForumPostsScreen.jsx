@@ -50,15 +50,20 @@ export default function MyForumPostsScreen() {
                         <AppText className="text-slate-500 mt-4 text-center">Bạn chưa có bài đăng nào.</AppText>
                     </View>
                 ) : (
-                    posts.map(post => (
-                        <TouchableOpacity 
-                            key={post.id} 
-                            className="bg-white p-4 rounded-2xl mb-4 border border-slate-100 shadow-sm"
-                            activeOpacity={0.8}
-                            onPress={() => navigation.navigate('ForumDetail', { post })}
-                        >
-                            <AppText className="text-base font-bold text-slate-800 mb-1.5">{post.title}</AppText>
-                            <AppText className="text-sm text-slate-500 mb-3" numberOfLines={2}>{post.content}</AppText>
+                    posts.map(post => {
+                        const formattedTitle = post.title && post.title.length > 50
+                            ? post.title.substring(0, 50).trim() + '...'
+                            : post.title;
+
+                        return (
+                            <TouchableOpacity 
+                                key={post.id} 
+                                className="bg-white p-4 rounded-2xl mb-4 border border-slate-100 shadow-sm"
+                                activeOpacity={0.8}
+                                onPress={() => navigation.navigate('ForumDetail', { post })}
+                            >
+                                <AppText className="text-base font-bold text-slate-800 mb-1.5" numberOfLines={2}>{formattedTitle}</AppText>
+                                <AppText className="text-sm text-slate-500 mb-3" numberOfLines={2}>{post.content?.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim()}</AppText>
                             
                             <View className="flex-row items-center justify-between mt-2 pt-3 border-t border-slate-50">
                                 <View className="flex-row items-center gap-1">
@@ -81,7 +86,8 @@ export default function MyForumPostsScreen() {
                                 </View>
                             </View>
                         </TouchableOpacity>
-                    ))
+                    );
+                })
                 )}
             </ScrollView>
         </View>

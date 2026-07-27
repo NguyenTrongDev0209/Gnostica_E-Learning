@@ -8,6 +8,11 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.util.UUID;
 import java.math.BigDecimal;
 import jakarta.validation.constraints.*;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Data
 @NoArgsConstructor
@@ -16,6 +21,7 @@ import jakarta.validation.constraints.*;
 @Entity
 @Table(name = "courses")
 public class Course {
+    private static final ObjectMapper METADATA_MAPPER = new ObjectMapper();
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -78,8 +84,9 @@ public class Course {
     @NotNull
     private Integer status;
 
-    @Column(columnDefinition = "TEXT")
-    private String rejectReason;
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "jsonb")
+    private String metadata;
 
     @CreationTimestamp
     @Column(updatable = false)
@@ -115,6 +122,38 @@ public class Course {
     public BigDecimal getSalePrice() {
         if (discount == null || discount <= 0) return price;
         return price.multiply(BigDecimal.valueOf(100 - discount)).divide(BigDecimal.valueOf(100));
+    }
+
+    @Transient
+    public String getRejectReason() {
+        if (metadata == null || metadata.isBlank()) {
+            return null;
+        }
+        try {
+            JsonNode root = METADATA_MAPPER.readTree(metadata);
+            JsonNode moderation = root.path("moderation");
+            JsonNode reason = moderation.path("reject_reason");
+            return reason.isMissingNode() || reason.isNull() ? null : reason.asText();
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    public void setRejectReason(String rejectReason) {
+        try {
+            ObjectNode root = metadata == null || metadata.isBlank()
+                    ? METADATA_MAPPER.createObjectNode()
+                    : (ObjectNode) METADATA_MAPPER.readTree(metadata);
+            ObjectNode moderation = root.with("moderation");
+            if (rejectReason == null || rejectReason.isBlank()) {
+                moderation.remove("reject_reason");
+            } else {
+                moderation.put("reject_reason", rejectReason);
+            }
+            metadata = METADATA_MAPPER.writeValueAsString(root);
+        } catch (Exception ignored) {
+            metadata = "{\"moderation\":{\"reject_reason\":\"" + rejectReason + "\"}}";
+        }
     }
 
 }

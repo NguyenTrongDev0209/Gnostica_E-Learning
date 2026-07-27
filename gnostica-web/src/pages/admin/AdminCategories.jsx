@@ -106,7 +106,7 @@ function AdminCategories({ hideHeader = false }) {
   const [editId, setEditId] = useState(null);
 
   const form = useForm({
-    resolver: zodResolver(forumCategorySchema),
+    resolver: zodResolver(categorySchema),
     defaultValues: {
       name: "",
       slug: "",
@@ -582,7 +582,7 @@ function AdminForumCategory({ hideHeader = false }) {
   }, []);
 
   const form = useForm({
-    resolver: zodResolver(categorySchema),
+    resolver: zodResolver(forumCategorySchema),
     defaultValues: {
       name: "",
       slug: "",

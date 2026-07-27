@@ -8,6 +8,9 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.util.UUID;
 import java.math.BigDecimal;
 import jakarta.validation.constraints.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+import java.util.Map;
 
 @Data
 @NoArgsConstructor
@@ -28,7 +31,7 @@ public class Payment {
 
     @NotBlank
     @Size(max = 255)
-    @Column(unique = true)
+    @Column
     private String transactionCode;
 
     @NotNull
@@ -36,14 +39,18 @@ public class Payment {
     @Column(precision = 18, scale = 6)
     private BigDecimal amount;
 
-    @Size(max = 255)
-    private String accountNumber;
+    @NotBlank
+    @Size(max = 32)
+    private String gateway;
 
     @Size(max = 255)
-    private String senderBankBin;
+    private String gatewayTransactionNo;
 
-    @Size(max = 255)
-    private String senderAccountNumber;
+    private LocalDateTime paidAt;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "jsonb")
+    private Map<String, Object> payload;
 
     /**
      * Status: 1: Pending (Chờ xử lý), 2: Success (Thành công), 3: Failed (Thất bại), 4: Refunded (Đã hoàn tiền)

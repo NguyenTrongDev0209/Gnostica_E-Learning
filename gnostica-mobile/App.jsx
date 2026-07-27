@@ -19,19 +19,19 @@ import {
 enableScreens(false);
 
 import AppNavigator from './src/navigation/AppNavigator';
-import SplashScreen from './src/screens/client/SplashScreen';
-import OnboardingScreen from './src/screens/client/OnboardingScreen';
+import SplashScreen from './src/screens/auth/SplashScreen';
+import OnboardingScreen from './src/screens/auth/OnboardingScreen';
 import LoginScreen from './src/screens/auth/LoginScreen';
 import RegisterScreen from './src/screens/auth/RegisterScreen';
-import CourseDetailScreen from './src/screens/client/CourseDetailScreen';
-import CartScreen from './src/screens/client/CartScreen';
-import LearningScreen from './src/screens/client/LearningScreen';
-import CourseCatalogScreen from './src/screens/client/CourseCatalogScreen';
-import CheckoutScreen from './src/screens/client/CheckoutScreen';
-import OrdersScreen from './src/screens/client/OrdersScreen';
-import SettingsScreen from './src/screens/client/SettingsScreen';
-import CheckoutResultScreen from './src/screens/client/CheckoutResultScreen';
-import ChangePasswordScreen from './src/screens/client/ChangePasswordScreen';
+import CourseDetailScreen from './src/screens/course/CourseDetailScreen';
+import CartScreen from './src/screens/checkout/CartScreen';
+import LearningScreen from './src/screens/course/LearningScreen';
+import CourseCatalogScreen from './src/screens/course/CourseCatalogScreen';
+import CheckoutScreen from './src/screens/checkout/CheckoutScreen';
+import OrdersScreen from './src/screens/checkout/OrdersScreen';
+import SettingsScreen from './src/screens/profile/SettingsScreen';
+import CheckoutResultScreen from './src/screens/checkout/CheckoutResultScreen';
+import ChangePasswordScreen from './src/screens/profile/ChangePasswordScreen';
 import ForgotPasswordScreen from './src/screens/auth/ForgotPasswordScreen';
 import ConfirmCodeScreen from './src/screens/auth/ConfirmCodeScreen';
 import ResetPasswordScreen from './src/screens/auth/ResetPasswordScreen';
@@ -39,24 +39,25 @@ import EmailRegisterScreen from './src/screens/auth/EmailRegisterScreen';
 import EmailLoginScreen from './src/screens/auth/EmailLoginScreen';
 import PhoneLoginScreen from './src/screens/auth/PhoneLoginScreen';
 import PhoneOTPScreen from './src/screens/auth/PhoneOTPScreen';
-import WishlistScreen from './src/screens/client/WishlistScreen';
-import CertificatesScreen from './src/screens/client/CertificatesScreen';
-import VouchersScreen from './src/screens/client/VouchersScreen';
-import NotificationsScreen from './src/screens/client/NotificationsScreen';
-import LegalInfoScreen from './src/screens/client/LegalInfoScreen';
-import ProfileScreen from './src/screens/client/ProfileScreen';
-import SupportScreen from './src/screens/client/SupportScreen';
-import ForumScreen from './src/screens/client/ForumScreen';
-import ForumDetailScreen from './src/screens/client/ForumDetailScreen';
-import CreatePostScreen from './src/screens/client/CreatePostScreen';
-import CategoryBrowseScreen from './src/screens/client/CategoryBrowseScreen';
-import InstructorListScreen from './src/screens/client/InstructorListScreen';
-import FavoriteInstructorsScreen from './src/screens/client/FavoriteInstructorsScreen';
-import LearningProgressScreen from './src/screens/client/LearningProgressScreen';
-import ApplyInstructorScreen from './src/screens/client/ApplyInstructorScreen';
-import MyForumPostsScreen from './src/screens/client/MyForumPostsScreen';
-import PaymentQRCodeScreen from './src/screens/client/PaymentQRCodeScreen';
-import PaymentSuccessScreen from './src/screens/client/PaymentSuccessScreen';
+import WishlistScreen from './src/screens/profile/WishlistScreen';
+import CertificatesScreen from './src/screens/profile/CertificatesScreen';
+import VouchersScreen from './src/screens/checkout/VouchersScreen';
+import NotificationsScreen from './src/screens/profile/NotificationsScreen';
+import LegalInfoScreen from './src/screens/profile/LegalInfoScreen';
+import ProfileScreen from './src/screens/profile/ProfileScreen';
+import SupportScreen from './src/screens/profile/SupportScreen';
+import ForumScreen from './src/screens/forum/ForumScreen';
+import ForumDetailScreen from './src/screens/forum/ForumDetailScreen';
+import CreatePostScreen from './src/screens/forum/CreatePostScreen';
+import CategoryBrowseScreen from './src/screens/course/CategoryBrowseScreen';
+import InstructorListScreen from './src/screens/instructor/InstructorListScreen';
+import FavoriteInstructorsScreen from './src/screens/instructor/FavoriteInstructorsScreen';
+import LearningProgressScreen from './src/screens/course/LearningProgressScreen';
+import ApplyInstructorScreen from './src/screens/instructor/ApplyInstructorScreen';
+import MyForumPostsScreen from './src/screens/forum/MyForumPostsScreen';
+import PaymentQRCodeScreen from './src/screens/checkout/PaymentQRCodeScreen';
+import PaymentSuccessScreen from './src/screens/checkout/PaymentSuccessScreen';
+import SearchScreen from './src/screens/home/SearchScreen';
 // Removed Admin & Instructor Imports
 
 const Stack = createNativeStackNavigator();
@@ -148,6 +149,7 @@ export default function App() {
               <Stack.Screen name="MyForumPosts" component={MyForumPostsScreen} />
               <Stack.Screen name="PaymentQRCode" component={PaymentQRCodeScreen} />
               <Stack.Screen name="PaymentSuccess" component={PaymentSuccessScreen} />
+              <Stack.Screen name="Search" component={SearchScreen} />
               {/* Removed Admin & Instructor Screens */}
             </Stack.Navigator>
           </NavigationContainer>

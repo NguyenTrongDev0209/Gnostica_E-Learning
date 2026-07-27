@@ -28,7 +28,8 @@ public class EnrollmentService {
         private final EnrollmentRepository enrollmentRepository;
         private final AccountRepository accountRepository;
         private final LessonProgressRepository lessonProgressRepository;
-        private final com.gnostica.core.repository.QuizResultRepository quizResultRepository; // Inject Quiz Repo
+        private final com.gnostica.core.repository.QuizResultRepository quizResultRepository; 
+        private final com.gnostica.core.repository.QuizRepository quizRepository;
         private final MailService mailService;
 
         @Transactional
@@ -89,12 +90,29 @@ public class EnrollmentService {
                                 .count();
 
                 // Tính số giờ đã học dựa trên số bài học đã hoàn thành
-                // Tạm thời giả định mỗi bài học trung bình 0.5 giờ (30 phút)
-                long completedLessons = lessonProgressRepository.findByAccount(account).stream()
-                                .filter(lp -> lp.getStatus() != null && lp.getStatus() == 2)
-                                .count();
+                // Tính tổng thời gian đã học thực tế từ metadata của video (tính theo giờ)
+                List<LessonProgress> completedLps = lessonProgressRepository.findByAccount(account).stream()
+                                .filter(lp -> lp.getStatus() != null && lp.getStatus() == 2 && lp.getLesson() != null)
+                                .collect(Collectors.toList());
 
-                double hoursStudied = completedLessons * 0.5;
+                double totalSeconds = 0;
+                com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                for (LessonProgress lp : completedLps) {
+                        Lesson lesson = lp.getLesson();
+                        if (lesson.getMetadata() != null) {
+                                try {
+                                        com.fasterxml.jackson.databind.JsonNode node = mapper.readTree(lesson.getMetadata());
+                                        // Ho tro ca hai truong: durationSeconds va duration
+                                        if (node.has("durationSeconds")) {
+                                                totalSeconds += node.get("durationSeconds").asDouble();
+                                        } else if (node.has("duration")) {
+                                                totalSeconds += node.get("duration").asDouble();
+                                        }
+                                } catch (Exception e) {}
+                        }
+                }
+                
+                double hoursStudied = totalSeconds > 0 ? (Math.round((totalSeconds / 3600.0) * 10) / 10.0) : 0;
 
                 return com.gnostica.modules.user.dto.response.StudentStatsResponse.builder()
                                 .enrolledCourses(enrolledCourses)
@@ -146,17 +164,17 @@ public class EnrollmentService {
                                 .filter(lp -> lp.getStatus() != null && lp.getStatus() == 2)
                                 .count();
 
-                // Auto generate certifiUrl if missing
+                // Auto generate certificateUrl if missing
                 if (enrollment.getProgressPercent() != null && enrollment.getProgressPercent() == 100
-                                && enrollment.getCertifiUrl() == null) {
-                        enrollment.setCertifiUrl("UC-" + java.util.UUID.randomUUID().toString());
+                                && enrollment.getCertificateUrl() == null) {
+                        enrollment.setCertificateUrl("UC-" + java.util.UUID.randomUUID().toString());
                         if (enrollment.getCompletedAt() == null) {
                                 enrollment.setCompletedAt(LocalDateTime.now());
                         }
                         enrollmentRepository.save(enrollment);
                         mailService.sendCourseCompletionEmail(enrollment);
                         System.out.println(
-                                        ">>> DEBUG [getMyCourses] Generated certifiUrl: " + enrollment.getCertifiUrl());
+                                        ">>> DEBUG [getMyCourses] Generated certificateUrl: " + enrollment.getCertificateUrl());
                 }
 
                 return EnrollmentDTO.builder()
@@ -176,7 +194,8 @@ public class EnrollmentService {
                                 .firstLessonId(firstLessonIdStr)
                                 .totalLessons(totalLessons)
                                 .completedLessons(completedLessons)
-                                .certifiUrl(enrollment.getCertifiUrl())
+                                .certificateUrl(enrollment.getCertificateUrl())
+                                .category(course.getCategory() != null ? course.getCategory().getName() : "Khác")
                                 .build();
         }
 
@@ -198,7 +217,9 @@ public class EnrollmentService {
                                 .flatMap(m -> m.getLessons().stream())
                                 .count();
 
-                long totalQuizzes = 0;
+                long totalQuizzes = course.getModules().stream()
+                                .filter(m -> quizRepository.findByModule_Id(m.getId()).isPresent())
+                                .count();
 
                 long totalSteps = totalLessons + totalQuizzes;
                 if (totalSteps == 0)
@@ -216,6 +237,8 @@ public class EnrollmentService {
                                 .count();
 
                 // 3. Đếm số Quizzes đã hoàn thành (Chỉ tính các bài quiz có điểm >= 50)
+                // Dem so Quizzes da hoan thanh: dua tren point >= 50, bat ke status
+                // (ke ca sau khi reset (status=1), neu point >= 50 thi van tinh la da pass)
                 long completedQuizzes = quizResultRepository.findByAccount(account).stream()
                                 .filter(qr -> qr != null && qr.getQuiz() != null &&
                                                 qr.getQuiz().getModule() != null &&
@@ -243,8 +266,8 @@ public class EnrollmentService {
                         if (enrollment.getCompletedAt() == null) {
                                 enrollment.setCompletedAt(LocalDateTime.now());
                         }
-                        if (enrollment.getCertifiUrl() == null) {
-                                enrollment.setCertifiUrl("UC-" + java.util.UUID.randomUUID().toString());
+                        if (enrollment.getCertificateUrl() == null) {
+                                enrollment.setCertificateUrl("UC-" + java.util.UUID.randomUUID().toString());
                                 mailService.sendCourseCompletionEmail(enrollment);
                         }
                 }

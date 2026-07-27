@@ -1,32 +1,44 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
-import { ChevronRight, BookOpen, Trophy, Award, Clock } from "lucide-react";
+import { ChevronRight, BookOpen, Trophy, Award, Clock, LayoutDashboard } from "lucide-react";
 import { AppButton } from "@/components/common/micro/AppButton";
-import { PageContainer } from "@/components/common/core/PageContainer";
 import useAuthStore from "@/store/useAuthStore";
 import useAccountOverview from "@/hooks/user/useAccountOverview";
 import AppCard, { AppCardContent } from "@/components/common/micro/AppCard";
 import AppSkeleton from "@/components/common/micro/AppSkeleton";
 import { CourseProgressCard } from "@/components/common/composite/CourseCard";
 import AppPagination from "@/components/common/micro/AppPagination";
+import AppPageHeader from "@/components/common/composite/AppPageHeader";
+import { AppDialog } from "@/components/common/micro/AppDialog";
+import ApplyInstructor from "@/pages/general/ApplyInstructor";
 
 export default function AccountOverview() {
   const [currentPage, setCurrentPage] = useState(1);
+  const [isInstructorDialogOpen, setIsInstructorDialogOpen] = useState(false);
+  const [instructorDialogMode, setInstructorDialogMode] = useState("intro");
   const user = useAuthStore(state => state.user);
-  const navigate = useNavigate();
   const isInstructor = (user?.role || '').toUpperCase() === 'INSTRUCTOR';
 
   const { stats, recentCourses, recentCertificates, loading } = useAccountOverview();
 
   const handleBecomeInstructor = () => {
-    navigate('/apply-instructor');
+    setInstructorDialogMode("intro");
+    setIsInstructorDialogOpen(true);
+  };
+
+  const handleConfirmBecomeInstructor = () => {
+    setInstructorDialogMode("form");
   };
 
   return (
     <div className="space-y-6">
-      <PageContainer.Header 
+      <AppBreadcrumb paths={[{ label: "Tài khoản", href: "/account" }, { label: "Tổng quan" }]} />
+
+      <AppPageHeader
+        icon={LayoutDashboard}
         title="Tổng quan học tập"
+        description="Theo dõi nhanh các khóa học, chứng chỉ và tiến độ học tập gần đây của bạn."
         actions={
           <Link to="/courses">
             <AppButton appVariant="gradient" className="w-full sm:w-auto font-bold gap-2">
@@ -34,14 +46,22 @@ export default function AccountOverview() {
             </AppButton>
           </Link>
         }
-      >
-        <AppBreadcrumb paths={[{ label: "Tài khoản", href: "/account" }, { label: "Tổng quan" }]} />
-      </PageContainer.Header>
+      />
 
       <AccountWelcomeBanner 
         user={user} 
         isInstructor={isInstructor} 
         handleBecomeInstructor={handleBecomeInstructor} 
+      />
+
+      <InstructorApplicationDialog
+        open={isInstructorDialogOpen}
+        mode={instructorDialogMode}
+        onOpenChange={(open) => {
+          setIsInstructorDialogOpen(open);
+          if (!open) setInstructorDialogMode("intro");
+        }}
+        onConfirm={handleConfirmBecomeInstructor}
       />
 
       <AccountStatsCards stats={stats} loading={loading} />
@@ -164,13 +184,59 @@ function AccountWelcomeBanner({ user, isInstructor, handleBecomeInstructor }) {
                 <p className="text-xs text-muted-foreground mt-0.5 font-medium">Đăng ký trở thành giảng viên trên Gnostica ngay hôm nay.</p>
               </div>
             </div>
-            <AppButton appVariant="gradient" variant="outline" className="border-warning/20 text-warning hover:bg-warning/10 hover:text-white shrink-0 font-bold hidden sm:flex">
+            <AppButton appVariant="gradient" variant="outline" className="border-warning/20 text-white hover:bg-warning/10 hover:text-white shrink-0 font-bold hidden sm:flex">
               Đăng ký ngay
             </AppButton>
           </AppCardContent>
         </AppCard>
       )}
     </>
+  );
+}
+
+function InstructorApplicationDialog({ open, mode, onOpenChange, onConfirm }) {
+  const isFormMode = mode === "form";
+
+  return (
+    <AppDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={!isFormMode ? "Đăng ký trở thành giảng viên" : undefined}
+      description={!isFormMode ? "Chia sẻ kiến thức của bạn với cộng đồng Gnostica và xây dựng nguồn thu nhập từ các khóa học chất lượng." : undefined}
+      className={isFormMode ? "sm:!max-w-3xl max-h-[86vh] overflow-y-auto overflow-x-hidden bg-white" : "sm:max-w-md bg-white"}
+      footer={!isFormMode ? (
+          <div className="flex w-full flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <AppButton
+              appVariant="ghostMuted"
+              variant="ghost"
+              className="border border-border font-bold"
+              onClick={() => onOpenChange(false)}
+            >
+              Để sau
+            </AppButton>
+            <AppButton appVariant="gradient" className="font-bold text-white" onClick={onConfirm}>
+              Tiếp tục đăng ký
+            </AppButton>
+          </div>
+        ) : undefined
+      }
+    >
+      {isFormMode ? (
+        <ApplyInstructor embedded onSubmitted={() => onOpenChange(false)} />
+      ) : (
+        <div className="space-y-3 text-sm text-muted-foreground">
+          <div className="rounded-lg border border-warning/20 bg-orange-50 p-4">
+            <p className="font-bold text-foreground">Bạn sẽ cần chuẩn bị:</p>
+            <ul className="mt-2 space-y-1.5">
+              <li>Thông tin cá nhân và kinh nghiệm giảng dạy.</li>
+              <li>Chủ đề khóa học bạn muốn xây dựng.</li>
+              <li>Tài liệu minh chứng hoặc hồ sơ chuyên môn nếu có.</li>
+            </ul>
+          </div>
+          <p>Quá trình xét duyệt giúp đảm bảo chất lượng nội dung trước khi khóa học được mở cho học viên.</p>
+        </div>
+      )}
+    </AppDialog>
   );
 }
 
@@ -225,7 +291,7 @@ function AccountStatsCards({ stats, loading }) {
                 <Icon className="w-6 h-6" />
               </div>
               <div>
-                <p className="text-2xl font-black text-foreground">{stat.value}</p>
+                <p className="text-2xl font-bold text-foreground">{stat.value}</p>
                 <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mt-0.5">{stat.label}</p>
               </div>
             </AppCardContent>

@@ -1,6 +1,8 @@
 package com.gnostica.modules.payment.service.impl;
 
 import com.gnostica.modules.payment.dto.response.PaymentLinkResponse;
+import com.gnostica.modules.payment.dto.response.PaymentDetails;
+import com.gnostica.modules.payment.dto.response.PaymentWebhookData;
 import com.gnostica.core.model.Order;
 import com.gnostica.core.model.OrderDetail;
 import com.gnostica.core.repository.OrderDetailRepository;
@@ -21,6 +23,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class PayOSPaymentStrategy implements PaymentStrategy {
 
+    private static final int PAYOS_DESCRIPTION_MAX_LENGTH = 25;
+
     private final PayOS payOS;
     private final OrderDetailRepository orderDetailRepository;
 
@@ -34,10 +38,12 @@ public class PayOSPaymentStrategy implements PaymentStrategy {
                 .price((long) d.getPrice().doubleValue())
                 .build()).collect(Collectors.toList());
 
+        String description = limitDescription("DH " + order.getOrderCode());
+
         CreatePaymentLinkRequest paymentData = CreatePaymentLinkRequest.builder()
                 .orderCode(order.getOrderCode())
                 .amount((long) order.getTotalPrice().doubleValue())
-                .description("Thanh toan don hang " + order.getId())
+                .description(description)
                 .items(items)
                 .returnUrl(returnUrl != null && !returnUrl.isEmpty() ? returnUrl : "http://localhost:5173/payment/success")
                 .cancelUrl(cancelUrl != null && !cancelUrl.isEmpty() ? cancelUrl : "http://localhost:5173/payment/cancel")
@@ -61,19 +67,52 @@ public class PayOSPaymentStrategy implements PaymentStrategy {
     }
 
     @Override
-    public WebhookData verifyWebhook(Object body) throws Exception {
-        return payOS.webhooks().verify(body);
+    public PaymentWebhookData verifyWebhook(Object body) throws Exception {
+        WebhookData data = payOS.webhooks().verify(body);
+        
+        java.util.Map<String, Object> payload = new java.util.HashMap<>();
+        payload.put("accountNumber", data.getAccountNumber());
+        payload.put("senderBankCode", data.getCounterAccountBankId());
+        payload.put("senderAccountNumber", data.getCounterAccountNumber());
+        payload.put("bankCode", data.getCounterAccountBankId());
+        payload.put("description", data.getDescription());
+        
+        return PaymentWebhookData.builder()
+                .orderCode(data.getOrderCode())
+                .transactionCode(data.getPaymentLinkId())
+                .amount(data.getAmount())
+                .status("PAID")
+                .gateway("PAYOS")
+                .payload(payload)
+                .build();
     }
 
     @Override
-    public PaymentLink getPaymentDetails(Order order) throws Exception {
-        return payOS.paymentRequests().get(order.getOrderCode());
+    public PaymentDetails getPaymentDetails(Order order) throws Exception {
+        PaymentLink link = payOS.paymentRequests().get(order.getOrderCode());
+        
+        java.util.Map<String, Object> payload = new java.util.HashMap<>();
+        if (link.getTransactions() != null && !link.getTransactions().isEmpty()) {
+            Object lastTx = link.getTransactions().get(link.getTransactions().size() - 1);
+            payload.put("senderAccountNumber", readString(lastTx, "getCounterAccountNumber"));
+            payload.put("senderBankCode", readString(lastTx, "getCounterAccountBankId"));
+            payload.put("accountNumber", readString(lastTx, "getAccountNumber"));
+        }
+        
+        return PaymentDetails.builder()
+                .transactionCode(String.valueOf(link.getOrderCode()))
+                .amount(link.getAmountPaid())
+                .status(link.getStatus() != null ? link.getStatus().toString() : "")
+                .gateway("PAYOS")
+                .transactions(link.getTransactions())
+                .payload(payload)
+                .build();
     }
 
     @Override
     public boolean checkPaymentStatus(Order order) throws Exception {
-        PaymentLink paymentLink = getPaymentDetails(order);
-        String status = paymentLink.getStatus() != null ? paymentLink.getStatus().toString() : "";
+        PaymentDetails paymentLink = getPaymentDetails(order);
+        String status = paymentLink.getStatus() != null ? paymentLink.getStatus() : "";
         boolean isPaid = "PAID".equals(status);
 
         if (isPaid) {
@@ -88,5 +127,20 @@ public class PayOSPaymentStrategy implements PaymentStrategy {
     @Override
     public String getGatewayName() {
         return "PAYOS";
+    }
+
+    private String readString(Object target, String methodName) {
+        try {
+            return (String) target.getClass().getMethod(methodName).invoke(target);
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    private String limitDescription(String description) {
+        if (description == null || description.length() <= PAYOS_DESCRIPTION_MAX_LENGTH) {
+            return description;
+        }
+        return description.substring(0, PAYOS_DESCRIPTION_MAX_LENGTH);
     }
 }

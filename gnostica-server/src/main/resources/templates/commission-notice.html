@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Thông Báo Quyết Định Tỷ Lệ Doanh Thu Mới</title>
+</head>
+<body>
+    <div style='font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px; background-color: #ffffff;'>
+        <h2 style='color: #2D3FE3; text-align: center; margin-top: 10px;'>Thông Báo Quyết Định Tỷ Lệ Doanh Thu Mới</h2>
+        <p style='font-size: 16px; color: #333;'>Chào <b th:text="${instructorName}">Giảng viên</b>,</p>
+        <p style='font-size: 16px; color: #333; line-height: 1.5;'>Gnostica E-Learning xin thông báo về Quyết định thay đổi tỷ lệ hoa hồng phân chia doanh thu mới, áp dụng từ ngày: <br><br>
+        <b style='font-size: 18px; color: #2D3FE3;' th:text="${applyDate}">01/01/2026</b></p>
+        
+        <div style='background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin: 20px 0;'>
+            <p style='margin: 0 0 10px 0; font-size: 15px;'><strong>Tỷ lệ nền tảng:</strong> <span th:text="${platformRatio} + '%'">10%</span></p>
+            <p style='margin: 0; font-size: 15px;'><strong>Tỷ lệ giảng viên:</strong> <span th:text="${instructorRatio} + '%'">90%</span></p>
+        </div>
+
+        <p style='font-size: 16px; color: #333; line-height: 1.5;'>Bạn có thể xem trực tiếp hoặc tải file quyết định đính kèm theo liên kết bên dưới:</p>
+        
+        <div style='text-align: center; margin: 30px 0;'>
+            <a th:href="${noticeFileUrl}" style='background-color: #2D3FE3; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;'>Xem File Quyết Định</a>
+        </div>
+        
+        <p style='color: #666; font-style: italic; text-align: center;'>Quyết định này sẽ được tự động áp dụng đối với các giao dịch phát sinh từ thời điểm có hiệu lực. Các giao dịch trước đó không bị ảnh hưởng.</p>
+        <hr style='border: 0; border-top: 1px solid #eee; margin: 20px 0;'>
+        <p style='font-size: 12px; color: #999; text-align: center;'>© Gnostica E-Learning. Email này được gửi tự động, vui lòng không phản hồi.</p>
+    </div>
+</body>
+</html>

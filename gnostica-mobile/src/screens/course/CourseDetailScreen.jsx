@@ -26,13 +26,6 @@ const TABS = [
     { key: 'reviews',    label: 'Đánh giá' },
 ];
 
-// Mock reviews
-const MOCK_REVIEWS = [
-    { id: 1, name: 'Minh Tuấn', avatar: '👨‍💻', rating: 5, date: '12/06/2025', comment: 'Khóa học rất chất lượng, giảng viên dạy dễ hiểu và thực tế. Mình đã áp dụng ngay vào dự án công ty!' },
-    { id: 2, name: 'Thu Hương', avatar: '👩‍🎓', rating: 4, date: '03/06/2025', comment: 'Nội dung phong phú, ví dụ minh họa cụ thể. Chỉ ước phần cuối có thêm bài tập thực hành.' },
-    { id: 3, name: 'Đức Anh', avatar: '🧑‍💼', rating: 5, date: '28/05/2025', comment: 'Đây là một trong những khóa học tốt nhất mình từng học. Highly recommend!' },
-];
-
 const StarRow = ({ rating }) => (
     <View style={{ flexDirection: 'row', gap: 2 }}>
         {[1, 2, 3, 4, 5].map(i => (
@@ -368,7 +361,7 @@ const CourseDetailScreen = () => {
                         </View>
 
                         {/* Reviews list */}
-                        {(courseDetail?.reviews || MOCK_REVIEWS).map(review => (
+                        {(courseDetail?.reviews || []).map(review => (
                             <View key={review.id} style={{
                                 paddingVertical: 16,
                                 borderBottomWidth: 1, borderBottomColor: '#f1f5f9',

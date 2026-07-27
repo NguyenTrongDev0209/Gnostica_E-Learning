@@ -40,6 +40,7 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
   const methods = useForm({
     resolver: zodResolver(courseSchema, { errorMap: viErrorMap }),
     defaultValues: {
+      id: "",
       title: "",
       slug: "",
       categoryId: "",
@@ -56,6 +57,7 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
             title: "",
             content: "",
             videoFile: null,
+            metadata: null,
             status: 1,
             createdAt: new Date().toISOString(),
             updatedAt: null
@@ -115,7 +117,7 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
     return response.data?.url || response.data;
   }, []);
 
-  const uploadVideoToBunny = useCallback(async (file, title, onProgress) => {
+  const uploadVideoToBunny = useCallback(async (file, title, onProgress, abortSignal) => {
     if (typeof file === "string") return file;
     if (!file || file === "mock-url") return file;
 
@@ -128,6 +130,10 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
         const upload = new tus.Upload(file, {
           endpoint: "https://video.bunnycdn.com/tusupload",
           retryDelays: [0, 3000, 5000, 10000, 20000],
+          chunkSize: 5 * 1024 * 1024, // 5MB chunks
+          // A new videoId and signature are issued above for every attempt.
+          // Never reuse a stored TUS URL belonging to an older videoId.
+          removeFingerprintOnSuccess: true,
           headers: {
             AuthorizationSignature: authorizationSignature,
             AuthorizationExpire: String(authorizationExpire),
@@ -136,12 +142,15 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
           },
           metadata: {
             filetype: file.type,
-            title: title || file.name,
-            collection: ""
+            title: title || file.name
           },
           onError: function (error) {
-            console.error("Failed because: " + error);
-            reject(new Error("Upload video failed to Bunny CDN via TUS"));
+            const status = error.originalResponse?.getStatus?.();
+            const body = error.originalResponse?.getBody?.();
+            console.error("Bunny TUS upload failed", { status, body, error });
+            reject(new Error(
+              `Upload video failed to Bunny CDN via TUS${status ? ` (HTTP ${status})` : ""}`
+            ));
           },
           onProgress: function (bytesUploaded, bytesTotal) {
             const percentComplete = Math.round((bytesUploaded / bytesTotal) * 100);
@@ -152,12 +161,17 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
           }
         });
 
-        upload.findPreviousUploads().then(function (previousUploads) {
-          if (previousUploads.length) {
-            upload.resumeFromPreviousUpload(previousUploads[0]);
-          }
-          upload.start();
-        });
+        if (abortSignal) {
+          abortSignal.addEventListener('abort', () => {
+            upload.abort(true).then(() => {
+              reject(new Error("Upload cancelled by user"));
+            }).catch(() => {
+              reject(new Error("Upload cancelled by user"));
+            });
+          });
+        }
+
+        upload.start();
       }).catch(err => {
         console.error("Failed to load tus-js-client", err);
         reject(err);
@@ -308,6 +322,7 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
             ...data,
             categoryId: data.categoryId?.toString() || "",
             status: (data.status !== null && data.status !== undefined) ? Number(data.status) : 1,
+            promoVideo: data.promoVideo || null,
             questionBank: bankQuestions,
             sections: data.modules?.map(m => ({
               ...m,
@@ -337,26 +352,14 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
     const isDirty = methods.formState.isDirty;
 
     if (isDirty) {
-      const confirmMsg = isEditMode 
-        ? "Bạn có các thay đổi chưa lưu. Bạn có chắc chắn muốn thoát và HỦY BỎ toàn bộ các thay đổi mới không?" 
-        : "Bạn đang tạo khóa học mới nhưng chưa xuất bản. Bạn có chắc chắn muốn thoát và xóa bỏ bản nháp hiện tại không?";
-        
-      if (window.confirm(confirmMsg)) {
-        try {
-          const idToUse = isEditMode ? (methods.getValues().id?.toString() || "") : "";
-          const slugToUse = isEditMode ? (slug || "") : null;
-          await courseService.deleteDraft({ courseId: idToUse, slug: slugToUse });
-          isSubmittingRef.current = true;
-          navigate("/instructor/courses");
-        } catch (error) {
-          isSubmittingRef.current = true;
-          navigate("/instructor/courses");
-        }
-      }
-    } else {
-      navigate("/instructor/courses");
+      // Tự động lưu nháp nếu có thay đổi thay vì xóa bỏ
+      await saveDraft(methods.getValues(), false);
+      toast.info("Đã tự động lưu nháp các thay đổi của bạn.");
     }
-  }, [isEditMode, slug, methods, navigate]);
+    
+    isSubmittingRef.current = true;
+    navigate("/instructor/courses");
+  }, [methods, saveDraft, navigate]);
 
   // --- GLOBAL CLICK & UNLOAD EVENTS ---
   useEffect(() => {
@@ -377,32 +380,14 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
       
       const isDirty = methods.formState.isDirty;
       if (isDirty) {
-        const confirmMsg = isEditMode
-          ? "Bạn có các thay đổi chưa lưu. Bạn có chắc chắn muốn thoát và HỦY BỎ toàn bộ các thay đổi mới này để quay lại dữ liệu gốc không?"
-          : "Bạn đang tạo khóa học mới nhưng chưa xuất bản. Bạn có chắc chắn muốn thoát và xóa bỏ bản nháp hiện tại không?";
-
-        if (!window.confirm(confirmMsg)) {
-          e.preventDefault();
-          e.stopPropagation();
-        } else {
-          try {
-            let originalData = {};
-            try {
-               originalData = JSON.parse(originalDataRef.current || "{}");
-            } catch (err) {}
-            const idToUse = isEditMode ? (originalData?.id?.toString() || "") : "";
-            const slugToUse = isEditMode ? (slug || "") : null;
-            isSubmittingRef.current = true;
-            courseService.deleteDraft({ courseId: idToUse, slug: slugToUse });
-          } catch (err) {
-            isSubmittingRef.current = true;
-          }
-        }
+        // Tự động lưu nháp thay vì hỏi xóa
+        saveDraft(methods.getValues(), false);
+        toast.info("Đã tự động lưu nháp các thay đổi của bạn.");
       }
     };
     document.addEventListener('click', handleGlobalClick, true);
     return () => document.removeEventListener('click', handleGlobalClick, true);
-  }, [isEditMode, slug, methods, originalDataRef, isSubmittingRef]);
+  }, [methods, saveDraft, isSubmittingRef]);
 
   useEffect(() => {
     const handleBeforeUnload = (e) => {
@@ -418,13 +403,12 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
   }, [saveDraft, methods]);
 
   // --- AUTO SAVE & UPLOAD LOGIC ---
-  const formData = methods.watch();
   useEffect(() => {
-    const timer = setTimeout(() => {
-      saveDraft(formData, false);
+    const timer = setInterval(() => {
+      saveDraft(methods.getValues(), false);
     }, 10000);
-    return () => clearTimeout(timer);
-  }, [formData, saveDraft]);
+    return () => clearInterval(timer);
+  }, [methods, saveDraft]);
 
   const watchThumbnail = methods.watch("thumbnail");
   useEffect(() => {
@@ -497,32 +481,47 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
       isSubmittingRef.current = true;
 
       const sanitizeId = (id) => (typeof id === 'number' || (!isNaN(id) && id !== "")) ? Number(id) : null;
+      const allFormValues = methods.getValues();
 
       const finalData = {
         ...data,
         categoryId: Number(data.categoryId),
         price: Number(data.price),
-        questionBank: data.questionBank || [],
-        sections: data.sections?.map(s => ({
-          ...s,
-          id: sanitizeId(s.id),
-          lessons: s.lessons?.map(l => ({
-            ...l,
-            id: sanitizeId(l.id),
-            videoUrl: typeof l.videoFile === "string" ? l.videoFile : l.videoUrl
-          }))
-        }))
+        questionBank: allFormValues.questionBank || [],
+        sections: data.sections?.map((s, index) => {
+          const rawSection = allFormValues.sections?.[index] || {};
+          return {
+            ...s,
+            id: sanitizeId(s.id),
+            quiz: rawSection.quiz || null,
+            lessons: s.lessons?.map(l => ({
+              ...l,
+              id: sanitizeId(l.id),
+              videoUrl: typeof l.videoFile === "string" ? l.videoFile : l.videoUrl
+            }))
+          };
+        })
       };
 
       if (isEditMode && slug !== "new") {
         await courseService.updateCourse(slug, finalData);
+        toast.success("Cập nhật khóa học thành công!");
       } else {
         await courseService.createCourse(finalData);
+        toast.success("Tạo khóa học thành công!");
+      }
+
+      // Xóa bản nháp trên Redis sau khi lưu vào CSDL thành công
+      try {
+        const idToUse = isEditMode ? (finalData.id?.toString() || "") : "";
+        const slugToUse = isEditMode ? (slug || "") : null;
+        await courseService.deleteDraft({ courseId: idToUse, slug: slugToUse });
+      } catch (err) {
+        console.error("Lỗi xóa bản nháp Redis:", err);
       }
 
       localStorage.removeItem(`course_questions_${slug || 'new'}`);
-      toast.success(isEditMode && slug !== "new" ? "Cập nhật khóa học thành công!" : "Lưu khóa học thành công!");
-      setTimeout(() => navigate("/instructor/courses"), 1500);
+      setTimeout(() => navigate("/instructor/courses"), 1200);
     } catch (error) {
       console.error("Submit Error:", error);
       toast.error(error.response?.data?.error || "Lỗi tải lên hoặc lưu khóa học.");

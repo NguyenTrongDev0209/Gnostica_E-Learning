@@ -101,7 +101,7 @@ export default function MyCourses() {
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">{stat.label}</p>
-                    <p className="text-2xl font-black text-foreground mt-0.5">{stat.value}</p>
+                    <p className="text-2xl font-bold text-foreground mt-0.5">{stat.value}</p>
                   </div>
                 </AppCardContent>
               </AppCard>
@@ -189,24 +189,31 @@ function MyCourseGrid({ loading, courses }) {
 
   return (
     <div className="space-y-4">
-      {courses.map((course) => (
-        <CourseProgressCard
-          key={course.id}
-          id={course.id}
-          title={course.courseTitle}
-          category={course.category}
-          image={course.courseThumbnail}
-          instructor={course.instructorName}
-          progressPercent={course.progressPercent}
-          lastAccessed={course.lastAccessed}
-          completedAt={course.completedAt}
-          joinedAt={course.joinedAt}
-          firstLessonId={course.firstLessonId}
-          lastWatchedLessonSlug={course.lastWatchedLessonSlug}
-          certifiUrl={course.certifiUrl}
-          link={`/learning/${course.courseSlug}${course.progressPercent === 100 ? `?lesson=${course.firstLessonId}&restart=true` : (course.lastWatchedLessonSlug ? `?lesson=${course.lastWatchedLessonSlug}` : "")}`}
-        />
-      ))}
+      {courses.map((course) => {
+        const courseSlug = course.courseSlug || course.slug;
+        const learningLink = courseSlug ? `/learning/${courseSlug}` : null;
+        const restartLink = courseSlug ? `/learning/${courseSlug}?lesson=${course.firstLessonId}&restart=true` : null;
+
+        return (
+          <CourseProgressCard
+            key={course.id}
+            id={course.id}
+            title={course.courseTitle}
+            category={course.category}
+            image={course.courseThumbnail}
+            instructor={course.instructorName}
+            progressPercent={course.progressPercent}
+            lastAccessed={course.lastAccessed}
+            completedAt={course.completedAt}
+            joinedAt={course.joinedAt}
+            firstLessonId={course.firstLessonId}
+            lastWatchedLessonSlug={course.lastWatchedLessonSlug}
+            certifiUrl={course.certifiUrl || course.certificateUrl}
+            link={learningLink}
+            restartLink={restartLink}
+          />
+        );
+      })}
     </div>
   );
 }

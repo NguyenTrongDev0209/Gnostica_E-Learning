@@ -13,12 +13,14 @@ import ProtectedRoute from "@/components/common/core/ProtectedRoute";
 import CertificatePage from "@/pages/learning/CertificatePage";
 import { ROLES } from "@/utils/constants";
 import PersonalizationModal from "@/components/common/composite/PersonalizationModal";
+import ScrollToTop from "@/components/common/core/ScrollToTop";
 
 function App() {
   return (
     <TooltipProvider>
       <AppToaster />
       <Router>
+        <ScrollToTop />
         <PersonalizationModal />
         <Routes>
           {publicRoutes.noLayout && publicRoutes.noLayout.map(({ path, component: Component }) => (
@@ -99,6 +101,7 @@ function App() {
           </Route>
 
           <Route path="/certificate/:certifiUrl" element={<CertificatePage />} />
+          <Route path="/404" element={<ErrorPage />} />
           <Route path="*" element={<ErrorPage />} />
         </Routes>
       </Router>

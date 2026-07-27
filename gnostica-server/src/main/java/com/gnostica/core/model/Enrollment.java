@@ -42,7 +42,7 @@ public class Enrollment {
     private Integer progressPercent;
 
     @Size(max = 255)
-    private String certifiUrl;
+    private String certificateUrl;
 
     /**
      * Status: 0: Dropped/Refunded (Đã huỷ/Hoàn tiền), 1: In Progress (Đang học), 2:

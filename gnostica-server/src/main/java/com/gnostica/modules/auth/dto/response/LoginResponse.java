@@ -19,5 +19,7 @@ public class LoginResponse {
     private String avatar;
     private String provider;
     private Boolean onboardingCompleted;
+    private java.util.List<Long> selectedCategories;
+    private String level;
     private UUID id;
 }

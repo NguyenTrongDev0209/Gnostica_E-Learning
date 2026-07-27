@@ -123,7 +123,7 @@ public class DashboardServiceImpl implements DashboardService {
                         .user(order.getAccount() != null ? order.getAccount().getFullName() : "Unknown")
                         .course("Course Purchase")
                         .price(order.getTotalPrice())
-                        .status(order.getStatus() != null && order.getStatus() == 2 ? "completed" : order.getStatus() != null && order.getStatus() == 1 ? "pending" : "failed")
+                        .status(order.getStatus() != null && order.getStatus() == 1 ? "completed" : order.getStatus() != null && order.getStatus() == 0 ? "pending" : "failed")
                         .date(formatFriendlyDate(order.getCreatedAt()))
                         .build())
                 .collect(Collectors.toList());

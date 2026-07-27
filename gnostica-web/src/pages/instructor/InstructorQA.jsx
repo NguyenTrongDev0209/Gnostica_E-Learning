@@ -46,7 +46,10 @@ export default function InstructorQA() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground tracking-tight">Hỏi Đáp & Đánh Giá</h1>
+          <h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
+            <MessageSquare className="w-6 h-6 text-primary" />
+            Hỏi Đáp & Đánh Giá
+          </h1>
           <p className="text-sm text-muted-foreground mt-1">
             Tương tác với học viên qua các câu hỏi bài học và quản lý phản hồi khóa học.
           </p>

@@ -13,10 +13,13 @@ import java.math.BigDecimal;
 @Repository
 public interface PaymentRepository extends JpaRepository<Payment, java.util.UUID> {
     boolean existsByTransactionCode(String transactionCode);
+    boolean existsByGatewayAndGatewayTransactionNo(String gateway, String gatewayTransactionNo);
     List<Payment> findByOrder(Order order);
     List<Payment> findByCreatedAtAfter(LocalDateTime createdAt);
 
     @Query("SELECT SUM(p.amount) FROM Payment p WHERE p.status = :status")
     BigDecimal sumAmountByStatus(@Param("status") Integer status);
-}
 
+    @Query("SELECT COALESCE(SUM(p.amount), 0) FROM Payment p WHERE p.order.account = :account AND p.gateway = 'WALLET' AND p.status = 2")
+    BigDecimal sumWalletPaymentsByAccount(@Param("account") com.gnostica.core.model.Account account);
+}

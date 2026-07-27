@@ -4,7 +4,9 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.type.SqlTypes;
 import java.math.BigDecimal;
 import jakarta.validation.constraints.*;
 
@@ -42,10 +44,15 @@ public class Commission {
     private LocalDateTime validUntil;
 
     /**
-     * Status: 0: Inactive (Đã cũ), 1: Active (Đang áp dụng)
+     * Status: 0: Draft (Sắp tới), 1: Active (Áp dụng), 2: Expired (Hết hạn)
      */
     @NotNull
     private Integer status;
+
+    @Builder.Default
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "JSONB", nullable = false)
+    private String metadata = "{}";
 
     @CreationTimestamp
     @Column(updatable = false)

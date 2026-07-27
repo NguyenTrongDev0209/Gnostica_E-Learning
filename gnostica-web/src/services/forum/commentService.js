@@ -18,10 +18,19 @@ const getAuthHeaders = () => {
 };
 
 const commentService = {
+  getCommentsByTarget: async (targetType, targetId) => {
+    try {
+      const response = await axiosClient.get(`${API_URL}/target/${targetType}/${targetId}`, { headers: getAuthHeaders() });
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching comments:", error);
+      throw error;
+    }
+  },
+
   getCommentsByThreadId: async (threadId) => {
     try {
-      const response = await axiosClient.get(`${API_URL}/thread/${threadId}`, { headers: getAuthHeaders() });
-      return response.data;
+      return await commentService.getCommentsByTarget("THREAD", threadId);
     } catch (error) {
       console.error("Error fetching comments:", error);
       throw error;
@@ -30,10 +39,23 @@ const commentService = {
   
   addComment: async (payload) => {
     try {
-      const response = await axiosClient.post(`${API_URL}`, payload, { headers: getAuthHeaders() });
+      const normalizedPayload = payload.threadId && !payload.targetType
+        ? { ...payload, targetType: "THREAD", targetId: payload.threadId }
+        : payload;
+      const response = await axiosClient.post(`${API_URL}`, normalizedPayload, { headers: getAuthHeaders() });
       return response.data;
     } catch (error) {
       console.error("Error adding comment:", error);
+      throw error;
+    }
+  },
+
+  updateComment: async (id, payload) => {
+    try {
+      const response = await axiosClient.put(`${API_URL}/${id}`, payload, { headers: getAuthHeaders() });
+      return response.data;
+    } catch (error) {
+      console.error("Error updating comment:", error);
       throw error;
     }
   },

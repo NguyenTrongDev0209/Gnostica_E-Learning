@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ChevronLeft,
@@ -9,8 +9,8 @@ import {
   Info,
   FileText,
   MoreVertical,
-  LayoutDashboard,
   Loader2,
+  Clock,
   Download,
   Trophy,
   Award,
@@ -18,13 +18,17 @@ import {
   XCircle,
   Send,
   Trash,
+  Pencil,
   User,
   CornerDownRight,
   ChevronDown,
   ChevronUp,
   Target,
   AlertTriangle,
-  RefreshCw
+  RefreshCw,
+  Star,
+  Moon,
+  Sun
 } from "lucide-react";
 import {
   Accordion,
@@ -35,7 +39,7 @@ import {
 import Progress from "@/components/common/micro/AppProgress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/common/micro/AppTabs";
 import { Button } from "@/components/common/micro/AppButton";
-import Separator from "@/components/common/micro/AppSeparator";
+import AppCard, { AppCardContent } from "@/components/common/micro/AppCard";
 import PageContainer from "@/components/common/core/PageContainer";
 import courseService from "@/services/course/courseService";
 import progressService from "@/services/course/progressService";
@@ -43,35 +47,124 @@ import enrollmentService from "@/services/course/enrollmentService";
 import commentService from "@/services/forum/commentService";
 import useAuthStore from "@/store/useAuthStore";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/common/micro/AppAvatar";
+import { cn } from "@/lib/utils";
+import { AppToast } from "@/components/common/micro/AppToast";
 
-// ── Component Hỗ Trợ: Giao Diện Hỏi Đáp Q&A ──
+const FALLBACK_LESSON_THUMBNAIL = "https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=320&auto=format&fit=crop";
+
+const formatLessonDuration = (metadata) => {
+  if (!metadata) return "--:--";
+
+  try {
+    const parsedMetadata = typeof metadata === "string" ? JSON.parse(metadata) : metadata;
+    const totalSeconds = Math.max(0, Math.round(Number(parsedMetadata?.durationSeconds || parsedMetadata?.duration || 0)));
+    if (!Number.isFinite(totalSeconds) || totalSeconds === 0) return "--:--";
+
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    if (hours > 0) {
+      return `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+    }
+
+    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  } catch {
+    return "--:--";
+  }
+};
+
+const getCourseRatingSummary = (course) => {
+  const reviews = Array.isArray(course?.reviews) ? course.reviews : [];
+  const reviewCount = Number(course?.reviewCount ?? reviews.length ?? 0);
+  const averageRating = Math.max(0, Math.min(5, Number(course?.rating || 0)));
+  const distribution = [5, 4, 3, 2, 1].map((rating) => {
+    const count = reviews.filter((review) => Number(review.rating) === rating).length;
+
+    return {
+      rating,
+      count,
+      percentage: reviewCount > 0 ? Math.round((count / reviewCount) * 100) : 0,
+    };
+  });
+
+  return { averageRating, reviewCount, distribution, reviews };
+};
+
+const getInitialDarkMode = () => {
+  if (typeof window === "undefined") return false;
+
+  const savedTheme = window.localStorage.getItem("gnostica-theme");
+  if (savedTheme === "dark") return true;
+  if (savedTheme === "light") return false;
+
+  return window.matchMedia?.("(prefers-color-scheme: dark)")?.matches || false;
+};
+
+// Component ho tro: giao dien Hoi dap Q&A
+const getCommentAuthorName = (comment) => comment?.account?.fullName || "Học viên Gnostica";
+const getCurrentUserName = (user) => user?.fullName || user?.name || "Bạn";
+const countCommentTree = (items = []) => items.reduce((total, item) => total + 1 + countCommentTree(item.replies || []), 0);
+const flattenLessonReplies = (replies = [], parentAuthorName) => replies.flatMap((reply) => [
+  { ...reply, parentAuthorName },
+  ...flattenLessonReplies(reply.replies || [], getCommentAuthorName(reply)),
+]);
+
 function LessonQA({ lesson }) {
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
   const [newComment, setNewComment] = useState("");
   const [replyingTo, setReplyingTo] = useState(null);
+  const [replyParentId, setReplyParentId] = useState(null);
+  const [replyTargetName, setReplyTargetName] = useState("");
   const [replyContent, setReplyContent] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [collapsedComments, setCollapsedComments] = useState(new Set());
+  const [editingCommentId, setEditingCommentId] = useState(null);
+  const [editingContent, setEditingContent] = useState("");
+  const [qaFilter, setQaFilter] = useState("all");
   const currentUser = useAuthStore(state => state.user);
+  const commentCount = countCommentTree(comments);
+  const filteredComments = comments.filter((comment) => {
+    if (qaFilter === "mine") return comment.account?.email === currentUser?.email;
+    if (qaFilter === "answered") return (comment.replies || []).length > 0;
+    return true;
+  });
 
   const toggleCollapse = (id) => {
     setCollapsedComments(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(id)) newSet.delete(id);
-      else newSet.add(id);
-      return newSet;
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
     });
+  };
+
+  const startReplying = (comment, parentId) => {
+    setReplyingTo(comment.id);
+    setReplyParentId(parentId);
+    setReplyTargetName(getCommentAuthorName(comment));
+    setEditingCommentId(null);
+  };
+
+  const cancelReplying = () => {
+    setReplyingTo(null);
+    setReplyParentId(null);
+    setReplyTargetName("");
+    setReplyContent("");
   };
 
   const fetchComments = useCallback(async () => {
     if (!lesson?.id) return;
     setLoading(true);
+    setErrorMessage("");
     try {
-      const data = await commentService.getCommentsByThreadId(`lesson_${lesson.id}`);
+      const data = await commentService.getCommentsByTarget("LESSON", lesson.id);
       setComments(data || []);
     } catch (error) {
       console.error("Failed to fetch comments", error);
+      setErrorMessage(error?.response?.data || "Không thể tải thảo luận của bài học.");
     } finally {
       setLoading(false);
     }
@@ -79,6 +172,11 @@ function LessonQA({ lesson }) {
 
   useEffect(() => {
     fetchComments();
+    setReplyingTo(null);
+    setReplyParentId(null);
+    setReplyTargetName("");
+    setEditingCommentId(null);
+    setEditingContent("");
   }, [fetchComments]);
 
   const handleSubmit = async (e, parentId = null) => {
@@ -87,22 +185,55 @@ function LessonQA({ lesson }) {
     if (!content.trim() || !currentUser?.email) return;
 
     setIsSubmitting(true);
+    setErrorMessage("");
     try {
       await commentService.addComment({
-        content,
-        objectId: `lesson_${lesson.id}`,
+        content: content.trim(),
+        targetType: "LESSON",
+        targetId: lesson.id,
         userEmail: currentUser.email,
-        parentId
+        parentId,
       });
+
       if (parentId) {
-        setReplyContent("");
-        setReplyingTo(null);
+        cancelReplying();
       } else {
         setNewComment("");
       }
-      fetchComments();
+      await fetchComments();
     } catch (error) {
-      alert(error?.response?.data || "Đã xảy ra lỗi khi gửi bình luận.");
+      setErrorMessage(error?.response?.data || "Đã xảy ra lỗi khi gửi bình luận.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const startEditing = (comment) => {
+    setEditingCommentId(comment.id);
+    setEditingContent(comment.content || "");
+    cancelReplying();
+  };
+
+  const cancelEditing = () => {
+    setEditingCommentId(null);
+    setEditingContent("");
+  };
+
+  const handleUpdate = async (e, commentId) => {
+    e.preventDefault();
+    if (!editingContent.trim() || !currentUser?.email) return;
+
+    setIsSubmitting(true);
+    setErrorMessage("");
+    try {
+      await commentService.updateComment(commentId, {
+        content: editingContent.trim(),
+        userEmail: currentUser.email,
+      });
+      cancelEditing();
+      await fetchComments();
+    } catch (error) {
+      setErrorMessage(error?.response?.data || "Cập nhật bình luận thất bại.");
     } finally {
       setIsSubmitting(false);
     }
@@ -110,160 +241,294 @@ function LessonQA({ lesson }) {
 
   const handleDelete = async (id) => {
     if (!window.confirm("Bạn có chắc chắn muốn xóa bình luận này?")) return;
+    setErrorMessage("");
     try {
       await commentService.deleteComment(id, currentUser.email);
-      fetchComments();
+      await fetchComments();
     } catch (error) {
-      alert("Xóa bình luận thất bại.");
+      setErrorMessage(error?.response?.data || "Xóa bình luận thất bại.");
     }
   };
 
   const formatDate = (dateString) => {
+    if (!dateString) return "Vừa xong";
     return new Date(dateString).toLocaleDateString("vi-VN", {
       day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit"
     });
   };
 
-  const renderComment = (comment, isReply = false) => (
-    <div key={comment.id} className={`flex gap-4 ${isReply ? 'mt-4' : 'mt-6 pt-6 border-t border-border'}`}>
-      <Avatar className="w-10 h-10 border border-border shrink-0">
-        <AvatarImage src={comment.account?.avatar} />
-        <AvatarFallback className="bg-primary/10 text-primary font-bold">
-          {comment.account?.fullName?.charAt(0) || <User className="w-5 h-5" />}
-        </AvatarFallback>
-      </Avatar>
-      <div className="flex-1 min-w-0">
-        <div className="bg-muted border border-border rounded-2xl rounded-tl-none p-4 relative group">
-          <div className="flex items-center justify-between mb-1">
-            <span className="font-bold text-sm text-foreground">{comment.account?.fullName || "Người dùng"}</span>
-            <span className="text-xs text-muted-foreground font-medium">{formatDate(comment.createdAt)}</span>
-          </div>
-          <p className="text-sm text-muted-foreground whitespace-pre-wrap">{comment.content}</p>
-          
-          {currentUser?.email === comment.account?.email && (
-            <button 
-              onClick={() => handleDelete(comment.id)}
-              className="absolute top-4 right-4 text-muted-foreground hover:text-error opacity-0 group-hover:opacity-100 transition-opacity"
-            >
-              <Trash className="w-4 h-4" />
-            </button>
-          )}
-        </div>
-        
-        <div className="flex items-center gap-4 mt-2 ml-2">
-          <button 
-            onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
-            className="text-xs font-bold text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
-          >
-            <CornerDownRight className="w-3.5 h-3.5" /> Phản hồi
-          </button>
-          {comment.replies && comment.replies.length > 0 && (
-            <button 
-              onClick={() => toggleCollapse(comment.id)}
-              className="text-xs font-bold text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
-            >
-              {collapsedComments.has(comment.id) ? (
-                <><ChevronDown className="w-3.5 h-3.5" /> Hiển thị {comment.replies.length} phản hồi</>
-              ) : (
-                <><ChevronUp className="w-3.5 h-3.5" /> Ẩn phản hồi</>
-              )}
-            </button>
-          )}
-        </div>
+  const renderComment = (comment, isReply = false, parentAuthorName = "", rootCommentId = null) => {
+    const isOwner = currentUser?.email === comment.account?.email;
+    const isEditing = editingCommentId === comment.id;
+    const flattenedReplies = isReply ? [] : flattenLessonReplies(comment.replies || [], getCommentAuthorName(comment));
+    const hasReplies = flattenedReplies.length > 0;
+    const isCollapsed = collapsedComments.has(comment.id);
+    const isEdited = comment.updatedAt && comment.createdAt && comment.updatedAt !== comment.createdAt;
+    const replyRootId = rootCommentId || comment.id;
 
-        {replyingTo === comment.id && (
-          <form onSubmit={(e) => handleSubmit(e, comment.id)} className="mt-3 flex gap-2">
-            <input
-              type="text"
-              value={replyContent}
-              onChange={(e) => setReplyContent(e.target.value)}
-              placeholder="Viết phản hồi..."
-              className="flex-1 text-sm rounded-md border-border focus:border-primary focus:ring-primary/20"
-              autoFocus
-            />
-            <Button type="submit" size="sm" disabled={isSubmitting || !replyContent.trim()} className="rounded-md px-4">
-              <Send className="w-4 h-4" />
-            </Button>
-          </form>
-        )}
-
-        {comment.replies && comment.replies.length > 0 && !collapsedComments.has(comment.id) && (
-          <div className="pl-4 border-l-2 border-border mt-2">
-            {comment.replies.map(reply => renderComment(reply, true))}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-
-  return (
-    <div className="bg-white rounded-xl p-6 md:p-8 border border-border shadow-sm">
-      <h3 className="text-xl font-black text-foreground mb-6 flex items-center gap-3">
-        <MessageSquare className="w-6 h-6 text-primary" /> Thảo luận bài học
-      </h3>
-
-      <form onSubmit={(e) => handleSubmit(e, null)} className="mb-8">
-        <div className="flex gap-4">
-          <Avatar className="w-12 h-12 border border-border shrink-0">
-            <AvatarImage src={currentUser?.avatar} />
+    return (
+      <div key={comment.id} className={cn("flex gap-3", isReply ? "ml-8 mt-4 sm:ml-16" : "")}>
+        <div className="mt-1 shrink-0">
+          <Avatar className="size-9 border border-border ring-2 ring-transparent transition-all hover:ring-primary/20">
+            <AvatarImage src={comment.account?.avatar} />
             <AvatarFallback className="bg-primary/10 text-primary font-bold">
-              {currentUser?.fullName?.charAt(0) || <User className="w-6 h-6" />}
+              {getCommentAuthorName(comment).charAt(0) || <User className="size-4" />}
             </AvatarFallback>
           </Avatar>
-          <div className="flex-1 relative">
-            <textarea
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              placeholder="Bạn có câu hỏi gì về bài học này?"
-              className="w-full rounded-2xl border-border focus:border-primary focus:ring-primary/20 min-h-[100px] p-4 text-sm resize-y shadow-sm"
-            />
-            <Button 
-              type="submit" 
-              disabled={isSubmitting || !newComment.trim()} 
-              className="absolute bottom-3 right-3 rounded-xl gap-2 h-9 px-4 shadow-md font-bold"
-            >
-              Gửi <Send className="w-4 h-4" />
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <div className={cn("rounded-xl bg-card p-4 shadow-sm", isEditing ? "border border-primary/30" : "border border-border")}>
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-sm font-semibold text-foreground">{getCommentAuthorName(comment)}</span>
+                {isReply && parentAuthorName && (
+                  <span className="inline-flex items-center rounded-md border border-primary/20 bg-primary/5 px-2 py-0.5 text-xs font-semibold text-primary">
+                    trả lời @{parentAuthorName}
+                  </span>
+                )}
+                {isEdited && <span className="text-xs font-medium text-muted-foreground">Đã chỉnh sửa</span>}
+              </div>
+              <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                <Clock className="size-3" /> {formatDate(comment.createdAt)}
+              </span>
+            </div>
+
+            {isEditing ? (
+              <form onSubmit={(e) => handleUpdate(e, comment.id)} className="space-y-3">
+                <textarea
+                  value={editingContent}
+                  onChange={(e) => setEditingContent(e.target.value)}
+                  className="min-h-[88px] w-full resize-y rounded-lg border border-border bg-background p-3 text-sm text-foreground outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15"
+                  autoFocus
+                />
+                <div className="flex justify-end gap-2">
+                  <Button type="button" appVariant="ghostMuted" variant="ghost" size="sm" onClick={cancelEditing} className="h-8 rounded-md px-3">
+                    Hủy
+                  </Button>
+                  <Button type="submit" size="sm" disabled={isSubmitting || !editingContent.trim()} className="h-8 gap-2 rounded-md px-3">
+                    <CheckCircle2 className="size-4" /> Lưu
+                  </Button>
+                </div>
+              </form>
+            ) : (
+              <p className="whitespace-pre-wrap text-sm leading-6 text-foreground">{comment.content}</p>
+            )}
+          </div>
+
+          {!isEditing && (
+            <div className="mt-2 flex items-center gap-3 px-1">
+              <button
+                type="button"
+                onClick={() => replyingTo === comment.id ? cancelReplying() : startReplying(comment, replyRootId)}
+                className="flex items-center gap-1 text-xs font-medium text-muted-foreground transition-colors hover:text-primary"
+              >
+                <CornerDownRight className="size-3.5" /> Trả lời
+              </button>
+              {hasReplies && (
+                <button
+                  type="button"
+                  onClick={() => toggleCollapse(comment.id)}
+                  className="flex items-center gap-1 text-xs font-medium text-muted-foreground transition-colors hover:text-primary"
+                >
+                  {isCollapsed ? (
+                    <><MessageSquare className="size-3.5" /> {flattenedReplies.length} phản hồi</>
+                  ) : (
+                    <><ChevronUp className="size-3.5" /> Ẩn phản hồi</>
+                  )}
+                </button>
+              )}
+              {isOwner && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => startEditing(comment)}
+                    className="flex items-center gap-1 text-xs font-medium text-muted-foreground transition-colors hover:text-primary"
+                  >
+                    <Pencil className="size-3.5" /> Sửa
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(comment.id)}
+                    className="text-xs font-medium text-muted-foreground transition-colors hover:text-error"
+                  >
+                    Xóa
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+
+          {replyingTo === comment.id && (
+            <form onSubmit={(e) => handleSubmit(e, replyParentId || replyRootId)} className="mt-3 rounded-lg border border-border bg-card p-3 shadow-sm">
+              <input
+                type="text"
+                value={replyContent}
+                onChange={(e) => setReplyContent(e.target.value)}
+                placeholder={`Trả lời @${replyTargetName || getCommentAuthorName(comment)}...`}
+                className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15"
+                autoFocus
+              />
+              <div className="mt-3 flex justify-end gap-2">
+                <Button type="button" appVariant="ghostMuted" variant="ghost" size="sm" onClick={cancelReplying} className="h-8 rounded-md px-3">
+                  Hủy
+                </Button>
+                <Button type="submit" size="sm" disabled={isSubmitting || !replyContent.trim()} className="h-8 gap-2 rounded-md px-3">
+                  {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : <><Send className="size-4" /> Trả lời</>}
+                </Button>
+              </div>
+            </form>
+          )}
+
+          {hasReplies && !isCollapsed && (
+            <div className="mt-4">
+              {flattenedReplies.map(reply => renderComment(reply, true, reply.parentAuthorName, comment.id))}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="py-2">
+        <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h3 className="app-section-title flex items-center gap-3">
+              <MessageSquare className="size-5 text-primary" /> Thảo luận bài học
+            </h3>
+            <p className="mt-1 text-sm font-medium text-muted-foreground">
+              Đặt câu hỏi theo bài học hiện tại để giảng viên và học viên khác cùng trao đổi.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="inline-flex h-8 items-center rounded-lg border border-primary/20 bg-primary/10 px-3 text-xs font-semibold text-primary">
+              {commentCount} bình luận
+            </span>
+            <Button type="button" appVariant="ghostMuted" variant="ghost" size="sm" onClick={fetchComments} disabled={loading} className="h-8 gap-2 rounded-md px-3">
+              <RefreshCw className={cn("size-4", loading && "animate-spin")} /> Làm mới
             </Button>
           </div>
         </div>
-      </form>
 
-      {loading ? (
-        <div className="flex justify-center py-8 text-muted-foreground">
-          <Loader2 className="w-8 h-8 animate-spin" />
+        <div className="mb-5 flex flex-wrap gap-2">
+          {[
+            { value: "all", label: "Tất cả" },
+            { value: "mine", label: "Câu hỏi của tôi" },
+            { value: "answered", label: "Có phản hồi" },
+          ].map((filter) => (
+            <button
+              key={filter.value}
+              type="button"
+              onClick={() => setQaFilter(filter.value)}
+              className={cn(
+                "h-8 rounded-lg border px-3 text-xs font-semibold transition-colors",
+                qaFilter === filter.value
+                  ? "border-primary/30 bg-primary/10 text-primary"
+                  : "border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground"
+              )}
+            >
+              {filter.label}
+            </button>
+          ))}
         </div>
-      ) : comments.length > 0 ? (
-        <div className="space-y-2">
-          {comments.map(c => renderComment(c, false))}
-        </div>
-      ) : (
-        <div className="text-center py-12 text-muted-foreground bg-muted rounded-2xl border border-dashed border-border">
-          <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-20" />
-          <p className="font-bold">Chưa có bình luận nào.</p>
-          <p className="text-sm mt-1 opacity-80">Hãy là người đầu tiên đặt câu hỏi!</p>
-        </div>
-      )}
+
+        <form onSubmit={(e) => handleSubmit(e, null)} className="mb-8">
+          <div className="flex gap-3">
+            <Avatar className="size-11 shrink-0 border border-border">
+              <AvatarImage src={currentUser?.avatar} />
+              <AvatarFallback className="bg-primary/10 text-primary font-bold">
+                {getCurrentUserName(currentUser).charAt(0) || <User className="size-5" />}
+              </AvatarFallback>
+            </Avatar>
+            <div className="relative flex-1 overflow-hidden rounded-lg border border-border bg-card shadow-sm transition-all focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/15">
+              <textarea
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                placeholder="Nhập câu hỏi về bài học này..."
+                className="min-h-[112px] w-full resize-y border-0 bg-card p-4 pr-24 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:ring-0"
+              />
+              <Button
+                type="submit"
+                disabled={isSubmitting || !newComment.trim() || !currentUser?.email}
+                className="absolute bottom-3 right-3 h-9 gap-2 rounded-lg px-4 font-semibold shadow-sm"
+              >
+                {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : <>Gửi <Send className="size-4" /></>}
+              </Button>
+            </div>
+          </div>
+        </form>
+
+        {errorMessage && (
+          <div className="mb-5 rounded-lg border border-error/20 bg-error-soft px-4 py-3 text-sm font-medium text-error">
+            {errorMessage}
+          </div>
+        )}
+
+        {loading ? (
+          <div className="flex items-center justify-center gap-3 rounded-lg border border-dashed border-border bg-muted/60 py-10 text-sm font-semibold text-muted-foreground">
+            <Loader2 className="size-5 animate-spin" />
+            Đang tải thảo luận...
+          </div>
+        ) : filteredComments.length > 0 ? (
+          <div className="space-y-5">
+            {filteredComments.map(c => renderComment(c, false))}
+          </div>
+        ) : (
+          <div className="rounded-lg border border-dashed border-border bg-muted/70 py-12 text-center text-muted-foreground">
+            <MessageSquare className="mx-auto mb-3 size-11 opacity-25" />
+            <p className="font-semibold text-foreground">
+              {comments.length > 0 ? "Không có bình luận phù hợp." : "Chưa có bình luận nào."}
+            </p>
+            <p className="mt-1 text-sm">
+              {comments.length > 0 ? "Thử đổi bộ lọc để xem thêm thảo luận." : "Hãy là người đầu tiên đặt câu hỏi!"}
+            </p>
+          </div>
+        )}
     </div>
   );
 }
 
-// ── Component Hỗ Trợ: Giao Diện Làm Bài Quiz Cho Học Viên ──
 function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }) {
   const [userAnswers, setUserAnswers] = useState({});
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [scorePercent, setScorePercent] = useState(0);
   const [correctCount, setCorrectCount] = useState(0);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
   const quizTopRef = useRef(null);
 
-  const questions = quiz?.questions || [];
+  const questions = useMemo(() => {
+    return (quiz?.questions || []).map(q => {
+      if (q.text && q.options) {
+        const answersArray = Object.entries(q.options).map(([key, val]) => ({
+          id: key,
+          optionLabel: key,
+          content: val,
+          isCorrect: q.correct === key
+        }));
+        return {
+          ...q,
+          content: q.text,
+          answers: answersArray
+        };
+      }
+      return q;
+    });
+  }, [quiz?.questions]);
+
+  const answeredCount = Object.keys(userAnswers).length;
+  const answeredPercent = questions.length > 0 ? Math.round((answeredCount / questions.length) * 100) : 0;
 
   useEffect(() => {
       setUserAnswers({});
+      setCurrentQuestionIdx(0);
   }, [quiz?.id]);
 
   useEffect(() => {
-      if (existingResult) {
+      // Chi xem la da nop bai khi status === 2 (Submitted)
+      // status === 1 la dang lam lai (reset) -> cho phep lam lai
+      if (existingResult && existingResult.status === 2) {
           setIsSubmitted(true);
           setScorePercent(existingResult.point || 0);
           setCorrectCount(existingResult.correctAnswers || 0);
@@ -280,18 +545,18 @@ function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }
           setScorePercent(0);
           setCorrectCount(0);
           setUserAnswers({});
+          setCurrentQuestionIdx(0);
       }
   }, [existingResult, quiz?.id]);
 
   if (!quiz || questions.length === 0) {
     return (
-      <div className="w-full bg-white rounded-2xl border border-border p-20 text-center shadow-sm">
-        <div className="w-24 h-24 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-6 border border-indigo-100">
-            <HelpCircle className="w-10 h-10 text-indigo-400" />
+      <div className="w-full rounded-xl border border-border bg-card p-10 text-center shadow-sm md:p-16">
+        <div className="mx-auto mb-6 flex size-20 items-center justify-center rounded-xl border border-info/20 bg-info-soft text-info">
+            <HelpCircle className="size-9" />
         </div>
-        <h2 className="text-2xl font-black text-foreground mb-2">Chương học chưa có bài tập</h2>
-        <p className="text-muted-foreground font-bold mb-8">Bài quiz này hiện chưa chứa câu hỏi nào.</p>
-        <Button onClick={onBack} className="rounded-lg font-bold">Quay lại xem Video</Button>
+        <h2 className="mb-2 text-2xl font-bold text-foreground">Chương học chưa có bài tập</h2>
+        <p className="text-sm font-medium text-muted-foreground">Bài quiz này hiện chưa chứa câu hỏi nào.</p>
       </div>
     );
   }
@@ -303,7 +568,7 @@ function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }
 
   const handleSubmitQuiz = async () => {
     if (Object.keys(userAnswers).length === 0) {
-        alert("Vui lòng trả lời ít nhất một câu hỏi trước khi nộp bài!");
+        AppToast.warning("Vui lòng trả lời ít nhất một câu hỏi trước khi nộp bài!");
         return;
     }
     
@@ -337,7 +602,7 @@ function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }
 
         quizTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } catch (err) {
-        alert("Đã xảy ra lỗi khi gửi bài làm, vui lòng thử lại sau!");
+        AppToast.error("Đã xảy ra lỗi khi gửi bài làm, vui lòng thử lại sau!");
     } finally {
         setIsSyncing(false);
     }
@@ -354,13 +619,14 @@ function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }
           setUserAnswers({});
           setScorePercent(0);
           setCorrectCount(0);
+          setCurrentQuestionIdx(0);
           localStorage.removeItem(`quiz_answers_${quiz.id}`);
 
           if (onQuizReset) {
               onQuizReset(quiz.id);
           }
       } catch (err) {
-          alert("Đã xảy ra lỗi khi reset bài tập. Vui lòng thử lại sau!");
+          AppToast.error("Đã xảy ra lỗi khi reset bài tập. Vui lòng thử lại sau!");
       } finally {
           setIsSyncing(false);
       }
@@ -368,44 +634,152 @@ function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }
 
   const isPassed = scorePercent >= 50;
 
+  const renderQuestion = (q, idx, isReviewMode) => {
+      return (
+          <div key={q.id} className="space-y-6 rounded-xl border border-border bg-card p-6 shadow-sm transition-all duration-300 md:p-8 animate-in fade-in">
+              <h3 className="flex items-start gap-3 text-base font-semibold leading-relaxed text-foreground">
+                  <span className="flex h-8 shrink-0 items-center rounded-lg border border-primary/20 bg-primary/10 px-3 text-sm font-bold text-primary">
+                    Câu {idx + 1}
+                  </span>
+                  <span className="pt-1" dangerouslySetInnerHTML={{ __html: q.content }}></span>
+              </h3>
+
+              <div className="grid grid-cols-1 gap-3">
+                  {(q.answers || []).map((opt, oIdx) => {
+                      const optionLabel = opt.optionLabel || String.fromCharCode(65 + oIdx);
+                      const isSelected = userAnswers[q.id] == opt.id; 
+                      const isCorrect = opt.isCorrect;
+
+                      let buttonClass = "w-full flex items-center justify-between gap-4 rounded-lg border p-4 text-left text-sm font-medium transition-all duration-200 ";
+                      let icon = null;
+
+                      if (!isSubmitted) {
+                          if (isSelected) {
+                              buttonClass += "border-primary/40 bg-primary/10 text-primary shadow-sm";
+                          } else {
+                              buttonClass += "border-border bg-muted/30 text-foreground hover:border-primary/30 hover:bg-primary/5";
+                          }
+                      } else {
+                          if (isSelected && isCorrect) {
+                              buttonClass += "border-success/40 bg-success-soft text-success shadow-sm";
+                              icon = (
+                                  <span className="flex shrink-0 items-center gap-1 rounded-lg border border-success/20 bg-card px-2 py-1 text-xs font-semibold text-success">
+                                      <CheckCircle2 className="size-3" /> Đúng
+                                  </span>
+                              );
+                          } else if (isSelected && !isCorrect) {
+                              buttonClass += "border-error/40 bg-error-soft text-error shadow-sm";
+                              icon = (
+                                  <span className="flex shrink-0 items-center gap-1 rounded-lg border border-error/20 bg-card px-2 py-1 text-xs font-semibold text-error">
+                                      <XCircle className="size-3" /> Sai
+                                  </span>
+                              );
+                          } else if (isCorrect) {
+                              buttonClass += "border-success/30 bg-success-soft/60 text-success";
+                              icon = (
+                                  <span className="flex shrink-0 items-center gap-1 rounded-lg border border-success/20 bg-card px-2 py-1 text-xs font-semibold text-success">
+                                      <CheckCircle2 className="size-3" /> Đáp án
+                                  </span>
+                              );
+                          } else {
+                              buttonClass += "border-border bg-muted/20 text-muted-foreground opacity-75";
+                          }
+                      }
+
+                      return (
+                          <button
+                              key={opt.id}
+                              disabled={isSyncing || isSubmitted}
+                              onClick={() => handleOptionSelect(q.id, opt.id)}
+                              className={buttonClass}
+                          >
+                              <span className="flex min-w-0 items-start gap-3">
+                                <span className={`flex size-7 shrink-0 items-center justify-center rounded-full border text-xs font-bold ${
+                                  isSelected
+                                    ? "border-current bg-card/70"
+                                    : "border-border bg-card text-muted-foreground"
+                                }`}>
+                                  {optionLabel}
+                                </span>
+                                <span className="pt-1 leading-5">{opt.content || opt.answerText}</span>
+                              </span>
+                              {icon}
+                          </button>
+                      );
+                  })}
+              </div>
+              {isSubmitted && q.explanation && (
+                  <div className="animate-in fade-in slide-in-from-top-2 mt-4 rounded-lg border border-info/20 bg-info-soft p-4 text-sm text-info">
+                      <p className="mb-1 flex items-center gap-1.5 font-semibold text-foreground"><Info className="size-4 text-info" /> Giải thích</p>
+                      <div dangerouslySetInnerHTML={{ __html: q.explanation }}></div>
+                  </div>
+              )}
+          </div>
+      );
+  };
+
   return (
-    <div ref={quizTopRef} className="w-full space-y-6 max-w-5xl mx-auto pb-12 pt-2">
-        <div className="bg-white rounded-xl border border-border/60 shadow-sm p-6 md:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-in fade-in duration-500">
-            <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-full bg-violet-600 flex items-center justify-center text-white shadow-lg shadow-violet-200 shrink-0">
-                    <Trophy className="w-7 h-7" />
+    <div ref={quizTopRef} className="mx-auto w-full max-w-5xl space-y-6 pb-12 pt-2">
+        <div className="animate-in fade-in rounded-xl border border-border bg-card p-6 shadow-sm duration-500 md:p-8">
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex items-center gap-4">
+                <div className="flex size-14 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary shadow-sm">
+                    <Trophy className="size-7" />
                 </div>
-                <div>
-                    <h2 className="text-xl md:text-2xl font-black text-foreground leading-tight">
-                        Bài kiểm tra Trắc nghiệm: {quiz.title}
+                <div className="min-w-0">
+                    <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-primary">Bài kiểm tra trắc nghiệm</p>
+                    <h2 className="text-xl font-bold leading-tight text-foreground md:text-2xl">
+                        {quiz.title}
                     </h2>
-                    <p className="text-muted-foreground text-xs font-bold mt-1 flex items-center gap-1.5">
-                        Bao gồm {questions.length} câu hỏi trắc nghiệm
-                    </p>
+                    <div className="mt-3 flex flex-wrap items-center gap-2 text-xs font-medium text-muted-foreground">
+                        <span className="inline-flex h-7 items-center gap-1.5 rounded-lg border border-border bg-muted px-2.5">
+                          <HelpCircle className="size-3.5" />
+                          {questions.length} câu hỏi
+                        </span>
+                        <span className="inline-flex h-7 items-center gap-1.5 rounded-lg border border-border bg-muted px-2.5">
+                          <CheckCircle2 className="size-3.5" />
+                          {answeredCount}/{questions.length} đã trả lời
+                        </span>
+                    </div>
                 </div>
+              </div>
             </div>
-            
-            <Button onClick={onBack} variant="ghost" className="font-extrabold text-xs gap-1 text-muted-foreground hover:bg-muted rounded-lg self-end sm:self-center">
-                <ChevronLeft className="w-3.5 h-3.5" /> Quay lại xem Video
-            </Button>
+
+            {!isSubmitted && (
+              <div className="mt-6">
+                <div className="mb-2 flex items-center justify-between text-xs font-semibold text-muted-foreground">
+                  <span>Tiến độ làm bài (Câu {currentQuestionIdx + 1}/{questions.length})</span>
+                  <span>{answeredPercent}%</span>
+                </div>
+                <Progress value={answeredPercent} className="h-2 bg-muted [&>div]:bg-primary" />
+              </div>
+            )}
         </div>
 
         {isSubmitted && (
-            <div className="bg-gradient-to-br from-slate-900 to-indigo-950 rounded-xl p-6 md:p-8 text-white shadow-xl border border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-6 animate-in slide-in-from-top duration-500">
+            <div className={`animate-in slide-in-from-top flex flex-col gap-6 rounded-xl border p-6 shadow-sm duration-500 md:flex-row md:items-center md:justify-between md:p-8 ${
+              isPassed
+                ? "border-success/20 bg-success-soft text-success"
+                : "border-warning/20 bg-warning-soft text-warning"
+            }`}>
                 <div className="flex items-center gap-5">
-                    <div className={`w-16 h-16 ${isPassed ? 'bg-emerald-500' : 'bg-warning/10 text-warning'} rounded-full flex items-center justify-center shadow-lg shrink-0`}>
-                        {isPassed ? <Award className="w-8 h-8 text-white" /> : <HelpCircle className="w-8 h-8 text-white" />}
+                    <div className={`flex size-16 shrink-0 items-center justify-center rounded-xl border shadow-sm ${
+                      isPassed
+                        ? "border-success/20 bg-success text-success-foreground"
+                        : "border-warning/20 bg-warning text-warning-foreground"
+                    }`}>
+                        {isPassed ? <Award className="size-8" /> : <HelpCircle className="size-8" />}
                     </div>
-                    <div>
-                        <h3 className="text-xl font-black leading-none">
-                            {isPassed ? "Hoàn Thành Xuất Sắc!" : "Cần Cố Gắng Thêm"}
+                    <div className="min-w-0">
+                        <h3 className="text-xl font-bold leading-tight text-foreground">
+                            {isPassed ? "Bạn đã vượt qua bài kiểm tra" : "Bạn cần ôn lại thêm"}
                         </h3>
-                        <p className="text-indigo-200/80 text-sm font-medium mt-2">
-                            Kết quả bài thi: <strong className="text-white font-black">{correctCount}/{questions.length}</strong> đáp án đúng (Đạt {scorePercent}%)
+                        <p className="mt-2 text-sm font-medium text-muted-foreground">
+                            Kết quả: <strong className="font-bold text-foreground">{correctCount}/{questions.length}</strong> đáp án đúng, đạt <strong className="font-bold text-foreground">{scorePercent}%</strong>.
                         </p>
                         {!isPassed && (
-                            <p className="text-warning/90 text-[13px] font-bold mt-1 flex items-center gap-1.5">
-                                <Info className="w-3.5 h-3.5" /> Bạn cần đạt từ 50% trở lên để vượt qua bài kiểm tra này.
+                            <p className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-warning">
+                                <Info className="size-3.5" /> Bạn cần đạt từ 50% trở lên để vượt qua bài kiểm tra này.
                             </p>
                         )}
                     </div>
@@ -416,91 +790,56 @@ function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }
                        onClick={handleReset} 
                        disabled={isSyncing}
                        variant="outline" 
-                       className="rounded-lg font-extrabold border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white gap-2 text-xs h-11 px-5"
+                       className="h-10 rounded-lg gap-2 font-semibold"
                     >
-                        {isSyncing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
+                        {isSyncing ? <Loader2 className="size-4 animate-spin" /> : null}
                         Làm lại bài thi
                     </Button>
                 </div>
             </div>
         )}
 
-        <div className="space-y-5">
-            {questions.map((q, idx) => (
-                <div key={q.id} className="bg-white rounded-xl p-6 md:p-8 border border-border/60 shadow-sm space-y-6 transition-all duration-300 hover:shadow-md">
-                    <h3 className="text-sm md:text-[15px] font-extrabold text-foreground leading-relaxed flex gap-1.5 items-start">
-                        <span className="shrink-0">Câu {idx + 1}:</span>
-                        <span dangerouslySetInnerHTML={{ __html: q.content }}></span>
-                    </h3>
-
-                    <div className="grid grid-cols-1 gap-3">
-                        {(q.answers || []).map((opt, oIdx) => {
-                            const optionLabel = opt.optionLabel || String.fromCharCode(65 + oIdx);
-                            const isSelected = userAnswers[q.id] == opt.id; 
-                            const isCorrect = opt.isCorrect;
-
-                            let buttonClass = "w-full flex items-center justify-between p-4 text-left border rounded-lg transition-all duration-200 text-xs md:text-[13px] font-medium ";
-                            let icon = null;
-
-                            if (!isSubmitted) {
-                                if (isSelected) {
-                                    buttonClass += "bg-violet-50/50 border-violet-500 text-violet-900 font-bold shadow-sm";
-                                } else {
-                                    buttonClass += "bg-muted/40 border-border/60 text-muted-foreground hover:bg-muted hover:border-border";
-                                }
-                            } else {
-                                if (isSelected && isCorrect) {
-                                    buttonClass += "bg-emerald-50/40 border-emerald-500 text-emerald-900 font-bold shadow-sm";
-                                    icon = (
-                                        <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-700 px-2 py-1 rounded-lg flex items-center gap-1 shadow-sm shrink-0">
-                                            <CheckCircle2 className="w-3 h-3" /> Lựa chọn đúng
-                                        </span>
-                                    );
-                                } else if (isSelected && !isCorrect) {
-                                    buttonClass += "bg-rose-50/40 border-rose-500 text-rose-900 font-bold shadow-sm";
-                                    icon = (
-                                        <span className="text-[10px] font-black uppercase tracking-wider bg-rose-100 text-rose-700 px-2 py-1 rounded-lg flex items-center gap-1 shadow-sm shrink-0">
-                                            <XCircle className="w-3 h-3" /> Lựa chọn sai
-                                        </span>
-                                    );
-                                } else {
-                                    buttonClass += "bg-muted/20 border-border text-muted-foreground opacity-60";
-                                }
-                            }
-
-                            return (
-                                <button
-                                    key={opt.id}
-                                    disabled={isSyncing || isSubmitted}
-                                    onClick={() => handleOptionSelect(q.id, opt.id)}
-                                    className={buttonClass}
-                                >
-                                    <span className="pr-4">{optionLabel}. {opt.answerText}</span>
-                                    {icon}
-                                </button>
-                            );
-                        })}
-                    </div>
-                    {isSubmitted && q.answers.some(opt => opt.id == userAnswers[q.id] && opt.isCorrect) && q.explanation && (
-                        <div className="mt-4 p-4 rounded-lg bg-emerald-50 border border-emerald-100 text-emerald-800 text-sm animate-in fade-in slide-in-from-top-2">
-                            <p className="font-bold mb-1 flex items-center gap-1.5"><Info className="w-4 h-4" /> Giải thích:</p>
-                            <div dangerouslySetInnerHTML={{ __html: q.explanation }}></div>
-                        </div>
-                    )}
+        <div className="space-y-5 relative">
+            {!isSubmitted ? (
+                <div className="animate-in slide-in-from-right-4 duration-300">
+                    {questions[currentQuestionIdx] && renderQuestion(questions[currentQuestionIdx], currentQuestionIdx, false)}
                 </div>
-            ))}
+            ) : (
+                <div className="space-y-6">
+                    {questions.map((q, idx) => renderQuestion(q, idx, true))}
+                </div>
+            )}
         </div>
 
         {!isSubmitted && (
-            <div className="pt-4 flex justify-end">
+            <div className="pt-4 flex justify-between items-center bg-card p-4 rounded-xl border border-border shadow-sm">
                 <Button 
-                    onClick={handleSubmitQuiz}
-                    disabled={isSyncing}
-                    className="h-12 px-12 rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-black text-xs uppercase tracking-wider shadow-lg shadow-violet-100 transition-all hover:scale-[1.02] active:scale-95 gap-2"
+                    variant="outline"
+                    onClick={() => setCurrentQuestionIdx(prev => Math.max(0, prev - 1))}
+                    disabled={currentQuestionIdx === 0 || isSyncing}
+                    className="h-11 px-6 font-semibold"
                 >
-                    {isSyncing ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                    NỘP BÀI THI VÀ CHẤM ĐIỂM
+                    Quay lại
                 </Button>
+                
+                {currentQuestionIdx < questions.length - 1 ? (
+                    <Button 
+                        onClick={() => setCurrentQuestionIdx(prev => Math.min(questions.length - 1, prev + 1))}
+                        disabled={isSyncing}
+                        className="h-11 px-8 font-semibold bg-primary text-primary-foreground hover:bg-primary/90"
+                    >
+                        Tiếp theo
+                    </Button>
+                ) : (
+                    <Button 
+                        onClick={handleSubmitQuiz}
+                        disabled={isSyncing}
+                        className="h-11 px-8 font-semibold bg-success hover:bg-success/90 text-white gap-2 shadow-md shadow-success/20"
+                    >
+                        {isSyncing ? <Loader2 className="size-4 animate-spin" /> : <CheckCircle2 className="size-4" />}
+                        Nộp bài
+                    </Button>
+                )}
             </div>
         )}
     </div>
@@ -512,6 +851,7 @@ function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }
 export default function LearningWorkspace() {
   const { id: slug } = useParams();
   const navigate = useNavigate();
+  const currentUser = useAuthStore(state => state.user);
   const searchParams = new URLSearchParams(window.location.search);
   const targetLessonSlug = searchParams.get("lesson");
   const isRestart = searchParams.get("restart") === "true";
@@ -522,16 +862,31 @@ export default function LearningWorkspace() {
   const [activeSectionIdx, setActiveSectionIdx] = useState(0);
   const [activeLessonIdx, setActiveLessonIdx] = useState(0);
   const [activeViewMode, setActiveViewMode] = useState("video"); // 'video' | 'quiz'
+  const [openSectionValues, setOpenSectionValues] = useState([]);
   const [lessonProgress, setLessonProgress] = useState([]);
   const [quizProgress, setQuizProgress] = useState([]); // Track existing quiz results
+  const [serverProgressPercent, setServerProgressPercent] = useState(null); // Từ server, nguồn sự thật
   const [certifiUrl, setCertifiUrl] = useState(null);
   const [currentTime, setCurrentTime] = useState(0);
+  const [isDarkMode, setIsDarkMode] = useState(getInitialDarkMode);
+  const [lastProgressSavedAt, setLastProgressSavedAt] = useState(null);
+  const [isProgressSaving, setIsProgressSaving] = useState(false);
+  const [showRatingForm, setShowRatingForm] = useState(false);
+  const [draftRating, setDraftRating] = useState(0);
+  const [draftReviewComment, setDraftReviewComment] = useState("");
+  const [localCourseReview, setLocalCourseReview] = useState(null);
 
   // === REFS để tránh stale closure trong interval/listener ===
   const currentTimeRef = useRef(0);
   const currentLessonRef = useRef(null);
   const completedIdsRef = useRef([]);
   const hasEndedRef = useRef(false); // Chặn gọi completed nhiều lần
+  const activePlaylistItemRef = useRef(null);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", isDarkMode);
+    window.localStorage.setItem("gnostica-theme", isDarkMode ? "dark" : "light");
+  }, [isDarkMode]);
 
   useEffect(() => {
     const checkAccessAndFetch = async () => {
@@ -575,14 +930,19 @@ export default function LearningWorkspace() {
       }
 
       setCourse({ ...courseData, modules: activeModules });
+      setOpenSectionValues(activeModules.map((_, index) => `section-${index}`));
       
-      // Nhận data gộp: { lessons: [], quizzes: [] }
+      // Nhận data gộp: { lessons: [], quizzes: [], progressPercent }
       const lessonsList = progressData?.lessons || [];
       setLessonProgress(lessonsList);
       setQuizProgress(progressData?.quizzes || []);
-      setCertifiUrl(progressData?.certifiUrl || null);
+      setCertifiUrl(progressData?.certificateUrl || progressData?.certifiUrl || null);
+      // Lưu progressPercent từ server làm nguồn sự thật
+      if (typeof progressData?.progressPercent === 'number') {
+        setServerProgressPercent(progressData.progressPercent);
+      }
 
-      // Khôi phục phiên học: 
+      // Khôi phục phiên học:
       // 1. Ưu tiên lesson trong URL
       // 2. Sau đó mới đến bài học vừa xem gần nhất trong DB
       let lessonFound = false;
@@ -621,13 +981,50 @@ export default function LearningWorkspace() {
 
   // === Derived values ===
   const completedLessonIds = lessonProgress.filter(lp => lp.isCompleted).map(lp => lp.lessonId);
-  const completedQuizIds = quizProgress.filter(qp => qp.point >= 50).map(qp => qp.quizId);
+  // Quizzes đã pass = point >= 50 (bao gồm cả sau khi reset vì backend giữ point)
+  const completedQuizIds = quizProgress.filter(qp => (qp.point ?? 0) >= 50).map(qp => qp.quizId);
+  const allLessons = course?.modules?.flatMap((section) => section.lessons) || [];
+  const totalLessonsCount = allLessons.length;
+  // Tổng số quiz trong khóa học
+  const totalQuizzesCount = course?.modules?.filter(m => m.quiz != null).length || 0;
+  const totalSteps = totalLessonsCount + totalQuizzesCount;
+  // Dùng progressPercent từ server nếu có (đồng bộ với My Courses)
+  const progressValue = serverProgressPercent != null
+    ? serverProgressPercent
+    : (totalSteps > 0
+        ? Math.round(((completedLessonIds.length + completedQuizIds.length) / totalSteps) * 100)
+        : 0);
 
   const currentSection = course?.modules?.[activeSectionIdx];
   const currentLesson = currentSection?.lessons?.[activeLessonIdx];
   
   const currentLessonProgress = lessonProgress.find(lp => lp.lessonId === currentLesson?.id);
   const startAtTime = isRestart ? 0 : (currentLessonProgress?.lastWatchedTime || 0);
+  const currentLessonDuration = formatLessonDuration(currentLesson?.metadata);
+  const currentSectionLessonCount = currentSection?.lessons?.length || 0;
+  const currentLessonNumber = activeLessonIdx + 1;
+  const isCurrentLessonCompleted = Boolean(currentLessonProgress?.isCompleted);
+  const courseRatingSummary = getCourseRatingSummary(course);
+  const serverUserReview = courseRatingSummary.reviews.find((review) => String(review.accountId) === String(currentUser?.id));
+  const currentUserReview = localCourseReview || serverUserReview;
+  const progressSavedLabel = lastProgressSavedAt
+    ? lastProgressSavedAt.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })
+    : null;
+
+  const handleSaveDraftReview = (event) => {
+    event.preventDefault();
+    if (!draftRating) return;
+
+    setLocalCourseReview({
+      id: "local-draft",
+      rating: draftRating,
+      comment: draftReviewComment.trim(),
+      studentName: currentUser?.fullName || currentUser?.name || "Bạn",
+      createdAt: new Date().toISOString(),
+    });
+    setShowRatingForm(false);
+    AppToast.info("Đã lưu bản nháp đánh giá trên trang học. Khi có API đánh giá, phần này có thể đồng bộ lên hệ thống.");
+  };
 
   // === Sync quiz results callbacks ===
   const onQuizCompleted = (quizId, point, correctAnswers, totalQuestions) => {
@@ -638,15 +1035,57 @@ export default function LearningWorkspace() {
           }
           return [...prev, { quizId, point, correctAnswers, totalQuestions, completedAt: new Date().toISOString() }];
       });
+      // Cập nhật server progress
+      progressService.getCourseProgress(slug).then(res => {
+          if (typeof res?.progressPercent === 'number') {
+              setServerProgressPercent(res.progressPercent);
+          }
+      }).catch(() => {});
   };
 
   const onQuizReset = (quizId) => {
-      setQuizProgress(prev => prev.filter(q => q.quizId != quizId));
+      // KHÔNG xóa khỏi local state để giữ tiến độ đã đạt được
+      // Chỉ cần re-fetch để lấy lại trạng thái từ server
+      progressService.getCourseProgress(slug).then(res => {
+          setQuizProgress(res?.quizzes || []);
+          if (typeof res?.progressPercent === 'number') {
+              setServerProgressPercent(res.progressPercent);
+          }
+      }).catch(() => {});
   };
 
   // === Đồng bộ refs mỗi khi giá trị thay đổi ===
   useEffect(() => { currentLessonRef.current = currentLesson; }, [currentLesson]);
   useEffect(() => { completedIdsRef.current = completedLessonIds; }, [completedLessonIds]);
+
+  useEffect(() => {
+    const activeSectionValue = `section-${activeSectionIdx}`;
+    setOpenSectionValues((prev) => (
+      prev.includes(activeSectionValue) ? prev : [...prev, activeSectionValue]
+    ));
+  }, [activeSectionIdx, activeLessonIdx, activeViewMode]);
+
+  useEffect(() => {
+    const scrollTimer = window.setTimeout(() => {
+      activePlaylistItemRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
+    }, 120);
+
+    return () => window.clearTimeout(scrollTimer);
+  }, [activeSectionIdx, activeLessonIdx, activeViewMode, openSectionValues]);
+
+  // Auto fetch certificate URL when progress reaches 100%
+  useEffect(() => {
+      if (progressValue === 100 && !certifiUrl) {
+          progressService.getCourseProgress(slug).then(res => {
+              if (res?.data?.certifiUrl) {
+                  setCertifiUrl(res.data.certifiUrl);
+              }
+          }).catch(console.error);
+      }
+  }, [progressValue, certifiUrl, slug]);
 
   const handleLessonSelect = (sectionIdx, lessonIdx) => {
     setActiveSectionIdx(sectionIdx);
@@ -692,6 +1131,7 @@ export default function LearningWorkspace() {
     if (completedIdsRef.current.includes(lessonId)) return;
     try {
         await progressService.markLessonCompleted(lessonId);
+        setLastProgressSavedAt(new Date());
         setLessonProgress(prev => {
             const existing = prev.find(p => p.lessonId === lessonId);
             if (existing) {
@@ -699,9 +1139,15 @@ export default function LearningWorkspace() {
             }
             return [...prev, { lessonId, isCompleted: true, lastWatchedTime: 0 }];
         });
+        // Đồng bộ progressPercent từ server
+        progressService.getCourseProgress(slug).then(res => {
+            if (typeof res?.progressPercent === 'number') {
+                setServerProgressPercent(res.progressPercent);
+            }
+        }).catch(() => {});
     } catch (err) {
     }
-  }, []);
+  }, [slug]);
 
   const handleLessonEnded = useCallback(async () => {
     const lesson = currentLessonRef.current;
@@ -775,6 +1221,46 @@ export default function LearningWorkspace() {
     }
     
     return finalUrl;
+  };
+
+  const getVideoIdentifiers = (url) => {
+    if (!url) return null;
+    const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+    let libraryId = "655066";
+    let videoId = url;
+
+    if (url.includes("/")) {
+      const parts = url.split("/").filter(Boolean);
+      const lastPart = parts[parts.length - 1];
+      const secondToLast = parts[parts.length - 2];
+
+      if (uuidRegex.test(lastPart)) {
+        videoId = lastPart;
+        if (secondToLast && secondToLast.length > 2) {
+          libraryId = secondToLast;
+        }
+      }
+    }
+
+    if (!uuidRegex.test(videoId)) return null;
+    return { libraryId, videoId };
+  };
+
+  const getLessonThumbnail = (lesson) => {
+    const directThumbnail =
+      lesson?.thumbnail ||
+      lesson?.thumbnailUrl ||
+      lesson?.videoThumbnail ||
+      lesson?.imageUrl;
+
+    if (directThumbnail) return directThumbnail;
+
+    const bunnyVideo = getVideoIdentifiers(lesson?.videoUrl);
+    if (bunnyVideo) {
+      return `https://vz-${bunnyVideo.libraryId}.b-cdn.net/${bunnyVideo.videoId}/thumbnail.jpg?width=160&height=90`;
+    }
+
+    return course?.thumbnail || course?.image || FALLBACK_LESSON_THUMBNAIL;
   };
 
   const isEmbedLink = (url) => {
@@ -896,7 +1382,10 @@ export default function LearningWorkspace() {
     // 4. AUTO-SYNC: Mỗi 10s, gửi thời gian hiện tại lên server
     const syncInterval = setInterval(() => {
         if (currentTimeRef.current > 0) {
-            progressService.updateLastWatchedTime(lessonId, currentTimeRef.current);
+            setIsProgressSaving(true);
+            progressService.updateLastWatchedTime(lessonId, currentTimeRef.current)
+              .then(() => setLastProgressSavedAt(new Date()))
+              .finally(() => setIsProgressSaving(false));
         }
     }, 10000);
 
@@ -920,7 +1409,7 @@ export default function LearningWorkspace() {
 
   if (!isEnrolled) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-white p-6 text-center">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background p-6 text-center">
         <div className="w-24 h-24 bg-red-50 rounded-full flex items-center justify-center mb-6 border border-error/20 shadow-inner">
           <Info className="w-10 h-10 text-error" />
         </div>
@@ -949,23 +1438,6 @@ export default function LearningWorkspace() {
 
   if (!course) return null;
 
-  const allLessons = course.modules.flatMap((section) => section.lessons);
-  // Auto fetch certificate URL when progress reaches 100%
-  useEffect(() => {
-      if (progressValue === 100 && !certifiUrl) {
-          progressService.getCourseProgress(slug).then(res => {
-              if (res?.data?.certifiUrl) {
-                  setCertifiUrl(res.data.certifiUrl);
-              }
-          }).catch(console.error);
-      }
-  }, [progressValue, certifiUrl, slug]);
-
-  const totalLessonsCount = allLessons.length;
-  const progressValue = totalLessonsCount > 0 
-    ? Math.round((completedLessonIds.length / totalLessonsCount) * 100) 
-    : 0;
-
   const handlePrevLesson = () => {
     if (activeViewMode === "quiz") {
       setActiveViewMode("video");
@@ -985,23 +1457,31 @@ export default function LearningWorkspace() {
     }
   };
 
+  const isFirstNavigationItem = activeViewMode === "video" && activeSectionIdx === 0 && activeLessonIdx === 0;
+  const isLastNavigationItem =
+    activeSectionIdx === (course?.modules?.length || 1) - 1 &&
+    (
+      (activeViewMode === "video" && activeLessonIdx === (currentSection?.lessons?.length || 1) - 1 && !currentSection?.quiz) ||
+      activeViewMode === "quiz"
+    );
+
   return (
     <PageContainer className="h-screen overflow-hidden font-sans">
-      <PageContainer.Content disableContainer className="h-full gap-0 pb-0 overflow-hidden">
+      <PageContainer.Content disableContainer className="h-full !gap-y-4 md:!gap-y-6 pb-0 overflow-hidden">
       {/* ── Header ── */}
-      <header className="h-16 bg-muted text-white flex items-center justify-between px-6 z-50 shrink-0 shadow-lg border-b border-white/5">
+      <header className="h-16 border-b border-border bg-card px-4 shadow-sm md:px-6 z-50 shrink-0 flex items-center justify-between">
         <div className="flex items-center gap-4 min-w-0">
           <button
             onClick={() => navigate("/account/my-courses")}
-            className="p-2.5 hover:bg-muted rounded-lg transition-all text-slate-300 hover:text-white group"
+            className="flex size-10 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground group"
           >
-            <ChevronLeft className="w-6 h-6 group-hover:-translate-x-0.5 transition-transform" />
+            <ChevronLeft className="size-5 group-hover:-translate-x-0.5 transition-transform" />
           </button>
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center border border-primary/30">
-                <PlayCircle className="w-5 h-5 text-primary" />
+            <div className="flex size-9 items-center justify-center rounded-lg border border-primary/20 bg-primary/10 text-primary">
+                <PlayCircle className="size-5" />
             </div>
-            <h1 className="font-extrabold text-sm md:text-base truncate max-w-[200px] lg:max-w-md hidden sm:block tracking-tight text-slate-100">
+            <h1 className="hidden max-w-[220px] truncate text-sm font-semibold text-foreground md:text-base lg:max-w-md sm:block">
                 {course.title}
             </h1>
           </div>
@@ -1009,53 +1489,58 @@ export default function LearningWorkspace() {
 
         <div className="flex-1 max-w-xl px-12 hidden md:block">
           <div className="flex flex-col gap-1.5">
-            <div className="flex items-center justify-between text-[10px] font-black text-muted-foreground uppercase tracking-widest">
-                <span>Tiến độ hoàn thành</span>
-                <span>{completedLessonIds.length}/{totalLessonsCount} BÀI HỌC</span>
+            <div className="flex items-center justify-between gap-3 text-xs font-semibold">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <span>Tiến độ</span>
+                  <span className="rounded-md border border-primary/20 bg-primary/10 px-2 py-0.5 text-primary">
+                    {progressValue}%
+                  </span>
+                </div>
+                <span className="text-muted-foreground">{completedLessonIds.length}/{totalLessonsCount} BÀI HỌC</span>
             </div>
-            <Progress value={progressValue} className="h-2 bg-muted [&>div]:bg-primary shadow-inner" />
+            <Progress value={progressValue} className="h-2 bg-muted [&>div]:bg-primary" />
           </div>
         </div>
 
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"
-            size="sm"
-            className="text-slate-300 hover:bg-muted hover:text-white font-bold hidden lg:flex items-center gap-2 rounded-lg"
+            size="icon"
+            onClick={() => setIsDarkMode((value) => !value)}
+            title={isDarkMode ? "Chế độ sáng" : "Chế độ tối"}
+            aria-label={isDarkMode ? "Chế độ sáng" : "Chế độ tối"}
+            className="hidden size-10 rounded-lg border border-border bg-card text-foreground hover:bg-muted lg:flex"
           >
-            <LayoutDashboard className="w-4 h-4" />
-            Giao diện
+            {isDarkMode ? <Sun className="size-4" /> : <Moon className="size-4" />}
           </Button>
           {progressValue === 100 && certifiUrl && (
             <Button
               variant="outline"
               size="sm"
               onClick={() => window.open(`/certificate/${certifiUrl}`, '_blank')}
-              className="text-amber-500 border-amber-500 hover:bg-amber-500/10 hover:text-amber-400 font-bold hidden lg:flex items-center gap-2 rounded-lg ml-2"
+              className="ml-2 hidden items-center gap-2 rounded-lg border-warning/30 text-warning font-semibold hover:bg-warning-soft hover:text-warning-foreground lg:flex"
             >
               <Award className="w-4 h-4" /> Xem chứng chỉ
             </Button>
           )}
-          <div className="flex items-center gap-1.5 bg-muted p-1.5 rounded-lg border border-white/5">
+          <div className="flex items-center gap-1 rounded-lg border border-border bg-muted p-1">
             <button
               onClick={handlePrevLesson}
-              disabled={activeSectionIdx === 0 && activeLessonIdx === 0}
-              className="p-1.5 hover:bg-muted disabled:opacity-20 disabled:cursor-not-allowed rounded-lg transition-all text-slate-300"
+              disabled={isFirstNavigationItem}
+              title="Bài trước"
+              aria-label="Bài trước"
+              className="flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-card hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
             >
-              <ChevronLeft className="w-5 h-5" />
+              <ChevronUp className="size-5" />
             </button>
             <button
               onClick={handleNextLesson}
-              disabled={
-                activeSectionIdx === (course?.modules?.length || 1) - 1 &&
-                (
-                  (activeViewMode === "video" && activeLessonIdx === (currentSection?.lessons?.length || 1) - 1 && !currentSection?.quiz) ||
-                  (activeViewMode === "quiz")
-                )
-              }
-              className="p-1.5 hover:bg-muted disabled:opacity-20 disabled:cursor-not-allowed rounded-lg transition-all text-slate-300"
+              disabled={isLastNavigationItem}
+              title="Bài tiếp theo"
+              aria-label="Bài tiếp theo"
+              className="flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-card hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
             >
-              <ChevronRight className="w-5 h-5" />
+              <ChevronDown className="size-5" />
             </button>
           </div>
         </div>
@@ -1063,15 +1548,15 @@ export default function LearningWorkspace() {
 
       {/* ── Body ── */}
       <div className="flex-1 overflow-y-auto bg-background">
-        <div className="w-full mx-auto max-w-screen-2xl px-4 md:px-10 xl:px-16 py-8">
-          <div className="flex flex-col lg:flex-row gap-10 items-start">
+        <div className="app-container py-8">
+          <div className="flex flex-col items-start gap-8 lg:flex-row">
 
             {/* ── Left: Video + Info ── */}
             <div className="flex-1 min-w-0">
               {activeViewMode === "video" ? (
                 <>
                   {/* Video Player Section */}
-                  <div className="w-full aspect-video rounded-xl overflow-hidden bg-black border-[6px] border-white shadow-[0_20px_50px_rgba(0,0,0,0.1)] relative group">
+                  <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-border bg-black shadow-sm group">
                     {useIframe ? (
                       <iframe
                         id="bunny-video-player"
@@ -1100,83 +1585,242 @@ export default function LearningWorkspace() {
                         Trình duyệt không hỗ trợ phát video.
                       </video>
                     )}
-                    <div className="absolute top-8 left-8 px-5 py-3 rounded-lg border border-white/20 text-white pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <p className="text-[10px] font-black text-primary mb-1 uppercase tracking-[0.25em] italic">Gnostica Learning</p>
-                      <h3 className="text-sm font-black">{currentLesson?.title}</h3>
+                    <div className="absolute left-5 top-5 rounded-lg border border-white/20 bg-black/40 px-4 py-3 text-white backdrop-blur pointer-events-none opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                      <p className="mb-1 text-xs font-semibold text-accent">Gnostica Learning</p>
+                      <h3 className="text-sm font-semibold">{currentLesson?.title}</h3>
                     </div>
                   </div>
 
                   {/* Lesson Title Section */}
-                  <div className="mt-10 mb-10 pl-2">
-                    <h2 className="text-2xl md:text-3xl font-black text-foreground leading-[1.15] tracking-tight">
+                  <div className="my-8">
+                    <h2 className="text-2xl font-bold leading-tight text-foreground md:text-3xl">
                       {currentLesson?.title}
                     </h2>
-                    <div className="flex items-center gap-4 mt-5">
-                        <div className="flex items-center gap-2 px-4 py-1.5 bg-primary/10 text-primary text-[11px] font-black rounded-full uppercase tracking-widest border border-primary/20">
-                            <CheckCircle2 className="w-3.5 h-3.5" />
-                            Phần {activeSectionIdx + 1}
-                        </div>
-                        <Separator orientation="vertical" className="h-4 bg-muted" />
-                        <p className="text-muted-foreground font-bold italic text-sm tracking-tight capitalize">
-                          {currentSection?.title}
-                        </p>
+                    <div className="mt-4 flex flex-wrap items-center gap-2 text-sm">
+                        <span className="inline-flex h-8 max-w-full items-center gap-2 rounded-lg border border-border bg-card px-3 font-medium text-foreground">
+                          <FileText className="size-3.5 text-primary" />
+                          <span className="truncate">{currentSection?.title}</span>
+                        </span>
+                        <span className="inline-flex h-8 items-center gap-2 rounded-lg border border-border bg-muted px-3 font-medium text-muted-foreground">
+                          <PlayCircle className="size-3.5" />
+                          Bài {currentLessonNumber}/{currentSectionLessonCount}
+                        </span>
+                        <span className="inline-flex h-8 items-center gap-2 rounded-lg border border-border bg-muted px-3 font-medium text-muted-foreground">
+                          <PlayCircle className="size-3.5" />
+                          {currentLessonDuration}
+                        </span>
+                        <span className={`inline-flex h-8 items-center gap-2 rounded-lg border px-3 font-medium ${
+                          isCurrentLessonCompleted
+                            ? "border-success/20 bg-success/10 text-success"
+                            : "border-primary/20 bg-primary/10 text-primary"
+                        }`}>
+                          <CheckCircle2 className="size-3.5" />
+                          {isCurrentLessonCompleted ? "Hoàn thành" : "Đang học"}
+                        </span>
+                        <span className="inline-flex h-8 items-center gap-2 rounded-lg border border-border bg-muted px-3 font-medium text-muted-foreground">
+                          {isProgressSaving ? <Loader2 className="size-3.5 animate-spin" /> : <CheckCircle2 className="size-3.5" />}
+                          {isProgressSaving
+                            ? "Đang lưu tiến độ"
+                            : progressSavedLabel
+                              ? `Đã lưu ${progressSavedLabel}`
+                              : "Tự động lưu tiến độ"}
+                        </span>
                     </div>
                   </div>
 
                   {/* Tabs Container */}
                   <Tabs defaultValue="overview" className="w-full">
-                    <TabsList className="bg-white p-1.5 h-14 rounded-xl w-full sm:w-fit border border-border shadow-sm gap-1.5">
+                    <TabsList variant="line" className="h-11 w-full gap-3 rounded-none border-b border-border bg-transparent p-0 sm:w-fit">
                       <TabsTrigger 
                         value="overview" 
-                        className="rounded-lg h-full px-5 font-black text-[11px] uppercase tracking-widest flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-primary/30 transition-all duration-300"
+                        className="h-11 rounded-none px-1 text-sm font-semibold"
                       >
-                        <Info className="w-4 h-4" /> Tổng quan
+                        <Info className="size-4" /> Tổng quan
                       </TabsTrigger>
                       <TabsTrigger 
                         value="qa" 
-                        className="rounded-lg h-full px-5 font-black text-[11px] uppercase tracking-widest flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-primary/30 transition-all duration-300"
+                        className="h-11 rounded-none px-1 text-sm font-semibold"
                       >
-                        <MessageSquare className="w-4 h-4" /> Hỏi đáp
+                        <MessageSquare className="size-4" /> Hỏi đáp
                       </TabsTrigger>
                       <TabsTrigger 
                         value="resources" 
-                        className="rounded-lg h-full px-5 font-black text-[11px] uppercase tracking-widest flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-primary/30 transition-all duration-300"
+                        className="h-11 rounded-none px-1 text-sm font-semibold"
                       >
-                        <FileText className="w-4 h-4" /> Tài liệu
+                        <FileText className="size-4" /> Tài liệu
                       </TabsTrigger>
                     </TabsList>
 
-                    <TabsContent value="overview" className="mt-10 outline-none">
-                      <div className="bg-white rounded-xl p-10 md:p-14 border border-border shadow-sm leading-[1.8] text-foreground">
-                        <h3 className="text-2xl font-black mb-8 flex items-center gap-4">
-                            <div className="w-2.5 h-10 bg-primary rounded-full shadow-[0_0_15px_rgba(var(--primary),0.5)]" />
+                    <TabsContent value="overview" className="mt-6 outline-none">
+                      <div className="space-y-6">
+                        <AppCard appVariant="default" className="shadow-sm">
+                          <AppCardContent className="p-6 md:p-8">
+                          <h3 className="app-section-title mb-6 flex items-center gap-3">
+                            <Info className="size-5 text-primary" />
                             Nội dung bài học
-                        </h3>
-                        <div 
-                          className="prose prose-slate max-w-none text-muted-foreground font-bold text-lg"
-                          dangerouslySetInnerHTML={{ __html: currentLesson?.content }}
-                        />
+                          </h3>
+                          <div 
+                            className="html-content app-body-text max-w-none leading-7 text-muted-foreground"
+                            dangerouslySetInnerHTML={{ __html: currentLesson?.content }}
+                          />
+                          </AppCardContent>
+                        </AppCard>
+
+                        <AppCard appVariant="default" className="shadow-sm">
+                          <AppCardContent className="p-6 md:p-8">
+                            <h3 className="app-section-title mb-6 flex items-center gap-3">
+                              <Star className="size-5 fill-warning text-warning" />
+                              Đánh giá khóa học
+                            </h3>
+                            <div className="grid gap-8 md:grid-cols-[180px_1fr] md:items-center">
+                              <div className="text-center md:text-left">
+                                <div className="text-5xl font-bold text-warning">
+                                  {courseRatingSummary.averageRating.toFixed(1)}
+                                </div>
+                                <div
+                                  className="mt-3 flex justify-center gap-1 md:justify-start"
+                                  aria-label={`${courseRatingSummary.averageRating.toFixed(1)} trên 5 sao`}
+                                >
+                                  {Array.from({ length: 5 }).map((_, index) => (
+                                    <Star
+                                      key={index}
+                                      className={`h-5 w-5 text-warning ${index < Math.round(courseRatingSummary.averageRating) ? "fill-warning" : "fill-transparent"}`}
+                                    />
+                                  ))}
+                                </div>
+                                <p className="mt-2 text-sm text-muted-foreground">
+                                  {courseRatingSummary.reviewCount} đánh giá
+                                </p>
+                              </div>
+
+                              <div className="space-y-3">
+                                {courseRatingSummary.distribution.map((item) => (
+                                  <div key={item.rating} className="grid grid-cols-[52px_1fr_42px] items-center gap-3 text-sm">
+                                    <div className="flex items-center gap-1 font-medium text-foreground">
+                                      <span>{item.rating}</span>
+                                      <Star className="h-4 w-4 fill-warning text-warning" />
+                                    </div>
+                                    <Progress
+                                      value={item.percentage}
+                                      className="h-2 bg-muted [&>div]:bg-warning"
+                                    />
+                                    <span className="text-right text-muted-foreground">{item.percentage}%</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+
+                            <div className="mt-8 border-t border-border pt-6">
+                              {currentUserReview ? (
+                                <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
+                                  <div className="flex flex-wrap items-center justify-between gap-3">
+                                    <div>
+                                      <p className="text-sm font-semibold text-foreground">Đánh giá của tôi</p>
+                                      <div className="mt-2 flex items-center gap-1" aria-label={`${currentUserReview.rating} trên 5 sao`}>
+                                        {Array.from({ length: 5 }).map((_, index) => (
+                                          <Star
+                                            key={index}
+                                            className={`h-4 w-4 text-warning ${index < Number(currentUserReview.rating) ? "fill-warning" : "fill-transparent"}`}
+                                          />
+                                        ))}
+                                      </div>
+                                    </div>
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => {
+                                        setDraftRating(Number(currentUserReview.rating || 0));
+                                        setDraftReviewComment(currentUserReview.comment || "");
+                                        setShowRatingForm(true);
+                                      }}
+                                      className="h-9 rounded-lg"
+                                    >
+                                      Sửa đánh giá
+                                    </Button>
+                                  </div>
+                                  {currentUserReview.comment && (
+                                    <p className="mt-3 text-sm leading-6 text-muted-foreground">{currentUserReview.comment}</p>
+                                  )}
+                                </div>
+                              ) : (
+                                <div className="flex flex-col gap-4 rounded-xl border border-border bg-muted/50 p-4 sm:flex-row sm:items-center sm:justify-between">
+                                  <div>
+                                    <p className="text-sm font-semibold text-foreground">Bạn chưa đánh giá khóa học này.</p>
+                                    <p className="mt-1 text-sm text-muted-foreground">Ghi lại cảm nhận của bạn để giảng viên cải thiện nội dung tốt hơn.</p>
+                                  </div>
+                                  <Button
+                                    type="button"
+                                    onClick={() => setShowRatingForm((value) => !value)}
+                                    className="h-10 shrink-0 rounded-lg"
+                                  >
+                                    Đánh giá khóa học
+                                  </Button>
+                                </div>
+                              )}
+
+                              {showRatingForm && (
+                                <form onSubmit={handleSaveDraftReview} className="mt-4 rounded-xl border border-border bg-card p-4">
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    {Array.from({ length: 5 }).map((_, index) => {
+                                      const value = index + 1;
+                                      return (
+                                        <button
+                                          key={value}
+                                          type="button"
+                                          onClick={() => setDraftRating(value)}
+                                          className="rounded-md p-1 text-warning transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                          aria-label={`${value} sao`}
+                                        >
+                                          <Star className={`h-6 w-6 ${value <= draftRating ? "fill-warning" : "fill-transparent"}`} />
+                                        </button>
+                                      );
+                                    })}
+                                    <span className="ml-1 text-sm font-medium text-muted-foreground">
+                                      {draftRating > 0 ? `${draftRating}/5 sao` : "Chọn số sao"}
+                                    </span>
+                                  </div>
+                                  <textarea
+                                    value={draftReviewComment}
+                                    onChange={(event) => setDraftReviewComment(event.target.value)}
+                                    placeholder="Chia sẻ ngắn về trải nghiệm học của bạn..."
+                                    className="mt-4 min-h-[96px] w-full resize-y rounded-lg border border-border bg-background p-3 text-sm text-foreground outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15"
+                                  />
+                                  <div className="mt-4 flex justify-end gap-2">
+                                    <Button type="button" variant="ghost" size="sm" onClick={() => setShowRatingForm(false)} className="h-9 rounded-lg">
+                                      Hủy
+                                    </Button>
+                                    <Button type="submit" size="sm" disabled={!draftRating} className="h-9 rounded-lg">
+                                      Lưu bản nháp
+                                    </Button>
+                                  </div>
+                                </form>
+                              )}
+                            </div>
+                          </AppCardContent>
+                        </AppCard>
                       </div>
                     </TabsContent>
 
-                    <TabsContent value="qa" className="mt-10 outline-none">
+                    <TabsContent value="qa" className="mt-6 outline-none">
                       <LessonQA lesson={currentLesson} />
                     </TabsContent>
 
-                    <TabsContent value="resources" className="mt-10 outline-none">
+                    <TabsContent value="resources" className="mt-6 outline-none">
                        {currentSection?.attachments && currentSection.attachments.length > 0 ? (
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {currentSection.attachments.map((file, i) => (
-                              <div key={file.id || i} className="flex items-center justify-between p-6 bg-white border border-border rounded-xl hover:border-primary hover:shadow-2xl hover:shadow-primary/5 transition-all group cursor-pointer duration-500">
-                                <div className="flex items-center gap-5">
-                                  <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center text-primary border border-border group-hover:bg-primary group-hover:text-white group-hover:rotate-6 transition-all duration-300">
-                                    <FileText className="w-7 h-7" />
+                              <AppCard key={file.id || i} appVariant="default" className="group shadow-sm hover:border-primary/40">
+                                <AppCardContent className="flex items-center justify-between gap-4 p-5">
+                                <div className="flex items-center gap-4">
+                                  <div className="flex size-12 items-center justify-center rounded-lg border border-border bg-muted text-primary transition-colors group-hover:bg-primary/10">
+                                    <FileText className="size-5" />
                                   </div>
                                   <div className="min-w-0">
-                                    <p className="text-[15px] font-black text-foreground truncate max-w-[200px] mb-1">
+                                    <p className="mb-1 max-w-[220px] truncate text-sm font-semibold text-foreground">
                                         {file.fileUrl.split('/').pop() || `Tài liệu ${i + 1}`}
                                     </p>
-                                    <p className="text-[11px] text-muted-foreground font-black uppercase tracking-widest">
+                                    <p className="text-xs font-medium text-muted-foreground">
                                         {file.fileType || "DOCUMENT"} • FILE DOWNLOAD
                                     </p>
                                   </div>
@@ -1184,16 +1828,17 @@ export default function LearningWorkspace() {
                                 <Button 
                                     variant="ghost" 
                                     size="icon" 
-                                    className="w-12 h-12 rounded-2xl hover:bg-primary/10 text-primary border border-transparent hover:border-primary/20"
+                                    className="size-10 rounded-lg text-primary hover:bg-primary/10"
                                     onClick={() => window.open(file.fileUrl, '_blank')}
                                 >
-                                  <Download className="w-6 h-6" />
+                                  <Download className="size-5" />
                                 </Button>
-                              </div>
+                                </AppCardContent>
+                              </AppCard>
                             ))}
                           </div>
                        ) : (
-                          <div className="bg-white rounded-xl p-16 border border-border shadow-sm text-center text-muted-foreground font-black italic uppercase tracking-widest text-xs">
+                          <div className="rounded-xl border border-dashed border-border bg-card p-12 text-center text-sm font-medium text-muted-foreground shadow-sm">
                             Chương này chưa tải lên tài liệu tham khảo.
                           </div>
                        )}
@@ -1212,71 +1857,106 @@ export default function LearningWorkspace() {
             </div>
 
             {/* ── Right: Course Playlist Sidebar ── */}
-            <aside className="w-full lg:w-[380px] xl:w-[450px] shrink-0 border border-border rounded-xl overflow-hidden shadow-2xl flex flex-col">
-              <div className="p-8 border-b border-border flex items-center justify-between bg-muted">
+            <aside className="flex w-full shrink-0 flex-col overflow-hidden rounded-xl border border-border bg-card shadow-sm lg:w-[380px] xl:w-[420px]">
+              <div className="flex items-center justify-between border-b border-border bg-muted p-6">
                 <div className="flex flex-col gap-1">
-                    <h3 className="font-black text-foreground uppercase tracking-[0.2em] text-[11px]">Nội dung khóa học</h3>
-                    <p className="text-[10px] font-black text-muted-foreground">DANH SÁCH BÀI GIẢNG DÀNH CHO BẠN</p>
+                    <h3 className="text-sm font-bold text-foreground">Nội dung khóa học</h3>
+                    <p className="text-xs font-medium text-muted-foreground">Danh sách bài giảng dành cho bạn</p>
                 </div>
-                <div className="text-[10px] font-black text-primary bg-primary/10 px-3 py-1.5 rounded-xl border border-primary/20">
+                <div className="rounded-lg border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
                     {course?.modules?.length || 0} CHƯƠNG
                 </div>
               </div>
 
-              <div className="overflow-y-auto max-h-[calc(100vh-16rem)] scrollbar-hide py-2">
-                <Accordion type="multiple" defaultValue={[`section-${activeSectionIdx}`]}>
+              <div>
+                <Accordion type="multiple" value={openSectionValues} onValueChange={setOpenSectionValues}>
                   {course.modules.map((section, sIdx) => {
                     const isActiveSection = activeSectionIdx === sIdx;
+                    const sectionLessons = section.lessons || [];
+                    const sectionCompletedCount = sectionLessons.filter((lesson) => completedLessonIds.includes(lesson.id)).length;
+                    const sectionProgress = sectionLessons.length > 0
+                      ? Math.round((sectionCompletedCount / sectionLessons.length) * 100)
+                      : 0;
+                    const isQuizCurrent = activeSectionIdx === sIdx && activeViewMode === "quiz";
+                    const quizQuestionCount =
+                      section.quiz?.questions?.length ||
+                      section.quiz?.questionCount ||
+                      section.quiz?.totalQuestions ||
+                      0;
                     return (
                       <AccordionItem
                         key={section.id || sIdx}
                         value={`section-${sIdx}`}
-                        className={`border-b-0 px-2 last:mb-0`}
+                        className="border-b-0"
                       >
-                        <AccordionTrigger className="px-6 py-6 hover:bg-muted hover:no-underline [&[data-state=open]]:bg-muted/80 rounded-xl transition-all font-black mx-2 mb-1">
-                          <div className="flex flex-col items-start gap-1 text-left min-w-0">
-                            <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em] italic">
+                        <AccordionTrigger className="items-center rounded-none px-5 py-4 text-left font-semibold transition-colors hover:bg-muted hover:no-underline focus-visible:border-transparent focus-visible:ring-0 focus-visible:after:border-transparent [&[data-state=open]]:bg-muted [&_[data-slot=accordion-trigger-icon]]:self-center [&_[data-slot=accordion-trigger-icon]]:size-5">
+                          <div className="flex min-w-0 flex-1 flex-col items-start gap-2 text-left">
+                            <span className="hidden">
                               Phần {sIdx + 1}
                             </span>
-                            <span className="font-black text-foreground text-[16px] truncate w-full tracking-tight">
+                            <span className="w-full truncate text-sm font-semibold text-foreground">
                               {section.title}
                             </span>
+                            <div className="flex w-full items-center gap-3 text-xs font-medium text-muted-foreground">
+                              <span className="shrink-0">{sectionCompletedCount}/{sectionLessons.length} bài học</span>
+                              <span className="shrink-0 text-primary">{sectionProgress}% hoàn thành</span>
+                            </div>
                           </div>
                         </AccordionTrigger>
-                        <AccordionContent className="pb-4 pt-1 px-4">
-                          <div className="flex flex-col gap-1">
-                            {section.lessons.map((lesson, lIdx) => {
+                        <AccordionContent className="!p-0">
+                          <div className="flex flex-col">
+                            {sectionLessons.map((lesson, lIdx) => {
                               const isCurrent = activeViewMode === "video" && activeSectionIdx === sIdx && activeLessonIdx === lIdx;
                               const isCompleted = completedLessonIds.includes(lesson.id);
+                              const lessonThumbnail = getLessonThumbnail(lesson);
+                              const lessonDuration = formatLessonDuration(lesson.metadata);
                               return (
                                 <button
                                   key={lesson.id || lIdx}
+                                  ref={isCurrent ? activePlaylistItemRef : null}
                                   onClick={() => handleLessonSelect(sIdx, lIdx)}
-                                  className={`flex items-start gap-4 px-6 py-5 transition-all text-left rounded-lg border-2
+                                  className={`relative flex items-start gap-3 border px-5 py-4 text-left transition-colors before:absolute before:bottom-3 before:left-0 before:top-3 before:w-1 before:rounded-r-full before:transition-colors
                                     ${isCurrent 
-                                        ? "bg-primary shadow-xl shadow-primary/20 border-primary text-white" 
-                                        : "hover:bg-muted border-transparent text-foreground hover:scale-[0.98]"}`}
+                                        ? "border-primary/30 bg-primary/10 text-primary before:bg-primary" 
+                                        : "border-transparent text-foreground before:bg-transparent hover:bg-muted"}`}
                                 >
-                                  <div className="mt-1.5 shrink-0">
-                                    {isCompleted ? (
-                                      <div className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-200">
-                                        <CheckCircle2 className="w-3 h-3 text-white" />
-                                      </div>
-                                    ) : isCurrent ? (
-                                      <div className="w-5 h-5 rounded-full bg-white flex items-center justify-center">
-                                        <PlayCircle className="w-3.5 h-3.5 text-primary" />
-                                      </div>
+                                  <div className="relative mt-0.5 h-12 w-20 shrink-0 overflow-hidden rounded-md border border-border bg-muted">
+                                    {lessonThumbnail ? (
+                                      <img
+                                        src={lessonThumbnail}
+                                        alt=""
+                                        className="h-full w-full object-cover"
+                                        loading="lazy"
+                                        decoding="async"
+                                        onError={(event) => {
+                                          if (event.currentTarget.src !== FALLBACK_LESSON_THUMBNAIL) {
+                                            event.currentTarget.src = course?.thumbnail || course?.image || FALLBACK_LESSON_THUMBNAIL;
+                                          }
+                                        }}
+                                      />
                                     ) : (
-                                      <div className="w-5 h-5 rounded-full border-2 border-border group-hover:border-primary/50 transition-colors bg-white shadow-inner" />
+                                      <div className="flex h-full w-full items-center justify-center text-muted-foreground">
+                                        <PlayCircle className="size-5" />
+                                      </div>
                                     )}
+                                    <span className="absolute inset-0 bg-black/10" />
+                                    <span className={`absolute left-1.5 top-1.5 flex size-5 items-center justify-center rounded-full shadow-sm ${
+                                      isCompleted
+                                        ? "bg-success text-success-foreground"
+                                        : isCurrent
+                                          ? "bg-primary text-primary-foreground"
+                                          : "bg-card/90 text-muted-foreground"
+                                    }`}>
+                                      {isCompleted ? <CheckCircle2 className="size-3" /> : <PlayCircle className="size-3" />}
+                                    </span>
                                   </div>
                                   <div className="flex-1 min-w-0">
-                                    <p className={`text-[14px] font-black leading-snug break-words ${isCurrent ? "text-white" : "text-foreground"}`}>
+                                    <p className={`text-sm font-semibold leading-snug ${isCurrent ? "text-primary" : "text-foreground"}`}>
                                       {lesson.title}
                                     </p>
-                                    <div className={`flex items-center gap-2 mt-2 text-[10px] font-black uppercase tracking-widest ${isCurrent ? "text-white/80" : "text-muted-foreground"}`}>
-                                      <PlayCircle className="w-3 h-3" />
-                                      <span>Nội dung bài học</span>
+                                    <div className={`mt-1.5 flex items-center gap-2 text-xs font-medium ${isCurrent ? "text-primary/80" : "text-muted-foreground"}`}>
+                                      <PlayCircle className="size-3" />
+                                      <span>{lessonDuration}</span>
                                     </div>
                                   </div>
                                 </button>
@@ -1286,30 +1966,31 @@ export default function LearningWorkspace() {
                             {/* Thêm Render Quiz của Chương */}
                             {section.quiz && (
                               <button
+                                ref={isQuizCurrent ? activePlaylistItemRef : null}
                                 onClick={() => handleQuizSelect(sIdx)}
-                                className={`flex items-start gap-4 px-6 py-5 transition-all text-left rounded-lg border-2 mt-1
-                                  ${(activeSectionIdx === sIdx && activeViewMode === "quiz")
-                                      ? "bg-indigo-600 shadow-xl shadow-indigo-200 border-indigo-600 text-white" 
-                                      : "hover:bg-muted border-transparent text-foreground hover:scale-[0.98]"}`}
+                                className={`relative flex items-start gap-3 border px-5 py-4 text-left transition-colors before:absolute before:bottom-3 before:left-0 before:top-3 before:w-1 before:rounded-r-full before:transition-colors
+                                  ${isQuizCurrent
+                                      ? "border-info/30 bg-info/10 text-info before:bg-info" 
+                                      : "border-transparent text-foreground before:bg-transparent hover:bg-muted"}`}
                               >
-                                <div className="mt-1.5 shrink-0">
+                                <div className="shrink-0">
                                    {completedQuizIds.includes(section.quiz.id) ? (
-                                       <div className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-100">
-                                          <CheckCircle2 className="w-3 h-3 text-white" />
+                                       <div className="flex size-9 items-center justify-center rounded-lg bg-success/10 text-success">
+                                          <CheckCircle2 className="size-3" />
                                        </div>
                                    ) : (
-                                      <div className={`w-5 h-5 rounded-full flex items-center justify-center ${(activeSectionIdx === sIdx && activeViewMode === "quiz") ? 'bg-white' : 'bg-indigo-100'} shadow-sm`}>
-                                         <FileText className={`w-3 h-3 ${(activeSectionIdx === sIdx && activeViewMode === "quiz") ? 'text-indigo-600' : 'text-indigo-600'}`} />
+                                      <div className={`flex size-9 items-center justify-center rounded-lg ${isQuizCurrent ? "bg-info text-info-foreground" : "bg-info-soft text-info"}`}>
+                                         <FileText className="size-4" />
                                       </div>
                                    )}
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <p className={`text-[14px] font-black leading-snug ${(activeSectionIdx === sIdx && activeViewMode === "quiz") ? "text-white" : "text-foreground"}`}>
+                                  <p className={`text-sm font-semibold leading-snug ${isQuizCurrent ? "text-info" : "text-foreground"}`}>
                                     {section.quiz.title || "Bài tập cuối chương"}
                                   </p>
-                                  <div className={`flex items-center gap-2 mt-2 text-[10px] font-black uppercase tracking-widest ${(activeSectionIdx === sIdx && activeViewMode === "quiz") ? "text-white/80" : "text-indigo-500"}`}>
-                                    <CheckCircle2 className="w-3 h-3" />
-                                    <span>Bài kiểm tra kiến thức</span>
+                                  <div className={`mt-1.5 flex items-center gap-2 text-xs font-medium ${isQuizCurrent ? "text-info/80" : "text-muted-foreground"}`}>
+                                    <CheckCircle2 className="size-3" />
+                                    <span>{quizQuestionCount > 0 ? `${quizQuestionCount} câu hỏi` : "Bài kiểm tra"}</span>
                                   </div>
                                 </div>
                               </button>

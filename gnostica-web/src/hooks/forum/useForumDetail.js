@@ -204,6 +204,10 @@ export default function useForumDetail(slug) {
         };
         return addToTree(prev);
       });
+      setPost(curr => ({
+        ...curr,
+        commentCount: (curr.commentCount || 0) + 1
+      }));
   };
 
   const handleCommentDeleted = (deletedId) => {

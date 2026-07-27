@@ -1,10 +1,10 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/common/micro/AppSelect";
-import { AppButton } from "@/components/common/micro/AppButton";
+import { AppButton, TableActionIconButton } from "@/components/common/micro/AppButton";
 import DataTable from "@/components/common/composite/DataTable";
 import React, { useState, useEffect } from "react";
 import AppSelect from "@/components/common/micro/AppSelect";
 import AppInput from "@/components/common/micro/AppInput";
-import {Search, CheckCircle, Clock, XCircle, ShoppingCart} from "lucide-react";
+import {Search, CheckCircle, Clock, XCircle, ShoppingCart, User, Eye, Info, CreditCard, Receipt} from "lucide-react";
 import { useOrders } from "@/hooks/order/useOrders";
 import AppCard, { AppCardContent, AppCardHeader, AppCardTitle } from "@/components/common/micro/AppCard";
 import AppBadge from "@/components/common/micro/AppBadge";
@@ -162,7 +162,7 @@ function OrderTable({ orders, isLoading, onDetailClick, startIndex = 0, paginati
         );
       case 0: 
         return (
-          <AppBadge variant="secondary" className="bg-amber-100 text-amber-600 border-amber-200 gap-1 flex w-fit items-center mx-auto">
+          <AppBadge variant="secondary" className="bg-warning/10 text-warning border-warning/20 gap-1 flex w-fit items-center mx-auto">
             <Clock className="w-3 h-3" /> Chờ thanh toán
           </AppBadge>
         );
@@ -298,7 +298,7 @@ function OrderDetailModal({ isOpen, onOpenChange, order }) {
                 <div className="grid grid-cols-2 gap-4">
                   <DetailItem icon={CreditCard} label="Trạng thái" value={
                     order.status === 1 ? <AppBadge variant="success" className="bg-success/10 text-success text-success">Đã thanh toán</AppBadge> : 
-                    order.status === 0 ? <AppBadge variant="secondary" className="bg-amber-100 text-amber-600">Chờ thanh toán</AppBadge> : 
+                    order.status === 0 ? <AppBadge variant="secondary" className="bg-warning/10 text-warning">Chờ thanh toán</AppBadge> : 
                     <AppBadge variant="destructive">Đã hủy</AppBadge>
                   } />
                   <DetailItem icon={Receipt} label="Tổng tiền" value={`${order.totalPrice?.toLocaleString()}đ`} />
@@ -318,7 +318,7 @@ function OrderDetailModal({ isOpen, onOpenChange, order }) {
                       {detail.course?.thumbnailUrl ? (
                         <img src={detail.course.thumbnailUrl} alt={detail.course.title} className="w-full h-full object-cover" />
                       ) : (
-                        <ShoppingBag className="w-full h-full p-2 text-slate-300" />
+                        <ShoppingBag className="w-full h-full p-2 text-muted-foreground/40" />
                       )}
                     </div>
                     <div className="flex flex-col min-w-0 flex-1">

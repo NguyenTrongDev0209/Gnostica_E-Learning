@@ -31,10 +31,6 @@ public class Wallet {
     private BigDecimal remain;
 
     @NotNull
-    @Min(0)
-    private Integer dailyWithdrawalCount;
-
-    @NotNull
     private Integer type;
 
     /**
@@ -48,5 +44,11 @@ public class Wallet {
     private LocalDateTime createdAt;
 
     private LocalDateTime availableAt;
+
+    @Column(name = "target_type", length = 50)
+    private String targetType;
+
+    @Column(name = "target_id")
+    private UUID targetId;
 
 }

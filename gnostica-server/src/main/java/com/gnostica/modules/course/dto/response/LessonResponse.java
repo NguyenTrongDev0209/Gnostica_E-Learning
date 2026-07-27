@@ -15,6 +15,7 @@ public class LessonResponse {
     private String title;
     private String content;
     private String videoUrl;
+    private String metadata;
     private String aiModerationReport;
     private Integer status;
     private Boolean deleted;

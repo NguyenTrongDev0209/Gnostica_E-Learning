@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -42,6 +43,12 @@ public class ForumCategoryController {
                     .id(topic.getId())
                     .name(topic.getTitle())
                     .slug(topic.getSlug())
+                    .description(topic.getDescription())
+                    .avatarUrl(topic.getAvatarUrl())
+                    .bannerUrl(topic.getBannerUrl())
+                    .ownerName(topic.getAccount() != null ? topic.getAccount().getFullName() : null)
+                    .ownerEmail(topic.getAccount() != null ? topic.getAccount().getEmail() : null)
+                    .ownerAvatar(topic.getAccount() != null ? topic.getAccount().getAvatar() : null)
                     .status(topic.getStatus() != null && topic.getStatus() == 1)
                     .threadCount(count)
                     .build();
@@ -50,6 +57,7 @@ public class ForumCategoryController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'ROLE_ADMIN', 'INSTRUCTOR', 'ROLE_INSTRUCTOR')")
     public ResponseEntity<?> create(@Valid @RequestBody ForumCategoryRequest request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
@@ -58,6 +66,9 @@ public class ForumCategoryController {
         Topic topic = Topic.builder()
                 .title(request.getName())
                 .slug(request.getSlug())
+                .description(request.getDescription())
+                .avatarUrl(request.getAvatarUrl())
+                .bannerUrl(request.getBannerUrl())
                 .status(request.getStatus() != null && request.getStatus() ? 1 : 0)
                 .account(account)
                 .build();
@@ -67,18 +78,28 @@ public class ForumCategoryController {
                 .id(saved.getId())
                 .name(saved.getTitle())
                 .slug(saved.getSlug())
+                .description(saved.getDescription())
+                .avatarUrl(saved.getAvatarUrl())
+                .bannerUrl(saved.getBannerUrl())
+                .ownerName(saved.getAccount() != null ? saved.getAccount().getFullName() : null)
+                .ownerEmail(saved.getAccount() != null ? saved.getAccount().getEmail() : null)
+                .ownerAvatar(saved.getAccount() != null ? saved.getAccount().getAvatar() : null)
                 .status(saved.getStatus() == 1)
                 .threadCount(0L)
                 .build());
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'ROLE_ADMIN', 'INSTRUCTOR', 'ROLE_INSTRUCTOR')")
     public ResponseEntity<?> update(@PathVariable Integer id, @Valid @RequestBody ForumCategoryRequest request) {
         Topic topic = topicRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Topic not found"));
 
         topic.setTitle(request.getName());
         topic.setSlug(request.getSlug());
+        topic.setDescription(request.getDescription());
+        topic.setAvatarUrl(request.getAvatarUrl());
+        topic.setBannerUrl(request.getBannerUrl());
         if (request.getStatus() != null) {
             topic.setStatus(request.getStatus() ? 1 : 0);
         }
@@ -89,12 +110,19 @@ public class ForumCategoryController {
                 .id(saved.getId())
                 .name(saved.getTitle())
                 .slug(saved.getSlug())
+                .description(saved.getDescription())
+                .avatarUrl(saved.getAvatarUrl())
+                .bannerUrl(saved.getBannerUrl())
+                .ownerName(saved.getAccount() != null ? saved.getAccount().getFullName() : null)
+                .ownerEmail(saved.getAccount() != null ? saved.getAccount().getEmail() : null)
+                .ownerAvatar(saved.getAccount() != null ? saved.getAccount().getAvatar() : null)
                 .status(saved.getStatus() == 1)
                 .threadCount(count)
                 .build());
     }
 
     @PutMapping("/{id}/status")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'ROLE_ADMIN', 'INSTRUCTOR', 'ROLE_INSTRUCTOR')")
     public ResponseEntity<?> updateStatus(@PathVariable Integer id, @RequestBody Map<String, Boolean> payload) {
         Topic topic = topicRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Topic not found"));
@@ -108,6 +136,7 @@ public class ForumCategoryController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'ROLE_ADMIN', 'INSTRUCTOR', 'ROLE_INSTRUCTOR')")
     public ResponseEntity<?> delete(@PathVariable Integer id) {
         Topic topic = topicRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Topic not found"));

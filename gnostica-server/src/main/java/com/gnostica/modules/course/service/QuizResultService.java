@@ -1,6 +1,7 @@
 package com.gnostica.modules.course.service;
 
 import com.gnostica.modules.course.dto.request.QuizSubmitRequest;
+import java.time.LocalDateTime;
 import com.gnostica.core.model.Account;
 import com.gnostica.core.model.Quiz;
 import com.gnostica.core.model.QuizResult;
@@ -23,24 +24,26 @@ public class QuizResultService {
     @Transactional
     public void submitQuizResult(Integer quizId, String email, QuizSubmitRequest req) {
         Account account = accountRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại"));
+                .orElseThrow(() -> new RuntimeException("Tai khoan khong ton tai"));
         Quiz quiz = quizRepository.findById(quizId)
-                .orElseThrow(() -> new RuntimeException("Bài Quiz không tồn tại"));
+                .orElseThrow(() -> new RuntimeException("Bai Quiz khong ton tai"));
 
-        // Tìm bản ghi cũ hoặc tạo mới
         QuizResult result = quizResultRepository.findByAccountAndQuiz(account, quiz)
                 .orElse(new QuizResult());
-        
+
+        java.math.BigDecimal newPoint = java.math.BigDecimal.valueOf(req.getPoint());
+
         result.setAccount(account);
         result.setQuiz(quiz);
-        result.setPoint(java.math.BigDecimal.valueOf(req.getPoint()));
+        result.setPoint(newPoint);
         result.setTotalQuestions(req.getTotalQuestions());
         result.setCorrectAnswers(req.getCorrectAnswers());
-        result.setTime(0); // Reset time fields since user doesn't care about constraints
+        result.setTime(0);
+        result.setStatus(2);
+        result.setCompletedAt(LocalDateTime.now());
 
         quizResultRepository.save(result);
 
-        // Gọi cập nhật tiến độ overall cho khóa học
         if (quiz.getModule() != null && quiz.getModule().getCourse() != null) {
             enrollmentService.updateProgress(account.getId(), quiz.getModule().getCourse().getId());
         }
@@ -49,14 +52,16 @@ public class QuizResultService {
     @Transactional
     public void resetQuizResult(Integer quizId, String email) {
         Account account = accountRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại"));
+                .orElseThrow(() -> new RuntimeException("Tai khoan khong ton tai"));
         Quiz quiz = quizRepository.findById(quizId)
-                .orElseThrow(() -> new RuntimeException("Bài Quiz không tồn tại"));
+                .orElseThrow(() -> new RuntimeException("Bai Quiz khong ton tai"));
 
-        // Xóa bản ghi kết quả để cho phép làm lại
-        quizResultRepository.deleteByAccountAndQuiz(account, quiz);
+        quizResultRepository.findByAccountAndQuiz(account, quiz).ifPresent(existingResult -> {
+            existingResult.setStatus(1);
+            existingResult.setCompletedAt(null);
+            quizResultRepository.save(existingResult);
+        });
 
-        // Cập nhật tiến độ overall cho khóa học
         if (quiz.getModule() != null && quiz.getModule().getCourse() != null) {
             enrollmentService.updateProgress(account.getId(), quiz.getModule().getCourse().getId());
         }

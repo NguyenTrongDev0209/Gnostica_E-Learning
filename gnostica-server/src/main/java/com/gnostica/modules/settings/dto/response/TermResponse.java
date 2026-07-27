@@ -1,0 +1,3 @@
+package com.gnostica.modules.settings.dto.response;
+import com.gnostica.core.model.Term; import lombok.*; import java.time.LocalDateTime; import java.util.Map;
+@Data @Builder public class TermResponse { private Integer id, termModuleId, sortOrder, status; private String title,urlPath,content; private Map<String,Object> metadata; private LocalDateTime updatedAt; public static TermResponse from(Term t){return builder().id(t.getId()).termModuleId(t.getTermModule().getId()).title(t.getTitle()).urlPath(t.getUrlPath()).content(t.getContent()).sortOrder(t.getSortOrder()).status(t.getStatus()).metadata(t.getMetadata()).updatedAt(t.getUpdatedAt()).build();} }

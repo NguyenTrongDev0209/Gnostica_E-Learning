@@ -10,6 +10,7 @@ import com.gnostica.core.model.Wallet;
 import com.gnostica.core.repository.OrderDetailRepository;
 import com.gnostica.core.repository.LogRepository;
 import com.gnostica.core.repository.WalletRepository;
+import com.gnostica.modules.settings.service.CommissionResolver;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -31,6 +33,7 @@ public class WalletListener {
     private final LogRepository logRepository;
     private final OrderDetailRepository orderDetailRepository;
     private final ObjectMapper objectMapper;
+    private final CommissionResolver commissionResolver;
 
     @EventListener
     @Transactional
@@ -42,23 +45,46 @@ public class WalletListener {
         for (OrderDetail detail : details) {
             Account instructor = detail.getCourse().getAccount();
             if (instructor != null) {
-                BigDecimal platformFeeRate = new BigDecimal("0.10"); // 10% platform fee
-                BigDecimal totalAmount = detail.getPrice();
-                BigDecimal platformFee = totalAmount.multiply(platformFeeRate);
-                BigDecimal netAmount = totalAmount.subtract(platformFee);
+                // OrderDetail.price is the amount actually paid by the customer.
+                BigDecimal netSaleAmount = detail.getPrice().setScale(6, RoundingMode.HALF_UP);
+                BigDecimal coursePrice = detail.getCourse().getPrice();
+                BigDecimal baseSaleAmount = detail.getCourse().getSalePrice();
+                BigDecimal grossAmount = baseSaleAmount != null && baseSaleAmount.compareTo(netSaleAmount) >= 0
+                        ? baseSaleAmount.setScale(6, RoundingMode.HALF_UP)
+                        : netSaleAmount;
+                BigDecimal discountAmount = grossAmount.subtract(netSaleAmount).setScale(6, RoundingMode.HALF_UP);
+                CommissionResolver.ResolvedCommission commission = detail.getCommission() != null
+                        ? new CommissionResolver.ResolvedCommission(
+                                detail.getCommission().getInstructorRatio(),
+                                detail.getCommission().getPlatformRatio(),
+                                detail.getCommission())
+                        : commissionResolver.resolve(instructor, LocalDateTime.now());
+                boolean platformSponsoredCoupon = order.getCoupon() != null
+                        && order.getCoupon().getAccount() != null
+                        && order.getCoupon().getAccount().getRole() != null
+                        && "ADMIN".equalsIgnoreCase(order.getCoupon().getAccount().getRole().getName());
+                BigDecimal instructorAmount;
+                BigDecimal platformAmount;
+                if (platformSponsoredCoupon) {
+                    // Platform campaigns never reduce the instructor's agreed share.
+                    instructorAmount = grossAmount.multiply(commission.instructorRatio())
+                            .divide(new BigDecimal("100"), 6, RoundingMode.HALF_UP);
+                    platformAmount = netSaleAmount.subtract(instructorAmount).setScale(6, RoundingMode.HALF_UP);
+                } else {
+                    // Instructor coupons are funded entirely by the instructor.
+                    platformAmount = grossAmount.multiply(commission.platformRatio())
+                            .divide(new BigDecimal("100"), 6, RoundingMode.HALF_UP);
+                    instructorAmount = netSaleAmount.subtract(platformAmount).setScale(6, RoundingMode.HALF_UP);
+                }
 
-                Wallet wallet = walletRepository.findByAccount(instructor).orElseGet(() -> {
-                    Wallet newWallet = new Wallet();
-                    newWallet.setAccount(instructor);
-                    newWallet.setRemain(BigDecimal.ZERO);
-                    newWallet.setDailyWithdrawalCount(0);
-                    newWallet.setType(1);
-                    newWallet.setStatus(1);
-                    return newWallet;
-                });
-
-                BigDecimal currentRemain = wallet.getRemain() != null ? wallet.getRemain() : BigDecimal.ZERO;
-                wallet.setRemain(currentRemain.add(netAmount));
+                Wallet wallet = new Wallet();
+                wallet.setAccount(instructor);
+                wallet.setRemain(instructorAmount);
+                wallet.setType(1); // Earning
+                wallet.setStatus(1); // Active
+                wallet.setAvailableAt(LocalDateTime.now().plusDays(14));
+                wallet.setTargetType("ORDER_DETAIL");
+                wallet.setTargetId(detail.getId());
                 walletRepository.save(wallet);
 
                 // Log Revenue
@@ -72,16 +98,21 @@ public class WalletListener {
                     logData.put("order_id", order.getId());
                     logData.put("course_id", detail.getCourse().getId());
                     logData.put("course_title", detail.getCourse().getTitle());
-                    logData.put("net_amount", netAmount);
-                    logData.put("original_price", totalAmount);
-                    logData.put("platform_fee", platformFee);
+                    logData.put("instructor_amount", instructorAmount);
+                    logData.put("gross_amount", grossAmount);
+                    logData.put("discount_amount", discountAmount);
+                    logData.put("net_sale_amount", netSaleAmount);
+                    logData.put("instructor_ratio", commission.instructorRatio());
+                    logData.put("platform_ratio", commission.platformRatio());
+                    logData.put("platform_amount", platformAmount);
+                    logData.put("coupon_cost_bearer", platformSponsoredCoupon ? "PLATFORM" : "INSTRUCTOR");
                     revenueLog.setPayload(objectMapper.writeValueAsString(logData));
                 } catch (Exception e) {
                     log.error("Error logging revenue JSON", e);
                 }
 
                 logRepository.save(revenueLog);
-                log.info("Credited {} to instructor {} (Order: {})", netAmount, instructor.getEmail(), order.getId());
+                log.info("Credited {} to instructor {} (Order: {})", instructorAmount, instructor.getEmail(), order.getId());
             }
         }
     }
