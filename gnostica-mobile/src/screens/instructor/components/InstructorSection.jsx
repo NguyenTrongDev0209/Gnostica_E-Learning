@@ -14,11 +14,14 @@ const InstructorSection = () => {
         const fetchInstructors = async () => {
             try {
                 const response = await instructorService.getAll();
-                if (response && Array.isArray(response)) {
+                if (response && Array.isArray(response) && response.length > 0) {
                     setInstructors(response.slice(0, 5));
+                } else {
+                    setInstructors([]);
                 }
             } catch (error) {
-                console.error('Error fetching instructors:', error);
+                console.warn('Unable to fetch instructors from server:', error?.message || error);
+                setInstructors([]);
             } finally {
                 setLoading(false);
             }

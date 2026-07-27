@@ -8,6 +8,7 @@ import com.gnostica.core.model.Account;
 public interface AuthService {
     Account register(RegisterRequest request);
     LoginResponse login(LoginRequest request);
+    LoginResponse loginWithGoogle(com.gnostica.modules.auth.dto.request.GoogleLoginRequest request);
     boolean verifyOTP(String email, String code);
     void resendVerificationEmail(String email);
     Account findByEmail(String email);

@@ -58,6 +58,23 @@ public class AuthController {
         }
     }
 
+    @PostMapping("/google")
+    public ResponseEntity<?> loginWithGoogle(@Valid @RequestBody com.gnostica.modules.auth.dto.request.GoogleLoginRequest request) {
+        try {
+            LoginResponse loginResponse = authService.loginWithGoogle(request);
+            return ResponseEntity.ok(ResponseDTO.builder()
+                .status(200)
+                .message("Đăng nhập bằng Google thành công")
+                .data(loginResponse)
+                .build());
+        } catch (Exception e) {
+            return ResponseEntity.status(400).body(ResponseDTO.builder()
+                .status(400)
+                .message(e.getMessage())
+                .build());
+        }
+    }
+
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest registerRequest) {

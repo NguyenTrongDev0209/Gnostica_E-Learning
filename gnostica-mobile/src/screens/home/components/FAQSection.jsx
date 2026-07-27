@@ -3,10 +3,7 @@ import { View, TouchableOpacity, LayoutAnimation, UIManager, Platform } from 're
 import { ChevronDown, ChevronUp } from 'lucide-react-native';
 import AppText from '../../../components/ui/AppText';
 
-// Enable LayoutAnimation on Android
-if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
-    UIManager.setLayoutAnimationEnabledExperimental(true);
-}
+
 
 const FAQS = [
     {

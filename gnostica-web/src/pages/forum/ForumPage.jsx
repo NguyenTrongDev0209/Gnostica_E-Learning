@@ -283,9 +283,13 @@ const ForumPage = () => {
   // Map backend data to ForumPostCard format
   const mappedPosts = threads.map(thread => {
     const plainText = stripHtml(thread.content);
+    const rawTitle = (thread.title && thread.title.trim()) || plainText;
+    const formattedTitle = rawTitle.length > 60 ? rawTitle.substring(0, 50) + "..." : rawTitle;
+
     return {
       id: thread.id,
-      title: thread.title || (plainText.substring(0, 60) + (plainText.length > 60 ? "..." : "")),
+      title: formattedTitle,
+      fullTitle: rawTitle,
       content: plainText,
       rawContent: thread.content,
       author: {
@@ -350,10 +354,10 @@ const ForumPage = () => {
           className="mb-8 sm:mb-12"
         />
 
-        <div className="flex flex-col lg:flex-row gap-8">
+        <div className="flex flex-col lg:flex-row gap-8 w-full min-w-0">
 
           {/* Main Content - Feed */}
-          <div className="flex-1 flex flex-col gap-4">
+          <div className="flex-1 flex flex-col gap-4 min-w-0 max-w-full">
             {/* Search and Filter Bar */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[minmax(260px,1fr)_170px_170px_auto] gap-3 mb-2">
               <div className="flex h-11 overflow-hidden rounded-lg border border-border bg-white shadow-sm transition-all focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/15">
@@ -399,7 +403,7 @@ const ForumPage = () => {
             {isLoading ? (
               <ForumFeedSkeleton count={3} />
             ) : sortedPosts.length > 0 ? (
-              <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-4 w-full min-w-0">
                 {sortedPosts.map((post) => (
                   <ForumPostCard key={post.id} post={post} displayMode={displayMode} />
                 ))}

@@ -1,8 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DeviceEventEmitter } from 'react-native';
 
-// Sử dụng biến môi trường từ file .env
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
+// Sử dụng biến môi trường từ file .env hoặc IP mạng cục bộ
+export const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://10.176.13.240:8080/api';
+
 
 const api = {
     request: async (endpoint, options = {}) => {
@@ -31,7 +32,13 @@ const api = {
 
         try {
             const response = await fetch(url, config);
-            const data = await response.json();
+            const responseText = await response.text();
+            let data;
+            try {
+                data = responseText ? JSON.parse(responseText) : {};
+            } catch (_) {
+                data = { message: responseText || `Server error (${response.status})` };
+            }
             
             if (response.status === 401) {
                 DeviceEventEmitter.emit('auth.logout');
@@ -73,7 +80,13 @@ const api = {
                 },
                 body: formData,
             });
-            const data = await response.json();
+            const responseText = await response.text();
+            let data;
+            try {
+                data = responseText ? JSON.parse(responseText) : {};
+            } catch (_) {
+                data = { message: responseText || `Upload failed (${response.status})` };
+            }
             
             if (response.status === 401) {
                 DeviceEventEmitter.emit('auth.logout');
