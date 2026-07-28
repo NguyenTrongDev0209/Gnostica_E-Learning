@@ -92,15 +92,11 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 // Cập nhật avatar từ Google cho tài khoản
                 account.setAvatar(picture);
                 
-                // Nếu tài khoản tồn tại nhưng chưa có provider (đăng ký thủ công)
-                // thì không tự động liên kết mà báo lỗi theo yêu cầu của user.
-                if (account.getProvider() == null || account.getProvider().isEmpty()) {
-                    System.out.println("DEBUG: Account exists but NO provider linked for: " + email);
-                    throw new OAuth2AuthenticationException("NOT_LINKED");
-                }
-                
-                // Nếu đã liên kết với provider khác (Ví dụ liên kết Facebook mà nay login Google)
-                if (!account.getProvider().equalsIgnoreCase(provider)) {
+                // Nếu tài khoản tồn tại nhưng chưa có provider hoặc là LOCAL/rỗng, tự động liên kết với Google
+                if (account.getProvider() == null || account.getProvider().isEmpty() || "LOCAL".equalsIgnoreCase(account.getProvider())) {
+                    System.out.println("DEBUG: Account exists, linking provider to " + provider + " for: " + email);
+                    account.setProvider(provider);
+                } else if (!account.getProvider().equalsIgnoreCase(provider)) {
                     System.out.println("DEBUG: Account linked to another provider: " + account.getProvider());
                     throw new OAuth2AuthenticationException("Tài khoản đã được liên kết với " + account.getProvider());
                 }

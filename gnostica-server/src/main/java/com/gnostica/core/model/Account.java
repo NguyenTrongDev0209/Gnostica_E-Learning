@@ -43,8 +43,6 @@ public class Account {
     private String phone;
 
     @Size(max = 255)
-    @ToString.Exclude
-    @com.fasterxml.jackson.annotation.JsonProperty(access = com.fasterxml.jackson.annotation.JsonProperty.Access.WRITE_ONLY)
     private String password;
 
     @Size(max = 2048)

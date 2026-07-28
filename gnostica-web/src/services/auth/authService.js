@@ -1,7 +1,6 @@
 import axiosClient from '@/lib/axiosClient';
 
 const API_URL = '/auth';
-const ADMIN_API_URL = '/admin/accounts';
 
 const register = async (fullName, email, password) => {
     try {
@@ -24,8 +23,12 @@ const login = async (email, password) => {
         });
         if (response.data.status === 200 || response.data.status === 'success') {
             const userData = response.data.data;
-            if (userData && (userData.onboardingCompleted === undefined || userData.onboardingCompleted === null)) {
-                userData.onboardingCompleted = false;
+            if (userData) {
+                const isCompleted = userData.onboardingCompleted === true || userData.onboardingCompleted === 'true' ||
+                    (Array.isArray(userData.selectedCategories) && userData.selectedCategories.length > 0) ||
+                    (Array.isArray(userData.categoryIds) && userData.categoryIds.length > 0) ||
+                    Boolean(userData.level);
+                userData.onboardingCompleted = isCompleted;
             }
             localStorage.setItem('user', JSON.stringify(userData));
             if (userData?.email) {
@@ -55,15 +58,6 @@ const logout = async () => {
 
 const getCurrentUser = () => {
     return JSON.parse(localStorage.getItem('user'));
-};
-
-const getMe = async () => {
-    try {
-        const response = await axiosClient.get(`${API_URL}/me`);
-        return response.data;
-    } catch (error) {
-        throw error.response?.data?.message || 'Không thể lấy thông tin người dùng!';
-    }
 };
 
 const verify = async (email, code) => {
@@ -106,27 +100,38 @@ const resetPassword = async (email, code, newPassword) => {
     }
 };
 
-const getOAuth2User = async () => {
-    return await getMe();
+const becomeInstructor = async (email) => {
+    try {
+        const response = await axiosClient.post(`${API_URL}/become-instructor?email=${email}`);
+        if (response.data.status === 200) {
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (user) {
+                user.role = 'INSTRUCTOR';
+                localStorage.setItem('user', JSON.stringify(user));
+            }
+        }
+        return response.data;
+    } catch (error) {
+        throw error.response?.data?.message || 'Có lỗi xảy ra khi đăng ký giảng viên!';
+    }
 };
 
-const getAllAccounts = async (page = 0, size = 10, role = '', search = '') => {
+const getOAuth2User = async (email) => {
+    return await axiosClient.get(`${API_URL}/user?email=${encodeURIComponent(email)}`);
+};
+
+const getAllAccounts = async () => {
     try {
-        const params = new URLSearchParams({ page, size });
-        if (role) params.append('role', role);
-        if (search) params.append('search', search);
-        const response = await axiosClient.get(`${ADMIN_API_URL}?${params.toString()}`);
+        const response = await axiosClient.get(`${API_URL}/accounts`);
         return response.data;
     } catch (error) {
         throw error.response?.data?.message || 'Không thể lấy danh sách tài khoản!';
     }
 };
 
-const getAccountsByRole = async (role, { page = 0, size = 20 } = {}) => {
+const getAccountsByRole = async (role) => {
     try {
-        const response = await axiosClient.get(`${API_URL}/accounts/role/${role}`, {
-            params: { page, size }
-        });
+        const response = await axiosClient.get(`${API_URL}/accounts/role/${role}`);
         return response.data;
     } catch (error) {
         throw error.response?.data?.message || 'Không thể lấy danh sách tài khoản theo role!';
@@ -135,7 +140,7 @@ const getAccountsByRole = async (role, { page = 0, size = 20 } = {}) => {
 
 const lockAccount = async (id, reason) => {
     try {
-        const response = await axiosClient.post(`${ADMIN_API_URL}/${id}/lock?reason=${encodeURIComponent(reason)}`);
+        const response = await axiosClient.post(`${API_URL}/accounts/${id}/lock?reason=${encodeURIComponent(reason)}`);
         return response.data;
     } catch (error) {
         throw error.response?.data?.message || 'Không thể khóa tài khoản!';
@@ -144,7 +149,7 @@ const lockAccount = async (id, reason) => {
 
 const unlockAccount = async (id) => {
     try {
-        const response = await axiosClient.post(`${ADMIN_API_URL}/${id}/unlock`);
+        const response = await axiosClient.post(`${API_URL}/accounts/${id}/unlock`);
         return response.data;
     } catch (error) {
         throw error.response?.data?.message || 'Không thể mở khóa tài khoản!';
@@ -156,11 +161,11 @@ const authService = {
     login,
     logout,
     getCurrentUser,
-    getMe,
     verify,
     resendOTP,
     forgotPassword,
     resetPassword,
+    becomeInstructor,
     getOAuth2User,
     getAllAccounts,
     getAccountsByRole,
