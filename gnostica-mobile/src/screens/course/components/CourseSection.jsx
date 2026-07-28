@@ -54,7 +54,8 @@ const CourseSection = ({ title, variant = 'trending', customData, limit = 5 }) =
                     setData([]);
                 }
             } catch (error) {
-                console.warn(`Unable to fetch ${variant} courses from server: ${error.message || error}.`);
+                const errorMsg = error?.message || error?.error || (typeof error === 'object' ? JSON.stringify(error) : String(error));
+                console.warn(`Unable to fetch ${variant} courses from server: ${errorMsg}`);
                 setData([]);
             } finally {
                 setLoading(false);

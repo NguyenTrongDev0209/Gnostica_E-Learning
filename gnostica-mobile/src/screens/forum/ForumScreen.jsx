@@ -1,8 +1,9 @@
 import AppText from '../../components/ui/AppText';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, ScrollView, TouchableOpacity, ActivityIndicator, Image, Alert } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { Search, Plus, MessageCircle, Heart, Clock, ArrowBigUp, ArrowBigDown } from 'lucide-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import AppHeader from '../../components/ui/AppHeader';
 import threadService from '../../services/forum/threadService';
 import forumCategoryService from '../../services/forum/forumCategoryService';
@@ -28,7 +29,7 @@ const ForumScreen = () => {
                 forumCategoryService.getAll(),
                 threadService.getAll({ page: 0, size: 20 })
             ]);
-            
+
             const catData = catRes.data || catRes.content || catRes;
             if (Array.isArray(catData)) setCategories(catData);
 
@@ -45,9 +46,11 @@ const ForumScreen = () => {
         }
     };
 
-    useEffect(() => {
-        fetchData();
-    }, []);
+    useFocusEffect(
+        useCallback(() => {
+            fetchData();
+        }, [])
+    );
 
     const handleVote = async (postId, targetVoteValue) => {
         if (!user) {
@@ -90,6 +93,13 @@ const ForumScreen = () => {
         const targetPost = threads.find(t => t.id === postId);
         if (!targetPost) return;
 
+        // Không thể like bài viết của chính mình
+        const authorEmail = targetPost.authorEmail || targetPost.account?.email;
+        if (authorEmail && authorEmail === user.email) {
+            Alert.alert('Thông báo', 'Bạn không thể thích bài viết của chính mình!');
+            return;
+        }
+
         const isLiked = targetPost.userLiked || false;
         const diff = isLiked ? -1 : 1;
 
@@ -112,7 +122,7 @@ const ForumScreen = () => {
         }
     };
 
-    const filteredThreads = activeCategory 
+    const filteredThreads = activeCategory
         ? threads.filter(t => t.category?.id === activeCategory.id || t.categoryId === activeCategory.id || t.topic?.id === activeCategory.id)
         : threads;
 
@@ -160,7 +170,27 @@ const ForumScreen = () => {
                     filteredThreads.map(post => {
                         const authorName = post.account?.fullName || post.account?.name || post.account?.username || post.authorName || 'Học viên';
                         const avatarUrl = post.account?.avatarUrl || post.authorAvatar;
-                        const categoryName = post.topic?.name || post.category?.name || 'Thảo luận';
+                        const getHashtagBadge = (p) => {
+                            if (p.hashtags && p.hashtags.length > 0) {
+                                const list = p.hashtags
+                                    .map(h => h?.hashtag?.name || h?.name)
+                                    .filter(Boolean)
+                                    .slice(0, 3)
+                                    .map(name => (name.startsWith('#') ? name : `#${name}`));
+                                if (list.length > 0) return list.join(' ');
+                            }
+                            if (p.tags && p.tags.length > 0) {
+                                const list = p.tags
+                                    .filter(Boolean)
+                                    .slice(0, 3)
+                                    .map(t => (t.startsWith('#') ? t : `#${t}`));
+                                if (list.length > 0) return list.join(' ');
+                            }
+                            const cat = p.topic?.name || p.topic?.title || p.category?.name;
+                            if (!cat || cat === 'Thảo luận') return '#Gnostica';
+                            return cat.startsWith('#') ? cat : `#${cat.replace(/\s+/g, '')}`;
+                        };
+                        const categoryName = getHashtagBadge(post);
                         const formattedDate = post.createdAt ? new Date(post.createdAt).toLocaleDateString('vi-VN') : 'Gần đây';
                         const formattedTitle = post.title && post.title.length > 50
                             ? post.title.substring(0, 50).trim() + '...'
@@ -192,66 +222,94 @@ const ForumScreen = () => {
                                 <AppText className="text-slate-900 font-bold text-base mb-2" numberOfLines={2}>{formattedTitle}</AppText>
                                 <AppText className="text-slate-500 text-sm mb-4" numberOfLines={2}>{stripHtml(post.content)}</AppText>
 
-                            <View className="flex-row items-center gap-2.5 border-t border-slate-50 pt-3">
-                                {/* Vote buttons */}
-                                <View className="flex-row items-center bg-slate-100 rounded-full px-2 py-1 gap-1">
-                                    <TouchableOpacity 
-                                        onPress={(e) => { e.stopPropagation?.(); handleVote(post.id, 1); }}
+                                <View className="flex-row items-center gap-2.5 border-t border-slate-50 pt-3">
+                                    {/* Vote buttons */}
+                                    <View className="flex-row items-center bg-slate-100 rounded-full px-2 py-1 gap-1">
+                                        <TouchableOpacity
+                                            onPress={(e) => { e.stopPropagation?.(); handleVote(post.id, 1); }}
+                                            activeOpacity={0.7}
+                                        >
+                                            <ArrowBigUp
+                                                size={18}
+                                                color={post.userVote === 1 ? '#2563eb' : '#64748b'}
+                                                fill={post.userVote === 1 ? '#2563eb' : 'transparent'}
+                                            />
+                                        </TouchableOpacity>
+                                        <AppText className={`text-xs font-bold px-1 ${post.userVote === 1 ? 'text-blue-600' : post.userVote === -1 ? 'text-red-500' : 'text-slate-700'}`}>
+                                            {post.voteScore != null ? post.voteScore : 0}
+                                        </AppText>
+                                        <TouchableOpacity
+                                            onPress={(e) => { e.stopPropagation?.(); handleVote(post.id, -1); }}
+                                            activeOpacity={0.7}
+                                        >
+                                            <ArrowBigDown
+                                                size={18}
+                                                color={post.userVote === -1 ? '#ef4444' : '#64748b'}
+                                                fill={post.userVote === -1 ? '#ef4444' : 'transparent'}
+                                            />
+                                        </TouchableOpacity>
+                                    </View>
+
+                                    {/* Like (Heart) button */}
+                                    <TouchableOpacity
+                                        className="flex-row items-center bg-slate-100 rounded-full px-2.5 py-1"
+                                        onPress={(e) => { e.stopPropagation?.(); handleLike(post.id); }}
                                         activeOpacity={0.7}
                                     >
-                                        <ArrowBigUp 
-                                            size={18} 
-                                            color={post.userVote === 1 ? '#2563eb' : '#64748b'} 
-                                            fill={post.userVote === 1 ? '#2563eb' : 'transparent'} 
-                                        />
+                                        <Heart size={14} color={post.userLiked ? "#ef4444" : "#64748b"} fill={post.userLiked ? "#ef4444" : "transparent"} />
+                                        <AppText className={`text-xs ml-1 ${post.userLiked ? 'text-red-500 font-bold' : 'text-slate-600'}`}>{post.likes || 0}</AppText>
                                     </TouchableOpacity>
-                                    <AppText className={`text-xs font-bold px-1 ${post.userVote === 1 ? 'text-blue-600' : post.userVote === -1 ? 'text-red-500' : 'text-slate-700'}`}>
-                                        {post.voteScore != null ? post.voteScore : 0}
-                                    </AppText>
-                                    <TouchableOpacity 
-                                        onPress={(e) => { e.stopPropagation?.(); handleVote(post.id, -1); }}
-                                        activeOpacity={0.7}
-                                    >
-                                        <ArrowBigDown 
-                                            size={18} 
-                                            color={post.userVote === -1 ? '#ef4444' : '#64748b'} 
-                                            fill={post.userVote === -1 ? '#ef4444' : 'transparent'} 
-                                        />
-                                    </TouchableOpacity>
-                                </View>
 
-                                {/* Like (Heart) button */}
-                                <TouchableOpacity 
-                                    className="flex-row items-center bg-slate-100 rounded-full px-2.5 py-1"
-                                    onPress={(e) => { e.stopPropagation?.(); handleLike(post.id); }}
-                                    activeOpacity={0.7}
-                                >
-                                    <Heart size={14} color={post.userLiked ? "#ef4444" : "#64748b"} fill={post.userLiked ? "#ef4444" : "transparent"} />
-                                    <AppText className={`text-xs ml-1 ${post.userLiked ? 'text-red-500 font-bold' : 'text-slate-600'}`}>{post.likes || 0}</AppText>
-                                </TouchableOpacity>
-
-                                <View className="flex-row items-center ml-1">
-                                    <MessageCircle size={16} color="#64748b" />
-                                    <AppText className="text-slate-500 text-xs ml-1">{post.commentCount || post.comments || 0}</AppText>
+                                    <View className="flex-row items-center ml-1">
+                                        <MessageCircle size={16} color="#64748b" />
+                                        <AppText className="text-slate-500 text-xs ml-1">{post.commentCount || post.comments || 0}</AppText>
+                                    </View>
+                                    <View className="flex-row items-center ml-auto">
+                                        <Clock size={14} color="#94A3B8" />
+                                        <AppText className="text-slate-400 text-[10px] ml-1">{post.viewCount || post.views || 0} lượt xem</AppText>
+                                    </View>
                                 </View>
-                                <View className="flex-row items-center ml-auto">
-                                    <Clock size={14} color="#94A3B8" />
-                                    <AppText className="text-slate-400 text-[10px] ml-1">{post.viewCount || post.views || 0} lượt xem</AppText>
-                                </View>
-                            </View>
-                        </TouchableOpacity>
-                    );
-                })
+                            </TouchableOpacity>
+                        );
+                    })
                 )}
                 <View className="h-20" />
             </ScrollView>
 
             {/* FAB Create Post */}
-            <TouchableOpacity 
-                className="absolute bottom-6 right-6 w-14 h-14 bg-blue-600 rounded-full items-center justify-center shadow-lg shadow-blue-500/50"
+            <TouchableOpacity
+                activeOpacity={0.85}
+                style={{
+                    position: 'absolute',
+                    bottom: 90,
+                    right: 20,
+                    width: 58,
+                    height: 58,
+                    borderRadius: 29,
+                    backgroundColor: 'transparent',
+                    elevation: 8,
+                    shadowColor: '#ea580c',
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 0.35,
+                    shadowRadius: 8,
+                    zIndex: 999,
+                }}
                 onPress={() => navigation.navigate('CreatePost')}
             >
-                <Plus size={24} color="#ffffff" />
+                <LinearGradient
+                    colors={['#fb923c', '#ea580c']}
+                    style={{
+                        width: 58,
+                        height: 58,
+                        borderRadius: 29,
+                        borderWidth: 3,
+                        borderColor: '#ffffff',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                    }}
+                >
+                    <Plus size={28} color="#ffffff" strokeWidth={2.5} />
+                </LinearGradient>
             </TouchableOpacity>
         </View>
     );
