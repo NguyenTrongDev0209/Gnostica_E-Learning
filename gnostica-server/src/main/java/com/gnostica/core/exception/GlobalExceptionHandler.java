@@ -44,6 +44,31 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(new ResponseDTO<>(401, "Vui lòng đăng nhập để thực hiện hành động này", null), HttpStatus.UNAUTHORIZED);
     }
 
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ResponseDTO<String>> handleResourceNotFoundException(ResourceNotFoundException ex) {
+        return new ResponseEntity<>(new ResponseDTO<>(404, ex.getMessage(), null), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<ResponseDTO<String>> handleForbiddenException(ForbiddenException ex) {
+        return new ResponseEntity<>(new ResponseDTO<>(403, ex.getMessage(), null), HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<ResponseDTO<String>> handleUnauthorizedException(UnauthorizedException ex) {
+        return new ResponseEntity<>(new ResponseDTO<>(401, ex.getMessage(), null), HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ResponseDTO<String>> handleBadRequestException(BadRequestException ex) {
+        return new ResponseEntity<>(new ResponseDTO<>(400, ex.getMessage(), null), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(IdempotencyConflictException.class)
+    public ResponseEntity<ResponseDTO<String>> handleIdempotencyConflictException(IdempotencyConflictException ex) {
+        return new ResponseEntity<>(new ResponseDTO<>(409, ex.getMessage(), null), HttpStatus.CONFLICT);
+    }
+
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ResponseDTO<String>> handleRuntimeExceptions(RuntimeException ex) {
         return new ResponseEntity<>(new ResponseDTO<>(500, "Đã xảy ra lỗi hệ thống: " + ex.getMessage(), null), HttpStatus.INTERNAL_SERVER_ERROR);

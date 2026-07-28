@@ -86,6 +86,7 @@ public class InstructorProfileController {
         profile.put("name", account.getFullName());
         profile.put("avatar", account.getAvatar());
         profile.put("email", account.getEmail());
+        profile.put("role", account.getRole() != null ? account.getRole().getName() : null);
         profile.put("coursesCount", coursesCount);
         profile.put("studentsCount", studentsCount);
         profile.put("reviewsCount", 0); // Chưa có hệ thống đánh giá

@@ -10,28 +10,29 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/common/mi
 import CourseCard, { ForumPostCard } from "@/components/common/composite/CourseCard";
 import {
   MessageSquare, ThumbsUp, Eye, Clock, MapPin, Link as LinkIcon,
-  Calendar, Star, Award, BookOpen, Flame, UserPlus, Send, Users, Sparkles
+  Calendar, Star, Award, BookOpen, Flame, UserPlus, Send, Users, Sparkles, Loader2
 } from 'lucide-react';
-const StatBlock = ({ icon: Icon, value, label, color = "text-primary" }) => (
-  <div className="flex flex-col items-center gap-1 py-3 px-4">
-    <Icon className={`w-5 h-5 ${color} mb-0.5`} />
-    <span className="text-xl font-bold text-foreground">{value}</span>
-    <span className="text-xs text-muted-foreground font-medium">{label}</span>
-  </div>
-);
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/common/micro/AppDialog";
-import { AppCheckbox as Checkbox } from "@/components/common/micro/AppCheckbox";
-import authService from '@/services/auth/authService';
+} from '@/components/ui/dialog';
+const StatBlock = ({ icon: iconComp, value, label, color = "text-primary" }) => {
+  const Icon = iconComp;
+  return (
+    <div className="flex flex-col items-center gap-1 py-3 px-4">
+      <Icon className={`w-5 h-5 ${color} mb-0.5`} />
+      <span className="text-xl font-bold text-foreground">{value}</span>
+      <span className="text-xs text-muted-foreground font-medium">{label}</span>
+    </div>
+  );
+};
 import { useQuery } from '@tanstack/react-query';
 import instructorService from '@/services/instructor/instructorService';
 import followingService from '@/services/instructor/followingService';
+import { useCreateConversation } from '@/hooks/messaging/useCreateConversation';
 import { toast } from 'sonner';
 import PersonalizationModal from '@/components/common/composite/PersonalizationModal';
 
@@ -104,6 +105,7 @@ const UserProfile = () => {
   const [following, setFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
   const [isPersonalizationOpen, setIsPersonalizationOpen] = useState(false);
+  const [isCoursePickerOpen, setIsCoursePickerOpen] = useState(false);
   const navigate = useNavigate();
 
   let currentUser = null;
@@ -125,8 +127,8 @@ const UserProfile = () => {
         try {
           const res = await followingService.checkFollowing(id);
           setFollowing(res?.isFollowing || false);
-        } catch (err) {
-          console.error("Lỗi kiểm tra trạng thái theo dõi", err);
+        } catch (_err) {
+          console.error("Lỗi kiểm tra trạng thái theo dõi", _err);
         }
       }
     };
@@ -143,7 +145,7 @@ const UserProfile = () => {
       const res = await followingService.toggleFollow(id);
       setFollowing(res?.isFollowing || false);
       toast.success(res?.message || "Đã cập nhật trạng thái theo dõi!");
-    } catch (err) {
+    } catch {
       toast.error("Không thể thực hiện thao tác này!");
     } finally {
       setFollowLoading(false);
@@ -174,10 +176,11 @@ const UserProfile = () => {
           name: fetchedProfile.name || fetchedProfile.fullName,
           avatar: fetchedProfile.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(fetchedProfile.name || fetchedProfile.fullName)}&background=random&color=fff`,
           email: fetchedProfile.email,
-          role: "INSTRUCTOR",
-          bio: data?.bio || prev?.bio || "",
-          website: data?.website || prev?.website || "",
-          linkedin: data?.linkedin || prev?.linkedin || "",
+          role: fetchedProfile.role,
+          bio: fetchedProfile.bio || "",
+          title: fetchedProfile.title || "",
+          website: fetchedProfile.website || "",
+          linkedin: fetchedProfile.linkedin || "",
           stats: {
             ...MOCK_USER.stats,
             courses: fetchedProfile.coursesCount || 0,
@@ -189,6 +192,50 @@ const UserProfile = () => {
   const instructorCourses = fetchedCourses || [];
   const isInstructor = (user.role || '').toUpperCase() === 'INSTRUCTOR';
   const loading = loadingProfile;
+
+  const { createForStudent, isCreatingStudent } = useCreateConversation();
+
+  const openConversationForCourse = async (courseId) => {
+    if (!courseId || isCreatingStudent) return;
+
+    try {
+      const conversation = await createForStudent(courseId);
+      if (conversation?.id) {
+        setIsCoursePickerOpen(false);
+        navigate(`/account/messages/${conversation.id}`);
+      }
+    } catch (err) {
+      const message =
+        err?.response?.data?.message ||
+        err?.response?.data?.data?.message ||
+        "Bạn cần đăng ký khóa học này trước khi có thể nhắn tin với giảng viên.";
+      toast.error(message);
+    }
+  };
+
+  const handleMessageInstructor = async () => {
+    if (!currentUser) {
+      toast.error("Vui lòng đăng nhập để nhắn tin!");
+      return;
+    }
+
+    if (!isInstructor) {
+      toast.error("Chỉ có thể nhắn tin với giảng viên.");
+      return;
+    }
+
+    if (!instructorCourses || instructorCourses.length === 0) {
+      toast.error("Giảng viên này chưa có khóa học đã xuất bản.");
+      return;
+    }
+
+    if (instructorCourses.length === 1) {
+      await openConversationForCourse(instructorCourses[0].id);
+      return;
+    }
+
+    setIsCoursePickerOpen(true);
+  };
 
   const handleBecomeInstructor = async () => {
     navigate('/apply-instructor');
@@ -262,9 +309,22 @@ const UserProfile = () => {
                           {following ? 'Đang theo dõi' : 'Theo dõi'}
                         </Button>
                       )}
-                      <Button variant="outline" size="sm" className="gap-1.5 h-9">
-                        <Send className="w-4 h-4" /> Nhắn tin
-                      </Button>
+                      {!isOwnProfile && isInstructor && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="gap-1.5 h-9"
+                          onClick={handleMessageInstructor}
+                          disabled={isCreatingStudent || loadingCourses}
+                        >
+                          {isCreatingStudent ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Send className="w-4 h-4" />
+                          )}
+                          Nhắn tin
+                        </Button>
+                      )}
 
                       {isOwnProfile && !isInstructor && (
                         <Button
@@ -436,12 +496,15 @@ const UserProfile = () => {
                     { icon: Flame, label: "5 bài đang hot", color: "text-warning bg-warning-soft" },
                     { icon: Star, label: "Top 10 tuần này", color: "text-warning bg-warning-soft" },
                     { icon: MessageSquare, label: "50+ bình luận", color: "text-info bg-info-soft" },
-                  ].map(({ icon: Icon, label, color }) => (
-                    <div key={label} className={`flex items-center gap-3 rounded-lg px-3 py-2.5 ${color.split(' ')[1]}`}>
-                      <Icon className={`w-4 h-4 shrink-0 ${color.split(' ')[0]}`} />
-                      <span className="text-xs font-medium text-foreground">{label}</span>
-                    </div>
-                  ))}
+                  ].map(({ icon: iconItem, label, color }) => {
+                    const Icon = iconItem;
+                    return (
+                      <div key={label} className={`flex items-center gap-3 rounded-lg px-3 py-2.5 ${color.split(' ')[1]}`}>
+                        <Icon className={`w-4 h-4 shrink-0 ${color.split(' ')[0]}`} />
+                        <span className="text-xs font-medium text-foreground">{label}</span>
+                      </div>
+                    );
+                  })}
                 </div>
               </CardContent>
             </Card>
@@ -455,6 +518,58 @@ const UserProfile = () => {
           </div>
         </div>
       </PageContainer.Section>
+
+      <Dialog open={isCoursePickerOpen} onOpenChange={setIsCoursePickerOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Chọn khóa học để nhắn tin</DialogTitle>
+            <DialogDescription>
+              Bạn chỉ có thể nhắn tin trong khóa học mà mình đã đăng ký.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="max-h-80 space-y-2 overflow-y-auto pr-1">
+            {instructorCourses.map((course) => (
+              <button
+                key={course.id}
+                type="button"
+                disabled={isCreatingStudent}
+                onClick={() => openConversationForCourse(course.id)}
+                className="flex w-full items-center gap-3 rounded-xl border border-border p-3 text-left transition-colors hover:border-primary/40 hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <div className="h-12 w-16 shrink-0 overflow-hidden rounded-lg bg-muted">
+                  {course.thumbnail ? (
+                    <img
+                      src={course.thumbnail}
+                      alt=""
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center">
+                      <BookOpen className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-foreground">
+                    {course.title}
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Nhấn để mở cuộc trò chuyện
+                  </p>
+                </div>
+
+                {isCreatingStudent ? (
+                  <Loader2 className="h-4 w-4 shrink-0 animate-spin text-primary" />
+                ) : (
+                  <Send className="h-4 w-4 shrink-0 text-primary" />
+                )}
+              </button>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <PersonalizationModal
         forceOpen={isPersonalizationOpen}

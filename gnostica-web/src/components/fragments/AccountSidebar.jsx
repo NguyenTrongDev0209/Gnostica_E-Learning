@@ -15,6 +15,7 @@ import {
   Bell,
   LogOut,
   Users,
+  MessageSquare,
 } from "lucide-react";
 
 const MENU_GROUPS = [
@@ -23,6 +24,7 @@ const MENU_GROUPS = [
     items: [
       { label: "Tổng quan", icon: LayoutDashboard, href: "/account" },
       { label: "Khóa học của tôi", icon: BookOpen, href: "/account/my-courses" },
+      { label: "Tin nhắn", icon: MessageSquare, href: "/account/messages" },
       { label: "Giảng viên yêu thích", icon: Users, href: "/account/following" },
       { label: "Chứng chỉ", icon: Award, href: "/account/certificates" },
     ],
