@@ -125,7 +125,7 @@ export default function AccountOverview() {
                     instructor={course.instructor}
                     progressPercent={course.progressPercent}
                     lastAccessed={course.lastAccessed}
-                    link={`/courses/${course.slug}/learn`}
+                    link={`/learning/${course.slug}`}
                   />
                 ))}
               </div>
