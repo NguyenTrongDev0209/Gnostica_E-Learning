@@ -194,6 +194,14 @@ function MyCourseGrid({ loading, courses }) {
         const learningLink = courseSlug ? `/learning/${courseSlug}` : null;
         const restartLink = courseSlug ? `/learning/${courseSlug}?lesson=${course.firstLessonId}&restart=true` : null;
 
+        const instructorName = course.instructorName || course.instructor?.name || course.instructor?.fullName || course.authorName || course.creatorName || course.account?.fullName || "Giảng viên Gnostica";
+        const instructorObj = typeof course.instructorName === 'object' && course.instructorName !== null
+          ? course.instructorName
+          : {
+              name: instructorName,
+              avatar: course.instructorAvatar || course.instructor?.avatar || course.account?.avatarUrl || course.account?.avatar
+            };
+
         return (
           <CourseProgressCard
             key={course.id}
@@ -201,7 +209,7 @@ function MyCourseGrid({ loading, courses }) {
             title={course.courseTitle}
             category={course.category}
             image={course.courseThumbnail}
-            instructor={course.instructorName}
+            instructor={instructorObj}
             progressPercent={course.progressPercent}
             lastAccessed={course.lastAccessed}
             completedAt={course.completedAt}

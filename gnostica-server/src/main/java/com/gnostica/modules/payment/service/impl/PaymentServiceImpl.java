@@ -11,6 +11,7 @@ import com.gnostica.core.model.Order;
 import com.gnostica.core.model.Payment;
 import com.gnostica.core.repository.OrderRepository;
 import com.gnostica.core.repository.PaymentRepository;
+import com.gnostica.core.repository.CouponRepository;
 import com.gnostica.modules.payment.service.PaymentService;
 import com.gnostica.modules.payment.service.PaymentStrategy;
 import com.gnostica.modules.payment.service.PaymentStrategyFactory;
@@ -37,6 +38,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final PaymentStrategyFactory paymentStrategyFactory;
     private final OrderRepository orderRepository;
     private final PaymentRepository paymentRepository;
+    private final CouponRepository couponRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final ObjectMapper objectMapper;
     private final WalletService walletService;
@@ -94,10 +96,13 @@ public class PaymentServiceImpl implements PaymentService {
         Long orderCode = data.getOrderCode();
         log.info("Webhook triggered for orderCode: {}", orderCode);
 
-        Order order = orderRepository.findByOrderCode(orderCode)
+        Order order = orderRepository.findByOrderCodeForUpdate(orderCode)
                 .orElse(null);
 
         if (order != null) {
+            if (data.getAmount() == null || order.getTotalPrice().compareTo(BigDecimal.valueOf(data.getAmount())) != 0) {
+                throw new IllegalArgumentException("Payment amount does not match order total");
+            }
             if (order.getStatus() == OrderStatus.PENDING) {
                 processSuccessfulOrder(order);
                 saveTransaction(data, order);
@@ -128,8 +133,20 @@ public class PaymentServiceImpl implements PaymentService {
 
         order.setStatus(OrderStatus.PAID);
         orderRepository.save(order);
+        consumeCouponReservation(order);
 
         eventPublisher.publishEvent(new PaymentSuccessEvent(this, order, order.getTotalPrice()));
+    }
+
+    private void consumeCouponReservation(Order order) {
+        if (order.getCoupon() == null || order.getCoupon().getQuantity() == null) {
+            return;
+        }
+        com.gnostica.core.model.Coupon coupon = order.getCoupon();
+        int reserved = coupon.getReservedQuantity() == null ? 0 : coupon.getReservedQuantity();
+        coupon.setReservedQuantity(Math.max(0, reserved - 1));
+        coupon.setQuantity(Math.max(0, coupon.getQuantity() - 1));
+        couponRepository.save(coupon);
     }
 
     @Override

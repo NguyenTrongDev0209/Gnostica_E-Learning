@@ -122,8 +122,15 @@ const getAllAccounts = async (page = 0, size = 10, role = '', search = '') => {
     }
 };
 
-const getAccountsByRole = async (role, page = 0, size = 10) => {
-    return getAllAccounts(page, size, role);
+const getAccountsByRole = async (role, { page = 0, size = 20 } = {}) => {
+    try {
+        const response = await axiosClient.get(`${API_URL}/accounts/role/${role}`, {
+            params: { page, size }
+        });
+        return response.data;
+    } catch (error) {
+        throw error.response?.data?.message || 'Không thể lấy danh sách tài khoản theo role!';
+    }
 };
 
 const lockAccount = async (id, reason) => {

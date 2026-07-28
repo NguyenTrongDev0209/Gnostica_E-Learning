@@ -1,4 +1,4 @@
-﻿import { AppCardDescription as CardDescription } from "@/components/common/micro/AppCard";
+import { AppCardDescription as CardDescription } from "@/components/common/micro/AppCard";
 // Fix imported
 import React, { useState, useEffect } from "react";
 import threadService from "@/services/forum/threadService";

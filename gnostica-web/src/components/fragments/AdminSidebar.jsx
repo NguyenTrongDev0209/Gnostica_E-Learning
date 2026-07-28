@@ -21,9 +21,16 @@ import {
   Percent,
   ShieldCheck,
   Headphones,
-  Shield
+  Shield,
+  GraduationCap
 } from "lucide-react";
 import { AppLogo } from "@/components/common/micro/AppButton";
+
+export const ADMIN_USERS_SUB_ITEMS = [
+  { label: "Người dùng", icon: Users, href: "/admin/users?tab=USER", tab: "USER" },
+  { label: "Giảng viên", icon: GraduationCap, href: "/admin/users?tab=INSTRUCTOR", tab: "INSTRUCTOR" },
+  { label: "Chờ duyệt", icon: ShieldCheck, href: "/admin/users?tab=PENDING_APP", tab: "PENDING_APP" },
+];
 
 export const ADMIN_SETTINGS_SUB_ITEMS = [
   { label: "Cài đặt chung", icon: Globe, href: "/admin/settings?tab=general", tab: "general" },
@@ -40,12 +47,17 @@ export const ADMIN_SETTINGS_SUB_ITEMS = [
   { label: "Bảo mật", icon: Shield, href: "/admin/settings?tab=security", tab: "security" },
 ];
 
+export const ADMIN_COUPONS_SUB_ITEMS = [
+  { label: "Nền tảng", icon: Globe, href: "/admin/coupons?tab=platform", tab: "platform" },
+  { label: "Giảng viên", icon: GraduationCap, href: "/admin/coupons?tab=instructors", tab: "instructors" },
+];
+
 export const ADMIN_MENU_GROUPS = [
   {
     title: "QUẢN LÝ CHUNG",
     items: [
       { label: "Tổng quan", icon: LayoutDashboard, href: "/admin" },
-      { label: "Người dùng", icon: Users, href: "/admin/users" },
+      { label: "Người dùng", icon: Users, href: "/admin/users", children: ADMIN_USERS_SUB_ITEMS },
     ]
   },
   {
@@ -66,7 +78,7 @@ export const ADMIN_MENU_GROUPS = [
     title: "KINH DOANH",
     items: [
       { label: "Đơn hàng", icon: ShoppingCart, href: "/admin/orders" },
-      { label: "Phiếu giảm", icon: Ticket, href: "/admin/coupons" },
+      { label: "Phiếu giảm", icon: Ticket, href: "/admin/coupons", children: ADMIN_COUPONS_SUB_ITEMS },
       { label: "Giao dịch", icon: History, href: "/admin/transactions" },
     ]
   },

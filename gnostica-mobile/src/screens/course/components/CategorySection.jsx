@@ -21,13 +21,16 @@ const CategorySection = () => {
         const fetchCategories = async () => {
             try {
                 const response = await categoryService.getAll({ limit: 8 });
-                if (response.data && response.data.content) {
+                if (response.data && response.data.content && response.data.content.length > 0) {
                     setCategories(response.data.content.slice(0, 8));
-                } else if (response.data && Array.isArray(response.data)) {
+                } else if (response.data && Array.isArray(response.data) && response.data.length > 0) {
                     setCategories(response.data.slice(0, 8));
+                } else {
+                    setCategories([]);
                 }
             } catch (error) {
-                console.error('Error fetching categories:', error);
+                console.warn('Unable to fetch categories from server:', error?.message || error);
+                setCategories([]);
             } finally {
                 setLoading(false);
             }

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { cn } from "@/lib/utils";
 import AppTable from "@/components/common/micro/AppTable";
 import DataPagination from "@/components/common/composite/DataPagination";
@@ -18,6 +18,7 @@ import DataPagination from "@/components/common/composite/DataPagination";
  * @param {Object} props.pagination - Pagination data { currentPage, totalItems, totalPages, onPageChange, zeroIndexed }
  * @param {Function} props.rowKey - Optional function to get row key. Defaults to row.id or index.
  * @param {Function} props.renderExpandedRow - Render expanded content for row
+ * @param {Object} props.selection - Optional row selection: { selectedRowKeys, onSelectionChange }
  */
 export default function DataTable({
     columns = [],
@@ -31,27 +32,35 @@ export default function DataTable({
     pagination,
     rowKey = (row, index) => row?.id || index,
     renderExpandedRow,
+    selection,
     ...props
 }) {
+    const [internalSelectedRowKeys, setInternalSelectedRowKeys] = useState([]);
+    const isAdminTable = typeof window !== "undefined" && window.location.pathname.startsWith("/admin");
+    const usesInternalSelection = selection === true || (selection === undefined && isAdminTable);
+    const resolvedSelection = selection && selection !== true
+        ? selection
+        : usesInternalSelection
+            ? { selectedRowKeys: internalSelectedRowKeys, onSelectionChange: setInternalSelectedRowKeys }
+            : undefined;
 
     return (
-        <div className={cn("w-full bg-white border border-border rounded-xl shadow-sm overflow-hidden flex flex-col", className)}>
-            <div className="flex-1 overflow-hidden">
-                <AppTable 
-                    columns={columns}
-                    data={data}
-                    isLoading={isLoading}
-                    loadingState={loadingState}
-                    emptyState={emptyState}
-                    rowClassName={rowClassName}
-                    onRowClick={onRowClick}
-                    rowKey={rowKey}
-                    renderExpandedRow={renderExpandedRow}
-                    hideWrapperStyle={true}
-                    className="border-0 shadow-none rounded-none"
-                    {...props}
-                />
-            </div>
+        <div className={cn("w-full bg-white border border-border rounded-xl shadow-sm overflow-hidden", className)}>
+            <AppTable 
+                columns={columns}
+                data={data}
+                isLoading={isLoading}
+                loadingState={loadingState}
+                emptyState={emptyState}
+                rowClassName={rowClassName}
+                onRowClick={onRowClick}
+                rowKey={rowKey}
+                renderExpandedRow={renderExpandedRow}
+                selection={resolvedSelection}
+                hideWrapperStyle={true}
+                className="border-0 shadow-none rounded-none"
+                {...props}
+            />
 
             {/* Pagination & Display Info */}
             <DataPagination pagination={pagination} dataLength={data?.length || 0} />

@@ -1,4 +1,5 @@
-﻿import api from '../../config/api';
+import api, { BASE_URL } from '../../config/api';
+
 
 const threadService = {
     /**
@@ -9,7 +10,7 @@ const threadService = {
         const query = {
             page: params.page || 0,
             size: params.size || 15,
-            sortBy: params.sortBy || 'views',
+            sortBy: params.sortBy || 'viewCount',
         };
         return api.get('/threads', { params: query });
     },
@@ -37,7 +38,7 @@ const threadService = {
     create: async (formData) => {
         const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
         const token = await AsyncStorage.getItem('token');
-        const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.1.34:8080/api';
+
 
         const response = await fetch(`${BASE_URL}/threads`, {
             method: 'POST',
@@ -72,6 +73,25 @@ const threadService = {
     },
 
     /**
+     * Vote thread (1: upvote, -1: downvote, 0: remove vote)
+     * @param {number} id
+     * @param {string} email
+     * @param {number} voteValue
+     */
+    vote: (id, email, voteValue) => {
+        return api.post(`/threads/${id}/vote`, { email, userEmail: email, voteValue });
+    },
+
+    /**
+     * Kiá»ƒm tra tráº¡ng thÃ¡i vote
+     * @param {number} id
+     * @param {string} email
+     */
+    getVoteStatus: (id, email) => {
+        return api.get(`/threads/${id}/vote-status`, { params: { email } });
+    },
+
+    /**
      * Láº¥y bÃ i Ä‘Äƒng cá»§a chÃ­nh mÃ¬nh (phÃ¢n trang)
      * @param {string} email
      * @param {Object} params - { page, size }
@@ -83,6 +103,20 @@ const threadService = {
             size: params.size || 5,
         };
         return api.get('/threads/me', { params: query });
+    },
+
+    /**
+     * Lấy bài viết đã thích của mình (phân trang)
+     * @param {string} email
+     * @param {Object} params - { page, size }
+     */
+    getMyLikedPosts: (email, params = {}) => {
+        const query = {
+            email,
+            page: params.page || 0,
+            size: params.size || 20,
+        };
+        return api.get('/threads/me/liked', { params: query });
     },
 
     /**

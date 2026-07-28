@@ -76,6 +76,7 @@ public class OrderService {
     public OrderResponse getOrderById(UUID id) throws Exception {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found with ID: " + id));
+        assertCanReadOrder(order);
         return mapToResponse(checkAndReturnOrder(order));
     }
 
@@ -86,12 +87,14 @@ public class OrderService {
                 .filter(o -> transactionId.equals(o.getId().toString())) // Assuming transactionId might just be the order ID for now
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Order not found with Transaction ID: " + transactionId));
+        assertCanReadOrder(order);
         return mapToResponse(checkAndReturnOrder(order));
     }
 
     public OrderResponse getOrderByOrderCode(Long orderCode) throws Exception {
         Order order = orderRepository.findByOrderCode(orderCode)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found with orderCode: " + orderCode));
+        assertCanReadOrder(order);
         return mapToResponse(checkAndReturnOrder(order));
     }
 
@@ -108,8 +111,30 @@ public class OrderService {
         return order;
     }
 
+    private void assertCanReadOrder(Order order) {
+        String email = AuthUtil.getCurrentUserEmail();
+        if (email == null) {
+            throw new org.springframework.security.access.AccessDeniedException("Authentication is required");
+        }
+        Account current = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new org.springframework.security.access.AccessDeniedException("Current account does not exist"));
+        boolean isAdmin = current.getRole() != null && "ADMIN".equalsIgnoreCase(current.getRole().getName());
+        if (!isAdmin && (order.getAccount() == null || !current.getId().equals(order.getAccount().getId()))) {
+            throw new org.springframework.security.access.AccessDeniedException("You cannot access another user's order");
+        }
+    }
+
     @Transactional
     public PaymentLinkResponse createPaymentLink(CreatePaymentLinkRequestBody requestBody) throws Exception {
+        return createPaymentLink(requestBody, false);
+    }
+
+    /**
+     * Gift orders are persisted before an already-paid free/wallet order emits its
+     * success event; otherwise the buyer would be enrolled instead of the recipient.
+     */
+    @Transactional
+    public PaymentLinkResponse createPaymentLink(CreatePaymentLinkRequestBody requestBody, boolean deferImmediateSuccess) throws Exception {
         String email = AuthUtil.getCurrentUserEmail();
         if (email == null) {
             throw new IllegalArgumentException("User not authenticated");
@@ -129,15 +154,15 @@ public class OrderService {
         
         Coupon appliedCoupon = null;
         if (requestBody.getCouponCode() != null && !requestBody.getCouponCode().trim().isEmpty()) {
-            // Validate coupon (throws exception if invalid)
-            couponService.validateCoupon(requestBody.getCouponCode());
+            appliedCoupon = couponService.getValidCoupon(requestBody.getCouponCode());
             
-            appliedCoupon = couponRepository.findByCode(requestBody.getCouponCode().toUpperCase())
-                    .orElseThrow(() -> new IllegalArgumentException("Mã giảm giá không tồn tại"));
-            
-            // Deduct coupon quantity
+            couponService.assertCouponAppliesToCourse(appliedCoupon, course);
+
+            // Reserve a use while the payment link is pending. It is consumed only
+            // after a successful payment and released by the expiry scheduler.
             if (appliedCoupon.getQuantity() != null) {
-                appliedCoupon.setQuantity(appliedCoupon.getQuantity() - 1);
+                int reserved = appliedCoupon.getReservedQuantity() == null ? 0 : appliedCoupon.getReservedQuantity();
+                appliedCoupon.setReservedQuantity(reserved + 1);
                 couponRepository.save(appliedCoupon);
             }
             
@@ -168,9 +193,11 @@ public class OrderService {
 
         // If price is 0, we can bypass payment gateway
         if (actualPrice.compareTo(BigDecimal.ZERO) == 0) {
-            order.setStatus(OrderStatus.PAID);
             order.setPaymentMethod("FREE/COUPON");
             orderRepository.save(order);
+            if (!deferImmediateSuccess) {
+                paymentService.processSuccessfulOrder(order);
+            }
             // Return a dummy link or custom response
             return PaymentLinkResponse.builder()
                 .bin("N/A").accountNumber("N/A").accountName("FREE")
@@ -199,9 +226,9 @@ public class OrderService {
             
             paymentService.saveTransaction(data, order);
             
-            order.setStatus(OrderStatus.PAID);
-            orderRepository.save(order);
-            paymentService.processSuccessfulOrder(order);
+            if (!deferImmediateSuccess) {
+                paymentService.processSuccessfulOrder(order);
+            }
             
             return PaymentLinkResponse.builder()
                 .bin("N/A").accountNumber("N/A").accountName(account.getFullName())
@@ -266,7 +293,7 @@ public class OrderService {
         }
         if (order.getCoupon() != null) {
             resp.setCouponId(order.getCoupon().getId());
-            resp.setCouponCode(order.getCoupon().getCode());
+            resp.setCouponCode(couponService.getDisplayCode(order.getCoupon()));
         }
         resp.setTotalPrice(order.getTotalPrice());
         resp.setPaymentMethod(order.getPaymentMethod());

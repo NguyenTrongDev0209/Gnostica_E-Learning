@@ -24,14 +24,18 @@ public class Coupon {
     private UUID id;
 
     @NotNull
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "account_id", updatable = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "account_id", nullable = false, updatable = false)
     private Account account;
 
     @NotBlank
-    @Size(max = 255)
-    @Column(unique = true)
-    private String code;
+    @Size(max = 1024)
+    @Column(name = "code", nullable = false, unique = true)
+    private String encryptedCode;
+
+    @Size(max = 64)
+    @Column(name = "code_hash", unique = true)
+    private String codeHash;
 
     @NotBlank
     @Size(max = 255)
@@ -54,6 +58,12 @@ public class Coupon {
 
     @Min(0)
     private Integer quantity;
+
+    @NotNull
+    @Min(0)
+    @Column(name = "reserved_quantity", nullable = false)
+    @Builder.Default
+    private Integer reservedQuantity = 0;
 
     @NotNull
     private LocalDateTime validFrom;

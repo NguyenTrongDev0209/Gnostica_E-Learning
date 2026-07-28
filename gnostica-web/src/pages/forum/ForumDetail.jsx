@@ -29,7 +29,15 @@ import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 
 // ── ForumDetailSidebar ──
-const getTopicName = (post) => post?.topic?.title || post?.category?.name || "Thảo luận";
+const getTopicName = (post) => {
+  if (post?.hashtags && post.hashtags.length > 0) {
+    const firstTag = post.hashtags[0].hashtag?.name || post.hashtags[0].name;
+    if (firstTag) return firstTag.startsWith('#') ? firstTag : `#${firstTag}`;
+  }
+  const title = post?.topic?.title || post?.category?.name;
+  if (!title || title === "Thảo luận") return "#Gnostica";
+  return title.startsWith('#') ? title : `#${title.replace(/\s+/g, '')}`;
+};
 const getTopicSlug = (post) => post?.topic?.slug || post?.category?.slug || "";
 const getPostUrl = (post) => {
   const postSlug = post?.slug || post?.id;
@@ -365,9 +373,9 @@ const ForumDetail = () => {
           <div className="flex-1 flex flex-col gap-6 min-w-0">
 
             {/* Post Card */}
-            <AppCard appVariant="default" className="bg-white border-border shadow-sm">
-              <AppCardContent className="p-5 sm:p-7">
-                <div className="flex items-center gap-2 mb-3 flex-wrap">
+            <AppCard appVariant="default" className="bg-white border-border shadow-sm overflow-hidden w-full min-w-0">
+              <AppCardContent className="p-5 sm:p-7 w-full min-w-0 overflow-hidden">
+                <div className="flex items-center gap-2 mb-3 flex-wrap max-w-full">
                   <Link
                     to={topicHref}
                     className="inline-flex items-center rounded-md border border-primary/20 bg-primary/5 px-2.5 py-1 text-xs font-semibold text-primary transition-colors hover:bg-primary/10"
@@ -376,7 +384,7 @@ const ForumDetail = () => {
                   </Link>
                 </div>
 
-                <h1 className="text-xl sm:text-2xl font-bold text-foreground mb-5 leading-snug">
+                <h1 className="text-xl sm:text-2xl font-bold text-foreground mb-5 leading-snug break-words [word-break:break-word] [overflow-wrap:anywhere] max-w-full">
                   {post.title || ''}
                 </h1>
 
@@ -419,7 +427,7 @@ const ForumDetail = () => {
                 <div className="flex items-center gap-2 flex-wrap mt-6 pt-5 border-t border-border">
                   <Tag className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
                   {post.hashtags && post.hashtags.length > 0 ? (
-                    post.hashtags.map(th => (
+                    post.hashtags.slice(0, 3).map(th => (
                       <Link
                         key={th.id}
                         to={`/forum?tag=${encodeURIComponent(th.hashtag?.name || '')}`}
@@ -432,7 +440,7 @@ const ForumDetail = () => {
                     ))
                   ) : (
                     <span className="inline-flex items-center rounded-md border border-border bg-white px-2.5 py-1 text-xs font-semibold text-muted-foreground">
-                      Thảo luận
+                      #Gnostica
                     </span>
                   )}
                 </div>

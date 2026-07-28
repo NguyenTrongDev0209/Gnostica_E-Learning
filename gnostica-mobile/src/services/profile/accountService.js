@@ -1,4 +1,4 @@
-﻿import api from '../../config/api';
+import api, { BASE_URL } from '../../config/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const accountService = {
@@ -9,7 +9,7 @@ const accountService = {
      */
     updateAvatar: async (file, email) => {
         const token = await AsyncStorage.getItem('token');
-        const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.1.34:8080/api';
+
 
         const formData = new FormData();
         formData.append('file', {

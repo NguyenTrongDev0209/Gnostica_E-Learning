@@ -76,6 +76,23 @@ public class AuthController {
         }
     }
 
+    @PostMapping("/google")
+    public ResponseEntity<?> loginWithGoogle(@Valid @RequestBody com.gnostica.modules.auth.dto.request.GoogleLoginRequest request) {
+        try {
+            LoginResponse loginResponse = authService.loginWithGoogle(request);
+            return ResponseEntity.ok(ResponseDTO.builder()
+                .status(200)
+                .message("Đăng nhập bằng Google thành công")
+                .data(loginResponse)
+                .build());
+        } catch (Exception e) {
+            return ResponseEntity.status(400).body(ResponseDTO.builder()
+                .status(400)
+                .message(e.getMessage())
+                .build());
+        }
+    }
+
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest registerRequest) {
         try {
@@ -149,6 +166,79 @@ public class AuthController {
             return ResponseEntity.ok(ResponseDTO.builder()
                 .status(200)
                 .message("Đổi mật khẩu thành công! Bạn có thể đăng nhập bằng mật khẩu mới.")
+                .build());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ResponseDTO.builder()
+                .status(400)
+                .message(e.getMessage())
+                .build());
+        }
+    }
+
+    @PostMapping("/become-instructor")
+    public ResponseEntity<?> becomeInstructor(@RequestParam String email) {
+        try {
+            authService.becomeInstructor(email);
+            return ResponseEntity.ok(ResponseDTO.builder()
+                .status(200)
+                .message("Chúc mừng! Bạn đã trở thành Giảng viên.")
+                .build());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ResponseDTO.builder()
+                .status(400)
+                .message(e.getMessage())
+                .build());
+        }
+    }
+
+    @GetMapping("/accounts")
+    public ResponseEntity<?> getAllAccounts() {
+        return ResponseEntity.ok(ResponseDTO.builder()
+            .status(200)
+            .data(authService.getAllAccounts())
+            .build());
+    }
+
+    @GetMapping("/accounts/role/{role}")
+    public ResponseEntity<?> getAccountsByRole(
+            @PathVariable String role,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        if (page < 0 || size < 1 || size > 100) {
+            return ResponseEntity.badRequest().body(ResponseDTO.builder()
+                    .status(400)
+                    .message("page phai >= 0 va size nam trong khoang 1-100.")
+                    .build());
+        }
+        return ResponseEntity.ok(ResponseDTO.builder()
+            .status(200)
+            .data(authService.getAccountsByRole(role, page, size))
+            .build());
+    }
+
+    @PostMapping("/accounts/{id}/lock")
+    public ResponseEntity<?> lockAccount(@PathVariable java.util.UUID id, @RequestParam String reason) {
+        try {
+            authService.lockAccount(id, reason);
+            return ResponseEntity.ok(ResponseDTO.builder()
+                .status(200)
+                .message("Tài khoản đã được khóa.")
+                .build());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ResponseDTO.builder()
+                .status(400)
+                .message(e.getMessage())
+                .build());
+        }
+    }
+
+    @PostMapping("/accounts/{id}/unlock")
+    public ResponseEntity<?> unlockAccount(@PathVariable java.util.UUID id) {
+        try {
+            authService.unlockAccount(id);
+            return ResponseEntity.ok(ResponseDTO.builder()
+                .status(200)
+                .message("Tài khoản đã được mở khóa.")
                 .build());
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(ResponseDTO.builder()

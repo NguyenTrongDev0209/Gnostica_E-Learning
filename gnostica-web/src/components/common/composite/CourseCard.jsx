@@ -400,9 +400,29 @@ export const ForumPostCard = ({ post, className, displayMode = "compact", topicC
 
   if (!post) return null;
 
-  const topicName = post.topic?.title || post.category || "Thảo luận";
+  const getDisplayHashtag = (postObj) => {
+    if (postObj.tags && Array.isArray(postObj.tags) && postObj.tags.length > 0) {
+      const valid = postObj.tags.filter(Boolean).slice(0, 3);
+      if (valid.length > 0) {
+        return valid.map(t => (t.startsWith('#') ? t : `#${t}`)).join(' ');
+      }
+    }
+    if (postObj.hashtags && Array.isArray(postObj.hashtags) && postObj.hashtags.length > 0) {
+      const valid = postObj.hashtags.map(h => h.hashtag?.name || h.name || String(h)).filter(Boolean).slice(0, 3);
+      if (valid.length > 0) {
+        return valid.map(t => (t.startsWith('#') ? t : `#${t}`)).join(' ');
+      }
+    }
+    const cat = postObj.topic?.title || postObj.topic?.name || postObj.category;
+    if (!cat || cat === "Thảo luận" || cat === "Chung") {
+      return "#Gnostica";
+    }
+    return cat.startsWith('#') ? cat : `#${cat.replace(/\s+/g, '')}`;
+  };
+
+  const topicName = getDisplayHashtag(post);
   const topicAvatar = post.topic?.avatarUrl || post.topicAvatar;
-  const topicInitial = topicName.trim().substring(0, 1).toUpperCase() || "G";
+  const topicInitial = topicName.trim().replace(/^#/, '').substring(0, 1).toUpperCase() || "G";
   const topicSlug = post.topic?.slug || post.topicSlug;
   const postUrl = topicSlug ? `/forum/${topicSlug}/${post.slug || post.id}` : `/forum/${post.slug || post.id}`;
   const topicUrl = topicSlug ? `/forum/topic/${topicSlug}` : "/forum";
@@ -492,20 +512,23 @@ export const ForumPostCard = ({ post, className, displayMode = "compact", topicC
     }
   };
 
+  const rawTitle = (post.title || "").trim();
+  const displayTitle = rawTitle.length > 60 ? rawTitle.substring(0, 60) + "..." : rawTitle;
+
   return (
-    <div className="block">
+    <div className="block w-full min-w-0 h-full">
       <AppCard
         appVariant="default"
         className={cn(
-          "hover:border-primary/50 transition-colors bg-card overflow-hidden group cursor-pointer p-0 gap-0",
+          "hover:border-primary/50 transition-colors bg-card overflow-hidden group cursor-pointer p-0 gap-0 w-full min-w-0 max-w-full h-full flex flex-col justify-between",
           isTopicOwner && "border-primary/45 ring-1 ring-primary/20 shadow-sm",
           className
         )}
       >
-        <AppCardContent className="p-4 sm:p-5">
-          <div className="flex items-start gap-4">
+        <AppCardContent className="p-4 sm:p-5 w-full min-w-0 overflow-hidden flex-1 flex flex-col justify-between">
+          <div className="flex items-start gap-4 w-full min-w-0 flex-1">
             {/* Avatar - ẩn trên mobile nhỏ */}
-            <div className="hidden sm:block shrink-0 -mt-2">
+            <div className="hidden sm:block shrink-0 -mt-1">
               {topicContext ? (
                 <AppAvatar
                   size="lg"
@@ -540,88 +563,95 @@ export const ForumPostCard = ({ post, className, displayMode = "compact", topicC
             </div>
 
             {/* Content */}
-            <div className="flex-1 min-w-0">
-              {/* Meta */}
-              <div className="flex items-center gap-2 mb-2 text-sm text-muted-foreground flex-wrap">
-                {!topicContext && (
-                  <>
-                    <Link to={topicUrl} className="font-semibold text-primary hover:text-primary/80">
-                      {post.category}
-                    </Link>
-                    <span>•</span>
-                  </>
+            <div className="flex-1 min-w-0 max-w-full flex flex-col justify-between">
+              <div>
+                {/* Meta */}
+                <div className="flex items-center gap-2 mb-2 text-sm text-muted-foreground flex-wrap max-w-full">
+                  {!topicContext && (
+                    <>
+                      <Link to={topicUrl} className="font-semibold text-primary hover:text-primary/80 truncate max-w-[250px]">
+                        {topicName}
+                      </Link>
+                      <span>•</span>
+                    </>
+                  )}
+                  <span className="flex items-center gap-1 max-w-full truncate">
+                    {topicContext ? (
+                      <AppAvatar
+                        size="sm"
+                        className="h-4 w-4 sm:hidden shrink-0"
+                        src={post.author.avatar}
+                        alt={post.author.name}
+                      />
+                    ) : (
+                      <Link
+                        to={topicUrl}
+                        className="flex h-4 w-4 shrink-0 items-center justify-center overflow-hidden rounded-sm border border-border bg-primary/10 text-[10px] font-bold text-primary sm:hidden"
+                        title={topicName}
+                      >
+                        {topicAvatar ? (
+                          <img src={topicAvatar} alt={topicName} className="h-full w-full object-cover" loading="lazy" decoding="async" />
+                        ) : (
+                          topicInitial
+                        )}
+                      </Link>
+                    )}
+                    <span className="font-medium text-foreground truncate">{post.author.name}</span>
+                    {isTopicOwner && (
+                      <span className="inline-flex h-5 items-center rounded-sm border border-primary/20 bg-primary/10 px-1.5 text-[10px] font-bold leading-none text-primary shrink-0">
+                        MOD
+                      </span>
+                    )}
+                  </span>
+                  <span>•</span>
+                  <span className="flex items-center gap-1 shrink-0">
+                    <Clock className="w-3.5 h-3.5" />
+                    {post.createdAt}
+                  </span>
+                </div>
+
+                {/* Title (max 60 chars, 1 line truncate with ...) */}
+                <h3 className="text-base sm:text-lg font-bold text-foreground mb-1.5 group-hover:text-primary transition-colors flex items-center min-w-0 max-w-full truncate h-7">
+                  <Link to={postUrl} className="truncate hover:text-primary block w-full" title={post.fullTitle || post.title}>
+                    {displayTitle}
+                  </Link>
+                </h3>
+
+                {/* Content (max 2 lines with ...) */}
+                {displayMode === "detailed" ? (
+                  <Link
+                    to={postUrl}
+                    className="mb-3 block rounded-xl border border-border/70 bg-muted/30 p-3 sm:p-4 max-w-full break-words [word-break:break-word] [overflow-wrap:anywhere] overflow-hidden line-clamp-2 h-[4.2rem] [&_p]:inline [&_p]:mb-0 [&_img]:hidden [&_iframe]:hidden [&_h1]:text-base [&_h1]:font-normal [&_h1]:inline [&_h2]:text-base [&_h2]:font-normal [&_h2]:inline [&_h3]:text-base [&_h3]:font-normal [&_h3]:inline [&_ul]:inline [&_ol]:inline [&_li]:inline [&_br]:hidden hover:bg-muted/50 transition-colors"
+                  >
+                    <RenderContent text={post.rawContent || post.content} />
+                  </Link>
+                ) : (
+                  <Link to={postUrl} className="mb-3 block text-sm sm:text-base text-muted-foreground line-clamp-2 hover:text-foreground max-w-full break-words [word-break:break-word] [overflow-wrap:anywhere] overflow-hidden h-[2.8rem] leading-relaxed">
+                    {post.content}
+                  </Link>
                 )}
-                <span className="flex items-center gap-1">
-                  {topicContext ? (
-                    <AppAvatar
-                      size="sm"
-                      className="h-4 w-4 sm:hidden"
-                      src={post.author.avatar}
-                      alt={post.author.name}
-                    />
-                  ) : (
-                    <Link
-                      to={topicUrl}
-                      className="flex h-4 w-4 items-center justify-center overflow-hidden rounded-sm border border-border bg-primary/10 text-[10px] font-bold text-primary sm:hidden"
-                      title={topicName}
-                    >
-                      {topicAvatar ? (
-                        <img src={topicAvatar} alt={topicName} className="h-full w-full object-cover" loading="lazy" decoding="async" />
-                      ) : (
-                        topicInitial
-                      )}
-                    </Link>
-                  )}
-                  <span className="font-medium text-foreground">{post.author.name}</span>
-                  {isTopicOwner && (
-                    <span className="inline-flex h-5 items-center rounded-sm border border-primary/20 bg-primary/10 px-1.5 text-[10px] font-bold leading-none text-primary">
-                      MOD
-                    </span>
-                  )}
-                </span>
-                <span>•</span>
-                <span className="flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5" />
-                  {post.createdAt}
-                </span>
               </div>
 
-              {/* Title */}
-              <h3 className="text-lg font-bold text-foreground mb-1 group-hover:text-primary transition-colors flex items-center gap-2">
-                <Link to={postUrl} className="line-clamp-2 hover:text-primary">
-                  {post.title}
-                </Link>
-              </h3>
-
-              {/* Content */}
-              {displayMode === "detailed" ? (
-                <div className="mb-4 rounded-xl border border-border/70 bg-muted/30 p-4 sm:-ml-14 [&_img]:mt-4 [&_img]:max-h-[520px] [&_img]:w-full [&_img]:rounded-xl [&_img]:object-cover [&_iframe]:mt-4 [&_iframe]:aspect-video [&_iframe]:w-full [&_iframe]:rounded-xl">
-                  <RenderContent text={post.rawContent || post.content} />
-                </div>
-              ) : (
-                <Link to={postUrl} className="mb-3 block text-base text-muted-foreground line-clamp-2 hover:text-foreground sm:-ml-14">
-                  {post.content}
-                </Link>
-              )}
-
               {/* Tags & Stats */}
-              <div className="flex flex-col items-start gap-3 mt-auto sm:-ml-14">
-                {post.tags && post.tags.length > 0 && (
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    {post.tags.map(tag => (
-                      <AppBadge
-                        key={tag}
-                        variant="secondary"
-                        soft
-                        className="px-2 py-0.5 text-sm font-medium"
-                      >
-                        {tag}
-                      </AppBadge>
-                    ))}
-                  </div>
-                )}
+              <div className="flex flex-col items-start gap-2.5 mt-auto max-w-full">
+                <div className="min-h-[26px] flex items-center">
+                  {post.tags && post.tags.length > 0 ? (
+                    <div className="flex items-center gap-1.5 flex-wrap max-w-full h-6 overflow-hidden">
+                      {post.tags.slice(0, 5).map(tag => (
+                        <AppBadge
+                          key={tag}
+                          variant="secondary"
+                          soft
+                          className="px-2 py-0.5 text-xs font-medium truncate max-w-[120px]"
+                        >
+                          {tag}
+                        </AppBadge>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
                 <div className={cn(
-                  "flex items-center gap-4 text-sm font-medium text-muted-foreground shrink-0",
+                  "flex items-center gap-4 text-sm font-medium text-muted-foreground shrink-0 flex-wrap max-w-full h-8",
                   isPending && "opacity-40 pointer-events-none select-none"
                 )}>
                   {/* Voting Pill */}

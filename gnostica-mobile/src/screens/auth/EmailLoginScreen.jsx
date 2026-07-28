@@ -38,7 +38,14 @@ const EmailLoginScreen = () => {
             navigation.navigate('Main', { screen: 'Home' });
         } catch (error) {
             setIsLoading(false);
-            Alert.alert('Lỗi', error.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại tài khoản.');
+            const rawMsg = error?.message || error?.data?.message || '';
+            let friendlyMessage = rawMsg;
+            if (rawMsg.toLowerCase().includes('bad credentials')) {
+                friendlyMessage = 'Email hoặc mật khẩu không chính xác. Nếu bạn mới đăng ký, vui lòng xác thực mã OTP trước.';
+            } else if (!friendlyMessage) {
+                friendlyMessage = 'Đăng nhập thất bại. Vui lòng kiểm tra lại tài khoản.';
+            }
+            Alert.alert('Đăng nhập thất bại', friendlyMessage);
         }
     };
 

@@ -64,8 +64,28 @@ public class ThreadServiceImpl implements ThreadService {
     private NotificationService notificationService;
 
     private String toSlug(String input) {
-        if (input == null) return "";
-        return input.toLowerCase().replaceAll("[^a-z0-9]+", "-").replaceAll("-$", "").replaceAll("^-", "");
+        if (input == null || input.trim().isEmpty()) return "thao-luan";
+        String str = input.trim();
+        str = str.replaceAll("đ", "d").replaceAll("Đ", "D");
+        str = java.text.Normalizer.normalize(str, java.text.Normalizer.Form.NFD);
+        str = str.replaceAll("\\p{M}", "");
+        str = str.toLowerCase().replaceAll("[^a-z0-9]+", "-").replaceAll("^-+|-+$", "");
+        return str.isEmpty() ? "thao-luan" : str;
+    }
+
+    private String generateUniqueSlug(String title, Integer excludeId) {
+        String baseSlug = toSlug(title);
+        String slug = baseSlug;
+        int count = 1;
+        while (true) {
+            Optional<Thread> existing = threadRepository.findBySlug(slug);
+            if (existing.isEmpty() || (excludeId != null && existing.get().getId().equals(excludeId))) {
+                break;
+            }
+            slug = baseSlug + "-" + count;
+            count++;
+        }
+        return slug;
     }
 
     @Override
@@ -82,14 +102,13 @@ public class ThreadServiceImpl implements ThreadService {
 
         Thread thread = new Thread();
         thread.setTitle(title != null && !title.trim().isEmpty() ? title : "Thảo luận");
-        thread.setSlug(toSlug(thread.getTitle()) + "-" + System.currentTimeMillis());
+        thread.setSlug(generateUniqueSlug(thread.getTitle(), null));
         thread.setContent(content);
         thread.setAccount(account);
         thread.setTopic(topic);
         
-        // Auto-approve thread (Status 2 = Published) if author is an ADMIN
-        boolean isAdmin = account.getRole() != null && "ADMIN".equalsIgnoreCase(account.getRole().getName());
-        thread.setStatus(isAdmin ? 2 : 1); // 1 = Draft or Pending, 2 = Published
+        // Newly created threads require moderation (Status 1 = Pending) so they appear in Admin Thread Moderation
+        thread.setStatus(1); // 1 = Draft/Pending moderation, 2 = Published
         
         thread.setViewCount(0);
         thread.setSharedCount(0);
@@ -163,7 +182,17 @@ public class ThreadServiceImpl implements ThreadService {
     @Transactional
     public Thread getThreadBySlug(String slug) {
         Thread thread = threadRepository.findBySlug(slug)
-                .orElseThrow(() -> new RuntimeException("Thread not found with slug: " + slug));
+                .orElseGet(() -> {
+                    try {
+                        Integer id = Integer.parseInt(slug);
+                        return threadRepository.findById(id).orElse(null);
+                    } catch (NumberFormatException e) {
+                        return null;
+                    }
+                });
+        if (thread == null) {
+            throw new RuntimeException("Thread not found with slug: " + slug);
+        }
         populateThreadStats(thread);
         return thread;
     }

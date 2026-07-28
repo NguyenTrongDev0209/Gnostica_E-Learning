@@ -206,7 +206,7 @@ function CheckoutOrderSummary({
           </span>
         </div>
 
-        <div className="pt-2 pb-4 space-y-2">
+        <div className="min-h-[100px] pt-2 pb-4 space-y-2">
           <div className="flex gap-2">
             <div className="relative flex-1">
               {appliedCoupon && (
@@ -225,17 +225,19 @@ function CheckoutOrderSummary({
               type="button"
               appVariant={appliedCoupon ? "ghostMuted" : "accent"}
               className={appliedCoupon
-                ? "border border-error/20 text-error hover:bg-error-soft hover:text-error"
-                : "disabled:bg-muted disabled:text-muted-foreground"}
+                ? "w-[104px] border border-error/20 text-error hover:bg-error-soft hover:text-error"
+                : "w-[104px] disabled:bg-muted disabled:text-muted-foreground"}
               onClick={appliedCoupon ? removeCoupon : applyCoupon}
               disabled={isCouponLoading || (!couponCode && !appliedCoupon)}
             >
               {isCouponLoading ? "..." : appliedCoupon ? "Bỏ" : "Áp dụng"}
             </AppButton>
           </div>
-          {couponMessage && (
-            <p className={`ml-1 text-sm font-normal ${appliedCoupon ? 'text-success' : 'text-error'}`}>{couponMessage}</p>
-          )}
+          <div className="min-h-5">
+            {couponMessage && (
+              <p className={`ml-1 text-sm font-normal ${appliedCoupon ? 'text-success' : 'text-error'}`}>{couponMessage}</p>
+            )}
+          </div>
         </div>
 
         <div className="pt-2">
@@ -349,7 +351,7 @@ export default function CheckoutPage() {
     setIsCouponLoading(true);
     setCouponMessage("");
     try {
-      const response = await couponService.validateCoupon(couponCode);
+      const response = await couponService.validateCoupon(couponCode, orderItems[0]?.id);
       if (response && response.data) {
         setAppliedCoupon(response.data);
         setCouponMessage(`Áp dụng thành công mã giảm giá!`);
@@ -529,6 +531,13 @@ export default function CheckoutPage() {
                   couponMessage={couponMessage}
                   isCouponLoading={isCouponLoading}
                 />
+                {appliedCoupon?.sponsorType && (
+                  <div className="rounded-xl border border-primary/10 bg-primary/5 p-4 text-center text-xs font-bold text-primary">
+                    {appliedCoupon.sponsorType === "PLATFORM"
+                      ? "Mã do Gnostica tài trợ — giảng viên vẫn nhận doanh thu theo tỷ lệ hoa hồng."
+                      : "Ưu đãi từ giảng viên — phần giảm giá do giảng viên tài trợ."}
+                  </div>
+                )}
                 <div className="rounded-xl border border-primary/10 bg-primary/5 p-4">
                   <p className="text-center text-xs font-bold text-primary">
                     * Khóa học sẽ được kích hoạt ngay sau khi thanh toán thành công

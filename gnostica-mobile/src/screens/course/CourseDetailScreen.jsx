@@ -1,16 +1,18 @@
 import AppText from '../../components/ui/AppText';
-import React, { useState } from 'react';
-import { View, ScrollView, TouchableOpacity, Image, Dimensions } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, ScrollView, TouchableOpacity, Image, Dimensions, ActivityIndicator } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { ArrowLeft, Users, Clock, ChevronDown, ChevronUp, BookOpen, ShoppingBag, Star, PlayCircle, FileText } from 'lucide-react-native';
+import { ArrowLeft, Users, Clock, ChevronDown, ChevronUp, BookOpen, ShoppingBag, Star, PlayCircle, FileText, Bookmark } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import RatingStars from '../../components/ui/RatingStars';
 import Button from '../../components/ui/Button';
 import { useCart } from '../../context/CartContext';
+import { useAuth } from '../../context/AuthContext';
 import RenderHtml from 'react-native-render-html';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { LinearGradient } from 'expo-linear-gradient';
 import courseService from '../../services/course/courseService';
+import wishlistService from '../../services/course/wishlistService';
 
 const { width } = Dimensions.get('window');
 
@@ -26,13 +28,6 @@ const TABS = [
     { key: 'reviews',    label: 'Đánh giá' },
 ];
 
-// Mock reviews
-const MOCK_REVIEWS = [
-    { id: 1, name: 'Minh Tuấn', avatar: '👨‍💻', rating: 5, date: '12/06/2025', comment: 'Khóa học rất chất lượng, giảng viên dạy dễ hiểu và thực tế. Mình đã áp dụng ngay vào dự án công ty!' },
-    { id: 2, name: 'Thu Hương', avatar: '👩‍🎓', rating: 4, date: '03/06/2025', comment: 'Nội dung phong phú, ví dụ minh họa cụ thể. Chỉ ước phần cuối có thêm bài tập thực hành.' },
-    { id: 3, name: 'Đức Anh', avatar: '🧑‍💼', rating: 5, date: '28/05/2025', comment: 'Đây là một trong những khóa học tốt nhất mình từng học. Highly recommend!' },
-];
-
 const StarRow = ({ rating }) => (
     <View style={{ flexDirection: 'row', gap: 2 }}>
         {[1, 2, 3, 4, 5].map(i => (
@@ -46,11 +41,14 @@ const CourseDetailScreen = () => {
     const route = useRoute();
     const insets = useSafeAreaInsets();
     const { cartItems, addToCart } = useCart();
+    const { user } = useAuth();
 
     const courseParams = route.params?.course;
     const [courseDetail, setCourseDetail] = useState(null);
     const [activeTab, setActiveTab] = useState('desc');
     const [expandedSection, setExpandedSection] = useState(null);
+    const [isSaved, setIsSaved] = useState(false);
+    const [loadingSave, setLoadingSave] = useState(false);
     
     const formatPrice = (value) => {
         if (!value) return '0 đ';
@@ -66,12 +64,12 @@ const CourseDetailScreen = () => {
     } : courseParams;
     const badge = course?.badge ? BADGE_COLORS[course.badge] : null;
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (courseParams?.slug) {
             const fetchDetail = async () => {
                 try {
                     const data = await courseService.getBySlug(courseParams.slug);
-                    setCourseDetail(data.data || data); // Wrapper ResponseDTO hoặc ApiResponse
+                    setCourseDetail(data.data || data);
                 } catch (e) {
                     console.error('Error fetching course detail:', e);
                 }
@@ -79,6 +77,45 @@ const CourseDetailScreen = () => {
             fetchDetail();
         }
     }, [courseParams?.slug]);
+
+    const targetCourseId = courseParams?.id || courseDetail?.id || course?.id;
+
+    useEffect(() => {
+        if (!user || !targetCourseId) return;
+        wishlistService.check(targetCourseId)
+            .then(res => {
+                const data = res?.data ?? res;
+                setIsSaved(
+                    data === true ||
+                    data?.isFavourite === true ||
+                    data?.wishlisted === true ||
+                    data?.saved === true
+                );
+            })
+            .catch(() => {});
+    }, [user, targetCourseId]);
+
+    const handleToggleSave = async () => {
+        if (!user) {
+            navigation.navigate('Login');
+            return;
+        }
+        if (!targetCourseId) return;
+        setLoadingSave(true);
+        try {
+            const res = await wishlistService.toggle(targetCourseId);
+            const data = res?.data ?? res;
+            if (data?.isFavourite !== undefined) {
+                setIsSaved(data.isFavourite);
+            } else {
+                setIsSaved(prev => !prev);
+            }
+        } catch (e) {
+            console.error('Toggle wishlist error:', e);
+        } finally {
+            setLoadingSave(false);
+        }
+    };
 
     if (!course) return null;
 
@@ -127,6 +164,55 @@ const CourseDetailScreen = () => {
                         <ArrowLeft size={20} color="#fff" />
                     </TouchableOpacity>
 
+                    {/* Save / Bookmark button */}
+                    <TouchableOpacity
+                        onPress={handleToggleSave}
+                        activeOpacity={0.85}
+                        style={{
+                            position: 'absolute',
+                            top: 10,
+                            right: 20,
+                            width: 42,
+                            height: 42,
+                            borderRadius: 21,
+                            backgroundColor: 'transparent',
+                            elevation: 6,
+                            shadowColor: '#ea580c',
+                            shadowOffset: { width: 0, height: 3 },
+                            shadowOpacity: 0.4,
+                            shadowRadius: 6,
+                        }}
+                    >
+                        {loadingSave ? (
+                            <View style={{
+                                width: 42, height: 42, borderRadius: 21,
+                                backgroundColor: 'rgba(0,0,0,0.45)',
+                                alignItems: 'center', justifyContent: 'center',
+                            }}>
+                                <ActivityIndicator size="small" color="#fff" />
+                            </View>
+                        ) : (
+                            <LinearGradient
+                                colors={isSaved ? ['#fb923c', '#ea580c'] : ['rgba(0,0,0,0.45)', 'rgba(0,0,0,0.45)']}
+                                style={{
+                                    width: 42,
+                                    height: 42,
+                                    borderRadius: 21,
+                                    borderWidth: isSaved ? 2.5 : 0,
+                                    borderColor: '#fff',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                }}
+                            >
+                                <Bookmark
+                                    size={20}
+                                    color="#fff"
+                                    fill={isSaved ? '#fff' : 'transparent'}
+                                    strokeWidth={2}
+                                />
+                            </LinearGradient>
+                        )}
+                    </TouchableOpacity>
 
                 </View>
 
@@ -368,7 +454,7 @@ const CourseDetailScreen = () => {
                         </View>
 
                         {/* Reviews list */}
-                        {(courseDetail?.reviews || MOCK_REVIEWS).map(review => (
+                        {(courseDetail?.reviews || []).map(review => (
                             <View key={review.id} style={{
                                 paddingVertical: 16,
                                 borderBottomWidth: 1, borderBottomColor: '#f1f5f9',

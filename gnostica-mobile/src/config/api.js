@@ -1,8 +1,21 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DeviceEventEmitter } from 'react-native';
+import Constants from 'expo-constants';
 
-// Sử dụng biến môi trường từ file .env
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
+// Tự động phát hiện IP máy tính đang chạy Expo CLI
+const getBaseUrl = () => {
+    if (process.env.EXPO_PUBLIC_API_URL && process.env.EXPO_PUBLIC_API_URL.trim() !== '') {
+        return process.env.EXPO_PUBLIC_API_URL;
+    }
+
+    const hostUri = Constants.expoConfig?.hostUri || Constants.manifest2?.extra?.expoGo?.developer?.tool;
+    const hostIp = hostUri ? hostUri.split(':')[0] : 'localhost';
+
+    return `http://${hostIp}:8080/api`;
+};
+
+export const BASE_URL = getBaseUrl();
+
 
 const api = {
     request: async (endpoint, options = {}) => {
@@ -31,7 +44,13 @@ const api = {
 
         try {
             const response = await fetch(url, config);
-            const data = await response.json();
+            const responseText = await response.text();
+            let data;
+            try {
+                data = responseText ? JSON.parse(responseText) : {};
+            } catch (_) {
+                data = { message: responseText || `Server error (${response.status})` };
+            }
             
             if (response.status === 401) {
                 DeviceEventEmitter.emit('auth.logout');
@@ -73,7 +92,13 @@ const api = {
                 },
                 body: formData,
             });
-            const data = await response.json();
+            const responseText = await response.text();
+            let data;
+            try {
+                data = responseText ? JSON.parse(responseText) : {};
+            } catch (_) {
+                data = { message: responseText || `Upload failed (${response.status})` };
+            }
             
             if (response.status === 401) {
                 DeviceEventEmitter.emit('auth.logout');

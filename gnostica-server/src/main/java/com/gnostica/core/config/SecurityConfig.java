@@ -56,31 +56,31 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST,
                         "/api/auth/register",
                         "/api/auth/login",
+                        "/api/auth/google",
                         "/api/auth/verify",
                         "/api/auth/resend-otp",
                         "/api/auth/forgot-password",
                         "/api/auth/reset-password"
                 ).permitAll()
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                .requestMatchers("/api/auth/**", "/api/account/**", "/api/upload/**", "/api/follow/**", "/api/threads/**", "/api/forum-categories/**", "/api/comments/**", "/api/progress/**", "/api/ai/**", "/api/thread-reports/**", "/api/dashboard/**", "/api/payment/**", "/api/certificates/**").permitAll()
+                .requestMatchers("/api/order/**").authenticated()
                 .requestMatchers("/api/courses/draft/**", "/api/courses/draft", "/api/courses/instructor").authenticated()
                 .requestMatchers(HttpMethod.GET, "/api/courses/**", "/api/categories/**", "/api/instructors/**", "/api/public/**").permitAll()
-                .requestMatchers("/api/account/**", "/api/upload/**", "/api/follow/**", "/api/threads/**", "/api/forum-categories/**", "/api/comments/**", "/api/progress/**", "/api/ai/**", "/api/thread-reports/**", "/api/dashboard/**", "/api/payment/**", "/api/order/**", "/api/certificates/**").permitAll()
                 .anyRequest().authenticated()
             )
+            .oauth2Login(oauth2 -> oauth2
+                .userInfoEndpoint(userInfo -> userInfo.userService(oauth2UserService))
+                .successHandler(oauth2SuccessHandler)
+                .failureHandler(oauth2FailureHandler))
+            .sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            );
 
-                                .oauth2Login(oauth2 -> oauth2
-                                                .userInfoEndpoint(userInfo -> userInfo.userService(oauth2UserService))
-                                                .successHandler(oauth2SuccessHandler)
-                                                .failureHandler(oauth2FailureHandler))
-                                .sessionManagement(session -> session
-                                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // Principle 5
-                                );
+        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
-                // Principle 8: Add JWT Filter
-                http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-
-                return http.build();
-        }
+        return http.build();
+    }
 
         @Bean
         public org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource() {
