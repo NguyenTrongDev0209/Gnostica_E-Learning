@@ -23,8 +23,12 @@ const login = async (email, password) => {
         });
         if (response.data.status === 200 || response.data.status === 'success') {
             const userData = response.data.data;
-            if (userData && (userData.onboardingCompleted === undefined || userData.onboardingCompleted === null)) {
-                userData.onboardingCompleted = false;
+            if (userData) {
+                const isCompleted = userData.onboardingCompleted === true || userData.onboardingCompleted === 'true' ||
+                    (Array.isArray(userData.selectedCategories) && userData.selectedCategories.length > 0) ||
+                    (Array.isArray(userData.categoryIds) && userData.categoryIds.length > 0) ||
+                    Boolean(userData.level);
+                userData.onboardingCompleted = isCompleted;
             }
             localStorage.setItem('user', JSON.stringify(userData));
             if (userData?.email) {
@@ -125,11 +129,9 @@ const getAllAccounts = async () => {
     }
 };
 
-const getAccountsByRole = async (role, { page = 0, size = 20 } = {}) => {
+const getAccountsByRole = async (role) => {
     try {
-        const response = await axiosClient.get(`${API_URL}/accounts/role/${role}`, {
-            params: { page, size }
-        });
+        const response = await axiosClient.get(`${API_URL}/accounts/role/${role}`);
         return response.data;
     } catch (error) {
         throw error.response?.data?.message || 'Không thể lấy danh sách tài khoản theo role!';

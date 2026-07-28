@@ -32,10 +32,14 @@ public class CustomUserDetailsService implements UserDetailsService {
             throw new RuntimeException("Tài khoản của bạn đã bị khóa.");
         }
 
+        String roleName = (account.getRole() != null && account.getRole().getName() != null)
+                ? account.getRole().getName().toUpperCase()
+                : "USER";
+
         return new User(
                 account.getEmail(),
-                account.getPassword(),
-                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + account.getRole().getName().toUpperCase()))
+                account.getPassword() != null ? account.getPassword() : "",
+                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + roleName))
         );
     }
 }
