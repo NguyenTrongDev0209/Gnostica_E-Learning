@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import authService from '@/services/auth/authService';
@@ -11,9 +11,11 @@ export const useOAuth2Callback = () => {
     const tokenFromParams = searchParams.get('token');
 
     const setUser = useAuthStore(state => state.setUser);
+    const hasRun = useRef(false);
 
     useEffect(() => {
-        if (email) {
+        if (email && !hasRun.current) {
+            hasRun.current = true;
             const fetchUserInfo = async () => {
                 try {
                     if (tokenFromParams) {
