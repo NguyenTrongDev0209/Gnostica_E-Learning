@@ -17,11 +17,9 @@ CREATE TEMP TABLE seed_instructor_ids (
 INSERT INTO seed_instructor_ids (account_id)
 SELECT DISTINCT supplied_id
 FROM unnest(ARRAY[
-    'c13d1956-f6d2-442f-b06f-87f3e4560066'::uuid,
-    '1c4d4988-e385-4c99-be47-1de524dc71ec'::uuid,
-    '6bad53eb-f70a-4881-8a61-904d99e247d7'::uuid,
-    'a5616c19-54f1-4427-95cb-f36112c80a06'::uuid,
-    'b2e3ff9a-ae46-44b3-9088-fa555801f40e'::uuid
+    '0f91481a-107e-476a-b7e2-203ff565d86a'::uuid,
+    '66ac20ed-1168-4ffd-828d-1642d3593afb'::uuid,
+    'd966e67c-821f-41e0-9d03-7583e0211983'::uuid
 ]::UUID[]) AS supplied_id;
 
 DO $$
@@ -279,6 +277,20 @@ BEGIN
         RAISE EXCEPTION 'Expected 150 courses, but generated %.', v_course_no;
     END IF;
 END $$;
+
+-- Seed default commission rule
+INSERT INTO commissions (account_id, instructor_ratio, platform_ratio, valid_from, valid_until, status, metadata, created_at, updated_at)
+VALUES (
+    '00000000-0000-0000-0000-000000000001',
+    70.00,
+    30.00,
+    NOW(),
+    NULL,
+    1,
+    '{}'::jsonb,
+    NOW(),
+    NOW()
+);
 
 -- A concise verification report for DBeaver, psql, or an AI agent.
 SELECT 'accounts' AS entity, count(*) AS created
