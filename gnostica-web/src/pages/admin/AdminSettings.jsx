@@ -46,7 +46,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import SockJS from "sockjs-client";
-import { Stomp } from "stompjs/lib/stomp.js";
+import { Client } from "@stomp/stompjs";
 import { Area, AreaChart, CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 import AppCard, { AppCardContent, AppCardHeader, AppCardTitle } from "@/components/common/micro/AppCard";
 import AppBadge from "@/components/common/micro/AppBadge";
@@ -1767,45 +1767,61 @@ function InfrastructureMonitor() {
     const stompClientRef = useRef(null);
 
     useEffect(() => {
-        const socket = new SockJS(import.meta.env.VITE_WS_URL || "http://localhost:8080/ws");
-        const stompClient = Stomp.over(socket);
-        stompClient.debug = null; // Disable logging to console
+        const userStr = localStorage.getItem("user");
+        let token = null;
+        if (userStr) {
+            try { token = JSON.parse(userStr)?.token; } catch (e) {}
+        }
+        if (!token) {
+            token = localStorage.getItem("accessToken") || localStorage.getItem("token");
+        }
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
-        stompClient.connect({}, () => {
-            setStatus("OK");
-            stompClient.subscribe("/topic/metrics", (message) => {
-                try {
-                    const data = JSON.parse(message.body);
-                    setLiveMetrics({
-                        cpu: data.cpu,
-                        ram: data.ram,
-                        ccu: data.ccu
-                    });
-                    setHistory((prev) => {
-                        const newHistory = [...prev, {
-                            time: data.time || new Date().toLocaleTimeString(),
+        const client = new Client({
+            webSocketFactory: () => new SockJS(import.meta.env.VITE_WS_URL || "http://localhost:8080/ws"),
+            connectHeaders: headers,
+            reconnectDelay: 5000,
+            onConnect: () => {
+                setStatus("OK");
+                client.subscribe("/topic/metrics", (message) => {
+                    try {
+                        const data = JSON.parse(message.body);
+                        setLiveMetrics({
                             cpu: data.cpu,
                             ram: data.ram,
-                            active: data.ccu
-                        }];
-                        if (newHistory.length > 20) return newHistory.slice(1);
-                        return newHistory;
-                    });
-                } catch (e) {
-                    console.error("Error parsing metrics data", e);
-                }
-            });
-        }, (error) => {
-            console.warn("WebSocket Connection Error (will retry):", error);
-            setStatus("Retrying...");
+                            ccu: data.ccu
+                        });
+                        setHistory((prev) => {
+                            const newHistory = [...prev, {
+                                time: data.time || new Date().toLocaleTimeString(),
+                                cpu: data.cpu,
+                                ram: data.ram,
+                                active: data.ccu
+                            }];
+                            if (newHistory.length > 20) return newHistory.slice(1);
+                            return newHistory;
+                        });
+                    } catch (e) {
+                        console.error("Error parsing metrics data", e);
+                    }
+                });
+            },
+            onStompError: (frame) => {
+                console.warn("WebSocket STOMP error:", frame);
+                setStatus("Retrying...");
+            },
+            onWebSocketClose: () => {
+                setStatus("Connecting...");
+            }
         });
 
-        stompClientRef.current = stompClient;
+        client.activate();
+        stompClientRef.current = client;
 
         return () => {
-            if (stompClientRef.current && stompClientRef.current.connected) {
+            if (stompClientRef.current) {
                 try {
-                    stompClientRef.current.disconnect();
+                    stompClientRef.current.deactivate();
                 } catch (e) {
                     console.warn("Error during WebSocket disconnect", e);
                 }
