@@ -89,8 +89,10 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     );
                 }
 
-                // Cập nhật avatar từ Google cho tài khoản
-                account.setAvatar(picture);
+                // Cập nhật avatar từ Google cho tài khoản nếu người dùng chưa đổi ảnh (không phải ảnh từ Cloudinary)
+                if (account.getAvatar() == null || account.getAvatar().trim().isEmpty() || !account.getAvatar().contains("res.cloudinary.com")) {
+                    account.setAvatar(picture);
+                }
                 
                 // Nếu tài khoản tồn tại nhưng chưa có provider hoặc là LOCAL/rỗng, tự động liên kết với Google
                 if (account.getProvider() == null || account.getProvider().isEmpty() || "LOCAL".equalsIgnoreCase(account.getProvider())) {
