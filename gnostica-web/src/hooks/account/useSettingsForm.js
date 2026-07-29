@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import useAuthStore from "@/store/useAuthStore";
+import accountService from "@/services/user/accountService";
 
 export default function useSettingsForm(user) {
   const [formData, setFormData] = useState({
@@ -46,12 +47,27 @@ export default function useSettingsForm(user) {
     }
   };
 
-  const handleCropComplete = (croppedImage) => {
-    setFormData(prev => ({ ...prev, avatar: croppedImage }));
-    setCropModalOpen(false);
-  };
-
   const setUser = useAuthStore(state => state.setUser);
+
+  const handleCropComplete = async (croppedImage) => {
+    try {
+      setIsUploading(true);
+      const res = await accountService.updateAvatar(user.email, croppedImage);
+      if (res.status === 200) {
+        setFormData(prev => ({ ...prev, avatar: res.data.avatarUrl }));
+        const updatedUser = { ...user, avatar: res.data.avatarUrl };
+        setUser(updatedUser);
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+        toast.success('Cập nhật ảnh đại diện thành công!');
+        window.dispatchEvent(new Event('storage'));
+      }
+    } catch (error) {
+      toast.error(error.message || 'Có lỗi xảy ra khi cập nhật ảnh');
+    } finally {
+      setIsUploading(false);
+      setCropModalOpen(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
