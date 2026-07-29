@@ -13,6 +13,8 @@ import InstructorProfileModal from "@/components/modals/InstructorProfileModal";
 
 import useAdminCourseModeration from "@/hooks/admin/useAdminCourseModeration";
 
+const BUNNY_LIBRARY_ID = import.meta.env.VITE_BUNNY_LIBRARY_ID;
+
 export default function AdminCourseDetailModeration() {
   const { slug } = useParams();
   const navigate = useNavigate();
@@ -77,7 +79,7 @@ export default function AdminCourseDetailModeration() {
   const getEmbedUrl = (url) => {
     if (!url) return null;
     const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
-    let libraryId = "655066"; 
+    let libraryId = BUNNY_LIBRARY_ID;
     let videoId = url;
     let baseUrl = "";
     

@@ -162,7 +162,7 @@ export const CourseProgressCard = ({
   link,
   restartLink
 }) => {
-  const to = link === null ? null : (link || `/courses/${id}/learn`);
+  const to = link === null ? null : (link || `/learning/${id}`);
   const Wrapper = to ? Link : "div";
   const wrapperProps = to ? { to } : { role: "presentation" };
 

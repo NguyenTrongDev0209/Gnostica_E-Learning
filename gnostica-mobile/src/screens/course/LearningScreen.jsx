@@ -13,6 +13,7 @@ import { useAuth } from '../../context/AuthContext';
 import { BASE_URL } from '../../config/api';
 
 const { width } = Dimensions.get('window');
+const BUNNY_LIBRARY_ID = process.env.EXPO_PUBLIC_BUNNY_LIBRARY_ID;
 
 const addReplyToTree = (list, parentId, newReply) => {
     return list.map(c => {
@@ -577,7 +578,7 @@ const LearningScreen = () => {
         if (!url) return null;
 
         const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
-        let libraryId = "655066";
+        let libraryId = BUNNY_LIBRARY_ID;
         let videoId = url;
 
         if (url.includes('/')) {
@@ -586,7 +587,7 @@ const LearningScreen = () => {
             const secondToLast = parts[parts.length - 2];
             if (uuidRegex.test(lastPart)) {
                 videoId = lastPart;
-                if (secondToLast && secondToLast.length > 2 && secondToLast !== "635422") {
+                if (secondToLast && secondToLast.length > 2) {
                     libraryId = secondToLast;
                 }
             }
