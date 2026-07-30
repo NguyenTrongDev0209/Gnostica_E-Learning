@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import useAuthStore from '@/store/useAuthStore';
 import { toast } from 'sonner';
+import { API_URL } from '@/config/publicUrl';
 
 export default function useFavoriteInstructors() {
     const [instructors, setInstructors] = useState([]);
@@ -11,7 +12,7 @@ export default function useFavoriteInstructors() {
         if (!token) { setLoading(false); return; }
         setLoading(true);
         try {
-            const res = await fetch("http://localhost:8080/api/follow/instructors", {
+            const res = await fetch(`${API_URL}/follow/instructors`, {
                 headers: { "Authorization": `Bearer ${token}` }
             });
             const data = await res.json();
@@ -42,7 +43,7 @@ export default function useFavoriteInstructors() {
     const handleUnfollow = async (instructorId) => {
         if (!token) { setLoading(false); return; }
         try {
-            const res = await fetch(`http://localhost:8080/api/follow/toggle/${instructorId}`, {
+            const res = await fetch(`${API_URL}/follow/toggle/${instructorId}`, {
                 method: "POST",
                 headers: { "Authorization": `Bearer ${token}` }
             });

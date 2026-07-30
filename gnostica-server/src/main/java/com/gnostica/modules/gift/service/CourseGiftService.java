@@ -29,6 +29,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -52,6 +53,9 @@ public class CourseGiftService {
     private final PaymentService paymentService;
     private final MailService mailService;
     private final NotificationService notificationService;
+
+    @Value("${app.public-url}")
+    private String publicUrl;
 
     public GiftSearchResponse searchReceiver(String senderEmail, String receiverEmail, UUID courseId) {
         if (senderEmail.equalsIgnoreCase(receiverEmail)) {
@@ -187,8 +191,7 @@ public class CourseGiftService {
     }
 
     private void sendGiftEmail(Gift gift) {
-        String frontendUrl = System.getenv("FRONTEND_URL") != null ? System.getenv("FRONTEND_URL") : "http://localhost:5173";
-        String giftLink = frontendUrl + "/gift/" + gift.getToken();
+        String giftLink = publicUrl + "/gift/" + gift.getToken();
         mailService.sendGiftCourseNotificationEmail(
                 gift.getReceiver().getEmail(),
                 gift.getSender().getFullName(),

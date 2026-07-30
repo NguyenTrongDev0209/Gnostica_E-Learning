@@ -22,6 +22,9 @@ public class FptOcrService {
     @Value("${openrouter.model}")
     private String model;
 
+    @Value("${app.public-url}")
+    private String publicUrl;
+
     private final RestTemplate restTemplate = new RestTemplate();
 
     /**
@@ -38,7 +41,7 @@ public class FptOcrService {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.set("Authorization", "Bearer " + apiKey);
-            headers.set("HTTP-Referer", "http://localhost:5173");
+            headers.set("HTTP-Referer", publicUrl);
             headers.set("X-Title", "Gnostica E-Learning");
 
             // Construct multimodal request content with prompt and image url

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import useAuthStore from "@/store/useAuthStore";
+import { API_URL } from "@/config/publicUrl";
 
 export default function useAccountOverview() {
   const [loading, setLoading] = useState(true);
@@ -17,9 +18,9 @@ export default function useAccountOverview() {
         };
 
         const [statsRes, coursesRes, certsRes] = await Promise.all([
-          fetch("http://localhost:8080/api/enrollments/stats", { headers }),
-          fetch("http://localhost:8080/api/enrollments/my-courses", { headers }),
-          fetch("http://localhost:8080/api/certificates/my-certificates", { headers })
+          fetch(`${API_URL}/enrollments/stats`, { headers }),
+          fetch(`${API_URL}/enrollments/my-courses`, { headers }),
+          fetch(`${API_URL}/certificates/my-certificates`, { headers })
         ]);
 
         const statsData = statsRes.ok ? await statsRes.json() : null;

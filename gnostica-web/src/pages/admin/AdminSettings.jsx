@@ -4,6 +4,7 @@ import AppTextarea from "@/components/common/micro/AppTextarea";
 import { Switch } from "@/components/common/micro/AppSwitch";
 // Fix imported
 import { cn } from "@/lib/utils";
+import { WS_URL } from "@/config/publicUrl";
 import React, { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { AppButton } from "@/components/common/micro/AppButton";
@@ -1767,7 +1768,7 @@ function InfrastructureMonitor() {
     const stompClientRef = useRef(null);
 
     useEffect(() => {
-        const socket = new SockJS(import.meta.env.VITE_WS_URL || "http://localhost:8080/ws");
+        const socket = new SockJS(WS_URL);
         const stompClient = Stomp.over(socket);
         stompClient.debug = null; // Disable logging to console
 

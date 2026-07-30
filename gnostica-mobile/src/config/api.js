@@ -1,20 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DeviceEventEmitter } from 'react-native';
-import Constants from 'expo-constants';
-
-// Tự động phát hiện IP máy tính đang chạy Expo CLI
-const getBaseUrl = () => {
-    if (process.env.EXPO_PUBLIC_API_URL && process.env.EXPO_PUBLIC_API_URL.trim() !== '') {
-        return process.env.EXPO_PUBLIC_API_URL;
-    }
-
-    const hostUri = Constants.expoConfig?.hostUri || Constants.manifest2?.extra?.expoGo?.developer?.tool;
-    const hostIp = hostUri ? hostUri.split(':')[0] : 'localhost';
-
-    return `http://${hostIp}:8080/api`;
-};
-
-export const BASE_URL = getBaseUrl();
+// One public address for mobile. Change EXPO_PUBLIC_APP_URL in .env to switch environments.
+const publicAppUrl = (process.env.EXPO_PUBLIC_APP_URL || 'https://gnostica.io.vn').replace(/\/+$/, '');
+export const BASE_URL = `${publicAppUrl}/api`;
+export const OAUTH_REDIRECT_URI = process.env.EXPO_PUBLIC_OAUTH_REDIRECT_URI || 'gnostica://auth/callback';
 
 
 const api = {

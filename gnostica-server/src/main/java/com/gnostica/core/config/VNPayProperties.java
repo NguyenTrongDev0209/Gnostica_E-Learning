@@ -12,8 +12,8 @@ public class VNPayProperties {
     private String hashSecret;
     private String paymentUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
     private String queryUrl = "https://sandbox.vnpayment.vn/merchant_webapi/api/transaction";
-    private String returnUrl = "http://localhost:8080/api/payment/vnpay/return";
-    private String frontendReturnUrl = "http://localhost:5173/checkout";
+    private String returnUrl;
+    private String frontendReturnUrl;
     private String ipnUrl;
     private String version = "2.1.0";
     private int expireMinutes = 15;

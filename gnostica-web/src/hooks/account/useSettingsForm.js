@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import useAuthStore from "@/store/useAuthStore";
 import accountService from "@/services/user/accountService";
+import { API_URL } from "@/config/publicUrl";
 
 export default function useSettingsForm(user) {
   const [formData, setFormData] = useState({
@@ -76,7 +77,7 @@ export default function useSettingsForm(user) {
     setIsLoading(true);
     try {
       // 1. Update Profile
-      const res = await fetch(`http://localhost:8080/api/account/profile?email=${user.email}`, {
+      const res = await fetch(`${API_URL}/account/profile?email=${user.email}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
