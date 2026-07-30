@@ -15,19 +15,17 @@ CREATE TEMP TABLE seed_instructor_ids (
 ) ON COMMIT DROP;
 
 INSERT INTO seed_instructor_ids (account_id)
-SELECT DISTINCT supplied_id
-FROM unnest(ARRAY[
-    '0f91481a-107e-476a-b7e2-203ff565d86a'::uuid,
-    '66ac20ed-1168-4ffd-828d-1642d3593afb'::uuid,
-    'd966e67c-821f-41e0-9d03-7583e0211983'::uuid
-]::UUID[]) AS supplied_id;
+SELECT a.id 
+FROM accounts a
+JOIN roles r ON a.role_id = r.id
+WHERE r.name = 'INSTRUCTOR' AND a.status = 1 AND a.deleted_at IS NULL;
 
 DO $$
 DECLARE
     missing_ids TEXT;
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM seed_instructor_ids) THEN
-        RAISE EXCEPTION 'Missing instructor UUIDs. Add one or more UUIDs to ARRAY[] at the top of scripts/seed_demo_data.sql.';
+        RAISE EXCEPTION 'Không tìm thấy tài khoản Giảng viên (INSTRUCTOR) nào. Vui lòng đăng ký ít nhất một tài khoản Giảng viên trên hệ thống trước khi chạy script này.';
     END IF;
 
     SELECT string_agg(i.account_id::TEXT, ', ')
@@ -49,29 +47,36 @@ BEGIN
     END IF;
 END $$;
 
--- 999 fictional learners. Names are natural Vietnamese names; only the email
--- sequence is numbered so that its uniqueness is obvious in a demo database.
+-- 999 fictional learners. Names are natural Vietnamese names; emails are generated
+-- based on non-accented names and a sequence number to ensure uniqueness.
 WITH name_parts AS (
     SELECT
         ARRAY['Nguyễn', 'Trần', 'Lê', 'Phạm', 'Hoàng', 'Vũ', 'Đặng', 'Bùi', 'Đỗ', 'Hồ']::TEXT[] AS family_names,
         ARRAY['Minh', 'Thảo', 'Quốc', 'Gia', 'Anh', 'Khánh', 'Thanh', 'Phương', 'Hữu', 'Bảo']::TEXT[] AS middle_names,
-        ARRAY['Anh', 'An', 'Bình', 'Châu', 'Duy', 'Giang', 'Hân', 'Huy', 'Khang', 'Lan', 'Linh', 'Long', 'Mai', 'Nam', 'Ngọc', 'Nhi', 'Phúc', 'Quân', 'Trang', 'Vy']::TEXT[] AS given_names
+        ARRAY['Anh', 'An', 'Bình', 'Châu', 'Duy', 'Giang', 'Hân', 'Huy', 'Khang', 'Lan', 'Linh', 'Long', 'Mai', 'Nam', 'Ngọc', 'Nhi', 'Phúc', 'Quân', 'Trang', 'Vy']::TEXT[] AS given_names,
+        ARRAY['nguyen', 'tran', 'le', 'pham', 'hoang', 'vu', 'dang', 'bui', 'do', 'ho']::TEXT[] AS email_family_names,
+        ARRAY['anh', 'an', 'binh', 'chau', 'duy', 'giang', 'han', 'huy', 'khang', 'lan', 'linh', 'long', 'mai', 'nam', 'ngoc', 'nhi', 'phuc', 'quan', 'trang', 'vy']::TEXT[] AS email_given_names,
+        ARRAY['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com']::TEXT[] AS email_domains
 ), learner_role AS (
     SELECT id FROM roles WHERE name = 'USER' AND status = 1
 )
 INSERT INTO accounts (
-    id, role_id, email, full_name, avatar, provider, birth_day, metadata,
+    id, role_id, email, full_name, avatar, password, provider, birth_day, metadata,
     status, created_at, updated_at
 )
 SELECT
     gen_random_uuid(),
     learner_role.id,
-    'student' || lpad(n::TEXT, 3, '0') || '@gmail.com',
+    email_given_names[1 + (((n * 7) - 1) % array_length(email_given_names, 1))] || '.' ||
+    email_family_names[1 + ((n - 1) % array_length(email_family_names, 1))] ||
+    n::TEXT || '@' ||
+    email_domains[1 + ((n * 11) % array_length(email_domains, 1))],
     family_names[1 + ((n - 1) % array_length(family_names, 1))] || ' ' ||
     middle_names[1 + (((n * 3) - 1) % array_length(middle_names, 1))] || ' ' ||
     given_names[1 + (((n * 7) - 1) % array_length(given_names, 1))],
     'https://res.cloudinary.com/dhvlhfmlo/image/upload/v1784171548/gnostica_forum/ai%20agents%201_be6f0e54-81c4-40ab-a1b3-24a2d8cc3414.jpg',
-    CASE WHEN n % 5 = 0 THEN 'GOOGLE' ELSE 'EMAIL' END,
+    '$2a$10$W2neF9.6Agi6kAKVq8q3fec5dHW8KUA.b0VSIGdIZyUawWEXzQO2K', -- Default password: 123456
+    'EMAIL',
     DATE '1990-01-01' + ((n * 13) % 9000),
     jsonb_build_object('seed_batch', 'gnostica-demo-v1', 'kind', 'learner', 'activity_segment', CASE WHEN n % 9 = 0 THEN 'low_activity' WHEN n % 4 = 0 THEN 'high_activity' ELSE 'regular' END),
     CASE WHEN n % 41 = 0 THEN 2 WHEN n % 17 = 0 THEN 0 ELSE 1 END,
@@ -292,6 +297,71 @@ VALUES (
     NOW()
 );
 
+-- ---------------------------------------------------------
+-- SEED FORUM (TOPICS & THREADS)
+-- ---------------------------------------------------------
+DO $$
+DECLARE
+    v_instructor RECORD;
+    v_topic_id INT;
+    v_thread_id INT;
+    v_learner_id UUID;
+    v_topic_no INT := 1;
+    v_thread_no INT := 1;
+    v_avatar_url CONSTANT TEXT := 'https://res.cloudinary.com/dhvlhfmlo/image/upload/v1784171548/gnostica_forum/ai%20agents%201_be6f0e54-81c4-40ab-a1b3-24a2d8cc3414.jpg';
+BEGIN
+    FOR v_instructor IN
+        SELECT a.id, a.full_name
+        FROM seed_instructor_ids i
+        JOIN accounts a ON a.id = i.account_id
+    LOOP
+        -- Topic 1: Hỏi đáp
+        INSERT INTO topics (account_id, title, slug, description, avatar_url, banner_url, status, created_at, updated_at)
+        VALUES (
+            v_instructor.id,
+            'Cộng đồng Hỏi đáp - ' || v_instructor.full_name,
+            'seed-hoi-dap-' || v_topic_no,
+            'Nơi thảo luận và giải đáp thắc mắc các khóa học của ' || v_instructor.full_name,
+            v_avatar_url, v_avatar_url, 1, NOW() - INTERVAL '30 days', NOW() - INTERVAL '30 days'
+        ) RETURNING id INTO v_topic_id;
+        v_topic_no := v_topic_no + 1;
+
+        -- Thêm threads cho Topic 1
+        FOR i IN 1..5 LOOP
+            SELECT id INTO v_learner_id FROM accounts WHERE metadata ->> 'seed_batch' = 'gnostica-demo-v1' AND metadata ->> 'kind' = 'learner' ORDER BY random() LIMIT 1;
+            
+            INSERT INTO threads (account_id, topic_id, title, slug, content, view_count, status, created_at, updated_at)
+            VALUES (
+                v_learner_id, v_topic_id,
+                'Thắc mắc về bài học số ' || i,
+                'seed-thac-mac-' || v_thread_no,
+                'Chào thầy/cô, em đang gặp chút khó khăn ở phần này, nhờ thầy cô và các bạn hướng dẫn giúp em với ạ.',
+                (random() * 100)::INT, 2, NOW() - (i * INTERVAL '2 days'), NOW() - (i * INTERVAL '2 days')
+            ) RETURNING id INTO v_thread_id;
+            v_thread_no := v_thread_no + 1;
+            
+            -- Thêm 1 bình luận phản hồi từ instructor
+            INSERT INTO comments (account_id, target_type, target_id, content, status, created_at, updated_at)
+            VALUES (
+                v_instructor.id, 'THREAD', v_thread_id::TEXT,
+                'Chào em, phần này em cần chú ý đọc kỹ lại tài liệu bài trước nhé. Nếu vẫn chưa hiểu thì nhắn lại để cô/thầy giải thích thêm.',
+                1, NOW() - (i * INTERVAL '2 days') + INTERVAL '5 hours', NOW() - (i * INTERVAL '2 days') + INTERVAL '5 hours'
+            );
+        END LOOP;
+
+        -- Topic 2: Chia sẻ kinh nghiệm
+        INSERT INTO topics (account_id, title, slug, description, avatar_url, banner_url, status, created_at, updated_at)
+        VALUES (
+            v_instructor.id,
+            'Góc chia sẻ kinh nghiệm - ' || v_instructor.full_name,
+            'seed-chia-se-' || v_topic_no,
+            'Tổng hợp tài liệu và bài viết chuyên sâu từ ' || v_instructor.full_name,
+            v_avatar_url, v_avatar_url, 1, NOW() - INTERVAL '30 days', NOW() - INTERVAL '30 days'
+        );
+        v_topic_no := v_topic_no + 1;
+    END LOOP;
+END $$;
+
 -- A concise verification report for DBeaver, psql, or an AI agent.
 SELECT 'accounts' AS entity, count(*) AS created
 FROM accounts WHERE metadata ->> 'seed_batch' = 'gnostica-demo-v1'
@@ -303,6 +373,10 @@ UNION ALL
 SELECT 'modules', count(*) FROM modules WHERE metadata ->> 'seed_batch' = 'gnostica-demo-v1'
 UNION ALL
 SELECT 'lessons', count(*) FROM lessons WHERE metadata ->> 'seed_batch' = 'gnostica-demo-v1'
+UNION ALL
+SELECT 'topics', count(*) FROM topics WHERE slug LIKE 'seed-%'
+UNION ALL
+SELECT 'threads', count(*) FROM threads WHERE slug LIKE 'seed-%'
 ORDER BY entity;
 
 SELECT a.id AS instructor_id, a.full_name, a.email, count(c.id) AS assigned_courses
