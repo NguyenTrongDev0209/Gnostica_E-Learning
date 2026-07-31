@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import useAuthStore from "@/store/useAuthStore";
+import { AppToast } from "@/components/common/micro/AppToast";
 import { useParams, useNavigate } from "react-router-dom";
 import { Star, Users, Calendar, Play, PlayCircle, FileText, Infinity as InfinityIcon, Smartphone, Trophy, Gift } from "lucide-react";
 import {
@@ -18,6 +20,7 @@ import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import PageContainer from "@/components/common/core/PageContainer";
 import courseService from "@/services/course/courseService";
+import { reviewService } from "@/services/course/reviewService";
 import instructorService from "@/services/instructor/instructorService";
 import GiftCourseDialog from '@/components/modals/GiftCourseDialog';
 
@@ -349,97 +352,289 @@ const CourseDetailInstructor = ({ instructor }) => {
   );
 };
 
-const CourseDetailReviews = ({ course }) => {
-  const reviews = Array.isArray(course.reviews) ? course.reviews : [];
-  const reviewCount = course.reviewCount ?? reviews.length;
-  const averageRating = Number(course.rating || 0);
-  const ratingDistribution = [5, 4, 3, 2, 1].map((rating) => {
-    const count = reviews.filter((review) => Number(review.rating) === rating).length;
-    return {
-      rating,
-      count,
-      percentage: reviewCount > 0 ? Math.round((count / reviewCount) * 100) : 0,
+const CourseDetailReviews = ({ course, slug }) => {
+    const [treeReviews, setTreeReviews] = useState([]);
+    const [reviewCount, setReviewCount] = useState(0);
+    const [averageRating, setAverageRating] = useState(0);
+    const [ratingDistribution, setRatingDistribution] = useState([]);
+
+    const [currentPage, setCurrentPage] = useState(1);
+    const [filterRating, setFilterRating] = useState(null);
+    const [showReviews, setShowReviews] = useState(false);
+    const [expandedReplies, setExpandedReplies] = useState({});
+
+    const toggleReplies = (id) => {
+        setExpandedReplies(prev => ({...prev, [id]: !prev[id]}));
     };
-  });
 
-  return (
-    <section>
-      <h2 className="mb-6 text-2xl font-bold text-foreground">Đánh giá khóa học</h2>
+    const fetchCourseReviews = async () => {
+        try {
+            if (!slug) return;
+            const res = await reviewService.getCourseReviews(slug);
+            const data = res.data;
+            if (data) {
+                setTreeReviews(data.reviews || []);
+                setReviewCount(data.reviewCount || 0);
+                setAverageRating(data.averageRating || 0);
+                setRatingDistribution(data.distribution || []);
+            }
+        } catch (error) {
+            console.error("Lỗi khi tải danh sách đánh giá:", error);
+        }
+    };
 
-      <div className="rounded-2xl border border-border bg-card p-6 md:p-8">
-        <div className="grid gap-8 border-b border-border pb-8 md:grid-cols-[180px_1fr] md:items-center">
-          <div className="text-center md:text-left">
-            <div className="text-5xl font-bold text-warning">{averageRating.toFixed(1)}</div>
-            <div className="mt-3 flex justify-center gap-1 md:justify-start" aria-label={`${averageRating.toFixed(1)} trên 5 sao`}>
-              {Array.from({ length: 5 }).map((_, index) => (
-                <Star
-                  key={index}
-                  className={`h-5 w-5 text-warning ${index < Math.round(averageRating) ? "fill-warning" : "fill-transparent"}`}
-                />
+    useEffect(() => {
+        fetchCourseReviews();
+    }, [slug]);
+
+    const [replyingTo, setReplyingTo] = useState(null);
+    const [replyComment, setReplyComment] = useState("");
+    const [isSubmittingReply, setIsSubmittingReply] = useState(false);
+    
+    // Check if user is logged in
+    const currentUser = useAuthStore(state => state.user);
+
+    const handleReplySubmit = async (parentId) => {
+        if (!replyComment.trim()) return;
+        try {
+            setIsSubmittingReply(true);
+            await reviewService.replyToReview(parentId, replyComment.trim());
+            AppToast.success("Đã gửi câu trả lời.");
+            setReplyingTo(null);
+            setReplyComment("");
+            fetchCourseReviews(); // Refresh danh sách review sau khi trả lời
+        } catch (error) {
+            AppToast.error(error.response?.data?.message || "Lỗi khi gửi câu trả lời.");
+        } finally {
+            setIsSubmittingReply(false);
+        }
+    };
+
+    const renderReviewTree = (reviewList, isChild = false) => {
+      return reviewList.map((review) => (
+        <article key={review.id} className={`flex gap-4 py-6 last:pb-0 ${isChild ? 'pl-10 mt-4 border-t border-border/50 pt-4' : ''}`}>
+          <Avatar className="h-11 w-11 shrink-0">
+            <AvatarImage src={review.studentAvatar} alt={review.studentName} />
+            <AvatarFallback>{review.studentName?.charAt(0)?.toUpperCase() || "U"}</AvatarFallback>
+          </Avatar>
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <h3 className="text-base font-bold text-foreground">{review.studentName || "Người dùng"}</h3>
+                {(review.isInstructor || review.accountId === course?.instructor?.id) && (
+                  <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary flex-shrink-0">
+                    Tác giả
+                  </span>
+                )}
+              </div>
+              <time className="text-sm text-muted-foreground">
+                {review.createdAt ? new Date(review.createdAt).toLocaleDateString("vi-VN") : ""}
+              </time>
+            </div>
+            {!isChild && (
+              <div className="mt-2 flex gap-1" aria-label={`${review.rating} trên 5 sao`}>
+                {Array.from({ length: 5 }).map((_, index) => (
+                  <Star
+                    key={index}
+                    className={`h-4 w-4 text-warning ${index < Number(review.rating) ? "fill-warning" : "fill-transparent"}`}
+                  />
+                ))}
+              </div>
+            )}
+            <p className="mt-3 text-base leading-6 text-muted-foreground">{review.comment}</p>
+            
+            {/* Nút trả lời */}
+            {currentUser && (
+              <button 
+                onClick={() => { setReplyingTo(review.id); setReplyComment(""); }} 
+                className="mt-3 text-sm font-medium text-primary hover:underline"
+              >
+                Trả lời
+              </button>
+            )}
+
+            {/* Form trả lời */}
+            {replyingTo === review.id && (
+              <div className="mt-4 flex gap-3">
+                <Avatar className="h-8 w-8 shrink-0">
+                  <AvatarFallback>{currentUser?.fullName?.charAt(0) || "U"}</AvatarFallback>
+                </Avatar>
+                <div className="flex-1 space-y-2">
+                  <textarea
+                    value={replyComment}
+                    onChange={(e) => setReplyComment(e.target.value)}
+                    placeholder="Viết câu trả lời..."
+                    className="w-full rounded-md border border-border bg-background p-2 text-sm outline-none focus:border-primary"
+                    rows="2"
+                  />
+                  <div className="flex justify-end gap-2">
+                    <Button variant="ghost" size="sm" onClick={() => setReplyingTo(null)}>Hủy</Button>
+                    <Button size="sm" onClick={() => handleReplySubmit(review.id)} disabled={!replyComment.trim() || isSubmittingReply}>
+                      {isSubmittingReply ? "Đang gửi..." : "Gửi trả lời"}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Render Replies */}
+            {review.replies && review.replies.length > 0 && (
+              <div className="mt-2">
+                <button 
+                  onClick={() => toggleReplies(review.id)}
+                  className="text-[13px] font-bold text-primary hover:underline flex items-center gap-1 mt-3 mb-2"
+                >
+                  {expandedReplies[review.id] ? "Thu gọn câu trả lời" : `Xem ${review.replies.length} câu trả lời`}
+                </button>
+                {expandedReplies[review.id] && (
+                  renderReviewTree(review.replies, true)
+                )}
+              </div>
+            )}
+          </div>
+        </article>
+      ));
+    };
+
+    const filteredReviews = filterRating 
+      ? treeReviews.filter(review => Math.round(Number(review.rating)) === filterRating)
+      : treeReviews;
+
+    const REVIEWS_PER_PAGE = 5;
+    const totalPages = Math.ceil(filteredReviews.length / REVIEWS_PER_PAGE);
+    const paginatedReviews = filteredReviews.slice((currentPage - 1) * REVIEWS_PER_PAGE, currentPage * REVIEWS_PER_PAGE);
+
+    return (
+      <section>
+        <h2 className="mb-6 text-2xl font-bold text-foreground">Đánh giá khóa học</h2>
+  
+        <div className="rounded-2xl border border-border bg-card p-6 md:p-8">
+          <div className="grid gap-8 border-b border-border pb-8 md:grid-cols-[180px_1fr] md:items-center">
+            <div className="text-center md:text-left">
+              <div className="text-5xl font-bold text-warning">{averageRating.toFixed(1)}</div>
+              <div className="mt-3 flex justify-center gap-1 md:justify-start" aria-label={`${averageRating.toFixed(1)} trên 5 sao`}>
+                {Array.from({ length: 5 }).map((_, index) => (
+                  <Star
+                    key={index}
+                    className={`h-5 w-5 text-warning ${index < Math.round(averageRating) ? "fill-warning" : "fill-transparent"}`}
+                  />
+                ))}
+              </div>
+              <p className="mt-2 text-sm text-muted-foreground">{reviewCount} đánh giá</p>
+            </div>
+  
+            <div className="space-y-3">
+              {ratingDistribution.map((item) => (
+                <div key={item.rating} className="grid grid-cols-[52px_1fr_42px] items-center gap-3 text-sm">
+                  <div className="flex items-center gap-1 font-medium text-foreground">
+                    <span>{item.rating}</span>
+                    <Star className="h-4 w-4 fill-warning text-warning" />
+                  </div>
+                  <AppProgress
+                    value={item.percentage}
+                    heightClass="h-2"
+                    className="[&>[data-slot=progress-indicator]]:bg-warning"
+                  />
+                  <span className="text-right text-muted-foreground">{item.percentage}%</span>
+                </div>
               ))}
             </div>
-            <p className="mt-2 text-sm text-muted-foreground">{reviewCount} đánh giá</p>
           </div>
-
-          <div className="space-y-3">
-            {ratingDistribution.map((item) => (
-              <div key={item.rating} className="grid grid-cols-[52px_1fr_42px] items-center gap-3 text-sm">
-                <div className="flex items-center gap-1 font-medium text-foreground">
-                  <span>{item.rating}</span>
-                  <Star className="h-4 w-4 fill-warning text-warning" />
-                </div>
-                <AppProgress
-                  value={item.percentage}
-                  heightClass="h-2"
-                  className="[&>[data-slot=progress-indicator]]:bg-warning"
-                />
-                <span className="text-right text-muted-foreground">{item.percentage}%</span>
+  
+          {treeReviews.length > 0 ? (
+            <div className="mt-8">
+              <div className="flex justify-center border-t border-border pt-6 mb-6">
+                <Button 
+                  onClick={() => setShowReviews(!showReviews)} 
+                  variant="outline" 
+                  className="rounded-full px-6 font-bold"
+                >
+                  {showReviews ? "Thu gọn danh sách đánh giá" : `Xem tất cả ${reviewCount} đánh giá`}
+                </Button>
               </div>
-            ))}
-          </div>
-        </div>
 
-        {reviews.length > 0 ? (
-          <div className="divide-y divide-border">
-            {reviews.map((review) => (
-              <article key={review.id} className="flex gap-4 py-6 last:pb-0">
-                <Avatar className="h-11 w-11 shrink-0">
-                  <AvatarImage src={review.studentAvatar} alt={review.studentName} />
-                  <AvatarFallback>{review.studentName?.charAt(0)?.toUpperCase() || "H"}</AvatarFallback>
-                </Avatar>
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-base font-bold text-foreground">{review.studentName || "Học viên"}</h3>
-                      {review.accountId === course?.instructorId && (
-                        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary flex-shrink-0">
-                          Tác giả
-                        </span>
-                      )}
+              {showReviews && (
+                <div className="animate-in fade-in slide-in-from-top-4 duration-300">
+                  <div className="flex flex-wrap gap-2 items-center mb-6 border-b border-border pb-6">
+                    <span className="text-sm font-bold text-foreground mr-2">Lọc đánh giá:</span>
+                    <Button
+                      variant={filterRating === null ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => { setFilterRating(null); setCurrentPage(1); }}
+                      className="rounded-full px-5 h-9 font-bold transition-all"
+                    >
+                      Tất cả
+                    </Button>
+                    {[5, 4, 3, 2, 1].map(star => {
+                      const dist = ratingDistribution.find(d => Number(d.rating) === star);
+                      const count = dist ? dist.count : 0;
+                      return (
+                        <Button
+                          key={star}
+                          variant={filterRating === star ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => { setFilterRating(star); setCurrentPage(1); }}
+                          className="rounded-full flex items-center gap-1.5 px-4 h-9 font-bold transition-all"
+                          disabled={count === 0}
+                        >
+                          {star} 
+                          <Star className={`w-3.5 h-3.5 ${filterRating === star ? "fill-primary-foreground text-primary-foreground" : "fill-warning text-warning"}`} /> 
+                          <span className={`ml-1 text-xs ${filterRating === star ? 'text-primary-foreground/90' : 'text-muted-foreground'}`}>({count})</span>
+                        </Button>
+                      );
+                    })}
+                  </div>
+                  
+                  <div className="divide-y divide-border">
+                    {paginatedReviews.length > 0 ? (
+                      renderReviewTree(paginatedReviews)
+                    ) : (
+                      <p className="py-8 text-center text-muted-foreground">Không có đánh giá nào phù hợp với bộ lọc.</p>
+                    )}
+                  </div>
+
+                  {totalPages > 1 && (
+                    <div className="mt-8 flex justify-center items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                      >
+                        Trang trước
+                      </Button>
+                      <div className="flex items-center gap-1 flex-wrap justify-center">
+                        {Array.from({ length: totalPages }).map((_, idx) => (
+                          <Button
+                            key={idx}
+                            variant={currentPage === idx + 1 ? "default" : "outline"}
+                            size="sm"
+                            className="w-8 h-8 p-0"
+                            onClick={() => setCurrentPage(idx + 1)}
+                          >
+                            {idx + 1}
+                          </Button>
+                        ))}
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                        disabled={currentPage === totalPages}
+                      >
+                        Trang sau
+                      </Button>
                     </div>
-                    <time className="text-sm text-muted-foreground">
-                      {review.createdAt ? new Date(review.createdAt).toLocaleDateString("vi-VN") : ""}
-                    </time>
-                  </div>
-                  <div className="mt-2 flex gap-1" aria-label={`${review.rating} trên 5 sao`}>
-                    {Array.from({ length: 5 }).map((_, index) => (
-                      <Star
-                        key={index}
-                        className={`h-4 w-4 text-warning ${index < Number(review.rating) ? "fill-warning" : "fill-transparent"}`}
-                      />
-                    ))}
-                  </div>
-                  <p className="mt-3 text-base leading-6 text-muted-foreground">{review.comment}</p>
+                  )}
                 </div>
-              </article>
-            ))}
-          </div>
-        ) : (
-          <p className="pt-8 text-center text-base text-muted-foreground">Chưa có đánh giá nào cho khóa học này.</p>
-        )}
-      </div>
-    </section>
-  );
+              )}
+            </div>
+          ) : (
+            <p className="pt-8 text-center text-base text-muted-foreground">Chưa có đánh giá nào cho khóa học này.</p>
+          )}
+        </div>
+      </section>
+    );
 };
 
 // ── CourseDetailPricingCard ──
@@ -721,13 +916,9 @@ export default function CourseDetail() {
 
             <CourseDetailCurriculum curriculum={course.curriculum || []} />
 
-            <Separator className="bg-muted/60" />
-
-            <CourseDetailReviews course={course} />
-
-            <Separator className="bg-muted/60" />
-
             <CourseDetailInstructor instructor={instructorData} />
+
+            <CourseDetailReviews course={course} slug={slug} />
           </div>
 
           <div className="order-1 lg:order-2 lg:col-span-4 relative flex flex-col gap-6">

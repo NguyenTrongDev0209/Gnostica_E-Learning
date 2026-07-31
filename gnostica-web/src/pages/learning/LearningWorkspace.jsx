@@ -45,6 +45,7 @@ import courseService from "@/services/course/courseService";
 import progressService from "@/services/course/progressService";
 import enrollmentService from "@/services/course/enrollmentService";
 import commentService from "@/services/forum/commentService";
+import { reviewService } from "@/services/course/reviewService";
 import useAuthStore from "@/store/useAuthStore";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/common/micro/AppAvatar";
 import { cn } from "@/lib/utils";
@@ -537,7 +538,22 @@ function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }
               const saved = localStorage.getItem(`quiz_answers_${quiz.id}`);
               if (saved) {
                   try {
-                      setUserAnswers(JSON.parse(saved));
+                      const parsed = JSON.parse(saved);
+                      setUserAnswers(parsed);
+                      
+                      let localCorrect = 0;
+                      const qs = questions;
+                      qs.forEach(q => {
+                          const selectedId = parsed[q.id];
+                          const correctOpt = q.answers?.find(a => a.isCorrect);
+                          if (selectedId && correctOpt && selectedId === correctOpt.id) {
+                              localCorrect++;
+                          }
+                      });
+                      const localScore = qs.length > 0 ? Math.round((localCorrect / qs.length) * 100) : 0;
+                      
+                      setScorePercent(localScore);
+                      setCorrectCount(localCorrect);
                   } catch (e) {}
               }
           }
@@ -548,7 +564,7 @@ function QuizArea({ quiz, existingResult, onBack, onQuizCompleted, onQuizReset }
           setUserAnswers({});
           setCurrentQuestionIdx(0);
       }
-  }, [existingResult, quiz?.id]);
+  }, [existingResult, quiz?.id, questions]);
 
   if (!quiz || questions.length === 0) {
     return (
@@ -875,7 +891,19 @@ export default function LearningWorkspace() {
   const [showRatingForm, setShowRatingForm] = useState(false);
   const [draftRating, setDraftRating] = useState(0);
   const [draftReviewComment, setDraftReviewComment] = useState("");
-  const [localCourseReview, setLocalCourseReview] = useState(null);
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [courseRatingSummary, setCourseRatingSummary] = useState({
+    averageRating: 0,
+    reviewCount: 0,
+    distribution: [
+      { rating: 5, count: 0, percentage: 0 },
+      { rating: 4, count: 0, percentage: 0 },
+      { rating: 3, count: 0, percentage: 0 },
+      { rating: 2, count: 0, percentage: 0 },
+      { rating: 1, count: 0, percentage: 0 }
+    ],
+    reviews: []
+  });
 
   // === REFS để tránh stale closure trong interval/listener ===
   const currentTimeRef = useRef(0);
@@ -887,6 +915,11 @@ export default function LearningWorkspace() {
   useEffect(() => {
     document.documentElement.classList.toggle("dark", isDarkMode);
     window.localStorage.setItem("gnostica-theme", isDarkMode ? "dark" : "light");
+
+    return () => {
+      // Remove dark class when leaving the workspace so it doesn't affect other pages
+      document.documentElement.classList.remove("dark");
+    };
   }, [isDarkMode]);
 
   useEffect(() => {
@@ -917,9 +950,10 @@ export default function LearningWorkspace() {
   const fetchCourseData = async () => {
     try {
       setLoading(true);
-      const [courseData, progressData] = await Promise.all([
+      const [courseData, progressData, reviewsRes] = await Promise.all([
         courseService.getCourseBySlug(slug),
-        progressService.getCourseProgress(slug)
+        progressService.getCourseProgress(slug),
+        reviewService.getCourseReviews(slug).catch(() => ({ data: { reviews: [], averageRating: 0, reviewCount: 0, distribution: [] } }))
       ]);
       
       // Lấy tất cả Module và Lesson (kể cả ẩn hoặc xóa mềm) cho người dùng đã mua khóa học
@@ -931,6 +965,9 @@ export default function LearningWorkspace() {
       }
 
       setCourse({ ...courseData, modules: activeModules });
+      if (reviewsRes && reviewsRes.data) {
+        setCourseRatingSummary(reviewsRes.data);
+      }
       setOpenSectionValues(activeModules.map((_, index) => `section-${index}`));
       
       // Nhận data gộp: { lessons: [], quizzes: [], progressPercent }
@@ -1005,26 +1042,32 @@ export default function LearningWorkspace() {
   const currentSectionLessonCount = currentSection?.lessons?.length || 0;
   const currentLessonNumber = activeLessonIdx + 1;
   const isCurrentLessonCompleted = Boolean(currentLessonProgress?.isCompleted);
-  const courseRatingSummary = getCourseRatingSummary(course);
-  const serverUserReview = courseRatingSummary.reviews.find((review) => String(review.accountId) === String(currentUser?.id));
-  const currentUserReview = localCourseReview || serverUserReview;
+  
+  const currentUserReview = courseRatingSummary?.reviews?.find((review) => String(review.accountId) === String(currentUser?.id));
   const progressSavedLabel = lastProgressSavedAt
     ? lastProgressSavedAt.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })
     : null;
 
-  const handleSaveDraftReview = (event) => {
+  const handleSubmitReview = async (event) => {
     event.preventDefault();
     if (!draftRating) return;
 
-    setLocalCourseReview({
-      id: "local-draft",
-      rating: draftRating,
-      comment: draftReviewComment.trim(),
-      studentName: currentUser?.fullName || currentUser?.name || "Bạn",
-      createdAt: new Date().toISOString(),
-    });
-    setShowRatingForm(false);
-    AppToast.info("Đã lưu bản nháp đánh giá trên trang học. Khi có API đánh giá, phần này có thể đồng bộ lên hệ thống.");
+    try {
+      setIsSubmittingReview(true);
+      await reviewService.submitReview(slug, draftRating, draftReviewComment.trim());
+      
+      const reviewsRes = await reviewService.getCourseReviews(slug);
+      if (reviewsRes && reviewsRes.data) {
+        setCourseRatingSummary(reviewsRes.data);
+      }
+      
+      setShowRatingForm(false);
+      AppToast.success("Gửi đánh giá thành công! Cảm ơn bạn đã đóng góp.");
+    } catch (error) {
+      AppToast.error(error.response?.data?.message || "Có lỗi xảy ra khi gửi báo cáo.");
+    } finally {
+      setIsSubmittingReview(false);
+    }
   };
 
   // === Sync quiz results callbacks ===
@@ -1032,9 +1075,9 @@ export default function LearningWorkspace() {
       setQuizProgress(prev => {
           const exists = prev.some(q => q.quizId == quizId);
           if (exists) {
-              return prev.map(q => q.quizId == quizId ? { ...q, point, correctAnswers, totalQuestions } : q);
+              return prev.map(q => q.quizId == quizId ? { ...q, point, correctAnswers, totalQuestions, status: 2 } : q);
           }
-          return [...prev, { quizId, point, correctAnswers, totalQuestions, completedAt: new Date().toISOString() }];
+          return [...prev, { quizId, point, correctAnswers, totalQuestions, status: 2, completedAt: new Date().toISOString() }];
       });
       // Cập nhật server progress
       progressService.getCourseProgress(slug).then(res => {
@@ -1761,7 +1804,7 @@ export default function LearningWorkspace() {
                               )}
 
                               {showRatingForm && (
-                                <form onSubmit={handleSaveDraftReview} className="mt-4 rounded-xl border border-border bg-card p-4">
+                                <form onSubmit={handleSubmitReview} className="mt-4 rounded-xl border border-border bg-card p-4">
                                   <div className="flex flex-wrap items-center gap-2">
                                     {Array.from({ length: 5 }).map((_, index) => {
                                       const value = index + 1;
@@ -1791,8 +1834,8 @@ export default function LearningWorkspace() {
                                     <Button type="button" variant="ghost" size="sm" onClick={() => setShowRatingForm(false)} className="h-9 rounded-lg">
                                       Hủy
                                     </Button>
-                                    <Button type="submit" size="sm" disabled={!draftRating} className="h-9 rounded-lg">
-                                      Lưu bản nháp
+                                    <Button type="submit" size="sm" disabled={!draftRating || isSubmittingReview} className="h-9 rounded-lg">
+                                      {isSubmittingReview ? "Đang gửi..." : "Gửi đánh giá"}
                                     </Button>
                                   </div>
                                 </form>

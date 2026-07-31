@@ -33,14 +33,25 @@ public class QuizResultService {
 
         java.math.BigDecimal newPoint = java.math.BigDecimal.valueOf(req.getPoint());
 
+        boolean keepOldScore = false;
+        if (result.getId() != null && result.getPoint() != null) {
+            if (newPoint.compareTo(result.getPoint()) < 0) {
+                keepOldScore = true;
+            }
+        }
+
         result.setAccount(account);
         result.setQuiz(quiz);
-        result.setPoint(newPoint);
-        result.setTotalQuestions(req.getTotalQuestions());
-        result.setCorrectAnswers(req.getCorrectAnswers());
+        
+        if (!keepOldScore) {
+            result.setPoint(newPoint);
+            result.setTotalQuestions(req.getTotalQuestions());
+            result.setCorrectAnswers(req.getCorrectAnswers());
+            result.setCompletedAt(LocalDateTime.now());
+        }
+        
         result.setTime(0);
         result.setStatus(2);
-        result.setCompletedAt(LocalDateTime.now());
 
         quizResultRepository.save(result);
 
