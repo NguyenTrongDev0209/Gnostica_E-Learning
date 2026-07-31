@@ -92,7 +92,6 @@ export default function CertificatePage() {
                     </div>
                     <div className="text-right text-[10px] md:text-xs font-medium text-muted-foreground">
                         <p>Số giấy chứng nhận: {certificate.certifiUrl}</p>
-                        <p>URL giấy chứng nhận: gnostica.io/certificate/{certificate.certifiUrl}</p>
                     </div>
                 </div>
 

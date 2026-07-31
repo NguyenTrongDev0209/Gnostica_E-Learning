@@ -147,7 +147,7 @@ public class CourseService {
         course.setModules(modules);
 
         // 4. Save and return
-        Course savedCourse = courseRepository.save(course);
+        Course savedCourse = courseRepository.saveAndFlush(course);
 
         // Save question bank first and get ID mapping
         java.util.Map<Integer, Integer> questionIdMap = new java.util.HashMap<>();
@@ -509,7 +509,7 @@ public class CourseService {
             }
         }
 
-        Course updatedCourse = courseRepository.save(course);
+        Course updatedCourse = courseRepository.saveAndFlush(course);
 
         // Save question bank first and get ID mapping
         java.util.Map<Integer, Integer> questionIdMap = new java.util.HashMap<>();
@@ -523,13 +523,15 @@ public class CourseService {
                 Module savedModule = null;
                 if (mReq.getId() != null) {
                     savedModule = updatedCourse.getModules().stream()
-                            .filter(m -> m.getId().equals(mReq.getId()))
+                            .filter(m -> mReq.getId().equals(m.getId()) || 
+                                        (m.getOriginalModule() != null && mReq.getId().equals(m.getOriginalModule().getId())))
                             .findFirst()
                             .orElse(null);
                 } else {
                     // Match by title for new modules
                     savedModule = updatedCourse.getModules().stream()
-                            .filter(m -> m.getTitle().equals(mReq.getTitle()))
+                            .filter(m -> m.getTitle() != null && m.getTitle().equals(mReq.getTitle()) && 
+                                         (m.getOriginalModule() == null)) // Only match new modules
                             .findFirst()
                             .orElse(null);
                 }

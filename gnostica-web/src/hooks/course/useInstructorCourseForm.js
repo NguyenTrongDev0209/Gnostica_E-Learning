@@ -182,18 +182,19 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
   // --- DRAFT LOGIC WITH REACT QUERY MUTATION ---
   const saveDraftMutation = useMutation({
     mutationFn: async (formData) => {
-      const dataToSave = {
-        ...formData,
-        thumbnail: formData.thumbnail instanceof File ? null : formData.thumbnail,
-        promoVideo: formData.promoVideo instanceof File ? null : formData.promoVideo,
-        sections: formData.sections?.map(s => ({
-          ...s,
-          lessons: s.lessons?.map(l => ({
-            ...l,
-            videoFile: l.videoFile instanceof File ? null : l.videoFile
+        const dataToSave = {
+          ...formData,
+          thumbnail: formData.thumbnail instanceof File ? null : formData.thumbnail,
+          promoVideo: formData.promoVideo instanceof File ? null : formData.promoVideo,
+          sections: formData.sections?.map(s => ({
+            ...s,
+            attachments: s.attachments instanceof File ? null : s.attachments,
+            lessons: s.lessons?.map(l => ({
+              ...l,
+              videoFile: l.videoFile instanceof File ? null : l.videoFile
+            })) || []
           })) || []
-        })) || []
-      };
+        };
 
       const url = isEditMode ? `/courses/draft?courseId=${formData.id || ""}&slug=${slug || ""}` : `/courses/draft`;
       return await axiosClient.post(url, dataToSave);

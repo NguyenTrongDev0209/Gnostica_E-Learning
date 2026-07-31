@@ -34,7 +34,7 @@ public class Review {
     private Review parent;
 
     @NotNull
-    @Min(1)
+    @Min(0)
     @Max(5)
     private Integer rating;
 

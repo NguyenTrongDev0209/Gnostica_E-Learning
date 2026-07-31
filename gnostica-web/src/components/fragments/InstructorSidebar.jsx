@@ -7,7 +7,8 @@ import {
   Wallet,
   Ticket,
   Settings,
-  LogOut
+  LogOut,
+  MessageSquare
 } from "lucide-react";
 import { AppLogo } from "@/components/common/micro/AppButton";
 
@@ -17,6 +18,7 @@ const INSTRUCTOR_MENU_GROUPS = [
     items: [
       { label: "Tổng quan", icon: LayoutDashboard, href: "/instructor" },
       { label: "Học viên", icon: Users, href: "/instructor/students" },
+      { label: "Hỏi đáp & Đánh giá", icon: MessageSquare, href: "/instructor/qa" },
     ]
   },
   {

@@ -55,12 +55,12 @@ public class DraftCourseService {
     public CourseRequest getDraft(String email, String courseId) {
         String key = buildKey(email, courseId);
         Object data = redisTemplate.opsForValue().get(key);
+        if (data == null) return null;
         if (data instanceof CourseRequest) {
             return (CourseRequest) data;
         }
         // Trường hợp GenericJackson2JsonRedisSerializer trả về LinkedHashMap
-        // Jackson có thể tự conert nếu cần, nhưng tạm thời ép kiểu nếu cùng classloader
-        return (CourseRequest) data;
+        return objectMapper.convertValue(data, CourseRequest.class);
     }
 
     public void deleteDraft(String email, String courseId) {
@@ -116,7 +116,13 @@ public class DraftCourseService {
 
         return keys.stream()
                 .map(key -> {
-                    CourseRequest draft = (CourseRequest) redisTemplate.opsForValue().get(key);
+                    Object data = redisTemplate.opsForValue().get(key);
+                    CourseRequest draft = null;
+                    if (data instanceof CourseRequest) {
+                        draft = (CourseRequest) data;
+                    } else if (data != null) {
+                        draft = objectMapper.convertValue(data, CourseRequest.class);
+                    }
                     if (draft != null) {
                         // Trích xuất ID từ key (phần cuối cùng sau dấu :)
                         String[] parts = key.split(":");
