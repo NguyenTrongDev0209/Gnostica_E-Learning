@@ -80,12 +80,13 @@ export function useAdminBanners() {
   return { ...query, createMutation, updateMutation, deleteMutation, uploadMutation };
 }
 
-export function usePublicPage(slug) {
+export function usePublicPage(slug, options = {}) {
   return useQuery({
     queryKey: ["public", "page", slug],
     queryFn: () => getPublicPage(slug),
     staleTime: 5 * 60_000,
-    retry: 1,
+    retry: (failureCount, error) => error?.response?.status !== 404 && failureCount < 1,
+    ...options,
   });
 }
 

@@ -1,20 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DeviceEventEmitter } from 'react-native';
-import Constants from 'expo-constants';
+import { API_URL, OAUTH_REDIRECT_URI } from './environment';
 
-// Tự động phát hiện IP máy tính đang chạy Expo CLI
-const getBaseUrl = () => {
-    if (process.env.EXPO_PUBLIC_API_URL && process.env.EXPO_PUBLIC_API_URL.trim() !== '') {
-        return process.env.EXPO_PUBLIC_API_URL;
-    }
-
-    const hostUri = Constants.expoConfig?.hostUri || Constants.manifest2?.extra?.expoGo?.developer?.tool;
-    const hostIp = hostUri ? hostUri.split(':')[0] : 'localhost';
-
-    return `http://${hostIp}:8080/api`;
-};
-
-export const BASE_URL = getBaseUrl();
+export const BASE_URL = API_URL;
+export { OAUTH_REDIRECT_URI };
 
 
 const api = {

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import useAuthStore from "@/store/useAuthStore";
+import { API_URL } from "@/config/environment";
 
 const getCourseName = (detail) => (
   detail?.courseName ||
@@ -54,7 +55,7 @@ export default function useOrders() {
     const fetchOrders = async () => {
       setLoading(true);
       try {
-        const res = await fetch("http://localhost:8080/api/order/my-orders", {
+        const res = await fetch(`${API_URL}/order/my-orders`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 

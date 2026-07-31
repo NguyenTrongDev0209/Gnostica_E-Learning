@@ -13,6 +13,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.http.HttpMethod;
+import org.springframework.beans.factory.annotation.Value;
 
 import com.gnostica.core.security.JwtAuthenticationFilter;
 
@@ -28,6 +29,9 @@ public class SecurityConfig {
         private final com.gnostica.core.security.OAuth2SuccessHandler oauth2SuccessHandler;
         private final com.gnostica.core.security.OAuth2FailureHandler oauth2FailureHandler;
         private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+        @Value("${app.cors.allowed-origin-patterns}")
+        private java.util.List<String> allowedOriginPatterns;
 
         @Bean
         public PasswordEncoder passwordEncoder() {
@@ -53,7 +57,7 @@ public class SecurityConfig {
             )
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/error", "/favicon.ico", "/**/*.html", "/**/*.css", "/**/*.js", "/ws/**").permitAll()
-                .requestMatchers("/api/auth/**", "/api/account/**", "/api/upload/**", "/api/follow/**", "/oauth2/**", "/login/oauth2/**", "/api/threads/**", "/api/forum-categories/**", "/api/comments/**", "/api/progress/**", "/api/ai/**", "/api/thread-reports/**", "/api/dashboard/**", "/api/payment/**",
+                .requestMatchers("/api/auth/**", "/api/account/**", "/api/upload/**", "/api/follow/**", "/api/oauth2/**", "/api/login/oauth2/**", "/api/threads/**", "/api/forum-categories/**", "/api/comments/**", "/api/progress/**", "/api/ai/**", "/api/thread-reports/**", "/api/dashboard/**", "/api/payment/**",
                                                                 "/api/order/**", "/api/certificates/**").permitAll()
                 .requestMatchers("/api/courses/draft/**", "/api/courses/draft", "/api/courses/instructor").authenticated()
                 .requestMatchers(HttpMethod.GET, "/api/courses/**", "/api/categories/**", "/api/instructors/**", "/api/public/**").permitAll()
@@ -62,6 +66,10 @@ public class SecurityConfig {
 
                                 .oauth2Login(oauth2 -> oauth2
                                                 .userInfoEndpoint(userInfo -> userInfo.userService(oauth2UserService))
+                                                .authorizationEndpoint(authorization -> authorization
+                                                                .baseUri("/api/oauth2/authorization"))
+                                                .redirectionEndpoint(redirection -> redirection
+                                                                .baseUri("/api/login/oauth2/code/*"))
                                                 .successHandler(oauth2SuccessHandler)
                                                 .failureHandler(oauth2FailureHandler))
                                 .sessionManagement(session -> session
@@ -77,9 +85,7 @@ public class SecurityConfig {
         @Bean
         public org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource() {
                 org.springframework.web.cors.CorsConfiguration configuration = new org.springframework.web.cors.CorsConfiguration();
-                configuration.setAllowedOriginPatterns(
-                                java.util.List.of("http://localhost:5173", "http://localhost:3000",
-                                                "http://127.0.0.1:*"));
+                configuration.setAllowedOriginPatterns(allowedOriginPatterns);
                 configuration.addAllowedMethod("*");
                 configuration.addAllowedHeader("*");
                 configuration.setAllowCredentials(true);

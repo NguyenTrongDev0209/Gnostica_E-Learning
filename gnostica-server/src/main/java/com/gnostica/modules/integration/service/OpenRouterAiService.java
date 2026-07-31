@@ -35,13 +35,16 @@ public class OpenRouterAiService {
     @Value("${openrouter.model}")
     private String model;
 
+    @Value("${app.public-url}")
+    private String publicUrl;
+
     public List<QuestionDto> generateQuestions(String documentText, int count, String difficulty, boolean isExcel) throws Exception {
         String url = baseUrl + "/chat/completions";
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Authorization", "Bearer " + apiKey);
-        headers.set("HTTP-Referer", "http://localhost:5173");
+        headers.set("HTTP-Referer", publicUrl);
         headers.set("X-Title", "Gnostica E-Learning");
 
         // Limit the text to avoid context length overflow. Flash can handle ~1M tokens, but we truncate just in case.
@@ -137,7 +140,7 @@ public class OpenRouterAiService {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Authorization", "Bearer " + apiKey);
-        headers.set("HTTP-Referer", "http://localhost:5173");
+        headers.set("HTTP-Referer", publicUrl);
         headers.set("X-Title", "Gnostica E-Learning");
 
         String systemPrompt = "Bạn là một chuyên gia kiểm duyệt nội dung giáo dục xuất sắc. Nhiệm vụ của bạn là đọc nội dung phụ đề video (kèm mốc thời gian) hoặc toàn bộ văn bản thông tin khóa học, chương, và bài giảng để phân tích vi phạm chính sách hệ thống.\n" +

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import useAuthStore from "@/store/useAuthStore";
+import { API_URL } from "@/config/environment";
 
 export default function useNotifications() {
   const [notifications, setNotifications] = useState([]);
@@ -10,7 +11,7 @@ export default function useNotifications() {
     if (!token) { setLoading(false); return; }
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:8080/api/notifications", {
+      const res = await fetch(`${API_URL}/notifications`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
       if (res.ok) {
@@ -43,7 +44,7 @@ export default function useNotifications() {
   const markAllAsRead = async () => {
     if (!token) { setLoading(false); return; }
     try {
-      await fetch("http://localhost:8080/api/notifications/read-all", {
+      await fetch(`${API_URL}/notifications/read-all`, {
         method: "PUT",
         headers: { "Authorization": `Bearer ${token}` }
       });
@@ -56,7 +57,7 @@ export default function useNotifications() {
   const markAsRead = async (id) => {
     if (!token) { setLoading(false); return; }
     try {
-      await fetch(`http://localhost:8080/api/notifications/${id}/read`, {
+      await fetch(`${API_URL}/notifications/${id}/read`, {
         method: "PUT",
         headers: { "Authorization": `Bearer ${token}` }
       });

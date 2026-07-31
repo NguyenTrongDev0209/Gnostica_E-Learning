@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import useAuthStore from "@/store/useAuthStore";
+import { API_URL } from "@/config/environment";
 
 export default function useLearningProgress() {
   const [courses, setCourses] = useState([]);
@@ -18,8 +19,8 @@ export default function useLearningProgress() {
       try {
         const headers = { "Authorization": `Bearer ${token}` };
         const [coursesRes, statsRes] = await Promise.all([
-          fetch("http://localhost:8080/api/enrollments/my-courses", { headers }),
-          fetch("http://localhost:8080/api/enrollments/stats", { headers })
+          fetch(`${API_URL}/enrollments/my-courses`, { headers }),
+          fetch(`${API_URL}/enrollments/stats`, { headers })
         ]);
 
         const coursesData = coursesRes.ok ? await coursesRes.json() : [];

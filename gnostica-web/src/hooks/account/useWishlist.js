@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import useAuthStore from "@/store/useAuthStore";
 import { toast } from "sonner";
+import { API_URL } from "@/config/environment";
 
 export default function useWishlist() {
   const [courses, setCourses] = useState([]);
@@ -11,7 +12,7 @@ export default function useWishlist() {
     if (!token) { setLoading(false); return; }
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:8080/api/favourites", {
+      const res = await fetch(`${API_URL}/favourites`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
       const data = await res.json();
@@ -49,7 +50,7 @@ export default function useWishlist() {
   const handleToggleWishlist = async (courseId) => {
     if (!token) { setLoading(false); return; }
     try {
-      const res = await fetch(`http://localhost:8080/api/favourites/toggle/${courseId}`, {
+      const res = await fetch(`${API_URL}/favourites/toggle/${courseId}`, {
         method: "POST",
         headers: { "Authorization": `Bearer ${token}` }
       });

@@ -18,6 +18,7 @@ import com.gnostica.core.event.LogEvent;
 import com.gnostica.core.model.Account;
 import com.gnostica.core.repository.AccountRepository;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.beans.factory.annotation.Value;
 
 @Slf4j
 @Component
@@ -28,6 +29,12 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     private final AccountRepository accountRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final ObjectMapper objectMapper;
+
+    @Value("${app.public-url}")
+    private String publicUrl;
+
+    @Value("${app.mobile-oauth-redirect-uri}")
+    private String mobileOAuthRedirectUri;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -56,7 +63,9 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         // Chuyển hướng kèm theo Token và Email
         String redirectUri = request.getParameter("redirect_uri");
         if (redirectUri == null || redirectUri.isBlank()) {
-            redirectUri = "http://localhost:5173/auth/callback";
+            redirectUri = publicUrl + "/auth/callback";
+        } else if (!redirectUri.equals(publicUrl + "/auth/callback") && !redirectUri.equals(mobileOAuthRedirectUri)) {
+            redirectUri = publicUrl + "/auth/callback";
         }
         String separator = redirectUri.contains("?") ? "&" : "?";
         String targetUrl = redirectUri + separator + "token=" + token + "&email=" + email;

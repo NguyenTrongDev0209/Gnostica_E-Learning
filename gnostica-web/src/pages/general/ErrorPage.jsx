@@ -3,7 +3,30 @@ import { Link } from 'react-router-dom';
 import { AppButton } from "@/components/common/micro/AppButton";
 import PageContainer from "@/components/common/core/PageContainer";
 
-const ErrorPage = () => {
+const ERROR_DETAILS = {
+  404: {
+    title: "Oops! Không tìm thấy trang này.",
+    description: "Trang bạn đang tìm kiếm không tồn tại.",
+  },
+  500: {
+    title: "Máy chủ đang gặp sự cố.",
+    description: "Hệ thống chưa thể xử lý yêu cầu của bạn. Vui lòng thử lại sau ít phút.",
+  },
+  502: {
+    title: "Dịch vụ tạm thời không khả dụng.",
+    description: "Máy chủ ứng dụng hiện chưa kết nối được. Vui lòng thử lại sau ít phút.",
+  },
+  503: {
+    title: "Không thể kết nối hệ thống.",
+    description: "Hãy kiểm tra kết nối mạng của bạn rồi thử lại.",
+  },
+};
+
+const ErrorPage = ({ status = 404 }) => {
+  const normalizedStatus = ERROR_DETAILS[status] ? status : 500;
+  const { title, description } = ERROR_DETAILS[normalizedStatus];
+  const canRetry = normalizedStatus !== 404;
+
   return (
     <PageContainer className="relative items-center justify-center overflow-hidden font-sans">
       {/* City Skyline Background (SVG) */}
@@ -33,21 +56,26 @@ const ErrorPage = () => {
       <div className="relative z-10 text-center px-4 -mt-24 md:-mt-32">
         {/* 404 Text */}
         <h1 className="text-[120px] md:text-[200px] font-black leading-none select-none animate-in fade-in zoom-in duration-700 bg-accent-gradient bg-clip-text text-transparent">
-          404
+          {normalizedStatus}
         </h1>
 
         {/* Heading */}
         <h2 className="text-3xl md:text-4xl font-bold text-foreground mt-4 tracking-tight">
-          Oops! Không tìm thấy trang này.
+          {title}
         </h2>
 
         {/* Subtext */}
         <p className="text-muted-foreground mt-4 max-w-md mx-auto text-lg font-medium">
-          Trang bạn đang tìm kiếm không tồn tại hoặc đã được di chuyển.
+          {description}
         </p>
 
         {/* Back Button */}
-        <div className="mt-10 flex justify-center">
+        <div className="mt-10 flex flex-wrap justify-center gap-3">
+          {canRetry && (
+            <AppButton appSize="lg" appVariant="outline" onClick={() => window.location.reload()}>
+              Thử lại
+            </AppButton>
+          )}
           <Link to="/">
             <AppButton appSize="lg" appVariant="gradient" className="shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all">
               Quay về trang chủ
