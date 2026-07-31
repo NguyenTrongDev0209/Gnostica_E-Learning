@@ -54,6 +54,8 @@ services:
     image: cloudflare/cloudflared:latest
     container_name: gnostica-cloudflared
     restart: unless-stopped
+    # This is a remotely managed tunnel. Configure its ingress in Cloudflare with
+    # the Docker service targets documented in cloudflared-ingress.yml.example.
     command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
     depends_on:
       web:

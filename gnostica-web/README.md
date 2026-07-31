@@ -87,8 +87,9 @@ Cloudflare Tunnel cần định tuyến cùng domain `gnostica.io.vn`:
 
 | Path | Service nội bộ |
 | --- | --- |
-| `/api` | `http://localhost:8080` |
-| `*` | `http://localhost:5173` |
+| `/api` | Host tunnel: `http://localhost:8080`; Docker tunnel: `http://server:8080` |
+| `/ws` | Host tunnel: `http://localhost:8080`; Docker tunnel: `http://server:8080` |
+| `*` | Host tunnel: `http://localhost:5173`; Docker tunnel: `http://web:80` |
 
 Nhờ vậy web luôn gọi API qua `https://gnostica.io.vn/api`; không cần công khai IP hay cấu hình CORS theo IP cho trình duyệt.
 
