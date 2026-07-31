@@ -37,6 +37,11 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(new ResponseDTO<>(400, ex.getMessage(), null), HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ResponseDTO<String>> handleResourceNotFoundException(ResourceNotFoundException ex) {
+        return new ResponseEntity<>(new ResponseDTO<>(404, ex.getMessage(), null), HttpStatus.NOT_FOUND);
+    }
+
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ResponseDTO<String>> handleAccessDeniedException(AccessDeniedException ex) {
         return new ResponseEntity<>(new ResponseDTO<>(403, "Bạn không có quyền thực hiện hành động này", null), HttpStatus.FORBIDDEN);

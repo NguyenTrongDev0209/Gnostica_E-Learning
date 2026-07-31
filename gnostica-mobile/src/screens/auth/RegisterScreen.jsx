@@ -7,7 +7,7 @@ import { useNavigation } from '@react-navigation/native';
 import * as WebBrowser from 'expo-web-browser';
 import { useAuth } from '../../context/AuthContext';
 import authService from '../../services/auth/authService';
-import { BASE_URL, OAUTH_REDIRECT_URI } from '../../config/api';
+import { OAUTH2_URL, OAUTH_REDIRECT_URI } from '../../config/environment';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -20,7 +20,7 @@ const RegisterScreen = () => {
         setIsLoading(true);
         try {
             const redirectUri = OAUTH_REDIRECT_URI;
-            const authUrl = `${BASE_URL}/oauth2/authorization/google?redirect_uri=${encodeURIComponent(redirectUri)}`;
+            const authUrl = `${OAUTH2_URL}?redirect_uri=${encodeURIComponent(redirectUri)}`;
 
             const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUri);
 

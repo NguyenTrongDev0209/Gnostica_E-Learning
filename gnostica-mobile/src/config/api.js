@@ -1,9 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DeviceEventEmitter } from 'react-native';
-// One public address for mobile. Change EXPO_PUBLIC_APP_URL in .env to switch environments.
-const publicAppUrl = (process.env.EXPO_PUBLIC_APP_URL || 'https://gnostica.io.vn').replace(/\/+$/, '');
-export const BASE_URL = `${publicAppUrl}/api`;
-export const OAUTH_REDIRECT_URI = process.env.EXPO_PUBLIC_OAUTH_REDIRECT_URI || 'gnostica://auth/callback';
+import { API_URL, OAUTH_REDIRECT_URI } from './environment';
+
+export const BASE_URL = API_URL;
+export { OAUTH_REDIRECT_URI };
 
 
 const api = {
