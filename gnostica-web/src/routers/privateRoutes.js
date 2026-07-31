@@ -41,6 +41,7 @@ import InstructorCoupons from "@/pages/instructor/InstructorCoupons";
 import InstructorStudents from "@/pages/instructor/InstructorStudents";
 import InstructorSettings from "@/pages/instructor/InstructorSettings";
 import InstructorCourseForm from "@/pages/instructor/InstructorCourseForm";
+import InstructorQA from "@/pages/instructor/InstructorQA";
 
 export const privateRoutes = {
   account: [
@@ -81,6 +82,7 @@ export const privateRoutes = {
     { path: "/instructor/revenue", component: InstructorRevenue },
     { path: "/instructor/coupons", component: InstructorCoupons },
     { path: "/instructor/students", component: InstructorStudents },
+    { path: "/instructor/qa", component: InstructorQA },
     { path: "/instructor/settings", component: InstructorSettings },
   ],
   learning: [

@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import { useFormContext, Controller } from "react-hook-form";
 import { Label } from "@/components/common/micro/AppLabel";
 import AppInput from "@/components/common/micro/AppInput";
@@ -7,6 +7,7 @@ export function PricingTab() {
   const {
     register,
     watch,
+    setValue,
     formState: { errors },
   } = useFormContext();
 
@@ -83,7 +84,16 @@ export function PricingTab() {
                 type="number"
                 className="h-12 border-border hover:border-success/50 focus-visible:border-success focus-visible:ring-success/30 bg-white font-medium focus: pl-10 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 placeholder="0 - 100"
-                {...register("discount")}
+                min={0}
+                max={100}
+                {...register("discount", {
+                  onChange: (e) => {
+                    let val = parseInt(e.target.value);
+                    if (isNaN(val)) return;
+                    if (val < 0) setValue("discount", 0);
+                    else if (val > 100) setValue("discount", 100);
+                  }
+                })}
               />
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-sm">%</span>
             </div>

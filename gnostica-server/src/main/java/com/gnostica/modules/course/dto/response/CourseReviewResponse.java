@@ -1,6 +1,7 @@
 package com.gnostica.modules.course.dto.response;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,4 +20,6 @@ public class CourseReviewResponse {
     private Integer rating;
     private String comment;
     private LocalDateTime createdAt;
+    private Boolean isInstructor;
+    private List<CourseReviewResponse> replies;
 }

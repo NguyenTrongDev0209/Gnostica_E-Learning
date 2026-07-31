@@ -184,7 +184,7 @@ npm install
 ```
 Tạo file `.env` (tham khảo `.env.example`) và cấu hình:
 ```env
-VITE_API_BASE_URL=http://localhost:8080/api/v1
+VITE_APP_ENV=development
 ```
 Khởi chạy ứng dụng Web:
 ```bash
@@ -197,7 +197,7 @@ npm run dev
 cd gnostica-mobile
 npm install
 ```
-Cấu hình API URL trong thư mục `src/constants/` (hoặc file `.env` tương ứng) để trỏ về địa chỉ IP mạng LAN của máy tính chạy backend (Ví dụ: `http://192.168.1.X:8080/api/v1`).
+Tạo file `.env` (tham khảo `.env.example`) và đặt `EXPO_PUBLIC_APP_ENV=development`. Đồng thời đặt `EXPO_PUBLIC_DEV_API_HOST` bằng IP LAN của máy chạy backend, ví dụ `192.168.1.X`. Mobile sẽ gọi `http://192.168.1.X:8080/api`; không dùng `localhost` trên thiết bị thật.
 
 Khởi chạy Expo:
 ```bash

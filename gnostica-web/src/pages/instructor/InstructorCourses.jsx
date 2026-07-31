@@ -143,7 +143,8 @@ function InstructorCourseTable({
                         <Users className="w-3.5 h-3.5 text-info" /> {row.students || 0}
                     </div>
                     <div className="flex flex-col items-center gap-1 bg-muted p-1.5 rounded-md border border-border min-w-[50px]">
-                        <Star className="w-3.5 h-3.5 text-slate-300" /> --
+                        <Star className={`w-3.5 h-3.5 ${row.rating > 0 ? 'text-warning fill-warning' : 'text-slate-300'}`} /> 
+                        {row.rating > 0 ? Number(row.rating).toFixed(1) : "--"}
                     </div>
                 </div>
             )

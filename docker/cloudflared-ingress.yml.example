@@ -1,0 +1,20 @@
+# Source-of-truth example for the remotely managed Cloudflare Tunnel.
+# Apply these rules in Cloudflare Zero Trust (or through its API/IaC); this file
+# is intentionally not mounted by docker-compose because token tunnels read
+# their ingress configuration from Cloudflare.
+#
+# The service names resolve on Docker's internal network. Do not use localhost:
+# it would point back to the cloudflared container itself.
+ingress:
+  - hostname: gnostica.io.vn
+    path: ^/api(?:/.*)?$
+    service: http://server:8080
+
+  - hostname: gnostica.io.vn
+    path: ^/ws(?:/.*)?$
+    service: http://server:8080
+
+  - hostname: gnostica.io.vn
+    service: http://web:80
+
+  - service: http_status:404
