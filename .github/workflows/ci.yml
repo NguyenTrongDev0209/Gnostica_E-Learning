@@ -1,0 +1,50 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build web, server, and Docker images
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+
+      - name: Build Spring Boot server
+        working-directory: gnostica-server
+        run: mvn --batch-mode --no-transfer-progress -DskipTests package
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: gnostica-web/package-lock.json
+
+      - name: Build React web
+        working-directory: gnostica-web
+        run: |
+          npm ci
+          npm run build
+
+      - name: Verify server Docker image builds
+        run: docker build --tag gnostica-server:ci ./gnostica-server
+
+      - name: Verify web Docker image builds
+        run: docker build --build-arg VITE_APP_ENV=production --tag gnostica-web:ci ./gnostica-web
