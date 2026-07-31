@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import useAuthStore from "@/store/useAuthStore";
 import accountService from "@/services/user/accountService";
-import { API_URL } from "@/config/publicUrl";
+import { API_URL } from "@/config/environment";
 
 export default function useSettingsForm(user) {
   const [formData, setFormData] = useState({

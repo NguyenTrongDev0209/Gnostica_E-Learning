@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import useAuthStore from "@/store/useAuthStore";
-import { API_URL } from "@/config/publicUrl";
+import { API_URL } from "@/config/environment";
 
 export default function useChangePassword() {
   const [formData, setFormData] = useState({

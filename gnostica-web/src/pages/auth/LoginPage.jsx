@@ -9,7 +9,7 @@ import AppSeparator from '@/components/common/micro/AppSeparator';
 import { Card, CardContent } from "@/components/common/micro/AppCard";
 import { Button } from "@/components/common/micro/AppButton";
 import { useLogin } from '@/hooks/auth/useLogin';
-import { OAUTH2_URL } from '@/config/publicUrl';
+import { OAUTH2_URL } from '@/config/environment';
 
 const LoginPage = () => {
   const {

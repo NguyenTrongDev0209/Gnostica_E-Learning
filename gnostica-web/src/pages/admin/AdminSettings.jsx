@@ -4,7 +4,7 @@ import AppTextarea from "@/components/common/micro/AppTextarea";
 import { Switch } from "@/components/common/micro/AppSwitch";
 // Fix imported
 import { cn } from "@/lib/utils";
-import { WS_URL } from "@/config/publicUrl";
+import { WS_URL } from "@/config/environment";
 import React, { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { AppButton } from "@/components/common/micro/AppButton";

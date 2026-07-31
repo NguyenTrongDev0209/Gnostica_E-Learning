@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import useAuthStore from "@/store/useAuthStore";
-import { API_URL } from "@/config/publicUrl";
+import { API_URL } from "@/config/environment";
 
 const getCourseName = (detail) => (
   detail?.courseName ||

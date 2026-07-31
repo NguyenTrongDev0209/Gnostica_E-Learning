@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import useAuthStore from "@/store/useAuthStore";
 import { toast } from "sonner";
-import { API_URL } from "@/config/publicUrl";
+import { API_URL } from "@/config/environment";
 
 export default function useVouchers() {
   const [vouchers, setVouchers] = useState([]);
