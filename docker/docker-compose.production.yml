@@ -1,0 +1,65 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: gnostica-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${PROD_DB_NAME}
+      POSTGRES_USER: ${PROD_DB_USERNAME}
+      POSTGRES_PASSWORD: ${PROD_DB_PASSWORD}
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - gnostica_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  server:
+    build:
+      context: ../gnostica-server
+      dockerfile: Dockerfile
+    image: gnostica-server:local
+    container_name: gnostica-server
+    restart: unless-stopped
+    env_file:
+      - ../gnostica-server/.env
+    environment:
+      APP_ENV: production
+      DB_URL: jdbc:postgresql://postgres:5432/${PROD_DB_NAME}
+      DB_USERNAME: ${PROD_DB_USERNAME}
+      DB_PASSWORD: ${PROD_DB_PASSWORD}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  web:
+    build:
+      context: ../gnostica-web
+      dockerfile: Dockerfile
+      args:
+        VITE_APP_ENV: production
+    image: gnostica-web:local
+    container_name: gnostica-web
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1/health > /dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: gnostica-cloudflared
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      web:
+        condition: service_healthy
+      server:
+        condition: service_started
+
+volumes:
+  gnostica_postgres_data:
