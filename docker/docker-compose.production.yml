@@ -1,12 +1,21 @@
+x-default-logging: &default-logging
+  driver: local
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   postgres:
     image: postgres:16-alpine
     container_name: gnostica-postgres
     restart: unless-stopped
+    logging: *default-logging
     environment:
       POSTGRES_DB: ${PROD_DB_NAME}
       POSTGRES_USER: ${PROD_DB_USERNAME}
       POSTGRES_PASSWORD: ${PROD_DB_PASSWORD}
+      TZ: ${APP_TIME_ZONE:-Asia/Ho_Chi_Minh}
+    command: ["postgres", "-c", "timezone=${APP_TIME_ZONE:-Asia/Ho_Chi_Minh}"]
     ports:
       - "127.0.0.1:5433:5432"
     volumes:
@@ -24,10 +33,14 @@ services:
     image: gnostica-server:local
     container_name: gnostica-server
     restart: unless-stopped
+    logging: *default-logging
     env_file:
       - ../gnostica-server/.env
     environment:
       APP_ENV: production
+      APP_TIME_ZONE: ${APP_TIME_ZONE:-Asia/Ho_Chi_Minh}
+      TZ: ${APP_TIME_ZONE:-Asia/Ho_Chi_Minh}
+      JAVA_TOOL_OPTIONS: -Duser.timezone=${APP_TIME_ZONE:-Asia/Ho_Chi_Minh}
       DB_URL: jdbc:postgresql://postgres:5432/${PROD_DB_NAME}
       DB_USERNAME: ${PROD_DB_USERNAME}
       DB_PASSWORD: ${PROD_DB_PASSWORD}
@@ -44,6 +57,7 @@ services:
     image: gnostica-web:local
     container_name: gnostica-web
     restart: unless-stopped
+    logging: *default-logging
     healthcheck:
       test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1/health > /dev/null || exit 1"]
       interval: 10s
@@ -54,6 +68,7 @@ services:
     image: cloudflare/cloudflared:latest
     container_name: gnostica-cloudflared
     restart: unless-stopped
+    logging: *default-logging
     # This is a remotely managed tunnel. Configure its ingress in Cloudflare with
     # the Docker service targets documented in cloudflared-ingress.yml.example.
     command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}

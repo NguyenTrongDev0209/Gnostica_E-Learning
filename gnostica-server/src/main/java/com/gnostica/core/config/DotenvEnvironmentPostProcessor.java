@@ -59,6 +59,7 @@ public class DotenvEnvironmentPostProcessor implements EnvironmentPostProcessor 
         Map<String, Object> props = new HashMap<>();
 
         if (DEVELOPMENT.equals(appEnvironment)) {
+            props.put("APP_SQL_LOGGING_ENABLED", "true");
             props.put("APP_PUBLIC_URL", "http://localhost:5173");
             props.put("APP_CORS_ALLOWED_ORIGIN_PATTERNS", "http://localhost:5173,http://localhost:3000,http://127.0.0.1:*");
             props.put("GOOGLE_REDIRECT_URI", "http://localhost:8080/api/login/oauth2/code/google");
@@ -68,6 +69,7 @@ public class DotenvEnvironmentPostProcessor implements EnvironmentPostProcessor 
         }
 
         if (PRODUCTION.equals(appEnvironment)) {
+            props.put("APP_SQL_LOGGING_ENABLED", "false");
             props.put("APP_PUBLIC_URL", "https://gnostica.io.vn");
             props.put("APP_CORS_ALLOWED_ORIGIN_PATTERNS", "https://gnostica.io.vn");
             props.put("GOOGLE_REDIRECT_URI", "https://gnostica.io.vn/api/login/oauth2/code/google");
