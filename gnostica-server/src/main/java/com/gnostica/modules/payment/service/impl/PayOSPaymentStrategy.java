@@ -9,6 +9,7 @@ import com.gnostica.core.repository.OrderDetailRepository;
 import com.gnostica.modules.payment.service.PaymentStrategy;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Value;
 import vn.payos.PayOS;
 import vn.payos.model.v2.paymentRequests.PaymentLink;
 import vn.payos.model.v2.paymentRequests.PaymentLinkItem;
@@ -28,6 +29,9 @@ public class PayOSPaymentStrategy implements PaymentStrategy {
     private final PayOS payOS;
     private final OrderDetailRepository orderDetailRepository;
 
+    @Value("${app.public-url}")
+    private String publicUrl;
+
     @Override
     public PaymentLinkResponse createPaymentLink(Order order, String returnUrl, String cancelUrl) throws Exception {
         List<OrderDetail> details = orderDetailRepository.findByOrder(order);
@@ -45,8 +49,8 @@ public class PayOSPaymentStrategy implements PaymentStrategy {
                 .amount((long) order.getTotalPrice().doubleValue())
                 .description(description)
                 .items(items)
-                .returnUrl(returnUrl != null && !returnUrl.isEmpty() ? returnUrl : "http://localhost:5173/payment/success")
-                .cancelUrl(cancelUrl != null && !cancelUrl.isEmpty() ? cancelUrl : "http://localhost:5173/payment/cancel")
+                .returnUrl(returnUrl != null && !returnUrl.isEmpty() ? returnUrl : publicUrl + "/payment/success")
+                .cancelUrl(cancelUrl != null && !cancelUrl.isEmpty() ? cancelUrl : publicUrl + "/payment/cancel")
                 .build();
 
         // Tạo link thanh toán

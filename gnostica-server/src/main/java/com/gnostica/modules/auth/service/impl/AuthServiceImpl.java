@@ -108,19 +108,28 @@ public class AuthServiceImpl implements AuthService {
         String level = null;
         try {
             if (account.getMetadata() != null && !account.getMetadata().trim().isEmpty()) {
-                java.util.Map<String, Object> metaMap = objectMapper.readValue(account.getMetadata(),
-                        new com.fasterxml.jackson.core.type.TypeReference<java.util.Map<String, Object>>() {
-                        });
+                java.util.Map<String, Object> metaMap = objectMapper.readValue(account.getMetadata(), new com.fasterxml.jackson.core.type.TypeReference<java.util.Map<String, Object>>() {});
                 if (metaMap.containsKey("onboardingCompleted")) {
-                    onboardingCompleted = (Boolean) metaMap.get("onboardingCompleted");
+                    Object val = metaMap.get("onboardingCompleted");
+                    if (val instanceof Boolean) {
+                        onboardingCompleted = (Boolean) val;
+                    } else if (val != null) {
+                        onboardingCompleted = Boolean.parseBoolean(val.toString());
+                    }
                 }
                 if (metaMap.containsKey("interests") && metaMap.get("interests") instanceof java.util.List) {
                     selectedCategories = ((java.util.List<?>) metaMap.get("interests")).stream()
                             .map(item -> Long.valueOf(item.toString()))
                             .collect(java.util.stream.Collectors.toList());
+                    if (selectedCategories != null && !selectedCategories.isEmpty() && !metaMap.containsKey("onboardingCompleted")) {
+                        onboardingCompleted = true;
+                    }
                 }
                 if (metaMap.containsKey("level")) {
                     level = (String) metaMap.get("level");
+                    if (level != null && !level.trim().isEmpty() && !metaMap.containsKey("onboardingCompleted")) {
+                        onboardingCompleted = true;
+                    }
                 }
             }
         } catch (Exception e) {
@@ -132,93 +141,6 @@ public class AuthServiceImpl implements AuthService {
                 .email(account.getEmail())
                 .fullName(account.getFullName())
                 .role(account.getRole().getName())
-                .avatar(account.getAvatar())
-                .provider(account.getProvider())
-                .onboardingCompleted(onboardingCompleted)
-                .selectedCategories(selectedCategories)
-                .level(level)
-                .id(account.getId())
-                .build();
-
-        publishLoginSuccessLog(account);
-        return response;
-    }
-
-    @Override
-    public LoginResponse loginWithGoogle(com.gnostica.modules.auth.dto.request.GoogleLoginRequest request) {
-        String email = request.getEmail();
-        String fullName = request.getFullName() != null && !request.getFullName().isBlank() ? request.getFullName()
-                : "Google User";
-        String avatar = request.getAvatar();
-
-        Account account = accountRepository.findByEmail(email)
-                .orElseGet(() -> {
-                    Account newAcc = new Account();
-                    newAcc.setEmail(email);
-                    newAcc.setFullName(fullName);
-                    newAcc.setAvatar(avatar);
-                    newAcc.setProvider("GOOGLE");
-                    newAcc.setStatus(STATUS_ACTIVE);
-                    newAcc.setPassword(passwordEncoder.encode("OAUTH2_USER_" + java.util.UUID.randomUUID()));
-
-                    Role defaultRole = roleRepository.findByName("USER")
-                            .orElseGet(() -> roleRepository.findByName("Student").orElseGet(() -> {
-                                Role r = new Role();
-                                r.setName("USER");
-                                r.setStatus(1);
-                                return roleRepository.save(r);
-                            }));
-                    newAcc.setRole(defaultRole);
-                    return accountRepository.save(newAcc);
-                });
-
-        if (Integer.valueOf(STATUS_BANNED).equals(account.getStatus())) {
-            throw new RuntimeException("Tài khoản của bạn đã bị khóa.");
-        }
-
-        if (avatar != null && !avatar.isBlank()) {
-            account.setAvatar(avatar);
-            accountRepository.save(account);
-        }
-
-        org.springframework.security.core.authority.SimpleGrantedAuthority authority = new org.springframework.security.core.authority.SimpleGrantedAuthority(
-                account.getRole() != null ? account.getRole().getName() : "USER");
-
-        Authentication authentication = new UsernamePasswordAuthenticationToken(
-                account.getEmail(), null, java.util.List.of(authority));
-
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        String token = tokenProvider.generateToken(authentication);
-
-        boolean onboardingCompleted = false;
-        java.util.List<Long> selectedCategories = null;
-        String level = null;
-        try {
-            if (account.getMetadata() != null && !account.getMetadata().trim().isEmpty()) {
-                java.util.Map<String, Object> metaMap = objectMapper.readValue(account.getMetadata(),
-                        new com.fasterxml.jackson.core.type.TypeReference<java.util.Map<String, Object>>() {
-                        });
-                if (metaMap.containsKey("onboardingCompleted")) {
-                    onboardingCompleted = (Boolean) metaMap.get("onboardingCompleted");
-                }
-                if (metaMap.containsKey("interests") && metaMap.get("interests") instanceof java.util.List) {
-                    selectedCategories = ((java.util.List<?>) metaMap.get("interests")).stream()
-                            .map(item -> Long.valueOf(item.toString()))
-                            .collect(java.util.stream.Collectors.toList());
-                }
-                if (metaMap.containsKey("level")) {
-                    level = (String) metaMap.get("level");
-                }
-            }
-        } catch (Exception e) {
-            log.warn("Loi parse metadata", e);
-        }
-
-        LoginResponse response = LoginResponse.builder()
-                .token(token)
-                .email(account.getEmail())
-                .fullName(account.getFullName())
-                .role(account.getRole() != null ? account.getRole().getName() : "USER")
                 .avatar(account.getAvatar())
                 .provider(account.getProvider())
                 .onboardingCompleted(onboardingCompleted)
@@ -320,15 +242,22 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public org.springframework.data.domain.Page<Account> getAccountsByRole(String roleName, int page, int size) {
-        roleRepository.findByName(roleName)
-                .orElseThrow(() -> new RuntimeException("Role khong ton tai."));
-        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(
-                page,
-                size,
-                org.springframework.data.domain.Sort.by("createdAt").descending()
-        );
-        return accountRepository.findByRoleNameIgnoreCase(roleName, pageable);
+    public java.util.List<Account> getAccountsByRole(String roleName) {
+        String queryRole = roleName == null ? "USER" : roleName.toUpperCase().replace("ROLE_", "");
+        if ("STUDENT".equals(queryRole) || "MEMBER".equals(queryRole)) {
+            queryRole = "USER";
+        }
+        final String targetRole = queryRole;
+        return accountRepository.findAll().stream()
+                .filter(a -> {
+                    if (a.getRole() == null || a.getRole().getName() == null) return false;
+                    String accountRole = a.getRole().getName().toUpperCase().replace("ROLE_", "");
+                    if ("STUDENT".equals(accountRole) || "MEMBER".equals(accountRole)) {
+                        accountRole = "USER";
+                    }
+                    return accountRole.equals(targetRole);
+                })
+                .collect(java.util.stream.Collectors.toList());
     }
 
     @Override
@@ -363,19 +292,15 @@ public class AuthServiceImpl implements AuthService {
         try {
             java.util.Map<String, Object> metaMap = new java.util.HashMap<>();
             if (account.getMetadata() != null && !account.getMetadata().trim().isEmpty()) {
-                metaMap = objectMapper.readValue(account.getMetadata(),
-                        new com.fasterxml.jackson.core.type.TypeReference<java.util.Map<String, Object>>() {
-                        });
+                metaMap = objectMapper.readValue(account.getMetadata(), new com.fasterxml.jackson.core.type.TypeReference<java.util.Map<String, Object>>() {});
             }
 
             metaMap.put("level", dto.getLevel());
             metaMap.put("onboardingCompleted", true);
 
             if (dto.getCategoryIds() != null && !dto.getCategoryIds().isEmpty()) {
-                java.util.List<com.gnostica.core.model.Category> categories = categoryRepository
-                        .findAllById(dto.getCategoryIds());
-                metaMap.put("interests", categories.stream().map(com.gnostica.core.model.Category::getId)
-                        .collect(java.util.stream.Collectors.toList()));
+                java.util.List<com.gnostica.core.model.Category> categories = categoryRepository.findAllById(dto.getCategoryIds());
+                metaMap.put("interests", categories.stream().map(com.gnostica.core.model.Category::getId).collect(java.util.stream.Collectors.toList()));
             }
 
             account.setMetadata(objectMapper.writeValueAsString(metaMap));
@@ -401,9 +326,7 @@ public class AuthServiceImpl implements AuthService {
         try {
             java.util.Map<String, Object> metaMap = new java.util.HashMap<>();
             if (account.getMetadata() != null && !account.getMetadata().trim().isEmpty()) {
-                metaMap = objectMapper.readValue(account.getMetadata(),
-                        new com.fasterxml.jackson.core.type.TypeReference<java.util.Map<String, Object>>() {
-                        });
+                metaMap = objectMapper.readValue(account.getMetadata(), new com.fasterxml.jackson.core.type.TypeReference<java.util.Map<String, Object>>() {});
             }
             if (request.getBio() != null) {
                 metaMap.put("bio", request.getBio());
@@ -430,11 +353,11 @@ public class AuthServiceImpl implements AuthService {
     public void changePassword(String email, String currentPassword, String newPassword) {
         Account account = accountRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Tai khoan khong ton tai."));
-
+        
         if (!passwordEncoder.matches(currentPassword, account.getPassword())) {
             throw new RuntimeException("Mật khẩu hiện tại không đúng.");
         }
-
+        
         account.setPassword(passwordEncoder.encode(newPassword));
         accountRepository.save(account);
     }

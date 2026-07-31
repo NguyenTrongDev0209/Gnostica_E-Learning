@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import useAuthStore from "@/store/useAuthStore";
 import { toast } from "sonner";
+import { API_URL } from "@/config/environment";
 
 export default function useVouchers() {
   const [vouchers, setVouchers] = useState([]);
@@ -13,7 +14,7 @@ export default function useVouchers() {
     const fetchVouchers = async () => {
       setLoading(true);
       try {
-        const res = await fetch("http://localhost:8080/api/coupons/me", {
+        const res = await fetch(`${API_URL}/coupons/me`, {
           headers: { "Authorization": `Bearer ${token}` }
         });
         const data = await res.json();

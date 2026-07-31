@@ -3,6 +3,7 @@ package com.gnostica.modules.settings.service;
 import com.gnostica.core.model.Page;
 import com.gnostica.core.repository.PageRepository;
 import com.gnostica.core.util.PolicyHtmlSanitizer;
+import com.gnostica.core.exception.ResourceNotFoundException;
 import com.gnostica.modules.settings.dto.request.PageRequest;
 import com.gnostica.modules.settings.dto.response.PageResponse;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +20,7 @@ public class PageService {
     public PageResponse getPublished(String slug) {
         return repository.findBySlugAndStatus(slug, 1)
                 .map(PageResponse::from)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy trang nội dung"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy trang nội dung"));
     }
 
     public List<PageResponse> getAll() {

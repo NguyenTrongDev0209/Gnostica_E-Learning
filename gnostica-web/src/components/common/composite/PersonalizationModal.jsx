@@ -77,14 +77,17 @@ const PersonalizationModal = ({ forceOpen, onClose }) => {
             return;
         }
 
-        // Tự động hiển thị popup cho tài khoản mới chưa hoàn thành cá nhân hóa (onboarding)
-        if (user && user.onboardingCompleted !== true && !isOpen) {
-            // Bỏ qua với tài khoản Quản trị viên và Giảng viên
-            const role = (user.role || '').toUpperCase();
-            if (role === 'ADMIN' || role === 'INSTRUCTOR' || role === 'TEACHER') {
-                return;
-            }
+        // Chỉ tự động hiển thị popup cho tài khoản Học viên (Student) chưa hoàn thành cá nhân hóa
+        const rawRole = typeof user?.role === 'object' ? user?.role?.name : user?.role;
+        const normalizedRole = String(rawRole || '').replace(/^ROLE_/, '').toUpperCase();
+        const STUDENT_ROLES = ['STUDENT', 'USER', 'MEMBER', 'LEARNER'];
+        const isStudent = STUDENT_ROLES.includes(normalizedRole);
 
+        const isCompleted = user?.onboardingCompleted === true || user?.onboardingCompleted === 'true' || 
+            (Array.isArray(user?.selectedCategories) && user?.selectedCategories.length > 0) ||
+            (Array.isArray(user?.categoryIds) && user?.categoryIds.length > 0);
+
+        if (user && isStudent && !isCompleted && !isOpen) {
             // Bỏ qua nếu người dùng của tài khoản này đã bấm tắt trong phiên làm việc hiện tại
             if (user.email && sessionStorage.getItem(`personalization_skipped_${user.email}`)) {
                 return;

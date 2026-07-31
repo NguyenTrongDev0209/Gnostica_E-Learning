@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import useAuthStore from "@/store/useAuthStore";
+import { API_URL } from "@/config/environment";
 
 export default function useChangePassword() {
   const [formData, setFormData] = useState({
@@ -47,7 +48,7 @@ export default function useChangePassword() {
 
     setIsLoading(true);
     try {
-      const res = await fetch("http://localhost:8080/api/account/change-password", {
+      const res = await fetch(`${API_URL}/account/change-password`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

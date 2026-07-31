@@ -5,6 +5,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.env.EnvironmentPostProcessor;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
+import org.springframework.core.env.StandardEnvironment;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -17,6 +18,10 @@ import java.util.Map;
  * Registered via META-INF/spring.factories.
  */
 public class DotenvEnvironmentPostProcessor implements EnvironmentPostProcessor {
+
+    private static final String ENVIRONMENT_PROPERTY_SOURCE = "gnosticaEnvironment";
+    private static final String DEVELOPMENT = "development";
+    private static final String PRODUCTION = "production";
 
     @Override
     public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
@@ -38,6 +43,42 @@ public class DotenvEnvironmentPostProcessor implements EnvironmentPostProcessor 
                     new MapPropertySource("dotenvProperties", props)
             );
         }
+
+        String appEnvironment = environment.getProperty("APP_ENV", DEVELOPMENT).trim().toLowerCase();
+        Map<String, Object> environmentProperties = createEnvironmentProperties(appEnvironment);
+
+        // System environment variables remain the highest priority. The selected
+        // application environment overrides values loaded from the local .env file.
+        environment.getPropertySources().addAfter(
+                StandardEnvironment.SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME,
+                new MapPropertySource(ENVIRONMENT_PROPERTY_SOURCE, environmentProperties)
+        );
+    }
+
+    private Map<String, Object> createEnvironmentProperties(String appEnvironment) {
+        Map<String, Object> props = new HashMap<>();
+
+        if (DEVELOPMENT.equals(appEnvironment)) {
+            props.put("APP_PUBLIC_URL", "http://localhost:5173");
+            props.put("APP_CORS_ALLOWED_ORIGIN_PATTERNS", "http://localhost:5173,http://localhost:3000,http://127.0.0.1:*");
+            props.put("GOOGLE_REDIRECT_URI", "http://localhost:8080/api/login/oauth2/code/google");
+            props.put("VNPAY_RETURN_URL", "http://localhost:8080/api/payment/vnpay/return");
+            props.put("VNPAY_FRONTEND_RETURN_URL", "http://localhost:5173/checkout/success");
+            return props;
+        }
+
+        if (PRODUCTION.equals(appEnvironment)) {
+            props.put("APP_PUBLIC_URL", "https://gnostica.io.vn");
+            props.put("APP_CORS_ALLOWED_ORIGIN_PATTERNS", "https://gnostica.io.vn");
+            props.put("GOOGLE_REDIRECT_URI", "https://gnostica.io.vn/api/login/oauth2/code/google");
+            props.put("VNPAY_RETURN_URL", "https://gnostica.io.vn/api/payment/vnpay/return");
+            props.put("VNPAY_FRONTEND_RETURN_URL", "https://gnostica.io.vn/checkout/success");
+            return props;
+        }
+
+        throw new IllegalStateException(
+                "APP_ENV must be 'development' or 'production', but was: " + appEnvironment
+        );
     }
 
     private Dotenv tryLoad(String directory) {

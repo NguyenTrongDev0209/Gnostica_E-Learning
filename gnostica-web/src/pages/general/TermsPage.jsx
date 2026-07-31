@@ -4,6 +4,8 @@ import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
 import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
 import { usePublicPage, usePublicTermsMenu } from "@/hooks/settings/useSiteSettings";
+import ErrorPage from "@/pages/general/ErrorPage";
+import { getErrorPageStatus } from "@/utils/errorPageStatus";
 
 function TermsSidebar({ groups, isLoading, slug }) {
   const [collapsedGroups, setCollapsedGroups] = useState({});
@@ -41,12 +43,16 @@ function TermsSidebar({ groups, isLoading, slug }) {
 export default function TermsPage() {
   const { pathname } = useLocation();
   const slug = pathname.replace(/^\/+/, "") || "terms";
-  const { data: page, isLoading: isPageLoading, isError } = usePublicPage(slug);
+  const { data: page, isLoading: isPageLoading, error } = usePublicPage(slug);
   const { data: groups = [], isLoading: isMenuLoading } = usePublicTermsMenu();
   const title = page?.title || "Điều khoản dịch vụ";
   const updatedAt = page?.updatedAt
     ? new Intl.DateTimeFormat("vi-VN", { dateStyle: "long" }).format(new Date(page.updatedAt))
     : null;
+
+  if (error) {
+    return <ErrorPage status={getErrorPageStatus(error)} />;
+  }
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -62,7 +68,6 @@ export default function TermsPage() {
         <TermsSidebar groups={groups} isLoading={isMenuLoading} slug={slug} />
         <section aria-busy={isPageLoading}>
           {isPageLoading && <div className="flex justify-center py-20"><Loader2 className="size-8 animate-spin text-primary" /></div>}
-          {isError && <div className="rounded-xl border border-error/20 bg-error-soft p-6 text-center text-sm text-error">Nội dung hiện chưa khả dụng. Vui lòng thử lại sau.</div>}
           {page && <article className="prose prose-sm max-w-none rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-sm sm:p-10 [&_h2]:mt-8 [&_h2]:text-lg [&_h2]:font-bold [&_h2]:text-foreground [&_li]:text-muted-foreground [&_p]:leading-relaxed [&_p]:text-muted-foreground" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(page.content) }} />}
         </section>
       </main>

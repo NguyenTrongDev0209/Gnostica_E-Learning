@@ -1,8 +1,6 @@
 package com.gnostica.core.repository;
 
 import java.util.Optional;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import com.gnostica.core.model.Account;
 import java.util.UUID;
@@ -17,7 +15,6 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
     java.util.List<Account> findAllByCreatedAtAfter(java.time.LocalDateTime date);
     long countByRoleNameAndCreatedAtAfter(String roleName, java.time.LocalDateTime date);
     java.util.List<Account> findByRoleName(String roleName);
-    Page<Account> findByRoleNameIgnoreCase(String roleName, Pageable pageable);
     Optional<Account> findByIdAndRoleName(UUID id, String roleName);
     java.util.List<Account> findByMetadataIsNotNull();
     Optional<Account> findByPhone(String phone);

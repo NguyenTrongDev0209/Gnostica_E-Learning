@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import authService from '@/services/auth/authService';
@@ -11,11 +11,16 @@ export const useOAuth2Callback = () => {
     const tokenFromParams = searchParams.get('token');
 
     const setUser = useAuthStore(state => state.setUser);
+    const hasRun = useRef(false);
 
     useEffect(() => {
-        if (email) {
+        if (email && !hasRun.current) {
+            hasRun.current = true;
             const fetchUserInfo = async () => {
                 try {
+                    if (tokenFromParams) {
+                        localStorage.setItem('user', JSON.stringify({ token: tokenFromParams, email }));
+                    }
                     const response = await authService.getOAuth2User(email);
 
                     if (response.data.status === 200 || response.data.status === 'success') {
@@ -30,7 +35,9 @@ export const useOAuth2Callback = () => {
                         if (user.metadata) {
                             try {
                                 const meta = typeof user.metadata === 'string' ? JSON.parse(user.metadata) : user.metadata;
-                                if (meta.onboardingCompleted) onboardingCompleted = true;
+                                if (meta.onboardingCompleted === true || meta.onboardingCompleted === 'true' || (Array.isArray(meta.interests) && meta.interests.length > 0) || Boolean(meta.level)) {
+                                    onboardingCompleted = true;
+                                }
                                 if (meta.interests && Array.isArray(meta.interests)) selectedCategories = meta.interests;
                                 if (meta.level) level = meta.level;
                             } catch (e) {

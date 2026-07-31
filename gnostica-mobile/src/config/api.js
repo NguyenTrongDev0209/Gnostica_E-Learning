@@ -1,8 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DeviceEventEmitter } from 'react-native';
+import { API_URL, OAUTH_REDIRECT_URI } from './environment';
 
-// Sử dụng biến môi trường từ file .env hoặc IP mạng cục bộ
-export const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://10.176.13.240:8080/api';
+export const BASE_URL = API_URL;
+export { OAUTH_REDIRECT_URI };
 
 
 const api = {

@@ -106,6 +106,20 @@ const threadService = {
     },
 
     /**
+     * Lấy bài viết đã thích của mình (phân trang)
+     * @param {string} email
+     * @param {Object} params - { page, size }
+     */
+    getMyLikedPosts: (email, params = {}) => {
+        const query = {
+            email,
+            page: params.page || 0,
+            size: params.size || 20,
+        };
+        return api.get('/threads/me/liked', { params: query });
+    },
+
+    /**
      * Láº¥y thá»‘ng kÃª forum cÃ¡ nhÃ¢n
      * @param {string} email
      */

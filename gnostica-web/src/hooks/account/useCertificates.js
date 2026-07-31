@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import useAuthStore from "@/store/useAuthStore";
+import { API_URL } from "@/config/environment";
 
 export default function useCertificates() {
   const [certificates, setCertificates] = useState([]);
@@ -12,7 +13,7 @@ export default function useCertificates() {
     const fetchCertificates = async () => {
       setLoading(true);
       try {
-        const res = await fetch("http://localhost:8080/api/certificates/my-certificates", {
+        const res = await fetch(`${API_URL}/certificates/my-certificates`, {
           headers: { "Authorization": `Bearer ${token}` }
         });
         if (res.ok) {

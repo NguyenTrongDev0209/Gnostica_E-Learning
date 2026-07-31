@@ -58,23 +58,6 @@ public class AuthController {
         }
     }
 
-    @PostMapping("/google")
-    public ResponseEntity<?> loginWithGoogle(@Valid @RequestBody com.gnostica.modules.auth.dto.request.GoogleLoginRequest request) {
-        try {
-            LoginResponse loginResponse = authService.loginWithGoogle(request);
-            return ResponseEntity.ok(ResponseDTO.builder()
-                .status(200)
-                .message("Đăng nhập bằng Google thành công")
-                .data(loginResponse)
-                .build());
-        } catch (Exception e) {
-            return ResponseEntity.status(400).body(ResponseDTO.builder()
-                .status(400)
-                .message(e.getMessage())
-                .build());
-        }
-    }
-
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest registerRequest) {
@@ -183,19 +166,10 @@ public class AuthController {
     }
 
     @GetMapping("/accounts/role/{role}")
-    public ResponseEntity<?> getAccountsByRole(
-            @PathVariable String role,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
-        if (page < 0 || size < 1 || size > 100) {
-            return ResponseEntity.badRequest().body(ResponseDTO.builder()
-                    .status(400)
-                    .message("page phai >= 0 va size nam trong khoang 1-100.")
-                    .build());
-        }
+    public ResponseEntity<?> getAccountsByRole(@PathVariable String role) {
         return ResponseEntity.ok(ResponseDTO.builder()
             .status(200)
-            .data(authService.getAccountsByRole(role, page, size))
+            .data(authService.getAccountsByRole(role))
             .build());
     }
 

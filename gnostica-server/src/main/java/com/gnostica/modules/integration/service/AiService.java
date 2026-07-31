@@ -34,6 +34,9 @@ import java.util.*;
 @Slf4j
 public class AiService {
 
+    @Value("${app.public-url}")
+    private String publicUrl;
+
     private final RestTemplate restTemplate;
     private final ThreadRepository threadRepository;
     private final TopicRepository topicRepository;
@@ -256,7 +259,7 @@ public class AiService {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Authorization", "Bearer " + key);
-        headers.set("HTTP-Referer", "http://localhost:5173"); 
+        headers.set("HTTP-Referer", publicUrl);
         headers.set("X-Title", "Gnostica E-Learning");
 
         // Vòng lặp function calling (tối đa 5 lần để xử lý đa bước: hỏi -> thu thập -> tạo ticket)

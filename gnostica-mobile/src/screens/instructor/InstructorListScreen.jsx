@@ -1,11 +1,13 @@
 import AppText from '../../components/ui/AppText';
 import React, { useState, useEffect } from 'react';
-import { View, ScrollView, TouchableOpacity, Image, Dimensions, ActivityIndicator } from 'react-native';
+import { View, ScrollView, TouchableOpacity, Image, Dimensions, ActivityIndicator, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { Star, Users, BookOpen, Heart, MessageCircle, Award } from 'lucide-react-native';
+import { Star, Users, BookOpen, Heart, MessageCircle } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import AppHeader from '../../components/ui/AppHeader';
 import instructorService from '../../services/instructor/instructorService';
+import followingService from '../../services/instructor/followingService';
+import { useAuth } from '../../context/AuthContext';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width - 48;
@@ -17,7 +19,51 @@ const formatNumber = (num) => {
 };
 
 const InstructorCard = ({ instructor }) => {
+    const { user } = useAuth();
+    const navigation = useNavigation();
     const [liked, setLiked] = useState(false);
+    const [loadingLike, setLoadingLike] = useState(false);
+
+    const instructorId = instructor?.id || instructor?.instructorId || instructor?.accountId;
+
+    useEffect(() => {
+        if (!user || !instructorId) return;
+        followingService.check(instructorId)
+            .then(res => {
+                const data = res?.data ?? res;
+                setLiked(
+                    data === true ||
+                    data?.isFollowing === true ||
+                    data?.following === true
+                );
+            })
+            .catch(() => {});
+    }, [user, instructorId]);
+
+    const handleToggleLike = async () => {
+        if (!user) {
+            Alert.alert('Thông báo', 'Vui lòng đăng nhập để theo dõi giảng viên.', [
+                { text: 'Hủy', style: 'cancel' },
+                { text: 'Đăng nhập', onPress: () => navigation.navigate('Login') }
+            ]);
+            return;
+        }
+        if (!instructorId) return;
+        setLoadingLike(true);
+        try {
+            const res = await followingService.toggle(instructorId);
+            const data = res?.data ?? res;
+            if (data?.isFollowing !== undefined) {
+                setLiked(data.isFollowing);
+            } else {
+                setLiked(prev => !prev);
+            }
+        } catch (e) {
+            console.error('Toggle follow error:', e);
+        } finally {
+            setLoadingLike(false);
+        }
+    };
     
     const avatar = instructor.avatar || 'https://via.placeholder.com/150';
     const accentColor = '#3b82f6';
@@ -57,15 +103,20 @@ const InstructorCard = ({ instructor }) => {
                 }} />
 
                 <TouchableOpacity
-                    onPress={() => setLiked(!liked)}
+                    onPress={handleToggleLike}
+                    disabled={loadingLike}
                     style={{
                         position: 'absolute', top: 14, right: 14,
                         width: 36, height: 36, borderRadius: 18,
-                        backgroundColor: 'rgba(255,255,255,0.2)',
+                        backgroundColor: 'rgba(255,255,255,0.25)',
                         alignItems: 'center', justifyContent: 'center',
                     }}
                 >
-                    <Heart size={18} color={liked ? '#f43f5e' : '#fff'} fill={liked ? '#f43f5e' : 'transparent'} />
+                    {loadingLike ? (
+                        <ActivityIndicator size="small" color="#fff" />
+                    ) : (
+                        <Heart size={18} color={liked ? '#f43f5e' : '#fff'} fill={liked ? '#f43f5e' : 'transparent'} />
+                    )}
                 </TouchableOpacity>
 
                 <View style={{

@@ -175,9 +175,9 @@ const UserProfile = () => {
           avatar: fetchedProfile.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(fetchedProfile.name || fetchedProfile.fullName)}&background=random&color=fff`,
           email: fetchedProfile.email,
           role: "INSTRUCTOR",
-          bio: data?.bio || prev?.bio || "",
-          website: data?.website || prev?.website || "",
-          linkedin: data?.linkedin || prev?.linkedin || "",
+          bio: fetchedProfile.bio || "",
+          website: fetchedProfile.website || "",
+          linkedin: fetchedProfile.linkedin || "",
           stats: {
             ...MOCK_USER.stats,
             courses: fetchedProfile.coursesCount || 0,

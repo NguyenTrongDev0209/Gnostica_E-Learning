@@ -2,6 +2,7 @@
   "expo": {
     "name": "gnostica-mobile",
     "slug": "gnostica-mobile",
+    "scheme": "gnostica",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./src/assets/icon.png",

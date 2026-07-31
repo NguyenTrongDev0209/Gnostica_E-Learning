@@ -51,6 +51,7 @@ import { cn } from "@/lib/utils";
 import { AppToast } from "@/components/common/micro/AppToast";
 
 const FALLBACK_LESSON_THUMBNAIL = "https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=320&auto=format&fit=crop";
+const BUNNY_LIBRARY_ID = import.meta.env.VITE_BUNNY_LIBRARY_ID;
 
 const formatLessonDuration = (metadata) => {
   if (!metadata) return "--:--";
@@ -1187,7 +1188,7 @@ export default function LearningWorkspace() {
   const getEmbedUrl = (url) => {
     if (!url) return null;
     const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
-    let libraryId = "655066"; // default legacy fallback
+    let libraryId = BUNNY_LIBRARY_ID;
     let videoId = url;
     let baseUrl = "";
     
@@ -1226,7 +1227,7 @@ export default function LearningWorkspace() {
   const getVideoIdentifiers = (url) => {
     if (!url) return null;
     const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
-    let libraryId = "655066";
+    let libraryId = BUNNY_LIBRARY_ID;
     let videoId = url;
 
     if (url.includes("/")) {

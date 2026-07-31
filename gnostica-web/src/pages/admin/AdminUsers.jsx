@@ -48,6 +48,7 @@ import useAdminUsers from "@/hooks/user/useAdminUsers";
 export default function AdminUsers() {
   const {
     activeTab,
+    setActiveTab,
     accounts,
     pagination,
     applications,
@@ -126,7 +127,30 @@ export default function AdminUsers() {
     }
   }, [selectedAppDetail]);
 
-  const filteredAccounts = accounts;
+  const formatDate = (dateVal) => {
+    if (!dateVal) return "--";
+    try {
+      let d;
+      if (Array.isArray(dateVal)) {
+        const [y, m, day, h = 0, min = 0, s = 0] = dateVal;
+        d = new Date(y, m - 1, day, h, min, s);
+      } else {
+        d = new Date(dateVal);
+      }
+      if (isNaN(d.getTime())) return "--";
+      return new Intl.DateTimeFormat('vi-VN', {
+        hour: '2-digit',
+        minute: '2-digit',
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      }).format(d).replace(/,/, '');
+    } catch (e) {
+      return "--";
+    }
+  };
+
+  const filteredAccounts = Array.isArray(accounts) ? accounts : [];
 
   const accountColumns = [
     {
@@ -136,7 +160,7 @@ export default function AdminUsers() {
       headerAlign: "center",
       className: "py-4",
       cellClassName: "font-bold text-muted-foreground py-4 text-center",
-      render: (_acc, rowIndex) => pagination.currentPage * pagination.pageSize + rowIndex + 1,
+      render: (_acc, rowIndex) => ((pagination?.currentPage || 0) * (pagination?.pageSize || 10)) + rowIndex + 1,
     },
     {
       header: "Người dùng",
@@ -147,14 +171,14 @@ export default function AdminUsers() {
       render: (acc) => (
         <div className="flex items-center gap-3">
           <Avatar className="h-10 w-10 border border-border">
-            <AvatarImage src={acc.avatar} />
+            <AvatarImage src={acc?.avatar} />
             <AvatarFallback className="bg-primary/10 text-primary font-bold">
-              {acc.fullName?.charAt(0)}
+              {acc?.fullName?.charAt(0)}
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-col">
-            <span className="font-bold text-foreground">{acc.fullName}</span>
-            <span className="text-xs text-muted-foreground">{acc.email}</span>
+            <span className="font-bold text-foreground">{acc?.fullName}</span>
+            <span className="text-xs text-muted-foreground">{acc?.email}</span>
           </div>
         </div>
       )
@@ -166,7 +190,7 @@ export default function AdminUsers() {
       width: "1%",
       className: "py-4 whitespace-nowrap",
       cellClassName: "text-sm font-medium py-4 text-center whitespace-nowrap",
-      render: (acc) => acc.phone ? <span className="text-foreground">{acc.phone}</span> : <span className="text-muted-foreground italic text-xs">(Chưa thiết lập)</span>
+      render: (acc) => acc?.phone ? <span className="text-foreground">{acc.phone}</span> : <span className="text-muted-foreground italic text-xs">(Chưa thiết lập)</span>
     },
     {
       header: "Khóa học",
@@ -174,7 +198,7 @@ export default function AdminUsers() {
       headerAlign: "center",
       className: "py-4 whitespace-nowrap",
       cellClassName: "text-sm font-medium text-foreground py-4 text-center whitespace-nowrap",
-      render: (acc) => `Đã mua ${acc.courseCount || 0} Khóa học`
+      render: (acc) => `Đã mua ${acc?.courseCount || 0} Khóa học`
     },
     {
       header: "Tổng mua hàng",
@@ -182,7 +206,7 @@ export default function AdminUsers() {
       headerAlign: "center",
       className: "py-4 whitespace-nowrap",
       cellClassName: "font-bold text-foreground py-4 text-center whitespace-nowrap",
-      render: (acc) => (acc.totalSpent || 0).toLocaleString("vi-VN", { style: "currency", currency: "VND" })
+      render: (acc) => Number(acc?.totalSpent || 0).toLocaleString("vi-VN", { style: "currency", currency: "VND" })
     },
     {
       header: "Ngày đăng ký",
@@ -191,7 +215,7 @@ export default function AdminUsers() {
       width: "1%",
       className: "py-4 whitespace-nowrap",
       cellClassName: "text-sm text-foreground font-medium py-4 text-center whitespace-nowrap",
-      render: (acc) => acc.createdAt ? new Intl.DateTimeFormat('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(acc.createdAt)).replace(/,/, '') : "--"
+      render: (acc) => formatDate(acc?.createdAt)
     },
     {
       header: "Trạng thái",
@@ -261,7 +285,7 @@ export default function AdminUsers() {
       headerAlign: "center",
       className: "py-4",
       cellClassName: "font-bold text-muted-foreground py-4 text-center",
-      render: (_acc, rowIndex) => pagination.currentPage * pagination.pageSize + rowIndex + 1,
+      render: (_acc, rowIndex) => ((pagination?.currentPage || 0) * (pagination?.pageSize || 10)) + rowIndex + 1,
     },
     {
       header: "Người dùng",
@@ -272,14 +296,14 @@ export default function AdminUsers() {
       render: (acc) => (
         <div className="flex items-center gap-3">
           <Avatar className="h-10 w-10 border border-border">
-            <AvatarImage src={acc.avatar} />
+            <AvatarImage src={acc?.avatar} />
             <AvatarFallback className="bg-primary/10 text-primary font-bold">
-              {acc.fullName?.charAt(0)}
+              {acc?.fullName?.charAt(0)}
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-col">
-            <span className="font-bold text-foreground">{acc.fullName}</span>
-            <span className="text-xs text-muted-foreground">{acc.email}</span>
+            <span className="font-bold text-foreground">{acc?.fullName}</span>
+            <span className="text-xs text-muted-foreground">{acc?.email}</span>
           </div>
         </div>
       )
@@ -291,7 +315,7 @@ export default function AdminUsers() {
       width: "1%",
       className: "py-4 whitespace-nowrap",
       cellClassName: "text-sm font-medium py-4 text-center whitespace-nowrap",
-      render: (acc) => acc.phone ? <span className="text-foreground">{acc.phone}</span> : <span className="text-muted-foreground italic text-xs">(Chưa thiết lập)</span>
+      render: (acc) => acc?.phone ? <span className="text-foreground">{acc.phone}</span> : <span className="text-muted-foreground italic text-xs">(Chưa thiết lập)</span>
     },
     {
       header: "Khóa học",
@@ -299,7 +323,7 @@ export default function AdminUsers() {
       headerAlign: "center",
       className: "py-4 whitespace-nowrap",
       cellClassName: "text-sm font-medium text-foreground py-4 text-center whitespace-nowrap",
-      render: (acc) => `Đã tạo ${acc.courseCount || 0} Khóa học`
+      render: (acc) => `Đã tạo ${acc?.courseCount || 0} Khóa học`
     },
     {
       header: "Doanh thu",
@@ -307,7 +331,7 @@ export default function AdminUsers() {
       headerAlign: "center",
       className: "py-4 whitespace-nowrap",
       cellClassName: "font-bold text-primary py-4 text-center whitespace-nowrap",
-      render: (acc) => (acc.totalRevenue || 0).toLocaleString("vi-VN", { style: "currency", currency: "VND" })
+      render: (acc) => Number(acc?.totalRevenue || 0).toLocaleString("vi-VN", { style: "currency", currency: "VND" })
     },
     {
       header: "Ngày đăng ký",
@@ -316,7 +340,7 @@ export default function AdminUsers() {
       width: "1%",
       className: "py-4 whitespace-nowrap",
       cellClassName: "text-sm text-foreground font-medium py-4 text-center whitespace-nowrap",
-      render: (acc) => acc.createdAt ? new Intl.DateTimeFormat('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(acc.createdAt)).replace(/,/, '') : "--"
+      render: (acc) => formatDate(acc?.createdAt)
     },
     {
       header: "Trạng thái",
@@ -327,9 +351,9 @@ export default function AdminUsers() {
       cellClassName: "py-4 whitespace-nowrap",
       render: (acc) => (
         <div className="flex justify-center w-full">
-          {acc.status === 2 ? (
+          {acc?.status === 2 ? (
             <AppBadge variant="error" className="w-[100px] justify-center px-2.5 py-1 text-white">Bị khóa</AppBadge>
-          ) : acc.status === 1 ? (
+          ) : acc?.status === 1 ? (
             <AppBadge variant="success" className="w-[100px] justify-center px-2.5 py-1 text-white">Hoạt động</AppBadge>
           ) : (
             <AppBadge variant="secondary" className="w-[100px] justify-center px-2.5 py-1 text-white">Chưa xác thực</AppBadge>
@@ -346,7 +370,7 @@ export default function AdminUsers() {
       cellClassName: "py-4 text-center whitespace-nowrap",
       render: (acc) => (
         <div className="flex justify-center items-center gap-2">
-          {acc.status === 2 ? (
+          {acc?.status === 2 ? (
             <AppButton
               size="sm"
               className="w-9 h-9 p-0 bg-success hover:bg-success/90 text-white border-none shrink-0"
@@ -396,9 +420,9 @@ export default function AdminUsers() {
       cellClassName: "py-4",
       render: (app) => (
         <div className="flex flex-col">
-          <span className="font-bold text-foreground">{app.fullName}</span>
-          <span className="text-xs text-muted-foreground">{app.email}</span>
-          {app.contactPhone && <span className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1"><Phone className="w-3 h-3" /> {app.contactPhone}</span>}
+          <span className="font-bold text-foreground">{app?.fullName}</span>
+          <span className="text-xs text-muted-foreground">{app?.email}</span>
+          {app?.contactPhone && <span className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1"><Phone className="w-3 h-3" /> {app.contactPhone}</span>}
         </div>
       )
     },
@@ -427,7 +451,7 @@ export default function AdminUsers() {
       width: "1%",
       className: "py-4 whitespace-nowrap",
       cellClassName: "text-sm text-muted-foreground font-medium py-4 text-center whitespace-nowrap",
-      render: (app) => app.createdAt ? new Intl.DateTimeFormat('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(app.createdAt)).replace(/,/, '') : "--"
+      render: (app) => formatDate(app?.createdAt)
     },
     {
       header: "Thao tác",
@@ -477,7 +501,7 @@ export default function AdminUsers() {
       </div>
 
       {!selectedUserDetail ? (
-        <Tabs value={activeTab} className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <div className="mb-4">
             <DataFilter
               searchQuery={searchTerm}
