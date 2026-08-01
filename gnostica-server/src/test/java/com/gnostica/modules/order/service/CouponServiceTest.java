@@ -129,6 +129,35 @@ class CouponServiceTest {
     }
 
     @Test
+    void getValidCouponAcceptsASeededPlaintextCodeMarkedWithPlainPrefix() {
+        Coupon coupon = coupon(owner, "GNS-A7K9Q2");
+        coupon.setEncryptedCode("GNS-A7K9Q2");
+        coupon.setCodeHash("PLAIN:GNS-A7K9Q2");
+        when(couponRepository.findByCodeHashAndDeletedAtIsNull(couponCodeCipher.hash("GNS-A7K9Q2")))
+                .thenReturn(Optional.empty());
+        when(couponRepository.findByEncryptedCodeIgnoreCaseAndDeletedAtIsNull("GNS-A7K9Q2"))
+                .thenReturn(Optional.of(coupon));
+
+        Coupon result = couponService.getValidCoupon(" gns-a7k9q2 ");
+
+        assertEquals(coupon, result);
+        assertEquals("GNS-A7K9Q2", couponService.getDisplayCode(result));
+    }
+
+    @Test
+    void getValidCouponRejectsRawCodeWithoutPlainPrefix() {
+        Coupon coupon = coupon(owner, "GNS-A7K9Q2");
+        coupon.setEncryptedCode("GNS-A7K9Q2");
+        coupon.setCodeHash("NOT_A_PLAINTEXT_MARKER");
+        when(couponRepository.findByCodeHashAndDeletedAtIsNull(couponCodeCipher.hash("GNS-A7K9Q2")))
+                .thenReturn(Optional.empty());
+        when(couponRepository.findByEncryptedCodeIgnoreCaseAndDeletedAtIsNull("GNS-A7K9Q2"))
+                .thenReturn(Optional.of(coupon));
+
+        assertThrows(IllegalArgumentException.class, () -> couponService.getValidCoupon("GNS-A7K9Q2"));
+    }
+
+    @Test
     void updateCouponRejectsCouponOwnedByAnotherAccount() {
         when(accountRepository.findByEmail(OWNER_EMAIL)).thenReturn(Optional.of(owner));
         Coupon anotherUsersCoupon = coupon(account("other@example.com"), "NOT_MINE");

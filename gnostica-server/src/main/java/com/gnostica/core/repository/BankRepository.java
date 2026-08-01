@@ -9,4 +9,6 @@ import java.util.Optional;
 @Repository
 public interface BankRepository extends JpaRepository<Bank, Integer> {
     Optional<Bank> findByExternalId(Integer externalId);
+
+    Optional<Bank> findByBin(String bin);
 }

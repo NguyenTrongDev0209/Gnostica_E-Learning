@@ -13,6 +13,7 @@ import com.gnostica.core.repository.PayoutRepository;
 import com.gnostica.core.repository.AccountBankRepository;
 import com.gnostica.core.repository.BankRepository;
 import com.gnostica.core.repository.PaymentRepository;
+import com.gnostica.modules.wallet.dto.response.WalletOverviewResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import vn.payos.model.v1.payouts.PayoutRequests;
 
@@ -49,6 +51,31 @@ public class WalletService {
     @Transactional(readOnly = true)
     public Wallet getMyWallet() {
         return getWalletByAccount(getCurrentAccount());
+    }
+
+    @Transactional(readOnly = true)
+    public WalletOverviewResponse getMyWalletOverview() {
+        Account account = getCurrentAccount();
+        Wallet wallet = getWalletByAccount(account);
+        LocalDateTime startOfMonth = java.time.LocalDate.now().withDayOfMonth(1).atStartOfDay();
+        LocalDateTime startOfNextMonth = startOfMonth.plusMonths(1);
+        LocalDateTime startOfDay = java.time.LocalDate.now().atStartOfDay();
+        AccountBank activeBank = accountBankRepository.findByAccountAndStatus(account, 1).orElse(null);
+
+        return WalletOverviewResponse.builder()
+                .accountId(account.getId())
+                .remain(wallet.getRemain())
+                .totalRevenue(walletRepository.sumTotalRevenueByAccount(account))
+                .currentMonthRevenue(walletRepository.sumRevenueByAccountAndCreatedAtBetween(
+                        account, startOfMonth, startOfNextMonth))
+                .pendingRevenue(walletRepository.sumPendingRevenueByAccount(account))
+                .type(wallet.getType())
+                .status(wallet.getStatus())
+                .withdrawalsToday(payoutRepository.countByAccountAndCreatedAtAfter(account, startOfDay))
+                .accountNumber(activeBank == null ? null : activeBank.getAccountNumber())
+                .bankBin(activeBank == null || activeBank.getBank() == null ? null : activeBank.getBank().getBin())
+                .bankName(activeBank == null || activeBank.getBank() == null ? null : activeBank.getBank().getShortName())
+                .build();
     }
 
     @Transactional(readOnly = true)
@@ -105,7 +132,7 @@ public class WalletService {
             throw new RuntimeException("PIN phải có ít nhất 4 ký tự.");
         }
 
-        Bank bank = bankRepository.findById(Integer.valueOf(request.getBin()))
+        Bank bank = bankRepository.findByBin(request.getBin())
                 .orElseThrow(() -> new RuntimeException("Ngân hàng không hợp lệ."));
 
         AccountBank accountBank = new AccountBank();

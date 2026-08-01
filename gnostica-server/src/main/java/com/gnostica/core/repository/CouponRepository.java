@@ -11,7 +11,13 @@ public interface CouponRepository extends JpaRepository<Coupon, UUID> {
 
     boolean existsByCodeHashAndIdNot(String codeHash, UUID id);
 
+    boolean existsByEncryptedCodeIgnoreCase(String rawCode);
+
+    boolean existsByEncryptedCodeIgnoreCaseAndIdNot(String rawCode, UUID id);
+
     java.util.Optional<Coupon> findByCodeHashAndDeletedAtIsNull(String codeHash);
+
+    java.util.Optional<Coupon> findByEncryptedCodeIgnoreCaseAndDeletedAtIsNull(String rawCode);
 
     java.util.Optional<Coupon> findByIdAndDeletedAtIsNull(UUID id);
 
