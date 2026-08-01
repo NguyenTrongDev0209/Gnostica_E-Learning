@@ -55,7 +55,8 @@ public class CouponService {
     @Transactional
     public CouponResponse createCoupon(CouponRequest request) {
         String code = normalizeCode(request.getCode());
-        if (couponRepository.existsByCodeHash(couponCodeCipher.hash(code))) {
+        if (couponRepository.existsByCodeHash(couponCodeCipher.hash(code))
+                || couponRepository.existsByEncryptedCodeIgnoreCase(code)) {
             throw new IllegalArgumentException("Coupon code already exists");
         }
 
@@ -114,7 +115,8 @@ public class CouponService {
         assertCouponHasNoSuccessfulUse(coupon, "chỉnh sửa");
         assertCouponHasNoPendingReservation(coupon, "chỉnh sửa");
         String code = normalizeCode(request.getCode());
-        if (couponRepository.existsByCodeHashAndIdNot(couponCodeCipher.hash(code), id)) {
+        if (couponRepository.existsByCodeHashAndIdNot(couponCodeCipher.hash(code), id)
+                || couponRepository.existsByEncryptedCodeIgnoreCaseAndIdNot(code, id)) {
             throw new IllegalArgumentException("Coupon code already exists");
         }
 
@@ -170,7 +172,10 @@ public class CouponService {
     }
 
     public Coupon getValidCoupon(String code) {
-        Coupon coupon = couponRepository.findByCodeHashAndDeletedAtIsNull(couponCodeCipher.hash(normalizeCode(code)))
+        String normalizedCode = normalizeCode(code);
+        Coupon coupon = couponRepository.findByCodeHashAndDeletedAtIsNull(couponCodeCipher.hash(normalizedCode))
+                .or(() -> couponRepository.findByEncryptedCodeIgnoreCaseAndDeletedAtIsNull(normalizedCode)
+                        .filter(this::isPlaintextCode))
                 .orElseThrow(() -> new IllegalArgumentException("Coupon does not exist"));
 
         if (coupon.getStatus() != CouponStatus.ACTIVE) {
@@ -191,7 +196,14 @@ public class CouponService {
     }
 
     public String getDisplayCode(Coupon coupon) {
+        if (isPlaintextCode(coupon)) {
+            return coupon.getEncryptedCode();
+        }
         return couponCodeCipher.decrypt(coupon.getAccount().getId(), coupon.getEncryptedCode());
+    }
+
+    private boolean isPlaintextCode(Coupon coupon) {
+        return coupon.getCodeHash() != null && coupon.getCodeHash().startsWith("PLAIN:");
     }
 
     @Transactional(readOnly = true)
