@@ -38,6 +38,7 @@ services:
       - ../gnostica-server/.env
     environment:
       APP_ENV: production
+      PAYOS_WEBHOOK_ENABLED: "true"
       APP_TIME_ZONE: ${APP_TIME_ZONE:-Asia/Ho_Chi_Minh}
       TZ: ${APP_TIME_ZONE:-Asia/Ho_Chi_Minh}
       JAVA_TOOL_OPTIONS: -Duser.timezone=${APP_TIME_ZONE:-Asia/Ho_Chi_Minh}

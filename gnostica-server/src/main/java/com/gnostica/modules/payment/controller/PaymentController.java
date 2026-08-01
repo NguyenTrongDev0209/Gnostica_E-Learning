@@ -1,7 +1,5 @@
 package com.gnostica.modules.payment.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.gnostica.core.dto.response.ApiResponse;
 import com.gnostica.modules.payment.service.PaymentService;
 import com.gnostica.modules.payment.dto.response.PaymentWebhookData;
 import com.gnostica.modules.payment.dto.response.VNPayIpnResponse;
@@ -13,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.web.util.UriComponentsBuilder;
 import java.util.Map;
@@ -27,19 +26,18 @@ public class PaymentController {
 	private final PaymentService paymentService;
 	private final VNPayProperties vnPayProperties;
 
-	@PostMapping(path = "/payos_transfer_handler")
-	public ApiResponse<PaymentWebhookData> payosTransferHandler(@RequestBody Object body)
-			throws JsonProcessingException, IllegalArgumentException {
+	@PostMapping(path = "/check")
+	public ResponseEntity<Void> payosTransferHandler(@RequestBody Object body) {
 		try {
 			PaymentWebhookData data = paymentService.verifyWebhook("PAYOS", body);
-			System.out.println("Webhook received: " + data);
-
 			paymentService.handlePaymentWebhook(data);
-
-			return ApiResponse.success("Webhook delivered", data);
+			return ResponseEntity.ok().build();
+		} catch (IllegalArgumentException e) {
+			log.warn("Rejected PayOS webhook: {}", e.getMessage());
+			return ResponseEntity.badRequest().build();
 		} catch (Exception e) {
-			e.printStackTrace();
-			return ApiResponse.error(e.getMessage());
+			log.error("Unable to process PayOS webhook", e);
+			return ResponseEntity.internalServerError().build();
 		}
 	}
 

@@ -67,22 +67,27 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     @Transactional
     public void checkPaymentStatus(Order order) throws Exception {
-        if (order == null || order.getStatus() == OrderStatus.PAID) {
+        if (order == null || order.getOrderCode() == null) {
             return;
         }
 
-        PaymentStrategy strategy = paymentStrategyFactory.getStrategy(order.getPaymentMethod());
-        boolean isPaid = strategy.checkPaymentStatus(order);
+        Order lockedOrder = orderRepository.findByOrderCodeForUpdate(order.getOrderCode()).orElse(null);
+        if (lockedOrder == null || lockedOrder.getStatus() == OrderStatus.PAID) {
+            return;
+        }
+
+        PaymentStrategy strategy = paymentStrategyFactory.getStrategy(lockedOrder.getPaymentMethod());
+        boolean isPaid = strategy.checkPaymentStatus(lockedOrder);
 
         if (isPaid) {
-            log.info("Order {} confirmed as PAID via server-side polling", order.getId());
-            processSuccessfulOrder(order);
+            log.info("Order {} confirmed as PAID via server-side polling", lockedOrder.getId());
+            processSuccessfulOrder(lockedOrder);
 
             // Lấy thêm details từ PayOS để lưu transaction với bank info
             try {
-                PaymentDetails paymentLink = strategy.getPaymentDetails(order);
+                PaymentDetails paymentLink = strategy.getPaymentDetails(lockedOrder);
                 if (paymentLink != null) {
-                    saveTransactionFromPolling(paymentLink, order);
+                    saveTransactionFromPolling(paymentLink, lockedOrder);
                 }
             } catch (Exception e) {
                 log.warn("Không thể lấy payment details để lưu transaction: {}", e.getMessage());
@@ -93,14 +98,31 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     @Transactional
     public void handlePaymentWebhook(PaymentWebhookData data) {
+        if (data == null || data.getOrderCode() == null) {
+            throw new IllegalArgumentException("Missing order code in PayOS webhook");
+        }
+        if (!"PAID".equals(data.getStatus())) {
+            throw new IllegalArgumentException("PayOS webhook does not confirm a successful payment");
+        }
+        if (data.getTransactionCode() == null || data.getTransactionCode().isBlank()) {
+            throw new IllegalArgumentException("Missing PayOS transaction code");
+        }
+
         Long orderCode = data.getOrderCode();
         log.info("Webhook triggered for orderCode: {}", orderCode);
 
         Order order = orderRepository.findByOrderCodeForUpdate(orderCode)
                 .orElse(null);
 
-        if (order != null) {
-            if (data.getAmount() == null || order.getTotalPrice().compareTo(BigDecimal.valueOf(data.getAmount())) != 0) {
+        if (order == null) {
+            log.warn("Ignoring PayOS webhook for unknown orderCode: {}", orderCode);
+            return;
+        }
+        if (!"PAYOS".equalsIgnoreCase(order.getPaymentMethod())) {
+            throw new IllegalArgumentException("Order does not use PayOS");
+        }
+
+        if (data.getAmount() == null || order.getTotalPrice().compareTo(BigDecimal.valueOf(data.getAmount())) != 0) {
                 throw new IllegalArgumentException("Payment amount does not match order total");
             }
             if (order.getStatus() == OrderStatus.PENDING) {
@@ -121,7 +143,6 @@ public class PaymentServiceImpl implements PaymentService {
                 }
                 log.info("Overdue payment processed as wallet deposit for order: {}", order.getId());
             }
-        }
     }
 
     @Override

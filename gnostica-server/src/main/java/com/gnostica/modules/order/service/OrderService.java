@@ -27,6 +27,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -53,6 +54,9 @@ public class OrderService {
     private final PaymentService paymentService;
     private final CommissionResolver commissionResolver;
     private final WalletService walletService;
+
+    @Value("${payos.webhook-enabled:false}")
+    private boolean payosWebhookEnabled;
 
     public List<OrderResponse> getAllOrders() {
         return orderRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt")).stream()
@@ -100,7 +104,9 @@ public class OrderService {
 
     private Order checkAndReturnOrder(Order order) throws Exception {
         // 0: PENDING
-        if (order.getStatus() == 0) {
+        boolean shouldPollPaymentGateway = !payosWebhookEnabled
+                || !"PAYOS".equalsIgnoreCase(order.getPaymentMethod());
+        if (order.getStatus() == OrderStatus.PENDING && shouldPollPaymentGateway) {
             try {
                 paymentService.checkPaymentStatus(order);
             } catch (Exception e) {
