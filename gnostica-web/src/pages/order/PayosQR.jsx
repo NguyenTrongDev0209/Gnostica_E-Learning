@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import SockJS from "sockjs-client";
+import { Stomp } from "stompjs/lib/stomp.js";
 import { Card, CardContent } from "@/components/common/micro/AppCard";
 import Separator from "@/components/common/micro/AppSeparator";
 import { AppButton, AppIconButton } from "@/components/common/micro/AppButton";
@@ -15,6 +17,7 @@ import { payosPaymentMock } from "@/mocks/payment";
 import orderService from "@/services/order/orderService";
 import PageContainer from "@/components/common/core/PageContainer";
 import AppPageHeader from "@/components/common/composite/AppPageHeader";
+import { APP_ENV, WS_URL } from "@/config/environment";
 
 export default function PayosQR({
   embedded = false,
@@ -26,6 +29,7 @@ export default function PayosQR({
   const { state } = useLocation();
   const [timeLeft, setTimeLeft] = useState(payosPaymentMock.expiresInSeconds);
   const [status, setStatus] = useState("waiting"); // waiting, success, cancelled, paid
+  const completionHandledRef = useRef(false);
   const navigate = useNavigate();
 
   // Dữ liệu đơn hàng từ PayOS truyền qua state
@@ -50,7 +54,63 @@ export default function PayosQR({
     { label: paymentData?.orderCode ? String(paymentData.orderCode) : "Mã đơn hàng", isLast: true }
   ];
 
-  // Cơ chế Polling kiểm tra trạng thái thanh toán
+  const completePayment = useCallback(() => {
+    if (completionHandledRef.current) return;
+
+    completionHandledRef.current = true;
+    setStatus("paid");
+    toast.success("Thanh toán thành công! Đang kích hoạt khóa học...");
+
+    setTimeout(() => {
+      if (onPaid) {
+        onPaid({
+          orderCode: paymentData.orderCode,
+          gateway: "PAYOS",
+          paymentStatus: "PAID",
+          verified: true,
+          amount: totalAmount,
+        });
+      } else {
+        navigate(`/checkout?orderCode=${paymentData.orderCode}&gateway=PAYOS&paymentStatus=PAID&verified=true`);
+      }
+    }, 500);
+  }, [navigate, onPaid, paymentData?.orderCode, totalAmount]);
+
+  useEffect(() => {
+    completionHandledRef.current = false;
+  }, [paymentData?.orderCode]);
+
+  // WebSocket là kênh chính ở production: server gửi sự kiện sau khi webhook
+  // PayOS được xác thực và giao dịch đã được commit vào database.
+  useEffect(() => {
+    if (!paymentData?.orderCode || status !== "waiting") return;
+
+    const socket = new SockJS(WS_URL);
+    const client = Stomp.over(socket);
+    client.debug = null;
+
+    client.connect({}, () => {
+      client.subscribe(`/topic/payment-status/${paymentData.orderCode}`, (message) => {
+        try {
+          const event = JSON.parse(message.body);
+          if (String(event.orderCode) === String(paymentData.orderCode) && event.status === "PAID") {
+            completePayment();
+          }
+        } catch (error) {
+          console.error("Payment WebSocket message error:", error);
+        }
+      });
+    }, (error) => {
+      console.warn("Payment WebSocket unavailable; polling remains active.", error);
+    });
+
+    return () => {
+      if (client.connected) client.disconnect();
+    };
+  }, [paymentData?.orderCode, status, completePayment]);
+
+  // Polling là dự phòng nếu WebSocket bị mất. Ở production chỉ đọc trạng thái
+  // nội bộ; ở development server sẽ hỏi PayOS vì localhost không nhận webhook.
   useEffect(() => {
     if (!paymentData?.orderCode || status !== "waiting") return;
 
@@ -71,23 +131,7 @@ export default function PayosQR({
 
         if (currentStatus === 1) {
           isPolling = false;
-          setStatus("paid");
-          toast.success("Thanh toán thành công! Đang kích hoạt khóa học...");
-
-          // Report the paid order to the checkout page when embedded.
-          setTimeout(() => {
-            if (onPaid) {
-              onPaid({
-                orderCode: paymentData.orderCode,
-                gateway: "PAYOS",
-                paymentStatus: "PAID",
-                verified: true,
-                amount: totalAmount,
-              });
-            } else {
-              navigate(`/checkout?orderCode=${paymentData.orderCode}&gateway=PAYOS&paymentStatus=PAID&verified=true`);
-            }
-          }, 500);
+          completePayment();
           return;
         } else if (response.error !== 0) {
           console.error("API Error:", response.message);
@@ -103,7 +147,7 @@ export default function PayosQR({
       }
 
       if (isPolling) {
-        pollTimeout = setTimeout(checkPaymentStatus, 1000);
+        pollTimeout = setTimeout(checkPaymentStatus, APP_ENV === "development" ? 1000 : 15000);
       }
     };
 
@@ -113,7 +157,7 @@ export default function PayosQR({
       isPolling = false;
       if (pollTimeout) clearTimeout(pollTimeout);
     };
-  }, [paymentData?.orderCode, status, navigate, onPaid, totalAmount]);
+  }, [paymentData?.orderCode, status, completePayment]);
 
   // Countdown timer
   useEffect(() => {
