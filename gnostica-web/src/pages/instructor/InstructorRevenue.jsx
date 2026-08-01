@@ -127,8 +127,8 @@ function WithdrawModal({ isOpen, onClose, wallet, onSuccess }) {
             toast.success("Đã tạo lệnh rút tiền thành công!");
             if (onSuccess) onSuccess();
             onClose();
-        } catch (err) {
-            toast.error(err?.response?.data?.message || "Rút tiền thất bại. Vui lòng thử lại!");
+        } catch {
+            toast.error("Hệ thống đang gặp sự cố. Vui lòng thử lại");
         } finally {
             setLoading(false);
         }
@@ -172,7 +172,7 @@ function WithdrawModal({ isOpen, onClose, wallet, onSuccess }) {
                 </div>
 
                 {step === "setup" && (
-                    <form onSubmit={handleSetup} className="space-y-4">
+                    <form onSubmit={handleSetup} autoComplete="off" className="space-y-4">
                         <div className="space-y-1.5">
                             <label className="text-sm font-medium text-foreground flex items-center gap-2">
                                 <Building2 className="w-4 h-4 text-muted-foreground" /> Ngân hàng
@@ -204,6 +204,8 @@ function WithdrawModal({ isOpen, onClose, wallet, onSuccess }) {
                             placeholder="Nhập mã PIN"
                             value={setupForm.pin}
                             onChange={e => setSetupForm(p => ({ ...p, pin: e.target.value }))}
+                            name="bank-account-setup-pin"
+                            autoComplete="one-time-code"
                             required
                         />
                         <AppPasswordInput
@@ -212,6 +214,8 @@ function WithdrawModal({ isOpen, onClose, wallet, onSuccess }) {
                             placeholder="Nhập lại mã PIN"
                             value={setupForm.pinConfirm}
                             onChange={e => setSetupForm(p => ({ ...p, pinConfirm: e.target.value }))}
+                            name="bank-account-setup-pin-confirmation"
+                            autoComplete="one-time-code"
                             required
                         />
                         <div className="pt-2 flex gap-3">
@@ -224,7 +228,7 @@ function WithdrawModal({ isOpen, onClose, wallet, onSuccess }) {
                 )}
 
                 {step === "withdraw" && (
-                    <form onSubmit={handleWithdraw} className="space-y-4">
+                    <form onSubmit={handleWithdraw} autoComplete="off" className="space-y-4">
                         <div className="border border-border rounded-lg p-3 flex items-center justify-between bg-muted">
                             <div className="flex items-center gap-3">
                                 <div className="bg-success/10 text-success p-2 rounded-lg border border-success/20">
@@ -272,6 +276,8 @@ function WithdrawModal({ isOpen, onClose, wallet, onSuccess }) {
                             placeholder="Nhập mã PIN"
                             value={withdrawForm.pin}
                             onChange={e => setWithdrawForm(p => ({ ...p, pin: e.target.value }))}
+                            name="withdrawal-confirmation-pin"
+                            autoComplete="one-time-code"
                             required
                         />
 
@@ -285,7 +291,7 @@ function WithdrawModal({ isOpen, onClose, wallet, onSuccess }) {
                 )}
 
                 {step === "remove" && (
-                    <form onSubmit={handleRemove} className="space-y-4">
+                    <form onSubmit={handleRemove} autoComplete="off" className="space-y-4">
                         <div className="bg-red-50 border border-error/20 rounded-lg p-3 text-sm text-error">
                             Nhập mã PIN để xác nhận xóa tài khoản ngân hàng hiện tại.
                             Sau khi xóa, bạn có thể thiết lập tài khoản mới.
@@ -297,6 +303,8 @@ function WithdrawModal({ isOpen, onClose, wallet, onSuccess }) {
                             placeholder="Nhập mã PIN"
                             value={removePin}
                             onChange={e => setRemovePin(e.target.value)}
+                            name="bank-account-removal-pin"
+                            autoComplete="one-time-code"
                             required
                         />
 
@@ -345,11 +353,7 @@ function InstructorRevenueTable({
                 <div className="flex flex-col">
                     <span className="font-bold text-foreground flex items-center gap-1.5 capitalize">
                         TRX-{trx.id}
-                        {trx.type === 1 ? (
-                            <ArrowUpRight className="w-3 h-3 text-success" />
-                        ) : (
-                            <ArrowDownRight className="w-3 h-3 text-rose-500" />
-                        )}
+                        <ArrowDownRight className="w-3 h-3 text-rose-500" />
                     </span>
                     <span className="text-xs text-muted-foreground font-medium mt-0.5">
                         {new Date(trx.createdAt).toLocaleString('vi-VN', {
@@ -369,8 +373,10 @@ function InstructorRevenueTable({
             className: "max-w-[300px]",
             cellClassName: "max-w-[300px]",
             render: (trx) => (
-                <span className="text-sm font-bold text-foreground line-clamp-1" title={trx.ref}>
-                    {trx.ref || "Không có nội dung"}
+                <span className="text-sm font-bold text-foreground line-clamp-1">
+                    {trx.accountBank?.bank?.shortName
+                        ? `Rút tiền về ${trx.accountBank.bank.shortName}`
+                        : "Yêu cầu rút tiền"}
                 </span>
             )
         },
@@ -379,8 +385,8 @@ function InstructorRevenueTable({
             className: "text-center",
             cellClassName: "text-center",
             render: (trx) => (
-                <span className={`font-bold text-sm ${trx.type === 1 ? "text-success" : "text-error"}`}>
-                    {trx.type === 1 ? "+" : "-"}{formatVND(trx.amount)}
+                <span className="font-bold text-sm text-error">
+                    -{formatVND(trx.amount)}
                 </span>
             )
         },
@@ -390,8 +396,7 @@ function InstructorRevenueTable({
             cellClassName: "text-center",
             render: (trx) => (
                 <AppBadge variant="secondary" soft className="text-[10px] font-bold uppercase tracking-tight py-0">
-                    {trx.paymentMethod === "REVENUE" ? "Thanh toán khóa học" :
-                        trx.paymentMethod === "WITHDRAW" ? "Rút tiền mặt" : trx.paymentMethod}
+                    Rút tiền
                 </AppBadge>
             )
         },
@@ -400,19 +405,19 @@ function InstructorRevenueTable({
             className: "text-center",
             cellClassName: "text-center",
             render: (trx) => {
-                if (trx.status === 1) return (
+                if (trx.status === 3) return (
                     <AppBadge variant="success" soft className="text-[10px] font-bold py-0.5 inline-flex items-center gap-1">
-                        <CheckCircle2 className="w-3 h-3" /> Thành công
+                        <CheckCircle2 className="w-3 h-3" /> Hoàn tất
                     </AppBadge>
                 );
-                if (trx.status === 0) return (
+                if (trx.status === 1 || trx.status === 2) return (
                     <AppBadge variant="warning" soft className="text-[10px] font-bold py-0.5 inline-flex items-center gap-1">
-                        <Clock className="w-3 h-3" /> Đang chờ
+                        <Clock className="w-3 h-3" /> {trx.status === 1 ? "Chờ duyệt" : "Đang chuyển"}
                     </AppBadge>
                 );
                 return (
                     <AppBadge variant="error" soft className="text-[10px] font-bold py-0.5 inline-flex items-center gap-1">
-                        <XCircle className="w-3 h-3" /> Thất bại
+                        <XCircle className="w-3 h-3" /> {trx.status === 5 ? "Bị từ chối" : "Thất bại"}
                     </AppBadge>
                 );
             }
@@ -454,15 +459,18 @@ export default function InstructorRevenue() {
   const filteredTransactions = (Array.isArray(transactions) ? transactions : []).filter((trx) => {
     // Tìm kiếm theo ID hoặc nội dung
     const searchString = searchTerm.toLowerCase();
-    const matchSearch = `trx-${trx.id}`.toLowerCase().includes(searchString) || 
-      (trx.ref && trx.ref.toLowerCase().includes(searchString));
+    const matchSearch = `trx-${trx.id}`.toLowerCase().includes(searchString) ||
+      (trx.accountBank?.accountNumber || "").toLowerCase().includes(searchString) ||
+      (trx.accountBank?.bank?.shortName || "").toLowerCase().includes(searchString);
     
     // Lọc trạng thái / loại
     let matchStatus = true;
     if (statusFilter.length > 0) {
-      if (statusFilter.includes("success") && trx.status !== 1) matchStatus = false;
-      if (statusFilter.includes("pending") && trx.status !== 0) matchStatus = false;
-      if (statusFilter.includes("failed") && trx.status !== -1) matchStatus = false;
+      const allowedStatuses = [];
+      if (statusFilter.includes("success")) allowedStatuses.push(3);
+      if (statusFilter.includes("pending")) allowedStatuses.push(1, 2);
+      if (statusFilter.includes("failed")) allowedStatuses.push(4, 5);
+      matchStatus = allowedStatuses.includes(trx.status);
     }
 
     // Lọc theo khoảng thời gian
@@ -483,17 +491,8 @@ export default function InstructorRevenue() {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
   };
 
-  const totalLifetime = Array.isArray(transactions)
-    ? transactions
-      .filter(t => t.type === 1 && t.paymentMethod === "REVENUE")
-      .reduce((sum, t) => sum + t.amount, 0)
-    : 0;
-
-  const thisMonthRevenue = Array.isArray(transactions)
-    ? transactions
-      .filter(t => t.type === 1 && t.paymentMethod === "REVENUE" && new Date(t.createdAt).getMonth() === new Date().getMonth())
-      .reduce((sum, t) => sum + t.amount, 0)
-    : 0;
+  const totalLifetime = Number(wallet?.totalRevenue || 0);
+  const thisMonthRevenue = Number(wallet?.currentMonthRevenue || 0);
 
   const handlePageChange = (newPage) => {
     setPagination(prev => ({ ...prev, currentPage: newPage }));
@@ -602,8 +601,8 @@ export default function InstructorRevenue() {
               <Activity className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-foreground tracking-tight">Lịch Sử Giao Dịch</h2>
-              <p className="text-xs font-medium text-muted-foreground">Danh sách các giao dịch phát sinh trong ví của bạn.</p>
+              <h2 className="text-lg font-bold text-foreground tracking-tight">Lịch Sử Rút Tiền</h2>
+              <p className="text-xs font-medium text-muted-foreground">Danh sách các yêu cầu rút tiền từ ví của bạn.</p>
             </div>
           </div>
         </div>
@@ -611,14 +610,14 @@ export default function InstructorRevenue() {
         <DataFilter
           searchQuery={searchTerm}
           onSearchChange={setSearchTerm}
-          searchPlaceholder="Tìm mã GD, nội dung..."
+          searchPlaceholder="Tìm mã giao dịch, ngân hàng..."
           dropdownChecklists={[
             {
               title: "Bộ lọc",
               items: [
-                { label: "Thành công", value: "success" },
-                { label: "Đang chờ", value: "pending" },
-                { label: "Thất bại", value: "failed" },
+                { label: "Hoàn tất", value: "success" },
+                { label: "Chờ duyệt / đang chuyển", value: "pending" },
+                { label: "Thất bại / từ chối", value: "failed" },
               ],
               selectedItems: statusFilter,
               onItemToggle: (val) => setStatusFilter(prev => prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val]),

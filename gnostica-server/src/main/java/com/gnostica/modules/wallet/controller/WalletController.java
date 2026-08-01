@@ -4,7 +4,6 @@ import com.gnostica.modules.wallet.dto.response.*;
 
 import com.gnostica.modules.wallet.dto.request.SetBankAccountRequest;
 import com.gnostica.modules.wallet.dto.request.WithdrawRequest;
-import com.gnostica.core.model.Wallet;
 import com.gnostica.core.model.AccountBank;
 import com.gnostica.modules.wallet.service.WalletService;
 import lombok.RequiredArgsConstructor;
@@ -23,8 +22,8 @@ public class WalletController {
     private final WalletService walletService;
 
     @GetMapping("/me")
-    public ResponseEntity<Wallet> getMyWallet() {
-        return ResponseEntity.ok(walletService.getMyWallet());
+    public ResponseEntity<WalletOverviewResponse> getMyWallet() {
+        return ResponseEntity.ok(walletService.getMyWalletOverview());
     }
 
     @GetMapping("/transactions")
@@ -34,12 +33,14 @@ public class WalletController {
 
     @GetMapping("/stats")
     public ResponseEntity<Map<String, Object>> getWalletStats() {
-        Wallet wallet = walletService.getMyWallet();
+        WalletOverviewResponse wallet = walletService.getMyWalletOverview();
         List<com.gnostica.core.model.Payout> payouts = walletService.getMyTransactions();
 
         Map<String, Object> stats = new HashMap<>();
         stats.put("balance", wallet.getRemain());
-        stats.put("totalRevenue", 0); // TODO: Calculate from Revenue_Shares table
+        stats.put("totalRevenue", wallet.getTotalRevenue());
+        stats.put("currentMonthRevenue", wallet.getCurrentMonthRevenue());
+        stats.put("pendingRevenue", wallet.getPendingRevenue());
         stats.put("transactionCount", payouts.size());
 
         return ResponseEntity.ok(stats);
