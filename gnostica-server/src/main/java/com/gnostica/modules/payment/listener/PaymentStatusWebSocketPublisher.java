@@ -27,6 +27,6 @@ public class PaymentStatusWebSocketPublisher {
                 "orderCode", orderCode,
                 "status", "PAID",
                 "occurredAt", LocalDateTime.now().toString());
-        messagingTemplate.convertAndSend("/topic/payment-status/" + orderCode, payload);
+        messagingTemplate.convertAndSend("/topic/payment-status/" + orderCode, (Object) payload);
     }
 }
