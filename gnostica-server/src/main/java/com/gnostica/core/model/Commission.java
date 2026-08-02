@@ -44,7 +44,7 @@ public class Commission {
     private LocalDateTime validUntil;
 
     /**
-     * Status: 0: Draft (Sắp tới), 1: Active (Áp dụng), 2: Expired (Hết hạn)
+     * Status: 0: Inactive (Tạm dừng), 1: Active (Đang áp dụng), 2: Expired (Hết hạn)
      */
     @NotNull
     private Integer status;

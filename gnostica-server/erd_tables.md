@@ -1,4 +1,4 @@
-﻿# ERD - Danh sách bảng và trường (Đối chiếu)
+# ERD - Danh sách bảng và trường (Đối chiếu)
 
 > [!NOTE]
 > **Phiên bản 5** — Cập nhật mô hình gọn hơn: thêm `metadata` cho `Courses` và `Coupons`, bỏ `Coupon_Rules`, bỏ `Cert_Requirements`, bỏ `Revenue_Shares`; `Order_Details` tham chiếu trực tiếp `Commissions` bằng `commission_id`.
@@ -199,20 +199,22 @@
 |---|--------|---------------|---------|-------|
 | 1 | id | UUID | PK | |
 | 2 | account_id | UUID | FK | |
-| 3 | code | VARCHAR(255) | UQ | |
-| 4 | name | VARCHAR(255) | | |
-| 5 | discount_type | INT | | |
-| 6 | discount_value | DECIMAL(18,6) | | `> 0` |
-| 7 | min_discount | DECIMAL(18,6) | | `>= 0` |
-| 8 | max_discount | DECIMAL(18,6) | | `>= 0` |
-| 9 | quantity | INT | | `>= 0` |
-| 10 | valid_from | DATETIME | | |
-| 11 | valid_until | DATETIME | | |
-| 12 | status | INT | | |
-| 13 | metadata | JSONB | | |
-| 14 | created_at | DATETIME | | |
-| 15 | updated_at | DATETIME | | |
-| 16 | deleted_at | DATETIME | | |
+| 3 | code | TEXT | UQ |
+| 4 | code_hash | VARCHAR(64) | UQ |
+| 5 | name | VARCHAR(255) | |
+| 6 | discount_type | INT | |
+| 7 | discount_value | DECIMAL(18,6) | |
+| 8 | min_discount | DECIMAL(18,6) | |
+| 9 | max_discount | DECIMAL(18,6) | |
+| 10 | quantity | INT | |
+| 11 | reserved_quantity | INT | Def: 0 |
+| 12 | valid_from | DATETIME | |
+| 13 | valid_until | DATETIME | |
+| 14 | status | INT | |
+| 15 | metadata | JSONB | |
+| 16 | created_at | DATETIME | |
+| 17 | updated_at | DATETIME | |
+| 18 | deleted_at | DATETIME | | |
 > **Metadata:** Lưu các rule mềm của coupon như danh sách khóa học/danh mục áp dụng, giới hạn số lần dùng mỗi user, first purchase only, segment người dùng...
 >
 > **Note:** `discount_type`: 1 = phần trăm, 2 = số tiền cố định. Các rule cần query/report thường xuyên nên tách thành cột hoặc bảng riêng thay vì chỉ để trong metadata.
@@ -362,7 +364,7 @@
 | 8 | completed_at | DATETIME | | |
 > **Note:** Mỗi account chỉ có một progress record cho một lesson. `last_watched_at` nên chuẩn hóa sang timestamp/duration nếu cần phân tích học tập.
 >
-> **Status:** 1: In Progress (Đang học), 2: Completed (Hoàn thành)
+> **Status:** 0:Dropped, 1:InProgress, 2:Completed
 
 
 ---
@@ -459,10 +461,12 @@
 | 1 | id | IDENTITY(1,1) | PK | |
 | 2 | account_id | UUID | FK, C-IDX | |
 | 3 | title | VARCHAR(255) | | |
-| 4 | message | TEXT | | |
-| 5 | is_read | BIT | C-IDX | |
-| 6 | created_at | DATETIME | | |
-| 7 | updated_at | DATETIME | | |
+| 4 | message | TEXT | |
+| 5 | is_read | BOOLEAN | Def: false |
+| 6 | type | VARCHAR(50) | |
+| 7 | reference_id | VARCHAR(255) | |
+| 8 | created_at | DATETIME | | |
+| 9 | updated_at | DATETIME | | |
 
 > **Note:** Nên index `(account_id, is_read, created_at)` nếu màn hình thông báo thường xuyên lọc unread và sắp xếp mới nhất.
 
@@ -506,7 +510,7 @@
 | 9 | updated_at | DATETIME | | |
 > **Note:** `total_price` là tổng tiền phải thanh toán của đơn sau khi áp dụng coupon. `order_code` dùng cho đối soát với cổng thanh toán.
 >
-> **Status:** 0: Pending (Chờ thanh toán), 1: Paid (Đã thanh toán), 2: Refunded (Đã hoàn tiền), 3: Cancelled (Đã huỷ)
+> **Status:** 0:Pending, 1:Paid, 2:Refunded, 3:Cancelled
 
 
 ---
@@ -567,14 +571,13 @@
 
 | # | Trường | Kiểu dữ liệu | Ghi chú | CHECK |
 |---|--------|---------------|---------|-------|
-| 1 | id | UUID | PK | |
-| 2 | account_id | UUID | FK | |
-| 3 | wallet_id | UUID | FK | |
-| 4 | account_bank_id | UUID | FK | |
-| 5 | amount | DECIMAL(18,6) | | `> 0` |
-| 6 | status | INT | | |
-| 7 | created_at | DATETIME | | |
-| 8 | updated_at | DATETIME | | |
+| 1 | id | UUID | PK |
+| 2 | account_id | UUID | FK |
+| 3 | account_bank_id | UUID | FK |
+| 4 | amount | DECIMAL(18,6) | |
+| 5 | status | INT | |
+| 6 | created_at | DATETIME | |
+| 7 | updated_at | DATETIME | | |
 > **Note:** Payout là yêu cầu rút tiền từ wallet về account bank. Nên khóa/ghi nhận số dư tại thời điểm tạo payout ở tầng nghiệp vụ để tránh chi vượt.
 >
 > **Status:** 1: Pending (Chờ duyệt), 2: Processing (Đang chuyển), 3: Completed (Hoàn tất), 4: Failed (Lỗi), 5: Rejected (Từ chối)
@@ -868,7 +871,9 @@
 | 4 | type | INT | | |
 | 5 | status | INT | | |
 | 6 | created_at | DATETIME | | |
-| 7 | available_at | DATETIME | | |
+| 7 | available_at | DATETIME | |
+| 8 | target_type | VARCHAR(50) | |
+| 9 | target_id | UUID | | |
 > **Note:** `remain` là số dư hiện có; `available_at` dùng cho thời điểm tiền có thể rút nếu có cơ chế giữ tiền/chờ đối soát.
 >
 > **Status:** 0: Locked/Frozen (Đóng băng), 1: Active (Hoạt động)

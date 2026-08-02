@@ -299,6 +299,7 @@ function OrderDetailModal({ isOpen, onOpenChange, order }) {
                   <DetailItem icon={CreditCard} label="Trạng thái" value={
                     order.status === 1 ? <AppBadge variant="success" className="bg-success/10 text-success text-success">Đã thanh toán</AppBadge> : 
                     order.status === 0 ? <AppBadge variant="secondary" className="bg-warning/10 text-warning">Chờ thanh toán</AppBadge> : 
+                    order.status === 2 ? <AppBadge variant="warning" className="bg-warning/10 text-warning">Đã hoàn tiền</AppBadge> : 
                     <AppBadge variant="destructive">Đã hủy</AppBadge>
                   } />
                   <DetailItem icon={Receipt} label="Tổng tiền" value={`${order.totalPrice?.toLocaleString()}đ`} />

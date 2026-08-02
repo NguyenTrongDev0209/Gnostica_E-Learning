@@ -66,9 +66,32 @@ CREATE TABLE pages (
     title VARCHAR(255) NOT NULL,
     slug VARCHAR(255) UNIQUE NOT NULL,
     content TEXT,
+    metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
     status INT NOT NULL,
     created_at TIMESTAMP,
     updated_at TIMESTAMP
+);
+
+CREATE TABLE term_modules (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    slug VARCHAR(255) NOT NULL UNIQUE,
+    description TEXT,
+    order_index INTEGER NOT NULL DEFAULT 0,
+    status INTEGER NOT NULL DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE terms (
+    id SERIAL PRIMARY KEY,
+    module_id INTEGER NOT NULL REFERENCES term_modules(id),
+    title VARCHAR(255) NOT NULL,
+    content TEXT NOT NULL,
+    order_index INTEGER NOT NULL DEFAULT 0,
+    status INTEGER NOT NULL DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- ---------------------------------------------------------
@@ -135,19 +158,23 @@ CREATE TABLE wallets (
     type INT NOT NULL,
     status INT NOT NULL,
     created_at TIMESTAMP,
-    available_at TIMESTAMP
+    available_at TIMESTAMP,
+    target_type VARCHAR(50),
+    target_id UUID
 );
 
 CREATE TABLE coupons (
     id UUID PRIMARY KEY,
-    account_id UUID REFERENCES accounts(id),
-    code VARCHAR(255) UNIQUE NOT NULL,
+    account_id UUID NOT NULL REFERENCES accounts(id),
+    code TEXT NOT NULL UNIQUE,
+    code_hash VARCHAR(64),
     name VARCHAR(255) NOT NULL,
     discount_type INT NOT NULL,
     discount_value DECIMAL(18,6) NOT NULL CHECK (discount_value > 0),
     min_discount DECIMAL(18,6) CHECK (min_discount >= 0),
     max_discount DECIMAL(18,6) CHECK (max_discount >= 0),
     quantity INT CHECK (quantity >= 0),
+    reserved_quantity INT NOT NULL DEFAULT 0 CHECK (reserved_quantity >= 0),
     valid_from TIMESTAMP,
     valid_until TIMESTAMP,
     status INT NOT NULL,
@@ -156,6 +183,7 @@ CREATE TABLE coupons (
     updated_at TIMESTAMP,
     deleted_at TIMESTAMP
 );
+CREATE UNIQUE INDEX uk_coupons_code_hash ON coupons (code_hash) WHERE code_hash IS NOT NULL;
 
 CREATE TABLE devices (
     id UUID PRIMARY KEY,
@@ -186,6 +214,8 @@ CREATE TABLE notifications (
     title VARCHAR(255) NOT NULL,
     message TEXT,
     is_read BOOLEAN NOT NULL DEFAULT false,
+    type VARCHAR(50),
+    reference_id VARCHAR(255),
     created_at TIMESTAMP,
     updated_at TIMESTAMP
 );
@@ -229,6 +259,7 @@ CREATE TABLE commissions (
     valid_from TIMESTAMP,
     valid_until TIMESTAMP,
     status INT NOT NULL,
+    metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
     created_at TIMESTAMP,
     updated_at TIMESTAMP
 );
@@ -411,7 +442,8 @@ CREATE TABLE thread_hashtags (
 CREATE TABLE comments (
     id SERIAL PRIMARY KEY,
     account_id UUID REFERENCES accounts(id),
-    thread_id INT REFERENCES threads(id),
+    target_type VARCHAR(50) NOT NULL,
+    target_id VARCHAR(255) NOT NULL,
     parent_id INT REFERENCES comments(id),
     mention_id UUID REFERENCES accounts(id),
     content TEXT NOT NULL,
@@ -420,6 +452,8 @@ CREATE TABLE comments (
     updated_at TIMESTAMP,
     deleted_at TIMESTAMP
 );
+CREATE INDEX idx_comments_target ON comments(target_type, target_id);
+CREATE INDEX idx_comments_parent_id ON comments(parent_id);
 
 -- ---------------------------------------------------------
 -- LAYER 6: Tables depending on Layer 5
@@ -483,16 +517,9 @@ CREATE TABLE payments (
     transaction_code VARCHAR(255),
     gateway VARCHAR(32) NOT NULL,
     gateway_transaction_no VARCHAR(255),
-    bank_code VARCHAR(32),
-    card_type VARCHAR(32),
-    gateway_response_code VARCHAR(16),
-    gateway_transaction_status VARCHAR(16),
     amount DECIMAL(18,6) NOT NULL CHECK (amount > 0),
-    account_number VARCHAR(255),
-    sender_bank_bin VARCHAR(255),
-    sender_account_number VARCHAR(255),
     paid_at TIMESTAMP,
-    raw_callback JSONB,
+    payload JSONB,
     status INT NOT NULL,
     created_at TIMESTAMP,
     updated_at TIMESTAMP
@@ -507,12 +534,25 @@ CREATE INDEX idx_payments_paid_at ON payments(paid_at);
 CREATE TABLE payouts (
     id UUID PRIMARY KEY,
     account_id UUID REFERENCES accounts(id),
-    wallet_id UUID REFERENCES wallets(id),
     account_bank_id UUID REFERENCES account_banks(id),
     amount DECIMAL(18,6) NOT NULL CHECK (amount > 0),
     status INT NOT NULL,
     created_at TIMESTAMP,
     updated_at TIMESTAMP
+);
+
+CREATE TABLE gifts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    sender_id UUID NOT NULL REFERENCES accounts(id),
+    receiver_id UUID NOT NULL REFERENCES accounts(id),
+    course_id UUID NOT NULL REFERENCES courses(id),
+    order_id UUID REFERENCES orders(id),
+    token VARCHAR(255) NOT NULL UNIQUE,
+    message TEXT,
+    status INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW(),
+    expired_at TIMESTAMP
 );
 
 -- ---------------------------------------------------------
@@ -569,6 +609,17 @@ CREATE TABLE enrollments (
     UNIQUE (account_id, course_id)
 );
 
+CREATE TABLE refunds (
+    id UUID PRIMARY KEY,
+    order_detail_id UUID REFERENCES order_details(id) NOT NULL,
+    account_id UUID REFERENCES accounts(id) NOT NULL,
+    amount DECIMAL(18,6) NOT NULL,
+    reason TEXT,
+    status INT NOT NULL,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP
+);
+
 -- ---------------------------------------------------------
 -- SEED DATA
 -- ---------------------------------------------------------
@@ -616,8 +667,8 @@ ON CONFLICT (config_key) DO NOTHING;
 INSERT INTO banners (title, image_url, alt_text, target_type, position, sort_order, status, created_at, updated_at)
 SELECT seed.title, seed.image_url, seed.alt_text, 'NONE', seed.position, seed.sort_order, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
 FROM (VALUES
-    ('Banner trang chủ 1', '/banner1.webp', 'Banner khuyến mãi 1', 'HOME_HERO', 0),
-    ('Banner trang chủ 2', '/banner2.webp', 'Banner khuyến mãi 2', 'HOME_HERO', 1),
+    ('Banner trang chủ 1', '/banner_big1.webp', 'Banner khuyến mãi 1', 'HOME_HERO', 0),
+    ('Banner trang chủ 2', '/banner_big2.webp', 'Banner khuyến mãi 2', 'HOME_HERO', 1),
     ('Banner phụ 1', '/banner_small1.webp', 'Banner phụ khuyến mãi 1', 'HOME_SUB', 0),
     ('Banner phụ 2', '/banner_small2.webp', 'Banner phụ khuyến mãi 2', 'HOME_SUB', 1),
     ('Banner phụ 3', '/banner_small3.webp', 'Banner phụ khuyến mãi 3', 'HOME_SUB', 2),
@@ -626,41 +677,18 @@ FROM (VALUES
 WHERE NOT EXISTS (SELECT 1 FROM banners);
 
 
-INSERT INTO pages (title, slug, content, status, created_at, updated_at)
-VALUES
-(
-    'Điều khoản dịch vụ',
-    'terms',
-    $$
-    <h2>1. Giới thiệu</h2><p>Chào mừng bạn đến với nền tảng học trực tuyến của chúng tôi. Bằng việc truy cập và sử dụng dịch vụ, bạn đồng ý tuân thủ các điều khoản và điều kiện được nêu dưới đây.</p>
-    <h2>2. Tài khoản người dùng</h2><ul><li>Bạn phải cung cấp thông tin chính xác và đầy đủ khi đăng ký tài khoản.</li><li>Bạn chịu trách nhiệm bảo mật thông tin đăng nhập của mình.</li><li>Mỗi tài khoản chỉ được sử dụng bởi một cá nhân duy nhất.</li><li>Chúng tôi có quyền tạm khóa hoặc xóa tài khoản vi phạm điều khoản.</li></ul>
-    <h2>3. Quyền sở hữu trí tuệ</h2><p>Tất cả nội dung khóa học, bao gồm video, tài liệu, bài tập và mã nguồn, đều thuộc quyền sở hữu của giảng viên và nền tảng. Nghiêm cấm sao chép hoặc phân phối khi chưa được cho phép.</p>
-    <h2>4. Thanh toán và hoàn tiền</h2><ul><li>Giao dịch được xử lý qua các cổng thanh toán bảo mật.</li><li>Giá khóa học có thể thay đổi theo từng thời điểm.</li><li>Yêu cầu hoàn tiền được xem xét theo chính sách đang được công bố.</li></ul>
-    <h2>5. Quy tắc ứng xử</h2><ul><li>Tôn trọng giảng viên và các học viên khác.</li><li>Không đăng nội dung spam, quảng cáo hoặc nội dung không phù hợp.</li><li>Không sử dụng ngôn ngữ xúc phạm, phân biệt đối xử hoặc quấy rối.</li></ul>
-    <h2>6. Giới hạn trách nhiệm</h2><p>Chúng tôi nỗ lực cung cấp dịch vụ ổn định nhưng không bảo đảm nền tảng sẽ hoạt động liên tục và không có lỗi trong mọi trường hợp.</p>
-    <h2>7. Thay đổi điều khoản</h2><p>Các điều khoản có thể được cập nhật. Thời điểm cập nhật gần nhất được hiển thị trên trang này.</p>
-    $$,
+INSERT INTO commissions (account_id, instructor_ratio, platform_ratio, valid_from, valid_until, status, metadata, created_at, updated_at)
+VALUES (
+    '00000000-0000-0000-0000-000000000001',
+    90.00,
+    10.00,
+    '2025-01-01 00:00:00',
+    '2030-12-31 23:59:59',
     1,
+    '{}'::jsonb,
     CURRENT_TIMESTAMP,
     CURRENT_TIMESTAMP
-),
-(
-    'Chính sách bảo mật',
-    'privacy',
-    $$
-    <h2>1. Thông tin chúng tôi thu thập</h2><ul><li>Thông tin cá nhân được cung cấp khi đăng ký.</li><li>Thông tin giao dịch cần thiết để xử lý đơn hàng.</li><li>Dữ liệu sử dụng và tiến trình học tập.</li><li>Thông tin thiết bị phục vụ bảo mật và cải thiện trải nghiệm.</li></ul>
-    <h2>2. Mục đích sử dụng</h2><ul><li>Cung cấp và quản lý tài khoản.</li><li>Xử lý thanh toán và xác nhận đơn hàng.</li><li>Cá nhân hóa trải nghiệm học tập.</li><li>Phân tích và cải thiện chất lượng dịch vụ.</li></ul>
-    <h2>3. Bảo vệ dữ liệu</h2><p>Chúng tôi áp dụng các biện pháp kỹ thuật và tổ chức phù hợp để bảo vệ dữ liệu cá nhân khỏi truy cập, thay đổi hoặc tiết lộ trái phép.</p>
-    <h2>4. Chia sẻ với bên thứ ba</h2><p>Thông tin chỉ được chia sẻ với đơn vị cần thiết để vận hành dịch vụ hoặc khi pháp luật yêu cầu.</p>
-    <h2>5. Cookie</h2><p>Cookie được sử dụng để duy trì phiên đăng nhập, ghi nhớ tùy chọn và phân tích hoạt động của nền tảng.</p>
-    <h2>6. Quyền của bạn</h2><ul><li>Truy cập và cập nhật thông tin cá nhân.</li><li>Yêu cầu xóa tài khoản theo quy định.</li><li>Từ chối các thông báo tiếp thị không cần thiết.</li></ul>
-    <h2>7. Lưu trữ dữ liệu</h2><p>Dữ liệu được lưu trong thời gian cần thiết để cung cấp dịch vụ và đáp ứng nghĩa vụ pháp lý.</p>
-    $$,
-    1,
-    CURRENT_TIMESTAMP,
-    CURRENT_TIMESTAMP
-)
-ON CONFLICT (slug) DO NOTHING;
+);
 
 
 -- Editable content and imagery for the public About page.
