@@ -71,7 +71,7 @@ const getOrderById = async (orderId) => {
  */
 const cancelOrder = async (orderId) => {
     try {
-        const response = await axiosClient.put(`${API_URL}/${orderId}`, null, {
+        const response = await axiosClient.put(`${API_URL}/${orderId}/cancel`, null, {
             headers: getAuthHeaders()
         });
         return response.data;

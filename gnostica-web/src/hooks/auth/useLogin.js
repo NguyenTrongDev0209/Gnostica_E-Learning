@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import authService from '@/services/auth/authService';
 import useAuthStore from '@/store/useAuthStore';
 import { toast } from 'sonner';
 
 export const useLogin = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const setUser = useAuthStore(state => state.setUser);
   const [searchParams] = useSearchParams();
 
@@ -14,6 +15,18 @@ export const useLogin = () => {
   const [remember, setRemember] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+
+  const getSafeRedirectPath = (candidate) => {
+    if (!candidate) return null;
+    const path = typeof candidate === 'string'
+      ? candidate
+      : `${candidate.pathname || ''}${candidate.search || ''}${candidate.hash || ''}`;
+    return path.startsWith('/') && !path.startsWith('//') && !path.startsWith('/login')
+      ? path
+      : null;
+  };
+
+  const redirectPath = getSafeRedirectPath(location.state?.from) || getSafeRedirectPath(searchParams.get('redirect'));
 
   useEffect(() => {
     const errorParam = searchParams.get('error');
@@ -58,7 +71,9 @@ export const useLogin = () => {
 
       setUser(user);
 
-      if (roleName === 'ADMIN') {
+      if (redirectPath) {
+        navigate(redirectPath, { replace: true });
+      } else if (roleName === 'ADMIN') {
         navigate('/admin');
       } else if (roleName === 'INSTRUCTOR' || roleName === 'TEACHER') {
         navigate('/instructor');
@@ -77,6 +92,7 @@ export const useLogin = () => {
     password, setPassword,
     remember, setRemember,
     loading, errors, setErrors,
-    handleSubmit
+    handleSubmit,
+    redirectPath
   };
 };

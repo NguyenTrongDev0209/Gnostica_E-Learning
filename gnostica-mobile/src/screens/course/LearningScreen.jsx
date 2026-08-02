@@ -5,15 +5,16 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { ArrowLeft, Play, CheckCircle2, Circle, FileText, MessageCircle, Download, Send, X, CornerDownRight, Trash2, RefreshCw, HelpCircle, Check, XCircle, RotateCcw, Award, ChevronRight, ChevronLeft } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { clsx } from 'clsx';
-import { useVideoPlayer, VideoView } from 'expo-video';
 import courseService from '../../services/course/courseService';
 import lessonProgressService from '../../services/course/lessonProgressService';
 import commentService from '../../services/forum/commentService';
 import { useAuth } from '../../context/AuthContext';
 import { BASE_URL } from '../../config/api';
+import { WEB_ORIGIN } from '../../config/environment';
+import VideoPlayer, { getEmbeddedVideoUrl } from '../../components/course/VideoPlayer';
 
 const { width } = Dimensions.get('window');
-const BUNNY_LIBRARY_ID = process.env.EXPO_PUBLIC_BUNNY_LIBRARY_ID;
+const BUNNY_PLAYBACK_HEADERS = { Referer: WEB_ORIGIN };
 
 const addReplyToTree = (list, parentId, newReply) => {
     return list.map(c => {
@@ -413,6 +414,7 @@ const LearningScreen = () => {
     const [activeTab, setActiveTab] = useState('curriculum');
     const [activeLesson, setActiveLesson] = useState(null);
     const [activeQuiz, setActiveQuiz] = useState(null);
+    const [playback, setPlayback] = useState({ lessonId: null, source: null, embedSource: null, loading: false, error: null });
 
     // Q&A state
     const [comments, setComments] = useState([]);
@@ -574,65 +576,51 @@ const LearningScreen = () => {
         );
     };
 
-    const getVideoSource = (url) => {
-        if (!url) return null;
-
-        const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
-        let libraryId = BUNNY_LIBRARY_ID;
-        let videoId = url;
-
-        if (url.includes('/')) {
-            const parts = url.split('/').filter(Boolean);
-            const lastPart = parts[parts.length - 1];
-            const secondToLast = parts[parts.length - 2];
-            if (uuidRegex.test(lastPart)) {
-                videoId = lastPart;
-                if (secondToLast && secondToLast.length > 2) {
-                    libraryId = secondToLast;
-                }
-            }
-        }
-
-        if (uuidRegex.test(videoId)) {
-            return `https://vz-${libraryId}.b-cdn.net/${videoId}/playlist.m3u8`;
-        }
-
-        if (url.startsWith('http://') || url.startsWith('https://')) {
-            return url;
-        }
-
-        const host = BASE_URL.replace('/api', '');
-        return `${host}${url.startsWith('/') ? '' : '/'}${url}`;
-    };
-
-    const videoSource = useMemo(() => {
-        return activeLesson?.videoUrl ? getVideoSource(activeLesson.videoUrl) : null;
-    }, [activeLesson?.videoUrl]);
-
-    const player = useVideoPlayer(videoSource, (p) => {
-        p.loop = false;
-        p.play();
-    });
-
     useEffect(() => {
-        let isMounted = true;
-        const updateVideoSource = async () => {
-            if (player && videoSource) {
-                try {
-                    await player.replaceAsync(videoSource);
-                    if (isMounted) {
-                        player.play();
-                    }
-                } catch (e) {
-                    console.warn('Error replacing video source:', e);
-                }
-            }
-        };
-        updateVideoSource();
+        let cancelled = false;
+        const lessonId = activeLesson?.id;
+        const storedVideoUrl = activeLesson?.videoUrl;
+
+        if (!lessonId || !storedVideoUrl) {
+            setPlayback({ lessonId: lessonId || null, source: null, embedSource: null, loading: false, error: null });
+            return undefined;
+        }
+
+        setPlayback({ lessonId, source: null, embedSource: null, loading: true, error: null });
+        courseService.getLessonPlayback(lessonId)
+            .then((response) => {
+                const data = response?.data || response;
+                if (!data?.sourceUrl) throw new Error('Server did not return a playable video URL');
+                if (!cancelled) setPlayback({
+                    lessonId,
+                    source: data.sourceUrl,
+                    embedSource: data.embedUrl || null,
+                    loading: false,
+                    error: null
+                });
+            })
+            .catch((error) => {
+                console.error('Unable to resolve lesson video playback:', error);
+                if (!cancelled) setPlayback({
+                    lessonId,
+                    source: null,
+                    embedSource: null,
+                    loading: false,
+                    error: 'Không thể tải luồng video. Vui lòng thử lại sau.'
+                });
+            });
+
         return () => {
-            isMounted = false;
+            cancelled = true;
         };
-    }, [videoSource, player]);
+    }, [activeLesson?.id, activeLesson?.videoUrl]);
+
+    const videoSource = playback.lessonId === activeLesson?.id ? playback.source : null;
+    // Android WebView does not preserve the app's CDN authorisation headers for
+    // the Bunny iframe's nested HLS requests. Keep Bunny's iframe URL available
+    // for browser clients, but use the verified native HLS path on mobile.
+    const playerSource = videoSource;
+    const hasPlayableVideo = Boolean(playerSource && (getEmbeddedVideoUrl(playerSource) || playerSource));
 
     const modulesList = useMemo(() => {
         return courseDetail?.modules || initialCourse?.modules || initialCourse?.curriculum || [];
@@ -836,15 +824,15 @@ const LearningScreen = () => {
                             className="bg-black items-center justify-center"
                             style={{ width, height: width * 0.5625 }}
                         >
-                            {loading ? (
+                            {loading || playback.loading ? (
                                 <ActivityIndicator size="large" color="#2563EB" />
-                            ) : videoSource ? (
-                                <VideoView 
+                            ) : hasPlayableVideo ? (
+                                <VideoPlayer
+                                    key={playerSource}
                                     style={{ width: '100%', height: '100%' }}
-                                    player={player}
-                                    fullscreenOptions={{ enable: true }}
-                                    allowsPictureInPicture
-                                    showsTimecodes
+                                    source={playerSource}
+                                    requestHeaders={BUNNY_PLAYBACK_HEADERS}
+                                    autoplay
                                 />
                             ) : (
                                 <View className="items-center justify-center px-4">

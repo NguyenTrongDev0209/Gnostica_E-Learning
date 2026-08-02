@@ -1,6 +1,7 @@
 package com.gnostica.modules.order.service;
 
 import com.gnostica.modules.payment.service.PaymentService;
+import com.gnostica.modules.payment.service.PayOSPaymentLinkCacheService;
 import com.gnostica.modules.payment.dto.response.PaymentLinkResponse;
 import com.gnostica.modules.payment.dto.request.CreatePaymentLinkRequestBody;
 import com.gnostica.modules.order.dto.response.OrderResponse;
@@ -16,6 +17,7 @@ import com.gnostica.core.repository.CourseRepository;
 import com.gnostica.core.repository.OrderDetailRepository;
 import com.gnostica.core.repository.OrderRepository;
 import com.gnostica.core.repository.CouponRepository;
+import com.gnostica.core.repository.EnrollmentRepository;
 import com.gnostica.core.util.AuthUtil;
 
 import lombok.RequiredArgsConstructor;
@@ -44,19 +46,28 @@ import com.gnostica.modules.wallet.service.WalletService;
 @RequiredArgsConstructor
 @Slf4j
 public class OrderService {
+    public static final String ACCOUNT_NOT_ELIGIBLE = "ACCOUNT_NOT_ELIGIBLE";
+    public static final String COURSE_NOT_AVAILABLE = "COURSE_NOT_AVAILABLE";
+    public static final String OWN_COURSE_PURCHASE_NOT_ALLOWED = "OWN_COURSE_PURCHASE_NOT_ALLOWED";
+    public static final String ALREADY_ENROLLED = "ALREADY_ENROLLED";
     private static final Set<String> SUPPORTED_PAYMENT_METHODS = Set.of("PAYOS", "VNPAY", "WALLET");
     private final OrderRepository orderRepository;
     private final OrderDetailRepository orderDetailRepository;
     private final AccountRepository accountRepository;
     private final CourseRepository courseRepository;
     private final CouponRepository couponRepository;
+    private final EnrollmentRepository enrollmentRepository;
     private final CouponService couponService;
     private final PaymentService paymentService;
     private final CommissionResolver commissionResolver;
     private final WalletService walletService;
+    private final PayOSPaymentLinkCacheService payOSPaymentLinkCacheService;
 
     @Value("${payos.webhook-enabled:false}")
     private boolean payosWebhookEnabled;
+
+    @Value("${app.public-url}")
+    private String publicUrl;
 
     public List<OrderResponse> getAllOrders() {
         return orderRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt")).stream()
@@ -102,6 +113,29 @@ public class OrderService {
         return mapToResponse(checkAndReturnOrder(order));
     }
 
+    @Transactional
+    public OrderResponse cancelPendingOrder(Long orderCode) throws Exception {
+        Order order = orderRepository.findByOrderCodeForUpdate(orderCode)
+                .orElseThrow(() -> new IllegalArgumentException("Order not found"));
+        assertCanReadOrder(order);
+
+        if (order.getStatus() == OrderStatus.CANCELLED) {
+            return mapToResponse(order);
+        }
+        if (order.getStatus() != OrderStatus.PENDING) {
+            throw new IllegalArgumentException("Only pending orders can be cancelled");
+        }
+
+        // Cancel the PayOS link first. If PayOS refuses because the payment was
+        // completed concurrently, the local order is deliberately left pending.
+        paymentService.cancelPayment(order, "Cancelled by customer");
+        order.setStatus(OrderStatus.CANCELLED);
+        orderRepository.save(order);
+        clearPendingPayOSPaymentLink(order);
+        releaseReservedCoupon(order);
+        return mapToResponse(order);
+    }
+
     private Order checkAndReturnOrder(Order order) throws Exception {
         // 0: PENDING
         boolean shouldPollPaymentGateway = !payosWebhookEnabled
@@ -130,7 +164,7 @@ public class OrderService {
         }
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public PaymentLinkResponse createPaymentLink(CreatePaymentLinkRequestBody requestBody) throws Exception {
         return createPaymentLink(requestBody, false);
     }
@@ -149,11 +183,24 @@ public class OrderService {
         Account account = accountRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("Account not found for email: " + email));
 
+        if (requestBody == null || requestBody.getCourseId() == null) {
+            throw new IllegalArgumentException(COURSE_NOT_AVAILABLE);
+        }
+
         Course course = courseRepository.findById(requestBody.getCourseId())
-                .orElseThrow(() -> new IllegalArgumentException("Course not found for ID: " + requestBody.getCourseId()));
+                .orElseThrow(() -> new IllegalArgumentException(COURSE_NOT_AVAILABLE));
+
+        assertCourseCanBePurchased(course, account, deferImmediateSuccess);
 
         long orderCode = System.currentTimeMillis();
         String paymentMethod = normalizePaymentMethod(requestBody.getPaymentMethod());
+
+        if ("PAYOS".equals(paymentMethod)) {
+            PaymentLinkResponse pendingPayment = findReusablePendingPayOSPayment(account, course);
+            if (pendingPayment != null) {
+                return pendingPayment;
+            }
+        }
 
         // The server is the source of truth for pricing. Never trust a client-submitted total.
         BigDecimal actualPrice = course.getSalePrice();
@@ -210,7 +257,7 @@ public class OrderService {
                 .amount(0L).description("Miễn phí")
                 .orderCode(orderCode)
                 .paymentLinkId("FREE-" + orderCode).status("PAID")
-                .checkoutUrl(requestBody.getReturnUrl() + "?orderCode=" + orderCode)
+                .checkoutUrl(trustedReturnUrl() + "?orderCode=" + orderCode)
                 .qrCode("").build();
         }
 
@@ -241,11 +288,76 @@ public class OrderService {
                 .amount(actualPrice.longValue()).description("Thanh toán bằng số dư ví")
                 .orderCode(orderCode)
                 .paymentLinkId("WALLET-" + orderCode).status("PAID")
-                .checkoutUrl(requestBody.getReturnUrl() + "?orderCode=" + orderCode)
+                .checkoutUrl(trustedReturnUrl() + "?orderCode=" + orderCode)
                 .qrCode("").build();
         }
 
-        return paymentService.createPaymentLink(order, requestBody.getReturnUrl(), requestBody.getCancelUrl());
+        return paymentService.createPaymentLink(order, trustedReturnUrl(), trustedCancelUrl());
+    }
+
+    private void assertCourseCanBePurchased(Course course, Account buyer, boolean isGiftOrder) {
+        if (buyer.getStatus() == null || buyer.getStatus() != 1 || buyer.getDeletedAt() != null) {
+            throw new IllegalArgumentException(ACCOUNT_NOT_ELIGIBLE);
+        }
+        if (course.getStatus() != 1 || Boolean.TRUE.equals(course.getDeleted())) {
+            throw new IllegalArgumentException(COURSE_NOT_AVAILABLE);
+        }
+        if (!isCategoryActive(course.getCategory(), new java.util.HashSet<>())) {
+            throw new IllegalArgumentException(COURSE_NOT_AVAILABLE);
+        }
+        if (isGiftOrder) {
+            return;
+        }
+        if (course.getAccount() != null && buyer.getId().equals(course.getAccount().getId())) {
+            throw new IllegalArgumentException(OWN_COURSE_PURCHASE_NOT_ALLOWED);
+        }
+        if (enrollmentRepository.existsByAccountAndCourseAndStatusIn(buyer, course, java.util.List.of(1))) {
+            throw new IllegalArgumentException(ALREADY_ENROLLED);
+        }
+    }
+
+    private boolean isCategoryActive(com.gnostica.core.model.Category category, java.util.Set<Integer> visitedCategoryIds) {
+        if (category == null || category.getId() == null || !visitedCategoryIds.add(category.getId())) {
+            return false;
+        }
+        if (category.getStatus() == null || category.getStatus() != 1 || category.getDeletedAt() != null) {
+            return false;
+        }
+        return category.getParent() == null || isCategoryActive(category.getParent(), visitedCategoryIds);
+    }
+
+    private String trustedReturnUrl() {
+        return publicUrl.replaceAll("/+$", "") + "/checkout";
+    }
+
+    private PaymentLinkResponse findReusablePendingPayOSPayment(Account account, Course course) {
+        List<Order> pendingOrders = orderRepository.findPendingPayOSOrdersByAccountAndCourse(account, course);
+        return payOSPaymentLinkCacheService.find(account.getId(), course.getId())
+                .filter(link -> pendingOrders.stream().anyMatch(order -> order.getOrderCode().equals(link.getOrderCode())))
+                .orElse(null);
+    }
+
+    private void clearPendingPayOSPaymentLink(Order order) {
+        if (order.getAccount() == null || order.getDetails() == null || order.getDetails().isEmpty()) {
+            return;
+        }
+        Course course = order.getDetails().get(0).getCourse();
+        if (course != null) {
+            payOSPaymentLinkCacheService.clear(order.getAccount().getId(), course.getId());
+        }
+    }
+
+    private String trustedCancelUrl() {
+        return trustedReturnUrl() + "?cancelled=true";
+    }
+
+    private void releaseReservedCoupon(Order order) {
+        Coupon coupon = order.getCoupon();
+        if (coupon == null || coupon.getReservedQuantity() == null) {
+            return;
+        }
+        coupon.setReservedQuantity(Math.max(0, coupon.getReservedQuantity() - 1));
+        couponRepository.save(coupon);
     }
 
     private Order saveOrder(Account account, Coupon coupon, BigDecimal totalPrice, String transactionId,

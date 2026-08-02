@@ -39,15 +39,20 @@ export default function AppAlertDialog({
   confirmText = "Xác nhận",
   cancelText = "Hủy",
   onConfirm,
+  hideCancel = false,
   variant = "default",
   icon,
+  mediaClassName,
+  confirmClassName,
   size = "default",
+  layout = "default",
   open,
   onOpenChange,
   contentClassName,
   ...props
 }) {
   const IconComponent = icon !== undefined ? icon : alertIcons[variant];
+  const isCentered = layout === "centered";
   
   let actionVariant = "default";
   let actionClass = "rounded-md duration-300 transition-all font-semibold shadow-sm";
@@ -69,35 +74,53 @@ export default function AppAlertDialog({
       {trigger && <AlertDialogTrigger asChild>{trigger}</AlertDialogTrigger>}
       <AlertDialogContent 
         size={size} 
-        className={cn("rounded-lg duration-300 shadow-[var(--gnostica-shadow-xl)] border-border", contentClassName)}
+        data-layout={layout}
+        className={cn(
+          "rounded-lg duration-300 shadow-[var(--gnostica-shadow-xl)] border-border",
+          isCentered && "w-[calc(100%-2rem)] !max-w-[390px] sm:!max-w-[390px] rounded-2xl p-5 sm:p-5",
+          contentClassName
+        )}
       >
-        <AlertDialogHeader>
+        <AlertDialogHeader className={cn(
+          isCentered && "items-center text-center sm:!grid-rows-[auto_auto_1fr] sm:!place-items-center sm:!text-center"
+        )}> 
           {IconComponent && (
             <AlertDialogMedia className={cn(
               "ring-4 ring-offset-0 rounded-full",
+              isCentered && "sm:!row-span-1",
               variant === "destructive" && "bg-error/10 ring-error/10",
               variant === "warning" && "bg-warning/10 ring-warning/10",
               variant === "success" && "bg-success/10 ring-success/10",
               variant === "info" && "bg-info/10 ring-info/10",
-              variant === "default" && "bg-muted ring-muted/50"
+              variant === "default" && "bg-muted ring-muted/50",
+              mediaClassName
             )}>
               {IconComponent}
             </AlertDialogMedia>
           )}
-          <AlertDialogTitle className="text-lg font-bold">{title}</AlertDialogTitle>
-          <AlertDialogDescription className="text-sm leading-relaxed">
+          <AlertDialogTitle className={cn("text-lg font-bold", isCentered && "mt-1 sm:!col-start-auto")}>{title}</AlertDialogTitle>
+          <AlertDialogDescription className={cn("text-sm leading-relaxed", isCentered && "max-w-[290px]")}> 
             {description}
           </AlertDialogDescription>
         </AlertDialogHeader>
         
-        <AlertDialogFooter className="bg-transparent border-t-0 pt-2">
-          <AlertDialogCancel className="rounded-md hover:bg-muted duration-300 transition-colors shadow-sm font-medium">
-            {cancelText}
-          </AlertDialogCancel>
+        <AlertDialogFooter className={cn(
+          "bg-transparent border-t-0 pt-2",
+          isCentered && "!mx-0 !mb-0 !grid !gap-2 !rounded-none !border-0 !bg-transparent !p-0",
+          isCentered && (hideCancel ? "!grid-cols-1 sm:!grid-cols-1" : "!grid-cols-2 sm:!grid-cols-2")
+        )}>
+          {!hideCancel && (
+            <AlertDialogCancel className={cn(
+              "rounded-md hover:bg-muted duration-300 transition-colors shadow-sm font-medium",
+              isCentered && "!order-1 m-0 h-10 w-full border-border"
+            )}>
+              {cancelText}
+            </AlertDialogCancel>
+          )}
           <AlertDialogAction 
             variant={actionVariant} 
             onClick={onConfirm}
-            className={actionClass}
+            className={cn(actionClass, isCentered && "!order-2 m-0 h-10 w-full", confirmClassName)}
           >
             {confirmText}
           </AlertDialogAction>

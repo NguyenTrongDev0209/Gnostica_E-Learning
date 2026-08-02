@@ -189,11 +189,23 @@ public class CourseService {
 
     @Transactional(readOnly = true)
     public CourseDetailResponse getCourseBySlug(String slug, String email) {
-        Course course = courseRepository.findFirstBySlugAndDeletedAtIsNullOrderByIdDesc(slug)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy khóa học"));
+        if (slug == null || !slug.matches("[a-z0-9]+(?:-[a-z0-9]+)*") || slug.length() > 160) {
+            throw new com.gnostica.core.exception.ResourceNotFoundException("Course not found");
+        }
 
-        // Kiểm tra xem user có phải là Instructor của khóa này hoặc Admin không
-        boolean isOwner = email != null && course.getAccount().getEmail().equals(email);
+        Course course = courseRepository.findFirstBySlugAndDeletedAtIsNullOrderByIdDesc(slug)
+                .orElseThrow(() -> new com.gnostica.core.exception.ResourceNotFoundException("Course not found"));
+
+        // Authentication is optional for the public page. It only decides
+        // whether protected learning materials are included in the response.
+        boolean isOwner = email != null && course.getAccount() != null
+                && email.equalsIgnoreCase(course.getAccount().getEmail());
+
+        // The public detail page must never expose unpublished courses, even
+        // when a caller supplies an instructor or administrator token.
+        if (course.getStatus() != 1) {
+            throw new com.gnostica.core.exception.ResourceNotFoundException("Course not found");
+        }
 
         // Kiểm tra xem user có mua khóa học này chưa
         boolean isEnrolled = false;
@@ -210,7 +222,7 @@ public class CourseService {
         // 1. Nếu là khách (email null) hoặc chưa mua: Chỉ thấy nếu status = 1 (Hoạt
         // động) và chưa bị xóa
         if (!isOwner && !isEnrolled && (course.getStatus() != 1 || Boolean.TRUE.equals(course.getDeleted()))) {
-            throw new RuntimeException("Khóa học hiện không khả dụng");
+            throw new com.gnostica.core.exception.ResourceNotFoundException("Course not found");
         }
         
         // Tuyệt chiêu bảo vệ dữ liệu:
@@ -239,6 +251,11 @@ public class CourseService {
         }
 
         CourseDetailResponse response = mapToCourseDetailResponse(course);
+        if (!isOwner && !isEnrolled) {
+            removeProtectedLearningMaterials(response);
+            response.setInstructorEmail(null);
+            response.setInstructorPhone(null);
+        }
         List<Review> publishedReviews = reviewRepository
                 .findByCourseAndStatusAndDeletedAtIsNullOrderByCreatedAtDesc(course, 1);
         response.setReviewCount(publishedReviews.size());
@@ -259,6 +276,25 @@ public class CourseService {
                 .collect(Collectors.toList()));
         response.setIsEnrolled(isEnrolled);
         return response;
+    }
+
+    private void removeProtectedLearningMaterials(CourseDetailResponse response) {
+        if (response.getModules() == null) {
+            return;
+        }
+
+        for (com.gnostica.modules.course.dto.response.ModuleResponse module : response.getModules()) {
+            module.setAttachments(java.util.Collections.emptyList());
+            module.setQuiz(null);
+            if (module.getLessons() == null) {
+                continue;
+            }
+            for (com.gnostica.modules.course.dto.response.LessonResponse lesson : module.getLessons()) {
+                lesson.setContent(null);
+                lesson.setVideoUrl(null);
+                lesson.setAiModerationReport(null);
+            }
+        }
     }
 
     @Transactional

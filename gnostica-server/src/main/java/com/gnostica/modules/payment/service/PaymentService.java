@@ -13,6 +13,8 @@ public interface PaymentService {
 
     void checkPaymentStatus(Order order) throws Exception;
 
+    void cancelPayment(Order order, String reason) throws Exception;
+
     void handlePaymentWebhook(PaymentWebhookData data);
 
     void processSuccessfulOrder(Order order);
