@@ -414,6 +414,7 @@ const LearningScreen = () => {
     const [activeTab, setActiveTab] = useState('curriculum');
     const [activeLesson, setActiveLesson] = useState(null);
     const [activeQuiz, setActiveQuiz] = useState(null);
+    const [isLessonPlayerOpen, setIsLessonPlayerOpen] = useState(false);
     const [playback, setPlayback] = useState({ lessonId: null, source: null, embedSource: null, loading: false, error: null });
 
     // Q&A state
@@ -581,6 +582,8 @@ const LearningScreen = () => {
         const lessonId = activeLesson?.id;
         const storedVideoUrl = activeLesson?.videoUrl;
 
+        setIsLessonPlayerOpen(false);
+
         if (!lessonId || !storedVideoUrl) {
             setPlayback({ lessonId: lessonId || null, source: null, embedSource: null, loading: false, error: null });
             return undefined;
@@ -616,9 +619,10 @@ const LearningScreen = () => {
     }, [activeLesson?.id, activeLesson?.videoUrl]);
 
     const videoSource = playback.lessonId === activeLesson?.id ? playback.source : null;
-    // Android WebView does not preserve the app's CDN authorisation headers for
-    // the Bunny iframe's nested HLS requests. Keep Bunny's iframe URL available
-    // for browser clients, but use the verified native HLS path on mobile.
+    // Lesson delivery uses the server-resolved HLS URL and explicit CDN
+    // authorisation headers. Bunny's nested iframe requests cannot inherit
+    // those headers in Android WebView, so keep native HLS as the reliable
+    // learning player.
     const playerSource = videoSource;
     const hasPlayableVideo = Boolean(playerSource && (getEmbeddedVideoUrl(playerSource) || playerSource));
 
@@ -822,18 +826,32 @@ const LearningScreen = () => {
                     <>
                         <View
                             className="bg-black items-center justify-center"
-                            style={{ width, height: width * 0.5625 }}
+                            style={{ width, height: width * 0.5625, overflow: 'hidden' }}
                         >
                             {loading || playback.loading ? (
                                 <ActivityIndicator size="large" color="#2563EB" />
-                            ) : hasPlayableVideo ? (
+                            ) : hasPlayableVideo && isLessonPlayerOpen ? (
                                 <VideoPlayer
-                                    key={playerSource}
-                                    style={{ width: '100%', height: '100%' }}
-                                    source={playerSource}
+                                    key={activeLesson?.id}
+                                    style={{ width, height: width * 0.5625 }}
+                                    source={activeLesson?.videoUrl || playerSource}
+                                    fallbackSource={videoSource}
                                     requestHeaders={BUNNY_PLAYBACK_HEADERS}
                                     autoplay
                                 />
+                            ) : hasPlayableVideo ? (
+                                <TouchableOpacity
+                                    onPress={() => setIsLessonPlayerOpen(true)}
+                                    activeOpacity={0.85}
+                                    className="items-center justify-center w-full h-full"
+                                    accessibilityRole="button"
+                                    accessibilityLabel="Phát video bài học"
+                                >
+                                    <View className="w-14 h-14 rounded-full bg-violet-500 items-center justify-center">
+                                        <Play size={28} color="#fff" fill="#fff" />
+                                    </View>
+                                    <AppText className="text-white font-semibold mt-3">Phát bài học</AppText>
+                                </TouchableOpacity>
                             ) : (
                                 <View className="items-center justify-center px-4">
                                     <AppText className="text-white text-sm font-medium text-center">
