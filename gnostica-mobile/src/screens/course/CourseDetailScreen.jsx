@@ -1,8 +1,8 @@
 import AppText from '../../components/ui/AppText';
 import React, { useState, useEffect } from 'react';
-import { View, ScrollView, TouchableOpacity, Image, Dimensions, ActivityIndicator } from 'react-native';
+import { View, ScrollView, TouchableOpacity, Image, Dimensions, ActivityIndicator, Modal } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { ArrowLeft, Users, Clock, ChevronDown, ChevronUp, BookOpen, ShoppingBag, Star, PlayCircle, FileText, Bookmark } from 'lucide-react-native';
+import { ArrowLeft, Users, Clock, ChevronDown, ChevronUp, BookOpen, ShoppingBag, Star, PlayCircle, FileText, Bookmark, X } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import RatingStars from '../../components/ui/RatingStars';
 import Button from '../../components/ui/Button';
@@ -13,6 +13,7 @@ import MaskedView from '@react-native-masked-view/masked-view';
 import { LinearGradient } from 'expo-linear-gradient';
 import courseService from '../../services/course/courseService';
 import wishlistService from '../../services/course/wishlistService';
+import VideoPlayer from '../../components/course/VideoPlayer';
 
 const { width } = Dimensions.get('window');
 
@@ -49,6 +50,7 @@ const CourseDetailScreen = () => {
     const [expandedSection, setExpandedSection] = useState(null);
     const [isSaved, setIsSaved] = useState(false);
     const [loadingSave, setLoadingSave] = useState(false);
+    const [isPromoVideoOpen, setIsPromoVideoOpen] = useState(false);
     
     const formatPrice = (value) => {
         if (!value) return '0 đ';
@@ -147,6 +149,27 @@ const CourseDetailScreen = () => {
                         position: 'absolute', top: 0, bottom: 0, left: 0, right: 0,
                         backgroundColor: 'rgba(0,0,0,0.28)',
                     }} />
+
+                    {course.promoVideo && (
+                        <TouchableOpacity
+                            onPress={() => setIsPromoVideoOpen(true)}
+                            activeOpacity={0.85}
+                            accessibilityRole="button"
+                            accessibilityLabel="Phát trailer khóa học"
+                            style={{
+                                position: 'absolute', top: 0, right: 0, bottom: 0, left: 0,
+                                alignItems: 'center', justifyContent: 'center',
+                            }}
+                        >
+                            <View style={{
+                                width: 58, height: 58, borderRadius: 29, backgroundColor: '#f97316',
+                                alignItems: 'center', justifyContent: 'center', shadowColor: '#000',
+                                shadowOpacity: 0.3, shadowRadius: 8, elevation: 6,
+                            }}>
+                                <PlayCircle size={30} color="#fff" fill="#f97316" />
+                            </View>
+                        </TouchableOpacity>
+                    )}
 
                     {/* Back button */}
                     <TouchableOpacity
@@ -485,6 +508,35 @@ const CourseDetailScreen = () => {
                     </View>
                 )}
             </ScrollView>
+
+            <Modal
+                visible={isPromoVideoOpen}
+                animationType="fade"
+                presentationStyle="fullScreen"
+                onRequestClose={() => setIsPromoVideoOpen(false)}
+            >
+                {isPromoVideoOpen && (
+                    <View style={{ flex: 1, backgroundColor: '#000', justifyContent: 'center' }}>
+                        <VideoPlayer
+                            source={course.promoVideo}
+                            autoplay
+                            style={{ width, height: width * 0.5625 }}
+                        />
+                        <TouchableOpacity
+                            onPress={() => setIsPromoVideoOpen(false)}
+                            accessibilityRole="button"
+                            accessibilityLabel="Đóng trailer khóa học"
+                            style={{
+                                position: 'absolute', top: Math.max(insets.top, 20), right: 20,
+                                width: 42, height: 42, borderRadius: 21, backgroundColor: 'rgba(0,0,0,0.6)',
+                                alignItems: 'center', justifyContent: 'center',
+                            }}
+                        >
+                            <X size={22} color="#fff" />
+                        </TouchableOpacity>
+                    </View>
+                )}
+            </Modal>
 
             {/* Sticky Bottom CTA */}
             <View style={{

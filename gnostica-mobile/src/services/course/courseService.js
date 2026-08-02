@@ -24,6 +24,8 @@ const courseService = {
         return api.get(`/courses/${slug}`);
     },
 
+    getLessonPlayback: (lessonId) => api.get(`/lessons/${lessonId}/playback`),
+
     /**
      * Láº¥y khÃ³a há»c gá»£i Ã½ cho user (cáº§n Ä‘Äƒng nháº­p)
      * @param {Object} params - { page, size }

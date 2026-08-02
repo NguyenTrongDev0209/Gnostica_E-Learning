@@ -45,3 +45,12 @@ export const API_URL = `${API_ORIGIN}/api`;
 export const WS_URL = `${API_ORIGIN}/ws`;
 export const OAUTH2_URL = `${selectedEnvironment.oauthApiOrigin}/api/oauth2/authorization/google`;
 export const OAUTH_REDIRECT_URI = MOBILE_OAUTH_REDIRECT_URI;
+
+// Bunny validates the origin that embeds its player. Keep it configurable so a
+// LAN development build can use the same Vite host as the local web app.
+const configuredWebOrigin = process.env.EXPO_PUBLIC_WEB_ORIGIN?.trim();
+export const WEB_ORIGIN = configuredWebOrigin || (
+  configuredEnvironment === 'development'
+    ? API_ORIGIN.replace(/:8080$/, ':5173')
+    : PRODUCTION_ORIGIN
+);
