@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import useAuthStore from "@/store/useAuthStore";
 import { AppToast } from "@/components/common/micro/AppToast";
-import { useParams, useNavigate } from "react-router-dom";
-import { Star, Users, Calendar, Play, PlayCircle, FileText, Infinity as InfinityIcon, Smartphone, Trophy, Gift } from "lucide-react";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { Star, Users, Calendar, Play, PlayCircle, FileText, Infinity as InfinityIcon, Smartphone, Trophy, Gift, User } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
@@ -23,6 +23,7 @@ import courseService from "@/services/course/courseService";
 import { reviewService } from "@/services/course/reviewService";
 import instructorService from "@/services/instructor/instructorService";
 import GiftCourseDialog from '@/components/modals/GiftCourseDialog';
+import AppAlertDialog from "@/components/common/micro/AppAlertDialog";
 
 // ── CourseDetailVideo ──
 const BUNNY_GUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -640,7 +641,10 @@ const CourseDetailReviews = ({ course, slug }) => {
 // ── CourseDetailPricingCard ──
 const CourseDetailPricingCard = ({ course: initialCourse }) => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const currentUser = useAuthStore(state => state.user);
   const [giftDialogOpen, setGiftDialogOpen] = useState(false);
+  const [loginConfirmOpen, setLoginConfirmOpen] = useState(false);
   const totalLessons = initialCourse?.curriculum?.reduce((acc, section) => acc + (section.lessons?.length || 0), 0) || 0;
 
   const parsePrice = (priceStr) => {
@@ -662,6 +666,19 @@ const CourseDetailPricingCard = ({ course: initialCourse }) => {
     };
 
     navigate('/checkout', { state: { orderItems: [orderItem] } });
+  };
+
+  const requireAuthentication = (action) => {
+    if (currentUser) {
+      action();
+      return;
+    }
+    setLoginConfirmOpen(true);
+  };
+
+  const handleLoginConfirm = () => {
+    setLoginConfirmOpen(false);
+    navigate('/login', { state: { from: location } });
   };
 
   const handleGiftConfirm = (giftDetails) => {
@@ -694,6 +711,20 @@ const CourseDetailPricingCard = ({ course: initialCourse }) => {
         coursePrice={parsePrice(initialCourse.salePrice)}
         onGiftConfirm={handleGiftConfirm}
       />
+      <AppAlertDialog
+        open={loginConfirmOpen}
+        onOpenChange={setLoginConfirmOpen}
+        variant="info"
+        layout="centered"
+        icon={<User className="text-primary-foreground" />}
+        mediaClassName="!bg-primary !ring-primary/15"
+        confirmClassName="!bg-primary hover:!bg-primary/90 !text-primary-foreground"
+        title="Đăng nhập để tiếp tục"
+        description="Vui lòng đăng nhập để đăng ký hoặc tặng khóa học."
+        confirmText="Đăng nhập"
+        cancelText="Bỏ qua"
+        onConfirm={handleLoginConfirm}
+      />
       <CardContent className="px-7 pb-7 pt-5 md:px-8 md:pb-8 md:pt-5">
         <div className="mb-4 flex items-start">
           <Badge
@@ -719,7 +750,7 @@ const CourseDetailPricingCard = ({ course: initialCourse }) => {
           <AppButton appVariant="gradient"
             size="lg"
             className="flex-1 py-7 text-lg font-bold rounded-xl"
-            onClick={handleCheckout}
+            onClick={() => requireAuthentication(handleCheckout)}
             disabled={initialCourse.isEnrolled}
           >
             {initialCourse.isEnrolled ? "Đã đăng ký" : "Đăng ký học ngay"}
@@ -728,7 +759,7 @@ const CourseDetailPricingCard = ({ course: initialCourse }) => {
             icon={Gift}
             variant="outline"
             className="flex-none !h-auto !w-auto p-4 !rounded-xl !bg-accent !text-white !border-2 !border-accent hover:!bg-accent hover:!text-white hover:!border-accent"
-            onClick={() => setGiftDialogOpen(true)}
+            onClick={() => requireAuthentication(() => setGiftDialogOpen(true))}
           />
         </div>
 

@@ -36,6 +36,11 @@ export default function PayosQR({
   const paymentData = paymentDataProp || state?.paymentData;
   const orderItems = orderItemsProp || state?.orderItems || [];
 
+  useEffect(() => {
+    if (!paymentData?.expiresAt) return;
+    setTimeLeft(Math.max(0, Math.ceil((Number(paymentData.expiresAt) - Date.now()) / 1000)));
+  }, [paymentData?.orderCode, paymentData?.expiresAt]);
+
   const totalAmount = paymentData?.amount || (orderItems.length > 0
     ? orderItems.reduce((sum, item) => sum + item.price, 0)
     : payosPaymentMock.amount);
@@ -59,7 +64,6 @@ export default function PayosQR({
 
     completionHandledRef.current = true;
     setStatus("paid");
-    toast.success("Thanh toán thành công! Đang kích hoạt khóa học...");
 
     setTimeout(() => {
       if (onPaid) {

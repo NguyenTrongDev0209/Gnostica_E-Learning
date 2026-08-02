@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import couponService from "@/services/order/couponService";
-import { Star, CheckCircle2, QrCode, CreditCard, Loader2 } from "lucide-react";
+import { Star, CheckCircle2, QrCode, CreditCard, Loader2, Trash2 } from "lucide-react";
 import { useLocation, Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import orderService from "@/services/order/orderService";
@@ -279,7 +279,9 @@ export default function CheckoutPage() {
   const [isCouponLoading, setIsCouponLoading] = useState(false);
   const [payosDialogData, setPayosDialogData] = useState(null);
   const [isPayosCancelConfirmOpen, setIsPayosCancelConfirmOpen] = useState(false);
+  const [isCancellingPayment, setIsCancellingPayment] = useState(false);
   const [checkoutResult, setCheckoutResult] = useState(null);
+  const [checkoutAlert, setCheckoutAlert] = useState(null);
 
   // Dùng dữ liệu từ CourseDetail nếu có, fallback về mock
   const location = useLocation();
@@ -290,7 +292,6 @@ export default function CheckoutPage() {
   const queryOrderCode = searchParams.get("orderCode");
   const callbackOrderCode = queryOrderCode || routeOrderCode;
   const hasCheckoutCallback =
-    Boolean(callbackOrderCode) ||
     Boolean(searchParams.get("gateway")) ||
     Boolean(searchParams.get("paymentStatus")) ||
     Boolean(searchParams.get("verified")) ||
@@ -305,7 +306,7 @@ export default function CheckoutPage() {
     const cancelled = searchParams.get("cancelled") === "true" || location.pathname.includes("/checkout/cancel");
     const isLegacyResultPath = location.pathname.includes("/checkout/success") || location.pathname.includes("/checkout/cancel");
 
-    if (callbackOrderCode || gateway || paymentStatus || verified || cancelled || isLegacyResultPath) {
+    if (gateway || paymentStatus || verified || cancelled || isLegacyResultPath) {
       setCheckoutResult({
         orderCode: callbackOrderCode,
         gateway,
@@ -424,14 +425,12 @@ export default function CheckoutPage() {
 
         if (response.status === "success" || response.code === "success" || response.data) {
           const paymentData = response.data;
-          const checkoutUrl = paymentData.orderCode
-            ? `/checkout?orderCode=${paymentData.orderCode}`
-            : "/checkout";
-
-          if (paymentData.orderCode) {
-            navigate(checkoutUrl, { replace: true, state: { orderItems } });
+          // A QR payment is driven exclusively by the server response above.
+          // Remove a stale orderCode from an earlier checkout before showing it,
+          // so the address bar can never be mistaken for the active payment.
+          if (callbackOrderCode) {
+            navigate("/checkout", { replace: true, state: { orderItems, isGift, giftDetails } });
           }
-          toast.success("Tạo đơn hàng thành công!");
           if (paymentData.status === "PAID") {
             setCheckoutResult({
               orderCode: paymentData.orderCode,
@@ -448,6 +447,26 @@ export default function CheckoutPage() {
           } else {
             setPayosDialogData({ paymentData, orderItems });
           }
+        } else if (response.error === 1001) {
+          setCheckoutAlert({
+            title: "Cảnh báo: Tài khoản của bạn đã bị khóa",
+            description: "Bạn không thể tiếp tục thanh toán bằng tài khoản này."
+          });
+        } else if (response.error === 1003) {
+          setCheckoutAlert({
+            title: "Không thể đăng ký khóa học này",
+            description: "Bạn không thể mua khóa học do chính mình tạo. Hãy mở trang quản lý khóa học để chỉnh sửa hoặc xem trước nội dung."
+          });
+        } else if (response.error === 1004) {
+          setCheckoutAlert({
+            title: "Bạn đã đăng ký khóa học này",
+            description: "Khóa học đã có trong thư viện của bạn."
+          });
+        } else if (response.error === 1002) {
+          setCheckoutAlert({
+            title: "Không tìm thấy khóa học",
+            description: "Khóa học hoặc danh mục của khóa học hiện không còn khả dụng."
+          });
         } else {
           toast.error(response.message || "Không thể tạo đơn hàng. Vui lòng thử lại!");
         }
@@ -484,6 +503,37 @@ export default function CheckoutPage() {
     }
 
     navigate("/account/orders", { replace: true });
+  };
+
+  const handleCancelPayosPayment = async () => {
+    const paymentData = payosDialogData?.paymentData;
+    if (!paymentData?.orderCode) {
+      setIsPayosCancelConfirmOpen(false);
+      setPayosDialogData(null);
+      return;
+    }
+
+    setIsCancellingPayment(true);
+    try {
+      const response = await orderService.cancelOrder(paymentData.orderCode);
+      if (response?.error !== 0) {
+        throw new Error(response?.message || "Không thể hủy thanh toán");
+      }
+
+      setIsPayosCancelConfirmOpen(false);
+      setPayosDialogData(null);
+      setCheckoutResult({
+        orderCode: paymentData.orderCode,
+        gateway: "PAYOS",
+        paymentStatus: "CANCELLED",
+        cancelled: true,
+        amount: paymentData.amount,
+      });
+    } catch (error) {
+      toast.error(error?.message || "Không thể hủy thanh toán. Vui lòng thử lại.");
+    } finally {
+      setIsCancellingPayment(false);
+    }
   };
 
   if (!hasCheckoutDraft) {
@@ -549,7 +599,7 @@ export default function CheckoutPage() {
         </form>
 
         <AppDialogRoot
-          open={payosDialogData != null && !isPayosCancelConfirmOpen}
+          open={payosDialogData != null && !isPayosCancelConfirmOpen && !isCancellingPayment}
           onOpenChange={(open) => {
             if (!open && payosDialogData && !isPayosCancelConfirmOpen) {
               setIsPayosCancelConfirmOpen(true);
@@ -592,14 +642,14 @@ export default function CheckoutPage() {
           open={isPayosCancelConfirmOpen}
           onOpenChange={setIsPayosCancelConfirmOpen}
           variant="destructive"
+          layout="centered"
+          icon={<Trash2 className="text-white" />}
+          mediaClassName="!bg-error !ring-0"
           title="Hủy thanh toán?"
-          description="Giao dịch hiện vẫn đang chờ thanh toán. Bạn có chắc chắn muốn đóng mã QR và hủy quá trình này không?"
+          description="Giao dịch chưa thanh toán sẽ bị hủy và không thể tiếp tục dùng mã QR này."
           cancelText="Tiếp tục thanh toán"
           confirmText="Hủy thanh toán"
-          onConfirm={() => {
-            setIsPayosCancelConfirmOpen(false);
-            setPayosDialogData(null);
-          }}
+          onConfirm={handleCancelPayosPayment}
           contentClassName="shadow-none"
         />
 
@@ -607,6 +657,17 @@ export default function CheckoutPage() {
           open={checkoutResult != null}
           result={checkoutResult}
           onOpenChange={handleCheckoutResultOpenChange}
+        />
+        <AppAlertDialog
+          open={checkoutAlert != null}
+          onOpenChange={(open) => !open && setCheckoutAlert(null)}
+          variant="warning"
+          layout="centered"
+          hideCancel
+          title={checkoutAlert?.title}
+          description={checkoutAlert?.description}
+          confirmText="Đã hiểu"
+          onConfirm={() => setCheckoutAlert(null)}
         />
       </PageContainer.Content>
     </PageContainer>

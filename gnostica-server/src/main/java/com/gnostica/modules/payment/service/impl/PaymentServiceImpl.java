@@ -17,8 +17,6 @@ import com.gnostica.modules.payment.service.PaymentStrategy;
 import com.gnostica.modules.payment.service.PaymentStrategyFactory;
 import com.gnostica.modules.wallet.service.WalletService;
 import com.gnostica.modules.integration.service.MailService;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -27,7 +25,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.Map;
 
 @Service
@@ -40,7 +37,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final PaymentRepository paymentRepository;
     private final CouponRepository couponRepository;
     private final ApplicationEventPublisher eventPublisher;
-    private final ObjectMapper objectMapper;
+    private final com.gnostica.modules.payment.service.PayOSPaymentLinkCacheService payOSPaymentLinkCacheService;
     private final WalletService walletService;
     private final MailService mailService;
 
@@ -55,7 +52,13 @@ public class PaymentServiceImpl implements PaymentService {
         if (strategy == null) {
             throw new IllegalArgumentException("Không hỗ trợ phương thức thanh toán: " + gateway);
         }
-        return strategy.createPaymentLink(order, returnUrl, cancelUrl);
+        PaymentLinkResponse response = strategy.createPaymentLink(order, returnUrl, cancelUrl);
+        if ("PAYOS".equalsIgnoreCase(gateway)) {
+            long expiresAt = System.currentTimeMillis() + 5 * 60 * 1000L;
+            response.setExpiresAt(expiresAt);
+            payOSPaymentLinkCacheService.store(order.getAccount().getId(), order.getDetails().get(0).getCourse().getId(), response);
+        }
+        return response;
     }
 
     @Override
@@ -93,6 +96,14 @@ public class PaymentServiceImpl implements PaymentService {
                 log.warn("Không thể lấy payment details để lưu transaction: {}", e.getMessage());
             }
         }
+    }
+
+    @Override
+    public void cancelPayment(Order order, String reason) throws Exception {
+        if (!"PAYOS".equalsIgnoreCase(order.getPaymentMethod())) {
+            return;
+        }
+        paymentStrategyFactory.getStrategy("PAYOS").cancelPayment(order, reason);
     }
 
     @Override

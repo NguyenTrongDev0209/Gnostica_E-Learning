@@ -52,13 +52,15 @@ const CourseCard = ({
     avatar: "https://images.unsplash.com/photo-1599566150163-29194dcaad36?q=80&w=100&auto=format&fit=crop",
     status: "online"
   },
-  link = "/courses/1",
+  link,
   className
 }) => {
   const displayedPrice = resolveDiscountedPrice(price, originalPrice, discountPercentage);
+  const Wrapper = link ? Link : "div";
+  const wrapperProps = link ? { to: link } : { "aria-disabled": true };
 
   return (
-    <Link to={link} className="block w-full h-full">
+    <Wrapper {...wrapperProps} className={cn("block w-full h-full", !link && "cursor-not-allowed opacity-70")}>
       <AppCard appVariant="default" className={cn("w-full h-full flex flex-col group hover-lift p-0 gap-0", className)}>
         {/* Top Image Section */}
         <div className="p-2 sm:p-3 pb-0">
@@ -143,7 +145,7 @@ const CourseCard = ({
           </div>
         </AppCardContent>
       </AppCard>
-    </Link>
+    </Wrapper>
   );
 };
 
@@ -284,11 +286,12 @@ export const CourseCardHorizontal = ({
   link,
   className
 }) => {
-  const to = link || `/courses/${id}`;
   const displayedPrice = resolveDiscountedPrice(price, originalPrice, discountPercentage);
+  const Wrapper = link ? Link : "div";
+  const wrapperProps = link ? { to: link } : { "aria-disabled": true };
 
   return (
-    <Link to={to} className="block w-full">
+    <Wrapper {...wrapperProps} className={cn("block w-full", !link && "cursor-not-allowed opacity-70")}>
       <AppCard appVariant="default" className={cn("w-full flex flex-row group hover-lift p-0 gap-0", className)}>
         {/* Left Image */}
         <div className="shrink-0 w-56 sm:w-72 md:w-80 p-3 pr-0">
@@ -370,7 +373,7 @@ export const CourseCardHorizontal = ({
           </div>
         </AppCardContent>
       </AppCard>
-    </Link>
+    </Wrapper>
   );
 };
 

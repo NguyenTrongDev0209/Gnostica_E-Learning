@@ -1,6 +1,7 @@
 package com.gnostica.modules.course.controller;
 
 import com.gnostica.modules.course.dto.request.CourseRequest;
+import com.gnostica.core.exception.ResourceNotFoundException;
 import com.gnostica.modules.forum.dto.response.*;
 import com.gnostica.modules.wallet.dto.response.*;
 import com.gnostica.modules.dashboard.dto.response.*;
@@ -72,12 +73,18 @@ public class CourseController {
         }
     }
     @GetMapping("/{slug}")
-    public ResponseEntity<CourseDetailResponse> getCourseDetail(
+    public ResponseEntity<?> getCourseDetail(
             @PathVariable String slug,
             Authentication authentication
     ) {
-        String email = authentication != null ? authentication.getName() : null;
-        return ResponseEntity.ok(courseService.getCourseBySlug(slug, email));
+        try {
+            String email = authentication != null ? authentication.getName() : null;
+            return ResponseEntity.ok(courseService.getCourseBySlug(slug, email));
+        } catch (ResourceNotFoundException exception) {
+            // Do not disclose whether a supplied slug belongs to a hidden,
+            // deleted, or simply nonexistent course.
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @PutMapping("/{slug}")

@@ -13,6 +13,14 @@ export const useOAuth2Callback = () => {
     const setUser = useAuthStore(state => state.setUser);
     const hasRun = useRef(false);
 
+    const getSafeRedirectPath = () => {
+        const path = sessionStorage.getItem('post_login_redirect');
+        sessionStorage.removeItem('post_login_redirect');
+        return path?.startsWith('/') && !path.startsWith('//') && !path.startsWith('/login')
+            ? path
+            : null;
+    };
+
     useEffect(() => {
         if (email && !hasRun.current) {
             hasRun.current = true;
@@ -67,8 +75,11 @@ export const useOAuth2Callback = () => {
 
                         toast.success('Đăng nhập bằng Google thành công!');
 
+                        const redirectPath = getSafeRedirectPath();
                         setTimeout(() => {
-                            if (roleName === 'ADMIN') {
+                            if (redirectPath) {
+                                navigate(redirectPath, { replace: true });
+                            } else if (roleName === 'ADMIN') {
                                 navigate('/admin');
                             } else if (roleName === 'INSTRUCTOR' || roleName === 'TEACHER') {
                                 navigate('/instructor');

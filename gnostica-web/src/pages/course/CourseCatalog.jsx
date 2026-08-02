@@ -42,7 +42,7 @@ const normalizeCourseCard = (course) => ({
     avatar: course.instructorAvatar,
     status: "online",
   },
-  link: course.link || `/courses/${course.slug || course.id}`,
+  link: course.link || (course.slug ? `/courses/${course.slug}` : undefined),
 });
 
 function FeaturedCourseCarousel({ courses }) {

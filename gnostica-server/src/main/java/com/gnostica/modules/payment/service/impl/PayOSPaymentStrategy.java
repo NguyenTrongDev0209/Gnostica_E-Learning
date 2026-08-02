@@ -129,6 +129,11 @@ public class PayOSPaymentStrategy implements PaymentStrategy {
     }
 
     @Override
+    public void cancelPayment(Order order, String reason) throws Exception {
+        payOS.paymentRequests().cancel(order.getOrderCode(), reason);
+    }
+
+    @Override
     public String getGatewayName() {
         return "PAYOS";
     }
