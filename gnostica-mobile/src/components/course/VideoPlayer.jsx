@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { WebView } from 'react-native-webview';
 import { BASE_URL } from '../../config/api';
@@ -84,11 +84,6 @@ const getDirectVideoUrl = (url) => {
   return `${host}${url.startsWith('/') ? '' : '/'}${url}`;
 };
 
-const createEmbedHtml = (embedUrl) => `<!doctype html>
-<html><head><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000}iframe{border:0;width:100%;height:100%;display:block}</style>
-</head><body><iframe src="${embedUrl.replace(/&/g, '&amp;').replace(/\"/g, '&quot;')}" allow="accelerometer; autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen></iframe></body></html>`;
-
 /**
  * Bunny's documented embed player is the primary player for Bunny videos.
  * `fallbackSource` keeps native HLS available for an embed failure without
@@ -134,11 +129,11 @@ const VideoPlayer = ({ source, fallbackSource, autoplay = true, startAt = 0, req
   if (embedUrl && !embedError) {
     return (
       <WebView
-        // Bunny documents its player as an iframe. Loading it in this small
-        // document preserves that browser context on Android WebView.
-        // Bunny's CDN allow-list validates the embedding page's origin. This is
-        // the web origin for the current environment (LAN in dev, public in prod).
-        source={{ html: createEmbedHtml(embedUrl), baseUrl: WEB_ORIGIN }}
+        // Open Bunny Player directly. A local HTML document containing another
+        // iframe creates an extra Android video-surface boundary and can render
+        // black while audio keeps playing.
+        source={{ uri: embedUrl, headers: { Referer: WEB_ORIGIN } }}
+        originWhitelist={['https://*']}
         style={[styles.webView, style]}
         javaScriptEnabled
         domStorageEnabled
@@ -149,12 +144,6 @@ const VideoPlayer = ({ source, fallbackSource, autoplay = true, startAt = 0, req
         androidLayerType="hardware"
         thirdPartyCookiesEnabled
         setSupportMultipleWindows={false}
-        startInLoadingState
-        renderLoading={() => (
-          <View className="absolute inset-0 items-center justify-center bg-black">
-            <ActivityIndicator size="large" color="#2563EB" />
-          </View>
-        )}
         onError={(event) => {
           setEmbedError(true);
           onError?.(new Error(event.nativeEvent.description || 'Không thể tải trình phát video'));
@@ -182,12 +171,11 @@ const VideoPlayer = ({ source, fallbackSource, autoplay = true, startAt = 0, req
 };
 
 const styles = StyleSheet.create({
-  // Force a hardware-backed surface on Android. Without this, some WebView video
-  // streams can continue playing audio while their video surface stays black.
   webView: {
     alignSelf: 'stretch',
     backgroundColor: '#000',
     flex: 1,
+    opacity: 0.99,
   },
   nativeVideo: {
     alignSelf: 'stretch',
