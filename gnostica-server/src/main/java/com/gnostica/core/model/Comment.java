@@ -61,6 +61,9 @@ public class Comment {
     @Column(columnDefinition = "TEXT")
     private String content;
 
+    /**
+     * Status: 0: Hidden (Ẩn), 1: Published (Hiển thị), 2: Spam/Reported (Vi phạm)
+     */
     @NotNull
     private Integer status;
 

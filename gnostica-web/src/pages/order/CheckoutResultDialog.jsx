@@ -52,7 +52,7 @@ export default function CheckoutResultDialog({ open, onOpenChange, result }) {
 
         if (
           nextOrder?.status === 1 ||
-          nextOrder?.status === -1 ||
+          nextOrder?.status === 3 ||
           nextOrder?.status === 2 ||
           hasTerminalReturnStatus ||
           attempt >= MAX_STATUS_CHECKS - 1

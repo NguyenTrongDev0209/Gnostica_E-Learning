@@ -23,7 +23,7 @@ public class OrderCleanupScheduler {
 
     /**
      * Chạy định kỳ mỗi 1 tiếng (3600000 ms)
-     * Quét các đơn hàng đang PENDING (0) tạo trước đó 24h và tự động chuyển thành CANCELLED (2)
+     * Quét các đơn hàng đang PENDING (0) tạo trước đó 24h và tự động chuyển thành CANCELLED (3)
      */
     @Scheduled(fixedRate = 3600000)
     @Transactional

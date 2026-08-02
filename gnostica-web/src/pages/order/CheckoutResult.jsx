@@ -43,7 +43,7 @@ export default function CheckoutResult() {
         setLoading(false);
         if (nextOrder) {
           setOrder(nextOrder);
-          if (nextOrder.status === 1 || nextOrder.status === -1 || hasTerminalReturnStatus || attempt >= MAX_STATUS_CHECKS - 1) {
+          if (nextOrder.status === 1 || nextOrder.status === 3 || hasTerminalReturnStatus || attempt >= MAX_STATUS_CHECKS - 1) {
             setStatusChecksFinished(true);
             return;
           }

@@ -45,8 +45,7 @@ public class Enrollment {
     private String certificateUrl;
 
     /**
-     * Status: 0: Dropped/Refunded (Đã huỷ/Hoàn tiền), 1: In Progress (Đang học), 2:
-     * Completed (Hoàn thành)
+     * Status: 0: Dropped/Refunded (Đã huỷ/Hoàn tiền), 1: In Progress (Đang học), 2: Completed (Hoàn thành)
      */
     @NotNull
     private Integer status;

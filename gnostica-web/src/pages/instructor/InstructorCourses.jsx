@@ -161,14 +161,14 @@ function InstructorCourseTable({
                         </span>
                     ) : (
                         <>
-                            {row.status === 1 ? (
+                            {row.status === 3 ? (
                                 <span className="inline-flex items-center gap-1 text-[10px] text-success font-bold bg-success/10 px-1.5 py-0 rounded border border-success/20">Đang bán</span>
-                            ) : row.status === 3 || row.status === "rejected" ? (
+                            ) : row.status === 0 || row.status === "rejected" ? (
                                 <span className="inline-flex items-center gap-1 text-[10px] text-error font-bold bg-error/10 px-1.5 py-0 rounded border border-error/20">Bị từ chối</span>
-                            ) : row.status === 4 ? (
+                            ) : row.status === 2 ? (
                                 <span className="inline-flex items-center gap-1 text-[10px] text-warning font-bold bg-warning/10 px-1.5 py-0.5 rounded border border-warning/20">Chờ duyệt</span>
                             ) : (
-                                <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground font-bold bg-secondary px-1.5 py-0 rounded border border-border">Ẩn</span>
+                                <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground font-bold bg-secondary px-1.5 py-0 rounded border border-border">Ẩn / Bản nháp</span>
                             )}
                             {row.hasUnsavedDraft && (
                                 <span className="inline-flex items-center gap-1 text-[10px] text-warning font-bold bg-warning/10 px-1.5 py-0 rounded border border-warning/20">
@@ -187,14 +187,14 @@ function InstructorCourseTable({
             cellClassName: "text-center",
             render: (row) => (
                 <div className="flex justify-center items-center gap-2">
-                    {(!row.isVirtualDraft && (row.status === 1 || row.status === 2)) && (
+                    {(!row.isVirtualDraft && (row.status === 3 || row.status === 1 || row.status === 4)) && (
                         <TableActionIconButton
-                            icon={row.status === 1 ? Eye : EyeOff}
+                            icon={row.status === 3 ? Eye : EyeOff}
                             onClick={() => onToggleStatus?.(row.id, row.status)}
-                            title={row.status === 1 ? "Đang hiển thị (Nhấn để ẩn)" : "Đang ẩn (Nhấn để hiện)"}
+                            title={row.status === 3 ? "Đang hiển thị (Nhấn để ẩn)" : "Đang ẩn (Nhấn để hiện)"}
                         />
                     )}
-                    {(row.status === 3 || row.status === "rejected") && (
+                    {(row.status === 0 || row.status === "rejected") && (
                         <TableActionIconButton
                             icon={MessageSquareWarning}
                             colorVariant="error"
@@ -378,7 +378,7 @@ export default function InstructorCourses() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { label: "Tổng khóa học", value: pagination.totalElements || 0, icon: PlayCircle, bgClass: "bg-info/10", textClass: "text-info", borderClass: "border-info/20", circleClass: "bg-info/5 group-hover:bg-info/10" },
-          { label: "Đang hiển thị", value: courses.filter(c => c.status === 1).length, icon: CheckCircle2, bgClass: "bg-success/10", textClass: "text-success", borderClass: "border-success/20", circleClass: "bg-success/5 group-hover:bg-success/10" },
+          { label: "Đang hiển thị", value: courses.filter(c => c.status === 3).length, icon: CheckCircle2, bgClass: "bg-success/10", textClass: "text-success", borderClass: "border-success/20", circleClass: "bg-success/5 group-hover:bg-success/10" },
           { label: "Chờ duyệt", value: courses.filter(c => c.status === 4).length, icon: Clock, bgClass: "bg-warning/10", textClass: "text-warning", borderClass: "border-warning/20", circleClass: "bg-warning/5 group-hover:bg-warning/10" },
           { label: "Bản nháp", value: courses.filter(c => c.isVirtualDraft || c.hasUnsavedDraft).length, icon: Activity, bgClass: "bg-primary/10", textClass: "text-primary", borderClass: "border-primary/20", circleClass: "bg-primary/5 group-hover:bg-primary/10" },
         ].map((stat, i) => (
