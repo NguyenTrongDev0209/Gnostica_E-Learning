@@ -152,6 +152,17 @@ export function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActi
                       Đổi file khác
                     </AppButton>
                   </div>
+                ) : field.value instanceof File ? (
+                  <div className="flex items-center gap-2 p-2 border border-info/20 rounded-md bg-info/10 h-10">
+                    <span className="text-xs text-info font-bold flex-1 truncate">{field.value.name} (Chưa lưu)</span>
+                    <AppButton appVariant="ghostMuted"
+                      type="button"
+                      className="text-xs font-bold text-error hover:text-error px-2"
+                      onClick={() => field.onChange(null)}
+                    >
+                      Xóa
+                    </AppButton>
+                  </div>
                 ) : (
                   <AppInput
                     type="file"

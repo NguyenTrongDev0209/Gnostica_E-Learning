@@ -201,11 +201,6 @@ public class CourseService {
         boolean isOwner = email != null && course.getAccount() != null
                 && email.equalsIgnoreCase(course.getAccount().getEmail());
 
-        // The public detail page must never expose unpublished courses, even
-        // when a caller supplies an instructor or administrator token.
-        if (course.getStatus() != 1) {
-            throw new com.gnostica.core.exception.ResourceNotFoundException("Course not found");
-        }
 
         // Kiểm tra xem user có mua khóa học này chưa
         boolean isEnrolled = false;

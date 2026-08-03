@@ -78,6 +78,10 @@ export function BackgroundVideoUploader({ label, value, onChange, onMetadata, on
 
     return () => {
       delete uploadCallbacks[id];
+      if (hasNotifiedStartRef.current) {
+         onUploadEnd?.();
+         hasNotifiedStartRef.current = false;
+      }
     };
   }, [id]);
 
