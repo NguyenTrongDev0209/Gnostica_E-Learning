@@ -8,6 +8,7 @@ import com.gnostica.core.model.AccountBank;
 import com.gnostica.modules.wallet.service.WalletService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -53,9 +54,13 @@ public class WalletController {
         try {
             AccountBank accountBank = walletService.setBankAccount(request);
             return ResponseEntity.ok(Map.of("message", "Thiết lập tài khoản ngân hàng thành công", "accountBank", accountBank));
+        } catch (DataIntegrityViolationException e) {
+            // Không đưa chi tiết câu lệnh SQL hoặc unique constraint ra giao diện.
+            return ResponseEntity.badRequest().body(Map.of("message",
+                    "Tài khoản ngân hàng này đã tồn tại. Vui lòng kiểm tra lại hoặc thử lại."));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("message",
-                    e.getMessage() != null ? e.getMessage() : "Lỗi hệ thống"));
+                    e.getMessage() != null ? e.getMessage() : "Không thể lưu tài khoản ngân hàng. Vui lòng thử lại."));
         }
     }
 

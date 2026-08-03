@@ -176,12 +176,21 @@ public class WalletService {
         Bank bank = bankRepository.findByBin(request.getBin())
                 .orElseThrow(() -> new RuntimeException("Ngân hàng không hợp lệ."));
 
-        AccountBank accountBank = new AccountBank();
-        accountBank.setAccount(account);
-        accountBank.setBank(bank);
-        accountBank.setAccountNumber(request.getAccountNumber().trim());
+        String accountNumber = request.getAccountNumber().trim();
+        AccountBank accountBank = accountBankRepository
+                .findByAccountAndBankAndAccountNumber(account, bank, accountNumber)
+                .orElseGet(() -> {
+                    AccountBank newAccountBank = new AccountBank();
+                    newAccountBank.setAccount(account);
+                    newAccountBank.setBank(bank);
+                    newAccountBank.setAccountNumber(accountNumber);
+                    return newAccountBank;
+                });
+
+        // Kích hoạt lại bản ghi cũ (nếu có) thay vì chèn trùng unique key.
         accountBank.setPin(bCryptPasswordEncoder.encode(request.getPin()));
-        accountBank.setStatus(1); // Active
+        accountBank.setStatus(1);
+        accountBank.setDeletedAt(null);
 
         return accountBankRepository.save(accountBank);
     }

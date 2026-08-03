@@ -6,6 +6,7 @@ import {
   Wallet as WalletIcon,
   Calendar,
   DollarSign,
+  Banknote,
   ArrowUpRight,
   ArrowDownRight,
   Loader2,
@@ -21,7 +22,7 @@ import {
 } from "lucide-react";
 import AppCard, { AppCardContent } from "@/components/common/micro/AppCard";
 import { AppDialog } from "@/components/common/micro/AppDialog";
-import AppInput, { AppPasswordInput } from "@/components/common/micro/AppInput";
+import AppInput, { AppPasswordInput, AppInputOTP } from "@/components/common/micro/AppInput";
 import { AppButton } from "@/components/common/micro/AppButton";
 import AppSelect from "@/components/common/micro/AppSelect";
 import AppAvatar from "@/components/common/micro/AppAvatar";
@@ -53,6 +54,11 @@ const InputField = ({ icon: Icon, label, ...props }) => (
         />
     </div>
 );
+
+const formatCurrency = (value) => {
+    if (!value) return "";
+    return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+};
 
 function WithdrawModal({ isOpen, onClose, wallet, user, onSuccess }) {
     const hasBankAccount = !!(wallet?.accountNumber);
@@ -173,20 +179,20 @@ function WithdrawModal({ isOpen, onClose, wallet, user, onSuccess }) {
             }
             description={null}
             appVariant="outline"
-            className="sm:max-w-[34rem] sm:scale-[1.10]"
+            className="sm:max-w-[460px]"
         >
             <div className="space-y-6 mt-2">
-                {step !== "setup" && <div className="rounded-xl border border-success/20 bg-success-soft px-4 py-3.5 flex items-center justify-between gap-4">
+                {step !== "setup" && <div className="rounded-xl border border-success bg-success px-4 py-3.5 flex items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
-                        <div className="flex size-10 items-center justify-center rounded-lg bg-success/10 text-success">
+                        <div className="flex size-10 items-center justify-center rounded-lg text-white">
                             <WalletIcon className="size-5" />
                         </div>
                         <div>
-                            <p className="text-xs font-semibold text-muted-foreground">Số dư khả dụng</p>
-                            <p className="text-sm text-muted-foreground">Có thể yêu cầu rút ngay</p>
+                            <p className="text-sm font-semibold text-white">Số dư khả dụng</p>
+                            <p className="text-xs text-white/80">Số lượt rút trong ngày còn {Math.max(0, 3 - (wallet?.withdrawalsToday || 0))}/3</p>
                         </div>
                     </div>
-                    <span className="text-lg font-bold tracking-tight text-success">{formatVND(wallet?.remain)}</span>
+                    <span className="text-lg font-bold tracking-tight text-white">{formatVND(wallet?.remain)}</span>
                 </div>}
 
                 {step === "setup" && (
@@ -235,41 +241,33 @@ function WithdrawModal({ isOpen, onClose, wallet, user, onSuccess }) {
                             error={setupErrors.accountNumber}
                         />
                         </div>
-                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                        <AppPasswordInput
-                            icon={Lock}
+                        <div className="space-y-4">
+                        <AppInputOTP
                             label="Đặt mã PIN (6 chữ số)"
-                            placeholder="Nhập 6 chữ số"
                             value={setupForm.pin}
-                            onChange={e => {
-                                setSetupForm(p => ({ ...p, pin: e.target.value.replace(/\D/g, "").slice(0, 6) }));
+                            onChange={val => {
+                                setSetupForm(p => ({ ...p, pin: val }));
                                 if (setupErrors.pin) setSetupErrors(p => ({ ...p, pin: "" }));
                             }}
-                            name="bank-account-setup-pin"
-                            autoComplete="one-time-code"
-                            inputMode="numeric"
                             maxLength={6}
                             error={setupErrors.pin}
+                            containerClassName="[&_[data-slot=input-otp-group]]:w-full [&_[data-slot=input-otp-slot]]:flex-1 [&_[data-slot=input-otp-slot]]:[-webkit-text-security:disc]"
                         />
-                        <AppPasswordInput
-                            icon={Lock}
+                        <AppInputOTP
                             label="Xác nhận mã PIN"
-                            placeholder="Nhập lại 6 chữ số"
                             value={setupForm.pinConfirm}
-                            onChange={e => {
-                                setSetupForm(p => ({ ...p, pinConfirm: e.target.value.replace(/\D/g, "").slice(0, 6) }));
+                            onChange={val => {
+                                setSetupForm(p => ({ ...p, pinConfirm: val }));
                                 if (setupErrors.pinConfirm) setSetupErrors(p => ({ ...p, pinConfirm: "" }));
                             }}
-                            name="bank-account-setup-pin-confirmation"
-                            autoComplete="one-time-code"
-                            inputMode="numeric"
                             maxLength={6}
                             error={setupErrors.pinConfirm}
+                            containerClassName="[&_[data-slot=input-otp-group]]:w-full [&_[data-slot=input-otp-slot]]:flex-1 [&_[data-slot=input-otp-slot]]:[-webkit-text-security:disc]"
                         />
                         </div>
                         <div className="pt-1 flex gap-3">
-                            <AppButton appVariant="ghostMuted" variant="ghost" type="button" onClick={onClose} className="flex-1 border border-border">Hủy</AppButton>
-                            <AppButton appVariant="primary" type="submit" disabled={loading} className="flex-1 !bg-success !text-success-foreground hover:!bg-success/90">
+                            <AppButton appVariant="ghostMuted" variant="default" type="button" onClick={onClose} className="flex-1 bg-error text-white hover:bg-error/90 font-bold border-none">Hủy</AppButton>
+                            <AppButton appVariant="ghostMuted" variant="default" type="submit" disabled={loading} className="flex-1 bg-success text-white hover:bg-success/90 font-bold border-none">
                                 {loading ? "Đang lưu..." : "Lưu tài khoản"}
                             </AppButton>
                         </div>
@@ -278,10 +276,10 @@ function WithdrawModal({ isOpen, onClose, wallet, user, onSuccess }) {
 
                 {step === "withdraw" && (
                     <form onSubmit={handleWithdraw} autoComplete="off" noValidate className="space-y-4">
-                        <div className="border border-border rounded-lg p-3 flex items-center justify-between bg-muted">
+                        <div className="border border-border rounded-lg p-3 flex items-center justify-between bg-background shadow-sm">
                             <div className="flex items-center gap-3">
-                                <div className="bg-success/10 text-success p-2 rounded-lg border border-success/20">
-                                    <CreditCard className="w-4 h-4 text-success" />
+                                <div className="bg-success text-white p-2 rounded-lg border border-success/20">
+                                    <CreditCard className="w-4 h-4 text-white" />
                                 </div>
                                 <div>
                                     <p className="text-sm font-semibold text-foreground">{bankName || "Ngân hàng"}</p>
@@ -298,9 +296,9 @@ function WithdrawModal({ isOpen, onClose, wallet, user, onSuccess }) {
                         </div>
 
                         <AppInput
-                            type="number"
+                            type="text"
                             label="Số tiền rút (VND)"
-                            icon={DollarSign}
+                            icon={Banknote}
                             labelRight={
                                 <button
                                     type="button"
@@ -311,29 +309,25 @@ function WithdrawModal({ isOpen, onClose, wallet, user, onSuccess }) {
                                 </button>
                             }
                             placeholder="0"
-                            min="10000"
-                            max={wallet?.remain || 0}
-                            value={withdrawForm.amount}
-                            onChange={e => setWithdrawForm(p => ({ ...p, amount: e.target.value }))}
-                            className="font-mono"
+                            value={withdrawForm.amount ? formatCurrency(withdrawForm.amount) : ""}
+                            onChange={e => {
+                                const val = e.target.value.replace(/\D/g, "");
+                                setWithdrawForm(p => ({ ...p, amount: val }));
+                            }}
                         />
 
-                        <AppPasswordInput
-                            icon={Lock}
+                        <AppInputOTP
                             label="Mã PIN xác nhận"
-                            placeholder="Nhập mã PIN"
                             value={withdrawForm.pin}
-                            onChange={e => setWithdrawForm(p => ({ ...p, pin: e.target.value.replace(/\D/g, "").slice(0, 6) }))}
-                            name="withdrawal-confirmation-pin"
-                            autoComplete="one-time-code"
-                            inputMode="numeric"
+                            onChange={val => setWithdrawForm(p => ({ ...p, pin: val }))}
                             maxLength={6}
+                            containerClassName="[&_[data-slot=input-otp-group]]:w-full [&_[data-slot=input-otp-slot]]:flex-1 [&_[data-slot=input-otp-slot]]:[-webkit-text-security:disc]"
                         />
 
                         <div className="pt-2 flex gap-3">
-                            <AppButton appVariant="ghostMuted" variant="ghost" type="button" onClick={onClose} className="flex-1 border border-border font-bold">Hủy</AppButton>
-                            <AppButton appVariant="gradient" type="submit" disabled={loading} className="flex-1 bg-success/10 text-success hover:bg-success/20 font-bold">
-                                {loading ? "Đang xử lý..." : "Xác nhận rút tiền"}
+                            <AppButton appVariant="ghostMuted" variant="default" type="button" onClick={onClose} className="flex-1 bg-error text-white hover:bg-error/90 font-bold border-none">Hủy</AppButton>
+                            <AppButton appVariant="ghostMuted" variant="default" type="submit" disabled={loading} className="flex-1 bg-success text-white hover:bg-success/90 font-bold border-none">
+                                {loading ? "Đang xử lý..." : "Xác nhận"}
                             </AppButton>
                         </div>
                     </form>
@@ -346,30 +340,26 @@ function WithdrawModal({ isOpen, onClose, wallet, user, onSuccess }) {
                             Sau khi xóa, bạn có thể thiết lập tài khoản mới.
                         </div>
 
-                        <AppPasswordInput
-                            icon={Lock}
+                        <AppInputOTP
                             label="Mã PIN hiện tại"
-                            placeholder="Nhập mã PIN"
                             value={removePin}
-                            onChange={e => setRemovePin(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                            name="bank-account-removal-pin"
-                            autoComplete="one-time-code"
-                            inputMode="numeric"
+                            onChange={val => setRemovePin(val)}
                             maxLength={6}
+                            containerClassName="[&_[data-slot=input-otp-group]]:w-full [&_[data-slot=input-otp-slot]]:flex-1 [&_[data-slot=input-otp-slot]]:[-webkit-text-security:disc]"
                         />
 
                         <div className="pt-2 flex gap-3">
-                            <AppButton appVariant="ghostMuted" variant="ghost"
+                            <AppButton appVariant="ghostMuted" variant="default"
                                 type="button"
                                 onClick={() => setStep("withdraw")}
-                                className="flex-1 border border-border font-bold"
+                                className="flex-1 bg-error text-white hover:bg-error/90 font-bold border-none"
                             >
                                 Quay lại
                             </AppButton>
-                            <AppButton appVariant="gradient"
+                            <AppButton appVariant="ghostMuted" variant="default"
                                 type="submit"
                                 disabled={loading}
-                                className="flex-1 bg-error/10 text-error hover:bg-error/20 font-bold"
+                                className="flex-1 bg-success text-white hover:bg-success/90 font-bold border-none"
                             >
                                 {loading ? "Đang xử lý..." : "Xác nhận xóa"}
                             </AppButton>
