@@ -17,6 +17,7 @@ import java.util.List;
 public interface PayoutRepository extends JpaRepository<Payout, java.util.UUID> {
     long countByAccountAndCreatedAtAfter(Account account, LocalDateTime createdAt);
     java.util.List<Payout> findByAccountOrderByCreatedAtDesc(Account account);
+    java.util.List<Payout> findByStatusIn(java.util.List<Integer> statuses);
 
     @Query("SELECT COALESCE(SUM(p.amount), 0) FROM Payout p WHERE p.account = :account AND p.status IN :statuses")
     BigDecimal sumPayoutsByAccount(@Param("account") Account account, @Param("statuses") List<Integer> statuses);

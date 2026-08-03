@@ -14,6 +14,7 @@ import com.gnostica.core.repository.AccountBankRepository;
 import com.gnostica.core.repository.BankRepository;
 import com.gnostica.core.repository.PaymentRepository;
 import com.gnostica.modules.wallet.dto.response.WalletOverviewResponse;
+import com.gnostica.core.constant.PayoutStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -95,6 +96,25 @@ public class WalletService {
         dummyWallet.setStatus(1);
         dummyWallet.setType(1);
         return dummyWallet;
+    }
+
+    /** Only matured instructor earnings may leave the platform through a payout. */
+    @Transactional(readOnly = true)
+    public Wallet getWithdrawableWalletByAccount(Account account) {
+        BigDecimal earnings = walletRepository.sumWithdrawableEarningsByAccount(account);
+        BigDecimal committedPayouts = payoutRepository.sumPayoutsByAccount(account,
+                List.of(PayoutStatus.PENDING, PayoutStatus.PROCESSING, PayoutStatus.COMPLETED));
+        BigDecimal balance = earnings.subtract(committedPayouts);
+        if (balance.signum() < 0) {
+            balance = BigDecimal.ZERO;
+        }
+
+        Wallet wallet = new Wallet();
+        wallet.setAccount(account);
+        wallet.setRemain(balance);
+        wallet.setStatus(1);
+        wallet.setType(1);
+        return wallet;
     }
 
     /** Serializes outgoing wallet spending for one account. */
@@ -182,7 +202,11 @@ public class WalletService {
     public vn.payos.model.v1.payouts.Payout withdraw(WithdrawRequest request) throws Exception {
         Account account = accountRepository.findByIdForUpdate(getCurrentAccount().getId())
                 .orElseThrow(() -> new RuntimeException("Account not found"));
-        Wallet wallet = getWalletByAccount(account);
+        assertAccountCanWithdraw(account);
+        if (request == null || request.getAmount() == null || request.getAmount() <= 0) {
+            throw new RuntimeException("Số tiền rút phải lớn hơn 0.");
+        }
+        Wallet wallet = getWithdrawableWalletByAccount(account);
 
         AccountBank accountBank = accountBankRepository.findByAccountAndStatus(account, 1)
                 .orElseThrow(() -> new RuntimeException("Vui lòng thiết lập tài khoản ngân hàng trước khi rút tiền."));
@@ -214,18 +238,44 @@ public class WalletService {
             desc = desc.substring(0, 25);
         }
         payoutRequest.setDescription(desc);
+        payoutRequest.setReferenceId("WD-" + java.util.UUID.randomUUID());
 
         vn.payos.model.v1.payouts.Payout payosPayout = payoutsService.createPayout(payoutRequest);
 
         // Lưu vào bảng Payout
         Payout localPayout = new Payout();
         localPayout.setAmount(amount);
-        localPayout.setStatus(1); // Pending
+        localPayout.setStatus(toLocalPayoutStatus(payosPayout.getApprovalState()));
         localPayout.setAccount(account);
         localPayout.setAccountBank(accountBank);
+        localPayout.setGatewayPayoutId(payosPayout.getId());
+        localPayout.setGatewayReferenceId(payosPayout.getReferenceId() == null
+                ? payoutRequest.getReferenceId() : payosPayout.getReferenceId());
         payoutRepository.save(localPayout);
 
         return payosPayout;
+    }
+
+    private void assertAccountCanWithdraw(Account account) {
+        String role = account.getRole() == null ? null : account.getRole().getName();
+        boolean isInstructor = "INSTRUCTOR".equalsIgnoreCase(role) || "TEACHER".equalsIgnoreCase(role);
+        if (!isInstructor) {
+            throw new RuntimeException("Chỉ giảng viên mới có thể rút doanh thu.");
+        }
+        if (account.getStatus() == null || account.getStatus() != 1 || account.getDeletedAt() != null) {
+            throw new RuntimeException("Tài khoản không đủ điều kiện rút tiền.");
+        }
+    }
+
+    private int toLocalPayoutStatus(vn.payos.model.v1.payouts.PayoutApprovalState state) {
+        if (state == null) return PayoutStatus.PENDING;
+        return switch (state) {
+            case COMPLETED -> PayoutStatus.COMPLETED;
+            case FAILED -> PayoutStatus.FAILED;
+            case REJECTED, CANCELLED -> PayoutStatus.REJECTED;
+            case PROCESSING, PARTIAL_COMPLETED -> PayoutStatus.PROCESSING;
+            default -> PayoutStatus.PENDING;
+        };
     }
 
     @Transactional

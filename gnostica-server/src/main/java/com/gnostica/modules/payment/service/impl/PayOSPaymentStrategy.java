@@ -105,7 +105,9 @@ public class PayOSPaymentStrategy implements PaymentStrategy {
         }
         
         return PaymentDetails.builder()
-                .transactionCode(String.valueOf(link.getOrderCode()))
+                // This is the same payment-link id delivered by a PayOS
+                // webhook, so polling and webhook processing remain idempotent.
+                .transactionCode(link.getId())
                 .amount(link.getAmountPaid())
                 .status(link.getStatus() != null ? link.getStatus().toString() : "")
                 .gateway("PAYOS")

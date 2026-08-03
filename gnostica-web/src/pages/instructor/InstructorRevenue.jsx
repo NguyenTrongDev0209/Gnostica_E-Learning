@@ -556,7 +556,6 @@ export default function InstructorRevenue() {
             textClass: "text-success",
             borderClass: "border-success/20",
             circleClass: "bg-success-soft opacity-50 group-hover:opacity-100",
-            trend: "+0%"
           },
           {
             label: "Tổng doanh thu",

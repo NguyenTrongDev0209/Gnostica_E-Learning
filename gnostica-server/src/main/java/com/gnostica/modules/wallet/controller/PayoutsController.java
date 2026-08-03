@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import com.gnostica.core.dto.response.ApiResponse;
 import com.gnostica.modules.wallet.service.PayoutsService;
@@ -23,8 +23,8 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/payouts")
-@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN')")
 public class PayoutsController {
 	private final PayoutsService payoutsService;
 

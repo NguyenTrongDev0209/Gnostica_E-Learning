@@ -96,14 +96,13 @@ public class PaymentServiceImpl implements PaymentService {
             } catch (Exception e) {
                 log.warn("Không thể lấy payment details để lưu transaction: {}", e.getMessage());
             }
-        } else if ("FAILED".equals(gatewayStatus) && "VNPAY".equalsIgnoreCase(lockedOrder.getPaymentMethod())) {
-            // A terminal gateway failure frees the pending checkout. Query
-            // errors remain pending and are retried by the scheduler.
-            saveTransactionFromPolling(paymentLink, lockedOrder);
+        } else if (isTerminalGatewayFailure(gatewayStatus)) {
+            // Gateway cancellations/failures release the checkout immediately.
+            // Transport/query errors remain pending and are retried instead.
             lockedOrder.setStatus(OrderStatus.CANCELLED);
             orderRepository.save(lockedOrder);
             releaseCouponReservation(lockedOrder);
-            log.info("VNPay reported terminal failure for order {}", lockedOrder.getId());
+            log.info("{} reported terminal failure for order {}", lockedOrder.getPaymentMethod(), lockedOrder.getId());
         }
     }
 
@@ -192,7 +191,8 @@ public class PaymentServiceImpl implements PaymentService {
         if (order.getCoupon() == null || order.getCoupon().getQuantity() == null) {
             return;
         }
-        com.gnostica.core.model.Coupon coupon = order.getCoupon();
+        com.gnostica.core.model.Coupon coupon = couponRepository.findByIdForUpdate(order.getCoupon().getId())
+                .orElseThrow(() -> new IllegalStateException("Coupon no longer exists"));
         int reserved = coupon.getReservedQuantity() == null ? 0 : coupon.getReservedQuantity();
         coupon.setReservedQuantity(Math.max(0, reserved - 1));
         coupon.setQuantity(Math.max(0, coupon.getQuantity() - 1));
@@ -203,7 +203,8 @@ public class PaymentServiceImpl implements PaymentService {
         if (order.getCoupon() == null || order.getCoupon().getReservedQuantity() == null) {
             return;
         }
-        com.gnostica.core.model.Coupon coupon = order.getCoupon();
+        com.gnostica.core.model.Coupon coupon = couponRepository.findByIdForUpdate(order.getCoupon().getId())
+                .orElseThrow(() -> new IllegalStateException("Coupon no longer exists"));
         coupon.setReservedQuantity(Math.max(0, coupon.getReservedQuantity() - 1));
         couponRepository.save(coupon);
     }
@@ -332,5 +333,10 @@ public class PaymentServiceImpl implements PaymentService {
 
     private boolean hasGatewayTransactionCode(String transactionCode) {
         return transactionCode != null && !transactionCode.isBlank() && !"0".equals(transactionCode.trim());
+    }
+
+    private boolean isTerminalGatewayFailure(String gatewayStatus) {
+        return "FAILED".equals(gatewayStatus) || "CANCELLED".equals(gatewayStatus)
+                || "CANCELED".equals(gatewayStatus) || "EXPIRED".equals(gatewayStatus);
     }
 }

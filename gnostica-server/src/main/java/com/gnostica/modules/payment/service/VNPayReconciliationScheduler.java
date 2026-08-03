@@ -42,8 +42,8 @@ public class VNPayReconciliationScheduler {
         }
 
         List<Order> pendingOrders = orderRepository
-                .findTop50ByStatusAndPaymentMethodIgnoreCaseAndCreatedAtAfterOrderByCreatedAtAsc(
-                        OrderStatus.PENDING, "VNPAY", expiresBefore);
+                .findByStatusAndPaymentMethodIgnoreCaseAndCreatedAtBefore(
+                        OrderStatus.PENDING, "VNPAY", LocalDateTime.now());
 
         for (Order order : pendingOrders) {
             try {

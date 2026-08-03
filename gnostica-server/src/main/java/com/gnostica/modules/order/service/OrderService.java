@@ -193,7 +193,11 @@ public class OrderService {
             throw new IllegalArgumentException("User not authenticated");
         }
 
-        Account account = accountRepository.findByEmail(email)
+        Account currentAccount = accountRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("Account not found for email: " + email));
+        // Serialize checkout changes for one buyer. This prevents two tabs or
+        // retries from creating separate pending links for the same course.
+        Account account = accountRepository.findByIdForUpdate(currentAccount.getId())
                 .orElseThrow(() -> new IllegalArgumentException("Account not found for email: " + email));
 
         if (requestBody == null || requestBody.getCourseId() == null) {

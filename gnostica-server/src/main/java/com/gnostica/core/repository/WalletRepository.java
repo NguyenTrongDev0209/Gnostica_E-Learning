@@ -19,6 +19,9 @@ public interface WalletRepository extends JpaRepository<Wallet, java.util.UUID> 
     @Query("SELECT COALESCE(SUM(w.remain), 0) FROM Wallet w WHERE w.account = :account AND w.status = 1 AND (w.availableAt IS NULL OR w.availableAt <= CURRENT_TIMESTAMP)")
     BigDecimal sumAvailableRemainByAccount(@Param("account") Account account);
 
+    @Query("SELECT COALESCE(SUM(w.remain), 0) FROM Wallet w WHERE w.account = :account AND w.status = 1 AND w.type = 1 AND (w.availableAt IS NULL OR w.availableAt <= CURRENT_TIMESTAMP)")
+    BigDecimal sumWithdrawableEarningsByAccount(@Param("account") Account account);
+
     @Query("SELECT COALESCE(SUM(w.remain), 0) FROM Wallet w WHERE w.account = :account AND w.status = 1 AND w.type = 1")
     BigDecimal sumTotalRevenueByAccount(@Param("account") Account account);
 
