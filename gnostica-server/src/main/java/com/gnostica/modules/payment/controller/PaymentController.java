@@ -61,12 +61,9 @@ public class PaymentController {
 		}
 
 		try {
-			VNPayIpnResponse processingResult = paymentService.handleVNPayIpn(parameters);
-			boolean processed = "00".equals(processingResult.responseCode())
-					|| "02".equals(processingResult.responseCode());
 			redirect.queryParam("orderCode", data.getOrderCode())
 					.queryParam("gateway", "VNPAY")
-					.queryParam("paymentStatus", processed ? data.getStatus() : "PENDING")
+					.queryParam("paymentStatus", "PENDING")
 					.queryParam("verified", true);
 		} catch (Exception exception) {
 			log.error("Verified VNPay callback could not be processed for order {}", data.getOrderCode(), exception);

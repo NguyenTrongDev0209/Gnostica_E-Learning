@@ -3,11 +3,14 @@ package com.gnostica.modules.payment.service;
 import com.gnostica.core.config.VNPayProperties;
 import com.gnostica.core.constant.OrderStatus;
 import com.gnostica.core.model.Order;
+import com.gnostica.core.model.Coupon;
 import com.gnostica.core.repository.OrderRepository;
+import com.gnostica.core.repository.CouponRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -19,19 +22,34 @@ public class VNPayReconciliationScheduler {
 
     private final VNPayProperties properties;
     private final OrderRepository orderRepository;
+    private final CouponRepository couponRepository;
     private final PaymentService paymentService;
 
     @Scheduled(fixedDelayString = "${vnpay.polling-interval-ms:2000}")
-    public void reconcilePendingPaymentsWhenIpnIsUnavailable() {
-        if (hasIpnUrl()) {
-            return;
+    @Transactional
+    public void reconcileActivePendingPayments() {
+        LocalDateTime expiresBefore = LocalDateTime.now()
+                .minusMinutes(Math.max(1, properties.getExpireMinutes()));
+
+        // An expired order is terminal: it is never queried again.
+        List<Order> expiredOrders = orderRepository
+                .findByStatusAndPaymentMethodIgnoreCaseAndCreatedAtBefore(
+                        OrderStatus.PENDING, "VNPAY", expiresBefore);
+        for (Order expiredOrder : expiredOrders) {
+            orderRepository.findByOrderCodeForUpdate(expiredOrder.getOrderCode()).ifPresent(lockedOrder -> {
+                if (lockedOrder.getStatus() == OrderStatus.PENDING
+                        && lockedOrder.getCreatedAt() != null
+                        && lockedOrder.getCreatedAt().isBefore(expiresBefore)) {
+                    lockedOrder.setStatus(OrderStatus.CANCELLED);
+                    orderRepository.save(lockedOrder);
+                    releaseReservedCoupon(lockedOrder);
+                }
+            });
         }
 
-        LocalDateTime createdAfter = LocalDateTime.now()
-                .minusMinutes(Math.max(1, properties.getExpireMinutes()));
         List<Order> pendingOrders = orderRepository
                 .findTop50ByStatusAndPaymentMethodIgnoreCaseAndCreatedAtAfterOrderByCreatedAtAsc(
-                        OrderStatus.PENDING, "VNPAY", createdAfter);
+                        OrderStatus.PENDING, "VNPAY", expiresBefore);
 
         for (Order order : pendingOrders) {
             try {
@@ -43,7 +61,13 @@ public class VNPayReconciliationScheduler {
         }
     }
 
-    private boolean hasIpnUrl() {
-        return properties.getIpnUrl() != null && !properties.getIpnUrl().isBlank();
+    private void releaseReservedCoupon(Order order) {
+        Coupon coupon = order.getCoupon();
+        if (coupon == null || coupon.getReservedQuantity() == null) {
+            return;
+        }
+        coupon.setReservedQuantity(Math.max(0, coupon.getReservedQuantity() - 1));
+        couponRepository.save(coupon);
     }
+
 }

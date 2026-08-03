@@ -2,6 +2,7 @@ package com.gnostica.modules.order.service;
 
 import com.gnostica.modules.payment.service.PaymentService;
 import com.gnostica.modules.payment.service.PayOSPaymentLinkCacheService;
+import com.gnostica.core.config.VNPayProperties;
 import com.gnostica.modules.payment.dto.response.PaymentLinkResponse;
 import com.gnostica.modules.payment.dto.request.CreatePaymentLinkRequestBody;
 import com.gnostica.modules.order.dto.response.OrderResponse;
@@ -62,6 +63,7 @@ public class OrderService {
     private final CommissionResolver commissionResolver;
     private final WalletService walletService;
     private final PayOSPaymentLinkCacheService payOSPaymentLinkCacheService;
+    private final VNPayProperties vnPayProperties;
 
     @Value("${payos.webhook-enabled:false}")
     private boolean payosWebhookEnabled;
@@ -138,9 +140,9 @@ public class OrderService {
 
     private Order checkAndReturnOrder(Order order) throws Exception {
         // 0: PENDING
-        boolean shouldPollPaymentGateway = !payosWebhookEnabled
-                || !"PAYOS".equalsIgnoreCase(order.getPaymentMethod());
-        if (order.getStatus() == OrderStatus.PENDING && shouldPollPaymentGateway) {
+        // VNPay QueryDR is performed by the dedicated scheduler. Reading an
+        // order must not create a second gateway request for every UI refresh.
+        if (order.getStatus() == OrderStatus.PENDING && shouldPollPaymentGateway(order)) {
             try {
                 paymentService.checkPaymentStatus(order);
             } catch (Exception e) {
@@ -149,6 +151,16 @@ public class OrderService {
             return orderRepository.findById(order.getId()).orElse(order);
         }
         return order;
+    }
+
+    private boolean shouldPollPaymentGateway(Order order) {
+        if ("PAYOS".equalsIgnoreCase(order.getPaymentMethod())) {
+            return !payosWebhookEnabled;
+        }
+        if ("VNPAY".equalsIgnoreCase(order.getPaymentMethod())) {
+            return false;
+        }
+        return false;
     }
 
     private void assertCanReadOrder(Order order) {
@@ -201,15 +213,34 @@ public class OrderService {
                 return pendingPayment;
             }
         }
+        if ("VNPAY".equals(paymentMethod)) {
+            PaymentLinkResponse pendingPayment = findReusablePendingVNPayPayment(account, course);
+            if (pendingPayment != null) {
+                return pendingPayment;
+            }
+        }
 
-        // The server is the source of truth for pricing. Never trust a client-submitted total.
-        BigDecimal actualPrice = course.getSalePrice();
+        // Snapshot the catalogue price and the course-level percentage on the
+        // detail. The amount due is calculated separately on the order.
+        BigDecimal originalCoursePrice = course.getPrice();
+        int courseDiscount = course.getDiscount() == null ? 0 : course.getDiscount();
+        BigDecimal courseDiscountAmount = originalCoursePrice
+                .multiply(BigDecimal.valueOf(courseDiscount))
+                .divide(BigDecimal.valueOf(100))
+                .setScale(0, java.math.RoundingMode.HALF_UP);
+        BigDecimal subtotalAfterCourseDiscount = originalCoursePrice.subtract(courseDiscountAmount);
         
         Coupon appliedCoupon = null;
+        BigDecimal couponPrice = BigDecimal.ZERO;
         if (requestBody.getCouponCode() != null && !requestBody.getCouponCode().trim().isEmpty()) {
             appliedCoupon = couponService.getValidCoupon(requestBody.getCouponCode());
             
             couponService.assertCouponAppliesToCourse(appliedCoupon, course);
+
+            // With one line today this is the eligible subtotal. When orders
+            // accept multiple courses, this value becomes the sum of only the
+            // details that match the coupon's scope.
+            couponPrice = couponService.calculateDiscountAmount(appliedCoupon, subtotalAfterCourseDiscount);
 
             // Reserve a use while the payment link is pending. It is consumed only
             // after a successful payment and released by the expiry scheduler.
@@ -218,27 +249,13 @@ public class OrderService {
                 appliedCoupon.setReservedQuantity(reserved + 1);
                 couponRepository.save(appliedCoupon);
             }
-            
-            // Calculate discount
-            BigDecimal discountValue = appliedCoupon.getDiscountValue();
-            if (appliedCoupon.getDiscountType() == 1) { // Percentage
-                BigDecimal percentage = discountValue.divide(BigDecimal.valueOf(100));
-                BigDecimal discountAmount = actualPrice.multiply(percentage);
-                if (appliedCoupon.getMaxDiscount() != null && discountAmount.compareTo(appliedCoupon.getMaxDiscount()) > 0) {
-                    discountAmount = appliedCoupon.getMaxDiscount();
-                }
-                actualPrice = actualPrice.subtract(discountAmount);
-            } else { // Fixed amount
-                actualPrice = actualPrice.subtract(discountValue);
-            }
-            
-            if (actualPrice.compareTo(BigDecimal.ZERO) < 0) {
-                actualPrice = BigDecimal.ZERO;
-            }
         }
 
-        Order order = saveOrder(account, appliedCoupon, actualPrice, String.valueOf(orderCode), paymentMethod);
-        OrderDetail detail = saveOrderDetail(order, course, actualPrice);
+        BigDecimal actualPrice = subtotalAfterCourseDiscount.subtract(couponPrice).max(BigDecimal.ZERO);
+
+        Order order = saveOrder(account, appliedCoupon, couponPrice, actualPrice,
+                String.valueOf(orderCode), paymentMethod);
+        OrderDetail detail = saveOrderDetail(order, course, originalCoursePrice, courseDiscount);
 
         List<OrderDetail> details = new ArrayList<>();
         details.add(detail);
@@ -337,6 +354,33 @@ public class OrderService {
                 .orElse(null);
     }
 
+    private PaymentLinkResponse findReusablePendingVNPayPayment(Account account, Course course) throws Exception {
+        LocalDateTime expiresBefore = LocalDateTime.now()
+                .minusMinutes(Math.max(1, vnPayProperties.getExpireMinutes()));
+        List<Order> pendingOrders = orderRepository
+                .findPendingVNPayOrdersByAccountAndCourseForUpdate(account, course);
+
+        for (Order pendingOrder : pendingOrders) {
+            if (pendingOrder.getCreatedAt() == null || pendingOrder.getCreatedAt().isBefore(expiresBefore)) {
+                cancelExpiredVNPayOrder(pendingOrder);
+                continue;
+            }
+            // Generate the same VNPay transaction again, retaining its original
+            // order code, create time and expiry rather than creating another order.
+            return paymentService.createPaymentLink(pendingOrder, trustedReturnUrl(), trustedCancelUrl());
+        }
+        return null;
+    }
+
+    private void cancelExpiredVNPayOrder(Order order) {
+        if (order.getStatus() != OrderStatus.PENDING) {
+            return;
+        }
+        order.setStatus(OrderStatus.CANCELLED);
+        orderRepository.save(order);
+        releaseReservedCoupon(order);
+    }
+
     private void clearPendingPayOSPaymentLink(Order order) {
         if (order.getAccount() == null || order.getDetails() == null || order.getDetails().isEmpty()) {
             return;
@@ -360,11 +404,12 @@ public class OrderService {
         couponRepository.save(coupon);
     }
 
-    private Order saveOrder(Account account, Coupon coupon, BigDecimal totalPrice, String transactionId,
+    private Order saveOrder(Account account, Coupon coupon, BigDecimal couponPrice, BigDecimal totalPrice, String transactionId,
             String paymentMethod) {
         Order order = new Order();
         order.setAccount(account);
         order.setCoupon(coupon);
+        order.setCouponPrice(couponPrice == null ? BigDecimal.ZERO : couponPrice);
         order.setTotalPrice(totalPrice);
         order.setPaymentMethod(paymentMethod);
         order.setStatus(OrderStatus.PENDING);
@@ -387,15 +432,15 @@ public class OrderService {
         return normalized;
     }
 
-    private OrderDetail saveOrderDetail(Order order, Course course, BigDecimal actualPrice) {
+    private OrderDetail saveOrderDetail(Order order, Course course, BigDecimal originalCoursePrice, int courseDiscount) {
         OrderDetail detail = new OrderDetail();
         detail.setOrder(order);
         detail.setCourse(course);
         if (course.getAccount() != null) {
             detail.setCommission(commissionResolver.resolve(course.getAccount(), LocalDateTime.now()).source());
         }
-        detail.setPrice(actualPrice);
-        detail.setDiscount(course.getDiscount() != null ? course.getDiscount().intValue() : 0);
+        detail.setPrice(originalCoursePrice);
+        detail.setDiscount(courseDiscount);
         detail.setStatus(1); // 1: Valid
         return orderDetailRepository.save(detail);
     }
@@ -413,6 +458,7 @@ public class OrderService {
             resp.setCouponId(order.getCoupon().getId());
             resp.setCouponCode(couponService.getDisplayCode(order.getCoupon()));
         }
+        resp.setCouponPrice(order.getCouponPrice());
         resp.setTotalPrice(order.getTotalPrice());
         resp.setPaymentMethod(order.getPaymentMethod());
         resp.setTransactionId(order.getId().toString()); // Use ID as transaction ID mapping for now

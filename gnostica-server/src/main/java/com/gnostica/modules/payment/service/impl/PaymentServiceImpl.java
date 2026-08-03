@@ -181,6 +181,15 @@ public class PaymentServiceImpl implements PaymentService {
         couponRepository.save(coupon);
     }
 
+    private void releaseCouponReservation(Order order) {
+        if (order.getCoupon() == null || order.getCoupon().getReservedQuantity() == null) {
+            return;
+        }
+        com.gnostica.core.model.Coupon coupon = order.getCoupon();
+        coupon.setReservedQuantity(Math.max(0, coupon.getReservedQuantity() - 1));
+        couponRepository.save(coupon);
+    }
+
     @Override
     @Transactional
     public void saveTransaction(PaymentWebhookData data, Order order) {
@@ -238,9 +247,30 @@ public class PaymentServiceImpl implements PaymentService {
                 || order.getTotalPrice().compareTo(BigDecimal.valueOf(data.getAmount())) != 0) {
             return VNPayIpnResponse.invalidAmount();
         }
+        if ("PAID".equals(data.getStatus()) && order.getStatus() == OrderStatus.CANCELLED) {
+            if (data.getTransactionCode() == null || data.getTransactionCode().isBlank()) {
+                return VNPayIpnResponse.invalidRequest();
+            }
+            boolean alreadyRecorded = paymentRepository.existsByGatewayAndGatewayTransactionNo(
+                    "VNPAY", data.getTransactionCode());
+            saveTransaction(data, order);
+            if (!alreadyRecorded) {
+                walletService.addDeposit(order.getAccount(), BigDecimal.valueOf(data.getAmount()), data.getTransactionCode());
+            }
+            log.info("Late VNPay payment credited to wallet for expired order {}", order.getId());
+            return VNPayIpnResponse.success();
+        }
+        if (order.getStatus() != OrderStatus.PENDING) {
+            return VNPayIpnResponse.alreadyProcessed();
+        }
         if (!"PAID".equals(data.getStatus())) {
             log.info("VNPay reported non-successful transaction for order {}", order.getId());
             saveTransaction(data, order);
+            if (order.getStatus() == OrderStatus.PENDING) {
+                order.setStatus(OrderStatus.CANCELLED);
+                orderRepository.save(order);
+                releaseCouponReservation(order);
+            }
             return VNPayIpnResponse.success();
         }
         if (data.getTransactionCode() == null || data.getTransactionCode().isBlank()) {
