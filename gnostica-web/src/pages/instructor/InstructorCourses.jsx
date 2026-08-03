@@ -41,6 +41,7 @@ function InstructorCourseTable({
     onDelete,
     onToggleStatus,
     onViewRejectReason,
+    categories,
 }) {
     const columns = [
         {
@@ -99,11 +100,11 @@ function InstructorCourseTable({
             cellClassName: "text-center",
             render: (row) => (
                 <div className="flex flex-col items-center gap-1">
-                    {row.isVirtualDraft ? (
+                    {row.price === undefined || row.price === null || row.price === "" ? (
                         <span className="text-sm text-muted-foreground italic">—</span>
                     ) : row.discount > 0 ? (
                         <>
-                            <span className="font-bold text-foreground leading-none">{formatPrice(row.salePrice)}</span>
+                            <span className="font-bold text-foreground leading-none">{formatPrice(row.salePrice || (row.price - (row.price * row.discount / 100)))}</span>
                             <div className="flex items-center gap-1.5 mt-0.5">
                                 <span className="text-[10px] text-muted-foreground line-through decoration-slate-300">
                                     {formatPrice(row.price)}
@@ -123,14 +124,19 @@ function InstructorCourseTable({
             header: "Danh mục",
             className: "text-center",
             cellClassName: "text-center",
-            render: (row) => row.isVirtualDraft ? (
-                <span className="text-slate-300 text-sm">—</span>
-            ) : (
-                <span className="inline-flex items-center gap-1.5 font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-full text-xs border border-primary/20">
-                    <Tag className="w-3 h-3" />
-                    {row.categoryName || "Chưa phân loại"}
-                </span>
-            )
+            render: (row) => {
+                let catName = row.category?.name || row.categoryName;
+                if (!catName && row.categoryId && categories) {
+                    const found = categories.find(c => c.id.toString() === row.categoryId.toString());
+                    if (found) catName = found.name.replace("↳ ", "");
+                }
+                return (
+                    <span className="inline-flex items-center gap-1.5 font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-full text-xs border border-primary/20">
+                        <Tag className="w-3 h-3" />
+                        {catName || "Chưa phân loại"}
+                    </span>
+                );
+            }
         },
         {
             header: "Thống kê",
@@ -161,14 +167,16 @@ function InstructorCourseTable({
                         </span>
                     ) : (
                         <>
-                            {row.status === 3 ? (
-                                <span className="inline-flex items-center gap-1 text-[10px] text-success font-bold bg-success/10 px-1.5 py-0 rounded border border-success/20">Đang bán</span>
-                            ) : row.status === 0 || row.status === "rejected" ? (
+                            {row.status === 1 ? (
+                                <span className="inline-flex items-center gap-1 text-[10px] text-success font-bold bg-success/10 px-1.5 py-0 rounded border border-success/20">Đang hiển thị</span>
+                            ) : row.status === 3 || row.status === 0 || row.status === "rejected" ? (
                                 <span className="inline-flex items-center gap-1 text-[10px] text-error font-bold bg-error/10 px-1.5 py-0 rounded border border-error/20">Bị từ chối</span>
-                            ) : row.status === 2 ? (
+                            ) : row.status === 4 ? (
                                 <span className="inline-flex items-center gap-1 text-[10px] text-warning font-bold bg-warning/10 px-1.5 py-0.5 rounded border border-warning/20">Chờ duyệt</span>
+                            ) : row.status === 2 ? (
+                                <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground font-bold bg-secondary px-1.5 py-0 rounded border border-border">Đang ẩn</span>
                             ) : (
-                                <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground font-bold bg-secondary px-1.5 py-0 rounded border border-border">Ẩn / Bản nháp</span>
+                                <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground font-bold bg-secondary px-1.5 py-0 rounded border border-border">Không xác định</span>
                             )}
                             {row.hasUnsavedDraft && (
                                 <span className="inline-flex items-center gap-1 text-[10px] text-warning font-bold bg-warning/10 px-1.5 py-0 rounded border border-warning/20">
@@ -187,14 +195,14 @@ function InstructorCourseTable({
             cellClassName: "text-center",
             render: (row) => (
                 <div className="flex justify-center items-center gap-2">
-                    {(!row.isVirtualDraft && (row.status === 3 || row.status === 1 || row.status === 4)) && (
+                    {(!row.isVirtualDraft && (row.status === 1 || row.status === 2)) && (
                         <TableActionIconButton
-                            icon={row.status === 3 ? Eye : EyeOff}
+                            icon={row.status === 1 ? Eye : EyeOff}
                             onClick={() => onToggleStatus?.(row.id, row.status)}
-                            title={row.status === 3 ? "Đang hiển thị (Nhấn để ẩn)" : "Đang ẩn (Nhấn để hiện)"}
+                            title={row.status === 1 ? "Đang hiển thị (Nhấn để ẩn)" : "Đang ẩn (Nhấn để hiện)"}
                         />
                     )}
-                    {(row.status === 0 || row.status === "rejected") && (
+                    {(!row.isVirtualDraft && row.status === 3) && (
                         <TableActionIconButton
                             icon={MessageSquareWarning}
                             colorVariant="error"
@@ -300,14 +308,14 @@ export default function InstructorCourses() {
       .then((res) => {
         const catList = res?.data?.content || [];
         const flattened = [];
-        const parents = catList.filter(c => !c.parent);
-
-        parents.forEach(p => {
+        
+        catList.forEach(p => {
           flattened.push({ id: p.id, name: p.name, isParent: true });
-          const children = catList.filter(c => c.parent && c.parent.id === p.id);
-          children.forEach(c => {
-            flattened.push({ id: c.id, name: `↳ ${c.name}`, isParent: false });
-          });
+          if (p.subcategories && p.subcategories.length > 0) {
+            p.subcategories.forEach(c => {
+              flattened.push({ id: c.id, name: `↳ ${c.name}`, isParent: false });
+            });
+          }
         });
         setCategories(flattened);
       })
@@ -378,7 +386,7 @@ export default function InstructorCourses() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { label: "Tổng khóa học", value: pagination.totalElements || 0, icon: PlayCircle, bgClass: "bg-info/10", textClass: "text-info", borderClass: "border-info/20", circleClass: "bg-info/5 group-hover:bg-info/10" },
-          { label: "Đang hiển thị", value: courses.filter(c => c.status === 3).length, icon: CheckCircle2, bgClass: "bg-success/10", textClass: "text-success", borderClass: "border-success/20", circleClass: "bg-success/5 group-hover:bg-success/10" },
+          { label: "Đang hiển thị", value: courses.filter(c => c.status === 1).length, icon: CheckCircle2, bgClass: "bg-success/10", textClass: "text-success", borderClass: "border-success/20", circleClass: "bg-success/5 group-hover:bg-success/10" },
           { label: "Chờ duyệt", value: courses.filter(c => c.status === 4).length, icon: Clock, bgClass: "bg-warning/10", textClass: "text-warning", borderClass: "border-warning/20", circleClass: "bg-warning/5 group-hover:bg-warning/10" },
           { label: "Bản nháp", value: courses.filter(c => c.isVirtualDraft || c.hasUnsavedDraft).length, icon: Activity, bgClass: "bg-primary/10", textClass: "text-primary", borderClass: "border-primary/20", circleClass: "bg-primary/5 group-hover:bg-primary/10" },
         ].map((stat, i) => (
@@ -407,9 +415,10 @@ export default function InstructorCourses() {
             {
               title: "Bộ lọc",
               items: [
-                { label: "Đang bán", value: "1" },
+                { label: "Đang hiển thị", value: "1" },
                 { label: "Chờ duyệt", value: "4" },
-                { label: "Ẩn", value: "2" }
+                { label: "Đang ẩn", value: "2" },
+                { label: "Bị từ chối", value: "3" }
               ],
               selectedItems: statusFilters,
               onItemToggle: (val) => setStatusFilters(prev => prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val]),
@@ -450,6 +459,7 @@ export default function InstructorCourses() {
             }}
             onToggleStatus={handleToggleStatus}
             onViewRejectReason={handleOpenRejectReason}
+            categories={categories}
           />
         )}
       </div>
