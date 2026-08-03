@@ -1,7 +1,7 @@
 import AppText from '../../components/ui/AppText';
-import React, { useState, useEffect } from 'react';
-import { View, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import React, { useState, useCallback } from 'react';
+import { View, TouchableOpacity, FlatList, ActivityIndicator, RefreshControl } from 'react-native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { clsx } from 'clsx';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import CourseProgressCard from './components/CourseProgressCard';
@@ -19,30 +19,43 @@ const MyCoursesScreen = () => {
     
     const [courses, setCourses] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
 
-    useEffect(() => {
-        if (isAuthenticated) {
-            const fetchMyCourses = async () => {
-                setLoading(true);
-                try {
-                    const response = await enrollmentService.getMyCourses();
-                    const data = response.data || response;
-                    if (Array.isArray(data)) {
-                        setCourses(data);
-                    } else if (data && data.content) {
-                        setCourses(data.content);
-                    }
-                } catch (error) {
-                    console.error('Error fetching my courses:', error);
-                } finally {
-                    setLoading(false);
-                }
-            };
-            fetchMyCourses();
-        } else {
+    const fetchMyCourses = useCallback(async (showLoadingIndicator = true) => {
+        if (!isAuthenticated) {
             setLoading(false);
+            return;
+        }
+        if (showLoadingIndicator) {
+            setLoading(true);
+        }
+        try {
+            const response = await enrollmentService.getMyCourses();
+            const data = response.data || response;
+            if (Array.isArray(data)) {
+                setCourses(data);
+            } else if (data && data.content) {
+                setCourses(data.content);
+            }
+        } catch (error) {
+            console.error('Error fetching my courses:', error);
+        } finally {
+            setLoading(false);
+            setRefreshing(false);
         }
     }, [isAuthenticated]);
+
+    // Refetch data every time the screen comes into focus
+    useFocusEffect(
+        useCallback(() => {
+            fetchMyCourses(true);
+        }, [fetchMyCourses])
+    );
+
+    const onRefresh = useCallback(() => {
+        setRefreshing(true);
+        fetchMyCourses(false);
+    }, [fetchMyCourses]);
 
     // Unauthenticated state
     if (!isAuthenticated) {
@@ -66,10 +79,11 @@ const MyCoursesScreen = () => {
         );
     }
 
-    // data filter logic assuming progress === 100 or completed flag
+    // Filter courses for active tab
+    const isCompletedCourse = (c) => (c.progress >= 100 || c.progressPercent >= 100 || c.completed);
     const data = activeTab === 0
-        ? courses.filter(c => c.progress < 100 && !c.completed)
-        : courses.filter(c => c.progress === 100 || c.completed);
+        ? courses.filter(c => !isCompletedCourse(c))
+        : courses.filter(c => isCompletedCourse(c));
 
     return (
         <View className="flex-1 bg-slate-50">
@@ -101,7 +115,7 @@ const MyCoursesScreen = () => {
                 </View>
             </View>
 
-            {loading ? (
+            {loading && !refreshing ? (
                 <View className="flex-1 items-center justify-center">
                     <ActivityIndicator size="large" color="#2563EB" />
                 </View>
@@ -150,6 +164,9 @@ const MyCoursesScreen = () => {
                             )}
                             contentContainerStyle={{ padding: 20, paddingBottom: 80 }}
                             showsVerticalScrollIndicator={false}
+                            refreshControl={
+                                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#2563EB']} />
+                            }
                         />
                     )}
                 </>

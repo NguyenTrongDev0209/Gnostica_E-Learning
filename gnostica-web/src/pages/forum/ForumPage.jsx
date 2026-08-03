@@ -12,6 +12,7 @@ import { AppButton } from "@/components/common/micro/AppButton";
 import AppSkeleton from "@/components/common/micro/AppSkeleton";
 import AppCard, { AppCardContent } from "@/components/common/micro/AppCard";
 import AppAvatar from "@/components/common/micro/AppAvatar";
+import AppPagination from "@/components/common/micro/AppPagination";
 import { Link } from "react-router-dom";
 
 const sortOptions = [
@@ -219,9 +220,6 @@ const ForumPage = () => {
     threads,
     categories,
     isLoading,
-    hasNextPage,
-    fetchNextPage,
-    isFetchingNextPage,
     refetchCategories,
   } = useForumPage();
 
@@ -229,7 +227,13 @@ const ForumPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortMode, setSortMode] = useState("best");
   const [displayMode, setDisplayMode] = useState("compact");
-  const loadMoreRef = useRef(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const POSTS_PER_PAGE = 8;
+
+  // Reset to page 1 whenever filters or sort options change
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [activeCategory, searchQuery, sortMode]);
 
   // Parse query parameters
   const queryParams = new URLSearchParams(location.search);
@@ -252,20 +256,6 @@ const ForumPage = () => {
       setActiveCategory(selectedCategory.name);
     }
   }, [categories, topicParam]);
-
-  useEffect(() => {
-    const target = loadMoreRef.current;
-    if (!target || !hasNextPage) return undefined;
-
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting && !isFetchingNextPage) {
-        fetchNextPage();
-      }
-    }, { rootMargin: "400px 0px" });
-
-    observer.observe(target);
-    return () => observer.disconnect();
-  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   const stripHtml = (html) => {
     if (!html) return '';
@@ -345,6 +335,10 @@ const ForumPage = () => {
     return engagement(second) - engagement(first) || second.createdAtValue - first.createdAtValue;
   });
 
+  // Calculate pagination
+  const totalPages = Math.max(1, Math.ceil(sortedPosts.length / POSTS_PER_PAGE));
+  const paginatedPosts = sortedPosts.slice((currentPage - 1) * POSTS_PER_PAGE, currentPage * POSTS_PER_PAGE);
+
   return (
     <div className="min-h-screen bg-muted pb-16 pt-8">
       <PageContainer.Section className="w-full app-container">
@@ -402,13 +396,23 @@ const ForumPage = () => {
             {/* Post List */}
             {isLoading ? (
               <ForumFeedSkeleton count={3} />
-            ) : sortedPosts.length > 0 ? (
+            ) : paginatedPosts.length > 0 ? (
               <div className="flex flex-col gap-4 w-full min-w-0">
-                {sortedPosts.map((post) => (
+                {paginatedPosts.map((post) => (
                   <ForumPostCard key={post.id} post={post} displayMode={displayMode} />
                 ))}
+
+                {totalPages > 1 && (
+                  <div className="flex justify-center mt-8 mb-4">
+                    <AppPagination
+                      currentPage={currentPage}
+                      totalPages={totalPages}
+                      onPageChange={(page) => setCurrentPage(page)}
+                    />
+                  </div>
+                )}
               </div>
-            ) : !hasNextPage && (
+            ) : (
               <div className="flex flex-col items-center justify-center py-16 text-center bg-white rounded-lg border border-dashed border-border mt-4">
                 <div className="w-16 h-16 bg-secondary rounded-full flex items-center justify-center mb-4">
                   <Search className="w-8 h-8 text-muted-foreground" />
@@ -420,12 +424,6 @@ const ForumPage = () => {
                 <AppButton appVariant="ghostMuted" variant="ghost" className="mt-4 border border-border" onClick={() => { setSearchQuery(""); setActiveCategory("Tất cả"); navigate("/forum"); }}>
                   Xóa bộ lọc
                 </AppButton>
-              </div>
-            )}
-
-            {(hasNextPage || isFetchingNextPage) && (
-              <div ref={loadMoreRef} className="mt-2 min-h-24">
-                {isFetchingNextPage && <ForumFeedSkeleton />}
               </div>
             )}
           </div>

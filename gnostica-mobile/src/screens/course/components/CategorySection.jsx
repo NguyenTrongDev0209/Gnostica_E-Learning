@@ -72,12 +72,12 @@ const CategorySection = () => {
                             <View
                                 className="w-[58px] h-[58px] rounded-[18px] items-center justify-center mb-[7px]"
                                 style={{
-                                    backgroundColor: catColor + '15',
+                                    backgroundColor: catColor,
                                     borderWidth: 1,
-                                    borderColor: catColor + '30',
+                                    borderColor: catColor,
                                 }}
                             >
-                                <IconComponent size={26} color={catColor} strokeWidth={1.8} />
+                                <IconComponent size={26} color="#ffffff" strokeWidth={1.8} />
                             </View>
                             <AppText className="text-[11px] text-slate-600 text-center font-semibold" numberOfLines={1}>
                                 {cat.name}

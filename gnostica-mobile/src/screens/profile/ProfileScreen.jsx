@@ -71,9 +71,9 @@ const MenuItem = ({ item, onOpenProfileModal }) => {
         >
             <View
                 className="w-[38px] h-[38px] rounded-xl items-center justify-center mr-3.5"
-                style={{ backgroundColor: item.color + '18' }}
+                style={{ backgroundColor: item.color }}
             >
-                <item.icon size={18} color={item.color} strokeWidth={2} />
+                <item.icon size={18} color="#ffffff" strokeWidth={2} />
             </View>
             <AppText className="flex-1 text-[15px] text-slate-800 font-medium">{item.label}</AppText>
             <ChevronRight size={16} color="#CBD5E1" />
@@ -140,8 +140,8 @@ const ProfileScreen = () => {
                 >
                     <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 24 }}>
                         <View style={{ backgroundColor: '#fff', borderRadius: 24, padding: 24, width: '100%', maxWidth: 340, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.1, shadowRadius: 20, elevation: 10 }}>
-                            <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: '#eff6ff', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
-                                <Smile size={32} color="#2563EB" />
+                            <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: '#2563EB', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+                                <Smile size={32} color="#ffffff" />
                             </View>
                             <AppText style={{ fontSize: 20, fontFamily: 'Inter_700Bold', color: '#1e293b', marginBottom: 8, textAlign: 'center' }}>
                                 Yêu cầu đăng nhập
@@ -230,9 +230,9 @@ const ProfileScreen = () => {
                         </AppText>
                         <TouchableOpacity
                             onPress={() => setShowProfileModal(true)}
-                            className="ml-2 bg-blue-50 w-7 h-7 rounded-full items-center justify-center"
+                            className="ml-2 bg-blue-600 w-7 h-7 rounded-full items-center justify-center"
                         >
-                            <Edit3 size={14} color="#2563EB" />
+                            <Edit3 size={14} color="#ffffff" />
                         </TouchableOpacity>
                     </View>
                     <AppText className="text-[14px] text-slate-500 mt-1 font-medium">
@@ -251,8 +251,8 @@ const ProfileScreen = () => {
                             key={stat.label}
                             className="flex-1 items-center relative"
                         >
-                            <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: stat.bg, alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
-                                <stat.icon size={20} color={stat.color} />
+                            <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: stat.color, alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
+                                <stat.icon size={20} color="#ffffff" />
                             </View>
                             {loadingStats ? (
                                 <ActivityIndicator size="small" color={stat.color} style={{ marginVertical: 4 }} />
@@ -292,10 +292,10 @@ const ProfileScreen = () => {
             <TouchableOpacity
                 onPress={handleLogout}
                 activeOpacity={0.75}
-                className="mx-5 mt-5 mb-10 py-[15px] rounded-[14px] bg-red-50 border border-red-200 flex-row items-center justify-center gap-2.5"
+                className="mx-5 mt-5 mb-10 py-[15px] rounded-[14px] bg-red-500 flex-row items-center justify-center gap-2.5"
             >
-                <LogOut size={18} color="#EF4444" />
-                <AppText className="text-[15px] font-bold text-red-500">Đăng xuất</AppText>
+                <LogOut size={18} color="#ffffff" />
+                <AppText className="text-[15px] font-bold text-white">Đăng xuất</AppText>
             </TouchableOpacity>
 
             {/* Thông tin cá nhân Modal */}
@@ -326,8 +326,8 @@ const ProfileScreen = () => {
                         {/* Title & Close */}
                         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
                             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                                <View style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: '#eff6ff', alignItems: 'center', justifyContent: 'center' }}>
-                                    <User size={20} color="#2563eb" />
+                                <View style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: '#2563eb', alignItems: 'center', justifyContent: 'center' }}>
+                                    <User size={20} color="#ffffff" />
                                 </View>
                                 <AppText style={{ fontSize: 18, fontWeight: 'bold', color: '#1e293b' }}>Thông tin cá nhân</AppText>
                             </View>
