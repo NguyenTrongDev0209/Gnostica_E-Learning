@@ -5,8 +5,6 @@ import com.gnostica.modules.wallet.dto.response.*;
 import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -16,8 +14,6 @@ import com.gnostica.core.dto.response.ApiResponse;
 import com.gnostica.modules.wallet.service.PayoutsService;
 
 import vn.payos.model.v1.payouts.Payout;
-import vn.payos.model.v1.payouts.PayoutRequests;
-import vn.payos.model.v1.payouts.batch.PayoutBatchRequest;
 import vn.payos.model.v1.payoutsAccount.PayoutAccountInfo;
 import lombok.RequiredArgsConstructor;
 
@@ -27,28 +23,6 @@ import lombok.RequiredArgsConstructor;
 @PreAuthorize("hasRole('ADMIN')")
 public class PayoutsController {
 	private final PayoutsService payoutsService;
-
-	@PostMapping("/create")
-	public ApiResponse<Payout> create(@RequestBody PayoutRequests body) {
-		try {
-			Payout payout = payoutsService.createPayout(body);
-			return ApiResponse.success(payout);
-		} catch (Exception e) {
-			e.printStackTrace();
-			return ApiResponse.error("fail");
-		}
-	}
-
-	@PostMapping("/batch/create")
-	public ApiResponse<Payout> createBatch(@RequestBody PayoutBatchRequest body) {
-		try {
-			Payout payout = payoutsService.createBatchPayout(body);
-			return ApiResponse.success(payout);
-		} catch (Exception e) {
-			e.printStackTrace();
-			return ApiResponse.error("fail");
-		}
-	}
 
 	@GetMapping("/{payoutId}")
 	public ApiResponse<Payout> retrieve(@PathVariable String payoutId) {

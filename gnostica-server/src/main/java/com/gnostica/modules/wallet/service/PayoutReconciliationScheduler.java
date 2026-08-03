@@ -19,9 +19,13 @@ public class PayoutReconciliationScheduler {
 
     private final PayoutRepository payoutRepository;
     private final PayoutsService payoutsService;
+    private final PayoutSubmissionService payoutSubmissionService;
 
     @Scheduled(fixedDelayString = "${payos.payout-reconciliation-interval-ms:60000}")
     public void reconcilePendingPayouts() {
+        payoutRepository.findByStatusInAndGatewayPayoutIdIsNull(List.of(PayoutStatus.PENDING))
+                .forEach(payout -> payoutSubmissionService.submit(payout.getId()));
+
         List<Payout> payouts = payoutRepository.findByStatusIn(
                 List.of(PayoutStatus.PENDING, PayoutStatus.PROCESSING));
         for (Payout payout : payouts) {
@@ -46,6 +50,9 @@ public class PayoutReconciliationScheduler {
         }
 
         vn.payos.model.v1.payouts.Payout remote = payoutsService.retrievePayout(local.getGatewayPayoutId());
+        if (remote.getReferenceId() != null && !remote.getReferenceId().equals(local.getGatewayReferenceId())) {
+            throw new IllegalStateException("Payout gateway reference does not match local payout");
+        }
         int nextStatus = mapStatus(remote.getApprovalState());
         if (nextStatus != local.getStatus()) {
             local.setStatus(nextStatus);

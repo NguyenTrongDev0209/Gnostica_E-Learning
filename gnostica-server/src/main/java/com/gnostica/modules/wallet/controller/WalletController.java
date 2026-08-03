@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
-import vn.payos.model.v1.payouts.Payout;
 
 @RestController
 @RequestMapping("/api/wallet")
@@ -27,14 +26,14 @@ public class WalletController {
     }
 
     @GetMapping("/transactions")
-    public ResponseEntity<List<com.gnostica.core.model.Payout>> getMyTransactions() {
+    public ResponseEntity<List<PayoutResponse>> getMyTransactions() {
         return ResponseEntity.ok(walletService.getMyTransactions());
     }
 
     @GetMapping("/stats")
     public ResponseEntity<Map<String, Object>> getWalletStats() {
         WalletOverviewResponse wallet = walletService.getMyWalletOverview();
-        List<com.gnostica.core.model.Payout> payouts = walletService.getMyTransactions();
+        List<PayoutResponse> payouts = walletService.getMyTransactions();
 
         Map<String, Object> stats = new HashMap<>();
         stats.put("balance", wallet.getRemain());
@@ -79,12 +78,13 @@ public class WalletController {
      * Rút tiền — dùng bank đã lưu, xác thực PIN
      */
     @PostMapping("/withdraw")
-    public ResponseEntity<?> withdraw(@RequestBody WithdrawRequest request) {
+    public ResponseEntity<?> withdraw(
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
+            @RequestBody WithdrawRequest request) {
         try {
-            Payout payout = walletService.withdraw(request);
+            PayoutResponse payout = walletService.toResponse(walletService.withdraw(request, idempotencyKey));
             return ResponseEntity.ok(Map.of("message", "Lệnh rút tiền đã khởi tạo thành công", "payout", payout));
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.badRequest().body(Map.of("message",
                     e.getMessage() != null ? e.getMessage() : "Lỗi hệ thống: Không thể xử lý yêu cầu"));
         }

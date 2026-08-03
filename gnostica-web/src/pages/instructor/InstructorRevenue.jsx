@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import {
   Download,
@@ -14,21 +14,24 @@ import {
   Clock,
   XCircle,
   X,
-  Building2,
   CreditCard,
   Lock,
-  Trash2
+  Trash2,
+  Landmark
 } from "lucide-react";
 import AppCard, { AppCardContent } from "@/components/common/micro/AppCard";
 import { AppDialog } from "@/components/common/micro/AppDialog";
 import AppInput, { AppPasswordInput } from "@/components/common/micro/AppInput";
 import { AppButton } from "@/components/common/micro/AppButton";
+import AppSelect from "@/components/common/micro/AppSelect";
+import AppAvatar from "@/components/common/micro/AppAvatar";
 import AppBadge from "@/components/common/micro/AppBadge";
 import DataTable from "@/components/common/composite/DataTable";
 import DataFilter from "@/components/common/composite/DataFilter";
 import { useInstructorRevenue } from "@/hooks/payment/useInstructorRevenue";
 import walletService from "@/services/payment/walletService";
 import bankService from "@/services/payment/bankService";
+import useAuthStore from "@/store/useAuthStore";
 
 const maskAccount = (num) => {
     if (!num || num.length < 4) return num;
@@ -51,14 +54,16 @@ const InputField = ({ icon: Icon, label, ...props }) => (
     </div>
 );
 
-function WithdrawModal({ isOpen, onClose, wallet, onSuccess }) {
+function WithdrawModal({ isOpen, onClose, wallet, user, onSuccess }) {
     const hasBankAccount = !!(wallet?.accountNumber);
 
     const [step, setStep] = useState(hasBankAccount ? "withdraw" : "setup");
     const [banks, setBanks] = useState([]);
     const [loading, setLoading] = useState(false);
+    const withdrawalIdempotencyKeyRef = useRef(null);
 
     const [setupForm, setSetupForm] = useState({ bin: "", accountNumber: "", pin: "", pinConfirm: "" });
+    const [setupErrors, setSetupErrors] = useState({});
     const [withdrawForm, setWithdrawForm] = useState({ amount: "", pin: "" });
     const [removePin, setRemovePin] = useState("");
 
@@ -66,8 +71,11 @@ function WithdrawModal({ isOpen, onClose, wallet, onSuccess }) {
         if (isOpen) {
             setStep(hasBankAccount ? "withdraw" : "setup");
             setSetupForm({ bin: "", accountNumber: "", pin: "", pinConfirm: "" });
+            setSetupErrors({});
             setWithdrawForm({ amount: "", pin: "" });
             setRemovePin("");
+            withdrawalIdempotencyKeyRef.current = globalThis.crypto?.randomUUID?.().replaceAll("-", "")
+                || `${Date.now()}${Math.random().toString(36).slice(2)}`;
             bankService.getBanks()
                 .then(res => setBanks(res))
                 .catch(() => toast.error("Không thể tải danh sách ngân hàng"));
@@ -81,16 +89,15 @@ function WithdrawModal({ isOpen, onClose, wallet, onSuccess }) {
     const handleSetup = async (e) => {
         e.preventDefault();
         const { bin, accountNumber, pin, pinConfirm } = setupForm;
-        if (!bin || !accountNumber || !pin) {
-            toast.error("Vui lòng nhập đầy đủ thông tin");
-            return;
-        }
-        if (pin.length < 4) {
-            toast.error("PIN phải có ít nhất 4 ký tự");
-            return;
-        }
-        if (pin !== pinConfirm) {
-            toast.error("PIN xác nhận không khớp");
+        const errors = {};
+        if (!bin) errors.bin = "Vui lòng chọn ngân hàng.";
+        if (!accountNumber) errors.accountNumber = "Vui lòng nhập số tài khoản.";
+        else if (!/^\d{6,25}$/.test(accountNumber)) errors.accountNumber = "Số tài khoản phải gồm 6 đến 25 chữ số.";
+        if (!/^\d{6}$/.test(pin)) errors.pin = "PIN phải gồm đúng 6 chữ số.";
+        if (!pinConfirm) errors.pinConfirm = "Vui lòng xác nhận mã PIN.";
+        else if (pin !== pinConfirm) errors.pinConfirm = "PIN xác nhận không khớp.";
+        if (Object.keys(errors).length > 0) {
+            setSetupErrors(errors);
             return;
         }
         try {
@@ -123,7 +130,10 @@ function WithdrawModal({ isOpen, onClose, wallet, onSuccess }) {
         }
         try {
             setLoading(true);
-            await walletService.requestWithdraw({ amount: Number(amount), pin });
+            await walletService.requestWithdraw(
+                { amount: Number(amount), pin },
+                withdrawalIdempotencyKeyRef.current
+            );
             toast.success("Đã tạo lệnh rút tiền thành công!");
             if (onSuccess) onSuccess();
             onClose();
@@ -161,33 +171,56 @@ function WithdrawModal({ isOpen, onClose, wallet, onSuccess }) {
                 step === "setup" ? "Thiết lập tài khoản ngân hàng" :
                 step === "withdraw" ? "Yêu cầu rút tiền" : "Xóa tài khoản ngân hàng"
             }
-            description={step === "setup" ? "Thiết lập một lần, dùng mãi về sau" : null}
+            description={null}
             appVariant="outline"
-            className="sm:max-w-md"
+            className="sm:max-w-[34rem] sm:scale-[1.10]"
         >
-            <div className="space-y-5 mt-4">
-                <div className="bg-muted border border-border px-4 py-3 rounded-lg flex justify-between items-center">
-                    <span className="text-sm font-medium text-muted-foreground">Số dư khả dụng:</span>
-                    <span className="text-lg font-bold text-success">{formatVND(wallet?.remain)}</span>
-                </div>
+            <div className="space-y-6 mt-2">
+                {step !== "setup" && <div className="rounded-xl border border-success/20 bg-success-soft px-4 py-3.5 flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                        <div className="flex size-10 items-center justify-center rounded-lg bg-success/10 text-success">
+                            <WalletIcon className="size-5" />
+                        </div>
+                        <div>
+                            <p className="text-xs font-semibold text-muted-foreground">Số dư khả dụng</p>
+                            <p className="text-sm text-muted-foreground">Có thể yêu cầu rút ngay</p>
+                        </div>
+                    </div>
+                    <span className="text-lg font-bold tracking-tight text-success">{formatVND(wallet?.remain)}</span>
+                </div>}
 
                 {step === "setup" && (
-                    <form onSubmit={handleSetup} autoComplete="off" className="space-y-4">
+                    <form onSubmit={handleSetup} autoComplete="off" noValidate className="space-y-5">
+                        <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/50 px-3.5 py-3">
+                            <AppAvatar
+                                src={user?.avatar}
+                                alt={user?.fullName || user?.name || "Giảng viên"}
+                                size="default"
+                                className="ring-2 ring-background ring-offset-2 ring-primary/20"
+                            />
+                            <div className="min-w-0">
+                                <p className="truncate text-sm font-semibold text-foreground">
+                                    {user?.fullName || user?.name || "Giảng viên"}
+                                </p>
+                                <p className="truncate text-xs text-muted-foreground">{user?.email || "—"}</p>
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div className="space-y-1.5">
                             <label className="text-sm font-medium text-foreground flex items-center gap-2">
-                                <Building2 className="w-4 h-4 text-muted-foreground" /> Ngân hàng
+                                <Landmark className="w-4 h-4 text-muted-foreground" /> Ngân hàng
                             </label>
-                            <select
+                            <AppSelect
                                 value={setupForm.bin}
-                                onChange={e => setSetupForm(p => ({ ...p, bin: e.target.value }))}
-                                className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:border-success/20 focus:ring-1 focus:ring-green-500 outline-none transition-all"
-                                required
-                            >
-                                <option value="">-- Chọn ngân hàng --</option>
-                                {banks.map(bank => (
-                                    <option key={bank.id} value={bank.bin}>{bank.shortName}</option>
-                                ))}
-                            </select>
+                                onValueChange={bin => {
+                                    setSetupForm(p => ({ ...p, bin }));
+                                    if (setupErrors.bin) setSetupErrors(p => ({ ...p, bin: "" }));
+                                }}
+                                placeholder="Chọn ngân hàng nhận tiền"
+                                options={banks.map(bank => ({ value: bank.bin, label: bank.shortName, imageUrl: bank.logoUrl }))}
+                                error={Boolean(setupErrors.bin)}
+                            />
+                            {setupErrors.bin && <p className="mt-1 text-xs text-error">{setupErrors.bin}</p>}
                         </div>
                         <AppInput
                             icon={CreditCard}
@@ -195,32 +228,48 @@ function WithdrawModal({ isOpen, onClose, wallet, onSuccess }) {
                             type="text"
                             placeholder="Ví dụ: 190345..."
                             value={setupForm.accountNumber}
-                            onChange={e => setSetupForm(p => ({ ...p, accountNumber: e.target.value }))}
-                            required
+                            onChange={e => {
+                                setSetupForm(p => ({ ...p, accountNumber: e.target.value.replace(/\D/g, "") }));
+                                if (setupErrors.accountNumber) setSetupErrors(p => ({ ...p, accountNumber: "" }));
+                            }}
+                            error={setupErrors.accountNumber}
                         />
+                        </div>
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <AppPasswordInput
                             icon={Lock}
-                            label="Đặt mã PIN (tối thiểu 4 ký tự)"
-                            placeholder="Nhập mã PIN"
+                            label="Đặt mã PIN (6 chữ số)"
+                            placeholder="Nhập 6 chữ số"
                             value={setupForm.pin}
-                            onChange={e => setSetupForm(p => ({ ...p, pin: e.target.value }))}
+                            onChange={e => {
+                                setSetupForm(p => ({ ...p, pin: e.target.value.replace(/\D/g, "").slice(0, 6) }));
+                                if (setupErrors.pin) setSetupErrors(p => ({ ...p, pin: "" }));
+                            }}
                             name="bank-account-setup-pin"
                             autoComplete="one-time-code"
-                            required
+                            inputMode="numeric"
+                            maxLength={6}
+                            error={setupErrors.pin}
                         />
                         <AppPasswordInput
                             icon={Lock}
                             label="Xác nhận mã PIN"
-                            placeholder="Nhập lại mã PIN"
+                            placeholder="Nhập lại 6 chữ số"
                             value={setupForm.pinConfirm}
-                            onChange={e => setSetupForm(p => ({ ...p, pinConfirm: e.target.value }))}
+                            onChange={e => {
+                                setSetupForm(p => ({ ...p, pinConfirm: e.target.value.replace(/\D/g, "").slice(0, 6) }));
+                                if (setupErrors.pinConfirm) setSetupErrors(p => ({ ...p, pinConfirm: "" }));
+                            }}
                             name="bank-account-setup-pin-confirmation"
                             autoComplete="one-time-code"
-                            required
+                            inputMode="numeric"
+                            maxLength={6}
+                            error={setupErrors.pinConfirm}
                         />
-                        <div className="pt-2 flex gap-3">
+                        </div>
+                        <div className="pt-1 flex gap-3">
                             <AppButton appVariant="ghostMuted" variant="ghost" type="button" onClick={onClose} className="flex-1 border border-border">Hủy</AppButton>
-                            <AppButton appVariant="gradient" type="submit" disabled={loading} className="flex-1 bg-success/10 text-success hover:bg-success/20">
+                            <AppButton appVariant="primary" type="submit" disabled={loading} className="flex-1 !bg-success !text-success-foreground hover:!bg-success/90">
                                 {loading ? "Đang lưu..." : "Lưu tài khoản"}
                             </AppButton>
                         </div>
@@ -228,7 +277,7 @@ function WithdrawModal({ isOpen, onClose, wallet, onSuccess }) {
                 )}
 
                 {step === "withdraw" && (
-                    <form onSubmit={handleWithdraw} autoComplete="off" className="space-y-4">
+                    <form onSubmit={handleWithdraw} autoComplete="off" noValidate className="space-y-4">
                         <div className="border border-border rounded-lg p-3 flex items-center justify-between bg-muted">
                             <div className="flex items-center gap-3">
                                 <div className="bg-success/10 text-success p-2 rounded-lg border border-success/20">
@@ -267,7 +316,6 @@ function WithdrawModal({ isOpen, onClose, wallet, onSuccess }) {
                             value={withdrawForm.amount}
                             onChange={e => setWithdrawForm(p => ({ ...p, amount: e.target.value }))}
                             className="font-mono"
-                            required
                         />
 
                         <AppPasswordInput
@@ -275,10 +323,11 @@ function WithdrawModal({ isOpen, onClose, wallet, onSuccess }) {
                             label="Mã PIN xác nhận"
                             placeholder="Nhập mã PIN"
                             value={withdrawForm.pin}
-                            onChange={e => setWithdrawForm(p => ({ ...p, pin: e.target.value }))}
+                            onChange={e => setWithdrawForm(p => ({ ...p, pin: e.target.value.replace(/\D/g, "").slice(0, 6) }))}
                             name="withdrawal-confirmation-pin"
                             autoComplete="one-time-code"
-                            required
+                            inputMode="numeric"
+                            maxLength={6}
                         />
 
                         <div className="pt-2 flex gap-3">
@@ -291,7 +340,7 @@ function WithdrawModal({ isOpen, onClose, wallet, onSuccess }) {
                 )}
 
                 {step === "remove" && (
-                    <form onSubmit={handleRemove} autoComplete="off" className="space-y-4">
+                    <form onSubmit={handleRemove} autoComplete="off" noValidate className="space-y-4">
                         <div className="bg-red-50 border border-error/20 rounded-lg p-3 text-sm text-error">
                             Nhập mã PIN để xác nhận xóa tài khoản ngân hàng hiện tại.
                             Sau khi xóa, bạn có thể thiết lập tài khoản mới.
@@ -302,10 +351,11 @@ function WithdrawModal({ isOpen, onClose, wallet, onSuccess }) {
                             label="Mã PIN hiện tại"
                             placeholder="Nhập mã PIN"
                             value={removePin}
-                            onChange={e => setRemovePin(e.target.value)}
+                            onChange={e => setRemovePin(e.target.value.replace(/\D/g, "").slice(0, 6))}
                             name="bank-account-removal-pin"
                             autoComplete="one-time-code"
-                            required
+                            inputMode="numeric"
+                            maxLength={6}
                         />
 
                         <div className="pt-2 flex gap-3">
@@ -374,8 +424,8 @@ function InstructorRevenueTable({
             cellClassName: "max-w-[300px]",
             render: (trx) => (
                 <span className="text-sm font-bold text-foreground line-clamp-1">
-                    {trx.accountBank?.bank?.shortName
-                        ? `Rút tiền về ${trx.accountBank.bank.shortName}`
+                    {trx.bankName
+                        ? `Rút tiền về ${trx.bankName}`
                         : "Yêu cầu rút tiền"}
                 </span>
             )
@@ -444,6 +494,7 @@ function InstructorRevenueTable({
 
 export default function InstructorRevenue() {
   const { wallet, transactions, loading } = useInstructorRevenue();
+  const user = useAuthStore(state => state.user);
   
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
   const [pagination, setPagination] = useState({
@@ -460,8 +511,8 @@ export default function InstructorRevenue() {
     // Tìm kiếm theo ID hoặc nội dung
     const searchString = searchTerm.toLowerCase();
     const matchSearch = `trx-${trx.id}`.toLowerCase().includes(searchString) ||
-      (trx.accountBank?.accountNumber || "").toLowerCase().includes(searchString) ||
-      (trx.accountBank?.bank?.shortName || "").toLowerCase().includes(searchString);
+      (trx.maskedAccountNumber || "").toLowerCase().includes(searchString) ||
+      (trx.bankName || "").toLowerCase().includes(searchString);
     
     // Lọc trạng thái / loại
     let matchStatus = true;
@@ -639,6 +690,7 @@ export default function InstructorRevenue() {
         isOpen={isWithdrawOpen}
         onClose={() => setIsWithdrawOpen(false)}
         wallet={wallet}
+        user={user}
         onSuccess={() => window.location.reload()}
       />
     </div>

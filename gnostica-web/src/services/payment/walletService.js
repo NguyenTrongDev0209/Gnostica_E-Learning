@@ -38,9 +38,11 @@ const getWalletStats = async () => {
     return response.data;
 };
 
-const requestWithdraw = async (withdrawData) => {
+const requestWithdraw = async (withdrawData, suppliedIdempotencyKey) => {
+    const idempotencyKey = suppliedIdempotencyKey || globalThis.crypto?.randomUUID?.().replaceAll('-', '')
+        || `${Date.now()}${Math.random().toString(36).slice(2)}`;
     const response = await axiosClient.post(`${API_URL}/withdraw`, withdrawData, {
-        headers: getAuthHeaders()
+        headers: { ...getAuthHeaders(), 'Idempotency-Key': idempotencyKey }
     });
     return response.data;
 };
