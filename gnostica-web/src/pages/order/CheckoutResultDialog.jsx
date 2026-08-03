@@ -1,10 +1,7 @@
-import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { ArrowRight, Clock3, FileText, Loader2, RotateCcw, ShoppingBag, X } from "lucide-react";
-import { checkoutStatusConfig } from "@/mocks/checkout";
+import { useEffect, useState } from "react";
+import { Check, CircleX, Clock3, Loader2 } from "lucide-react";
 import orderService from "@/services/order/orderService";
-import Separator from "@/components/common/micro/AppSeparator";
-import { AppButton, Button } from "@/components/common/micro/AppButton";
+import AppAlertDialog from "@/components/common/micro/AppAlertDialog";
 import {
   AppDialogContent,
   AppDialogDescription,
@@ -16,7 +13,7 @@ import {
 const MAX_STATUS_CHECKS = 15;
 const STATUS_CHECK_INTERVAL_MS = 1500;
 
-export default function CheckoutResultDialog({ open, onOpenChange, result }) {
+export default function CheckoutResultDialog({ open, onOpenChange, onResultAction, result }) {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(false);
   const [statusChecksFinished, setStatusChecksFinished] = useState(false);
@@ -52,8 +49,8 @@ export default function CheckoutResultDialog({ open, onOpenChange, result }) {
 
         if (
           nextOrder?.status === 1 ||
-          nextOrder?.status === 3 ||
           nextOrder?.status === 2 ||
+          nextOrder?.status === 3 ||
           hasTerminalReturnStatus ||
           attempt >= MAX_STATUS_CHECKS - 1
         ) {
@@ -61,7 +58,7 @@ export default function CheckoutResultDialog({ open, onOpenChange, result }) {
           return;
         }
       } catch (error) {
-        console.error("Khong the kiem tra trang thai don hang:", error);
+        console.error("Không thể kiểm tra trạng thái đơn hàng:", error);
         setLoading(false);
         if (hasTerminalReturnStatus || attempt >= MAX_STATUS_CHECKS - 1) {
           setStatusChecksFinished(true);
@@ -86,130 +83,87 @@ export default function CheckoutResultDialog({ open, onOpenChange, result }) {
     };
   }, [open, orderCode, hasTerminalReturnStatus]);
 
-  const isPaid = order?.status === 1 || callbackStatus === "PAID";
+  // URL parameters are navigation hints only. The persisted order status remains
+  // the source of truth for whether the learner has successfully paid.
+  const isPaid = order?.status === 1;
+  const isCancelled = order?.status === 3 || returnWasCancelled || (callbackVerified && callbackStatus === "FAILED");
   const isPending = !isPaid && order?.status === 0 && !hasTerminalReturnStatus;
-  const config = isPaid ? checkoutStatusConfig.success : checkoutStatusConfig.cancel;
-  const StatusIcon = isPending ? Clock3 : config.icon;
+  const state = isPaid ? "success" : isPending ? "warning" : "destructive";
+  const Icon = isPaid ? Check : isPending ? Clock3 : CircleX;
+  const completedAt = formatDateTime(order?.updatedAt);
+
   const title = isPaid
-    ? "Thanh toán thành công!"
+    ? "Thanh toán thành công"
     : isPending
       ? "Đang xác nhận thanh toán"
+      : isCancelled
+        ? "Đã hủy thanh toán"
       : "Thanh toán chưa hoàn tất";
   const description = isPaid
-    ? "Đơn hàng đã được xử lý và khóa học đã sẵn sàng."
+    ? `Chúc mừng! Bạn đã hoàn tất thanh toán vào ${completedAt}.`
     : isPending
       ? statusChecksFinished
-        ? "Giao dịch vẫn đang được xử lý. Bạn có thể xem lại trạng thái trong lịch sử mua hàng."
+        ? "Giao dịch vẫn đang được xử lý. Bạn có thể xem lại trong lịch sử đơn hàng."
         : "Hệ thống đang chờ xác nhận an toàn từ cổng thanh toán."
-      : "Đơn hàng chưa được thanh toán. Bạn có thể quay lại và thử lại.";
+      : isCancelled
+        ? `Giao dịch đã được hủy vào thời điểm ${completedAt}.`
+        : "Đơn hàng chưa được thanh toán. Bạn có thể mua lại khi sẵn sàng.";
+
+  const handleViewOrders = () => {
+    onResultAction?.("/account/my-courses");
+    onOpenChange(false);
+  };
+
+  const handleRepurchase = () => {
+    onResultAction?.("/courses");
+    onOpenChange(false);
+  };
+
+  if (loading && !order) {
+    return (
+      <AppDialogRoot open={open} onOpenChange={onOpenChange}>
+        <AppDialogContent appVariant="default" showCloseButton={false} className="w-[calc(100vw-32px)] max-w-[390px] rounded-2xl p-6">
+          <AppDialogHeader className="sr-only">
+            <AppDialogTitle>Đang kiểm tra thanh toán</AppDialogTitle>
+            <AppDialogDescription>Vui lòng chờ trong giây lát.</AppDialogDescription>
+          </AppDialogHeader>
+          <div className="flex min-h-48 items-center justify-center">
+            <Loader2 className="size-9 animate-spin text-primary" />
+          </div>
+        </AppDialogContent>
+      </AppDialogRoot>
+    );
+  }
 
   return (
-    <AppDialogRoot open={open} onOpenChange={onOpenChange}>
-      <AppDialogContent appVariant="default" className="w-[calc(100vw-32px)] max-w-[520px] overflow-hidden p-0">
-        <AppDialogHeader className="sr-only">
-          <AppDialogTitle>Kết quả thanh toán</AppDialogTitle>
-          <AppDialogDescription>{description}</AppDialogDescription>
-        </AppDialogHeader>
-
-        <div className="flex max-h-[92vh] flex-col items-center overflow-y-auto p-6 text-center sm:p-8">
-          {loading && !order ? (
-            <div className="flex min-h-80 items-center justify-center">
-              <Loader2 className="size-10 animate-spin text-primary" />
-            </div>
-          ) : (
-            <>
-              <div className={`mb-6 flex size-20 items-center justify-center rounded-full ${isPending ? "bg-warning/10" : config.iconBg} ring-8 ${isPending ? "ring-warning/10" : config.ringColor}`}>
-                <StatusIcon className={`size-10 ${isPending ? "text-warning" : config.iconColor} ${isPending && !statusChecksFinished ? "animate-pulse" : ""}`} />
-              </div>
-
-              <h2 className="mb-2 text-2xl font-extrabold text-foreground sm:text-3xl">{title}</h2>
-              <p className="mb-8 max-w-sm text-sm text-muted-foreground">{description}</p>
-
-              <div className="mb-7 w-full space-y-3 rounded-xl bg-muted p-5 text-left">
-                <Detail label="Mã đơn hàng" value={`#${orderCode || order?.id || "N/A"}`} />
-                <Separator className="bg-muted/70" />
-                <Detail
-                  label="Tổng tiền"
-                  value={`${Number(order?.totalPrice || result?.amount || 0).toLocaleString("vi-VN")}đ`}
-                  valueClass="text-gradient-button font-black"
-                />
-                <Separator className="bg-muted/70" />
-                <Detail label="Phương thức" value={formatPaymentMethod(order?.paymentMethod || result?.gateway)} />
-                <Separator className="bg-muted/70" />
-                <div className="flex items-center justify-between gap-4">
-                  <span className="text-sm text-muted-foreground">Trạng thái</span>
-                  <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${isPaid ? "bg-success/10 text-success" : isPending ? "bg-warning/10 text-warning" : config.badgeColor}`}>
-                    {isPaid ? "ĐÃ THANH TOÁN" : isPending ? "ĐANG XÁC NHẬN" : "CHƯA THANH TOÁN"}
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex w-full flex-col gap-3 sm:flex-row">
-                {isPaid ? (
-                  <>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => onOpenChange(false)}
-                      className="h-12 flex-1 gap-2 rounded-xl font-bold"
-                    >
-                      <X className="size-4" />
-                      Đóng
-                    </Button>
-                    <ActionLink to="/account/my-courses" icon={ArrowRight} label="Vào học ngay" />
-                  </>
-                ) : (
-                  <>
-                    <ActionLink to="/account/orders" icon={FileText} label="Xem đơn hàng" outline />
-                    <Button
-                      type="button"
-                      onClick={() => onOpenChange(false)}
-                      className="h-12 flex-1 gap-2 rounded-xl font-bold"
-                    >
-                      {hasTerminalReturnStatus ? <RotateCcw className="size-4" /> : <ShoppingBag className="size-4" />}
-                      {hasTerminalReturnStatus ? "Thử lại" : "Tiếp tục mua sắm"}
-                    </Button>
-                  </>
-                )}
-              </div>
-            </>
-          )}
-        </div>
-      </AppDialogContent>
-    </AppDialogRoot>
+    <AppAlertDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      variant={state}
+      layout="centered"
+      icon={<Icon className={`size-6 text-white ${isPending && !statusChecksFinished ? "animate-pulse" : ""}`} />}
+      mediaClassName={isPaid ? "!bg-success !ring-0" : isPending ? "!bg-warning !ring-0" : "!bg-error !ring-0"}
+      title={title}
+      description={description}
+      hideCancel={isPending}
+      cancelText="Đóng"
+      confirmText={isPaid ? "Xem khóa học" : isPending ? "Đóng" : "Mua lại"}
+      onConfirm={isPaid ? handleViewOrders : isPending ? () => onOpenChange(false) : handleRepurchase}
+    />
   );
 }
 
-function Detail({ label, value, valueClass = "font-bold text-foreground" }) {
-  return (
-    <div className="flex items-center justify-between gap-4">
-      <span className="text-sm text-muted-foreground">{label}</span>
-      <span className={`text-right text-sm ${valueClass}`}>{value}</span>
-    </div>
-  );
-}
+function formatDateTime(value) {
+  if (!value) return "không xác định";
 
-function ActionLink({ to, icon, label, outline = false }) {
-  return (
-    <Link to={to} className="flex-1">
-      {outline ? (
-        <Button variant="outline" className="h-12 w-full gap-2 rounded-xl font-bold">
-          {React.createElement(icon, { className: "size-4" })}
-          {label}
-        </Button>
-      ) : (
-        <AppButton appVariant="gradient" className="h-12 w-full gap-2 rounded-xl font-bold">
-          {label}
-          {React.createElement(icon, { className: "size-4" })}
-        </AppButton>
-      )}
-    </Link>
-  );
-}
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "không xác định";
 
-function formatPaymentMethod(method) {
-  if (method === "VNPAY") return "VNPay";
-  if (method === "PAYOS") return "PayOS (QR/chuyển khoản)";
-  if (method === "FREE/COUPON") return "Miễn phí / mã giảm giá";
-  return method || "N/A";
+  return new Intl.DateTimeFormat("vi-VN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(date);
 }

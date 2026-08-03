@@ -200,7 +200,18 @@ public class VNPayPaymentStrategy implements PaymentStrategy {
         verifyQueryResponse(result);
         String responseCode = result.path("vnp_ResponseCode").asText();
         String transactionStatus = result.path("vnp_TransactionStatus").asText();
-        String status = "00".equals(responseCode) && "00".equals(transactionStatus) ? "PAID" : "PENDING";
+        // vnp_ResponseCode confirms the query itself. The actual payment
+        // outcome is determined separately by vnp_TransactionStatus.
+        String status;
+        if (!"00".equals(responseCode)) {
+            status = "UNAVAILABLE";
+        } else if ("00".equals(transactionStatus)) {
+            status = "PAID";
+        } else if ("01".equals(transactionStatus) || transactionStatus.isBlank()) {
+            status = "PENDING";
+        } else {
+            status = "FAILED";
+        }
         long amount = result.path("vnp_Amount").asLong(0L) / 100L;
         java.util.Map<String, Object> detailsPayload = new java.util.HashMap<>();
         detailsPayload.put("senderBankCode", result.path("vnp_BankCode").asText(null));

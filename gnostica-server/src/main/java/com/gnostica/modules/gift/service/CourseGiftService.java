@@ -172,12 +172,6 @@ public class CourseGiftService {
         }
 
         // Gửi email luôn nếu là khóa học miễn phí (đã PAID)
-        if (order != null && order.getStatus() == OrderStatus.PAID) {
-            sendGiftEmail(gift);
-        } else if (order == null && paymentResponse.getAmount() == 0) { // Safety fallback
-            sendGiftEmail(gift);
-        }
-
         return paymentResponse;
     }
     

@@ -42,6 +42,7 @@ import java.util.UUID;
 import java.math.BigDecimal;
 import java.util.stream.Collectors;
 import com.gnostica.modules.wallet.service.WalletService;
+import com.gnostica.modules.order.util.OrderPriceCalculator;
 
 @Service
 @RequiredArgsConstructor
@@ -52,6 +53,7 @@ public class OrderService {
     public static final String OWN_COURSE_PURCHASE_NOT_ALLOWED = "OWN_COURSE_PURCHASE_NOT_ALLOWED";
     public static final String ALREADY_ENROLLED = "ALREADY_ENROLLED";
     private static final Set<String> SUPPORTED_PAYMENT_METHODS = Set.of("PAYOS", "VNPAY", "WALLET");
+    private static final int PAYOS_PAYMENT_EXPIRY_MINUTES = 5;
     private final OrderRepository orderRepository;
     private final OrderDetailRepository orderDetailRepository;
     private final AccountRepository accountRepository;
@@ -64,6 +66,7 @@ public class OrderService {
     private final WalletService walletService;
     private final PayOSPaymentLinkCacheService payOSPaymentLinkCacheService;
     private final VNPayProperties vnPayProperties;
+    private final PendingOrderCancellationService pendingOrderCancellationService;
 
     @Value("${payos.webhook-enabled:false}")
     private boolean payosWebhookEnabled;
@@ -115,9 +118,9 @@ public class OrderService {
         return mapToResponse(checkAndReturnOrder(order));
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public OrderResponse cancelPendingOrder(Long orderCode) throws Exception {
-        Order order = orderRepository.findByOrderCodeForUpdate(orderCode)
+        Order order = orderRepository.findByOrderCode(orderCode)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found"));
         assertCanReadOrder(order);
 
@@ -128,14 +131,12 @@ public class OrderService {
             throw new IllegalArgumentException("Only pending orders can be cancelled");
         }
 
-        // Cancel the PayOS link first. If PayOS refuses because the payment was
-        // completed concurrently, the local order is deliberately left pending.
-        paymentService.cancelPayment(order, "Cancelled by customer");
-        order.setStatus(OrderStatus.CANCELLED);
-        orderRepository.save(order);
-        clearPendingPayOSPaymentLink(order);
-        releaseReservedCoupon(order);
-        return mapToResponse(order);
+        boolean cancelled = pendingOrderCancellationService.cancelPendingOrder(orderCode,
+                "Cancelled by customer", true);
+        if (!cancelled) {
+            throw new IllegalStateException("Order status changed while cancellation was requested");
+        }
+        return mapToResponse(orderRepository.findByOrderCode(orderCode).orElseThrow());
     }
 
     private Order checkAndReturnOrder(Order order) throws Exception {
@@ -202,23 +203,19 @@ public class OrderService {
         Course course = courseRepository.findById(requestBody.getCourseId())
                 .orElseThrow(() -> new IllegalArgumentException(COURSE_NOT_AVAILABLE));
 
-        assertCourseCanBePurchased(course, account, deferImmediateSuccess);
+        assertAccountCanPurchase(account);
 
-        long orderCode = System.currentTimeMillis();
         String paymentMethod = normalizePaymentMethod(requestBody.getPaymentMethod());
-
-        if ("PAYOS".equals(paymentMethod)) {
-            PaymentLinkResponse pendingPayment = findReusablePendingPayOSPayment(account, course);
+        if (!deferImmediateSuccess) {
+            PaymentLinkResponse pendingPayment = resolveExistingPendingPayment(account, course, paymentMethod,
+                    requestBody.getCouponCode());
             if (pendingPayment != null) {
                 return pendingPayment;
             }
         }
-        if ("VNPAY".equals(paymentMethod)) {
-            PaymentLinkResponse pendingPayment = findReusablePendingVNPayPayment(account, course);
-            if (pendingPayment != null) {
-                return pendingPayment;
-            }
-        }
+        // Only a new order is subject to the current course/category rules.
+        assertCourseCanBePurchased(course, account, deferImmediateSuccess);
+        long orderCode = System.currentTimeMillis();
 
         // Snapshot the catalogue price and the course-level percentage on the
         // detail. The amount due is calculated separately on the order.
@@ -234,6 +231,11 @@ public class OrderService {
         BigDecimal couponPrice = BigDecimal.ZERO;
         if (requestBody.getCouponCode() != null && !requestBody.getCouponCode().trim().isEmpty()) {
             appliedCoupon = couponService.getValidCoupon(requestBody.getCouponCode());
+            appliedCoupon = couponRepository.findByIdForUpdate(appliedCoupon.getId())
+                    .orElseThrow(() -> new IllegalArgumentException("Coupon is no longer available"));
+            // Revalidate after the row lock: another checkout can consume the
+            // final use while this request is waiting for the lock.
+            appliedCoupon = couponService.getValidCoupon(couponService.getDisplayCode(appliedCoupon));
             
             couponService.assertCouponAppliesToCourse(appliedCoupon, course);
 
@@ -279,7 +281,7 @@ public class OrderService {
         }
 
         if ("WALLET".equals(paymentMethod)) {
-            com.gnostica.core.model.Wallet walletBalance = walletService.getWalletByAccount(account);
+            com.gnostica.core.model.Wallet walletBalance = walletService.getWalletByAccountForPayment(account);
             if (walletBalance.getRemain().compareTo(actualPrice) < 0) {
                 throw new IllegalArgumentException("Số dư khả dụng không đủ để thanh toán!");
             }
@@ -313,9 +315,7 @@ public class OrderService {
     }
 
     private void assertCourseCanBePurchased(Course course, Account buyer, boolean isGiftOrder) {
-        if (buyer.getStatus() == null || buyer.getStatus() != 1 || buyer.getDeletedAt() != null) {
-            throw new IllegalArgumentException(ACCOUNT_NOT_ELIGIBLE);
-        }
+        assertAccountCanPurchase(buyer);
         if (course.getStatus() != 1 || Boolean.TRUE.equals(course.getDeleted())) {
             throw new IllegalArgumentException(COURSE_NOT_AVAILABLE);
         }
@@ -354,54 +354,134 @@ public class OrderService {
                 .orElse(null);
     }
 
-    private PaymentLinkResponse findReusablePendingVNPayPayment(Account account, Course course) throws Exception {
-        LocalDateTime expiresBefore = LocalDateTime.now()
-                .minusMinutes(Math.max(1, vnPayProperties.getExpireMinutes()));
-        List<Order> pendingOrders = orderRepository
-                .findPendingVNPayOrdersByAccountAndCourseForUpdate(account, course);
+    private void assertAccountCanPurchase(Account buyer) {
+        if (buyer.getStatus() == null || buyer.getStatus() != 1 || buyer.getDeletedAt() != null) {
+            throw new IllegalArgumentException(ACCOUNT_NOT_ELIGIBLE);
+        }
+    }
 
+    private PaymentLinkResponse resolveExistingPendingPayment(Account account, Course course, String paymentMethod,
+            String requestedCouponCode) throws Exception {
+        List<Order> pendingOrders = orderRepository.findPendingOrdersByAccountAndCourse(account, course);
         for (Order pendingOrder : pendingOrders) {
-            if (pendingOrder.getCreatedAt() == null || pendingOrder.getCreatedAt().isBefore(expiresBefore)) {
-                cancelExpiredVNPayOrder(pendingOrder);
+            if (isPendingPaymentExpired(pendingOrder)) {
+                cancelExpiredPendingOrder(pendingOrder);
                 continue;
             }
-            // Generate the same VNPay transaction again, retaining its original
-            // order code, create time and expiry rather than creating another order.
-            return paymentService.createPaymentLink(pendingOrder, trustedReturnUrl(), trustedCancelUrl());
+
+            boolean sameGateway = paymentMethod.equalsIgnoreCase(pendingOrder.getPaymentMethod());
+            boolean sameCoupon = hasSameCoupon(pendingOrder, requestedCouponCode);
+            if (sameGateway && sameCoupon) {
+                if (!hasValidPendingOrderSnapshot(pendingOrder, course)) {
+                    cancelPendingOrderForReplacement(pendingOrder);
+                    continue;
+                }
+                PaymentLinkResponse resumedPayment = resumePendingPayment(pendingOrder, account, course);
+                if (resumedPayment != null) {
+                    return resumedPayment;
+                }
+                // The PayOS link may be missing from Redis after a restart.
+                // It cannot be safely reconstructed, so replace it explicitly.
+                cancelPendingOrderForReplacement(pendingOrder);
+                continue;
+            }
+
+            // Validate the requested coupon before cancelling the old payment.
+            // An invalid coupon must not destroy a still-valid checkout.
+            assertCourseCanBePurchased(course, account, false);
+            validateReplacementCoupon(requestedCouponCode, course);
+            cancelPendingOrderForReplacement(pendingOrder);
         }
         return null;
     }
 
-    private void cancelExpiredVNPayOrder(Order order) {
-        if (order.getStatus() != OrderStatus.PENDING) {
-            return;
+    private PaymentLinkResponse resumePendingPayment(Order order, Account account, Course course) throws Exception {
+        if ("PAYOS".equalsIgnoreCase(order.getPaymentMethod())) {
+            PaymentLinkResponse cachedLink = findReusablePendingPayOSPayment(account, course);
+            if (cachedLink == null || !order.getOrderCode().equals(cachedLink.getOrderCode())) {
+                return null;
+            }
+            return cachedLink;
         }
-        order.setStatus(OrderStatus.CANCELLED);
-        orderRepository.save(order);
-        releaseReservedCoupon(order);
+        if ("VNPAY".equalsIgnoreCase(order.getPaymentMethod())) {
+            return paymentService.createPaymentLink(order, trustedReturnUrl(), trustedCancelUrl());
+        }
+        return null;
     }
 
-    private void clearPendingPayOSPaymentLink(Order order) {
-        if (order.getAccount() == null || order.getDetails() == null || order.getDetails().isEmpty()) {
+    private void validateReplacementCoupon(String couponCode, Course course) {
+        if (couponCode == null || couponCode.isBlank()) {
             return;
         }
-        Course course = order.getDetails().get(0).getCourse();
-        if (course != null) {
-            payOSPaymentLinkCacheService.clear(order.getAccount().getId(), course.getId());
+        Coupon coupon = couponService.getValidCoupon(couponCode);
+        couponService.assertCouponAppliesToCourse(coupon, course);
+        BigDecimal afterCourseDiscount = course.getPrice()
+                .multiply(BigDecimal.valueOf(100 - (course.getDiscount() == null ? 0 : course.getDiscount())))
+                .divide(BigDecimal.valueOf(100))
+                .setScale(0, java.math.RoundingMode.HALF_UP);
+        couponService.calculateDiscountAmount(coupon, afterCourseDiscount);
+    }
+
+    private boolean hasSameCoupon(Order order, String requestedCouponCode) {
+        if (order.getCoupon() == null) {
+            return requestedCouponCode == null || requestedCouponCode.isBlank();
         }
+        if (requestedCouponCode == null || requestedCouponCode.isBlank()) {
+            return false;
+        }
+        return couponService.getDisplayCode(order.getCoupon()).trim()
+                .equalsIgnoreCase(requestedCouponCode.trim());
+    }
+
+    private boolean isPendingPaymentExpired(Order order) {
+        if (order.getCreatedAt() == null) {
+            return true;
+        }
+        int expiryMinutes = "VNPAY".equalsIgnoreCase(order.getPaymentMethod())
+                ? Math.max(1, vnPayProperties.getExpireMinutes())
+                : PAYOS_PAYMENT_EXPIRY_MINUTES;
+        return !order.getCreatedAt().plusMinutes(expiryMinutes).isAfter(LocalDateTime.now());
+    }
+
+    private void cancelPendingOrderForReplacement(Order order) throws Exception {
+        boolean cancelled = pendingOrderCancellationService.cancelPendingOrder(order.getOrderCode(),
+                "Replaced by a new checkout configuration", true);
+        if (!cancelled) {
+            throw new IllegalStateException("Pending order changed while checkout was being updated");
+        }
+    }
+
+    private void cancelExpiredPendingOrder(Order order) throws Exception {
+        boolean cancelled = pendingOrderCancellationService.cancelPendingOrder(order.getOrderCode(),
+                "Payment window expired", false);
+        if (!cancelled) {
+            throw new IllegalStateException("Pending order changed while it was expiring");
+        }
+    }
+
+    private boolean hasValidPendingOrderSnapshot(Order order, Course expectedCourse) {
+        List<OrderDetail> details = orderDetailRepository.findByOrder(order);
+        if (details.size() != 1) {
+            return false;
+        }
+        OrderDetail detail = details.get(0);
+        if (detail.getStatus() == null || detail.getStatus() != 1 || detail.getCourse() == null
+                || !expectedCourse.getId().equals(detail.getCourse().getId()) || detail.getPrice() == null
+                || detail.getPrice().signum() < 0 || detail.getDiscount() == null
+                || detail.getDiscount() < 0 || detail.getDiscount() > 100) {
+            return false;
+        }
+        BigDecimal couponPrice = order.getCouponPrice() == null ? BigDecimal.ZERO : order.getCouponPrice();
+        if (couponPrice.signum() < 0) {
+            return false;
+        }
+        BigDecimal expectedTotal = OrderPriceCalculator.amountAfterCourseDiscount(detail)
+                .subtract(couponPrice).max(BigDecimal.ZERO);
+        return order.getTotalPrice() != null && order.getTotalPrice().compareTo(expectedTotal) == 0;
     }
 
     private String trustedCancelUrl() {
         return trustedReturnUrl() + "?cancelled=true";
-    }
-
-    private void releaseReservedCoupon(Order order) {
-        Coupon coupon = order.getCoupon();
-        if (coupon == null || coupon.getReservedQuantity() == null) {
-            return;
-        }
-        coupon.setReservedQuantity(Math.max(0, coupon.getReservedQuantity() - 1));
-        couponRepository.save(coupon);
     }
 
     private Order saveOrder(Account account, Coupon coupon, BigDecimal couponPrice, BigDecimal totalPrice, String transactionId,
