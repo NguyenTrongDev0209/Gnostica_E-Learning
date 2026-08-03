@@ -80,21 +80,30 @@ public class PaymentServiceImpl implements PaymentService {
         }
 
         PaymentStrategy strategy = paymentStrategyFactory.getStrategy(lockedOrder.getPaymentMethod());
-        boolean isPaid = strategy.checkPaymentStatus(lockedOrder);
+        PaymentDetails paymentLink = strategy.getPaymentDetails(lockedOrder);
+        String gatewayStatus = paymentLink == null || paymentLink.getStatus() == null
+                ? "UNAVAILABLE" : paymentLink.getStatus();
 
-        if (isPaid) {
+        if ("PAID".equals(gatewayStatus)) {
             log.info("Order {} confirmed as PAID via server-side polling", lockedOrder.getId());
             processSuccessfulOrder(lockedOrder);
 
             // Lấy thêm details từ PayOS để lưu transaction với bank info
             try {
-                PaymentDetails paymentLink = strategy.getPaymentDetails(lockedOrder);
                 if (paymentLink != null) {
                     saveTransactionFromPolling(paymentLink, lockedOrder);
                 }
             } catch (Exception e) {
                 log.warn("Không thể lấy payment details để lưu transaction: {}", e.getMessage());
             }
+        } else if ("FAILED".equals(gatewayStatus) && "VNPAY".equalsIgnoreCase(lockedOrder.getPaymentMethod())) {
+            // A terminal gateway failure frees the pending checkout. Query
+            // errors remain pending and are retried by the scheduler.
+            saveTransactionFromPolling(paymentLink, lockedOrder);
+            lockedOrder.setStatus(OrderStatus.CANCELLED);
+            orderRepository.save(lockedOrder);
+            releaseCouponReservation(lockedOrder);
+            log.info("VNPay reported terminal failure for order {}", lockedOrder.getId());
         }
     }
 
@@ -141,7 +150,16 @@ public class PaymentServiceImpl implements PaymentService {
                 saveTransaction(data, order);
                 log.info("Payment processed successfully for order: {}", order.getId());
             } else if (order.getStatus() == OrderStatus.CANCELLED && "PAID".equals(data.getStatus())) {
+                // PayOS may retry the same signed webhook.  A late payment is
+                // refunded to the internal wallet exactly once, keyed by the
+                // gateway transaction/payment-link identifier.
+                boolean alreadyRecorded = paymentRepository.existsByGatewayAndGatewayTransactionNo(
+                        "PAYOS", data.getTransactionCode());
                 saveTransaction(data, order);
+                if (alreadyRecorded) {
+                    log.info("Ignoring duplicate late PayOS webhook for order {}", order.getId());
+                    return;
+                }
                 walletService.addDeposit(order.getAccount(), BigDecimal.valueOf(data.getAmount()), data.getTransactionCode());
                 try {
                     mailService.sendEmail(
@@ -178,6 +196,15 @@ public class PaymentServiceImpl implements PaymentService {
         int reserved = coupon.getReservedQuantity() == null ? 0 : coupon.getReservedQuantity();
         coupon.setReservedQuantity(Math.max(0, reserved - 1));
         coupon.setQuantity(Math.max(0, coupon.getQuantity() - 1));
+        couponRepository.save(coupon);
+    }
+
+    private void releaseCouponReservation(Order order) {
+        if (order.getCoupon() == null || order.getCoupon().getReservedQuantity() == null) {
+            return;
+        }
+        com.gnostica.core.model.Coupon coupon = order.getCoupon();
+        coupon.setReservedQuantity(Math.max(0, coupon.getReservedQuantity() - 1));
         couponRepository.save(coupon);
     }
 
@@ -238,9 +265,34 @@ public class PaymentServiceImpl implements PaymentService {
                 || order.getTotalPrice().compareTo(BigDecimal.valueOf(data.getAmount())) != 0) {
             return VNPayIpnResponse.invalidAmount();
         }
+        if ("PAID".equals(data.getStatus()) && order.getStatus() == OrderStatus.CANCELLED) {
+            if (data.getTransactionCode() == null || data.getTransactionCode().isBlank()) {
+                return VNPayIpnResponse.invalidRequest();
+            }
+            boolean alreadyRecorded = paymentRepository.existsByGatewayAndGatewayTransactionNo(
+                    "VNPAY", data.getTransactionCode());
+            saveTransaction(data, order);
+            if (!alreadyRecorded) {
+                walletService.addDeposit(order.getAccount(), BigDecimal.valueOf(data.getAmount()), data.getTransactionCode());
+            }
+            log.info("Late VNPay payment credited to wallet for expired order {}", order.getId());
+            return VNPayIpnResponse.success();
+        }
+        if (order.getStatus() != OrderStatus.PENDING) {
+            return VNPayIpnResponse.alreadyProcessed();
+        }
         if (!"PAID".equals(data.getStatus())) {
             log.info("VNPay reported non-successful transaction for order {}", order.getId());
-            saveTransaction(data, order);
+            // A cancellation can legitimately have no VNPay transaction
+            // number. It must still close the local pending order.
+            if (hasGatewayTransactionCode(data.getTransactionCode())) {
+                saveTransaction(data, order);
+            }
+            if (order.getStatus() == OrderStatus.PENDING) {
+                order.setStatus(OrderStatus.CANCELLED);
+                orderRepository.save(order);
+                releaseCouponReservation(order);
+            }
             return VNPayIpnResponse.success();
         }
         if (data.getTransactionCode() == null || data.getTransactionCode().isBlank()) {
@@ -268,7 +320,7 @@ public class PaymentServiceImpl implements PaymentService {
         Payment payment = new Payment();
         payment.setTransactionCode(link.getTransactionCode());
         payment.setAmount(BigDecimal.valueOf(link.getAmount()));
-        payment.setStatus(2); // 2: Thành công
+        payment.setStatus("PAID".equals(link.getStatus()) ? PaymentStatus.SUCCESS : PaymentStatus.FAILED);
         payment.setOrder(order);
         payment.setGateway(gateway);
         payment.setGatewayTransactionNo(link.getTransactionCode());
@@ -276,5 +328,9 @@ public class PaymentServiceImpl implements PaymentService {
         payment.setPayload(link.getPayload());
 
         paymentRepository.save(payment);
+    }
+
+    private boolean hasGatewayTransactionCode(String transactionCode) {
+        return transactionCode != null && !transactionCode.isBlank() && !"0".equals(transactionCode.trim());
     }
 }

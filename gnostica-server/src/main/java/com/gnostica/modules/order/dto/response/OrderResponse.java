@@ -21,6 +21,7 @@ public class OrderResponse {
     private String accountEmail;
     private UUID couponId;
     private String couponCode;
+    private BigDecimal couponPrice;
     private BigDecimal totalPrice;
     private String paymentMethod;
     private String transactionId;

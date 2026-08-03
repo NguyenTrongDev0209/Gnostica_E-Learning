@@ -7,6 +7,7 @@ import com.gnostica.core.model.Order;
 import com.gnostica.core.model.OrderDetail;
 import com.gnostica.core.repository.OrderDetailRepository;
 import com.gnostica.modules.payment.service.PaymentStrategy;
+import com.gnostica.modules.order.util.OrderPriceCalculator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,14 +40,14 @@ public class PayOSPaymentStrategy implements PaymentStrategy {
         List<PaymentLinkItem> items = details.stream().map(d -> PaymentLinkItem.builder()
                 .name(d.getCourse().getTitle())
                 .quantity(1)
-                .price((long) d.getPrice().doubleValue())
+                .price(OrderPriceCalculator.amountPaidForDetail(order, d, details).longValueExact())
                 .build()).collect(Collectors.toList());
 
         String description = limitDescription("DH " + order.getOrderCode());
 
         CreatePaymentLinkRequest paymentData = CreatePaymentLinkRequest.builder()
                 .orderCode(order.getOrderCode())
-                .amount((long) order.getTotalPrice().doubleValue())
+                .amount(order.getTotalPrice().longValueExact())
                 .description(description)
                 .items(items)
                 .returnUrl(returnUrl != null && !returnUrl.isEmpty() ? returnUrl : publicUrl + "/payment/success")

@@ -19,7 +19,7 @@ public class PaymentStatusWebSocketPublisher {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void publishPaymentSucceeded(PaymentSuccessEvent event) {
         Long orderCode = event.getOrder().getOrderCode();
-        if (orderCode == null || !"PAYOS".equalsIgnoreCase(event.getOrder().getPaymentMethod())) {
+        if (orderCode == null || event.getOrder().getAccount() == null) {
             return;
         }
 
@@ -27,6 +27,7 @@ public class PaymentStatusWebSocketPublisher {
                 "orderCode", orderCode,
                 "status", "PAID",
                 "occurredAt", LocalDateTime.now().toString());
-        messagingTemplate.convertAndSend("/topic/payment-status/" + orderCode, (Object) payload);
+        messagingTemplate.convertAndSendToUser(
+                event.getOrder().getAccount().getEmail(), "/queue/payment-status", payload);
     }
 }

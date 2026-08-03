@@ -62,8 +62,8 @@ public class OrderController {
 			if (OrderService.ALREADY_ENROLLED.equals(e.getMessage())) {
 				return ApiResponse.error(1004, OrderService.ALREADY_ENROLLED);
 			}
-			log.warn("KhÃ´ng thá»ƒ táº¡o link thanh toÃ¡n: {}", e.getMessage());
-			return ApiResponse.error("KhÃ´ng thá»ƒ táº¡o link thanh toÃ¡n");
+			log.warn("Không thể tạo link thanh toán: {}", e.getMessage());
+			return ApiResponse.error("Không thể tạo link thanh toán");
 		} catch (Exception e) {
 			log.error("Lỗi khi tạo link thanh toán", e);
 			return ApiResponse.error("Lỗi khi tạo link thanh toán: " + e.getMessage());
@@ -75,8 +75,8 @@ public class OrderController {
 		try {
 			return ApiResponse.success(orderService.cancelPendingOrder(orderCode));
 		} catch (Exception e) {
-			log.warn("KhÃ´ng thá»ƒ há»§y Ä‘Æ¡n {}: {}", orderCode, e.getMessage());
-			return ApiResponse.error("KhÃ´ng thá»ƒ há»§y thanh toÃ¡n");
+			log.warn("Không thể hủy đơn {}: {}", orderCode, e.getMessage());
+			return ApiResponse.error("Không thể hủy thanh toán");
 		}
 	}
 

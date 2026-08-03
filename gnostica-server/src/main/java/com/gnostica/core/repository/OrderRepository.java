@@ -18,6 +18,9 @@ public interface OrderRepository extends JpaRepository<Order, java.util.UUID> {
     Optional<Order> findByOrderCode(Long orderCode);
     @Query("select o from Order o join o.details d where o.account = :account and d.course = :course and o.status = 0 and upper(o.paymentMethod) = 'PAYOS' order by o.createdAt desc")
     List<Order> findPendingPayOSOrdersByAccountAndCourse(@Param("account") Account account, @Param("course") com.gnostica.core.model.Course course);
+    @Query("select o from Order o join o.details d where o.account = :account and d.course = :course and o.status = 0 order by o.createdAt desc")
+    List<Order> findPendingOrdersByAccountAndCourse(@Param("account") Account account,
+            @Param("course") com.gnostica.core.model.Course course);
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select o from Order o where o.orderCode = :orderCode")
     Optional<Order> findByOrderCodeForUpdate(@Param("orderCode") Long orderCode);
@@ -27,4 +30,6 @@ public interface OrderRepository extends JpaRepository<Order, java.util.UUID> {
     List<Order> findTop50ByStatusAndPaymentMethodIgnoreCaseAndCreatedAtAfterOrderByCreatedAtAsc(
             Integer status, String paymentMethod, LocalDateTime createdAfter);
     List<Order> findByStatusAndCreatedAtBefore(Integer status, LocalDateTime date);
+    List<Order> findByStatusAndPaymentMethodIgnoreCaseAndCreatedAtBefore(
+            Integer status, String paymentMethod, LocalDateTime date);
 }

@@ -49,6 +49,13 @@ public class VNPayPaymentStrategy implements PaymentStrategy {
         }
 
         LocalDateTime now = LocalDateTime.now(VIETNAM_ZONE);
+        // A resumed checkout must keep the original transaction reference and
+        // expiry window. VNPay uses this timestamp again for QueryDR.
+        LocalDateTime createdAt = order.getCreatedAt() != null ? order.getCreatedAt() : now;
+        LocalDateTime expiresAt = createdAt.plusMinutes(properties.getExpireMinutes());
+        if (!expiresAt.isAfter(now)) {
+            throw new IllegalArgumentException("VNPay payment link has expired");
+        }
         Map<String, String> parameters = new LinkedHashMap<>();
         parameters.put("vnp_Version", properties.getVersion());
         parameters.put("vnp_Command", "pay");
@@ -61,8 +68,8 @@ public class VNPayPaymentStrategy implements PaymentStrategy {
         parameters.put("vnp_Locale", "vn");
         parameters.put("vnp_ReturnUrl", selectReturnUrl(returnUrl));
         parameters.put("vnp_IpAddr", resolveClientIp());
-        parameters.put("vnp_CreateDate", now.format(VNPAY_DATE));
-        parameters.put("vnp_ExpireDate", now.plusMinutes(properties.getExpireMinutes()).format(VNPAY_DATE));
+        parameters.put("vnp_CreateDate", createdAt.format(VNPAY_DATE));
+        parameters.put("vnp_ExpireDate", expiresAt.format(VNPAY_DATE));
 
         String checkoutUrl = VNPaySigner.buildPaymentUrl(
                 properties.getPaymentUrl(), parameters, properties.getHashSecret());
@@ -73,6 +80,7 @@ public class VNPayPaymentStrategy implements PaymentStrategy {
                 .status("PENDING")
                 .description(parameters.get("vnp_OrderInfo"))
                 .amount(amount)
+                .expiresAt(expiresAt.atZone(VIETNAM_ZONE).toInstant().toEpochMilli())
                 .build();
     }
 
@@ -192,7 +200,18 @@ public class VNPayPaymentStrategy implements PaymentStrategy {
         verifyQueryResponse(result);
         String responseCode = result.path("vnp_ResponseCode").asText();
         String transactionStatus = result.path("vnp_TransactionStatus").asText();
-        String status = "00".equals(responseCode) && "00".equals(transactionStatus) ? "PAID" : "PENDING";
+        // vnp_ResponseCode confirms the query itself. The actual payment
+        // outcome is determined separately by vnp_TransactionStatus.
+        String status;
+        if (!"00".equals(responseCode)) {
+            status = "UNAVAILABLE";
+        } else if ("00".equals(transactionStatus)) {
+            status = "PAID";
+        } else if ("01".equals(transactionStatus) || transactionStatus.isBlank()) {
+            status = "PENDING";
+        } else {
+            status = "FAILED";
+        }
         long amount = result.path("vnp_Amount").asLong(0L) / 100L;
         java.util.Map<String, Object> detailsPayload = new java.util.HashMap<>();
         detailsPayload.put("senderBankCode", result.path("vnp_BankCode").asText(null));

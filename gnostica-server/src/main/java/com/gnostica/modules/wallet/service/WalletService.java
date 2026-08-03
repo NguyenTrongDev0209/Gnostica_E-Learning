@@ -97,6 +97,14 @@ public class WalletService {
         return dummyWallet;
     }
 
+    /** Serializes outgoing wallet spending for one account. */
+    @Transactional
+    public Wallet getWalletByAccountForPayment(Account account) {
+        Account lockedAccount = accountRepository.findByIdForUpdate(account.getId())
+                .orElseThrow(() -> new RuntimeException("Account not found"));
+        return getWalletByAccount(lockedAccount);
+    }
+
     @Transactional
     public void addBalance(java.util.UUID accountId, double amount, String reason) {
         Account account = accountRepository.findById(accountId)
@@ -172,8 +180,9 @@ public class WalletService {
      */
     @Transactional(rollbackFor = Exception.class)
     public vn.payos.model.v1.payouts.Payout withdraw(WithdrawRequest request) throws Exception {
-        Wallet wallet = getMyWallet();
-        Account account = wallet.getAccount();
+        Account account = accountRepository.findByIdForUpdate(getCurrentAccount().getId())
+                .orElseThrow(() -> new RuntimeException("Account not found"));
+        Wallet wallet = getWalletByAccount(account);
 
         AccountBank accountBank = accountBankRepository.findByAccountAndStatus(account, 1)
                 .orElseThrow(() -> new RuntimeException("Vui lòng thiết lập tài khoản ngân hàng trước khi rút tiền."));

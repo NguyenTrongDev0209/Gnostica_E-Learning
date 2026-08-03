@@ -254,6 +254,35 @@ public class CouponService {
         throw new IllegalArgumentException("Mã giảm chỉ khả dụng với một số khóa học");
     }
 
+    /**
+     * Converts a coupon into the exact currency amount applied to the eligible
+     * order subtotal. The result is persisted on the order and is never
+     * recalculated from a percentage during payment or accounting.
+     */
+    public java.math.BigDecimal calculateDiscountAmount(Coupon coupon, java.math.BigDecimal eligibleSubtotal) {
+        if (eligibleSubtotal == null || eligibleSubtotal.signum() < 0) {
+            throw new IllegalArgumentException("Coupon subtotal is invalid");
+        }
+        if (coupon.getMinDiscount() != null && eligibleSubtotal.compareTo(coupon.getMinDiscount()) < 0) {
+            throw new IllegalArgumentException("Order does not meet the coupon minimum amount");
+        }
+
+        java.math.BigDecimal discountAmount;
+        if (CouponDiscountType.PERCENTAGE == coupon.getDiscountType()) {
+            discountAmount = eligibleSubtotal.multiply(coupon.getDiscountValue())
+                    .divide(java.math.BigDecimal.valueOf(100));
+        } else if (CouponDiscountType.FIXED_AMOUNT == coupon.getDiscountType()) {
+            discountAmount = coupon.getDiscountValue();
+        } else {
+            throw new IllegalArgumentException("Coupon discount type is invalid");
+        }
+        if (coupon.getMaxDiscount() != null && discountAmount.compareTo(coupon.getMaxDiscount()) > 0) {
+            discountAmount = coupon.getMaxDiscount();
+        }
+        return discountAmount.max(java.math.BigDecimal.ZERO).min(eligibleSubtotal)
+                .setScale(0, java.math.RoundingMode.HALF_UP);
+    }
+
     private boolean isCourseInSelectedCategoryScope(Course course, List<Integer> selectedCategoryIds) {
         Category category = course.getCategory();
         while (category != null) {
