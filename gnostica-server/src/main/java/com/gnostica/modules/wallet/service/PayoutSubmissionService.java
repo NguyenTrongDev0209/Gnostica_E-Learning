@@ -49,8 +49,15 @@ public class PayoutSubmissionService {
             payout.setLastSubmissionError(null);
         } catch (Exception exception) {
             payout.setSubmissionAttempts((payout.getSubmissionAttempts() == null ? 0 : payout.getSubmissionAttempts()) + 1);
-            payout.setLastSubmissionError(truncate(exception.getMessage()));
-            log.warn("Unable to submit payout {} (attempt {}): {}", payoutId, payout.getSubmissionAttempts(), exception.getMessage());
+            String errorMsg = exception.getMessage();
+            payout.setLastSubmissionError(truncate(errorMsg));
+            log.warn("Unable to submit payout {} (attempt {}): {}", payoutId, payout.getSubmissionAttempts(), errorMsg);
+            
+            boolean isDefinitiveError = errorMsg != null && errorMsg.contains("\"code\"") && errorMsg.contains("\"desc\"");
+            if (isDefinitiveError || payout.getSubmissionAttempts() >= 3) {
+                log.error("Failing payout {} (definitive: {}, attempts: {})", payoutId, isDefinitiveError, payout.getSubmissionAttempts());
+                payout.setStatus(PayoutStatus.FAILED);
+            }
         }
         payout.setLastSubmissionAt(LocalDateTime.now());
         payoutRepository.save(payout);

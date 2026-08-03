@@ -143,8 +143,8 @@ function WithdrawModal({ isOpen, onClose, wallet, user, onSuccess }) {
             toast.success("Đã tạo lệnh rút tiền thành công!");
             if (onSuccess) onSuccess();
             onClose();
-        } catch {
-            toast.error("Hệ thống đang gặp sự cố. Vui lòng thử lại");
+        } catch (err) {
+            toast.error(err?.response?.data?.message || "Hệ thống đang gặp sự cố. Vui lòng thử lại");
         } finally {
             setLoading(false);
         }

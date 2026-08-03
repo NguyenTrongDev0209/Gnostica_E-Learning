@@ -42,6 +42,7 @@ public class WalletService {
     private final PaymentRepository paymentRepository;
     private final PayoutSecurityService payoutSecurityService;
     private final ApplicationEventPublisher eventPublisher;
+    private final PayoutsService payoutsService;
     private final BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
 
     public Account getCurrentAccount() {
@@ -81,16 +82,19 @@ public class WalletService {
                         List.of(PayoutStatus.PENDING, PayoutStatus.PROCESSING, PayoutStatus.COMPLETED), startOfDay))
                 .accountNumber(activeBank == null ? null : maskAccountNumber(activeBank.getAccountNumber()))
                 .bankBin(activeBank == null || activeBank.getBank() == null ? null : activeBank.getBank().getBin())
-                .bankName(activeBank == null || activeBank.getBank() == null ? null : activeBank.getBank().getShortName())
+                .bankName(
+                        activeBank == null || activeBank.getBank() == null ? null : activeBank.getBank().getShortName())
                 .build();
     }
 
     @Transactional(readOnly = true)
     public Wallet getWalletByAccount(Account account) {
         BigDecimal totalEarning = walletRepository.sumAvailableRemainByAccount(account);
-        BigDecimal totalPayout = payoutRepository.sumPayoutsByAccount(account, List.of(1, 2, 3)); // 1: Pending, 2: Processing, 3: Completed
+        BigDecimal totalPayout = payoutRepository.sumPayoutsByAccount(account, List.of(1, 2, 3)); // 1: Pending, 2:
+                                                                                                  // Processing, 3:
+                                                                                                  // Completed
         BigDecimal totalWalletPayment = paymentRepository.sumWalletPaymentsByAccount(account);
-        
+
         BigDecimal balance = totalEarning.subtract(totalPayout).subtract(totalWalletPayment);
         if (balance.compareTo(BigDecimal.ZERO) < 0) {
             balance = BigDecimal.ZERO;
@@ -135,7 +139,7 @@ public class WalletService {
     public void addBalance(java.util.UUID accountId, double amount, String reason) {
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new RuntimeException("Account not found: " + accountId));
-        
+
         Wallet wallet = new Wallet();
         wallet.setAccount(account);
         wallet.setRemain(BigDecimal.valueOf(amount));
@@ -202,7 +206,7 @@ public class WalletService {
     public void removeBankAccount(String pin) {
         Account account = getCurrentAccount();
         assertAccountCanWithdraw(account);
-        
+
         AccountBank accountBank = accountBankRepository.findByAccountAndStatus(account, 1)
                 .orElseThrow(() -> new RuntimeException("Chưa thiết lập tài khoản ngân hàng."));
 
@@ -230,17 +234,20 @@ public class WalletService {
      */
     @Transactional(rollbackFor = Exception.class)
     public Payout withdraw(WithdrawRequest request, String idempotencyKey) {
+
         Account account = accountRepository.findByIdForUpdate(getCurrentAccount().getId())
-                .orElseThrow(() -> new RuntimeException("Account not found"));
+                .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại"));
         assertAccountCanWithdraw(account);
-        payoutSecurityService.assertWithdrawalRequestAllowed(account.getId());
+
         if (idempotencyKey == null || !idempotencyKey.matches("[A-Za-z0-9_-]{16,100}")) {
-            throw new RuntimeException("Khóa xác nhận yêu cầu rút tiền không hợp lệ.");
+            throw new RuntimeException("Yêu cầu rút tiền không hợp lệ.");
         }
         Payout existing = payoutRepository.findByAccountAndIdempotencyKey(account, idempotencyKey).orElse(null);
         if (existing != null) {
             return existing;
         }
+
+        payoutSecurityService.assertWithdrawalRequestAllowed(account.getId());
         if (request == null || request.getAmount() == null || request.getAmount() <= 0) {
             throw new RuntimeException("Số tiền rút phải lớn hơn 0.");
         }
@@ -286,8 +293,8 @@ public class WalletService {
         payoutRequest.setReferenceId("WD-" + java.util.UUID.randomUUID());
 
         // The local intent is committed first; PayOS submission runs after commit.
+        // --> NOW REWRITTEN: PayOS is called synchronously to ensure atomic rollback on failure.
 
-        // Lưu vào bảng Payout
         Payout localPayout = new Payout();
         localPayout.setAmount(amount);
         localPayout.setStatus(PayoutStatus.PENDING);
@@ -295,11 +302,30 @@ public class WalletService {
         localPayout.setAccountBank(accountBank);
         localPayout.setGatewayReferenceId(payoutRequest.getReferenceId());
         localPayout.setIdempotencyKey(idempotencyKey);
-        localPayout.setSubmissionAttempts(0);
-        Payout savedPayout = payoutRepository.saveAndFlush(localPayout);
-        eventPublisher.publishEvent(new PayoutSubmissionRequestedEvent(savedPayout.getId()));
+        localPayout.setSubmissionAttempts(1);
 
-        return savedPayout;
+        try {
+            vn.payos.model.v1.payouts.Payout remote = payoutsService.createPayout(payoutRequest);
+            localPayout.setGatewayPayoutId(remote.getId());
+            if (remote.getReferenceId() != null && !remote.getReferenceId().isBlank()) {
+                localPayout.setGatewayReferenceId(remote.getReferenceId());
+            }
+            localPayout.setStatus(toLocalPayoutStatus(remote.getApprovalState()));
+        } catch (Exception exception) {
+            String errorMsg = exception.getMessage();
+            localPayout.setLastSubmissionError(errorMsg);
+            
+            // If it's a timeout, keep it PENDING for the scheduler. Otherwise, it's a definitive FAILED error.
+            boolean isTimeout = errorMsg != null && (errorMsg.toLowerCase().contains("timeout") || errorMsg.toLowerCase().contains("read timed out"));
+            
+            if (isTimeout) {
+                localPayout.setStatus(PayoutStatus.PENDING);
+            } else {
+                localPayout.setStatus(PayoutStatus.FAILED);
+            }
+        }
+
+        return payoutRepository.saveAndFlush(localPayout);
     }
 
     private void assertAccountCanWithdraw(Account account) {
@@ -314,7 +340,8 @@ public class WalletService {
     }
 
     private int toLocalPayoutStatus(vn.payos.model.v1.payouts.PayoutApprovalState state) {
-        if (state == null) return PayoutStatus.PENDING;
+        if (state == null)
+            return PayoutStatus.PENDING;
         return switch (state) {
             case COMPLETED -> PayoutStatus.COMPLETED;
             case FAILED -> PayoutStatus.FAILED;
@@ -337,7 +364,8 @@ public class WalletService {
     }
 
     private String maskAccountNumber(String accountNumber) {
-        if (accountNumber == null || accountNumber.length() <= 4) return accountNumber;
+        if (accountNumber == null || accountNumber.length() <= 4)
+            return accountNumber;
         return "*".repeat(accountNumber.length() - 4) + accountNumber.substring(accountNumber.length() - 4);
     }
 
@@ -352,10 +380,10 @@ public class WalletService {
         if (referenceId != null) {
             try {
                 wallet.setTargetId(java.util.UUID.fromString(referenceId));
-            } catch (Exception e) {}
+            } catch (Exception e) {
+            }
         }
         return walletRepository.save(wallet);
     }
-
 
 }

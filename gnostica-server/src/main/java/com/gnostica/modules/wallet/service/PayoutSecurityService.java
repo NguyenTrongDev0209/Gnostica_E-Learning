@@ -14,7 +14,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class PayoutSecurityService {
     private static final int MAX_FAILED_PIN_ATTEMPTS = 5;
-    private static final int MAX_REQUESTS_PER_DAY = 12;
+    private static final int MAX_REQUESTS_PER_DAY = 100;
     private static final Duration FAILED_PIN_WINDOW = Duration.ofMinutes(15);
 
     private final StringRedisTemplate redisTemplate;

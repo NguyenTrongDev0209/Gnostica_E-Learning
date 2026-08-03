@@ -5,6 +5,9 @@ import com.gnostica.modules.wallet.dto.response.*;
 import com.gnostica.modules.wallet.dto.request.SetBankAccountRequest;
 import com.gnostica.modules.wallet.dto.request.WithdrawRequest;
 import com.gnostica.core.model.AccountBank;
+import com.gnostica.core.model.Payout;
+import com.gnostica.core.constant.PayoutStatus;
+import com.gnostica.core.repository.PayoutRepository;
 import com.gnostica.modules.wallet.service.WalletService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +23,8 @@ import java.util.HashMap;
 @RequiredArgsConstructor
 public class WalletController {
     private final WalletService walletService;
+    private final PayoutSubmissionService payoutSubmissionService;
+    private final PayoutRepository payoutRepository;
 
     @GetMapping("/me")
     public ResponseEntity<WalletOverviewResponse> getMyWallet() {
@@ -87,8 +92,13 @@ public class WalletController {
             @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
             @RequestBody WithdrawRequest request) {
         try {
-            PayoutResponse payout = walletService.toResponse(walletService.withdraw(request, idempotencyKey));
-            return ResponseEntity.ok(Map.of("message", "Lệnh rút tiền đã khởi tạo thành công", "payout", payout));
+            Payout payout = walletService.withdraw(request, idempotencyKey);
+            
+            if (payout.getStatus() == PayoutStatus.FAILED) {
+                return ResponseEntity.badRequest().body(Map.of("message", "Hệ thống đang gặp sự cố. Giao dịch bị từ chối."));
+            }
+            
+            return ResponseEntity.ok(Map.of("message", "Lệnh rút tiền đã khởi tạo thành công", "payout", walletService.toResponse(payout)));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("message",
                     e.getMessage() != null ? e.getMessage() : "Lỗi hệ thống: Không thể xử lý yêu cầu"));
