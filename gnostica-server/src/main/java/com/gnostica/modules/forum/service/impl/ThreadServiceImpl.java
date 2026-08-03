@@ -134,6 +134,24 @@ public class ThreadServiceImpl implements ThreadService {
             thread.setContent(sb.toString());
         }
 
+        // Process uploaded MultipartFile images (e.g. from Mobile app or image attachments)
+        if (images != null && !images.isEmpty()) {
+            StringBuilder contentWithImages = new StringBuilder(thread.getContent() != null ? thread.getContent() : "");
+            for (MultipartFile file : images) {
+                if (file != null && !file.isEmpty()) {
+                    try {
+                        String uploadedUrl = cloudinaryService.uploadImage(file.getBytes());
+                        if (uploadedUrl != null && !uploadedUrl.trim().isEmpty()) {
+                            contentWithImages.append("<p><img src=\"").append(uploadedUrl).append("\" alt=\"attachment\" /></p>");
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            thread.setContent(contentWithImages.toString());
+        }
+
         Thread savedThread = threadRepository.save(thread);
 
         // Save hashtags

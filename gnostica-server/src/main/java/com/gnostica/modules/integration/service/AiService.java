@@ -177,6 +177,16 @@ public class AiService {
                 }
                 faqResponse = new AiChatResponse(sb.toString(), "assistant");
                 isFaq = true;
+            } else if ("Yêu cầu hỗ trợ".equalsIgnoreCase(trimmedMsg) || "Tôi cần hỗ trợ".equalsIgnoreCase(trimmedMsg)) {
+                if (accountId == null || accountId.trim().isEmpty()) {
+                    String resp = "Vui lòng đăng nhập tài khoản để gửi Yêu cầu hỗ trợ tới Admin.";
+                    faqResponse = new AiChatResponse(resp, "assistant");
+                    isFaq = true;
+                } else {
+                    String resp = "Chào bạn! Bạn đang gặp sự cố hoặc cần hỗ trợ về vấn đề gì? Hãy mô tả ngắn gọn sự cố và có thể đính kèm ảnh chụp màn hình minh chứng bên dưới để chúng tôi gửi yêu cầu tới Admin ngay nhé!\n\n[[CARD:upload_image]]";
+                    faqResponse = new AiChatResponse(resp, "assistant");
+                    isFaq = true;
+                }
             }
 
             if (isFaq) {
@@ -710,8 +720,7 @@ public class AiService {
         prompt.append("\n  Bước 3: SAU KHI người dùng tải ảnh hoặc gửi thông điệp yêu cầu hỗ trợ (tin nhắn chứa '(TẠO TICKET NGAY DÙM TÔI)' hoặc 'Tôi đã gửi yêu cầu hỗ trợ'):");
         prompt.append("\n    - BẮT BUỘC GỌI TOOL `create_support_ticket` NGAY LẬP TỨC để tạo ticket hỗ trợ gửi tới Admin.");
         prompt.append("\n    - NẾU chưa có đủ tiêu đề/mô tả trong các câu nói trước, hãy TỰ TẠO tiêu đề tóm tắt (ví dụ: subject='Yêu cầu hỗ trợ từ học viên', content='Học viên đã gửi yêu cầu hỗ trợ qua Chatbox'). TUYỆT ĐỐI KHÔNG ĐƯỢC HỎI LẠI NGƯỜI DÙNG CÂU NÀO KHÁC.");
-        prompt.append("\n    - TUYỆT ĐỐI KHÔNG chèn thẻ `[[CARD:upload_image]]` nữa và KHÔNG hỏi thêm thông tin hay yêu cầu tải ảnh lại nữa.");
-        prompt.append("\n    - Phản hồi duy nhất tới học viên BẮT BUỘC phải là: 'Tôi đã tiếp nhận yêu cầu hỗ trợ của bạn và chuyển đến Admin. Xin vui lòng quay lại sau!' kèm theo thẻ `[[CARD:ticket|id|subject|type|priority|Vừa tạo]]`.");
+        prompt.append("\n    - Phản hồi duy nhất tới học viên BẮT BUỘC phải là chính xác chuỗi sau: 'Tôi đã tiếp nhận yêu cầu hỗ trợ của bạn và chuyển đến Admin. Xin vui lòng quay lại sau!'.");
 
         if (isLoggedIn) {
             prompt.append("\n\n### NGƯỜI DÙNG HIỆN TẠI: Đã đăng nhập (Account ID: ").append(accountId).append(")");

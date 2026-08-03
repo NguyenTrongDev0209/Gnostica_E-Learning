@@ -12,6 +12,7 @@ import forumCategoryService from '../../services/forum/forumCategoryService';
 import threadService from '../../services/forum/threadService';
 import { useAuth } from '../../context/AuthContext';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as ImagePicker from 'expo-image-picker';
 
 const CreatePostScreen = () => {
     const navigation = useNavigation();
@@ -50,28 +51,40 @@ const CreatePostScreen = () => {
 
     const pickImages = async () => {
         try {
-            const ImagePicker = await import('expo-image-picker');
             const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
             if (status !== 'granted') {
-                Alert.alert('Quyền truy cập', 'Cần cấp quyền truy cập thư viện ảnh để thêm hình ảnh.');
+                Alert.alert(
+                    'Quyền truy cập',
+                    'Cần cấp quyền truy cập thư viện ảnh để đính kèm hình ảnh.'
+                );
                 return;
             }
+
             const result = await ImagePicker.launchImageLibraryAsync({
-                mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                mediaTypes: ['images'],
                 allowsMultipleSelection: true,
                 quality: 0.8,
-                selectionLimit: 5,
+                selectionLimit: Math.max(1, 5 - images.length),
             });
-            if (!result.canceled && result.assets) {
-                const newImgs = result.assets.map((asset) => ({
-                    uri: asset.uri,
-                    name: asset.fileName || `image_${Date.now()}.jpg`,
-                    type: asset.mimeType || 'image/jpeg',
-                }));
+
+            if (!result.canceled && result.assets && result.assets.length > 0) {
+                const newImgs = result.assets.map((asset) => {
+                    const uri = asset.uri;
+                    const filename = asset.fileName || uri.split('/').pop() || `image_${Date.now()}.jpg`;
+                    const match = /\.(\w+)$/.exec(filename);
+                    const type = asset.mimeType || (match ? `image/${match[1]}` : 'image/jpeg');
+
+                    return {
+                        uri: uri,
+                        name: filename,
+                        type: type,
+                    };
+                });
                 setImages(prev => [...prev, ...newImgs].slice(0, 5));
             }
         } catch (e) {
-            Alert.alert('Lỗi', 'Không thể mở thư viện ảnh. Vui lòng thử lại.');
+            console.error('Error picking images:', e);
+            Alert.alert('Lỗi', `Không thể mở thư viện ảnh. Vui lòng thử lại.`);
         }
     };
 
@@ -124,11 +137,12 @@ const CreatePostScreen = () => {
                 formData.append('hashtags', hashtags.join(','));
             }
 
-            images.forEach((img) => {
+            images.forEach((img, index) => {
+                const imageUri = Platform.OS === 'android' ? img.uri : img.uri.replace('file://', '');
                 formData.append('images', {
-                    uri: img.uri,
-                    name: img.name,
-                    type: img.type,
+                    uri: imageUri,
+                    name: img.name || `image_${Date.now()}_${index}.jpg`,
+                    type: img.type || 'image/jpeg',
                 });
             });
 

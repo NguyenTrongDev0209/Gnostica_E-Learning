@@ -93,9 +93,9 @@ const NotificationsScreen = () => {
                             >
                                 <View
                                     className="w-10 h-10 rounded-full items-center justify-center"
-                                    style={{ backgroundColor: color + '15' }}
+                                    style={{ backgroundColor: color }}
                                 >
-                                    <IconComp size={20} color={color} />
+                                    <IconComp size={20} color="#ffffff" />
                                 </View>
                                 <View className="flex-1 ml-4">
                                     <View className="flex-row justify-between items-start">
