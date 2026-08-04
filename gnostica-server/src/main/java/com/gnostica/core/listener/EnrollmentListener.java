@@ -26,7 +26,7 @@ public class EnrollmentListener {
     private final OrderDetailRepository orderDetailRepository;
     private final NotificationService notificationService;
     private final GiftRepository giftRepository;
-    private final com.gnostica.modules.gift.service.CourseGiftService courseGiftService;
+    private final com.gnostica.modules.order.service.CourseGiftService courseGiftService;
 
     @EventListener
     @Transactional
@@ -71,3 +71,4 @@ public class EnrollmentListener {
         }
     }
 }
+

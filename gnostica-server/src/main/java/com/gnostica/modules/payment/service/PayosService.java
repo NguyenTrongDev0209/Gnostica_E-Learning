@@ -119,7 +119,7 @@ public class PayosService {
                 .orderCode(data.getOrderCode())
                 .transactionCode(data.getPaymentLinkId())
                 .amount(data.getAmount())
-                .status("PAID")
+                .status("00".equals(data.getCode()) ? "PAID" : "FAILED")
                 .gateway("PAYOS")
                 .payload(payload)
                 .build();

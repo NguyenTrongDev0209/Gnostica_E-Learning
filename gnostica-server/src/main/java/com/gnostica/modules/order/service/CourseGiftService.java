@@ -1,4 +1,4 @@
-package com.gnostica.modules.gift.service;
+package com.gnostica.modules.order.service;
 
 import com.gnostica.core.constant.GiftStatus;
 import com.gnostica.core.constant.OrderStatus;
@@ -15,9 +15,9 @@ import com.gnostica.core.repository.GiftRepository;
 import com.gnostica.core.repository.OrderDetailRepository;
 import com.gnostica.core.repository.OrderRepository;
 import com.gnostica.core.util.AuthUtil;
-import com.gnostica.modules.gift.dto.request.GiftCourseRequest;
-import com.gnostica.modules.gift.dto.response.GiftDetailResponse;
-import com.gnostica.modules.gift.dto.response.GiftSearchResponse;
+import com.gnostica.modules.order.dto.request.GiftCourseRequest;
+import com.gnostica.modules.order.dto.response.GiftDetailResponse;
+import com.gnostica.modules.order.dto.response.GiftSearchResponse;
 import com.gnostica.modules.user.service.NotificationService;
 import com.gnostica.modules.integration.service.MailService;
 import com.gnostica.modules.order.service.OrderService;
@@ -328,3 +328,4 @@ public class CourseGiftService {
         }
     }
 }
+
