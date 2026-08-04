@@ -47,7 +47,25 @@ public class EnrollmentListener {
             Optional<Enrollment> existingEnrollment = enrollmentRepository
                     .findByAccountAndCourse(order.getAccount(), detail.getCourse());
 
-            if (existingEnrollment.isEmpty()) {
+            if (existingEnrollment.isPresent() && existingEnrollment.get().getStatus() != null
+                    && existingEnrollment.get().getStatus() == 0) {
+                // Refunded/dropped enrollment (status 0) is re-activated on a new
+                // purchase. The unique constraint (account_id, course_id) means we
+                // cannot create a second row, so the existing row is restored.
+                Enrollment enrollment = existingEnrollment.get();
+                enrollment.setStatus(1); // 1: Active
+                enrollment.setOrderDetail(detail);
+                enrollment.setProgressPercent(0);
+                enrollment.setCompletedAt(null);
+                enrollmentRepository.save(enrollment);
+                log.info("Re-activated enrollment for student {} in course {}", order.getAccount().getEmail(),
+                        detail.getCourse().getTitle());
+
+                notificationService.createNotification(order.getAccount(), "Đăng ký khóa học thành công",
+                        "Bạn đã đăng ký lại thành công khóa học '" + detail.getCourse().getTitle() + "'. Chúc bạn học tập tốt!", "ENROLLMENT");
+                notificationService.createNotification(detail.getCourse().getAccount(), "Có học viên mới",
+                        "Học viên " + order.getAccount().getFullName() + " vừa mua lại khóa học '" + detail.getCourse().getTitle() + "' của bạn.", "SYSTEM");
+            } else if (existingEnrollment.isEmpty()) {
                 Enrollment enrollment = new Enrollment();
                 enrollment.setAccount(order.getAccount());
                 enrollment.setCourse(detail.getCourse());

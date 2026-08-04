@@ -219,7 +219,7 @@ public class OrderService {
         }
         // Only a new order is subject to the current course/category rules.
         assertCourseCanBePurchased(course, account, deferImmediateSuccess);
-        long orderCode = System.currentTimeMillis();
+        long orderCode = generateUniqueOrderCode();
 
         // Snapshot the catalogue price and the course-level percentage on the
         // detail. The amount due is calculated separately on the order.
@@ -486,6 +486,25 @@ public class OrderService {
 
     private String trustedCancelUrl() {
         return trustedReturnUrl() + "?cancelled=true";
+    }
+
+    /**
+     * Generates a unique order code. {@code System.currentTimeMillis()} alone can
+     * collide across different buyers in the same millisecond and violate the
+     * unique constraint on {@code orders.order_code} (500 error). A 14-digit
+     * random code in a 9e13 space makes collisions practically impossible at
+     * this scale; the existence check + retry adds a belt-and-suspenders guard.
+     */
+    private long generateUniqueOrderCode() {
+        for (int attempt = 0; attempt < 5; attempt++) {
+            long candidate = 10_000_000_000_000L
+                    + java.util.concurrent.ThreadLocalRandom.current().nextLong(90_000_000_000_000L);
+            if (orderRepository.findByOrderCode(candidate).isEmpty()) {
+                return candidate;
+            }
+        }
+        // Extremely unlikely fallback: last-resort millis-based code.
+        return System.currentTimeMillis();
     }
 
     private Order saveOrder(Account account, Coupon coupon, BigDecimal couponPrice, BigDecimal totalPrice, String transactionId,

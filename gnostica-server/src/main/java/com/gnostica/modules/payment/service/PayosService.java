@@ -108,18 +108,25 @@ public class PayosService {
     public PaymentWebhookData verifyWebhook(Object body) throws Exception {
         WebhookData data = payOS.webhooks().verify(body);
         
+        // PayOS webhook "code" is "00" ONLY for a successful payment. Any other
+        // value (PROCESSING, CANCELLED, error...) must NOT be treated as PAID,
+        // otherwise an unverified/cancelled transaction would grant enrollment.
+        boolean paid = "00".equals(data.getCode());
+        
         java.util.Map<String, Object> payload = new java.util.HashMap<>();
         payload.put("accountNumber", data.getAccountNumber());
         payload.put("senderBankCode", data.getCounterAccountBankId());
         payload.put("senderAccountNumber", data.getCounterAccountNumber());
         payload.put("bankCode", data.getCounterAccountBankId());
         payload.put("description", data.getDescription());
+        payload.put("payosCode", data.getCode());
+        payload.put("payosDesc", data.getDesc());
         
         return PaymentWebhookData.builder()
                 .orderCode(data.getOrderCode())
                 .transactionCode(data.getPaymentLinkId())
                 .amount(data.getAmount())
-                .status("00".equals(data.getCode()) ? "PAID" : "FAILED")
+                .status(paid ? "PAID" : "FAILED")
                 .gateway("PAYOS")
                 .payload(payload)
                 .build();

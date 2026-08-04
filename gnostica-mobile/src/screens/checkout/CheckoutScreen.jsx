@@ -64,11 +64,16 @@ const CheckoutScreen = () => {
         if (isLoading) return;
         setIsLoading(true);
         try {
+            // Bắt buộc gửi couponCode (nếu đã áp) lên server để backend tính giá
+            // chính xác. Không gửi sẽ khiến server tính giá gốc, lệch với số tiền
+            // UI hiển thị (và đơn sẽ bị webhook từ chối vì amount không khớp).
             const response = await orderService.createPaymentLink({
                 courseId: course.id,
                 productName: course.title,
                 description: 'Thanh toan don hang',
                 price: total,
+                couponCode: voucherApplied ? voucherCode : null,
+                paymentMethod: 'PAYOS',
                 returnUrl: 'gnostica://payment-result',
                 cancelUrl: 'gnostica://payment-cancel'
             });
