@@ -12,6 +12,7 @@ import com.gnostica.core.model.Payment;
 import com.gnostica.core.repository.OrderRepository;
 import com.gnostica.core.repository.PaymentRepository;
 import com.gnostica.core.repository.CouponRepository;
+import com.gnostica.core.repository.EnrollmentRepository;
 import com.gnostica.modules.payment.service.PaymentService;
 import com.gnostica.modules.payment.service.PaymentStrategy;
 import com.gnostica.modules.payment.service.PaymentStrategyFactory;
@@ -36,6 +37,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final OrderRepository orderRepository;
     private final PaymentRepository paymentRepository;
     private final CouponRepository couponRepository;
+    private final EnrollmentRepository enrollmentRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final com.gnostica.modules.payment.service.PayOSPaymentLinkCacheService payOSPaymentLinkCacheService;
     private final WalletService walletService;
@@ -178,6 +180,21 @@ public class PaymentServiceImpl implements PaymentService {
     public void processSuccessfulOrder(Order order) {
         if (order == null || order.getStatus() == OrderStatus.PAID) {
             return;
+        }
+
+        // Prevent double processing if user is already enrolled (e.g. from a duplicate concurrent order)
+        if (order.getDetails() != null && !order.getDetails().isEmpty()) {
+            com.gnostica.core.model.Course course = order.getDetails().get(0).getCourse();
+            boolean alreadyEnrolled = enrollmentRepository.existsByAccountAndCourseAndStatusIn(
+                    order.getAccount(), course, java.util.List.of(1));
+            if (alreadyEnrolled) {
+                log.info("User {} already enrolled in course {}. Skipping coupon consumption and enrollment for duplicate order {}",
+                        order.getAccount().getId(), course.getId(), order.getId());
+                order.setStatus(OrderStatus.PAID);
+                orderRepository.save(order);
+                releaseCouponReservation(order); // Release the reserved coupon without consuming it
+                return; // Do not publish PaymentSuccessEvent
+            }
         }
 
         order.setStatus(OrderStatus.PAID);

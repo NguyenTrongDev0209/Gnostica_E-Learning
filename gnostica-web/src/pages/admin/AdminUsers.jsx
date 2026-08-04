@@ -296,7 +296,7 @@ export default function AdminUsers() {
       cellClassName: "py-4",
       render: (acc) => (
         <div className="flex items-center gap-3">
-          <Avatar className="h-10 w-10 border border-border">
+          <Avatar className="h-10 w-10">
             <AvatarImage src={acc?.avatar} />
             <AvatarFallback className="bg-primary/10 text-primary font-bold">
               {acc?.fullName?.charAt(0)}

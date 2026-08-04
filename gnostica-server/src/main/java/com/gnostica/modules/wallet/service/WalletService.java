@@ -114,7 +114,9 @@ public class WalletService {
         BigDecimal earnings = walletRepository.sumWithdrawableEarningsByAccount(account);
         BigDecimal committedPayouts = payoutRepository.sumPayoutsByAccount(account,
                 List.of(PayoutStatus.PENDING, PayoutStatus.PROCESSING, PayoutStatus.COMPLETED));
-        BigDecimal balance = earnings.subtract(committedPayouts);
+        BigDecimal totalWalletPayment = paymentRepository.sumWalletPaymentsByAccount(account);
+        
+        BigDecimal balance = earnings.subtract(committedPayouts).subtract(totalWalletPayment);
         if (balance.signum() < 0) {
             balance = BigDecimal.ZERO;
         }
