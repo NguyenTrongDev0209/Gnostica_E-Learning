@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useAdminUserDetail } from "../../hooks/user/useAdminUserDetail";
 import {
   Plus,
   Search,
@@ -855,9 +856,7 @@ function AdminUserDetail({ user, onBack, isInstructorContext }) {
   const [courseSearch, setCourseSearch] = useState("");
   const [courseStatus, setCourseStatus] = useState([]);
   const [courseDateRange, setCourseDateRange] = useState({ from: undefined, to: undefined });
-  const [expandedCourseId, setExpandedCourseId] = useState(null);
   const [expandedChapterId, setExpandedChapterId] = useState(null);
-  const [expandedOrderId, setExpandedOrderId] = useState(null);
 
   const [orderSearch, setOrderSearch] = useState("");
   const [orderStatus, setOrderStatus] = useState([]);
@@ -882,7 +881,6 @@ function AdminUserDetail({ user, onBack, isInstructorContext }) {
     else setOrderAmountPreset("custom");
   };
 
-
   const [incomeSearch, setIncomeSearch] = useState("");
   const [incomeStatus, setIncomeStatus] = useState([]);
   const [incomeDateRange, setIncomeDateRange] = useState({ from: undefined, to: undefined });
@@ -902,77 +900,17 @@ function AdminUserDetail({ user, onBack, isInstructorContext }) {
 
   if (!user) return null;
 
-  // Mock data for UI testing
-  const mockCourses = [
-    { id: 1, title: "React.js Từ Cơ Bản Đến Nâng Cao - Trở Thành Lập Trình Viên Chuyên Nghiệp Thực Chiến Cùng Đội Ngũ", instructor: "Lê Quốc Minh", orderId: "ORD-98231", enrollDate: "14:30 15/07/2026", progress: 85, thumbnail: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=400&q=80", status: "Đang học" },
-    { id: 2, title: "Spring Boot 3 & Microservices", instructor: "Phạm Văn Nam", orderId: "ORD-98105", enrollDate: "09:15 10/06/2026", progress: 100, thumbnail: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=80", status: "Hoàn thành" },
-    { id: 3, title: "Lập trình C++ căn bản", instructor: "Trần Thế Tuấn", orderId: "ORD-97554", enrollDate: "10:00 25/07/2026", progress: 12, thumbnail: "https://images.unsplash.com/photo-1526379095098-d400fd0bfce8?w=400&q=80", status: "Đang học" },
-  ];
-
-  const mockInstructorCourses = [
-    { id: 1, title: "React.js Từ Cơ Bản Đến Nâng Cao - Trở Thành Lập Trình Viên Chuyên Nghiệp Thực Chiến Cùng Đội Ngũ", thumbnail: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=400&q=80", price: 1899000, discount: 15, studentCount: 1542, revenue: 250000000, createdAt: "10:30 01/05/2025", status: 3 },
-    { id: 2, title: "Next.js 14 Thực Chiến Kèm Dự Án Thực Tế (E-Commerce)", thumbnail: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=80", price: 2100000, discount: 0, studentCount: 856, revenue: 179760000, createdAt: "14:15 12/08/2025", status: 3 },
-    { id: 3, title: "Khóa học TypeScript Chuyên Sâu Cùng React", thumbnail: "https://images.unsplash.com/photo-1526379095098-d400fd0bfce8?w=400&q=80", price: 950000, discount: 20, studentCount: 0, revenue: 0, createdAt: "09:00 20/07/2026", status: 2 },
-  ];
-
-  const mockIncomes = [
-    { id: "ORD-123", courseTitle: "React.js Từ Cơ Bản Đến Nâng Cao", studentName: "Trần Văn A", studentAvatar: "https://github.com/shadcn.png", price: 1899000, instructorRatio: 70, createdAt: "10:30 15/07/2026", status: 1 },
-    { id: "ORD-124", courseTitle: "Next.js 14 Thực Chiến Kèm Dự Án Thực Tế", studentName: "Nguyễn Thị B", studentAvatar: "", price: 2100000, instructorRatio: 70, createdAt: "14:15 14/07/2026", status: 1 },
-    { id: "ORD-125", courseTitle: "React.js Từ Cơ Bản Đến Nâng Cao", studentName: "Lê Văn C", studentAvatar: "", price: 1899000, instructorRatio: 70, createdAt: "09:00 13/07/2026", status: 0 },
-    { id: "ORD-126", courseTitle: "Next.js 14 Thực Chiến Kèm Dự Án Thực Tế", studentName: "Phạm Thị D", studentAvatar: "https://github.com/shadcn.png", price: 2100000, instructorRatio: 70, createdAt: "11:20 12/07/2026", status: 1 },
-  ];
-
-  const mockPayouts = [
-    { id: "PO-78921", accountBank: "Vietcombank - 0123456789", amount: 15000000, createdAt: "09:00 20/07/2026", status: 3 }, // 1: Chờ duyệt, 2: Đang chuyển, 3: Hoàn tất, 4: Lỗi, 5: Từ chối
-    { id: "PO-78922", accountBank: "Techcombank - 1903456789", amount: 5000000, createdAt: "10:15 22/07/2026", status: 1 },
-    { id: "PO-78923", accountBank: "MB Bank - 0987654321", amount: 10000000, createdAt: "14:30 24/07/2026", status: 5 },
-  ];
-
-  const mockReviews = [
-    { id: "REV-1", courseTitle: "React.js Từ Cơ Bản Đến Nâng Cao", studentName: "Trần Văn A", studentAvatar: "https://github.com/shadcn.png", rating: 5, comment: "Khóa học rất chi tiết và dễ hiểu, giảng viên hỗ trợ nhiệt tình.", createdAt: "15:00 25/07/2026", status: 1 }, // 0: Ẩn, 1: Hiển thị, 2: Vi phạm
-    { id: "REV-2", courseTitle: "Next.js 14 Thực Chiến Kèm Dự Án Thực Tế", studentName: "Nguyễn Thị B", studentAvatar: "", rating: 4, comment: "Nội dung tốt nhưng video hơi nhỏ, cần cải thiện âm thanh.", createdAt: "09:30 20/07/2026", status: 1 },
-    { id: "REV-3", courseTitle: "React.js Từ Cơ Bản Đến Nâng Cao", studentName: "Lê Văn C", studentAvatar: "", rating: 1, comment: "Nội dung spam, không liên quan.", createdAt: "11:15 18/07/2026", status: 2 },
-    { id: "REV-4", courseTitle: "Khóa học TypeScript Chuyên Sâu", studentName: "Phạm Thị D", studentAvatar: "https://github.com/shadcn.png", rating: 5, comment: "Rất hay, cảm ơn giảng viên.", createdAt: "16:45 10/07/2026", status: 1 },
-  ];
-
-  const mockChapters = {
-    1: [
-      { id: 101, title: "Chương 1: Mở đầu", progress: 100, completedDate: "17:35 16/07/2026", status: "Hoàn thành", lessons: [
-          { id: 1001, title: "Bài 1: Giới thiệu khóa học", duration: "05:20", progress: 100, completedDate: "14:50 15/07/2026", status: "Hoàn thành" },
-          { id: 1002, title: "Bài 2: Cài đặt môi trường", duration: "12:15", progress: 100, completedDate: "17:35 16/07/2026", status: "Hoàn thành" },
-      ] },
-      { id: 102, title: "Chương 2: React Core", progress: 50, completedDate: null, status: "Đang học", lessons: [
-          { id: 1003, title: "Bài 3: JSX cơ bản", duration: "08:45", progress: 100, completedDate: "20:10 18/07/2026", status: "Hoàn thành" },
-          { id: 1004, title: "Bài 4: State và Props", duration: "15:30", progress: 0, completedDate: null, status: "Chưa học" },
-      ] }
-    ],
-    2: [
-      { id: 201, title: "Chương 1: Tổng quan Spring Boot", progress: 100, completedDate: "12:00 12/06/2026", status: "Hoàn thành", lessons: [
-          { id: 2001, title: "Bài 1: Khởi tạo project với Spring Initializr", duration: "10:00", progress: 100, completedDate: "12:00 12/06/2026", status: "Hoàn thành" },
-      ]}
-    ]
-  };
-
-  const mockOrders = [
-    { id: "ORD-98231", date: "14:30 15/07/2026", type: "Mua hàng", amount: 1599000, method: "VNPay", status: "Thành công", coupon: "SUMMER30", couponDiscount: 150000 },
-    { id: "ORD-98105", date: "09:15 02/07/2026", type: "Quà tặng", amount: 850000, method: "Chuyển khoản", status: "Thành công", couponDiscount: 0, recipient: { name: "Nguyễn Văn A", email: "nva@gmail.com", avatar: "https://github.com/shadcn.png" } },
-  ];
-
-  const mockOrderDetails = {
-    "ORD-98231": [
-      { id: 1, courseName: "React.js Từ Cơ Bản Đến Nâng Cao - Trở Thành Lập Trình Viên Chuyên Nghiệp Thực Chiến Cùng Đội Ngũ", thumbnail: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=400&q=80", instructor: "Lê Quốc Minh", price: 1899000, discount: 150000, couponDiscount: 150000, finalPrice: 1599000, platformFeeRate: 30 }
-    ],
-    "ORD-98105": [
-      { id: 2, courseName: "Spring Boot 3 & Microservices", thumbnail: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=80", instructor: "Phạm Văn Nam", price: 1000000, discount: 150000, couponDiscount: 0, finalPrice: 850000, platformFeeRate: 30 }
-    ]
-  };
-
-  const mockPosts = [
-    { id: 1, topic: "Hỏi đáp Lập trình", title: "Lỗi CORS khi gọi API từ React sang Spring Boot?", views: 120, shares: 2, date: "15:45 24/07/2026", likes: 12, comments: 5, status: 2 },
-    { id: 2, topic: "Chia sẻ kinh nghiệm", title: "Chia sẻ lộ trình học Backend Java cho người mới", views: 540, shares: 10, date: "20:00 10/07/2026", likes: 45, comments: 18, status: 2 },
-    { id: 3, topic: "Thảo luận chung", title: "Cần tìm đồng đội làm dự án cuối kỳ môn Web", views: 56, shares: 0, date: "09:15 05/07/2026", likes: 3, comments: 1, status: 0 },
-    { id: 4, topic: "Hỏi đáp Lập trình", title: "Cách cài đặt biến môi trường trong Windows 11", views: 320, shares: 1, date: "14:20 01/07/2026", likes: 15, comments: 8, status: 3 },
-  ];
+  const {
+    summary, enrollments, enrollmentPage, setEnrollmentPage, enrollmentSize,
+    enrollmentProgress, expandedCourseId, setExpandedCourseId,
+    courses, coursePage, setCoursePage, courseSize,
+    orders, orderPage, setOrderPage, orderSize,
+    orderDetails, expandedOrderId, setExpandedOrderId,
+    incomes, incomePage, setIncomePage, incomeSize,
+    payouts, payoutPage, setPayoutPage, payoutSize,
+    threads, threadPage, setThreadPage, threadSize,
+    reviews, reviewPage, setReviewPage, reviewSize
+  } = useAdminUserDetail(user.id, isInstructor);
 
   return (
     <div className="space-y-6 animate-in fade-in zoom-in-95 duration-300 pb-10">
@@ -1026,13 +964,13 @@ function AdminUserDetail({ user, onBack, isInstructorContext }) {
             <div className="grid grid-cols-[120px_1fr] gap-2 text-sm">
               <span className="text-muted-foreground">{isInstructor ? "Tổng doanh thu:" : "Tổng mua hàng:"}</span>
               <span className="font-bold text-primary">
-                {new Intl.NumberFormat('vi-VN').format(user.totalSpent || mockOrders.reduce((sum, o) => sum + o.amount, 0))} đ
+                {new Intl.NumberFormat('vi-VN').format(summary?.data?.totalSpent || 0)} đ
               </span>
               <span className="text-muted-foreground">{isInstructor ? "Khóa học đã tạo:" : "Khóa học đã mua:"}</span>
-              <span className="font-medium">{user.coursesPurchased || mockCourses.length} Khóa học</span>
+              <span className="font-medium">{summary?.data?.courseCount || 0} Khóa học</span>
               <span className="text-muted-foreground">Số dư:</span>
               <span className="font-bold text-success">
-                {new Intl.NumberFormat('vi-VN').format(user.balance || 150000)} đ
+                {new Intl.NumberFormat('vi-VN').format(summary?.data?.balance || 0)} đ
               </span>
             </div>
           </div>
@@ -1087,7 +1025,7 @@ function AdminUserDetail({ user, onBack, isInstructorContext }) {
             />
           </div>
           {isInstructor ? (
-            mockInstructorCourses.length > 0 ? (
+            (courses?.data?.content?.length > 0) ? (
               <DataTable
                 columns={[
                   {
@@ -1156,15 +1094,15 @@ function AdminUserDetail({ user, onBack, isInstructorContext }) {
                     ) 
                   }
                 ]}
-                data={mockInstructorCourses}
+                data={courses?.data?.content || []}
                 emptyState="Chưa có khóa học nào."
                 pagination={{
-                  currentPage: 1,
-                  totalPages: 1,
-                  totalItems: mockInstructorCourses.length,
-                  onPageChange: () => { },
+                  currentPage: coursePage,
+                  totalPages: courses?.data?.totalPages || 1,
+                  totalItems: courses?.data?.totalElements || 0,
+                  onPageChange: (p) => setCoursePage(p),
                   zeroIndexed: false,
-                  pageSize: mockInstructorCourses.length || 10,
+                  pageSize: courseSize,
                 }}
               />
             ) : (
@@ -1175,7 +1113,7 @@ function AdminUserDetail({ user, onBack, isInstructorContext }) {
               </div>
             )
           ) : (
-            mockCourses.length > 0 ? (
+            (enrollments?.data?.content?.length > 0) ? (
               <DataTable
                 columns={[
                   {
@@ -1240,20 +1178,20 @@ function AdminUserDetail({ user, onBack, isInstructorContext }) {
                     ) 
                   }
                 ]}
-                data={mockCourses}
+                data={enrollments?.data?.content || []}
                 emptyState="Chưa có khóa học nào."
                 pagination={{
-                  currentPage: 1,
-                  totalPages: 1,
-                  totalItems: mockCourses.length,
-                  onPageChange: () => { },
+                  currentPage: enrollmentPage,
+                  totalPages: enrollments?.data?.totalPages || 1,
+                  totalItems: enrollments?.data?.totalElements || 0,
+                  onPageChange: (p) => setEnrollmentPage(p),
                   zeroIndexed: false,
-                  pageSize: mockCourses.length || 10,
+                  pageSize: enrollmentSize,
                 }}
                 onRowClick={(row) => setExpandedCourseId(row.id === expandedCourseId ? null : row.id)}
                 renderExpandedRow={(course) => {
                   if (expandedCourseId !== course.id) return null;
-                  const chapters = mockChapters[course.id] || [];
+                  const chapters = expandedCourseId === course.enrollmentId ? (enrollmentProgress?.data?.modules || []) : [];
                   
                   return (
                     <TableRow className="bg-muted/10 border-b border-border/50 hover:bg-muted/10">
@@ -1444,20 +1382,20 @@ function AdminUserDetail({ user, onBack, isInstructorContext }) {
                 ) 
               }
             ]}
-            data={mockOrders}
+            data={orders?.data?.content || []}
             emptyState="Không có lịch sử giao dịch nào."
             pagination={{
-              currentPage: 1,
-              totalPages: 1,
-              totalItems: mockOrders.length,
-              onPageChange: () => { },
-              zeroIndexed: false,
-              pageSize: mockOrders.length || 10,
+              currentPage: orderPage,
+                totalPages: orders?.data?.totalPages || 1,
+                totalItems: orders?.data?.totalElements || 0,
+                onPageChange: (p) => setOrderPage(p),
+                zeroIndexed: false,
+                pageSize: orderSize,
             }}
             onRowClick={(row) => setExpandedOrderId(row.id === expandedOrderId ? null : row.id)}
             renderExpandedRow={(order) => {
               if (expandedOrderId !== order.id) return null;
-              const details = mockOrderDetails[order.id] || [];
+              const details = expandedOrderId === order.orderId ? (orderDetails?.data || []) : [];
               
               return (
                 <TableRow className="bg-muted/10 border-b border-border/50 hover:bg-muted/10">
@@ -1604,15 +1542,15 @@ function AdminUserDetail({ user, onBack, isInstructorContext }) {
                   ) 
                 }
               ]}
-              data={mockIncomes}
+              data={incomes?.data?.content || []}
               emptyState="Chưa có thu nhập nào."
               pagination={{
-                currentPage: 1,
-                totalPages: 1,
-                totalItems: mockIncomes.length,
-                onPageChange: () => { },
+                currentPage: incomePage,
+                totalPages: incomes?.data?.totalPages || 1,
+                totalItems: incomes?.data?.totalElements || 0,
+                onPageChange: (p) => setIncomePage(p),
                 zeroIndexed: false,
-                pageSize: mockIncomes.length || 10,
+                pageSize: incomeSize,
               }}
             />
           </TabsContent>
@@ -1702,15 +1640,15 @@ function AdminUserDetail({ user, onBack, isInstructorContext }) {
                   }
                 }
               ]}
-              data={mockPayouts}
+              data={payouts?.data?.content || []}
               emptyState="Chưa có yêu cầu rút tiền nào."
               pagination={{
-                currentPage: 1,
-                totalPages: 1,
-                totalItems: mockPayouts.length,
-                onPageChange: () => { },
+                currentPage: payoutPage,
+                totalPages: payouts?.data?.totalPages || 1,
+                totalItems: payouts?.data?.totalElements || 0,
+                onPageChange: (p) => setPayoutPage(p),
                 zeroIndexed: false,
-                pageSize: mockPayouts.length || 10,
+                pageSize: payoutSize,
               }}
             />
           </TabsContent>
@@ -1805,15 +1743,15 @@ function AdminUserDetail({ user, onBack, isInstructorContext }) {
                 ) 
               }
             ]}
-            data={mockPosts}
+            data={threads?.data?.content || []}
             emptyState={isInstructor ? "Không có chủ đề nào." : "Không có bài viết nào."}
             pagination={{
-              currentPage: 1,
-              totalPages: 1,
-              totalItems: mockPosts.length,
-              onPageChange: () => { },
-              zeroIndexed: false,
-              pageSize: mockPosts.length || 10,
+              currentPage: threadPage,
+                totalPages: threads?.data?.totalPages || 1,
+                totalItems: threads?.data?.totalElements || 0,
+                onPageChange: (p) => setThreadPage(p),
+                zeroIndexed: false,
+                pageSize: threadSize,
             }}
           />
         </TabsContent>
@@ -1929,15 +1867,15 @@ function AdminUserDetail({ user, onBack, isInstructorContext }) {
                   }
                 }
               ]}
-              data={mockReviews}
+              data={reviews?.data?.content || []}
               emptyState="Chưa có đánh giá nào."
               pagination={{
-                currentPage: 1,
-                totalPages: 1,
-                totalItems: mockReviews.length,
-                onPageChange: () => { },
+                currentPage: reviewPage,
+                totalPages: reviews?.data?.totalPages || 1,
+                totalItems: reviews?.data?.totalElements || 0,
+                onPageChange: (p) => setReviewPage(p),
                 zeroIndexed: false,
-                pageSize: mockReviews.length || 10,
+                pageSize: reviewSize,
               }}
             />
           </TabsContent>
