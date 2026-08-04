@@ -83,7 +83,7 @@ export function CourseResultsLayout({
                   originalPrice={course.discount > 0 ? new Intl.NumberFormat("vi-VN").format(course.price) : null}
                   discountPercentage={course.discount}
                   category={course.categoryName || course.category?.name || "Chưa phân loại"}
-                  link={`/courses/${course.slug || course.id}`}
+                  link={course.slug ? `/courses/${course.slug}` : undefined}
                   classes={course.classes || 0}
                   students={course.students || 0}
                   instructor={{
@@ -219,7 +219,7 @@ const SearchPageContent = ({ categorySlug }) => {
                     originalPrice={course.discount > 0 ? new Intl.NumberFormat("vi-VN").format(course.price) : null}
                     discountPercentage={course.discount}
                     category={course.categoryName || course.category?.name || "Chưa phân loại"}
-                    link={`/courses/${course.slug || course.id}`}
+                    link={course.slug ? `/courses/${course.slug}` : undefined}
                     classes={course.classes || 0}
                     students={course.students || 0}
                     rating={course.rating || 4.9}

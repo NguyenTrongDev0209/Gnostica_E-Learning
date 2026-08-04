@@ -50,30 +50,31 @@ public class PaymentController {
 	public RedirectView vnPayReturn(@RequestParam Map<String, String> parameters) {
 		UriComponentsBuilder redirect = UriComponentsBuilder.fromUriString(vnPayProperties.getFrontendReturnUrl());
 		PaymentWebhookData data;
-		try {
-			data = paymentService.verifyWebhook("VNPAY", parameters);
+        try {
+            data = paymentService.verifyWebhook("VNPAY", parameters);
 		} catch (Exception exception) {
 			log.warn("Rejected VNPay return callback: {}", exception.getMessage());
 			redirect.queryParam("gateway", "VNPAY")
 					.queryParam("paymentStatus", "INVALID")
 					.queryParam("verified", false);
-			return new RedirectView(redirect.build().encode().toUriString());
-		}
+            return new RedirectView(redirect.build().encode().toUriString());
+        }
 
-		try {
-			VNPayIpnResponse processingResult = paymentService.handleVNPayIpn(parameters);
-			boolean processed = "00".equals(processingResult.responseCode())
-					|| "02".equals(processingResult.responseCode());
-			redirect.queryParam("orderCode", data.getOrderCode())
-					.queryParam("gateway", "VNPAY")
-					.queryParam("paymentStatus", processed ? data.getStatus() : "PENDING")
-					.queryParam("verified", true);
-		} catch (Exception exception) {
-			log.error("Verified VNPay callback could not be processed for order {}", data.getOrderCode(), exception);
-			redirect.queryParam("orderCode", data.getOrderCode())
-					.queryParam("gateway", "VNPAY")
-					.queryParam("paymentStatus", "PENDING")
-					.queryParam("verified", true);
+        try {
+            // VNPay returns a signed result even when the buyer cancels on the
+            // hosted page. Process that verified result now; waiting only for
+            // QueryDR leaves the checkout incorrectly pending after a cancel.
+            paymentService.handleVNPayIpn(parameters);
+            redirect.queryParam("orderCode", data.getOrderCode())
+                    .queryParam("gateway", "VNPAY")
+                    .queryParam("paymentStatus", data.getStatus())
+                    .queryParam("verified", true);
+        } catch (Exception exception) {
+            log.error("Verified VNPay callback could not be processed for order {}", data.getOrderCode(), exception);
+            redirect.queryParam("orderCode", data.getOrderCode())
+                    .queryParam("gateway", "VNPAY")
+                    .queryParam("paymentStatus", data.getStatus())
+                    .queryParam("verified", true);
 		}
 		return new RedirectView(redirect.build().encode().toUriString());
 	}

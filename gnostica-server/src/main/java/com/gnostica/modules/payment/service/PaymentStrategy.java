@@ -14,5 +14,9 @@ public interface PaymentStrategy {
 
     PaymentDetails getPaymentDetails(Order order) throws Exception;
 
+    default void cancelPayment(Order order, String reason) throws Exception {
+        throw new UnsupportedOperationException("This payment gateway does not support payment-link cancellation");
+    }
+
     String getGatewayName();
 }

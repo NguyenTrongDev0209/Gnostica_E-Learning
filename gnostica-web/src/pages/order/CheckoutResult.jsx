@@ -74,6 +74,7 @@ export default function CheckoutResult() {
     return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-10 h-10 animate-spin text-primary" /></div>;
   }
 
+  // Never infer a successful payment from query parameters returned by a browser.
   const isPaid = order?.status === 1;
   const isPending = !isPaid && order?.status === 0 && !hasTerminalReturnStatus;
   const config = isPaid ? checkoutStatusConfig.success : checkoutStatusConfig.cancel;

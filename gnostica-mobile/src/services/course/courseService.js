@@ -1,4 +1,4 @@
-﻿import api from '../../config/api';
+import api from '../../config/api';
 
 const courseService = {
     /**
@@ -8,7 +8,9 @@ const courseService = {
     getAll: (params = {}) => {
         const query = {
             page: params.page || 0,
-            size: params.size || 9,
+            size: params.size || 10,
+            ...(params.title && { title: params.title }),
+            ...(params.search && { search: params.search }),
             ...(params.categoryId && { categoryId: params.categoryId }),
             ...(params.categorySlug && { categorySlug: params.categorySlug }),
             ...(params.level && { level: params.level }),
@@ -23,6 +25,8 @@ const courseService = {
     getBySlug: (slug) => {
         return api.get(`/courses/${slug}`);
     },
+
+    getLessonPlayback: (lessonId) => api.get(`/lessons/${lessonId}/playback`),
 
     /**
      * Láº¥y khÃ³a há»c gá»£i Ã½ cho user (cáº§n Ä‘Äƒng nháº­p)

@@ -4,6 +4,7 @@ import com.gnostica.core.config.VNPayProperties;
 import com.gnostica.core.constant.OrderStatus;
 import com.gnostica.core.model.Order;
 import com.gnostica.core.repository.OrderRepository;
+import com.gnostica.modules.order.service.PendingOrderCancellationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -20,18 +21,29 @@ public class VNPayReconciliationScheduler {
     private final VNPayProperties properties;
     private final OrderRepository orderRepository;
     private final PaymentService paymentService;
+    private final PendingOrderCancellationService pendingOrderCancellationService;
 
     @Scheduled(fixedDelayString = "${vnpay.polling-interval-ms:2000}")
-    public void reconcilePendingPaymentsWhenIpnIsUnavailable() {
-        if (hasIpnUrl()) {
-            return;
+    public void reconcileActivePendingPayments() {
+        LocalDateTime expiresBefore = LocalDateTime.now()
+                .minusMinutes(Math.max(1, properties.getExpireMinutes()));
+
+        // An expired order is terminal: it is never queried again.
+        List<Order> expiredOrders = orderRepository
+                .findByStatusAndPaymentMethodIgnoreCaseAndCreatedAtBefore(
+                        OrderStatus.PENDING, "VNPAY", expiresBefore);
+        for (Order expiredOrder : expiredOrders) {
+            try {
+                pendingOrderCancellationService.cancelPendingOrder(expiredOrder.getOrderCode(),
+                        "VNPay payment window expired", false);
+            } catch (Exception exception) {
+                log.warn("Unable to expire VNPay order {}: {}", expiredOrder.getOrderCode(), exception.getMessage());
+            }
         }
 
-        LocalDateTime createdAfter = LocalDateTime.now()
-                .minusMinutes(Math.max(1, properties.getExpireMinutes()));
         List<Order> pendingOrders = orderRepository
-                .findTop50ByStatusAndPaymentMethodIgnoreCaseAndCreatedAtAfterOrderByCreatedAtAsc(
-                        OrderStatus.PENDING, "VNPAY", createdAfter);
+                .findByStatusAndPaymentMethodIgnoreCaseAndCreatedAtBefore(
+                        OrderStatus.PENDING, "VNPAY", LocalDateTime.now());
 
         for (Order order : pendingOrders) {
             try {
@@ -43,7 +55,4 @@ public class VNPayReconciliationScheduler {
         }
     }
 
-    private boolean hasIpnUrl() {
-        return properties.getIpnUrl() != null && !properties.getIpnUrl().isBlank();
-    }
 }

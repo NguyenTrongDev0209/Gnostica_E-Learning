@@ -368,11 +368,11 @@ const ForumDetailScreen = () => {
                 <View className="flex-row justify-between items-center mb-1.5">
                     <View className="flex-row items-center gap-2 flex-wrap">
                         {depth > 0 && <CornerDownRight size={14} color="#3b82f6" />}
-                        <View className="w-6 h-6 rounded-full bg-blue-100 items-center justify-center overflow-hidden">
+                        <View className="w-6 h-6 rounded-full bg-blue-600 items-center justify-center overflow-hidden">
                             {commentAvatar ? (
                                 <Image source={{ uri: commentAvatar }} className="w-full h-full" />
                             ) : (
-                                <AppText className="text-blue-600 font-bold text-[10px]">{commentAuthor.substring(0, 2).toUpperCase()}</AppText>
+                                <AppText className="text-white font-bold text-[10px]">{commentAuthor.substring(0, 2).toUpperCase()}</AppText>
                             )}
                         </View>
                         <AppText className="text-slate-900 font-bold text-xs">{commentAuthor}</AppText>
@@ -428,11 +428,11 @@ const ForumDetailScreen = () => {
             <ScrollView className="flex-1 px-4 pt-4" showsVerticalScrollIndicator={false}>
                 {/* Main Post */}
                 <View className="flex-row items-center mb-4">
-                    <View className="w-10 h-10 rounded-full bg-blue-100 items-center justify-center overflow-hidden">
+                    <View className="w-10 h-10 rounded-full bg-blue-600 items-center justify-center overflow-hidden">
                         {avatarUrl ? (
                             <Image source={{ uri: avatarUrl }} className="w-full h-full" />
                         ) : (
-                            <AppText className="text-blue-600 font-bold text-sm">{authorName.substring(0, 2).toUpperCase()}</AppText>
+                            <AppText className="text-white font-bold text-sm">{authorName.substring(0, 2).toUpperCase()}</AppText>
                         )}
                     </View>
                     <View className="ml-3">

@@ -1,7 +1,7 @@
 # ERD - Danh sách bảng và trường (Đối chiếu)
 
 > [!NOTE]
-> **Phiên bản 5** — Cập nhật mô hình gọn hơn: thêm `metadata` cho `Courses` và `Coupons`, bỏ `Coupon_Rules`, bỏ `Cert_Requirements`, bỏ `Revenue_Shares`; `Order_Details` tham chiếu trực tiếp `Commissions` bằng `commission_id`.
+> **Phiên bản 6** — `Order_Details` lưu snapshot giá gốc và phần trăm giảm giá khóa học; `Orders.coupon_price` lưu số tiền coupon đã chốt tại thời điểm tạo đơn.
 >
 > **Ký hiệu cột Ghi chú:** PK · FK · `UQ` (Unique) · `IDX` (Index) · `C-UQ` (Composite Unique) · `C-IDX` (Composite Index)
 
@@ -481,14 +481,16 @@
 | 2 | order_id | UUID | FK | |
 | 3 | course_id | UUID | FK | |
 | 4 | commission_id | INT | FK | |
-| 5 | price | DECIMAL(18,6) | | `>= 0` |
-| 6 | discount | INT | | `>= 0 AND <= 100` |
+| 5 | price | DECIMAL(18,6) | Giá gốc khóa học tại lúc tạo detail | `>= 0` |
+| 6 | discount | INT | % giảm giá khóa học tại lúc tạo detail | `>= 0 AND <= 100` |
 | 7 | status | INT | | |
 | 8 | created_at | DATETIME | | |
 | 9 | updated_at | DATETIME | | |
 > **Commission:** `commission_id` trỏ tới bản ghi `Commissions` được áp dụng tại thời điểm tạo dòng đơn hàng. `Commissions` nên vận hành theo hướng append-only: đổi tỷ lệ thì tạo bản ghi mới, không sửa bản ghi cũ.
 >
-> **Note:** `price` là giá thực tính cho dòng đơn hàng sau discount/coupon theo logic hiện tại. Nếu sau này cần đối soát sâu hơn, cân nhắc đặt tên rõ hơn hoặc bổ sung snapshot.
+> **Snapshot giá:** `price` là giá gốc khóa học tại thời điểm tạo đơn, không được đọc lại từ `Courses.price` khi thanh toán, tính doanh thu hoặc đối soát. Số tiền sau giảm giá khóa học của detail là `price - (price × discount / 100)`.
+>
+> **Coupon:** Coupon không được trừ trực tiếp vào `Order_Details.price`; số tiền giảm coupon cụ thể được chốt một lần ở `Orders.coupon_price`. Với đơn có nhiều detail, coupon chỉ được tính trên tổng các detail thuộc scope coupon (toàn sàn, giảng viên, danh mục hoặc khóa học).
 >
 > **Status:** 0: Refunded (Đã hoàn tiền), 1: Valid (Hợp lệ)
 
@@ -502,13 +504,16 @@
 | 1 | id | UUID | PK | |
 | 2 | account_id | UUID | FK, C-IDX | |
 | 3 | coupon_id | UUID | FK | |
-| 4 | total_price | DECIMAL(18,6) | | `>= 0` |
-| 5 | payment_method | VARCHAR(255) | | |
-| 6 | order_code | BIGINT | UQ | |
-| 7 | status | INT | | |
-| 8 | created_at | DATETIME | C-IDX | |
-| 9 | updated_at | DATETIME | | |
-> **Note:** `total_price` là tổng tiền phải thanh toán của đơn sau khi áp dụng coupon. `order_code` dùng cho đối soát với cổng thanh toán.
+| 4 | coupon_price | DECIMAL(18,6) | Số tiền coupon thực tế đã chốt | `>= 0` |
+| 5 | total_price | DECIMAL(18,6) | Tổng tiền cuối cùng phải thanh toán | `>= 0` |
+| 6 | payment_method | VARCHAR(255) | | |
+| 7 | order_code | BIGINT | UQ | |
+| 8 | status | INT | | |
+| 9 | created_at | DATETIME | C-IDX | |
+| 10 | updated_at | DATETIME | | |
+> **Công thức:** `subtotal = Σ(detail.price - detail.price × detail.discount / 100)` trên các detail hợp lệ. `total_price = max(0, subtotal - coupon_price)`.
+>
+> **Note:** `coupon_price` là số tiền cụ thể, không phải phần trăm. Giá trị này được tính sau khi kiểm tra điều kiện/scope của coupon và được giữ nguyên để đối soát lịch sử. `order_code` dùng cho đối soát với cổng thanh toán.
 >
 > **Status:** 0:Pending, 1:Paid, 2:Refunded, 3:Cancelled
 

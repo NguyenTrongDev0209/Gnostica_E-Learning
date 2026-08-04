@@ -14,7 +14,6 @@ public class VNPayProperties {
     private String queryUrl = "https://sandbox.vnpayment.vn/merchant_webapi/api/transaction";
     private String returnUrl;
     private String frontendReturnUrl;
-    private String ipnUrl;
     private String version = "2.1.0";
     private int expireMinutes = 15;
     private long pollingIntervalMs = 2000;

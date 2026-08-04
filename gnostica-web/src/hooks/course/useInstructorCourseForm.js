@@ -198,6 +198,9 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
 
       const url = isEditMode ? `/courses/draft?courseId=${formData.id || ""}&slug=${slug || ""}` : `/courses/draft`;
       return await axiosClient.post(url, dataToSave);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['instructor_courses'] });
     }
   });
 
@@ -522,6 +525,7 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
       }
 
       localStorage.removeItem(`course_questions_${slug || 'new'}`);
+      queryClient.invalidateQueries({ queryKey: ['instructor_courses'] });
       setTimeout(() => navigate("/instructor/courses"), 1200);
     } catch (error) {
       console.error("Submit Error:", error);

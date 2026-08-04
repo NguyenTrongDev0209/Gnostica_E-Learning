@@ -49,9 +49,34 @@ public class OrderController {
 		try {
 			PaymentLinkResponse data = orderService.createPaymentLink(requestBody);
 			return ApiResponse.success(data);
+		} catch (IllegalArgumentException e) {
+			if (OrderService.ACCOUNT_NOT_ELIGIBLE.equals(e.getMessage())) {
+				return ApiResponse.error(1001, OrderService.ACCOUNT_NOT_ELIGIBLE);
+			}
+			if (OrderService.COURSE_NOT_AVAILABLE.equals(e.getMessage())) {
+				return ApiResponse.error(1002, OrderService.COURSE_NOT_AVAILABLE);
+			}
+			if (OrderService.OWN_COURSE_PURCHASE_NOT_ALLOWED.equals(e.getMessage())) {
+				return ApiResponse.error(1003, OrderService.OWN_COURSE_PURCHASE_NOT_ALLOWED);
+			}
+			if (OrderService.ALREADY_ENROLLED.equals(e.getMessage())) {
+				return ApiResponse.error(1004, OrderService.ALREADY_ENROLLED);
+			}
+			log.warn("Không thể tạo link thanh toán: {}", e.getMessage());
+			return ApiResponse.error("Không thể tạo link thanh toán");
 		} catch (Exception e) {
 			log.error("Lỗi khi tạo link thanh toán", e);
 			return ApiResponse.error("Lỗi khi tạo link thanh toán: " + e.getMessage());
+		}
+	}
+
+	@PutMapping("/{orderCode}/cancel")
+	public ApiResponse<OrderResponse> cancelOrder(@PathVariable Long orderCode) {
+		try {
+			return ApiResponse.success(orderService.cancelPendingOrder(orderCode));
+		} catch (Exception e) {
+			log.warn("Không thể hủy đơn {}: {}", orderCode, e.getMessage());
+			return ApiResponse.error("Không thể hủy thanh toán");
 		}
 	}
 

@@ -2,7 +2,7 @@ import api from '../../config/api';
 
 const enrollmentService = {
     /**
-     * Láº¥y danh sÃ¡ch khÃ³a há»c Ä‘Ã£ Ä‘Äƒng kÃ½
+     * Lấy danh sách khóa học đã đăng ký kèm tiến độ mới nhất
      * Response: ApiResponse<List<EnrollmentDTO>>
      */
     getMyCourses: async () => {
@@ -10,34 +10,52 @@ const enrollmentService = {
         const rawData = response?.data || response;
         const list = Array.isArray(rawData) ? rawData : (rawData?.content || []);
         
-        const formatted = list.map(item => ({
-            ...item,
-            id: item.id || item.courseId,
-            courseId: item.courseId || item.id,
-            title: item.title || item.courseTitle || '',
-            courseTitle: item.courseTitle || item.title || '',
-            slug: item.slug || item.courseSlug || '',
-            courseSlug: item.courseSlug || item.slug || '',
-            thumbnail: item.thumbnail || item.courseThumbnail || '',
-            courseThumbnail: item.courseThumbnail || item.thumbnail || '',
-            progress: item.progress !== undefined ? item.progress : (item.progressPercent ?? 0),
-            progressPercent: item.progressPercent !== undefined ? item.progressPercent : (item.progress ?? 0),
-            completed: !!item.completedAt || item.progress === 100 || item.progressPercent === 100 || item.completed || false,
-            lastLesson: item.lastLesson || item.lastWatchedLessonSlug || 'Bài học tiếp theo',
-        }));
+        const formatted = list.map(item => {
+            const total = item.totalLessons || 0;
+            const completedCount = item.completedLessons || 0;
+
+            let percent = 0;
+            if (item.progressPercent !== undefined && item.progressPercent !== null) {
+                percent = item.progressPercent;
+            } else if (item.progress !== undefined && item.progress !== null) {
+                percent = item.progress;
+            } else if (total > 0) {
+                percent = Math.round((completedCount / total) * 100);
+            }
+
+            const isDone = !!item.completedAt || percent >= 100 || item.completed || false;
+
+            return {
+                ...item,
+                id: item.id || item.courseId,
+                courseId: item.courseId || item.id,
+                title: item.title || item.courseTitle || '',
+                courseTitle: item.courseTitle || item.title || '',
+                slug: item.slug || item.courseSlug || '',
+                courseSlug: item.courseSlug || item.slug || '',
+                thumbnail: item.thumbnail || item.courseThumbnail || '',
+                courseThumbnail: item.courseThumbnail || item.thumbnail || '',
+                progress: percent,
+                progressPercent: percent,
+                completed: isDone,
+                totalLessons: total,
+                completedLessons: completedCount,
+                lastLesson: item.lastLesson || item.lastWatchedLessonSlug || 'Bài học tiếp theo',
+            };
+        });
 
         return { ...response, data: formatted };
     },
 
     /**
-     * Láº¥y thá»‘ng kÃª há»c táº­p (sá»‘ khÃ³a Ä‘ang há»c, hoÃ n thÃ nh, giá» há»c...)
+     * Lấy thống kê học tập (số khóa đang học, hoàn thành, giờ học...)
      */
     getStats: () => {
         return api.get('/enrollments/stats');
     },
 
     /**
-     * Kiá»ƒm tra user Ä‘Ã£ enroll khÃ³a há»c chÆ°a
+     * Kiểm tra user đã enroll khóa học chưa
      * @param {string} courseSlug
      * @returns {{ isEnrolled: boolean }}
      */
@@ -47,4 +65,3 @@ const enrollmentService = {
 };
 
 export default enrollmentService;
-

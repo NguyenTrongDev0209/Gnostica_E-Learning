@@ -203,11 +203,11 @@ const ForumScreen = () => {
                                 onPress={() => navigation.navigate('ForumDetail', { post })}
                             >
                                 <View className="flex-row items-center mb-3">
-                                    <View className="w-8 h-8 rounded-full bg-blue-100 items-center justify-center overflow-hidden">
+                                    <View className="w-8 h-8 rounded-full bg-blue-600 items-center justify-center overflow-hidden">
                                         {avatarUrl ? (
                                             <Image source={{ uri: avatarUrl }} className="w-full h-full" />
                                         ) : (
-                                            <AppText className="text-blue-600 font-bold text-xs">{authorName.substring(0, 2).toUpperCase()}</AppText>
+                                            <AppText className="text-white font-bold text-xs">{authorName.substring(0, 2).toUpperCase()}</AppText>
                                         )}
                                     </View>
                                     <View className="ml-2">

@@ -27,9 +27,10 @@ public class GnosticaServerApplication {
 					.load();
 		}
 
-		dotenv.entries().forEach(entry -> System.setProperty(entry.getKey(), entry.getValue()));
-
-		String appTimeZone = System.getProperty("APP_TIME_ZONE", "Asia/Ho_Chi_Minh");
+		// DotenvEnvironmentPostProcessor adds .env values to Spring with the
+		// correct environment precedence. Do not copy them to JVM system
+		// properties here, otherwise APP_ENV cannot select DEV-specific values.
+		String appTimeZone = dotenv.get("APP_TIME_ZONE", "Asia/Ho_Chi_Minh");
 		TimeZone.setDefault(TimeZone.getTimeZone(ZoneId.of(appTimeZone)));
 
 		SpringApplication.run(GnosticaServerApplication.class, args);

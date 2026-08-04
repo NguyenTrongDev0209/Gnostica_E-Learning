@@ -141,46 +141,13 @@ SELECT cohort.account_id, course.course_id, course.instructor_id, course.price, 
 FROM seed_buyer_cohorts cohort
 CROSS JOIN seed_sellable_courses course;
 
--- Commission periods are non-overlapping and cover all generated order dates.
-CREATE TEMP TABLE seed_commission_plan (
-    commission_slot INT PRIMARY KEY,
-    valid_from TIMESTAMP NOT NULL,
-    valid_until TIMESTAMP NOT NULL,
-    instructor_ratio NUMERIC(5,2) NOT NULL,
-    platform_ratio NUMERIC(5,2) NOT NULL
-) ON COMMIT DROP;
-
-INSERT INTO seed_commission_plan
-SELECT n,
-       NOW() - INTERVAL '800 days' + (n * 60) * INTERVAL '1 day',
-       NOW() - INTERVAL '800 days' + ((n + 1) * 60) * INTERVAL '1 day',
-       (ARRAY[85.00, 88.00, 90.00, 92.00]::NUMERIC[])[1 + ((n - 1) % 4)],
-       100.00 - (ARRAY[85.00, 88.00, 90.00, 92.00]::NUMERIC[])[1 + ((n - 1) % 4)]
-FROM generate_series(1, 12) AS n;
-
-WITH inserted AS (
-    INSERT INTO commissions (
-        account_id, instructor_ratio, platform_ratio, valid_from, valid_until,
-        status, metadata, created_at, updated_at
-    )
-    SELECT '00000000-0000-0000-0000-000000000001'::UUID,
-           instructor_ratio, platform_ratio, valid_from, valid_until,
-           CASE WHEN commission_slot = 12 THEN 1 ELSE 2 END,
-           jsonb_build_object('seed_batch', 'gnostica-commerce-v1', 'commission_slot', commission_slot),
-           valid_from, valid_from
-    FROM seed_commission_plan
-    RETURNING id
-)
-INSERT INTO seed_run_items (run_id, table_name, record_id)
-SELECT context.run_id, 'commissions', inserted.id::TEXT
-FROM inserted CROSS JOIN seed_context context;
-
+-- Retrieve the default active commission created by V1 migration
 CREATE TEMP TABLE seed_commissions ON COMMIT DROP AS
 SELECT c.id AS commission_id,
-       (c.metadata ->> 'commission_slot')::INT AS commission_slot,
        c.instructor_ratio, c.platform_ratio
 FROM commissions c
-WHERE c.metadata ->> 'seed_batch' = 'gnostica-commerce-v1';
+WHERE c.status = 1
+ORDER BY c.created_at DESC LIMIT 1;
 
 -- 800 valid-format coupon codes. The first 400 are platform campaigns and are
 -- used by successful orders; other coupons exercise owner/status variations.
@@ -274,7 +241,7 @@ SELECT purchase_no,
        gen_random_uuid() AS order_detail_id,
        gen_random_uuid() AS payment_id,
        account_id, course_id, instructor_id, coupon_id, coupon_no,
-       order_status, commission_slot, COALESCE(discount, 0) AS course_discount,
+       order_status, COALESCE(discount, 0) AS course_discount,
        gross_price, round(GREATEST(gross_price - coupon_amount, 0), 6) AS final_price,
        (NOW() - INTERVAL '800 days'
            + (commission_slot * 60) * INTERVAL '1 day'
@@ -338,7 +305,7 @@ WITH inserted AS (
            CASE WHEN plan.order_status = 2 THEN 0 ELSE 1 END,
            plan.created_at, plan.created_at + INTERVAL '5 minutes'
     FROM seed_purchase_plan plan
-    JOIN seed_commissions commission ON commission.commission_slot = plan.commission_slot
+    CROSS JOIN seed_commissions commission
     RETURNING id
 )
 INSERT INTO seed_run_items (run_id, table_name, record_id)
@@ -404,7 +371,7 @@ SELECT gen_random_uuid() AS wallet_id, plan.*, commission.instructor_ratio,
        round(plan.gross_price * commission.instructor_ratio / 100, 6) AS instructor_amount,
        CASE WHEN plan.order_status = 1 THEN 1 ELSE 0 END AS wallet_status
 FROM seed_purchase_plan plan
-JOIN seed_commissions commission ON commission.commission_slot = plan.commission_slot
+CROSS JOIN seed_commissions commission
 WHERE plan.order_status IN (1, 2);
 
 WITH inserted AS (
@@ -534,7 +501,6 @@ BEGIN
     SELECT count(*) INTO v_wallets FROM seed_wallet_plan;
     SELECT count(*) INTO v_payouts FROM seed_payout_plan;
     SELECT count(*) INTO v_coupons FROM seed_run_items item JOIN seed_context context ON context.run_id = item.run_id WHERE item.table_name = 'coupons';
-    SELECT count(*) INTO v_commissions FROM seed_run_items item JOIN seed_context context ON context.run_id = item.run_id WHERE item.table_name = 'commissions';
     SELECT count(*) INTO v_banks FROM seed_run_items item JOIN seed_context context ON context.run_id = item.run_id WHERE item.table_name = 'account_banks';
     SELECT count(*) INTO v_refunds FROM seed_run_items item JOIN seed_context context ON context.run_id = item.run_id WHERE item.table_name = 'refunds';
     SELECT count(*) INTO v_logs FROM seed_run_items item JOIN seed_context context ON context.run_id = item.run_id WHERE item.table_name = 'logs';
@@ -542,11 +508,11 @@ BEGIN
 
     IF v_orders <> 25000 OR v_details <> 25000 OR v_payments <> 25000
        OR v_enrollments <> 20000 OR v_wallets <> 20000 OR v_payouts <> 400
-       OR v_coupons <> 800 OR v_commissions <> 12 OR v_banks <> 40
+       OR v_coupons <> 800 OR v_banks <> 40
        OR v_refunds <> 2500 OR v_logs <> 17500 OR v_notifications <> 35000 THEN
-        RAISE EXCEPTION 'Unexpected commerce counts: orders %, details %, payments %, enrollments %, wallets %, payouts %, coupons %, commissions %, banks %, refunds %, logs %, notifications %.',
+        RAISE EXCEPTION 'Unexpected commerce counts: orders %, details %, payments %, enrollments %, wallets %, payouts %, coupons %, banks %, refunds %, logs %, notifications %.',
             v_orders, v_details, v_payments, v_enrollments, v_wallets, v_payouts,
-            v_coupons, v_commissions, v_banks, v_refunds, v_logs, v_notifications;
+            v_coupons, v_banks, v_refunds, v_logs, v_notifications;
     END IF;
 
     IF EXISTS (

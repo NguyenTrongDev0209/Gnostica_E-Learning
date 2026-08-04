@@ -11,6 +11,7 @@ import com.gnostica.core.repository.OrderDetailRepository;
 import com.gnostica.core.repository.LogRepository;
 import com.gnostica.core.repository.WalletRepository;
 import com.gnostica.modules.settings.service.CommissionResolver;
+import com.gnostica.modules.order.util.OrderPriceCalculator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -45,14 +46,18 @@ public class WalletListener {
         for (OrderDetail detail : details) {
             Account instructor = detail.getCourse().getAccount();
             if (instructor != null) {
-                // OrderDetail.price is the amount actually paid by the customer.
-                BigDecimal netSaleAmount = detail.getPrice().setScale(6, RoundingMode.HALF_UP);
-                BigDecimal coursePrice = detail.getCourse().getPrice();
-                BigDecimal baseSaleAmount = detail.getCourse().getSalePrice();
-                BigDecimal grossAmount = baseSaleAmount != null && baseSaleAmount.compareTo(netSaleAmount) >= 0
-                        ? baseSaleAmount.setScale(6, RoundingMode.HALF_UP)
-                        : netSaleAmount;
-                BigDecimal discountAmount = grossAmount.subtract(netSaleAmount).setScale(6, RoundingMode.HALF_UP);
+                // All amounts come from the order snapshot, so later course
+                // price changes cannot alter historical instructor revenue.
+                BigDecimal grossAmount = OrderPriceCalculator.amountAfterCourseDiscount(detail)
+                        .setScale(6, RoundingMode.HALF_UP);
+                BigDecimal couponAllocation = OrderPriceCalculator.couponAllocation(order, detail, details)
+                        .setScale(6, RoundingMode.HALF_UP);
+                BigDecimal netSaleAmount = grossAmount.subtract(couponAllocation)
+                        .setScale(6, RoundingMode.HALF_UP);
+                BigDecimal courseDiscountAmount = detail.getPrice().subtract(grossAmount)
+                        .setScale(6, RoundingMode.HALF_UP);
+                BigDecimal discountAmount = courseDiscountAmount.add(couponAllocation)
+                        .setScale(6, RoundingMode.HALF_UP);
                 CommissionResolver.ResolvedCommission commission = detail.getCommission() != null
                         ? new CommissionResolver.ResolvedCommission(
                                 detail.getCommission().getInstructorRatio(),

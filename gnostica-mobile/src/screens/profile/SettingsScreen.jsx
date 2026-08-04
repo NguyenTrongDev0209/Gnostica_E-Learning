@@ -105,9 +105,9 @@ const SettingsScreen = () => {
                                 >
                                     <View
                                         className="w-9 h-9 rounded-xl items-center justify-center mr-3.5"
-                                        style={{ backgroundColor: item.color + '15' }}
+                                        style={{ backgroundColor: item.color }}
                                     >
-                                        <item.icon size={18} color={item.color} strokeWidth={2} />
+                                        <item.icon size={18} color="#ffffff" strokeWidth={2} />
                                     </View>
                                     <AppText className={`flex-1 text-[15px] font-medium ${item.type === 'danger' ? 'text-red-500' : 'text-slate-800'}`}>
                                         {item.label}

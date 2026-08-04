@@ -30,6 +30,13 @@ public class Order {
     @JoinColumn(name = "coupon_id")
     private Coupon coupon;
 
+    /** The concrete coupon amount applied when this order was created. */
+    @NotNull
+    @Min(0)
+    @Column(name = "coupon_price", precision = 18, scale = 6)
+    @Builder.Default
+    private BigDecimal couponPrice = BigDecimal.ZERO;
+
     @NotNull
     @Min(0)
     @Column(precision = 18, scale = 6)

@@ -5,15 +5,16 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { ArrowLeft, Play, CheckCircle2, Circle, FileText, MessageCircle, Download, Send, X, CornerDownRight, Trash2, RefreshCw, HelpCircle, Check, XCircle, RotateCcw, Award, ChevronRight, ChevronLeft } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { clsx } from 'clsx';
-import { useVideoPlayer, VideoView } from 'expo-video';
 import courseService from '../../services/course/courseService';
 import lessonProgressService from '../../services/course/lessonProgressService';
 import commentService from '../../services/forum/commentService';
 import { useAuth } from '../../context/AuthContext';
 import { BASE_URL } from '../../config/api';
+import { WEB_ORIGIN } from '../../config/environment';
+import VideoPlayer, { getEmbeddedVideoUrl } from '../../components/course/VideoPlayer';
 
 const { width } = Dimensions.get('window');
-const BUNNY_LIBRARY_ID = process.env.EXPO_PUBLIC_BUNNY_LIBRARY_ID;
+const BUNNY_PLAYBACK_HEADERS = { Referer: WEB_ORIGIN };
 
 const addReplyToTree = (list, parentId, newReply) => {
     return list.map(c => {
@@ -413,6 +414,8 @@ const LearningScreen = () => {
     const [activeTab, setActiveTab] = useState('curriculum');
     const [activeLesson, setActiveLesson] = useState(null);
     const [activeQuiz, setActiveQuiz] = useState(null);
+    const [isLessonPlayerOpen, setIsLessonPlayerOpen] = useState(false);
+    const [playback, setPlayback] = useState({ lessonId: null, source: null, embedSource: null, loading: false, error: null });
 
     // Q&A state
     const [comments, setComments] = useState([]);
@@ -574,65 +577,54 @@ const LearningScreen = () => {
         );
     };
 
-    const getVideoSource = (url) => {
-        if (!url) return null;
-
-        const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
-        let libraryId = BUNNY_LIBRARY_ID;
-        let videoId = url;
-
-        if (url.includes('/')) {
-            const parts = url.split('/').filter(Boolean);
-            const lastPart = parts[parts.length - 1];
-            const secondToLast = parts[parts.length - 2];
-            if (uuidRegex.test(lastPart)) {
-                videoId = lastPart;
-                if (secondToLast && secondToLast.length > 2) {
-                    libraryId = secondToLast;
-                }
-            }
-        }
-
-        if (uuidRegex.test(videoId)) {
-            return `https://vz-${libraryId}.b-cdn.net/${videoId}/playlist.m3u8`;
-        }
-
-        if (url.startsWith('http://') || url.startsWith('https://')) {
-            return url;
-        }
-
-        const host = BASE_URL.replace('/api', '');
-        return `${host}${url.startsWith('/') ? '' : '/'}${url}`;
-    };
-
-    const videoSource = useMemo(() => {
-        return activeLesson?.videoUrl ? getVideoSource(activeLesson.videoUrl) : null;
-    }, [activeLesson?.videoUrl]);
-
-    const player = useVideoPlayer(videoSource, (p) => {
-        p.loop = false;
-        p.play();
-    });
-
     useEffect(() => {
-        let isMounted = true;
-        const updateVideoSource = async () => {
-            if (player && videoSource) {
-                try {
-                    await player.replaceAsync(videoSource);
-                    if (isMounted) {
-                        player.play();
-                    }
-                } catch (e) {
-                    console.warn('Error replacing video source:', e);
-                }
-            }
-        };
-        updateVideoSource();
+        let cancelled = false;
+        const lessonId = activeLesson?.id;
+        const storedVideoUrl = activeLesson?.videoUrl;
+
+        setIsLessonPlayerOpen(false);
+
+        if (!lessonId || !storedVideoUrl) {
+            setPlayback({ lessonId: lessonId || null, source: null, embedSource: null, loading: false, error: null });
+            return undefined;
+        }
+
+        setPlayback({ lessonId, source: null, embedSource: null, loading: true, error: null });
+        courseService.getLessonPlayback(lessonId)
+            .then((response) => {
+                const data = response?.data || response;
+                if (!data?.sourceUrl) throw new Error('Server did not return a playable video URL');
+                if (!cancelled) setPlayback({
+                    lessonId,
+                    source: data.sourceUrl,
+                    embedSource: data.embedUrl || null,
+                    loading: false,
+                    error: null
+                });
+            })
+            .catch((error) => {
+                console.error('Unable to resolve lesson video playback:', error);
+                if (!cancelled) setPlayback({
+                    lessonId,
+                    source: null,
+                    embedSource: null,
+                    loading: false,
+                    error: 'Không thể tải luồng video. Vui lòng thử lại sau.'
+                });
+            });
+
         return () => {
-            isMounted = false;
+            cancelled = true;
         };
-    }, [videoSource, player]);
+    }, [activeLesson?.id, activeLesson?.videoUrl]);
+
+    const videoSource = playback.lessonId === activeLesson?.id ? playback.source : null;
+    // Lesson delivery uses the server-resolved HLS URL and explicit CDN
+    // authorisation headers. Bunny's nested iframe requests cannot inherit
+    // those headers in Android WebView, so keep native HLS as the reliable
+    // learning player.
+    const playerSource = videoSource;
+    const hasPlayableVideo = Boolean(playerSource && (getEmbeddedVideoUrl(playerSource) || playerSource));
 
     const modulesList = useMemo(() => {
         return courseDetail?.modules || initialCourse?.modules || initialCourse?.curriculum || [];
@@ -834,18 +826,32 @@ const LearningScreen = () => {
                     <>
                         <View
                             className="bg-black items-center justify-center"
-                            style={{ width, height: width * 0.5625 }}
+                            style={{ width, height: width * 0.5625, overflow: 'hidden' }}
                         >
-                            {loading ? (
+                            {loading || playback.loading ? (
                                 <ActivityIndicator size="large" color="#2563EB" />
-                            ) : videoSource ? (
-                                <VideoView 
-                                    style={{ width: '100%', height: '100%' }}
-                                    player={player}
-                                    fullscreenOptions={{ enable: true }}
-                                    allowsPictureInPicture
-                                    showsTimecodes
+                            ) : hasPlayableVideo && isLessonPlayerOpen ? (
+                                <VideoPlayer
+                                    key={activeLesson?.id}
+                                    style={{ width, height: width * 0.5625 }}
+                                    source={activeLesson?.videoUrl || playerSource}
+                                    fallbackSource={videoSource}
+                                    requestHeaders={BUNNY_PLAYBACK_HEADERS}
+                                    autoplay
                                 />
+                            ) : hasPlayableVideo ? (
+                                <TouchableOpacity
+                                    onPress={() => setIsLessonPlayerOpen(true)}
+                                    activeOpacity={0.85}
+                                    className="items-center justify-center w-full h-full"
+                                    accessibilityRole="button"
+                                    accessibilityLabel="Phát video bài học"
+                                >
+                                    <View className="w-14 h-14 rounded-full bg-violet-500 items-center justify-center">
+                                        <Play size={28} color="#fff" fill="#fff" />
+                                    </View>
+                                    <AppText className="text-white font-semibold mt-3">Phát bài học</AppText>
+                                </TouchableOpacity>
                             ) : (
                                 <View className="items-center justify-center px-4">
                                     <AppText className="text-white text-sm font-medium text-center">

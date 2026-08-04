@@ -2,9 +2,13 @@ package com.gnostica.modules.payment.dto.response;
 
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class PaymentLinkResponse {
     private String checkoutUrl;
     private String paymentLinkId;
@@ -16,4 +20,5 @@ public class PaymentLinkResponse {
     private String bin;
     private String qrCode;
     private Long amount;
+    private Long expiresAt;
 }

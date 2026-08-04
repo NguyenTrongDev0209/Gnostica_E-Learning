@@ -16,7 +16,16 @@ import java.util.List;
 @Repository
 public interface PayoutRepository extends JpaRepository<Payout, java.util.UUID> {
     long countByAccountAndCreatedAtAfter(Account account, LocalDateTime createdAt);
+    long countByAccountAndStatusInAndCreatedAtAfter(Account account, List<Integer> statuses, LocalDateTime createdAt);
     java.util.List<Payout> findByAccountOrderByCreatedAtDesc(Account account);
+    java.util.List<Payout> findByStatusIn(java.util.List<Integer> statuses);
+    java.util.List<Payout> findByStatusInAndGatewayPayoutIdIsNull(java.util.List<Integer> statuses);
+    java.util.Optional<Payout> findByAccountAndIdempotencyKey(Account account, String idempotencyKey);
+    boolean existsByAccountBankAndStatusIn(com.gnostica.core.model.AccountBank accountBank, List<Integer> statuses);
+
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT p FROM Payout p WHERE p.id = :id")
+    java.util.Optional<Payout> findByIdForUpdate(@Param("id") java.util.UUID id);
 
     @Query("SELECT COALESCE(SUM(p.amount), 0) FROM Payout p WHERE p.account = :account AND p.status IN :statuses")
     BigDecimal sumPayoutsByAccount(@Param("account") Account account, @Param("statuses") List<Integer> statuses);
