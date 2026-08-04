@@ -43,20 +43,29 @@ export default function useAdminUsers() {
 
   const [previewDocument, setPreviewDocument] = useState({ url: null, title: "" });
   const [currentPage, setCurrentPage] = useState(0);
-  const pageSize = 10;
+  const [pageSize, setPageSize] = useState(10);
 
-  const { data: accounts = [], isLoading: isAccountsLoading } = useQuery({
-    queryKey: ['admin_accounts', activeTab],
+  const { data: accountsData = {}, isLoading: isAccountsLoading } = useQuery({
+    queryKey: ['admin_accounts', activeTab, currentPage, pageSize, searchTerm, statusFilter],
     queryFn: async () => {
-      const response = await authService.getAccountsByRole(activeTab);
-      console.log('API getAccountsByRole:', response);
+      let statuses = [];
+      if (statusFilter && statusFilter.length > 0) {
+        statuses = statusFilter.map(s => {
+          if (s === 'active') return 1;
+          if (s === 'locked') return 2;
+          if (s === 'unverified') return 0; // null is handled in DB or we can ignore it for now
+          return null;
+        }).filter(s => s !== null);
+      }
+      const response = await authService.searchAccounts(activeTab, searchTerm, statuses, currentPage, pageSize);
       if (response && response.data) return response.data;
-      if (Array.isArray(response)) return response;
-      return [];
+      return response || {};
     },
     enabled: activeTab !== 'PENDING_APP',
     staleTime: 1000 * 60, // 1 min
   });
+
+  const accounts = accountsData.content || [];
 
   const { data: applications = [], isLoading: isAppsLoading } = useQuery({
     queryKey: ['admin_applications'],
@@ -154,37 +163,20 @@ export default function useAdminUsers() {
     await lockMutation.mutateAsync({ id: selectedUser.id, reason: lockReason });
   };
 
-  const filteredAccounts = accounts.filter(acc => {
-    const matchesSearch = !searchTerm || 
-      (acc.fullName || "").toLowerCase().includes(searchTerm.toLowerCase()) || 
-      (acc.email || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (acc.phone || "").toLowerCase().includes(searchTerm.toLowerCase());
-
-    let matchesStatus = true;
-    if (Array.isArray(statusFilter) && statusFilter.length > 0) {
-      matchesStatus = statusFilter.some(statusVal => {
-        if (statusVal === "active") return acc.status === 1;
-        if (statusVal === "locked") return acc.status === 2;
-        if (statusVal === "unverified") return acc.status === 0 || acc.status === null;
-        return true;
-      });
-    }
-
-    return matchesSearch && matchesStatus;
-  });
-
   const pagination = {
     currentPage,
     pageSize,
-    totalElements: filteredAccounts.length,
-    totalPages: Math.ceil(filteredAccounts.length / pageSize) || 1,
-    onPageChange: (page) => setCurrentPage(page)
+    totalElements: accountsData?.page?.totalElements ?? accountsData?.totalElements ?? 0,
+    totalPages: accountsData?.page?.totalPages ?? accountsData?.totalPages ?? 1,
+    zeroIndexed: true,
+    onPageChange: (page) => setCurrentPage(page),
+    onPageSizeChange: (size) => { setPageSize(size); setCurrentPage(0); }
   };
 
   return {
     activeTab,
     setActiveTab,
-    accounts: filteredAccounts,
+    accounts,
     pagination,
     applications,
     loading,

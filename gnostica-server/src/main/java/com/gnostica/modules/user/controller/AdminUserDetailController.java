@@ -67,4 +67,9 @@ public class AdminUserDetailController {
     public ResponseEntity<?> getUserReviews(@PathVariable UUID userId, Pageable pageable) {
         return ResponseEntity.ok(ApiResponse.success(adminUserDetailService.getUserReviews(userId, pageable)));
     }
+
+    @GetMapping("/activities")
+    public ResponseEntity<?> getUserActivities(@PathVariable UUID userId, @org.springframework.data.web.PageableDefault(sort = "createdAt", direction = org.springframework.data.domain.Sort.Direction.DESC) Pageable pageable) {
+        return ResponseEntity.ok(ApiResponse.success(adminUserDetailService.getUserActivities(userId, pageable)));
+    }
 }

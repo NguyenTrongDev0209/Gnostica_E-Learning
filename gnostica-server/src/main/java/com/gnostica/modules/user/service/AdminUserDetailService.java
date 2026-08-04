@@ -18,4 +18,5 @@ public interface AdminUserDetailService {
     Page<AdminPayoutDTO> getUserPayouts(UUID userId, Pageable pageable);
     Page<AdminThreadDTO> getUserThreads(UUID userId, Pageable pageable);
     Page<AdminReviewDTO> getUserReviews(UUID userId, Pageable pageable);
+    Page<com.gnostica.core.model.Log> getUserActivities(UUID userId, Pageable pageable);
 }

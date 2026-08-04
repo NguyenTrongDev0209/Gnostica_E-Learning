@@ -70,4 +70,11 @@ export const adminUserDetailService = {
     });
     return response.data.data;
   },
+
+  getUserActivities: async (userId, page = 0, size = 10) => {
+    const response = await axiosClient.get(`${BASE_URL}/${userId}/activities`, {
+      params: { page, size },
+    });
+    return response.data.data;
+  },
 };

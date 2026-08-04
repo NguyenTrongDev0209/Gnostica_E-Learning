@@ -853,6 +853,7 @@ export default function AdminUsers() {
 
 function AdminUserDetail({ user, onBack, isInstructorContext }) {
   const isInstructor = isInstructorContext || user?.role?.name === "Giảng viên" || user?.role?.name === "INSTRUCTOR" || user?.role?.name === "ROLE_INSTRUCTOR";
+  const [activeDetailTab, setActiveDetailTab] = useState("COURSES");
   const [courseSearch, setCourseSearch] = useState("");
   const [courseStatus, setCourseStatus] = useState([]);
   const [courseDateRange, setCourseDateRange] = useState({ from: undefined, to: undefined });
@@ -901,16 +902,17 @@ function AdminUserDetail({ user, onBack, isInstructorContext }) {
   if (!user) return null;
 
   const {
-    summary, enrollments, enrollmentPage, setEnrollmentPage, enrollmentSize,
+    summary, enrollments, enrollmentPage, setEnrollmentPage, enrollmentSize, setEnrollmentSize,
     enrollmentProgress, expandedCourseId, setExpandedCourseId,
-    courses, coursePage, setCoursePage, courseSize,
-    orders, orderPage, setOrderPage, orderSize,
+    courses, coursePage, setCoursePage, courseSize, setCourseSize,
+    orders, orderPage, setOrderPage, orderSize, setOrderSize,
     orderDetails, expandedOrderId, setExpandedOrderId,
-    incomes, incomePage, setIncomePage, incomeSize,
-    payouts, payoutPage, setPayoutPage, payoutSize,
-    threads, threadPage, setThreadPage, threadSize,
-    reviews, reviewPage, setReviewPage, reviewSize
-  } = useAdminUserDetail(user.id, isInstructor);
+    incomes, incomePage, setIncomePage, incomeSize, setIncomeSize,
+    payouts, payoutPage, setPayoutPage, payoutSize, setPayoutSize,
+    threads, threadPage, setThreadPage, threadSize, setThreadSize,
+    reviews, reviewPage, setReviewPage, reviewSize, setReviewSize,
+    activities, activityPage, setActivityPage, activitySize, setActivitySize
+  } = useAdminUserDetail(user.id, isInstructor, activeDetailTab);
 
   return (
     <div className="space-y-6 animate-in fade-in zoom-in-95 duration-300 pb-10">
@@ -978,7 +980,7 @@ function AdminUserDetail({ user, onBack, isInstructorContext }) {
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue="COURSES" className="w-full pt-4">
+      <Tabs defaultValue="COURSES" className="w-full pt-4" onValueChange={setActiveDetailTab}>
         <TabsList className="mb-4">
           <TabsTrigger value="COURSES" className="gap-2"><GraduationCap className="w-4 h-4" /> Khóa học</TabsTrigger>
           {isInstructor ? (
@@ -1098,9 +1100,10 @@ function AdminUserDetail({ user, onBack, isInstructorContext }) {
                 emptyState="Chưa có khóa học nào."
                 pagination={{
                   currentPage: coursePage,
-                  totalPages: courses?.data?.totalPages || 1,
-                  totalItems: courses?.data?.totalElements || 0,
+                  totalPages: courses?.data?.page?.totalPages ?? courses?.data?.totalPages ?? 1,
+                  totalItems: courses?.data?.page?.totalElements ?? courses?.data?.totalElements ?? 0,
                   onPageChange: (p) => setCoursePage(p),
+                  onPageSizeChange: (s) => { setCourseSize(s); setCoursePage(1); },
                   zeroIndexed: false,
                   pageSize: courseSize,
                 }}
@@ -1182,9 +1185,10 @@ function AdminUserDetail({ user, onBack, isInstructorContext }) {
                 emptyState="Chưa có khóa học nào."
                 pagination={{
                   currentPage: enrollmentPage,
-                  totalPages: enrollments?.data?.totalPages || 1,
-                  totalItems: enrollments?.data?.totalElements || 0,
+                  totalPages: enrollments?.data?.page?.totalPages ?? enrollments?.data?.totalPages ?? 1,
+                  totalItems: enrollments?.data?.page?.totalElements ?? enrollments?.data?.totalElements ?? 0,
                   onPageChange: (p) => setEnrollmentPage(p),
+                  onPageSizeChange: (s) => { setEnrollmentSize(s); setEnrollmentPage(1); },
                   zeroIndexed: false,
                   pageSize: enrollmentSize,
                 }}
@@ -1386,9 +1390,10 @@ function AdminUserDetail({ user, onBack, isInstructorContext }) {
             emptyState="Không có lịch sử giao dịch nào."
             pagination={{
               currentPage: orderPage,
-                totalPages: orders?.data?.totalPages || 1,
-                totalItems: orders?.data?.totalElements || 0,
+                totalPages: orders?.data?.page?.totalPages ?? orders?.data?.totalPages ?? 1,
+                totalItems: orders?.data?.page?.totalElements ?? orders?.data?.totalElements ?? 0,
                 onPageChange: (p) => setOrderPage(p),
+                onPageSizeChange: (s) => { setOrderSize(s); setOrderPage(1); },
                 zeroIndexed: false,
                 pageSize: orderSize,
             }}
@@ -1546,9 +1551,10 @@ function AdminUserDetail({ user, onBack, isInstructorContext }) {
               emptyState="Chưa có thu nhập nào."
               pagination={{
                 currentPage: incomePage,
-                totalPages: incomes?.data?.totalPages || 1,
-                totalItems: incomes?.data?.totalElements || 0,
+                totalPages: incomes?.data?.page?.totalPages ?? incomes?.data?.totalPages ?? 1,
+                totalItems: incomes?.data?.page?.totalElements ?? incomes?.data?.totalElements ?? 0,
                 onPageChange: (p) => setIncomePage(p),
+                onPageSizeChange: (s) => { setIncomeSize(s); setIncomePage(1); },
                 zeroIndexed: false,
                 pageSize: incomeSize,
               }}
@@ -1644,9 +1650,10 @@ function AdminUserDetail({ user, onBack, isInstructorContext }) {
               emptyState="Chưa có yêu cầu rút tiền nào."
               pagination={{
                 currentPage: payoutPage,
-                totalPages: payouts?.data?.totalPages || 1,
-                totalItems: payouts?.data?.totalElements || 0,
+                totalPages: payouts?.data?.page?.totalPages ?? payouts?.data?.totalPages ?? 1,
+                totalItems: payouts?.data?.page?.totalElements ?? payouts?.data?.totalElements ?? 0,
                 onPageChange: (p) => setPayoutPage(p),
+                onPageSizeChange: (s) => { setPayoutSize(s); setPayoutPage(1); },
                 zeroIndexed: false,
                 pageSize: payoutSize,
               }}
@@ -1747,9 +1754,10 @@ function AdminUserDetail({ user, onBack, isInstructorContext }) {
             emptyState={isInstructor ? "Không có chủ đề nào." : "Không có bài viết nào."}
             pagination={{
               currentPage: threadPage,
-                totalPages: threads?.data?.totalPages || 1,
-                totalItems: threads?.data?.totalElements || 0,
+                totalPages: threads?.data?.page?.totalPages ?? threads?.data?.totalPages ?? 1,
+                totalItems: threads?.data?.page?.totalElements ?? threads?.data?.totalElements ?? 0,
                 onPageChange: (p) => setThreadPage(p),
+                onPageSizeChange: (s) => { setThreadSize(s); setThreadPage(1); },
                 zeroIndexed: false,
                 pageSize: threadSize,
             }}
@@ -1871,15 +1879,61 @@ function AdminUserDetail({ user, onBack, isInstructorContext }) {
               emptyState="Chưa có đánh giá nào."
               pagination={{
                 currentPage: reviewPage,
-                totalPages: reviews?.data?.totalPages || 1,
-                totalItems: reviews?.data?.totalElements || 0,
+                totalPages: reviews?.data?.page?.totalPages ?? reviews?.data?.totalPages ?? 1,
+                totalItems: reviews?.data?.page?.totalElements ?? reviews?.data?.totalElements ?? 0,
                 onPageChange: (p) => setReviewPage(p),
+                onPageSizeChange: (s) => { setReviewSize(s); setReviewPage(1); },
                 zeroIndexed: false,
                 pageSize: reviewSize,
               }}
             />
           </TabsContent>
         )}
+
+        <TabsContent value="ACTIVITY" className="mt-0">
+          <DataTable
+            columns={[
+              {
+                header: "STT",
+                width: "70px",
+                className: "text-center",
+                cellClassName: "text-center",
+                render: (_, idx) => <div className="text-center w-full text-foreground font-semibold text-sm">{idx + 1 + (activityPage - 1) * activitySize}</div>
+              },
+              {
+                header: "Hành động",
+                width: "200px",
+                render: (c) => <div className="font-semibold text-foreground whitespace-pre-wrap">{c.action}</div>
+              },
+              {
+                header: "Dữ liệu",
+                width: "400px",
+                render: (c) => <div className="text-sm text-muted-foreground whitespace-pre-wrap">{c.payload || ""}</div>
+              },
+              {
+                header: "Thời gian",
+                width: "180px",
+                className: "text-center",
+                render: (c) => {
+                  if (!c.createdAt) return "-";
+                  const d = new Date(c.createdAt);
+                  return <div className="text-center w-full text-sm">{d.toLocaleString('vi-VN')}</div>
+                }
+              }
+            ]}
+            data={activities?.data?.content || []}
+            emptyState="Không có hoạt động nào."
+            pagination={{
+              currentPage: activityPage,
+              totalPages: activities?.data?.page?.totalPages ?? activities?.data?.totalPages ?? 1,
+              totalItems: activities?.data?.page?.totalElements ?? activities?.data?.totalElements ?? 0,
+              onPageChange: (p) => setActivityPage(p),
+              onPageSizeChange: (s) => { setActivitySize(s); setActivityPage(1); },
+              zeroIndexed: false,
+              pageSize: activitySize,
+            }}
+          />
+        </TabsContent>
       </Tabs>
     </div>
   );

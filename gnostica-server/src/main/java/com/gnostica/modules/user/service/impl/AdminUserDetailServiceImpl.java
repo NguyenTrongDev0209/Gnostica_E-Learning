@@ -43,6 +43,8 @@ public class AdminUserDetailServiceImpl implements AdminUserDetailService {
     private LessonProgressRepository lessonProgressRepository;
     @Autowired
     private ModuleRepository moduleRepository;
+    @Autowired
+    private LogRepository logRepository;
     
     @Override
     public AdminUserSummaryDTO getUserSummary(UUID userId) {
@@ -250,5 +252,10 @@ public class AdminUserDetailServiceImpl implements AdminUserDetailService {
                         .createdAt(r.getCreatedAt())
                         .status(r.getStatus())
                         .build());
+    }
+
+    @Override
+    public Page<com.gnostica.core.model.Log> getUserActivities(UUID userId, Pageable pageable) {
+        return logRepository.findByAccountId(userId, pageable);
     }
 }
