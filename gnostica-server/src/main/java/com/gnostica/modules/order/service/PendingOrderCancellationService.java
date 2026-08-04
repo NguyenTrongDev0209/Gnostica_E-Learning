@@ -39,7 +39,11 @@ public class PendingOrderCancellationService {
     }
 
     private void releaseReservedCoupon(Order order) {
-        Coupon coupon = order.getCoupon();
+        Coupon orderCoupon = order.getCoupon();
+        if (orderCoupon == null) {
+            return;
+        }
+        Coupon coupon = couponRepository.findByIdForUpdate(orderCoupon.getId()).orElse(null);
         if (coupon == null || coupon.getReservedQuantity() == null) {
             return;
         }

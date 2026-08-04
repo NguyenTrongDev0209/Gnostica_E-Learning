@@ -34,16 +34,32 @@ export default function AppSelect({
   contentClassName,
   ...props
 }) {
+  const selectedOption = options.find((option) => option.value === value);
+
   return (
     <Select value={value} onValueChange={onValueChange} disabled={disabled} {...props}>
       <SelectTrigger 
         aria-invalid={error}
         className={cn(
           "w-full !h-11 bg-card transition-all duration-300 border font-sans",
+          error && "border-error/50 ring-1 ring-error/20 focus:ring-error/30",
           className
         )}
       >
-        <SelectValue placeholder={placeholder} />
+        {selectedOption ? (
+          <span className="flex min-w-0 items-center gap-2 text-left">
+            {selectedOption.imageUrl && (
+              <img
+                src={selectedOption.imageUrl}
+                alt=""
+                className="size-8 shrink-0 object-contain"
+              />
+            )}
+            <span className="truncate">{selectedOption.label}</span>
+          </span>
+        ) : (
+          <SelectValue placeholder={placeholder} />
+        )}
       </SelectTrigger>
       <SelectContent position="popper" className={cn("shadow-none border border-border ring-0 rounded-xl bg-card", contentClassName)}>
         <SelectGroup className="p-1 space-y-1">
@@ -55,7 +71,16 @@ export default function AppSelect({
                 disabled={opt.disabled}
                 className="rounded-lg cursor-pointer py-2.5 text-sm transition-colors focus:!bg-primary/10 focus:!text-primary focus:**:!text-primary data-[state=checked]:!text-primary data-[state=checked]:!bg-primary/10 data-[state=checked]:**:!text-primary data-[state=checked]:font-medium"
               >
-                {opt.label}
+                <span className="flex min-w-0 items-center gap-2">
+                  {opt.imageUrl && (
+                    <img
+                      src={opt.imageUrl}
+                      alt=""
+                      className="size-10 shrink-0 object-contain"
+                    />
+                  )}
+                  <span className="truncate">{opt.label}</span>
+                </span>
               </SelectItem>
             ))
           ) : (

@@ -7,6 +7,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import java.util.UUID;
 import jakarta.validation.constraints.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Data
 @NoArgsConstructor
@@ -34,9 +35,11 @@ public class AccountBank {
 
     @NotBlank
     @Size(max = 255)
+    @JsonIgnore
     private String accountNumber;
 
     @Size(max = 255)
+    @JsonIgnore
     private String pin;
 
     /**

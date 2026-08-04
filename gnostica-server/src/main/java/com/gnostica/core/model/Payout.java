@@ -44,6 +44,27 @@ public class Payout {
     @NotNull
     private Integer status;
 
+    /** Immutable identifier returned by the payout gateway. */
+    @Column(name = "gateway_payout_id", unique = true)
+    private String gatewayPayoutId;
+
+    /** Idempotency reference sent to the payout gateway. */
+    @Column(name = "gateway_reference_id", unique = true)
+    private String gatewayReferenceId;
+
+    @Column(name = "idempotency_key")
+    private String idempotencyKey;
+
+    @Builder.Default
+    @Column(name = "submission_attempts", nullable = false)
+    private Integer submissionAttempts = 0;
+
+    @Column(name = "last_submission_at")
+    private LocalDateTime lastSubmissionAt;
+
+    @Column(name = "last_submission_error", length = 500)
+    private String lastSubmissionError;
+
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime createdAt;
