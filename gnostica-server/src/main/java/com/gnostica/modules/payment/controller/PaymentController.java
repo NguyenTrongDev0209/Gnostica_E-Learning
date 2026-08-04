@@ -1,6 +1,7 @@
 package com.gnostica.modules.payment.controller;
 
-import com.gnostica.modules.payment.service.PaymentService;
+import com.gnostica.modules.payment.service.PayosService;
+import com.gnostica.modules.payment.service.VnpayService;
 import com.gnostica.modules.payment.dto.response.PaymentWebhookData;
 import com.gnostica.modules.payment.dto.response.VNPayIpnResponse;
 import com.gnostica.core.config.VNPayProperties;
@@ -23,14 +24,15 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 public class PaymentController {
-	private final PaymentService paymentService;
+	private final PayosService payosService;
+	private final VnpayService vnpayService;
 	private final VNPayProperties vnPayProperties;
 
 	@PostMapping(path = "/check")
 	public ResponseEntity<Void> payosTransferHandler(@RequestBody Object body) {
 		try {
-			PaymentWebhookData data = paymentService.verifyWebhook("PAYOS", body);
-			paymentService.handlePaymentWebhook(data);
+			PaymentWebhookData data = payosService.verifyWebhook(body);
+			payosService.handleWebhook(data);
 			return ResponseEntity.ok().build();
 		} catch (IllegalArgumentException e) {
 			log.warn("Rejected PayOS webhook: {}", e.getMessage());
@@ -43,7 +45,7 @@ public class PaymentController {
 
 	@GetMapping(path = "/vnpay/ipn")
 	public VNPayIpnResponse vnPayIpn(@RequestParam Map<String, String> parameters) {
-		return paymentService.handleVNPayIpn(parameters);
+		return vnpayService.handleVNPayIpn(parameters);
 	}
 
 	@GetMapping(path = "/vnpay/return")
@@ -51,7 +53,7 @@ public class PaymentController {
 		UriComponentsBuilder redirect = UriComponentsBuilder.fromUriString(vnPayProperties.getFrontendReturnUrl());
 		PaymentWebhookData data;
         try {
-            data = paymentService.verifyWebhook("VNPAY", parameters);
+            data = vnpayService.verifyWebhook(parameters);
 		} catch (Exception exception) {
 			log.warn("Rejected VNPay return callback: {}", exception.getMessage());
 			redirect.queryParam("gateway", "VNPAY")
@@ -64,7 +66,7 @@ public class PaymentController {
             // VNPay returns a signed result even when the buyer cancels on the
             // hosted page. Process that verified result now; waiting only for
             // QueryDR leaves the checkout incorrectly pending after a cancel.
-            paymentService.handleVNPayIpn(parameters);
+            vnpayService.handleVNPayIpn(parameters);
             redirect.queryParam("orderCode", data.getOrderCode())
                     .queryParam("gateway", "VNPAY")
                     .queryParam("paymentStatus", data.getStatus())

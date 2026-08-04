@@ -1,46 +1,61 @@
-package com.gnostica.modules.payment.service.impl;
+package com.gnostica.modules.payment.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gnostica.core.config.VNPayProperties;
+import com.gnostica.core.constant.OrderStatus;
 import com.gnostica.core.model.Order;
+import com.gnostica.core.repository.OrderRepository;
+import com.gnostica.core.repository.PaymentRepository;
 import com.gnostica.modules.payment.dto.response.PaymentDetails;
 import com.gnostica.modules.payment.dto.response.PaymentLinkResponse;
 import com.gnostica.modules.payment.dto.response.PaymentWebhookData;
-import com.gnostica.modules.payment.service.PaymentStrategy;
+import com.gnostica.modules.payment.dto.response.VNPayIpnResponse;
 import com.gnostica.modules.payment.util.VNPaySigner;
+import com.gnostica.modules.wallet.service.WalletService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import java.math.BigDecimal;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyStore;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.UUID;
 import java.util.TreeMap;
-import java.security.KeyStore;
+import java.util.UUID;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 
 @Service
 @RequiredArgsConstructor
-public class VNPayPaymentStrategy implements PaymentStrategy {
+@Slf4j
+public class VnpayService {
     private static final ZoneId VIETNAM_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
     private static final DateTimeFormatter VNPAY_DATE = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 
     private final VNPayProperties properties;
     private final ObjectMapper objectMapper;
+    private final OrderRepository orderRepository;
+    private final PaymentRepository paymentRepository;
+    private final WalletService walletService;
+    
+    @Lazy
+    private final PaymentService paymentService;
 
-    @Override
+    // === Payment Link ===
     public PaymentLinkResponse createPaymentLink(Order order, String returnUrl, String cancelUrl) {
         validateConfiguration();
         long amount = order.getTotalPrice().longValueExact();
@@ -49,8 +64,6 @@ public class VNPayPaymentStrategy implements PaymentStrategy {
         }
 
         LocalDateTime now = LocalDateTime.now(VIETNAM_ZONE);
-        // A resumed checkout must keep the original transaction reference and
-        // expiry window. VNPay uses this timestamp again for QueryDR.
         LocalDateTime createdAt = order.getCreatedAt() != null ? order.getCreatedAt() : now;
         LocalDateTime expiresAt = createdAt.plusMinutes(properties.getExpireMinutes());
         if (!expiresAt.isAfter(now)) {
@@ -84,7 +97,7 @@ public class VNPayPaymentStrategy implements PaymentStrategy {
                 .build();
     }
 
-    @Override
+    // === Webhook / IPN ===
     public PaymentWebhookData verifyWebhook(Object body) {
         validateConfiguration();
         if (!(body instanceof Map<?, ?> rawParameters)) {
@@ -152,12 +165,77 @@ public class VNPayPaymentStrategy implements PaymentStrategy {
                 .build();
     }
 
-    @Override
+    @Transactional
+    public VNPayIpnResponse handleVNPayIpn(Map<String, String> parameters) {
+        PaymentWebhookData data;
+        try {
+            data = verifyWebhook(parameters);
+        } catch (IllegalArgumentException exception) {
+            log.warn("Rejected VNPay IPN: {}", exception.getMessage());
+            if (exception.getMessage() != null
+                    && (exception.getMessage().contains("signature") || exception.getMessage().contains("merchant"))) {
+                return VNPayIpnResponse.invalidSignature();
+            }
+            return VNPayIpnResponse.invalidRequest();
+        } catch (Exception exception) {
+            log.error("Unable to verify VNPay IPN", exception);
+            return VNPayIpnResponse.invalidRequest();
+        }
+
+        Order order = orderRepository.findByOrderCodeForUpdate(data.getOrderCode()).orElse(null);
+        if (order == null || !"VNPAY".equalsIgnoreCase(order.getPaymentMethod())) {
+            return VNPayIpnResponse.orderNotFound();
+        }
+        if (order.getStatus() == OrderStatus.PAID) {
+            return VNPayIpnResponse.alreadyProcessed();
+        }
+        if (data.getAmount() == null
+                || order.getTotalPrice().compareTo(BigDecimal.valueOf(data.getAmount())) != 0) {
+            return VNPayIpnResponse.invalidAmount();
+        }
+        if ("PAID".equals(data.getStatus()) && order.getStatus() == OrderStatus.CANCELLED) {
+            if (data.getTransactionCode() == null || data.getTransactionCode().isBlank()) {
+                return VNPayIpnResponse.invalidRequest();
+            }
+            boolean alreadyRecorded = paymentRepository.existsByGatewayAndGatewayTransactionNo(
+                    "VNPAY", data.getTransactionCode());
+            paymentService.saveTransaction(data, order);
+            if (!alreadyRecorded) {
+                walletService.addDeposit(order.getAccount(), BigDecimal.valueOf(data.getAmount()), data.getTransactionCode());
+            }
+            log.info("Late VNPay payment credited to wallet for expired order {}", order.getId());
+            return VNPayIpnResponse.success();
+        }
+        if (order.getStatus() != OrderStatus.PENDING) {
+            return VNPayIpnResponse.alreadyProcessed();
+        }
+        if (!"PAID".equals(data.getStatus())) {
+            log.info("VNPay reported non-successful transaction for order {}", order.getId());
+            if (hasGatewayTransactionCode(data.getTransactionCode())) {
+                paymentService.saveTransaction(data, order);
+            }
+            if (order.getStatus() == OrderStatus.PENDING) {
+                order.setStatus(OrderStatus.CANCELLED);
+                orderRepository.save(order);
+                paymentService.releaseCouponReservation(order);
+            }
+            return VNPayIpnResponse.success();
+        }
+        if (data.getTransactionCode() == null || data.getTransactionCode().isBlank()) {
+            return VNPayIpnResponse.invalidRequest();
+        }
+
+        paymentService.processSuccessfulOrder(order);
+        paymentService.saveTransaction(data, order);
+        log.info("VNPay payment processed successfully for order {}", order.getId());
+        return VNPayIpnResponse.success();
+    }
+
+    // === Query ===
     public boolean checkPaymentStatus(Order order) throws Exception {
         return "PAID".equals(getPaymentDetails(order).getStatus());
     }
 
-    @Override
     public PaymentDetails getPaymentDetails(Order order) throws Exception {
         validateConfiguration();
         LocalDateTime now = LocalDateTime.now(VIETNAM_ZONE);
@@ -200,8 +278,7 @@ public class VNPayPaymentStrategy implements PaymentStrategy {
         verifyQueryResponse(result);
         String responseCode = result.path("vnp_ResponseCode").asText();
         String transactionStatus = result.path("vnp_TransactionStatus").asText();
-        // vnp_ResponseCode confirms the query itself. The actual payment
-        // outcome is determined separately by vnp_TransactionStatus.
+        
         String status;
         if (!"00".equals(responseCode)) {
             status = "UNAVAILABLE";
@@ -229,11 +306,7 @@ public class VNPayPaymentStrategy implements PaymentStrategy {
                 .build();
     }
 
-    @Override
-    public String getGatewayName() {
-        return "VNPAY";
-    }
-
+    // === Helpers ===
     private void validateConfiguration() {
         if (properties.getTmnCode() == null || properties.getTmnCode().isBlank()
                 || properties.getHashSecret() == null || properties.getHashSecret().isBlank()) {
@@ -321,5 +394,9 @@ public class VNPayPaymentStrategy implements PaymentStrategy {
             return request.getRemoteAddr();
         }
         return "127.0.0.1";
+    }
+
+    private boolean hasGatewayTransactionCode(String transactionCode) {
+        return transactionCode != null && !transactionCode.isBlank() && !"0".equals(transactionCode.trim());
     }
 }

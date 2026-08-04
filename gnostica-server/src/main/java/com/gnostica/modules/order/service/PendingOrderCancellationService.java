@@ -6,8 +6,8 @@ import com.gnostica.core.model.Course;
 import com.gnostica.core.model.Order;
 import com.gnostica.core.repository.CouponRepository;
 import com.gnostica.core.repository.OrderRepository;
-import com.gnostica.modules.payment.service.PayOSPaymentLinkCacheService;
 import com.gnostica.modules.payment.service.PaymentService;
+import com.gnostica.modules.payment.service.PayosService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -20,7 +20,7 @@ public class PendingOrderCancellationService {
     private final OrderRepository orderRepository;
     private final CouponRepository couponRepository;
     private final PaymentService paymentService;
-    private final PayOSPaymentLinkCacheService payOSPaymentLinkCacheService;
+    private final PayosService payosService;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public boolean cancelPendingOrder(Long orderCode, String reason, boolean cancelGatewayPayment) throws Exception {
@@ -58,7 +58,7 @@ public class PendingOrderCancellationService {
         }
         Course course = order.getDetails().get(0).getCourse();
         if (course != null) {
-            payOSPaymentLinkCacheService.clear(order.getAccount().getId(), course.getId());
+            payosService.clearPendingLink(order.getAccount().getId(), course.getId());
         }
     }
 }

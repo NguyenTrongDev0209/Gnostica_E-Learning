@@ -1,7 +1,7 @@
 package com.gnostica.modules.order.service;
 
 import com.gnostica.modules.payment.service.PaymentService;
-import com.gnostica.modules.payment.service.PayOSPaymentLinkCacheService;
+import com.gnostica.modules.payment.service.PayosService;
 import com.gnostica.core.config.VNPayProperties;
 import com.gnostica.modules.payment.dto.response.PaymentLinkResponse;
 import com.gnostica.modules.payment.dto.request.CreatePaymentLinkRequestBody;
@@ -64,7 +64,7 @@ public class OrderService {
     private final PaymentService paymentService;
     private final CommissionResolver commissionResolver;
     private final WalletService walletService;
-    private final PayOSPaymentLinkCacheService payOSPaymentLinkCacheService;
+    private final PayosService payosService;
     private final VNPayProperties vnPayProperties;
     private final PendingOrderCancellationService pendingOrderCancellationService;
 
@@ -353,7 +353,7 @@ public class OrderService {
 
     private PaymentLinkResponse findReusablePendingPayOSPayment(Account account, Course course) {
         List<Order> pendingOrders = orderRepository.findPendingPayOSOrdersByAccountAndCourse(account, course);
-        return payOSPaymentLinkCacheService.find(account.getId(), course.getId())
+        return payosService.findPendingLink(account.getId(), course.getId())
                 .filter(link -> pendingOrders.stream().anyMatch(order -> order.getOrderCode().equals(link.getOrderCode())))
                 .orElse(null);
     }

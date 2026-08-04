@@ -1,10 +1,11 @@
-package com.gnostica.modules.payment.service;
+package com.gnostica.modules.payment.scheduler;
 
 import com.gnostica.core.config.VNPayProperties;
 import com.gnostica.core.constant.OrderStatus;
 import com.gnostica.core.model.Order;
 import com.gnostica.core.repository.OrderRepository;
 import com.gnostica.modules.order.service.PendingOrderCancellationService;
+import com.gnostica.modules.payment.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
