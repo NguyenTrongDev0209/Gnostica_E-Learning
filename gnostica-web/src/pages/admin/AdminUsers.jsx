@@ -487,7 +487,7 @@ export default function AdminUsers() {
   ];
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 pb-10">
+    <div className="space-y-6 pb-10">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
@@ -915,7 +915,7 @@ function AdminUserDetail({ user, onBack, isInstructorContext }) {
   } = useAdminUserDetail(user.id, isInstructor, activeDetailTab);
 
   return (
-    <div className="space-y-6 animate-in fade-in zoom-in-95 duration-300 pb-10">
+    <div className="space-y-6 pb-10">
       <div className="flex items-center gap-4 border-b border-border pb-4">
         <AppButton variant="outline" size="sm" onClick={onBack} className="gap-2">
           <ArrowLeft className="w-4 h-4" /> Trở lại

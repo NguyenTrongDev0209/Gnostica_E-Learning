@@ -146,7 +146,7 @@ export default function AdminCourses() {
   ];
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 pb-10">
+    <div className="space-y-6 pb-10">
       <div>
         <h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2"><BookOpen className="w-6 h-6 text-primary" />Quản Lý Khóa Học</h1>
         <p className="text-sm text-muted-foreground mt-1">Theo dõi và quản lý toàn bộ khóa học trên hệ thống.</p>
