@@ -67,7 +67,7 @@ public class DotenvEnvironmentPostProcessor implements EnvironmentPostProcessor 
             // A local server is not publicly reachable by PayOS, so use polling.
             props.put("PAYOS_WEBHOOK_ENABLED", "false");
             props.put("VNPAY_RETURN_URL", environment.getProperty(
-                    "VNPAY_DEV_RETURN_URL", "http://localhost:8080/api/payment/vnpay/return"));
+                    "VNPAY_DEV_RETURN_URL", "http://localhost:8080/api/checkout/payments/vnpay/return"));
             props.put("VNPAY_FRONTEND_RETURN_URL", environment.getProperty(
                     "VNPAY_DEV_FRONTEND_RETURN_URL", "http://localhost:5173/checkout"));
             return props;

@@ -6,7 +6,7 @@ const couponService = {
      * Response: ResponseDTO<List<CouponResponse>>
      */
     getAll: () => {
-        return api.get('/checkout/checkout/coupons');
+        return api.get('/checkout/coupons');
     },
 
     /**
@@ -14,7 +14,7 @@ const couponService = {
      * Response: ResponseDTO<List<CouponResponse>>
      */
     getMyCoupons: () => {
-        return api.get('/checkout/checkout/coupons/me');
+        return api.get('/checkout/coupons/me');
     },
 
     /**
