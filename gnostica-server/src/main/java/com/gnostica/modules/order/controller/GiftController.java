@@ -4,7 +4,7 @@ import com.gnostica.core.util.AuthUtil;
 import com.gnostica.modules.order.dto.request.GiftCourseRequest;
 import com.gnostica.modules.order.dto.response.GiftDetailResponse;
 import com.gnostica.modules.order.dto.response.GiftSearchResponse;
-import com.gnostica.modules.order.service.CourseGiftService;
+import com.gnostica.modules.order.service.GiftService;
 import com.gnostica.modules.payment.dto.response.PaymentLinkResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +19,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class GiftController {
 
-    private final CourseGiftService courseGiftService;
+    private final GiftService giftService;
 
     @GetMapping("/search-receiver")
     @PreAuthorize("isAuthenticated()")
@@ -27,7 +27,7 @@ public class GiftController {
             @RequestParam String email,
             @RequestParam UUID courseId) {
         String senderEmail = AuthUtil.getCurrentUserEmail();
-        GiftSearchResponse response = courseGiftService.searchReceiver(senderEmail, email, courseId);
+        GiftSearchResponse response = giftService.searchReceiver(senderEmail, email, courseId);
         return ResponseEntity.ok(response);
     }
 
@@ -35,13 +35,13 @@ public class GiftController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<PaymentLinkResponse> createGift(@Valid @RequestBody GiftCourseRequest request) throws Exception {
         String senderEmail = AuthUtil.getCurrentUserEmail();
-        PaymentLinkResponse response = courseGiftService.createGift(request, senderEmail);
+        PaymentLinkResponse response = giftService.createGift(request, senderEmail);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{token}")
     public ResponseEntity<GiftDetailResponse> getGiftByToken(@PathVariable String token) {
-        GiftDetailResponse response = courseGiftService.getGiftByToken(token);
+        GiftDetailResponse response = giftService.getGiftByToken(token);
         return ResponseEntity.ok(response);
     }
 
@@ -49,7 +49,7 @@ public class GiftController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> acceptGift(@PathVariable String token) {
         String receiverEmail = AuthUtil.getCurrentUserEmail();
-        courseGiftService.acceptGift(token, receiverEmail);
+        giftService.acceptGift(token, receiverEmail);
         return ResponseEntity.ok().build();
     }
 
@@ -57,7 +57,7 @@ public class GiftController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> rejectGift(@PathVariable String token) {
         String receiverEmail = AuthUtil.getCurrentUserEmail();
-        courseGiftService.rejectGift(token, receiverEmail);
+        giftService.rejectGift(token, receiverEmail);
         return ResponseEntity.ok().build();
     }
 }

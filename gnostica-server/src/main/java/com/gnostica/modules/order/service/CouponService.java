@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -41,7 +43,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class CouponService {
+public class CouponService implements ApplicationRunner {
 
     private final CouponRepository couponRepository;
     private final AccountRepository accountRepository;
@@ -506,5 +508,19 @@ public class CouponService {
                 .accountAvatar(coupon.getAccount().getAvatar())
                 .sponsorType(isAdmin(coupon.getAccount()) ? "PLATFORM" : "INSTRUCTOR")
                 .build();
+    }
+
+    @Override
+    @Transactional
+    public void run(ApplicationArguments args) {
+        for (Coupon coupon : couponRepository.findAllByCodeHashIsNull()) {
+            String rawCode = coupon.getEncryptedCode().trim().toUpperCase(Locale.ROOT);
+            String codeHash = couponCodeCipher.hash(rawCode);
+            if (couponRepository.existsByCodeHashAndIdNot(codeHash, coupon.getId())) {
+                throw new IllegalStateException("Duplicate coupon code found while converting seeded coupons");
+            }
+            coupon.setCodeHash(codeHash);
+            coupon.setEncryptedCode(couponCodeCipher.encrypt(coupon.getAccount().getId(), rawCode));
+        }
     }
 }

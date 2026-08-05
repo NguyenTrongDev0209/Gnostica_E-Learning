@@ -4,7 +4,7 @@ import com.gnostica.core.constant.OrderStatus;
 import com.gnostica.core.model.Order;
 import com.gnostica.core.repository.OrderRepository;
 import com.gnostica.core.config.VNPayProperties;
-import com.gnostica.modules.order.service.PendingOrderCancellationService;
+import com.gnostica.modules.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -21,7 +21,7 @@ public class OrderCleanupScheduler {
 
     private final OrderRepository orderRepository;
     private final VNPayProperties vnPayProperties;
-    private final PendingOrderCancellationService pendingOrderCancellationService;
+    private final OrderService orderService;
 
     /**
      * Chạy định kỳ mỗi 1 tiếng (3600000 ms)
@@ -49,7 +49,7 @@ public class OrderCleanupScheduler {
         log.info("Cancelling {} expired pending orders.", expiredOrders.size());
         for (Order order : expiredOrders) {
             try {
-                pendingOrderCancellationService.cancelPendingOrder(order.getOrderCode(), "Payment window expired", false);
+                orderService.cancelPendingOrderAtomic(order.getOrderCode(), "Payment window expired", false);
             } catch (Exception exception) {
                 log.warn("Unable to cancel expired order {}: {}", order.getOrderCode(), exception.getMessage());
             }

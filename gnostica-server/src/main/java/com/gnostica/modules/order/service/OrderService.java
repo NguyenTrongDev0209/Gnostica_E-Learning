@@ -66,7 +66,10 @@ public class OrderService {
     private final WalletService walletService;
     private final PayosService payosService;
     private final VNPayProperties vnPayProperties;
-    private final PendingOrderCancellationService pendingOrderCancellationService;
+
+    @org.springframework.context.annotation.Lazy
+    @org.springframework.beans.factory.annotation.Autowired
+    private OrderService self;
 
     @Value("${payos.webhook-enabled:false}")
     private boolean payosWebhookEnabled;
@@ -131,7 +134,7 @@ public class OrderService {
             throw new IllegalArgumentException("Only pending orders can be cancelled");
         }
 
-        boolean cancelled = pendingOrderCancellationService.cancelPendingOrder(orderCode,
+        boolean cancelled = self.cancelPendingOrderAtomic(orderCode,
                 "Cancelled by customer", true);
         if (!cancelled) {
             throw new IllegalStateException("Order status changed while cancellation was requested");
@@ -448,7 +451,7 @@ public class OrderService {
     }
 
     private void cancelPendingOrderForReplacement(Order order) throws Exception {
-        boolean cancelled = pendingOrderCancellationService.cancelPendingOrder(order.getOrderCode(),
+        boolean cancelled = self.cancelPendingOrderAtomic(order.getOrderCode(),
                 "Replaced by a new checkout configuration", true);
         if (!cancelled) {
             throw new IllegalStateException("Pending order changed while checkout was being updated");
@@ -456,7 +459,7 @@ public class OrderService {
     }
 
     private void cancelExpiredPendingOrder(Order order) throws Exception {
-        boolean cancelled = pendingOrderCancellationService.cancelPendingOrder(order.getOrderCode(),
+        boolean cancelled = self.cancelPendingOrderAtomic(order.getOrderCode(),
                 "Payment window expired", false);
         if (!cancelled) {
             throw new IllegalStateException("Pending order changed while it was expiring");
@@ -585,5 +588,45 @@ public class OrderService {
             }).collect(Collectors.toList()));
         }
         return resp;
+    }
+
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    public boolean cancelPendingOrderAtomic(Long orderCode, String reason, boolean cancelGatewayPayment) throws Exception {
+        Order order = orderRepository.findByOrderCodeForUpdate(orderCode).orElse(null);
+        if (order == null || order.getStatus() != OrderStatus.PENDING) {
+            return false;
+        }
+        if (cancelGatewayPayment) {
+            paymentService.cancelPayment(order, reason);
+        }
+        order.setStatus(OrderStatus.CANCELLED);
+        orderRepository.save(order);
+        releaseReservedCoupon(order);
+        clearPendingPayOSPaymentLink(order);
+        return true;
+    }
+
+    private void releaseReservedCoupon(Order order) {
+        Coupon orderCoupon = order.getCoupon();
+        if (orderCoupon == null) {
+            return;
+        }
+        Coupon coupon = couponRepository.findByIdForUpdate(orderCoupon.getId()).orElse(null);
+        if (coupon == null || coupon.getReservedQuantity() == null) {
+            return;
+        }
+        coupon.setReservedQuantity(Math.max(0, coupon.getReservedQuantity() - 1));
+        couponRepository.save(coupon);
+    }
+
+    private void clearPendingPayOSPaymentLink(Order order) {
+        if (!"PAYOS".equalsIgnoreCase(order.getPaymentMethod()) || order.getAccount() == null
+                || order.getDetails() == null || order.getDetails().isEmpty()) {
+            return;
+        }
+        Course course = order.getDetails().get(0).getCourse();
+        if (course != null) {
+            payosService.clearPendingLink(order.getAccount().getId(), course.getId());
+        }
     }
 }

@@ -26,7 +26,7 @@ public class EnrollmentListener {
     private final OrderDetailRepository orderDetailRepository;
     private final NotificationService notificationService;
     private final GiftRepository giftRepository;
-    private final com.gnostica.modules.order.service.CourseGiftService courseGiftService;
+    private final com.gnostica.modules.order.service.GiftService giftService;
 
     @EventListener
     @Transactional
@@ -36,7 +36,7 @@ public class EnrollmentListener {
         // Skip auto-enrollment for gift orders
         if (giftRepository.existsByOrder(order)) {
             log.info("Gift order {} - skip auto enrollment and process gift", order.getId());
-            courseGiftService.processPaidGiftOrder(order);
+            giftService.processPaidGiftOrder(order);
             return;
         }
         

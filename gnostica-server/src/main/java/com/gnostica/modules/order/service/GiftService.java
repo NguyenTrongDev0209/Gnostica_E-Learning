@@ -40,7 +40,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class CourseGiftService {
+public class GiftService {
 
     private final GiftRepository giftRepository;
     private final AccountRepository accountRepository;

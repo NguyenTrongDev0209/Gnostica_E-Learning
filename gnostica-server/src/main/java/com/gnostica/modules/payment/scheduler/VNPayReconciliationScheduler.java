@@ -4,7 +4,7 @@ import com.gnostica.core.config.VNPayProperties;
 import com.gnostica.core.constant.OrderStatus;
 import com.gnostica.core.model.Order;
 import com.gnostica.core.repository.OrderRepository;
-import com.gnostica.modules.order.service.PendingOrderCancellationService;
+import com.gnostica.modules.order.service.OrderService;
 import com.gnostica.modules.payment.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +22,7 @@ public class VNPayReconciliationScheduler {
     private final VNPayProperties properties;
     private final OrderRepository orderRepository;
     private final PaymentService paymentService;
-    private final PendingOrderCancellationService pendingOrderCancellationService;
+    private final OrderService orderService;
 
     @Scheduled(fixedDelayString = "${vnpay.polling-interval-ms:2000}")
     public void reconcileActivePendingPayments() {
@@ -35,7 +35,7 @@ public class VNPayReconciliationScheduler {
                         OrderStatus.PENDING, "VNPAY", expiresBefore);
         for (Order expiredOrder : expiredOrders) {
             try {
-                pendingOrderCancellationService.cancelPendingOrder(expiredOrder.getOrderCode(),
+                orderService.cancelPendingOrderAtomic(expiredOrder.getOrderCode(),
                         "VNPay payment window expired", false);
             } catch (Exception exception) {
                 log.warn("Unable to expire VNPay order {}: {}", expiredOrder.getOrderCode(), exception.getMessage());
