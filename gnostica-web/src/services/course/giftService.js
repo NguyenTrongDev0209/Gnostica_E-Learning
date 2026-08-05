@@ -2,24 +2,25 @@ import axiosClient from "@/lib/axiosClient";
 
 const giftService = {
   searchReceiver: (email, courseId) => {
-    return axiosClient.get(`/gifts/search-receiver?email=${email}&courseId=${courseId}`);
+    return axiosClient.get(`/checkout/gifts/search-receiver?email=${email}&courseId=${courseId}`);
   },
 
   createGift: (data) => {
-    return axiosClient.post("/gifts/create", data);
+    return axiosClient.post("/checkout/gifts/create", data);
   },
 
   getGiftByToken: (token) => {
-    return axiosClient.get(`/gifts/${token}`);
+    return axiosClient.get(`/checkout/gifts/${token}`);
   },
 
   acceptGift: (token) => {
-    return axiosClient.post(`/gifts/${token}/accept`);
+    return axiosClient.post(`/checkout/gifts/${token}/accept`);
   },
 
   rejectGift: (token) => {
-    return axiosClient.post(`/gifts/${token}/reject`);
+    return axiosClient.post(`/checkout/gifts/${token}/reject`);
   },
 };
 
 export default giftService;
+

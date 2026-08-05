@@ -5,8 +5,8 @@ import com.gnostica.core.exception.ResourceNotFoundException;
 import com.gnostica.modules.forum.dto.response.*;
 import com.gnostica.modules.wallet.dto.response.*;
 import com.gnostica.modules.dashboard.dto.response.*;
-import com.gnostica.modules.order.dto.response.*;
-import com.gnostica.modules.payment.dto.response.*;
+import com.gnostica.modules.checkout.dto.response.*;
+import com.gnostica.modules.checkout.dto.response.*;
 import com.gnostica.modules.course.dto.response.*;
 import com.gnostica.core.model.Course;
 import com.gnostica.modules.course.service.CourseService;
@@ -191,3 +191,4 @@ public class CourseController {
         return ResponseEntity.ok(courseService.getRecommendedCourses(email, page, size));
     }
 }
+

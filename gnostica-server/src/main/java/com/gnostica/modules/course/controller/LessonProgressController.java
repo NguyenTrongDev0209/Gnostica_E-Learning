@@ -2,8 +2,8 @@ package com.gnostica.modules.course.controller;
 
 
 import com.gnostica.modules.forum.dto.request.*;
-import com.gnostica.modules.order.dto.request.*;
-import com.gnostica.modules.payment.dto.request.*;
+import com.gnostica.modules.checkout.dto.request.*;
+import com.gnostica.modules.checkout.dto.request.*;
 
 import com.gnostica.modules.course.service.LessonProgressService;
 import lombok.RequiredArgsConstructor;
@@ -106,3 +106,4 @@ public class LessonProgressController {
         }
     }
 }
+

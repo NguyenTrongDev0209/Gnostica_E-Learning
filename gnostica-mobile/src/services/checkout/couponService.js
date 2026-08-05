@@ -1,31 +1,32 @@
-﻿import api from '../../config/api';
+import api from '../../config/api';
 
 const couponService = {
     /**
-     * Láº¥y táº¥t cáº£ mÃ£ giáº£m giÃ¡ (admin)
+     * Lấy tất cả mã giảm giá (admin)
      * Response: ResponseDTO<List<CouponResponse>>
      */
     getAll: () => {
-        return api.get('/coupons');
+        return api.get('/checkout/checkout/coupons');
     },
 
     /**
-     * Láº¥y mÃ£ giáº£m giÃ¡ kháº£ dá»¥ng cho user hiá»‡n táº¡i
+     * Lấy mã giảm giá khả dụng cho user hiện tại
      * Response: ResponseDTO<List<CouponResponse>>
      */
     getMyCoupons: () => {
-        return api.get('/coupons/me');
+        return api.get('/checkout/checkout/coupons/me');
     },
 
     /**
-     * Kiá»ƒm tra tÃ­nh há»£p lá»‡ cá»§a mÃ£ giáº£m giÃ¡
-     * Response: ResponseDTO<CouponResponse> (status 200 náº¿u há»£p lá»‡, 400 náº¿u khÃ´ng)
+     * Kiểm tra tính hợp lệ của mã giảm giá
+     * Response: ResponseDTO<CouponResponse> (status 200 nếu hợp lệ, 400 nếu không)
      * @param {string} code
      */
     validate: (code) => {
-        return api.get(`/coupons/validate/${code}`);
+        return api.get(`/checkout/coupons/validate/${code}`);
     },
 };
 
 export default couponService;
+
 

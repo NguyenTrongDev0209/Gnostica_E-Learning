@@ -11,7 +11,7 @@ import com.gnostica.core.repository.OrderDetailRepository;
 import com.gnostica.core.repository.LogRepository;
 import com.gnostica.core.repository.WalletRepository;
 import com.gnostica.modules.settings.service.CommissionResolver;
-import com.gnostica.modules.order.util.OrderPriceCalculator;
+import com.gnostica.modules.checkout.util.OrderPriceCalculator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -122,3 +122,4 @@ public class WalletListener {
         }
     }
 }
+
