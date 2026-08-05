@@ -8,12 +8,14 @@ import com.gnostica.core.model.Enrollment;
 import com.gnostica.core.model.Gift;
 import com.gnostica.core.model.Order;
 import com.gnostica.core.model.OrderDetail;
+import com.gnostica.core.model.Refund;
 import com.gnostica.core.repository.AccountRepository;
 import com.gnostica.core.repository.CourseRepository;
 import com.gnostica.core.repository.EnrollmentRepository;
 import com.gnostica.core.repository.GiftRepository;
 import com.gnostica.core.repository.OrderDetailRepository;
 import com.gnostica.core.repository.OrderRepository;
+import com.gnostica.core.repository.RefundRepository;
 import com.gnostica.core.util.AuthUtil;
 import com.gnostica.modules.checkout.dto.request.GiftCourseRequest;
 import com.gnostica.modules.checkout.dto.response.GiftDetailResponse;
@@ -48,6 +50,7 @@ public class GiftService {
     private final EnrollmentRepository enrollmentRepository;
     private final OrderRepository orderRepository;
     private final OrderDetailRepository orderDetailRepository;
+    private final RefundRepository refundRepository;
     private final OrderService orderService;
     private final WalletService walletService;
     private final PaymentService paymentService;
@@ -90,6 +93,16 @@ public class GiftService {
         }
 
         Account sender = accountRepository.findByEmail(senderEmail).orElseThrow();
+
+        // Check if sender already owns the course
+        boolean senderOwns = enrollmentRepository.existsByAccountAndCourseAndStatusIn(sender, course, List.of(1));
+        if (senderOwns) {
+            return GiftSearchResponse.builder()
+                    .valid(false)
+                    .senderOwns(true)
+                    .errorMessage("Bạn đã sở hữu khóa học này")
+                    .build();
+        }
 
         // Check if receiver already owns the course
         boolean isEnrolled = enrollmentRepository.existsByAccountAndCourseAndStatusIn(receiver, course, List.of(1));
@@ -176,9 +189,7 @@ public class GiftService {
     }
     
     public void processPaidGiftOrder(Order order) {
-        Gift gift = giftRepository.existsByOrder(order) 
-            ? giftRepository.findAll().stream().filter(g -> g.getOrder() != null && g.getOrder().getId().equals(order.getId())).findFirst().orElse(null)
-            : null;
+        Gift gift = giftRepository.findByOrder_Id(order.getId()).orElse(null);
         if (gift != null && gift.getStatus() == GiftStatus.PENDING) {
             sendGiftEmail(gift);
         }
@@ -225,7 +236,7 @@ public class GiftService {
     }
 
     @Transactional
-    public void acceptGift(String token, String receiverEmail) {
+    public com.gnostica.modules.checkout.dto.response.GiftActionResponse acceptGift(String token, String receiverEmail) {
         Gift gift = giftRepository.findByToken(token)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy quà tặng"));
 
@@ -249,7 +260,7 @@ public class GiftService {
             // Auto reject and refund
             gift.setStatus(GiftStatus.REJECTED);
             giftRepository.save(gift);
-            refundGift(gift);
+            refundGift(gift, "ALREADY_OWNED");
             
             notificationService.updateGiftNotificationStatus(
                 gift.getToken(), 
@@ -257,7 +268,7 @@ public class GiftService {
                 "Hệ thống đã tự động từ chối quà tặng do bạn đã sở hữu khóa học này."
             );
 
-            throw new IllegalStateException("ALREADY_OWNED");
+            return com.gnostica.modules.checkout.dto.response.GiftActionResponse.alreadyOwned(gift.getId());
         }
 
         // Create enrollment
@@ -284,6 +295,7 @@ public class GiftService {
             "GIFT_ACCEPTED", 
             "Bạn đã chấp nhận khóa học " + gift.getCourse().getTitle() + " từ " + gift.getSender().getFullName()
         );
+        return com.gnostica.modules.checkout.dto.response.GiftActionResponse.accepted(gift.getId());
     }
 
     @Transactional
@@ -302,7 +314,7 @@ public class GiftService {
         gift.setStatus(GiftStatus.REJECTED);
         giftRepository.save(gift);
 
-        refundGift(gift);
+        refundGift(gift, "REJECTED");
         
         notificationService.updateGiftNotificationStatus(
             gift.getToken(), 
@@ -318,13 +330,55 @@ public class GiftService {
         );
     }
 
-    private void refundGift(Gift gift) {
-        if (gift.getOrder() != null && gift.getOrder().getTotalPrice().compareTo(BigDecimal.ZERO) > 0) {
-            walletService.addDeposit(
+    @Transactional
+    public void refundGift(Gift gift, String reason) {
+        if (gift.getOrder() != null && gift.getOrder().getStatus() == OrderStatus.PAID && gift.getOrder().getTotalPrice().compareTo(BigDecimal.ZERO) > 0) {
+            Order order = gift.getOrder();
+            List<OrderDetail> details = orderDetailRepository.findByOrder(order);
+            
+            if (!details.isEmpty()) {
+                OrderDetail detail = details.get(0);
+                
+                // Tránh double-refund
+                if (refundRepository.existsByOrderDetailIdAndStatus(detail.getId(), 2)) {
+                    log.warn("Gift refund already processed for OrderDetail ID: {}", detail.getId());
+                    return;
+                }
+                
+                // Ghi nhận vào bảng refunds
+                Refund refund = new Refund();
+                refund.setOrderDetail(detail);
+                refund.setAccount(gift.getSender());
+                refund.setAmount(order.getTotalPrice());
+                refund.setReason("REFUND_GIFT_" + gift.getToken() + " - " + reason);
+                refund.setStatus(2); // APPROVED
+                refundRepository.save(refund);
+
+                // Cập nhật trạng thái đơn hàng (Order = REFUNDED(2), OrderDetail = REFUNDED(0))
+                order.setStatus(OrderStatus.REFUNDED);
+                orderRepository.save(order);
+                
+                detail.setStatus(0); // 0: Refunded
+                orderDetailRepository.save(detail);
+            }
+
+            walletService.addGiftRefund(
                     gift.getSender(), 
-                    gift.getOrder().getTotalPrice(), 
-                    "REFUND_GIFT_" + gift.getId().toString()
+                    order.getTotalPrice(), 
+                    gift
             );
+            
+            List<UUID> detailIds = details.stream().map(OrderDetail::getId).toList();
+            walletService.voidEarningsForOrderDetails(detailIds);
+        }
+    }
+
+    @Transactional
+    public void voidGiftsForCancelledOrder(Order order) {
+        Gift gift = giftRepository.findByOrder_Id(order.getId()).orElse(null);
+        if (gift != null && gift.getStatus() == GiftStatus.PENDING) {
+            gift.setStatus(GiftStatus.EXPIRED);
+            giftRepository.save(gift);
         }
     }
 }

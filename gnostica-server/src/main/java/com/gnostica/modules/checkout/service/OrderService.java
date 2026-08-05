@@ -71,6 +71,10 @@ public class OrderService {
     @org.springframework.beans.factory.annotation.Autowired
     private OrderService self;
 
+    @org.springframework.context.annotation.Lazy
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.gnostica.modules.checkout.service.GiftService giftService;
+
     @Value("${payos.webhook-enabled:false}")
     private boolean payosWebhookEnabled;
 
@@ -603,6 +607,7 @@ public class OrderService {
         orderRepository.save(order);
         releaseReservedCoupon(order);
         clearPendingPayOSPaymentLink(order);
+        giftService.voidGiftsForCancelledOrder(order);
         return true;
     }
 

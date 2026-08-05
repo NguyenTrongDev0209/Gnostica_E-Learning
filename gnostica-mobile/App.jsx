@@ -58,6 +58,8 @@ import MyForumPostsScreen from './src/screens/forum/MyForumPostsScreen';
 import PaymentQRCodeScreen from './src/screens/checkout/PaymentQRCodeScreen';
 import PaymentSuccessScreen from './src/screens/checkout/PaymentSuccessScreen';
 import SearchScreen from './src/screens/home/SearchScreen';
+import GiftScreen from './src/screens/checkout/GiftScreen';
+import GiftResponseScreen from './src/screens/checkout/GiftResponseScreen';
 // Removed Admin & Instructor Imports
 
 const Stack = createNativeStackNavigator();
@@ -150,6 +152,8 @@ export default function App() {
               <Stack.Screen name="PaymentQRCode" component={PaymentQRCodeScreen} />
               <Stack.Screen name="PaymentSuccess" component={PaymentSuccessScreen} />
               <Stack.Screen name="Search" component={SearchScreen} />
+              <Stack.Screen name="Gift" component={GiftScreen} />
+              <Stack.Screen name="GiftResponse" component={GiftResponseScreen} />
               {/* Removed Admin & Instructor Screens */}
             </Stack.Navigator>
           </NavigationContainer>

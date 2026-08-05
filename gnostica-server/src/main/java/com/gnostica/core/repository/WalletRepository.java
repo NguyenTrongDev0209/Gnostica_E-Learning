@@ -35,4 +35,6 @@ public interface WalletRepository extends JpaRepository<Wallet, java.util.UUID> 
             @Param("end") LocalDateTime end);
 
     List<Wallet> findByAccount(Account account);
+
+    List<Wallet> findByTargetTypeAndTargetIdIn(String targetType, java.util.Collection<java.util.UUID> targetIds);
 }

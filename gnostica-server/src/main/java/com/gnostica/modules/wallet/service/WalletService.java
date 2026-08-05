@@ -388,4 +388,31 @@ public class WalletService {
         return walletRepository.save(wallet);
     }
 
+    @Transactional
+    public Wallet addGiftRefund(Account account, BigDecimal amount, com.gnostica.core.model.Gift gift) {
+        Wallet wallet = new Wallet();
+        wallet.setAccount(account);
+        wallet.setRemain(amount);
+        wallet.setStatus(1);
+        wallet.setType(5); // GIFT_REFUND
+        wallet.setTargetType("GIFT");
+        wallet.setAvailableAt(LocalDateTime.now());
+        if (gift != null) {
+            wallet.setTargetId(gift.getId());
+        }
+        return walletRepository.save(wallet);
+    }
+
+    @Transactional
+    public void voidEarningsForOrderDetails(java.util.Collection<java.util.UUID> detailIds) {
+        if (detailIds == null || detailIds.isEmpty()) return;
+        List<Wallet> earnings = walletRepository.findByTargetTypeAndTargetIdIn("ORDER_DETAIL", detailIds);
+        for (Wallet w : earnings) {
+            if (w.getStatus() != null && w.getStatus() == 1 && w.getType() != null && w.getType() == 1) { // active earning
+                w.setStatus(0); // Locked/Voided
+            }
+        }
+        walletRepository.saveAll(earnings);
+    }
+
 }

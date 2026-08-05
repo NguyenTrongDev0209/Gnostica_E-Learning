@@ -47,10 +47,10 @@ public class GiftController {
 
     @PostMapping("/{token}/accept")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Void> acceptGift(@PathVariable String token) {
+    public ResponseEntity<com.gnostica.modules.checkout.dto.response.GiftActionResponse> acceptGift(@PathVariable String token) {
         String receiverEmail = AuthUtil.getCurrentUserEmail();
-        giftService.acceptGift(token, receiverEmail);
-        return ResponseEntity.ok().build();
+        com.gnostica.modules.checkout.dto.response.GiftActionResponse response = giftService.acceptGift(token, receiverEmail);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/{token}/reject")

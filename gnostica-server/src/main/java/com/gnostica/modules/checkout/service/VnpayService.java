@@ -55,6 +55,9 @@ public class VnpayService {
     @Lazy
     private final PaymentService paymentService;
 
+    @Lazy
+    private final com.gnostica.modules.checkout.service.GiftService giftService;
+
     // === Payment Link ===
     public PaymentLinkResponse createPaymentLink(Order order, String returnUrl, String cancelUrl) {
         validateConfiguration();
@@ -218,6 +221,7 @@ public class VnpayService {
                 order.setStatus(OrderStatus.CANCELLED);
                 orderRepository.save(order);
                 paymentService.releaseCouponReservation(order);
+                giftService.voidGiftsForCancelledOrder(order);
             }
             return VNPayIpnResponse.success();
         }

@@ -15,6 +15,7 @@ public class GiftSearchResponse {
     private boolean valid;
     private boolean alreadyOwned;
     private boolean previouslyRejected;
+    private boolean senderOwns;
     private String errorMessage;
 }
 

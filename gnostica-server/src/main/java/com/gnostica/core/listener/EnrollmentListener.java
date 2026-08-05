@@ -26,6 +26,7 @@ public class EnrollmentListener {
     private final OrderDetailRepository orderDetailRepository;
     private final NotificationService notificationService;
     private final GiftRepository giftRepository;
+    @org.springframework.context.annotation.Lazy
     private final com.gnostica.modules.checkout.service.GiftService giftService;
 
     @EventListener

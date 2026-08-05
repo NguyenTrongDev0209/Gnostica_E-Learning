@@ -21,8 +21,12 @@ export default function Notifications() {
     setProcessing(true);
     try {
       if (action === 'accept') {
-        await giftService.acceptGift(token, user?.email);
-        toast.success("Đã chấp nhận quà tặng thành công!");
+        const data = await giftService.acceptGift(token, user?.email);
+        if (data.alreadyOwned) {
+            toast.warning(data.message || "Bạn đã sở hữu khóa học này. Quà tặng đã được tự động hoàn lại cho người gửi.");
+        } else {
+            toast.success(data.message || "Đã chấp nhận quà tặng thành công!");
+        }
       } else {
         await giftService.rejectGift(token, user?.email);
         toast.success("Đã từ chối quà tặng.");

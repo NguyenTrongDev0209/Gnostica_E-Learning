@@ -2,7 +2,7 @@ import AppText from '../../components/ui/AppText';
 import React, { useState, useEffect } from 'react';
 import { View, ScrollView, TouchableOpacity, Image, Dimensions, ActivityIndicator, Modal } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { ArrowLeft, Users, Clock, ChevronDown, ChevronUp, BookOpen, ShoppingBag, Star, PlayCircle, FileText, Bookmark, X } from 'lucide-react-native';
+import { ArrowLeft, Users, Clock, ChevronDown, ChevronUp, BookOpen, ShoppingBag, Star, PlayCircle, FileText, Bookmark, X, Gift } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import RatingStars from '../../components/ui/RatingStars';
 import Button from '../../components/ui/Button';
@@ -584,14 +584,31 @@ const CourseDetailScreen = () => {
                         </AppText>
                     )}
                 </View>
-                <Button
-                    variant="primary"
-                    className="flex-[1.2] py-3.5 rounded-xl"
-                    textClassName="text-[16px] font-bold"
-                    onPress={() => navigation.navigate('Checkout', { course })}
-                >
-                    Mua ngay
-                </Button>
+                <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+                    <TouchableOpacity
+                        onPress={() => navigation.navigate('Gift', { course })}
+                        style={{
+                            width: 50,
+                            height: 50,
+                            borderRadius: 12,
+                            backgroundColor: '#eff6ff',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            borderWidth: 1,
+                            borderColor: '#bfdbfe'
+                        }}
+                    >
+                        <Gift size={22} color="#2563eb" />
+                    </TouchableOpacity>
+                    <Button
+                        variant="primary"
+                        className="px-6 py-3.5 rounded-xl h-[50px] items-center justify-center"
+                        textClassName="text-[16px] font-bold"
+                        onPress={() => navigation.navigate('Checkout', { course })}
+                    >
+                        Mua ngay
+                    </Button>
+                </View>
             </View>
         </View>
     );

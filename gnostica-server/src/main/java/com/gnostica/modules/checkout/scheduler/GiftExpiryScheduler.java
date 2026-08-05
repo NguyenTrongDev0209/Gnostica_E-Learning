@@ -20,8 +20,9 @@ import java.util.List;
 public class GiftExpiryScheduler {
 
     private final GiftRepository giftRepository;
-    private final WalletService walletService;
+    private final com.gnostica.modules.checkout.service.GiftService giftService;
     private final MailService mailService;
+    private final com.gnostica.modules.user.service.NotificationService notificationService;
 
     /**
      * Run every day at 00:00 (midnight) to check for expired gifts
@@ -60,19 +61,22 @@ public class GiftExpiryScheduler {
         gift.setUpdatedAt(LocalDateTime.now());
         giftRepository.save(gift);
 
-        // 2. Refund to wallet
-        walletService.addBalance(
-                gift.getSender().getId(),
-                gift.getOrder().getTotalPrice().doubleValue(),
-                "Hoàn tiền quà tặng khóa học hết hạn (Mã: " + gift.getToken() + ")"
-        );
+        // 2. Refund to wallet and log refunds
+        giftService.refundGift(gift, "EXPIRED");
 
         // 3. Send email to sender
         mailService.sendGiftCourseExpiredEmail(
                 gift.getSender().getEmail(),
                 gift.getCourse().getTitle(),
                 gift.getReceiver() != null ? gift.getReceiver().getFullName() : "Người nhận",
-                gift.getOrder().getTotalPrice()
+                gift.getOrder() != null ? gift.getOrder().getTotalPrice() : java.math.BigDecimal.ZERO
+        );
+        
+        // 4. Update notification
+        notificationService.updateGiftNotificationStatus(
+            gift.getToken(), 
+            "GIFT_EXPIRED", 
+            "Quà tặng khóa học " + gift.getCourse().getTitle() + " đã hết hạn do không được phản hồi."
         );
 
         log.info("Processed expired gift ID: {}. Refunded and notified sender.", gift.getId());

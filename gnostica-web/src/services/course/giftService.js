@@ -13,8 +13,9 @@ const giftService = {
     return axiosClient.get(`/checkout/gifts/${token}`);
   },
 
-  acceptGift: (token) => {
-    return axiosClient.post(`/checkout/gifts/${token}/accept`);
+  acceptGift: async (token) => {
+    const res = await axiosClient.post(`/checkout/gifts/${token}/accept`);
+    return res.data;
   },
 
   rejectGift: (token) => {
