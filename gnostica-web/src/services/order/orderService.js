@@ -1,6 +1,6 @@
 import axiosClient from '@/lib/axiosClient';
 
-const API_URL = '/order';
+const API_URL = '/checkout/orders';
 
 const getAuthHeaders = () => {
     const userStr = localStorage.getItem('user');
@@ -124,3 +124,4 @@ const orderService = {
 };
 
 export default orderService;
+

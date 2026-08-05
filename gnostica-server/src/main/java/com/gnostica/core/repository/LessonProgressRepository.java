@@ -9,4 +9,6 @@ import com.gnostica.core.model.Lesson;
 public interface LessonProgressRepository extends JpaRepository<LessonProgress, Integer> {
     java.util.List<LessonProgress> findByAccount(Account account);
     Optional<LessonProgress> findByAccountAndLesson(Account account, Lesson lesson);
+
+    java.util.List<LessonProgress> findByAccountIdAndLessonModuleCourseId(java.util.UUID accountId, java.util.UUID courseId);
 }

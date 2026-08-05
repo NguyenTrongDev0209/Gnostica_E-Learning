@@ -18,4 +18,6 @@ public interface ReviewRepository extends JpaRepository<Review, Integer> {
 
     @org.springframework.data.jpa.repository.Query("SELECT r FROM Review r WHERE r.course.account.email = :instructorEmail AND r.course.deletedAt IS NULL ORDER BY r.createdAt DESC")
     List<Review> findReviewsByInstructorEmail(@org.springframework.data.repository.query.Param("instructorEmail") String instructorEmail);
+
+    org.springframework.data.domain.Page<Review> findByCourseAccountIdAndCourseDeletedAtIsNullOrderByCreatedAtDesc(java.util.UUID instructorId, org.springframework.data.domain.Pageable pageable);
 }

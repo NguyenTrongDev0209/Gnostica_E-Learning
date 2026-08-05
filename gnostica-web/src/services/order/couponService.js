@@ -1,6 +1,6 @@
 import axiosClient from '@/lib/axiosClient';
 
-const API_URL = '/coupons';
+const API_URL = '/checkout/coupons';
 
 const getAuthHeaders = () => {
     const userStr = localStorage.getItem('user');
@@ -104,3 +104,4 @@ const couponService = {
 };
 
 export default couponService;
+

@@ -32,4 +32,6 @@ public interface OrderRepository extends JpaRepository<Order, java.util.UUID> {
     List<Order> findByStatusAndCreatedAtBefore(Integer status, LocalDateTime date);
     List<Order> findByStatusAndPaymentMethodIgnoreCaseAndCreatedAtBefore(
             Integer status, String paymentMethod, LocalDateTime date);
+
+    org.springframework.data.domain.Page<Order> findByAccountIdOrderByCreatedAtDesc(java.util.UUID accountId, org.springframework.data.domain.Pageable pageable);
 }

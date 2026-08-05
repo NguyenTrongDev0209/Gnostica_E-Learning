@@ -261,6 +261,34 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    public org.springframework.data.domain.Page<Account> searchAccounts(String roleName, String searchTerm, java.util.List<Integer> statuses, org.springframework.data.domain.Pageable pageable) {
+        java.util.List<String> queryRoleNames = new java.util.ArrayList<>();
+        if (roleName == null || roleName.trim().isEmpty()) {
+            queryRoleNames.add("DUMMY");
+        } else {
+            String targetRole = roleName.toUpperCase().replace("ROLE_", "");
+            if ("USER".equals(targetRole) || "STUDENT".equals(targetRole) || "MEMBER".equals(targetRole)) {
+                queryRoleNames.addAll(java.util.Arrays.asList("USER", "ROLE_USER", "STUDENT", "MEMBER", "Học viên", "Học sinh"));
+            } else if ("INSTRUCTOR".equals(targetRole)) {
+                queryRoleNames.addAll(java.util.Arrays.asList("INSTRUCTOR", "ROLE_INSTRUCTOR", "Giảng viên", "Giáo viên"));
+            } else if ("ADMIN".equals(targetRole)) {
+                queryRoleNames.addAll(java.util.Arrays.asList("ADMIN", "ROLE_ADMIN", "Quản trị viên", "Quản trị"));
+            } else {
+                queryRoleNames.addAll(java.util.Arrays.asList(roleName, "ROLE_" + roleName));
+            }
+        }
+        boolean hasSearchTerm = searchTerm != null && !searchTerm.trim().isEmpty();
+        if (!hasSearchTerm) {
+            searchTerm = "";
+        }
+        if (statuses == null || statuses.isEmpty()) {
+            statuses = java.util.Collections.singletonList(-1);
+        }
+        boolean isDummyRole = queryRoleNames.contains("DUMMY");
+        return accountRepository.searchAccounts(isDummyRole, queryRoleNames, hasSearchTerm, searchTerm, statuses, pageable);
+    }
+
+    @Override
     public void lockAccount(UUID id, String reason) {
         Account account = accountRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Tai khoan khong ton tai."));

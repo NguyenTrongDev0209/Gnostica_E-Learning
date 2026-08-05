@@ -29,4 +29,6 @@ public interface PayoutRepository extends JpaRepository<Payout, java.util.UUID> 
 
     @Query("SELECT COALESCE(SUM(p.amount), 0) FROM Payout p WHERE p.account = :account AND p.status IN :statuses")
     BigDecimal sumPayoutsByAccount(@Param("account") Account account, @Param("statuses") List<Integer> statuses);
+
+    org.springframework.data.domain.Page<Payout> findByAccountIdOrderByCreatedAtDesc(java.util.UUID accountId, org.springframework.data.domain.Pageable pageable);
 }

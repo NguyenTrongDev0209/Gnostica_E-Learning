@@ -57,7 +57,7 @@ public class SecurityConfig {
             )
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/error", "/favicon.ico", "/**/*.html", "/**/*.css", "/**/*.js", "/ws/**").permitAll()
-                .requestMatchers("/api/auth/**", "/api/account/**", "/api/upload/**", "/api/follow/**", "/api/oauth2/**", "/api/login/oauth2/**", "/api/threads/**", "/api/forum-categories/**", "/api/comments/**", "/api/progress/**", "/api/ai/**", "/api/thread-reports/**", "/api/dashboard/**", "/api/payment/**",
+                .requestMatchers("/api/auth/**", "/api/account/**", "/api/upload/**", "/api/follow/**", "/api/oauth2/**", "/api/login/oauth2/**", "/api/threads/**", "/api/forum-categories/**", "/api/comments/**", "/api/progress/**", "/api/ai/**", "/api/thread-reports/**", "/api/dashboard/**", "/api/checkout/payments/**",
                                                                 "/api/certificates/**").permitAll()
                 .requestMatchers("/api/courses/draft/**", "/api/courses/draft", "/api/courses/instructor").authenticated()
                 .requestMatchers(HttpMethod.GET, "/api/reviews/course/**").permitAll()
@@ -95,3 +95,4 @@ public class SecurityConfig {
                 return source;
         }
 }
+

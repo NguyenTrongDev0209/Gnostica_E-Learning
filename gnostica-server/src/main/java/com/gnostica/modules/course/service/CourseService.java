@@ -8,8 +8,8 @@ import com.gnostica.modules.course.dto.request.ModuleRequest;
 import com.gnostica.modules.forum.dto.response.*;
 import com.gnostica.modules.wallet.dto.response.*;
 import com.gnostica.modules.dashboard.dto.response.*;
-import com.gnostica.modules.order.dto.response.*;
-import com.gnostica.modules.payment.dto.response.*;
+import com.gnostica.modules.checkout.dto.response.*;
+import com.gnostica.modules.checkout.dto.response.*;
 import com.gnostica.modules.course.dto.response.*;
 import com.gnostica.core.model.Account;
 import com.gnostica.core.model.Attachment;
@@ -1158,3 +1158,4 @@ public class CourseService {
         return response;
     }
 }
+

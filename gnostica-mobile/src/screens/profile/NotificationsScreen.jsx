@@ -2,7 +2,7 @@ import AppText from '../../components/ui/AppText';
 import React, { useEffect, useState } from 'react';
 import { View, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { Bell, BookOpen, CreditCard, Star, Info } from 'lucide-react-native';
+import { Bell, BookOpen, CreditCard, Star, Info, Gift } from 'lucide-react-native';
 import AppHeader from '../../components/ui/AppHeader';
 import notificationService from '../../services/profile/notificationService';
 
@@ -47,9 +47,19 @@ const NotificationsScreen = () => {
                 console.error('Error marking notification as read:', error);
             }
         }
+        
+        if (notification.type === 'GIFT_PENDING' && notification.referenceId) {
+            navigation.navigate('GiftResponse', { token: notification.referenceId });
+        }
     };
 
     const getIconInfo = (type) => {
+        if (type?.startsWith('GIFT')) {
+            if (type === 'GIFT_PENDING') return { icon: Gift, color: '#f59e0b' };
+            if (type === 'GIFT_ACCEPTED') return { icon: Gift, color: '#10b981' };
+            if (type === 'GIFT_REJECTED' || type === 'GIFT_EXPIRED') return { icon: Gift, color: '#ef4444' };
+            return { icon: Gift, color: '#3b82f6' };
+        }
         switch(type) {
             case 'COURSE_UPDATE': return { icon: BookOpen, color: '#3b82f6' };
             case 'ORDER_STATUS': return { icon: CreditCard, color: '#10b981' };

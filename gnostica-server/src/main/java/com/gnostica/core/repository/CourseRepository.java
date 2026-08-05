@@ -152,4 +152,6 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
             @org.springframework.data.repository.query.Param("filterCategory") boolean filterCategory,
             @org.springframework.data.repository.query.Param("categoryIds") java.util.Collection<Integer> categoryIds,
             org.springframework.data.domain.Pageable pageable);
+
+    org.springframework.data.domain.Page<Course> findByAccountIdAndDeletedAtIsNullAndOriginalCourseIsNull(java.util.UUID accountId, org.springframework.data.domain.Pageable pageable);
 }

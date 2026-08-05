@@ -38,6 +38,11 @@ const GiftCourseDialog = ({ open, setOpen, courseId, coursePrice, onGiftConfirm 
             const response = await giftService.searchReceiver(email, courseId);
             const data = response.data || response;
             
+            if (data.senderOwns) {
+                toast.error(data.errorMessage || "Bạn đã sở hữu khóa học này nên không thể tặng.");
+                return;
+            }
+
             if (data.valid || data.alreadyOwned) {
                 setReceiver(data);
                 setStep(2);

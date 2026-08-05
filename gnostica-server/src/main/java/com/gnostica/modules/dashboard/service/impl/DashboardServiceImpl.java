@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 
 import com.gnostica.modules.dashboard.dto.response.DashboardStatsResponse;
 import com.gnostica.modules.dashboard.dto.response.MemberGrowthDTO;
-import com.gnostica.modules.order.dto.response.RecentOrderDTO;
+import com.gnostica.modules.checkout.dto.response.RecentOrderDTO;
 import com.gnostica.modules.dashboard.dto.response.RevenueMonthDTO;
 import com.gnostica.modules.dashboard.dto.response.TopCourseDTO;
 import com.gnostica.core.model.Account;
@@ -151,3 +151,4 @@ public class DashboardServiceImpl implements DashboardService {
         return dateTime.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
     }
 }
+
