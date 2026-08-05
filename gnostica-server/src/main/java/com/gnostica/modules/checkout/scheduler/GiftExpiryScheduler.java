@@ -4,7 +4,6 @@ import com.gnostica.core.constant.GiftStatus;
 import com.gnostica.core.model.Gift;
 import com.gnostica.core.repository.GiftRepository;
 import com.gnostica.modules.integration.service.MailService;
-import com.gnostica.modules.wallet.service.WalletService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
