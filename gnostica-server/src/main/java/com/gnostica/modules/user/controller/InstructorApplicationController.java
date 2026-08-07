@@ -46,6 +46,21 @@ public class InstructorApplicationController {
         return ResponseEntity.ok(applicationService.getAllApplications());
     }
 
+    @GetMapping("/{accountId}")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'ROLE_ADMIN')")
+    public ResponseEntity<?> getApplicationByAccountId(@PathVariable UUID accountId) {
+        try {
+            List<InstructorApplicationResponse> all = applicationService.getAllApplications();
+            return all.stream()
+                    .filter(app -> app.getAccountId().equals(accountId))
+                    .findFirst()
+                    .map(ResponseEntity::ok)
+                    .orElseGet(() -> ResponseEntity.notFound().build());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
     @PutMapping("/{accountId}/approve")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'ROLE_ADMIN')")
     public ResponseEntity<?> approveApplication(@PathVariable UUID accountId) {

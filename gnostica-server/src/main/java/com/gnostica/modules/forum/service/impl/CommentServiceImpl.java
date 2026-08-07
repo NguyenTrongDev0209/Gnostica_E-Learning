@@ -135,8 +135,16 @@ public class CommentServiceImpl implements CommentService {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new RuntimeException("Comment not found"));
 
+        boolean isCommentAuthor = comment.getAccount().getEmail().equals(userEmail);
+        boolean isThreadAuthor = false;
         boolean isLessonInstructor = false;
-        if ("LESSON".equals(comment.getTargetType())) {
+        
+        if ("THREAD".equals(comment.getTargetType())) {
+            isThreadAuthor = threadRepository.findById(Integer.parseInt(comment.getTargetId()))
+                    .map(Thread::getAccount)
+                    .map(account -> account.getEmail().equals(userEmail))
+                    .orElse(false);
+        } else if ("LESSON".equals(comment.getTargetType())) {
             isLessonInstructor = lessonRepository.findById(Integer.parseInt(comment.getTargetId()))
                     .map(this::resolveLessonCourse)
                     .map(Course::getAccount)
@@ -144,8 +152,14 @@ public class CommentServiceImpl implements CommentService {
                     .orElse(false);
         }
 
-        if (!isLessonInstructor) {
-            throw new RuntimeException("Chỉ giảng viên của khóa học mới có quyền đổi trạng thái bình luận này");
+        // Admin check
+        boolean isAdmin = accountRepository.findByEmail(userEmail)
+                .map(Account::getRole)
+                .map(role -> role.getName() != null && role.getName().toUpperCase().contains("ADMIN"))
+                .orElse(false);
+
+        if (!isCommentAuthor && !isThreadAuthor && !isLessonInstructor && !isAdmin) {
+            throw new RuntimeException("You are not authorized to change the status of this comment");
         }
 
         comment.setStatus(status);

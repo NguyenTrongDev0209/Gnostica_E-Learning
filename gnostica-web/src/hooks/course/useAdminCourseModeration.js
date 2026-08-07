@@ -127,6 +127,7 @@ export default function useAdminCourseModeration() {
   const handleOpenInstructorProfile = (course) => {
     if (!course.instructorId && !course.instructorName) return;
     setActiveInstructor({
+       id: course.instructorId,
        name: course.instructorName || "Chưa cập nhật",
        avatar: course.instructorAvatar,
        email: course.instructorEmail || "---",

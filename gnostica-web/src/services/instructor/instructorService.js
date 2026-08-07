@@ -58,6 +58,11 @@ const getApplications = async (status) => {
     return response.data;
 };
 
+const getApplicationByAccountId = async (accountId) => {
+    const response = await axiosClient.get(`${APP_API_URL}/${accountId}`);
+    return response.data;
+};
+
 const approveApplication = async (id) => {
     const response = await axiosClient.put(`${APP_API_URL}/${id}/approve`, {});
     return response.data;
@@ -80,6 +85,7 @@ const instructorService = {
     createApplication,
     uploadDocument,
     getApplications,
+    getApplicationByAccountId,
     approveApplication,
     rejectApplication
 };

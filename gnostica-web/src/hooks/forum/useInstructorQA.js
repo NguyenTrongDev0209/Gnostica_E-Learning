@@ -16,15 +16,11 @@ export default function useInstructorQA() {
           qData = res[0];
           rData = res[1];
         } catch (e) {
-          if (USE_INSTRUCTOR_MOCK) {
-            console.log("Using Mock Data for QA due to error");
-          } else {
-            throw e;
-          }
+          console.error("Failed to fetch QA data:", e);
+          if (!USE_INSTRUCTOR_MOCK) throw e;
         }
-        
-        if (USE_INSTRUCTOR_MOCK && (!qData || qData.length === 0) && (!rData || rData.length === 0)) {
-          qData = MOCK_QA.questions;
+
+        if (USE_INSTRUCTOR_MOCK && (!rData || rData.length === 0)) {
           rData = MOCK_QA.reviews;
         }
 

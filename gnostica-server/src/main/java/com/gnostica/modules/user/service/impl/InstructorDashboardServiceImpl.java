@@ -29,6 +29,7 @@ public class InstructorDashboardServiceImpl implements InstructorDashboardServic
     private final ReviewRepository reviewRepository;
     private final CourseRepository courseRepository;
     private final CommentRepository commentRepository;
+    private final LessonRepository lessonRepository;
 
     @Override
     public InstructorDashboardStatsDTO getStats(String instructorEmail) {
@@ -139,9 +140,77 @@ public class InstructorDashboardServiceImpl implements InstructorDashboardServic
 
     @Override
     public List<InstructorQuestionDTO> getQuestions(String instructorEmail) {
-        // Module Comment hiện đã chuyển đổi sang phục vụ Thread (Diễn đàn).
-        // Hệ thống Hỏi Đáp của bài học (Lesson Q&A) sẽ được triển khai vào module riêng.
-        return new ArrayList<>();
+        List<Course> courses = courseRepository.findByAccountEmailAndDeletedAtIsNull(instructorEmail, org.springframework.data.domain.Pageable.unpaged()).getContent();
+        List<String> lessonIds = new ArrayList<>();
+        
+        for (Course c : courses) {
+            if (c.getModules() != null) {
+                for (com.gnostica.core.model.Module m : c.getModules()) {
+                    if (m.getLessons() != null) {
+                        for (com.gnostica.core.model.Lesson l : m.getLessons()) {
+                            lessonIds.add(String.valueOf(l.getId()));
+                        }
+                    }
+                }
+            }
+        }
+        
+        if (lessonIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+        
+        List<Comment> comments = commentRepository.findByTargetTypeAndTargetIdInAndParentIsNullOrderByCreatedAtDesc("LESSON", lessonIds);
+        
+        return comments.stream().map(c -> {
+            boolean isAnswered = false;
+            List<InstructorQuestionReplyDTO> replyDTOs = new ArrayList<>();
+            
+            if (c.getReplies() != null) {
+                for (Comment reply : c.getReplies()) {
+                    boolean isAuthor = reply.getAccount() != null && instructorEmail.equals(reply.getAccount().getEmail());
+                    if (isAuthor) {
+                        isAnswered = true;
+                    }
+                    replyDTOs.add(InstructorQuestionReplyDTO.builder()
+                            .id(reply.getId())
+                            .content(reply.getContent())
+                            .studentName(reply.getAccount() != null ? reply.getAccount().getFullName() : "N/A")
+                            .studentAvatar(reply.getAccount() != null ? reply.getAccount().getAvatar() : null)
+                            .createdAt(reply.getCreatedAt())
+                            .isAuthor(isAuthor)
+                            .build());
+                }
+            }
+            
+            String lessonName = "Bài học không rõ";
+            String courseName = "Khóa học không rõ";
+            
+            try {
+                java.util.Optional<com.gnostica.core.model.Lesson> lOpt = lessonRepository.findById(Integer.parseInt(c.getTargetId()));
+                if (lOpt.isPresent()) {
+                    com.gnostica.core.model.Lesson l = lOpt.get();
+                    lessonName = l.getTitle();
+                    if (l.getModule() != null && l.getModule().getCourse() != null) {
+                        courseName = l.getModule().getCourse().getTitle();
+                    }
+                }
+            } catch (Exception ignored) {}
+            
+            return InstructorQuestionDTO.builder()
+                    .id(c.getId())
+                    .studentName(c.getAccount() != null ? c.getAccount().getFullName() : "Người dùng ẩn danh")
+                    .studentAvatar(c.getAccount() != null ? c.getAccount().getAvatar() : null)
+                    .courseName(courseName)
+                    .lessonName(lessonName)
+                    .targetId(c.getTargetId())
+                    .content(c.getContent())
+                    .createdAt(c.getCreatedAt())
+                    .status(isAnswered ? "answered" : "unanswered")
+                    .isHidden(c.getStatus() == 0)
+                    .likes(0) // Default to 0 as likes are not stored directly on Comment
+                    .replies(replyDTOs)
+                    .build();
+        }).collect(Collectors.toList());
     }
 
     @Override

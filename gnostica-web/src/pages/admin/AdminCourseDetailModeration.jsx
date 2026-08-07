@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import { AppButton } from "@/components/common/micro/AppButton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/common/micro/AppTabs";
 import { AppAccordionRoot as Accordion, AppAccordionItem as AccordionItem, AppAccordionTrigger as AccordionTrigger, AppAccordionContent as AccordionContent } from "@/components/common/micro/AppAccordion";
@@ -59,6 +59,7 @@ export default function AdminCourseDetailModeration() {
   };
 
   const instructorInfo = {
+      id: course.instructorId,
       name: course.instructorName || "Giảng viên Gnostica",
       avatar: course.instructorAvatar,
       email: course.instructorEmail || "N/A",
