@@ -2,8 +2,6 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import courseService from "@/services/course/courseService";
-import { USE_INSTRUCTOR_MOCK, MOCK_COURSES } from "@/mocks/instructorMockData";
-
 /**
  * Hook quản lý danh sách khóa học của giảng viên bằng React Query.
  */
@@ -40,16 +38,7 @@ export default function useInstructorCourses(pageSize = 10) {
         dbData = (response && response.data !== undefined && response.error !== undefined) ? response.data : response;
         drafts = (draftsRaw && draftsRaw.data && draftsRaw.error !== undefined) ? draftsRaw.data : draftsRaw;
       } catch (e) {
-        if (USE_INSTRUCTOR_MOCK) {
-          console.log("Using Mock Data for Courses due to error");
-          dbData = MOCK_COURSES;
-        } else {
-          throw e;
-        }
-      }
-
-      if (USE_INSTRUCTOR_MOCK && (!dbData || !dbData.content || dbData.content.length === 0) && (!drafts || drafts.length === 0)) {
-        dbData = MOCK_COURSES;
+        throw e;
       }
 
       let dbCourses = dbData.content || [];

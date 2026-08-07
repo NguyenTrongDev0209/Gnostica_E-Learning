@@ -23,6 +23,9 @@ import AppInput from "@/components/common/micro/AppInput";
 import AppBadge from "@/components/common/micro/AppBadge";
 import { Tabs as AppTabsRoot, TabsContent as AppTabsContent, TabsList as AppTabsList, TabsTrigger as AppTabsTrigger } from "@/components/common/micro/AppTabs";
 import useInstructorQA from "@/hooks/forum/useInstructorQA";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { instructorDashboardService } from "@/services/instructor/instructorDashboardService";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function InstructorQA() {
   const { questions, reviews, loading } = useInstructorQA();
@@ -35,11 +38,60 @@ export default function InstructorQA() {
   const [replyingQuestionId, setReplyingQuestionId] = useState(null);
   const [questionReplyContent, setQuestionReplyContent] = useState("");
 
-  const handleSubmitQuestionReply = () => {
+  const queryClient = useQueryClient();
+  const currentUser = (() => {
+    try { return JSON.parse(localStorage.getItem('user_info') || localStorage.getItem('user')); } catch { return null; }
+  })();
+  const userEmail = currentUser?.email;
+
+  const replyMutation = useMutation({
+    mutationFn: async ({ parentId, targetId, content }) => {
+      return await instructorDashboardService.replyToQuestion(parentId, targetId, content, userEmail);
+    },
+    onSuccess: () => {
+      AppToast.success("Đã gửi phản hồi thành công!");
+      setReplyingQuestionId(null);
+      setQuestionReplyContent("");
+      queryClient.invalidateQueries({ queryKey: ['instructor_qa'] });
+    },
+    onError: (err) => {
+      AppToast.error("Có lỗi xảy ra khi gửi phản hồi: " + err.message);
+    }
+  });
+
+  const toggleStatusMutation = useMutation({
+    mutationFn: async ({ commentId, status }) => {
+      return await instructorDashboardService.toggleQuestionStatus(commentId, status, userEmail);
+    },
+    onSuccess: () => {
+      AppToast.success("Đã cập nhật trạng thái hỏi đáp thành công!");
+      queryClient.invalidateQueries({ queryKey: ['instructor_qa'] });
+    },
+    onError: (err) => {
+      AppToast.error("Có lỗi xảy ra khi cập nhật trạng thái: " + err.message);
+    }
+  });
+
+  const handleSubmitQuestionReply = (q) => {
     if (!questionReplyContent.trim()) return;
-    AppToast.success("Đã gửi phản hồi thành công!");
-    setReplyingQuestionId(null);
-    setQuestionReplyContent("");
+    if (!userEmail) {
+        AppToast.error("Không tìm thấy email người dùng.");
+        return;
+    }
+    replyMutation.mutate({
+        parentId: q.id,
+        targetId: q.targetId,
+        content: questionReplyContent
+    });
+  };
+
+  const handleToggleStatus = (q) => {
+    if (!userEmail) return;
+    const newStatus = q.isHidden ? 1 : 0;
+    toggleStatusMutation.mutate({
+        commentId: q.id,
+        status: newStatus
+    });
   };
   
   // State for Quick Reply Templates
@@ -173,6 +225,29 @@ export default function InstructorQA() {
                        <span className="flex items-center gap-1">Khóa: <span className="text-muted-foreground font-bold">{q.courseName}</span></span>
                        <span className="flex items-center gap-1">Bài: <span className="text-muted-foreground font-bold">{q.lessonName}</span></span>
                      </div>
+                     {q.replies && q.replies.length > 0 && (
+                       <div className="mt-4 pl-4 border-l-2 border-border space-y-4">
+                         {q.replies.map(reply => (
+                           <div key={reply.id} className="flex gap-3">
+                             <div className="w-8 h-8 rounded-full overflow-hidden border border-border shrink-0">
+                               <img src={reply.studentAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${reply.studentName}`} alt={reply.studentName} className="w-full h-full object-cover" />
+                             </div>
+                             <div className="flex-1 bg-secondary/50 rounded-lg p-3 relative">
+                               <div className="flex justify-between items-center mb-1">
+                                 <h5 className="font-bold text-sm text-foreground flex items-center gap-2">
+                                    {reply.studentName}
+                                    {reply.isAuthor && (
+                                        <AppBadge className="bg-blue-100 text-blue-700 hover:bg-blue-100 border-none px-1.5 py-0 text-[10px]">Tác giả</AppBadge>
+                                    )}
+                                 </h5>
+                                 <span className="text-[10px] text-muted-foreground font-bold uppercase">{formatTime(reply.createdAt)}</span>
+                               </div>
+                               <p className="text-sm font-medium text-foreground">{reply.content}</p>
+                             </div>
+                           </div>
+                         ))}
+                       </div>
+                     )}
                    </div>
                  </div>
                  <div className="px-5 py-3 border-t border-border bg-muted flex justify-between items-center group-hover:bg-success/5 transition-colors">
@@ -181,14 +256,25 @@ export default function InstructorQA() {
                         <ThumbsUp className="w-3.5 h-3.5" /> {q.likes || 0} Hữu ích
                       </button>
                     </div>
-                    <AppButton 
-                      onClick={() => setReplyingQuestionId(replyingQuestionId === q.id ? null : q.id)}
-                      appVariant="gradient" 
-                      size="sm" 
-                      className="bg-success/10 text-success hover:bg-success/20 font-bold h-8"
-                    >
-                      {replyingQuestionId === q.id ? "Đóng lại" : <><Reply className="w-3.5 h-3.5 mr-1.5" /> Phản hồi ngay</>}
-                    </AppButton>
+                    <div className="flex items-center gap-2">
+                        <AppButton 
+                            onClick={() => handleToggleStatus(q)}
+                            appVariant="ghostMuted" 
+                            variant="ghost"
+                            size="sm" 
+                            className={`h-8 font-bold ${q.isHidden ? 'text-muted-foreground hover:bg-secondary' : 'text-danger hover:bg-danger/10 hover:text-danger'}`}
+                        >
+                            {q.isHidden ? <><Eye className="w-3.5 h-3.5 mr-1.5" /> Đã ẩn</> : <><EyeOff className="w-3.5 h-3.5 mr-1.5" /> Ẩn hỏi đáp</>}
+                        </AppButton>
+                        <AppButton 
+                        onClick={() => setReplyingQuestionId(replyingQuestionId === q.id ? null : q.id)}
+                        appVariant="gradient" 
+                        size="sm" 
+                        className="bg-success/10 text-success hover:bg-success/20 font-bold h-8"
+                        >
+                        {replyingQuestionId === q.id ? "Đóng lại" : <><Reply className="w-3.5 h-3.5 mr-1.5" /> Phản hồi ngay</>}
+                        </AppButton>
+                    </div>
                  </div>
 
                  {replyingQuestionId === q.id && (
@@ -201,8 +287,8 @@ export default function InstructorQA() {
                        />
                        <div className="mt-4 flex justify-end gap-2">
                           <AppButton variant="ghost" size="sm" onClick={() => setReplyingQuestionId(null)}>Hủy</AppButton>
-                          <AppButton size="sm" onClick={handleSubmitQuestionReply} disabled={!questionReplyContent.trim()} className="flex items-center gap-2">
-                            <Send className="w-4 h-4" /> Gửi phản hồi
+                          <AppButton size="sm" onClick={() => handleSubmitQuestionReply(q)} disabled={!questionReplyContent.trim() || replyMutation.isPending} className="flex items-center gap-2">
+                            {replyMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />} Gửi phản hồi
                           </AppButton>
                        </div>
                     </div>
