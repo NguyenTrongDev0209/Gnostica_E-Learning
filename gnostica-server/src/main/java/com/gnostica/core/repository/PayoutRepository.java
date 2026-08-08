@@ -8,6 +8,7 @@ import com.gnostica.core.model.Account;
 import java.time.LocalDateTime;
 
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
@@ -15,12 +16,16 @@ import java.util.List;
 
 @Repository
 public interface PayoutRepository extends JpaRepository<Payout, java.util.UUID> {
+    @EntityGraph(attributePaths = {"account", "accountBank", "accountBank.bank"})
+    java.util.List<Payout> findAllByOrderByCreatedAtDesc();
+
     long countByAccountAndCreatedAtAfter(Account account, LocalDateTime createdAt);
     long countByAccountAndStatusInAndCreatedAtAfter(Account account, List<Integer> statuses, LocalDateTime createdAt);
     java.util.List<Payout> findByAccountOrderByCreatedAtDesc(Account account);
     java.util.List<Payout> findByStatusIn(java.util.List<Integer> statuses);
     java.util.List<Payout> findByStatusInAndGatewayPayoutIdIsNull(java.util.List<Integer> statuses);
     java.util.Optional<Payout> findByAccountAndIdempotencyKey(Account account, String idempotencyKey);
+    boolean existsByGatewayReferenceId(String gatewayReferenceId);
     boolean existsByAccountBankAndStatusIn(com.gnostica.core.model.AccountBank accountBank, List<Integer> statuses);
 
     @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)

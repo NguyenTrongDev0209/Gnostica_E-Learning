@@ -498,20 +498,19 @@ public class OrderService {
     /**
      * Generates a unique order code. {@code System.currentTimeMillis()} alone can
      * collide across different buyers in the same millisecond and violate the
-     * unique constraint on {@code orders.order_code} (500 error). A 14-digit
-     * random code in a 9e13 space makes collisions practically impossible at
+     * unique constraint on {@code orders.order_code} (500 error). A 12-digit
+     * random code in a 9e11 space makes collisions practically impossible at
      * this scale; the existence check + retry adds a belt-and-suspenders guard.
      */
     private long generateUniqueOrderCode() {
         for (int attempt = 0; attempt < 5; attempt++) {
-            long candidate = 10_000_000_000_000L
-                    + java.util.concurrent.ThreadLocalRandom.current().nextLong(90_000_000_000_000L);
+            long candidate = 100_000_000_000L
+                    + java.util.concurrent.ThreadLocalRandom.current().nextLong(900_000_000_000L);
             if (orderRepository.findByOrderCode(candidate).isEmpty()) {
                 return candidate;
             }
         }
-        // Extremely unlikely fallback: last-resort millis-based code.
-        return System.currentTimeMillis();
+        throw new IllegalStateException("Unable to create a unique order code.");
     }
 
     private Order saveOrder(Account account, Coupon coupon, BigDecimal couponPrice, BigDecimal totalPrice, String transactionId,

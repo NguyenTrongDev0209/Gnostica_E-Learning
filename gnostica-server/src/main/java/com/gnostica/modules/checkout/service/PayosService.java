@@ -15,6 +15,7 @@ import com.gnostica.modules.checkout.dto.response.PaymentWebhookData;
 import com.gnostica.modules.wallet.service.WalletService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -51,8 +52,9 @@ public class PayosService {
     private final StringRedisTemplate redisTemplate;
     private final ObjectMapper objectMapper;
     
+    @Autowired
     @Lazy
-    private final PaymentService paymentService;
+    private PaymentService paymentService;
 
     @Value("${app.public-url}")
     private String publicUrl;

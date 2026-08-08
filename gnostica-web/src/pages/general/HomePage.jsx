@@ -5,6 +5,7 @@ import { Users, BookOpen, ArrowRight, Sparkles } from 'lucide-react';
 
 import PageContainer from "@/components/common/core/PageContainer";
 import CourseCard from "@/components/common/composite/CourseCard";
+import Autoplay from "embla-carousel-autoplay";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/common/micro/AppCarousel";
 import { Card } from '@/components/common/micro/AppCard';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/common/micro/AppAccordion";
@@ -33,11 +34,11 @@ const fallbackSubBanners = [
 ];
 
 const defaultColors = [
-  "bg-primary/10 text-primary",
-  "bg-info/10 text-info",
-  "bg-warning/10 text-warning",
-  "bg-success/10 text-success",
-  "bg-error/10 text-error"
+  "bg-primary text-white",
+  "bg-info text-white",
+  "bg-warning text-white",
+  "bg-success text-white",
+  "bg-error text-white"
 ];
 
 const faqs = [
@@ -85,8 +86,13 @@ function MainHeroCarousel() {
   if (isSuccess && slides.length === 0) return null;
 
   return (
-    <div className="app-container py-0 md:py-6 relative z-10 w-full overflow-hidden">
-      <Carousel setApi={setApi} className="w-full relative">
+    <div className="app-container py-0 md:py-6 relative z-10 w-full">
+      <Carousel 
+        setApi={setApi} 
+        className="w-full relative"
+        plugins={[Autoplay({ delay: 5000, stopOnInteraction: true })]}
+        opts={{ loop: true }}
+      >
         <CarouselContent>
           {slides.map((slide, index) => (
             <CarouselItem key={index} className="w-full">
@@ -102,8 +108,8 @@ function MainHeroCarousel() {
           ))}
         </CarouselContent>
 
-        <CarouselPrevious className="hidden md:flex left-4 bg-background/80 backdrop-blur-sm border-border" />
-        <CarouselNext className="hidden md:flex right-4 bg-background/80 backdrop-blur-sm border-border" />
+        <CarouselPrevious className="hidden md:flex -left-4 lg:-left-6 bg-background/90 shadow text-foreground hover:bg-background z-10 border-border" />
+        <CarouselNext className="hidden md:flex -right-4 lg:-right-6 bg-background/90 shadow text-foreground hover:bg-background z-10 border-border" />
 
         <div className="hidden md:flex absolute bottom-4 left-1/2 -translate-x-1/2 items-center gap-1.5 md:gap-2 px-2 py-1 md:px-3 md:py-1.5 bg-foreground/20 backdrop-blur-md rounded-full border border-foreground/10">
           {slides.map((_, index) => (
@@ -228,6 +234,7 @@ function SubBannerCarousel() {
             },
           },
         }}
+        plugins={[Autoplay({ delay: 7000, stopOnInteraction: true })]}
         className="w-full relative"
       >
         <CarouselContent className="-ml-2 md:-ml-4">
@@ -260,10 +267,15 @@ const RecommendedCourses = () => {
   if (!user || (!loading && courses.length === 0)) return null;
 
   return (
-    <section className="w-full">
-      <div className="flex items-center gap-2 mb-6">
-        <h2 className="text-2xl font-bold text-foreground">Dành riêng cho bạn</h2>
-      </div>
+    <PageContainer.Section 
+      title="Dành riêng cho bạn"
+      action={
+        <Link to="/courses" className="text-primary hover:text-primary/80 font-semibold text-sm flex items-center transition-colors">
+          Xem thêm
+        </Link>
+      }
+      className="w-full"
+    >
 
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -283,6 +295,7 @@ const RecommendedCourses = () => {
               image={course.thumbnail}
               title={course.title}
               category={course.categoryName}
+              rating={course.rating || course.averageRating || 0}
               students={course.students}
               price={course.salePrice?.toLocaleString()}
               originalPrice={course.discount > 0 ? course.price?.toLocaleString() : null}
@@ -297,7 +310,7 @@ const RecommendedCourses = () => {
           ))}
         </div>
       )}
-    </section>
+    </PageContainer.Section>
   );
 };
 
@@ -360,10 +373,9 @@ const CategoryGrid = () => {
       <div className="flex justify-center mt-2">
         <Link
           to="/courses/category"
-          className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary/10 hover:bg-primary text-primary hover:text-primary-foreground font-semibold text-sm transition-all duration-300 shadow-sm hover:shadow-md group"
+          className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-sm transition-all duration-300 shadow-sm hover:shadow-md group"
         >
           <span>Xem thêm tất cả danh mục</span>
-          <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
         </Link>
       </div>
     </div>
@@ -397,7 +409,49 @@ const FeaturedCourses = () => {
         <CourseCard
           key={course.id}
           category={course.categoryName}
-          rating={4.8} // Default rating for now
+          rating={course.rating || course.averageRating || 0}
+          title={course.title}
+          classes={course.classes}
+          students={course.students}
+          price={new Intl.NumberFormat('vi-VN').format(course.finalPrice || course.price)}
+          originalPrice={course.discount > 0 ? new Intl.NumberFormat('vi-VN').format(course.price) : null}
+          discountPercentage={course.discount}
+          image={course.thumbnail}
+          instructor={{
+            name: course.instructorName,
+            avatar: course.instructorAvatar,
+            status: "online"
+          }}
+          link={`/courses/${course.slug}`}
+        />
+      ))}
+    </div>
+  );
+};
+
+const DiscountedCourses = () => {
+  const { courses, loading } = useFeaturedCourses(20);
+  const discounted = courses.filter(c => c.discount > 0).slice(0, 8);
+
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 justify-items-center w-full">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="w-full h-80 bg-muted animate-pulse rounded-xl" />
+        ))}
+      </div>
+    );
+  }
+
+  if (discounted.length === 0) return null;
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 justify-items-center w-full">
+      {discounted.map((course) => (
+        <CourseCard
+          key={course.id}
+          category={course.categoryName}
+          rating={course.rating || course.averageRating || 0}
           title={course.title}
           classes={course.classes}
           students={course.students}
@@ -549,7 +603,7 @@ function CardCarousel() {
   if (courses.length === 0) return null;
 
   return (
-    <div className="py-6 md:py-10 w-full relative">
+    <div className="w-full relative">
       <Carousel
         setApi={setApi}
         opts={{
@@ -568,12 +622,12 @@ function CardCarousel() {
                 <div
                   className={`h-full transition-all duration-700 ease-in-out origin-center flex flex-col ${isActive
                     ? "scale-105 md:scale-110 z-30 opacity-100 ring-2 ring-primary/20 rounded-xl shadow-xl"
-                    : "scale-90 md:scale-95 z-10 opacity-50 blur-sm transition-opacity hover:opacity-100"
+                    : "scale-90 md:scale-95 z-10 opacity-100 transition-opacity"
                     }`}
                 >
                   <CourseCard
                     category={course.categoryName}
-                    rating={4.8}
+                    rating={course.rating || course.averageRating || 0}
                     title={course.title}
                     classes={course.classes}
                     students={course.students}
@@ -627,7 +681,7 @@ function HomePage() {
       <PageContainer.Content disableContainer={true} className="flex flex-col gap-12 sm:gap-16 pb-12 relative z-10 w-full overflow-hidden pt-0 md:pt-0">
         <MainHeroCarousel />
 
-        <PlatformStats />
+        {/* <PlatformStats /> */}
 
         <div className="app-container">
           <SubBannerCarousel />
@@ -641,7 +695,15 @@ function HomePage() {
           <CategoryGrid />
         </PageContainer.Section>
 
-        <PageContainer.Section title="Khóa học thịnh hành" className="w-full app-container">
+        <PageContainer.Section 
+          title="Khóa học thịnh hành" 
+          action={
+            <Link to="/courses" className="text-primary hover:text-primary/80 font-semibold text-sm flex items-center transition-colors">
+              Xem thêm
+            </Link>
+          }
+          className="w-full app-container"
+        >
           <FeaturedCourses />
         </PageContainer.Section>
 
@@ -650,8 +712,28 @@ function HomePage() {
           <OutcomeBanner />
         </PageContainer.Section>
 
-        <PageContainer.Section title="Khóa học nổi bật" className="w-full app-container">
+        <PageContainer.Section 
+          title="Khóa học nổi bật" 
+          action={
+            <Link to="/courses" className="text-primary hover:text-primary/80 font-semibold text-sm flex items-center transition-colors">
+              Xem thêm
+            </Link>
+          }
+          className="w-full app-container"
+        >
           <CardCarousel />
+        </PageContainer.Section>
+
+        <PageContainer.Section 
+          title="Ưu đãi cho bạn" 
+          action={
+            <Link to="/courses" className="text-primary hover:text-primary/80 font-semibold text-sm flex items-center transition-colors">
+              Xem thêm
+            </Link>
+          }
+          className="w-full app-container"
+        >
+          <DiscountedCourses />
         </PageContainer.Section>
 
         <PageContainer.Section title="Câu hỏi thường gặp" className="w-full app-container">
