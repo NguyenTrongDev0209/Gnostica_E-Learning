@@ -15,6 +15,7 @@ import {
   Bell,
   LogOut,
   Users,
+  RotateCcw,
 } from "lucide-react";
 
 const MENU_GROUPS = [
@@ -32,6 +33,7 @@ const MENU_GROUPS = [
     items: [
       { label: "Danh sách yêu thích", icon: Heart, href: "/account/wishlist" },
       { label: "Lịch sử đơn hàng", icon: ShoppingBag, href: "/account/orders" },
+      { label: "Yêu cầu hoàn tiền", icon: RotateCcw, href: "/account/refunds" },
       { label: "Kho giảm giá", icon: Ticket, href: "/account/vouchers", badge: "2" },
     ],
   },

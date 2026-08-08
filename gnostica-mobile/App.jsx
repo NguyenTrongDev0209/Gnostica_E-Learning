@@ -60,6 +60,8 @@ import PaymentSuccessScreen from './src/screens/checkout/PaymentSuccessScreen';
 import SearchScreen from './src/screens/home/SearchScreen';
 import GiftScreen from './src/screens/checkout/GiftScreen';
 import GiftResponseScreen from './src/screens/checkout/GiftResponseScreen';
+import RefundScreen from './src/screens/checkout/RefundScreen';
+import RefundRequestScreen from './src/screens/checkout/RefundRequestScreen';
 // Removed Admin & Instructor Imports
 
 const Stack = createNativeStackNavigator();
@@ -154,6 +156,8 @@ export default function App() {
               <Stack.Screen name="Search" component={SearchScreen} />
               <Stack.Screen name="Gift" component={GiftScreen} />
               <Stack.Screen name="GiftResponse" component={GiftResponseScreen} />
+              <Stack.Screen name="RefundScreen" component={RefundScreen} />
+              <Stack.Screen name="RefundRequestScreen" component={RefundRequestScreen} />
               {/* Removed Admin & Instructor Screens */}
             </Stack.Navigator>
           </NavigationContainer>

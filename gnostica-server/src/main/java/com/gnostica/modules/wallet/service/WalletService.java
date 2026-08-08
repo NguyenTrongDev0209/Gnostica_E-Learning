@@ -292,7 +292,7 @@ public class WalletService {
             desc = desc.substring(0, 25);
         }
         payoutRequest.setDescription(desc);
-        payoutRequest.setReferenceId("WD-" + java.util.UUID.randomUUID());
+        payoutRequest.setReferenceId(generateUniqueGatewayReferenceId());
 
         // The local intent is committed first; PayOS submission runs after commit.
         // --> NOW REWRITTEN: PayOS is called synchronously to ensure atomic rollback on failure.
@@ -328,6 +328,22 @@ public class WalletService {
         }
 
         return payoutRepository.saveAndFlush(localPayout);
+    }
+
+    /**
+     * Creates a readable, gateway-safe withdrawal reference. The database unique
+     * index on gateway_reference_id remains the final integrity safeguard.
+     */
+    private String generateUniqueGatewayReferenceId() {
+        for (int attempt = 0; attempt < 5; attempt++) {
+            long code = 100_000_000_000L
+                    + java.util.concurrent.ThreadLocalRandom.current().nextLong(900_000_000_000L);
+            String referenceId = "RT" + code;
+            if (!payoutRepository.existsByGatewayReferenceId(referenceId)) {
+                return referenceId;
+            }
+        }
+        throw new IllegalStateException("Unable to create a unique withdrawal reference.");
     }
 
     private void assertAccountCanWithdraw(Account account) {
@@ -396,9 +412,24 @@ public class WalletService {
         wallet.setStatus(1);
         wallet.setType(5); // GIFT_REFUND
         wallet.setTargetType("GIFT");
-        wallet.setAvailableAt(LocalDateTime.now());
+        wallet.setAvailableAt(java.time.LocalDateTime.now());
         if (gift != null) {
             wallet.setTargetId(gift.getId());
+        }
+        return walletRepository.save(wallet);
+    }
+
+    @Transactional
+    public Wallet addRefund(Account account, BigDecimal amount, com.gnostica.core.model.OrderDetail detail) {
+        Wallet wallet = new Wallet();
+        wallet.setAccount(account);
+        wallet.setRemain(amount);
+        wallet.setStatus(1);
+        wallet.setType(6); // REFUND
+        wallet.setTargetType("ORDER_DETAIL");
+        wallet.setAvailableAt(java.time.LocalDateTime.now());
+        if (detail != null) {
+            wallet.setTargetId(detail.getId());
         }
         return walletRepository.save(wallet);
     }

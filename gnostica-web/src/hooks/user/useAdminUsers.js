@@ -28,7 +28,7 @@ export default function useAdminUsers() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState([]);
   const [dateRange, setDateRange] = useState({ from: null, to: null });
-  const [priceRange, setPriceRange] = useState({ min: "", max: "" });
+  const [priceRange, setPriceRange] = useState([0, 10000000]);
   const [pricePreset, setPricePreset] = useState("all");
 
   const [selectedUserDetail, setSelectedUserDetail] = useState(null);

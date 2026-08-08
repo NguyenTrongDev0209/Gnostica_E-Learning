@@ -10,14 +10,9 @@ import { usePublicSiteConfig } from "@/hooks/settings/useSiteSettings";
 
 const FooterBrand = ({ config }) => (
     <div className="flex flex-col gap-6">
-        <div className="flex flex-col gap-2">
-            <div className="flex flex-col gap-1">
-                <h2 className="text-3xl font-black text-foreground tracking-tighter uppercase">{config["site.name"] || "Gnostica"}</h2>
-                <span className="text-sm text-primary font-bold tracking-tight uppercase">{config["site.tagline"] || "Nền tảng học tập thông minh"}</span>
-            </div>
-
-            <div className="w-40 h-[2px] bg-muted"></div>
-
+        <div className="flex flex-col gap-4">
+            <h2 className="text-3xl font-black text-foreground tracking-tighter uppercase">{config["site.name"] || "Gnostica"}</h2>
+            <span className="text-sm text-primary font-bold tracking-tight uppercase">{config["site.tagline"] || "Nền tảng học tập thông minh"}</span>
             <p className="text-sm text-muted-foreground max-w-xs leading-relaxed">
                 {config["footer.description"] || "Gnostica là nền tảng học tập trực tuyến hiện đại, giúp bạn khai phá tiềm năng và phát triển kỹ năng mỗi ngày."}
             </p>

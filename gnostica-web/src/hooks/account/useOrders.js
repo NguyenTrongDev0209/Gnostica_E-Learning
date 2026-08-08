@@ -72,7 +72,12 @@ export default function useOrders() {
               id: order.id,
               orderCode,
               date: orderDate ? new Date(orderDate).toLocaleDateString("vi-VN") : "N/A",
-              courses: rawDetails.map((detail) => ({ name: getCourseName(detail) })),
+              courses: rawDetails.map((detail) => ({ 
+                id: detail.id,
+                name: getCourseName(detail),
+                status: detail.status,
+                giftedTo: detail.giftedTo
+              })),
               total: formatCurrency(totalAmount),
               method: order.paymentMethod || "N/A",
               ...statusMeta,

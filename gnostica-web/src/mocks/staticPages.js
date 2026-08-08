@@ -55,8 +55,9 @@ export const termsSectionsMock = [
     items: [
       "Tất cả giao dịch thanh toán được xử lý qua các cổng thanh toán bảo mật.",
       "Giá khóa học có thể thay đổi mà không cần thông báo trước.",
-      "Yêu cầu hoàn tiền được chấp nhận trong vòng 30 ngày kể từ ngày mua.",
-      "Khóa học miễn phí hoặc đã hoàn thành trên 50% sẽ không được hoàn tiền.",
+      "Hoàn tiền tự động: Yêu cầu trong vòng 14 ngày kể từ ngày mua và tiến độ học tập dưới 20%.",
+      "Hoàn tiền qua kiểm duyệt: Yêu cầu trong vòng 30 ngày sẽ được xem xét dựa trên lý do cụ thể.",
+      "Số tiền hoàn lại sẽ được cộng vào Ví cá nhân trên hệ thống Gnostica.",
     ],
   },
   {

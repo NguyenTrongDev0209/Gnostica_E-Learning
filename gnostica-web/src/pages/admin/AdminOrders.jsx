@@ -4,7 +4,7 @@ import DataTable from "@/components/common/composite/DataTable";
 import React, { useState, useEffect } from "react";
 import AppSelect from "@/components/common/micro/AppSelect";
 import AppInput from "@/components/common/micro/AppInput";
-import {Search, CheckCircle, Clock, XCircle, ShoppingCart, User, Eye, Info, CreditCard, Receipt} from "lucide-react";
+import {Search, CheckCircle, Clock, XCircle, ShoppingCart, User, Eye, Info, CreditCard, Receipt, RotateCcw} from "lucide-react";
 import { useOrders } from "@/hooks/order/useOrders";
 import AppCard, { AppCardContent, AppCardHeader, AppCardTitle } from "@/components/common/micro/AppCard";
 import AppBadge from "@/components/common/micro/AppBadge";
@@ -133,7 +133,8 @@ function OrderStatsFilter({
                   <SelectItem value="all">Tất cả trạng thái</SelectItem>
                   <SelectItem value="1">Đã thanh toán</SelectItem>
                   <SelectItem value="0">Chờ thanh toán</SelectItem>
-                  <SelectItem value="2">Đã hủy</SelectItem>
+                  <SelectItem value="2">Đã hoàn tiền</SelectItem>
+                  <SelectItem value="3">Đã hủy</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -167,6 +168,12 @@ function OrderTable({ orders, isLoading, onDetailClick, startIndex = 0, paginati
           </AppBadge>
         );
       case 2: 
+        return (
+          <AppBadge variant="warning" className="bg-warning/10 text-warning border-warning/20 gap-1 flex w-fit items-center mx-auto">
+            <RotateCcw className="w-3 h-3" /> Đã hoàn tiền
+          </AppBadge>
+        );
+      case 3: 
         return (
           <AppBadge variant="destructive" className="bg-error/10 text-error text-error border-error/20 gap-1 flex w-fit items-center mx-auto">
             <XCircle className="w-3 h-3" /> Đã hủy
