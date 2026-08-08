@@ -5,7 +5,7 @@ import { useNavigation, useIsFocused } from '@react-navigation/native';
 import {
     User, CreditCard, Settings, LogOut,
     ChevronRight, Bell, HelpCircle, Shield, Smile, Star, TrendingUp, MessageSquare, Edit3,
-    BookOpen, Target, Award, Headset, X, CheckCircle2, Mail, BadgeCheck
+    BookOpen, Target, Award, Headset, X, CheckCircle2, Mail, BadgeCheck, RefreshCcw
 } from 'lucide-react-native';
 import Avatar from '../../components/ui/Avatar';
 import Button from '../../components/ui/Button';
@@ -32,6 +32,7 @@ const MENU_GROUPS = [
         title: 'Hỗ trợ',
         items: [
             { label: 'Cài đặt',              icon: Settings,    color: '#64748B', target: 'Settings' },
+            { label: 'Yêu cầu hoàn tiền',    icon: RefreshCcw,  color: '#F59E0B', target: 'RefundScreen' },
             { label: 'Chăm sóc khách hàng',  icon: Headset,     color: '#3B82F6', target: 'Support' },
             { label: 'Về Gnostica',          icon: HelpCircle,  color: '#8B5CF6', target: 'LegalInfo', params: { type: 'about' } },
             { label: 'Chính sách và điều khoản', icon: Shield,  color: '#EC4899', target: 'LegalInfo', params: { type: 'terms' } },

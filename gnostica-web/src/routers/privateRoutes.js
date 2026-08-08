@@ -5,6 +5,7 @@ import MyCourses from "@/pages/account/MyCourses";
 import CertificatesPage from "@/pages/account/CertificatesPage";
 import WishlistPage from "@/pages/account/WishlistPage";
 import OrdersPage from "@/pages/account/OrdersPage";
+import RefundsPage from "@/pages/account/RefundsPage";
 import VouchersPage from "@/pages/account/VouchersPage";
 import NotificationsPage from "@/pages/account/NotificationsPage";
 import SettingsPage from "@/pages/account/SettingsPage";
@@ -50,6 +51,7 @@ export const privateRoutes = {
     { path: "/account/certificates", component: CertificatesPage },
     { path: "/account/wishlist", component: WishlistPage },
     { path: "/account/orders", component: OrdersPage },
+    { path: "/account/refunds", component: RefundsPage },
     { path: "/account/vouchers", component: VouchersPage },
     { path: "/account/notifications", component: NotificationsPage },
     { path: "/account/settings", component: SettingsPage },

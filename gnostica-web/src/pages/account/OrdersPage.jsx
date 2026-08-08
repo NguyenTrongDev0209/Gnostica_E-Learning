@@ -10,6 +10,10 @@ import { AppButton } from "@/components/common/micro/AppButton";
 import { AppDialog } from "@/components/common/micro/AppDialog";
 import AppSeparator from "@/components/common/micro/AppSeparator";
 import AppBadge from "@/components/common/micro/AppBadge";
+import refundService from "@/services/order/refund.service";
+import { toast } from "sonner";
+import { AppInput } from "@/components/common/micro/AppInput";
+
 export default function Orders() {
   const { 
     orders, 
@@ -27,6 +31,28 @@ export default function Orders() {
   } = useOrders();
 
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [refundCourse, setRefundCourse] = useState(null);
+
+  const handleRequestRefund = async (e) => {
+    e.preventDefault();
+    const reason = e.target.reason.value;
+    if (!reason) {
+      toast.error("Vui lòng nhập lý do hoàn tiền!");
+      return;
+    }
+    
+    try {
+      await refundService.requestRefund({
+        orderDetailId: refundCourse.id,
+        reason
+      });
+      toast.success("Gửi yêu cầu hoàn tiền thành công!");
+      setRefundCourse(null);
+      // Optional: Refresh the page or update state to reflect the refund request
+    } catch (err) {
+      toast.error(err.toString());
+    }
+  };
 
   const columns = [
     {
@@ -163,13 +189,43 @@ export default function Orders() {
       <OrderDetailModal 
         open={!!selectedOrder} 
         onOpenChange={(open) => !open && setSelectedOrder(null)} 
-        order={selectedOrder} 
+        order={selectedOrder}
+        onRefund={(course) => {
+          setSelectedOrder(null);
+          setRefundCourse(course);
+        }}
       />
+
+      <AppDialog
+        open={!!refundCourse}
+        onOpenChange={(open) => !open && setRefundCourse(null)}
+        title="Yêu cầu hoàn tiền"
+        description={`Khóa học: ${refundCourse?.name}`}
+        appVariant="glass"
+      >
+        <form onSubmit={handleRequestRefund} className="space-y-4 mt-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">Lý do hoàn tiền <span className="text-error">*</span></label>
+            <AppInput 
+              name="reason" 
+              placeholder="VD: Khóa học không phù hợp, đã học trùng..." 
+              required
+            />
+            <p className="text-xs text-muted-foreground mt-2">
+              Yêu cầu hoàn tiền sẽ được duyệt tự động nếu gửi trong vòng 14 ngày và tiến độ học dưới 20%. Các trường hợp khác sẽ được xem xét thủ công. Số tiền sẽ được hoàn vào Ví cá nhân.
+            </p>
+          </div>
+          <div className="flex justify-end gap-3 mt-6">
+            <AppButton type="button" appVariant="ghostMuted" onClick={() => setRefundCourse(null)}>Hủy</AppButton>
+            <AppButton type="submit" appVariant="primary">Gửi yêu cầu</AppButton>
+          </div>
+        </form>
+      </AppDialog>
     </div>
   );
 }
 
-function OrderDetailModal({ open, onOpenChange, order }) {
+function OrderDetailModal({ open, onOpenChange, order, onRefund }) {
   if (!order) return null;
 
   return (
@@ -231,6 +287,16 @@ function OrderDetailModal({ open, onOpenChange, order }) {
                     )}
                   </div>
                 </div>
+                {order.status === "Thành công" && !course.giftedTo && course.status === 1 && (
+                  <AppButton
+                    appVariant="outlineMuted"
+                    size="sm"
+                    className="text-xs h-8 text-error hover:bg-error-soft hover:text-error border-error/20"
+                    onClick={() => onRefund(course)}
+                  >
+                    Hoàn tiền
+                  </AppButton>
+                )}
               </div>
             )) : (
               <div className="p-3 rounded-xl border border-border text-sm font-medium text-muted-foreground">

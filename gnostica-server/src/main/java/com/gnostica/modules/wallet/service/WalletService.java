@@ -412,9 +412,24 @@ public class WalletService {
         wallet.setStatus(1);
         wallet.setType(5); // GIFT_REFUND
         wallet.setTargetType("GIFT");
-        wallet.setAvailableAt(LocalDateTime.now());
+        wallet.setAvailableAt(java.time.LocalDateTime.now());
         if (gift != null) {
             wallet.setTargetId(gift.getId());
+        }
+        return walletRepository.save(wallet);
+    }
+
+    @Transactional
+    public Wallet addRefund(Account account, BigDecimal amount, com.gnostica.core.model.OrderDetail detail) {
+        Wallet wallet = new Wallet();
+        wallet.setAccount(account);
+        wallet.setRemain(amount);
+        wallet.setStatus(1);
+        wallet.setType(6); // REFUND
+        wallet.setTargetType("ORDER_DETAIL");
+        wallet.setAvailableAt(java.time.LocalDateTime.now());
+        if (detail != null) {
+            wallet.setTargetId(detail.getId());
         }
         return walletRepository.save(wallet);
     }

@@ -6,7 +6,7 @@ const orderService = {
      * Response: ApiResponse<List<Order>>
      */
     getAll: () => {
-        return api.get('/checkout/orders/all');
+        return api.get('/checkout/orders/my-orders');
     },
 
     /**
