@@ -562,8 +562,9 @@ const OutcomeBanner = () => {
               fill="transparent"
               stroke="url(#banner-gradient)"
               strokeWidth="10"
-              strokeDasharray="201"
-              strokeDashoffset="10"
+              pathLength="100"
+              strokeDasharray="100"
+              strokeDashoffset="5"
               strokeLinecap="round"
             />
             <defs>
@@ -736,7 +737,7 @@ function HomePage() {
           <DiscountedCourses />
         </PageContainer.Section>
 
-        <PageContainer.Section title="Câu hỏi thường gặp" className="w-full app-container">
+        <PageContainer.Section title="Câu hỏi thường gặp" className="w-full app-container gap-0 md:gap-0">
           <FAQSection />
         </PageContainer.Section>
 
