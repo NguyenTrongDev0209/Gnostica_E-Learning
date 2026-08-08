@@ -7,6 +7,19 @@ const appEnvironment = (
 
 module.exports = {
   ...appJson.expo,
+  updates: {
+    ...(appJson.expo.updates || {}),
+    url: 'https://u.expo.dev/8cc6a315-8bee-49a6-abb4-7396386bd420',
+  },
+  runtimeVersion: {
+    policy: 'appVersion',
+  },
+  extra: {
+    ...(appJson.expo.extra || {}),
+    eas: {
+      projectId: '8cc6a315-8bee-49a6-abb4-7396386bd420',
+    },
+  },
   plugins: [
     ...(appJson.expo.plugins || []),
     [
