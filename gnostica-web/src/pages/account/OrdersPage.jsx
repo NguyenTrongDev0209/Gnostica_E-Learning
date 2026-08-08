@@ -12,7 +12,7 @@ import AppSeparator from "@/components/common/micro/AppSeparator";
 import AppBadge from "@/components/common/micro/AppBadge";
 import refundService from "@/services/order/refund.service";
 import { toast } from "sonner";
-import { AppInput } from "@/components/common/micro/AppInput";
+import AppInput from "@/components/common/micro/AppInput";
 
 export default function Orders() {
   const { 

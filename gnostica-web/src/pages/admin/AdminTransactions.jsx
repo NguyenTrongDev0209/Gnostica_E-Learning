@@ -9,7 +9,7 @@ import {CreditCard, History, ArrowDownCircle, ShoppingBag, ArrowUpCircle, Rotate
 import { useTransactions } from "@/hooks/payment/useTransactions";
 import useRefundRequests from "@/hooks/payment/useRefundRequests";
 import RefundRejectModal from "@/components/modals/RefundRejectModal";
-import { AppAlertDialog } from "@/components/common/micro/AppAlertDialog";
+import AppAlertDialog from "@/components/common/micro/AppAlertDialog";
 import AppBadge from "@/components/common/micro/AppBadge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/common/micro/AppAvatar";
 import { CheckCircle, XCircle } from "lucide-react";
