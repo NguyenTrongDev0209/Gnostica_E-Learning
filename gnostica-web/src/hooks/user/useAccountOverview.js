@@ -30,7 +30,7 @@ export default function useAccountOverview() {
         const certsData = certsRes.ok ? await certsRes.json() : [];
 
         // Format data if needed
-        const recentCourses = (coursesData.data || []).slice(0, 3).map(c => ({
+        const recentCourses = (coursesData.data || []).map(c => ({
           id: c.courseId,
           slug: c.courseSlug,
           courseTitle: c.courseTitle,

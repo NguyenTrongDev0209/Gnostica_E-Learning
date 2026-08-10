@@ -24,6 +24,11 @@ export default function AccountOverview() {
 
   const { stats, recentCourses, recentCertificates, wallet, loading } = useAccountOverview();
 
+  const ITEMS_PER_PAGE = 5;
+  const totalPages = Math.max(1, Math.ceil(recentCourses.length / ITEMS_PER_PAGE));
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedCourses = recentCourses.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
   const handleBecomeInstructor = () => {
     setInstructorDialogMode("intro");
     setIsInstructorDialogOpen(true);
@@ -121,7 +126,7 @@ export default function AccountOverview() {
           ) : (
             <div className="space-y-6">
               <div className="space-y-4">
-                {recentCourses.map((course) => (
+                {paginatedCourses.map((course) => (
                   <CourseProgressCard
                     key={course.id}
                     id={course.id}
@@ -137,7 +142,7 @@ export default function AccountOverview() {
               </div>
               <AppPagination 
                 currentPage={currentPage}
-                totalPages={5}
+                totalPages={totalPages}
                 onPageChange={setCurrentPage}
                 className="pt-2 border-t border-border/50"
               />
