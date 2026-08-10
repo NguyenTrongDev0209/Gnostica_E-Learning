@@ -17,12 +17,24 @@ export default function useAdminUsers() {
     const currentTab = searchParams.get("tab") || "USER";
     if (currentTab !== activeTab) {
       setActiveTabState(currentTab);
+      setSelectedUserDetail(null);
+      setTimeout(() => {
+        const scrollContainer = document.getElementById('main-scroll-container');
+        if (scrollContainer) scrollContainer.scrollTo({ top: 0, behavior: 'smooth' });
+        else window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 50);
     }
-  }, [searchParams]);
+  }, [searchParams, activeTab]);
 
   const setActiveTab = (newTab) => {
     setActiveTabState(newTab);
+    setSelectedUserDetail(null);
     setSearchParams({ tab: newTab });
+    setTimeout(() => {
+      const scrollContainer = document.getElementById('main-scroll-container');
+      if (scrollContainer) scrollContainer.scrollTo({ top: 0, behavior: 'smooth' });
+      else window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 50);
   };
 
   const [searchTerm, setSearchTerm] = useState("");
