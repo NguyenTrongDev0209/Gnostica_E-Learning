@@ -25,6 +25,7 @@ public interface PayoutRepository extends JpaRepository<Payout, java.util.UUID> 
     java.util.List<Payout> findByStatusIn(java.util.List<Integer> statuses);
     java.util.List<Payout> findByStatusInAndGatewayPayoutIdIsNull(java.util.List<Integer> statuses);
     java.util.Optional<Payout> findByAccountAndIdempotencyKey(Account account, String idempotencyKey);
+    java.util.Optional<Payout> findByGatewayReferenceId(String gatewayReferenceId);
     boolean existsByGatewayReferenceId(String gatewayReferenceId);
     boolean existsByAccountBankAndStatusIn(com.gnostica.core.model.AccountBank accountBank, List<Integer> statuses);
 
@@ -34,6 +35,9 @@ public interface PayoutRepository extends JpaRepository<Payout, java.util.UUID> 
 
     @Query("SELECT COALESCE(SUM(p.amount), 0) FROM Payout p WHERE p.account = :account AND p.status IN :statuses")
     BigDecimal sumPayoutsByAccount(@Param("account") Account account, @Param("statuses") List<Integer> statuses);
+
+    @Query("SELECT p.createdAt, p.status, p.amount FROM Payout p WHERE p.createdAt >= :startDate")
+    List<Object[]> getAdminStatsProjection(@Param("startDate") LocalDateTime startDate);
 
     org.springframework.data.domain.Page<Payout> findByAccountIdOrderByCreatedAtDesc(java.util.UUID accountId, org.springframework.data.domain.Pageable pageable);
 }

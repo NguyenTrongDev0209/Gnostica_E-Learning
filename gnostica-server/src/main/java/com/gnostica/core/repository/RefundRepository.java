@@ -5,7 +5,9 @@ import com.gnostica.core.model.Account;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.stereotype.Repository;
+import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -15,6 +17,9 @@ import org.springframework.data.jpa.repository.Query;
 
 @Repository
 public interface RefundRepository extends JpaRepository<Refund, UUID> {
+    @Query("SELECT r.createdAt, r.status, r.amount FROM Refund r WHERE r.createdAt >= :startDate")
+    List<Object[]> getAdminStatsProjection(@Param("startDate") LocalDateTime startDate);
+
     @EntityGraph(attributePaths = {"account", "orderDetail", "orderDetail.order"})
     List<Refund> findAllByOrderByCreatedAtDesc();
 

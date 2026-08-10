@@ -18,6 +18,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/common/mi
 import { AppButton } from "@/components/common/micro/AppButton";
 import { toast } from "sonner";
 import AppBadge from "@/components/common/micro/AppBadge";
+import useRequestStats from "@/hooks/admin/useRequestStats";
+import { RequestTrendChart, RequestStatusDonut, RequestCategoryBar } from "@/components/common/composite/RequestStatCharts";
+import { RefreshCw } from "lucide-react";
 
 const violationTypes = {
   spam: "Spam / Quảng cáo",
@@ -33,6 +36,8 @@ export default function RequestReportsTab() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState([]);
   const [activeTab, setActiveTab] = useState("STATISTICS");
+
+  const { stats: apiStats, loading: statsLoading, changeMonths } = useRequestStats('reports');
 
   const fetchReports = async () => {
     setIsLoading(true);
@@ -116,68 +121,29 @@ export default function RequestReportsTab() {
         </TabsList>
       </div>
 
-      <TabsContent value="STATISTICS" className="mt-0">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mt-2">
-        <div
-          onClick={() => { setStatusFilter([]); setActiveTab("LIST"); }}
-          className={`cursor-pointer transition-all bg-white border rounded-xl p-4 flex items-center gap-3.5 shadow-sm hover:shadow-md ${
-            statusFilter.length === 0 ? "border-primary ring-2 ring-primary/20" : "border-border"
-          }`}
-        >
-          <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-            <Flag className="w-5 h-5" />
-          </div>
-          <div>
-            <p className="text-xs font-medium text-muted-foreground">Tổng báo cáo</p>
-            <p className="text-2xl font-bold text-foreground">{stats.total}</p>
-          </div>
-        </div>
-
-        <div
-          onClick={() => { setStatusFilter(["PENDING"]); setActiveTab("LIST"); }}
-          className={`cursor-pointer transition-all bg-white border rounded-xl p-4 flex items-center gap-3.5 shadow-sm hover:shadow-md ${
-            statusFilter.includes("PENDING") ? "border-warning ring-2 ring-warning/20" : "border-border"
-          }`}
-        >
-          <div className="w-10 h-10 rounded-xl bg-warning/10 text-warning flex items-center justify-center shrink-0">
-            <Clock className="w-5 h-5" />
-          </div>
-          <div>
-            <p className="text-xs font-medium text-muted-foreground">Chờ xử lý</p>
-            <p className="text-2xl font-bold text-warning">{stats.pending}</p>
-          </div>
-        </div>
-
-        <div
-          onClick={() => { setStatusFilter(["RESOLVED"]); setActiveTab("LIST"); }}
-          className={`cursor-pointer transition-all bg-white border rounded-xl p-4 flex items-center gap-3.5 shadow-sm hover:shadow-md ${
-            statusFilter.includes("RESOLVED") ? "border-success ring-2 ring-success/20" : "border-border"
-          }`}
-        >
-          <div className="w-10 h-10 rounded-xl bg-success/10 text-success flex items-center justify-center shrink-0">
-            <CheckCheck className="w-5 h-5" />
-          </div>
-          <div>
-            <p className="text-xs font-medium text-muted-foreground">Đã xử lý</p>
-            <p className="text-2xl font-bold text-success">{stats.resolved}</p>
-          </div>
-        </div>
-
-        <div
-          onClick={() => { setStatusFilter(["DISMISSED"]); setActiveTab("LIST"); }}
-          className={`cursor-pointer transition-all bg-white border rounded-xl p-4 flex items-center gap-3.5 shadow-sm hover:shadow-md ${
-            statusFilter.includes("DISMISSED") ? "border-muted-foreground/30 ring-2 ring-muted-foreground/20" : "border-border"
-          }`}
-        >
-          <div className="w-10 h-10 rounded-xl bg-muted text-muted-foreground flex items-center justify-center shrink-0">
-            <XCircle className="w-5 h-5" />
-          </div>
-          <div>
-            <p className="text-xs font-medium text-muted-foreground">Đã bỏ qua</p>
-            <p className="text-2xl font-bold text-muted-foreground">{stats.dismissed}</p>
-          </div>
-        </div>
-      </div>
+      <TabsContent value="STATISTICS" className="mt-0 space-y-6">
+        {statsLoading ? (
+          <div className="flex justify-center p-8 text-muted-foreground"><RefreshCw className="animate-spin w-5 h-5 mr-2" /> Đang tải dữ liệu thống kê...</div>
+        ) : (
+          <>
+            <RequestTrendChart 
+                data={apiStats?.trends} 
+                title="Xu hướng Báo cáo vi phạm" 
+                hasAmount={false}
+                onMonthsChange={changeMonths}
+            />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <RequestStatusDonut 
+                    data={apiStats?.statusDistribution} 
+                    title="Tỉ lệ trạng thái xử lý"
+                />
+                <RequestCategoryBar 
+                    data={apiStats?.typeDistribution} 
+                    title="Phân loại vi phạm"
+                />
+            </div>
+          </>
+        )}
       </TabsContent>
 
       <TabsContent value="LIST" className="mt-0 space-y-6">
