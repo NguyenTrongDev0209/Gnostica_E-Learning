@@ -53,7 +53,8 @@ public class AdminUserDetailServiceImpl implements AdminUserDetailService {
         BigDecimal balance = walletRepository.sumAvailableRemainByAccount(account);
         if (balance == null) balance = BigDecimal.ZERO;
 
-        BigDecimal totalSpent = BigDecimal.ZERO; // Optional: Calculate from orders if needed
+        BigDecimal totalSpent = orderRepository.sumTotalSpentByAccountId(userId);
+        if (totalSpent == null) totalSpent = BigDecimal.ZERO;
         BigDecimal totalRevenue = walletRepository.sumTotalRevenueByAccount(account);
         if (totalRevenue == null) totalRevenue = BigDecimal.ZERO;
         

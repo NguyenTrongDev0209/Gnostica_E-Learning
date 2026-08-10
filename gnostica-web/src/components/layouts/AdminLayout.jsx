@@ -34,7 +34,7 @@ export default function AdminLayout() {
         <AdminHeader user={user} />
 
         {/* Page Content */}
-        <PageContainer.Content disableContainer className="flex-1 p-6 md:p-8 overflow-y-auto scrollbar-hide gap-0">
+        <PageContainer.Content disableContainer id="main-scroll-container" className="flex-1 p-6 md:p-8 overflow-y-auto scrollbar-hide gap-0">
           <Outlet />
         </PageContainer.Content>
       </div>
