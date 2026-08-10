@@ -38,7 +38,7 @@ export default function RequestRefundsTab() {
   const [dateRange, setDateRange] = useState({ from: null, to: null });
   const [activeTab, setActiveTab] = useState("STATISTICS");
 
-  const { stats: apiStats, loading: statsLoading, changeMonths } = useRequestStats('refunds');
+  const { stats: apiStats, loading: statsLoading, months, changeMonths } = useRequestStats('refunds');
 
   const [selectedRefundAction, setSelectedRefundAction] = useState(null); // { type: 'approve' | 'reject', tx: any }
   const [isApproveAlertOpen, setIsApproveAlertOpen] = useState(false);
@@ -128,6 +128,7 @@ export default function RequestRefundsTab() {
                 data={apiStats?.trends} 
                 title="Xu hướng Hoàn tiền" 
                 hasAmount={true}
+                months={months}
                 onMonthsChange={changeMonths}
             />
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

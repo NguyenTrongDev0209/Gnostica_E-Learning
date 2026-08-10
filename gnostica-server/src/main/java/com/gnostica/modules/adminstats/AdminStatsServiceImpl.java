@@ -39,7 +39,7 @@ public class AdminStatsServiceImpl implements AdminStatsService {
         List<Object[]> data = supportRepository.getAdminStatsProjection(startDate);
         
         Map<String, String> statusLabels = Map.of(
-            "0", "Mở",
+            "0", "Chờ xử lý",
             "1", "Đang xử lý",
             "2", "Chờ phản hồi",
             "3", "Đã giải quyết",
@@ -69,7 +69,6 @@ public class AdminStatsServiceImpl implements AdminStatsService {
             "1", "Thấp",
             "2", "Trung bình",
             "3", "Cao",
-            "4", "Khẩn cấp",
             "0", "Không rõ"
         );
         
@@ -87,9 +86,9 @@ public class AdminStatsServiceImpl implements AdminStatsService {
         List<Object[]> data = refundRepository.getAdminStatsProjection(startDate);
         
         Map<String, String> statusLabels = Map.of(
-            "1", "Chờ xử lý",
-            "2", "Đã hoàn tiền",
-            "3", "Từ chối"
+            "1", "Chờ duyệt",
+            "2", "Đã duyệt",
+            "3", "Bị từ chối"
         );
 
         return buildResponse(data, startDate, clampedMonths, statusLabels, true);
@@ -123,8 +122,8 @@ public class AdminStatsServiceImpl implements AdminStatsService {
         Map<String, String> statusLabels = Map.of(
             "1", "Chờ xử lý",
             "2", "Đang xử lý",
-            "3", "Đã giải quyết",
-            "4", "Bỏ qua"
+            "3", "Đã xử lý",
+            "4", "Đã bỏ qua"
         );
 
         AdminStatsResponse response = buildResponse(data, startDate, clampedMonths, statusLabels, false);

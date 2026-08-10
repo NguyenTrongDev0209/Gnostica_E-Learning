@@ -16,21 +16,41 @@ public class AdminStatsController {
 
     @GetMapping("/supports")
     public ApiResponse<AdminStatsResponse> getSupportsStats(@RequestParam(defaultValue = "12") int months) {
-        return ApiResponse.success(adminStatsService.getSupportsStats(months));
+        try {
+            return ApiResponse.success(adminStatsService.getSupportsStats(months));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ApiResponse.error("fail");
+        }
     }
 
     @GetMapping("/refunds")
     public ApiResponse<AdminStatsResponse> getRefundsStats(@RequestParam(defaultValue = "12") int months) {
-        return ApiResponse.success(adminStatsService.getRefundsStats(months));
+        try {
+            return ApiResponse.success(adminStatsService.getRefundsStats(months));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ApiResponse.error("fail");
+        }
     }
 
     @GetMapping("/withdrawals")
     public ApiResponse<AdminStatsResponse> getWithdrawalsStats(@RequestParam(defaultValue = "12") int months) {
-        return ApiResponse.success(adminStatsService.getWithdrawalsStats(months));
+        try {
+            return ApiResponse.success(adminStatsService.getWithdrawalsStats(months));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ApiResponse.error("fail");
+        }
     }
 
     @GetMapping("/thread-reports")
     public ApiResponse<AdminStatsResponse> getThreadReportsStats(@RequestParam(defaultValue = "12") int months) {
-        return ApiResponse.success(adminStatsService.getThreadReportsStats(months));
+        try {
+            return ApiResponse.success(adminStatsService.getThreadReportsStats(months));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ApiResponse.error("fail");
+        }
     }
 }

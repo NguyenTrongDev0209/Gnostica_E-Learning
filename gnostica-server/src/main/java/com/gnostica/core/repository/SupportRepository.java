@@ -16,6 +16,6 @@ public interface SupportRepository extends JpaRepository<Support, Integer> {
     List<Support> findByAssigneeOrderByUpdatedAtDesc(Account assignee);
     List<Support> findByStatusOrderByUpdatedAtDesc(Integer status);
 
-    @Query("SELECT s.createdAt, s.status, s.type, s.priority FROM Support s WHERE s.createdAt >= :startDate")
+    @Query("SELECT s.createdAt, s.status, s.type, s.priority FROM Support s WHERE s.createdAt >= :startDate AND s.deletedAt IS NULL")
     List<Object[]> getAdminStatsProjection(@Param("startDate") LocalDateTime startDate);
 }

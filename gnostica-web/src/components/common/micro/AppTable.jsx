@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowUpDown } from 'lucide-react';
+import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import {
   Table,
   TableHeader,
@@ -27,6 +27,8 @@ import { AppCheckbox } from "@/components/common/micro/AppCheckbox";
  * @param {Function} rowKey - Hàm tạo khoá cho dòng
  * @param {Function} renderExpandedRow - Hàm render nội dung mở rộng cho dòng (trả về ReactNode)
  * @param {Object} selection - Bật cột chọn dòng: { selectedRowKeys, onSelectionChange }
+ * @param {Function} onSort - Hàm xử lý sắp xếp
+ * @param {Object} sortConfig - Cấu hình sắp xếp { key, direction: 'asc' | 'desc' }
  */
 export default function AppTable({
   columns = [],
@@ -42,6 +44,8 @@ export default function AppTable({
   renderExpandedRow,
   selection,
   hideWrapperStyle = false,
+  onSort,
+  sortConfig,
   ...props
 }) {
   const selectedRowKeys = selection?.selectedRowKeys ?? [];
@@ -64,6 +68,12 @@ export default function AppTable({
     selection.onSelectionChange(nextSelected);
   };
 
+  const handleSort = (colKey) => {
+    if (onSort && colKey) {
+      onSort(colKey);
+    }
+  };
+
   return (
     <div className={cn(
       "w-full overflow-x-auto scrollbar-thin", 
@@ -83,27 +93,40 @@ export default function AppTable({
                 />
               </TableHead>
             )}
-            {columns.map((col, index) => (
-              <TableHead 
-                key={col.key || col.accessor || index} 
-                className={cn(
-                  "py-3 px-4 font-semibold text-foreground align-middle text-center", 
-                  col.className
-                )} 
-                style={{ width: col.width, minWidth: col.width, maxWidth: col.width }}
-              >
-                {col.sortable !== false && typeof col.header !== "function" && col.header !== "Thao tác" ? (
-                  <div className={cn(
-                    "flex items-center gap-1.5 cursor-pointer hover:text-primary transition-colors group select-none justify-center"
-                  )}>
-                    {col.header || col.label}
-                    <ArrowUpDown className="w-3 h-3 text-muted-foreground/50 group-hover:text-primary transition-colors" />
-                  </div>
-                ) : (
-                  typeof col.header === "function" ? col.header() : col.header || col.label
-                )}
-              </TableHead>
-            ))}
+            {columns.map((col, index) => {
+              const colKey = col.key || col.accessor;
+              const isSorted = sortConfig && sortConfig.key === colKey;
+              return (
+                <TableHead 
+                  key={colKey || index} 
+                  className={cn(
+                    "py-3 px-4 font-semibold text-foreground align-middle text-center", 
+                    col.className
+                  )} 
+                  style={{ width: col.width, minWidth: col.width, maxWidth: col.width }}
+                >
+                  {col.sortable !== false && typeof col.header !== "function" && col.header !== "Thao tác" ? (
+                    <div 
+                      className={cn(
+                        "flex items-center gap-1.5 cursor-pointer hover:text-primary transition-colors group select-none justify-center"
+                      )}
+                      onClick={() => handleSort(colKey)}
+                    >
+                      {col.header || col.label}
+                      {isSorted ? (
+                        sortConfig.direction === 'asc' 
+                          ? <ArrowUp className="w-3 h-3 shrink-0 text-primary transition-colors" />
+                          : <ArrowDown className="w-3 h-3 shrink-0 text-primary transition-colors" />
+                      ) : (
+                        <ArrowUpDown className="w-3 h-3 shrink-0 text-muted-foreground/50 group-hover:text-primary transition-colors" />
+                      )}
+                    </div>
+                  ) : (
+                    typeof col.header === "function" ? col.header() : col.header || col.label
+                  )}
+                </TableHead>
+              );
+            })}
           </TableRow>
         </TableHeader>
         <TableBody>

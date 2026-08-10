@@ -46,7 +46,7 @@ export default function RequestWithdrawalsTab() {
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
-  const { stats: apiStats, loading: statsLoading, changeMonths } = useRequestStats('withdrawals');
+  const { stats: apiStats, loading: statsLoading, months, changeMonths } = useRequestStats('withdrawals');
 
   const stats = useMemo(() => {
     const total = transactions.length;
@@ -124,6 +124,7 @@ export default function RequestWithdrawalsTab() {
                 data={apiStats?.trends} 
                 title="Xu hướng Rút tiền" 
                 hasAmount={true}
+                months={months}
                 onMonthsChange={changeMonths}
             />
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

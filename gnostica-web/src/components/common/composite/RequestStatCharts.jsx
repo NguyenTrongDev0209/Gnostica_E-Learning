@@ -1,10 +1,10 @@
 import React from "react";
 import { AreaChart, Area, CartesianGrid, XAxis, YAxis, BarChart, Bar, ComposedChart, Line, PieChart, Pie, Cell } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/common/micro/AppChart";
-import { ChartDateFilters } from "@/components/common/composite/DataFilter";
 import AppCard, { AppCardContent, AppCardHeader, AppCardTitle, AppCardDescription } from "@/components/common/micro/AppCard";
+import AppSelect from "@/components/common/micro/AppSelect";
 
-export function RequestTrendChart({ data, title, hasAmount = false, onMonthsChange }) {
+export function RequestTrendChart({ data, title, hasAmount = false, months = 12, onMonthsChange }) {
     // Generate config based on available status in data
     const generateConfig = () => {
         const config = {};
@@ -31,24 +31,10 @@ export function RequestTrendChart({ data, title, hasAmount = false, onMonthsChan
     const config = generateConfig();
     const statusKeys = Object.keys(config).filter(k => k !== "amount" && k !== "total");
 
-    const formatYAxis = (value) => {
-        if (hasAmount) {
-            if (value >= 1000000) return `${(value / 1000000).toFixed(0)}M`;
-            if (value >= 1000) return `${(value / 1000).toFixed(0)}K`;
-            return value;
-        }
+    const formatAmountAxis = (value) => {
+        if (value >= 1000000) return `${(value / 1000000).toFixed(0)}M`;
+        if (value >= 1000) return `${(value / 1000).toFixed(0)}K`;
         return value;
-    };
-
-    const handlePresetChange = (preset) => {
-        if (!onMonthsChange) return;
-        switch(preset) {
-            case 'this-month': onMonthsChange(1); break;
-            case '3-months': onMonthsChange(3); break;
-            case '6-months': onMonthsChange(6); break;
-            case '12-months': onMonthsChange(12); break;
-            default: onMonthsChange(12);
-        }
     };
 
     const transformedData = data?.map(d => {
@@ -58,6 +44,19 @@ export function RequestTrendChart({ data, title, hasAmount = false, onMonthsChan
 
     const mainDataKey = hasAmount ? "amount" : "total";
 
+    if (!data || data.length === 0) {
+        return (
+            <AppCard appVariant="default" className="border-border shadow-sm flex flex-col h-[400px]">
+                <AppCardHeader className="pb-2">
+                    <AppCardTitle className="text-lg font-semibold">{title}</AppCardTitle>
+                </AppCardHeader>
+                <AppCardContent className="w-full flex-1 flex items-center justify-center text-muted-foreground text-sm">
+                    Chưa có dữ liệu biểu đồ
+                </AppCardContent>
+            </AppCard>
+        );
+    }
+
     return (
         <AppCard appVariant="default" className="border-border shadow-sm flex flex-col h-[400px]">
             <AppCardHeader className="pb-2">
@@ -66,9 +65,17 @@ export function RequestTrendChart({ data, title, hasAmount = false, onMonthsChan
                         <AppCardTitle className="text-lg font-semibold">{title}</AppCardTitle>
                     </div>
                     <div className="flex flex-wrap items-center gap-3">
-                        <ChartDateFilters
-                            onPresetChange={handlePresetChange}
-                            defaultPreset="12-months"
+                        <AppSelect
+                            value={String(months)}
+                            onValueChange={(v) => onMonthsChange?.(Number(v))}
+                            options={[
+                                { label: "3 tháng", value: "3" },
+                                { label: "6 tháng", value: "6" },
+                                { label: "12 tháng", value: "12" },
+                                { label: "24 tháng", value: "24" },
+                            ]}
+                            placeholder="Khoảng thời gian"
+                            className="w-[140px]"
                         />
                     </div>
                 </div>
@@ -85,19 +92,31 @@ export function RequestTrendChart({ data, title, hasAmount = false, onMonthsChan
                             dy={10} 
                         />
                         <YAxis 
+                            yAxisId="count"
                             axisLine={false} 
                             tickLine={false} 
+                            allowDecimals={false}
                             tick={{ fontSize: 12, fontWeight: 500, fill: 'var(--muted-foreground)' }} 
-                            tickFormatter={formatYAxis}
                             dx={-10}
                         />
-                        <ChartTooltip content={<ChartTooltipContent formatter={(val, name) => hasAmount && name === "amount" ? `${val.toLocaleString()}đ` : val} />} />
+                        {hasAmount && (
+                            <YAxis 
+                                yAxisId="amount"
+                                orientation="right"
+                                axisLine={false} 
+                                tickLine={false} 
+                                tickFormatter={formatAmountAxis}
+                                tick={{ fontSize: 12, fontWeight: 500, fill: 'var(--muted-foreground)' }} 
+                                width={56}
+                            />
+                        )}
+                        <ChartTooltip content={<ChartTooltipContent formatter={(val, name) => hasAmount && name === "amount" ? `${Number(val).toLocaleString('vi-VN')}đ` : val} />} />
                         <ChartLegend content={<ChartLegendContent />} />
                         
                         {statusKeys.map((status, idx) => (
-                            <Bar key={status} dataKey={status} name={status} stackId="a" fill={config[status].color} maxBarSize={40} />
+                            <Bar key={status} yAxisId="count" dataKey={status} name={status} stackId="a" fill={config[status].color} maxBarSize={40} />
                         ))}
-                        <Line type="monotone" dataKey={mainDataKey} name={config[mainDataKey].label} stroke="var(--primary)" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
+                        <Line type="monotone" yAxisId={hasAmount ? "amount" : "count"} dataKey={mainDataKey} name={config[mainDataKey].label} stroke="var(--primary)" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
                     </ComposedChart>
                 </ChartContainer>
             </AppCardContent>
@@ -114,6 +133,19 @@ export function RequestStatusDonut({ data, title }) {
         config[item.label] = { label: item.label, color: fill };
         return { name: item.label, value: item.count, fill };
     }) || [];
+
+    if (!data || data.length === 0) {
+        return (
+            <AppCard appVariant="default" className="border-border shadow-sm flex flex-col h-[400px]">
+                <AppCardHeader className="pb-2">
+                    <AppCardTitle className="text-lg font-semibold">{title}</AppCardTitle>
+                </AppCardHeader>
+                <AppCardContent className="flex-1 flex items-center justify-center text-muted-foreground text-sm">
+                    Chưa có dữ liệu biểu đồ
+                </AppCardContent>
+            </AppCard>
+        );
+    }
 
     return (
         <AppCard appVariant="default" className="border-border shadow-sm flex flex-col h-[400px]">
@@ -154,6 +186,19 @@ export function RequestCategoryBar({ data, title }) {
     };
 
     const chartData = data || [];
+
+    if (!data || data.length === 0) {
+        return (
+            <AppCard appVariant="default" className="border-border shadow-sm flex flex-col h-[400px]">
+                <AppCardHeader className="pb-2 border-b border-border">
+                    <AppCardTitle className="text-lg font-bold text-foreground">{title}</AppCardTitle>
+                </AppCardHeader>
+                <AppCardContent className="flex-1 flex items-center justify-center text-muted-foreground text-sm">
+                    Chưa có dữ liệu biểu đồ
+                </AppCardContent>
+            </AppCard>
+        );
+    }
 
     return (
         <AppCard appVariant="default" className="border-border shadow-sm flex flex-col h-[400px]">

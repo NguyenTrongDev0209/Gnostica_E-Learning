@@ -6,7 +6,7 @@ export default function useRequestStats(type) {
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const [months, setMonths] = useState(6);
+    const [months, setMonths] = useState(12);
 
     const fetchStats = useCallback(async (selectedMonths = months) => {
         setLoading(true);

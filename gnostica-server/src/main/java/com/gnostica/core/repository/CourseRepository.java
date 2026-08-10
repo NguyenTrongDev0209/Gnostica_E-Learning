@@ -42,6 +42,7 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
     long countByAccount_IdAndStatus(UUID accountId, Integer status);
     java.util.List<Course> findByAccount_IdAndStatus(UUID accountId, Integer status);
     long countByAccountIdAndStatus(UUID accountId, Integer status);
+    long countByAccountId(UUID accountId);
     java.util.List<Course> findByAccountIdAndStatus(UUID accountId, Integer status);
 
     @org.springframework.data.jpa.repository.Query("SELECT COALESCE(SUM(SIZE(c.enrollments)), 0) FROM Course c WHERE c.account.id = :accountId")

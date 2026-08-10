@@ -37,7 +37,7 @@ export default function RequestReportsTab() {
   const [statusFilter, setStatusFilter] = useState([]);
   const [activeTab, setActiveTab] = useState("STATISTICS");
 
-  const { stats: apiStats, loading: statsLoading, changeMonths } = useRequestStats('reports');
+  const { stats: apiStats, loading: statsLoading, months, changeMonths } = useRequestStats('reports');
 
   const fetchReports = async () => {
     setIsLoading(true);
@@ -130,6 +130,7 @@ export default function RequestReportsTab() {
                 data={apiStats?.trends} 
                 title="Xu hướng Báo cáo vi phạm" 
                 hasAmount={false}
+                months={months}
                 onMonthsChange={changeMonths}
             />
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

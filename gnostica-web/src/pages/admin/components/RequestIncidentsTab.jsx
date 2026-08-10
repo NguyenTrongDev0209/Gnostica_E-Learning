@@ -57,7 +57,7 @@ export default function RequestIncidentsTab() {
   const [dateRange, setDateRange] = useState({ from: null, to: null });
   const [activeTab, setActiveTab] = useState("STATISTICS");
 
-  const { stats: apiStats, loading: statsLoading, changeMonths } = useRequestStats('supports');
+  const { stats: apiStats, loading: statsLoading, months, changeMonths } = useRequestStats('supports');
 
   // Modal xem chi tiết ticket & modal xem ảnh
   const [selectedTicket, setSelectedTicket] = useState(null);
@@ -247,6 +247,7 @@ export default function RequestIncidentsTab() {
                 data={apiStats?.trends} 
                 title="Xu hướng Yêu cầu Sự cố" 
                 hasAmount={false}
+                months={months}
                 onMonthsChange={changeMonths}
             />
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

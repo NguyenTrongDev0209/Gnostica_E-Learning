@@ -63,7 +63,7 @@ class AdminStatsServiceImplTest {
         for (TrendPointDTO tp : response.getTrends()) {
             assertEquals(0, tp.getTotal());
             assertNotNull(tp.getStatusCounts());
-            assertTrue(tp.getStatusCounts().containsKey("Mở")); // check label fallback
+            assertTrue(tp.getStatusCounts().containsKey("Chờ xử lý")); // check label fallback
         }
     }
 
@@ -134,7 +134,7 @@ class AdminStatsServiceImplTest {
         assertNotNull(pendingStatus);
         assertEquals(1, pendingStatus.getCount());
         
-        KeyCountDTO resolvedStatus = response.getStatusDistribution().stream().filter(k -> k.getLabel().equals("Đã giải quyết")).findFirst().orElse(null);
+        KeyCountDTO resolvedStatus = response.getStatusDistribution().stream().filter(k -> k.getLabel().equals("Đã xử lý")).findFirst().orElse(null);
         assertNotNull(resolvedStatus);
         assertEquals(1, resolvedStatus.getCount());
     }
