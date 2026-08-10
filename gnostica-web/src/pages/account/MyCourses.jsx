@@ -50,19 +50,19 @@ export default function MyCourses() {
       label: "Khóa học đăng ký", 
       value: stats?.enrolledCourses || "0", 
       icon: BookOpen, 
-      color: "text-info bg-blue-50" 
+      color: "text-white bg-blue-500 shadow-sm" 
     },
     { 
       label: "Khóa hoàn thành", 
       value: stats?.completedCourses || "0", 
       icon: Trophy, 
-      color: "text-emerald-500 bg-emerald-50" 
+      color: "text-white bg-emerald-500 shadow-sm" 
     },
     { 
       label: "Tổng giờ đã học", 
       value: `${stats?.hoursStudied?.toFixed(1) || "0"}h`, 
       icon: Clock, 
-      color: "text-purple-500 bg-purple-50" 
+      color: "text-white bg-purple-500 shadow-sm" 
     },
   ];
 

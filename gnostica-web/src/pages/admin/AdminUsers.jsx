@@ -86,6 +86,80 @@ export default function AdminUsers() {
 
   const [selectedAppDetail, setSelectedAppDetail] = React.useState(null);
   const [activeDoc, setActiveDoc] = React.useState(null);
+  const [sortConfig, setSortConfig] = React.useState({ key: null, direction: 'asc' });
+
+  const handleSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const sortedAccounts = React.useMemo(() => {
+    if (!accounts || !sortConfig.key) return accounts;
+    return [...accounts].sort((a, b) => {
+      let valA = a[sortConfig.key];
+      let valB = b[sortConfig.key];
+
+      // Luôn đẩy các giá trị null/undefined/rỗng xuống cuối danh sách
+      const isEmptyA = valA === null || valA === undefined || valA === '';
+      const isEmptyB = valB === null || valB === undefined || valB === '';
+      if (isEmptyA && isEmptyB) return 0;
+      if (isEmptyA) return 1;
+      if (isEmptyB) return -1;
+
+      if (sortConfig.key === 'birthDay') {
+        valA = new Date(valA).getTime();
+        valB = new Date(valB).getTime();
+        // Độ tuổi nghịch biến với Ngày sinh. Tuổi nhỏ (asc) = Ngày sinh lớn.
+        if (valA < valB) return sortConfig.direction === 'asc' ? 1 : -1;
+        if (valA > valB) return sortConfig.direction === 'asc' ? -1 : 1;
+        return 0;
+      } else if (sortConfig.key === 'createdAt') {
+        valA = new Date(valA).getTime();
+        valB = new Date(valB).getTime();
+      }
+
+      if (typeof valA === 'string' && typeof valB === 'string') {
+        const cmp = valA.localeCompare(valB);
+        return sortConfig.direction === 'asc' ? cmp : -cmp;
+      }
+
+      if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
+      if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [accounts, sortConfig]);
+
+  const sortedApplications = React.useMemo(() => {
+    if (!applications || !sortConfig.key) return applications;
+    return [...applications].sort((a, b) => {
+      let valA = a[sortConfig.key];
+      let valB = b[sortConfig.key];
+
+      // Luôn đẩy các giá trị null/undefined/rỗng xuống cuối danh sách
+      const isEmptyA = valA === null || valA === undefined || valA === '';
+      const isEmptyB = valB === null || valB === undefined || valB === '';
+      if (isEmptyA && isEmptyB) return 0;
+      if (isEmptyA) return 1;
+      if (isEmptyB) return -1;
+
+      if (sortConfig.key === 'createdAt') {
+        valA = new Date(valA).getTime();
+        valB = new Date(valB).getTime();
+      }
+
+      if (typeof valA === 'string' && typeof valB === 'string') {
+        const cmp = valA.localeCompare(valB);
+        return sortConfig.direction === 'asc' ? cmp : -cmp;
+      }
+
+      if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
+      if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [applications, sortConfig]);
 
   const getDocumentList = (app) => {
     const list = [];
@@ -156,16 +230,19 @@ export default function AdminUsers() {
   const accountColumns = [
     {
       header: "STT",
-      width: "72px",
+      sortable: false,
+      width: "80px",
       align: "center",
       headerAlign: "center",
-      className: "py-4",
-      cellClassName: "font-bold text-muted-foreground py-4 text-center",
+      className: "py-4 whitespace-nowrap",
+      cellClassName: "text-sm font-bold text-foreground py-4 text-center whitespace-nowrap",
       render: (_acc, rowIndex) => ((pagination?.currentPage || 0) * (pagination?.pageSize || 10)) + rowIndex + 1,
     },
     {
       header: "Người dùng",
+      accessor: "fullName",
       className: "py-4",
+      width: "280px",
       align: "left",
       headerAlign: "left",
       cellClassName: "py-4",
@@ -186,6 +263,7 @@ export default function AdminUsers() {
     },
     {
       header: "Số điện thoại",
+      accessor: "phone",
       align: "center",
       headerAlign: "center",
       width: "1%",
@@ -194,15 +272,59 @@ export default function AdminUsers() {
       render: (acc) => acc?.phone ? <span className="text-foreground">{acc.phone}</span> : <span className="text-muted-foreground italic text-xs">(Chưa thiết lập)</span>
     },
     {
-      header: "Khóa học",
+      header: "Độ tuổi",
+      accessor: "birthDay",
+      align: "center",
+      headerAlign: "center",
+      width: "1%",
+      className: "py-4 whitespace-nowrap",
+      cellClassName: "py-4 text-center whitespace-nowrap",
+      render: (acc) => {
+        if (!acc?.birthDay) return <span className="text-muted-foreground italic text-xs">(Chưa thiết lập)</span>;
+        const d = new Date(acc.birthDay);
+        if (isNaN(d.getTime())) return <span className="text-muted-foreground italic text-xs">(Chưa thiết lập)</span>;
+        
+        const today = new Date();
+        let age = today.getFullYear() - d.getFullYear();
+        const m = today.getMonth() - d.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < d.getDate())) {
+          age--;
+        }
+        
+        const dobStr = new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(d);
+        
+        return (
+          <div className="flex flex-col">
+            <span className="text-sm font-bold text-foreground">{age} tuổi</span>
+            <span className="text-xs text-muted-foreground">{dobStr}</span>
+          </div>
+        );
+      }
+    },
+    {
+      header: "Số dư",
+      accessor: "balance",
+      width: "180px",
+      align: "center",
+      headerAlign: "center",
+      className: "py-4 whitespace-nowrap",
+      cellClassName: "font-bold text-success py-4 text-center whitespace-nowrap",
+      render: (acc) => Number(acc?.balance || 0).toLocaleString("vi-VN", { style: "currency", currency: "VND" })
+    },
+    {
+      header: "Khóa học đã mua",
+      accessor: "courseCount",
+      width: "120px",
       align: "center",
       headerAlign: "center",
       className: "py-4 whitespace-nowrap",
       cellClassName: "text-sm font-medium text-foreground py-4 text-center whitespace-nowrap",
-      render: (acc) => `Đã mua ${acc?.courseCount || 0} Khóa học`
+      render: (acc) => `${acc?.courseCount || 0}`
     },
     {
       header: "Tổng mua hàng",
+      accessor: "totalSpent",
+      width: "180px",
       align: "center",
       headerAlign: "center",
       className: "py-4 whitespace-nowrap",
@@ -211,6 +333,7 @@ export default function AdminUsers() {
     },
     {
       header: "Ngày đăng ký",
+      accessor: "createdAt",
       align: "center",
       headerAlign: "center",
       width: "1%",
@@ -220,6 +343,7 @@ export default function AdminUsers() {
     },
     {
       header: "Trạng thái",
+      accessor: "status",
       align: "center",
       headerAlign: "center",
       width: "1%",
@@ -239,6 +363,7 @@ export default function AdminUsers() {
     },
     {
       header: "Thao tác",
+      sortable: false,
       align: "center",
       headerAlign: "center",
       className: "py-4 whitespace-nowrap",
@@ -281,16 +406,19 @@ export default function AdminUsers() {
   const instructorColumns = [
     {
       header: "STT",
-      width: "72px",
+      sortable: false,
+      width: "80px",
       align: "center",
       headerAlign: "center",
-      className: "py-4",
-      cellClassName: "font-bold text-muted-foreground py-4 text-center",
+      className: "py-4 whitespace-nowrap",
+      cellClassName: "text-sm font-bold text-foreground py-4 text-center whitespace-nowrap",
       render: (_acc, rowIndex) => ((pagination?.currentPage || 0) * (pagination?.pageSize || 10)) + rowIndex + 1,
     },
     {
       header: "Người dùng",
+      accessor: "fullName",
       className: "py-4",
+      width: "280px",
       align: "left",
       headerAlign: "left",
       cellClassName: "py-4",
@@ -311,6 +439,7 @@ export default function AdminUsers() {
     },
     {
       header: "Số điện thoại",
+      accessor: "phone",
       align: "center",
       headerAlign: "center",
       width: "1%",
@@ -319,15 +448,59 @@ export default function AdminUsers() {
       render: (acc) => acc?.phone ? <span className="text-foreground">{acc.phone}</span> : <span className="text-muted-foreground italic text-xs">(Chưa thiết lập)</span>
     },
     {
-      header: "Khóa học",
+      header: "Độ tuổi",
+      accessor: "birthDay",
+      align: "center",
+      headerAlign: "center",
+      width: "1%",
+      className: "py-4 whitespace-nowrap",
+      cellClassName: "py-4 text-center whitespace-nowrap",
+      render: (acc) => {
+        if (!acc?.birthDay) return <span className="text-muted-foreground italic text-xs">(Chưa thiết lập)</span>;
+        const d = new Date(acc.birthDay);
+        if (isNaN(d.getTime())) return <span className="text-muted-foreground italic text-xs">(Chưa thiết lập)</span>;
+        
+        const today = new Date();
+        let age = today.getFullYear() - d.getFullYear();
+        const m = today.getMonth() - d.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < d.getDate())) {
+          age--;
+        }
+        
+        const dobStr = new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(d);
+        
+        return (
+          <div className="flex flex-col">
+            <span className="text-sm font-bold text-foreground">{age} tuổi</span>
+            <span className="text-xs text-muted-foreground">{dobStr}</span>
+          </div>
+        );
+      }
+    },
+    {
+      header: "Số dư",
+      accessor: "balance",
+      width: "180px",
+      align: "center",
+      headerAlign: "center",
+      className: "py-4 whitespace-nowrap",
+      cellClassName: "font-bold text-success py-4 text-center whitespace-nowrap",
+      render: (acc) => Number(acc?.balance || 0).toLocaleString("vi-VN", { style: "currency", currency: "VND" })
+    },
+    {
+      header: "Khóa học đã tạo",
+      accessor: "courseCount",
+      width: "120px",
       align: "center",
       headerAlign: "center",
       className: "py-4 whitespace-nowrap",
       cellClassName: "text-sm font-medium text-foreground py-4 text-center whitespace-nowrap",
-      render: (acc) => `Đã tạo ${acc?.courseCount || 0} Khóa học`
+      render: (acc) => `${acc?.courseCount || 0}`
     },
     {
       header: "Doanh thu",
+      accessor: "totalRevenue",
+      width: "180px",
       align: "center",
       headerAlign: "center",
       className: "py-4 whitespace-nowrap",
@@ -336,6 +509,7 @@ export default function AdminUsers() {
     },
     {
       header: "Ngày đăng ký",
+      accessor: "createdAt",
       align: "center",
       headerAlign: "center",
       width: "1%",
@@ -345,6 +519,7 @@ export default function AdminUsers() {
     },
     {
       header: "Trạng thái",
+      accessor: "status",
       align: "center",
       headerAlign: "center",
       width: "1%",
@@ -364,6 +539,7 @@ export default function AdminUsers() {
     },
     {
       header: "Thao tác",
+      sortable: false,
       align: "center",
       headerAlign: "center",
       className: "py-4 whitespace-nowrap",
@@ -406,15 +582,17 @@ export default function AdminUsers() {
   const applicationColumns = [
     {
       header: "STT",
-      width: "72px",
+      sortable: false,
+      width: "80px",
       align: "center",
       headerAlign: "center",
-      className: "py-4",
-      cellClassName: "font-bold text-muted-foreground py-4 text-center",
+      className: "py-4 whitespace-nowrap",
+      cellClassName: "text-sm font-bold text-foreground py-4 text-center whitespace-nowrap",
       render: (_app, rowIndex) => rowIndex + 1,
     },
     {
       header: "Người dùng",
+      accessor: "fullName",
       align: "left",
       headerAlign: "left",
       className: "py-4",
@@ -429,6 +607,7 @@ export default function AdminUsers() {
     },
     {
       header: "Chi tiết Hồ sơ",
+      sortable: false,
       align: "center",
       headerAlign: "center",
       className: "py-4",
@@ -447,6 +626,7 @@ export default function AdminUsers() {
     },
     {
       header: "Ngày đăng ký",
+      accessor: "createdAt",
       align: "center",
       headerAlign: "center",
       width: "1%",
@@ -456,6 +636,7 @@ export default function AdminUsers() {
     },
     {
       header: "Thao tác",
+      sortable: false,
       align: "center",
       headerAlign: "center",
       className: "py-4 whitespace-nowrap",
@@ -556,29 +737,33 @@ export default function AdminUsers() {
           <TabsContent value="USER" className="mt-0">
             <DataTable
               columns={accountColumns}
-              data={filteredAccounts}
+              data={sortedAccounts}
               isLoading={loading}
               rowClassName={(acc) => acc.status === 2 ? "bg-error/5 hover:bg-error/10" : ""}
               emptyState="Không tìm thấy người dùng nào."
               pagination={pagination}
+              onSort={handleSort}
+              sortConfig={sortConfig}
             />
           </TabsContent>
 
           <TabsContent value="INSTRUCTOR" className="mt-0">
             <DataTable
               columns={instructorColumns}
-              data={filteredAccounts}
+              data={sortedAccounts}
               isLoading={loading}
               rowClassName={(acc) => acc.status === 2 ? "bg-error/5 hover:bg-error/10" : ""}
               emptyState="Không tìm thấy người dùng nào."
               pagination={pagination}
+              onSort={handleSort}
+              sortConfig={sortConfig}
             />
           </TabsContent>
 
           <TabsContent value="PENDING_APP" className="mt-0">
             <DataTable
               columns={applicationColumns}
-              data={applications}
+              data={sortedApplications}
               isLoading={loading}
               emptyState="Không có đơn đăng ký chờ duyệt."
               pagination={{
@@ -589,6 +774,8 @@ export default function AdminUsers() {
                 zeroIndexed: false,
                 pageSize: applications.length || 10,
               }}
+              onSort={handleSort}
+              sortConfig={sortConfig}
             />
           </TabsContent>
         </Tabs>

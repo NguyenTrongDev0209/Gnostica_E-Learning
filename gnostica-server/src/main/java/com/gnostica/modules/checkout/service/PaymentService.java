@@ -11,6 +11,7 @@ import com.gnostica.core.repository.OrderRepository;
 import com.gnostica.core.repository.PaymentRepository;
 import com.gnostica.modules.checkout.dto.response.PaymentLinkResponse;
 import com.gnostica.modules.checkout.dto.response.PaymentWebhookData;
+import com.gnostica.core.repository.GiftRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -32,6 +33,7 @@ public class PaymentService {
     private final CouponRepository couponRepository;
     private final EnrollmentRepository enrollmentRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final GiftRepository giftRepository;
 
     // === Routing ===
     public PaymentLinkResponse createPaymentLink(Order order, String returnUrl, String cancelUrl) throws Exception {
@@ -88,12 +90,14 @@ public class PaymentService {
             return;
         }
 
-        // Prevent double processing if user is already enrolled
+        // Prevent double processing if user is already enrolled (skip this check for gifts)
         if (order.getDetails() != null && !order.getDetails().isEmpty()) {
             com.gnostica.core.model.Course course = order.getDetails().get(0).getCourse();
             boolean alreadyEnrolled = enrollmentRepository.existsByAccountAndCourseAndStatusIn(
                     order.getAccount(), course, java.util.List.of(1));
-            if (alreadyEnrolled) {
+            boolean isGiftOrder = giftRepository.existsByOrder(order);
+            
+            if (alreadyEnrolled && !isGiftOrder) {
                 log.info("User {} already enrolled in course {}. Skipping coupon consumption and enrollment for duplicate order {}",
                         order.getAccount().getId(), course.getId(), order.getId());
                 order.setStatus(OrderStatus.PAID);

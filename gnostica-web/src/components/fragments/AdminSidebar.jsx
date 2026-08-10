@@ -66,6 +66,13 @@ const ADMIN_TRANSACTIONS_SUB_ITEMS = [
   { label: "Hoàn tiền", icon: RotateCcw, href: "/admin/transactions?tab=refunds", tab: "refunds" },
 ];
 
+const ADMIN_REQUESTS_SUB_ITEMS = [
+  { label: "Sự cố", icon: MessageCircleWarning, href: "/admin/requests?tab=incidents", tab: "incidents", legacyTabs: ["general"] },
+  { label: "Hoàn tiền", icon: RotateCcw, href: "/admin/requests?tab=refunds", tab: "refunds" },
+  { label: "Rút tiền", icon: Banknote, href: "/admin/requests?tab=withdrawals", tab: "withdrawals" },
+  { label: "Báo cáo", icon: FileText, href: "/admin/requests?tab=reports", tab: "reports" },
+];
+
 const ADMIN_MENU_GROUPS = [
   {
     title: "QUẢN LÝ CHUNG",
@@ -100,8 +107,7 @@ const ADMIN_MENU_GROUPS = [
     title: "TƯƠNG TÁC",
     items: [
       { label: "Đánh giá", icon: MessageSquare, href: "/admin/reviews" },
-      { label: "Báo cáo", icon: MessageCircleWarning, href: "/admin/reports" },
-      { label: "Yêu cầu", icon: Headphones, href: "/admin/requests" },
+      { label: "Yêu cầu", icon: Headphones, href: "/admin/requests", children: ADMIN_REQUESTS_SUB_ITEMS },
     ]
   },
   {

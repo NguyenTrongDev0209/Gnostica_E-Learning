@@ -49,6 +49,10 @@ public class AuthServiceImpl implements AuthService {
     private final ApplicationEventPublisher eventPublisher;
     private final ObjectMapper objectMapper;
     private final com.gnostica.core.repository.CategoryRepository categoryRepository;
+    private final com.gnostica.core.repository.EnrollmentRepository enrollmentRepository;
+    private final com.gnostica.core.repository.CourseRepository courseRepository;
+    private final com.gnostica.core.repository.OrderRepository orderRepository;
+    private final com.gnostica.core.repository.WalletRepository walletRepository;
 
     @Override
     public Account register(RegisterRequest request) {
@@ -285,7 +289,26 @@ public class AuthServiceImpl implements AuthService {
             statuses = java.util.Collections.singletonList(-1);
         }
         boolean isDummyRole = queryRoleNames.contains("DUMMY");
-        return accountRepository.searchAccounts(isDummyRole, queryRoleNames, hasSearchTerm, searchTerm, statuses, pageable);
+        org.springframework.data.domain.Page<Account> page = accountRepository.searchAccounts(isDummyRole, queryRoleNames, hasSearchTerm, searchTerm, statuses, pageable);
+        
+        for (Account acc : page.getContent()) {
+            java.math.BigDecimal bal = walletRepository.sumAvailableRemainByAccount(acc);
+            acc.setBalance(bal != null ? bal.longValue() : 0L);
+            if (acc.getRole() != null) {
+                String role = acc.getRole().getName();
+                if ("INSTRUCTOR".equalsIgnoreCase(role) || "ROLE_INSTRUCTOR".equalsIgnoreCase(role)) {
+                    acc.setCourseCount((int) courseRepository.countByAccountId(acc.getId()));
+                    java.math.BigDecimal rev = walletRepository.sumTotalRevenueByAccount(acc);
+                    acc.setTotalRevenue(rev != null ? rev.longValue() : 0L);
+                } else {
+                    acc.setCourseCount((int) enrollmentRepository.countByAccountId(acc.getId()));
+                    java.math.BigDecimal spent = orderRepository.sumTotalSpentByAccountId(acc.getId());
+                    acc.setTotalSpent(spent != null ? spent.longValue() : 0L);
+                }
+            }
+        }
+        
+        return page;
     }
 
     @Override

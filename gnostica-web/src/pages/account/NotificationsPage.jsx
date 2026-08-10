@@ -50,7 +50,7 @@ export default function Notifications() {
   };
   
   const getNotificationColor = (type) => {
-    if (type === 'GIFT_PENDING') return "text-orange-500 bg-orange-50";
+    if (type === 'GIFT_PENDING') return "text-white bg-orange-500 shadow-sm";
     if (type === 'GIFT_ACCEPTED') return "text-emerald-500 bg-emerald-50";
     if (type === 'GIFT_REJECTED') return "text-red-500 bg-red-50";
     switch (type) {
@@ -129,7 +129,7 @@ export default function Notifications() {
               return (
                 <div 
                   key={notification.id} 
-                  className={`p-5 flex gap-4 transition-colors hover:bg-muted cursor-pointer ${notification.isRead ? 'opacity-70' : 'bg-primary/5'}`}
+                  className={`p-5 flex gap-4 transition-colors hover:bg-muted cursor-pointer ${notification.isRead ? 'bg-transparent' : 'bg-primary/5'}`}
                   onClick={() => markAsRead(notification.id)}
                 >
                   <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${color}`}>
@@ -145,26 +145,28 @@ export default function Notifications() {
                         {timeAgo(notification.createdAt)}
                       </span>
                     </div>
-                    <p className={`text-sm line-clamp-2 ${notification.isRead ? 'text-muted-foreground' : 'text-foreground font-medium'}`}>
+                    <p className={`text-sm line-clamp-2 whitespace-pre-line ${notification.isRead ? 'text-muted-foreground' : 'text-foreground font-medium'}`}>
                       {notification.content}
                     </p>
                     {notification.type === 'GIFT_PENDING' && (
-                      <div className="flex gap-3 mt-4">
-                        <AppButton 
-                          appVariant="primary" 
-                          size="sm" 
-                          onClick={(e) => handleGiftResponse(notification.referenceId, 'accept', e)}
-                          disabled={processing}
-                        >
-                          Chấp nhận
-                        </AppButton>
+                      <div className="grid grid-cols-2 gap-3 mt-4 w-56">
                         <AppButton 
                           appVariant="outline" 
                           size="sm" 
+                          className="w-full bg-red-500 hover:bg-red-600 text-white border-0"
                           onClick={(e) => handleGiftResponse(notification.referenceId, 'reject', e)}
                           disabled={processing}
                         >
                           Từ chối
+                        </AppButton>
+                        <AppButton 
+                          appVariant="primary" 
+                          size="sm" 
+                          className="w-full"
+                          onClick={(e) => handleGiftResponse(notification.referenceId, 'accept', e)}
+                          disabled={processing}
+                        >
+                          Chấp nhận
                         </AppButton>
                       </div>
                     )}

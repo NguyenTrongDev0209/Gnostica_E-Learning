@@ -37,4 +37,7 @@ public interface OrderRepository extends JpaRepository<Order, java.util.UUID> {
             Integer status, String paymentMethod, LocalDateTime date);
 
     org.springframework.data.domain.Page<Order> findByAccountIdOrderByCreatedAtDesc(java.util.UUID accountId, org.springframework.data.domain.Pageable pageable);
+
+    @Query("SELECT SUM(o.totalPrice) FROM Order o WHERE o.account.id = :accountId AND o.status = 1")
+    java.math.BigDecimal sumTotalSpentByAccountId(@Param("accountId") java.util.UUID accountId);
 }

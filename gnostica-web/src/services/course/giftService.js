@@ -5,8 +5,13 @@ const giftService = {
     return axiosClient.get(`/checkout/gifts/search-receiver?email=${email}&courseId=${courseId}`);
   },
 
-  createGift: (data) => {
-    return axiosClient.post("/checkout/gifts/create", data);
+  createGift: async (data) => {
+    try {
+      const response = await axiosClient.post("/checkout/gifts/create", data);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data?.message || 'Có lỗi xảy ra khi tạo đơn tặng quà!';
+    }
   },
 
   getGiftByToken: (token) => {
