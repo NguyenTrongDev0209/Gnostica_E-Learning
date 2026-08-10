@@ -63,7 +63,7 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
 
     @org.springframework.data.jpa.repository.Query(
             value = "SELECT c FROM Course c JOIN FETCH c.account JOIN FETCH c.category cat LEFT JOIN cat.parent parent " +
-                    "WHERE c.status = 1 " +
+                    "WHERE c.status = 1 AND cat.status = 1 AND (parent IS NULL OR parent.status = 1) " +
                     "AND (:categoryId = -1 OR cat.id = :categoryId OR parent.id = :categoryId) " +
                     "AND (:filterCategorySlugs = false OR cat.slug IN :categorySlugs OR parent.slug IN :categorySlugs) " +
                     "AND (:filterLevels = false OR LOWER(c.level) IN :levels) " +
@@ -74,7 +74,7 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
                     "OR LOWER(c.account.fullName) LIKE LOWER(CONCAT('%', :search, '%'))) " +
                     "AND c.deletedAt IS NULL",
             countQuery = "SELECT COUNT(c) FROM Course c JOIN c.category cat LEFT JOIN cat.parent parent " +
-                    "WHERE c.status = 1 " +
+                    "WHERE c.status = 1 AND cat.status = 1 AND (parent IS NULL OR parent.status = 1) " +
                     "AND (:categoryId = -1 OR cat.id = :categoryId OR parent.id = :categoryId) " +
                     "AND (:filterCategorySlugs = false OR cat.slug IN :categorySlugs OR parent.slug IN :categorySlugs) " +
                     "AND (:filterLevels = false OR LOWER(c.level) IN :levels) " +
@@ -138,11 +138,11 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
     java.util.List<Object[]> countModerationStats();
     @org.springframework.data.jpa.repository.Query(
         value = "SELECT c FROM Course c JOIN FETCH c.account JOIN FETCH c.category cat LEFT JOIN cat.parent parent " +
-                "WHERE c.status = 1 AND c.deletedAt IS NULL " +
+                "WHERE c.status = 1 AND cat.status = 1 AND (parent IS NULL OR parent.status = 1) AND c.deletedAt IS NULL " +
                 "AND (:filterLevel = false OR c.level = :level) " +
                 "AND (:filterCategory = false OR cat.id IN :categoryIds OR parent.id IN :categoryIds)",
         countQuery = "SELECT COUNT(c) FROM Course c JOIN c.category cat LEFT JOIN cat.parent parent " +
-                "WHERE c.status = 1 AND c.deletedAt IS NULL " +
+                "WHERE c.status = 1 AND cat.status = 1 AND (parent IS NULL OR parent.status = 1) AND c.deletedAt IS NULL " +
                 "AND (:filterLevel = false OR c.level = :level) " +
                 "AND (:filterCategory = false OR cat.id IN :categoryIds OR parent.id IN :categoryIds)"
     )

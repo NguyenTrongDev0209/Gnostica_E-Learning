@@ -108,27 +108,6 @@ public class WalletService {
         return dummyWallet;
     }
 
-    /** Only matured instructor earnings may leave the platform through a payout. */
-    @Transactional(readOnly = true)
-    public Wallet getWithdrawableWalletByAccount(Account account) {
-        BigDecimal earnings = walletRepository.sumWithdrawableEarningsByAccount(account);
-        BigDecimal committedPayouts = payoutRepository.sumPayoutsByAccount(account,
-                List.of(PayoutStatus.PENDING, PayoutStatus.PROCESSING, PayoutStatus.COMPLETED));
-        BigDecimal totalWalletPayment = paymentRepository.sumWalletPaymentsByAccount(account);
-        
-        BigDecimal balance = earnings.subtract(committedPayouts).subtract(totalWalletPayment);
-        if (balance.signum() < 0) {
-            balance = BigDecimal.ZERO;
-        }
-
-        Wallet wallet = new Wallet();
-        wallet.setAccount(account);
-        wallet.setRemain(balance);
-        wallet.setStatus(1);
-        wallet.setType(1);
-        return wallet;
-    }
-
     /** Serializes outgoing wallet spending for one account. */
     @Transactional
     public Wallet getWalletByAccountForPayment(Account account) {
@@ -256,7 +235,7 @@ public class WalletService {
         if (request.getAmount() < 10_000L) {
             throw new RuntimeException("Số tiền rút tối thiểu là 10.000đ.");
         }
-        Wallet wallet = getWithdrawableWalletByAccount(account);
+        Wallet wallet = getWalletByAccount(account);
 
         AccountBank accountBank = accountBankRepository.findByAccountAndStatus(account, 1)
                 .orElseThrow(() -> new RuntimeException("Vui lòng thiết lập tài khoản ngân hàng trước khi rút tiền."));
@@ -347,11 +326,6 @@ public class WalletService {
     }
 
     private void assertAccountCanWithdraw(Account account) {
-        String role = account.getRole() == null ? null : account.getRole().getName();
-        boolean isInstructor = "INSTRUCTOR".equalsIgnoreCase(role) || "TEACHER".equalsIgnoreCase(role);
-        if (!isInstructor) {
-            throw new RuntimeException("Chỉ giảng viên mới có thể rút doanh thu.");
-        }
         if (account.getStatus() == null || account.getStatus() != 1 || account.getDeletedAt() != null) {
             throw new RuntimeException("Tài khoản không đủ điều kiện rút tiền.");
         }

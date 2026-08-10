@@ -473,7 +473,17 @@ export default function CheckoutPage() {
         }
       } catch (error) {
         console.error("Checkout error:", error);
-        toast.error(typeof error === 'string' ? error : "Có lỗi xảy ra khi xử lý đơn hàng!");
+        
+        let errorMessage = "Có lỗi xảy ra khi xử lý đơn hàng!";
+        if (typeof error === 'string') {
+            errorMessage = error;
+        } else if (error?.response?.data?.message) {
+            errorMessage = error.response.data.message;
+        } else if (error?.message) {
+            errorMessage = error.message;
+        }
+
+        toast.error(errorMessage);
       } finally {
         setLoading(false);
       }

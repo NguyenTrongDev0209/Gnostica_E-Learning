@@ -94,16 +94,6 @@ public class GiftService {
 
         Account sender = accountRepository.findByEmail(senderEmail).orElseThrow();
 
-        // Check if sender already owns the course
-        boolean senderOwns = enrollmentRepository.existsByAccountAndCourseAndStatusIn(sender, course, List.of(1));
-        if (senderOwns) {
-            return GiftSearchResponse.builder()
-                    .valid(false)
-                    .senderOwns(true)
-                    .errorMessage("Bạn đã sở hữu khóa học này")
-                    .build();
-        }
-
         // Check if receiver already owns the course
         boolean isEnrolled = enrollmentRepository.existsByAccountAndCourseAndStatusIn(receiver, course, List.of(1));
         if (isEnrolled) {
@@ -206,11 +196,15 @@ public class GiftService {
                 gift.getMessage()
         );
         
+        String msgStr = (gift.getMessage() != null && !gift.getMessage().isBlank()) 
+                ? "\n💬 Lời nhắn: \"" + gift.getMessage() + "\"" 
+                : "";
+                
         // Tạo thông báo trong hệ thống
         notificationService.createNotification(
                 gift.getReceiver(),
                 "Bạn nhận được quà tặng khóa học",
-                gift.getSender().getFullName() + " đã tặng bạn khóa học " + gift.getCourse().getTitle(),
+                gift.getSender().getFullName() + " đã tặng bạn khóa học " + gift.getCourse().getTitle() + msgStr,
                 "GIFT_PENDING",
                 gift.getToken()
         );
