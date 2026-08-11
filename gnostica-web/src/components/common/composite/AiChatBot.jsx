@@ -190,6 +190,7 @@ const AiChatBot = () => {
         { role: 'assistant', content: 'Xin chào! Tôi là trợ lý ảo của Gnostica E-Learning. Tôi có thể giúp gì cho bạn hôm nay?' }
     ]);
     const [input, setInput] = useState('');
+    const [sessionId, setSessionId] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const [isMinimized, setIsMinimized] = useState(false);
     const [attachedImageUrl, setAttachedImageUrl] = useState(null);
@@ -505,7 +506,10 @@ const AiChatBot = () => {
 
         try {
             const chatHistory = [...messages, userMessage];
-            const response = await sendChatMessage(chatHistory);
+            const response = await sendChatMessage(chatHistory, sessionId);
+            if (response?.sessionId) {
+                setSessionId(response.sessionId);
+            }
             setMessages(prev => [...prev, { role: 'assistant', content: response.content }]);
         } catch (error) {
             toast.error('Dịch vụ đang gặp sự cố, vui lòng thử lại trong ít phút.');
