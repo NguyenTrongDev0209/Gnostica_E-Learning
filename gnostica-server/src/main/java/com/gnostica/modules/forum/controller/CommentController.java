@@ -93,6 +93,27 @@ public class CommentController {
         }
     }
 
+    @PutMapping("/{id}/status")
+    public ResponseEntity<?> updateCommentStatus(@PathVariable Integer id, @RequestBody Map<String, Object> payload) {
+        Integer status = parseInteger(payload.get("status"));
+        String userEmail = (String) payload.get("userEmail");
+
+        if (userEmail == null || userEmail.isBlank()) {
+            return ResponseEntity.status(401).body("Loi: Khong tim thay email nguoi dung!");
+        }
+
+        if (status == null) {
+            return ResponseEntity.badRequest().body("Loi: status la bat buoc!");
+        }
+
+        try {
+            Comment comment = commentService.updateCommentStatus(id, status, userEmail);
+            return ResponseEntity.ok(comment);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
     private Integer parseInteger(Object rawValue) {
         if (rawValue == null) return null;
         if (rawValue instanceof Integer value) return value;

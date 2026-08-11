@@ -30,5 +30,22 @@ export const instructorDashboardService = {
   getReviews: async () => {
     const response = await axiosClient.get(`${API_URL}/reviews`);
     return response.data;
+  },
+  replyToQuestion: async (parentId, targetId, content, userEmail) => {
+    const response = await axiosClient.post('/comments', {
+      parentId,
+      targetId,
+      targetType: 'LESSON',
+      content,
+      userEmail
+    });
+    return response.data;
+  },
+  toggleQuestionStatus: async (commentId, status, userEmail) => {
+    const response = await axiosClient.put(`/comments/${commentId}/status`, {
+      status,
+      userEmail
+    });
+    return response.data;
   }
 };

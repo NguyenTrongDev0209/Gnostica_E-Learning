@@ -5,7 +5,7 @@ import { useNavigation, useIsFocused } from '@react-navigation/native';
 import {
     User, CreditCard, Settings, LogOut,
     ChevronRight, Bell, HelpCircle, Shield, Smile, Star, TrendingUp, MessageSquare, Edit3,
-    BookOpen, Target, Award, Headset, X, CheckCircle2, Mail, BadgeCheck
+    BookOpen, Target, Award, Headset, X, CheckCircle2, Mail, BadgeCheck, RefreshCcw
 } from 'lucide-react-native';
 import Avatar from '../../components/ui/Avatar';
 import Button from '../../components/ui/Button';

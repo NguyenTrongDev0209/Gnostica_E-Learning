@@ -72,4 +72,15 @@ public class Account {
 
     private LocalDateTime deletedAt;
 
+    @Transient
+    private Integer courseCount = 0;
+
+    @Transient
+    private Long totalSpent = 0L;
+
+    @Transient
+    private Long totalRevenue = 0L;
+
+    @Transient
+    private Long balance = 0L;
 }

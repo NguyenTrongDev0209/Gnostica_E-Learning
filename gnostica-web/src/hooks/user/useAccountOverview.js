@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import useAuthStore from "@/store/useAuthStore";
 import { API_URL } from "@/config/environment";
+import walletService from "@/services/payment/walletService";
 
 export default function useAccountOverview() {
   const [loading, setLoading] = useState(true);
-  const [data, setData] = useState({ stats: null, recentCourses: [], recentCertificates: [] });
+  const [data, setData] = useState({ stats: null, recentCourses: [], recentCertificates: [], wallet: null });
   const token = useAuthStore(state => state.user?.token);
 
   useEffect(() => {
@@ -17,10 +18,11 @@ export default function useAccountOverview() {
           "Authorization": `Bearer ${token}`
         };
 
-        const [statsRes, coursesRes, certsRes] = await Promise.all([
+        const [statsRes, coursesRes, certsRes, walletData] = await Promise.all([
           fetch(`${API_URL}/enrollments/stats`, { headers }),
           fetch(`${API_URL}/enrollments/my-courses`, { headers }),
-          fetch(`${API_URL}/certificates/my-certificates`, { headers })
+          fetch(`${API_URL}/certificates/my-certificates`, { headers }),
+          walletService.getMyWallet().catch(() => null)
         ]);
 
         const statsData = statsRes.ok ? await statsRes.json() : null;
@@ -28,7 +30,7 @@ export default function useAccountOverview() {
         const certsData = certsRes.ok ? await certsRes.json() : [];
 
         // Format data if needed
-        const recentCourses = (coursesData.data || []).slice(0, 3).map(c => ({
+        const recentCourses = (coursesData.data || []).map(c => ({
           id: c.courseId,
           slug: c.courseSlug,
           courseTitle: c.courseTitle,
@@ -47,9 +49,13 @@ export default function useAccountOverview() {
         }));
 
         setData({
-          stats: statsData?.data || { enrolledCourses: 0, completedCourses: 0, hoursStudied: 0 },
+          stats: {
+            ...(statsData?.data || { enrolledCourses: 0, completedCourses: 0, hoursStudied: 0 }),
+            walletBalance: walletData?.remain || 0
+          },
           recentCourses,
-          recentCertificates
+          recentCertificates,
+          wallet: walletData
         });
       } catch (error) {
         console.error("Failed to fetch account overview:", error);
@@ -65,6 +71,7 @@ export default function useAccountOverview() {
     stats: data.stats,
     recentCourses: data.recentCourses,
     recentCertificates: data.recentCertificates,
+    wallet: data.wallet,
     loading
   };
 }

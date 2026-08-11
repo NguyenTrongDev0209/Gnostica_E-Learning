@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 const GiftCourseDialog = ({ open, setOpen, courseId, coursePrice, onGiftConfirm }) => {
     const [step, setStep] = useState(1);
     const [email, setEmail] = useState('');
+    const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [receiver, setReceiver] = useState(null);
     const [message, setMessage] = useState('');
@@ -18,6 +19,7 @@ const GiftCourseDialog = ({ open, setOpen, courseId, coursePrice, onGiftConfirm 
     const resetState = () => {
         setStep(1);
         setEmail('');
+        setError('');
         setReceiver(null);
         setMessage('');
     };
@@ -29,23 +31,29 @@ const GiftCourseDialog = ({ open, setOpen, courseId, coursePrice, onGiftConfirm 
 
     const handleSearch = async () => {
         if (!email) {
-            toast.error("Vui lòng nhập email");
+            setError("Vui lòng nhập email");
             return;
         }
         
         setLoading(true);
+        setError('');
         try {
             const response = await giftService.searchReceiver(email, courseId);
             const data = response.data || response;
             
+            if (data.senderOwns) {
+                setError(data.errorMessage || "Bạn đã sở hữu khóa học này nên không thể tặng.");
+                return;
+            }
+
             if (data.valid || data.alreadyOwned) {
                 setReceiver(data);
                 setStep(2);
             } else {
-                toast.error(data.errorMessage || "Không thể tặng cho tài khoản này");
+                setError(data.errorMessage || "Không thể tặng cho tài khoản này");
             }
-        } catch (error) {
-            toast.error("Lỗi khi tìm kiếm người nhận");
+        } catch (err) {
+            setError("Lỗi khi tìm kiếm người nhận");
         } finally {
             setLoading(false);
         }
@@ -68,20 +76,23 @@ const GiftCourseDialog = ({ open, setOpen, courseId, coursePrice, onGiftConfirm 
     };
 
     const renderStep1 = () => (
-        <div className="space-y-4 py-4">
-            <p className="text-sm text-gray-500">
-                Nhập email của người bạn muốn tặng khóa học này. Hệ thống sẽ kiểm tra xem tài khoản có hợp lệ hay không.
-            </p>
-            <AppInput
-                label="Email người nhận"
-                type="email"
-                placeholder="example@gnostica.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-            />
-            <div className="flex justify-end pt-4">
-                <AppButton onClick={handleSearch} loading={loading}>
+        <div className="py-4">
+            <div className="flex items-start space-x-2">
+                <div className="flex-1">
+                    <AppInput
+                        label="Email người nhận"
+                        type="email"
+                        placeholder="example@gnostica.com"
+                        value={email}
+                        onChange={(e) => {
+                            setEmail(e.target.value);
+                            if (error) setError('');
+                        }}
+                        onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                        error={error}
+                    />
+                </div>
+                <AppButton onClick={handleSearch} loading={loading} className="mt-[26px]">
                     Kiểm tra
                 </AppButton>
             </div>
@@ -148,8 +159,9 @@ const GiftCourseDialog = ({ open, setOpen, courseId, coursePrice, onGiftConfirm 
             open={open}
             onOpenChange={(isOpen) => !isOpen && handleClose()}
             title="Tặng khóa học"
-            description={step === 1 ? "Tìm kiếm người nhận" : "Xác nhận thông tin người nhận"}
-            className="max-w-md"
+            description={step === 1 ? null : "Xác nhận thông tin người nhận"}
+            className="max-w-md bg-white"
+            appVariant="default"
         >
             {step === 1 ? renderStep1() : renderStep2()}
         </AppDialog>

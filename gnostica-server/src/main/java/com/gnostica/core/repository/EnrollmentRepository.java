@@ -30,6 +30,8 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Integer>
             @org.springframework.data.repository.query.Param("studentId") java.util.UUID studentId,
             @org.springframework.data.repository.query.Param("instructorEmail") String instructorEmail);
 
+
+
     @org.springframework.data.jpa.repository.Query("SELECT COUNT(e) FROM Enrollment e JOIN e.course c WHERE c.account.email = :instructorEmail AND c.deletedAt IS NULL AND e.createdAt >= :startDate AND e.createdAt < :endDate")
     long countStudentsByInstructorEmailAndDateRange(
             @org.springframework.data.repository.query.Param("instructorEmail") String instructorEmail,
@@ -39,4 +41,8 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Integer>
     @org.springframework.data.jpa.repository.Query("SELECT COUNT(e) FROM Enrollment e JOIN e.course c WHERE c.account.email = :instructorEmail AND c.deletedAt IS NULL")
     long countTotalStudentsByInstructorEmail(
             @org.springframework.data.repository.query.Param("instructorEmail") String instructorEmail);
+
+    org.springframework.data.domain.Page<Enrollment> findByAccountIdOrderByCreatedAtDesc(java.util.UUID accountId, org.springframework.data.domain.Pageable pageable);
+    
+    long countByAccountId(java.util.UUID accountId);
 }

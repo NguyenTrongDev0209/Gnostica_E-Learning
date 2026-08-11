@@ -25,4 +25,6 @@ public interface ThreadRepository extends JpaRepository<Thread, Integer> {
     
     @org.springframework.data.jpa.repository.Query("SELECT t.account, COUNT(t.id) FROM Thread t WHERE t.status = 2 GROUP BY t.account ORDER BY COUNT(t.id) DESC")
     List<Object[]> findTopContributors(Pageable pageable);
+
+    org.springframework.data.domain.Page<Thread> findByAccountIdOrderByCreatedAtDesc(java.util.UUID accountId, Pageable pageable);
 }

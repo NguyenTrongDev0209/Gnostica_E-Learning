@@ -80,6 +80,18 @@ export default function PayosQR({
     }, 500);
   }, [navigate, onPaid, paymentData?.orderCode, totalAmount]);
 
+  const confirmPaidOrder = useCallback(async () => {
+    if (!paymentData?.orderCode || completionHandledRef.current) return;
+    try {
+      const response = await orderService.getOrderById(paymentData.orderCode);
+      if (response?.data?.status === 1) {
+        completePayment();
+      }
+    } catch (error) {
+      console.error("Unable to confirm payment status from server:", error);
+    }
+  }, [completePayment, paymentData?.orderCode]);
+
   useEffect(() => {
     completionHandledRef.current = false;
   }, [paymentData?.orderCode]);
@@ -93,12 +105,20 @@ export default function PayosQR({
     const client = Stomp.over(socket);
     client.debug = null;
 
-    client.connect({}, () => {
-      client.subscribe(`/topic/payment-status/${paymentData.orderCode}`, (message) => {
+    let token;
+    try {
+      token = JSON.parse(localStorage.getItem("user") || "null")?.token;
+    } catch (_) {
+      token = null;
+    }
+    if (!token) return undefined;
+
+    client.connect({ Authorization: `Bearer ${token}` }, () => {
+      client.subscribe(`/user/queue/payment-status`, (message) => {
         try {
           const event = JSON.parse(message.body);
           if (String(event.orderCode) === String(paymentData.orderCode) && event.status === "PAID") {
-            completePayment();
+            confirmPaidOrder();
           }
         } catch (error) {
           console.error("Payment WebSocket message error:", error);
@@ -111,7 +131,7 @@ export default function PayosQR({
     return () => {
       if (client.connected) client.disconnect();
     };
-  }, [paymentData?.orderCode, status, completePayment]);
+  }, [paymentData?.orderCode, status, confirmPaidOrder]);
 
   // Polling là dự phòng nếu WebSocket bị mất. Ở production chỉ đọc trạng thái
   // nội bộ; ở development server sẽ hỏi PayOS vì localhost không nhận webhook.
@@ -139,11 +159,18 @@ export default function PayosQR({
           return;
         } else if (response.error !== 0) {
           console.error("API Error:", response.message);
-        } else if (currentStatus === 2) {
-          // status 2 = CANCELLED (nếu có)
+        } else if (currentStatus === 3) {
+          // Backend OrderStatus: 0=PENDING, 1=PAID, 2=REFUNDED, 3=CANCELLED
+          // 3 = CANCELLED (user hủy / hết hạn) → dừng polling, báo trạng thái hủy
           isPolling = false;
           setStatus("cancelled");
           toast.error("Đơn hàng đã bị hủy.");
+          return;
+        } else if (currentStatus === 2) {
+          // 2 = REFUNDED (hoàn tiền) → dừng polling, báo rõ trạng thái
+          isPolling = false;
+          setStatus("cancelled");
+          toast.info("Đơn hàng đã được hoàn tiền.");
           return;
         }
       } catch (error) {

@@ -1,16 +1,16 @@
-﻿import api from '../../config/api';
+import api from '../../config/api';
 
 const orderService = {
     /**
-     * Láº¥y táº¥t cáº£ Ä‘Æ¡n hÃ ng
+     * Lấy tất cả đơn hàng
      * Response: ApiResponse<List<Order>>
      */
     getAll: () => {
-        return api.get('/order/all');
+        return api.get('/checkout/orders/my-orders');
     },
 
     /**
-     * Láº¥y Ä‘Æ¡n hÃ ng phÃ¢n trang
+     * Lấy đơn hàng phân trang
      * @param {Object} params - { page, size }
      */
     getPaginated: (params = {}) => {
@@ -18,25 +18,26 @@ const orderService = {
             page: params.page || 0,
             size: params.size || 10,
         };
-        return api.get('/order/paged', { params: query });
+        return api.get('/checkout/orders/paged', { params: query });
     },
 
     /**
-     * Láº¥y thÃ´ng tin Ä‘Æ¡n hÃ ng theo ID hoáº·c transactionId
+     * Lấy thông tin đơn hàng theo ID hoặc transactionId
      * @param {string} idOrCode
      */
     getById: (idOrCode) => {
-        return api.get(`/order/${idOrCode}`);
+        return api.get(`/checkout/orders/${idOrCode}`);
     },
 
     /**
-     * Táº¡o link thanh toÃ¡n PayOS
+     * Tạo link thanh toán PayOS
      * @param {Object} body - CreatePaymentLinkRequestBody
      */
     createPaymentLink: (body) => {
-        return api.post('/order/create', body);
+        return api.post('/checkout/orders/create', body);
     },
 };
 
 export default orderService;
+
 

@@ -17,6 +17,7 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "vn.io.gnostica",
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"

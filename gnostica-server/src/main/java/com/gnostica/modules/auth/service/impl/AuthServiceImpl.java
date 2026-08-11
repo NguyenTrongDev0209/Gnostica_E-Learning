@@ -49,6 +49,10 @@ public class AuthServiceImpl implements AuthService {
     private final ApplicationEventPublisher eventPublisher;
     private final ObjectMapper objectMapper;
     private final com.gnostica.core.repository.CategoryRepository categoryRepository;
+    private final com.gnostica.core.repository.EnrollmentRepository enrollmentRepository;
+    private final com.gnostica.core.repository.CourseRepository courseRepository;
+    private final com.gnostica.core.repository.OrderRepository orderRepository;
+    private final com.gnostica.core.repository.WalletRepository walletRepository;
 
     @Override
     public Account register(RegisterRequest request) {
@@ -258,6 +262,53 @@ public class AuthServiceImpl implements AuthService {
                     return accountRole.equals(targetRole);
                 })
                 .collect(java.util.stream.Collectors.toList());
+    }
+
+    @Override
+    public org.springframework.data.domain.Page<Account> searchAccounts(String roleName, String searchTerm, java.util.List<Integer> statuses, org.springframework.data.domain.Pageable pageable) {
+        java.util.List<String> queryRoleNames = new java.util.ArrayList<>();
+        if (roleName == null || roleName.trim().isEmpty()) {
+            queryRoleNames.add("DUMMY");
+        } else {
+            String targetRole = roleName.toUpperCase().replace("ROLE_", "");
+            if ("USER".equals(targetRole) || "STUDENT".equals(targetRole) || "MEMBER".equals(targetRole)) {
+                queryRoleNames.addAll(java.util.Arrays.asList("USER", "ROLE_USER", "STUDENT", "MEMBER", "Học viên", "Học sinh"));
+            } else if ("INSTRUCTOR".equals(targetRole)) {
+                queryRoleNames.addAll(java.util.Arrays.asList("INSTRUCTOR", "ROLE_INSTRUCTOR", "Giảng viên", "Giáo viên"));
+            } else if ("ADMIN".equals(targetRole)) {
+                queryRoleNames.addAll(java.util.Arrays.asList("ADMIN", "ROLE_ADMIN", "Quản trị viên", "Quản trị"));
+            } else {
+                queryRoleNames.addAll(java.util.Arrays.asList(roleName, "ROLE_" + roleName));
+            }
+        }
+        boolean hasSearchTerm = searchTerm != null && !searchTerm.trim().isEmpty();
+        if (!hasSearchTerm) {
+            searchTerm = "";
+        }
+        if (statuses == null || statuses.isEmpty()) {
+            statuses = java.util.Collections.singletonList(-1);
+        }
+        boolean isDummyRole = queryRoleNames.contains("DUMMY");
+        org.springframework.data.domain.Page<Account> page = accountRepository.searchAccounts(isDummyRole, queryRoleNames, hasSearchTerm, searchTerm, statuses, pageable);
+        
+        for (Account acc : page.getContent()) {
+            java.math.BigDecimal bal = walletRepository.sumAvailableRemainByAccount(acc);
+            acc.setBalance(bal != null ? bal.longValue() : 0L);
+            if (acc.getRole() != null) {
+                String role = acc.getRole().getName();
+                if ("INSTRUCTOR".equalsIgnoreCase(role) || "ROLE_INSTRUCTOR".equalsIgnoreCase(role)) {
+                    acc.setCourseCount((int) courseRepository.countByAccountId(acc.getId()));
+                    java.math.BigDecimal rev = walletRepository.sumTotalRevenueByAccount(acc);
+                    acc.setTotalRevenue(rev != null ? rev.longValue() : 0L);
+                } else {
+                    acc.setCourseCount((int) enrollmentRepository.countByAccountId(acc.getId()));
+                    java.math.BigDecimal spent = orderRepository.sumTotalSpentByAccountId(acc.getId());
+                    acc.setTotalSpent(spent != null ? spent.longValue() : 0L);
+                }
+            }
+        }
+        
+        return page;
     }
 
     @Override

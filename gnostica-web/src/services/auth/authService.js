@@ -156,6 +156,23 @@ const unlockAccount = async (id) => {
     }
 };
 
+const searchAccounts = async (role, search, statuses, page, size = 10) => {
+    try {
+        let url = `${API_URL}/accounts/search?page=${page}&size=${size}`;
+        if (role) url += `&role=${encodeURIComponent(role)}`;
+        if (search) url += `&search=${encodeURIComponent(search)}`;
+        if (statuses && statuses.length > 0) {
+            statuses.forEach(status => {
+                url += `&statuses=${status}`;
+            });
+        }
+        const response = await axiosClient.get(url);
+        return response.data;
+    } catch (error) {
+        throw error.response?.data?.message || 'Không thể tìm kiếm tài khoản!';
+    }
+};
+
 const authService = {
     register,
     login,
@@ -169,6 +186,7 @@ const authService = {
     getOAuth2User,
     getAllAccounts,
     getAccountsByRole,
+    searchAccounts,
     lockAccount,
     unlockAccount
 };

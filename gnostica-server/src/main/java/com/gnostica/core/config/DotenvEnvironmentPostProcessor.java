@@ -45,7 +45,7 @@ public class DotenvEnvironmentPostProcessor implements EnvironmentPostProcessor 
         }
 
         String appEnvironment = environment.getProperty("APP_ENV", DEVELOPMENT).trim().toLowerCase();
-        Map<String, Object> environmentProperties = createEnvironmentProperties(appEnvironment);
+        Map<String, Object> environmentProperties = createEnvironmentProperties(appEnvironment, environment);
 
         // System environment variables remain the highest priority. The selected
         // application environment overrides values loaded from the local .env file.
@@ -55,7 +55,8 @@ public class DotenvEnvironmentPostProcessor implements EnvironmentPostProcessor 
         );
     }
 
-    private Map<String, Object> createEnvironmentProperties(String appEnvironment) {
+    private Map<String, Object> createEnvironmentProperties(
+            String appEnvironment, ConfigurableEnvironment environment) {
         Map<String, Object> props = new HashMap<>();
 
         if (DEVELOPMENT.equals(appEnvironment)) {
@@ -63,8 +64,12 @@ public class DotenvEnvironmentPostProcessor implements EnvironmentPostProcessor 
             props.put("APP_PUBLIC_URL", "http://localhost:5173");
             props.put("APP_CORS_ALLOWED_ORIGIN_PATTERNS", "http://localhost:5173,http://localhost:3000,http://127.0.0.1:*");
             props.put("GOOGLE_REDIRECT_URI", "http://localhost:8080/api/login/oauth2/code/google");
-            props.put("VNPAY_RETURN_URL", "http://localhost:8080/api/payment/vnpay/return");
-            props.put("VNPAY_FRONTEND_RETURN_URL", "http://localhost:5173/checkout/success");
+            // A local server is not publicly reachable by PayOS, so use polling.
+            props.put("PAYOS_WEBHOOK_ENABLED", "false");
+            props.put("VNPAY_RETURN_URL", environment.getProperty(
+                    "VNPAY_DEV_RETURN_URL", "http://localhost:8080/api/checkout/payments/vnpay/return"));
+            props.put("VNPAY_FRONTEND_RETURN_URL", environment.getProperty(
+                    "VNPAY_DEV_FRONTEND_RETURN_URL", "http://localhost:5173/checkout"));
             return props;
         }
 
@@ -73,8 +78,10 @@ public class DotenvEnvironmentPostProcessor implements EnvironmentPostProcessor 
             props.put("APP_PUBLIC_URL", "https://gnostica.io.vn");
             props.put("APP_CORS_ALLOWED_ORIGIN_PATTERNS", "https://gnostica.io.vn");
             props.put("GOOGLE_REDIRECT_URI", "https://gnostica.io.vn/api/login/oauth2/code/google");
-            props.put("VNPAY_RETURN_URL", "https://gnostica.io.vn/api/payment/vnpay/return");
-            props.put("VNPAY_FRONTEND_RETURN_URL", "https://gnostica.io.vn/checkout/success");
+            // Production receives PayOS callbacks on its public HTTPS endpoint.
+            props.put("PAYOS_WEBHOOK_ENABLED", "true");
+            // Production intentionally keeps the standard VNPAY_* variables
+            // from the deployment environment unchanged.
             return props;
         }
 
@@ -94,3 +101,4 @@ public class DotenvEnvironmentPostProcessor implements EnvironmentPostProcessor 
         }
     }
 }
+

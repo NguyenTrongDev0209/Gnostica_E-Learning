@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import couponService from "@/services/order/couponService";
 import { Star, CheckCircle2, QrCode, CreditCard, Loader2, Trash2 } from "lucide-react";
 import { useLocation, Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
@@ -282,6 +282,7 @@ export default function CheckoutPage() {
   const [isCancellingPayment, setIsCancellingPayment] = useState(false);
   const [checkoutResult, setCheckoutResult] = useState(null);
   const [checkoutAlert, setCheckoutAlert] = useState(null);
+  const checkoutResultDestinationRef = useRef("/");
 
   // Dùng dữ liệu từ CourseDetail nếu có, fallback về mock
   const location = useLocation();
@@ -472,7 +473,17 @@ export default function CheckoutPage() {
         }
       } catch (error) {
         console.error("Checkout error:", error);
-        toast.error(typeof error === 'string' ? error : "Có lỗi xảy ra khi xử lý đơn hàng!");
+        
+        let errorMessage = "Có lỗi xảy ra khi xử lý đơn hàng!";
+        if (typeof error === 'string') {
+            errorMessage = error;
+        } else if (error?.response?.data?.message) {
+            errorMessage = error.response.data.message;
+        } else if (error?.message) {
+            errorMessage = error.message;
+        }
+
+        toast.error(errorMessage);
       } finally {
         setLoading(false);
       }
@@ -484,25 +495,14 @@ export default function CheckoutPage() {
   const handleCheckoutResultOpenChange = (open) => {
     if (open) return;
 
-    const isPaidResult = checkoutResult?.paymentStatus?.toUpperCase() === "PAID";
+    const destination = checkoutResultDestinationRef.current;
+    checkoutResultDestinationRef.current = "/";
     setCheckoutResult(null);
+    navigate(destination, { replace: true });
+  };
 
-    if (isPaidResult) {
-      if (isGift) {
-        navigate("/account/orders", { replace: true });
-      } else {
-        navigate("/account/my-courses", { replace: true });
-      }
-      return;
-    }
-
-    if (hasCheckoutDraft) {
-      const checkoutUrl = callbackOrderCode ? `/checkout?orderCode=${callbackOrderCode}` : "/checkout";
-      navigate(checkoutUrl, { replace: true, state: { orderItems, isGift, giftDetails } });
-      return;
-    }
-
-    navigate("/account/orders", { replace: true });
+  const handleCheckoutResultAction = (destination) => {
+    checkoutResultDestinationRef.current = destination;
   };
 
   const handleCancelPayosPayment = async () => {
@@ -544,6 +544,7 @@ export default function CheckoutPage() {
             open={checkoutResult != null}
             result={checkoutResult}
             onOpenChange={handleCheckoutResultOpenChange}
+            onResultAction={handleCheckoutResultAction}
           />
         </PageContainer.Content>
       </PageContainer>
@@ -657,6 +658,7 @@ export default function CheckoutPage() {
           open={checkoutResult != null}
           result={checkoutResult}
           onOpenChange={handleCheckoutResultOpenChange}
+          onResultAction={handleCheckoutResultAction}
         />
         <AppAlertDialog
           open={checkoutAlert != null}

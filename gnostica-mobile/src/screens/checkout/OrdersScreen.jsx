@@ -9,9 +9,12 @@ import orderService from '../../services/checkout/orderService';
 const STATUS_MAP = {
     1: { label: 'Đã thanh toán', bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-100' },
     0: { label: 'Chờ thanh toán', bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-100' },
+    2: { label: 'Đã hoàn tiền', bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-100' },
+    3: { label: 'Đã hủy', bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-100' },
     '-1': { label: 'Đã hủy', bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-100' },
     'PAID': { label: 'Đã thanh toán', bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-100' },
     'PENDING': { label: 'Chờ thanh toán', bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-100' },
+    'REFUNDED': { label: 'Đã hoàn tiền', bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-100' },
     'CANCELLED': { label: 'Đã hủy', bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-100' }
 };
 

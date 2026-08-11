@@ -6,6 +6,9 @@ import com.gnostica.core.model.Account;
 import java.util.UUID;
 
 public interface AccountRepository extends JpaRepository<Account, UUID> {
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @org.springframework.data.jpa.repository.Query("select a from Account a where a.id = :id")
+    Optional<Account> findByIdForUpdate(@org.springframework.data.repository.query.Param("id") UUID id);
     Optional<Account> findByEmail(String email);
 
     @org.springframework.data.jpa.repository.Query("SELECT a FROM Account a JOIN FETCH a.role WHERE a.email = :email")
@@ -18,4 +21,18 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
     Optional<Account> findByIdAndRoleName(UUID id, String roleName);
     java.util.List<Account> findByMetadataIsNotNull();
     Optional<Account> findByPhone(String phone);
+
+    @org.springframework.data.jpa.repository.Query("SELECT a FROM Account a WHERE " +
+            "(:isDummyRole = true OR a.role.name IN :roleNames) AND " +
+            "(:hasSearchTerm = false OR LOWER(a.email) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
+            "LOWER(a.fullName) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
+            "LOWER(a.phone) LIKE LOWER(CONCAT('%', :searchTerm, '%'))) AND " +
+            "(-1 IN :statuses OR a.status IN :statuses)")
+    org.springframework.data.domain.Page<Account> searchAccounts(
+            @org.springframework.data.repository.query.Param("isDummyRole") boolean isDummyRole,
+            @org.springframework.data.repository.query.Param("roleNames") java.util.List<String> roleNames,
+            @org.springframework.data.repository.query.Param("hasSearchTerm") boolean hasSearchTerm,
+            @org.springframework.data.repository.query.Param("searchTerm") String searchTerm,
+            @org.springframework.data.repository.query.Param("statuses") java.util.List<Integer> statuses,
+            org.springframework.data.domain.Pageable pageable);
 }

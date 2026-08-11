@@ -22,17 +22,19 @@ import {
   ShieldCheck,
   Headphones,
   Shield,
-  GraduationCap
+  GraduationCap,
+  Banknote,
+  RotateCcw
 } from "lucide-react";
 import { AppLogo } from "@/components/common/micro/AppButton";
 
-export const ADMIN_USERS_SUB_ITEMS = [
+const ADMIN_USERS_SUB_ITEMS = [
   { label: "Người dùng", icon: Users, href: "/admin/users?tab=USER", tab: "USER" },
   { label: "Giảng viên", icon: GraduationCap, href: "/admin/users?tab=INSTRUCTOR", tab: "INSTRUCTOR" },
   { label: "Chờ duyệt", icon: ShieldCheck, href: "/admin/users?tab=PENDING_APP", tab: "PENDING_APP" },
 ];
 
-export const ADMIN_SETTINGS_SUB_ITEMS = [
+const ADMIN_SETTINGS_SUB_ITEMS = [
   { label: "Cài đặt chung", icon: Globe, href: "/admin/settings?tab=general", tab: "general" },
   {
     label: "Cài đặt trang",
@@ -47,12 +49,31 @@ export const ADMIN_SETTINGS_SUB_ITEMS = [
   { label: "Bảo mật", icon: Shield, href: "/admin/settings?tab=security", tab: "security" },
 ];
 
-export const ADMIN_COUPONS_SUB_ITEMS = [
+const ADMIN_COUPONS_SUB_ITEMS = [
   { label: "Nền tảng", icon: Globe, href: "/admin/coupons?tab=platform", tab: "platform" },
   { label: "Giảng viên", icon: GraduationCap, href: "/admin/coupons?tab=instructors", tab: "instructors" },
 ];
 
-export const ADMIN_MENU_GROUPS = [
+const ADMIN_TRANSACTIONS_SUB_ITEMS = [
+  {
+    label: "Thanh toán",
+    icon: CreditCard,
+    href: "/admin/transactions?tab=payments",
+    tab: "payments",
+    legacyTabs: ["general"],
+  },
+  { label: "Rút tiền", icon: Banknote, href: "/admin/transactions?tab=withdrawals", tab: "withdrawals" },
+  { label: "Hoàn tiền", icon: RotateCcw, href: "/admin/transactions?tab=refunds", tab: "refunds" },
+];
+
+const ADMIN_REQUESTS_SUB_ITEMS = [
+  { label: "Sự cố", icon: MessageCircleWarning, href: "/admin/requests?tab=incidents", tab: "incidents", legacyTabs: ["general"] },
+  { label: "Hoàn tiền", icon: RotateCcw, href: "/admin/requests?tab=refunds", tab: "refunds" },
+  { label: "Rút tiền", icon: Banknote, href: "/admin/requests?tab=withdrawals", tab: "withdrawals" },
+  { label: "Báo cáo", icon: FileText, href: "/admin/requests?tab=reports", tab: "reports" },
+];
+
+const ADMIN_MENU_GROUPS = [
   {
     title: "QUẢN LÝ CHUNG",
     items: [
@@ -79,15 +100,14 @@ export const ADMIN_MENU_GROUPS = [
     items: [
       { label: "Đơn hàng", icon: ShoppingCart, href: "/admin/orders" },
       { label: "Phiếu giảm", icon: Ticket, href: "/admin/coupons", children: ADMIN_COUPONS_SUB_ITEMS },
-      { label: "Giao dịch", icon: History, href: "/admin/transactions" },
+      { label: "Giao dịch", icon: History, href: "/admin/transactions", children: ADMIN_TRANSACTIONS_SUB_ITEMS },
     ]
   },
   {
     title: "TƯƠNG TÁC",
     items: [
       { label: "Đánh giá", icon: MessageSquare, href: "/admin/reviews" },
-      { label: "Báo cáo", icon: MessageCircleWarning, href: "/admin/reports" },
-      { label: "Yêu cầu", icon: Headphones, href: "/admin/requests" },
+      { label: "Yêu cầu", icon: Headphones, href: "/admin/requests", children: ADMIN_REQUESTS_SUB_ITEMS },
     ]
   },
   {

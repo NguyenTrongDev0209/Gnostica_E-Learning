@@ -8,6 +8,7 @@ import com.gnostica.core.model.Account;
 import java.time.LocalDateTime;
 
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
@@ -15,9 +16,28 @@ import java.util.List;
 
 @Repository
 public interface PayoutRepository extends JpaRepository<Payout, java.util.UUID> {
+    @EntityGraph(attributePaths = {"account", "accountBank", "accountBank.bank"})
+    java.util.List<Payout> findAllByOrderByCreatedAtDesc();
+
     long countByAccountAndCreatedAtAfter(Account account, LocalDateTime createdAt);
+    long countByAccountAndStatusInAndCreatedAtAfter(Account account, List<Integer> statuses, LocalDateTime createdAt);
     java.util.List<Payout> findByAccountOrderByCreatedAtDesc(Account account);
+    java.util.List<Payout> findByStatusIn(java.util.List<Integer> statuses);
+    java.util.List<Payout> findByStatusInAndGatewayPayoutIdIsNull(java.util.List<Integer> statuses);
+    java.util.Optional<Payout> findByAccountAndIdempotencyKey(Account account, String idempotencyKey);
+    java.util.Optional<Payout> findByGatewayReferenceId(String gatewayReferenceId);
+    boolean existsByGatewayReferenceId(String gatewayReferenceId);
+    boolean existsByAccountBankAndStatusIn(com.gnostica.core.model.AccountBank accountBank, List<Integer> statuses);
+
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT p FROM Payout p WHERE p.id = :id")
+    java.util.Optional<Payout> findByIdForUpdate(@Param("id") java.util.UUID id);
 
     @Query("SELECT COALESCE(SUM(p.amount), 0) FROM Payout p WHERE p.account = :account AND p.status IN :statuses")
     BigDecimal sumPayoutsByAccount(@Param("account") Account account, @Param("statuses") List<Integer> statuses);
+
+    @Query("SELECT p.createdAt, p.status, p.amount FROM Payout p WHERE p.createdAt >= :startDate")
+    List<Object[]> getAdminStatsProjection(@Param("startDate") LocalDateTime startDate);
+
+    org.springframework.data.domain.Page<Payout> findByAccountIdOrderByCreatedAtDesc(java.util.UUID accountId, org.springframework.data.domain.Pageable pageable);
 }

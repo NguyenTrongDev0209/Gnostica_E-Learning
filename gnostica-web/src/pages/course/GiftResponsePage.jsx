@@ -57,15 +57,17 @@ export default function GiftResponsePage() {
         
         setActionLoading(true);
         try {
-            await giftService.acceptGift(token);
-            toast.success("Đã nhận quà tặng thành công!");
-            setGift({ ...gift, status: STATUS.ACCEPTED });
+            const data = await giftService.acceptGift(token);
+            if (data.alreadyOwned) {
+                toast.warning(data.message || "Bạn đã sở hữu khóa học này. Quà tặng đã được tự động hoàn lại cho người gửi.");
+                setGift({ ...gift, status: STATUS.REJECTED });
+            } else {
+                toast.success(data.message || "Đã nhận quà tặng thành công!");
+                setGift({ ...gift, status: STATUS.ACCEPTED });
+            }
         } catch (err) {
             const errorMsg = err.response?.data?.message || "Lỗi khi nhận quà";
-            if (errorMsg.includes("ALREADY_OWNED")) {
-                toast.warning("Bạn đã sở hữu khóa học này. Quà tặng đã được tự động hoàn lại cho người gửi.");
-                setGift({ ...gift, status: STATUS.REJECTED });
-            } else if (errorMsg.includes("không dành cho bạn")) {
+            if (errorMsg.includes("không dành cho bạn")) {
                 toast.error("Quà tặng này được gửi cho một tài khoản email khác.");
             } else {
                 toast.error(errorMsg);

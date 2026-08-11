@@ -15,6 +15,7 @@ import {
   Bell,
   LogOut,
   Users,
+  RotateCcw,
 } from "lucide-react";
 
 const MENU_GROUPS = [
@@ -32,7 +33,8 @@ const MENU_GROUPS = [
     items: [
       { label: "Danh sách yêu thích", icon: Heart, href: "/account/wishlist" },
       { label: "Lịch sử đơn hàng", icon: ShoppingBag, href: "/account/orders" },
-      { label: "Kho giảm giá", icon: Ticket, href: "/account/vouchers", badge: "2" },
+      { label: "Yêu cầu hoàn tiền", icon: RotateCcw, href: "/account/refunds" },
+      { label: "Kho giảm giá", icon: Ticket, href: "/account/vouchers" },
     ],
   },
   {
@@ -99,12 +101,12 @@ export default function AccountSidebar({ user, currentUser, handleLogout }) {
                         className={`
                           flex items-center gap-3 px-4 py-3 rounded-xl text-[15px] font-semibold transition-all
                           ${isActive
-                            ? "bg-primary/5 text-primary font-bold shadow-sm ring-1 ring-primary/10"
+                            ? "bg-primary text-white font-bold shadow-md"
                             : "text-muted-foreground hover:bg-muted hover:text-foreground"
                           }
                         `}
                       >
-                        <Icon className={`w-5 h-5 ${isActive ? "text-primary" : "text-muted-foreground"}`} />
+                        <Icon className={`w-5 h-5 ${isActive ? "text-white" : "text-muted-foreground"}`} />
                         <span className="flex-1">{item.label}</span>
                         {item.badge && (
                           <Badge className="bg-primary/10 text-primary text-[10px] font-bold px-1.5 py-0 hover:bg-primary/10">

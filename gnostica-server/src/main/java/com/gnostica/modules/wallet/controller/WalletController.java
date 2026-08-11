@@ -5,21 +5,26 @@ import com.gnostica.modules.wallet.dto.response.*;
 import com.gnostica.modules.wallet.dto.request.SetBankAccountRequest;
 import com.gnostica.modules.wallet.dto.request.WithdrawRequest;
 import com.gnostica.core.model.AccountBank;
+import com.gnostica.core.model.Payout;
+import com.gnostica.core.constant.PayoutStatus;
+import com.gnostica.core.repository.PayoutRepository;
 import com.gnostica.modules.wallet.service.WalletService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
-import vn.payos.model.v1.payouts.Payout;
 
 @RestController
 @RequestMapping("/api/wallet")
 @RequiredArgsConstructor
 public class WalletController {
     private final WalletService walletService;
+    private final PayoutSubmissionService payoutSubmissionService;
+    private final PayoutRepository payoutRepository;
 
     @GetMapping("/me")
     public ResponseEntity<WalletOverviewResponse> getMyWallet() {
@@ -27,14 +32,14 @@ public class WalletController {
     }
 
     @GetMapping("/transactions")
-    public ResponseEntity<List<com.gnostica.core.model.Payout>> getMyTransactions() {
+    public ResponseEntity<List<PayoutResponse>> getMyTransactions() {
         return ResponseEntity.ok(walletService.getMyTransactions());
     }
 
     @GetMapping("/stats")
     public ResponseEntity<Map<String, Object>> getWalletStats() {
         WalletOverviewResponse wallet = walletService.getMyWalletOverview();
-        List<com.gnostica.core.model.Payout> payouts = walletService.getMyTransactions();
+        List<PayoutResponse> payouts = walletService.getMyTransactions();
 
         Map<String, Object> stats = new HashMap<>();
         stats.put("balance", wallet.getRemain());
@@ -54,9 +59,13 @@ public class WalletController {
         try {
             AccountBank accountBank = walletService.setBankAccount(request);
             return ResponseEntity.ok(Map.of("message", "Thiết lập tài khoản ngân hàng thành công", "accountBank", accountBank));
+        } catch (DataIntegrityViolationException e) {
+            // Không đưa chi tiết câu lệnh SQL hoặc unique constraint ra giao diện.
+            return ResponseEntity.badRequest().body(Map.of("message",
+                    "Tài khoản ngân hàng này đã tồn tại. Vui lòng kiểm tra lại hoặc thử lại."));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("message",
-                    e.getMessage() != null ? e.getMessage() : "Lỗi hệ thống"));
+                    e.getMessage() != null ? e.getMessage() : "Không thể lưu tài khoản ngân hàng. Vui lòng thử lại."));
         }
     }
 
@@ -79,12 +88,18 @@ public class WalletController {
      * Rút tiền — dùng bank đã lưu, xác thực PIN
      */
     @PostMapping("/withdraw")
-    public ResponseEntity<?> withdraw(@RequestBody WithdrawRequest request) {
+    public ResponseEntity<?> withdraw(
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
+            @RequestBody WithdrawRequest request) {
         try {
-            Payout payout = walletService.withdraw(request);
-            return ResponseEntity.ok(Map.of("message", "Lệnh rút tiền đã khởi tạo thành công", "payout", payout));
+            Payout payout = walletService.withdraw(request, idempotencyKey);
+            
+            if (payout.getStatus() == PayoutStatus.FAILED) {
+                return ResponseEntity.badRequest().body(Map.of("message", "Hệ thống đang gặp sự cố. Giao dịch bị từ chối."));
+            }
+            
+            return ResponseEntity.ok(Map.of("message", "Lệnh rút tiền đã khởi tạo thành công", "payout", walletService.toResponse(payout)));
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.badRequest().body(Map.of("message",
                     e.getMessage() != null ? e.getMessage() : "Lỗi hệ thống: Không thể xử lý yêu cầu"));
         }

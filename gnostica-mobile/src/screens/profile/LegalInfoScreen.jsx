@@ -25,7 +25,7 @@ const LegalInfoScreen = () => {
                     title: 'Điều khoản sử dụng',
                     icon: FileText,
                     color: '#6366f1',
-                    text: 'Bằng việc sử dụng Gnostica, bạn đồng ý tuân thủ các điều khoản sau đây:\n\n1. Quyền sở hữu trí tuệ: Tất cả nội dung trên nền tảng này thuộc sở hữu của Gnostica hoặc các đối tác...\n\n2. Tài khoản người dùng: Bạn có trách nhiệm bảo mật tài khoản của mình...\n\n3. Hoàn tiền: Chính sách hoàn tiền áp dụng trong vòng 7 ngày kể từ khi mua khóa học nếu bạn chưa xem quá 20% nội dung.'
+                    text: 'Bằng việc sử dụng Gnostica, bạn đồng ý tuân thủ các điều khoản sau đây:\n\n1. Quyền sở hữu trí tuệ: Tất cả nội dung trên nền tảng này thuộc sở hữu của Gnostica hoặc các đối tác...\n\n2. Tài khoản người dùng: Bạn có trách nhiệm bảo mật tài khoản của mình...\n\n3. Hoàn tiền: Tự động hoàn tiền nếu yêu cầu trong vòng 14 ngày và tiến độ < 20%. Các trường hợp khác trong vòng 30 ngày sẽ được xem xét thủ công.'
                 };
             default:
                 return {
