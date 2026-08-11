@@ -23,7 +23,7 @@ import org.springframework.context.annotation.Lazy;
 public class AiModerationService {
 
     private final BunnyTranscriptionService transcriptionService;
-    private final OpenRouterAiService openRouterAiService;
+    private final DeepSeekAiService deepSeekAiService;
     private final LessonRepository lessonRepository;
     private final CourseRepository courseRepository;
 
@@ -33,7 +33,7 @@ public class AiModerationService {
 
     /**
      * Executes full AI Moderation Scan pipeline on a single Lesson's video.
-     * Triggers subtitles if missing, parses texts, prompts OpenRouter, and saves results.
+     * Triggers subtitles if missing, parses texts, prompts DeepSeek AI, and saves results.
      */
     public Lesson scanLesson(Lesson lesson) {
         if (lesson == null) {
@@ -112,7 +112,7 @@ public class AiModerationService {
         log.info("Running stateless pre-scan AI simulation for Title: {}", title);
 
         try {
-            return openRouterAiService.getAiModerationJson(textToScan);
+            return deepSeekAiService.getAiModerationJson(textToScan);
         } catch (Exception e) {
             log.error("Pre-scan AI simulation failure: {}", e.getMessage());
             return "{\"safetyScore\":100,\"assessment\":\"Gặp sự cố kết nối AI tạm thời. Bạn có thể thử bấm quét lại sau vài giây.\",\"violations\":[]}";

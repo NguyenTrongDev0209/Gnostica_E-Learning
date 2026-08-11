@@ -13,13 +13,13 @@ import java.util.Map;
 @Service
 public class FptOcrService {
 
-    @Value("${openrouter.api-key}")
+    @Value("${deepseek.api-key:}")
     private String apiKey;
 
-    @Value("${openrouter.base-url}")
+    @Value("${deepseek.base-url:https://api.deepseek.com/v1}")
     private String baseUrl;
 
-    @Value("${openrouter.model}")
+    @Value("${deepseek.model:deepseek-chat}")
     private String model;
 
     @Value("${app.public-url}")
@@ -28,7 +28,7 @@ public class FptOcrService {
     private final RestTemplate restTemplate = new RestTemplate();
 
     /**
-     * Sends the ID card image URL to OpenRouter's Gemini Vision model to extract the name
+     * Sends the ID card image URL to DeepSeek AI model to extract the name
      * and returns the result in FPT.AI's response format to ensure compatibility.
      *
      * @param imageUrl The public URL of the front side of the ID card
@@ -106,7 +106,7 @@ public class FptOcrService {
                     return content.trim();
                 }
             }
-            throw new RuntimeException("No response from OpenRouter AI");
+            throw new RuntimeException("No response from DeepSeek AI");
         } catch (Exception e) {
             throw new RuntimeException("Failed to verify ID card: " + e.getMessage(), e);
         }
