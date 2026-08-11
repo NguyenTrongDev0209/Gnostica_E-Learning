@@ -28,6 +28,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 @RequiredArgsConstructor
@@ -92,13 +93,13 @@ public class AiService {
                 }
                 
                 session = ChatSession.builder()
+                        .id(UUID.randomUUID().toString())
                         .accountId(accountId)
                         .title(title)
                         .createdAt(LocalDateTime.now())
                         .updatedAt(LocalDateTime.now())
                         .messages(new ArrayList<>())
                         .build();
-                session = chatSessionRepository.save(session);
             }
             useMongo = true;
         } catch (Exception e) {
@@ -191,7 +192,13 @@ public class AiService {
 
             if (isFaq) {
                 if (useMongo && session != null) {
-                    saveFaqSession(session, trimmedMsg, faqResponse);
+                    final ChatSession faqSession = session;
+                    final String faqMsg = trimmedMsg;
+                    final AiChatResponse faqResp = faqResponse;
+                    CompletableFuture.runAsync(() -> {
+                        saveFaqSession(faqSession, faqMsg, faqResp);
+                    });
+                    faqResponse.setSessionId(session.getId());
                 }
                 return faqResponse;
             }
@@ -252,10 +259,17 @@ public class AiService {
                     session.setTitle(newUserContent.length() > 30 ? newUserContent.substring(0, 30) + "..." : newUserContent);
                 }
                 
-                chatSessionRepository.save(session);
+                final ChatSession sessionToSave = session;
+                CompletableFuture.runAsync(() -> {
+                    try {
+                        chatSessionRepository.save(sessionToSave);
+                    } catch (Exception e) {
+                        log.error("Async error saving AI response to MongoDB", e);
+                    }
+                });
                 chatResponse.setSessionId(session.getId());
             } catch (Exception e) {
-                log.error("Failed to save AI response to MongoDB", e);
+                log.error("Failed to prepare AI response for MongoDB", e);
             }
         }
 

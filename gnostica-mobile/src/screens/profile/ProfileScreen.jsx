@@ -18,23 +18,23 @@ const MENU_GROUPS = [
     {
         title: 'Tài khoản',
         items: [
-            { label: 'Thông tin cá nhân', icon: User,       color: '#3B82F6', action: 'showProfileModal' },
-            { label: 'Tiến độ học tập',  icon: TrendingUp, color: '#10B981', target: 'LearningProgress' },
-            { label: 'Khóa học đã lưu',  icon: Star,       color: '#EC4899', target: 'Wishlist' },
+            { label: 'Thông tin cá nhân', icon: User, color: '#3B82F6', action: 'showProfileModal' },
+            { label: 'Tiến độ học tập', icon: TrendingUp, color: '#10B981', target: 'LearningProgress' },
+            { label: 'Khóa học đã lưu', icon: Star, color: '#EC4899', target: 'Wishlist' },
             { label: 'Giảng viên yêu thích', icon: Star, color: '#F59E0B', target: 'FavoriteInstructors' },
             { label: 'Bài viết của tôi', icon: MessageSquare, color: '#8B5CF6', target: 'MyForumPosts' },
             { label: 'Chứng chỉ của tôi', icon: CreditCard, color: '#10B981', target: 'Certificates' },
-            { label: 'Mã giảm giá',      icon: Bell,       color: '#F59E0B', target: 'Vouchers' },
-            { label: 'Thông báo',        icon: Bell,       color: '#3B82F6', target: 'Notifications' },
+            { label: 'Mã giảm giá', icon: Bell, color: '#F59E0B', target: 'Vouchers' },
+            { label: 'Thông báo', icon: Bell, color: '#3B82F6', target: 'Notifications' },
         ],
     },
     {
         title: 'Hỗ trợ',
         items: [
-            { label: 'Cài đặt',              icon: Settings,    color: '#64748B', target: 'Settings' },
-            { label: 'Chăm sóc khách hàng',  icon: Headset,     color: '#3B82F6', target: 'Support' },
-            { label: 'Về Gnostica',          icon: HelpCircle,  color: '#8B5CF6', target: 'LegalInfo', params: { type: 'about' } },
-            { label: 'Chính sách và điều khoản', icon: Shield,  color: '#EC4899', target: 'LegalInfo', params: { type: 'terms' } },
+            { label: 'Cài đặt', icon: Settings, color: '#64748B', target: 'Settings' },
+            { label: 'Chăm sóc khách hàng', icon: Headset, color: '#3B82F6', target: 'Support' },
+            { label: 'Về Gnostica', icon: HelpCircle, color: '#8B5CF6', target: 'LegalInfo', params: { type: 'about' } },
+            { label: 'Chính sách và điều khoản', icon: Shield, color: '#EC4899', target: 'LegalInfo', params: { type: 'terms' } },
         ],
     },
     {
@@ -54,7 +54,7 @@ const MENU_GROUPS = [
 
 const MenuItem = ({ item, onOpenProfileModal }) => {
     const navigation = useNavigation();
-    
+
     const handlePress = () => {
         if (item.action === 'showProfileModal') {
             onOpenProfileModal();
@@ -71,9 +71,9 @@ const MenuItem = ({ item, onOpenProfileModal }) => {
         >
             <View
                 className="w-[38px] h-[38px] rounded-xl items-center justify-center mr-3.5"
-                style={{ backgroundColor: item.color }}
+                style={{ backgroundColor: item.color + '18' }}
             >
-                <item.icon size={18} color="#ffffff" strokeWidth={2} />
+                <item.icon size={18} color={item.color} strokeWidth={2} />
             </View>
             <AppText className="flex-1 text-[15px] text-slate-800 font-medium">{item.label}</AppText>
             <ChevronRight size={16} color="#CBD5E1" />
@@ -86,7 +86,7 @@ const ProfileScreen = () => {
     const isFocused = useIsFocused();
     const { isAuthenticated, user, logout } = useAuth();
     const insets = useSafeAreaInsets();
-    
+
     const [stats, setStats] = useState({ courses: 0, completed: 0, certificates: 0 });
     const [loadingStats, setLoadingStats] = useState(true);
     const [showProfileModal, setShowProfileModal] = useState(false);
@@ -94,37 +94,37 @@ const ProfileScreen = () => {
     useEffect(() => {
         if (isAuthenticated && isFocused) {
             setLoadingStats(true);
-            
+
             Promise.all([
                 enrollmentService.getStats().catch(() => null),
                 enrollmentService.getMyCourses().catch(() => null),
                 api.get('/certificates/my-certificates').catch(() => null)
             ])
-            .then(([statsRes, myCoursesRes, certsRes]) => {
-                const statsData = statsRes?.data || statsRes || {};
-                const myCoursesList = myCoursesRes?.data || (Array.isArray(myCoursesRes) ? myCoursesRes : []);
-                const certsList = certsRes?.data || (Array.isArray(certsRes) ? certsRes : []);
+                .then(([statsRes, myCoursesRes, certsRes]) => {
+                    const statsData = statsRes?.data || statsRes || {};
+                    const myCoursesList = myCoursesRes?.data || (Array.isArray(myCoursesRes) ? myCoursesRes : []);
+                    const certsList = certsRes?.data || (Array.isArray(certsRes) ? certsRes : []);
 
-                // Khóa học đã mua/đăng ký
-                const totalCourses = statsData.enrolledCourses != null 
-                    ? statsData.enrolledCourses 
-                    : (statsData.active || 0) + (statsData.completed || 0) || myCoursesList.length;
+                    // Khóa học đã mua/đăng ký
+                    const totalCourses = statsData.enrolledCourses != null
+                        ? statsData.enrolledCourses
+                        : (statsData.active || 0) + (statsData.completed || 0) || myCoursesList.length;
 
-                // Khóa học hoàn thành
-                const completedCourses = statsData.completedCourses != null 
-                    ? statsData.completedCourses 
-                    : (statsData.completed || 0) || myCoursesList.filter(c => c.completed || c.progressPercent >= 100).length;
+                    // Khóa học hoàn thành
+                    const completedCourses = statsData.completedCourses != null
+                        ? statsData.completedCourses
+                        : (statsData.completed || 0) || myCoursesList.filter(c => c.completed || c.progressPercent >= 100).length;
 
-                // Số lượng chứng chỉ
-                const totalCertificates = certsList.length || statsData.certificates || 0;
+                    // Số lượng chứng chỉ
+                    const totalCertificates = certsList.length || statsData.certificates || 0;
 
-                setStats({
-                    courses: totalCourses,
-                    completed: completedCourses,
-                    certificates: totalCertificates
-                });
-            })
-            .finally(() => setLoadingStats(false));
+                    setStats({
+                        courses: totalCourses,
+                        completed: completedCourses,
+                        certificates: totalCertificates
+                    });
+                })
+                .finally(() => setLoadingStats(false));
         }
     }, [isAuthenticated, isFocused]);
 
@@ -140,8 +140,8 @@ const ProfileScreen = () => {
                 >
                     <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 24 }}>
                         <View style={{ backgroundColor: '#fff', borderRadius: 24, padding: 24, width: '100%', maxWidth: 340, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.1, shadowRadius: 20, elevation: 10 }}>
-                            <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: '#2563EB', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
-                                <Smile size={32} color="#ffffff" />
+                            <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: '#eff6ff', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+                                <Smile size={32} color="#2563EB" />
                             </View>
                             <AppText style={{ fontSize: 20, fontFamily: 'Inter_700Bold', color: '#1e293b', marginBottom: 8, textAlign: 'center' }}>
                                 Yêu cầu đăng nhập
@@ -183,13 +183,13 @@ const ProfileScreen = () => {
         <ScrollView className="flex-1 bg-slate-50" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 80 }}>
             {/* Header with Cover Image */}
             <View style={{ height: 200, width: '100%' }}>
-                <Image 
-                    source={{ uri: 'https://images.unsplash.com/photo-1557683316-973673baf926?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' }} 
-                    style={{ width: '100%', height: '100%' }} 
-                    resizeMode="cover" 
+                <Image
+                    source={{ uri: 'https://images.unsplash.com/photo-1557683316-973673baf926?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' }}
+                    style={{ width: '100%', height: '100%' }}
+                    resizeMode="cover"
                 />
                 <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.25)' }} />
-                
+
                 <View style={{ position: 'absolute', top: Math.max(insets.top, 10) + 12, left: 20 }}>
                     <AppText className="text-[22px] font-extrabold text-white">
                         Cá nhân
@@ -198,12 +198,12 @@ const ProfileScreen = () => {
             </View>
 
             {/* Main Info Card */}
-            <View 
-                style={{ 
-                    marginHorizontal: 20, 
-                    marginTop: -60, 
-                    backgroundColor: '#fff', 
-                    borderRadius: 24, 
+            <View
+                style={{
+                    marginHorizontal: 20,
+                    marginTop: -60,
+                    backgroundColor: '#fff',
+                    borderRadius: 24,
                     paddingHorizontal: 20,
                     paddingBottom: 24,
                     marginBottom: 10,
@@ -213,10 +213,10 @@ const ProfileScreen = () => {
             >
                 {/* Avatar */}
                 <View style={{ alignSelf: 'center', marginTop: -44 }}>
-                    <View style={{ 
-                        borderRadius: 50, padding: 4, backgroundColor: '#fff', 
-                        shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, 
-                        shadowOpacity: 0.1, shadowRadius: 8, elevation: 5 
+                    <View style={{
+                        borderRadius: 50, padding: 4, backgroundColor: '#fff',
+                        shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
+                        shadowOpacity: 0.1, shadowRadius: 8, elevation: 5
                     }}>
                         <Avatar name={user?.fullName || user?.name || 'Học viên'} size={88} />
                     </View>
@@ -230,9 +230,9 @@ const ProfileScreen = () => {
                         </AppText>
                         <TouchableOpacity
                             onPress={() => setShowProfileModal(true)}
-                            className="ml-2 bg-blue-600 w-7 h-7 rounded-full items-center justify-center"
+                            className="ml-2 bg-blue-50 w-7 h-7 rounded-full items-center justify-center"
                         >
-                            <Edit3 size={14} color="#ffffff" />
+                            <Edit3 size={14} color="#2563EB" />
                         </TouchableOpacity>
                     </View>
                     <AppText className="text-[14px] text-slate-500 mt-1 font-medium">
@@ -243,7 +243,7 @@ const ProfileScreen = () => {
                 {/* Stats row with icons */}
                 <View className="flex-row mt-6 pt-6 border-t border-slate-100 w-full">
                     {[
-                        { label: 'Khóa học',  value: stats.courses, icon: BookOpen, color: '#3B82F6', bg: '#EFF6FF' },
+                        { label: 'Khóa học', value: stats.courses, icon: BookOpen, color: '#3B82F6', bg: '#EFF6FF' },
                         { label: 'Hoàn thành', value: stats.completed, icon: Target, color: '#10B981', bg: '#ECFDF5' },
                         { label: 'Chứng chỉ', value: stats.certificates, icon: Award, color: '#F59E0B', bg: '#FFFBEB' },
                     ].map((stat, i) => (
@@ -251,8 +251,8 @@ const ProfileScreen = () => {
                             key={stat.label}
                             className="flex-1 items-center relative"
                         >
-                            <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: stat.color, alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
-                                <stat.icon size={20} color="#ffffff" />
+                            <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: stat.bg, alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
+                                <stat.icon size={20} color={stat.color} />
                             </View>
                             {loadingStats ? (
                                 <ActivityIndicator size="small" color={stat.color} style={{ marginVertical: 4 }} />
@@ -260,7 +260,7 @@ const ProfileScreen = () => {
                                 <AppText className="text-[20px] font-black text-slate-800">{stat.value}</AppText>
                             )}
                             <AppText className="text-[11px] text-slate-400 mt-1 font-bold uppercase tracking-[0.8px] text-center px-1">{stat.label}</AppText>
-                            
+
                             {/* Divider */}
                             {i < 2 && (
                                 <View style={{ position: 'absolute', right: 0, top: '10%', bottom: '10%', width: 1, backgroundColor: '#F1F5F9' }} />
@@ -278,10 +278,10 @@ const ProfileScreen = () => {
                     </AppText>
                     <View className="bg-white border-y border-slate-100">
                         {group.items.map(item => (
-                            <MenuItem 
-                                key={item.label} 
-                                item={item} 
-                                onOpenProfileModal={() => setShowProfileModal(true)} 
+                            <MenuItem
+                                key={item.label}
+                                item={item}
+                                onOpenProfileModal={() => setShowProfileModal(true)}
                             />
                         ))}
                     </View>
@@ -292,10 +292,10 @@ const ProfileScreen = () => {
             <TouchableOpacity
                 onPress={handleLogout}
                 activeOpacity={0.75}
-                className="mx-5 mt-5 mb-10 py-[15px] rounded-[14px] bg-red-500 flex-row items-center justify-center gap-2.5"
+                className="mx-5 mt-5 mb-10 py-[15px] rounded-[14px] bg-red-50 border border-red-200 flex-row items-center justify-center gap-2.5"
             >
-                <LogOut size={18} color="#ffffff" />
-                <AppText className="text-[15px] font-bold text-white">Đăng xuất</AppText>
+                <LogOut size={18} color="#EF4444" />
+                <AppText className="text-[15px] font-bold text-red-500">Đăng xuất</AppText>
             </TouchableOpacity>
 
             {/* Thông tin cá nhân Modal */}
@@ -326,8 +326,8 @@ const ProfileScreen = () => {
                         {/* Title & Close */}
                         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
                             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                                <View style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: '#2563eb', alignItems: 'center', justifyContent: 'center' }}>
-                                    <User size={20} color="#ffffff" />
+                                <View style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: '#eff6ff', alignItems: 'center', justifyContent: 'center' }}>
+                                    <User size={20} color="#2563eb" />
                                 </View>
                                 <AppText style={{ fontSize: 18, fontWeight: 'bold', color: '#1e293b' }}>Thông tin cá nhân</AppText>
                             </View>
