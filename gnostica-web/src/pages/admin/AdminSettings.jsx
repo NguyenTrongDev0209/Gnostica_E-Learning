@@ -1051,12 +1051,12 @@ function FinanceSettings() {
                 <FinanceMetric
                   label={`Nền tảng nhận (${formatPercent(platformRatio)})`}
                   value={formatCurrency(platformAmount)}
-                  variant="warning"
+                  variant="success"
                 />
                 <FinanceMetric
                   label={`Giảng viên nhận (${formatPercent(instructorRatio)})`}
                   value={formatCurrency(instructorAmount)}
-                  variant="success"
+                  variant="warning"
                 />
               </div>
             </div>
@@ -1154,7 +1154,7 @@ function FinanceHistoryPanel({ sampleRevenue }) {
       headerAlign: "center",
       width: 160,
       render: (row) => (
-        <span className="block text-center text-sm font-black text-warning">
+        <span className="block whitespace-nowrap text-center text-xs font-semibold text-foreground">
           {formatPercent(row.commissionRatio)}
         </span>
       ),
