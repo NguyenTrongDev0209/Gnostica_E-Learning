@@ -8,8 +8,9 @@ import java.util.UUID;
 
 @Data
 public class RefundRequest {
-    @NotNull(message = "OrderDetail ID is required")
     private UUID orderDetailId;
+
+    private UUID courseId;
 
     @NotBlank(message = "Reason is required")
     private String reason;

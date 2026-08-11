@@ -189,5 +189,17 @@ public class PaymentService {
     private String gateway(Order order) {
         return order.getPaymentMethod() == null ? "PAYOS" : order.getPaymentMethod().toUpperCase();
     }
+
+    @Transactional
+    public void markNonWalletPaymentsRefunded(Order order) {
+        if (order == null) return;
+        java.util.List<Payment> payments = paymentRepository.findByOrder(order);
+        for (Payment p : payments) {
+            if (!"WALLET".equalsIgnoreCase(p.getGateway()) && p.getStatus() == PaymentStatus.SUCCESS) {
+                p.setStatus(PaymentStatus.REFUNDED);
+                paymentRepository.save(p);
+            }
+        }
+    }
 }
 

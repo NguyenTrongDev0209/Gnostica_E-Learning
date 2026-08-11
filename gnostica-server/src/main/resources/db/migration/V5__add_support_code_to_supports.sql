@@ -1,0 +1,1 @@
+ALTER TABLE supports ADD COLUMN support_code VARCHAR(14) UNIQUE;

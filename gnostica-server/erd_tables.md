@@ -550,22 +550,15 @@
 | 1 | id | UUID | PK | |
 | 2 | order_id | UUID | FK | |
 | 3 | transaction_code | VARCHAR(255) | UQ | |
-| 4 | amount | DECIMAL(18,6) | | `> 0` |
-| 5 | account_number | VARCHAR(255) | | |
-| 6 | sender_bank_bin | VARCHAR(255) | | |
-| 7 | sender_account_number | VARCHAR(255) | | |
-| 8 | gateway | VARCHAR(32) | IDX | |
-| 9 | gateway_transaction_no | VARCHAR(255) | C-UQ | |
-| 10 | bank_code | VARCHAR(32) | | |
-| 11 | card_type | VARCHAR(32) | | |
-| 12 | gateway_response_code | VARCHAR(16) | | |
-| 13 | gateway_transaction_status | VARCHAR(16) | | |
-| 14 | paid_at | DATETIME | IDX | |
-| 15 | raw_callback | JSONB | | |
-| 16 | status | INT | | |
-| 17 | created_at | DATETIME | | |
-| 18 | updated_at | DATETIME | | |
-> **Note:** Một order có thể có nhiều payment attempts nếu retry/cổng thanh toán khác nhau; `transaction_code` dùng để chống xử lý trùng webhook. `gateway + gateway_transaction_no` là unique có điều kiện khi `gateway_transaction_no` khác null.
+| 4 | amount | DECIMAL(18,6) | | `>= 0` |
+| 5 | gateway | VARCHAR(32) | IDX | |
+| 6 | gateway_transaction_no | VARCHAR(255) | C-UQ | |
+| 7 | paid_at | DATETIME | IDX | |
+| 8 | payload | JSONB | Lưu thông tin ngân hàng/callback | |
+| 9 | status | INT | | |
+| 10 | created_at | DATETIME | | |
+| 11 | updated_at | DATETIME | | |
+> **Note:** Một order có thể có nhiều payment attempts nếu retry/cổng thanh toán khác nhau; `transaction_code` dùng để chống xử lý trùng webhook. `gateway + gateway_transaction_no` là unique có điều kiện khi `gateway_transaction_no` khác null. Phiên bản 7: Đơn FREE (0đ) có Payment record.
 >
 > **Status:** 1: Pending (Chờ xử lý), 2: Success (Thành công), 3: Failed (Thất bại), 4: Refunded (Đã hoàn tiền)
 
@@ -927,4 +920,22 @@
 > **Status:** 0: Draft/Hidden (Nháp/Ẩn), 1: Published (Hiển thị)
 
 
+---
 
+## 43. Gifts
+
+| # | Trường | Kiểu dữ liệu | Ghi chú | CHECK |
+|---|--------|---------------|---------|-------|
+| 1 | id | UUID | PK | |
+| 2 | sender_id | UUID | FK | |
+| 3 | receiver_id | UUID | FK | |
+| 4 | course_id | UUID | FK | |
+| 5 | order_id | UUID | FK | |
+| 6 | token | VARCHAR(255) | UQ | |
+| 7 | message | TEXT | | |
+| 8 | status | INT | | |
+| 9 | expired_at | DATETIME | | |
+| 10 | created_at | DATETIME | | |
+| 11 | updated_at | DATETIME | | |
+
+> **Status:** 0: PENDING (Chờ nhận), 1: ACCEPTED (Đã nhận), 2: REJECTED (Từ chối), 3: EXPIRED (Hết hạn)

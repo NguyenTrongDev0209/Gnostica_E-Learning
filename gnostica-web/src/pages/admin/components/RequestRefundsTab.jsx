@@ -29,6 +29,7 @@ import RefundRejectModal from "@/components/modals/RefundRejectModal";
 import useRequestStats from "@/hooks/admin/useRequestStats";
 import { RequestTrendChart, RequestStatusDonut } from "@/components/common/composite/RequestStatCharts";
 import { RefreshCw } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/common/micro/AppAvatar";
 
 export default function RequestRefundsTab() {
   const { refunds, loading, approveRefund, rejectRefund, refetch } = useRefundRequests(true);
@@ -101,47 +102,25 @@ export default function RequestRefundsTab() {
 
   const formatCurrency = (value) => Number(value || 0).toLocaleString("vi-VN", { style: "currency", currency: "VND" });
 
+  const formatReason = (reason) => {
+    if (!reason) return "Không có lý do.";
+    if (reason.startsWith("REFUND_GIFT_")) {
+      return "Hoàn tiền thẻ quà tặng";
+    }
+    return reason;
+  };
+
   const getStatusBadge = (status, label) => {
     switch (status) {
-      case 2: return <AppBadge variant="success" className="px-2.5 py-1">{label || "Đã duyệt"}</AppBadge>;
-      case 1: return <AppBadge variant="warning" className="px-2.5 py-1 text-warning bg-warning/10">{label || "Đang chờ"}</AppBadge>;
-      case 3: return <AppBadge variant="error" className="px-2.5 py-1">{label || "Bị từ chối"}</AppBadge>;
-      default: return <AppBadge variant="outline" className="px-2.5 py-1">{label || "Không rõ"}</AppBadge>;
+      case 2: return <AppBadge variant="success" className="w-[100px] justify-center px-2.5 py-1 text-white">{label || "Đã duyệt"}</AppBadge>;
+      case 1: return <AppBadge variant="warning" className="w-[100px] justify-center px-2.5 py-1 text-white">{label || "Đang chờ"}</AppBadge>;
+      case 3: return <AppBadge variant="error" className="w-[100px] justify-center px-2.5 py-1 text-white">{label || "Bị từ chối"}</AppBadge>;
+      default: return <AppBadge variant="outline" className="w-[100px] justify-center px-2.5 py-1">{label || "Không rõ"}</AppBadge>;
     }
   };
 
   return (
-    <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6 animate-in fade-in duration-300">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <TabsList className="w-fit">
-          <TabsTrigger value="STATISTICS"><div className="flex items-center gap-2"><PieChart className="w-4 h-4" /> Thống kê</div></TabsTrigger>
-          <TabsTrigger value="LIST"><div className="flex items-center gap-2"><LayoutList className="w-4 h-4" /> Danh sách</div></TabsTrigger>
-        </TabsList>
-      </div>
-
-      <TabsContent value="STATISTICS" className="mt-0 space-y-6">
-        {statsLoading ? (
-          <div className="flex justify-center p-8 text-muted-foreground"><RefreshCw className="animate-spin w-5 h-5 mr-2" /> Đang tải dữ liệu thống kê...</div>
-        ) : (
-          <>
-            <RequestTrendChart 
-                data={apiStats?.trends} 
-                title="Xu hướng Hoàn tiền" 
-                hasAmount={true}
-                months={months}
-                onMonthsChange={changeMonths}
-            />
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <RequestStatusDonut 
-                    data={apiStats?.statusDistribution} 
-                    title="Tỉ lệ trạng thái xử lý"
-                />
-            </div>
-          </>
-        )}
-      </TabsContent>
-
-      <TabsContent value="LIST" className="mt-0 space-y-6">
+    <div className="space-y-6 animate-in fade-in duration-300">
       {/* Filter and Search toolbar */}
       <DataFilter
         searchQuery={searchQuery}
@@ -177,30 +156,55 @@ export default function RequestRefundsTab() {
         }}
         columns={[
           {
-            header: "Mã ĐH",
-            width: "100px",
+            header: "STT",
+            sortable: false,
+            width: "80px",
             align: "center",
             headerAlign: "center",
-            cellClassName: "text-center",
-            render: (t) => <span className="text-xs font-bold text-muted-foreground">{t.transactionCode}</span>,
+            className: "py-4 whitespace-nowrap",
+            cellClassName: "text-sm font-bold text-foreground py-4 text-center whitespace-nowrap",
+            render: (_t, rowIndex) => rowIndex + 1,
+          },
+          {
+            header: "Mã hoàn tiền",
+            width: "140px",
+            align: "center",
+            headerAlign: "center",
+            className: "py-4 whitespace-nowrap",
+            cellClassName: "text-sm text-foreground py-4 text-center whitespace-nowrap",
+            render: (t) => <span className="font-mono">{t.refundCode}</span>,
+          },
+          {
+            header: "Mã đơn hàng",
+            width: "140px",
+            align: "center",
+            headerAlign: "center",
+            className: "py-4 whitespace-nowrap",
+            cellClassName: "py-4 text-center whitespace-nowrap",
+            render: (t) => <span className="text-sm font-bold text-foreground">{t.transactionCode}</span>,
           },
           {
             header: "Học viên",
-            width: "180px",
+            width: "280px",
             align: "left",
             headerAlign: "left",
+            className: "py-4",
+            cellClassName: "py-4",
             render: (t) => (
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0">
-                  {t.performerName?.charAt(0) || "U"}
-                </div>
-                <div className="min-w-0">
-                  <p className="font-semibold text-foreground text-sm truncate" title={t.performerName}>
+              <div className="flex items-center gap-3">
+                <Avatar className="h-10 w-10 border border-border">
+                  <AvatarImage src={t.performerAvatar} alt={t.performerName} className="object-cover" />
+                  <AvatarFallback className="bg-primary/10 text-primary font-bold">
+                    {t.performerName?.charAt(0) || "U"}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex flex-col min-w-0">
+                  <span className="font-bold text-foreground truncate" title={t.performerName}>
                     {t.performerName || "Ẩn danh"}
-                  </p>
-                  <p className="text-xs text-muted-foreground truncate" title={t.performerEmail}>
+                  </span>
+                  <span className="text-xs text-muted-foreground truncate" title={t.performerEmail}>
                     {t.performerEmail || "Chưa có email"}
-                  </p>
+                  </span>
                 </div>
               </div>
             ),
@@ -210,83 +214,97 @@ export default function RequestRefundsTab() {
             width: "120px",
             align: "center",
             headerAlign: "center",
-            cellClassName: "text-center",
-            render: (t) => <span className="font-bold text-foreground">{formatCurrency(t.amount)}</span>,
+            className: "py-4 whitespace-nowrap",
+            cellClassName: "text-sm font-medium text-foreground py-4 text-center whitespace-nowrap",
+            render: (t) => formatCurrency(t.amount),
           },
           {
             header: "Lý do",
             width: "200px",
             align: "left",
             headerAlign: "left",
+            className: "py-4",
+            cellClassName: "py-4",
             render: (t) => (
               <span className="text-sm text-muted-foreground line-clamp-2" title={t.ref}>
-                {t.ref}
+                {formatReason(t.ref)}
               </span>
             ),
           },
           {
             header: "Trạng thái",
-            width: "120px",
+            width: "140px",
             align: "center",
             headerAlign: "center",
-            cellClassName: "text-center",
-            render: (t) => getStatusBadge(t.status, t.statusLabel),
-          },
-          {
-            header: "Ngày yêu cầu",
-            width: "110px",
-            align: "center",
-            headerAlign: "center",
-            cellClassName: "text-center",
+            className: "py-4 whitespace-nowrap",
+            cellClassName: "py-4 whitespace-nowrap",
             render: (t) => (
-              <span className="text-xs text-muted-foreground">
-                {t.createdAt ? new Date(t.createdAt).toLocaleDateString("vi-VN") : "—"}
-              </span>
+              <div className="flex justify-center w-full">
+                {getStatusBadge(t.status, t.statusLabel)}
+              </div>
             ),
           },
           {
-            header: "Thao tác",
-            width: "180px",
+            header: "Ngày yêu cầu",
+            width: "130px",
             align: "center",
             headerAlign: "center",
-            className: "text-center",
+            className: "py-4 whitespace-nowrap",
+            cellClassName: "py-4 text-center whitespace-nowrap",
+            render: (t) => {
+               if (!t.createdAt) return <span className="text-muted-foreground italic text-xs">(Không rõ)</span>;
+               const d = new Date(t.createdAt);
+               const time = d.toLocaleTimeString("vi-VN", { hour: '2-digit', minute: '2-digit' });
+               const date = d.toLocaleDateString("vi-VN", { day: '2-digit', month: '2-digit', year: 'numeric' });
+               return (
+                 <span className="text-sm text-foreground">{time} {date}</span>
+               );
+            },
+          },
+          {
+            header: "Thao tác",
+            sortable: false,
+            width: "140px",
+            align: "center",
+            headerAlign: "center",
+            className: "py-4 whitespace-nowrap",
+            cellClassName: "py-4 text-center whitespace-nowrap",
             render: (t) => (
-              <div className="flex items-center justify-center gap-1.5 flex-wrap">
-                <button
+              <div className="flex justify-center items-center gap-2">
+                <AppButton
+                  size="sm"
+                  className="w-9 h-9 p-0 bg-info hover:bg-info/90 text-white border-none shrink-0"
+                  title="Xem chi tiết"
                   onClick={() => {
                     setSelectedTransaction(t);
                     setIsDetailModalOpen(true);
                   }}
-                  className="p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors border border-border bg-white"
-                  title="Xem chi tiết"
                 >
                   <Eye className="w-4 h-4" />
-                </button>
+                </AppButton>
                 {t.status === 1 && (
                   <>
                     <AppButton
-                      appVariant="ghostMuted"
-                      variant="ghost"
                       size="sm"
-                      className="h-7 text-xs gap-1 text-success border border-success/20 bg-white hover:bg-success/10"
+                      className="w-9 h-9 p-0 bg-success hover:bg-success/90 text-white border-none shrink-0"
+                      title="Duyệt"
                       onClick={() => {
                         setSelectedRefundAction({ type: 'approve', tx: t });
                         setIsApproveAlertOpen(true);
                       }}
                     >
-                      <CheckCircle2 className="w-3 h-3" /> Duyệt
+                      <CheckCircle2 className="w-4 h-4" />
                     </AppButton>
                     <AppButton
-                      appVariant="ghostMuted"
-                      variant="ghost"
                       size="sm"
-                      className="h-7 text-xs gap-1 text-error border border-error/20 bg-white hover:bg-error/10"
+                      className="w-9 h-9 p-0 bg-error hover:bg-error/90 text-white border-none shrink-0"
+                      title="Từ chối"
                       onClick={() => {
                         setSelectedRefundAction({ type: 'reject', tx: t });
                         setIsRejectModalOpen(true);
                       }}
                     >
-                      <XCircle className="w-3 h-3" /> Từ chối
+                      <XCircle className="w-4 h-4" />
                     </AppButton>
                   </>
                 )}
@@ -299,8 +317,6 @@ export default function RequestRefundsTab() {
         loadingState="Đang tải danh sách hoàn tiền..."
         emptyState="Không có yêu cầu hoàn tiền nào phù hợp."
       />
-      </TabsContent>
-
       <AppAlertDialog
         isOpen={isApproveAlertOpen}
         onClose={() => setIsApproveAlertOpen(false)}
@@ -416,6 +432,6 @@ export default function RequestRefundsTab() {
           </div>
         </div>
       )}
-    </Tabs>
+    </div>
   );
 }

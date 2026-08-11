@@ -14,6 +14,7 @@ public class TestQuery {
     private AccountRepository accountRepository;
 
     @Test
+    @org.springframework.transaction.annotation.Transactional
     public void test() {
         var page = accountRepository.searchAccounts(false, Arrays.asList("USER", "ROLE_USER"), false, "", Arrays.asList(-1), PageRequest.of(0, 10));
         System.out.println("====== TEST QUERY RESULTS ======");

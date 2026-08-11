@@ -1,5 +1,4 @@
-import { AppCardDescription as CardDescription } from "@/components/common/micro/AppCard";
-// Fix imported
+
 import React, { useState, useEffect } from "react";
 import threadService from "@/services/forum/threadService";
 import {ShieldCheck, 
@@ -34,7 +33,7 @@ import {
 import AppSelect from "@/components/common/micro/AppSelect";
 import AppTextarea from "@/components/common/micro/AppTextarea";
 
-export default function AdminThreadModeration() {
+export default function AdminThreadModeration({ hideHeader = false }) {
   const [pendingThreads, setPendingThreads] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [expandedThreads, setExpandedThreads] = useState({});
@@ -148,20 +147,22 @@ export default function AdminThreadModeration() {
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-10">
       {/* Header Panel */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
-          <MessageSquareWarning className="w-6 h-6 text-primary" />
-          Kiểm Duyệt Bài Viết
-        </h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Xem xét, phê duyệt hoặc từ chối các bài viết trên diễn đàn.
-        </p>
+      {!hideHeader && (
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
+            <MessageSquareWarning className="w-6 h-6 text-primary" />
+            Kiểm Duyệt Bài Viết
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Xem xét, phê duyệt hoặc từ chối các bài viết trên diễn đàn.
+          </p>
+          </div>
+          <AppButton appVariant="ghostMuted" variant="ghost" onClick={fetchPendingThreads} className="h-10 font-bold shrink-0 border border-border bg-white text-foreground hover:bg-muted">
+            Làm mới danh sách
+          </AppButton>
         </div>
-        <AppButton appVariant="ghostMuted" variant="ghost" onClick={fetchPendingThreads} className="h-10 font-bold shrink-0 border border-border bg-white text-foreground hover:bg-muted">
-          Làm mới danh sách
-        </AppButton>
-      </div>
+      )}
 
       {/* Stats Widget */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

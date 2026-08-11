@@ -24,7 +24,8 @@ import {
   Shield,
   GraduationCap,
   Banknote,
-  RotateCcw
+  RotateCcw,
+  Star
 } from "lucide-react";
 import { AppLogo } from "@/components/common/micro/AppButton";
 
@@ -49,6 +50,18 @@ const ADMIN_SETTINGS_SUB_ITEMS = [
   { label: "Bảo mật", icon: Shield, href: "/admin/settings?tab=security", tab: "security" },
 ];
 
+const ADMIN_COURSES_SUB_ITEMS = [
+  { label: "Danh sách", icon: BookOpen, href: "/admin/courses?tab=list", tab: "list", legacyTabs: ["general"] },
+  { label: "Kiểm duyệt", icon: ShieldCheck, href: "/admin/courses?tab=moderation", tab: "moderation" },
+  { label: "Đánh giá", icon: Star, href: "/admin/courses?tab=reviews", tab: "reviews" },
+];
+
+const ADMIN_FORUM_SUB_ITEMS = [
+  { label: "Danh sách", icon: MessageSquare, href: "/admin/forum?tab=list", tab: "list", legacyTabs: ["general"] },
+  { label: "Kiểm duyệt", icon: ShieldCheck, href: "/admin/forum?tab=moderation", tab: "moderation" },
+  { label: "Đánh giá", icon: Star, href: "/admin/forum?tab=reviews", tab: "reviews" },
+];
+
 const ADMIN_COUPONS_SUB_ITEMS = [
   { label: "Nền tảng", icon: Globe, href: "/admin/coupons?tab=platform", tab: "platform" },
   { label: "Giảng viên", icon: GraduationCap, href: "/admin/coupons?tab=instructors", tab: "instructors" },
@@ -68,9 +81,9 @@ const ADMIN_TRANSACTIONS_SUB_ITEMS = [
 
 const ADMIN_REQUESTS_SUB_ITEMS = [
   { label: "Sự cố", icon: MessageCircleWarning, href: "/admin/requests?tab=incidents", tab: "incidents", legacyTabs: ["general"] },
+  { label: "Báo cáo", icon: FileText, href: "/admin/requests?tab=reports", tab: "reports" },
   { label: "Hoàn tiền", icon: RotateCcw, href: "/admin/requests?tab=refunds", tab: "refunds" },
   { label: "Rút tiền", icon: Banknote, href: "/admin/requests?tab=withdrawals", tab: "withdrawals" },
-  { label: "Báo cáo", icon: FileText, href: "/admin/requests?tab=reports", tab: "reports" },
 ];
 
 const ADMIN_MENU_GROUPS = [
@@ -82,37 +95,25 @@ const ADMIN_MENU_GROUPS = [
     ]
   },
   {
-    title: "NỘI DUNG",
+    title: "KHÓA HỌC",
     items: [
-      { label: "Khóa học", icon: BookOpen, href: "/admin/courses" },
+      { label: "Khóa học", icon: BookOpen, href: "/admin/courses", children: ADMIN_COURSES_SUB_ITEMS },
       { label: "Danh mục", icon: LayoutList, href: "/admin/categories" },
     ]
   },
   {
-    title: "KIỂM DUYỆT",
+    title: "DIỄN ĐÀN",
     items: [
-      { label: "Kiểm duyệt khóa học", icon: ShieldCheck, href: "/admin/course-moderation" },
-      { label: "Kiểm duyệt bài viết", icon: MessageSquare, href: "/admin/thread-moderation" },
-    ]
-  },
-  {
-    title: "KINH DOANH",
-    items: [
-      { label: "Đơn hàng", icon: ShoppingCart, href: "/admin/orders" },
-      { label: "Phiếu giảm", icon: Ticket, href: "/admin/coupons", children: ADMIN_COUPONS_SUB_ITEMS },
-      { label: "Giao dịch", icon: History, href: "/admin/transactions", children: ADMIN_TRANSACTIONS_SUB_ITEMS },
-    ]
-  },
-  {
-    title: "TƯƠNG TÁC",
-    items: [
-      { label: "Đánh giá", icon: MessageSquare, href: "/admin/reviews" },
-      { label: "Yêu cầu", icon: Headphones, href: "/admin/requests", children: ADMIN_REQUESTS_SUB_ITEMS },
+      { label: "Diễn đàn", icon: MessageSquare, href: "/admin/forum", children: ADMIN_FORUM_SUB_ITEMS },
+      { label: "Chủ đề", icon: LayoutList, href: "/admin/forum-categories" },
     ]
   },
   {
     title: "HỆ THỐNG",
     items: [
+      { label: "Phiếu giảm", icon: Ticket, href: "/admin/coupons", children: ADMIN_COUPONS_SUB_ITEMS },
+      { label: "Giao dịch", icon: History, href: "/admin/transactions", children: ADMIN_TRANSACTIONS_SUB_ITEMS },
+      { label: "Yêu cầu", icon: Headphones, href: "/admin/requests", children: ADMIN_REQUESTS_SUB_ITEMS },
       { label: "Ngân hàng", icon: Building2, href: "/admin/banks" },
       { label: "Cài đặt", icon: Settings, href: "/admin/settings", children: ADMIN_SETTINGS_SUB_ITEMS },
     ]
@@ -143,7 +144,7 @@ export default function AdminSidebar({ user, handleLogout }) {
                   const isActive =
                     item.href === "/admin"
                       ? location.pathname === "/admin" || location.pathname === "/admin/"
-                      : location.pathname.startsWith(item.href);
+                      : location.pathname === item.href || location.pathname.startsWith(`${item.href}/`) || location.pathname.startsWith(`${item.href}?`);
                   const isOpen = openGroups[item.href] ?? isActive;
 
                   if (hasChildren) {

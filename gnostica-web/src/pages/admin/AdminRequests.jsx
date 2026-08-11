@@ -30,9 +30,9 @@ export default function AdminRequests() {
 
   const tabs = [
     { id: "incidents", label: "Sự cố", icon: Headphones },
+    { id: "reports", label: "Báo cáo", icon: Flag },
     { id: "refunds", label: "Hoàn tiền", icon: Undo2 },
     { id: "withdrawals", label: "Rút tiền", icon: Wallet },
-    { id: "reports", label: "Báo cáo", icon: Flag },
   ];
 
   return (

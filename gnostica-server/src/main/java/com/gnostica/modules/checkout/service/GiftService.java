@@ -54,6 +54,7 @@ public class GiftService {
     private final OrderService orderService;
     private final WalletService walletService;
     private final PaymentService paymentService;
+    private final CouponService couponService;
     private final MailService mailService;
     private final NotificationService notificationService;
 
@@ -354,6 +355,9 @@ public class GiftService {
                 
                 detail.setStatus(0); // 0: Refunded
                 orderDetailRepository.save(detail);
+
+                paymentService.markNonWalletPaymentsRefunded(order);
+                couponService.restoreCouponUse(order);
             }
 
             walletService.addGiftRefund(

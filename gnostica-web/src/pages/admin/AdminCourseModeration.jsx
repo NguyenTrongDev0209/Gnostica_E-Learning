@@ -1,4 +1,4 @@
-﻿import { format } from "date-fns";
+import { format } from "date-fns";
 // eslint-disable-next-line no-unused-vars
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -27,13 +27,16 @@ import {
 import courseService from "@/services/course/courseService";
 
 
+
+
+
 // Shared Modal Imports
 import CourseRejectModal from "@/components/modals/CourseRejectModal";
 import InstructorProfileModal from "@/components/modals/InstructorProfileModal";
 
 import useAdminCourseModeration from "@/hooks/course/useAdminCourseModeration";
 
-export default function AdminCourseModeration() {
+export default function AdminCourseModeration({ hideHeader = false }) {
   const navigate = useNavigate();
 
   const {
@@ -93,23 +96,25 @@ export default function AdminCourseModeration() {
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-xl border border-border/60 shadow-sm">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
-          <ShieldCheck className="w-6 h-6 text-primary" />
-          Kiểm Duyệt Khóa Học
-        </h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Xem xét, phê duyệt hoặc từ chối các khóa học mới từ giảng viên.
-        </p>
+      {!hideHeader && (
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-xl border border-border/60 shadow-sm">
+          <div className="space-y-1">
+            <h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
+            <ShieldCheck className="w-6 h-6 text-primary" />
+            Kiểm Duyệt Khóa Học
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Xem xét, phê duyệt hoặc từ chối các khóa học mới từ giảng viên.
+          </p>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Status Grid Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="p-5 bg-gradient-to-br from-white to-warning/10 border border-border rounded-xl shadow-sm">
           <h4 className="text-sm font-bold text-muted-foreground tracking-wide uppercase mb-1">
-            Đang chờ phê duyệt
+            Chờ duyệt
           </h4>
           <div className="flex items-end justify-between mt-2">
             <span className="text-3xl font-black text-warning">{stats.pending}</span>

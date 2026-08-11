@@ -61,7 +61,7 @@ const CourseCard = ({
 
   return (
     <Wrapper {...wrapperProps} className={cn("block w-full h-full", !link && "cursor-not-allowed opacity-70")}>
-      <AppCard appVariant="default" className={cn("w-full h-full flex flex-col group hover-lift p-0 gap-0", className)}>
+      <AppCard appVariant="default" className={cn("w-full h-full flex flex-col group p-0 gap-0", className)}>
         {/* Top Image Section */}
         <div className="p-2 sm:p-3 pb-0">
           <div className="relative aspect-video overflow-hidden shadow-sm rounded-md bg-muted">
@@ -162,7 +162,8 @@ export const CourseProgressCard = ({
   joinedAt,
   className,
   link,
-  restartLink
+  restartLink,
+  onRefundClick
 }) => {
   const to = link === null ? null : (link || `/learning/${id}`);
   const Wrapper = to ? Link : "div";
@@ -170,7 +171,7 @@ export const CourseProgressCard = ({
 
   return (
     <Wrapper {...wrapperProps} className="block w-full">
-      <AppCard appVariant="default" className={cn("w-full flex flex-row group hover-lift p-0 gap-0", className)}>
+      <AppCard appVariant="default" className={cn("w-full flex flex-row group p-0 gap-0", className)}>
         {/* Left Image */}
         <div className="shrink-0 w-36 sm:w-56 md:w-60 p-2 sm:p-3 pr-0">
           <div className="relative w-full h-full min-h-[80px] sm:min-h-[100px] overflow-hidden rounded-lg bg-muted">
@@ -210,10 +211,21 @@ export const CourseProgressCard = ({
                 • Đã tham gia {joinedAt ? new Date(joinedAt).toLocaleDateString('vi-VN') : 'Gần đây'}
               </span>
             </div>
-            {progressPercent === 100 && (
+            {progressPercent === 100 ? (
               <AppBadge variant="success" soft className="px-1.5 py-0 sm:px-2 sm:py-0.5 text-[9px] sm:text-xs font-bold shrink-0">
                 Hoàn thành
               </AppBadge>
+            ) : (
+              <button 
+                onClick={(e) => { 
+                  e.preventDefault(); 
+                  e.stopPropagation(); 
+                  if (onRefundClick) onRefundClick({ id, title, progressPercent, joinedAt }); 
+                }}
+                className="text-[10px] sm:text-xs font-bold text-primary hover:underline shrink-0"
+              >
+                Hoàn tiền
+              </button>
             )}
           </div>
 
@@ -292,7 +304,7 @@ export const CourseCardHorizontal = ({
 
   return (
     <Wrapper {...wrapperProps} className={cn("block w-full", !link && "cursor-not-allowed opacity-70")}>
-      <AppCard appVariant="default" className={cn("w-full flex flex-row group hover-lift p-0 gap-0", className)}>
+      <AppCard appVariant="default" className={cn("w-full flex flex-row group p-0 gap-0", className)}>
         {/* Left Image */}
         <div className="shrink-0 w-56 sm:w-72 md:w-80 p-3 pr-0">
           <div className="relative w-full h-full min-h-[120px] overflow-hidden rounded-lg bg-muted">

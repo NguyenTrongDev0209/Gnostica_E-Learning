@@ -22,9 +22,9 @@ import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminUsers from "@/pages/admin/AdminUsers";
 import AdminCourses from "@/pages/admin/AdminCourses";
 import AdminCategories from "@/pages/admin/AdminCategories";
-import AdminOrders from "@/pages/admin/AdminOrders";
+import AdminForum from "@/pages/admin/AdminForum";
+import AdminForumCategories from "@/pages/admin/AdminForumCategories";
 import AdminCoupons from "@/pages/admin/AdminCoupons";
-import AdminReviews from "@/pages/admin/AdminReviews";
 import AdminReports from "@/pages/admin/AdminReports";
 import AdminRequests from "@/pages/admin/AdminRequests";
 import AdminSettings from "@/pages/admin/AdminSettings";
@@ -32,8 +32,6 @@ import AdminBanks from "@/pages/admin/AdminBanks";
 import AdminTransactions from "@/pages/admin/AdminTransactions";
 import AdminCourseModeration from "@/pages/admin/AdminCourseModeration";
 import AdminCourseDetailModeration from "@/pages/admin/AdminCourseDetailModeration";
-import AdminThreadModeration from "@/pages/admin/AdminThreadModeration";
-
 
 import InstructorDashboard from "@/pages/instructor/InstructorDashboard";
 import InstructorCourses from "@/pages/instructor/InstructorCourses";
@@ -63,9 +61,9 @@ export const privateRoutes = {
     { path: "/admin/users", component: AdminUsers },
     { path: "/admin/courses", component: AdminCourses },
     { path: "/admin/categories", component: AdminCategories },
-    { path: "/admin/orders", component: AdminOrders },
+    { path: "/admin/forum", component: AdminForum },
+    { path: "/admin/forum-categories", component: AdminForumCategories },
     { path: "/admin/coupons", component: AdminCoupons },
-    { path: "/admin/reviews", component: AdminReviews },
     { path: "/admin/reports", component: AdminReports },
     { path: "/admin/requests", component: AdminRequests },
     { path: "/admin/settings", component: AdminSettings },
@@ -73,7 +71,6 @@ export const privateRoutes = {
     { path: "/admin/transactions", component: AdminTransactions },
     { path: "/admin/course-moderation", component: AdminCourseModeration },
     { path: "/admin/course-moderation/:slug", component: AdminCourseDetailModeration },
-    { path: "/admin/thread-moderation", component: AdminThreadModeration },
   ],
 
   instructor: [

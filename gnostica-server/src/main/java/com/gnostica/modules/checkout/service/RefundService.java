@@ -39,6 +39,8 @@ public class RefundService {
     private final WalletService walletService;
     private final NotificationService notificationService;
     private final MailService mailService;
+    private final PaymentService paymentService;
+    private final CouponService couponService;
 
     public static final int REFUND_WINDOW_DAYS = 14;
     public static final int AUTO_MAX_PROGRESS = 20;
@@ -48,8 +50,16 @@ public class RefundService {
 
     @Transactional
     public RefundResponse requestRefund(Account account, RefundRequest req) {
-        OrderDetail detail = orderDetailRepository.findById(req.getOrderDetailId())
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy chi tiết đơn hàng"));
+        OrderDetail detail;
+        if (req.getOrderDetailId() != null) {
+            detail = orderDetailRepository.findById(req.getOrderDetailId())
+                    .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy chi tiết đơn hàng"));
+        } else if (req.getCourseId() != null) {
+            detail = orderDetailRepository.findFirstByCourse_IdAndOrder_Account_IdAndStatusOrderByCreatedAtDesc(req.getCourseId(), account.getId(), 1)
+                    .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy đơn hàng hợp lệ cho khóa học này"));
+        } else {
+            throw new IllegalArgumentException("Vui lòng cung cấp orderDetailId hoặc courseId");
+        }
         
         Order order = detail.getOrder();
         if (order == null) {
@@ -111,7 +121,7 @@ public class RefundService {
             // Auto approve
             refund.setStatus(RefundStatus.APPROVED);
             refund = refundRepository.save(refund);
-            applyRefundInternal(refund, order, detail, allDetails, payments, enrollment);
+            applyRefundInternal(refund, order, detail, allDetails, enrollment);
             
             notificationService.createNotification(account, "Hoàn tiền tự động thành công", 
                     "Yêu cầu hoàn tiền khóa học " + detail.getCourse().getTitle() + " đã được duyệt tự động.", "REFUND_APPROVED", refund.getId().toString());
@@ -182,7 +192,7 @@ public class RefundService {
         refund.setStatus(RefundStatus.APPROVED);
         refundRepository.save(refund);
 
-        applyRefundInternal(refund, order, detail, allDetails, payments, enrollment);
+        applyRefundInternal(refund, order, detail, allDetails, enrollment);
 
         notificationService.createNotification(refund.getAccount(), "Yêu cầu hoàn tiền đã được duyệt", 
                 "Yêu cầu hoàn tiền khóa học " + detail.getCourse().getTitle() + " đã được phê duyệt.", "REFUND_APPROVED", refund.getId().toString());
@@ -205,7 +215,7 @@ public class RefundService {
                 "Yêu cầu hoàn tiền khóa học " + refund.getOrderDetail().getCourse().getTitle() + " đã bị từ chối. Lý do: " + reason, "REFUND_REJECTED", refund.getId().toString());
     }
 
-    private void applyRefundInternal(Refund refund, Order order, OrderDetail detail, List<OrderDetail> allDetails, List<Payment> payments, Enrollment enrollment) {
+    private void applyRefundInternal(Refund refund, Order order, OrderDetail detail, List<OrderDetail> allDetails, Enrollment enrollment) {
         // Cập nhật trạng thái
         order.setStatus(OrderStatus.REFUNDED);
         orderRepository.save(order);
@@ -213,12 +223,8 @@ public class RefundService {
         detail.setStatus(0); // Refunded
         orderDetailRepository.save(detail);
 
-        for (Payment p : payments) {
-            if (p.getStatus() == PaymentStatus.SUCCESS) {
-                p.setStatus(PaymentStatus.REFUNDED);
-                paymentRepository.save(p);
-            }
-        }
+        paymentService.markNonWalletPaymentsRefunded(order);
+        couponService.restoreCouponUse(order);
 
         // Hoàn tiền vào ví
         walletService.addRefund(refund.getAccount(), refund.getAmount(), detail);
@@ -279,6 +285,7 @@ public class RefundService {
 
         return RefundResponse.builder()
                 .id(refund.getId())
+                .refundCode(refund.getRefundCode())
                 .orderCode(refund.getOrderDetail() != null && refund.getOrderDetail().getOrder() != null ? refund.getOrderDetail().getOrder().getOrderCode() : null)
                 .courseId(refund.getOrderDetail() != null && refund.getOrderDetail().getCourse() != null ? refund.getOrderDetail().getCourse().getId() : null)
                 .courseTitle(refund.getOrderDetail() != null && refund.getOrderDetail().getCourse() != null ? refund.getOrderDetail().getCourse().getTitle() : null)
@@ -289,6 +296,9 @@ public class RefundService {
                 .createdAt(refund.getCreatedAt() != null ? java.util.Date.from(refund.getCreatedAt().atZone(ZoneId.systemDefault()).toInstant()) : null)
                 .updatedAt(refund.getUpdatedAt() != null ? java.util.Date.from(refund.getUpdatedAt().atZone(ZoneId.systemDefault()).toInstant()) : null)
                 .paidAt(paidAtDate)
+                .accountName(refund.getAccount() != null ? refund.getAccount().getFullName() : null)
+                .email(refund.getAccount() != null ? refund.getAccount().getEmail() : null)
+                .avatar(refund.getAccount() != null ? refund.getAccount().getAvatar() : null)
                 .build();
     }
 }

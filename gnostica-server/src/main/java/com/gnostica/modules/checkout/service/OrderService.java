@@ -278,6 +278,17 @@ public class OrderService {
         if (actualPrice.compareTo(BigDecimal.ZERO) == 0) {
             order.setPaymentMethod("FREE/COUPON");
             orderRepository.save(order);
+            
+            com.gnostica.modules.checkout.dto.response.PaymentWebhookData data = com.gnostica.modules.checkout.dto.response.PaymentWebhookData.builder()
+                .gateway("FREE")
+                .transactionCode("FREE-" + orderCode)
+                .amount(0L)
+                .status("PAID")
+                .paidAt(java.time.LocalDateTime.now())
+                .payload(new java.util.HashMap<>())
+                .build();
+            paymentService.saveTransaction(data, order);
+
             if (!deferImmediateSuccess) {
                 paymentService.processSuccessfulOrder(order);
             }

@@ -76,8 +76,10 @@ public class WalletListener {
                             .divide(new BigDecimal("100"), 6, RoundingMode.HALF_UP);
                     platformAmount = netSaleAmount.subtract(instructorAmount).setScale(6, RoundingMode.HALF_UP);
                 } else {
-                    // Instructor coupons are funded entirely by the instructor.
-                    platformAmount = grossAmount.multiply(commission.platformRatio())
+                    // Instructor coupons: the platform fee is based on the amount actually
+                    // collected after the coupon (netSaleAmount), so the discount is shared
+                    // proportionally and the instructor never ends up with a negative earning.
+                    platformAmount = netSaleAmount.multiply(commission.platformRatio())
                             .divide(new BigDecimal("100"), 6, RoundingMode.HALF_UP);
                     instructorAmount = netSaleAmount.subtract(platformAmount).setScale(6, RoundingMode.HALF_UP);
                 }

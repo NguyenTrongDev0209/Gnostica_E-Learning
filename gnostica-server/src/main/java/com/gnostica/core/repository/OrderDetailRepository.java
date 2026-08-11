@@ -9,6 +9,8 @@ import java.util.Optional;
 public interface OrderDetailRepository extends JpaRepository<OrderDetail, java.util.UUID> {
     List<OrderDetail> findByOrder(Order order);
     Optional<OrderDetail> findByOrder_Id(java.util.UUID orderId);
+    
+    Optional<OrderDetail> findFirstByCourse_IdAndOrder_Account_IdAndStatusOrderByCreatedAtDesc(java.util.UUID courseId, java.util.UUID accountId, Integer status);
 
     @org.springframework.data.jpa.repository.Query("SELECT COALESCE(SUM(od.price), 0.0) FROM OrderDetail od WHERE od.course.account.email = :instructorEmail AND od.order.status = 1 AND od.status = 1 AND od.order.createdAt >= :startDate AND od.order.createdAt < :endDate")
     Double sumRevenueByInstructorEmailAndDateRange(

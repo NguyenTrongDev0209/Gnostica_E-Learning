@@ -10,6 +10,7 @@ import java.util.UUID;
 @Builder
 public class RefundResponse {
     private UUID id;
+    private String refundCode;
     private Long orderCode;
     private UUID courseId;
     private String courseTitle;
@@ -20,4 +21,7 @@ public class RefundResponse {
     private Date createdAt;
     private Date updatedAt;
     private Date paidAt;
+    private String accountName;
+    private String email;
+    private String avatar;
 }
