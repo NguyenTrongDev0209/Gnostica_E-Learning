@@ -48,8 +48,16 @@ public class RefundService {
 
     @Transactional
     public RefundResponse requestRefund(Account account, RefundRequest req) {
-        OrderDetail detail = orderDetailRepository.findById(req.getOrderDetailId())
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy chi tiết đơn hàng"));
+        OrderDetail detail;
+        if (req.getOrderDetailId() != null) {
+            detail = orderDetailRepository.findById(req.getOrderDetailId())
+                    .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy chi tiết đơn hàng"));
+        } else if (req.getCourseId() != null) {
+            detail = orderDetailRepository.findFirstByCourse_IdAndOrder_Account_IdAndStatusOrderByCreatedAtDesc(req.getCourseId(), account.getId(), 1)
+                    .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy đơn hàng hợp lệ cho khóa học này"));
+        } else {
+            throw new IllegalArgumentException("Vui lòng cung cấp orderDetailId hoặc courseId");
+        }
         
         Order order = detail.getOrder();
         if (order == null) {
@@ -279,6 +287,7 @@ public class RefundService {
 
         return RefundResponse.builder()
                 .id(refund.getId())
+                .refundCode(refund.getRefundCode())
                 .orderCode(refund.getOrderDetail() != null && refund.getOrderDetail().getOrder() != null ? refund.getOrderDetail().getOrder().getOrderCode() : null)
                 .courseId(refund.getOrderDetail() != null && refund.getOrderDetail().getCourse() != null ? refund.getOrderDetail().getCourse().getId() : null)
                 .courseTitle(refund.getOrderDetail() != null && refund.getOrderDetail().getCourse() != null ? refund.getOrderDetail().getCourse().getTitle() : null)
@@ -289,6 +298,9 @@ public class RefundService {
                 .createdAt(refund.getCreatedAt() != null ? java.util.Date.from(refund.getCreatedAt().atZone(ZoneId.systemDefault()).toInstant()) : null)
                 .updatedAt(refund.getUpdatedAt() != null ? java.util.Date.from(refund.getUpdatedAt().atZone(ZoneId.systemDefault()).toInstant()) : null)
                 .paidAt(paidAtDate)
+                .accountName(refund.getAccount() != null ? refund.getAccount().getFullName() : null)
+                .email(refund.getAccount() != null ? refund.getAccount().getEmail() : null)
+                .avatar(refund.getAccount() != null ? refund.getAccount().getAvatar() : null)
                 .build();
     }
 }

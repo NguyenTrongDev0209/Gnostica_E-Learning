@@ -113,41 +113,7 @@ export default function RequestReportsTab() {
   }, [reports, statusFilter, searchQuery]);
 
   return (
-    <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6 animate-in fade-in duration-300">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <TabsList className="w-fit">
-          <TabsTrigger value="STATISTICS"><div className="flex items-center gap-2"><PieChart className="w-4 h-4" /> Thống kê</div></TabsTrigger>
-          <TabsTrigger value="LIST"><div className="flex items-center gap-2"><LayoutList className="w-4 h-4" /> Danh sách</div></TabsTrigger>
-        </TabsList>
-      </div>
-
-      <TabsContent value="STATISTICS" className="mt-0 space-y-6">
-        {statsLoading ? (
-          <div className="flex justify-center p-8 text-muted-foreground"><RefreshCw className="animate-spin w-5 h-5 mr-2" /> Đang tải dữ liệu thống kê...</div>
-        ) : (
-          <>
-            <RequestTrendChart 
-                data={apiStats?.trends} 
-                title="Xu hướng Báo cáo vi phạm" 
-                hasAmount={false}
-                months={months}
-                onMonthsChange={changeMonths}
-            />
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <RequestStatusDonut 
-                    data={apiStats?.statusDistribution} 
-                    title="Tỉ lệ trạng thái xử lý"
-                />
-                <RequestCategoryBar 
-                    data={apiStats?.typeDistribution} 
-                    title="Phân loại vi phạm"
-                />
-            </div>
-          </>
-        )}
-      </TabsContent>
-
-      <TabsContent value="LIST" className="mt-0 space-y-6">
+    <div className="space-y-6 animate-in fade-in duration-300">
       {/* Filter and Search toolbar */}
       <DataFilter
         searchQuery={searchQuery}
@@ -287,7 +253,6 @@ export default function RequestReportsTab() {
         loadingState="Đang tải dữ liệu..."
         emptyState="Không có báo cáo nào phù hợp"
       />
-      </TabsContent>
-    </Tabs>
+    </div>
   );
 }

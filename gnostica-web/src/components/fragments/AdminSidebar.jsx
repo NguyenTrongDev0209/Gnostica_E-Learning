@@ -81,9 +81,9 @@ const ADMIN_TRANSACTIONS_SUB_ITEMS = [
 
 const ADMIN_REQUESTS_SUB_ITEMS = [
   { label: "Sự cố", icon: MessageCircleWarning, href: "/admin/requests?tab=incidents", tab: "incidents", legacyTabs: ["general"] },
+  { label: "Báo cáo", icon: FileText, href: "/admin/requests?tab=reports", tab: "reports" },
   { label: "Hoàn tiền", icon: RotateCcw, href: "/admin/requests?tab=refunds", tab: "refunds" },
   { label: "Rút tiền", icon: Banknote, href: "/admin/requests?tab=withdrawals", tab: "withdrawals" },
-  { label: "Báo cáo", icon: FileText, href: "/admin/requests?tab=reports", tab: "reports" },
 ];
 
 const ADMIN_MENU_GROUPS = [
