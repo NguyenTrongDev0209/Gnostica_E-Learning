@@ -3,7 +3,7 @@ package com.gnostica.modules.course.controller;
 import com.gnostica.modules.course.dto.response.QuestionDto;
 import com.gnostica.core.dto.response.ResponseDTO;
 import com.gnostica.modules.integration.service.DocumentExtractionService;
-import com.gnostica.modules.integration.service.OpenRouterAiService;
+import com.gnostica.modules.integration.service.DeepSeekAiService;
 import com.gnostica.modules.course.service.QuestionBankService;
 import com.gnostica.modules.course.service.RedisDraftService;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +22,7 @@ import java.util.List;
 public class QuestionBankController {
 
     private final DocumentExtractionService documentExtractionService;
-    private final OpenRouterAiService openRouterAiService;
+    private final DeepSeekAiService deepSeekAiService;
     private final QuestionBankService questionBankService;
     private final RedisDraftService redisDraftService;
 
@@ -39,7 +39,7 @@ public class QuestionBankController {
                              (file.getOriginalFilename().toLowerCase().endsWith(".xlsx") || 
                               file.getOriginalFilename().toLowerCase().endsWith(".xls"));
                               
-            List<QuestionDto> questions = openRouterAiService.generateQuestions(documentText, count, level, isExcel);
+            List<QuestionDto> questions = deepSeekAiService.generateQuestions(documentText, count, level, isExcel);
             return ResponseEntity.ok(questions);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(new ResponseDTO<>(400, e.getMessage(), null));

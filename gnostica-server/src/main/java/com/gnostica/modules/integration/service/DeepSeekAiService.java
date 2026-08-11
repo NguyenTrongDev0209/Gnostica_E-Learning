@@ -21,18 +21,18 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class OpenRouterAiService {
+public class DeepSeekAiService {
 
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    @Value("${openrouter.api-key}")
+    @Value("${deepseek.api-key:}")
     private String apiKey;
 
-    @Value("${openrouter.base-url}")
+    @Value("${deepseek.base-url:https://api.deepseek.com/v1}")
     private String baseUrl;
 
-    @Value("${openrouter.model}")
+    @Value("${deepseek.model:deepseek-chat}")
     private String model;
 
     @Value("${app.public-url}")
@@ -47,7 +47,7 @@ public class OpenRouterAiService {
         headers.set("HTTP-Referer", publicUrl);
         headers.set("X-Title", "Gnostica E-Learning");
 
-        // Limit the text to avoid context length overflow. Flash can handle ~1M tokens, but we truncate just in case.
+        // Limit the text to avoid context length overflow.
         String context = documentText.length() > 500000 ? documentText.substring(0, 500000) : documentText;
 
         String systemPrompt = "";
@@ -93,13 +93,12 @@ public class OpenRouterAiService {
         Map<String, Object> body = new HashMap<>();
         body.put("model", model);
         body.put("messages", messages);
-        // Using low temperature for consistent JSON structure
         body.put("temperature", 0.3);
         body.put("max_tokens", 3000);
 
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
 
-        log.info("Sending request to OpenRouter to generate {} questions.", count);
+        log.info("Sending request to DeepSeek to generate {} questions.", count);
         ResponseEntity<Map> response = restTemplate.postForEntity(url, entity, Map.class);
         
         if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
@@ -117,17 +116,17 @@ public class OpenRouterAiService {
                 }
                 content = content.trim();
                 
-                log.info("Received generated JSON from AI.");
+                log.info("Received generated JSON from DeepSeek AI.");
                 try {
                     return objectMapper.readValue(content, new TypeReference<List<QuestionDto>>() {});
                 } catch (Exception e) {
-                    log.error("Failed to parse AI response into QuestionDto list: {}", content, e);
+                    log.error("Failed to parse DeepSeek AI response into QuestionDto list: {}", content, e);
                     throw new RuntimeException("Lỗi định dạng dữ liệu từ AI. Xin vui lòng thử lại.");
                 }
             }
         }
         
-        throw new RuntimeException("Không thể nhận phản hồi từ dịch vụ AI.");
+        throw new RuntimeException("Không thể nhận phản hồi từ dịch vụ DeepSeek AI.");
     }
 
     /**
@@ -173,12 +172,12 @@ public class OpenRouterAiService {
         Map<String, Object> body = new HashMap<>();
         body.put("model", model);
         body.put("messages", messages);
-        body.put("temperature", 0.2); // Lower temperature for strictly deterministic JSON output
+        body.put("temperature", 0.2);
         body.put("max_tokens", 3000);
 
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
 
-        log.info("Calling AI to perform policy moderation scan.");
+        log.info("Calling DeepSeek AI to perform policy moderation scan.");
         ResponseEntity<Map> response = restTemplate.postForEntity(url, entity, Map.class);
 
         if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
@@ -187,7 +186,6 @@ public class OpenRouterAiService {
                 Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
                 String content = (String) message.get("content");
 
-                // Clean Markdown wrapping if present
                 if (content.startsWith("```json")) {
                     content = content.replaceFirst("```json", "");
                 }
@@ -197,6 +195,6 @@ public class OpenRouterAiService {
                 return content.trim();
             }
         }
-        throw new RuntimeException("Không thể nhận phản hồi kiểm duyệt từ AI.");
+        throw new RuntimeException("Không thể nhận phản hồi kiểm duyệt từ DeepSeek AI.");
     }
 }
