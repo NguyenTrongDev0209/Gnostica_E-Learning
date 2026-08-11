@@ -25,6 +25,7 @@ import com.gnostica.core.model.Account;
 import com.gnostica.core.model.Category;
 import com.gnostica.core.model.Coupon;
 import com.gnostica.core.model.Course;
+import com.gnostica.core.model.Order;
 import com.gnostica.core.repository.AccountRepository;
 import com.gnostica.core.repository.CategoryRepository;
 import com.gnostica.core.repository.CouponRepository;
@@ -521,6 +522,18 @@ public class CouponService implements ApplicationRunner {
             }
             coupon.setCodeHash(codeHash);
             coupon.setEncryptedCode(couponCodeCipher.encrypt(coupon.getAccount().getId(), rawCode));
+        }
+    }
+
+    @Transactional
+    public void restoreCouponUse(Order order) {
+        if (order == null || order.getCoupon() == null || order.getCoupon().getQuantity() == null) {
+            return;
+        }
+        Coupon coupon = couponRepository.findByIdForUpdate(order.getCoupon().getId()).orElse(null);
+        if (coupon != null && coupon.getQuantity() != null) {
+            coupon.setQuantity(coupon.getQuantity() + 1);
+            couponRepository.save(coupon);
         }
     }
 }

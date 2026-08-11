@@ -44,6 +44,7 @@ import com.gnostica.core.repository.CourseRepository;
 import com.gnostica.core.repository.OrderRepository;
 import com.gnostica.modules.checkout.dto.request.CouponRequest;
 import com.gnostica.modules.checkout.dto.response.CouponResponse;
+import com.gnostica.core.model.Order;
 
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
@@ -261,5 +262,35 @@ class CouponServiceTest {
         coupon.setValidUntil(LocalDateTime.now().plusDays(7));
         coupon.setStatus(CouponStatus.ACTIVE);
         return coupon;
+    }
+
+    @Test
+    void restoreCouponUse_incrementsQuantity() {
+        Coupon coupon = coupon(owner, "RESTORE_ME");
+        coupon.setQuantity(5);
+        Order order = new Order();
+        order.setCoupon(coupon);
+
+        when(couponRepository.findByIdForUpdate(coupon.getId())).thenReturn(Optional.of(coupon));
+        when(couponRepository.save(any(Coupon.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        couponService.restoreCouponUse(order);
+
+        assertEquals(6, coupon.getQuantity());
+        verify(couponRepository).save(coupon);
+    }
+
+    @Test
+    void restoreCouponUse_noop_whenNoCouponOrUnlimited() {
+        Order noCouponOrder = new Order();
+        couponService.restoreCouponUse(noCouponOrder);
+        
+        Coupon unlimitedCoupon = coupon(owner, "UNLIMITED");
+        unlimitedCoupon.setQuantity(null);
+        Order unlimitedOrder = new Order();
+        unlimitedOrder.setCoupon(unlimitedCoupon);
+        couponService.restoreCouponUse(unlimitedOrder);
+
+        verify(couponRepository, org.mockito.Mockito.never()).save(any());
     }
 }

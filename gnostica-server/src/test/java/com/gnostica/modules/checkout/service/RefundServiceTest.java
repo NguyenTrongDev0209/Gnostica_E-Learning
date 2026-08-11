@@ -40,6 +40,8 @@ public class RefundServiceTest {
     @Mock private WalletService walletService;
     @Mock private NotificationService notificationService;
     @Mock private MailService mailService;
+    @Mock private PaymentService paymentService;
+    @Mock private CouponService couponService;
 
     @InjectMocks
     private RefundService refundService;
@@ -237,5 +239,96 @@ public class RefundServiceTest {
         assertEquals(RefundStatus.REJECTED, refund.getStatus());
         assertTrue(refund.getReason().contains("Từ chối tự động"));
         verify(walletService, never()).addRefund(any(), any(), any());
+    }
+
+    @Test
+    void testRefundWalletPayment_keepsPaymentSuccess() {
+        payment.setGateway("WALLET");
+        payment.setStatus(PaymentStatus.SUCCESS);
+        
+        doAnswer(invocation -> {
+            Order o = invocation.getArgument(0);
+            if (o.getId().equals(order.getId())) {
+                if (!"WALLET".equalsIgnoreCase(payment.getGateway()) && payment.getStatus() == PaymentStatus.SUCCESS) {
+                    payment.setStatus(PaymentStatus.REFUNDED);
+                }
+            }
+            return null;
+        }).when(paymentService).markNonWalletPaymentsRefunded(any(Order.class));
+        
+        Refund refund = new Refund();
+        refund.setId(UUID.randomUUID());
+        refund.setStatus(RefundStatus.PENDING);
+        refund.setOrderDetail(detail);
+        refund.setAccount(account);
+        refund.setAmount(BigDecimal.valueOf(100000));
+
+        when(refundRepository.findByIdForUpdate(refund.getId())).thenReturn(Optional.of(refund));
+        when(orderRepository.findByOrderCodeForUpdate(order.getOrderCode())).thenReturn(Optional.of(order));
+        when(orderDetailRepository.findById(detail.getId())).thenReturn(Optional.of(detail));
+        when(orderDetailRepository.findByOrder(order)).thenReturn(List.of(detail));
+        when(paymentRepository.findByOrder(order)).thenReturn(List.of(payment));
+        when(enrollmentRepository.findByAccountAndCourse(account, course)).thenReturn(Optional.of(enrollment));
+
+        refundService.approveRefund(refund.getId());
+
+        assertEquals(PaymentStatus.SUCCESS, payment.getStatus());
+        verify(walletService, times(1)).addRefund(eq(account), any(), eq(detail));
+    }
+
+    @Test
+    void testRefundGatewayPayment_marksRefunded() {
+        payment.setGateway("PAYOS");
+        payment.setStatus(PaymentStatus.SUCCESS);
+        
+        doAnswer(invocation -> {
+            Order o = invocation.getArgument(0);
+            if (o.getId().equals(order.getId())) {
+                if (!"WALLET".equalsIgnoreCase(payment.getGateway()) && payment.getStatus() == PaymentStatus.SUCCESS) {
+                    payment.setStatus(PaymentStatus.REFUNDED);
+                }
+            }
+            return null;
+        }).when(paymentService).markNonWalletPaymentsRefunded(any(Order.class));
+        
+        Refund refund = new Refund();
+        refund.setId(UUID.randomUUID());
+        refund.setStatus(RefundStatus.PENDING);
+        refund.setOrderDetail(detail);
+        refund.setAccount(account);
+        refund.setAmount(BigDecimal.valueOf(100000));
+
+        when(refundRepository.findByIdForUpdate(refund.getId())).thenReturn(Optional.of(refund));
+        when(orderRepository.findByOrderCodeForUpdate(order.getOrderCode())).thenReturn(Optional.of(order));
+        when(orderDetailRepository.findById(detail.getId())).thenReturn(Optional.of(detail));
+        when(orderDetailRepository.findByOrder(order)).thenReturn(List.of(detail));
+        when(paymentRepository.findByOrder(order)).thenReturn(List.of(payment));
+        when(enrollmentRepository.findByAccountAndCourse(account, course)).thenReturn(Optional.of(enrollment));
+
+        refundService.approveRefund(refund.getId());
+
+        assertEquals(PaymentStatus.REFUNDED, payment.getStatus());
+        verify(walletService, times(1)).addRefund(eq(account), any(), eq(detail));
+    }
+
+    @Test
+    void testRefund_restoresCoupon() {
+        Refund refund = new Refund();
+        refund.setId(UUID.randomUUID());
+        refund.setStatus(RefundStatus.PENDING);
+        refund.setOrderDetail(detail);
+        refund.setAccount(account);
+        refund.setAmount(BigDecimal.valueOf(100000));
+
+        when(refundRepository.findByIdForUpdate(refund.getId())).thenReturn(Optional.of(refund));
+        when(orderRepository.findByOrderCodeForUpdate(order.getOrderCode())).thenReturn(Optional.of(order));
+        when(orderDetailRepository.findById(detail.getId())).thenReturn(Optional.of(detail));
+        when(orderDetailRepository.findByOrder(order)).thenReturn(List.of(detail));
+        when(paymentRepository.findByOrder(order)).thenReturn(List.of(payment));
+        when(enrollmentRepository.findByAccountAndCourse(account, course)).thenReturn(Optional.of(enrollment));
+
+        refundService.approveRefund(refund.getId());
+
+        verify(couponService, times(1)).restoreCouponUse(eq(order));
     }
 }

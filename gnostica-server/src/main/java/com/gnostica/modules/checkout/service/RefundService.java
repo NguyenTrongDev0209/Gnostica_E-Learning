@@ -39,6 +39,8 @@ public class RefundService {
     private final WalletService walletService;
     private final NotificationService notificationService;
     private final MailService mailService;
+    private final PaymentService paymentService;
+    private final CouponService couponService;
 
     public static final int REFUND_WINDOW_DAYS = 14;
     public static final int AUTO_MAX_PROGRESS = 20;
@@ -119,7 +121,7 @@ public class RefundService {
             // Auto approve
             refund.setStatus(RefundStatus.APPROVED);
             refund = refundRepository.save(refund);
-            applyRefundInternal(refund, order, detail, allDetails, payments, enrollment);
+            applyRefundInternal(refund, order, detail, allDetails, enrollment);
             
             notificationService.createNotification(account, "Hoàn tiền tự động thành công", 
                     "Yêu cầu hoàn tiền khóa học " + detail.getCourse().getTitle() + " đã được duyệt tự động.", "REFUND_APPROVED", refund.getId().toString());
@@ -190,7 +192,7 @@ public class RefundService {
         refund.setStatus(RefundStatus.APPROVED);
         refundRepository.save(refund);
 
-        applyRefundInternal(refund, order, detail, allDetails, payments, enrollment);
+        applyRefundInternal(refund, order, detail, allDetails, enrollment);
 
         notificationService.createNotification(refund.getAccount(), "Yêu cầu hoàn tiền đã được duyệt", 
                 "Yêu cầu hoàn tiền khóa học " + detail.getCourse().getTitle() + " đã được phê duyệt.", "REFUND_APPROVED", refund.getId().toString());
@@ -213,7 +215,7 @@ public class RefundService {
                 "Yêu cầu hoàn tiền khóa học " + refund.getOrderDetail().getCourse().getTitle() + " đã bị từ chối. Lý do: " + reason, "REFUND_REJECTED", refund.getId().toString());
     }
 
-    private void applyRefundInternal(Refund refund, Order order, OrderDetail detail, List<OrderDetail> allDetails, List<Payment> payments, Enrollment enrollment) {
+    private void applyRefundInternal(Refund refund, Order order, OrderDetail detail, List<OrderDetail> allDetails, Enrollment enrollment) {
         // Cập nhật trạng thái
         order.setStatus(OrderStatus.REFUNDED);
         orderRepository.save(order);
@@ -221,12 +223,8 @@ public class RefundService {
         detail.setStatus(0); // Refunded
         orderDetailRepository.save(detail);
 
-        for (Payment p : payments) {
-            if (p.getStatus() == PaymentStatus.SUCCESS) {
-                p.setStatus(PaymentStatus.REFUNDED);
-                paymentRepository.save(p);
-            }
-        }
+        paymentService.markNonWalletPaymentsRefunded(order);
+        couponService.restoreCouponUse(order);
 
         // Hoàn tiền vào ví
         walletService.addRefund(refund.getAccount(), refund.getAmount(), detail);
