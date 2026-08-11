@@ -22,6 +22,9 @@ public class Support {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @Column(name = "support_code", unique = true, length = 14)
+    private String supportCode;
+
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "account_id", updatable = false)
