@@ -21,7 +21,7 @@ public class Refund {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "refund_code", unique = true, length = 14)
+    @Column(name = "refund_code", unique = true, length = 12)
     private String refundCode;
 
     @NotNull
@@ -59,15 +59,4 @@ public class Refund {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @PrePersist
-    public void prePersist() {
-        if (this.refundCode == null) {
-            StringBuilder code = new StringBuilder("HT");
-            java.util.Random random = new java.util.Random();
-            for (int i = 0; i < 12; i++) {
-                code.append(random.nextInt(10));
-            }
-            this.refundCode = code.toString();
-        }
-    }
 }

@@ -514,14 +514,9 @@ public class OrderService {
      * this scale; the existence check + retry adds a belt-and-suspenders guard.
      */
     private long generateUniqueOrderCode() {
-        for (int attempt = 0; attempt < 5; attempt++) {
-            long candidate = 100_000_000_000L
-                    + java.util.concurrent.ThreadLocalRandom.current().nextLong(900_000_000_000L);
-            if (orderRepository.findByOrderCode(candidate).isEmpty()) {
-                return candidate;
-            }
-        }
-        throw new IllegalStateException("Unable to create a unique order code.");
+        return Long.parseLong(com.gnostica.core.util.HumanCodeGenerator.next(
+            code -> orderRepository.findByOrderCode(Long.parseLong(code)).isPresent()
+        ));
     }
 
     private Order saveOrder(Account account, Coupon coupon, BigDecimal couponPrice, BigDecimal totalPrice, String transactionId,

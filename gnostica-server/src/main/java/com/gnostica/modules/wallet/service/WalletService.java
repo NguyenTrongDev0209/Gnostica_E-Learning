@@ -347,15 +347,9 @@ public class WalletService {
      * index on payout_code remains the final integrity safeguard.
      */
     private String generateUniquePayoutCode() {
-        for (int attempt = 0; attempt < 5; attempt++) {
-            long code = 100_000_000_000L
-                    + java.util.concurrent.ThreadLocalRandom.current().nextLong(900_000_000_000L);
-            String referenceId = "RT" + code;
-            if (!payoutRepository.existsByPayoutCode(referenceId)) {
-                return referenceId;
-            }
-        }
-        throw new IllegalStateException("Unable to create a unique withdrawal reference.");
+        return com.gnostica.core.util.HumanCodeGenerator.next(
+            code -> payoutRepository.existsByPayoutCode(code)
+        );
     }
 
     private void assertAccountCanWithdraw(Account account) {
@@ -368,6 +362,7 @@ public class WalletService {
         AccountBank bank = payout.getAccountBank();
         return PayoutResponse.builder()
                 .id(payout.getId())
+                .payoutCode(payout.getPayoutCode())
                 .amount(payout.getAmount())
                 .status(payout.getStatus())
                 .createdAt(payout.getCreatedAt())

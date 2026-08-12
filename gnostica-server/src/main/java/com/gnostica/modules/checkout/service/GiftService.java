@@ -109,9 +109,8 @@ public class GiftService {
         List<Gift> pendingGifts = giftRepository.findBySenderAndReceiverAndCourseAndStatus(
                 sender, receiver, course, GiftStatus.PENDING);
         
-        boolean hasValidPending = pendingGifts.stream().anyMatch(g -> 
-                g.getOrder() == null || g.getOrder().getStatus() == 1 // 1 is PAID
-        );
+        // Chặn tạo gift trùng nếu đã có gift PENDING (kể cả đơn chưa thanh toán)
+        boolean hasValidPending = !pendingGifts.isEmpty();
 
         if (hasValidPending) {
             return GiftSearchResponse.builder()
@@ -164,6 +163,7 @@ public class GiftService {
         gift.setCourse(course);
         gift.setOrder(order);
         gift.setToken(UUID.randomUUID().toString());
+        gift.setGiftCode(com.gnostica.core.util.HumanCodeGenerator.next(code -> giftRepository.existsByGiftCode(code)));
         gift.setMessage(request.getMessage());
         gift.setStatus(GiftStatus.PENDING);
         gift.setExpiredAt(LocalDateTime.now().plusDays(7));
@@ -217,6 +217,7 @@ public class GiftService {
 
         return GiftDetailResponse.builder()
                 .giftId(gift.getId())
+                .giftCode(gift.getGiftCode())
                 .senderName(gift.getSender().getFullName())
                 .senderAvatar(gift.getSender().getAvatar())
                 .courseTitle(gift.getCourse().getTitle())
@@ -245,6 +246,10 @@ public class GiftService {
 
         if (gift.getExpiredAt().isBefore(LocalDateTime.now())) {
             throw new IllegalArgumentException("Quà tặng đã hết hạn");
+        }
+
+        if (gift.getOrder() != null && gift.getOrder().getStatus() != OrderStatus.PAID) {
+            throw new IllegalArgumentException("Quà tặng chưa được thanh toán thành công");
         }
 
         // Edge case: User already bought the course
@@ -327,48 +332,53 @@ public class GiftService {
 
     @Transactional
     public void refundGift(Gift gift, String reason) {
-        if (gift.getOrder() != null && gift.getOrder().getStatus() == OrderStatus.PAID && gift.getOrder().getTotalPrice().compareTo(BigDecimal.ZERO) > 0) {
-            Order order = gift.getOrder();
-            List<OrderDetail> details = orderDetailRepository.findByOrder(order);
-            
-            if (!details.isEmpty()) {
-                OrderDetail detail = details.get(0);
-                
-                // Tránh double-refund
-                if (refundRepository.existsByOrderDetailIdAndStatus(detail.getId(), 2)) {
-                    log.warn("Gift refund already processed for OrderDetail ID: {}", detail.getId());
-                    return;
-                }
-                
-                // Ghi nhận vào bảng refunds
+        if (gift.getOrder() == null || gift.getOrder().getStatus() != OrderStatus.PAID) {
+            return;
+        }
+        Order order = gift.getOrder();
+        List<OrderDetail> details = orderDetailRepository.findByOrder(order);
+        boolean hasValue = order.getTotalPrice() != null && order.getTotalPrice().compareTo(BigDecimal.ZERO) > 0;
+
+        if (!details.isEmpty()) {
+            OrderDetail detail = details.get(0);
+
+            // Tránh double-refund (chỉ với gift có giá trị tiền)
+            if (hasValue && refundRepository.existsByOrderDetailIdAndStatus(detail.getId(), 2)) {
+                log.warn("Gift refund already processed for OrderDetail ID: {}", detail.getId());
+                return;
+            }
+
+            // Ghi nhận vào bảng refunds
+            if (hasValue) {
                 Refund refund = new Refund();
                 refund.setOrderDetail(detail);
                 refund.setAccount(gift.getSender());
                 refund.setAmount(order.getTotalPrice());
-                refund.setReason("REFUND_GIFT_" + gift.getToken() + " - " + reason);
+                refund.setReason("REFUND_GIFT_" + gift.getGiftCode() + " - " + reason);
                 refund.setStatus(2); // APPROVED
+                refund.setRefundCode(com.gnostica.core.util.HumanCodeGenerator.next(
+                        code -> refundRepository.existsByRefundCode(code)));
                 refundRepository.save(refund);
-
-                // Cập nhật trạng thái đơn hàng (Order = REFUNDED(2), OrderDetail = REFUNDED(0))
-                order.setStatus(OrderStatus.REFUNDED);
-                orderRepository.save(order);
-                
-                detail.setStatus(0); // 0: Refunded
-                orderDetailRepository.save(detail);
-
-                paymentService.markNonWalletPaymentsRefunded(order);
-                couponService.restoreCouponUse(order);
             }
 
-            walletService.addGiftRefund(
-                    gift.getSender(), 
-                    order.getTotalPrice(), 
-                    gift
-            );
-            
-            List<UUID> detailIds = details.stream().map(OrderDetail::getId).toList();
-            walletService.voidEarningsForOrderDetails(detailIds);
+            // Cập nhật trạng thái đơn hàng (Order = REFUNDED(2), OrderDetail = REFUNDED(0))
+            order.setStatus(OrderStatus.REFUNDED);
+            orderRepository.save(order);
+
+            detail.setStatus(0); // 0: Refunded
+            orderDetailRepository.save(detail);
+
+            paymentService.markNonWalletPaymentsRefunded(order);
+            // Gift 0đ (coupon 100%) cũng phải trả lại lượt dùng coupon
+            couponService.restoreCouponUse(order);
         }
+
+        if (hasValue) {
+            walletService.addGiftRefund(gift.getSender(), order.getTotalPrice(), gift);
+        }
+
+        List<UUID> detailIds = details.stream().map(OrderDetail::getId).toList();
+        walletService.voidEarningsForOrderDetails(detailIds);
     }
 
     @Transactional

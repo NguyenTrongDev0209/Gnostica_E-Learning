@@ -13,6 +13,10 @@ import java.time.LocalDateTime;
 public interface GiftRepository extends JpaRepository<Gift, UUID> {
     
     Optional<Gift> findByToken(String token);
+    
+    Optional<Gift> findByGiftCode(String giftCode);
+    
+    boolean existsByGiftCode(String giftCode);
 
     List<Gift> findBySenderOrderByCreatedAtDesc(Account sender);
 

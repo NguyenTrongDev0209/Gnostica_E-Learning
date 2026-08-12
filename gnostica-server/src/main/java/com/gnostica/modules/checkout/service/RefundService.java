@@ -116,6 +116,7 @@ public class RefundService {
         refund.setAccount(account);
         refund.setAmount(amountPaid);
         refund.setReason(req.getReason());
+        refund.setRefundCode(com.gnostica.core.util.HumanCodeGenerator.next(code -> refundRepository.existsByRefundCode(code)));
 
         if (daysSincePaid <= REFUND_WINDOW_DAYS && progress < AUTO_MAX_PROGRESS) {
             // Auto approve
