@@ -58,9 +58,9 @@ public class ConversationMapper {
 
         ParticipantRole currentRole = null;
         if (currentAccountId != null) {
-            if (currentAccountId.equals(conversation.getStudent().getId())) {
+            if (conversation.getStudent() != null && currentAccountId.toString().equals(conversation.getStudent().getId().toString())) {
                 currentRole = ParticipantRole.STUDENT;
-            } else if (currentAccountId.equals(conversation.getInstructor().getId())) {
+            } else if (conversation.getInstructor() != null && currentAccountId.toString().equals(conversation.getInstructor().getId().toString())) {
                 currentRole = ParticipantRole.INSTRUCTOR;
             }
         }
@@ -80,7 +80,8 @@ public class ConversationMapper {
     public ConversationSummaryResponse toSummaryResponse(Conversation conversation, UUID currentAccountId, long unreadCount) {
         if (conversation == null) return null;
 
-        boolean isStudent = currentAccountId.equals(conversation.getStudent().getId());
+        boolean isStudent = currentAccountId != null && conversation.getStudent() != null && 
+                            currentAccountId.toString().equals(conversation.getStudent().getId().toString());
         Account otherAccount = isStudent ? conversation.getInstructor() : conversation.getStudent();
         ParticipantRole otherRole = isStudent ? ParticipantRole.INSTRUCTOR : ParticipantRole.STUDENT;
 

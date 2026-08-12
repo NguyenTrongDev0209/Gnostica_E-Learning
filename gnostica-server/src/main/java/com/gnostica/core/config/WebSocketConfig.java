@@ -89,8 +89,15 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 }
 
                 if (StompCommand.SUBSCRIBE.equals(command)) {
-                    if (accessor.getUser() == null || !"/user/queue/payment-status".equals(accessor.getDestination())) {
-                        throw new org.springframework.security.access.AccessDeniedException("Subscription is not permitted");
+                    if (accessor.getUser() == null) {
+                        throw new org.springframework.security.access.AccessDeniedException("Subscription is not permitted: unauthenticated");
+                    }
+                    String dest = accessor.getDestination();
+                    if (dest == null || !(dest.equals("/user/queue/payment-status")
+                            || dest.equals("/user/queue/messages")
+                            || dest.equals("/user/queue/conversations")
+                            || dest.equals("/user/queue/read-receipts"))) {
+                        throw new org.springframework.security.access.AccessDeniedException("Subscription to " + dest + " is not permitted");
                     }
                 }
 
@@ -98,7 +105,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                     String destination = accessor.getDestination();
                     if (destination != null && (destination.startsWith("/topic/")
                             || destination.startsWith("/queue/") || destination.startsWith("/user/"))) {
-                        throw new org.springframework.security.access.AccessDeniedException("Clients cannot publish payment events");
+                        throw new org.springframework.security.access.AccessDeniedException("Clients cannot publish directly to broker destinations");
                     }
                 }
                 return message;

@@ -52,6 +52,8 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(new ResponseDTO<>(401, "Vui lòng đăng nhập để thực hiện hành động này", null), HttpStatus.UNAUTHORIZED);
     }
 
+
+
     @ExceptionHandler(ForbiddenException.class)
     public ResponseEntity<ResponseDTO<String>> handleForbiddenException(ForbiddenException ex) {
         return new ResponseEntity<>(new ResponseDTO<>(403, ex.getMessage(), null), HttpStatus.FORBIDDEN);
