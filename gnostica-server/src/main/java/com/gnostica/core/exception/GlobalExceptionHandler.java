@@ -52,10 +52,7 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(new ResponseDTO<>(401, "Vui lòng đăng nhập để thực hiện hành động này", null), HttpStatus.UNAUTHORIZED);
     }
 
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ResponseDTO<String>> handleResourceNotFoundException(ResourceNotFoundException ex) {
-        return new ResponseEntity<>(new ResponseDTO<>(404, ex.getMessage(), null), HttpStatus.NOT_FOUND);
-    }
+
 
     @ExceptionHandler(ForbiddenException.class)
     public ResponseEntity<ResponseDTO<String>> handleForbiddenException(ForbiddenException ex) {
