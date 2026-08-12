@@ -2,9 +2,10 @@ import AppText from '../../components/ui/AppText';
 import React, { useState, useEffect, useRef } from 'react';
 import { View, ScrollView, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, Alert, Image, useWindowDimensions, Modal, Share } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { MessageCircle, Send, ArrowBigUp, ArrowBigDown, Heart, X, CornerDownRight, Trash2, MoreHorizontal, Share2, Flag } from 'lucide-react-native';
+import { MessageCircle, Send, ArrowBigUp, ArrowBigDown, Heart, X, CornerDownRight, Trash2, MoreHorizontal, Share2, Flag, Plus } from 'lucide-react-native';
 import RenderHtml from 'react-native-render-html';
 import AppHeader from '../../components/ui/AppHeader';
+import FloatingAiButton from '../../components/ui/FloatingAiButton';
 import commentService from '../../services/forum/commentService';
 import threadService from '../../services/forum/threadService';
 import threadReportService from '../../services/forum/threadReportService';
@@ -49,8 +50,12 @@ const ForumDetailScreen = () => {
     const inputRef = useRef(null);
     const { width } = useWindowDimensions();
     const { user } = useAuth();
-    const { post: initialPost } = route.params || { post: {} };
-
+    const initialPost = route.params?.post || (
+        (route.params?.id || route.params?.threadId) ? {
+            id: route.params?.id || route.params?.threadId,
+            title: route.params?.title || 'Bài viết diễn đàn'
+        } : {}
+    );
     const [post, setPost] = useState(initialPost);
     const [comments, setComments] = useState([]);
     const [reply, setReply] = useState('');
@@ -68,15 +73,20 @@ const ForumDetailScreen = () => {
 
     useEffect(() => {
         const fetchDetails = async () => {
-            if (!post.id) return;
+            if (!post?.id || isNaN(Number(post.id))) {
+                setLoadingComments(false);
+                return;
+            }
+            const numericId = Number(post.id);
+
             try {
                 // Increment view
-                await threadService.incrementView(post.id);
+                await threadService.incrementView(numericId).catch(() => {});
 
                 // Fetch full thread data and comments in parallel
                 const [threadRes, commentsRes] = await Promise.all([
-                    threadService.getById(post.id),
-                    commentService.getByThreadId(post.id)
+                    threadService.getById(numericId).catch(() => null),
+                    commentService.getByThreadId(numericId).catch(() => null)
                 ]);
 
                 const fetchedThread = threadRes?.data || (threadRes?.id ? threadRes : null);
@@ -86,7 +96,7 @@ const ForumDetailScreen = () => {
                     if (fetchedThread.userLiked != null) setIsLiked(fetchedThread.userLiked);
                 }
 
-                const commentsData = commentsRes.data || commentsRes.content || commentsRes;
+                const commentsData = commentsRes?.data || commentsRes?.content || commentsRes;
                 if (Array.isArray(commentsData)) {
                     setComments(commentsData);
                 } else if (commentsData?.content && Array.isArray(commentsData.content)) {
@@ -95,7 +105,7 @@ const ForumDetailScreen = () => {
 
                 // Check report status
                 if (user?.email) {
-                    threadReportService.checkReportStatus(post.id, user.email)
+                    threadReportService.checkReportStatus(numericId, user.email)
                         .then(res => {
                             const isRep = res?.data ?? res;
                             if (isRep === true) setHasReported(true);
@@ -110,7 +120,7 @@ const ForumDetailScreen = () => {
         };
 
         fetchDetails();
-    }, [post.id, user]);
+    }, [post?.id, user]);
 
     const handleVote = async (targetVoteValue) => {
         if (!user) {
@@ -457,7 +467,19 @@ const ForumDetailScreen = () => {
                             tagsStyles={{
                                 p: { marginTop: 0, marginBottom: 10 },
                                 span: { fontSize: 15 },
-                                img: { maxWidth: '100%' }
+                                img: {
+                                    maxWidth: width - 32,
+                                    width: width - 32,
+                                    height: 'auto',
+                                    borderRadius: 10,
+                                    marginVertical: 8,
+                                    alignSelf: 'center',
+                                },
+                            }}
+                            renderersProps={{
+                                img: {
+                                    enableExperimentalPercentWidth: true,
+                                },
                             }}
                         />
                     </View>
@@ -664,6 +686,51 @@ const ForumDetailScreen = () => {
                     </TouchableOpacity>
                 </View>
             </View>
+
+            {/* FAB Create Post (with auto-selected category) */}
+            <TouchableOpacity
+                activeOpacity={0.85}
+                style={{
+                    position: 'absolute',
+                    bottom: 140,
+                    right: 20,
+                    width: 42,
+                    height: 42,
+                    borderRadius: 21,
+                    elevation: 6,
+                    shadowColor: '#ea580c',
+                    shadowOffset: { width: 0, height: 3 },
+                    shadowOpacity: 0.3,
+                    shadowRadius: 5,
+                    zIndex: 999,
+                }}
+                onPress={() => {
+                    const postCat = post?.category || post?.topic;
+                    navigation.navigate('CreatePost', {
+                        category: postCat,
+                        categoryId: postCat?.id || post?.categoryId,
+                        categoryName: postCat?.name || postCat?.title
+                    });
+                }}
+            >
+                <LinearGradient
+                    colors={['#fb923c', '#ea580c']}
+                    style={{
+                        width: 42,
+                        height: 42,
+                        borderRadius: 21,
+                        borderWidth: 2,
+                        borderColor: '#ffffff',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                    }}
+                >
+                    <Plus size={20} color="#ffffff" strokeWidth={2.4} />
+                </LinearGradient>
+            </TouchableOpacity>
+
+            {/* Floating AI Assistant Button */}
+            <FloatingAiButton bottomOffset={190} />
         </KeyboardAvoidingView>
     );
 };

@@ -61,6 +61,10 @@ const CourseCard = ({ course, width }) => {
         }
     };
 
+    const instructorName = typeof course?.instructor === 'string' && course.instructor.trim()
+        ? course.instructor
+        : (course?.instructor?.fullName || course?.instructor?.name || course?.instructorName || course?.authorName || course?.account?.fullName || 'Giảng viên Gnostica');
+
     return (
         <TouchableOpacity
             onPress={() => navigation.navigate('CourseDetail', { course })}
@@ -84,9 +88,9 @@ const CourseCard = ({ course, width }) => {
                 {/* Top Row: Instructor & Rating */}
                 <View className="flex-row items-center justify-between mb-2">
                     <View className="flex-row items-center gap-1.5 flex-1 pr-2">
-                        <Avatar name={course?.instructor || 'GV'} size={20} />
+                        <Avatar name={instructorName} size={20} />
                         <AppText className="text-xs font-semibold text-blue-600 flex-1" numberOfLines={1}>
-                            {course?.instructor}
+                            {instructorName}
                         </AppText>
                     </View>
                     <View className="bg-blue-600 px-1.5 py-0.5 rounded flex-row items-center gap-1">

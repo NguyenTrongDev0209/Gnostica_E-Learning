@@ -34,3 +34,13 @@ export const uploadChatImage = async (file) => {
     }
 };
 
+export const getAiQuota = async () => {
+    try {
+        const response = await axiosClient.get(`${API_URL}/quota`);
+        return response.data?.data || response.data || { dailyLimit: 15, remaining: 15, used: 0 };
+    } catch (error) {
+        console.error('Error fetching AI quota:', error);
+        return { dailyLimit: 15, remaining: 15, used: 0 };
+    }
+};
+

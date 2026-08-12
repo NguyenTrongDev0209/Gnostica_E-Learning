@@ -5,7 +5,7 @@ import {
     KeyboardAvoidingView, Platform, Alert, ActivityIndicator,
     Image,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { Image as ImageIcon, X, Hash, Plus } from 'lucide-react-native';
 import AppHeader from '../../components/ui/AppHeader';
 import forumCategoryService from '../../services/forum/forumCategoryService';
@@ -16,6 +16,7 @@ import * as ImagePicker from 'expo-image-picker';
 
 const CreatePostScreen = () => {
     const navigation = useNavigation();
+    const route = useRoute();
     const { user } = useAuth();
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
@@ -31,6 +32,8 @@ const CreatePostScreen = () => {
     const [hashtagInput, setHashtagInput] = useState('');
     const [hashtags, setHashtags] = useState([]);
 
+    const initialCategoryParam = route.params?.category || (route.params?.categoryId ? { id: route.params?.categoryId, name: route.params?.categoryName } : null);
+
     useEffect(() => {
         const fetchCategories = async () => {
             try {
@@ -38,6 +41,16 @@ const CreatePostScreen = () => {
                 const data = response.data || response.content || response;
                 if (Array.isArray(data)) {
                     setCategories(data);
+                    if (initialCategoryParam) {
+                        const match = data.find(c =>
+                            (initialCategoryParam.id && String(c.id) === String(initialCategoryParam.id)) ||
+                            (initialCategoryParam.name && c.name?.toLowerCase() === initialCategoryParam.name?.toLowerCase())
+                        );
+                        if (match) {
+                            setSelectedCategory(match);
+                            return;
+                        }
+                    }
                     if (data.length > 0) setSelectedCategory(data[0]);
                 }
             } catch (error) {
