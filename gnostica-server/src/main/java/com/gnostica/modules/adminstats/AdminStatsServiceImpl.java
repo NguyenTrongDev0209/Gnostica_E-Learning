@@ -106,7 +106,8 @@ public class AdminStatsServiceImpl implements AdminStatsService {
             "2", "Đang chuyển",
             "3", "Hoàn tất",
             "4", "Lỗi",
-            "5", "Từ chối"
+            "5", "Từ chối",
+            "6", "Chờ admin duyệt"
         );
 
         return buildResponse(data, startDate, clampedMonths, statusLabels, true);

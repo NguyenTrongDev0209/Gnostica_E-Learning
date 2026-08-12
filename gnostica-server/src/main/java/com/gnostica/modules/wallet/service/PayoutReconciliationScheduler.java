@@ -50,7 +50,7 @@ public class PayoutReconciliationScheduler {
         }
 
         vn.payos.model.v1.payouts.Payout remote = payoutsService.retrievePayout(local.getGatewayPayoutId());
-        if (remote.getReferenceId() != null && !remote.getReferenceId().equals(local.getGatewayReferenceId())) {
+        if (remote.getReferenceId() != null && !remote.getReferenceId().equals(local.getPayoutCode())) {
             throw new IllegalStateException("Payout gateway reference does not match local payout");
         }
         int nextStatus = mapStatus(remote.getApprovalState());

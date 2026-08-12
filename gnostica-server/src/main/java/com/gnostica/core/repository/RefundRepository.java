@@ -6,6 +6,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.stereotype.Repository;
 import org.springframework.data.repository.query.Param;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,8 +22,11 @@ public interface RefundRepository extends JpaRepository<Refund, UUID> {
     @Query("SELECT r.createdAt, r.status, r.amount FROM Refund r WHERE r.createdAt >= :startDate")
     List<Object[]> getAdminStatsProjection(@Param("startDate") LocalDateTime startDate);
 
-    @EntityGraph(attributePaths = {"account", "orderDetail", "orderDetail.order"})
+    @EntityGraph(attributePaths = {"account", "orderDetail", "orderDetail.order", "orderDetail.course"})
     List<Refund> findAllByOrderByCreatedAtDesc();
+
+    @EntityGraph(attributePaths = {"account", "orderDetail", "orderDetail.order", "orderDetail.course"})
+    Page<Refund> findAllByOrderByCreatedAtDesc(Pageable pageable);
 
     List<Refund> findByAccountOrderByCreatedAtDesc(Account account);
     List<Refund> findByOrderDetail_Order_Id(UUID orderId);
@@ -32,6 +37,12 @@ public interface RefundRepository extends JpaRepository<Refund, UUID> {
     @Query("SELECT r FROM Refund r WHERE r.id = :id")
     Optional<Refund> findByIdForUpdate(UUID id);
 
-    @EntityGraph(attributePaths = {"account", "orderDetail", "orderDetail.order"})
+    @EntityGraph(attributePaths = {"account", "orderDetail", "orderDetail.order", "orderDetail.course"})
     List<Refund> findByStatusOrderByCreatedAtDesc(Integer status);
+
+    @EntityGraph(attributePaths = {"account", "orderDetail", "orderDetail.order", "orderDetail.course"})
+    Page<Refund> findByStatusOrderByCreatedAtDesc(Integer status, Pageable pageable);
+
+    @EntityGraph(attributePaths = {"account", "orderDetail", "orderDetail.order", "orderDetail.course"})
+    Page<Refund> findByStatusInOrderByCreatedAtDesc(List<Integer> statuses, Pageable pageable);
 }

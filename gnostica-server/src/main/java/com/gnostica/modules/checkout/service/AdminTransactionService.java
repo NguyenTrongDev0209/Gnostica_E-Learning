@@ -11,6 +11,7 @@ import com.gnostica.core.repository.PaymentRepository;
 import com.gnostica.core.repository.PayoutRepository;
 import com.gnostica.core.repository.RefundRepository;
 import com.gnostica.modules.checkout.dto.response.AdminTransactionResponse;
+import com.gnostica.core.constant.PayoutMetadataKeys;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -99,7 +100,18 @@ public class AdminTransactionService {
                 .build();
     }
 
-    private AdminTransactionResponse toWithdrawalResponse(Payout payout) {
+    @Transactional(readOnly = true)
+    public org.springframework.data.domain.Page<AdminTransactionResponse> getWithdrawalsPaged(List<Integer> statuses, org.springframework.data.domain.Pageable pageable) {
+        org.springframework.data.domain.Page<Payout> payouts;
+        if (statuses != null && !statuses.isEmpty()) {
+            payouts = payoutRepository.findByStatusInOrderByCreatedAtDesc(statuses, pageable);
+        } else {
+            payouts = payoutRepository.findAllByOrderByCreatedAtDesc(pageable);
+        }
+        return payouts.map(this::toWithdrawalResponse);
+    }
+
+    public AdminTransactionResponse toWithdrawalResponse(Payout payout) {
         String bankName = payout.getAccountBank() != null && payout.getAccountBank().getBank() != null
                 ? payout.getAccountBank().getBank().getShortName()
                 : "PAYOS";
@@ -107,7 +119,7 @@ public class AdminTransactionService {
         return AdminTransactionResponse.builder()
                 .id(payout.getId())
                 .transactionCode(firstNonBlank(
-                        payout.getGatewayReferenceId(),
+                        payout.getPayoutCode(),
                         payout.getGatewayPayoutId(),
                         payout.getId().toString()))
                 .performerName(payout.getAccount().getFullName())
@@ -124,7 +136,9 @@ public class AdminTransactionService {
                 .senderAccountNumber(payout.getAccountBank() != null
                         ? payout.getAccountBank().getAccountNumber()
                         : null)
-                .ref(payout.getLastSubmissionError())
+                .ref(firstNonBlank(metadataValue(payout, PayoutMetadataKeys.REJECTION_REASON), payout.getLastSubmissionError()))
+                .log(payout.getMetadata())
+                .requiresManualApproval(payout.getStatus() != null && payout.getStatus() == 6)
                 .build();
     }
 
@@ -171,7 +185,7 @@ public class AdminTransactionService {
     }
 
     private int payoutStatus(Integer status) {
-        if (status == null || status == 1 || status == 2) return PaymentStatus.PENDING;
+        if (status == null || status == 1 || status == 2 || status == 6) return PaymentStatus.PENDING;
         if (status == 3) return PaymentStatus.SUCCESS;
         return PaymentStatus.FAILED;
     }
@@ -181,6 +195,7 @@ public class AdminTransactionService {
         if (status == 2) return "Đang chuyển";
         if (status == 3) return "Hoàn tất";
         if (status == 5) return "Từ chối";
+        if (status == 6) return "Chờ admin duyệt";
         return "Lỗi";
     }
 
@@ -215,5 +230,11 @@ public class AdminTransactionService {
             }
         }
         return null;
+    }
+
+    private String metadataValue(Payout payout, String key) {
+        if (payout == null || payout.getMetadata() == null) return null;
+        Object value = payout.getMetadata().get(key);
+        return value != null ? value.toString() : null;
     }
 }

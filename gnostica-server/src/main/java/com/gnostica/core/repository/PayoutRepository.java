@@ -19,14 +19,20 @@ public interface PayoutRepository extends JpaRepository<Payout, java.util.UUID> 
     @EntityGraph(attributePaths = {"account", "accountBank", "accountBank.bank"})
     java.util.List<Payout> findAllByOrderByCreatedAtDesc();
 
+    @EntityGraph(attributePaths = {"account", "accountBank", "accountBank.bank"})
+    org.springframework.data.domain.Page<Payout> findAllByOrderByCreatedAtDesc(org.springframework.data.domain.Pageable pageable);
+
+    @EntityGraph(attributePaths = {"account", "accountBank", "accountBank.bank"})
+    org.springframework.data.domain.Page<Payout> findByStatusInOrderByCreatedAtDesc(List<Integer> statuses, org.springframework.data.domain.Pageable pageable);
+
     long countByAccountAndCreatedAtAfter(Account account, LocalDateTime createdAt);
     long countByAccountAndStatusInAndCreatedAtAfter(Account account, List<Integer> statuses, LocalDateTime createdAt);
     java.util.List<Payout> findByAccountOrderByCreatedAtDesc(Account account);
     java.util.List<Payout> findByStatusIn(java.util.List<Integer> statuses);
     java.util.List<Payout> findByStatusInAndGatewayPayoutIdIsNull(java.util.List<Integer> statuses);
     java.util.Optional<Payout> findByAccountAndIdempotencyKey(Account account, String idempotencyKey);
-    java.util.Optional<Payout> findByGatewayReferenceId(String gatewayReferenceId);
-    boolean existsByGatewayReferenceId(String gatewayReferenceId);
+    java.util.Optional<Payout> findByPayoutCode(String payoutCode);
+    boolean existsByPayoutCode(String payoutCode);
     boolean existsByAccountBankAndStatusIn(com.gnostica.core.model.AccountBank accountBank, List<Integer> statuses);
 
     @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)

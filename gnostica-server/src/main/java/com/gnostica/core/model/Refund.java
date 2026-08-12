@@ -48,6 +48,9 @@ public class Refund {
     @NotNull
     private Integer status;
 
+    @Column(name = "decision_type", length = 20)
+    private String decisionType;
+
     @CreationTimestamp
     @Column(updatable = false, name = "created_at")
     private LocalDateTime createdAt;

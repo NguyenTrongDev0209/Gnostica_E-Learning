@@ -7,9 +7,7 @@ import AppSelect from "@/components/common/micro/AppSelect";
 import DataFilter, { DataFilterPriceRange } from "@/components/common/composite/DataFilter";
 import {CreditCard, History, ArrowDownCircle, ShoppingBag, ArrowUpCircle, RotateCcw, Eye, Info, DollarSign, Calendar, Building2, User} from "lucide-react";
 import { useTransactions } from "@/hooks/payment/useTransactions";
-import useRefundRequests from "@/hooks/payment/useRefundRequests";
-import RefundRejectModal from "@/components/modals/RefundRejectModal";
-import AppAlertDialog from "@/components/common/micro/AppAlertDialog";
+import { toast } from "sonner";
 import AppBadge from "@/components/common/micro/AppBadge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/common/micro/AppAvatar";
 import { CheckCircle, XCircle } from "lucide-react";
@@ -19,6 +17,9 @@ import {
   AppDialogHeader as DialogHeader,
   AppDialogTitle as DialogTitle,
 } from "@/components/common/micro/AppDialog";
+
+import RefundModerationList from "@/components/admin/RefundModerationList";
+import WithdrawalModerationList from "@/components/admin/WithdrawalModerationList";
 
 const DEFAULT_MAX_AMOUNT = 10_000_000;
 const AMOUNT_STEP = 50_000;
@@ -53,11 +54,30 @@ export default function AdminTransactions() {
   const [searchParams] = useSearchParams();
   const requestedModule = searchParams.get("tab") || "payments";
   const activeModule = TRANSACTION_MODULES[requestedModule] ? requestedModule : "payments";
-  const { transactions: genericTxs, isLoading: genericLoading } = useTransactions(activeModule !== "refunds" ? activeModule : "payments");
-  const { refunds, loading: refundsLoading, approveRefund, rejectRefund } = useRefundRequests(activeModule === "refunds");
   
-  const transactions = activeModule === "refunds" ? refunds : genericTxs;
-  const isLoading = activeModule === "refunds" ? refundsLoading : genericLoading;
+  if (activeModule === 'refunds') {
+    return (
+      <div className="space-y-6 animate-in fade-in duration-500">
+        <TransactionHeader module={activeModule} />
+        <RefundModerationList />
+      </div>
+    );
+  }
+
+  if (activeModule === 'withdrawals') {
+    return (
+      <div className="space-y-6 animate-in fade-in duration-500">
+        <TransactionHeader module={activeModule} />
+        <WithdrawalModerationList />
+      </div>
+    );
+  }
+
+  return <PaymentTransactions activeModule={activeModule} />;
+}
+
+function PaymentTransactions({ activeModule }) {
+  const { transactions, isLoading, fetchTransactions } = useTransactions("payments");
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState([]);
@@ -66,11 +86,6 @@ export default function AdminTransactions() {
   const [amountPreset, setAmountPreset] = useState("all");
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
-
-  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
-  const [rejectReason, setRejectReason] = useState("");
-  const [selectedRefundAction, setSelectedRefundAction] = useState(null); // { type: 'approve' | 'reject', tx: any }
-  const [isApproveAlertOpen, setIsApproveAlertOpen] = useState(false);
 
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
@@ -156,23 +171,6 @@ export default function AdminTransactions() {
     setIsDetailModalOpen(true);
   };
 
-  const handleApproveRefund = async () => {
-    if (selectedRefundAction?.tx) {
-      await approveRefund(selectedRefundAction.tx.id);
-      setIsApproveAlertOpen(false);
-      setSelectedRefundAction(null);
-    }
-  };
-
-  const handleRejectRefund = async () => {
-    if (selectedRefundAction?.tx) {
-      await rejectRefund(selectedRefundAction.tx.id, rejectReason);
-      setIsRejectModalOpen(false);
-      setSelectedRefundAction(null);
-      setRejectReason("");
-    }
-  };
-
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <TransactionHeader module={activeModule} />
@@ -208,15 +206,6 @@ export default function AdminTransactions() {
           zeroIndexed: true,
           pageSize,
         }}
-        activeModule={activeModule}
-        onApprove={(tx) => {
-          setSelectedRefundAction({ type: 'approve', tx });
-          setIsApproveAlertOpen(true);
-        }}
-        onReject={(tx) => {
-          setSelectedRefundAction({ type: 'reject', tx });
-          setIsRejectModalOpen(true);
-        }}
       />
       
       <TransactionDetailModal 
@@ -224,30 +213,9 @@ export default function AdminTransactions() {
         onOpenChange={setIsDetailModalOpen} 
         transaction={selectedTransaction} 
       />
-
-      <AppAlertDialog
-        isOpen={isApproveAlertOpen}
-        onClose={() => setIsApproveAlertOpen(false)}
-        onConfirm={handleApproveRefund}
-        title="Duyệt hoàn tiền"
-        description={`Bạn có chắc chắn muốn duyệt yêu cầu hoàn tiền cho đơn hàng ${selectedRefundAction?.tx?.transactionCode}? Hành động này sẽ cập nhật số dư ví giảng viên và thu hồi khóa học của học viên.`}
-        confirmText="Duyệt"
-        confirmVariant="success"
-        cancelText="Hủy"
-      />
-
-      <RefundRejectModal
-        isOpen={isRejectModalOpen}
-        onClose={() => setIsRejectModalOpen(false)}
-        targetInfo={selectedRefundAction?.tx?.transactionCode}
-        rejectReason={rejectReason}
-        setRejectReason={setRejectReason}
-        onConfirm={handleRejectRefund}
-      />
     </div>
   );
 }
-
 
 function TransactionHeader({ module }) {
   const content = TRANSACTION_MODULES[module] || TRANSACTION_MODULES.payments;
@@ -330,7 +298,7 @@ function TransactionFilters({
   );
 }
 
-function TransactionTable({ transactions, isLoading, onDetailClick, startIndex = 0, pagination, activeModule, onApprove, onReject }) {
+function TransactionTable({ transactions, isLoading, onDetailClick, startIndex = 0, pagination }) {
   
   const getTypeIcon = (type) => {
     switch (type) {
@@ -452,22 +420,6 @@ function TransactionTable({ transactions, isLoading, onDetailClick, startIndex =
               cellClassName: "py-4 text-center whitespace-nowrap",
               render: (tx) => (
                 <div className="flex items-center justify-center gap-2">
-                  {activeModule === "refunds" && tx.status === 1 && (
-                    <>
-                      <TableActionIconButton
-                        icon={CheckCircle}
-                        onClick={() => onApprove(tx)}
-                        title="Duyệt hoàn tiền"
-                        className="text-success hover:text-success hover:bg-success-soft"
-                      />
-                      <TableActionIconButton
-                        icon={XCircle}
-                        onClick={() => onReject(tx)}
-                        title="Từ chối"
-                        className="text-error hover:text-error hover:bg-error-soft"
-                      />
-                    </>
-                  )}
                   <TableActionIconButton
                     icon={Eye}
                     onClick={() => onDetailClick(tx)}

@@ -119,6 +119,7 @@ public class RefundService {
 
         if (daysSincePaid <= REFUND_WINDOW_DAYS && progress < AUTO_MAX_PROGRESS) {
             // Auto approve
+            refund.setDecisionType("AUTO_APPROVED");
             refund.setStatus(RefundStatus.APPROVED);
             refund = refundRepository.save(refund);
             applyRefundInternal(refund, order, detail, allDetails, enrollment);
@@ -129,6 +130,7 @@ public class RefundService {
             return toResponse(refund, paidAt);
         } else if (LocalDateTime.now().isAfter(paidAt.plusDays(INSTRUCTOR_HOLD_DAYS).minusMinutes(MANUAL_DEADLINE_BUFFER_MINUTES))) {
             // Auto reject
+            refund.setDecisionType("AUTO_REJECTED");
             refund.setStatus(RefundStatus.REJECTED);
             refund.setReason(refund.getReason() + " | Từ chối tự động: " + AUTO_REJECT_REASON);
             refund = refundRepository.save(refund);
@@ -139,6 +141,7 @@ public class RefundService {
             return toResponse(refund, paidAt);
         } else if (progress < 100) {
             // Manual review
+            refund.setDecisionType(null);
             refund.setStatus(RefundStatus.PENDING);
             refund = refundRepository.save(refund);
             
@@ -180,6 +183,7 @@ public class RefundService {
         }
 
         if (LocalDateTime.now().isAfter(paidAtLocal.plusDays(INSTRUCTOR_HOLD_DAYS))) {
+            refund.setDecisionType("AUTO_REJECTED");
             refund.setStatus(RefundStatus.REJECTED);
             refund.setReason(refund.getReason() + " | Từ chối tự động: " + AUTO_REJECT_REASON);
             refundRepository.save(refund);
@@ -189,6 +193,7 @@ public class RefundService {
             return;
         }
 
+        refund.setDecisionType("MANUAL_APPROVED");
         refund.setStatus(RefundStatus.APPROVED);
         refundRepository.save(refund);
 
@@ -207,6 +212,7 @@ public class RefundService {
             throw new IllegalArgumentException("Chỉ có thể từ chối yêu cầu đang chờ (PENDING)");
         }
 
+        refund.setDecisionType("MANUAL_REJECTED");
         refund.setStatus(RefundStatus.REJECTED);
         refund.setReason(refund.getReason() + " | Từ chối: " + reason);
         refundRepository.save(refund);
@@ -259,6 +265,17 @@ public class RefundService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public org.springframework.data.domain.Page<RefundResponse> getAllRefundsPaged(List<Integer> status, org.springframework.data.domain.Pageable pageable) {
+        org.springframework.data.domain.Page<Refund> refunds;
+        if (status != null && !status.isEmpty()) {
+            refunds = refundRepository.findByStatusInOrderByCreatedAtDesc(status, pageable);
+        } else {
+            refunds = refundRepository.findAllByOrderByCreatedAtDesc(pageable);
+        }
+        return refunds.map(r -> toResponse(r, null));
+    }
+
     private RefundResponse toResponse(Refund refund, LocalDateTime paidAtOverride) {
         String label = switch (refund.getStatus()) {
             case 1 -> "Đang chờ duyệt";
@@ -283,6 +300,19 @@ public class RefundService {
 
         java.util.Date paidAtDate = paidAtLocal != null ? java.util.Date.from(paidAtLocal.atZone(ZoneId.systemDefault()).toInstant()) : null;
 
+        Integer progressPercent = null;
+        if (refund.getOrderDetail() != null && refund.getOrderDetail().getCourse() != null && refund.getAccount() != null) {
+            Enrollment enrollment = enrollmentRepository.findByAccountAndCourse(refund.getAccount(), refund.getOrderDetail().getCourse()).orElse(null);
+            if (enrollment != null) {
+                progressPercent = enrollment.getProgressPercent();
+            }
+        }
+        
+        Long daysSincePaid = null;
+        if (paidAtLocal != null) {
+            daysSincePaid = ChronoUnit.DAYS.between(paidAtLocal, LocalDateTime.now());
+        }
+
         return RefundResponse.builder()
                 .id(refund.getId())
                 .refundCode(refund.getRefundCode())
@@ -299,6 +329,9 @@ public class RefundService {
                 .accountName(refund.getAccount() != null ? refund.getAccount().getFullName() : null)
                 .email(refund.getAccount() != null ? refund.getAccount().getEmail() : null)
                 .avatar(refund.getAccount() != null ? refund.getAccount().getAvatar() : null)
+                .progressPercent(progressPercent)
+                .daysSincePaid(daysSincePaid)
+                .decisionType(refund.getDecisionType())
                 .build();
     }
 }

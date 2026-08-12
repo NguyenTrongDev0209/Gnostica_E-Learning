@@ -576,9 +576,16 @@
 | 5 | status | INT | |
 | 6 | created_at | DATETIME | |
 | 7 | updated_at | DATETIME | | |
+| 8 | gateway_payout_id | VARCHAR | unique | |
+| 9 | payout_code | VARCHAR | unique | |
+| 10 | idempotency_key | VARCHAR | | |
+| 11 | submission_attempts | INT | default 0 | |
+| 12 | last_submission_at | DATETIME | | |
+| 13 | last_submission_error | VARCHAR(500) | | |
+| 14 | metadata | JSONB | | |
 > **Note:** Payout là yêu cầu rút tiền từ wallet về account bank. Nên khóa/ghi nhận số dư tại thời điểm tạo payout ở tầng nghiệp vụ để tránh chi vượt.
 >
-> **Status:** 1: Pending (Chờ duyệt), 2: Processing (Đang chuyển), 3: Completed (Hoàn tất), 4: Failed (Lỗi), 5: Rejected (Từ chối)
+> **Status:** 1: Pending (Chờ duyệt), 2: Processing (Đang chuyển), 3: Completed (Hoàn tất), 4: Failed (Lỗi), 5: Rejected (Từ chối), 6: Awaiting approval (Chờ admin duyệt — lệnh >= 5.000.000đ, chưa submit PayOS cho tới khi admin approve)
 
 
 ---
@@ -939,3 +946,24 @@
 | 11 | updated_at | DATETIME | | |
 
 > **Status:** 0: PENDING (Chờ nhận), 1: ACCEPTED (Đã nhận), 2: REJECTED (Từ chối), 3: EXPIRED (Hết hạn)
+
+---
+
+## 44. Refunds
+
+| # | Trường | Kiểu dữ liệu | Ghi chú | CHECK |
+|---|--------|---------------|---------|-------|
+| 1 | id | UUID | PK | |
+| 2 | refund_code | VARCHAR(14) | UQ | |
+| 3 | order_detail_id | UUID | FK | |
+| 4 | account_id | UUID | FK | |
+| 5 | amount | DECIMAL(18,6) | | `>= 0` |
+| 6 | reason | TEXT | | |
+| 7 | status | INT | | |
+| 8 | decision_type | VARCHAR(20) | | |
+| 9 | created_at | DATETIME | | |
+| 10 | updated_at | DATETIME | | |
+
+> **Note:** Quản lý yêu cầu hoàn tiền. `decision_type` dùng để ghi nhận loại quyết định (AUTO_APPROVED, AUTO_REJECTED, MANUAL_APPROVED, MANUAL_REJECTED).
+>
+> **Status:** 1: PENDING (Đang chờ), 2: APPROVED (Đã duyệt), 3: REJECTED (Bị từ chối)

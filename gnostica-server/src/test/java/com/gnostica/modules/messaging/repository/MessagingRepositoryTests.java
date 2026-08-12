@@ -69,13 +69,22 @@ class MessagingRepositoryTests {
     private Category category;
     private Course course;
 
+    private Role findOrCreateRole(String name, String description) {
+        return entityManager.createQuery("SELECT r FROM Role r WHERE r.name = :name", Role.class)
+                .setParameter("name", name)
+                .getResultStream()
+                .findFirst()
+                .orElseGet(() -> {
+                    Role role = Role.builder().name(name).description(description).status(1).build();
+                    entityManager.persist(role);
+                    return role;
+                });
+    }
+
     @BeforeEach
     void setUp() {
-        studentRole = Role.builder().name("STUDENT").description("Student Role").status(1).build();
-        entityManager.persist(studentRole);
-
-        instructorRole = Role.builder().name("INSTRUCTOR").description("Instructor Role").status(1).build();
-        entityManager.persist(instructorRole);
+        studentRole = findOrCreateRole("STUDENT", "Student Role");
+        instructorRole = findOrCreateRole("INSTRUCTOR", "Instructor Role");
 
         student = Account.builder()
                 .role(studentRole)
@@ -94,6 +103,7 @@ class MessagingRepositoryTests {
         entityManager.persist(instructor);
 
         category = Category.builder()
+                .account(instructor)
                 .name("Software Engineering " + UUID.randomUUID())
                 .slug("software-engineering-" + UUID.randomUUID())
                 .status(1)

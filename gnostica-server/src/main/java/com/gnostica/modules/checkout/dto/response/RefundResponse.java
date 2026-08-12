@@ -24,4 +24,7 @@ public class RefundResponse {
     private String accountName;
     private String email;
     private String avatar;
+    private Integer progressPercent;
+    private Long daysSincePaid;
+    private String decisionType;
 }

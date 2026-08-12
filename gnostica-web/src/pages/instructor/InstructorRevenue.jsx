@@ -115,9 +115,9 @@ function InstructorRevenueTable({
                         <CheckCircle2 className="w-3 h-3" /> Hoàn tất
                     </AppBadge>
                 );
-                if (trx.status === 1 || trx.status === 2) return (
+                if (trx.status === 1 || trx.status === 2 || trx.status === 6) return (
                     <AppBadge variant="warning" soft className="text-[10px] font-bold py-0.5 inline-flex items-center gap-1">
-                        <Clock className="w-3 h-3" /> {trx.status === 1 ? "Chờ duyệt" : "Đang chuyển"}
+                        <Clock className="w-3 h-3" /> {trx.status === 1 ? "Chờ duyệt" : trx.status === 6 ? "Chờ admin duyệt" : "Đang chuyển"}
                     </AppBadge>
                 );
                 return (

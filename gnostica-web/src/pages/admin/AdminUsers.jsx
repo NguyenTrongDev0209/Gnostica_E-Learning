@@ -1829,6 +1829,7 @@ function AdminUserDetail({ user, onBack, isInstructorContext }) {
                     else if (c.status === 3) { variant = "success"; label = "Hoàn tất"; }
                     else if (c.status === 4) { variant = "error"; label = "Lỗi"; }
                     else if (c.status === 5) { variant = "secondary"; label = "Từ chối"; }
+                    else if (c.status === 6) { variant = "warning"; label = "Chờ admin duyệt"; }
                     return (
                       <div className="text-center w-full flex justify-center">
                         <AppBadge variant={variant} className="w-[110px] justify-center px-2.5 py-1 text-white">
