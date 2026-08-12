@@ -21,7 +21,7 @@ Quyết định đã xác nhận (2026-08-12):
 
 4. `wallet/service/WalletService.withdraw` — restructure để hết nguy cơ orphan payout:
    - **Bỏ** gọi `payoutsService.createPayout(...)` trực tiếp và `toLocalPayoutStatus` trong `withdraw`.
-   - Lưu `localPayout` **PENDING** (đã có `gatewayReferenceId`, `idempotencyKey`, `submissionAttempts=0`) bằng `saveAndFlush`.
+   - Lưu `localPayout` **PENDING** (đã có `payoutCode` (trước đây là `gatewayReferenceId`), `idempotencyKey`, `submissionAttempts=0`) bằng `saveAndFlush`.
    - Gọi `payoutSubmissionService.submit(payout.getId())` (đã idempotent: `findByReference` trước khi `create`; retry ≤ 3; definitive error → FAILED).
    - Đọc lại payout bằng `findById` và trả về.
    - Xóa dependency `PayoutsService` + method `toLocalPayoutStatus` khỏi WalletService nếu không còn dùng (giữ `generateUniqueGatewayReferenceId`).
@@ -30,7 +30,7 @@ Quyết định đã xác nhận (2026-08-12):
 ## Phase 3 — Lịch sử giao dịch + dọn dẹp (L3 + L4 + L5)
 
 5. L3 — thêm **endpoint mới** `GET /api/wallet/history` (KHÔNG đổi `GET /transactions` để giữ trang InstructorRevenue):
-   - DTO mới `wallet/dto/response/WalletTransactionResponse`: `id`, `category` (`EARNING`|`WITHDRAWAL`|`REFUND`|`DEPOSIT`|`GIFT_REFUND`), `amount`, `createdAt`, `reference` (targetType/targetId hoặc gatewayReferenceId), `bankName`/`maskedAccountNumber` (chỉ với payout), `status` (tuỳ loại).
+   - DTO mới `wallet/dto/response/WalletTransactionResponse`: `id`, `category` (`EARNING`|`WITHDRAWAL`|`REFUND`|`DEPOSIT`|`GIFT_REFUND`), `amount`, `createdAt`, `reference` (targetType/targetId hoặc payoutCode), `bankName`/`maskedAccountNumber` (chỉ với payout), `status` (tuỳ loại).
    - `WalletService.getMyTransactionHistory()`: gộp `walletRepository.findByAccount(account)` (type 1/4/5/6) + `payoutRepository.findByAccountOrderByCreatedAtDesc(account)`, sắp xếp theo `createdAt` desc.
    - `WalletController`: thêm `GET /history`; cập nhật `getWalletStats` dùng `transactionCount` từ history gộp.
    - Frontend: không bắt buộc đổi (endpoint cũ giữ nguyên); có thể tận dụng sau.

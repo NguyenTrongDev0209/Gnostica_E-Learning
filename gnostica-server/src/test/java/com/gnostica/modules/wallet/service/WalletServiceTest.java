@@ -101,4 +101,52 @@ class WalletServiceTest {
         verify(payoutSubmissionService).submit(any());
         verify(payoutRepository).saveAndFlush(any());
     }
+
+    @Test
+    void testWithdraw_aboveThreshold_requiresManualApprovalAndSkipsSubmit() {
+        Account account = new Account();
+        account.setId(java.util.UUID.randomUUID());
+        account.setStatus(1);
+        
+        when(accountRepository.findByEmail("test@test.com")).thenReturn(Optional.of(account));
+        when(accountRepository.findByIdForUpdate(any())).thenReturn(Optional.of(account));
+        
+        Bank bank = new Bank();
+        bank.setBin("970436");
+        
+        AccountBank accountBank = new AccountBank();
+        accountBank.setBank(bank);
+        accountBank.setAccountNumber("1234567890");
+        accountBank.setPin(new BCryptPasswordEncoder().encode("123456"));
+        when(accountBankRepository.findByAccountAndStatus(any(), eq(1))).thenReturn(Optional.of(accountBank));
+        
+        when(walletRepository.sumAvailableRemainByAccount(account)).thenReturn(new BigDecimal("10000000"));
+        when(payoutRepository.sumPayoutsByAccount(any(), any())).thenReturn(BigDecimal.ZERO);
+        when(paymentRepository.sumWalletPaymentsByAccount(account)).thenReturn(BigDecimal.ZERO);
+        
+        when(payoutRepository.saveAndFlush(any())).thenAnswer(invocation -> {
+            Payout p = invocation.getArgument(0);
+            p.setId(java.util.UUID.randomUUID());
+            return p;
+        });
+        
+        when(payoutRepository.findById(any())).thenAnswer(invocation -> {
+            Payout p = new Payout();
+            p.setId(invocation.getArgument(0));
+            return Optional.of(p);
+        });
+        
+        WithdrawRequest request = new WithdrawRequest();
+        request.setAmount(5_000_000L);
+        request.setPin("123456");
+        
+        Payout payout = walletService.withdraw(request, "valid-idempotency-key-1234");
+        
+        assertNotNull(payout);
+        // Không submit lên cổng cho lệnh rút lớn, chỉ lưu AWAITING_APPROVAL chờ admin duyệt.
+        verify(payoutSubmissionService, never()).submit(any());
+        org.mockito.ArgumentCaptor<Payout> captor = org.mockito.ArgumentCaptor.forClass(Payout.class);
+        verify(payoutRepository).saveAndFlush(captor.capture());
+        assertEquals(Integer.valueOf(PayoutStatus.AWAITING_APPROVAL), captor.getValue().getStatus());
+    }
 }

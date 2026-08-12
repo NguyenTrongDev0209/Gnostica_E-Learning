@@ -27,4 +27,6 @@ public class AdminTransactionResponse {
     String senderAccountNumber;
     String ref;
     Map<String, Object> log;
+    /** true khi lệnh rút tiền lớn (>= 5.000.000đ) đang chờ admin duyệt thủ công. */
+    boolean requiresManualApproval;
 }

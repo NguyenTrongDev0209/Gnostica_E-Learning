@@ -48,9 +48,13 @@ public class RefundController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/all")
-    public ResponseEntity<ApiResponse<List<RefundResponse>>> getAllRefunds() {
+    public ResponseEntity<ApiResponse<Object>> getAllRefunds(
+            @RequestParam(required = false) List<Integer> status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
         try {
-            List<RefundResponse> responses = refundService.getAllRefunds();
+            org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size);
+            org.springframework.data.domain.Page<RefundResponse> responses = refundService.getAllRefundsPaged(status, pageable);
             return ResponseEntity.ok(ApiResponse.success(responses));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));

@@ -21,9 +21,12 @@ const getAuthHeaders = () => {
  * Lấy tất cả yêu cầu hoàn tiền (dành cho Admin)
  * @returns {Promise<Array>}
  */
-const getAllRefunds = async () => {
+const getAllRefunds = async (page = 0, size = 10, status = null) => {
     try {
+        const params = { page, size };
+        if (status) params.status = status;
         const response = await axiosClient.get(`${API_URL}/all`, {
+            params,
             headers: getAuthHeaders()
         });
         return response.data.data;

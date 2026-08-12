@@ -88,15 +88,24 @@ class MessagingMessageServiceTests {
     private Course publishedCourse;
     private ConversationDetailResponse conversationDetail;
 
+    private Role findOrCreateRole(String name, String description) {
+        return entityManager.createQuery("SELECT r FROM Role r WHERE r.name = :name", Role.class)
+                .setParameter("name", name)
+                .getResultStream()
+                .findFirst()
+                .orElseGet(() -> {
+                    Role role = Role.builder().name(name).description(description).status(1).build();
+                    entityManager.persist(role);
+                    return role;
+                });
+    }
+
     @BeforeEach
     void setUp() {
         SecurityContextHolder.clearContext();
 
-        studentRole = Role.builder().name("STUDENT").description("Student").status(1).build();
-        entityManager.persist(studentRole);
-
-        instructorRole = Role.builder().name("INSTRUCTOR").description("Instructor").status(1).build();
-        entityManager.persist(instructorRole);
+        studentRole = findOrCreateRole("STUDENT", "Student");
+        instructorRole = findOrCreateRole("INSTRUCTOR", "Instructor");
 
         studentAccount = Account.builder()
                 .role(studentRole)
@@ -123,6 +132,7 @@ class MessagingMessageServiceTests {
         entityManager.persist(thirdPartyAccount);
 
         category = Category.builder()
+                .account(instructorAccount)
                 .name("Computer Science " + UUID.randomUUID())
                 .slug("cs-msg-" + UUID.randomUUID())
                 .status(1)

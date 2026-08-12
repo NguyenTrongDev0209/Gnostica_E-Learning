@@ -17,6 +17,7 @@ import com.gnostica.modules.wallet.dto.response.WalletOverviewResponse;
 import com.gnostica.modules.wallet.dto.response.PayoutResponse;
 import com.gnostica.modules.wallet.dto.response.WalletTransactionResponse;
 import com.gnostica.core.constant.PayoutStatus;
+import com.gnostica.core.constant.WalletConstants;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.Authentication;
@@ -79,7 +80,8 @@ public class WalletService {
                 .type(wallet.getType())
                 .status(wallet.getStatus())
                 .withdrawalsToday(payoutRepository.countByAccountAndStatusInAndCreatedAtAfter(account,
-                        List.of(PayoutStatus.PENDING, PayoutStatus.PROCESSING, PayoutStatus.COMPLETED), startOfDay))
+                        List.of(PayoutStatus.PENDING, PayoutStatus.PROCESSING, PayoutStatus.COMPLETED,
+                                PayoutStatus.AWAITING_APPROVAL), startOfDay))
                 .accountNumber(activeBank == null ? null : maskAccountNumber(activeBank.getAccountNumber()))
                 .bankBin(activeBank == null || activeBank.getBank() == null ? null : activeBank.getBank().getBin())
                 .bankName(
@@ -90,9 +92,10 @@ public class WalletService {
     @Transactional(readOnly = true)
     public Wallet getWalletByAccount(Account account) {
         BigDecimal totalEarning = walletRepository.sumAvailableRemainByAccount(account);
-        BigDecimal totalPayout = payoutRepository.sumPayoutsByAccount(account, List.of(1, 2, 3)); // 1: Pending, 2:
+        BigDecimal totalPayout = payoutRepository.sumPayoutsByAccount(account, List.of(1, 2, 3, 6)); // 1: Pending, 2:
                                                                                                   // Processing, 3:
-                                                                                                  // Completed
+                                                                                                  // Completed, 6: Awaiting
+                                                                                                  // approval (khóa quỹ)
         BigDecimal totalWalletPayment = paymentRepository.sumWalletPaymentsByAccount(account);
 
         BigDecimal balance = totalEarning.subtract(totalPayout).subtract(totalWalletPayment);
@@ -141,6 +144,7 @@ public class WalletService {
                 case PayoutStatus.COMPLETED -> "COMPLETED";
                 case PayoutStatus.FAILED -> "FAILED";
                 case PayoutStatus.REJECTED -> "REJECTED";
+                case PayoutStatus.AWAITING_APPROVAL -> "AWAITING_APPROVAL";
                 default -> "UNKNOWN";
             };
             history.add(WalletTransactionResponse.builder()
@@ -148,7 +152,7 @@ public class WalletService {
                 .category("WITHDRAWAL")
                 .amount(p.getAmount())
                 .createdAt(p.getCreatedAt())
-                .reference(p.getGatewayReferenceId())
+                .reference(p.getPayoutCode())
                 .bankName(p.getAccountBank() == null || p.getAccountBank().getBank() == null ? null : p.getAccountBank().getBank().getShortName())
                 .maskedAccountNumber(p.getAccountBank() == null ? null : maskAccountNumber(p.getAccountBank().getAccountNumber()))
                 .status(statusStr)
@@ -255,7 +259,7 @@ public class WalletService {
 
         payoutSecurityService.clearInvalidPinAttempts(account.getId());
         if (payoutRepository.existsByAccountBankAndStatusIn(accountBank,
-                List.of(PayoutStatus.PENDING, PayoutStatus.PROCESSING))) {
+                List.of(PayoutStatus.PENDING, PayoutStatus.PROCESSING, PayoutStatus.AWAITING_APPROVAL))) {
             throw new RuntimeException("Không thể thay đổi tài khoản ngân hàng khi có lệnh rút đang xử lý.");
         }
         accountBank.setStatus(0); // Inactive
@@ -302,7 +306,8 @@ public class WalletService {
         // Kiểm tra giới hạn rút tiền 3 lần/ngày
         java.time.LocalDateTime startOfDay = java.time.LocalDate.now().atStartOfDay();
         long withdrawalCountToday = payoutRepository.countByAccountAndStatusInAndCreatedAtAfter(account,
-                List.of(PayoutStatus.PENDING, PayoutStatus.PROCESSING, PayoutStatus.COMPLETED), startOfDay);
+                List.of(PayoutStatus.PENDING, PayoutStatus.PROCESSING, PayoutStatus.COMPLETED,
+                        PayoutStatus.AWAITING_APPROVAL), startOfDay);
         if (withdrawalCountToday >= 3) {
             throw new RuntimeException("Bạn đã đạt giới hạn rút tiền tối đa 3 lần trong ngày hôm nay.");
         }
@@ -313,33 +318,40 @@ public class WalletService {
             throw new RuntimeException("Số dư khả dụng không đủ để thực hiện lệnh rút tiền!");
         }
 
-        String referenceId = generateUniqueGatewayReferenceId();
+        String referenceId = generateUniquePayoutCode();
+
+        boolean requiresManualApproval = amount.compareTo(
+                BigDecimal.valueOf(WalletConstants.MANUAL_APPROVAL_THRESHOLD)) >= 0;
 
         Payout localPayout = new Payout();
         localPayout.setAmount(amount);
-        localPayout.setStatus(PayoutStatus.PENDING);
+        localPayout.setStatus(requiresManualApproval ? PayoutStatus.AWAITING_APPROVAL : PayoutStatus.PENDING);
         localPayout.setAccount(account);
         localPayout.setAccountBank(accountBank);
-        localPayout.setGatewayReferenceId(referenceId);
+        localPayout.setPayoutCode(referenceId);
         localPayout.setIdempotencyKey(idempotencyKey);
         localPayout.setSubmissionAttempts(0);
 
         localPayout = payoutRepository.saveAndFlush(localPayout);
-        payoutSubmissionService.submit(localPayout.getId());
+        // Lệnh rút tiền lớn (>= 5.000.000đ) dừng ở AWAITING_APPROVAL chờ admin duyệt,
+        // không tự động submit lên cổng cho tới khi PayoutAdminService.approve() chuyển sang PENDING.
+        if (!requiresManualApproval) {
+            payoutSubmissionService.submit(localPayout.getId());
+        }
 
         return payoutRepository.findById(localPayout.getId()).orElse(localPayout);
     }
 
     /**
      * Creates a readable, gateway-safe withdrawal reference. The database unique
-     * index on gateway_reference_id remains the final integrity safeguard.
+     * index on payout_code remains the final integrity safeguard.
      */
-    private String generateUniqueGatewayReferenceId() {
+    private String generateUniquePayoutCode() {
         for (int attempt = 0; attempt < 5; attempt++) {
             long code = 100_000_000_000L
                     + java.util.concurrent.ThreadLocalRandom.current().nextLong(900_000_000_000L);
             String referenceId = "RT" + code;
-            if (!payoutRepository.existsByGatewayReferenceId(referenceId)) {
+            if (!payoutRepository.existsByPayoutCode(referenceId)) {
                 return referenceId;
             }
         }
