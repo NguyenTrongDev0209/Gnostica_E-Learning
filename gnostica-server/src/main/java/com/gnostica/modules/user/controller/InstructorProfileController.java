@@ -36,8 +36,15 @@ public class InstructorProfileController {
     public ResponseEntity<?> getAllInstructorsWithStats() {
         List<Account> instructors = accountRepository.findByRoleName("INSTRUCTOR");
         List<InstructorStatsResponse> response = instructors.stream().map(account -> {
-            long coursesCount = courseRepository.countByAccountIdAndStatus(account.getId(), 1);
+            List<Course> instructorCourses = courseRepository.findByAccountIdAndStatus(account.getId(), 1);
+            long coursesCount = instructorCourses.size();
             long studentsCount = courseRepository.countStudentsByInstructorId(account.getId());
+            
+            List<String> categories = instructorCourses.stream()
+                .filter(c -> c.getCategory() != null)
+                .map(c -> c.getCategory().getName())
+                .distinct()
+                .collect(Collectors.toList());
             
             String title = "";
             String bio = "";
@@ -61,6 +68,7 @@ public class InstructorProfileController {
                     .rating(4.8)
                     .title(title.isEmpty() ? "Giảng viên" : title)
                     .bio(bio)
+                    .categories(categories)
                     .build();
         }).collect(Collectors.toList());
 
@@ -86,6 +94,7 @@ public class InstructorProfileController {
         profile.put("name", account.getFullName());
         profile.put("avatar", account.getAvatar());
         profile.put("email", account.getEmail());
+        profile.put("role", account.getRole() != null ? account.getRole().getName() : null);
         profile.put("coursesCount", coursesCount);
         profile.put("studentsCount", studentsCount);
         profile.put("reviewsCount", 0); // Chưa có hệ thống đánh giá

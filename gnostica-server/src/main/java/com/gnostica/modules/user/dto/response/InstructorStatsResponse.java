@@ -19,4 +19,5 @@ public class InstructorStatsResponse {
     private double rating;
     private String title;
     private String bio;
+    private java.util.List<String> categories;
 }
