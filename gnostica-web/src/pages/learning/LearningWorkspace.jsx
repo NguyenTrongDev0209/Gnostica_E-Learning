@@ -44,6 +44,8 @@ import PageContainer from "@/components/common/core/PageContainer";
 import courseService from "@/services/course/courseService";
 import progressService from "@/services/course/progressService";
 import enrollmentService from "@/services/course/enrollmentService";
+import { useCreateConversation } from "@/hooks/messaging/useCreateConversation";
+import { toast } from "sonner";
 import commentService from "@/services/forum/commentService";
 import { reviewService } from "@/services/course/reviewService";
 import useAuthStore from "@/store/useAuthStore";
@@ -869,6 +871,19 @@ export default function LearningWorkspace() {
   const { id: slug } = useParams();
   const navigate = useNavigate();
   const currentUser = useAuthStore(state => state.user);
+  const { createForStudent, isCreatingStudent } = useCreateConversation();
+
+  const handleMessageInstructor = async () => {
+    if (!course?.id) return;
+    try {
+      const conversation = await createForStudent(course.id);
+      if (conversation?.id) {
+        navigate(`/account/messages/${conversation.id}`);
+      }
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "Không thể mở cuộc trò chuyện với giảng viên.");
+    }
+  };
   const searchParams = new URLSearchParams(window.location.search);
   const targetLessonSlug = searchParams.get("lesson");
   const isRestart = searchParams.get("restart") === "true";
@@ -1547,6 +1562,19 @@ export default function LearningWorkspace() {
         </div>
 
         <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleMessageInstructor}
+            disabled={isCreatingStudent}
+            title="Nhắn tin cho giảng viên"
+            aria-label="Nhắn tin cho giảng viên"
+            className="hidden sm:flex items-center gap-1.5 rounded-lg border-primary/30 text-primary font-semibold hover:bg-primary/10"
+          >
+            {isCreatingStudent ? <Loader2 className="size-4 animate-spin" /> : <MessageSquare className="size-4" />}
+            <span className="hidden md:inline">Nhắn tin cho giảng viên</span>
+          </Button>
+
           <Button
             variant="ghost"
             size="icon"
