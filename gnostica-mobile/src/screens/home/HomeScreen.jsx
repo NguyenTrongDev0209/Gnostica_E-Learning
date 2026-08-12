@@ -11,6 +11,7 @@ import CourseSection from '../course/components/CourseSection';
 import InstructorSection from '../instructor/components/InstructorSection';
 import FAQSection from './components/FAQSection';
 import SideMenu from '../../components/ui/SideMenu';
+import FloatingAiButton from '../../components/ui/FloatingAiButton';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAuth } from '../../context/AuthContext';
@@ -372,6 +373,9 @@ const HomeScreen = () => {
 
                 <View className="h-5" />
             </ScrollView>
+
+            {/* Floating AI Assistant Button */}
+            <FloatingAiButton bottomOffset={90} />
         </View>
     );
 };

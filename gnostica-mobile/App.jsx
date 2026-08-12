@@ -62,6 +62,7 @@ import GiftScreen from './src/screens/checkout/GiftScreen';
 import GiftResponseScreen from './src/screens/checkout/GiftResponseScreen';
 import RefundScreen from './src/screens/checkout/RefundScreen';
 import RefundRequestScreen from './src/screens/checkout/RefundRequestScreen';
+import AiChatScreen from './src/screens/ai/AiChatScreen';
 // Removed Admin & Instructor Imports
 
 const Stack = createNativeStackNavigator();
@@ -158,6 +159,7 @@ export default function App() {
               <Stack.Screen name="GiftResponse" component={GiftResponseScreen} />
               <Stack.Screen name="RefundScreen" component={RefundScreen} />
               <Stack.Screen name="RefundRequestScreen" component={RefundRequestScreen} />
+              <Stack.Screen name="AiChat" component={AiChatScreen} />
               {/* Removed Admin & Instructor Screens */}
             </Stack.Navigator>
           </NavigationContainer>

@@ -10,6 +10,7 @@ module.exports = {
   updates: {
     ...(appJson.expo.updates || {}),
     url: 'https://u.expo.dev/8cc6a315-8bee-49a6-abb4-7396386bd420',
+    fallbackToCacheTimeout: 30000,
   },
   runtimeVersion: {
     policy: 'appVersion',

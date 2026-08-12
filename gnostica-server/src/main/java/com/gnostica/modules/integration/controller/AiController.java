@@ -27,9 +27,15 @@ public class AiController {
     private final AccountRepository accountRepository;
     private final ChatSessionRepository chatSessionRepository;
 
+    private static final java.util.Map<String, java.util.concurrent.atomic.AtomicInteger> DAILY_CHAT_COUNT_MAP = new java.util.concurrent.ConcurrentHashMap<>();
+    private static final java.util.Map<String, java.time.LocalDate> LAST_RESET_MAP = new java.util.concurrent.ConcurrentHashMap<>();
+    private static final int DAILY_CHAT_LIMIT = 15;
+
     @PostMapping("/chat")
-    public ResponseEntity<AiChatResponse> chat(@RequestBody AiChatRequest request) {
+    public ResponseEntity<AiChatResponse> chat(@RequestBody AiChatRequest request, jakarta.servlet.http.HttpServletRequest httpRequest) {
         String accountId = null;
+        String userIdentifier = null;
+
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated() && 
             !(authentication instanceof org.springframework.security.authentication.AnonymousAuthenticationToken)) {
@@ -37,10 +43,78 @@ public class AiController {
             Optional<Account> accountOpt = accountRepository.findByEmail(email);
             if (accountOpt.isPresent()) {
                 accountId = accountOpt.get().getId().toString();
+                userIdentifier = "USER:" + accountId;
             }
         }
+
+        if (userIdentifier == null) {
+            String ip = httpRequest != null ? httpRequest.getRemoteAddr() : "GUEST";
+            userIdentifier = "IP:" + ip;
+        }
+
+        java.time.LocalDate today = java.time.LocalDate.now();
+        final String finalKey = userIdentifier;
+        LAST_RESET_MAP.compute(finalKey, (k, lastReset) -> {
+            if (lastReset == null || !lastReset.equals(today)) {
+                DAILY_CHAT_COUNT_MAP.put(finalKey, new java.util.concurrent.atomic.AtomicInteger(0));
+                return today;
+            }
+            return lastReset;
+        });
+
+        java.util.concurrent.atomic.AtomicInteger counter = DAILY_CHAT_COUNT_MAP.computeIfAbsent(finalKey, k -> new java.util.concurrent.atomic.AtomicInteger(0));
+
+        if (counter.get() >= DAILY_CHAT_LIMIT) {
+            AiChatResponse limitResponse = new AiChatResponse(
+                "⚠️ Bạn đã sử dụng hết giới hạn 15 lượt hỏi AI trong ngày hôm nay (15/15 lượt). Vui lòng quay lại vào ngày mai nhé!",
+                "assistant",
+                request.getSessionId()
+            );
+            return ResponseEntity.ok(limitResponse);
+        }
+
         AiChatResponse response = aiService.getChatResponse(request, accountId);
+        counter.incrementAndGet();
+
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/quota")
+    public ResponseEntity<?> getQuota(jakarta.servlet.http.HttpServletRequest httpRequest) {
+        String userIdentifier = null;
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.isAuthenticated() && 
+            !(authentication instanceof org.springframework.security.authentication.AnonymousAuthenticationToken)) {
+            String email = authentication.getName();
+            Optional<Account> accountOpt = accountRepository.findByEmail(email);
+            if (accountOpt.isPresent()) {
+                userIdentifier = "USER:" + accountOpt.get().getId();
+            }
+        }
+        if (userIdentifier == null) {
+            String ip = httpRequest != null ? httpRequest.getRemoteAddr() : "GUEST";
+            userIdentifier = "IP:" + ip;
+        }
+
+        java.time.LocalDate today = java.time.LocalDate.now();
+        final String finalKey = userIdentifier;
+        LAST_RESET_MAP.compute(finalKey, (k, lastReset) -> {
+            if (lastReset == null || !lastReset.equals(today)) {
+                DAILY_CHAT_COUNT_MAP.put(finalKey, new java.util.concurrent.atomic.AtomicInteger(0));
+                return today;
+            }
+            return lastReset;
+        });
+
+        int used = DAILY_CHAT_COUNT_MAP.computeIfAbsent(finalKey, k -> new java.util.concurrent.atomic.AtomicInteger(0)).get();
+        int remaining = Math.max(0, DAILY_CHAT_LIMIT - used);
+
+        java.util.Map<String, Object> data = new java.util.HashMap<>();
+        data.put("dailyLimit", DAILY_CHAT_LIMIT);
+        data.put("used", used);
+        data.put("remaining", remaining);
+
+        return ResponseEntity.ok(ApiResponse.success(data));
     }
 
     @GetMapping("/sessions")
