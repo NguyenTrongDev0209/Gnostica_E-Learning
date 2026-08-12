@@ -12,6 +12,8 @@ import com.gnostica.core.repository.PaymentRepository;
 import com.gnostica.modules.checkout.dto.response.PaymentLinkResponse;
 import com.gnostica.modules.checkout.dto.response.PaymentWebhookData;
 import com.gnostica.core.repository.GiftRepository;
+import com.gnostica.modules.wallet.service.WalletService;
+import com.gnostica.modules.user.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -34,6 +36,8 @@ public class PaymentService {
     private final EnrollmentRepository enrollmentRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final GiftRepository giftRepository;
+    private final WalletService walletService;
+    private final NotificationService notificationService;
 
     // === Routing ===
     public PaymentLinkResponse createPaymentLink(Order order, String returnUrl, String cancelUrl) throws Exception {
@@ -103,6 +107,10 @@ public class PaymentService {
                 order.setStatus(OrderStatus.PAID);
                 orderRepository.save(order);
                 releaseCouponReservation(order);
+                
+                walletService.addDeposit(order.getAccount(), order.getTotalPrice(), String.valueOf(order.getOrderCode()));
+                notificationService.createNotification(order.getAccount(), "Đã hoàn tiền vào ví", "Bạn đã sở hữu khóa " + course.getTitle() + "; số tiền " + order.getTotalPrice() + " đã được cộng vào Ví Gnostica.", "REFUND_AUTO", String.valueOf(order.getId()));
+                
                 return;
             }
         }

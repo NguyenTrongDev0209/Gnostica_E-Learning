@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
-import { Wallet as WalletIcon, Banknote, CreditCard, Landmark, Trash2 } from "lucide-react";
+import { Wallet as WalletIcon, Banknote, CreditCard, Landmark, Trash2, Clock } from "lucide-react";
 import { AppDialog } from "@/components/common/micro/AppDialog";
 import AppInput, { AppInputOTP } from "@/components/common/micro/AppInput";
 import { AppButton } from "@/components/common/micro/AppButton";
@@ -21,6 +21,8 @@ const formatCurrency = (value) => {
     if (!value) return "";
     return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 };
+
+const MANUAL_APPROVAL_THRESHOLD = 5000000;
 
 export default function WithdrawModal({ isOpen, onClose, wallet, user, onSuccess }) {
     const hasBankAccount = !!(wallet?.accountNumber);
@@ -102,7 +104,11 @@ export default function WithdrawModal({ isOpen, onClose, wallet, user, onSuccess
                 { amount: Number(amount), pin },
                 withdrawalIdempotencyKeyRef.current
             );
-            toast.success("Đã tạo lệnh rút tiền thành công!");
+            if (Number(amount) >= MANUAL_APPROVAL_THRESHOLD) {
+                toast.success("Yêu cầu rút tiền đã gửi. Lệnh rút từ 5.000.000đ trở lên cần admin duyệt thủ công trước khi chuyển khoản.");
+            } else {
+                toast.success("Đã tạo lệnh rút tiền thành công!");
+            }
             if (onSuccess) onSuccess();
             onClose();
         } catch (err) {
@@ -277,6 +283,13 @@ export default function WithdrawModal({ isOpen, onClose, wallet, user, onSuccess
                                 setWithdrawForm(p => ({ ...p, amount: val }));
                             }}
                         />
+
+                        {Number(withdrawForm.amount || 0) >= MANUAL_APPROVAL_THRESHOLD && (
+                            <div className="rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-xs text-warning flex items-center gap-2">
+                                <Clock className="w-3.5 h-3.5 shrink-0" />
+                                Lệnh rút từ {formatVND(MANUAL_APPROVAL_THRESHOLD)} trở lên cần admin duyệt thủ công trước khi chuyển khoản.
+                            </div>
+                        )}
 
                         <AppInputOTP
                             label="Mã PIN xác nhận"

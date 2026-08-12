@@ -41,11 +41,15 @@ import InstructorStudents from "@/pages/instructor/InstructorStudents";
 import InstructorSettings from "@/pages/instructor/InstructorSettings";
 import InstructorCourseForm from "@/pages/instructor/InstructorCourseForm";
 import InstructorQA from "@/pages/instructor/InstructorQA";
+import AccountMessagingPage from "@/pages/messaging/AccountMessagingPage";
+import InstructorMessagingPage from "@/pages/messaging/InstructorMessagingPage";
 
 export const privateRoutes = {
   account: [
     { path: "/account", component: AccountOverview },
     { path: "/account/my-courses", component: MyCourses },
+    { path: "/account/messages", component: AccountMessagingPage },
+    { path: "/account/messages/:conversationId", component: AccountMessagingPage },
     { path: "/account/certificates", component: CertificatesPage },
     { path: "/account/wishlist", component: WishlistPage },
     { path: "/account/orders", component: OrdersPage },
@@ -81,6 +85,8 @@ export const privateRoutes = {
     { path: "/instructor/revenue", component: InstructorRevenue },
     { path: "/instructor/coupons", component: InstructorCoupons },
     { path: "/instructor/students", component: InstructorStudents },
+    { path: "/instructor/messages", component: InstructorMessagingPage },
+    { path: "/instructor/messages/:conversationId", component: InstructorMessagingPage },
     { path: "/instructor/qa", component: InstructorQA },
     { path: "/instructor/settings", component: InstructorSettings },
   ],

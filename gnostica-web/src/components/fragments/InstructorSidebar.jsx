@@ -18,6 +18,7 @@ const INSTRUCTOR_MENU_GROUPS = [
     items: [
       { label: "Tổng quan", icon: LayoutDashboard, href: "/instructor" },
       { label: "Học viên", icon: Users, href: "/instructor/students" },
+      { label: "Tin nhắn", icon: MessageSquare, href: "/instructor/messages" },
       { label: "Hỏi đáp & Đánh giá", icon: MessageSquare, href: "/instructor/qa" },
     ]
   },

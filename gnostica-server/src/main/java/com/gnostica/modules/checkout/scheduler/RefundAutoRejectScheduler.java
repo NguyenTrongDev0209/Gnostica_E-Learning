@@ -51,6 +51,7 @@ public class RefundAutoRejectScheduler {
             }
 
             if (LocalDateTime.now().isAfter(paidAtLocal.plusDays(RefundService.INSTRUCTOR_HOLD_DAYS))) {
+                refund.setDecisionType("AUTO_REJECTED");
                 refund.setStatus(RefundStatus.REJECTED);
                 refund.setReason(refund.getReason() + " | Từ chối tự động: " + RefundService.AUTO_REJECT_REASON);
                 refundRepository.save(refund);

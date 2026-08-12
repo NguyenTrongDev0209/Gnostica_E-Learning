@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import com.gnostica.core.dto.response.ResponseDTO;
 import com.gnostica.modules.checkout.dto.request.CouponRequest;
@@ -32,6 +33,7 @@ public class CouponController {
     private final CouponService couponService;
 
     @PostMapping
+    @PreAuthorize("hasRole('INSTRUCTOR') or hasRole('ADMIN')")
     public ResponseEntity<ResponseDTO<CouponResponse>> createCoupon(@Valid @RequestBody CouponRequest request) {
         CouponResponse response = couponService.createCoupon(request);
         return ResponseEntity.status(201).body(new ResponseDTO<>(201, "Coupon created successfully", response));
@@ -72,6 +74,7 @@ public class CouponController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('INSTRUCTOR') or hasRole('ADMIN')")
     public ResponseEntity<ResponseDTO<CouponResponse>> updateCoupon(
             @PathVariable UUID id,
             @Valid @RequestBody CouponRequest request) {
@@ -80,6 +83,7 @@ public class CouponController {
     }
 
     @PutMapping("/{id}/status")
+    @PreAuthorize("hasRole('INSTRUCTOR') or hasRole('ADMIN')")
     public ResponseEntity<ResponseDTO<CouponResponse>> updateCouponStatus(
             @PathVariable UUID id,
             @RequestParam Integer status) {
@@ -88,6 +92,7 @@ public class CouponController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('INSTRUCTOR') or hasRole('ADMIN')")
     public ResponseEntity<ResponseDTO<Void>> deleteCoupon(@PathVariable UUID id) {
         couponService.deleteCoupon(id);
         return ResponseEntity.ok(new ResponseDTO<>(200, "Coupon deleted successfully", null));

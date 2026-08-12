@@ -8,6 +8,10 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.util.UUID;
 import java.math.BigDecimal;
 import jakarta.validation.constraints.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+import java.util.Map;
+import java.util.HashMap;
 
 @Data
 @NoArgsConstructor
@@ -39,18 +43,23 @@ public class Payout {
     private BigDecimal amount;
 
     /**
-     * Status: 1: Pending (Chờ duyệt), 2: Processing (Đang chuyển), 3: Completed (Hoàn tất), 4: Failed (Lỗi), 5: Rejected (Từ chối)
+     * Status: 1: Pending (Chờ duyệt), 2: Processing (Đang chuyển), 3: Completed (Hoàn tất), 4: Failed (Lỗi), 5: Rejected (Từ chối), 6: Awaiting approval (Chờ admin duyệt)
      */
     @NotNull
     private Integer status;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "jsonb")
+    @Builder.Default
+    private Map<String, Object> metadata = new HashMap<>();
 
     /** Immutable identifier returned by the payout gateway. */
     @Column(name = "gateway_payout_id", unique = true)
     private String gatewayPayoutId;
 
     /** Idempotency reference sent to the payout gateway. */
-    @Column(name = "gateway_reference_id", unique = true)
-    private String gatewayReferenceId;
+    @Column(name = "payout_code", unique = true)
+    private String payoutCode;
 
     @Column(name = "idempotency_key")
     private String idempotencyKey;

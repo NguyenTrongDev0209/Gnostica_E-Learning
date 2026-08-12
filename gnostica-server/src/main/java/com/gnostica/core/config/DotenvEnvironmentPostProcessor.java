@@ -38,8 +38,10 @@ public class DotenvEnvironmentPostProcessor implements EnvironmentPostProcessor 
         dotenv.entries().forEach(entry -> props.put(entry.getKey(), entry.getValue()));
 
         if (!props.isEmpty()) {
-            // Add with lowest priority so explicit env vars still win
-            environment.getPropertySources().addLast(
+            // Add immediately after system environment so explicit env vars still win,
+            // but it precedes application.properties
+            environment.getPropertySources().addAfter(
+                    StandardEnvironment.SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME,
                     new MapPropertySource("dotenvProperties", props)
             );
         }

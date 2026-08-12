@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import useAuthStore from '@/store/useAuthStore';
 import useCategories from "@/hooks/course/useCategories"
 import AiChatBot from '@/components/common/composite/AiChatBot'
@@ -12,6 +12,9 @@ const MainLayout = () => {
   const currentUser = useAuthStore(state => state.user);
   const logout = useAuthStore(state => state.logout);
   const { categories: flatCategories } = useCategories()
+  const location = useLocation();
+
+  const isMessagingRoute = location.pathname.startsWith('/account/messages');
 
   const handleLogout = async () => {
     await logout();
@@ -44,13 +47,13 @@ const MainLayout = () => {
         categoryTree={categoryTree}
       />
 
-      <main className="flex-grow">
+      <main className={`flex-grow ${isMessagingRoute ? 'flex flex-col h-[calc(100vh-64px)] overflow-hidden' : ''}`}>
         <Outlet />
       </main>
 
-      <MainFooter />
+      {!isMessagingRoute && <MainFooter />}
 
-      <AiChatBot />
+      {!isMessagingRoute && <AiChatBot />}
     </div>
   );
 };
