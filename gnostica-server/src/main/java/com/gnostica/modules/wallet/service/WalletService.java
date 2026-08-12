@@ -15,6 +15,7 @@ import com.gnostica.core.repository.BankRepository;
 import com.gnostica.core.repository.PaymentRepository;
 import com.gnostica.modules.wallet.dto.response.WalletOverviewResponse;
 import com.gnostica.modules.wallet.dto.response.PayoutResponse;
+import com.gnostica.modules.wallet.dto.response.WalletTransactionResponse;
 import com.gnostica.core.constant.PayoutStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -29,7 +30,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import com.gnostica.modules.wallet.event.PayoutSubmissionRequestedEvent;
-import vn.payos.model.v1.payouts.PayoutRequests;
 
 @Service
 @RequiredArgsConstructor
@@ -42,7 +42,7 @@ public class WalletService {
     private final PaymentRepository paymentRepository;
     private final PayoutSecurityService payoutSecurityService;
     private final ApplicationEventPublisher eventPublisher;
-    private final PayoutsService payoutsService;
+    private final PayoutSubmissionService payoutSubmissionService;
     private final BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
 
     public Account getCurrentAccount() {
@@ -116,18 +116,7 @@ public class WalletService {
         return getWalletByAccount(lockedAccount);
     }
 
-    @Transactional
-    public void addBalance(java.util.UUID accountId, double amount, String reason) {
-        Account account = accountRepository.findById(accountId)
-                .orElseThrow(() -> new RuntimeException("Account not found: " + accountId));
 
-        Wallet wallet = new Wallet();
-        wallet.setAccount(account);
-        wallet.setRemain(BigDecimal.valueOf(amount));
-        wallet.setStatus(1); // 1: Active
-        wallet.setType(1); // Assuming 1 means available immediately
-        walletRepository.save(wallet);
-    }
 
     @Transactional(readOnly = true)
     public List<PayoutResponse> getMyTransactions() {
@@ -135,6 +124,69 @@ public class WalletService {
         return payoutRepository.findByAccountOrderByCreatedAtDesc(account).stream()
                 .map(this::toResponse)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<WalletTransactionResponse> getMyTransactionHistory() {
+        Account account = getCurrentAccount();
+        
+        List<WalletTransactionResponse> history = new java.util.ArrayList<>();
+        
+        // Payouts
+        List<Payout> payouts = payoutRepository.findByAccountOrderByCreatedAtDesc(account);
+        for (Payout p : payouts) {
+            String statusStr = switch (p.getStatus()) {
+                case PayoutStatus.PENDING -> "PENDING";
+                case PayoutStatus.PROCESSING -> "PROCESSING";
+                case PayoutStatus.COMPLETED -> "COMPLETED";
+                case PayoutStatus.FAILED -> "FAILED";
+                case PayoutStatus.REJECTED -> "REJECTED";
+                default -> "UNKNOWN";
+            };
+            history.add(WalletTransactionResponse.builder()
+                .id(p.getId())
+                .category("WITHDRAWAL")
+                .amount(p.getAmount())
+                .createdAt(p.getCreatedAt())
+                .reference(p.getGatewayReferenceId())
+                .bankName(p.getAccountBank() == null || p.getAccountBank().getBank() == null ? null : p.getAccountBank().getBank().getShortName())
+                .maskedAccountNumber(p.getAccountBank() == null ? null : maskAccountNumber(p.getAccountBank().getAccountNumber()))
+                .status(statusStr)
+                .build());
+        }
+        
+        // Wallets
+        List<Wallet> wallets = walletRepository.findByAccount(account);
+        for (Wallet w : wallets) {
+            if (w.getType() != null) {
+                String category = switch (w.getType()) {
+                    case 1 -> "EARNING";
+                    case 4 -> "DEPOSIT";
+                    case 5 -> "GIFT_REFUND";
+                    case 6 -> "REFUND";
+                    default -> null;
+                };
+                if (category != null) {
+                    history.add(WalletTransactionResponse.builder()
+                        .id(w.getId())
+                        .category(category)
+                        .amount(w.getRemain())
+                        .createdAt(w.getCreatedAt())
+                        .reference(w.getTargetType() + (w.getTargetId() != null ? ":" + w.getTargetId() : ""))
+                        .bankName(null)
+                        .maskedAccountNumber(null)
+                        .status(w.getStatus() != null && w.getStatus() == 1 ? "COMPLETED" : "VOIDED")
+                        .build());
+                }
+            }
+        }
+        
+        history.sort((a, b) -> {
+            if (a.getCreatedAt() == null || b.getCreatedAt() == null) return 0;
+            return b.getCreatedAt().compareTo(a.getCreatedAt());
+        });
+        
+        return history;
     }
 
     /**
@@ -261,52 +313,21 @@ public class WalletService {
             throw new RuntimeException("Số dư khả dụng không đủ để thực hiện lệnh rút tiền!");
         }
 
-        PayoutRequests payoutRequest = new PayoutRequests();
-        payoutRequest.setAmount(request.getAmount());
-        payoutRequest.setToBin(accountBank.getBank().getBin()); // Bank entity must have getBin()
-        payoutRequest.setToAccountNumber(accountBank.getAccountNumber());
-
-        String desc = "Rut tien " + account.getFullName();
-        if (desc.length() > 25) {
-            desc = desc.substring(0, 25);
-        }
-        payoutRequest.setDescription(desc);
-        payoutRequest.setReferenceId(generateUniqueGatewayReferenceId());
-
-        // The local intent is committed first; PayOS submission runs after commit.
-        // --> NOW REWRITTEN: PayOS is called synchronously to ensure atomic rollback on failure.
+        String referenceId = generateUniqueGatewayReferenceId();
 
         Payout localPayout = new Payout();
         localPayout.setAmount(amount);
         localPayout.setStatus(PayoutStatus.PENDING);
         localPayout.setAccount(account);
         localPayout.setAccountBank(accountBank);
-        localPayout.setGatewayReferenceId(payoutRequest.getReferenceId());
+        localPayout.setGatewayReferenceId(referenceId);
         localPayout.setIdempotencyKey(idempotencyKey);
-        localPayout.setSubmissionAttempts(1);
+        localPayout.setSubmissionAttempts(0);
 
-        try {
-            vn.payos.model.v1.payouts.Payout remote = payoutsService.createPayout(payoutRequest);
-            localPayout.setGatewayPayoutId(remote.getId());
-            if (remote.getReferenceId() != null && !remote.getReferenceId().isBlank()) {
-                localPayout.setGatewayReferenceId(remote.getReferenceId());
-            }
-            localPayout.setStatus(toLocalPayoutStatus(remote.getApprovalState()));
-        } catch (Exception exception) {
-            String errorMsg = exception.getMessage();
-            localPayout.setLastSubmissionError(errorMsg);
-            
-            // If it's a timeout, keep it PENDING for the scheduler. Otherwise, it's a definitive FAILED error.
-            boolean isTimeout = errorMsg != null && (errorMsg.toLowerCase().contains("timeout") || errorMsg.toLowerCase().contains("read timed out"));
-            
-            if (isTimeout) {
-                localPayout.setStatus(PayoutStatus.PENDING);
-            } else {
-                localPayout.setStatus(PayoutStatus.FAILED);
-            }
-        }
+        localPayout = payoutRepository.saveAndFlush(localPayout);
+        payoutSubmissionService.submit(localPayout.getId());
 
-        return payoutRepository.saveAndFlush(localPayout);
+        return payoutRepository.findById(localPayout.getId()).orElse(localPayout);
     }
 
     /**
@@ -329,18 +350,6 @@ public class WalletService {
         if (account.getStatus() == null || account.getStatus() != 1 || account.getDeletedAt() != null) {
             throw new RuntimeException("Tài khoản không đủ điều kiện rút tiền.");
         }
-    }
-
-    private int toLocalPayoutStatus(vn.payos.model.v1.payouts.PayoutApprovalState state) {
-        if (state == null)
-            return PayoutStatus.PENDING;
-        return switch (state) {
-            case COMPLETED -> PayoutStatus.COMPLETED;
-            case FAILED -> PayoutStatus.FAILED;
-            case REJECTED, CANCELLED -> PayoutStatus.REJECTED;
-            case PROCESSING, PARTIAL_COMPLETED -> PayoutStatus.PROCESSING;
-            default -> PayoutStatus.PENDING;
-        };
     }
 
     public PayoutResponse toResponse(Payout payout) {
