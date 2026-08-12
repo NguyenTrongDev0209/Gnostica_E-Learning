@@ -23,10 +23,10 @@ const formatTime = (dateStr) => {
   return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' });
 };
 
-export default function ConversationListItem({ conversation, isSelected, onClick }) {
+export default function ConversationListItem({ conversation, isSelected, onClick, currentAccountId }) {
   if (!conversation) return null;
 
-  const norm = normalizeConversationSummary(conversation);
+  const norm = normalizeConversationSummary(conversation, currentAccountId);
   if (!norm) return null;
 
   const { otherParticipant, course, lastMessageText, lastMessageAt, unreadCount } = norm;
