@@ -11,6 +11,7 @@ import com.gnostica.core.repository.EnrollmentRepository;
 import com.gnostica.core.repository.LessonRepository;
 import com.gnostica.core.repository.ThreadRepository;
 import com.gnostica.modules.forum.service.CommentService;
+import com.gnostica.modules.user.service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +35,9 @@ public class CommentServiceImpl implements CommentService {
 
     @Autowired
     private EnrollmentRepository enrollmentRepository;
+
+    @Autowired
+    private NotificationService notificationService;
 
     @Override
     public List<Comment> getCommentsByThreadId(Integer threadId) {
@@ -106,6 +110,15 @@ public class CommentServiceImpl implements CommentService {
                 throw new RuntimeException("Parent comment does not belong to the same target");
             }
             comment.setParent(parent);
+            
+            // Notification logic
+            if (parent.getAccount() != null && !parent.getAccount().getEmail().equals(userEmail)) {
+                String notifTitle = "Có phản hồi mới";
+                String notifContent = account.getFullName() + " đã trả lời bình luận của bạn.";
+                String notifType = "COMMENT_REPLY";
+                String refId = "COMMENT_" + parent.getId();
+                notificationService.createNotification(parent.getAccount(), notifTitle, notifContent, notifType, refId);
+            }
         }
 
         return commentRepository.save(comment);
@@ -159,11 +172,23 @@ public class CommentServiceImpl implements CommentService {
                 .orElse(false);
 
         if (!isCommentAuthor && !isThreadAuthor && !isLessonInstructor && !isAdmin) {
-            throw new RuntimeException("You are not authorized to change the status of this comment");
+            throw new RuntimeException("You are not authorized to update this comment's status");
         }
 
+        Integer oldStatus = comment.getStatus();
         comment.setStatus(status);
-        return commentRepository.save(comment);
+        Comment savedComment = commentRepository.save(comment);
+        
+        // Notification logic for hiding comment
+        if (oldStatus != 0 && status == 0 && !isCommentAuthor && comment.getAccount() != null) {
+            String notifTitle = "Bình luận bị ẩn";
+            String notifContent = "Bình luận của bạn đã bị ẩn bởi giảng viên/quản trị do vi phạm nội quy hoặc không phù hợp.";
+            String notifType = "COMMENT_HIDDEN";
+            String refId = "COMMENT_" + comment.getId();
+            notificationService.createNotification(comment.getAccount(), notifTitle, notifContent, notifType, refId);
+        }
+        
+        return savedComment;
     }
 
     @Override

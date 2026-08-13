@@ -8,25 +8,45 @@ export default function useInstructorQA() {
     queryFn: async () => {
         let qData = [];
         let rData = [];
+        let tData = [];
         try {
-          const res = await Promise.all([
+          const res = await Promise.allSettled([
             instructorDashboardService.getQuestions(),
-            instructorDashboardService.getReviews()
+            instructorDashboardService.getReviews(),
+            instructorDashboardService.getReplyTemplates()
           ]);
-          qData = res[0];
-          rData = res[1];
+          
+          if (res[0].status === 'fulfilled') {
+              qData = res[0].value;
+          } else {
+              console.error("Failed to fetch questions:", res[0].reason);
+          }
+          
+          if (res[1].status === 'fulfilled') {
+              rData = res[1].value;
+          } else {
+              console.error("Failed to fetch reviews:", res[1].reason);
+          }
+
+          if (res[2].status === 'fulfilled') {
+              tData = res[2].value?.data || [];
+          } else {
+              console.error("Failed to fetch templates:", res[2].reason);
+          }
+          
+          if (res[0].status === 'rejected' && res[1].status === 'rejected') {
+              if (!USE_INSTRUCTOR_MOCK) throw new Error("Both QA and Reviews failed to fetch");
+          }
         } catch (e) {
           console.error("Failed to fetch QA data:", e);
           if (!USE_INSTRUCTOR_MOCK) throw e;
         }
 
-        if (USE_INSTRUCTOR_MOCK && (!rData || rData.length === 0)) {
-          rData = MOCK_QA.reviews;
-        }
 
         return {
             questions: qData || [],
-            reviews: rData || []
+            reviews: rData || [],
+            templates: tData || []
         };
     },
     staleTime: 1000 * 60 * 2, // 2 mins cache
@@ -35,6 +55,7 @@ export default function useInstructorQA() {
   return { 
       questions: data?.questions || [], 
       reviews: data?.reviews || [], 
+      templates: data?.templates || [],
       loading: isLoading 
   };
 }

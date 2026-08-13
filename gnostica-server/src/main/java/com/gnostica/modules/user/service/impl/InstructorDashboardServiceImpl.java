@@ -138,9 +138,42 @@ public class InstructorDashboardServiceImpl implements InstructorDashboardServic
         }).collect(Collectors.toList());
     }
 
+    private List<InstructorQuestionReplyDTO> mapReplies(List<Comment> replies, String instructorEmail) {
+        if (replies == null || replies.isEmpty()) return new ArrayList<>();
+        List<InstructorQuestionReplyDTO> dtos = new ArrayList<>();
+        for (Comment r : replies) {
+            boolean isAuthor = r.getAccount() != null && instructorEmail.equals(r.getAccount().getEmail());
+            dtos.add(InstructorQuestionReplyDTO.builder()
+                    .id(r.getId())
+                    .content(r.getContent())
+                    .studentName(r.getAccount() != null ? r.getAccount().getFullName() : "N/A")
+                    .studentAvatar(r.getAccount() != null ? r.getAccount().getAvatar() : null)
+                    .createdAt(r.getCreatedAt())
+                    .isAuthor(isAuthor)
+                    .isHidden(Integer.valueOf(0).equals(r.getStatus()))
+                    .replies(mapReplies(r.getReplies(), instructorEmail))
+                    .build());
+        }
+        return dtos;
+    }
+
+    private boolean checkIsAnswered(List<Comment> replies, String instructorEmail) {
+        if (replies == null || replies.isEmpty()) return false;
+        for (Comment r : replies) {
+            if (r.getAccount() != null && instructorEmail.equals(r.getAccount().getEmail())) {
+                return true;
+            }
+            if (checkIsAnswered(r.getReplies(), instructorEmail)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Override
+    @Transactional
     public List<InstructorQuestionDTO> getQuestions(String instructorEmail) {
-        List<Course> courses = courseRepository.findByAccountEmailAndDeletedAtIsNull(instructorEmail, org.springframework.data.domain.Pageable.unpaged()).getContent();
+        List<Course> courses = courseRepository.findByAccountEmailAndDeletedAtIsNull(instructorEmail, org.springframework.data.domain.PageRequest.of(0, 1000)).getContent();
         List<String> lessonIds = new ArrayList<>();
         
         for (Course c : courses) {
@@ -156,78 +189,97 @@ public class InstructorDashboardServiceImpl implements InstructorDashboardServic
         }
         
         if (lessonIds.isEmpty()) {
+            System.out.println("DEBUG getQuestions: lessonIds is EMPTY for instructor " + instructorEmail);
             return new ArrayList<>();
         }
         
+        System.out.println("DEBUG getQuestions: lessonIds for " + instructorEmail + " = " + lessonIds);
         List<Comment> comments = commentRepository.findByTargetTypeAndTargetIdInAndParentIsNullOrderByCreatedAtDesc("LESSON", lessonIds);
+        System.out.println("DEBUG getQuestions: comments found = " + comments.size());
         
         return comments.stream().map(c -> {
-            boolean isAnswered = false;
-            List<InstructorQuestionReplyDTO> replyDTOs = new ArrayList<>();
-            
-            if (c.getReplies() != null) {
-                for (Comment reply : c.getReplies()) {
-                    boolean isAuthor = reply.getAccount() != null && instructorEmail.equals(reply.getAccount().getEmail());
-                    if (isAuthor) {
-                        isAnswered = true;
-                    }
-                    replyDTOs.add(InstructorQuestionReplyDTO.builder()
-                            .id(reply.getId())
-                            .content(reply.getContent())
-                            .studentName(reply.getAccount() != null ? reply.getAccount().getFullName() : "N/A")
-                            .studentAvatar(reply.getAccount() != null ? reply.getAccount().getAvatar() : null)
-                            .createdAt(reply.getCreatedAt())
-                            .isAuthor(isAuthor)
-                            .build());
-                }
-            }
-            
-            String lessonName = "Bài học không rõ";
-            String courseName = "Khóa học không rõ";
-            
             try {
-                java.util.Optional<com.gnostica.core.model.Lesson> lOpt = lessonRepository.findById(Integer.parseInt(c.getTargetId()));
-                if (lOpt.isPresent()) {
-                    com.gnostica.core.model.Lesson l = lOpt.get();
-                    lessonName = l.getTitle();
-                    if (l.getModule() != null && l.getModule().getCourse() != null) {
-                        courseName = l.getModule().getCourse().getTitle();
+                boolean isAnswered = checkIsAnswered(c.getReplies(), instructorEmail);
+                List<InstructorQuestionReplyDTO> replyDTOs = mapReplies(c.getReplies(), instructorEmail);
+                
+                String lessonName = "Bài học không rõ";
+                String courseName = "Khóa học không rõ";
+                
+                try {
+                    java.util.Optional<com.gnostica.core.model.Lesson> lOpt = lessonRepository.findById(Integer.parseInt(c.getTargetId()));
+                    if (lOpt.isPresent()) {
+                        com.gnostica.core.model.Lesson l = lOpt.get();
+                        lessonName = l.getTitle() != null ? l.getTitle() : lessonName;
+                        if (l.getModule() != null && l.getModule().getCourse() != null) {
+                            courseName = l.getModule().getCourse().getTitle() != null ? l.getModule().getCourse().getTitle() : courseName;
+                        }
                     }
-                }
-            } catch (Exception ignored) {}
-            
-            return InstructorQuestionDTO.builder()
-                    .id(c.getId())
-                    .studentName(c.getAccount() != null ? c.getAccount().getFullName() : "Người dùng ẩn danh")
-                    .studentAvatar(c.getAccount() != null ? c.getAccount().getAvatar() : null)
-                    .courseName(courseName)
-                    .lessonName(lessonName)
-                    .targetId(c.getTargetId())
-                    .content(c.getContent())
-                    .createdAt(c.getCreatedAt())
-                    .status(isAnswered ? "answered" : "unanswered")
-                    .isHidden(c.getStatus() == 0)
-                    .likes(0) // Default to 0 as likes are not stored directly on Comment
-                    .replies(replyDTOs)
-                    .build();
-        }).collect(Collectors.toList());
+                } catch (Exception ignored) {}
+                
+                return InstructorQuestionDTO.builder()
+                        .id(c.getId())
+                        .studentName(c.getAccount() != null ? c.getAccount().getFullName() : "Người dùng ẩn danh")
+                        .studentAvatar(c.getAccount() != null ? c.getAccount().getAvatar() : null)
+                        .courseName(courseName)
+                        .lessonName(lessonName)
+                        .targetId(c.getTargetId())
+                        .content(c.getContent())
+                        .createdAt(c.getCreatedAt())
+                        .status(isAnswered ? "answered" : "unanswered")
+                        .isHidden(Integer.valueOf(0).equals(c.getStatus()))
+                        .likes(0) // Default to 0 as likes are not stored directly on Comment
+                        .replies(replyDTOs)
+                        .build();
+            } catch (Exception e) {
+                e.printStackTrace();
+                return null;
+            }
+        }).filter(java.util.Objects::nonNull).collect(Collectors.toList());
+    }
+
+    private List<InstructorReviewReplyDTO> mapReviewReplies(Review parent, List<Review> allReviews, String instructorEmail) {
+        List<Review> childReviews = allReviews.stream()
+                .filter(child -> child.getParent() != null && child.getParent().getId().equals(parent.getId()))
+                .collect(Collectors.toList());
+        return childReviews.stream().map(child -> InstructorReviewReplyDTO.builder()
+                .id(child.getId())
+                .studentName(child.getAccount() != null ? child.getAccount().getFullName() : "Người dùng")
+                .studentAvatar(child.getAccount() != null ? child.getAccount().getAvatar() : null)
+                .content(child.getComment())
+                .createdAt(child.getCreatedAt())
+                .isAuthor(child.getAccount() != null && instructorEmail.equals(child.getAccount().getEmail()))
+                .replies(mapReviewReplies(child, allReviews, instructorEmail))
+                .build()).collect(Collectors.toList());
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<InstructorReviewDTO> getReviews(String instructorEmail) {
         List<Review> reviews = reviewRepository.findReviewsByInstructorEmail(instructorEmail);
+        List<Review> allReviews = reviewRepository.findAll();
+        
         return reviews.stream().map(r -> {
-            return InstructorReviewDTO.builder()
-                    .id(r.getId())
-                    .studentName(r.getAccount() != null ? r.getAccount().getFullName() : "Người dùng")
-                    .studentAvatar(r.getAccount() != null ? r.getAccount().getAvatar() : null)
-                    .courseName(r.getCourse() != null ? r.getCourse().getTitle() : "")
-                    .rating(r.getRating())
-                    .content(r.getComment())
-                    .createdAt(r.getCreatedAt())
-                    .status("not_responded") 
-                    .build();
-        }).collect(Collectors.toList());
+            try {
+                boolean hasReplies = allReviews.stream().anyMatch(child -> child.getParent() != null && child.getParent().getId().equals(r.getId()));
+                List<InstructorReviewReplyDTO> replyDTOs = mapReviewReplies(r, allReviews, instructorEmail);
+
+                return InstructorReviewDTO.builder()
+                        .id(r.getId())
+                        .studentName(r.getAccount() != null ? r.getAccount().getFullName() : "Người dùng")
+                        .studentAvatar(r.getAccount() != null ? r.getAccount().getAvatar() : null)
+                        .courseName(r.getCourse() != null && r.getCourse().getTitle() != null ? r.getCourse().getTitle() : "")
+                        .rating(r.getRating() != null ? r.getRating() : 0)
+                        .content(r.getComment())
+                        .createdAt(r.getCreatedAt())
+                        .status(hasReplies ? "responded" : "not_responded")
+                        .isAuthor(r.getAccount() != null && instructorEmail.equals(r.getAccount().getEmail()))
+                        .replies(replyDTOs)
+                        .build();
+            } catch (Exception e) {
+                e.printStackTrace();
+                return null;
+            }
+        }).filter(java.util.Objects::nonNull).collect(Collectors.toList());
     }
 }
 

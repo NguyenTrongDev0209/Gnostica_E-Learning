@@ -411,9 +411,16 @@ const CourseDetailReviews = ({ course, slug }) => {
         }
     };
 
-    const renderReviewTree = (reviewList, isChild = false) => {
+    const flattenReviewReplies = (replies, parentAuthorName, depth = 1) => {
+      return replies.flatMap(r => [
+        { ...r, _parentAuthorName: parentAuthorName, _depth: depth },
+        ...flattenReviewReplies(r.replies || [], r.studentName, depth + 1)
+      ]);
+    };
+
+    const renderReviewTree = (reviewList) => {
       return reviewList.map((review) => (
-        <article key={review.id} className={`flex gap-4 py-6 last:pb-0 ${isChild ? 'pl-10 mt-4 border-t border-border/50 pt-4' : ''}`}>
+        <article key={review.id} className="flex gap-4 py-6">
           <Avatar className="h-11 w-11 shrink-0">
             <AvatarImage src={review.studentAvatar} alt={review.studentName} />
             <AvatarFallback>{review.studentName?.charAt(0)?.toUpperCase() || "U"}</AvatarFallback>
@@ -432,23 +439,21 @@ const CourseDetailReviews = ({ course, slug }) => {
                 {review.createdAt ? new Date(review.createdAt).toLocaleDateString("vi-VN") : ""}
               </time>
             </div>
-            {!isChild && (
-              <div className="mt-2 flex gap-1" aria-label={`${review.rating} trên 5 sao`}>
-                {Array.from({ length: 5 }).map((_, index) => (
-                  <Star
-                    key={index}
-                    className={`h-4 w-4 text-warning ${index < Number(review.rating) ? "fill-warning" : "fill-transparent"}`}
-                  />
-                ))}
-              </div>
-            )}
-            <p className="mt-3 text-base leading-6 text-muted-foreground">{review.comment}</p>
+            <div className="mt-2 flex gap-1" aria-label={`${review.rating} trên 5 sao`}>
+              {Array.from({ length: 5 }).map((_, index) => (
+                <Star
+                  key={index}
+                  className={`h-4 w-4 text-warning ${index < Number(review.rating) ? "fill-warning" : "fill-transparent"}`}
+                />
+              ))}
+            </div>
+            <p className="mt-3 text-base leading-6 text-foreground font-semibold">{review.comment}</p>
             
             {/* Nút trả lời */}
             {currentUser && (
               <button 
                 onClick={() => { setReplyingTo(review.id); setReplyComment(""); }} 
-                className="mt-3 text-sm font-medium text-primary hover:underline"
+                className="mt-3 text-sm font-medium text-primary hover:underline block"
               >
                 Trả lời
               </button>
@@ -478,7 +483,7 @@ const CourseDetailReviews = ({ course, slug }) => {
               </div>
             )}
 
-            {/* Render Replies */}
+            {/* Render Replies - flat list with pl-10 only for first level */}
             {review.replies && review.replies.length > 0 && (
               <div className="mt-2">
                 <button 
@@ -488,7 +493,67 @@ const CourseDetailReviews = ({ course, slug }) => {
                   {expandedReplies[review.id] ? "Thu gọn câu trả lời" : `Xem ${review.replies.length} câu trả lời`}
                 </button>
                 {expandedReplies[review.id] && (
-                  renderReviewTree(review.replies, true)
+                  <div className="pl-10 border-t border-border/30">
+                    {flattenReviewReplies(review.replies, review.studentName).map((rep) => (
+                      <div key={rep.id} className="flex gap-4 py-5 border-b border-border/30 last:border-0">
+                        <Avatar className="h-9 w-9 shrink-0">
+                          <AvatarImage src={rep.studentAvatar} alt={rep.studentName} />
+                          <AvatarFallback>{rep.studentName?.charAt(0)?.toUpperCase() || "U"}</AvatarFallback>
+                        </Avatar>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h4 className="text-sm font-bold text-foreground">{rep.studentName || "Người dùng"}</h4>
+                              {(rep.isInstructor || rep.accountId === course?.instructor?.id) && (
+                                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
+                                  Tác giả
+                                </span>
+                              )}
+                              {rep._parentAuthorName && (
+                                <span className="inline-flex items-center rounded-md border border-primary/20 bg-primary/5 px-1.5 py-0.5 text-[11px] font-semibold text-primary">
+                                  trả lời @{rep._parentAuthorName}
+                                </span>
+                              )}
+                            </div>
+                            <time className="text-sm text-muted-foreground">
+                              {rep.createdAt ? new Date(rep.createdAt).toLocaleDateString("vi-VN") : ""}
+                            </time>
+                          </div>
+                          <p className="mt-2 text-sm leading-6 text-foreground font-semibold">{rep.comment}</p>
+                          {currentUser && (
+                            <button
+                              onClick={() => { setReplyingTo(rep.id); setReplyComment(""); }}
+                              className="mt-2 text-sm font-medium text-primary hover:underline block"
+                            >
+                              Trả lời
+                            </button>
+                          )}
+                          {replyingTo === rep.id && (
+                            <div className="mt-4 flex gap-3">
+                              <Avatar className="h-7 w-7 shrink-0">
+                                <AvatarFallback>{currentUser?.fullName?.charAt(0) || "U"}</AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1 space-y-2">
+                                <textarea
+                                  value={replyComment}
+                                  onChange={(e) => setReplyComment(e.target.value)}
+                                  placeholder={`Trả lời @${rep.studentName}...`}
+                                  className="w-full rounded-md border border-border bg-background p-2 text-sm outline-none focus:border-primary"
+                                  rows="2"
+                                />
+                                <div className="mt-3 flex justify-start gap-2">
+                                  <Button variant="ghost" size="sm" onClick={() => setReplyingTo(null)}>Hủy</Button>
+                                  <Button size="sm" onClick={() => handleReplySubmit(rep.id)} disabled={!replyComment.trim() || isSubmittingReply}>
+                                    {isSubmittingReply ? "Đang gửi..." : "Gửi trả lời"}
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
             )}
