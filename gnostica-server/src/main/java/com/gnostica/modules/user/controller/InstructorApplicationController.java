@@ -30,7 +30,7 @@ public class InstructorApplicationController {
         try {
             String email = authentication.getName();
             applicationService.submitApplication(email, request);
-            return ResponseEntity.ok(Map.of("message", "Gửi đơn đăng ký giảng viên thành công. Thông tin CCCD đã được FPT.AI xác thực tự động. Vui lòng chờ admin phê duyệt hồ sơ."));
+            return ResponseEntity.ok(Map.of("message", "Gửi đơn đăng ký giảng viên thành công. Vui lòng chờ admin phê duyệt hồ sơ."));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }

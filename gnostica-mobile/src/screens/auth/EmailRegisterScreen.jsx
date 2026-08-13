@@ -1,7 +1,7 @@
 import AppText from '../../components/ui/AppText';
 import React, { useState } from 'react';
 import { View, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Alert, ActivityIndicator } from 'react-native';
-import { ChevronLeft, Mail, Lock, User } from 'lucide-react-native';
+import { ChevronLeft, Mail, Lock } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
@@ -9,23 +9,18 @@ import authService from '../../services/auth/authService';
 
 const EmailRegisterScreen = () => {
     const navigation = useNavigation();
-    const [fullName, setFullName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [errors, setErrors] = useState({});
 
     const validate = () => {
         const newErrors = {};
-        if (!fullName.trim()) newErrors.fullName = 'Vui lòng nhập họ tên';
         if (!email.trim()) newErrors.email = 'Vui lòng nhập email';
         else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = 'Email không hợp lệ';
 
         if (!password) newErrors.password = 'Vui lòng nhập mật khẩu';
         else if (password.length < 8) newErrors.password = 'Mật khẩu phải có ít nhất 8 ký tự';
-
-        if (password !== confirmPassword) newErrors.confirmPassword = 'Mật khẩu xác nhận không khớp';
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -34,13 +29,16 @@ const EmailRegisterScreen = () => {
     const handleRegister = async () => {
         if (!validate()) return;
 
+        // Backend bắt buộc fullName (@NotBlank) — lấy mặc định từ phần đầu email
+        const fullName = email.trim().split('@')[0] || 'Học viên Gnostica';
+
         setIsLoading(true);
         try {
-            const response = await authService.register(fullName, email, password);
+            await authService.register(fullName, email, password);
             setIsLoading(false);
             Alert.alert(
                 'Thành công',
-                'Đặng ký tài khoản thành công. Vui lòng kiểm tra email để nhận mã xác thực.',
+                'Đăng ký tài khoản thành công. Vui lòng kiểm tra email để nhận mã xác thực.',
                 [{ text: 'OK', onPress: () => navigation.navigate('ConfirmCode', { email }) }]
             );
         } catch (error) {
@@ -69,16 +67,7 @@ const EmailRegisterScreen = () => {
 
                 <View className="space-y-4">
                     <Input
-                        label="Họ và tên"
-                        placeholder="Nguyễn Văn A"
-                        value={fullName}
-                        onChangeText={setFullName}
-                        error={errors.fullName}
-                        icon={User}
-                    />
-
-                    <Input
-                        label="Email (Gmail)"
+                        label="Email"
                         placeholder="example@gmail.com"
                         value={email}
                         onChangeText={setEmail}
@@ -86,6 +75,7 @@ const EmailRegisterScreen = () => {
                         keyboardType="email-address"
                         autoCapitalize="none"
                         icon={Mail}
+                        className="h-14"
                     />
 
                     <Input
@@ -96,32 +86,26 @@ const EmailRegisterScreen = () => {
                         error={errors.password}
                         secureTextEntry
                         icon={Lock}
-                    />
-
-                    <Input
-                        label="Xác nhận mật khẩu"
-                        placeholder="••••••••"
-                        value={confirmPassword}
-                        onChangeText={setConfirmPassword}
-                        error={errors.confirmPassword}
-                        secureTextEntry
-                        icon={Lock}
+                        containerClassName="mt-3"
+                        className="h-14"
                     />
                 </View>
 
                 <Button
                     variant="primary"
-                    className="mt-8 py-4"
+                    className="mt-8 h-14"
                     onPress={handleRegister}
                     disabled={isLoading}
                 >
                     {isLoading ? <ActivityIndicator color="white" /> : 'Đăng ký'}
                 </Button>
 
-                <View className="flex-row justify-center mt-6 mb-10">
-                    <AppText className="text-slate-500">Đã có tài khoản? </AppText>
-                    <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-                        <AppText className="text-blue-600 font-bold">Đăng nhập</AppText>
+                <View className="mt-2 mb-10">
+                    <TouchableOpacity
+                        onPress={() => navigation.navigate('EmailLogin')}
+                        className="items-center justify-center py-2"
+                    >
+                        <AppText className="text-blue-600 font-semibold text-sm">Đã có tài khoản</AppText>
                     </TouchableOpacity>
                 </View>
             </ScrollView>

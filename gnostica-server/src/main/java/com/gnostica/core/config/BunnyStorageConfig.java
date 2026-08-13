@@ -11,5 +11,4 @@ public class BunnyStorageConfig {
     private String zoneName;
     private String apiKey;
     private String region;
-    private String pullZone;
 }

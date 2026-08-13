@@ -69,7 +69,7 @@ const EmailLoginScreen = () => {
 
                 <View className="space-y-4">
                     <Input
-                        label="Email (Gmail)"
+                        label="Email"
                         placeholder="example@gmail.com"
                         value={email}
                         onChangeText={setEmail}
@@ -77,6 +77,7 @@ const EmailLoginScreen = () => {
                         keyboardType="email-address"
                         autoCapitalize="none"
                         icon={Mail}
+                        className="h-14"
                     />
 
                     <Input
@@ -87,6 +88,8 @@ const EmailLoginScreen = () => {
                         error={errors.password}
                         secureTextEntry
                         icon={Lock}
+                        containerClassName="mt-3"
+                        className="h-14"
                     />
 
                     <TouchableOpacity
@@ -99,17 +102,19 @@ const EmailLoginScreen = () => {
 
                 <Button
                     variant="primary"
-                    className="mt-8 py-4"
+                    className="mt-8 h-14"
                     onPress={handleLogin}
                     disabled={isLoading}
                 >
                     {isLoading ? <ActivityIndicator color="white" /> : 'Đăng nhập'}
                 </Button>
 
-                <View className="flex-row justify-center mt-6 mb-10">
-                    <AppText className="text-slate-500">Chưa có tài khoản? </AppText>
-                    <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-                        <AppText className="text-blue-600 font-bold">Đăng ký ngay</AppText>
+                <View className="mt-2 mb-10">
+                    <TouchableOpacity
+                        onPress={() => navigation.navigate('EmailRegister')}
+                        className="items-center justify-center py-2"
+                    >
+                        <AppText className="text-blue-600 font-semibold text-sm">Chưa có tài khoản?</AppText>
                     </TouchableOpacity>
                 </View>
             </ScrollView>

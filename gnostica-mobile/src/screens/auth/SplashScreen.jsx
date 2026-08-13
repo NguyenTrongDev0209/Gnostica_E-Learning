@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Animated, Dimensions, StatusBar } from 'react-native';
+import { View, Image, Animated, Dimensions, StatusBar } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import AppText from '../../components/ui/AppText';
 
@@ -105,52 +105,18 @@ const SplashScreen = ({ onFinish }) => {
                     alignItems: 'center',
                 }}>
                     {/* Logo icon */}
-                    <View style={{
-                        width: 100,
-                        height: 100,
-                        borderRadius: 28,
-                        backgroundColor: 'rgba(255,255,255,0.15)',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        borderWidth: 2,
-                        borderColor: 'rgba(255,255,255,0.3)',
-                        marginBottom: 24,
-                    }}>
-                        <LinearGradient
-                            colors={['rgba(255,255,255,0.25)', 'rgba(255,255,255,0.1)']}
-                            style={{
-                                width: 72,
-                                height: 72,
-                                borderRadius: 18,
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                            }}
-                        >
-                            {/* Letter G */}
-                            <AppText style={{
-                                fontSize: 42,
-                                fontFamily: 'Inter_700Bold',
-                                color: '#ffffff',
-                                lineHeight: 50,
-                            }}>G</AppText>
-                        </LinearGradient>
-                    </View>
+                    <Image
+                        source={require('../../assets/images/Gnostica_Mark.webp')}
+                        style={{ width: 150, height: 36, marginBottom: 24 }}
+                        resizeMode="contain"
+                    />
 
-                    {/* Brand name */}
+                    {/* Brand name: logo đã có chữ, bỏ chữ trắng trùng lặp */}
                     <Animated.View style={{
                         opacity: textOpacity,
                         transform: [{ translateY: textTranslateY }],
                         alignItems: 'center',
                     }}>
-                        <AppText style={{
-                            fontSize: 38,
-                            fontFamily: 'Inter_700Bold',
-                            color: '#ffffff',
-                            letterSpacing: 1,
-                        }}>
-                            Gnostica
-                        </AppText>
-
                         {/* Tagline */}
                         <Animated.View style={{ opacity: taglineOpacity, marginTop: 8, alignItems: 'center' }}>
                             <View style={{

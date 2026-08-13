@@ -1,1 +1,4 @@
+# Spring Boot 4 loads EnvironmentPostProcessor implementations from this file
+# (the META-INF/spring/<type>.imports mechanism from Spring Boot 3 is NOT read
+# for EnvironmentPostProcessor in Spring Boot 4).
 org.springframework.boot.env.EnvironmentPostProcessor=com.gnostica.core.config.DotenvEnvironmentPostProcessor
