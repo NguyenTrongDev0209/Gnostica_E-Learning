@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import jakarta.validation.Valid;
 
 import java.util.Map;
 
@@ -74,7 +75,7 @@ public class AccountController {
     }
 
     @PostMapping("/change-password")
-    public ResponseEntity<?> changePassword(@RequestBody com.gnostica.modules.auth.dto.request.ChangePasswordRequest request, org.springframework.security.core.Authentication authentication) {
+    public ResponseEntity<?> changePassword(@Valid @RequestBody com.gnostica.modules.auth.dto.request.ChangePasswordRequest request, org.springframework.security.core.Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(401).body(ResponseDTO.builder()
                     .status(401)

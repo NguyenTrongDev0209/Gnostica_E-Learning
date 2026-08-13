@@ -94,13 +94,21 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     account.setAvatar(picture);
                 }
                 
-                // Nếu tài khoản tồn tại nhưng chưa có provider hoặc là LOCAL/rỗng, tự động liên kết với Google
-                if (account.getProvider() == null || account.getProvider().isEmpty() || "LOCAL".equalsIgnoreCase(account.getProvider())) {
-                    System.out.println("DEBUG: Account exists, linking provider to " + provider + " for: " + email);
-                    account.setProvider(provider);
-                } else if (!account.getProvider().equalsIgnoreCase(provider)) {
-                    System.out.println("DEBUG: Account linked to another provider: " + account.getProvider());
-                    throw new OAuth2AuthenticationException("Tài khoản đã được liên kết với " + account.getProvider());
+                String existingProvider = account.getProvider();
+
+                if (existingProvider == null
+                        || existingProvider.isBlank()
+                        || "LOCAL".equalsIgnoreCase(existingProvider)) {
+                    throw new OAuth2AuthenticationException(
+                        "Tài khoản này đã được đăng ký trước đó bằng email và mật khẩu. "
+                        + "Vui lòng sử dụng phương thức đăng nhập ban đầu."
+                    );
+                }
+
+                if (!existingProvider.equalsIgnoreCase(provider)) {
+                    throw new OAuth2AuthenticationException(
+                        "Tài khoản này đã được đăng ký bằng " + existingProvider + "."
+                    );
                 }
 
                 account.setStatus(1);
