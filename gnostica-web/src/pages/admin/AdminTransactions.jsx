@@ -325,7 +325,7 @@ function TransactionTable({ transactions, isLoading, onDetailClick, startIndex =
       case 2: return <AppBadge variant="success" className="w-[110px] justify-center px-2.5 py-1">{label || "Thành công"}</AppBadge>;
       case 1: return <AppBadge variant="secondary" className="w-[110px] justify-center px-2.5 py-1">{label || "Chờ xử lý"}</AppBadge>;
       case 3: return <AppBadge variant="error" className="w-[110px] justify-center px-2.5 py-1">{label || "Thất bại"}</AppBadge>;
-      case 4: return <AppBadge variant="outline" className="w-[110px] justify-center px-2.5 py-1">{label || "Đã hoàn tiền"}</AppBadge>;
+      case 4: return <AppBadge variant="primary" className="w-[110px] justify-center px-2.5 py-1">{label || "Đã hoàn tiền"}</AppBadge>;
       default: return <AppBadge variant="outline" className="w-[110px] justify-center px-2.5 py-1">{label || "Không rõ"}</AppBadge>;
     }
   };
@@ -337,16 +337,20 @@ function TransactionTable({ transactions, isLoading, onDetailClick, startIndex =
           columns={[
             {
               header: "STT",
-              width: "72px",
-              className: "py-4",
-              cellClassName: "font-bold text-muted-foreground py-4 text-center",
+              width: "70px",
+              align: "center",
+              headerAlign: "center",
+              className: "py-4 pl-4",
+              cellClassName: "text-sm font-medium text-muted-foreground py-4 text-center pl-4",
               render: (_, index) => startIndex + index + 1,
             },
             {
               header: "Mã giao dịch",
               width: "180px",
+              align: "center",
+              headerAlign: "center",
               className: "py-4 whitespace-nowrap",
-              cellClassName: "text-sm font-bold text-foreground py-4 text-center whitespace-nowrap",
+              cellClassName: "text-sm font-medium text-foreground py-4 text-center whitespace-nowrap",
               render: (tx) => tx.transactionCode ?? "N/A",
             },
             {

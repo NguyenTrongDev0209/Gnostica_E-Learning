@@ -132,7 +132,7 @@ public class PaymentService {
         }
 
         Payment payment = new Payment();
-        payment.setTransactionCode(data.getTransactionCode());
+        payment.setPaymentCode(String.valueOf(order.getOrderCode()));
         payment.setAmount(BigDecimal.valueOf(data.getAmount()));
         if ("PAID".equals(data.getStatus())) {
             payment.setStatus(PaymentStatus.SUCCESS);
@@ -159,7 +159,7 @@ public class PaymentService {
         }
 
         Payment payment = new Payment();
-        payment.setTransactionCode(link.getTransactionCode());
+        payment.setPaymentCode(String.valueOf(order.getOrderCode()));
         payment.setAmount(BigDecimal.valueOf(link.getAmount()));
         payment.setStatus("PAID".equals(link.getStatus()) ? PaymentStatus.SUCCESS : PaymentStatus.FAILED);
         payment.setOrder(order);

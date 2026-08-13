@@ -77,7 +77,7 @@ const RefundScreen = () => {
                             >
                                 {/* Top: Order ID + Status */}
                                 <View className="flex-row justify-between items-center mb-3">
-                                    <AppText className="text-xs text-slate-400 font-medium">Đơn: #{refund.orderCode}</AppText>
+                                    <AppText className="text-xs text-slate-400 font-medium">Đơn: {refund.refundCode ? `HT-${refund.refundCode}` : `#${refund.orderCode}`}</AppText>
                                     <View className={`px-2.5 py-1 rounded-lg ${statusObj.bg} border ${statusObj.border}`}>
                                         <AppText className={`text-[10px] font-bold uppercase ${statusObj.text}`}>
                                             {statusObj.label}

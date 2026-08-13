@@ -17,4 +17,6 @@ public class InstructorQuestionReplyDTO {
     private String studentAvatar;
     private LocalDateTime createdAt;
     private Boolean isAuthor; // Xác định nếu trả lời là của giảng viên
+    private Boolean isHidden;
+    private java.util.List<InstructorQuestionReplyDTO> replies;
 }

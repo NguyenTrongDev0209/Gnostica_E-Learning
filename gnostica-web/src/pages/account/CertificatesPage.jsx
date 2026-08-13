@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import AppCard, { AppCardContent } from "@/components/common/micro/AppCard";
 import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
 import AppPageHeader from "@/components/common/composite/AppPageHeader";
@@ -11,11 +11,13 @@ import {
   Share2,
   Trophy,
   ExternalLink,
+  BookOpen,
 } from "lucide-react";
 import { AppButton } from "@/components/common/micro/AppButton";
 
 export default function Certificates() {
   const { certificates, loading } = useCertificates();
+  const navigate = useNavigate();
 
   return (
     <div>
@@ -67,10 +69,12 @@ export default function Certificates() {
                 <div className="p-6 flex-1 flex flex-col justify-between">
                   <div>
                     <div className="flex justify-between items-start gap-4 mb-2">
-                      <h3 className="font-bold text-lg text-foreground line-clamp-2">{cert.title}</h3>
-                      <Link to={`/courses/${cert.courseId}`} title="Xem khóa học">
-                        <ExternalLink className="w-4 h-4 text-muted-foreground hover:text-primary transition-colors cursor-pointer" />
-                      </Link>
+                       <h3 className="font-bold text-lg text-foreground line-clamp-2">{cert.title}</h3>
+                       {cert.courseSlug ? (
+                         <Link to={`/courses/${cert.courseSlug}`} title="Xem khóa học">
+                           <ExternalLink className="w-4 h-4 text-muted-foreground hover:text-primary transition-colors cursor-pointer" />
+                         </Link>
+                       ) : null}
                     </div>
                     
                     <div className="space-y-1.5 text-sm text-muted-foreground">
@@ -79,8 +83,11 @@ export default function Certificates() {
                         <span className="font-semibold text-foreground">{cert.instructor}</span>
                       </p>
                       <p className="flex justify-between">
-                        <span className="text-muted-foreground">Thời lượng:</span>
-                        <strong className="text-foreground">{cert.hours}</strong>
+                        <span className="text-muted-foreground">Số bài học:</span>
+                        <span className="font-semibold text-foreground flex items-center gap-1">
+                          <BookOpen className="w-3.5 h-3.5" />
+                          {cert.totalLessons > 0 ? `${cert.totalLessons} bài` : "---"}
+                        </span>
                       </p>
                       <p className="flex justify-between">
                         <span className="text-muted-foreground">Xếp loại:</span>
@@ -90,20 +97,30 @@ export default function Certificates() {
                         <span className="text-muted-foreground">Cấp ngày:</span>
                         <span className="font-medium text-foreground">{cert.issueDate}</span>
                       </p>
-                      <p className="flex justify-between">
-                        <span className="text-muted-foreground">Mã CC:</span>
-                        <span className="text-xs font-mono font-medium bg-secondary px-1.5 py-0.5 rounded text-foreground">{cert.id}</span>
-                      </p>
+
                     </div>
                   </div>
 
                   {/* Actions */}
                   <div className="flex items-center gap-3 mt-6 pt-4 border-t border-border">
-                    <AppButton appVariant="gradient" className="flex-1 font-bold text-sm gap-2">
+                    <AppButton
+                      appVariant="gradient"
+                      className="flex-1 font-bold text-sm gap-2"
+                      onClick={() => navigate(`/certificate/${cert.certUrl}`)}
+                    >
                       <Download className="w-4 h-4" />
-                      Tải PDF
+                      Xem &amp; Tải PDF
                     </AppButton>
-                    <AppButton appVariant="ghostMuted" variant="ghost" className="px-4 text-muted-foreground hover:text-primary hover:bg-primary/5 transition-colors border border-border">
+                    <AppButton
+                      appVariant="ghostMuted"
+                      variant="ghost"
+                      className="px-4 text-muted-foreground hover:text-primary hover:bg-primary/5 transition-colors border border-border"
+                      onClick={() => {
+                        const url = `${window.location.origin}/certificate/${cert.certUrl}`;
+                        navigator.clipboard.writeText(url);
+                      }}
+                      title="Sao chép đường dẫn"
+                    >
                       <Share2 className="w-4 h-4" />
                     </AppButton>
                   </div>

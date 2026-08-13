@@ -94,12 +94,24 @@ public class DeepSeekAiService {
         body.put("model", model);
         body.put("messages", messages);
         body.put("temperature", 0.3);
-        body.put("max_tokens", 3000);
+        body.put("max_tokens", 8192);
 
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
 
         log.info("Sending request to DeepSeek to generate {} questions.", count);
-        ResponseEntity<Map> response = restTemplate.postForEntity(url, entity, Map.class);
+        ResponseEntity<Map> response;
+        try {
+            response = restTemplate.postForEntity(url, entity, Map.class);
+        } catch (org.springframework.web.client.HttpServerErrorException e) {
+            log.error("DeepSeek API server error: {}", e.getResponseBodyAsString(), e);
+            throw new RuntimeException("Dịch vụ AI hiện đang quá tải hoặc gặp sự cố. Vui lòng thử lại sau ít phút.");
+        } catch (org.springframework.web.client.HttpClientErrorException e) {
+            log.error("DeepSeek API client error: {}", e.getResponseBodyAsString(), e);
+            throw new RuntimeException("Lỗi cấu hình AI hoặc API Key không hợp lệ. Vui lòng liên hệ quản trị viên.");
+        } catch (Exception e) {
+            log.error("Unexpected error calling DeepSeek AI", e);
+            throw new RuntimeException("Không thể kết nối đến dịch vụ AI. Vui lòng thử lại sau.");
+        }
         
         if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
             List<Map<String, Object>> choices = (List<Map<String, Object>>) response.getBody().get("choices");
@@ -115,6 +127,15 @@ public class DeepSeekAiService {
                     content = content.substring(0, content.lastIndexOf("```"));
                 }
                 content = content.trim();
+                
+                // Auto-fix truncated JSON array to prevent parsing errors
+                if (!content.endsWith("]")) {
+                    int lastBrace = content.lastIndexOf("}");
+                    if (lastBrace != -1) {
+                        content = content.substring(0, lastBrace + 1) + "]";
+                        log.warn("JSON response was truncated. Auto-fixed by closing the array.");
+                    }
+                }
                 
                 log.info("Received generated JSON from DeepSeek AI.");
                 try {

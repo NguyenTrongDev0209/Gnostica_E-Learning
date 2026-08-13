@@ -52,7 +52,7 @@ export default function useRefunds() {
 
           return {
             id: refund.id,
-            orderCode: refund.orderCode || "N/A",
+            orderCode: refund.refundCode ? `HT-${refund.refundCode}` : (refund.orderCode || "N/A"),
             date: refund.createdAt ? new Date(refund.createdAt).toLocaleDateString("vi-VN") : "N/A",
             courseName: refund.courseTitle || "Khóa học",
             amount: formatCurrency(refund.amount),

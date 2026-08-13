@@ -170,24 +170,25 @@ export default function WithdrawalModerationList() {
           {
             header: "STT",
             sortable: false,
-            width: "60px",
+            width: "70px",
             align: "center",
             headerAlign: "center",
-            className: "py-4 whitespace-nowrap",
-            cellClassName: "text-sm font-bold text-foreground py-4 text-center whitespace-nowrap",
-            render: (_t, rowIndex) => (pagination.page * pagination.size) + rowIndex + 1,
+            className: "py-4 pl-4 whitespace-nowrap",
+            cellClassName: "font-bold text-muted-foreground py-4 text-center pl-4 whitespace-nowrap",
+            render: (_t, rowIndex) => ((pagination?.page || 0) * (pagination?.size || 10)) + rowIndex + 1,
           },
           {
             header: "Mã GD",
-            width: "120px",
+            width: "140px",
             align: "center",
             headerAlign: "center",
-            cellClassName: "text-center py-4",
-            render: (t) => <span className="text-sm font-bold text-muted-foreground">{t.transactionCode}</span>,
+            className: "py-4 whitespace-nowrap",
+            cellClassName: "text-sm font-medium py-4 text-center whitespace-nowrap",
+            render: (t) => t.transactionCode ? <span className="text-foreground text-center">RT{t.transactionCode}</span> : <span className="text-muted-foreground italic text-xs">(N/A)</span>,
           },
           {
             header: "Giảng viên",
-            width: "220px",
+            width: "180px",
             align: "left",
             headerAlign: "left",
             cellClassName: "py-4",
@@ -241,15 +242,18 @@ export default function WithdrawalModerationList() {
           },
           {
             header: "Ngày yêu cầu",
-            width: "140px",
+            width: "120px",
             align: "center",
             headerAlign: "center",
-            cellClassName: "text-center py-4",
-            render: (t) => (
-              <span className="text-xs text-muted-foreground">
-                {t.createdAt ? new Date(t.createdAt).toLocaleDateString("vi-VN") : "—"}
-              </span>
-            ),
+            className: "py-4 whitespace-nowrap",
+            cellClassName: "text-sm text-foreground font-medium py-4 text-center whitespace-nowrap",
+            render: (t) => {
+               if (!t.createdAt) return <span className="text-muted-foreground italic text-xs">(Không rõ)</span>;
+               const d = new Date(t.createdAt);
+               const time = d.toLocaleTimeString("vi-VN", { hour: '2-digit', minute: '2-digit' });
+               const date = d.toLocaleDateString("vi-VN", { day: '2-digit', month: '2-digit', year: 'numeric' });
+               return `${time} ${date}`;
+            },
           },
           {
             header: "Thao tác",

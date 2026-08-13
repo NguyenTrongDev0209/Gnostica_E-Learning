@@ -159,6 +159,9 @@ export default function GiftResponsePage() {
                                 <div>
                                     <h3 className="font-bold text-xl leading-tight text-foreground">{gift.courseTitle}</h3>
                                     <p className="text-sm text-muted-foreground mt-1">Trị giá: <span className="font-bold text-primary">{gift.coursePrice?.toLocaleString('vi-VN')} đ</span></p>
+                                    {gift.giftCode && (
+                                        <p className="text-xs text-muted-foreground mt-1">Mã quà: <span className="font-mono font-bold text-foreground">TG-{gift.giftCode}</span></p>
+                                    )}
                                 </div>
 
                                 {gift.message && (

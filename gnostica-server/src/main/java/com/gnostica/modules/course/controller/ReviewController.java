@@ -38,4 +38,18 @@ public class ReviewController {
         Map<String, Object> response = reviewService.getCourseReviews(slug);
         return ResponseEntity.ok(new ResponseDTO<>(200, "Success", response));
     }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ResponseDTO<String>> updateReview(@PathVariable Integer id, @RequestBody Map<String, String> request, Principal principal) {
+        reviewService.updateReview(id, request.get("content"), principal.getName());
+        return ResponseEntity.ok(new ResponseDTO<>(200, "Review updated successfully", null));
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ResponseDTO<String>> deleteReview(@PathVariable Integer id, Principal principal) {
+        reviewService.deleteReview(id, principal.getName());
+        return ResponseEntity.ok(new ResponseDTO<>(200, "Review deleted successfully", null));
+    }
 }

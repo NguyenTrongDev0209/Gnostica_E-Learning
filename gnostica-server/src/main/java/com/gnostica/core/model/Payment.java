@@ -32,7 +32,7 @@ public class Payment {
     @NotBlank
     @Size(max = 255)
     @Column
-    private String transactionCode;
+    private String paymentCode;
 
     @NotNull
     @Min(0)

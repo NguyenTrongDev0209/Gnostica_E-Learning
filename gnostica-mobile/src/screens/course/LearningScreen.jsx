@@ -836,6 +836,7 @@ const LearningScreen = () => {
                                     style={{ width, height: width * 0.5625 }}
                                     source={activeLesson?.videoUrl || playerSource}
                                     fallbackSource={videoSource}
+                                    embedUrl={playback.embedSource}
                                     requestHeaders={BUNNY_PLAYBACK_HEADERS}
                                     autoplay
                                 />

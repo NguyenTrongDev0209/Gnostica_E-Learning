@@ -157,4 +157,27 @@ public class ReviewServiceImpl implements ReviewService {
                 .isInstructor(review.getAccount().getId().equals(instructorId))
                 .build();
     }
+
+    @Override
+    public void updateReview(Integer id, String content, String email) {
+        Review review = reviewRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Review not found"));
+        if (!review.getAccount().getEmail().equals(email)) {
+            throw new IllegalArgumentException("Không có quyền sửa phản hồi này");
+        }
+        review.setComment(content);
+        reviewRepository.save(review);
+    }
+
+    @Override
+    public void deleteReview(Integer id, String email) {
+        Review review = reviewRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Review not found"));
+        if (!review.getAccount().getEmail().equals(email)) {
+            throw new IllegalArgumentException("Không có quyền xóa phản hồi này");
+        }
+        // Soft delete
+        review.setDeletedAt(java.time.LocalDateTime.now());
+        reviewRepository.save(review);
+    }
 }

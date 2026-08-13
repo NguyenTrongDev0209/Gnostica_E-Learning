@@ -1795,7 +1795,11 @@ function AdminUserDetail({ user, onBack, isInstructorContext }) {
                   header: "Mã GD",
                   width: "160px",
                   className: "text-center",
-                  render: (c) => <div className="text-center w-full font-bold text-foreground">{c.id}</div>
+                  render: (c) => {
+                    const code = c.transactionCode || c.id;
+                    const display = /^\d{12}$/.test(code) ? `RT-${code}` : code;
+                    return <div className="text-center w-full font-bold text-foreground">{display}</div>;
+                  }
                 },
                 { 
                   header: "Ngân hàng",

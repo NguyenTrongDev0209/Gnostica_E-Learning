@@ -19,4 +19,6 @@ public class InstructorReviewDTO {
     private String content;
     private LocalDateTime createdAt;
     private String status; // responded | not_responded
+    private Boolean isAuthor;
+    private java.util.List<InstructorReviewReplyDTO> replies;
 }

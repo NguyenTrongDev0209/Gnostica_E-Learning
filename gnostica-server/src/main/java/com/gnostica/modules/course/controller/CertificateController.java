@@ -20,6 +20,13 @@ public class CertificateController {
     private final EnrollmentRepository enrollmentRepository;
     private final com.gnostica.core.repository.AccountRepository accountRepository;
 
+    private int countLessons(com.gnostica.core.model.Course course) {
+        if (course == null || course.getModules() == null) return 0;
+        return course.getModules().stream()
+                .mapToInt(m -> m.getLessons() != null ? m.getLessons().size() : 0)
+                .sum();
+    }
+
     @GetMapping("/my-certificates")
     public ResponseEntity<java.util.List<CertificateDTO>> getMyCertificates(org.springframework.security.core.Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
@@ -31,10 +38,12 @@ public class CertificateController {
                             .map(enrollment -> CertificateDTO.builder()
                                     .certificateUrl(enrollment.getCertificateUrl())
                                     .courseTitle(enrollment.getCourse() != null ? enrollment.getCourse().getTitle() : "Unknown Course")
+                                    .courseSlug(enrollment.getCourse() != null ? enrollment.getCourse().getSlug() : null)
                                     .studentName(enrollment.getAccount() != null ? enrollment.getAccount().getFullName() : "Unknown Student")
                                     .instructorName(enrollment.getCourse() != null && enrollment.getCourse().getAccount() != null 
                                             ? enrollment.getCourse().getAccount().getFullName() : "Unknown Instructor")
                                     .completedAt(enrollment.getCompletedAt())
+                                    .totalLessons(countLessons(enrollment.getCourse()))
                                     .build())
                             .collect(java.util.stream.Collectors.toList());
                     return ResponseEntity.ok(dtos);
@@ -49,10 +58,12 @@ public class CertificateController {
                     CertificateDTO dto = CertificateDTO.builder()
                             .certificateUrl(enrollment.getCertificateUrl())
                             .courseTitle(enrollment.getCourse() != null ? enrollment.getCourse().getTitle() : "Unknown Course")
+                            .courseSlug(enrollment.getCourse() != null ? enrollment.getCourse().getSlug() : null)
                             .studentName(enrollment.getAccount() != null ? enrollment.getAccount().getFullName() : "Unknown Student")
                             .instructorName(enrollment.getCourse() != null && enrollment.getCourse().getAccount() != null 
                                     ? enrollment.getCourse().getAccount().getFullName() : "Unknown Instructor")
                             .completedAt(enrollment.getCompletedAt())
+                            .totalLessons(countLessons(enrollment.getCourse()))
                             .build();
                     return ResponseEntity.ok(dto);
                 })
