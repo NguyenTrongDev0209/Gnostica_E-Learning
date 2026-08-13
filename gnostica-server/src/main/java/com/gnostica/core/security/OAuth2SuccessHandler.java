@@ -63,6 +63,20 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         // Chuyển hướng kèm theo Token và Email
         String redirectUri = request.getParameter("redirect_uri");
         if (redirectUri == null || redirectUri.isBlank()) {
+            // Mobile flow: the redirect_uri=gnostica://auth/callback sent at the
+            // authorization step is preserved in the session by
+            // MobileAwareAuthorizationRequestResolver (Spring Security does not
+            // forward the raw query parameter to this callback).
+            jakarta.servlet.http.HttpSession session = request.getSession(false);
+            if (session != null) {
+                Object saved = session.getAttribute(
+                        com.gnostica.core.security.MobileAwareAuthorizationRequestResolver.SESSION_MOBILE_REDIRECT_URI);
+                if (saved instanceof String) {
+                    redirectUri = (String) saved;
+                }
+            }
+        }
+        if (redirectUri == null || redirectUri.isBlank()) {
             redirectUri = publicUrl + "/auth/callback";
         } else if (!redirectUri.equals(publicUrl + "/auth/callback") && !redirectUri.equals(mobileOAuthRedirectUri)) {
             redirectUri = publicUrl + "/auth/callback";

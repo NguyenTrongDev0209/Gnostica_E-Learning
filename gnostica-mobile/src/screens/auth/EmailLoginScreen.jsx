@@ -106,12 +106,7 @@ const EmailLoginScreen = () => {
                     {isLoading ? <ActivityIndicator color="white" /> : 'Đăng nhập'}
                 </Button>
 
-                <View className="flex-row justify-center mt-6 mb-10">
-                    <AppText className="text-slate-500">Chưa có tài khoản? </AppText>
-                    <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-                        <AppText className="text-blue-600 font-bold">Đăng ký ngay</AppText>
-                    </TouchableOpacity>
-                </View>
+                <View className="mt-6 mb-10" />
             </ScrollView>
         </KeyboardAvoidingView>
     );

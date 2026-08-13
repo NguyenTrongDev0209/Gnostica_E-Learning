@@ -28,6 +28,7 @@ public class SecurityConfig {
         private final com.gnostica.core.security.CustomOAuth2UserService oauth2UserService;
         private final com.gnostica.core.security.OAuth2SuccessHandler oauth2SuccessHandler;
         private final com.gnostica.core.security.OAuth2FailureHandler oauth2FailureHandler;
+        private final com.gnostica.core.security.MobileAwareAuthorizationRequestResolver oauth2AuthorizationRequestResolver;
         private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
         @Value("${app.cors.allowed-origin-patterns}")

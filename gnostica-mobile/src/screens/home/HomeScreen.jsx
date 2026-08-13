@@ -182,7 +182,7 @@ const HomeScreen = () => {
 
                 <TouchableOpacity
                     className="w-[38px] h-[38px] rounded-[19px] bg-blue-600 border border-blue-600 items-center justify-center"
-                    onPress={() => navigation.navigate(isAuthenticated ? 'Profile' : 'Register')}
+                    onPress={() => navigation.navigate(isAuthenticated ? 'Profile' : 'Login')}
                 >
                     <User size={22} color="#ffffff" />
                 </TouchableOpacity>
@@ -364,7 +364,7 @@ const HomeScreen = () => {
                         </View>
                         <TouchableOpacity
                             className="bg-white px-4 py-2.5 rounded-xl"
-                            onPress={() => navigation.navigate('Register')}
+                            onPress={() => navigation.navigate('Login')}
                         >
                             <AppText className="text-slate-900 font-bold text-xs">Tìm hiểu</AppText>
                         </TouchableOpacity>
