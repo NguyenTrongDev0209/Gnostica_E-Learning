@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Copy, Edit, Eye, Plus, RotateCw, Ticket, Trash2 } from 'lucide-react';
+import { Copy, Edit, Eye, Plus, Power, Ticket, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import DataTable from '@/components/common/composite/DataTable';
@@ -152,9 +152,9 @@ export function CouponManagementPage({ title, description, adminLayout = false, 
       header: 'Thao tác', align: 'center', headerAlign: 'center', className: 'py-4 whitespace-nowrap', cellClassName: 'py-4 text-center whitespace-nowrap',
       render: (coupon) => (
         <div className="flex items-center justify-center gap-2">
-          <AppButton appVariant="ghostMuted" appSize="sm" className="w-9 p-0 bg-info text-white hover:bg-info/90" title="Chỉnh sửa" onClick={() => openEditForm(coupon)}><Edit className="size-4" /></AppButton>
-          <AppButton appVariant="ghostMuted" appSize="sm" className="w-9 p-0 bg-success text-white hover:bg-success/90" title="Bật hoặc tắt" onClick={() => toggleCouponStatus(coupon)}><RotateCw className="size-4" /></AppButton>
-          <AppButton appVariant="ghostMuted" appSize="sm" className="w-9 p-0 bg-error text-white hover:bg-error/90" title="Xóa" onClick={() => setCouponToDelete(coupon)}><Trash2 className="size-4" /></AppButton>
+          <AppButton appVariant="ghostMuted" appSize="sm" className="w-9 p-0 bg-info text-white hover:bg-info/90 disabled:opacity-50" title={coupon.usedCount > 0 ? "Không thể sửa khi đã có lượt dùng" : "Chỉnh sửa"} disabled={coupon.usedCount > 0} onClick={() => openEditForm(coupon)}><Edit className="size-4" /></AppButton>
+          <AppButton appVariant="ghostMuted" appSize="sm" className="w-9 p-0 bg-success text-white hover:bg-success/90" title="Bật hoặc tắt" onClick={() => toggleCouponStatus(coupon)}><Power className="size-4" /></AppButton>
+          <AppButton appVariant="ghostMuted" appSize="sm" className="w-9 p-0 bg-error text-white hover:bg-error/90 disabled:opacity-50" title={coupon.usedCount > 0 ? "Không thể xóa khi đã có lượt dùng" : "Xóa"} disabled={coupon.usedCount > 0} onClick={() => setCouponToDelete(coupon)}><Trash2 className="size-4" /></AppButton>
         </div>
       ),
     }] : [{

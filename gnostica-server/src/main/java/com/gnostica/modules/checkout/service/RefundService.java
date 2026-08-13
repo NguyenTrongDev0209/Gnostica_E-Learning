@@ -83,10 +83,8 @@ public class RefundService {
         }
 
         List<OrderDetail> allDetails = orderDetailRepository.findByOrder(order);
+        // Cho phép hoàn tiền cả đơn 0đ (miễn phí/coupon 100%) — vẫn ghi refund + wallet để đối soát.
         BigDecimal amountPaid = OrderPriceCalculator.amountPaidForDetail(order, detail, allDetails);
-        if (amountPaid.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Không thể hoàn tiền cho đơn hàng 0đ");
-        }
 
         if (refundRepository.existsByOrderDetailIdAndStatusIn(detail.getId(), List.of(RefundStatus.PENDING, RefundStatus.APPROVED))) {
             throw new IllegalArgumentException("Đã tồn tại yêu cầu hoàn tiền đang xử lý hoặc đã duyệt");

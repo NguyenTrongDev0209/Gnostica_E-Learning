@@ -52,6 +52,13 @@ const CheckoutScreen = () => {
     const subtotal = course ? parsePrice(course.price) : 0;
     const total = Math.max(0, subtotal - discount);
 
+    // Đơn 0đ (miễn phí/coupon 100%): chỉ dùng Ví, disable PayOS
+    React.useEffect(() => {
+        if (total === 0 && paymentMethod !== 'WALLET') {
+            setPaymentMethod('WALLET');
+        }
+    }, [total, paymentMethod]);
+
     const handleApplyVoucher = async () => {
         if (!voucherCode) return;
         try {
@@ -211,7 +218,8 @@ const CheckoutScreen = () => {
                             </AppText>
                             <View className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
                                 <TouchableOpacity 
-                                    className={`flex-row items-center p-4 border-b border-slate-100 ${paymentMethod === 'PAYOS' ? 'bg-blue-50' : ''}`}
+                                    disabled={total === 0}
+                                    className={`flex-row items-center p-4 border-b border-slate-100 ${paymentMethod === 'PAYOS' ? 'bg-blue-50' : ''} ${total === 0 ? 'opacity-40' : ''}`}
                                     onPress={() => setPaymentMethod('PAYOS')}
                                 >
                                     <QrCode size={24} color={paymentMethod === 'PAYOS' ? '#2563eb' : '#64748b'} />

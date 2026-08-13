@@ -162,34 +162,34 @@ export default function RefundModerationList() {
           {
             header: "STT",
             sortable: false,
-            width: "60px",
+            width: "70px",
             align: "center",
             headerAlign: "center",
-            className: "py-4 whitespace-nowrap",
-            cellClassName: "text-sm font-bold text-foreground py-4 text-center whitespace-nowrap",
-            render: (_t, rowIndex) => (pagination.page * pagination.size) + rowIndex + 1,
+            className: "py-4 pl-4 whitespace-nowrap",
+            cellClassName: "font-bold text-muted-foreground py-4 text-center pl-4 whitespace-nowrap",
+            render: (_t, rowIndex) => ((pagination?.page || 0) * (pagination?.size || 10)) + rowIndex + 1,
           },
           {
             header: "Mã hoàn tiền",
+            width: "140px",
+            align: "center",
+            headerAlign: "center",
+            className: "py-4 whitespace-nowrap",
+            cellClassName: "text-sm font-medium py-4 text-center whitespace-nowrap",
+            render: (t) => t.refundCode ? <span className="text-foreground text-center">HT{t.refundCode}</span> : <span className="text-muted-foreground italic text-xs">(N/A)</span>,
+          },
+          {
+            header: "Mã đơn hàng",
             width: "120px",
             align: "center",
             headerAlign: "center",
             className: "py-4 whitespace-nowrap",
-            cellClassName: "text-sm text-foreground py-4 text-center whitespace-nowrap",
-            render: (t) => <span className="font-mono">{t.refundCode}</span>,
-          },
-          {
-            header: "Mã đơn",
-            width: "100px",
-            align: "center",
-            headerAlign: "center",
-            className: "py-4 whitespace-nowrap",
-            cellClassName: "py-4 text-center whitespace-nowrap",
-            render: (t) => <span className="text-sm font-bold text-foreground">{t.transactionCode}</span>,
+            cellClassName: "text-sm font-medium py-4 text-center whitespace-nowrap",
+            render: (t) => t.transactionCode ? <span className="text-foreground text-center">TT{t.transactionCode}</span> : <span className="text-muted-foreground italic text-xs">(N/A)</span>,
           },
           {
             header: "Học viên",
-            width: "220px",
+            width: "180px",
             align: "left",
             headerAlign: "left",
             className: "py-4",
@@ -215,13 +215,13 @@ export default function RefundModerationList() {
           },
           {
             header: "Khóa học",
-            width: "200px",
+            width: "150px",
             align: "left",
             headerAlign: "left",
             className: "py-4",
             cellClassName: "py-4 text-sm font-medium",
             render: (t) => (
-              <span className="line-clamp-2" title={t.courseTitle}>{t.courseTitle || "N/A"}</span>
+              <div className="w-[150px] truncate" title={t.courseTitle}>{t.courseTitle || "N/A"}</div>
             ),
           },
           {
@@ -265,18 +265,13 @@ export default function RefundModerationList() {
             align: "center",
             headerAlign: "center",
             className: "py-4 whitespace-nowrap",
-            cellClassName: "py-4 text-center whitespace-nowrap",
+            cellClassName: "text-sm text-foreground font-medium py-4 text-center whitespace-nowrap",
             render: (t) => {
                if (!t.createdAt) return <span className="text-muted-foreground italic text-xs">(Không rõ)</span>;
                const d = new Date(t.createdAt);
                const time = d.toLocaleTimeString("vi-VN", { hour: '2-digit', minute: '2-digit' });
                const date = d.toLocaleDateString("vi-VN", { day: '2-digit', month: '2-digit', year: 'numeric' });
-               return (
-                 <span className="text-xs text-foreground flex flex-col items-center">
-                   <span>{time}</span>
-                   <span>{date}</span>
-                 </span>
-               );
+               return `${time} ${date}`;
             },
           },
           {

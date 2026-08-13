@@ -249,6 +249,8 @@ public class OrderService {
             appliedCoupon = couponService.getValidCoupon(couponService.getDisplayCode(appliedCoupon));
             
             couponService.assertCouponAppliesToCourse(appliedCoupon, course);
+            // Giới hạn mỗi người dùng chỉ dùng 1 coupon 1 lần
+            couponService.assertCouponNotExhaustedByUser(appliedCoupon, account);
 
             // With one line today this is the eligible subtotal. When orders
             // accept multiple courses, this value becomes the sum of only the
@@ -274,14 +276,14 @@ public class OrderService {
         details.add(detail);
         order.setDetails(details);
 
-        // If price is 0, we can bypass payment gateway
+        // If price is 0, we can bypass payment gateway but still record the order
+        // and payment like a normal transaction (no FREE/COUPON distinction).
         if (actualPrice.compareTo(BigDecimal.ZERO) == 0) {
-            order.setPaymentMethod("FREE/COUPON");
             orderRepository.save(order);
-            
+
             com.gnostica.modules.checkout.dto.response.PaymentWebhookData data = com.gnostica.modules.checkout.dto.response.PaymentWebhookData.builder()
-                .gateway("FREE")
-                .transactionCode("FREE-" + orderCode)
+                .gateway(paymentMethod)
+                .transactionCode(paymentMethod + "-" + orderCode)
                 .amount(0L)
                 .status("PAID")
                 .paidAt(java.time.LocalDateTime.now())
@@ -294,10 +296,10 @@ public class OrderService {
             }
             // Return a dummy link or custom response
             return PaymentLinkResponse.builder()
-                .bin("N/A").accountNumber("N/A").accountName("FREE")
+                .bin("N/A").accountNumber("N/A").accountName(account.getFullName())
                 .amount(0L).description("Miễn phí")
                 .orderCode(orderCode)
-                .paymentLinkId("FREE-" + orderCode).status("PAID")
+                .paymentLinkId(paymentMethod + "-" + orderCode).status("PAID")
                 .checkoutUrl(trustedReturnUrl() + "?orderCode=" + orderCode)
                 .qrCode("").build();
         }

@@ -140,10 +140,7 @@ public class CouponService implements ApplicationRunner {
         }
 
         Coupon coupon = getOwnedCoupon(id);
-        if (orderRepository.countByCoupon_IdAndStatus(coupon.getId(), com.gnostica.core.constant.OrderStatus.PAID) > 0
-                && status != CouponStatus.INACTIVE) {
-            throw new IllegalStateException("Coupon đã có lượt dùng chỉ có thể được tắt.");
-        }
+
         coupon.setStatus(status);
         Coupon updatedCoupon = couponRepository.save(coupon);
         publishAuditLog("UPDATE_COUPON_STATUS", updatedCoupon, getCurrentAccount());
@@ -169,9 +166,22 @@ public class CouponService implements ApplicationRunner {
     public CouponResponse validateCoupon(String code, UUID courseId) {
         Coupon coupon = getValidCoupon(code);
         Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new IllegalArgumentException("Course does not exist"));
+                .orElseThrow(() -> new IllegalArgumentException("Khóa học không tồn tại"));
         assertCouponAppliesToCourse(coupon, course);
+        assertCouponNotExhaustedByUser(coupon, getCurrentAccount());
         return mapToResponse(coupon);
+    }
+
+    /**
+     * Giới hạn mỗi người dùng chỉ được dùng 1 coupon 1 lần.
+     * Kiểm tra xem người dùng đã có đơn PAID dùng coupon này chưa.
+     */
+    public void assertCouponNotExhaustedByUser(Coupon coupon, Account account) {
+        long usedCount = orderRepository.countByCoupon_IdAndAccount_IdAndStatus(
+                coupon.getId(), account.getId(), com.gnostica.core.constant.OrderStatus.PAID);
+        if (usedCount > 0) {
+            throw new IllegalArgumentException("Bạn đã sử dụng mã giảm giá này rồi");
+        }
     }
 
     public Coupon getValidCoupon(String code) {
@@ -179,20 +189,20 @@ public class CouponService implements ApplicationRunner {
         Coupon coupon = couponRepository.findByCodeHashAndDeletedAtIsNull(couponCodeCipher.hash(normalizedCode))
                 .or(() -> couponRepository.findByEncryptedCodeIgnoreCaseAndDeletedAtIsNull(normalizedCode)
                         .filter(this::isPlaintextCode))
-                .orElseThrow(() -> new IllegalArgumentException("Coupon does not exist"));
+                .orElseThrow(() -> new IllegalArgumentException("Mã giảm giá không tồn tại"));
 
         if (coupon.getStatus() != CouponStatus.ACTIVE) {
-            throw new IllegalArgumentException("Coupon is inactive or expired");
+            throw new IllegalArgumentException("Mã giảm giá không hoạt động hoặc đã hết hạn");
         }
         if (coupon.getValidUntil().isBefore(LocalDateTime.now())) {
-            throw new IllegalArgumentException("Coupon has expired");
+            throw new IllegalArgumentException("Mã giảm giá đã hết hạn");
         }
         if (coupon.getValidFrom().isAfter(LocalDateTime.now())) {
-            throw new IllegalArgumentException("Coupon is not active yet");
+            throw new IllegalArgumentException("Mã giảm giá chưa đến thời gian áp dụng");
         }
         int reservedQuantity = coupon.getReservedQuantity() == null ? 0 : coupon.getReservedQuantity();
         if (coupon.getQuantity() == null || coupon.getQuantity() - reservedQuantity <= 0) {
-            throw new IllegalArgumentException("Coupon has no remaining uses");
+            throw new IllegalArgumentException("Mã giảm giá đã hết lượt sử dụng");
         }
 
         return coupon;

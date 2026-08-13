@@ -169,9 +169,12 @@ public class GiftService {
         gift.setExpiredAt(LocalDateTime.now().plusDays(7));
         giftRepository.save(gift);
 
-        // Wallet/free gifts are already paid locally. Emit the event only after the
-        // gift exists so EnrollmentListener routes access to the recipient.
-        if (order != null && ("FREE/COUPON".equals(order.getPaymentMethod()) || "WALLET".equals(order.getPaymentMethod()))) {
+        // Gifts paid locally (wallet or 0đ) are already settled. Emit the event only
+        // after the gift exists so EnrollmentListener routes access to the recipient.
+        boolean paidLocally = order != null && (order.getStatus() == OrderStatus.PAID
+                || "WALLET".equalsIgnoreCase(order.getPaymentMethod())
+                || (order.getTotalPrice() != null && order.getTotalPrice().signum() == 0));
+        if (paidLocally) {
             paymentService.processSuccessfulOrder(order);
         }
 

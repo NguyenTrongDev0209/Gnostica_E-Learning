@@ -30,6 +30,7 @@ public interface OrderRepository extends JpaRepository<Order, java.util.UUID> {
     long countByCreatedAtAfter(java.time.LocalDateTime date);
     long countByCoupon_Id(java.util.UUID couponId);
     long countByCoupon_IdAndStatus(java.util.UUID couponId, Integer status);
+    long countByCoupon_IdAndAccount_IdAndStatus(java.util.UUID couponId, java.util.UUID accountId, Integer status);
     List<Order> findTop50ByStatusAndPaymentMethodIgnoreCaseAndCreatedAtAfterOrderByCreatedAtAsc(
             Integer status, String paymentMethod, LocalDateTime createdAfter);
     List<Order> findByStatusAndCreatedAtBefore(Integer status, LocalDateTime date);
