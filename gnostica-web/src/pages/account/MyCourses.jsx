@@ -11,8 +11,10 @@ import AppPageHeader from "@/components/common/composite/AppPageHeader";
 import DataFilter, { DataFilterSidebarChecklist } from "@/components/common/composite/DataFilter";
 import { CourseProgressCard } from "@/components/common/composite/CourseCard";
 import useMyCourses from "@/hooks/course/useMyCourses";
+import RefundRequestDialog from "./components/RefundRequestDialog";
 
 export default function MyCourses() {
+  const [selectedRefundCourse, setSelectedRefundCourse] = React.useState(null);
   const {
     courses,
     loading,
@@ -50,19 +52,19 @@ export default function MyCourses() {
       label: "Khóa học đăng ký", 
       value: stats?.enrolledCourses || "0", 
       icon: BookOpen, 
-      color: "text-info bg-blue-50" 
+      color: "text-white bg-blue-500 shadow-sm" 
     },
     { 
       label: "Khóa hoàn thành", 
       value: stats?.completedCourses || "0", 
       icon: Trophy, 
-      color: "text-emerald-500 bg-emerald-50" 
+      color: "text-white bg-emerald-500 shadow-sm" 
     },
     { 
       label: "Tổng giờ đã học", 
       value: `${stats?.hoursStudied?.toFixed(1) || "0"}h`, 
       icon: Clock, 
-      color: "text-purple-500 bg-purple-50" 
+      color: "text-white bg-purple-500 shadow-sm" 
     },
   ];
 
@@ -130,7 +132,11 @@ export default function MyCourses() {
             ]}
           />
           
-          <MyCourseGrid loading={loading} courses={courses} />
+          <MyCourseGrid 
+            loading={loading} 
+            courses={courses} 
+            onRefundClick={setSelectedRefundCourse}
+          />
 
           {courses.length > 0 && !loading && (
             <AppPagination 
@@ -157,11 +163,17 @@ export default function MyCourses() {
         </div>
         
       </div>
+      
+      <RefundRequestDialog 
+        isOpen={!!selectedRefundCourse}
+        course={selectedRefundCourse}
+        onClose={() => setSelectedRefundCourse(null)}
+      />
     </div>
   );
 }
 
-function MyCourseGrid({ loading, courses }) {
+function MyCourseGrid({ loading, courses, onRefundClick }) {
   if (loading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -205,7 +217,7 @@ function MyCourseGrid({ loading, courses }) {
         return (
           <CourseProgressCard
             key={course.id}
-            id={course.id}
+            id={course.courseId}
             title={course.courseTitle}
             category={course.category}
             image={course.courseThumbnail}
@@ -219,6 +231,7 @@ function MyCourseGrid({ loading, courses }) {
             certifiUrl={course.certifiUrl || course.certificateUrl}
             link={learningLink}
             restartLink={restartLink}
+            onRefundClick={onRefundClick}
           />
         );
       })}

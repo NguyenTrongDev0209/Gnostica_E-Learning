@@ -2,10 +2,11 @@ import AppText from '../../components/ui/AppText';
 import React, { useState } from 'react';
 import { View, ScrollView, TouchableOpacity, Image, TextInput, Alert } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { Ticket, ChevronRight } from 'lucide-react-native';
+import { Ticket, ChevronRight, QrCode, Wallet } from 'lucide-react-native';
 import AppHeader from '../../components/ui/AppHeader';
 import orderService from '../../services/checkout/orderService';
 import couponService from '../../services/checkout/couponService';
+import walletService from '../../services/checkout/walletService';
 import Button from '../../components/ui/Button';
 
 const CheckoutScreen = () => {
@@ -16,6 +17,27 @@ const CheckoutScreen = () => {
     const [discount, setDiscount] = useState(0);
     const [voucherApplied, setVoucherApplied] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    
+    const [paymentMethod, setPaymentMethod] = useState('PAYOS');
+    const [walletBalance, setWalletBalance] = useState(0);
+    const [isWalletLoading, setIsWalletLoading] = useState(true);
+
+    React.useEffect(() => {
+        const fetchWallet = async () => {
+            try {
+                const response = await walletService.getMyWallet();
+                if (response && response.remain != null) {
+                    setWalletBalance(response.remain);
+                }
+            } catch (error) {
+                console.error('Lỗi khi tải ví:', error);
+                setWalletBalance(0);
+            } finally {
+                setIsWalletLoading(false);
+            }
+        };
+        fetchWallet();
+    }, []);
 
     const parsePrice = (priceStr) => {
         if (!priceStr || priceStr === 'Miễn phí') return 0;
@@ -29,6 +51,13 @@ const CheckoutScreen = () => {
 
     const subtotal = course ? parsePrice(course.price) : 0;
     const total = Math.max(0, subtotal - discount);
+
+    // Đơn 0đ (miễn phí/coupon 100%): chỉ dùng Ví, disable PayOS
+    React.useEffect(() => {
+        if (total === 0 && paymentMethod !== 'WALLET') {
+            setPaymentMethod('WALLET');
+        }
+    }, [total, paymentMethod]);
 
     const handleApplyVoucher = async () => {
         if (!voucherCode) return;
@@ -64,11 +93,16 @@ const CheckoutScreen = () => {
         if (isLoading) return;
         setIsLoading(true);
         try {
+            // Bắt buộc gửi couponCode (nếu đã áp) lên server để backend tính giá
+            // chính xác. Không gửi sẽ khiến server tính giá gốc, lệch với số tiền
+            // UI hiển thị (và đơn sẽ bị webhook từ chối vì amount không khớp).
             const response = await orderService.createPaymentLink({
                 courseId: course.id,
                 productName: course.title,
                 description: 'Thanh toan don hang',
                 price: total,
+                couponCode: voucherApplied ? voucherCode : null,
+                paymentMethod: paymentMethod,
                 returnUrl: 'gnostica://payment-result',
                 cancelUrl: 'gnostica://payment-cancel'
             });
@@ -77,7 +111,12 @@ const CheckoutScreen = () => {
                 setDiscount(0);
                 setVoucherApplied(false);
                 setVoucherCode('');
-                navigation.navigate('PaymentQRCode', { paymentData: response.data });
+                if (response.data.status === 'PAID') {
+                    Alert.alert('Thành công', 'Thanh toán bằng Ví Gnostica thành công!');
+                    navigation.navigate('Main', { screen: 'Home' });
+                } else {
+                    navigation.navigate('PaymentQRCode', { paymentData: response.data });
+                }
             } else if (response.data && response.data.qrCode) {
                  // Trường hợp response trả thẳng data
                  setDiscount(0);
@@ -172,6 +211,45 @@ const CheckoutScreen = () => {
                             </View>
                         </View>
 
+                        {/* Payment Method */}
+                        <View className="px-4 mb-4">
+                            <AppText className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
+                                Phương thức thanh toán
+                            </AppText>
+                            <View className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                                <TouchableOpacity 
+                                    disabled={total === 0}
+                                    className={`flex-row items-center p-4 border-b border-slate-100 ${paymentMethod === 'PAYOS' ? 'bg-blue-50' : ''} ${total === 0 ? 'opacity-40' : ''}`}
+                                    onPress={() => setPaymentMethod('PAYOS')}
+                                >
+                                    <QrCode size={24} color={paymentMethod === 'PAYOS' ? '#2563eb' : '#64748b'} />
+                                    <View className="flex-1 ml-3">
+                                        <AppText className={`font-bold ${paymentMethod === 'PAYOS' ? 'text-blue-700' : 'text-slate-700'}`}>PayOS</AppText>
+                                        <AppText className="text-xs text-slate-500">Thanh toán bằng mã QR</AppText>
+                                    </View>
+                                    {paymentMethod === 'PAYOS' && <View className="w-4 h-4 rounded-full bg-blue-600" />}
+                                </TouchableOpacity>
+                                
+                                <TouchableOpacity 
+                                    className={`flex-row items-center p-4 ${paymentMethod === 'WALLET' ? 'bg-blue-50' : ''}`}
+                                    onPress={() => setPaymentMethod('WALLET')}
+                                >
+                                    <Wallet size={24} color={paymentMethod === 'WALLET' ? '#2563eb' : '#64748b'} />
+                                    <View className="flex-1 ml-3">
+                                        <AppText className={`font-bold ${paymentMethod === 'WALLET' ? 'text-blue-700' : 'text-slate-700'}`}>Ví Gnostica</AppText>
+                                        {isWalletLoading ? (
+                                            <AppText className="text-xs text-slate-500">Đang tải số dư...</AppText>
+                                        ) : (
+                                            <AppText className={`text-xs ${walletBalance < total && paymentMethod === 'WALLET' ? 'text-red-500 font-bold' : 'text-slate-500'}`}>
+                                                Số dư khả dụng: {formatPrice(walletBalance)}
+                                            </AppText>
+                                        )}
+                                    </View>
+                                    {paymentMethod === 'WALLET' && <View className="w-4 h-4 rounded-full bg-blue-600" />}
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+
                         {/* Order Summary */}
                         <View className="px-4 mb-6">
                             <AppText className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
@@ -206,7 +284,7 @@ const CheckoutScreen = () => {
                             className="py-4 rounded-xl"
                             textClassName="text-base font-bold"
                             onPress={handlePay}
-                            disabled={isLoading}
+                            disabled={isLoading || (paymentMethod === 'WALLET' && walletBalance < total)}
                         >
                             {isLoading ? 'Đang tạo thanh toán...' : `Thanh toán ${formatPrice(total)}`}
                         </Button>

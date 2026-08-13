@@ -173,6 +173,18 @@ public class AuthController {
             .build());
     }
 
+    @GetMapping("/accounts/search")
+    public ResponseEntity<?> searchAccounts(
+            @RequestParam(required = false) String role,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) java.util.List<Integer> statuses,
+            @org.springframework.data.web.PageableDefault(sort = "createdAt", direction = org.springframework.data.domain.Sort.Direction.DESC) org.springframework.data.domain.Pageable pageable) {
+        return ResponseEntity.ok(ResponseDTO.builder()
+            .status(200)
+            .data(authService.searchAccounts(role, search, statuses, pageable))
+            .build());
+    }
+
     @PostMapping("/accounts/{id}/lock")
     public ResponseEntity<?> lockAccount(@PathVariable java.util.UUID id, @RequestParam String reason) {
         try {

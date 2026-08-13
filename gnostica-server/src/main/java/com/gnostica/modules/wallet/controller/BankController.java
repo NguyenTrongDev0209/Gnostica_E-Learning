@@ -1,11 +1,10 @@
 package com.gnostica.modules.wallet.controller;
-import com.gnostica.modules.wallet.service.*;
-import com.gnostica.modules.wallet.dto.response.*;
 
 import com.gnostica.core.model.Bank;
 import com.gnostica.modules.wallet.service.BankService;
 import com.gnostica.modules.wallet.service.BankSyncService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -35,11 +34,13 @@ public class BankController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Bank> createBank(@RequestBody Bank bank) {
         return ResponseEntity.ok(bankService.saveBank(bank));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Bank> updateBank(@PathVariable Integer id, @RequestBody Bank bankDetails) {
         return bankService.updateBank(id, bankDetails)
                 .map(ResponseEntity::ok)
@@ -47,6 +48,7 @@ public class BankController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteBank(@PathVariable Integer id) {
         if (bankService.deleteBank(id)) {
             return ResponseEntity.ok().build();
@@ -55,6 +57,7 @@ public class BankController {
     }
 
     @PostMapping("/sync")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> syncBanks() {
         try {
             bankSyncService.syncBanksData();

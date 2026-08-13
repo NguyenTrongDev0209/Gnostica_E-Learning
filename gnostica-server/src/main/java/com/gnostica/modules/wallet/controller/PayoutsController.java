@@ -21,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/payouts")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN')")
+@lombok.extern.slf4j.Slf4j
 public class PayoutsController {
 	private final PayoutsService payoutsService;
 
@@ -30,7 +31,7 @@ public class PayoutsController {
 			Payout payout = payoutsService.retrievePayout(payoutId);
 			return ApiResponse.success(payout);
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Error retrieving payout", e);
 			return ApiResponse.error("fail");
 		}
 	}
@@ -45,7 +46,7 @@ public class PayoutsController {
 					toDate, limit, offset);
 			return ApiResponse.success(data);
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Error retrieving payout list", e);
 			return ApiResponse.error("fail");
 		}
 	}
@@ -56,7 +57,7 @@ public class PayoutsController {
 			PayoutAccountInfo accountInfo = payoutsService.getAccountBalance();
 			return ApiResponse.success(accountInfo);
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Error retrieving account balance", e);
 			return ApiResponse.error("fail");
 		}
 	}

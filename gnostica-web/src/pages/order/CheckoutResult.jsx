@@ -43,7 +43,9 @@ export default function CheckoutResult() {
         setLoading(false);
         if (nextOrder) {
           setOrder(nextOrder);
-          if (nextOrder.status === 1 || nextOrder.status === 3 || hasTerminalReturnStatus || attempt >= MAX_STATUS_CHECKS - 1) {
+          // Backend OrderStatus: 0=PENDING, 1=PAID, 2=REFUNDED, 3=CANCELLED
+          // Cả 1, 2, 3 đều là trạng thái kết thúc → dừng polling
+          if (nextOrder.status === 1 || nextOrder.status === 2 || nextOrder.status === 3 || hasTerminalReturnStatus || attempt >= MAX_STATUS_CHECKS - 1) {
             setStatusChecksFinished(true);
             return;
           }

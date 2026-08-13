@@ -13,6 +13,7 @@ import org.springframework.web.client.RestTemplate;
 import java.time.LocalDateTime;
 
 @Service
+@lombok.extern.slf4j.Slf4j
 public class BankSyncService {
 
     private final BankRepository bankRepository;
@@ -56,12 +57,12 @@ public class BankSyncService {
                     count++;
                 }
                 
-                System.out.println("Sync successful: " + count + " banks.");
+                log.info("Sync successful: {} banks.", count);
             } else {
-                System.out.println("Failed to get data from API.");
+                log.warn("Failed to get data from API.");
             }
         } catch (Exception e) {
-            System.err.println("Error during bank sync: " + e.getMessage());
+            log.error("Error during bank sync: {}", e.getMessage(), e);
             // Ném lỗi ra lại để transaction trigger việc ROLLBACK
             throw new RuntimeException("Sync Failed", e);
         }

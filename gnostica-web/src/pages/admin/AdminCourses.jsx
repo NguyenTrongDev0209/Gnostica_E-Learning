@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Search, Star, Users, BookOpen, Check } from 'lucide-react';
+import { Search, Star, Users, BookOpen, Check, MessageSquare } from 'lucide-react';
 import { toast } from 'sonner';
 import AppCard, { AppCardContent } from '@/components/common/micro/AppCard';
 import AppSelect from '@/components/common/micro/AppSelect';
@@ -10,6 +10,16 @@ import { AppButton } from '@/components/common/micro/AppButton';
 import AppInput from '@/components/common/micro/AppInput';
 import adminCourseService from '@/services/admin/adminCourseService';
 import categoryService from '@/services/course/categoryService';
+import AdminCourseModeration from './AdminCourseModeration';
+
+function AdminCourseReviews() {
+  return (
+    <div className="flex flex-col items-center justify-center h-64 bg-white rounded-xl border border-border border-dashed gap-4">
+      <MessageSquare className="w-12 h-12 text-muted-foreground/40" />
+      <p className="text-muted-foreground font-medium">Tính năng Đánh giá Khóa học đang được xây dựng</p>
+    </div>
+  );
+}
 
 const STATUS_META = {
   1: { label: 'Đã xuất bản', className: 'text-success bg-success/10 border-success/20', dot: 'bg-success' },
@@ -19,7 +29,7 @@ const STATUS_META = {
 
 const formatPrice = (value) => `${Number(value || 0).toLocaleString('vi-VN')}đ`;
 
-export default function AdminCourses() {
+function AdminCoursesList() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
@@ -146,11 +156,7 @@ export default function AdminCourses() {
   ];
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 pb-10">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2"><BookOpen className="w-6 h-6 text-primary" />Quản Lý Khóa Học</h1>
-        <p className="text-sm text-muted-foreground mt-1">Theo dõi và quản lý toàn bộ khóa học trên hệ thống.</p>
-      </div>
+    <div className="space-y-6 pb-10">
 
       <AppCard appVariant="default" className="border-border shadow-sm">
         <AppCardContent className="p-4 flex flex-col xl:flex-row gap-4 items-center justify-between">
@@ -182,6 +188,29 @@ export default function AdminCourses() {
           zeroIndexed: true
         }}
       />
+    </div>
+  );
+}
+
+export default function AdminCourses() {
+  const [searchParams] = useSearchParams();
+  const tab = searchParams.get('tab') || 'list';
+
+  return (
+    <div className="space-y-6 animate-in fade-in duration-500">
+      <div>
+        <h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
+          <BookOpen className="w-6 h-6 text-primary" />
+          Quản Lý Khóa Học
+        </h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Theo dõi và quản lý toàn bộ khóa học trên hệ thống.
+        </p>
+      </div>
+      
+      {tab === 'list' && <AdminCoursesList />}
+      {tab === 'moderation' && <AdminCourseModeration hideHeader={true} />}
+      {tab === 'reviews' && <AdminCourseReviews />}
     </div>
   );
 }

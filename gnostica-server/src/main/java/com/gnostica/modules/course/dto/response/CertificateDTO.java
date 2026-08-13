@@ -14,7 +14,9 @@ import lombok.NoArgsConstructor;
 public class CertificateDTO {
     private String certificateUrl;
     private String courseTitle;
+    private String courseSlug;
     private String studentName;
     private String instructorName;
     private LocalDateTime completedAt;
+    private Integer totalLessons;
 }

@@ -30,20 +30,20 @@ public class PayoutSubmissionService {
 
         try {
             // Resolve an ambiguous previous request before ever sending another create call.
-            vn.payos.model.v1.payouts.Payout remote = findByReference(payout.getGatewayReferenceId());
+            vn.payos.model.v1.payouts.Payout remote = findByReference(payout.getPayoutCode());
             if (remote == null) {
                 PayoutRequests request = new PayoutRequests();
                 request.setAmount(payout.getAmount().longValueExact());
                 request.setToBin(payout.getAccountBank().getBank().getBin());
                 request.setToAccountNumber(payout.getAccountBank().getAccountNumber());
                 request.setDescription(descriptionFor(payout));
-                request.setReferenceId(payout.getGatewayReferenceId());
+                request.setReferenceId(payout.getPayoutCode());
                 remote = payoutsService.createPayout(request);
             }
 
             payout.setGatewayPayoutId(remote.getId());
             if (remote.getReferenceId() != null && !remote.getReferenceId().isBlank()) {
-                payout.setGatewayReferenceId(remote.getReferenceId());
+                payout.setPayoutCode(remote.getReferenceId());
             }
             payout.setStatus(toLocalStatus(remote.getApprovalState()));
             payout.setLastSubmissionError(null);

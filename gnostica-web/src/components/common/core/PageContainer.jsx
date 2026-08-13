@@ -91,15 +91,19 @@ PageContainer.Content = function PageContainerContent({
 PageContainer.Section = function PageContainerSection({ 
   title, 
   description, 
+  action,
   children, 
   className,
   ...props 
 }) {
   return (
     <section className={cn("w-full flex flex-col gap-4 md:gap-6", className)} {...props}>
-      {(title || description) && (
+      {(title || description || action) && (
         <div className="flex flex-col gap-1 border-b border-border pb-2">
-          {title && <h2 className="text-xl md:text-2xl font-bold text-foreground">{title}</h2>}
+          <div className="flex items-center justify-between w-full">
+            {title && <h2 className="text-xl md:text-2xl font-bold text-foreground">{title}</h2>}
+            {action && <div>{action}</div>}
+          </div>
           {description && <p className="text-sm md:text-base text-muted-foreground">{description}</p>}
         </div>
       )}

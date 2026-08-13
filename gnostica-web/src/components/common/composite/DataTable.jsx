@@ -45,7 +45,7 @@ export default function DataTable({
             : undefined;
 
     return (
-        <div className={cn("w-full bg-white border border-border rounded-xl shadow-sm overflow-hidden", className)}>
+        <div className={cn("w-full bg-white border border-border rounded-xl shadow-sm", className)}>
             <AppTable 
                 columns={columns}
                 data={data}

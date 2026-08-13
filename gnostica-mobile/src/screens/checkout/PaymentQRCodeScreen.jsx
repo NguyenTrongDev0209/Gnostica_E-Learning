@@ -27,7 +27,7 @@ export default function PaymentQRCodeScreen() {
         if (paymentData.orderCode) {
             interval = setInterval(async () => {
                 try {
-                    const response = await api.get(`/order/${paymentData.orderCode}`);
+                    const response = await api.get(`/checkout/orders/${paymentData.orderCode}`);
                     // response = ApiResponse<Order>, Order có status. 1 là PAID
                     if (response.data && response.data.status === 1) {
                         clearInterval(interval);
@@ -98,3 +98,4 @@ export default function PaymentQRCodeScreen() {
         </View>
     );
 }
+

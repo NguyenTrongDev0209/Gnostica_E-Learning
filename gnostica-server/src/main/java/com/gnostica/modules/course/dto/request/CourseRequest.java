@@ -2,8 +2,8 @@ package com.gnostica.modules.course.dto.request;
 
 
 import com.gnostica.modules.forum.dto.request.*;
-import com.gnostica.modules.order.dto.request.*;
-import com.gnostica.modules.payment.dto.request.*;
+import com.gnostica.modules.checkout.dto.request.*;
+import com.gnostica.modules.checkout.dto.request.*;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
@@ -56,3 +56,4 @@ public class CourseRequest {
 
     private List<com.gnostica.modules.course.dto.response.QuestionDto> questionBank;
 }
+

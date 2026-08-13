@@ -5,6 +5,7 @@ import MyCourses from "@/pages/account/MyCourses";
 import CertificatesPage from "@/pages/account/CertificatesPage";
 import WishlistPage from "@/pages/account/WishlistPage";
 import OrdersPage from "@/pages/account/OrdersPage";
+import RefundsPage from "@/pages/account/RefundsPage";
 import VouchersPage from "@/pages/account/VouchersPage";
 import NotificationsPage from "@/pages/account/NotificationsPage";
 import SettingsPage from "@/pages/account/SettingsPage";
@@ -21,9 +22,9 @@ import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminUsers from "@/pages/admin/AdminUsers";
 import AdminCourses from "@/pages/admin/AdminCourses";
 import AdminCategories from "@/pages/admin/AdminCategories";
-import AdminOrders from "@/pages/admin/AdminOrders";
+import AdminForum from "@/pages/admin/AdminForum";
+import AdminForumCategories from "@/pages/admin/AdminForumCategories";
 import AdminCoupons from "@/pages/admin/AdminCoupons";
-import AdminReviews from "@/pages/admin/AdminReviews";
 import AdminReports from "@/pages/admin/AdminReports";
 import AdminRequests from "@/pages/admin/AdminRequests";
 import AdminSettings from "@/pages/admin/AdminSettings";
@@ -31,8 +32,6 @@ import AdminBanks from "@/pages/admin/AdminBanks";
 import AdminTransactions from "@/pages/admin/AdminTransactions";
 import AdminCourseModeration from "@/pages/admin/AdminCourseModeration";
 import AdminCourseDetailModeration from "@/pages/admin/AdminCourseDetailModeration";
-import AdminThreadModeration from "@/pages/admin/AdminThreadModeration";
-
 
 import InstructorDashboard from "@/pages/instructor/InstructorDashboard";
 import InstructorCourses from "@/pages/instructor/InstructorCourses";
@@ -42,14 +41,19 @@ import InstructorStudents from "@/pages/instructor/InstructorStudents";
 import InstructorSettings from "@/pages/instructor/InstructorSettings";
 import InstructorCourseForm from "@/pages/instructor/InstructorCourseForm";
 import InstructorQA from "@/pages/instructor/InstructorQA";
+import AccountMessagingPage from "@/pages/messaging/AccountMessagingPage";
+import InstructorMessagingPage from "@/pages/messaging/InstructorMessagingPage";
 
 export const privateRoutes = {
   account: [
     { path: "/account", component: AccountOverview },
     { path: "/account/my-courses", component: MyCourses },
+    { path: "/account/messages", component: AccountMessagingPage },
+    { path: "/account/messages/:conversationId", component: AccountMessagingPage },
     { path: "/account/certificates", component: CertificatesPage },
     { path: "/account/wishlist", component: WishlistPage },
     { path: "/account/orders", component: OrdersPage },
+    { path: "/account/refunds", component: RefundsPage },
     { path: "/account/vouchers", component: VouchersPage },
     { path: "/account/notifications", component: NotificationsPage },
     { path: "/account/settings", component: SettingsPage },
@@ -61,9 +65,9 @@ export const privateRoutes = {
     { path: "/admin/users", component: AdminUsers },
     { path: "/admin/courses", component: AdminCourses },
     { path: "/admin/categories", component: AdminCategories },
-    { path: "/admin/orders", component: AdminOrders },
+    { path: "/admin/forum", component: AdminForum },
+    { path: "/admin/forum-categories", component: AdminForumCategories },
     { path: "/admin/coupons", component: AdminCoupons },
-    { path: "/admin/reviews", component: AdminReviews },
     { path: "/admin/reports", component: AdminReports },
     { path: "/admin/requests", component: AdminRequests },
     { path: "/admin/settings", component: AdminSettings },
@@ -71,7 +75,6 @@ export const privateRoutes = {
     { path: "/admin/transactions", component: AdminTransactions },
     { path: "/admin/course-moderation", component: AdminCourseModeration },
     { path: "/admin/course-moderation/:slug", component: AdminCourseDetailModeration },
-    { path: "/admin/thread-moderation", component: AdminThreadModeration },
   ],
 
   instructor: [
@@ -82,6 +85,8 @@ export const privateRoutes = {
     { path: "/instructor/revenue", component: InstructorRevenue },
     { path: "/instructor/coupons", component: InstructorCoupons },
     { path: "/instructor/students", component: InstructorStudents },
+    { path: "/instructor/messages", component: InstructorMessagingPage },
+    { path: "/instructor/messages/:conversationId", component: InstructorMessagingPage },
     { path: "/instructor/qa", component: InstructorQA },
     { path: "/instructor/settings", component: InstructorSettings },
   ],

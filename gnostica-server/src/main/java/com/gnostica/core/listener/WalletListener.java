@@ -11,7 +11,7 @@ import com.gnostica.core.repository.OrderDetailRepository;
 import com.gnostica.core.repository.LogRepository;
 import com.gnostica.core.repository.WalletRepository;
 import com.gnostica.modules.settings.service.CommissionResolver;
-import com.gnostica.modules.order.util.OrderPriceCalculator;
+import com.gnostica.modules.checkout.util.OrderPriceCalculator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -76,8 +76,10 @@ public class WalletListener {
                             .divide(new BigDecimal("100"), 6, RoundingMode.HALF_UP);
                     platformAmount = netSaleAmount.subtract(instructorAmount).setScale(6, RoundingMode.HALF_UP);
                 } else {
-                    // Instructor coupons are funded entirely by the instructor.
-                    platformAmount = grossAmount.multiply(commission.platformRatio())
+                    // Instructor coupons: the platform fee is based on the amount actually
+                    // collected after the coupon (netSaleAmount), so the discount is shared
+                    // proportionally and the instructor never ends up with a negative earning.
+                    platformAmount = netSaleAmount.multiply(commission.platformRatio())
                             .divide(new BigDecimal("100"), 6, RoundingMode.HALF_UP);
                     instructorAmount = netSaleAmount.subtract(platformAmount).setScale(6, RoundingMode.HALF_UP);
                 }
@@ -87,7 +89,7 @@ public class WalletListener {
                 wallet.setRemain(instructorAmount);
                 wallet.setType(1); // Earning
                 wallet.setStatus(1); // Active
-                wallet.setAvailableAt(LocalDateTime.now().plusDays(14));
+                wallet.setAvailableAt(LocalDateTime.now().plusDays(com.gnostica.core.constant.WalletConstants.INSTRUCTOR_HOLD_DAYS));
                 wallet.setTargetType("ORDER_DETAIL");
                 wallet.setTargetId(detail.getId());
                 walletRepository.save(wallet);
@@ -122,3 +124,4 @@ public class WalletListener {
         }
     }
 }
+

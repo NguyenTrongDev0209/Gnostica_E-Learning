@@ -12,6 +12,7 @@ import AppSelect from "@/components/common/micro/AppSelect";
 import AppInput from "@/components/common/micro/AppInput";
 import {ArrowUpRight, ArrowDownRight, TrendingUp, Users, BookOpen, ShoppingCart, LayoutDashboard, Download, RefreshCw, FolderTree, UserCheck, Activity, Server} from "lucide-react";
 import { useDashboard } from "@/hooks/dashboard/useDashboard";
+import { useSystemMetrics } from "@/hooks/system/useSystemMetrics";
 import AppCard, { AppCardContent, AppCardHeader, AppCardTitle, AppCardDescription } from "@/components/common/micro/AppCard";
 import AppBadge from "@/components/common/micro/AppBadge";
 import AppProgress from "@/components/common/micro/AppProgress";
@@ -785,14 +786,9 @@ function ViolatingUsersChart() {
     );
 }
 
-// Mock data for system monitoring
-const systemData = Array.from({ length: 24 }).map((_, i) => ({
-    time: `${i.toString().padStart(2, '0')}:00`,
-    cpu: Math.floor(Math.random() * 40) + 20, // 20-60%
-    ram: Math.floor(Math.random() * 30) + 50, // 50-80%
-}));
-
 function SystemMonitorCharts() {
+    const { metricsData } = useSystemMetrics();
+
     const cpuConfig = {
         cpu: { label: "Sử dụng CPU", color: "var(--primary)" }
     };
@@ -820,7 +816,7 @@ function SystemMonitorCharts() {
                     </AppCardHeader>
                     <AppCardContent className="w-full pt-0 flex-1 flex flex-col min-h-0">
                         <ChartContainer config={cpuConfig} className="flex-1 w-full min-h-0 !aspect-auto">
-                            <AreaChart data={systemData} margin={{ top: 20, right: 10, left: 0, bottom: 0 }}>
+                            <AreaChart data={metricsData} margin={{ top: 20, right: 10, left: 0, bottom: 0 }}>
                                 <defs>
                                     <linearGradient id="colorCpu" x1="0" y1="0" x2="0" y2="1">
                                         <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.3}/>
@@ -846,7 +842,7 @@ function SystemMonitorCharts() {
                     </AppCardHeader>
                     <AppCardContent className="w-full pt-0 flex-1 flex flex-col min-h-0">
                         <ChartContainer config={ramConfig} className="flex-1 w-full min-h-0 !aspect-auto">
-                            <AreaChart data={systemData} margin={{ top: 20, right: 10, left: 0, bottom: 0 }}>
+                            <AreaChart data={metricsData} margin={{ top: 20, right: 10, left: 0, bottom: 0 }}>
                                 <defs>
                                     <linearGradient id="colorRam" x1="0" y1="0" x2="0" y2="1">
                                         <stop offset="5%" stopColor="var(--info)" stopOpacity={0.3}/>

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import AppBreadcrumb from "@/components/common/micro/AppBreadcrumb";
-import { ChevronRight, BookOpen, Trophy, Award, Clock, LayoutDashboard } from "lucide-react";
+import { ChevronRight, BookOpen, Trophy, Award, Clock, LayoutDashboard, Wallet, Eye, EyeOff } from "lucide-react";
 import { AppButton } from "@/components/common/micro/AppButton";
 import useAuthStore from "@/store/useAuthStore";
 import useAccountOverview from "@/hooks/user/useAccountOverview";
@@ -12,15 +12,22 @@ import AppPagination from "@/components/common/micro/AppPagination";
 import AppPageHeader from "@/components/common/composite/AppPageHeader";
 import { AppDialog } from "@/components/common/micro/AppDialog";
 import ApplyInstructor from "@/pages/general/ApplyInstructor";
+import WithdrawModal from "@/components/common/composite/WithdrawModal";
 
 export default function AccountOverview() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isInstructorDialogOpen, setIsInstructorDialogOpen] = useState(false);
   const [instructorDialogMode, setInstructorDialogMode] = useState("intro");
+  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
   const user = useAuthStore(state => state.user);
   const isInstructor = (user?.role || '').toUpperCase() === 'INSTRUCTOR';
 
-  const { stats, recentCourses, recentCertificates, loading } = useAccountOverview();
+  const { stats, recentCourses, recentCertificates, wallet, loading } = useAccountOverview();
+
+  const ITEMS_PER_PAGE = 5;
+  const totalPages = Math.max(1, Math.ceil(recentCourses.length / ITEMS_PER_PAGE));
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedCourses = recentCourses.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   const handleBecomeInstructor = () => {
     setInstructorDialogMode("intro");
@@ -64,7 +71,11 @@ export default function AccountOverview() {
         onConfirm={handleConfirmBecomeInstructor}
       />
 
-      <AccountStatsCards stats={stats} loading={loading} />
+      <AccountStatsCards 
+        stats={stats} 
+        loading={loading} 
+        onWithdrawClick={() => setIsWithdrawModalOpen(true)} 
+      />
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -115,7 +126,7 @@ export default function AccountOverview() {
           ) : (
             <div className="space-y-6">
               <div className="space-y-4">
-                {recentCourses.map((course) => (
+                {paginatedCourses.map((course) => (
                   <CourseProgressCard
                     key={course.id}
                     id={course.id}
@@ -131,7 +142,7 @@ export default function AccountOverview() {
               </div>
               <AppPagination 
                 currentPage={currentPage}
-                totalPages={5}
+                totalPages={totalPages}
                 onPageChange={setCurrentPage}
                 className="pt-2 border-t border-border/50"
               />
@@ -151,6 +162,14 @@ export default function AccountOverview() {
         </div>
         
       </div>
+
+      <WithdrawModal
+        isOpen={isWithdrawModalOpen}
+        onClose={() => setIsWithdrawModalOpen(false)}
+        wallet={wallet}
+        user={user}
+        onSuccess={() => { window.location.reload() }}
+      />
     </div>
   );
 }
@@ -240,25 +259,28 @@ function InstructorApplicationDialog({ open, mode, onOpenChange, onConfirm }) {
   );
 }
 
-function AccountStatsCards({ stats, loading }) {
+function AccountStatsCards({ stats, loading, onWithdrawClick }) {
+  const [showBalance, setShowBalance] = React.useState(false);
+
   const statItems = [
     { 
       label: "Khóa học đang học", 
       value: stats?.enrolledCourses || "0", 
       icon: BookOpen, 
-      color: "text-info bg-blue-50" 
+      color: "text-white bg-blue-500 shadow-sm" 
     },
     { 
       label: "Chứng chỉ đạt được", 
       value: stats?.completedCourses || "0", 
       icon: Award, 
-      color: "text-emerald-500 bg-emerald-50" 
+      color: "text-white bg-emerald-500 shadow-sm" 
     },
     { 
-      label: "Số giờ đã học", 
-      value: stats?.hoursStudied?.toFixed(1) || "0", 
-      icon: Clock, 
-      color: "text-purple-500 bg-purple-50" 
+      label: "Số dư", 
+      value: stats?.walletBalance != null ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(stats.walletBalance) : "0 ₫", 
+      icon: Wallet, 
+      color: "text-white bg-purple-500 shadow-sm",
+      isBalance: true
     },
   ];
 
@@ -285,13 +307,33 @@ function AccountStatsCards({ stats, loading }) {
       {statItems.map((stat) => {
         const Icon = stat.icon;
         return (
-          <AppCard key={stat.label} appVariant="default" className="border-border shadow-sm hover:shadow-md transition-shadow">
+          <AppCard key={stat.label} appVariant="default" className="border-border shadow-sm hover:shadow-md transition-shadow relative">
+            {stat.isBalance && (
+              <button 
+                onClick={onWithdrawClick}
+                className="absolute top-3 right-4 text-sm font-bold text-primary hover:underline z-10"
+              >
+                Rút tiền
+              </button>
+            )}
             <AppCardContent className="p-5 flex flex-col md:flex-row items-start md:items-center gap-4">
               <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${stat.color}`}>
                 <Icon className="w-6 h-6" />
               </div>
-              <div>
-                <p className="text-2xl font-bold text-foreground">{stat.value}</p>
+              <div className="flex-1 w-full">
+                <div className="flex items-center justify-between">
+                  <p className="text-2xl font-bold text-foreground">
+                    {stat.isBalance && !showBalance ? "******" : stat.value}
+                  </p>
+                  {stat.isBalance && (
+                    <button 
+                      onClick={() => setShowBalance(!showBalance)} 
+                      className="text-muted-foreground hover:text-foreground focus:outline-none mt-1"
+                    >
+                      {showBalance ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  )}
+                </div>
                 <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mt-0.5">{stat.label}</p>
               </div>
             </AppCardContent>

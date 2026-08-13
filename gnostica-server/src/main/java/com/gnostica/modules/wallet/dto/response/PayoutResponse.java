@@ -12,6 +12,7 @@ import java.util.UUID;
 @Builder
 public class PayoutResponse {
     private UUID id;
+    private String payoutCode;
     private BigDecimal amount;
     private Integer status;
     private LocalDateTime createdAt;

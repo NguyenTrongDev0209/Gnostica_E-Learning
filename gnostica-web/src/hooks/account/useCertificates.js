@@ -26,14 +26,15 @@ export default function useCertificates() {
               "from-emerald-500 to-teal-500"
             ];
             return {
-              id: c.certifiUrl || `CERT-${index}`,
-              courseId: index, // dummy if not available
+              id: c.certificateUrl || `CERT-${index}`,
+              courseSlug: c.courseSlug || null,
+              courseId: c.courseSlug || index,
               title: c.courseTitle,
               issueDate: c.completedAt ? new Date(c.completedAt).toLocaleDateString("vi-VN") : "",
               instructor: c.instructorName,
-              grade: "Hoàn thành", // No grade available yet
-              hours: "---", // No hours available yet
-              image: "https://images.unsplash.com/photo-1586717791821-3f44a563fc4c?q=80&w=400&auto=format&fit=crop",
+              grade: "Hoàn thành",
+              totalLessons: c.totalLessons || 0,
+              certUrl: c.certificateUrl,
               color: colors[index % colors.length]
             };
           });

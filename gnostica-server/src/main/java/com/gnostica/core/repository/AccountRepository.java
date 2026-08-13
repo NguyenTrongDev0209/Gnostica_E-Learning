@@ -21,4 +21,24 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
     Optional<Account> findByIdAndRoleName(UUID id, String roleName);
     java.util.List<Account> findByMetadataIsNotNull();
     Optional<Account> findByPhone(String phone);
+    @org.springframework.data.jpa.repository.Query("SELECT a FROM Account a WHERE " +
+            "(:isDummyRole = true OR a.role.name IN :roleNames) AND " +
+            "(:hasSearchTerm = false OR LOWER(a.email) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
+            "LOWER(a.fullName) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
+            "LOWER(a.phone) LIKE LOWER(CONCAT('%', :searchTerm, '%'))) AND " +
+            "(-1 IN :statuses OR a.status IN :statuses)")
+    org.springframework.data.domain.Page<Account> searchAccounts(
+            @org.springframework.data.repository.query.Param("isDummyRole") boolean isDummyRole,
+            @org.springframework.data.repository.query.Param("roleNames") java.util.List<String> roleNames,
+            @org.springframework.data.repository.query.Param("hasSearchTerm") boolean hasSearchTerm,
+            @org.springframework.data.repository.query.Param("searchTerm") String searchTerm,
+            @org.springframework.data.repository.query.Param("statuses") java.util.List<Integer> statuses,
+            org.springframework.data.domain.Pageable pageable);
+
+    long countByRoleNameIgnoreCaseAndStatus(String roleName, Integer status);
+
+    @org.springframework.data.jpa.repository.Query("SELECT COUNT(a) FROM Account a WHERE UPPER(a.role.name) = UPPER(:roleName) AND a.status = :status AND a.id != :id")
+    long countByRoleNameIgnoreCaseAndStatusAndIdNot(@org.springframework.data.repository.query.Param("roleName") String roleName, @org.springframework.data.repository.query.Param("status") Integer status, @org.springframework.data.repository.query.Param("id") UUID id);
+
+    org.springframework.data.domain.Page<Account> findByEmailContainingIgnoreCaseOrFullNameContainingIgnoreCase(String email, String fullName, org.springframework.data.domain.Pageable pageable);
 }

@@ -831,6 +831,7 @@ export function DataFilterPriceRange({
 }) {
   const defaultFormat = (v) => new Intl.NumberFormat('vi-VN').format(v) + ' đ';
   const fmt = formatValue || defaultFormat;
+  const normalizedValue = Array.isArray(value) && value.length >= 2 ? value : [min, max];
 
   return (
     <AppPopover>
@@ -846,9 +847,9 @@ export function DataFilterPriceRange({
           <h4 className="font-bold text-sm text-foreground uppercase tracking-widest">{title}</h4>
           
           <div className="flex items-center justify-between text-xs font-bold text-foreground">
-            <span className="bg-primary/10 text-primary px-2.5 py-1 rounded-lg border border-primary/20">{fmt(value[0])}</span>
+            <span className="bg-primary/10 text-primary px-2.5 py-1 rounded-lg border border-primary/20">{fmt(normalizedValue[0])}</span>
             <span className="text-muted-foreground mx-2">—</span>
-            <span className="bg-primary/10 text-primary px-2.5 py-1 rounded-lg border border-primary/20">{fmt(value[1])}</span>
+            <span className="bg-primary/10 text-primary px-2.5 py-1 rounded-lg border border-primary/20">{fmt(normalizedValue[1])}</span>
           </div>
 
           <div className="px-1">
@@ -856,7 +857,7 @@ export function DataFilterPriceRange({
               min={min}
               max={max}
               step={step}
-              value={value}
+              value={normalizedValue}
               onValueChange={onValueChange}
               className="w-full"
             />

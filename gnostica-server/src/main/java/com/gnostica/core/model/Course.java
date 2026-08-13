@@ -79,7 +79,7 @@ public class Course {
     private Integer versionNumber;
 
     /**
-     * Status: 0: Rejected (Từ chối), 1: Draft (Bản nháp), 2: Pending (Chờ duyệt), 3: Published (Đã xuất bản), 4: Archived (Lưu trữ)
+     * Status: 1: Published/Active, 2: Pending, 3: Rejected, 4: Draft.
      */
     @NotNull
     private Integer status;

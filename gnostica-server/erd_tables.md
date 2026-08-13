@@ -549,23 +549,16 @@
 |---|--------|---------------|---------|-------|
 | 1 | id | UUID | PK | |
 | 2 | order_id | UUID | FK | |
-| 3 | transaction_code | VARCHAR(255) | UQ | |
-| 4 | amount | DECIMAL(18,6) | | `> 0` |
-| 5 | account_number | VARCHAR(255) | | |
-| 6 | sender_bank_bin | VARCHAR(255) | | |
-| 7 | sender_account_number | VARCHAR(255) | | |
-| 8 | gateway | VARCHAR(32) | IDX | |
-| 9 | gateway_transaction_no | VARCHAR(255) | C-UQ | |
-| 10 | bank_code | VARCHAR(32) | | |
-| 11 | card_type | VARCHAR(32) | | |
-| 12 | gateway_response_code | VARCHAR(16) | | |
-| 13 | gateway_transaction_status | VARCHAR(16) | | |
-| 14 | paid_at | DATETIME | IDX | |
-| 15 | raw_callback | JSONB | | |
-| 16 | status | INT | | |
-| 17 | created_at | DATETIME | | |
-| 18 | updated_at | DATETIME | | |
-> **Note:** Một order có thể có nhiều payment attempts nếu retry/cổng thanh toán khác nhau; `transaction_code` dùng để chống xử lý trùng webhook. `gateway + gateway_transaction_no` là unique có điều kiện khi `gateway_transaction_no` khác null.
+| 3 | payment_code | VARCHAR(12) | IDX | = order_code (mã hiển thị 12 số) |
+| 4 | amount | DECIMAL(18,6) | | `>= 0` |
+| 5 | gateway | VARCHAR(32) | IDX | |
+| 6 | gateway_transaction_no | VARCHAR(255) | C-UQ | |
+| 7 | paid_at | DATETIME | IDX | |
+| 8 | payload | JSONB | Lưu thông tin ngân hàng/callback | |
+| 9 | status | INT | | |
+| 10 | created_at | DATETIME | | |
+| 11 | updated_at | DATETIME | | |
+> **Note:** Một order có thể có nhiều payment attempts nếu retry/cổng thanh toán khác nhau; `payment_code` = `order_code` (mã hiển thị 12 số, non-unique — chỉ index). Chống xử lý trùng webhook dùng `gateway + gateway_transaction_no` (unique có điều kiện khi `gateway_transaction_no` khác null). Phiên bản 7: Đơn FREE (0đ) có Payment record.
 >
 > **Status:** 1: Pending (Chờ xử lý), 2: Success (Thành công), 3: Failed (Thất bại), 4: Refunded (Đã hoàn tiền)
 
@@ -583,9 +576,16 @@
 | 5 | status | INT | |
 | 6 | created_at | DATETIME | |
 | 7 | updated_at | DATETIME | | |
+| 8 | gateway_payout_id | VARCHAR | unique | |
+| 9 | payout_code | VARCHAR(12) | UQ | |
+| 10 | idempotency_key | VARCHAR | | |
+| 11 | submission_attempts | INT | default 0 | |
+| 12 | last_submission_at | DATETIME | | |
+| 13 | last_submission_error | VARCHAR(500) | | |
+| 14 | metadata | JSONB | | |
 > **Note:** Payout là yêu cầu rút tiền từ wallet về account bank. Nên khóa/ghi nhận số dư tại thời điểm tạo payout ở tầng nghiệp vụ để tránh chi vượt.
 >
-> **Status:** 1: Pending (Chờ duyệt), 2: Processing (Đang chuyển), 3: Completed (Hoàn tất), 4: Failed (Lỗi), 5: Rejected (Từ chối)
+> **Status:** 1: Pending (Chờ duyệt), 2: Processing (Đang chuyển), 3: Completed (Hoàn tất), 4: Failed (Lỗi), 5: Rejected (Từ chối), 6: Awaiting approval (Chờ admin duyệt — lệnh >= 5.000.000đ, chưa submit PayOS cho tới khi admin approve)
 
 
 ---
@@ -927,4 +927,44 @@
 > **Status:** 0: Draft/Hidden (Nháp/Ẩn), 1: Published (Hiển thị)
 
 
+---
 
+## 43. Gifts
+
+| # | Trường | Kiểu dữ liệu | Ghi chú | CHECK |
+|---|--------|---------------|---------|-------|
+| 1 | id | UUID | PK | |
+| 2 | sender_id | UUID | FK | |
+| 3 | receiver_id | UUID | FK | |
+| 4 | course_id | UUID | FK | |
+| 5 | order_id | UUID | FK | |
+| 6 | token | VARCHAR(255) | UQ | |
+| 7 | gift_code | VARCHAR(12) | UQ | |
+| 8 | message | TEXT | | |
+| 9 | status | INT | | |
+| 10 | expired_at | DATETIME | | |
+| 11 | created_at | DATETIME | | |
+| 12 | updated_at | DATETIME | | |
+
+> **Status:** 0: PENDING (Chờ nhận), 1: ACCEPTED (Đã nhận), 2: REJECTED (Từ chối), 3: EXPIRED (Hết hạn)
+
+---
+
+## 44. Refunds
+
+| # | Trường | Kiểu dữ liệu | Ghi chú | CHECK |
+|---|--------|---------------|---------|-------|
+| 1 | id | UUID | PK | |
+| 2 | refund_code | VARCHAR(12) | UQ | |
+| 3 | order_detail_id | UUID | FK | |
+| 4 | account_id | UUID | FK | |
+| 5 | amount | DECIMAL(18,6) | | `>= 0` |
+| 6 | reason | TEXT | | |
+| 7 | status | INT | | |
+| 8 | decision_type | VARCHAR(20) | | |
+| 9 | created_at | DATETIME | | |
+| 10 | updated_at | DATETIME | | |
+
+> **Note:** Quản lý yêu cầu hoàn tiền. `decision_type` dùng để ghi nhận loại quyết định (AUTO_APPROVED, AUTO_REJECTED, MANUAL_APPROVED, MANUAL_REJECTED).
+>
+> **Status:** 1: PENDING (Đang chờ), 2: APPROVED (Đã duyệt), 3: REJECTED (Bị từ chối)

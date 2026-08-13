@@ -38,8 +38,10 @@ public class DotenvEnvironmentPostProcessor implements EnvironmentPostProcessor 
         dotenv.entries().forEach(entry -> props.put(entry.getKey(), entry.getValue()));
 
         if (!props.isEmpty()) {
-            // Add with lowest priority so explicit env vars still win
-            environment.getPropertySources().addLast(
+            // Add immediately after system environment so explicit env vars still win,
+            // but it precedes application.properties
+            environment.getPropertySources().addAfter(
+                    StandardEnvironment.SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME,
                     new MapPropertySource("dotenvProperties", props)
             );
         }
@@ -67,7 +69,7 @@ public class DotenvEnvironmentPostProcessor implements EnvironmentPostProcessor 
             // A local server is not publicly reachable by PayOS, so use polling.
             props.put("PAYOS_WEBHOOK_ENABLED", "false");
             props.put("VNPAY_RETURN_URL", environment.getProperty(
-                    "VNPAY_DEV_RETURN_URL", "http://localhost:8080/api/payment/vnpay/return"));
+                    "VNPAY_DEV_RETURN_URL", "http://localhost:8080/api/checkout/payments/vnpay/return"));
             props.put("VNPAY_FRONTEND_RETURN_URL", environment.getProperty(
                     "VNPAY_DEV_FRONTEND_RETURN_URL", "http://localhost:5173/checkout"));
             return props;
@@ -101,3 +103,4 @@ public class DotenvEnvironmentPostProcessor implements EnvironmentPostProcessor 
         }
     }
 }
+

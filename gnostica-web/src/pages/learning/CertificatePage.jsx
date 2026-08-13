@@ -90,9 +90,7 @@ export default function CertificatePage() {
                     <div className="flex items-center">
                         <img src="/Gnostica_Mark.webp" alt="Gnostica Logo" className="h-15 object-contain" />
                     </div>
-                    <div className="text-right text-[10px] md:text-xs font-medium text-muted-foreground">
-                        <p>Số giấy chứng nhận: {certificate.certifiUrl}</p>
-                    </div>
+                    <div />
                 </div>
 
                 {/* Nội dung chính */}

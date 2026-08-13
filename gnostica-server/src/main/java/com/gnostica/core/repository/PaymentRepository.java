@@ -12,10 +12,12 @@ import java.math.BigDecimal;
 
 @Repository
 public interface PaymentRepository extends JpaRepository<Payment, java.util.UUID> {
-    boolean existsByTransactionCode(String transactionCode);
     boolean existsByGatewayAndGatewayTransactionNo(String gateway, String gatewayTransactionNo);
     List<Payment> findByOrder(Order order);
     List<Payment> findByCreatedAtAfter(LocalDateTime createdAt);
+
+    @Query("SELECT p FROM Payment p WHERE p.order.id IN :orderIds ORDER BY p.createdAt DESC")
+    List<Payment> findByOrderIdsOrderByCreatedAtDesc(@Param("orderIds") java.util.Collection<java.util.UUID> orderIds);
 
     @Query("SELECT SUM(p.amount) FROM Payment p WHERE p.status = :status")
     BigDecimal sumAmountByStatus(@Param("status") Integer status);

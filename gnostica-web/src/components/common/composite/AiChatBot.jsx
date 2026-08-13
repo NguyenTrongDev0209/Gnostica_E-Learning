@@ -1,20 +1,40 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
     MessageCircle, X, Send, Bot, User, Loader2, Minimize2, Maximize2,
-    ThumbsUp, Folder, Image as ImageIcon, Paperclip, CheckCircle, UploadCloud, Ticket
+    ThumbsUp, Folder, Image as ImageIcon, Paperclip, CheckCircle, UploadCloud, Ticket,
+    BookOpen, PlayCircle, Eye, ChevronRight
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { sendChatMessage, uploadChatImage } from '@/services/admin/aiService';
+import { sendChatMessage, uploadChatImage, getAiQuota } from '@/services/admin/aiService';
+import enrollmentService from '@/services/course/enrollmentService';
+import { threadService } from '@/services/forum/threadService';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import useAuthStore from '@/store/useAuthStore';
 
 const FAQS = [
-    { id: '1', text: 'Tìm kiếm khóa học Java' },
-    { id: '2', text: 'Xem các bài viết nổi bật' },
-    { id: '3', text: 'Thành viên đóng góp tích cực nhất' },
+    { id: '1', text: 'Tiến độ học tập của tôi' },
+    { id: '2', text: 'Các bài viết nổi bật' },
+    { id: '3', text: 'Tìm kiếm khóa học Java' },
     { id: '4', text: 'Chuyên mục thảo luận diễn đàn' }
 ];
+
+const isProgressQuery = (text) => {
+    if (!text) return false;
+    const lower = text.toLowerCase();
+    return lower.includes('tiến độ') || lower.includes('khóa học của tôi') ||
+           lower.includes('học của tôi') || lower.includes('progress') ||
+           lower.includes('đang học') || lower.includes('tiếp tục học');
+};
+
+const isForumQuery = (text) => {
+    if (!text) return false;
+    const lower = text.toLowerCase();
+    return lower.includes('bài viết nổi bật') || lower.includes('bài đăng nổi bật') ||
+           lower.includes('bài viết xem nhiều') || lower.includes('bài viết hot') ||
+           lower.includes('xem nhiều nhất') || lower.includes('diễn đàn nổi bật') ||
+           lower.includes('top bài viết');
+};
 
 /**
  * Component khung Upload tối đa 3 ảnh trực tiếp trong chat.
@@ -190,14 +210,24 @@ const AiChatBot = () => {
         { role: 'assistant', content: 'Xin chào! Tôi là trợ lý ảo của Gnostica E-Learning. Tôi có thể giúp gì cho bạn hôm nay?' }
     ]);
     const [input, setInput] = useState('');
+    const [sessionId, setSessionId] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const [isMinimized, setIsMinimized] = useState(false);
     const [attachedImageUrl, setAttachedImageUrl] = useState(null);
     const [isUploadingInputImage, setIsUploadingInputImage] = useState(false);
+    const [quota, setQuota] = useState({ dailyLimit: 15, remaining: 15, used: 0 });
     const bottomFileInputRef = useRef(null);
 
     const userMessageCount = messages.filter(m => m.role === 'user').length;
     const isGuestLimitReached = !isAuthenticated && userMessageCount >= 5;
+
+    const fetchQuota = () => {
+        if (isAuthenticated) {
+            getAiQuota().then(data => {
+                if (data?.remaining !== undefined) setQuota(data);
+            }).catch(() => {});
+        }
+    };
 
     const messagesEndRef = useRef(null);
 
@@ -376,6 +406,82 @@ const AiChatBot = () => {
                             return <ImageUploadWidget key={index} onSubmitted={handleImageUploadedFromWidget} />;
                         }
 
+                        // Card Tiến độ học tập
+                        if (type === 'progress') {
+                            const percent = Math.min(100, Math.max(0, parseFloat(info) || 0));
+                            const linkTo = `/courses/${id}`;
+                            return (
+                                <div key={index} className="mt-2 mb-1 bg-white border border-blue-100 rounded-xl p-3 shadow-sm hover:shadow-md hover:border-blue-300 transition-all duration-200">
+                                    <div className="flex items-start gap-2.5">
+                                        {imgUrl && imgUrl !== 'none' ? (
+                                            <img src={imgUrl} alt={title} className="w-12 h-12 rounded-lg object-cover shrink-0 border border-slate-100" />
+                                        ) : (
+                                            <div className="w-12 h-12 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0">
+                                                <BookOpen className="w-5 h-5 text-blue-500" />
+                                            </div>
+                                        )}
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-[11px] font-semibold text-blue-600 mb-0.5">Khóa học đang học</p>
+                                            <p className="font-bold text-[13px] text-slate-800 leading-tight line-clamp-2 mb-1.5">{title}</p>
+                                            <div className="flex items-center justify-between text-[11px] text-slate-500 mb-1">
+                                                <span>{author}</span>
+                                                <span className="font-bold text-blue-600">{percent}%</span>
+                                            </div>
+                                            <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden mb-2">
+                                                <div
+                                                    className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-500"
+                                                    style={{ width: `${percent}%` }}
+                                                />
+                                            </div>
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-[10px] text-slate-400">{category}</span>
+                                                <button
+                                                    onClick={() => navigate(linkTo)}
+                                                    className="flex items-center gap-1 text-[11px] font-semibold text-white bg-blue-600 hover:bg-blue-700 px-2.5 py-1 rounded-lg transition-colors"
+                                                >
+                                                    <PlayCircle className="w-3 h-3" />
+                                                    Tiếp tục học
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        }
+
+                        // Card Bài viết diễn đàn (thread)
+                        if (type === 'thread') {
+                            return (
+                                <Link
+                                    key={index}
+                                    to={`/forum/${id}`}
+                                    className="mt-2 mb-1 flex items-start gap-2.5 bg-white border border-slate-100 rounded-xl p-3 shadow-sm hover:shadow-md hover:border-primary/30 transition-all duration-200 group"
+                                >
+                                    {imgUrl && imgUrl !== 'none' ? (
+                                        <img src={imgUrl} alt={title} className="w-12 h-12 rounded-lg object-cover shrink-0 border border-slate-100" />
+                                    ) : (
+                                        <div className="w-12 h-12 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0">
+                                            <Eye className="w-5 h-5 text-slate-400" />
+                                        </div>
+                                    )}
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-1 text-[10px] text-muted-foreground mb-0.5">
+                                            <span className="font-semibold text-primary">{category}</span>
+                                            <span>•</span>
+                                            <span className="truncate">{author}</span>
+                                        </div>
+                                        <p className="font-bold text-[13px] text-slate-800 leading-tight line-clamp-2 mb-1.5 group-hover:text-primary transition-colors">{title}</p>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-[11px] text-slate-500 flex items-center gap-1">
+                                                <Eye className="w-3 h-3" />{info}
+                                            </span>
+                                            <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-primary transition-colors" />
+                                        </div>
+                                    </div>
+                                </Link>
+                            );
+                        }
+
                         const isCourse = type === 'course';
                         let linkTo = '#';
                         let icon = <Folder className="w-3.5 h-3.5" />;
@@ -478,6 +584,12 @@ const AiChatBot = () => {
             return;
         }
 
+        // Giới hạn 15 lượt/ngày khi đã đăng nhập
+        if (isAuthenticated && quota.remaining <= 0) {
+            toast.error('Bạn đã sử dụng hết 15 lượt hỏi AI hôm nay. Vui lòng quay lại vào ngày mai!');
+            return;
+        }
+
         // Chặn gửi yêu cầu hỗ trợ khi chưa đăng nhập
         const isSupportRequest = finalInput.toLowerCase().includes('yêu cầu hỗ trợ') ||
                                 finalInput.toLowerCase().includes('tôi cần hỗ trợ') ||
@@ -504,8 +616,79 @@ const AiChatBot = () => {
         setIsLoading(true);
 
         try {
+            // 1. Xử lý câu hỏi về tiến độ học tập
+            if (isProgressQuery(finalInput) && isAuthenticated) {
+                try {
+                    const data = await enrollmentService.getMyCourses();
+                    const list = Array.isArray(data) ? data : (data?.data || data?.content || []);
+                    if (list.length > 0) {
+                        const top5 = list.slice(0, 5);
+                        const cardsStr = top5.map(c => {
+                            const cId = c.slug || c.courseSlug || c.courseId || c.id;
+                            const title = c.title || c.courseTitle || 'Khóa học';
+                            const percent = c.progressPercent !== undefined ? c.progressPercent : (c.progress || 0);
+                            const lessonsInfo = `${c.completedLessons || 0}/${c.totalLessons || 0} bài`;
+                            const last = c.lastLesson || 'Bài học tiếp theo';
+                            const thumb = c.thumbnail || c.courseThumbnail || 'none';
+                            return `[[CARD:progress|${cId}|${title}|${percent}|${lessonsInfo}|${last}|${thumb}]]`;
+                        }).join('\n\n');
+                        setMessages(prev => [...prev, {
+                            role: 'assistant',
+                            content: `Dưới đây là 5 khóa học mới nhất cùng tiến độ học tập của bạn:\n\n${cardsStr}`
+                        }]);
+                    } else {
+                        setMessages(prev => [...prev, {
+                            role: 'assistant',
+                            content: 'Bạn hiện chưa đăng ký khóa học nào. Hãy khám phá danh sách khóa học và bắt đầu học ngay nhé!'
+                        }]);
+                    }
+                    return;
+                } catch (err) {
+                    console.error('Error fetching enrollment for AI:', err);
+                }
+            }
+
+            // 2. Xử lý câu hỏi về bài viết nổi bật
+            if (isForumQuery(finalInput)) {
+                try {
+                    const data = await threadService.getThreads(0, 100);
+                    const list = Array.isArray(data) ? data : (data?.content || data?.data?.content || []);
+                    const sorted = [...list].sort((a, b) => (b.viewCount ?? b.views ?? 0) - (a.viewCount ?? a.views ?? 0));
+                    const top5 = sorted.slice(0, 5);
+                    if (top5.length > 0) {
+                        const cardsStr = top5.map(t => {
+                            const tId = t.id;
+                            const title = t.title || 'Bài viết diễn đàn';
+                            const views = t.viewCount ?? t.views ?? 1;
+                            const likes = t.likes ?? t.voteScore ?? 0;
+                            const info = `${views} lượt xem • ${likes} bình chọn`;
+                            const author = t.account?.fullName || t.authorName || 'Tác giả';
+                            const category = t.topic?.name || t.category?.name || 'Diễn đàn Gnostica';
+                            const img = (t.images && t.images[0]) || 'none';
+                            return `[[CARD:thread|${tId}|${title}|${info}|${author}|${category}|${img}]]`;
+                        }).join('\n\n');
+                        setMessages(prev => [...prev, {
+                            role: 'assistant',
+                            content: `Top 5 bài viết được xem nhiều nhất trên Diễn đàn Gnostica:\n\n${cardsStr}`
+                        }]);
+                    } else {
+                        setMessages(prev => [...prev, {
+                            role: 'assistant',
+                            content: 'Hiện chưa có bài viết nào trên diễn đàn.'
+                        }]);
+                    }
+                    return;
+                } catch (err) {
+                    console.error('Error fetching forum posts for AI:', err);
+                }
+            }
+
+            // 3. Gửi AI bình thường
             const chatHistory = [...messages, userMessage];
-            const response = await sendChatMessage(chatHistory);
+            const response = await sendChatMessage(chatHistory, sessionId);
+            if (response?.sessionId) {
+                setSessionId(response.sessionId);
+            }
             setMessages(prev => [...prev, { role: 'assistant', content: response.content }]);
         } catch (error) {
             toast.error('Dịch vụ đang gặp sự cố, vui lòng thử lại trong ít phút.');
@@ -513,12 +696,15 @@ const AiChatBot = () => {
             console.error(error);
         } finally {
             setIsLoading(false);
+            fetchQuota();
         }
     };
 
     const toggleChat = () => {
-        setIsOpen(!isOpen);
+        const opening = !isOpen;
+        setIsOpen(opening);
         if (isMinimized) setIsMinimized(false);
+        if (opening) fetchQuota();
     };
 
     if (!isOpen) {
@@ -571,7 +757,9 @@ const AiChatBot = () => {
                         <h3 className="font-bold text-sm leading-tight">Gnostica Assistant</h3>
                         {!isMinimized && (
                             <p className="text-[10px] opacity-80">
-                                {isAuthenticated ? 'Đang trực tuyến' : `Khách (${userMessageCount}/5 câu hỏi)`}
+                                {isAuthenticated
+                                    ? `Còn ${quota.remaining}/${quota.dailyLimit} lượt hôm nay`
+                                    : `Khách (${userMessageCount}/5 câu hỏi)`}
                             </p>
                         )}
                     </div>

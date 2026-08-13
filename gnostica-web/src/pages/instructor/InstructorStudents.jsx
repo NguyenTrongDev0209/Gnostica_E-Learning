@@ -13,8 +13,12 @@ import {
   ArrowUpDown,
   Eye,
   GraduationCap,
-  X
+  X,
+  MessageSquare
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { useCreateConversation } from "@/hooks/messaging/useCreateConversation";
 import AppCard, { AppCardContent } from "@/components/common/micro/AppCard";
 import { AppButton, TableActionIconButton } from "@/components/common/micro/AppButton";
 import AppInput from "@/components/common/micro/AppInput";
@@ -180,6 +184,21 @@ function InstructorStudentTable({ students, isLoading, onActionClick, onCoursesC
 const StudentCoursesModal = ({ isOpen, onClose, student }) => {
     const [courses, setCourses] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
+    const navigate = useNavigate();
+    const { createForInstructor, isCreatingInstructor } = useCreateConversation();
+
+    const handleMessageStudent = async (courseId) => {
+        if (!student?.id || !courseId) return;
+        try {
+            const conversation = await createForInstructor({ courseId, studentId: student.id });
+            if (conversation?.id) {
+                onClose();
+                navigate(`/instructor/messages/${conversation.id}`);
+            }
+        } catch (err) {
+            toast.error(err?.response?.data?.message || "Không thể khởi tạo cuộc trò chuyện.");
+        }
+    };
 
     useEffect(() => {
         const fetchStudentCourses = async () => {
@@ -306,9 +325,20 @@ const StudentCoursesModal = ({ isOpen, onClose, student }) => {
                                             <span className="text-xs text-muted-foreground">Ghi danh</span>
                                         </td>
                                         <td className="py-4 px-4 text-center">
-                                            <button className="p-1.5 hover:bg-primary/5 text-muted-foreground hover:text-primary rounded-lg transition-colors">
-                                                <Eye className="w-4 h-4" />
-                                            </button>
+                                            <div className="flex items-center justify-center gap-1">
+                                                <button
+                                                    onClick={() => handleMessageStudent(course.courseId || course.id)}
+                                                    disabled={isCreatingInstructor}
+                                                    title="Nhắn tin với học viên"
+                                                    className="px-2 py-1.5 hover:bg-primary/10 text-primary rounded-lg transition-colors inline-flex items-center gap-1 text-xs font-bold border border-primary/20"
+                                                >
+                                                    <MessageSquare className="w-3.5 h-3.5" />
+                                                    <span>Nhắn tin</span>
+                                                </button>
+                                                <button className="p-1.5 hover:bg-primary/5 text-muted-foreground hover:text-primary rounded-lg transition-colors">
+                                                    <Eye className="w-4 h-4" />
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
@@ -344,8 +374,8 @@ export default function InstructorStudents() {
 
     let matchDate = true;
     if (dateRange?.from) {
-      // Assuming student has joinedAt or createdAt. Let's use joinedAt if available, else skip filtering or assume joinedAt
-      const dateVal = student.joinedAt || student.createdAt;
+      // Assuming student has joinedDate
+      const dateVal = student.joinedDate;
       if (dateVal) {
         const itemDate = new Date(dateVal);
         const from = new Date(dateRange.from);

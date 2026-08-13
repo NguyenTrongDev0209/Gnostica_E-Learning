@@ -36,17 +36,22 @@ public class WalletController {
         return ResponseEntity.ok(walletService.getMyTransactions());
     }
 
+    @GetMapping("/history")
+    public ResponseEntity<List<WalletTransactionResponse>> getMyTransactionHistory() {
+        return ResponseEntity.ok(walletService.getMyTransactionHistory());
+    }
+
     @GetMapping("/stats")
     public ResponseEntity<Map<String, Object>> getWalletStats() {
         WalletOverviewResponse wallet = walletService.getMyWalletOverview();
-        List<PayoutResponse> payouts = walletService.getMyTransactions();
+        List<WalletTransactionResponse> history = walletService.getMyTransactionHistory();
 
         Map<String, Object> stats = new HashMap<>();
         stats.put("balance", wallet.getRemain());
         stats.put("totalRevenue", wallet.getTotalRevenue());
         stats.put("currentMonthRevenue", wallet.getCurrentMonthRevenue());
         stats.put("pendingRevenue", wallet.getPendingRevenue());
-        stats.put("transactionCount", payouts.size());
+        stats.put("transactionCount", history.size());
 
         return ResponseEntity.ok(stats);
     }

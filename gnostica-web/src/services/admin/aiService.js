@@ -2,9 +2,10 @@ import axiosClient from '@/lib/axiosClient';
 
 const API_URL = '/ai'; // Adjust base URL if needed
 
-export const sendChatMessage = async (messages) => {
+export const sendChatMessage = async (messages, sessionId = null) => {
     try {
         const response = await axiosClient.post(`${API_URL}/chat`, {
+            sessionId: sessionId,
             messages: messages.map(m => ({
                 role: m.role,
                 content: m.content
@@ -30,6 +31,16 @@ export const uploadChatImage = async (file) => {
     } catch (error) {
         console.error('Error uploading chat image:', error);
         throw error;
+    }
+};
+
+export const getAiQuota = async () => {
+    try {
+        const response = await axiosClient.get(`${API_URL}/quota`);
+        return response.data?.data || response.data || { dailyLimit: 15, remaining: 15, used: 0 };
+    } catch (error) {
+        console.error('Error fetching AI quota:', error);
+        return { dailyLimit: 15, remaining: 15, used: 0 };
     }
 };
 

@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
 import instructorService from '@/services/instructor/instructorService';
-import { USE_INSTRUCTOR_MOCK, MOCK_STUDENTS } from "@/mocks/instructorMockData";
 
 export function useInstructorStudents() {
   const { data, isLoading } = useQuery({
@@ -10,17 +9,25 @@ export function useInstructorStudents() {
       try {
         res = await instructorService.getMyStudents();
       } catch (e) {
-        if (USE_INSTRUCTOR_MOCK) {
-          console.log("Using Mock Data for Students due to error");
-        } else {
-          throw e;
-        }
+        console.error("Failed to fetch instructor students:", e);
+        return { students: [], stats: { total: 0, completed: 0, learning: 0, active: 0 } };
       }
 
-      let students = res?.data || res || [];
-      if (USE_INSTRUCTOR_MOCK && (!students || students.length === 0)) {
-        students = MOCK_STUDENTS;
+      // Backend returns ApiResponse where the actual array is in res.data
+      let students = res?.data || [];
+      if (!Array.isArray(students) && Array.isArray(res)) {
+        students = res;
       }
+      
+      // Add status property for the UI indicator and fallback avatar
+      students = students.map(s => {
+          const isActive = s.lastActive && !s.lastActive.includes("ngày") && !s.lastActive.includes("/");
+          return {
+              ...s,
+              status: isActive ? "active" : "inactive",
+              avatar: s.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(s.name)}&background=random`
+          };
+      });
       
       const total = students.length;
       const completed = students.filter(s => s.progress === 100).length;

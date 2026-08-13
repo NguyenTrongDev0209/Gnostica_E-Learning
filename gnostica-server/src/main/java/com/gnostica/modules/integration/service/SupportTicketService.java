@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.UUID;
 
 /**
@@ -79,6 +80,7 @@ public class SupportTicketService {
                     .priority(priority)
                     .status(0) // 0: Open - Chờ xử lý
                     .metadata(metadata)
+                    .supportCode(generateSupportCode())
                     .build();
 
             ticket = supportRepository.save(ticket);
@@ -138,5 +140,14 @@ public class SupportTicketService {
             case 3 -> "Cao";
             default -> "Không xác định";
         };
+    }
+
+    private String generateSupportCode() {
+        StringBuilder code = new StringBuilder("SC");
+        Random random = new Random();
+        for (int i = 0; i < 12; i++) {
+            code.append(random.nextInt(10));
+        }
+        return code.toString();
     }
 }

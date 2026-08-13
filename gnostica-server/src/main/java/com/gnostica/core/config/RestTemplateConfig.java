@@ -9,10 +9,10 @@ import org.springframework.web.client.RestTemplate;
 @Configuration
 public class RestTemplateConfig {
 
-    @Value("${openrouter.connect-timeout:60000}")
+    @Value("${deepseek.connect-timeout:60000}")
     private int connectTimeout;
 
-    @Value("${openrouter.read-timeout:180000}")
+    @Value("${deepseek.read-timeout:180000}")
     private int readTimeout;
 
     @Bean

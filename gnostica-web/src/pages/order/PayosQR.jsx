@@ -159,11 +159,18 @@ export default function PayosQR({
           return;
         } else if (response.error !== 0) {
           console.error("API Error:", response.message);
-        } else if (currentStatus === 2) {
-          // status 2 = CANCELLED (nếu có)
+        } else if (currentStatus === 3) {
+          // Backend OrderStatus: 0=PENDING, 1=PAID, 2=REFUNDED, 3=CANCELLED
+          // 3 = CANCELLED (user hủy / hết hạn) → dừng polling, báo trạng thái hủy
           isPolling = false;
           setStatus("cancelled");
           toast.error("Đơn hàng đã bị hủy.");
+          return;
+        } else if (currentStatus === 2) {
+          // 2 = REFUNDED (hoàn tiền) → dừng polling, báo rõ trạng thái
+          isPolling = false;
+          setStatus("cancelled");
+          toast.info("Đơn hàng đã được hoàn tiền.");
           return;
         }
       } catch (error) {

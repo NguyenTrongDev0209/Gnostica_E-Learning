@@ -2,7 +2,7 @@ import AppText from '../../components/ui/AppText';
 import React, { useState, useEffect } from 'react';
 import { View, ScrollView, TouchableOpacity, Image, Dimensions, ActivityIndicator, Modal } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { ArrowLeft, Users, Clock, ChevronDown, ChevronUp, BookOpen, ShoppingBag, Star, PlayCircle, FileText, Bookmark, X } from 'lucide-react-native';
+import { ArrowLeft, Users, Clock, ChevronDown, ChevronUp, BookOpen, ShoppingBag, Star, PlayCircle, FileText, Bookmark, X, Gift } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import RatingStars from '../../components/ui/RatingStars';
 import Button from '../../components/ui/Button';
@@ -44,13 +44,39 @@ const CourseDetailScreen = () => {
     const { cartItems, addToCart } = useCart();
     const { user } = useAuth();
 
-    const courseParams = route.params?.course;
+    const courseParams = route.params?.course || (
+        (route.params?.slug || route.params?.id) ? {
+            slug: route.params?.slug || route.params?.id,
+            id: route.params?.id || route.params?.slug,
+            title: route.params?.title || 'Khóa học'
+        } : null
+    );
     const [courseDetail, setCourseDetail] = useState(null);
     const [activeTab, setActiveTab] = useState('desc');
     const [expandedSection, setExpandedSection] = useState(null);
     const [isSaved, setIsSaved] = useState(false);
     const [loadingSave, setLoadingSave] = useState(false);
     const [isPromoVideoOpen, setIsPromoVideoOpen] = useState(false);
+    // Server-signed embed URL (Bunny embed token auth), fetched when the
+    // trailer opens so the token is always fresh.
+    const [promoEmbedUrl, setPromoEmbedUrl] = useState(null);
+
+    const promoSlug = courseParams?.slug || courseDetail?.slug || targetSlugOrId;
+
+    useEffect(() => {
+        if (!isPromoVideoOpen || !promoSlug) return;
+        let cancelled = false;
+        setPromoEmbedUrl(null);
+        courseService.getPromoPlayback(promoSlug)
+            .then((res) => {
+                const data = res?.data ?? res;
+                if (!cancelled) setPromoEmbedUrl(data?.embedUrl || null);
+            })
+            .catch(() => {
+                if (!cancelled) setPromoEmbedUrl(null);
+            });
+        return () => { cancelled = true; };
+    }, [isPromoVideoOpen, promoSlug]);
     
     const formatPrice = (value) => {
         if (!value) return '0 đ';
@@ -66,11 +92,13 @@ const CourseDetailScreen = () => {
     } : courseParams;
     const badge = course?.badge ? BADGE_COLORS[course.badge] : null;
 
+    const targetSlugOrId = courseParams?.slug || route.params?.slug || route.params?.id;
+
     useEffect(() => {
-        if (courseParams?.slug) {
+        if (targetSlugOrId) {
             const fetchDetail = async () => {
                 try {
-                    const data = await courseService.getBySlug(courseParams.slug);
+                    const data = await courseService.getBySlug(targetSlugOrId);
                     setCourseDetail(data.data || data);
                 } catch (e) {
                     console.error('Error fetching course detail:', e);
@@ -78,7 +106,7 @@ const CourseDetailScreen = () => {
             };
             fetchDetail();
         }
-    }, [courseParams?.slug]);
+    }, [targetSlugOrId]);
 
     const targetCourseId = courseParams?.id || courseDetail?.id || course?.id;
 
@@ -119,7 +147,14 @@ const CourseDetailScreen = () => {
         }
     };
 
-    if (!course) return null;
+    if (!course) {
+        return (
+            <View style={{ flex: 1, backgroundColor: '#f8fafc', justifyContent: 'center', alignItems: 'center' }}>
+                <ActivityIndicator size="large" color="#2563eb" />
+                <AppText style={{ marginTop: 12, color: '#64748b', fontSize: 13 }}>Đang tải thông tin khóa học...</AppText>
+            </View>
+        );
+    }
 
     const isInCart = cartItems.some(item => item.id === course.id);
 
@@ -284,7 +319,11 @@ const CourseDetailScreen = () => {
                         </View>
                         <View>
                             <AppText style={{ fontSize: 11, color: '#94a3b8', fontFamily: 'Inter_500Medium' }}>Giảng viên</AppText>
-                            <AppText style={{ fontSize: 14, color: '#1e293b', fontFamily: 'Inter_700Bold' }}>{course.instructor}</AppText>
+                            <AppText style={{ fontSize: 14, color: '#1e293b', fontFamily: 'Inter_700Bold' }}>
+                                {typeof course.instructor === 'string' && course.instructor.trim()
+                                    ? course.instructor
+                                    : (course.instructor?.fullName || course.instructor?.name || course.instructorName || course.authorName || course.account?.fullName || 'Giảng viên Gnostica')}
+                            </AppText>
                         </View>
                     </View>
                 </View>
@@ -519,6 +558,7 @@ const CourseDetailScreen = () => {
                     <View style={{ flex: 1, backgroundColor: '#000', justifyContent: 'center' }}>
                         <VideoPlayer
                             source={course.promoVideo}
+                            embedUrl={promoEmbedUrl}
                             autoplay
                             style={{ width, height: width * 0.5625 }}
                         />
@@ -584,14 +624,31 @@ const CourseDetailScreen = () => {
                         </AppText>
                     )}
                 </View>
-                <Button
-                    variant="primary"
-                    className="flex-[1.2] py-3.5 rounded-xl"
-                    textClassName="text-[16px] font-bold"
-                    onPress={() => navigation.navigate('Checkout', { course })}
-                >
-                    Mua ngay
-                </Button>
+                <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+                    <TouchableOpacity
+                        onPress={() => navigation.navigate('Gift', { course })}
+                        style={{
+                            width: 50,
+                            height: 50,
+                            borderRadius: 12,
+                            backgroundColor: '#eff6ff',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            borderWidth: 1,
+                            borderColor: '#bfdbfe'
+                        }}
+                    >
+                        <Gift size={22} color="#2563eb" />
+                    </TouchableOpacity>
+                    <Button
+                        variant="primary"
+                        className="px-6 py-3.5 rounded-xl h-[50px] items-center justify-center"
+                        textClassName="text-[16px] font-bold"
+                        onPress={() => navigation.navigate('Checkout', { course })}
+                    >
+                        Mua ngay
+                    </Button>
+                </View>
             </View>
         </View>
     );

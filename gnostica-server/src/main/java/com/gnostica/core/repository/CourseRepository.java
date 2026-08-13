@@ -11,6 +11,7 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
     java.util.List<Course> findAllByDeletedAtIsNull();
     org.springframework.data.domain.Page<Course> findByAccountEmailAndDeletedAtIsNull(String email, org.springframework.data.domain.Pageable pageable);
     java.util.Optional<Course> findFirstBySlugAndDeletedAtIsNullOrderByIdDesc(String slug);
+    java.util.Optional<Course> findFirstBySlugOrderByIdDesc(String slug);
     java.util.Optional<Course> findFirstByOriginalCourseAndDeletedAtIsNullOrderByIdDesc(Course originalCourse);
     boolean existsBySlugAndDeletedAtIsNull(String slug);
     boolean existsBySlugAndIdNotAndDeletedAtIsNull(String slug, java.util.UUID id);
@@ -42,6 +43,7 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
     long countByAccount_IdAndStatus(UUID accountId, Integer status);
     java.util.List<Course> findByAccount_IdAndStatus(UUID accountId, Integer status);
     long countByAccountIdAndStatus(UUID accountId, Integer status);
+    long countByAccountId(UUID accountId);
     java.util.List<Course> findByAccountIdAndStatus(UUID accountId, Integer status);
 
     @org.springframework.data.jpa.repository.Query("SELECT COALESCE(SUM(SIZE(c.enrollments)), 0) FROM Course c WHERE c.account.id = :accountId")
@@ -63,7 +65,7 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
 
     @org.springframework.data.jpa.repository.Query(
             value = "SELECT c FROM Course c JOIN FETCH c.account JOIN FETCH c.category cat LEFT JOIN cat.parent parent " +
-                    "WHERE c.status = 1 " +
+                    "WHERE c.status = 1 AND cat.status = 1 AND (parent IS NULL OR parent.status = 1) " +
                     "AND (:categoryId = -1 OR cat.id = :categoryId OR parent.id = :categoryId) " +
                     "AND (:filterCategorySlugs = false OR cat.slug IN :categorySlugs OR parent.slug IN :categorySlugs) " +
                     "AND (:filterLevels = false OR LOWER(c.level) IN :levels) " +
@@ -74,7 +76,7 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
                     "OR LOWER(c.account.fullName) LIKE LOWER(CONCAT('%', :search, '%'))) " +
                     "AND c.deletedAt IS NULL",
             countQuery = "SELECT COUNT(c) FROM Course c JOIN c.category cat LEFT JOIN cat.parent parent " +
-                    "WHERE c.status = 1 " +
+                    "WHERE c.status = 1 AND cat.status = 1 AND (parent IS NULL OR parent.status = 1) " +
                     "AND (:categoryId = -1 OR cat.id = :categoryId OR parent.id = :categoryId) " +
                     "AND (:filterCategorySlugs = false OR cat.slug IN :categorySlugs OR parent.slug IN :categorySlugs) " +
                     "AND (:filterLevels = false OR LOWER(c.level) IN :levels) " +
@@ -138,11 +140,11 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
     java.util.List<Object[]> countModerationStats();
     @org.springframework.data.jpa.repository.Query(
         value = "SELECT c FROM Course c JOIN FETCH c.account JOIN FETCH c.category cat LEFT JOIN cat.parent parent " +
-                "WHERE c.status = 1 AND c.deletedAt IS NULL " +
+                "WHERE c.status = 1 AND cat.status = 1 AND (parent IS NULL OR parent.status = 1) AND c.deletedAt IS NULL " +
                 "AND (:filterLevel = false OR c.level = :level) " +
                 "AND (:filterCategory = false OR cat.id IN :categoryIds OR parent.id IN :categoryIds)",
         countQuery = "SELECT COUNT(c) FROM Course c JOIN c.category cat LEFT JOIN cat.parent parent " +
-                "WHERE c.status = 1 AND c.deletedAt IS NULL " +
+                "WHERE c.status = 1 AND cat.status = 1 AND (parent IS NULL OR parent.status = 1) AND c.deletedAt IS NULL " +
                 "AND (:filterLevel = false OR c.level = :level) " +
                 "AND (:filterCategory = false OR cat.id IN :categoryIds OR parent.id IN :categoryIds)"
     )
@@ -152,4 +154,6 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
             @org.springframework.data.repository.query.Param("filterCategory") boolean filterCategory,
             @org.springframework.data.repository.query.Param("categoryIds") java.util.Collection<Integer> categoryIds,
             org.springframework.data.domain.Pageable pageable);
+
+    org.springframework.data.domain.Page<Course> findByAccountIdAndDeletedAtIsNullAndOriginalCourseIsNull(java.util.UUID accountId, org.springframework.data.domain.Pageable pageable);
 }

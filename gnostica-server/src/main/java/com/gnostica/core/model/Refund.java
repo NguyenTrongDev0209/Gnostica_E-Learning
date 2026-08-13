@@ -21,6 +21,9 @@ public class Refund {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Column(name = "refund_code", unique = true, length = 12)
+    private String refundCode;
+
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_detail_id", updatable = false)
@@ -45,6 +48,9 @@ public class Refund {
     @NotNull
     private Integer status;
 
+    @Column(name = "decision_type", length = 20)
+    private String decisionType;
+
     @CreationTimestamp
     @Column(updatable = false, name = "created_at")
     private LocalDateTime createdAt;
@@ -52,4 +58,5 @@ public class Refund {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
 }
