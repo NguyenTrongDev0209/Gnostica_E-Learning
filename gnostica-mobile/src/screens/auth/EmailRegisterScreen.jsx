@@ -6,11 +6,9 @@ import { useNavigation } from '@react-navigation/native';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import authService from '../../services/auth/authService';
-import { useAuth } from '../../context/AuthContext';
 
-const EmailLoginScreen = () => {
+const EmailRegisterScreen = () => {
     const navigation = useNavigation();
-    const { login } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -22,30 +20,30 @@ const EmailLoginScreen = () => {
         else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = 'Email không hợp lệ';
 
         if (!password) newErrors.password = 'Vui lòng nhập mật khẩu';
+        else if (password.length < 8) newErrors.password = 'Mật khẩu phải có ít nhất 8 ký tự';
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleLogin = async () => {
+    const handleRegister = async () => {
         if (!validate()) return;
+
+        // Backend bắt buộc fullName (@NotBlank) — lấy mặc định từ phần đầu email
+        const fullName = email.trim().split('@')[0] || 'Học viên Gnostica';
 
         setIsLoading(true);
         try {
-            const response = await authService.login(email, password);
-            await login(response); // Cập nhật state trong AuthContext
+            await authService.register(fullName, email, password);
             setIsLoading(false);
-            navigation.navigate('Main', { screen: 'Home' });
+            Alert.alert(
+                'Thành công',
+                'Đăng ký tài khoản thành công. Vui lòng kiểm tra email để nhận mã xác thực.',
+                [{ text: 'OK', onPress: () => navigation.navigate('ConfirmCode', { email }) }]
+            );
         } catch (error) {
             setIsLoading(false);
-            const rawMsg = error?.message || error?.data?.message || '';
-            let friendlyMessage = rawMsg;
-            if (rawMsg.toLowerCase().includes('bad credentials')) {
-                friendlyMessage = 'Email hoặc mật khẩu không chính xác. Nếu bạn mới đăng ký, vui lòng xác thực mã OTP trước.';
-            } else if (!friendlyMessage) {
-                friendlyMessage = 'Đăng nhập thất bại. Vui lòng kiểm tra lại tài khoản.';
-            }
-            Alert.alert('Đăng nhập thất bại', friendlyMessage);
+            Alert.alert('Lỗi', error.message || 'Đăng ký thất bại. Vui lòng thử lại.');
         }
     };
 
@@ -63,8 +61,8 @@ const EmailLoginScreen = () => {
                 </TouchableOpacity>
 
                 <View className="mb-8">
-                    <AppText className="text-3xl font-bold text-slate-900 mb-2">Chào mừng trở lại</AppText>
-                    <AppText className="text-slate-500">Đăng nhập để tiếp tục hành trình học tập của bạn</AppText>
+                    <AppText className="text-3xl font-bold text-slate-900 mb-2">Tạo tài khoản</AppText>
+                    <AppText className="text-slate-500">Bắt đầu hành trình học tập của bạn ngay hôm nay</AppText>
                 </View>
 
                 <View className="space-y-4">
@@ -91,30 +89,23 @@ const EmailLoginScreen = () => {
                         containerClassName="mt-3"
                         className="h-14"
                     />
-
-                    <TouchableOpacity
-                        onPress={() => navigation.navigate('ForgotPassword')}
-                        className="items-end mt-2"
-                    >
-                        <AppText className="text-blue-600 font-semibold text-sm">Quên mật khẩu?</AppText>
-                    </TouchableOpacity>
                 </View>
 
                 <Button
                     variant="primary"
                     className="mt-8 h-14"
-                    onPress={handleLogin}
+                    onPress={handleRegister}
                     disabled={isLoading}
                 >
-                    {isLoading ? <ActivityIndicator color="white" /> : 'Đăng nhập'}
+                    {isLoading ? <ActivityIndicator color="white" /> : 'Đăng ký'}
                 </Button>
 
                 <View className="mt-2 mb-10">
                     <TouchableOpacity
-                        onPress={() => navigation.navigate('EmailRegister')}
+                        onPress={() => navigation.navigate('EmailLogin')}
                         className="items-center justify-center py-2"
                     >
-                        <AppText className="text-blue-600 font-semibold text-sm">Chưa có tài khoản?</AppText>
+                        <AppText className="text-blue-600 font-semibold text-sm">Đã có tài khoản</AppText>
                     </TouchableOpacity>
                 </View>
             </ScrollView>
@@ -122,4 +113,4 @@ const EmailLoginScreen = () => {
     );
 };
 
-export default EmailLoginScreen;
+export default EmailRegisterScreen;

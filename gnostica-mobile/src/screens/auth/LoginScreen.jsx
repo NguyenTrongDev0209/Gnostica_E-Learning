@@ -67,7 +67,6 @@ const LoginScreen = () => {
                         source={require('../../assets/images/Gnostica_Mark.webp')}
                         className="w-56 h-16 mb-4"
                         resizeMode="contain"
-                        style={{ tintColor: 'white' }}
                     />
                     <AppText className="text-white text-lg text-center px-6 font-medium">
                         Nền tảng e-learning hàng đầu đáp ứng mọi nhu cầu học tập

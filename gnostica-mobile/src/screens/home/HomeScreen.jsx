@@ -5,6 +5,7 @@ import { Menu, Bell, User, History, ArrowUpRight, Search, Trash2 } from 'lucide-
 import { useNavigation } from '@react-navigation/native';
 
 import SearchBar from '../../components/ui/SearchBar';
+import Avatar from '../../components/ui/Avatar';
 import HeroSection from './components/HeroSection';
 import CategorySection from '../course/components/CategorySection';
 import CourseSection from '../course/components/CourseSection';
@@ -32,7 +33,7 @@ const normalizeSearchText = (text) => {
 
 const HomeScreen = () => {
     const navigation = useNavigation();
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, user } = useAuth();
     const [isMenuVisible, setIsMenuVisible] = useState(false);
     const insets = useSafeAreaInsets();
     const [refreshing, setRefreshing] = useState(false);
@@ -181,10 +182,15 @@ const HomeScreen = () => {
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                    className="w-[38px] h-[38px] rounded-[19px] bg-blue-600 border border-blue-600 items-center justify-center"
                     onPress={() => navigation.navigate(isAuthenticated ? 'Profile' : 'Login')}
                 >
-                    <User size={22} color="#ffffff" />
+                    {isAuthenticated ? (
+                        <Avatar uri={user?.avatar} name={user?.fullName || user?.name || 'Học viên'} size={38} />
+                    ) : (
+                        <View className="w-[38px] h-[38px] rounded-[19px] bg-blue-600 border border-blue-600 items-center justify-center">
+                            <User size={22} color="#ffffff" />
+                        </View>
+                    )}
                 </TouchableOpacity>
             </View>
 

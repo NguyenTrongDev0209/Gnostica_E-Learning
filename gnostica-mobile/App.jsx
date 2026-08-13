@@ -35,6 +35,7 @@ import ForgotPasswordScreen from './src/screens/auth/ForgotPasswordScreen';
 import ConfirmCodeScreen from './src/screens/auth/ConfirmCodeScreen';
 import ResetPasswordScreen from './src/screens/auth/ResetPasswordScreen';
 import EmailLoginScreen from './src/screens/auth/EmailLoginScreen';
+import EmailRegisterScreen from './src/screens/auth/EmailRegisterScreen';
 import WishlistScreen from './src/screens/profile/WishlistScreen';
 import CertificatesScreen from './src/screens/profile/CertificatesScreen';
 import VouchersScreen from './src/screens/checkout/VouchersScreen';
@@ -116,6 +117,7 @@ export default function App() {
               <Stack.Screen name="Main" component={AppNavigator} options={{ animation: 'none' }} />
               <Stack.Screen name="Login" component={LoginScreen} />
               <Stack.Screen name="EmailLogin" component={EmailLoginScreen} />
+              <Stack.Screen name="EmailRegister" component={EmailRegisterScreen} />
               <Stack.Screen name="CourseDetail" component={CourseDetailScreen} />
               <Stack.Screen name="Cart" component={CartScreen} />
               <Stack.Screen name="Learning" component={LearningScreen} />
