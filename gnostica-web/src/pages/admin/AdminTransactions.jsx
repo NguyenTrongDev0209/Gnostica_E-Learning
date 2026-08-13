@@ -324,8 +324,8 @@ function TransactionTable({ transactions, isLoading, onDetailClick, startIndex =
     switch (status) {
       case 2: return <AppBadge variant="success" className="w-[110px] justify-center px-2.5 py-1">{label || "Thành công"}</AppBadge>;
       case 1: return <AppBadge variant="secondary" className="w-[110px] justify-center px-2.5 py-1">{label || "Chờ xử lý"}</AppBadge>;
-      case 3: return <AppBadge variant="error" className="w-[110px] justify-center px-2.5 py-1 text-white">{label || "Thất bại"}</AppBadge>;
-      case 4: return <AppBadge variant="outline" className="w-[110px] justify-center px-2.5 py-1 bg-primary text-white border-primary">{label || "Đã hoàn tiền"}</AppBadge>;
+      case 3: return <AppBadge variant="error" className="w-[110px] justify-center px-2.5 py-1">{label || "Thất bại"}</AppBadge>;
+      case 4: return <AppBadge variant="primary" className="w-[110px] justify-center px-2.5 py-1">{label || "Đã hoàn tiền"}</AppBadge>;
       default: return <AppBadge variant="outline" className="w-[110px] justify-center px-2.5 py-1">{label || "Không rõ"}</AppBadge>;
     }
   };
