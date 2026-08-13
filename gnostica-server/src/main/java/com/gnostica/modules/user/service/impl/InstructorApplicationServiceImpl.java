@@ -11,7 +11,6 @@ import com.gnostica.core.repository.AccountRepository;
 import com.gnostica.core.repository.RoleRepository;
 import com.gnostica.modules.user.service.InstructorApplicationService;
 import com.gnostica.modules.integration.service.MailService;
-import com.gnostica.modules.integration.service.FptOcrService;
 import com.gnostica.modules.user.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -31,7 +30,6 @@ public class InstructorApplicationServiceImpl implements InstructorApplicationSe
     private final MailService mailService;
     private final NotificationService notificationService;
     private final com.fasterxml.jackson.databind.ObjectMapper objectMapper;
-    private final FptOcrService fptOcrService;
 
     @Override
     public void submitApplication(String email, InstructorApplicationRequest request) {
@@ -97,35 +95,7 @@ public class InstructorApplicationServiceImpl implements InstructorApplicationSe
                 }
             }
 
-            // 1. Call FPT.AI OCR to verify the front ID card
-            String ocrJsonResult = fptOcrService.extractIdCardInfo(request.getIdCardFront());
-            JsonNode ocrResult = objectMapper.readTree(ocrJsonResult);
-            if (ocrResult.path("errorCode").asInt() != 0) {
-                throw new RuntimeException("Không thể nhận diện được hình ảnh CCCD. Vui lòng chụp/tải ảnh rõ nét hơn.");
-            }
-
-            JsonNode dataNode = ocrResult.path("data").get(0);
-            if (dataNode == null) {
-                throw new RuntimeException("Không tìm thấy dữ liệu trên CCCD.");
-            }
-
-            String ocrName = dataNode.path("name").asText("").trim();
-            double nameProbability = dataNode.path("name_prob").asDouble(0.0);
-
-            // Verify accuracy score (> 85%)
-            if (nameProbability < 0.85) {
-                throw new RuntimeException("Ảnh chụp CCCD không đủ rõ nét (độ chính xác thấp). Vui lòng chụp lại ảnh rõ hơn.");
-            }
-
-            // Normalize and compare name (without accent marks)
-            String accountNameNormalized = removeAccent(account.getFullName().toLowerCase().trim());
-            String ocrNameNormalized = removeAccent(ocrName.toLowerCase().trim());
-
-            if (!accountNameNormalized.equals(ocrNameNormalized)) {
-                throw new RuntimeException("Họ tên trên CCCD (" + ocrName + ") không trùng khớp với họ tên đăng ký tài khoản (" + account.getFullName() + ").");
-            }
-
-            // 2. Save the application with PENDING status for admin review
+            // Save the submitted ID card images for manual admin review.
             ObjectNode appNode = rootNode.putObject("instructorApplication");
             appNode.put("idCardFront", request.getIdCardFront());
             appNode.put("idCardBack", request.getIdCardBack());
@@ -144,7 +114,7 @@ public class InstructorApplicationServiceImpl implements InstructorApplicationSe
 
         } catch (Exception e) {
             if (e instanceof RuntimeException) throw (RuntimeException) e;
-            throw new RuntimeException("Lỗi xử lý duyệt tự động CCCD: " + e.getMessage(), e);
+            throw new RuntimeException("Lỗi xử lý hồ sơ đăng ký giảng viên: " + e.getMessage(), e);
         }
     }
 
@@ -192,6 +162,12 @@ public class InstructorApplicationServiceImpl implements InstructorApplicationSe
             ObjectNode appNode = (ObjectNode) rootNode.get("instructorApplication");
             if (!"PENDING".equals(appNode.path("status").asText())) {
                 throw new RuntimeException("Only pending applications can be approved");
+            }
+
+            String idCardFront = appNode.path("idCardFront").asText("").trim();
+            String idCardBack = appNode.path("idCardBack").asText("").trim();
+            if (idCardFront.isEmpty() || idCardBack.isEmpty()) {
+                throw new RuntimeException("Không thể phê duyệt: hồ sơ phải có đầy đủ ảnh CCCD mặt trước và mặt sau.");
             }
 
             appNode.put("status", "APPROVED");
@@ -300,13 +276,6 @@ public class InstructorApplicationServiceImpl implements InstructorApplicationSe
             e.printStackTrace();
             return null;
         }
-    }
-
-    private String removeAccent(String s) {
-        if (s == null) return "";
-        String temp = java.text.Normalizer.normalize(s, java.text.Normalizer.Form.NFD);
-        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
-        return pattern.matcher(temp).replaceAll("").replace('đ', 'd').replace('Đ', 'D');
     }
 
     private String normalizePhone(String phone) {

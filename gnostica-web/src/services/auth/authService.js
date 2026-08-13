@@ -11,7 +11,11 @@ const register = async (fullName, email, password) => {
         });
         return response.data;
     } catch (error) {
-        throw error.response?.data?.message || 'Có lỗi xảy ra khi đăng ký!';
+        const responseData = error.response?.data;
+        throw {
+            message: responseData?.message || 'Có lỗi xảy ra khi đăng ký!',
+            fields: responseData?.data || {}
+        };
     }
 };
 

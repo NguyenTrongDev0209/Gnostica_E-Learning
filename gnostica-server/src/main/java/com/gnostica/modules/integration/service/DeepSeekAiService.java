@@ -32,7 +32,7 @@ public class DeepSeekAiService {
     @Value("${deepseek.base-url:https://api.deepseek.com/v1}")
     private String baseUrl;
 
-    @Value("${deepseek.model:deepseek-chat}")
+    @Value("${deepseek.model:deepseek-v4-flash}")
     private String model;
 
     @Value("${app.public-url}")
