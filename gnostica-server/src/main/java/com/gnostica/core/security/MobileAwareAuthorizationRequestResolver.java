@@ -33,7 +33,7 @@ public class MobileAwareAuthorizationRequestResolver implements OAuth2Authorizat
     public MobileAwareAuthorizationRequestResolver(
             ClientRegistrationRepository clientRegistrationRepository,
             @Value("${app.mobile-oauth-redirect-uri}") String mobileOAuthRedirectUri) {
-        this.defaultResolver = new DefaultOAuth2AuthorizationRequestResolver(clientRegistrationRepository);
+        this.defaultResolver = new DefaultOAuth2AuthorizationRequestResolver(clientRegistrationRepository, "/api/oauth2/authorization");
         this.mobileOAuthRedirectUri = mobileOAuthRedirectUri;
     }
 
