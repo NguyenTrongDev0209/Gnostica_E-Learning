@@ -374,8 +374,8 @@ export default function InstructorStudents() {
 
     let matchDate = true;
     if (dateRange?.from) {
-      // Assuming student has joinedAt or createdAt. Let's use joinedAt if available, else skip filtering or assume joinedAt
-      const dateVal = student.joinedAt || student.createdAt;
+      // Assuming student has joinedDate
+      const dateVal = student.joinedDate;
       if (dateVal) {
         const itemDate = new Date(dateVal);
         const from = new Date(dateRange.from);

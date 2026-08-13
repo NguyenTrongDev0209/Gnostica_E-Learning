@@ -11,6 +11,7 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
     java.util.List<Course> findAllByDeletedAtIsNull();
     org.springframework.data.domain.Page<Course> findByAccountEmailAndDeletedAtIsNull(String email, org.springframework.data.domain.Pageable pageable);
     java.util.Optional<Course> findFirstBySlugAndDeletedAtIsNullOrderByIdDesc(String slug);
+    java.util.Optional<Course> findFirstBySlugOrderByIdDesc(String slug);
     java.util.Optional<Course> findFirstByOriginalCourseAndDeletedAtIsNullOrderByIdDesc(Course originalCourse);
     boolean existsBySlugAndDeletedAtIsNull(String slug);
     boolean existsBySlugAndIdNotAndDeletedAtIsNull(String slug, java.util.UUID id);

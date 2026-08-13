@@ -21,24 +21,24 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Integer>
 
 
 
-    @org.springframework.data.jpa.repository.Query("SELECT e FROM Enrollment e JOIN e.course c WHERE c.account.email = :email AND c.deletedAt IS NULL")
+    @org.springframework.data.jpa.repository.Query("SELECT e FROM Enrollment e JOIN e.course c WHERE c.account.email = :email")
     List<Enrollment> findStudentsByInstructorEmail(
             @org.springframework.data.repository.query.Param("email") String email);
 
-    @org.springframework.data.jpa.repository.Query("SELECT e FROM Enrollment e JOIN e.course c WHERE e.account.id = :studentId AND c.account.email = :instructorEmail AND c.deletedAt IS NULL")
+    @org.springframework.data.jpa.repository.Query("SELECT e FROM Enrollment e JOIN e.course c WHERE e.account.id = :studentId AND c.account.email = :instructorEmail")
     List<Enrollment> findByAccountIdAndInstructorEmail(
             @org.springframework.data.repository.query.Param("studentId") java.util.UUID studentId,
             @org.springframework.data.repository.query.Param("instructorEmail") String instructorEmail);
 
 
 
-    @org.springframework.data.jpa.repository.Query("SELECT COUNT(e) FROM Enrollment e JOIN e.course c WHERE c.account.email = :instructorEmail AND c.deletedAt IS NULL AND e.createdAt >= :startDate AND e.createdAt < :endDate")
+    @org.springframework.data.jpa.repository.Query("SELECT COUNT(e) FROM Enrollment e JOIN e.course c WHERE c.account.email = :instructorEmail AND e.createdAt >= :startDate AND e.createdAt < :endDate")
     long countStudentsByInstructorEmailAndDateRange(
             @org.springframework.data.repository.query.Param("instructorEmail") String instructorEmail,
             @org.springframework.data.repository.query.Param("startDate") java.time.LocalDateTime startDate,
             @org.springframework.data.repository.query.Param("endDate") java.time.LocalDateTime endDate);
 
-    @org.springframework.data.jpa.repository.Query("SELECT COUNT(e) FROM Enrollment e JOIN e.course c WHERE c.account.email = :instructorEmail AND c.deletedAt IS NULL")
+    @org.springframework.data.jpa.repository.Query("SELECT COUNT(e) FROM Enrollment e JOIN e.course c WHERE c.account.email = :instructorEmail")
     long countTotalStudentsByInstructorEmail(
             @org.springframework.data.repository.query.Param("instructorEmail") String instructorEmail);
 

@@ -193,7 +193,7 @@ public class CourseService {
             throw new com.gnostica.core.exception.ResourceNotFoundException("Course not found");
         }
 
-        Course course = courseRepository.findFirstBySlugAndDeletedAtIsNullOrderByIdDesc(slug)
+        Course course = courseRepository.findFirstBySlugOrderByIdDesc(slug)
                 .orElseThrow(() -> new com.gnostica.core.exception.ResourceNotFoundException("Course not found"));
 
         // Authentication is optional for the public page. It only decides
