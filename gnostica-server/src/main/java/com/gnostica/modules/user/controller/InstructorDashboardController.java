@@ -18,44 +18,53 @@ public class InstructorDashboardController {
 
     @GetMapping("/stats")
     @PreAuthorize("hasRole('INSTRUCTOR') or hasRole('ADMIN')")
-    public ResponseEntity<?> getStats(@AuthenticationPrincipal UserDetails userDetails) {
-        return ResponseEntity.ok(instructorDashboardService.getStats(userDetails.getUsername()));
+    public ResponseEntity<?> getStats(org.springframework.security.core.Authentication authentication) {
+        return ResponseEntity.ok(instructorDashboardService.getStats(authentication.getName()));
     }
 
     @GetMapping("/revenue-chart")
     @PreAuthorize("hasRole('INSTRUCTOR') or hasRole('ADMIN')")
-    public ResponseEntity<?> getRevenueChart(@AuthenticationPrincipal UserDetails userDetails) {
-        return ResponseEntity.ok(instructorDashboardService.getRevenueChart(userDetails.getUsername()));
+    public ResponseEntity<?> getRevenueChart(org.springframework.security.core.Authentication authentication) {
+        return ResponseEntity.ok(instructorDashboardService.getRevenueChart(authentication.getName()));
     }
 
     @GetMapping("/rating-distribution")
     @PreAuthorize("hasRole('INSTRUCTOR') or hasRole('ADMIN')")
-    public ResponseEntity<?> getRatingDistribution(@AuthenticationPrincipal UserDetails userDetails) {
-        return ResponseEntity.ok(instructorDashboardService.getRatingDistribution(userDetails.getUsername()));
+    public ResponseEntity<?> getRatingDistribution(org.springframework.security.core.Authentication authentication) {
+        return ResponseEntity.ok(instructorDashboardService.getRatingDistribution(authentication.getName()));
     }
 
     @GetMapping("/student-growth")
     @PreAuthorize("hasRole('INSTRUCTOR') or hasRole('ADMIN')")
-    public ResponseEntity<?> getStudentGrowthChart(@AuthenticationPrincipal UserDetails userDetails) {
-        return ResponseEntity.ok(instructorDashboardService.getStudentGrowthChart(userDetails.getUsername()));
+    public ResponseEntity<?> getStudentGrowthChart(org.springframework.security.core.Authentication authentication) {
+        return ResponseEntity.ok(instructorDashboardService.getStudentGrowthChart(authentication.getName()));
     }
 
     @GetMapping("/course-performance")
     @PreAuthorize("hasRole('INSTRUCTOR') or hasRole('ADMIN')")
-    public ResponseEntity<?> getCoursePerformance(@AuthenticationPrincipal UserDetails userDetails) {
-        return ResponseEntity.ok(instructorDashboardService.getCoursePerformance(userDetails.getUsername()));
+    public ResponseEntity<?> getCoursePerformance(org.springframework.security.core.Authentication authentication) {
+        return ResponseEntity.ok(instructorDashboardService.getCoursePerformance(authentication.getName()));
     }
 
     @GetMapping("/questions")
     @PreAuthorize("hasRole('INSTRUCTOR') or hasRole('ADMIN')")
-    public ResponseEntity<?> getQuestions(@AuthenticationPrincipal UserDetails userDetails) {
-        return ResponseEntity.ok(instructorDashboardService.getQuestions(userDetails.getUsername()));
+    public ResponseEntity<?> getQuestions(org.springframework.security.core.Authentication authentication) {
+        return ResponseEntity.ok(instructorDashboardService.getQuestions(authentication.getName()));
     }
 
     @GetMapping("/reviews")
     @PreAuthorize("hasRole('INSTRUCTOR') or hasRole('ADMIN')")
-    public ResponseEntity<?> getReviews(@AuthenticationPrincipal UserDetails userDetails) {
-        return ResponseEntity.ok(instructorDashboardService.getReviews(userDetails.getUsername()));
+    public ResponseEntity<?> getReviews(org.springframework.security.core.Authentication authentication) {
+        return ResponseEntity.ok(instructorDashboardService.getReviews(authentication.getName()));
+    }
+
+    @GetMapping("/test-reviews")
+    public ResponseEntity<?> testReviews(@RequestParam String email) {
+        try {
+            return ResponseEntity.ok(instructorDashboardService.getReviews(email));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(e.getMessage() + "\n" + java.util.Arrays.toString(e.getStackTrace()));
+        }
     }
 }
 
