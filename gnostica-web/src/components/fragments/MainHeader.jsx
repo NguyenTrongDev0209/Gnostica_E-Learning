@@ -201,6 +201,19 @@ const MainHeader = ({
                             <div className="absolute bottom-0 left-0 w-full h-[3px] bg-header-orange scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center" />
                         </Link>
 
+                        {/* Tin tức: external link trỏ thẳng backend, độc lập với app */}
+                        <a
+                            href="http://localhost:8080"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="h-full flex items-center relative group px-4"
+                        >
+                            <span className="font-bold text-foreground group-hover:text-header-orange transition-colors">
+                                Tin tức
+                            </span>
+                            <div className="absolute bottom-0 left-0 w-full h-[3px] bg-header-orange scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center" />
+                        </a>
+
                         <Link to="/promo" className="h-full flex items-center relative group px-4">
                             <span className="font-bold text-header-orange flex items-center gap-2">
                                 <Flame className="w-4 h-4 fill-current" />
