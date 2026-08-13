@@ -5,6 +5,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.MediaTypeFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -19,14 +21,9 @@ public class BunnyStorageService {
     @Autowired
     private BunnyStorageConfig storageConfig;
 
-    public String uploadDocument(MultipartFile file) throws IOException {
-        String region = storageConfig.getRegion();
-        String baseUrl = "https://storage.bunnycdn.com";
-        // If region is set (e.g. sg), use sg.storage.bunnycdn.com
-        if (region != null && !region.trim().isEmpty()) {
-            baseUrl = "https://" + region + ".storage.bunnycdn.com";
-        }
+    private final RestTemplate restTemplate = new RestTemplate();
 
+    public String uploadDocument(MultipartFile file) throws IOException {
         String originalFilename = file.getOriginalFilename();
         String safeName = UUID.randomUUID().toString();
         
@@ -34,9 +31,8 @@ public class BunnyStorageService {
             safeName = safeName + "_" + originalFilename.replaceAll("[^a-zA-Z0-9.-]", "_");
         }
         
-        String uploadUrl = baseUrl + "/" + storageConfig.getZoneName() + "/documents/" + safeName;
+        String uploadUrl = buildStorageUrl(safeName);
 
-        RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.set("AccessKey", storageConfig.getApiKey());
         headers.set("Content-Type", "application/octet-stream");
@@ -46,26 +42,56 @@ public class BunnyStorageService {
         try {
             ResponseEntity<String> response = restTemplate.exchange(uploadUrl, HttpMethod.PUT, requestEntity, String.class);
             if (response.getStatusCode().is2xxSuccessful()) {
-                String pullZoneUrl = storageConfig.getPullZone();
-                if (pullZoneUrl == null) pullZoneUrl = "";
-                if (pullZoneUrl.endsWith("/")) {
-                    pullZoneUrl = pullZoneUrl.substring(0, pullZoneUrl.length() - 1);
-                }
-                if (!pullZoneUrl.startsWith("http") && !pullZoneUrl.isEmpty()) {
-                    pullZoneUrl = "https://" + pullZoneUrl;
-                }
-                return pullZoneUrl + "/documents/" + safeName;
+                return safeName;
             }
         } catch (org.springframework.web.client.HttpStatusCodeException e) {
             System.err.println("Bunny Storage Error Status: " + e.getStatusCode());
             System.err.println("Bunny Storage Error Body: " + e.getResponseBodyAsString());
-            // SOFT FAIL: Return a placeholder instead of breaking the flow
-            return "https://placeholder-bunny.net/error-document-upload.pdf";
+            throw new IOException("Bunny Storage rejected the document upload", e);
         } catch (Exception e) {
             System.err.println("Failed to upload document to Bunny Storage (General Error): " + e.getMessage());
-            // SOFT FAIL: Return a placeholder
-            return "https://placeholder-bunny.net/error-document-upload.pdf";
+            throw new IOException("Could not upload document to Bunny Storage", e);
         }
-        return null; // Ensure method returns if code falls through
+        throw new IOException("Bunny Storage returned an unsuccessful upload response");
     }
+
+    public StoredDocument downloadDocument(String fileName) {
+        validateFileName(fileName);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("AccessKey", storageConfig.getApiKey());
+        HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
+
+        ResponseEntity<byte[]> response = restTemplate.exchange(
+                buildStorageUrl(fileName),
+                HttpMethod.GET,
+                requestEntity,
+                byte[].class
+        );
+
+        MediaType contentType = response.getHeaders().getContentType();
+        if (contentType == null || MediaType.APPLICATION_OCTET_STREAM.equals(contentType)) {
+            contentType = MediaTypeFactory.getMediaType(fileName)
+                    .orElse(MediaType.APPLICATION_OCTET_STREAM);
+        }
+
+        return new StoredDocument(response.getBody(), contentType);
+    }
+
+    private String buildStorageUrl(String fileName) {
+        String region = storageConfig.getRegion();
+        String baseUrl = "https://storage.bunnycdn.com";
+        if (region != null && !region.trim().isEmpty()) {
+            baseUrl = "https://" + region.trim() + ".storage.bunnycdn.com";
+        }
+        return baseUrl + "/" + storageConfig.getZoneName() + "/documents/" + fileName;
+    }
+
+    private void validateFileName(String fileName) {
+        if (fileName == null || fileName.isBlank() || fileName.contains("/") || fileName.contains("\\")) {
+            throw new IllegalArgumentException("Invalid document file name");
+        }
+    }
+
+    public record StoredDocument(byte[] content, MediaType contentType) {}
 }

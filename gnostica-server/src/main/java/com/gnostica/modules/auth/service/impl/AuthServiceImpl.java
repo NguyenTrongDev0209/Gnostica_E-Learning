@@ -56,8 +56,19 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public Account register(RegisterRequest request) {
-        if (accountRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email da ton tai!");
+        Account existingAccount = accountRepository.findByEmail(request.getEmail())
+                .orElse(null);
+
+        if (existingAccount != null) {
+            if ("GOOGLE".equalsIgnoreCase(existingAccount.getProvider())) {
+                throw new RuntimeException(
+                    "Tài khoản này đã được đăng ký bằng Google. Vui lòng đăng nhập bằng Google."
+                );
+            }
+
+            throw new RuntimeException(
+                "Tài khoản này đã được đăng ký trước đó. Vui lòng đăng nhập bằng email và mật khẩu."
+            );
         }
 
         Role defaultRole = roleRepository.findByName("USER")
@@ -74,6 +85,7 @@ public class AuthServiceImpl implements AuthService {
         account.setEmail(request.getEmail());
         account.setRole(defaultRole);
         account.setStatus(STATUS_UNVERIFIED);
+        account.setProvider("LOCAL");
         account.setPassword(passwordEncoder.encode(request.getPassword()));
 
         Account savedAccount = accountRepository.save(account);

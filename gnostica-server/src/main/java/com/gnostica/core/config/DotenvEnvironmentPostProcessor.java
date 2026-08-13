@@ -25,10 +25,11 @@ public class DotenvEnvironmentPostProcessor implements EnvironmentPostProcessor 
 
     @Override
     public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
-        Dotenv dotenv = tryLoad("./");
-        if (dotenv == null || dotenv.entries().isEmpty()) {
-            dotenv = tryLoad("./gnostica-server");
+        String envDir = "./";
+        if (!new java.io.File(envDir, ".env").exists() && new java.io.File("./gnostica-server", ".env").exists()) {
+            envDir = "./gnostica-server";
         }
+        Dotenv dotenv = tryLoad(envDir);
 
         if (dotenv == null) {
             return;
