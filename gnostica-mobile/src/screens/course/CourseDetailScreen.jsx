@@ -44,7 +44,13 @@ const CourseDetailScreen = () => {
     const { cartItems, addToCart } = useCart();
     const { user } = useAuth();
 
-    const courseParams = route.params?.course;
+    const courseParams = route.params?.course || (
+        (route.params?.slug || route.params?.id) ? {
+            slug: route.params?.slug || route.params?.id,
+            id: route.params?.id || route.params?.slug,
+            title: route.params?.title || 'Khóa học'
+        } : null
+    );
     const [courseDetail, setCourseDetail] = useState(null);
     const [activeTab, setActiveTab] = useState('desc');
     const [expandedSection, setExpandedSection] = useState(null);
@@ -66,11 +72,13 @@ const CourseDetailScreen = () => {
     } : courseParams;
     const badge = course?.badge ? BADGE_COLORS[course.badge] : null;
 
+    const targetSlugOrId = courseParams?.slug || route.params?.slug || route.params?.id;
+
     useEffect(() => {
-        if (courseParams?.slug) {
+        if (targetSlugOrId) {
             const fetchDetail = async () => {
                 try {
-                    const data = await courseService.getBySlug(courseParams.slug);
+                    const data = await courseService.getBySlug(targetSlugOrId);
                     setCourseDetail(data.data || data);
                 } catch (e) {
                     console.error('Error fetching course detail:', e);
@@ -78,7 +86,7 @@ const CourseDetailScreen = () => {
             };
             fetchDetail();
         }
-    }, [courseParams?.slug]);
+    }, [targetSlugOrId]);
 
     const targetCourseId = courseParams?.id || courseDetail?.id || course?.id;
 
@@ -119,7 +127,14 @@ const CourseDetailScreen = () => {
         }
     };
 
-    if (!course) return null;
+    if (!course) {
+        return (
+            <View style={{ flex: 1, backgroundColor: '#f8fafc', justifyContent: 'center', alignItems: 'center' }}>
+                <ActivityIndicator size="large" color="#2563eb" />
+                <AppText style={{ marginTop: 12, color: '#64748b', fontSize: 13 }}>Đang tải thông tin khóa học...</AppText>
+            </View>
+        );
+    }
 
     const isInCart = cartItems.some(item => item.id === course.id);
 
@@ -284,7 +299,11 @@ const CourseDetailScreen = () => {
                         </View>
                         <View>
                             <AppText style={{ fontSize: 11, color: '#94a3b8', fontFamily: 'Inter_500Medium' }}>Giảng viên</AppText>
-                            <AppText style={{ fontSize: 14, color: '#1e293b', fontFamily: 'Inter_700Bold' }}>{course.instructor}</AppText>
+                            <AppText style={{ fontSize: 14, color: '#1e293b', fontFamily: 'Inter_700Bold' }}>
+                                {typeof course.instructor === 'string' && course.instructor.trim()
+                                    ? course.instructor
+                                    : (course.instructor?.fullName || course.instructor?.name || course.instructorName || course.authorName || course.account?.fullName || 'Giảng viên Gnostica')}
+                            </AppText>
                         </View>
                     </View>
                 </View>
