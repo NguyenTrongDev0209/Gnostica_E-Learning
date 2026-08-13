@@ -55,6 +55,7 @@ export default function InstructorCourseForm() {
     // eslint-disable-next-line no-unused-vars
     isSubmittingRef,
     uploadVideoToBunny,
+    uploadDocumentToCloudinary,
     onSubmit
   } = useInstructorCourseForm(courseSchema, viErrorMap);
 
@@ -142,7 +143,7 @@ export default function InstructorCourseForm() {
             </AppTabsContent>
 
             <AppTabsContent value="curriculum" className="w-full bg-white p-4 md:p-5 rounded-lg border border-border shadow-sm mt-0 min-h-[700px]">
-              <CurriculumTab uploadVideoToBunny={uploadVideoToBunny} setActiveUploads={setActiveUploads} />
+              <CurriculumTab uploadVideoToBunny={uploadVideoToBunny} uploadDocumentToCloudinary={uploadDocumentToCloudinary} setActiveUploads={setActiveUploads} />
             </AppTabsContent>
 
             <AppTabsContent value="settings" className="w-full bg-white p-4 md:p-5 rounded-lg border border-border shadow-sm mt-0 min-h-[700px]">

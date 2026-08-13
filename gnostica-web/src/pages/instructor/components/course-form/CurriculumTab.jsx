@@ -5,7 +5,7 @@ import { AppButton } from "@/components/common/micro/AppButton";
 import { AppAccordionRoot, AppAccordionItem, AppAccordionTrigger, AppAccordionContent } from "@/components/common/micro/AppAccordion";
 import { SectionItem } from "./SectionItem";
 
-export function CurriculumTab({ uploadVideoToBunny, setActiveUploads }) {
+export function CurriculumTab({ uploadVideoToBunny, uploadDocumentToCloudinary, setActiveUploads }) {
   const { control, watch, formState: { errors } } = useFormContext();
   const { fields, append, remove } = useFieldArray({ control, name: 'sections' });
   const currentCourseStatus = watch("status") ?? 1;
@@ -106,6 +106,7 @@ export function CurriculumTab({ uploadVideoToBunny, setActiveUploads }) {
                   sectionIndex={sectionIdx}
                   control={control}
                   uploadVideoToBunny={uploadVideoToBunny}
+                  uploadDocumentToCloudinary={uploadDocumentToCloudinary}
                   setActiveUploads={setActiveUploads}
                 />
               </AppAccordionContent>

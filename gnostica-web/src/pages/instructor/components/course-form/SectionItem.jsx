@@ -7,10 +7,11 @@ import { Label } from "@/components/common/micro/AppLabel";
 import AppInput from "@/components/common/micro/AppInput";
 import AppSelect from "@/components/common/micro/AppSelect";
 import AppTextarea from "@/components/common/micro/AppTextarea";
-import { CheckCircle2, Database, Plus, Trash2, GripVertical, Search, Check, Save, ListOrdered } from "lucide-react";
+import { CheckCircle2, Database, Plus, Trash2, GripVertical, Search, Check, Save, ListOrdered, Loader2 } from "lucide-react";
 import { BackgroundVideoUploader } from "./BackgroundVideoUploader";
+import axiosClient from "@/lib/axiosClient";
 
-export function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActiveUploads }) {
+export function SectionItem({ sectionIndex, control, uploadVideoToBunny, uploadDocumentToCloudinary, setActiveUploads }) {
   const { slug } = useParams();
   const {
     register,
@@ -28,6 +29,7 @@ export function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActi
   const [bankQuestions, setBankQuestions] = React.useState([]);
   const [searchTerm, setSearchTerm] = React.useState("");
   const [filterLevel, setFilterLevel] = React.useState("all");
+  const [isUploadingDoc, setIsUploadingDoc] = React.useState(false);
 
   // Load real bank questions and pre-populate quiz data when modal opens
   React.useEffect(() => {
@@ -47,6 +49,16 @@ export function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActi
       }
     }
   }, [isQuizModalOpen, localStorageKey, sectionIndex, getValues]);
+
+  const handleDeleteDocument = async (url) => {
+    if (!url) return;
+    try {
+      const fileName = url.substring(url.lastIndexOf('/') + 1);
+      await axiosClient.delete(`/upload/document/${fileName}`);
+    } catch (error) {
+      console.error("Không thể xóa tài liệu trên cloud:", error);
+    }
+  };
 
   const handleSaveQuiz = () => {
     if (!quizTitle.trim()) {
@@ -163,11 +175,31 @@ export function SectionItem({ sectionIndex, control, uploadVideoToBunny, setActi
                       Xóa
                     </AppButton>
                   </div>
+                ) : isUploadingDoc ? (
+                  <div className="flex items-center gap-2 p-2 border border-info/20 rounded-md bg-info/10 h-12">
+                    <Loader2 className="w-4 h-4 animate-spin text-info" />
+                    <span className="text-xs text-info font-bold flex-1">Đang tải lên tài liệu...</span>
+                  </div>
                 ) : (
                   <AppInput
                     type="file"
                     className="h-12 border-border hover:border-success/50 focus-visible:border-success focus-visible:ring-success/30 focus-visible:bg-white bg-muted font-medium text-xs pt-2 cursor-pointer w-full transition-all"
-                    onChange={(e) => field.onChange(e.target.files[0])}
+                    onChange={async (e) => {
+                      const file = e.target.files[0];
+                      if (!file) return;
+                      try {
+                        setIsUploadingDoc(true);
+                        setActiveUploads(prev => prev + 1);
+                        const url = await uploadDocumentToCloudinary(file);
+                        field.onChange(url); // Lưu dạng URL string thay vì File để draft có thể lưu được
+                        toast.success("Tải lên tài liệu thành công!");
+                      } catch (error) {
+                        toast.error("Lỗi khi tải lên tài liệu!");
+                      } finally {
+                        setIsUploadingDoc(false);
+                        setActiveUploads(prev => prev - 1);
+                      }
+                    }}
                   />
                 )
               )}

@@ -68,4 +68,28 @@ public class BunnyStorageService {
         }
         return null; // Ensure method returns if code falls through
     }
+
+    public boolean deleteDocument(String fileName) {
+        String region = storageConfig.getRegion();
+        String baseUrl = "https://storage.bunnycdn.com";
+        if (region != null && !region.trim().isEmpty()) {
+            baseUrl = "https://" + region + ".storage.bunnycdn.com";
+        }
+        
+        String deleteUrl = baseUrl + "/" + storageConfig.getZoneName() + "/documents/" + fileName;
+
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("AccessKey", storageConfig.getApiKey());
+
+        HttpEntity<?> requestEntity = new HttpEntity<>(headers);
+
+        try {
+            ResponseEntity<String> response = restTemplate.exchange(deleteUrl, HttpMethod.DELETE, requestEntity, String.class);
+            return response.getStatusCode().is2xxSuccessful();
+        } catch (Exception e) {
+            System.err.println("Failed to delete document from Bunny Storage: " + e.getMessage());
+            return false;
+        }
+    }
 }

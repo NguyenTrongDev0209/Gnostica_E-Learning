@@ -101,4 +101,17 @@ public class UploadController {
             return ResponseEntity.status(500).body(Map.of("message", e.getMessage()));
         }
     }
+
+    @DeleteMapping("/document/{fileName}")
+    public ResponseEntity<?> deleteDocument(@PathVariable String fileName) {
+        try {
+            boolean success = bunnyStorageService.deleteDocument(fileName);
+            if (success) {
+                return ResponseEntity.ok().build();
+            }
+            return ResponseEntity.status(500).body(Map.of("message", "Could not delete document from storage"));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("message", e.getMessage()));
+        }
+    }
 }
