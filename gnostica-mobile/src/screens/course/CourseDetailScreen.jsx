@@ -57,6 +57,26 @@ const CourseDetailScreen = () => {
     const [isSaved, setIsSaved] = useState(false);
     const [loadingSave, setLoadingSave] = useState(false);
     const [isPromoVideoOpen, setIsPromoVideoOpen] = useState(false);
+    // Server-signed embed URL (Bunny embed token auth), fetched when the
+    // trailer opens so the token is always fresh.
+    const [promoEmbedUrl, setPromoEmbedUrl] = useState(null);
+
+    const promoSlug = courseParams?.slug || courseDetail?.slug || targetSlugOrId;
+
+    useEffect(() => {
+        if (!isPromoVideoOpen || !promoSlug) return;
+        let cancelled = false;
+        setPromoEmbedUrl(null);
+        courseService.getPromoPlayback(promoSlug)
+            .then((res) => {
+                const data = res?.data ?? res;
+                if (!cancelled) setPromoEmbedUrl(data?.embedUrl || null);
+            })
+            .catch(() => {
+                if (!cancelled) setPromoEmbedUrl(null);
+            });
+        return () => { cancelled = true; };
+    }, [isPromoVideoOpen, promoSlug]);
     
     const formatPrice = (value) => {
         if (!value) return '0 đ';
@@ -538,6 +558,7 @@ const CourseDetailScreen = () => {
                     <View style={{ flex: 1, backgroundColor: '#000', justifyContent: 'center' }}>
                         <VideoPlayer
                             source={course.promoVideo}
+                            embedUrl={promoEmbedUrl}
                             autoplay
                             style={{ width, height: width * 0.5625 }}
                         />

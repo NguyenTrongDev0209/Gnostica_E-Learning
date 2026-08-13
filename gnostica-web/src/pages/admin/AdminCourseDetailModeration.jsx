@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { AppButton } from "@/components/common/micro/AppButton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/common/micro/AppTabs";
 import { AppAccordionRoot as Accordion, AppAccordionItem as AccordionItem, AppAccordionTrigger as AccordionTrigger, AppAccordionContent as AccordionContent } from "@/components/common/micro/AppAccordion";
@@ -12,6 +12,7 @@ import CourseRejectModal from "@/components/modals/CourseRejectModal";
 import InstructorProfileModal from "@/components/modals/InstructorProfileModal";
 
 import useAdminCourseModeration from "@/hooks/admin/useAdminCourseModeration";
+import adminCourseService from "@/services/admin/adminCourseService";
 
 const BUNNY_LIBRARY_ID = import.meta.env.VITE_BUNNY_LIBRARY_ID;
 
@@ -37,6 +38,30 @@ export default function AdminCourseDetailModeration() {
     handleApprove,
     handleConfirmReject
   } = useAdminCourseModeration(slug);
+
+  // Server-signed embed URLs (Bunny embed token auth) so previews keep playing
+  // once the feature is enabled. Fetched lazily and cached per video URL.
+  const [signedEmbeds, setSignedEmbeds] = useState({});
+  const previewVideoUrl = activePreview?.type === "lesson" ? activePreview.data.videoUrl : null;
+
+  const ensureSignedEmbed = useCallback(async (videoUrl) => {
+    if (!videoUrl || !isEmbedLink(videoUrl)) return null;
+    if (signedEmbeds[videoUrl]) return signedEmbeds[videoUrl];
+    try {
+      const data = await adminCourseService.getSignedEmbed(videoUrl);
+      const embedUrl = data?.embedUrl || null;
+      setSignedEmbeds((prev) => ({ ...prev, [videoUrl]: embedUrl }));
+      return embedUrl;
+    } catch (error) {
+      console.error("Không thể lấy signed embed URL:", error);
+      return null;
+    }
+  }, [signedEmbeds, isEmbedLink]);
+
+  useEffect(() => {
+    if (previewVideoUrl) ensureSignedEmbed(previewVideoUrl);
+    if (course?.promoVideo) ensureSignedEmbed(course.promoVideo);
+  }, [previewVideoUrl, course?.promoVideo, ensureSignedEmbed]);
 
   if (loading) {
     return (
@@ -196,7 +221,7 @@ export default function AdminCourseDetailModeration() {
                               ref={playerRef}
                               width="100%"
                               height="100%"
-                              src={`${getEmbedUrl(activePreview.data.videoUrl)}&autoplay=true`}
+                              src={`${signedEmbeds[activePreview.data.videoUrl] || getEmbedUrl(activePreview.data.videoUrl)}&autoplay=true`}
                               title={activePreview.data.title}
                               frameBorder="0"
                               allowFullScreen
@@ -289,7 +314,7 @@ export default function AdminCourseDetailModeration() {
                 <div className="aspect-video rounded-xl bg-foreground overflow-hidden shadow-lg border border-border relative">
                   {course.promoVideo ? (
                     isEmbedLink(course.promoVideo) ? (
-                      <iframe ref={playerRef} width="100%" height="100%" src={getEmbedUrl(course.promoVideo)} title="Promo" frameBorder="0" allowFullScreen className="w-full h-full"></iframe>
+                      <iframe ref={playerRef} width="100%" height="100%" src={signedEmbeds[course.promoVideo] || getEmbedUrl(course.promoVideo)} title="Promo" frameBorder="0" allowFullScreen className="w-full h-full"></iframe>
                     ) : (
                       <video ref={playerRef} src={course.promoVideo} controls className="w-full h-full object-contain" poster={course.thumbnail} />
                     )

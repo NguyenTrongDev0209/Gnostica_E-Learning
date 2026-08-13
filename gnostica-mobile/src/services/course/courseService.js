@@ -29,6 +29,12 @@ const courseService = {
     getLessonPlayback: (lessonId) => api.get(`/lessons/${lessonId}/playback`),
 
     /**
+     * Láº¥y embed URL (Ä‘ã kÃ½, háº¿t háº¡n ngáº¯n) cho video giá»›i thiá»‡u khÃ³a há»c
+     * @param {string} slug
+     */
+    getPromoPlayback: (slug) => api.get(`/courses/${slug}/promo-playback`),
+
+    /**
      * Láº¥y khÃ³a há»c gá»£i Ã½ cho user (cáº§n Ä‘Äƒng nháº­p)
      * @param {Object} params - { page, size }
      */

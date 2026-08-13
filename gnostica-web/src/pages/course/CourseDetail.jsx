@@ -98,11 +98,32 @@ const formatLessonDuration = (metadata) => {
   }
 };
 
-const CourseDetailVideo = ({ courseImage, courseTitle, promoVideo }) => {
+const CourseDetailVideo = ({ courseImage, courseTitle, promoVideo, slug }) => {
   const [isVideoOpen, setIsVideoOpen] = React.useState(false);
+  // Server-signed embed URL (Bunny embed token auth). Fetched when the trailer
+  // is opened so the token is always fresh; falls back to the client builder.
+  const [signedPromoUrl, setSignedPromoUrl] = React.useState(null);
   const youtubeId = getYoutubeId(promoVideo);
   const bunnyEmbedUrl = getBunnyEmbedUrl(promoVideo);
   const hasPromoVideo = Boolean(promoVideo);
+
+  React.useEffect(() => {
+    if (!isVideoOpen || !bunnyEmbedUrl || !slug) return;
+    let cancelled = false;
+    setSignedPromoUrl(null);
+    courseService.getPromoPlayback(slug)
+      .then((data) => {
+        if (!cancelled) setSignedPromoUrl(data?.embedUrl || null);
+      })
+      .catch(() => {
+        if (!cancelled) setSignedPromoUrl(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isVideoOpen, slug, bunnyEmbedUrl]);
+
+  const promoFrameUrl = signedPromoUrl || bunnyEmbedUrl;
 
   return (
     <>
@@ -153,9 +174,9 @@ const CourseDetailVideo = ({ courseImage, courseTitle, promoVideo }) => {
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
             />
-          ) : bunnyEmbedUrl ? (
+          ) : promoFrameUrl ? (
             <iframe
-              src={bunnyEmbedUrl}
+              src={promoFrameUrl}
               title="Course Trailer"
               className="h-full w-full"
               frameBorder="0"
@@ -1022,6 +1043,7 @@ export default function CourseDetail() {
               courseImage={course.thumbnail}
               courseTitle={course.title}
               promoVideo={course.promoVideo}
+              slug={slug}
             />
 
             <div className="sticky top-28 mb-12 w-full self-start lg:mb-0">

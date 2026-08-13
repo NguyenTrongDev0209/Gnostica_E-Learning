@@ -1284,8 +1284,58 @@ export default function LearningWorkspace() {
     return (lowUrl.includes("mediadelivery.net") || lowUrl.includes("bunny.net") || lowUrl.includes("vimeo.com")) && !lowUrl.includes("b-cdn.net");
   };
 
-  const embedUrl = getEmbedUrl(currentLesson?.videoUrl);
-  const useIframe = isEmbedLink(currentLesson?.videoUrl);
+  // === Embed URL: prefer the server-signed embed URL (Bunny embed token auth).
+  // The client-side builder below stays as a fallback for external providers
+  // (YouTube/Vimeo) and for when the playback API is unavailable. ===
+  const [playbackEmbedUrl, setPlaybackEmbedUrl] = useState(null);
+  const [playbackStatus, setPlaybackStatus] = useState("idle");
+
+  useEffect(() => {
+    let cancelled = false;
+    const lessonId = currentLesson?.id;
+    const videoUrl = currentLesson?.videoUrl;
+    if (!lessonId || !videoUrl) {
+      setPlaybackEmbedUrl(null);
+      setPlaybackStatus("idle");
+      return undefined;
+    }
+    setPlaybackEmbedUrl(null);
+    setPlaybackStatus("loading");
+    courseService.getLessonPlayback(lessonId)
+      .then((data) => {
+        if (!cancelled) {
+          setPlaybackEmbedUrl(data?.embedUrl || null);
+          setPlaybackStatus("ready");
+        }
+      })
+      .catch(() => {
+        // Fall back to the client-side embed URL (external providers only).
+        if (!cancelled) {
+          setPlaybackEmbedUrl(null);
+          setPlaybackStatus("error");
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [currentLesson?.id, currentLesson?.videoUrl]);
+
+  // Bunny embeds must come from the server (signed). While the signed URL is
+  // being resolved we avoid rendering the unsigned client URL, which would be
+  // rejected once "Embed view token authentication" is enabled.
+  const isBunnyLesson = Boolean(getVideoIdentifiers(currentLesson?.videoUrl));
+
+  const embedUrl = useMemo(() => {
+    if (playbackEmbedUrl) {
+      const separator = playbackEmbedUrl.includes("?") ? "&" : "?";
+      return startAtTime > 0 ? `${playbackEmbedUrl}${separator}t=${startAtTime}` : playbackEmbedUrl;
+    }
+    if (isBunnyLesson && playbackStatus !== "error") return null;
+    return getEmbedUrl(currentLesson?.videoUrl);
+  }, [playbackEmbedUrl, isBunnyLesson, playbackStatus, currentLesson?.videoUrl, startAtTime]);
+
+  const useIframe = embedUrl ? isEmbedLink(currentLesson?.videoUrl) : false;
+  const bunnyEmbedLoading = isBunnyLesson && !embedUrl && playbackStatus !== "error";
 
   // === CORE: Polling thời gian + Auto-sync + Auto-complete ===
   const durationRef = useRef(0);
@@ -1585,6 +1635,10 @@ export default function LearningWorkspace() {
                         allowFullScreen
                         className="w-full h-full"
                       ></iframe>
+                    ) : bunnyEmbedLoading ? (
+                      <div className="flex h-full w-full items-center justify-center">
+                        <Loader2 className="size-10 animate-spin text-muted-foreground" />
+                      </div>
                     ) : (
                       <video
                         src={currentLesson?.videoUrl}

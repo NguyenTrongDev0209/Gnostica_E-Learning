@@ -9,6 +9,7 @@ import com.gnostica.modules.course.dto.response.*;
 import com.gnostica.core.model.Course;
 import com.gnostica.core.model.Lesson;
 import com.gnostica.modules.course.service.CourseService;
+import com.gnostica.modules.course.service.LessonPlaybackService;
 import com.gnostica.modules.integration.service.AiModerationService;
 import com.gnostica.core.repository.LessonRepository;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +31,7 @@ public class AdminCourseController {
     private final CourseService courseService;
     private final AiModerationService aiModerationService;
     private final LessonRepository lessonRepository;
+    private final LessonPlaybackService lessonPlaybackService;
 
     /**
      * Endpoint Lấy danh sách khóa học theo trạng thái (Pending, Approved, Rejected) dành cho Admin
@@ -51,6 +53,24 @@ public class AdminCourseController {
     @GetMapping("/moderation/stats")
     public ResponseEntity<Map<String, Long>> getModerationStats() {
         return ResponseEntity.ok(courseService.getModerationStats());
+    }
+
+    /**
+     * Trả về embed URL (đã ký, hết hạn ngắn) cho một video bất kỳ để Admin
+     * xem trước nội dung khóa học đang kiểm duyệt. Token chỉ xác thực playback
+     * của video cụ thể, không lộ bí mật.
+     */
+    @PostMapping("/signed-embed")
+    public ResponseEntity<?> getSignedEmbed(@RequestBody Map<String, String> body) {
+        String videoUrl = body.get("videoUrl");
+        if (videoUrl == null || videoUrl.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "videoUrl is required"));
+        }
+        try {
+            return ResponseEntity.ok(lessonPlaybackService.resolveSignedEmbed(videoUrl));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+        }
     }
 
     /**
