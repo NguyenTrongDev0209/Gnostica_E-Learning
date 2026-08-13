@@ -25,18 +25,33 @@ import { Tabs as AppTabsRoot, TabsContent as AppTabsContent, TabsList as AppTabs
 import useInstructorQA from "@/hooks/forum/useInstructorQA";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { instructorDashboardService } from "@/services/instructor/instructorDashboardService";
-import { Eye, EyeOff } from "lucide-react";
+import commentService from "@/services/forum/commentService";
+import { Eye, EyeOff, Pencil } from "lucide-react";
 
 export default function InstructorQA() {
-  const { questions, reviews, loading } = useInstructorQA();
+  const { questions, reviews, templates, loading } = useInstructorQA();
 
   // State for Review Reply Form
   const [replyingReviewId, setReplyingReviewId] = useState(null);
   const [replyContent, setReplyContent] = useState("");
+  const [reviewFilter, setReviewFilter] = useState("all");
   
+  const [editingCommentId, setEditingCommentId] = useState(null);
+  const [editingContent, setEditingContent] = useState("");
+  
+  const [editingReviewReplyId, setEditingReviewReplyId] = useState(null);
+  const [editingReviewContent, setEditingReviewContent] = useState("");
+
   // State for Question Reply Form
   const [replyingQuestionId, setReplyingQuestionId] = useState(null);
   const [questionReplyContent, setQuestionReplyContent] = useState("");
+  const [questionFilter, setQuestionFilter] = useState("all");
+
+  const [expandedComments, setExpandedComments] = useState({});
+  const [expandedReviews, setExpandedReviews] = useState({});
+
+  const toggleComments = (id) => setExpandedComments(prev => ({ ...prev, [id]: !prev[id] }));
+  const toggleReviews = (id) => setExpandedReviews(prev => ({ ...prev, [id]: !prev[id] }));
 
   const queryClient = useQueryClient();
   const currentUser = (() => {
@@ -72,6 +87,62 @@ export default function InstructorQA() {
     }
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: async (commentId) => {
+      return await commentService.deleteComment(commentId, userEmail);
+    },
+    onSuccess: () => {
+      AppToast.success("Đã xóa bình luận thành công!");
+      queryClient.invalidateQueries({ queryKey: ['instructor_qa'] });
+    },
+    onError: (err) => {
+      AppToast.error("Có lỗi xảy ra khi xóa bình luận: " + err.message);
+    }
+  });
+
+  const editMutation = useMutation({
+    mutationFn: async ({ commentId, content }) => {
+      return await commentService.updateComment(commentId, { content, userEmail });
+    },
+    onSuccess: () => {
+      AppToast.success("Đã cập nhật bình luận thành công!");
+      setEditingCommentId(null);
+      setEditingContent("");
+      queryClient.invalidateQueries({ queryKey: ['instructor_qa'] });
+    },
+    onError: (err) => {
+      AppToast.error("Có lỗi xảy ra khi cập nhật bình luận: " + err.message);
+    }
+  });
+
+  const deleteReviewMutation = useMutation({
+    mutationFn: async (reviewId) => {
+      return await instructorDashboardService.deleteReview(reviewId);
+    },
+    onSuccess: () => {
+      AppToast.success("Đã xóa phản hồi đánh giá thành công!");
+      queryClient.invalidateQueries({ queryKey: ['instructor_qa'] });
+    },
+    onError: (err) => {
+      AppToast.error("Có lỗi xảy ra khi xóa phản hồi: " + err.message);
+    }
+  });
+
+  const editReviewMutation = useMutation({
+    mutationFn: async ({ reviewId, content }) => {
+      return await instructorDashboardService.updateReview(reviewId, content);
+    },
+    onSuccess: () => {
+      AppToast.success("Đã cập nhật phản hồi đánh giá thành công!");
+      setEditingReviewReplyId(null);
+      setEditingReviewContent("");
+      queryClient.invalidateQueries({ queryKey: ['instructor_qa'] });
+    },
+    onError: (err) => {
+      AppToast.error("Có lỗi xảy ra khi cập nhật phản hồi: " + err.message);
+    }
+  });
+
   const handleSubmitQuestionReply = (q) => {
     if (!questionReplyContent.trim()) return;
     if (!userEmail) {
@@ -85,6 +156,21 @@ export default function InstructorQA() {
     });
   };
 
+  const replyReviewMutation = useMutation({
+    mutationFn: async ({ parentReviewId, content }) => {
+      return await instructorDashboardService.replyToReview(parentReviewId, content);
+    },
+    onSuccess: () => {
+      AppToast.success("Đã gửi phản hồi đánh giá thành công!");
+      setReplyingReviewId(null);
+      setReplyContent("");
+      queryClient.invalidateQueries({ queryKey: ['instructor_qa'] });
+    },
+    onError: (err) => {
+      AppToast.error("Có lỗi xảy ra khi gửi phản hồi: " + err.message);
+    }
+  });
+
   const handleToggleStatus = (q) => {
     if (!userEmail) return;
     const newStatus = q.isHidden ? 1 : 0;
@@ -95,49 +181,62 @@ export default function InstructorQA() {
   };
   
   // State for Quick Reply Templates
-  const [templates, setTemplates] = useState(() => {
-    const saved = localStorage.getItem("gnostica_instructor_reply_templates");
-    if (saved) return JSON.parse(saved);
-    return [
-      "Cảm ơn bạn đã phản hồi, tôi sẽ tiếp tục cải thiện khóa học!",
-      "Rất vui vì khóa học mang lại giá trị cho bạn.",
-      "Cảm ơn bạn, chúc bạn học tập tốt!"
-    ];
-  });
-  
-  const [editingTemplateIdx, setEditingTemplateIdx] = useState(null);
+  const [editingTemplateId, setEditingTemplateId] = useState(null);
   const [templateInput, setTemplateInput] = useState("");
   const [showTemplateManager, setShowTemplateManager] = useState(false);
 
-  const saveTemplates = (newTemplates) => {
-    setTemplates(newTemplates);
-    localStorage.setItem("gnostica_instructor_reply_templates", JSON.stringify(newTemplates));
-  };
+  const addTemplateMutation = useMutation({
+    mutationFn: async (content) => {
+      return await instructorDashboardService.createReplyTemplate(content);
+    },
+    onSuccess: () => {
+      AppToast.success("Đã thêm mẫu thành công!");
+      setTemplateInput("");
+      queryClient.invalidateQueries({ queryKey: ['instructor_qa'] });
+    }
+  });
+
+  const editTemplateMutation = useMutation({
+    mutationFn: async ({ id, content }) => {
+      return await instructorDashboardService.updateReplyTemplate(id, content);
+    },
+    onSuccess: () => {
+      AppToast.success("Đã cập nhật mẫu thành công!");
+      setTemplateInput("");
+      setEditingTemplateId(null);
+      queryClient.invalidateQueries({ queryKey: ['instructor_qa'] });
+    }
+  });
+
+  const deleteTemplateMutation = useMutation({
+    mutationFn: async (id) => {
+      return await instructorDashboardService.deleteReplyTemplate(id);
+    },
+    onSuccess: () => {
+      AppToast.success("Đã xóa mẫu thành công!");
+      queryClient.invalidateQueries({ queryKey: ['instructor_qa'] });
+    }
+  });
 
   const handleAddOrEditTemplate = () => {
     if (!templateInput.trim()) return;
-    let newTpls = [...templates];
-    if (editingTemplateIdx !== null) {
-      newTpls[editingTemplateIdx] = templateInput.trim();
+    if (editingTemplateId !== null) {
+      editTemplateMutation.mutate({ id: editingTemplateId, content: templateInput.trim() });
     } else {
-      newTpls.push(templateInput.trim());
+      addTemplateMutation.mutate(templateInput.trim());
     }
-    saveTemplates(newTpls);
-    setTemplateInput("");
-    setEditingTemplateIdx(null);
   };
 
-  const handleDeleteTemplate = (idx) => {
-    let newTpls = [...templates];
-    newTpls.splice(idx, 1);
-    saveTemplates(newTpls);
+  const handleDeleteTemplate = (id) => {
+    deleteTemplateMutation.mutate(id);
   };
 
   const handleSubmitReply = () => {
-    if (!replyContent.trim()) return;
-    AppToast.success("Đã gửi phản hồi thành công!");
-    setReplyingReviewId(null);
-    setReplyContent("");
+    if (!replyContent.trim() || !replyingReviewId) return;
+    replyReviewMutation.mutate({
+      parentReviewId: replyingReviewId,
+      content: replyContent
+    });
   };
 
   if (loading) {
@@ -147,6 +246,25 @@ export default function InstructorQA() {
       </div>
     );
   }
+
+  const filteredQuestions = questions.filter(q => {
+    if (questionFilter === "unanswered") return q.status === "unanswered" && !q.isHidden;
+    if (questionFilter === "hidden") return q.isHidden;
+    return true; // "all"
+  });
+
+  const filteredReviews = reviews.filter(r => {
+    if (reviewFilter === "not_responded") return r.status === "not_responded";
+    if (reviewFilter === "responded") return r.status === "responded";
+    return true; // "all"
+  });
+
+  const flattenReplies = (replies = [], parentAuthorName = null, depth = 0) => {
+    return replies.flatMap(r => [
+        { ...r, parentAuthorName, depth },
+        ...flattenReplies(r.replies || [], r.studentName, depth + 1)
+    ]);
+  };
 
   const formatTime = (timeString) => {
     try {
@@ -174,28 +292,31 @@ export default function InstructorQA() {
             Tương tác với học viên qua các câu hỏi bài học và quản lý phản hồi khóa học.
           </p>
         </div>
-        <div className="flex text-sm font-bold text-muted-foreground bg-secondary p-1 rounded-lg">
-          <AppButton appVariant="outline" variant="outline" className="px-4 h-9 shadow-sm bg-white">Tất cả</AppButton>
-          <AppButton appVariant="ghostMuted" variant="ghost" className="px-4 h-9 font-normal">Chưa trả lời</AppButton>
-        </div>
       </div>
 
       <AppTabsRoot defaultValue="questions" className="w-full">
         <AppTabsList className="mb-6 bg-secondary p-1">
           <AppTabsTrigger value="questions" className="px-8 py-2.5 font-bold data-[state=active]:bg-white data-[state=active]:text-success data-[state=active]:shadow-sm">
             <MessageSquare className="w-4 h-4 mr-2" />
-            Hỏi Đáp ({questions.filter(q => q.status === 'unanswered').length})
+            Hỏi Đáp
           </AppTabsTrigger>
           <AppTabsTrigger value="reviews" className="px-8 py-2.5 font-bold data-[state=active]:bg-white data-[state=active]:text-amber-600 data-[state=active]:shadow-sm">
             <Star className="w-4 h-4 mr-2" />
-            Đánh Giá ({reviews.filter(r => r.status === 'not_responded').length})
+            Đánh Giá
           </AppTabsTrigger>
         </AppTabsList>
 
         <AppTabsContent value="questions" className="space-y-4">
-           {questions.length === 0 ? (
+           <div className="flex justify-end mb-2">
+             <div className="flex text-sm font-bold text-muted-foreground bg-secondary p-1 rounded-lg w-fit">
+               <AppButton onClick={() => setQuestionFilter("all")} className={`px-4 h-8 ${questionFilter === "all" ? "shadow-sm bg-white font-bold" : "font-normal bg-transparent"}`} appVariant={questionFilter === "all" ? "outline" : "ghostMuted"} variant={questionFilter === "all" ? "outline" : "ghost"} size="sm">Tất cả</AppButton>
+               <AppButton onClick={() => setQuestionFilter("unanswered")} className={`px-4 h-8 ${questionFilter === "unanswered" ? "shadow-sm bg-white font-bold" : "font-normal bg-transparent"}`} appVariant={questionFilter === "unanswered" ? "outline" : "ghostMuted"} variant={questionFilter === "unanswered" ? "outline" : "ghost"} size="sm">Chưa trả lời</AppButton>
+               <AppButton onClick={() => setQuestionFilter("hidden")} className={`px-4 h-8 ${questionFilter === "hidden" ? "shadow-sm bg-white font-bold" : "font-normal bg-transparent"}`} appVariant={questionFilter === "hidden" ? "outline" : "ghostMuted"} variant={questionFilter === "hidden" ? "outline" : "ghost"} size="sm">Đang ẩn</AppButton>
+             </div>
+           </div>
+           {filteredQuestions.length === 0 ? (
              <div className="text-center py-10 bg-muted/50 rounded-lg">Không có câu hỏi nào.</div>
-           ) : questions.map((q) => (
+           ) : filteredQuestions.map((q) => (
              <AppCard key={q.id} className="border-border shadow-sm hover:border-success/20 transition-colors group">
                <AppCardContent className="p-0">
                  <div className="p-5 flex gap-4">
@@ -222,86 +343,229 @@ export default function InstructorQA() {
                        "{q.content}"
                      </p>
                      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-bold text-muted-foreground uppercase tracking-tighter">
-                       <span className="flex items-center gap-1">Khóa: <span className="text-muted-foreground font-bold">{q.courseName}</span></span>
+                       <span className="flex items-center gap-1">Khóa học: <span className="text-muted-foreground font-bold">{q.courseName}</span></span>
                        <span className="flex items-center gap-1">Bài: <span className="text-muted-foreground font-bold">{q.lessonName}</span></span>
                      </div>
+                     
+                     <div className="mt-3 flex items-center gap-2">
+                         <AppButton 
+                             onClick={() => handleToggleStatus(q)}
+                             appVariant="ghostMuted" 
+                             variant="ghost"
+                             size="sm" 
+                             className={`h-7 px-2 font-bold ${q.isHidden ? 'text-muted-foreground hover:bg-secondary' : 'text-danger hover:bg-danger/10 hover:text-danger'}`}
+                             title={q.isHidden ? "Hiển thị" : "Ẩn"}
+                         >
+                             {q.isHidden ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                         </AppButton>
+                         <AppButton 
+                             onClick={() => {
+                                setReplyingQuestionId(replyingQuestionId === q.id ? null : q.id);
+                                setEditingCommentId(null);
+                             }}
+                             appVariant="ghostMuted" 
+                             variant="ghost" 
+                             size="sm" 
+                             className="h-7 px-2 font-bold text-primary hover:bg-primary/10"
+                         >
+                             {replyingQuestionId === q.id ? "Đóng lại" : "Phản hồi"}
+                         </AppButton>
+                         <AppButton 
+                             onClick={() => {
+                                 if (window.confirm("Bạn có chắc chắn muốn xóa bài thảo luận này?")) {
+                                     deleteMutation.mutate(q.id);
+                                 }
+                             }}
+                             appVariant="ghostMuted" 
+                             variant="ghost" 
+                             size="sm" 
+                             className="h-7 px-2 font-bold text-muted-foreground hover:text-danger hover:bg-danger/10 ml-auto"
+                         >
+                             Xóa
+                         </AppButton>
+                     </div>
+
+                     {replyingQuestionId === q.id && (
+                        <div className="mt-3 bg-background border border-border rounded-lg p-3 animate-in fade-in slide-in-from-top-2 duration-200">
+                           <textarea
+                              value={questionReplyContent}
+                              onChange={(e) => setQuestionReplyContent(e.target.value)}
+                              placeholder={`Trả lời @${q.studentName}...`}
+                              className="w-full rounded-md border border-border bg-background p-3 text-sm outline-none focus:border-primary min-h-[80px]"
+                           />
+                           <div className="mt-3 flex justify-end gap-2">
+                              <AppButton variant="ghost" size="sm" onClick={() => setReplyingQuestionId(null)}>Hủy</AppButton>
+                              <AppButton size="sm" onClick={() => handleSubmitQuestionReply(q)} disabled={!questionReplyContent.trim() || replyMutation.isPending} className="flex items-center gap-2">
+                                {replyMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />} Gửi phản hồi
+                              </AppButton>
+                           </div>
+                        </div>
+                     )}
+
                      {q.replies && q.replies.length > 0 && (
-                       <div className="mt-4 pl-4 border-l-2 border-border space-y-4">
-                         {q.replies.map(reply => (
-                           <div key={reply.id} className="flex gap-3">
+                       <div className="mt-4">
+                         <button onClick={() => toggleComments(q.id)} className="text-[13px] font-bold text-primary hover:underline flex items-center gap-1 mt-3 mb-2">
+                           {expandedComments[q.id] ? "Thu gọn câu trả lời" : `Xem ${q.replies.length} câu trả lời`}
+                         </button>
+                         {expandedComments[q.id] && (
+                           <div className="pl-4 border-l-2 border-border space-y-4">
+                             {flattenReplies(q.replies, q.studentName).map(reply => (
+                               <div key={reply.id} className="flex gap-3 relative group">
                              <div className="w-8 h-8 rounded-full overflow-hidden border border-border shrink-0">
                                <img src={reply.studentAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${reply.studentName}`} alt={reply.studentName} className="w-full h-full object-cover" />
                              </div>
-                             <div className="flex-1 bg-secondary/50 rounded-lg p-3 relative">
+                             <div className="flex-1 bg-secondary/50 rounded-lg p-3 relative opacity-100 transition-opacity">
+                               {reply.isHidden && (
+                                   <div className="absolute inset-0 bg-background/50 rounded-lg pointer-events-none" />
+                               )}
                                <div className="flex justify-between items-center mb-1">
-                                 <h5 className="font-bold text-sm text-foreground flex items-center gap-2">
+                                 <h5 className="font-bold text-sm text-foreground flex flex-wrap items-center gap-2">
                                     {reply.studentName}
                                     {reply.isAuthor && (
-                                        <AppBadge className="bg-blue-100 text-blue-700 hover:bg-blue-100 border-none px-1.5 py-0 text-[10px]">Tác giả</AppBadge>
+                                        <AppBadge className="bg-[#6b4eff] text-white hover:bg-[#6b4eff] border-none px-1.5 py-0 text-[11px]">Tác giả</AppBadge>
+                                    )}
+                                    {reply.parentAuthorName && (
+                                        <span className="inline-flex items-center rounded-md border border-primary/20 bg-primary/5 px-1.5 py-0.5 text-[11px] font-semibold text-primary">
+                                            trả lời @{reply.parentAuthorName}
+                                        </span>
+                                    )}
+                                    {reply.isHidden && (
+                                        <span className="text-[10px] text-danger font-bold uppercase">(Đang ẩn)</span>
                                     )}
                                  </h5>
                                  <span className="text-[10px] text-muted-foreground font-bold uppercase">{formatTime(reply.createdAt)}</span>
                                </div>
-                               <p className="text-sm font-medium text-foreground">{reply.content}</p>
+                               {editingCommentId === reply.id ? (
+                                   <div className="mt-2">
+                                       <textarea
+                                          value={editingContent}
+                                          onChange={(e) => setEditingContent(e.target.value)}
+                                          className="w-full rounded-md border border-border bg-background p-2 text-sm outline-none focus:border-primary min-h-[70px] relative z-10"
+                                       />
+                                       <div className="mt-2 flex justify-end gap-2 relative z-10">
+                                          <AppButton variant="ghost" size="sm" onClick={() => setEditingCommentId(null)}>Hủy</AppButton>
+                                          <AppButton size="sm" onClick={() => {
+                                              if (!editingContent.trim()) return;
+                                              editMutation.mutate({ commentId: reply.id, content: editingContent });
+                                          }} disabled={!editingContent.trim() || editMutation.isPending} className="flex items-center gap-2">
+                                            {editMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />} Lưu
+                                          </AppButton>
+                                       </div>
+                                   </div>
+                               ) : (
+                                   <p className="text-sm font-bold text-foreground relative z-10">{reply.content}</p>
+                               )}
+
+                               <div className="mt-2 flex items-center gap-2 relative z-10">
+                                   <AppButton 
+                                       onClick={() => handleToggleStatus(reply)}
+                                       appVariant="ghostMuted" 
+                                       variant="ghost"
+                                       size="sm" 
+                                       className={`h-6 px-1.5 font-bold ${reply.isHidden ? 'text-muted-foreground hover:bg-secondary' : 'text-danger hover:bg-danger/10 hover:text-danger'}`}
+                                       title={reply.isHidden ? "Hiển thị" : "Ẩn"}
+                                   >
+                                       {reply.isHidden ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                                   </AppButton>
+                                   <AppButton 
+                                       onClick={() => {
+                                          setReplyingQuestionId(replyingQuestionId === reply.id ? null : reply.id);
+                                          setEditingCommentId(null);
+                                       }}
+                                       appVariant="ghostMuted" 
+                                       variant="ghost" 
+                                       size="sm" 
+                                       className="h-6 px-1.5 text-[11px] font-bold text-primary hover:bg-primary/10"
+                                   >
+                                       {replyingQuestionId === reply.id ? "Đóng lại" : "Phản hồi"}
+                                   </AppButton>
+                                   {reply.isAuthor && (
+                                       <>
+                                           <AppButton 
+                                               onClick={() => {
+                                                   if (editingCommentId === reply.id) {
+                                                       setEditingCommentId(null);
+                                                   } else {
+                                                       setEditingCommentId(reply.id);
+                                                       setEditingContent(reply.content);
+                                                       setReplyingQuestionId(null);
+                                                   }
+                                               }}
+                                               appVariant="ghostMuted" 
+                                               variant="ghost" 
+                                               size="sm" 
+                                               className="h-6 px-1.5 text-[11px] font-bold text-muted-foreground hover:text-primary hover:bg-primary/10 ml-auto"
+                                           >
+                                               Sửa
+                                           </AppButton>
+                                           <AppButton 
+                                               onClick={() => {
+                                                   if (window.confirm("Bạn có chắc chắn muốn xóa bình luận này?")) {
+                                                       deleteMutation.mutate(reply.id);
+                                                   }
+                                               }}
+                                               appVariant="ghostMuted" 
+                                               variant="ghost" 
+                                               size="sm" 
+                                               className="h-6 px-1.5 text-[11px] font-bold text-muted-foreground hover:text-danger hover:bg-danger/10"
+                                           >
+                                               Xóa
+                                           </AppButton>
+                                       </>
+                                   )}
+                               </div>
+                               
+                               {replyingQuestionId === reply.id && (
+                                  <div className="mt-3 bg-background border border-border rounded-lg p-3 animate-in fade-in slide-in-from-top-2 duration-200 relative z-10">
+                                     <textarea
+                                        value={questionReplyContent}
+                                        onChange={(e) => setQuestionReplyContent(e.target.value)}
+                                        placeholder={`Trả lời @${reply.studentName}...`}
+                                        className="w-full rounded-md border border-border bg-background p-2 text-sm outline-none focus:border-primary min-h-[70px]"
+                                     />
+                                     <div className="mt-3 flex justify-end gap-2">
+                                        <AppButton variant="ghost" size="sm" onClick={() => setReplyingQuestionId(null)}>Hủy</AppButton>
+                                        <AppButton size="sm" onClick={() => {
+                                            // Handle reply to reply
+                                            if (!questionReplyContent.trim() || !userEmail) return;
+                                            replyMutation.mutate({
+                                                parentId: reply.id,
+                                                targetId: q.targetId, // Same lesson target
+                                                content: questionReplyContent
+                                            });
+                                        }} disabled={!questionReplyContent.trim() || replyMutation.isPending} className="flex items-center gap-2">
+                                          {replyMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />} Gửi phản hồi
+                                        </AppButton>
+                                     </div>
+                                  </div>
+                               )}
                              </div>
                            </div>
                          ))}
+                           </div>
+                         )}
                        </div>
                      )}
                    </div>
                  </div>
-                 <div className="px-5 py-3 border-t border-border bg-muted flex justify-between items-center group-hover:bg-success/5 transition-colors">
-                    <div className="flex items-center gap-4">
-                      <button className="text-xs font-bold text-muted-foreground hover:text-muted-foreground flex items-center gap-1.5">
-                        <ThumbsUp className="w-3.5 h-3.5" /> {q.likes || 0} Hữu ích
-                      </button>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <AppButton 
-                            onClick={() => handleToggleStatus(q)}
-                            appVariant="ghostMuted" 
-                            variant="ghost"
-                            size="sm" 
-                            className={`h-8 font-bold ${q.isHidden ? 'text-muted-foreground hover:bg-secondary' : 'text-danger hover:bg-danger/10 hover:text-danger'}`}
-                        >
-                            {q.isHidden ? <><Eye className="w-3.5 h-3.5 mr-1.5" /> Đã ẩn</> : <><EyeOff className="w-3.5 h-3.5 mr-1.5" /> Ẩn hỏi đáp</>}
-                        </AppButton>
-                        <AppButton 
-                        onClick={() => setReplyingQuestionId(replyingQuestionId === q.id ? null : q.id)}
-                        appVariant="gradient" 
-                        size="sm" 
-                        className="bg-success/10 text-success hover:bg-success/20 font-bold h-8"
-                        >
-                        {replyingQuestionId === q.id ? "Đóng lại" : <><Reply className="w-3.5 h-3.5 mr-1.5" /> Phản hồi ngay</>}
-                        </AppButton>
-                    </div>
-                 </div>
-
-                 {replyingQuestionId === q.id && (
-                    <div className="px-5 py-4 bg-background border-t border-border animate-in fade-in slide-in-from-top-2 duration-200">
-                       <textarea
-                          value={questionReplyContent}
-                          onChange={(e) => setQuestionReplyContent(e.target.value)}
-                          placeholder="Nhập nội dung hướng dẫn/trả lời học viên..."
-                          className="w-full rounded-md border border-border bg-background p-3 text-sm outline-none focus:border-primary min-h-[100px]"
-                       />
-                       <div className="mt-4 flex justify-end gap-2">
-                          <AppButton variant="ghost" size="sm" onClick={() => setReplyingQuestionId(null)}>Hủy</AppButton>
-                          <AppButton size="sm" onClick={() => handleSubmitQuestionReply(q)} disabled={!questionReplyContent.trim() || replyMutation.isPending} className="flex items-center gap-2">
-                            {replyMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />} Gửi phản hồi
-                          </AppButton>
-                       </div>
-                    </div>
-                 )}
                </AppCardContent>
              </AppCard>
            ))}
         </AppTabsContent>
 
         <AppTabsContent value="reviews" className="space-y-4">
-           {reviews.length === 0 ? (
-             <div className="text-center py-10 bg-muted/50 rounded-lg">Không có đánh giá nào.</div>
-           ) : reviews.map((r) => (
+           {/* Bộ lọc cho Đánh giá */}
+           <div className="flex justify-end mb-2">
+             <div className="flex text-sm font-bold text-muted-foreground bg-secondary p-1 rounded-lg w-fit">
+               <AppButton onClick={() => setReviewFilter("all")} className={`px-4 h-8 ${reviewFilter === "all" ? "shadow-sm bg-white font-bold" : "font-normal bg-transparent"}`} appVariant={reviewFilter === "all" ? "outline" : "ghostMuted"} variant={reviewFilter === "all" ? "outline" : "ghost"} size="sm">Tất cả</AppButton>
+               <AppButton onClick={() => setReviewFilter("not_responded")} className={`px-4 h-8 ${reviewFilter === "not_responded" ? "shadow-sm bg-white font-bold" : "font-normal bg-transparent"}`} appVariant={reviewFilter === "not_responded" ? "outline" : "ghostMuted"} variant={reviewFilter === "not_responded" ? "outline" : "ghost"} size="sm">Chưa trả lời</AppButton>
+               <AppButton onClick={() => setReviewFilter("responded")} className={`px-4 h-8 ${reviewFilter === "responded" ? "shadow-sm bg-white font-bold" : "font-normal bg-transparent"}`} appVariant={reviewFilter === "responded" ? "outline" : "ghostMuted"} variant={reviewFilter === "responded" ? "outline" : "ghost"} size="sm">Đã trả lời</AppButton>
+             </div>
+           </div>
+
+           {filteredReviews.length === 0 ? (
+             <div className="text-center py-10 bg-muted/50 rounded-lg font-semibold">Không có đánh giá nào.</div>
+           ) : filteredReviews.map((r) => (
              <AppCard key={r.id} className="border-border shadow-sm hover:border-amber-200 transition-colors">
                <AppCardContent className="p-0">
                  <div className="p-5 flex gap-4">
@@ -320,23 +584,151 @@ export default function InstructorQA() {
                          </div>
                          <span className="text-xs text-muted-foreground font-bold uppercase">{formatTime(r.createdAt)}</span>
                        </div>
-                       <p className="text-sm font-medium text-muted-foreground py-3 italic">"{r.content}"</p>
-                       <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-2 py-0.5 bg-secondary w-fit rounded">
-                         Khóa học: <span className="text-foreground">{r.courseName}</span>
-                       </p>
-                    </div>
-                 </div>
-                 <div className="px-5 py-3 border-t border-border bg-muted flex justify-end">
-                    <AppButton 
-                      onClick={() => setReplyingReviewId(replyingReviewId === r.id ? null : r.id)}
-                      appVariant="ghostMuted" 
-                      variant="ghost" 
-                      size="sm" 
-                      className={`h-8 font-bold ${replyingReviewId === r.id ? 'text-foreground hover:bg-secondary' : 'text-warning hover:bg-warning/10 hover:text-warning'}`}
-                    >
-                      {replyingReviewId === r.id ? "Đóng lại" : "Trả lời đánh giá \u2192"}
-                    </AppButton>
-                 </div>
+                       <p className="text-sm font-bold text-foreground py-3 italic">"{r.content}"</p>
+                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-2 py-0.5 bg-secondary w-fit rounded">
+                          Khóa học: <span className="text-foreground">{r.courseName}</span>
+                        </p>
+                        
+                        <div className="mt-3 flex justify-start">
+                           <AppButton 
+                             onClick={() => setReplyingReviewId(replyingReviewId === r.id ? null : r.id)}
+                             appVariant="ghostMuted" 
+                             variant="ghost" 
+                             size="sm" 
+                             className={`h-7 px-2 font-bold ${replyingReviewId === r.id ? 'text-primary bg-primary/10' : 'text-primary hover:bg-primary/10'}`}
+                           >
+                             {replyingReviewId === r.id ? "Đóng lại" : "Trả lời"}
+                           </AppButton>
+                        </div>
+                     </div>
+                  </div>
+
+                  {/* Hiển thị các câu trả lời đánh giá */}
+                  {r.replies && r.replies.length > 0 && (
+                    <div className="mt-4">
+                      <button onClick={() => toggleReviews(r.id)} className="text-[13px] font-bold text-primary hover:underline flex items-center gap-1 mt-3 mb-2 px-5">
+                        {expandedReviews[r.id] ? "Thu gọn câu trả lời" : `Xem ${r.replies.length} câu trả lời`}
+                      </button>
+                      {expandedReviews[r.id] && (
+                        <div className="pl-4 border-l-2 border-border space-y-4 px-5 pb-5">
+                          {flattenReplies(r.replies, r.studentName).map((reply) => (
+                            <div key={reply.id} className="flex gap-3 relative group">
+                          <div className="w-8 h-8 rounded-full overflow-hidden border border-border shrink-0 z-10 relative">
+                            <img src={reply.studentAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${reply.studentName}`} alt={reply.studentName} className="w-full h-full object-cover" />
+                          </div>
+                          <div className="flex-1 bg-secondary/50 border border-border rounded-lg p-3">
+                            <div className="flex justify-between items-start mb-2">
+                              <div className="flex items-center gap-2">
+                                <span className="font-bold text-sm text-foreground">{reply.studentName}</span>
+                                {reply.isAuthor && (
+                                  <AppBadge variant="secondary" className="text-[10px] h-5 bg-primary/10 text-primary border-primary/20">
+                                    Tác giả
+                                  </AppBadge>
+                                )}
+                                {reply.parentAuthorName && (
+                                    <span className="inline-flex items-center rounded-md border border-primary/20 bg-primary/5 px-1.5 py-0.5 text-[11px] font-semibold text-primary">
+                                        trả lời @{reply.parentAuthorName}
+                                    </span>
+                                )}
+                              </div>
+                              <span className="text-[10px] text-muted-foreground font-semibold">{formatTime(reply.createdAt)}</span>
+                            </div>
+
+                            {editingReviewReplyId === reply.id ? (
+                              <div className="mt-2">
+                                <textarea
+                                   value={editingReviewContent}
+                                   onChange={(e) => setEditingReviewContent(e.target.value)}
+                                   className="w-full rounded border border-border bg-background p-2 text-sm font-semibold text-foreground outline-none focus:border-primary"
+                                   rows={3}
+                                />
+                                <div className="flex justify-end gap-2 mt-2">
+                                  <AppButton variant="ghost" size="sm" onClick={() => setEditingReviewReplyId(null)}>Hủy</AppButton>
+                                  <AppButton size="sm" onClick={() => editReviewMutation.mutate({ reviewId: reply.id, content: editingReviewContent })} disabled={!editingReviewContent.trim() || editReviewMutation.isPending}>
+                                    Lưu thay đổi
+                                  </AppButton>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="text-sm font-bold text-foreground whitespace-pre-wrap">{reply.content}</div>
+                            )}
+
+                            <div className="mt-2 flex gap-2 justify-end">
+                                <AppButton 
+                                    onClick={() => setReplyingReviewId(replyingReviewId === reply.id ? null : reply.id)}
+                                    appVariant="ghostMuted" 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    className="h-6 px-1.5 text-[11px] font-bold text-primary hover:bg-primary/10"
+                                >
+                                    {replyingReviewId === reply.id ? "Đóng lại" : "Trả lời"}
+                                </AppButton>
+                                {reply.isAuthor && (
+                                  <>
+                                    <AppButton 
+                                        onClick={() => {
+                                            if (editingReviewReplyId === reply.id) {
+                                                setEditingReviewReplyId(null);
+                                            } else {
+                                                setEditingReviewReplyId(reply.id);
+                                                setEditingReviewContent(reply.content);
+                                            }
+                                        }}
+                                        appVariant="ghostMuted" 
+                                        variant="ghost" 
+                                        size="sm" 
+                                        className="h-6 px-1.5 text-[11px] font-bold text-muted-foreground hover:text-primary hover:bg-primary/10 ml-auto opacity-0 group-hover:opacity-100 transition-opacity"
+                                    >
+                                        <Pencil className="w-3 h-3" />
+                                    </AppButton>
+                                    <AppButton 
+                                        onClick={() => {
+                                            if (window.confirm("Bạn có chắc chắn muốn xóa phản hồi này?")) {
+                                                deleteReviewMutation.mutate(reply.id);
+                                            }
+                                        }}
+                                        appVariant="ghostMuted" 
+                                        variant="ghost" 
+                                        size="sm" 
+                                        className="h-6 px-1.5 text-[11px] font-bold text-muted-foreground hover:text-error hover:bg-error/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    >
+                                        <Trash2 className="w-3 h-3" />
+                                    </AppButton>
+                                  </>
+                                )}
+                            </div>
+
+                            {/* Reply to a reply form */}
+                            {replyingReviewId === reply.id && (
+                               <div className="mt-3 bg-background border border-border rounded-lg p-3 animate-in fade-in slide-in-from-top-2 duration-200">
+                                  <textarea
+                                     value={replyContent}
+                                     onChange={(e) => setReplyContent(e.target.value)}
+                                     placeholder={`Trả lời @${reply.studentName}...`}
+                                     className="w-full rounded-md border border-border bg-background p-3 text-sm outline-none focus:border-primary min-h-[80px]"
+                                  />
+                                  <div className="mt-3 flex justify-end gap-2">
+                                     <AppButton variant="ghost" size="sm" onClick={() => setReplyingReviewId(null)}>Hủy</AppButton>
+                                     <AppButton size="sm" onClick={() => {
+                                         if (!replyContent.trim()) return;
+                                         replyReviewMutation.mutate({
+                                           parentReviewId: reply.id,
+                                           content: replyContent
+                                         });
+                                     }} disabled={!replyContent.trim() || replyReviewMutation.isPending} className="flex items-center gap-2">
+                                       {replyReviewMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />} Gửi phản hồi
+                                     </AppButton>
+                                  </div>
+                               </div>
+                            )}
+
+                          </div>
+                        </div>
+                      ))}
+                     </div>
+                    )}
+                  </div>
+                 )}
                  
                  {replyingReviewId === r.id && (
                     <div className="px-5 py-4 bg-background border-t border-border animate-in fade-in slide-in-from-top-2 duration-200">
@@ -358,13 +750,13 @@ export default function InstructorQA() {
                          {/* Danh sách templates để click chọn */}
                          {!showTemplateManager && (
                            <div className="flex flex-wrap gap-2">
-                             {templates.map((tpl, idx) => (
+                             {templates.map((tpl) => (
                                <button 
-                                 key={idx}
-                                 onClick={() => setReplyContent(tpl)}
+                                 key={tpl.id}
+                                 onClick={() => setReplyContent(tpl.content)}
                                  className="text-xs bg-secondary hover:bg-secondary/80 text-foreground px-3 py-1.5 rounded-full transition-colors text-left"
                                >
-                                 {tpl.length > 50 ? tpl.substring(0, 50) + "..." : tpl}
+                                 {tpl.content.length > 50 ? tpl.content.substring(0, 50) + "..." : tpl.content}
                                </button>
                              ))}
                              {templates.length === 0 && <span className="text-xs text-muted-foreground italic">Chưa có mẫu nào.</span>}
@@ -382,22 +774,22 @@ export default function InstructorQA() {
                                   placeholder="Nhập nội dung mẫu..."
                                   className="flex-1 rounded border border-border bg-background px-2 py-1 text-sm outline-none focus:border-primary"
                                 />
-                                <AppButton size="sm" onClick={handleAddOrEditTemplate} disabled={!templateInput.trim()}>
-                                  {editingTemplateIdx !== null ? "Lưu" : "Thêm"}
+                                <AppButton size="sm" onClick={handleAddOrEditTemplate} disabled={!templateInput.trim() || addTemplateMutation.isPending || editTemplateMutation.isPending}>
+                                  {editingTemplateId !== null ? "Lưu" : "Thêm"}
                                 </AppButton>
-                                {editingTemplateIdx !== null && (
-                                  <AppButton variant="ghost" size="sm" onClick={() => {setEditingTemplateIdx(null); setTemplateInput("");}}>Hủy</AppButton>
+                                {editingTemplateId !== null && (
+                                  <AppButton variant="ghost" size="sm" onClick={() => {setEditingTemplateId(null); setTemplateInput("");}}>Hủy</AppButton>
                                 )}
                               </div>
                               <div className="space-y-1 max-h-[150px] overflow-y-auto pr-2">
-                                {templates.map((tpl, idx) => (
-                                  <div key={idx} className="flex justify-between items-center bg-background border border-border rounded px-2 py-1.5 group">
-                                    <span className="text-xs text-foreground flex-1 line-clamp-1">{tpl}</span>
+                                {templates.map((tpl) => (
+                                  <div key={tpl.id} className="flex justify-between items-center bg-background border border-border rounded px-2 py-1.5 group">
+                                    <span className="text-xs text-foreground flex-1 line-clamp-1">{tpl.content}</span>
                                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-2">
-                                      <button onClick={() => {setEditingTemplateIdx(idx); setTemplateInput(tpl);}} className="p-1 hover:bg-muted text-muted-foreground hover:text-primary rounded">
+                                      <button onClick={() => {setEditingTemplateId(tpl.id); setTemplateInput(tpl.content);}} className="p-1 hover:bg-muted text-muted-foreground hover:text-primary rounded">
                                         <Edit2 className="w-3 h-3" />
                                       </button>
-                                      <button onClick={() => handleDeleteTemplate(idx)} className="p-1 hover:bg-error/10 text-muted-foreground hover:text-error rounded">
+                                      <button onClick={() => handleDeleteTemplate(tpl.id)} className="p-1 hover:bg-error/10 text-muted-foreground hover:text-error rounded">
                                         <Trash2 className="w-3 h-3" />
                                       </button>
                                     </div>
@@ -410,8 +802,8 @@ export default function InstructorQA() {
 
                        <div className="mt-4 flex justify-end gap-2">
                           <AppButton variant="ghost" size="sm" onClick={() => setReplyingReviewId(null)}>Hủy</AppButton>
-                          <AppButton size="sm" onClick={handleSubmitReply} disabled={!replyContent.trim()} className="flex items-center gap-2">
-                            <Send className="w-4 h-4" /> Gửi phản hồi
+                          <AppButton size="sm" onClick={handleSubmitReply} disabled={!replyContent.trim() || replyReviewMutation.isPending} className="flex items-center gap-2">
+                            {replyReviewMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />} Gửi phản hồi
                           </AppButton>
                        </div>
                     </div>
