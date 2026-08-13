@@ -6,9 +6,13 @@ import com.gnostica.modules.integration.service.BunnyStorageService;
 import com.gnostica.modules.integration.service.CloudinaryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -40,7 +44,13 @@ public class UploadController {
     @PostMapping("/document")
     public ResponseEntity<?> uploadDocument(@RequestParam("file") MultipartFile file) {
         try {
-            String url = bunnyStorageService.uploadDocument(file);
+            String fileName = bunnyStorageService.uploadDocument(file);
+            String url = ServletUriComponentsBuilder.fromCurrentContextPath()
+                    .path("/api/upload/document/")
+                    .pathSegment(fileName)
+                    .build()
+                    .encode()
+                    .toUriString();
             Map<String, String> response = new HashMap<>();
             response.put("url", url);
             return ResponseEntity.ok(response);
@@ -48,6 +58,28 @@ public class UploadController {
             Map<String, String> error = new HashMap<>();
             error.put("message", "Document upload failed: " + e.getMessage());
             return ResponseEntity.status(500).body(error);
+        }
+    }
+
+    @GetMapping("/document/{fileName:.+}")
+    public ResponseEntity<byte[]> viewDocument(@PathVariable String fileName) {
+        try {
+            BunnyStorageService.StoredDocument document = bunnyStorageService.downloadDocument(fileName);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(document.contentType());
+            headers.setContentDisposition(ContentDisposition.inline()
+                    .filename(fileName, StandardCharsets.UTF_8)
+                    .build());
+            headers.setCacheControl("private, max-age=300");
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(document.content());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        } catch (org.springframework.web.client.HttpClientErrorException.NotFound e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(502).build();
         }
     }
 

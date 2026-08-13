@@ -55,7 +55,7 @@ public class AiService {
     @Value("${deepseek.base-url:https://api.deepseek.com/v1}")
     private String baseUrl;
 
-    @Value("${deepseek.model:deepseek-chat}")
+    @Value("${deepseek.model:deepseek-v4-flash}")
     private String model;
 
     public AiChatResponse getChatResponse(AiChatRequest request) {

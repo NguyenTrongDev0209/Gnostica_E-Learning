@@ -99,8 +99,9 @@ export default function useAdminUsers() {
       toast.success("Đã phê duyệt đơn đăng ký");
       queryClient.invalidateQueries({ queryKey: ['admin_applications'] });
     },
-    onError: () => {
-      toast.error("Lỗi khi phê duyệt");
+    onError: (error) => {
+      const message = error?.response?.data?.message || "Lỗi khi phê duyệt";
+      toast.error(message);
     }
   });
 

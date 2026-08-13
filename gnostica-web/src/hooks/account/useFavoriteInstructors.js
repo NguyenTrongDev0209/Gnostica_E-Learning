@@ -18,13 +18,13 @@ export default function useFavoriteInstructors() {
             const data = await res.json();
             if (res.ok) {
                 const mapped = (data.data || []).map(inst => ({
-                    id: inst.instructorId,
-                    fullName: inst.instructorName,
-                    email: inst.instructorEmail || "",
-                    avatar: inst.instructorAvatar || "https://images.unsplash.com/photo-1568602471122-7832951cc4c5?w=150&h=150&fit=crop",
-                    title: inst.instructorTitle || "Giảng viên",
-                    coursesCount: inst.totalCourses || 0,
-                    studentsCount: inst.totalStudents || 0,
+                    id: inst.id || inst.instructorId,
+                    fullName: inst.fullName || inst.instructorName,
+                    email: inst.email || inst.instructorEmail || "",
+                    avatar: inst.avatar || inst.instructorAvatar || "https://images.unsplash.com/photo-1568602471122-7832951cc4c5?w=150&h=150&fit=crop",
+                    title: inst.title || inst.instructorTitle || "Giảng viên",
+                    coursesCount: inst.courseCount || inst.totalCourses || 0,
+                    studentsCount: inst.studentCount || inst.totalStudents || 0,
                     rating: inst.rating || 0
                 }));
                 setInstructors(mapped);
