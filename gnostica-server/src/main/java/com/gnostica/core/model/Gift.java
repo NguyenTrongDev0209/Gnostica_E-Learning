@@ -20,6 +20,9 @@ public class Gift {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Column(name = "gift_code", unique = true, length = 12)
+    private String giftCode;
+
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sender_id", updatable = false)

@@ -78,6 +78,15 @@ const triggerAiScanFull = async (slug) => {
     return response.data;
 };
 
+// Returns a short-lived, signed embed URL for an arbitrary video so admin can
+// preview course content under moderation once Bunny embed token auth is on.
+const getSignedEmbed = async (videoUrl) => {
+    const response = await axiosClient.post(`${ADMIN_API_URL}/signed-embed`, { videoUrl }, {
+        headers: getAuthHeaders()
+    });
+    return response.data;
+};
+
 const adminCourseService = {
     getModerationCourses,
     getModerationStats,
@@ -87,6 +96,7 @@ const adminCourseService = {
     triggerAiScan,
     triggerAiScanInfo,
     triggerAiScanFull,
+    getSignedEmbed,
 };
 
 export default adminCourseService;

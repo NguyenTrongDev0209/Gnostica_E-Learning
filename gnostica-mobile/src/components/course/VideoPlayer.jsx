@@ -89,11 +89,13 @@ const getDirectVideoUrl = (url) => {
  * `fallbackSource` keeps native HLS available for an embed failure without
  * making the mobile UI diverge from the web player during normal playback.
  */
-const VideoPlayer = ({ source, fallbackSource, autoplay = true, startAt = 0, requestHeaders, style, onError }) => {
+const VideoPlayer = ({ source, fallbackSource, autoplay = true, startAt = 0, requestHeaders, style, onError, embedUrl: signedEmbedUrl }) => {
   const [embedError, setEmbedError] = useState(false);
+  // Prefer the server-signed embed URL (Bunny embed token auth) when provided;
+  // otherwise build one client-side for external providers and legacy flows.
   const embedUrl = useMemo(
-    () => getEmbeddedVideoUrl(source, { autoplay, startAt }),
-    [source, autoplay, startAt]
+    () => signedEmbedUrl || getEmbeddedVideoUrl(source, { autoplay, startAt }),
+    [signedEmbedUrl, source, autoplay, startAt]
   );
   const directUrl = useMemo(
     () => (!embedUrl ? getDirectVideoUrl(source) : (embedError ? getDirectVideoUrl(fallbackSource) : null)),

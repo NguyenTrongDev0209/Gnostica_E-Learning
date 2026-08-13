@@ -16,4 +16,15 @@ public class BunnyNetConfig {
     /** Explicit rollout switch; never enable merely because a key is present. */
     private boolean cdnTokenEnabled;
     private long cdnTokenTtlSeconds = 600;
+
+    /**
+     * Secret for signing "Embed view token authentication" URLs. Per Bunny's
+     * Stream docs the token security key is the Video Library API Key, so a
+     * blank value falls back to {@link #apiKey}. A dedicated override is
+     * allowed for deployments that rotate the API key independently.
+     */
+    private String embedTokenKey;
+    /** Explicit rollout switch for the embedded player token. */
+    private boolean embedTokenEnabled;
+    private long embedTokenTtlSeconds = 600;
 }

@@ -10,6 +10,7 @@ import com.gnostica.modules.checkout.dto.response.*;
 import com.gnostica.modules.course.dto.response.*;
 import com.gnostica.core.model.Course;
 import com.gnostica.modules.course.service.CourseService;
+import com.gnostica.modules.course.service.LessonPlaybackService;
 import com.gnostica.modules.integration.service.BunnyTranscriptionService;
 import com.gnostica.modules.integration.service.AiModerationService;
 import jakarta.validation.Valid;
@@ -31,6 +32,7 @@ public class CourseController {
     private final CourseService courseService;
     private final BunnyTranscriptionService bunnyTranscriptionService;
     private final AiModerationService aiModerationService;
+    private final LessonPlaybackService lessonPlaybackService;
     
     @GetMapping
     public ResponseEntity<?> getPublicCourses(
@@ -83,6 +85,24 @@ public class CourseController {
         } catch (ResourceNotFoundException exception) {
             // Do not disclose whether a supplied slug belongs to a hidden,
             // deleted, or simply nonexistent course.
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    /**
+     * Returns a (short-lived, signed) embed URL for the course promo/trailer.
+     * Public like the course detail page: the signed token only authorises
+     * playback of the promo video, never the underlying secret.
+     */
+    @GetMapping("/{slug}/promo-playback")
+    public ResponseEntity<?> getPromoPlayback(@PathVariable String slug) {
+        try {
+            CourseDetailResponse detail = courseService.getCourseBySlug(slug, null);
+            if (detail == null || detail.getPromoVideo() == null || detail.getPromoVideo().isBlank()) {
+                return ResponseEntity.notFound().build();
+            }
+            return ResponseEntity.ok(lessonPlaybackService.resolveSignedEmbed(detail.getPromoVideo()));
+        } catch (ResourceNotFoundException exception) {
             return ResponseEntity.notFound().build();
         }
     }

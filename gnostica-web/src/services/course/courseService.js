@@ -161,6 +161,22 @@ const deleteVideoFromBunny = async (videoUrl) => {
     }
 };
 
+// Resolves a lesson's playback stream on the server, where Bunny delivery
+// security (CDN + embed view token signing) is configured. Returns an HLS
+// sourceUrl and a signed embedUrl for the authenticated caller.
+const getLessonPlayback = async (lessonId) => {
+    const response = await axiosClient.get(`/lessons/${lessonId}/playback`, {
+        headers: getAuthHeaders()
+    });
+    return response.data;
+};
+
+// Returns a short-lived, signed embed URL for a course's promo/trailer video.
+const getPromoPlayback = async (slug) => {
+    const response = await axiosClient.get(`/courses/${slug}/promo-playback`);
+    return response.data;
+};
+
 const courseService = {
     getVideoTranscriptText,
     preScanVideoContent,
@@ -177,6 +193,8 @@ const courseService = {
     getAllDrafts,
     deleteDraft,
     deleteVideoFromBunny,
+    getLessonPlayback,
+    getPromoPlayback,
     getRecommendedCourses: async (page = 0, size = 10) => {
         const response = await axiosClient.get(`${API_URL}/recommendations`, {
             params: { page, size },
