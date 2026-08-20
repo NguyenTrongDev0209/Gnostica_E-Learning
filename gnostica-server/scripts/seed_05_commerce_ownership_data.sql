@@ -314,10 +314,10 @@ FROM inserted CROSS JOIN seed_context context;
 
 WITH inserted AS (
     INSERT INTO payments (
-        id, order_id, transaction_code, amount, gateway, gateway_transaction_no,
+        id, order_id, payment_code, amount, gateway, gateway_transaction_no,
         paid_at, payload, status, created_at, updated_at
     )
-    SELECT payment_id, order_id, 'SEED-PAY-' || lpad(purchase_no::TEXT, 6, '0'), final_price,
+    SELECT payment_id, order_id, (840000000000::BIGINT + purchase_no)::text, final_price,
            CASE WHEN purchase_no % 4 = 0 THEN 'VNPAY' ELSE 'PAYOS' END,
            'SEED-GW-' || lpad(purchase_no::TEXT, 6, '0'),
            CASE WHEN order_status IN (1, 2) THEN created_at + INTERVAL '15 minutes' ELSE NULL END,
@@ -424,14 +424,17 @@ SELECT gen_random_uuid() AS payout_id, bank.account_id, bank.account_bank_id,
        round(revenue.total_revenue / 100, 6) AS amount,
        CASE WHEN sequence_no <= 6 THEN 3 WHEN sequence_no = 7 THEN 2
             WHEN sequence_no = 8 THEN 1 WHEN sequence_no = 9 THEN 4 ELSE 5 END AS status,
-       NOW() - (sequence_no * INTERVAL '1 day') AS created_at
+       NOW() - (sequence_no * INTERVAL '1 day') AS created_at,
+       'SEED-PO-' || to_char(NOW() - (sequence_no * INTERVAL '1 day'), 'YYYYMMDD') || '-' || lpad((bank.instructor_no * 10 + sequence_no)::text, 4, '0') AS payout_code,
+       0 AS submission_attempts,
+       '{}'::jsonb AS metadata
 FROM seed_account_bank_plan bank
 JOIN revenue ON revenue.account_id = bank.account_id
 CROSS JOIN generate_series(1, 10) AS sequence_no;
 
 WITH inserted AS (
-    INSERT INTO payouts (id, account_id, account_bank_id, amount, status, created_at, updated_at)
-    SELECT payout_id, account_id, account_bank_id, amount, status, created_at, created_at + INTERVAL '5 minutes'
+    INSERT INTO payouts (id, account_id, account_bank_id, amount, status, payout_code, submission_attempts, metadata, created_at, updated_at)
+    SELECT payout_id, account_id, account_bank_id, amount, status, payout_code, submission_attempts, metadata, created_at, created_at + INTERVAL '5 minutes'
     FROM seed_payout_plan
     RETURNING id
 )

@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
 import couponService from "@/services/order/couponService";
-import { Star, CheckCircle2, QrCode, CreditCard, Loader2, Trash2 } from "lucide-react";
+import { Star, CheckCircle2, QrCode, CreditCard, Loader2, Trash2, Wallet } from "lucide-react";
 import { useLocation, Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import orderService from "@/services/order/orderService";
 import giftService from "@/services/course/giftService";
+import walletService from "@/services/payment/walletService";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/common/micro/AppCard";
 import Separator from "@/components/common/micro/AppSeparator";
 import { AppButton } from "@/components/common/micro/AppButton";
@@ -38,6 +39,13 @@ const PAYMENT_METHODS = [
     label: "VNPay",
     description: "Thanh toán bằng QR, thẻ ATM hoặc tài khoản ngân hàng",
     icon: CreditCard,
+    color: "text-info bg-info-soft"
+  },
+  {
+    id: "WALLET",
+    label: "Ví Gnostica",
+    description: "Thanh toán bằng số dư Ví Gnostica",
+    icon: Wallet,
     color: "text-info bg-info-soft"
   }
 ];
@@ -120,7 +128,7 @@ function CheckoutOrderItemList({ orderItems }) {
 }
 
 // ── CheckoutPaymentMethod ──
-function CheckoutPaymentMethod({ paymentMethods, paymentMethod, setPaymentMethod }) {
+function CheckoutPaymentMethod({ paymentMethods, paymentMethod, setPaymentMethod, walletBalance, walletLoading, subtotal, isMethodDisabled }) {
   return (
     <section>
       <div className="mb-6 flex items-center gap-2">
@@ -138,12 +146,17 @@ function CheckoutPaymentMethod({ paymentMethods, paymentMethod, setPaymentMethod
           {paymentMethods.map((method) => {
             const Icon = method.icon;
             const isSelected = paymentMethod === method.id;
+            const disabled = isMethodDisabled ? isMethodDisabled(method.id) : false;
+            const disabledHint = disabled
+              ? (method.id === "VNPAY" ? "Yêu cầu tối thiểu 10.000đ" : "Không cần thanh toán")
+              : null;
             return (
               <label
                 key={method.id}
                 htmlFor={method.id}
                 className={`
-                  relative flex min-h-20 cursor-pointer items-center gap-3 rounded-xl border p-4 transition-colors
+                  relative flex min-h-20 items-center gap-3 rounded-xl border p-4 transition-colors
+                  ${disabled ? "cursor-not-allowed opacity-50 pointer-events-none select-none" : "cursor-pointer"}
                   ${isSelected
                     ? "border-primary bg-primary/5"
                     : "border-border hover:border-primary/40 hover:bg-muted/60"
@@ -159,6 +172,20 @@ function CheckoutPaymentMethod({ paymentMethods, paymentMethod, setPaymentMethod
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-bold text-foreground">{method.label}</p>
                   <p className="min-h-8 text-xs leading-4 text-muted-foreground">{method.description}</p>
+                  {disabledHint && (
+                    <p className="text-[10px] font-bold text-error">{disabledHint}</p>
+                  )}
+                  {method.id === "WALLET" && isSelected && (
+                    <div className="mt-2 text-sm">
+                      {walletLoading ? (
+                        <span className="text-muted-foreground">Đang tải số dư...</span>
+                      ) : (
+                        <span className={walletBalance < subtotal ? "text-error font-bold" : "text-success font-bold"}>
+                          Số dư khả dụng: {walletBalance.toLocaleString()}đ
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
                 <CheckCircle2
                   aria-hidden="true"
@@ -176,7 +203,8 @@ function CheckoutPaymentMethod({ paymentMethods, paymentMethod, setPaymentMethod
 // ── CheckoutOrderSummary ──
 function CheckoutOrderSummary({
   loading, subtotal, totalOriginal, discount,
-  couponCode, setCouponCode, applyCoupon, removeCoupon, appliedCoupon, couponMessage, isCouponLoading
+  couponCode, setCouponCode, applyCoupon, removeCoupon, appliedCoupon, couponMessage, isCouponLoading,
+  paymentMethod, walletBalance
 }) {
   return (
     <Card appVariant="default" className="gap-0 overflow-hidden py-0 shadow-none">
@@ -241,12 +269,12 @@ function CheckoutOrderSummary({
         </div>
 
         <div className="pt-2">
-          <AppButton appVariant="gradient"
-            type="submit"
-            className="flex w-full gap-2 rounded-xl py-7 text-lg font-bold"
-            size="lg"
-            disabled={loading}
-          >
+            <AppButton appVariant="gradient"
+              type="submit"
+              className="flex w-full gap-2 rounded-xl py-7 text-lg font-bold"
+              size="lg"
+              disabled={loading || (paymentMethod === "WALLET" && subtotal > walletBalance)}
+            >
             {loading && (
               <Loader2 className="size-5 animate-spin" />
             )}
@@ -282,6 +310,8 @@ export default function CheckoutPage() {
   const [isCancellingPayment, setIsCancellingPayment] = useState(false);
   const [checkoutResult, setCheckoutResult] = useState(null);
   const [checkoutAlert, setCheckoutAlert] = useState(null);
+  const [walletBalance, setWalletBalance] = useState(0);
+  const [walletLoading, setWalletLoading] = useState(false);
   const checkoutResultDestinationRef = useRef("/");
 
   // Dùng dữ liệu từ CourseDetail nếu có, fallback về mock
@@ -325,6 +355,23 @@ export default function CheckoutPage() {
     }
   }, [hasCheckoutCallback, hasCheckoutDraft, navigate]);
 
+  useEffect(() => {
+    if (paymentMethod === "WALLET") {
+      setWalletLoading(true);
+      walletService.getMyWallet()
+        .then(res => {
+          if (res && res.remain != null) {
+            setWalletBalance(res.remain);
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          setWalletBalance(0);
+        })
+        .finally(() => setWalletLoading(false));
+    }
+  }, [paymentMethod]);
+
   // Calculators
   let currentSubtotal = orderItems.reduce((sum, item) => sum + item.price, 0);
   let extraDiscount = 0;
@@ -347,6 +394,23 @@ export default function CheckoutPage() {
   const subtotal = currentSubtotal - extraDiscount;
   const totalOriginal = orderItems.reduce((sum, item) => sum + (item.originalPrice || item.price), 0);
   const discount = totalOriginal - subtotal;
+
+  // Chính sách phương thức thanh toán theo tổng tiền:
+  // - Đơn 0đ: chỉ dùng Ví (disable PayOS + VNPay)
+  // - Đơn dưới 10.000đ: disable VNPay
+  const isMethodDisabled = (id) => {
+    if (id === "VNPAY" && subtotal < 10000) return true;
+    if (id === "PAYOS" && subtotal === 0) return true;
+    return false;
+  };
+
+  useEffect(() => {
+    if (subtotal === 0 && paymentMethod !== "WALLET") {
+      setPaymentMethod("WALLET");
+    } else if (subtotal > 0 && subtotal < 10000 && paymentMethod === "VNPAY") {
+      setPaymentMethod("PAYOS");
+    }
+  }, [subtotal, paymentMethod]);
 
   const applyCoupon = async () => {
     if (!couponCode) return;
@@ -387,7 +451,7 @@ export default function CheckoutPage() {
       return;
     }
 
-    if (paymentMethod === "PAYOS" || paymentMethod === "VNPAY") {
+    if (paymentMethod === "PAYOS" || paymentMethod === "VNPAY" || paymentMethod === "WALLET") {
       setLoading(true);
       try {
         // Kiểm tra đăng nhập
@@ -564,6 +628,10 @@ export default function CheckoutPage() {
                 paymentMethods={PAYMENT_METHODS}
                 paymentMethod={paymentMethod}
                 setPaymentMethod={setPaymentMethod}
+                walletBalance={walletBalance}
+                walletLoading={walletLoading}
+                subtotal={subtotal}
+                isMethodDisabled={isMethodDisabled}
               />
             </div>
 
@@ -581,14 +649,9 @@ export default function CheckoutPage() {
                   appliedCoupon={appliedCoupon}
                   couponMessage={couponMessage}
                   isCouponLoading={isCouponLoading}
+                  paymentMethod={paymentMethod}
+                  walletBalance={walletBalance}
                 />
-                {appliedCoupon?.sponsorType && (
-                  <div className="rounded-xl border border-primary/10 bg-primary/5 p-4 text-center text-xs font-bold text-primary">
-                    {appliedCoupon.sponsorType === "PLATFORM"
-                      ? "Mã do Gnostica tài trợ — giảng viên vẫn nhận doanh thu theo tỷ lệ hoa hồng."
-                      : "Ưu đãi từ giảng viên — phần giảm giá do giảng viên tài trợ."}
-                  </div>
-                )}
                 <div className="rounded-xl border border-primary/10 bg-primary/5 p-4">
                   <p className="text-center text-xs font-bold text-primary">
                     * Khóa học sẽ được kích hoạt ngay sau khi thanh toán thành công

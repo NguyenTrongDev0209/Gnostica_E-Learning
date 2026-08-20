@@ -180,6 +180,11 @@ const GiftResponseScreen = () => {
                             <AppText className="text-sm font-extrabold text-blue-600 mb-4">
                                 {(gift.coursePrice || 0).toLocaleString('vi-VN')} đ
                             </AppText>
+                            {gift.giftCode && (
+                                <AppText className="text-xs text-slate-400 mb-3">
+                                    Mã quà: <AppText className="font-bold text-slate-600">TG-{gift.giftCode}</AppText>
+                                </AppText>
+                            )}
 
                             {gift.message && (
                                 <View className="bg-slate-50 p-4 rounded-xl border-l-4 border-blue-500 mb-4">

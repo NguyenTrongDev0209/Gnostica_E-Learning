@@ -1,0 +1,8 @@
+CREATE TABLE reply_templates (
+    id SERIAL PRIMARY KEY,
+    instructor_id UUID NOT NULL,
+    content TEXT NOT NULL,
+    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_reply_templates_account FOREIGN KEY (instructor_id) REFERENCES accounts(id) ON DELETE CASCADE
+);

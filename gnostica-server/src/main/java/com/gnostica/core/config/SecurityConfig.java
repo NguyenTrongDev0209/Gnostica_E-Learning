@@ -28,6 +28,7 @@ public class SecurityConfig {
         private final com.gnostica.core.security.CustomOAuth2UserService oauth2UserService;
         private final com.gnostica.core.security.OAuth2SuccessHandler oauth2SuccessHandler;
         private final com.gnostica.core.security.OAuth2FailureHandler oauth2FailureHandler;
+        private final com.gnostica.core.security.MobileAwareAuthorizationRequestResolver oauth2AuthorizationRequestResolver;
         private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
         @Value("${app.cors.allowed-origin-patterns}")
@@ -58,7 +59,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/error", "/favicon.ico", "/**/*.html", "/**/*.css", "/**/*.js", "/ws/**").permitAll()
                 .requestMatchers("/api/auth/**", "/api/account/**", "/api/upload/**", "/api/follow/**", "/api/oauth2/**", "/api/login/oauth2/**", "/api/threads/**", "/api/forum-categories/**", "/api/comments/**", "/api/progress/**", "/api/ai/**", "/api/thread-reports/**", "/api/dashboard/**", "/api/checkout/payments/**",
-                                                                "/api/certificates/**").permitAll()
+                                                                "/api/certificates/**", "/api/instructor-dashboard/test-reviews").permitAll()
                 .requestMatchers("/api/courses/draft/**", "/api/courses/draft", "/api/courses/instructor").authenticated()
                 .requestMatchers(HttpMethod.GET, "/api/reviews/course/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/courses/**", "/api/categories/**", "/api/instructors/**", "/api/public/**").permitAll()

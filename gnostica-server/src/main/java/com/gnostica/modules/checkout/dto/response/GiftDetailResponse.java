@@ -11,6 +11,7 @@ import java.util.UUID;
 @Builder
 public class GiftDetailResponse {
     private UUID giftId;
+    private String giftCode;
     private String senderName;
     private String senderAvatar;
     private String courseTitle;

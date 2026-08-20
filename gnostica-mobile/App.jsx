@@ -22,7 +22,6 @@ import AppNavigator from './src/navigation/AppNavigator';
 import SplashScreen from './src/screens/auth/SplashScreen';
 import OnboardingScreen from './src/screens/auth/OnboardingScreen';
 import LoginScreen from './src/screens/auth/LoginScreen';
-import RegisterScreen from './src/screens/auth/RegisterScreen';
 import CourseDetailScreen from './src/screens/course/CourseDetailScreen';
 import CartScreen from './src/screens/checkout/CartScreen';
 import LearningScreen from './src/screens/course/LearningScreen';
@@ -35,10 +34,8 @@ import ChangePasswordScreen from './src/screens/profile/ChangePasswordScreen';
 import ForgotPasswordScreen from './src/screens/auth/ForgotPasswordScreen';
 import ConfirmCodeScreen from './src/screens/auth/ConfirmCodeScreen';
 import ResetPasswordScreen from './src/screens/auth/ResetPasswordScreen';
-import EmailRegisterScreen from './src/screens/auth/EmailRegisterScreen';
 import EmailLoginScreen from './src/screens/auth/EmailLoginScreen';
-import PhoneLoginScreen from './src/screens/auth/PhoneLoginScreen';
-import PhoneOTPScreen from './src/screens/auth/PhoneOTPScreen';
+import EmailRegisterScreen from './src/screens/auth/EmailRegisterScreen';
 import WishlistScreen from './src/screens/profile/WishlistScreen';
 import CertificatesScreen from './src/screens/profile/CertificatesScreen';
 import VouchersScreen from './src/screens/checkout/VouchersScreen';
@@ -120,7 +117,6 @@ export default function App() {
               <Stack.Screen name="Main" component={AppNavigator} options={{ animation: 'none' }} />
               <Stack.Screen name="Login" component={LoginScreen} />
               <Stack.Screen name="EmailLogin" component={EmailLoginScreen} />
-              <Stack.Screen name="Register" component={RegisterScreen} />
               <Stack.Screen name="EmailRegister" component={EmailRegisterScreen} />
               <Stack.Screen name="CourseDetail" component={CourseDetailScreen} />
               <Stack.Screen name="Cart" component={CartScreen} />
@@ -134,8 +130,6 @@ export default function App() {
               <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
               <Stack.Screen name="ConfirmCode" component={ConfirmCodeScreen} />
               <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
-              <Stack.Screen name="PhoneLogin" component={PhoneLoginScreen} />
-              <Stack.Screen name="PhoneOTP" component={PhoneOTPScreen} />
               <Stack.Screen name="Wishlist" component={WishlistScreen} />
               <Stack.Screen name="Certificates" component={CertificatesScreen} />
               <Stack.Screen name="Vouchers" component={VouchersScreen} />

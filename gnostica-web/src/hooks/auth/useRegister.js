@@ -26,6 +26,30 @@ export const useRegister = () => {
     return { score: 0, label: '', color: 'bg-muted', text: '' };
   };
 
+  const validatePassword = (password) => {
+    if (password.length < 8 || password.length > 72) {
+      return 'Mật khẩu phải có từ 8 đến 72 ký tự';
+    }
+
+    if (!/[a-z]/.test(password)) {
+      return 'Mật khẩu phải có ít nhất một chữ thường';
+    }
+
+    if (!/[A-Z]/.test(password)) {
+      return 'Mật khẩu phải có ít nhất một chữ hoa';
+    }
+
+    if (!/\d/.test(password)) {
+      return 'Mật khẩu phải có ít nhất một chữ số';
+    }
+
+    if (!/[^A-Za-z0-9]/.test(password)) {
+      return 'Mật khẩu phải có ít nhất một ký tự đặc biệt';
+    }
+
+    return null;
+  };
+
   const validateForm = () => {
     let newErrors = {};
 
@@ -43,11 +67,12 @@ export const useRegister = () => {
     }
 
     if (!password) {
-      newErrors.password = 'Vui lòng nhập mật khẩu';
+      newErrors.password = 'Mật khẩu không được để trống';
     } else {
-      const strength = getPasswordStrength(password);
-      if (strength.score <= 1) {
-        newErrors.password = 'Mật khẩu quá yếu (cần bao gồm chữ hoa, số hoặc ký tự đặc biệt)';
+      const passwordError = validatePassword(password);
+
+      if (passwordError) {
+        newErrors.password = passwordError;
       }
     }
 
@@ -75,7 +100,18 @@ export const useRegister = () => {
       toast.success('Đăng ký thành công! Vui lòng kiểm tra email để lấy mã xác thực.');
       navigate(`/confirm-code?email=${email}`);
     } catch (error) {
-      toast.error(error.toString());
+      if (error.fields) {
+        setErrors((current) => ({
+          ...current,
+          ...error.fields
+        }));
+      }
+
+      toast.error(
+        error.fields?.password ||
+        error.message ||
+        'Đăng ký thất bại'
+      );
     } finally {
       setLoading(false);
     }

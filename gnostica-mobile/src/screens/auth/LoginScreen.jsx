@@ -2,7 +2,7 @@ import AppText from '../../components/ui/AppText';
 import React, { useState } from 'react';
 import { View, TouchableOpacity, Image, Platform, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ChevronLeft, Phone, Mail } from 'lucide-react-native';
+import { ChevronLeft, Mail } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import * as WebBrowser from 'expo-web-browser';
 import { useAuth } from '../../context/AuthContext';
@@ -67,7 +67,6 @@ const LoginScreen = () => {
                         source={require('../../assets/images/Gnostica_Mark.webp')}
                         className="w-56 h-16 mb-4"
                         resizeMode="contain"
-                        style={{ tintColor: 'white' }}
                     />
                     <AppText className="text-white text-lg text-center px-6 font-medium">
                         Nền tảng e-learning hàng đầu đáp ứng mọi nhu cầu học tập
@@ -91,18 +90,6 @@ const LoginScreen = () => {
                         )}
                     </TouchableOpacity>
 
-                    <TouchableOpacity
-                        className="w-full bg-white flex-row items-center justify-center py-4 rounded-lg mb-4"
-                        onPress={() => {
-                            navigation.navigate('EmailLogin');
-                        }}
-                    >
-                        <View className="absolute left-6 w-6 h-6 items-center justify-center">
-                            <Mail color="#ea4335" size={24} />
-                        </View>
-                        <AppText className="text-slate-800 font-bold text-base">Đăng nhập bằng Gmail</AppText>
-                    </TouchableOpacity>
-
                     <View className="flex-row items-center mb-4">
                         <View className="flex-1 h-[1px] bg-white/40" />
                         <AppText className="text-sm text-white font-medium px-4">hoặc</AppText>
@@ -112,13 +99,13 @@ const LoginScreen = () => {
                     <TouchableOpacity
                         className="w-full bg-white flex-row items-center justify-center py-4 rounded-lg"
                         onPress={() => {
-                            navigation.navigate('PhoneLogin');
+                            navigation.navigate('EmailLogin');
                         }}
                     >
                         <View className="absolute left-6 w-6 h-6 items-center justify-center">
-                            <Phone color="#0f172a" size={20} />
+                            <Mail color="#ea4335" size={24} />
                         </View>
-                        <AppText className="text-slate-800 font-bold text-base">Đăng nhập bằng số điện thoại</AppText>
+                        <AppText className="text-slate-800 font-bold text-base">Đăng nhập bằng Gmail</AppText>
                     </TouchableOpacity>
                 </View>
             </View>

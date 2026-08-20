@@ -19,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
@@ -53,10 +54,12 @@ public class VnpayService {
     private final WalletService walletService;
     
     @Lazy
-    private final PaymentService paymentService;
+    @Autowired
+    private PaymentService paymentService;
 
     @Lazy
-    private final com.gnostica.modules.checkout.service.GiftService giftService;
+    @Autowired
+    private com.gnostica.modules.checkout.service.GiftService giftService;
 
     // === Payment Link ===
     public PaymentLinkResponse createPaymentLink(Order order, String returnUrl, String cancelUrl) {

@@ -549,7 +549,7 @@
 |---|--------|---------------|---------|-------|
 | 1 | id | UUID | PK | |
 | 2 | order_id | UUID | FK | |
-| 3 | transaction_code | VARCHAR(255) | UQ | |
+| 3 | payment_code | VARCHAR(12) | IDX | = order_code (mã hiển thị 12 số) |
 | 4 | amount | DECIMAL(18,6) | | `>= 0` |
 | 5 | gateway | VARCHAR(32) | IDX | |
 | 6 | gateway_transaction_no | VARCHAR(255) | C-UQ | |
@@ -558,7 +558,7 @@
 | 9 | status | INT | | |
 | 10 | created_at | DATETIME | | |
 | 11 | updated_at | DATETIME | | |
-> **Note:** Một order có thể có nhiều payment attempts nếu retry/cổng thanh toán khác nhau; `transaction_code` dùng để chống xử lý trùng webhook. `gateway + gateway_transaction_no` là unique có điều kiện khi `gateway_transaction_no` khác null. Phiên bản 7: Đơn FREE (0đ) có Payment record.
+> **Note:** Một order có thể có nhiều payment attempts nếu retry/cổng thanh toán khác nhau; `payment_code` = `order_code` (mã hiển thị 12 số, non-unique — chỉ index). Chống xử lý trùng webhook dùng `gateway + gateway_transaction_no` (unique có điều kiện khi `gateway_transaction_no` khác null). Phiên bản 7: Đơn FREE (0đ) có Payment record.
 >
 > **Status:** 1: Pending (Chờ xử lý), 2: Success (Thành công), 3: Failed (Thất bại), 4: Refunded (Đã hoàn tiền)
 
@@ -577,7 +577,7 @@
 | 6 | created_at | DATETIME | |
 | 7 | updated_at | DATETIME | | |
 | 8 | gateway_payout_id | VARCHAR | unique | |
-| 9 | payout_code | VARCHAR | unique | |
+| 9 | payout_code | VARCHAR(12) | UQ | |
 | 10 | idempotency_key | VARCHAR | | |
 | 11 | submission_attempts | INT | default 0 | |
 | 12 | last_submission_at | DATETIME | | |
@@ -939,11 +939,12 @@
 | 4 | course_id | UUID | FK | |
 | 5 | order_id | UUID | FK | |
 | 6 | token | VARCHAR(255) | UQ | |
-| 7 | message | TEXT | | |
-| 8 | status | INT | | |
-| 9 | expired_at | DATETIME | | |
-| 10 | created_at | DATETIME | | |
-| 11 | updated_at | DATETIME | | |
+| 7 | gift_code | VARCHAR(12) | UQ | |
+| 8 | message | TEXT | | |
+| 9 | status | INT | | |
+| 10 | expired_at | DATETIME | | |
+| 11 | created_at | DATETIME | | |
+| 12 | updated_at | DATETIME | | |
 
 > **Status:** 0: PENDING (Chờ nhận), 1: ACCEPTED (Đã nhận), 2: REJECTED (Từ chối), 3: EXPIRED (Hết hạn)
 
@@ -954,7 +955,7 @@
 | # | Trường | Kiểu dữ liệu | Ghi chú | CHECK |
 |---|--------|---------------|---------|-------|
 | 1 | id | UUID | PK | |
-| 2 | refund_code | VARCHAR(14) | UQ | |
+| 2 | refund_code | VARCHAR(12) | UQ | |
 | 3 | order_detail_id | UUID | FK | |
 | 4 | account_id | UUID | FK | |
 | 5 | amount | DECIMAL(18,6) | | `>= 0` |

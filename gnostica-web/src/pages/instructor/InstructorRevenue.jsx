@@ -36,6 +36,10 @@ import useAuthStore from "@/store/useAuthStore";
 import WithdrawModal from "@/components/common/composite/WithdrawModal";
 
 
+const formatVND = (amount) => {
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+};
+
 function InstructorRevenueTable({
     transactions,
     pagination = { currentPage: 0, totalPages: 1, totalElements: 0 },
@@ -57,7 +61,7 @@ function InstructorRevenueTable({
             render: (trx) => (
                 <div className="flex flex-col">
                     <span className="font-bold text-foreground flex items-center gap-1.5 capitalize">
-                        TRX-{trx.id}
+                        RT-{trx.payoutCode || trx.id}
                         <ArrowDownRight className="w-3 h-3 text-rose-500" />
                     </span>
                     <span className="text-xs text-muted-foreground font-medium mt-0.5">
@@ -165,7 +169,7 @@ export default function InstructorRevenue() {
   const filteredTransactions = (Array.isArray(transactions) ? transactions : []).filter((trx) => {
     // Tìm kiếm theo ID hoặc nội dung
     const searchString = searchTerm.toLowerCase();
-    const matchSearch = `trx-${trx.id}`.toLowerCase().includes(searchString) ||
+    const matchSearch = `rt-${trx.payoutCode || trx.id}`.toLowerCase().includes(searchString) ||
       (trx.maskedAccountNumber || "").toLowerCase().includes(searchString) ||
       (trx.bankName || "").toLowerCase().includes(searchString);
     
@@ -192,10 +196,6 @@ export default function InstructorRevenue() {
 
     return matchSearch && matchStatus && matchDate;
   });
-
-  const formatVND = (amount) => {
-    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
-  };
 
   const totalLifetime = Number(wallet?.totalRevenue || 0);
   const thisMonthRevenue = Number(wallet?.currentMonthRevenue || 0);

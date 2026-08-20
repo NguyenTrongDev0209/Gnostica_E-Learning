@@ -45,6 +45,7 @@ import {
 } from "@/components/common/micro/AppDialog";
 import AppTextarea from "@/components/common/micro/AppTextarea";
 import useAdminUsers from "@/hooks/user/useAdminUsers";
+import { API_URL } from "@/config/environment";
 
 export default function AdminUsers() {
   const {
@@ -161,28 +162,56 @@ export default function AdminUsers() {
     });
   }, [applications, sortConfig]);
 
+  const getIdCardDocuments = (app) => [
+    {
+      id: "front",
+      title: "CCCD Mặt trước",
+      url: app?.idCardFront,
+      type: "image",
+      icon: CreditCard,
+    },
+    {
+      id: "back",
+      title: "CCCD Mặt sau",
+      url: app?.idCardBack,
+      type: "image",
+      icon: CreditCard,
+    },
+  ];
+
+  const hasCompleteIdCard = (app) => Boolean(
+    app?.idCardFront?.trim() && app?.idCardBack?.trim()
+  );
+
+  const resolveDocumentUrl = (url) => {
+    if (!url) return url;
+
+    const legacyPrefix = "https://gnostica-attachment.b-cdn.net/documents/";
+    if (url.startsWith(legacyPrefix)) {
+      const fileName = url.slice(legacyPrefix.length).split(/[?#]/)[0];
+      return `${API_URL}/upload/document/${encodeURIComponent(decodeURIComponent(fileName))}`;
+    }
+
+    return url;
+  };
+
   const getDocumentList = (app) => {
     const list = [];
     if (!app) return list;
-    if (app.idCardFront) {
-      list.push({ id: "front", title: "CCCD Mặt trước", url: app.idCardFront, type: "image", icon: CreditCard });
-    }
-    if (app.idCardBack) {
-      list.push({ id: "back", title: "CCCD Mặt sau", url: app.idCardBack, type: "image", icon: CreditCard });
-    }
+    list.push(...getIdCardDocuments(app).filter((document) => document.url));
     if (app.cvUrl) {
-      list.push({ id: "cv", title: "CV / Resume (PDF)", url: app.cvUrl, type: "pdf", icon: FileText });
+      list.push({ id: "cv", title: "CV / Resume (PDF)", url: resolveDocumentUrl(app.cvUrl), type: "pdf", icon: FileText });
     }
     if (app.degreeUrls) {
       app.degreeUrls.split(',').filter(u => u).forEach((url, index) => {
         const isPdf = url.split('?')[0].toLowerCase().endsWith('.pdf');
-        list.push({ id: `degree-${index}`, title: `Bằng cấp chuyên môn ${index + 1}`, url: url, type: isPdf ? "pdf" : "image", icon: GraduationCap });
+        list.push({ id: `degree-${index}`, title: `Bằng cấp chuyên môn ${index + 1}`, url: resolveDocumentUrl(url), type: isPdf ? "pdf" : "image", icon: GraduationCap });
       });
     }
     if (app.certificateUrls) {
       app.certificateUrls.split(',').filter(u => u).forEach((url, index) => {
         const isPdf = url.split('?')[0].toLowerCase().endsWith('.pdf');
-        list.push({ id: `cert-${index}`, title: `Chứng chỉ liên quan ${index + 1}`, url: url, type: isPdf ? "pdf" : "image", icon: ShieldCheck });
+        list.push({ id: `cert-${index}`, title: `Chứng chỉ liên quan ${index + 1}`, url: resolveDocumentUrl(url), type: isPdf ? "pdf" : "image", icon: ShieldCheck });
       });
     }
     if (app.courseOutline) {
@@ -646,7 +675,9 @@ export default function AdminUsers() {
         <div className="flex justify-center items-center gap-2">
           <AppButton appVariant="ghostMuted" variant="ghost"
             size="sm"
-            className="border border-success/20 text-success hover:bg-success/10 bg-white font-bold"
+            className="border border-success/20 text-success hover:bg-success/10 bg-white font-bold disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={!hasCompleteIdCard(app)}
+            title={!hasCompleteIdCard(app) ? "Cần đầy đủ ảnh CCCD mặt trước và mặt sau" : "Phê duyệt hồ sơ"}
             onClick={() => handleApprove(app.accountId)}
           >
             Phê duyệt
@@ -943,6 +974,66 @@ export default function AdminUsers() {
 
               {/* Right Column: Preview pane & actions */}
               <div className="flex-1 flex flex-col overflow-hidden min-h-0">
+                {/* ID card images are always visible for manual identity review. */}
+                <div className="p-4 border-b border-border bg-white shrink-0">
+                  <div className="flex items-center justify-between gap-3 mb-3">
+                    <div>
+                      <h4 className="text-sm font-extrabold text-foreground flex items-center gap-2">
+                        <CreditCard className="w-4 h-4 text-primary" />
+                        CCCD đối chiếu thủ công
+                      </h4>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        Kiểm tra đầy đủ hai mặt trước khi phê duyệt hồ sơ.
+                      </p>
+                    </div>
+                    <AppBadge
+                      variant={hasCompleteIdCard(selectedAppDetail) ? "success" : "error"}
+                      className="shrink-0 px-2.5 py-1 text-white"
+                    >
+                      {hasCompleteIdCard(selectedAppDetail) ? "Đủ 2 mặt" : "Thiếu ảnh"}
+                    </AppBadge>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    {getIdCardDocuments(selectedAppDetail).map((document) => {
+                      const isSelected = activeDoc?.id === document.id;
+                      return (
+                        <button
+                          key={document.id}
+                          type="button"
+                          disabled={!document.url}
+                          onClick={() => document.url && setActiveDoc(document)}
+                          className={`group relative h-32 overflow-hidden rounded-lg border-2 bg-muted/40 transition-all ${
+                            isSelected
+                              ? "border-primary ring-2 ring-primary/15"
+                              : document.url
+                                ? "border-border hover:border-primary/50"
+                                : "border-dashed border-error/40 cursor-not-allowed"
+                          }`}
+                          aria-label={`Xem ${document.title}`}
+                        >
+                          {document.url ? (
+                            <img
+                              src={document.url}
+                              alt={document.title}
+                              className="h-full w-full object-contain bg-muted/20 transition-transform group-hover:scale-[1.02]"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <div className="h-full w-full flex flex-col items-center justify-center gap-1 text-error">
+                              <CreditCard className="w-6 h-6" />
+                              <span className="text-xs font-bold">Chưa cung cấp ảnh</span>
+                            </div>
+                          )}
+                          <span className="absolute bottom-0 inset-x-0 bg-foreground/75 px-2 py-1.5 text-xs font-bold text-white text-center">
+                            {document.title}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
                 {/* Active Document Header */}
                 <div className="px-5 py-3 border-b border-border bg-muted flex items-center justify-between shrink-0">
                   <span className="text-sm font-bold text-foreground">
@@ -1020,7 +1111,9 @@ export default function AdminUsers() {
                     appVariant="ghostMuted"
                     variant="ghost"
                     size="sm"
-                    className="h-10 px-5 border border-success/20 text-success hover:bg-success/10 bg-white font-extrabold text-sm"
+                    className="h-10 px-5 border border-success/20 text-success hover:bg-success/10 bg-white font-extrabold text-sm disabled:cursor-not-allowed disabled:opacity-50"
+                    disabled={!hasCompleteIdCard(selectedAppDetail)}
+                    title={!hasCompleteIdCard(selectedAppDetail) ? "Cần đầy đủ ảnh CCCD mặt trước và mặt sau" : "Phê duyệt hồ sơ"}
                     onClick={() => {
                       handleApprove(selectedAppDetail.accountId);
                       setSelectedAppDetail(null);
@@ -1795,7 +1888,11 @@ function AdminUserDetail({ user, onBack, isInstructorContext }) {
                   header: "Mã GD",
                   width: "160px",
                   className: "text-center",
-                  render: (c) => <div className="text-center w-full font-bold text-foreground">{c.id}</div>
+                  render: (c) => {
+                    const code = c.transactionCode || c.id;
+                    const display = /^\d{12}$/.test(code) ? `RT-${code}` : code;
+                    return <div className="text-center w-full font-bold text-foreground">{display}</div>;
+                  }
                 },
                 { 
                   header: "Ngân hàng",

@@ -114,7 +114,7 @@ const flattenLessonReplies = (replies = [], parentAuthorName) => replies.flatMap
   ...flattenLessonReplies(reply.replies || [], getCommentAuthorName(reply)),
 ]);
 
-function LessonQA({ lesson }) {
+function LessonQA({ lesson, course }) {
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
@@ -125,14 +125,13 @@ function LessonQA({ lesson }) {
   const [replyContent, setReplyContent] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [collapsedComments, setCollapsedComments] = useState(new Set());
-  const [editingCommentId, setEditingCommentId] = useState(null);
-  const [editingContent, setEditingContent] = useState("");
   const [qaFilter, setQaFilter] = useState("all");
   const currentUser = useAuthStore(state => state.user);
   const commentCount = countCommentTree(comments);
   const filteredComments = comments.filter((comment) => {
+    if (comment.status === 0) return false;
     if (qaFilter === "mine") return comment.account?.email === currentUser?.email;
-    if (qaFilter === "answered") return (comment.replies || []).length > 0;
+    if (qaFilter === "answered") return (comment.replies || []).filter(r => r.status !== 0).length > 0;
     return true;
   });
 
@@ -149,7 +148,6 @@ function LessonQA({ lesson }) {
     setReplyingTo(comment.id);
     setReplyParentId(parentId);
     setReplyTargetName(getCommentAuthorName(comment));
-    setEditingCommentId(null);
   };
 
   const cancelReplying = () => {
@@ -179,8 +177,6 @@ function LessonQA({ lesson }) {
     setReplyingTo(null);
     setReplyParentId(null);
     setReplyTargetName("");
-    setEditingCommentId(null);
-    setEditingContent("");
   }, [fetchComments]);
 
   const handleSubmit = async (e, parentId = null) => {
@@ -212,37 +208,6 @@ function LessonQA({ lesson }) {
     }
   };
 
-  const startEditing = (comment) => {
-    setEditingCommentId(comment.id);
-    setEditingContent(comment.content || "");
-    cancelReplying();
-  };
-
-  const cancelEditing = () => {
-    setEditingCommentId(null);
-    setEditingContent("");
-  };
-
-  const handleUpdate = async (e, commentId) => {
-    e.preventDefault();
-    if (!editingContent.trim() || !currentUser?.email) return;
-
-    setIsSubmitting(true);
-    setErrorMessage("");
-    try {
-      await commentService.updateComment(commentId, {
-        content: editingContent.trim(),
-        userEmail: currentUser.email,
-      });
-      cancelEditing();
-      await fetchComments();
-    } catch (error) {
-      setErrorMessage(error?.response?.data || "Cập nhật bình luận thất bại.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   const handleDelete = async (id) => {
     if (!window.confirm("Bạn có chắc chắn muốn xóa bình luận này?")) return;
     setErrorMessage("");
@@ -262,10 +227,12 @@ function LessonQA({ lesson }) {
   };
 
   const renderComment = (comment, isReply = false, parentAuthorName = "", rootCommentId = null) => {
+    if (comment.status === 0) return null;
     const isOwner = currentUser?.email === comment.account?.email;
-    const isEditing = editingCommentId === comment.id;
+    const isInstructor = course?.instructorEmail === comment.account?.email;
     const flattenedReplies = isReply ? [] : flattenLessonReplies(comment.replies || [], getCommentAuthorName(comment));
-    const hasReplies = flattenedReplies.length > 0;
+    const activeReplies = flattenedReplies.filter(r => r.status !== 0);
+    const hasReplies = activeReplies.length > 0;
     const isCollapsed = collapsedComments.has(comment.id);
     const isEdited = comment.updatedAt && comment.createdAt && comment.updatedAt !== comment.createdAt;
     const replyRootId = rootCommentId || comment.id;
@@ -282,10 +249,15 @@ function LessonQA({ lesson }) {
         </div>
 
         <div className="min-w-0 flex-1">
-          <div className={cn("rounded-xl bg-card p-4 shadow-sm", isEditing ? "border border-primary/30" : "border border-border")}>
+          <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
             <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-sm font-semibold text-foreground">{getCommentAuthorName(comment)}</span>
+                {isInstructor && (
+                  <span className="inline-flex items-center rounded-md bg-[#6b4eff] px-2 py-0.5 text-[11px] font-bold text-white">
+                    Tác giả
+                  </span>
+                )}
                 {isReply && parentAuthorName && (
                   <span className="inline-flex items-center rounded-md border border-primary/20 bg-primary/5 px-2 py-0.5 text-xs font-semibold text-primary">
                     trả lời @{parentAuthorName}
@@ -297,34 +269,13 @@ function LessonQA({ lesson }) {
                 <Clock className="size-3" /> {formatDate(comment.createdAt)}
               </span>
             </div>
-
-            {isEditing ? (
-              <form onSubmit={(e) => handleUpdate(e, comment.id)} className="space-y-3">
-                <textarea
-                  value={editingContent}
-                  onChange={(e) => setEditingContent(e.target.value)}
-                  className="min-h-[88px] w-full resize-y rounded-lg border border-border bg-background p-3 text-sm text-foreground outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15"
-                  autoFocus
-                />
-                <div className="flex justify-end gap-2">
-                  <Button type="button" appVariant="ghostMuted" variant="ghost" size="sm" onClick={cancelEditing} className="h-8 rounded-md px-3">
-                    Hủy
-                  </Button>
-                  <Button type="submit" size="sm" disabled={isSubmitting || !editingContent.trim()} className="h-8 gap-2 rounded-md px-3">
-                    <CheckCircle2 className="size-4" /> Lưu
-                  </Button>
-                </div>
-              </form>
-            ) : (
-              <p className="whitespace-pre-wrap text-sm leading-6 text-foreground">{comment.content}</p>
-            )}
+            <p className="whitespace-pre-wrap text-sm leading-6 text-foreground">{comment.content}</p>
           </div>
 
-          {!isEditing && (
-            <div className="mt-2 flex items-center gap-3 px-1">
+          <div className="mt-2 flex items-center gap-3 px-1">
               <button
                 type="button"
-                onClick={() => replyingTo === comment.id ? cancelReplying() : startReplying(comment, replyRootId)}
+                onClick={() => replyingTo === comment.id ? cancelReplying() : startReplying(comment, comment.id)}
                 className="flex items-center gap-1 text-xs font-medium text-muted-foreground transition-colors hover:text-primary"
               >
                 <CornerDownRight className="size-3.5" /> Trả lời
@@ -336,7 +287,7 @@ function LessonQA({ lesson }) {
                   className="flex items-center gap-1 text-xs font-medium text-muted-foreground transition-colors hover:text-primary"
                 >
                   {isCollapsed ? (
-                    <><MessageSquare className="size-3.5" /> {flattenedReplies.length} phản hồi</>
+                    <><MessageSquare className="size-3.5" /> {activeReplies.length} phản hồi</>
                   ) : (
                     <><ChevronUp className="size-3.5" /> Ẩn phản hồi</>
                   )}
@@ -344,13 +295,7 @@ function LessonQA({ lesson }) {
               )}
               {isOwner && (
                 <>
-                  <button
-                    type="button"
-                    onClick={() => startEditing(comment)}
-                    className="flex items-center gap-1 text-xs font-medium text-muted-foreground transition-colors hover:text-primary"
-                  >
-                    <Pencil className="size-3.5" /> Sửa
-                  </button>
+
                   <button
                     type="button"
                     onClick={() => handleDelete(comment.id)}
@@ -361,7 +306,6 @@ function LessonQA({ lesson }) {
                 </>
               )}
             </div>
-          )}
 
           {replyingTo === comment.id && (
             <form onSubmit={(e) => handleSubmit(e, replyParentId || replyRootId)} className="mt-3 rounded-lg border border-border bg-card p-3 shadow-sm">
@@ -386,7 +330,7 @@ function LessonQA({ lesson }) {
 
           {hasReplies && !isCollapsed && (
             <div className="mt-4">
-              {flattenedReplies.map(reply => renderComment(reply, true, reply.parentAuthorName, comment.id))}
+              {activeReplies.map(reply => renderComment(reply, true, reply.parentAuthorName, comment.id))}
             </div>
           )}
         </div>
@@ -1340,8 +1284,58 @@ export default function LearningWorkspace() {
     return (lowUrl.includes("mediadelivery.net") || lowUrl.includes("bunny.net") || lowUrl.includes("vimeo.com")) && !lowUrl.includes("b-cdn.net");
   };
 
-  const embedUrl = getEmbedUrl(currentLesson?.videoUrl);
-  const useIframe = isEmbedLink(currentLesson?.videoUrl);
+  // === Embed URL: prefer the server-signed embed URL (Bunny embed token auth).
+  // The client-side builder below stays as a fallback for external providers
+  // (YouTube/Vimeo) and for when the playback API is unavailable. ===
+  const [playbackEmbedUrl, setPlaybackEmbedUrl] = useState(null);
+  const [playbackStatus, setPlaybackStatus] = useState("idle");
+
+  useEffect(() => {
+    let cancelled = false;
+    const lessonId = currentLesson?.id;
+    const videoUrl = currentLesson?.videoUrl;
+    if (!lessonId || !videoUrl) {
+      setPlaybackEmbedUrl(null);
+      setPlaybackStatus("idle");
+      return undefined;
+    }
+    setPlaybackEmbedUrl(null);
+    setPlaybackStatus("loading");
+    courseService.getLessonPlayback(lessonId)
+      .then((data) => {
+        if (!cancelled) {
+          setPlaybackEmbedUrl(data?.embedUrl || null);
+          setPlaybackStatus("ready");
+        }
+      })
+      .catch(() => {
+        // Fall back to the client-side embed URL (external providers only).
+        if (!cancelled) {
+          setPlaybackEmbedUrl(null);
+          setPlaybackStatus("error");
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [currentLesson?.id, currentLesson?.videoUrl]);
+
+  // Bunny embeds must come from the server (signed). While the signed URL is
+  // being resolved we avoid rendering the unsigned client URL, which would be
+  // rejected once "Embed view token authentication" is enabled.
+  const isBunnyLesson = Boolean(getVideoIdentifiers(currentLesson?.videoUrl));
+
+  const embedUrl = useMemo(() => {
+    if (playbackEmbedUrl) {
+      const separator = playbackEmbedUrl.includes("?") ? "&" : "?";
+      return startAtTime > 0 ? `${playbackEmbedUrl}${separator}t=${startAtTime}` : playbackEmbedUrl;
+    }
+    if (isBunnyLesson && playbackStatus !== "error") return null;
+    return getEmbedUrl(currentLesson?.videoUrl);
+  }, [playbackEmbedUrl, isBunnyLesson, playbackStatus, currentLesson?.videoUrl, startAtTime]);
+
+  const useIframe = embedUrl ? isEmbedLink(currentLesson?.videoUrl) : false;
+  const bunnyEmbedLoading = isBunnyLesson && !embedUrl && playbackStatus !== "error";
 
   // === CORE: Polling thời gian + Auto-sync + Auto-complete ===
   const durationRef = useRef(0);
@@ -1641,6 +1635,10 @@ export default function LearningWorkspace() {
                         allowFullScreen
                         className="w-full h-full"
                       ></iframe>
+                    ) : bunnyEmbedLoading ? (
+                      <div className="flex h-full w-full items-center justify-center">
+                        <Loader2 className="size-10 animate-spin text-muted-foreground" />
+                      </div>
                     ) : (
                       <video
                         src={currentLesson?.videoUrl}
@@ -1875,7 +1873,7 @@ export default function LearningWorkspace() {
                     </TabsContent>
 
                     <TabsContent value="qa" className="mt-6 outline-none">
-                      <LessonQA lesson={currentLesson} />
+                      <LessonQA lesson={currentLesson} course={course} />
                     </TabsContent>
 
                     <TabsContent value="resources" className="mt-6 outline-none">

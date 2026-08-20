@@ -32,6 +32,7 @@ public interface RefundRepository extends JpaRepository<Refund, UUID> {
     List<Refund> findByOrderDetail_Order_Id(UUID orderId);
     boolean existsByOrderDetailIdAndStatus(UUID orderDetailId, Integer status);
     boolean existsByOrderDetailIdAndStatusIn(UUID orderDetailId, List<Integer> statuses);
+    boolean existsByRefundCode(String refundCode);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT r FROM Refund r WHERE r.id = :id")
