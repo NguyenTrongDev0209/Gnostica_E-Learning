@@ -10,6 +10,7 @@ import java.util.UUID;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import jakarta.validation.constraints.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Data
 @NoArgsConstructor
@@ -42,6 +43,7 @@ public class Account {
     @Column(length = 12)
     private String phone;
 
+    @JsonIgnore
     @Size(max = 255)
     private String password;
 

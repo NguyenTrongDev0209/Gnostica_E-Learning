@@ -18,7 +18,6 @@ import java.util.HashMap;
 
 @RestController
 @RequestMapping("/api/threads")
-@CrossOrigin(origins = "*", maxAge = 3600)
 public class ThreadController {
 
     @Autowired
@@ -113,7 +112,7 @@ public class ThreadController {
                 userEmail = payload.get("email");
             }
             if (userEmail == null || userEmail.isEmpty()) {
-                return ResponseEntity.badRequest().body("Lỗi: Yêu cầu cung cấp Email người dùng!");
+                return ResponseEntity.badRequest().body("Lá»—i: YÃªu cáº§u cung cáº¥p Email ngÆ°á»i dÃ¹ng!");
             }
             return ResponseEntity.ok(threadService.likeThread(id, userEmail));
         } catch (Exception e) {
@@ -212,7 +211,7 @@ public class ThreadController {
         try {
             String reason = payload.get("reason");
             if (reason == null || reason.trim().isEmpty()) {
-                return ResponseEntity.badRequest().body("Lỗi: Yêu cầu cung cấp lý do từ chối!");
+                return ResponseEntity.badRequest().body("Lá»—i: YÃªu cáº§u cung cáº¥p lÃ½ do tá»« chá»‘i!");
             }
             threadService.rejectThread(id, reason);
             return ResponseEntity.ok(Map.of("message", "Thread rejected successfully"));
@@ -260,10 +259,10 @@ public class ThreadController {
                 voteValue = Integer.parseInt((String) voteValueObj);
             }
             if (userEmail == null || userEmail.isEmpty()) {
-                return ResponseEntity.badRequest().body("Lỗi: Yêu cầu cung cấp Email người dùng!");
+                return ResponseEntity.badRequest().body("Lá»—i: YÃªu cáº§u cung cáº¥p Email ngÆ°á»i dÃ¹ng!");
             }
             if (voteValue == null) {
-                return ResponseEntity.badRequest().body("Lỗi: Yêu cầu cung cấp giá trị vote!");
+                return ResponseEntity.badRequest().body("Lá»—i: YÃªu cáº§u cung cáº¥p giÃ¡ trá»‹ vote!");
             }
             return ResponseEntity.ok(threadService.voteThread(id, userEmail, voteValue));
         } catch (Exception e) {

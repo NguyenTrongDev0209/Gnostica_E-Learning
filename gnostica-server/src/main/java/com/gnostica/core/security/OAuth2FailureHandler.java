@@ -23,14 +23,44 @@ public class OAuth2FailureHandler extends SimpleUrlAuthenticationFailureHandler 
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
             AuthenticationException exception) throws IOException, ServletException {
         
+        System.out.println("=== OAUTH2 LOGIN FAILED ===");
+        exception.printStackTrace();
+        
         String errorMessage = exception.getMessage();
-        if (errorMessage == null) {
-            errorMessage = "Đã có lỗi xảy ra trong quá trình xác thực.";
+        if (exception instanceof org.springframework.security.oauth2.core.OAuth2AuthenticationException) {
+            org.springframework.security.oauth2.core.OAuth2Error error = 
+                ((org.springframework.security.oauth2.core.OAuth2AuthenticationException) exception).getError();
+            if (error != null) {
+                if (error.getDescription() != null && !error.getDescription().isEmpty()) {
+                    errorMessage = error.getDescription();
+                } else if (error.getErrorCode() != null) {
+                    errorMessage = "OAuth2 Error: " + error.getErrorCode();
+                }
+            }
         }
-        String targetUrl = publicUrl + "/login?error=" + URLEncoder.encode(errorMessage, StandardCharsets.UTF_8);
         
-        System.out.println("OAuth2 Login Failed: " + errorMessage + ". Redirecting to: " + targetUrl);
+        if (errorMessage == null || errorMessage.trim().isEmpty() || errorMessage.contains("oauth2_error")) {
+            errorMessage = "Đã có lỗi xảy ra trong quá trình xác thực (" + exception.getClass().getSimpleName() + ").";
+        }
         
+        String redirectUri = null;
+        jakarta.servlet.http.HttpSession session = request.getSession(false);
+        if (session != null) {
+            Object saved = session.getAttribute(com.gnostica.core.security.MobileAwareAuthorizationRequestResolver.SESSION_MOBILE_REDIRECT_URI);
+            if (saved instanceof String) {
+                redirectUri = (String) saved;
+            }
+        }
+
+        String targetUrl;
+        if (redirectUri != null && !redirectUri.isBlank()) {
+            String separator = redirectUri.contains("?") ? "&" : "?";
+            targetUrl = redirectUri + separator + "error=" + URLEncoder.encode(errorMessage, StandardCharsets.UTF_8);
+        } else {
+            targetUrl = publicUrl + "/login?error=" + URLEncoder.encode(errorMessage, StandardCharsets.UTF_8);
+        }
+        
+        System.out.println("Redirecting to: " + targetUrl);
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
 }

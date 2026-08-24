@@ -20,7 +20,6 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/instructors")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class InstructorProfileController {
 
     private final AccountRepository accountRepository;
@@ -30,7 +29,7 @@ public class InstructorProfileController {
     private final com.fasterxml.jackson.databind.ObjectMapper objectMapper;
 
     /**
-     * Lấy danh sách tất cả giảng viên kèm theo thống kê
+     * Láº¥y danh sÃ¡ch táº¥t cáº£ giáº£ng viÃªn kÃ¨m theo thá»‘ng kÃª
      */
     @GetMapping("/list")
     public ResponseEntity<?> getAllInstructorsWithStats() {
@@ -59,14 +58,14 @@ public class InstructorProfileController {
             }
 
             return InstructorStatsResponse.builder()
-                    .id(account.getId()) // Sử dụng Account ID cho các liên kết URL
+                    .id(account.getId()) // Sá»­ dá»¥ng Account ID cho cÃ¡c liÃªn káº¿t URL
                     .fullName(account.getFullName())
                     .email(account.getEmail())
                     .avatar(account.getAvatar())
                     .coursesCount(coursesCount)
                     .studentsCount(studentsCount)
                     .rating(4.8)
-                    .title(title.isEmpty() ? "Giảng viên" : title)
+                    .title(title.isEmpty() ? "Giáº£ng viÃªn" : title)
                     .bio(bio)
                     .categories(categories)
                     .build();
@@ -76,17 +75,17 @@ public class InstructorProfileController {
     }
 
     /**
-     * Lấy thông tin hồ sơ công khai của giảng viên theo ID
+     * Láº¥y thÃ´ng tin há»“ sÆ¡ cÃ´ng khai cá»§a giáº£ng viÃªn theo ID
      */
     @GetMapping("/{id}/profile")
     public ResponseEntity<?> getInstructorProfile(@PathVariable java.util.UUID id) {
         Account account = accountRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy giảng viên"));
+                .orElseThrow(() -> new RuntimeException("KhÃ´ng tÃ¬m tháº¥y giáº£ng viÃªn"));
 
-        // Đếm số khóa học đang hoạt động của giảng viên
+        // Äáº¿m sá»‘ khÃ³a há»c Ä‘ang hoáº¡t Ä‘á»™ng cá»§a giáº£ng viÃªn
         long coursesCount = courseRepository.countByAccountIdAndStatus(id, 1);
 
-        // Đếm tổng số học viên đã đăng ký các khóa học của giảng viên
+        // Äáº¿m tá»•ng sá»‘ há»c viÃªn Ä‘Ã£ Ä‘Äƒng kÃ½ cÃ¡c khÃ³a há»c cá»§a giáº£ng viÃªn
         long studentsCount = courseRepository.countStudentsByInstructorId(id);
 
         Map<String, Object> profile = new HashMap<>();
@@ -97,7 +96,7 @@ public class InstructorProfileController {
         profile.put("role", account.getRole() != null ? account.getRole().getName() : null);
         profile.put("coursesCount", coursesCount);
         profile.put("studentsCount", studentsCount);
-        profile.put("reviewsCount", 0); // Chưa có hệ thống đánh giá
+        profile.put("reviewsCount", 0); // ChÆ°a cÃ³ há»‡ thá»‘ng Ä‘Ã¡nh giÃ¡
 
         String bio = "";
         String title = "";
@@ -127,7 +126,7 @@ public class InstructorProfileController {
     }
 
     /**
-     * Lấy các khóa học đang hoạt động của giảng viên
+     * Láº¥y cÃ¡c khÃ³a há»c Ä‘ang hoáº¡t Ä‘á»™ng cá»§a giáº£ng viÃªn
      */
     @GetMapping("/{id}/courses")
     public ResponseEntity<?> getInstructorCourses(@PathVariable java.util.UUID id) {

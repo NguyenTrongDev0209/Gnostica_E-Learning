@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/instructor-dashboard")
-@CrossOrigin(origins = "*", maxAge = 3600)
 public class InstructorDashboardController {
 
     @Autowired
@@ -58,13 +57,5 @@ public class InstructorDashboardController {
         return ResponseEntity.ok(instructorDashboardService.getReviews(authentication.getName()));
     }
 
-    @GetMapping("/test-reviews")
-    public ResponseEntity<?> testReviews(@RequestParam String email) {
-        try {
-            return ResponseEntity.ok(instructorDashboardService.getReviews(email));
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(e.getMessage() + "\n" + java.util.Arrays.toString(e.getStackTrace()));
-        }
-    }
 }
 

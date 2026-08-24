@@ -13,7 +13,6 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/follow")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class FollowingController {
 
     private final FollowingService followingService;
@@ -21,7 +20,7 @@ public class FollowingController {
     @GetMapping("/instructors")
     public ResponseEntity<?> getMyFollowedInstructors(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
-            return ResponseEntity.status(401).body(ApiResponse.error("Vui lòng đăng nhập"));
+            return ResponseEntity.status(401).body(ApiResponse.error("Vui lÃ²ng Ä‘Äƒng nháº­p"));
         }
         return ResponseEntity.ok(ApiResponse.success(followingService.getFollowedInstructors(authentication.getName())));
     }
@@ -29,12 +28,12 @@ public class FollowingController {
     @PostMapping("/toggle/{instructorId}")
     public ResponseEntity<?> toggleFollow(@PathVariable UUID instructorId, Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
-            return ResponseEntity.status(401).body(ApiResponse.error("Vui lòng đăng nhập"));
+            return ResponseEntity.status(401).body(ApiResponse.error("Vui lÃ²ng Ä‘Äƒng nháº­p"));
         }
         boolean isFollowing = followingService.toggleFollow(authentication.getName(), instructorId);
         return ResponseEntity.ok(ApiResponse.success(Map.of(
             "isFollowing", isFollowing,
-            "message", isFollowing ? "Đã theo dõi giảng viên" : "Đã bỏ theo dõi giảng viên"
+            "message", isFollowing ? "ÄÃ£ theo dÃµi giáº£ng viÃªn" : "ÄÃ£ bá» theo dÃµi giáº£ng viÃªn"
         )));
     }
 

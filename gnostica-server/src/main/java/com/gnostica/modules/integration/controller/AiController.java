@@ -20,7 +20,6 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/ai")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class AiController {
 
     private final AiService aiService;
@@ -66,7 +65,7 @@ public class AiController {
 
         if (counter.get() >= DAILY_CHAT_LIMIT) {
             AiChatResponse limitResponse = new AiChatResponse(
-                "⚠️ Bạn đã sử dụng hết giới hạn 15 lượt hỏi AI trong ngày hôm nay (15/15 lượt). Vui lòng quay lại vào ngày mai nhé!",
+                "âš ï¸ Báº¡n Ä‘Ã£ sá»­ dá»¥ng háº¿t giá»›i háº¡n 15 lÆ°á»£t há»i AI trong ngÃ y hÃ´m nay (15/15 lÆ°á»£t). Vui lÃ²ng quay láº¡i vÃ o ngÃ y mai nhÃ©!",
                 "assistant",
                 request.getSessionId()
             );
@@ -122,12 +121,12 @@ public class AiController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated() || 
             (authentication instanceof org.springframework.security.authentication.AnonymousAuthenticationToken)) {
-            return ResponseEntity.status(401).body(ApiResponse.error("Vui lòng đăng nhập để thực hiện chức năng này."));
+            return ResponseEntity.status(401).body(ApiResponse.error("Vui lÃ²ng Ä‘Äƒng nháº­p Ä‘á»ƒ thá»±c hiá»‡n chá»©c nÄƒng nÃ y."));
         }
         String email = authentication.getName();
         Optional<Account> accountOpt = accountRepository.findByEmail(email);
         if (accountOpt.isEmpty()) {
-            return ResponseEntity.status(404).body(ApiResponse.error("Không tìm thấy tài khoản."));
+            return ResponseEntity.status(404).body(ApiResponse.error("KhÃ´ng tÃ¬m tháº¥y tÃ i khoáº£n."));
         }
         String accountId = accountOpt.get().getId().toString();
         List<ChatSession> sessions = chatSessionRepository.findAllByAccountIdOrderByUpdatedAtDesc(accountId);
@@ -139,19 +138,19 @@ public class AiController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Optional<ChatSession> sessionOpt = chatSessionRepository.findById(sessionId);
         if (sessionOpt.isEmpty()) {
-            return ResponseEntity.status(404).body(ApiResponse.error("Không tìm thấy phiên trò chuyện."));
+            return ResponseEntity.status(404).body(ApiResponse.error("KhÃ´ng tÃ¬m tháº¥y phiÃªn trÃ² chuyá»‡n."));
         }
         ChatSession session = sessionOpt.get();
         
         if (session.getAccountId() != null) {
             if (authentication == null || !authentication.isAuthenticated() || 
                 (authentication instanceof org.springframework.security.authentication.AnonymousAuthenticationToken)) {
-                return ResponseEntity.status(401).body(ApiResponse.error("Vui lòng đăng nhập để xem phiên trò chuyện này."));
+                return ResponseEntity.status(401).body(ApiResponse.error("Vui lÃ²ng Ä‘Äƒng nháº­p Ä‘á»ƒ xem phiÃªn trÃ² chuyá»‡n nÃ y."));
             }
             String email = authentication.getName();
             Optional<Account> accountOpt = accountRepository.findByEmail(email);
             if (accountOpt.isEmpty() || !accountOpt.get().getId().toString().equals(session.getAccountId())) {
-                return ResponseEntity.status(403).body(ApiResponse.error("Bạn không có quyền truy cập phiên trò chuyện này."));
+                return ResponseEntity.status(403).body(ApiResponse.error("Báº¡n khÃ´ng cÃ³ quyá»n truy cáº­p phiÃªn trÃ² chuyá»‡n nÃ y."));
             }
         }
         return ResponseEntity.ok(ApiResponse.success(session));
@@ -162,23 +161,23 @@ public class AiController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Optional<ChatSession> sessionOpt = chatSessionRepository.findById(sessionId);
         if (sessionOpt.isEmpty()) {
-            return ResponseEntity.status(404).body(ApiResponse.error("Không tìm thấy phiên trò chuyện."));
+            return ResponseEntity.status(404).body(ApiResponse.error("KhÃ´ng tÃ¬m tháº¥y phiÃªn trÃ² chuyá»‡n."));
         }
         ChatSession session = sessionOpt.get();
         
         if (session.getAccountId() != null) {
             if (authentication == null || !authentication.isAuthenticated() || 
                 (authentication instanceof org.springframework.security.authentication.AnonymousAuthenticationToken)) {
-                return ResponseEntity.status(401).body(ApiResponse.error("Vui lòng đăng nhập để thực hiện hành động này."));
+                return ResponseEntity.status(401).body(ApiResponse.error("Vui lÃ²ng Ä‘Äƒng nháº­p Ä‘á»ƒ thá»±c hiá»‡n hÃ nh Ä‘á»™ng nÃ y."));
             }
             String email = authentication.getName();
             Optional<Account> accountOpt = accountRepository.findByEmail(email);
             if (accountOpt.isEmpty() || !accountOpt.get().getId().toString().equals(session.getAccountId())) {
-                return ResponseEntity.status(403).body(ApiResponse.error("Bạn không có quyền xóa phiên trò chuyện này."));
+                return ResponseEntity.status(403).body(ApiResponse.error("Báº¡n khÃ´ng cÃ³ quyá»n xÃ³a phiÃªn trÃ² chuyá»‡n nÃ y."));
             }
         }
         chatSessionRepository.delete(session);
-        return ResponseEntity.ok(ApiResponse.success("Đã xóa phiên trò chuyện thành công.", null));
+        return ResponseEntity.ok(ApiResponse.success("ÄÃ£ xÃ³a phiÃªn trÃ² chuyá»‡n thÃ nh cÃ´ng.", null));
     }
 }
 

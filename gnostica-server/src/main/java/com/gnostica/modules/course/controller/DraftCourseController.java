@@ -16,7 +16,6 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/courses/draft")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class DraftCourseController {
 
     private final DraftCourseService draftCourseService;
@@ -32,7 +31,7 @@ public class DraftCourseController {
         String email = authentication.getName();
         String idToUse = courseId;
         
-        // Nếu không có courseId nhưng có slug, tra cứu id từ slug
+        // Náº¿u khÃ´ng cÃ³ courseId nhÆ°ng cÃ³ slug, tra cá»©u id tá»« slug
         if ((idToUse == null || idToUse.isEmpty()) && (slug != null && !slug.isEmpty() && !slug.equals("new"))) {
             Optional<Course> course = courseRepository.findFirstBySlugAndDeletedAtIsNullOrderByIdDesc(slug);
             if (course.isPresent()) {
@@ -43,7 +42,7 @@ public class DraftCourseController {
         draftCourseService.saveDraft(email, idToUse, request);
         
         Map<String, String> response = new HashMap<>();
-        response.put("message", "Đã lưu nháp tự động. Bản nháp này có hiệu lực 24h");
+        response.put("message", "ÄÃ£ lÆ°u nhÃ¡p tá»± Ä‘á»™ng. Báº£n nhÃ¡p nÃ y cÃ³ hiá»‡u lá»±c 24h");
         return ResponseEntity.ok(response);
     }
 
@@ -56,7 +55,7 @@ public class DraftCourseController {
         String email = authentication.getName();
         String idToUse = courseId;
 
-        // Ưu tiên resolve slug sang id nếu id trống
+        // Æ¯u tiÃªn resolve slug sang id náº¿u id trá»‘ng
         if ((idToUse == null || idToUse.isEmpty()) && (slug != null && !slug.isEmpty() && !slug.equals("new"))) {
             Optional<Course> course = courseRepository.findFirstBySlugAndDeletedAtIsNullOrderByIdDesc(slug);
             if (course.isPresent()) {

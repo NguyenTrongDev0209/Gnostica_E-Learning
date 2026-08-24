@@ -26,7 +26,6 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/checkout/coupons")
-@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 public class CouponController {
 
