@@ -116,8 +116,8 @@ public class CourseReportService {
             report.setStatus(3); // 3 = Resolved
             reportRepository.save(report);
 
-            String finalReason = (request.getReason() != null && !request.getReason().isBlank()) ? request.getReason() : report.getReason();
-            finalReason = "[Báo cáo] " + finalReason;
+            String rawReason = (request.getReason() != null && !request.getReason().isBlank()) ? request.getReason() : report.getReason();
+            String finalReason = "[Báo cáo] " + rawReason;
 
             // Hide V1
             course.setStatus(3); // 3 = Rejected/Hidden
