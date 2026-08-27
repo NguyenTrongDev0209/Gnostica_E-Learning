@@ -19,4 +19,6 @@ public interface ReportRepository extends JpaRepository<Report, Integer> {
 
     @Query("SELECT r.createdAt, r.status, r.reason FROM Report r WHERE r.createdAt >= :startDate AND r.targetType = :targetType AND r.deletedAt IS NULL")
     List<Object[]> getAdminStatsProjection(@Param("startDate") LocalDateTime startDate, @Param("targetType") String targetType);
+
+    List<Report> findByCreatedAtAfterAndDeletedAtIsNull(LocalDateTime createdAt);
 }

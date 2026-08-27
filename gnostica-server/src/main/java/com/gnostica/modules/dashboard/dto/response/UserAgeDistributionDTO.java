@@ -9,11 +9,9 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class RevenueMonthDTO {
-    private String month;
-    private Double revenue;
-    private Double instructorRevenue;
-    private Double platformRevenue;
-    private Double withdrawable;
-    private Long orders;
+public class UserAgeDistributionDTO {
+    private Long age18_24;
+    private Long age25_34;
+    private Long age35_44;
+    private Long age45plus;
 }

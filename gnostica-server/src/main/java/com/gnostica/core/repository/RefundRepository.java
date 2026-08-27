@@ -46,4 +46,6 @@ public interface RefundRepository extends JpaRepository<Refund, UUID> {
 
     @EntityGraph(attributePaths = {"account", "orderDetail", "orderDetail.order", "orderDetail.course"})
     Page<Refund> findByStatusInOrderByCreatedAtDesc(List<Integer> statuses, Pageable pageable);
+
+    long countByOrderDetailCourseAccountId(UUID accountId);
 }

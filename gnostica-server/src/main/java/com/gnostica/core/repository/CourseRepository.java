@@ -9,6 +9,8 @@ import java.util.UUID;
 public interface CourseRepository extends JpaRepository<Course, UUID> {
     java.util.List<Course> findAllByIdInAndDeletedAtIsNull(java.util.Collection<UUID> ids);
     java.util.List<Course> findAllByDeletedAtIsNull();
+    long countByDeletedAtIsNull();
+    long countByStatusAndDeletedAtIsNull(Integer status);
     org.springframework.data.domain.Page<Course> findByAccountEmailAndDeletedAtIsNull(String email, org.springframework.data.domain.Pageable pageable);
     java.util.Optional<Course> findFirstBySlugAndDeletedAtIsNullOrderByIdDesc(String slug);
     java.util.Optional<Course> findFirstBySlugOrderByIdDesc(String slug);

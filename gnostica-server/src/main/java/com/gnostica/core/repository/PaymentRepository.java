@@ -22,6 +22,9 @@ public interface PaymentRepository extends JpaRepository<Payment, java.util.UUID
     @Query("SELECT SUM(p.amount) FROM Payment p WHERE p.status = :status")
     BigDecimal sumAmountByStatus(@Param("status") Integer status);
 
+    @Query("SELECT COALESCE(SUM(p.amount), 0) FROM Payment p WHERE p.status = 2 AND p.createdAt >= :startDate AND p.createdAt < :endDate")
+    BigDecimal sumAmountByStatusAndDateRange(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+
     @Query("SELECT COALESCE(SUM(p.amount), 0) FROM Payment p WHERE p.order.account = :account AND p.gateway = 'WALLET' AND p.status = 2")
     BigDecimal sumWalletPaymentsByAccount(@Param("account") com.gnostica.core.model.Account account);
 }

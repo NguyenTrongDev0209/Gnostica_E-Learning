@@ -139,7 +139,7 @@ const MainHeader = ({
                                     ))}
                                 </div>
                             )}
-                            <Link to="/news" className="py-3 border-b border-header-orange/5 font-bold text-lg">Tin tức</Link>
+                            <a href="https://gnostica.online" target="_blank" rel="noopener noreferrer" className="py-3 border-b border-header-orange/5 font-bold text-lg">Tin tức</a>
                             <Link to="/promo" className="py-3 font-bold text-lg text-header-orange">Khuyến mãi Hot</Link>
                         </nav>
                     </div>
@@ -201,9 +201,9 @@ const MainHeader = ({
                             <div className="absolute bottom-0 left-0 w-full h-[3px] bg-header-orange scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center" />
                         </Link>
 
-                        {/* Tin tức: external link trỏ thẳng backend, độc lập với app */}
+                        {/* Tin tức: external link trỏ thẳng sang website tin tức */}
                         <a
-                            href="http://localhost:8080"
+                            href="https://gnostica.online"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="h-full flex items-center relative group px-4"
