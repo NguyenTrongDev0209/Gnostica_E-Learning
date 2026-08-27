@@ -14,7 +14,6 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/enrollments")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class EnrollmentController {
 
     private final EnrollmentService enrollmentService;
@@ -22,7 +21,7 @@ public class EnrollmentController {
     @GetMapping("/my-courses")
     public ResponseEntity<?> getMyCourses(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
-            return ResponseEntity.status(401).body(Map.of("error", "Vui lòng đăng nhập để xem danh sách khóa học"));
+            return ResponseEntity.status(401).body(Map.of("error", "Vui lÃ²ng Ä‘Äƒng nháº­p Ä‘á»ƒ xem danh sÃ¡ch khÃ³a há»c"));
         }
         String email = authentication.getName();
         List<EnrollmentDTO> myCourses = enrollmentService.getMyCourses(email);
@@ -32,7 +31,7 @@ public class EnrollmentController {
     @GetMapping("/stats")
     public ResponseEntity<?> getMyStats(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
-            return ResponseEntity.status(401).body(Map.of("error", "Vui lòng đăng nhập để xem thống kê học tập"));
+            return ResponseEntity.status(401).body(Map.of("error", "Vui lÃ²ng Ä‘Äƒng nháº­p Ä‘á»ƒ xem thá»‘ng kÃª há»c táº­p"));
         }
         String email = authentication.getName();
         return ResponseEntity.ok(ApiResponse.success(enrollmentService.getStudentStats(email)));

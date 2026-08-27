@@ -15,7 +15,6 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/instructor/students")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class InstructorStudentController {
 
     private final EnrollmentService enrollmentService;
@@ -23,7 +22,7 @@ public class InstructorStudentController {
     @GetMapping
     public ResponseEntity<?> getMyStudents(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
-            return ResponseEntity.status(401).body(Map.of("error", "Vui lòng đăng nhập để xem danh sách học viên"));
+            return ResponseEntity.status(401).body(Map.of("error", "Vui lÃ²ng Ä‘Äƒng nháº­p Ä‘á»ƒ xem danh sÃ¡ch há»c viÃªn"));
         }
 
         String email = authentication.getName();
@@ -35,7 +34,7 @@ public class InstructorStudentController {
     @GetMapping("/{studentId}/courses")
     public ResponseEntity<?> getStudentCourses(@PathVariable java.util.UUID studentId, Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
-            return ResponseEntity.status(401).body(Map.of("error", "Vui lòng đăng nhập"));
+            return ResponseEntity.status(401).body(Map.of("error", "Vui lÃ²ng Ä‘Äƒng nháº­p"));
         }
 
         String instructorEmail = authentication.getName();
