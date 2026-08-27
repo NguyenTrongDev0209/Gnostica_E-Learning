@@ -54,6 +54,7 @@ const ADMIN_COURSES_SUB_ITEMS = [
   { label: "Danh sách", icon: BookOpen, href: "/admin/courses?tab=list", tab: "list", legacyTabs: ["general"] },
   { label: "Kiểm duyệt", icon: ShieldCheck, href: "/admin/courses?tab=moderation", tab: "moderation" },
   { label: "Đánh giá", icon: Star, href: "/admin/courses?tab=reviews", tab: "reviews" },
+  { label: "Báo cáo", icon: MessageCircleWarning, href: "/admin/courses?tab=reports", tab: "reports" },
 ];
 
 const ADMIN_FORUM_SUB_ITEMS = [

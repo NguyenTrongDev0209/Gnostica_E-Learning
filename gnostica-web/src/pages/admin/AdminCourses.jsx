@@ -11,6 +11,7 @@ import AppInput from '@/components/common/micro/AppInput';
 import adminCourseService from '@/services/admin/adminCourseService';
 import categoryService from '@/services/course/categoryService';
 import AdminCourseModeration from './AdminCourseModeration';
+import AdminCourseReports from './AdminCourseReports';
 
 function AdminCourseReviews() {
   return (
@@ -211,6 +212,7 @@ export default function AdminCourses() {
       {tab === 'list' && <AdminCoursesList />}
       {tab === 'moderation' && <AdminCourseModeration hideHeader={true} />}
       {tab === 'reviews' && <AdminCourseReviews />}
+      {tab === 'reports' && <AdminCourseReports hideHeader={true} />}
     </div>
   );
 }

@@ -12,6 +12,7 @@ import AppCard, { AppCardContent } from "@/components/common/micro/AppCard";
 import useAdminCategories from "@/hooks/course/useAdminCategories";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { TableRow, TableCell } from "@/components/common/micro/AppTable";
 
 const categorySchema = z.object({
   name: z
@@ -282,6 +283,7 @@ export default function AdminCategories() {
               key={sub.id}
               className="bg-muted/60 hover:bg-secondary"
             >
+              <TableCell /> {/* Checkbox column offset */}
               <TableCell className="w-10" />
               <TableCell className="pl-12">
                 <div className="flex items-center gap-3">

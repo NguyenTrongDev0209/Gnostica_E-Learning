@@ -177,6 +177,20 @@ const getPromoPlayback = async (slug) => {
     return response.data;
 };
 
+const submitCourseReport = async (slug, reportData) => {
+    const response = await axiosClient.post(`${API_URL}/${slug}/reports`, reportData, {
+        headers: getAuthHeaders()
+    });
+    return response.data;
+};
+
+const checkPendingReport = async (slug) => {
+    const response = await axiosClient.get(`${API_URL}/${slug}/reports/check`, {
+        headers: getAuthHeaders()
+    });
+    return response.data;
+};
+
 const courseService = {
     getVideoTranscriptText,
     preScanVideoContent,
@@ -195,6 +209,8 @@ const courseService = {
     deleteVideoFromBunny,
     getLessonPlayback,
     getPromoPlayback,
+    submitCourseReport,
+    checkPendingReport,
     getRecommendedCourses: async (page = 0, size = 10) => {
         const response = await axiosClient.get(`${API_URL}/recommendations`, {
             params: { page, size },

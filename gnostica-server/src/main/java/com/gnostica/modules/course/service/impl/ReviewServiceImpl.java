@@ -28,7 +28,7 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     public void submitReview(ReviewRequest request, String email) {
-        Account account = accountRepository.findByEmail(email)
+        Account account = accountRepository.findByEmail(email.toLowerCase().trim()).or(() -> accountRepository.findByEmail(email))
                 .orElseThrow(() -> new IllegalArgumentException("Account not found"));
 
         Course course = courseRepository.findFirstBySlugAndDeletedAtIsNullOrderByIdDesc(request.getCourseSlug())
@@ -59,7 +59,7 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     public void replyToReview(ReviewReplyRequest request, String email) {
-        Account account = accountRepository.findByEmail(email)
+        Account account = accountRepository.findByEmail(email.toLowerCase().trim()).or(() -> accountRepository.findByEmail(email))
                 .orElseThrow(() -> new IllegalArgumentException("Account not found"));
 
         Review parentReview = reviewRepository.findById(request.getParentReviewId())

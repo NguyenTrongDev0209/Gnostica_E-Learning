@@ -29,6 +29,10 @@ export function QuizTab({ courseId }) {
   const [aiLevel, setAiLevel] = React.useState("medium");
   const isExcelFile = aiFile && (aiFile.name.toLowerCase().endsWith('.xlsx') || aiFile.name.toLowerCase().endsWith('.xls'));
 
+  // Heuristic: estimate max recommended questions based on file size (rough: 1KB ~ 5 questions)
+  const estimatedMaxQuestions = aiFile && !isExcelFile ? Math.min(100, Math.max(1, Math.floor(aiFile.size / 1024 / 5))) : null;
+  const showCountWarning = !isExcelFile && estimatedMaxQuestions !== null && aiQuestionCount > estimatedMaxQuestions;
+
   const [draftQuestions, setDraftQuestions] = React.useState(() => {
     const saved = localStorage.getItem(localStorageKey);
     if (saved && JSON.parse(saved).length > 0) {
@@ -106,40 +110,78 @@ export function QuizTab({ courseId }) {
   const [, setIsSavingDraft] = React.useState(false); // Fix undefined
 
   const handleCreateAI = async () => {
+    // Validate file
     if (!aiFile) {
       toast.error("Vui lòng tải lên tài liệu bài giảng trước khi tạo câu hỏi!");
       return;
     }
-    if (!isExcelFile && (aiQuestionCount < 1 || aiQuestionCount > 100)) {
-      toast.warning("Số lượng câu hỏi phải từ 1 đến 100!");
-      return;
+
+    // Validate count (only for non-Excel)
+    if (!isExcelFile) {
+      const countValue = Number(aiQuestionCount);
+      if (!aiQuestionCount && aiQuestionCount !== 0) {
+        toast.warning("Vui lòng nhập số lượng câu hỏi cần tạo!");
+        return;
+      }
+      if (isNaN(countValue) || countValue < 1) {
+        toast.warning("Số câu hỏi phải là số nguyên dương (tối thiểu 1 câu)!");
+        return;
+      }
+      if (countValue > 100) {
+        toast.warning("Số lượng câu hỏi tối đa là 100 câu mỗi lần!");
+        return;
+      }
     }
 
     setIsGeneratingAi(true);
-    toast.info("Đang phân tích tài liệu và sinh câu hỏi bằng AI...");
+    toast.info("Đang phân tích tài liệu và sinh câu hỏi bằng AI...", { duration: 8000 });
 
     try {
       const finalLevel = isExcelFile ? "mixed" : aiLevel;
-      // Pass a large number or 0 if it's an excel file so backend processes all rows
       const finalCount = isExcelFile ? 1000 : aiQuestionCount;
-      const generatedQuestions = await questionService.generateAiQuestions(courseId, aiFile, finalCount, finalLevel);
+      const result = await questionService.generateAiQuestions(courseId, aiFile, finalCount, finalLevel);
+
+      // Handle case where backend returns an empty list with 204 message
+      const generatedQuestions = Array.isArray(result) ? result : (result?.data || []);
+
       if (generatedQuestions && generatedQuestions.length > 0) {
         // Find highest existing ID to continue numbering
         let highestId = draftQuestions.length > 0 ? Math.max(...draftQuestions.map(q => q.id)) : 0;
-
         const newQuestionsWithId = generatedQuestions.map(q => {
           highestId++;
           return { ...q, id: highestId };
         });
 
         setDraftQuestions(prev => [...prev, ...newQuestionsWithId]);
-        toast.success(`Đã tự động tạo và thêm thành công ${newQuestionsWithId.length} câu hỏi vào ngân hàng!`);
+
+        // Notify if AI generated fewer questions than requested
+        if (!isExcelFile && generatedQuestions.length < finalCount) {
+          toast.success(`Đã thêm ${newQuestionsWithId.length} câu hỏi!`, { duration: 5000 });
+          toast.warning(
+            `AI chỉ sinh được ${generatedQuestions.length}/${finalCount} câu do giới hạn nội dung tài liệu. Bạn có thể thêm thủ công hoặc upload tài liệu bổ sung.`,
+            { duration: 8000 }
+          );
+        } else {
+          toast.success(`Đã tự động tạo và thêm thành công ${newQuestionsWithId.length} câu hỏi vào ngân hàng!`);
+        }
       } else {
-        toast.warning("AI đã phân tích nhưng không tìm thấy dữ liệu để tạo câu hỏi.");
+        toast.warning("AI đã phân tích nhưng không tìm thấy đủ dữ liệu để tạo câu hỏi. Vui lòng thử với tài liệu có nhiều nội dung hơn.");
       }
     } catch (err) {
       console.error("Lỗi khi sinh câu hỏi AI:", err);
-      toast.error(err.response?.data?.message || "Lỗi máy chủ khi sinh câu hỏi AI. Vui lòng thử lại!");
+      // Parse the error message from backend
+      const backendMessage = err.response?.data?.message || err.response?.data?.error;
+      const statusCode = err.response?.status;
+
+      if (statusCode === 400 && backendMessage) {
+        // User-facing validation errors → show as warning
+        toast.warning(backendMessage, { duration: 10000 });
+      } else if (backendMessage) {
+        // Server errors (500) → show as error
+        toast.error(backendMessage, { duration: 8000 });
+      } else {
+        toast.error("Lỗi kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng và thử lại!", { duration: 6000 });
+      }
     } finally {
       setIsGeneratingAi(false);
     }
@@ -332,8 +374,20 @@ export function QuizTab({ courseId }) {
                   max={100}
                   disabled={isExcelFile}
                   placeholder={isExcelFile ? "Tự động (theo file)" : ""}
-                  className={`h-11 border-border font-bold hover:border-success/50 transition-all ${isExcelFile ? "bg-muted cursor-not-allowed text-muted-foreground opacity-60" : "bg-white focus:border-success focus:ring-1 focus:ring-success/30"}`}
+                  className={`h-11 border-border font-bold hover:border-success/50 transition-all ${isExcelFile ? "bg-muted cursor-not-allowed text-muted-foreground opacity-60" : showCountWarning ? "bg-white border-warning focus:border-warning focus:ring-1 focus:ring-warning/30" : "bg-white focus:border-success focus:ring-1 focus:ring-success/30"}`}
                 />
+
+                {/* Visual warning: file too small for requested question count */}
+                {showCountWarning && (
+                  <div className="flex items-start gap-2 p-3 bg-warning/10 border border-warning/30 rounded-lg text-warning">
+                    <span className="text-base shrink-0">⚠️</span>
+                    <p className="text-xs font-semibold leading-relaxed">
+                      File chỉ khoảng <strong>{(aiFile.size / 1024).toFixed(0)} KB</strong>. Với kích thước này,
+                      AI có thể không đủ nội dung để sinh <strong>{aiQuestionCount} câu</strong> chất lượng.
+                      Gợi ý: nên đặt tối đa <strong>{estimatedMaxQuestions} câu</strong> hoặc upload file lớn hơn.
+                    </p>
+                  </div>
+                )}
 
                 <div className="space-y-1.5 w-full">
                   <Label className="block text-[11px] font-bold text-muted-foreground uppercase tracking-widest pl-1">

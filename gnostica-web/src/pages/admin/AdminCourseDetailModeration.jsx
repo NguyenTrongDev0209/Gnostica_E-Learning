@@ -6,13 +6,15 @@ import AppBadge from "@/components/common/micro/AppBadge";
 
 import AppSelect from "@/components/common/micro/AppSelect";
 import AppInput from "@/components/common/micro/AppInput";
-import { CheckCircle2, BookOpen, Layers, Video, ArrowLeft, Loader2, Sparkles, AlertTriangle, ShieldCheck, ShieldAlert, FileText, Trophy, ExternalLink, ChevronRight, Download } from "lucide-react";
-import { useParams, useNavigate } from "react-router-dom";
+import { CheckCircle2, BookOpen, Layers, Video, ArrowLeft, Loader2, Sparkles, AlertTriangle, ShieldCheck, ShieldAlert, FileText, Trophy, ExternalLink, ChevronRight, Download, XCircle, HelpCircle } from "lucide-react";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import CourseRejectModal from "@/components/modals/CourseRejectModal";
 import InstructorProfileModal from "@/components/modals/InstructorProfileModal";
 
 import useAdminCourseModeration from "@/hooks/admin/useAdminCourseModeration";
 import adminCourseService from "@/services/admin/adminCourseService";
+import axiosClient from "@/lib/axiosClient";
+import { toast } from "sonner";
 
 const BUNNY_LIBRARY_ID = import.meta.env.VITE_BUNNY_LIBRARY_ID;
 
@@ -57,6 +59,23 @@ export default function AdminCourseDetailModeration() {
       return null;
     }
   }, [signedEmbeds, isEmbedLink]);
+
+  const location = useLocation();
+  const reportData = location.state?.report;
+
+  const handleResolveReport = async (action) => {
+    if (!reportData) return;
+    try {
+      await axiosClient.put(`/admin/courses/reports/${reportData.id}/resolve`, {
+        action: action,
+        reason: "" // using the report's reason as fallback backend side
+      });
+      toast.success(action === 'HIDE_COURSE' ? 'Đã ẩn khóa học do vi phạm' : 'Đã bỏ qua báo cáo');
+      navigate(-1);
+    } catch (err) {
+      toast.error(err?.response?.data?.message || err?.response?.data || "Lỗi khi xử lý báo cáo");
+    }
+  };
 
   useEffect(() => {
     if (previewVideoUrl) ensureSignedEmbed(previewVideoUrl);
@@ -160,7 +179,7 @@ export default function AdminCourseDetailModeration() {
       )}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-border/60 shadow-sm sticky top-4 z-20 backdrop-blur-md bg-white/95">
         <div className="flex items-center gap-4 min-w-0">
-          <AppButton appVariant="ghostMuted" variant="ghost" size="icon" onClick={() => navigate("/admin/course-moderation")} className="h-10 w-10 rounded-xl shrink-0 border border-border bg-white hover:bg-muted hover:text-primary transition-colors">
+          <AppButton appVariant="ghostMuted" variant="ghost" size="icon" onClick={() => navigate(-1)} className="h-10 w-10 rounded-xl shrink-0 border border-border bg-white hover:bg-muted hover:text-primary transition-colors">
             <ArrowLeft className="w-5 h-5" />
           </AppButton>
           <div className="min-w-0">
@@ -173,7 +192,16 @@ export default function AdminCourseDetailModeration() {
         </div>
 
         <div className="flex items-center gap-3 shrink-0 ml-14 md:ml-0">
-          {course.status === 4 && (
+          {reportData && reportData.status === "pending" ? (
+            <>
+              <AppButton appVariant="ghostMuted" variant="ghost" onClick={() => handleResolveReport("DISMISS")} disabled={isSubmitting} className="font-bold border border-border bg-white hover:bg-muted h-10 px-5 gap-2">
+                <HelpCircle className="w-4 h-4" /> Bỏ qua báo cáo
+              </AppButton>
+              <AppButton appVariant="primary" onClick={() => handleResolveReport("HIDE_COURSE")} disabled={isSubmitting} className="font-bold bg-error hover:bg-error/90 text-white shadow-md gap-2 border-none px-6 h-10">
+                <XCircle className="w-4 h-4" /> Xác nhận & Ẩn khóa học
+              </AppButton>
+            </>
+          ) : course.status === 4 ? (
             <>
               <AppButton appVariant="ghostMuted" variant="ghost" onClick={() => setIsRejectModalOpen(true)} disabled={isSubmitting} className="font-bold text-error border border-error/20 bg-white hover:bg-error/10 hover:text-error h-10 px-5">
                 Từ chối kiểm duyệt
@@ -182,7 +210,7 @@ export default function AdminCourseDetailModeration() {
                 <CheckCircle2 className="w-4.5 h-4.5" /> Phê duyệt khóa học
               </AppButton>
             </>
-          )}
+          ) : null}
         </div>
       </div>
 

@@ -31,6 +31,7 @@ public class AdminCourseController {
     private final AiModerationService aiModerationService;
     private final LessonRepository lessonRepository;
     private final LessonPlaybackService lessonPlaybackService;
+    private final com.gnostica.modules.course.service.CourseReportService courseReportService;
 
     /**
      * Endpoint Láº¥y danh sÃ¡ch khÃ³a há»c theo tráº¡ng thÃ¡i (Pending, Approved, Rejected) dÃ nh cho Admin
@@ -175,8 +176,29 @@ public class AdminCourseController {
             response.put("aiModerationReport", "");
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Lá»—i khi gá»i AI quÃ©t toÃ n diá»‡n: " + e.getMessage()));
+            return ResponseEntity.badRequest().body(Map.of("error", "Lá»—i khi gá» i AI quÃ©t toÃ n diá»‡n: " + e.getMessage()));
         }
     }
-}
 
+    // Reports endpoints
+    @GetMapping("/reports")
+    public ResponseEntity<Page<com.gnostica.modules.course.dto.response.AdminCourseReportResponse>> getCourseReports(
+            @RequestParam(required = false, defaultValue = "all") String status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return ResponseEntity.ok(courseReportService.getAdminCourseReports(status, page, size));
+    }
+
+    @PutMapping("/reports/{id}/resolve")
+    public ResponseEntity<Map<String, Object>> resolveCourseReport(
+            @PathVariable Integer id,
+            @RequestBody com.gnostica.modules.course.dto.request.ResolveCourseReportRequest request
+    ) {
+        courseReportService.resolveReport(id, request);
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Đã xử lý báo cáo khóa học"
+        ));
+    }
+}
