@@ -158,4 +158,19 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
             org.springframework.data.domain.Pageable pageable);
 
     org.springframework.data.domain.Page<Course> findByAccountIdAndDeletedAtIsNullAndOriginalCourseIsNull(java.util.UUID accountId, org.springframework.data.domain.Pageable pageable);
+
+    @org.springframework.data.jpa.repository.Query("SELECT c.category.id FROM Course c WHERE c.status = 1 AND c.deletedAt IS NULL AND c.category.status = 1 GROUP BY c.category.id ORDER BY COUNT(c) DESC")
+    java.util.List<Integer> findTopCategoryIdsByCourseCount(org.springframework.data.domain.Pageable pageable);
+
+    @org.springframework.data.jpa.repository.Query("SELECT c FROM Course c WHERE c.status = 1 AND c.deletedAt IS NULL AND (c.category.id = :categoryId OR c.category.parent.id = :categoryId) ORDER BY (SELECT COALESCE(AVG(r.rating), 0.0) FROM Review r WHERE r.course = c AND r.status = 1 AND r.deletedAt IS NULL) DESC, c.createdAt DESC")
+    java.util.List<Course> findTopCoursesByRatingAndCategoryId(@org.springframework.data.repository.query.Param("categoryId") Integer categoryId, org.springframework.data.domain.Pageable pageable);
+
+    @org.springframework.data.jpa.repository.Query("SELECT c FROM Course c WHERE c.status = 1 AND c.deletedAt IS NULL AND (LOWER(c.category.name) LIKE LOWER(CONCAT('%', :categoryName, '%')) OR LOWER(c.category.parent.name) LIKE LOWER(CONCAT('%', :categoryName, '%'))) ORDER BY (SELECT COALESCE(AVG(r.rating), 0.0) FROM Review r WHERE r.course = c AND r.status = 1 AND r.deletedAt IS NULL) DESC, c.createdAt DESC")
+    java.util.List<Course> findTopCoursesByRatingAndCategoryName(@org.springframework.data.repository.query.Param("categoryName") String categoryName, org.springframework.data.domain.Pageable pageable);
+
+    @org.springframework.data.jpa.repository.Query("SELECT c FROM Course c WHERE c.status = 1 AND c.deletedAt IS NULL ORDER BY SIZE(c.enrollments) DESC, c.createdAt DESC")
+    java.util.List<Course> findTopCoursesByEnrollments(org.springframework.data.domain.Pageable pageable);
+
+    @org.springframework.data.jpa.repository.Query("SELECT c FROM Course c WHERE c.status = 1 AND c.deletedAt IS NULL AND (LOWER(c.category.name) LIKE LOWER(CONCAT('%', :categoryName, '%')) OR LOWER(c.category.parent.name) LIKE LOWER(CONCAT('%', :categoryName, '%'))) ORDER BY SIZE(c.enrollments) DESC, c.createdAt DESC")
+    java.util.List<Course> findTopCoursesByEnrollmentsAndCategoryName(@org.springframework.data.repository.query.Param("categoryName") String categoryName, org.springframework.data.domain.Pageable pageable);
 }
