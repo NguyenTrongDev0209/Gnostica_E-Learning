@@ -28,7 +28,7 @@ public class LessonProgressService {
 
         @Transactional
         public void markLessonAsCompleted(Integer lessonId, String email) {
-                Account account = accountRepository.findByEmail(email)
+                Account account = accountRepository.findByEmail(email.toLowerCase().trim()).or(() -> accountRepository.findByEmail(email))
                                 .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại"));
 
                 Lesson lesson = lessonRepository.findById(lessonId)
@@ -54,7 +54,7 @@ public class LessonProgressService {
 
         @Transactional
         public void updateLastWatchedTime(Integer lessonId, String email, String time) {
-                Account account = accountRepository.findByEmail(email)
+                Account account = accountRepository.findByEmail(email.toLowerCase().trim()).or(() -> accountRepository.findByEmail(email))
                                 .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại"));
 
                 Lesson lesson = lessonRepository.findById(lessonId)
@@ -77,7 +77,7 @@ public class LessonProgressService {
         @Transactional
         public com.gnostica.modules.course.dto.response.CourseProgressResponse getCourseProgressBySlug(String slug,
                         String email) {
-                Account account = accountRepository.findByEmail(email)
+                Account account = accountRepository.findByEmail(email.toLowerCase().trim()).or(() -> accountRepository.findByEmail(email))
                                 .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại"));
 
                 // 0. Lấy Enrollment
@@ -133,7 +133,7 @@ public class LessonProgressService {
 
         @Transactional(readOnly = true)
         public List<Integer> getCompletedLessonIdsByCourseSlug(String slug, String email) {
-                Account account = accountRepository.findByEmail(email)
+                Account account = accountRepository.findByEmail(email.toLowerCase().trim()).or(() -> accountRepository.findByEmail(email))
                                 .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại"));
 
                 return lessonProgressRepository.findAll().stream()

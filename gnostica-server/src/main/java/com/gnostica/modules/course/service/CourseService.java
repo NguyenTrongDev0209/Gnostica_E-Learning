@@ -205,10 +205,12 @@ public class CourseService {
         // Kiểm tra xem user có mua khóa học này chưa
         boolean isEnrolled = false;
         if (email != null && !isOwner) {
-            Account account = accountRepository.findByEmail(email).orElse(null);
+            Account account = accountRepository.findByEmail(email.toLowerCase().trim())
+                    .orElseGet(() -> accountRepository.findByEmail(email).orElse(null));
             if (account != null) {
                 isEnrolled = course.getEnrollments().stream()
-                        .anyMatch(e -> e.getAccount().getId().equals(account.getId()) && e.getStatus() == 1);
+                        .anyMatch(e -> e.getAccount().getId().equals(account.getId()) && 
+                                (e.getStatus() == null || e.getStatus() == 1 || e.getStatus() == 2));
             }
         }
         // course.setIsEnrolled(isEnrolled);

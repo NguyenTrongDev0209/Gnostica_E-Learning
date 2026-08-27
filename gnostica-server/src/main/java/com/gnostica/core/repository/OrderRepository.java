@@ -28,6 +28,7 @@ public interface OrderRepository extends JpaRepository<Order, java.util.UUID> {
     @Query("select o from Order o where o.orderCode = :orderCode")
     Optional<Order> findByOrderCodeForUpdate(@Param("orderCode") Long orderCode);
     long countByCreatedAtAfter(java.time.LocalDateTime date);
+    long countByCreatedAtGreaterThanEqualAndCreatedAtLessThan(java.time.LocalDateTime startDate, java.time.LocalDateTime endDate);
     long countByCoupon_Id(java.util.UUID couponId);
     long countByCoupon_IdAndStatus(java.util.UUID couponId, Integer status);
     long countByCoupon_IdAndAccount_IdAndStatus(java.util.UUID couponId, java.util.UUID accountId, Integer status);

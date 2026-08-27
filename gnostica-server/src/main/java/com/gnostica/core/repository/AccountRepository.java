@@ -17,7 +17,13 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
     boolean existsByEmail(String email);
     java.util.List<Account> findAllByCreatedAtAfter(java.time.LocalDateTime date);
     long countByRoleNameAndCreatedAtAfter(String roleName, java.time.LocalDateTime date);
+    long countByRoleNameAndCreatedAtGreaterThanEqualAndCreatedAtLessThan(String roleName, java.time.LocalDateTime startDate, java.time.LocalDateTime endDate);
+
+    @org.springframework.data.jpa.repository.Query("SELECT COUNT(a) FROM Account a WHERE UPPER(a.role.name) = UPPER(:roleName) AND a.deletedAt IS NULL")
+    long countByRoleNameIgnoreCaseAndDeletedAtIsNull(@org.springframework.data.repository.query.Param("roleName") String roleName);
+
     java.util.List<Account> findByRoleName(String roleName);
+    java.util.List<Account> findByRoleNameIgnoreCaseAndBirthDayIsNotNullAndDeletedAtIsNull(String roleName);
     Optional<Account> findByIdAndRoleName(UUID id, String roleName);
     java.util.List<Account> findByMetadataIsNotNull();
     Optional<Account> findByPhone(String phone);

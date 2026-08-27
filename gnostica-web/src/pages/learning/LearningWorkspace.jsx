@@ -851,6 +851,9 @@ export default function LearningWorkspace() {
   const [draftRating, setDraftRating] = useState(0);
   const [draftReviewComment, setDraftReviewComment] = useState("");
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [reportReason, setReportReason] = useState("");
+  const [isSubmittingReport, setIsSubmittingReport] = useState(false);
+  const [hasPendingReport, setHasPendingReport] = useState(false);
   const [courseRatingSummary, setCourseRatingSummary] = useState({
     averageRating: 0,
     reviewCount: 0,
@@ -909,11 +912,13 @@ export default function LearningWorkspace() {
   const fetchCourseData = async () => {
     try {
       setLoading(true);
-      const [courseData, progressData, reviewsRes] = await Promise.all([
+      const [courseData, progressData, reviewsRes, reportCheck] = await Promise.all([
         courseService.getCourseBySlug(slug),
         progressService.getCourseProgress(slug),
-        reviewService.getCourseReviews(slug).catch(() => ({ data: { reviews: [], averageRating: 0, reviewCount: 0, distribution: [] } }))
+        reviewService.getCourseReviews(slug).catch(() => ({ data: { reviews: [], averageRating: 0, reviewCount: 0, distribution: [] } })),
+        courseService.checkPendingReport(slug).catch(() => ({ hasPending: false }))
       ]);
+      setHasPendingReport(reportCheck?.hasPending || false);
       
       // Lấy tất cả Module và Lesson (kể cả ẩn hoặc xóa mềm) cho người dùng đã mua khóa học
       const activeModules = courseData.modules || [];
@@ -1491,6 +1496,26 @@ export default function LearningWorkspace() {
 
   if (!course) return null;
 
+  const handleSubmitReport = async (e) => {
+    e.preventDefault();
+    if (!reportReason.trim()) {
+      toast.error("Vui lòng nhập chi tiết lý do báo cáo.");
+      return;
+    }
+    
+    setIsSubmittingReport(true);
+    try {
+      const response = await courseService.submitCourseReport(slug, { reason: reportReason.trim() });
+      toast.success(response.message || "Báo cáo đã được gửi thành công. Quản trị viên sẽ xem xét sớm nhất.");
+      setReportReason("");
+      setHasPendingReport(true);
+    } catch (err) {
+      toast.error(err?.response?.data?.message || err?.response?.data || "Không thể gửi báo cáo.");
+    } finally {
+      setIsSubmittingReport(false);
+    }
+  };
+
   const handlePrevLesson = () => {
     if (activeViewMode === "quiz") {
       setActiveViewMode("video");
@@ -1705,7 +1730,7 @@ export default function LearningWorkspace() {
                         value="overview" 
                         className="h-11 rounded-none px-1 text-sm font-semibold"
                       >
-                        <Info className="size-4" /> Tổng quan
+                        <Info className="size-4" /> Đánh giá
                       </TabsTrigger>
                       <TabsTrigger 
                         value="qa" 
@@ -1718,6 +1743,12 @@ export default function LearningWorkspace() {
                         className="h-11 rounded-none px-1 text-sm font-semibold"
                       >
                         <FileText className="size-4" /> Tài liệu
+                      </TabsTrigger>
+                      <TabsTrigger 
+                        value="report" 
+                        className="h-11 rounded-none px-1 text-sm font-semibold"
+                      >
+                        <AlertTriangle className="size-4" /> Báo cáo
                       </TabsTrigger>
                     </TabsList>
 
@@ -1912,6 +1943,41 @@ export default function LearningWorkspace() {
                             Chương này chưa tải lên tài liệu tham khảo.
                           </div>
                        )}
+                    </TabsContent>
+
+                    <TabsContent value="report" className="mt-6 outline-none">
+                      <div className="rounded-xl border border-border bg-card p-6 shadow-sm md:p-8">
+                        <div className="mb-6">
+                          <h3 className="app-section-title flex items-center gap-3 text-error">
+                            <AlertTriangle className="size-5" /> Báo cáo vi phạm
+                          </h3>
+                          <p className="mt-1 text-sm font-medium text-muted-foreground">
+                            Nếu bạn thấy khóa học này có nội dung không phù hợp, vi phạm bản quyền hoặc vấn đề khác, hãy báo cáo cho quản trị viên.
+                          </p>
+                        </div>
+                        <form className="space-y-4" onSubmit={handleSubmitReport}>
+                          <div className="space-y-3">
+                            <label className="block text-sm font-semibold text-foreground mb-2">Chi tiết lý do báo cáo <span className="text-error">*</span></label>
+                            <textarea 
+                              value={reportReason}
+                              onChange={(e) => setReportReason(e.target.value)}
+                              disabled={hasPendingReport}
+                              className="min-h-[100px] w-full resize-y rounded-lg border border-border bg-background p-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:opacity-60"
+                              placeholder={hasPendingReport ? "Bạn đã gửi báo cáo cho khóa học này. Quản trị viên đang xem xét." : "Cung cấp thêm chi tiết để giúp quản trị viên hiểu rõ hơn về vấn đề..."}
+                            />
+                          </div>
+                          <div className="flex justify-end pt-2">
+                            <Button 
+                              type="submit" 
+                              disabled={isSubmittingReport || (!reportReason.trim() && !hasPendingReport) || hasPendingReport}
+                              className={`h-10 gap-2 rounded-lg text-white shadow-sm font-semibold px-6 ${hasPendingReport ? "bg-muted-foreground opacity-60" : "bg-error hover:bg-error/90"}`}
+                            >
+                              {isSubmittingReport ? <Loader2 className="size-4 animate-spin" /> : hasPendingReport ? <CheckCircle2 className="size-4" /> : <Send className="size-4" />} 
+                              {hasPendingReport ? "Đã gửi báo cáo" : "Gửi báo cáo"}
+                            </Button>
+                          </div>
+                        </form>
+                      </div>
                     </TabsContent>
                   </Tabs>
                 </>
