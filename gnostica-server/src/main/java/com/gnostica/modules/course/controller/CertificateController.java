@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 @RestController
 @RequestMapping("/api/certificates")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class CertificateController {
 
     private final EnrollmentRepository enrollmentRepository;

@@ -11,7 +11,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/comments")
-@CrossOrigin(origins = "*", maxAge = 3600)
 public class CommentController {
 
     @Autowired

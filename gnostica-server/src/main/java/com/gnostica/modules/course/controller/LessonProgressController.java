@@ -17,7 +17,6 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/progress")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class LessonProgressController {
 
     private final LessonProgressService lessonProgressService;
@@ -29,7 +28,7 @@ public class LessonProgressController {
             Authentication authentication
     ) {
         if (authentication == null || !authentication.isAuthenticated()) {
-            return ResponseEntity.status(401).body(Map.of("error", "Vui lòng đăng nhập để xem tiến độ học tập"));
+            return ResponseEntity.status(401).body(Map.of("error", "Vui lÃ²ng Ä‘Äƒng nháº­p Ä‘á»ƒ xem tiáº¿n Ä‘á»™ há»c táº­p"));
         }
         String email = authentication.getName();
         return ResponseEntity.ok(lessonProgressService.getCourseProgressBySlug(slug, email));
@@ -42,12 +41,12 @@ public class LessonProgressController {
             Authentication authentication
     ) {
         if (authentication == null || !authentication.isAuthenticated()) {
-            return ResponseEntity.status(401).body(Map.of("error", "Vui lòng đăng nhập để lưu tiến độ học tập"));
+            return ResponseEntity.status(401).body(Map.of("error", "Vui lÃ²ng Ä‘Äƒng nháº­p Ä‘á»ƒ lÆ°u tiáº¿n Ä‘á»™ há»c táº­p"));
         }
         String email = authentication.getName();
         try {
             lessonProgressService.updateLastWatchedTime(lessonId, email, time);
-            return ResponseEntity.ok(Map.of("message", "Đã cập nhật thời gian xem"));
+            return ResponseEntity.ok(Map.of("message", "ÄÃ£ cáº­p nháº­t thá»i gian xem"));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
@@ -59,18 +58,18 @@ public class LessonProgressController {
             Authentication authentication
     ) {
         if (authentication == null || !authentication.isAuthenticated()) {
-            return ResponseEntity.status(401).body(Map.of("error", "Vui lòng đăng nhập để lưu tiến độ học tập"));
+            return ResponseEntity.status(401).body(Map.of("error", "Vui lÃ²ng Ä‘Äƒng nháº­p Ä‘á»ƒ lÆ°u tiáº¿n Ä‘á»™ há»c táº­p"));
         }
         String email = authentication.getName();
         try {
             lessonProgressService.markLessonAsCompleted(lessonId, email);
-            return ResponseEntity.ok(Map.of("message", "Đã đánh dấu hoàn thành bài học"));
+            return ResponseEntity.ok(Map.of("message", "ÄÃ£ Ä‘Ã¡nh dáº¥u hoÃ n thÃ nh bÃ i há»c"));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 
-    // ── Endpoint Mới: Submit & Reset Quiz Results ──
+    // â”€â”€ Endpoint Má»›i: Submit & Reset Quiz Results â”€â”€
     @PostMapping("/quiz/{quizId}/submit")
     public ResponseEntity<?> submitQuizResult(
             @PathVariable Integer quizId,
@@ -78,12 +77,12 @@ public class LessonProgressController {
             Authentication authentication
     ) {
         if (authentication == null || !authentication.isAuthenticated()) {
-            return ResponseEntity.status(401).body(Map.of("error", "Vui lòng đăng nhập để lưu điểm bài tập"));
+            return ResponseEntity.status(401).body(Map.of("error", "Vui lÃ²ng Ä‘Äƒng nháº­p Ä‘á»ƒ lÆ°u Ä‘iá»ƒm bÃ i táº­p"));
         }
         String email = authentication.getName();
         try {
             quizResultService.submitQuizResult(quizId, email, req);
-            return ResponseEntity.ok(Map.of("message", "Đã lưu kết quả bài tập"));
+            return ResponseEntity.ok(Map.of("message", "ÄÃ£ lÆ°u káº¿t quáº£ bÃ i táº­p"));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
@@ -95,12 +94,12 @@ public class LessonProgressController {
             Authentication authentication
     ) {
         if (authentication == null || !authentication.isAuthenticated()) {
-            return ResponseEntity.status(401).body(Map.of("error", "Vui lòng đăng nhập để thực hiện"));
+            return ResponseEntity.status(401).body(Map.of("error", "Vui lÃ²ng Ä‘Äƒng nháº­p Ä‘á»ƒ thá»±c hiá»‡n"));
         }
         String email = authentication.getName();
         try {
             quizResultService.resetQuizResult(quizId, email);
-            return ResponseEntity.ok(Map.of("message", "Đã đặt lại bài tập (cho phép làm lại)"));
+            return ResponseEntity.ok(Map.of("message", "ÄÃ£ Ä‘áº·t láº¡i bÃ i táº­p (cho phÃ©p lÃ m láº¡i)"));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }

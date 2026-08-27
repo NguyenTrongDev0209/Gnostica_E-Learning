@@ -24,7 +24,6 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/categories")
-@CrossOrigin(origins = "*") // Hoặc cấu hình domain cụ thể của frontend
 public class CategoryController {
 
     @Autowired

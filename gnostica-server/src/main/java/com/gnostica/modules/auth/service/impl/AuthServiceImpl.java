@@ -12,6 +12,7 @@ import com.gnostica.modules.auth.dto.request.RegisterRequest;
 import com.gnostica.modules.auth.dto.response.LoginResponse;
 import com.gnostica.modules.auth.service.AuthService;
 import com.gnostica.modules.auth.service.OtpService;
+import com.gnostica.modules.auth.service.RateLimitingService;
 import com.gnostica.modules.integration.service.MailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -46,6 +47,7 @@ public class AuthServiceImpl implements AuthService {
     private final OtpService otpService;
     private final AuthenticationManager authenticationManager;
     private final JwtProvider tokenProvider;
+    private final RateLimitingService rateLimitingService;
     private final ApplicationEventPublisher eventPublisher;
     private final ObjectMapper objectMapper;
     private final com.gnostica.core.repository.CategoryRepository categoryRepository;
@@ -102,6 +104,11 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public LoginResponse login(LoginRequest request) {
+        String loginKey = "login:" + request.getEmail();
+        if (rateLimitingService.isBlocked("blocked:" + loginKey)) {
+            throw new RuntimeException("Tài khoản của bạn đã bị tạm khóa chức năng đăng nhập do nhập sai mật khẩu quá 5 lần. Vui lòng thử lại sau 15 phút.");
+        }
+
         Account account = accountRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("Tai khoan khong ton tai."));
 
@@ -113,8 +120,20 @@ public class AuthServiceImpl implements AuthService {
             throw new RuntimeException("Tai khoan cua ban da bi khoa.");
         }
 
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
+        Authentication authentication;
+        try {
+            authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
+        } catch (org.springframework.security.core.AuthenticationException e) {
+            int remaining = rateLimitingService.recordFailedAttempt(loginKey, 5, java.time.Duration.ofMinutes(15));
+            if (remaining > 0) {
+                throw new RuntimeException("Mật khẩu không chính xác. Bạn còn " + remaining + " lần thử trước khi bị khóa 15 phút.");
+            } else {
+                throw new RuntimeException("Tài khoản của bạn đã bị tạm khóa chức năng đăng nhập do nhập sai mật khẩu quá 5 lần. Vui lòng thử lại sau 15 phút.");
+            }
+        }
+        
+        rateLimitingService.clearAttempts(loginKey);
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String token = tokenProvider.generateToken(authentication);
@@ -187,6 +206,11 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public void resendVerificationEmail(String email) {
+        String cooldownKey = "cooldown:otp:" + email;
+        if (rateLimitingService.isBlocked(cooldownKey)) {
+            throw new RuntimeException("Vui lòng đợi 3 phút trước khi yêu cầu mã xác thực mới.");
+        }
+
         Account account = accountRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Khong tim thay tai khoan."));
 
@@ -195,6 +219,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         String otp = otpService.generateAndStore(VERIFY_PURPOSE, email, VERIFY_OTP_TTL);
+        rateLimitingService.block(cooldownKey, java.time.Duration.ofMinutes(3));
 
         try {
             mailService.sendVerificationEmail(email, otp);
@@ -211,10 +236,16 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public void forgotPassword(String email) {
+        String cooldownKey = "cooldown:otp:" + email;
+        if (rateLimitingService.isBlocked(cooldownKey)) {
+            throw new RuntimeException("Vui lòng đợi 3 phút trước khi yêu cầu mã xác thực mới.");
+        }
+
         accountRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Khong tim thay tai khoan voi email nay."));
 
         String otp = otpService.generateAndStore(RESET_PASSWORD_PURPOSE, email, RESET_PASSWORD_OTP_TTL);
+        rateLimitingService.block(cooldownKey, java.time.Duration.ofMinutes(3));
 
         try {
             mailService.sendResetPasswordEmail(email, otp);
@@ -426,13 +457,25 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private void validateOtp(String purpose, String email, String code) {
+        String otpKey = "otp:" + email;
+        if (rateLimitingService.isBlocked("blocked:" + otpKey)) {
+            throw new RuntimeException("Tài khoản của bạn đã bị tạm khóa chức năng xác thực do nhập sai mã OTP quá 5 lần. Vui lòng thử lại sau 15 phút.");
+        }
+
         if (!otpService.exists(purpose, email)) {
             throw new RuntimeException("Ma xac thuc da het han.");
         }
 
         if (!otpService.matches(purpose, email, code)) {
-            throw new RuntimeException("Ma xac thuc khong dung.");
+            int remaining = rateLimitingService.recordFailedAttempt(otpKey, 5, java.time.Duration.ofMinutes(15));
+            if (remaining > 0) {
+                throw new RuntimeException("Mã xác thực không chính xác. Bạn còn " + remaining + " lần thử trước khi bị khóa 15 phút.");
+            } else {
+                throw new RuntimeException("Tài khoản của bạn đã bị tạm khóa chức năng xác thực do nhập sai mã OTP quá 5 lần. Vui lòng thử lại sau 15 phút.");
+            }
         }
+        
+        rateLimitingService.clearAttempts(otpKey);
     }
 
     private void publishLoginSuccessLog(Account account) {

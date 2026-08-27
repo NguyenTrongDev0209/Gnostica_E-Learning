@@ -20,7 +20,6 @@ import com.gnostica.modules.dashboard.dto.response.TopCourseDTO;
 
 @RestController
 @RequestMapping("/api/dashboard")
-@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 public class DashboardController {
 

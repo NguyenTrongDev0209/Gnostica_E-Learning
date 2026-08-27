@@ -16,10 +16,12 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+
 @RestController
 @RequestMapping("/api/upload")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*") // Adjust based on env
+@PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
 public class UploadController {
 
     private final CloudinaryService cloudinaryService;
@@ -29,6 +31,13 @@ public class UploadController {
 
     @PostMapping("/image")
     public ResponseEntity<?> uploadImage(@RequestParam("file") MultipartFile file) {
+        if (file.getSize() > 5 * 1024 * 1024) {
+            return ResponseEntity.badRequest().body(Map.of("message", "File size exceeds 5MB limit"));
+        }
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Only image files are allowed"));
+        }
         try {
             String url = cloudinaryService.uploadImage(file);
             Map<String, String> response = new HashMap<>();
@@ -43,6 +52,9 @@ public class UploadController {
 
     @PostMapping("/document")
     public ResponseEntity<?> uploadDocument(@RequestParam("file") MultipartFile file) {
+        if (file.getSize() > 20 * 1024 * 1024) {
+            return ResponseEntity.badRequest().body(Map.of("message", "File size exceeds 20MB limit"));
+        }
         try {
             String fileName = bunnyStorageService.uploadDocument(file);
             String url = ServletUriComponentsBuilder.fromCurrentContextPath()
@@ -121,6 +133,7 @@ public class UploadController {
         }
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/video/{libraryId}/{videoId}")
     public ResponseEntity<?> deleteVideo(@PathVariable String libraryId, @PathVariable String videoId) {
         try {
@@ -134,6 +147,7 @@ public class UploadController {
         }
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/document/{fileName}")
     public ResponseEntity<?> deleteDocument(@PathVariable String fileName) {
         try {

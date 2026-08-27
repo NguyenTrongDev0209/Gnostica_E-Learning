@@ -9,15 +9,16 @@ import com.gnostica.modules.auth.dto.request.RegisterRequest;
 import com.gnostica.modules.auth.dto.request.ResetPasswordRequest;
 import com.gnostica.core.dto.response.ResponseDTO;
 import com.gnostica.core.model.Account;
+import com.gnostica.modules.auth.dto.response.AccountResponse;
 import com.gnostica.modules.auth.service.AuthService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*") 
 public class AuthController {
 
 
@@ -31,7 +32,7 @@ public class AuthController {
             System.out.println("Found user: " + account.getEmail());
             return ResponseEntity.ok(ResponseDTO.builder()
                 .status(200)
-                .data(account)
+                .data(AccountResponse.fromEntity(account))
                 .build());
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(ResponseDTO.builder()
@@ -47,7 +48,7 @@ public class AuthController {
             LoginResponse loginResponse = authService.login(loginRequest);
             return ResponseEntity.ok(ResponseDTO.builder()
                 .status(200)
-                .message("Đăng nhập thành công")
+                .message("ÄÄƒng nháº­p thÃ nh cÃ´ng")
                 .data(loginResponse)
                 .build());
         } catch (Exception e) {
@@ -65,8 +66,8 @@ public class AuthController {
             Account account = authService.register(registerRequest);
             return ResponseEntity.ok(ResponseDTO.builder()
                 .status(200)
-                .message("Đăng ký thành công. Vui lòng kiểm tra email để nhận mã xác thực.")
-                .data(account.getEmail()) // Trả về email để front-end biết gửi mã xác thực cho ai
+                .message("ÄÄƒng kÃ½ thÃ nh cÃ´ng. Vui lÃ²ng kiá»ƒm tra email Ä‘á»ƒ nháº­n mÃ£ xÃ¡c thá»±c.")
+                .data(account.getEmail()) // Tráº£ vá» email Ä‘á»ƒ front-end biáº¿t gá»­i mÃ£ xÃ¡c thá»±c cho ai
                 .build());
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(ResponseDTO.builder()
@@ -83,7 +84,7 @@ public class AuthController {
             authService.verifyOTP(email, code);
             return ResponseEntity.ok(ResponseDTO.builder()
                 .status(200)
-                .message("Xác thực tài khoản thành công!")
+                .message("XÃ¡c thá»±c tÃ i khoáº£n thÃ nh cÃ´ng!")
                 .build());
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(ResponseDTO.builder()
@@ -99,7 +100,7 @@ public class AuthController {
             authService.resendVerificationEmail(email);
             return ResponseEntity.ok(ResponseDTO.builder()
                 .status(200)
-                .message("Mã xác thực mới đã được gửi vào email của bạn.")
+                .message("MÃ£ xÃ¡c thá»±c má»›i Ä‘Ã£ Ä‘Æ°á»£c gá»­i vÃ o email cá»§a báº¡n.")
                 .build());
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(ResponseDTO.builder()
@@ -115,7 +116,7 @@ public class AuthController {
             authService.forgotPassword(email);
             return ResponseEntity.ok(ResponseDTO.builder()
                 .status(200)
-                .message("Mã xác thực đã được gửi vào email của bạn.")
+                .message("MÃ£ xÃ¡c thá»±c Ä‘Ã£ Ä‘Æ°á»£c gá»­i vÃ o email cá»§a báº¡n.")
                 .build());
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(ResponseDTO.builder()
@@ -131,7 +132,7 @@ public class AuthController {
             authService.resetPassword(request.getEmail(), request.getCode(), request.getNewPassword());
             return ResponseEntity.ok(ResponseDTO.builder()
                 .status(200)
-                .message("Đổi mật khẩu thành công! Bạn có thể đăng nhập bằng mật khẩu mới.")
+                .message("Äá»•i máº­t kháº©u thÃ nh cÃ´ng! Báº¡n cÃ³ thá»ƒ Ä‘Äƒng nháº­p báº±ng máº­t kháº©u má»›i.")
                 .build());
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(ResponseDTO.builder()
@@ -142,12 +143,13 @@ public class AuthController {
     }
 
     @PostMapping("/become-instructor")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> becomeInstructor(@RequestParam String email) {
         try {
             authService.becomeInstructor(email);
             return ResponseEntity.ok(ResponseDTO.builder()
                 .status(200)
-                .message("Chúc mừng! Bạn đã trở thành Giảng viên.")
+                .message("ChÃºc má»«ng! Báº¡n Ä‘Ã£ trá»Ÿ thÃ nh Giáº£ng viÃªn.")
                 .build());
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(ResponseDTO.builder()
@@ -158,22 +160,25 @@ public class AuthController {
     }
 
     @GetMapping("/accounts")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getAllAccounts() {
         return ResponseEntity.ok(ResponseDTO.builder()
             .status(200)
-            .data(authService.getAllAccounts())
+            .data(authService.getAllAccounts().stream().map(AccountResponse::fromEntity).toList())
             .build());
     }
 
     @GetMapping("/accounts/role/{role}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getAccountsByRole(@PathVariable String role) {
         return ResponseEntity.ok(ResponseDTO.builder()
             .status(200)
-            .data(authService.getAccountsByRole(role))
+            .data(authService.getAccountsByRole(role).stream().map(AccountResponse::fromEntity).toList())
             .build());
     }
 
     @GetMapping("/accounts/search")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> searchAccounts(
             @RequestParam(required = false) String role,
             @RequestParam(required = false) String search,
@@ -181,17 +186,18 @@ public class AuthController {
             @org.springframework.data.web.PageableDefault(sort = "createdAt", direction = org.springframework.data.domain.Sort.Direction.DESC) org.springframework.data.domain.Pageable pageable) {
         return ResponseEntity.ok(ResponseDTO.builder()
             .status(200)
-            .data(authService.searchAccounts(role, search, statuses, pageable))
+            .data(authService.searchAccounts(role, search, statuses, pageable).map(AccountResponse::fromEntity))
             .build());
     }
 
     @PostMapping("/accounts/{id}/lock")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> lockAccount(@PathVariable java.util.UUID id, @RequestParam String reason) {
         try {
             authService.lockAccount(id, reason);
             return ResponseEntity.ok(ResponseDTO.builder()
                 .status(200)
-                .message("Tài khoản đã được khóa.")
+                .message("TÃ i khoáº£n Ä‘Ã£ Ä‘Æ°á»£c khÃ³a.")
                 .build());
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(ResponseDTO.builder()
@@ -202,12 +208,13 @@ public class AuthController {
     }
 
     @PostMapping("/accounts/{id}/unlock")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> unlockAccount(@PathVariable java.util.UUID id) {
         try {
             authService.unlockAccount(id);
             return ResponseEntity.ok(ResponseDTO.builder()
                 .status(200)
-                .message("Tài khoản đã được mở khóa.")
+                .message("TÃ i khoáº£n Ä‘Ã£ Ä‘Æ°á»£c má»Ÿ khÃ³a.")
                 .build());
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(ResponseDTO.builder()

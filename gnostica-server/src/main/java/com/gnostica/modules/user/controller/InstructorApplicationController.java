@@ -18,7 +18,6 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/instructor-applications")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*") // Adjust if needed
 public class InstructorApplicationController {
 
     private final InstructorApplicationService applicationService;
@@ -30,7 +29,7 @@ public class InstructorApplicationController {
         try {
             String email = authentication.getName();
             applicationService.submitApplication(email, request);
-            return ResponseEntity.ok(Map.of("message", "Gửi đơn đăng ký giảng viên thành công. Vui lòng chờ admin phê duyệt hồ sơ."));
+            return ResponseEntity.ok(Map.of("message", "Gá»­i Ä‘Æ¡n Ä‘Äƒng kÃ½ giáº£ng viÃªn thÃ nh cÃ´ng. Vui lÃ²ng chá» admin phÃª duyá»‡t há»“ sÆ¡."));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
