@@ -17,6 +17,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -32,6 +33,7 @@ public class CourseController {
     private final BunnyTranscriptionService bunnyTranscriptionService;
     private final AiModerationService aiModerationService;
     private final LessonPlaybackService lessonPlaybackService;
+    private final com.gnostica.modules.course.service.CourseReportService courseReportService;
     
     @GetMapping
     public ResponseEntity<?> getPublicCourses(
@@ -170,6 +172,31 @@ public class CourseController {
         }
     }
 
+    @PostMapping("/{slug}/reports")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Map<String, Object>> submitReport(
+            @PathVariable String slug,
+            @Valid @RequestBody com.gnostica.modules.course.dto.request.CourseReportRequest request,
+            Authentication authentication
+    ) {
+        courseReportService.submitReport(authentication.getName(), slug, request);
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Báo cáo đã được gửi thành công"
+        ));
+    }
+
+    @GetMapping("/{slug}/reports/check")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Map<String, Object>> checkPendingReport(
+            @PathVariable String slug,
+            Authentication authentication
+    ) {
+        boolean hasPending = courseReportService.hasPendingReport(authentication.getName(), slug);
+        return ResponseEntity.ok(Map.of(
+                "hasPending", hasPending
+        ));
+    }
 
     @PostMapping("/ai-pre-scan-text")
     public ResponseEntity<String> preScanText(@RequestBody Map<String, String> body) {

@@ -26,6 +26,17 @@ public class QuestionBankController {
     private final QuestionBankService questionBankService;
     private final RedisDraftService redisDraftService;
 
+    /**
+     * Minimum characters of extracted content required per question requested.
+     * Below this threshold, the document is considered too thin to generate quality questions.
+     */
+    private static final int MIN_CHARS_PER_QUESTION = 50;
+
+    /**
+     * Maximum number of questions that can be generated in one request.
+     */
+    private static final int MAX_QUESTION_COUNT = 100;
+
     @PostMapping("/ai-generate")
     public ResponseEntity<?> generateQuestionsWithAi(
             @PathVariable String courseId,
@@ -34,13 +45,64 @@ public class QuestionBankController {
             @RequestParam("level") String level) {
         try {
             log.info("Receiving request to generate {} questions for course {} using AI.", count, courseId);
+
+            // --- Validate count parameter ---
+            if (count < 1) {
+                return ResponseEntity.badRequest()
+                        .body(new ResponseDTO<>(400, "Số câu hỏi phải ít nhất là 1.", null));
+            }
+            if (count > MAX_QUESTION_COUNT) {
+                return ResponseEntity.badRequest()
+                        .body(new ResponseDTO<>(400,
+                            "Số câu hỏi không được vượt quá " + MAX_QUESTION_COUNT + " câu mỗi lần.", null));
+            }
+
+            // --- Extract text (throws IllegalArgumentException for user-facing errors) ---
             String documentText = documentExtractionService.extractText(file);
-            boolean isExcel = file.getOriginalFilename() != null && 
-                             (file.getOriginalFilename().toLowerCase().endsWith(".xlsx") || 
+
+            boolean isExcel = file.getOriginalFilename() != null &&
+                             (file.getOriginalFilename().toLowerCase().endsWith(".xlsx") ||
                               file.getOriginalFilename().toLowerCase().endsWith(".xls"));
-                              
-            List<QuestionDto> questions = deepSeekAiService.generateQuestions(documentText, count, level, isExcel);
+
+            // --- Content-to-question ratio check (only for non-Excel files) ---
+            if (!isExcel) {
+                int contentLength = documentText.replaceAll("[\\s\\p{Punct}]", "").length();
+                int maxRecommendedQuestions = contentLength / MIN_CHARS_PER_QUESTION;
+
+                if (maxRecommendedQuestions < 1) {
+                    return ResponseEntity.badRequest()
+                            .body(new ResponseDTO<>(400,
+                                "Nội dung tài liệu quá ít (" + contentLength + " ký tự có nghĩa) để sinh câu hỏi. " +
+                                "Vui lòng tải lên tài liệu có nhiều nội dung hơn.", null));
+                }
+
+                if (count > maxRecommendedQuestions) {
+                    return ResponseEntity.badRequest()
+                            .body(new ResponseDTO<>(400,
+                                "Tài liệu không đủ nội dung để sinh " + count + " câu hỏi chất lượng. " +
+                                "Với lượng nội dung hiện tại (~" + contentLength + " ký tự), " +
+                                "bạn chỉ nên sinh tối đa " + maxRecommendedQuestions + " câu. " +
+                                "Vui lòng giảm số câu hoặc tải lên tài liệu dài hơn.", null));
+                }
+            }
+
+            // --- Generate questions using AI ---
+            int finalCount = isExcel ? 1000 : count;
+            String finalLevel = isExcel ? "mixed" : level;
+            List<QuestionDto> questions = deepSeekAiService.generateQuestions(documentText, finalCount, finalLevel, isExcel);
+
+            if (questions == null || questions.isEmpty()) {
+                return ResponseEntity.ok()
+                        .body(new ResponseDTO<>(204, "AI đã phân tích nhưng không tìm thấy đủ dữ liệu để tạo câu hỏi. Vui lòng thử lại với tài liệu khác.", List.of()));
+            }
+
+            // Warn if AI generated fewer questions than requested
+            if (!isExcel && questions.size() < count) {
+                log.warn("AI generated {} questions but {} were requested for course {}.", questions.size(), count, courseId);
+            }
+
             return ResponseEntity.ok(questions);
+
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(new ResponseDTO<>(400, e.getMessage(), null));
         } catch (Exception e) {

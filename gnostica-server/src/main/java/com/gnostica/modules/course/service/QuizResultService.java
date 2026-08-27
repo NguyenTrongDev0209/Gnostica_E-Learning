@@ -23,7 +23,7 @@ public class QuizResultService {
 
     @Transactional
     public void submitQuizResult(Integer quizId, String email, QuizSubmitRequest req) {
-        Account account = accountRepository.findByEmail(email)
+        Account account = accountRepository.findByEmail(email.toLowerCase().trim()).or(() -> accountRepository.findByEmail(email))
                 .orElseThrow(() -> new RuntimeException("Tai khoan khong ton tai"));
         Quiz quiz = quizRepository.findById(quizId)
                 .orElseThrow(() -> new RuntimeException("Bai Quiz khong ton tai"));
@@ -62,7 +62,7 @@ public class QuizResultService {
 
     @Transactional
     public void resetQuizResult(Integer quizId, String email) {
-        Account account = accountRepository.findByEmail(email)
+        Account account = accountRepository.findByEmail(email.toLowerCase().trim()).or(() -> accountRepository.findByEmail(email))
                 .orElseThrow(() -> new RuntimeException("Tai khoan khong ton tai"));
         Quiz quiz = quizRepository.findById(quizId)
                 .orElseThrow(() -> new RuntimeException("Bai Quiz khong ton tai"));

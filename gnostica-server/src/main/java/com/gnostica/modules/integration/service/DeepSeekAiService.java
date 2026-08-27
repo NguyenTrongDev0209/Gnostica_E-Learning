@@ -119,12 +119,13 @@ public class DeepSeekAiService {
                 Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
                 String content = (String) message.get("content");
                 
-                // Clean the content if AI includes markdown block
-                if (content.startsWith("```json")) {
-                    content = content.replaceFirst("```json", "");
-                }
-                if (content.endsWith("```")) {
-                    content = content.substring(0, content.lastIndexOf("```"));
+                // Extract JSON array from the response content to ignore any leading/trailing conversational text or markdown
+                int startIndex = content.indexOf('[');
+                int endIndex = content.lastIndexOf(']');
+                if (startIndex != -1 && endIndex != -1 && endIndex >= startIndex) {
+                    content = content.substring(startIndex, endIndex + 1);
+                } else {
+                    log.warn("No JSON array brackets found in the response. Content: {}", content);
                 }
                 content = content.trim();
                 
@@ -207,11 +208,13 @@ public class DeepSeekAiService {
                 Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message");
                 String content = (String) message.get("content");
 
-                if (content.startsWith("```json")) {
-                    content = content.replaceFirst("```json", "");
-                }
-                if (content.endsWith("```")) {
-                    content = content.substring(0, content.lastIndexOf("```"));
+                // Extract JSON object to ignore conversational text
+                int startIndex = content.indexOf('{');
+                int endIndex = content.lastIndexOf('}');
+                if (startIndex != -1 && endIndex != -1 && endIndex >= startIndex) {
+                    content = content.substring(startIndex, endIndex + 1);
+                } else {
+                    log.warn("No JSON object brackets found in the response. Content: {}", content);
                 }
                 return content.trim();
             }

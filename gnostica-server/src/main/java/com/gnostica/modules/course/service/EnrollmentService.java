@@ -59,7 +59,7 @@ public class EnrollmentService {
                 return enrollments.stream()
                                 .peek(e -> System.out.println(">>> DEBUG [getMyCourses] Evaluating Enrollment ID: "
                                                 + e.getId() + ", Status: " + e.getStatus()))
-                                .filter(e -> e.getStatus() == null || Objects.equals(e.getStatus(), 1))
+                                .filter(e -> e.getStatus() == null || Objects.equals(e.getStatus(), 1) || Objects.equals(e.getStatus(), 2))
                                 .map(e -> {
                                         List<LessonProgress> courseProgress = progressByCourse.getOrDefault(
                                                         e.getCourse().getId(), Collections.emptyList());
@@ -81,11 +81,11 @@ public class EnrollmentService {
                 List<Enrollment> enrollments = enrollmentRepository.findByAccount(account);
 
                 long enrolledCourses = enrollments.stream()
-                                .filter(e -> e.getStatus() == null || Objects.equals(e.getStatus(), 1))
+                                .filter(e -> e.getStatus() == null || Objects.equals(e.getStatus(), 1) || Objects.equals(e.getStatus(), 2))
                                 .count();
 
                 long completedCourses = enrollments.stream()
-                                .filter(e -> e.getStatus() == null || Objects.equals(e.getStatus(), 1))
+                                .filter(e -> e.getStatus() == null || Objects.equals(e.getStatus(), 1) || Objects.equals(e.getStatus(), 2))
                                 .filter(e -> e.getProgressPercent() != null && e.getProgressPercent() == 100)
                                 .count();
 
@@ -379,6 +379,6 @@ public class EnrollmentService {
                 return enrollmentRepository.findByAccount(account).stream()
                                 .anyMatch(e -> e.getCourse() != null &&
                                                 Objects.equals(e.getCourse().getSlug(), courseSlug) &&
-                                                (e.getStatus() == null || Objects.equals(e.getStatus(), 1)));
+                                                (e.getStatus() == null || e.getStatus() == 1 || e.getStatus() == 2));
         }
 }
