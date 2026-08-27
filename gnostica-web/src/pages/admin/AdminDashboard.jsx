@@ -1,10 +1,9 @@
 import React from "react";
-import LineChart from "@/components/common/composite/LineChart";
-
-import { AreaChart, Area, CartesianGrid, XAxis, YAxis, BarChart, Bar, ComposedChart, Line, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { AreaChart, Area, CartesianGrid, XAxis, YAxis, BarChart, Bar, ComposedChart, LineChart, Line, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/common/micro/AppChart";
 import { Link } from "react-router-dom";
 import DataTable from "@/components/common/composite/DataTable";
+import { ChartDateFilters } from "@/components/common/composite/DataFilter";
 
 import { AppButton } from "@/components/common/micro/AppButton";
 import AppSelect from "@/components/common/micro/AppSelect";
@@ -16,26 +15,6 @@ import AppCard, { AppCardContent, AppCardHeader, AppCardTitle, AppCardDescriptio
 import AppBadge from "@/components/common/micro/AppBadge";
 import AppProgress from "@/components/common/micro/AppProgress";
 import dashboardService from "@/services/admin/dashboardService";
-
-function ChartMonthsFilter({ defaultMonths = 6, onChange }) {
-    const [months, setMonths] = React.useState(defaultMonths.toString());
-    return (
-        <AppSelect 
-            value={months} 
-            onValueChange={(val) => {
-                setMonths(val);
-                onChange?.(parseInt(val));
-            }}
-            options={[
-                { label: "3 tháng qua", value: "3" },
-                { label: "6 tháng qua", value: "6" },
-                { label: "9 tháng qua", value: "9" },
-                { label: "12 tháng qua", value: "12" },
-            ]}
-            className="!h-9 w-[140px] bg-card border border-border text-sm font-medium rounded-lg shadow-sm"
-        />
-    );
-}
 
 export default function AdminDashboard() {
   const {
@@ -175,7 +154,11 @@ function RevenueCharts({ revenueData, stats, onFilterChange }) {
     );
 
     const headerExtra = (
-        <ChartMonthsFilter onChange={onFilterChange} defaultMonths={6} />
+        <ChartDateFilters
+            onDateChange={(type, value) => {}}
+            onPresetChange={(preset) => {}}
+            defaultPreset="this-year"
+        />
     );
 
     const formatYAxis = (value) => `${(value / 1000000).toFixed(0)}M`;
@@ -251,7 +234,11 @@ function InstructorRevenueChart({ revenueData, stats, onFilterChange }) {
     );
 
     const headerExtra = (
-        <ChartMonthsFilter onChange={onFilterChange} defaultMonths={6} />
+        <ChartDateFilters
+            onDateChange={(type, value) => {}}
+            onPresetChange={(preset) => {}}
+            defaultPreset="this-year"
+        />
     );
 
     const formatYAxis = (value) => `${(value / 1000000).toFixed(0)}M`;
@@ -486,7 +473,11 @@ function MemberGrowthChart({ data, stats, className = "", onFilterChange }) {
     );
 
     const headerExtra = (
-        <ChartMonthsFilter onChange={onFilterChange} defaultMonths={6} />
+        <ChartDateFilters
+            onDateChange={(type, value) => {}}
+            onPresetChange={(preset) => {}}
+            defaultPreset="this-year"
+        />
     );
 
     // Tự động sinh dữ liệu ảo cho giảng viên và tổng nếu chưa có từ API
@@ -759,7 +750,11 @@ function ViolatingUsersChart({ data, onFilterChange }) {
                         </div>
                     </div>
                     <div className="flex flex-wrap items-center gap-3">
-                        <ChartMonthsFilter onChange={onFilterChange} defaultMonths={6} />
+                        <ChartDateFilters
+                            onDateChange={(type, value) => {}}
+                            onPresetChange={(preset) => {}}
+                            defaultPreset="this-year"
+                        />
                     </div>
                 </div>
             </AppCardHeader>
@@ -967,7 +962,11 @@ function UserRatingsChart({ data, onFilterChange }) {
                         </div>
                     </div>
                     <div className="flex flex-wrap items-center gap-3">
-                        <ChartMonthsFilter onChange={onFilterChange} defaultMonths={6} />
+                        <ChartDateFilters
+                            onDateChange={(type, value) => {}}
+                            onPresetChange={(preset) => {}}
+                            defaultPreset="this-year"
+                        />
                     </div>
                 </div>
             </AppCardHeader>

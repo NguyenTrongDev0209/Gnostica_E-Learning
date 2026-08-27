@@ -151,25 +151,24 @@ public class DashboardServiceImpl implements DashboardService {
 
     @Override
     public List<MemberGrowthDTO> getMemberGrowthData(Integer months) {
-        int limit = (months != null && months > 0 && months <= 12) ? months : 12;
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime startDate = now.minusMonths(limit - 1).withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0).withNano(0);
+        int currentYear = now.getYear();
+        LocalDateTime startDate = LocalDateTime.of(currentYear, 1, 1, 0, 0, 0);
 
         List<Account> accounts = accountRepository.findAllByCreatedAtAfter(startDate);
         List<MemberGrowthDTO> growthData = new ArrayList<>();
 
-        for (int i = limit - 1; i >= 0; i--) {
-            LocalDateTime monthDate = now.minusMonths(i);
-            growthData.add(new MemberGrowthDTO("T" + monthDate.getMonthValue(), 0L, 0L));
+        for (int i = 1; i <= 12; i++) {
+            growthData.add(new MemberGrowthDTO("T" + i, 0L, 0L));
         }
 
         for (Account acc : accounts) {
             if (acc.getCreatedAt() == null || acc.getRole() == null)
                 continue;
             LocalDateTime createdAt = acc.getCreatedAt();
-            int monthsBetween = (now.getYear() - createdAt.getYear()) * 12 + now.getMonthValue() - createdAt.getMonthValue();
-            int monthIdx = limit - 1 - monthsBetween;
-            if (monthIdx < 0 || monthIdx >= limit) continue;
+            if (createdAt.getYear() != currentYear) continue;
+            int monthIdx = createdAt.getMonthValue() - 1;
+            if (monthIdx < 0 || monthIdx >= 12) continue;
             
             String roleName = acc.getRole().getName();
             MemberGrowthDTO targetMonth = growthData.get(monthIdx);
@@ -184,15 +183,14 @@ public class DashboardServiceImpl implements DashboardService {
 
     @Override
     public List<RevenueMonthDTO> getRevenueData(Integer months) {
-        int limit = (months != null && months > 0 && months <= 12) ? months : 12;
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime startDate = now.minusMonths(limit - 1).withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0).withNano(0);
+        int currentYear = now.getYear();
+        LocalDateTime startDate = LocalDateTime.of(currentYear, 1, 1, 0, 0, 0);
 
         List<RevenueMonthDTO> revenueData = new ArrayList<>();
-        for (int i = limit - 1; i >= 0; i--) {
-            LocalDateTime monthDate = now.minusMonths(i);
+        for (int i = 1; i <= 12; i++) {
             revenueData.add(RevenueMonthDTO.builder()
-                    .month("T" + monthDate.getMonthValue())
+                    .month("T" + i)
                     .revenue(0.0)
                     .instructorRevenue(0.0)
                     .platformRevenue(0.0)
@@ -206,10 +204,9 @@ public class DashboardServiceImpl implements DashboardService {
         for (com.gnostica.core.model.OrderDetail od : orderDetails) {
             if (od.getOrder() == null || od.getOrder().getCreatedAt() == null) continue;
             LocalDateTime createdAt = od.getOrder().getCreatedAt();
-            int monthsBetween = (now.getYear() - createdAt.getYear()) * 12 + now.getMonthValue() - createdAt.getMonthValue();
-            int monthIdx = limit - 1 - monthsBetween;
-            
-            if (monthIdx < 0 || monthIdx >= limit) continue;
+            if (createdAt.getYear() != currentYear) continue;
+            int monthIdx = createdAt.getMonthValue() - 1;
+            if (monthIdx < 0 || monthIdx >= 12) continue;
             RevenueMonthDTO data = revenueData.get(monthIdx);
 
             double rawPrice = od.getPrice() != null ? od.getPrice().doubleValue() : 0.0;
@@ -239,10 +236,9 @@ public class DashboardServiceImpl implements DashboardService {
         for (Payment p : payments) {
             if (p.getCreatedAt() == null) continue;
             LocalDateTime createdAt = p.getCreatedAt();
-            int monthsBetween = (now.getYear() - createdAt.getYear()) * 12 + now.getMonthValue() - createdAt.getMonthValue();
-            int monthIdx = limit - 1 - monthsBetween;
-            
-            if (monthIdx < 0 || monthIdx >= limit) continue;
+            if (createdAt.getYear() != currentYear) continue;
+            int monthIdx = createdAt.getMonthValue() - 1;
+            if (monthIdx < 0 || monthIdx >= 12) continue;
             RevenueMonthDTO data = revenueData.get(monthIdx);
             data.setOrders(data.getOrders() + 1);
 
