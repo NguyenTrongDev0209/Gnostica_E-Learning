@@ -3,6 +3,7 @@ package com.gnostica.modules.integration.service;
 import com.gnostica.modules.integration.dto.request.AiChatRequest;
 
 import com.gnostica.modules.integration.dto.response.AiChatResponse;
+import com.gnostica.core.model.Category;
 import com.gnostica.core.model.Course;
 import com.gnostica.core.model.Topic;
 import com.gnostica.core.model.Thread;
@@ -13,8 +14,10 @@ import com.gnostica.core.repository.CourseRepository;
 import com.gnostica.core.repository.TopicRepository;
 import com.gnostica.core.repository.ThreadRepository;
 import com.gnostica.core.repository.AccountRepository;
+import com.gnostica.core.repository.CategoryRepository;
 import com.gnostica.core.repository.EnrollmentRepository;
 import com.gnostica.core.repository.OrderRepository;
+import com.gnostica.core.repository.ReviewRepository;
 import com.gnostica.modules.integration.model.mongo.ChatSession;
 import com.gnostica.modules.integration.repository.mongo.ChatSessionRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -41,11 +44,13 @@ public class AiService {
     private final RestTemplate restTemplate;
     private final ThreadRepository threadRepository;
     private final TopicRepository topicRepository;
+    private final CategoryRepository categoryRepository;
     private final CourseRepository courseRepository;
     private final ChatSessionRepository chatSessionRepository;
     private final AccountRepository accountRepository;
     private final EnrollmentRepository enrollmentRepository;
     private final OrderRepository orderRepository;
+    private final ReviewRepository reviewRepository;
     private final SupportTicketService supportTicketService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -136,6 +141,12 @@ public class AiService {
                     sb.append(String.format("[[CARD:forum|%s|%s|%d|%s|%s|none]]\n", slug, title, t.getViewCount(), author, category));
                 }
                 faqResponse = new AiChatResponse(sb.toString(), "assistant");
+                isFaq = true;
+            } else if ("Các khóa học nổi tiếng".equalsIgnoreCase(trimmedMsg) || "Khóa học nổi tiếng".equalsIgnoreCase(trimmedMsg) || "Các khóa học nổi bật".equalsIgnoreCase(trimmedMsg) || "Khóa học nổi bật".equalsIgnoreCase(trimmedMsg)) {
+                faqResponse = new AiChatResponse(getPopularCoursesByTopCategories(), "assistant");
+                isFaq = true;
+            } else if ("Khóa học xem nhiều nhất".equalsIgnoreCase(trimmedMsg) || "Các khóa học xem nhiều nhất".equalsIgnoreCase(trimmedMsg) || "Khóa học nhiều học viên nhất".equalsIgnoreCase(trimmedMsg)) {
+                faqResponse = new AiChatResponse(getMostEnrolledCourses(), "assistant");
                 isFaq = true;
             } else if ("Tìm kiếm khóa học Java".equalsIgnoreCase(trimmedMsg)) {
                 List<Course> searchedCourses = courseRepository.findCoursesByCategoryAndPrice("Java", null, PageRequest.of(0, 5));
@@ -374,6 +385,22 @@ public class AiService {
                     List<Course> searchedCourses = courseRepository.findCoursesByCategoryAndPrice(courseCategory, maxPrice, PageRequest.of(0, 5));
                     return buildCourseResponse(searchedCourses);
 
+                case "get_popular_courses_by_top_categories":
+                    return getPopularCoursesByTopCategories();
+
+                case "get_popular_courses_by_category":
+                    Map<String, Object> popCatArgs = objectMapper.readValue(arguments, Map.class);
+                    String popCategoryName = (String) popCatArgs.get("categoryName");
+                    return getPopularCoursesByCategory(popCategoryName);
+
+                case "get_most_enrolled_courses":
+                    return getMostEnrolledCourses();
+
+                case "get_most_enrolled_courses_by_category":
+                    Map<String, Object> enrolledCatArgs = objectMapper.readValue(arguments, Map.class);
+                    String enrolledCategoryName = (String) enrolledCatArgs.get("categoryName");
+                    return getMostEnrolledCoursesByCategory(enrolledCategoryName);
+
                 // =====================================================================
                 // TOOLS HỖ TRỢ KHÁCH HÀNG
                 // =====================================================================
@@ -595,7 +622,7 @@ public class AiService {
     private List<Map<String, Object>> getAiTools(String accountId) {
         List<Map<String, Object>> tools = new ArrayList<>(Arrays.asList(
             // --- Tools công khai (không cần đăng nhập) ---
-            createTool("get_top_liked_threads", "Lấy top 5 bài viết có nhiều lượt thích (like) nhất trong diễn đàn.", Collections.emptyMap()),
+            createTool("get_top_liked_threads", "Lấy top 5 BÀI VIẾT DIỄN ĐÀN (Forum Threads) có nhiều tương tác nhất. CHỈ DÙNG KHI HỎI VỀ BÀI VIẾT DIỄN ĐÀN, KHÔNG DÙNG CHO KHÓA HỌC.", Collections.emptyMap()),
             createTool("get_top_contributors", "Lấy thông tin những người dùng đăng bài nhiều nhất hoặc nhận được tổng số like cao nhất.", Collections.emptyMap()),
             createTool("get_forum_categories", "Xem danh sách các chủ đề (categories) của diễn đàn hiện đang có để biết người dùng đang quan tâm điều gì.", Collections.emptyMap()),
             createTool(
@@ -618,6 +645,38 @@ public class AiService {
                         "category", Map.of("type", "string", "description", "Tên danh mục khóa học cần tìm."),
                         "maxPrice", Map.of("type", "number", "description", "Giá tối đa của khóa học.")
                     )
+                )
+            ),
+            createTool(
+                "get_popular_courses_by_top_categories",
+                "Lấy Top 3 chủ đề (danh mục) có nhiều khóa học nhất, và trong từng chủ đề lấy Top 3 khóa học nổi tiếng/nổi bật có rating cao nhất. Dùng khi người dùng hỏi 'các khóa học nổi tiếng', 'khóa học nổi bật', 'khóa học hot'.",
+                Collections.emptyMap()
+            ),
+            createTool(
+                "get_popular_courses_by_category",
+                "Lấy Top 5 khóa học nổi tiếng/nổi bật có rating cao nhất thuộc một chủ đề cụ thể (như Java, Web, Python,...). Dùng khi người dùng hỏi 'khóa học [Tên chủ đề] nổi tiếng', 'khóa học [Tên chủ đề] nổi bật'.",
+                Map.of(
+                    "type", "object",
+                    "properties", Map.of(
+                        "categoryName", Map.of("type", "string", "description", "Tên của chủ đề / danh mục khóa học cần tìm.")
+                    ),
+                    "required", List.of("categoryName")
+                )
+            ),
+            createTool(
+                "get_most_enrolled_courses",
+                "Lấy Top 5 khóa học xem nhiều nhất / có số lượng học viên tham gia học nhiều nhất toàn hệ thống. Dùng khi người dùng hỏi 'khóa học xem nhiều nhất', 'khóa học nhiều học viên nhất'.",
+                Collections.emptyMap()
+            ),
+            createTool(
+                "get_most_enrolled_courses_by_category",
+                "Lấy Top 5 khóa học xem nhiều nhất / có số lượng học viên tham gia học nhiều nhất thuộc một chủ đề cụ thể. Dùng khi người dùng hỏi 'khóa học [Tên chủ đề] xem nhiều nhất', 'khóa học [Tên chủ đề] nhiều học viên nhất'.",
+                Map.of(
+                    "type", "object",
+                    "properties", Map.of(
+                        "categoryName", Map.of("type", "string", "description", "Tên của chủ đề / danh mục khóa học cần tìm.")
+                    ),
+                    "required", List.of("categoryName")
                 )
             ),
             // --- Tool hỗ trợ khách hàng (yêu cầu đăng nhập) ---
@@ -698,16 +757,28 @@ public class AiService {
 
         prompt.append("\n\n### QUY TẮC BẮT BUỘC:");
         prompt.append("\n1. TUYỆT ĐỐI KHÔNG LẤY DỮ LIỆU GIẢ. Chỉ dùng dữ liệu từ database thông qua tool. Nếu không tìm thấy, báo rõ ràng.");
-        prompt.append("\n2. KHÔNG trả lời bằng danh sách thuần văn bản thô. Khi hiển thị khóa học, bài viết, chuyên mục: PHẢI dùng định dạng Card: `[[CARD:TYPE|id|title|info|author|category|imageUrl]]`.");
-        prompt.append("\n3. KHÔNG trả lời bằng khoảng trắng hoặc tin nhắn trống.");
-        prompt.append("\n4. NẾU kết quả trả về 'DATABASE_EMPTY' hoặc 'DATABASE_ERROR': Thông báo lịch sự, không bịa dữ liệu.");
+        prompt.append("\n2. TUYỆT ĐỐI KHÔNG TỰ VIẾT LẠI KHÓA HỌC THÀNH DẠNG VĂN BẢN (TEXT/BULLET POINTS DẠNG `- **Tên** - Giá...`). BẮT BUỘC PHẢI IN RA CHÍNH XÁC THẺ CARD `[[CARD:course|slug|Tiêu đề|Giá|Tác giả|Danh mục|URL ảnh]]` ĐỂ GIAO DIỆN HIỂN THỊ NÚT CARD CLICK ĐƯỢC.");
+        prompt.append("\n3. NẾU TOOL TRẢ VỀ CÁC THẺ `[[CARD:course|...]]`, BẠN PHẢI GIỮ NGUYÊN VÀ IN TẤT CẢ CÁC THẺ ĐÓ RA TRONG CÂU TRẢ LỜI, KHÔNG ĐƯỢC BỎ BỚT HAY CHUYỂN THÀNH TEXT THƯỜNG.");
+        prompt.append("\n4. KHÔNG trả lời bằng khoảng trắng hoặc tin nhắn trống.");
+        prompt.append("\n5. NẾU kết quả trả về 'DATABASE_EMPTY' hoặc 'DATABASE_ERROR': Thông báo lịch sự, không bịa dữ liệu.");
+        prompt.append("\n6. TUYỆT ĐỐI KHÔNG DÙNG CÁC KÝ TỰ FORMAT MARKDOWN NHƯ '#', '##', '###', '**', '*', '_' TRONG CÂU TRẢ LỜI VĂN BẢN. Chỉ dùng văn bản thuần túy và thẻ Card.");
 
-        prompt.append("\n\n### ĐỊNH DẠNG CARD:");
+        prompt.append("\n\n### ĐỊNH DẠNG CARD (BẮT BUỘC DÙNG DẠNG NÀY ĐỂ CLICK ĐƯỢC KHÓA HỌC):");
         prompt.append("\n- TYPE 'course': `[[CARD:course|slug|Tiêu đề|Giá|Tác giả|Danh mục|URL ảnh]]`");
         prompt.append("\n- TYPE 'forum': `[[CARD:forum|slug|Tiêu đề|Lượt xem|Tác giả|Chuyên mục|none]]`");
         prompt.append("\n- TYPE 'category': `[[CARD:category|id|Tên|Mô tả|Diễn đàn|Gnostica|none]]`");
         prompt.append("\n- TYPE 'contributor': `[[CARD:contributor|id|Tên|Số bài|Tên|Thành viên|none]]`");
         prompt.append("\n- TYPE 'ticket': `[[CARD:ticket|ticketId|subject|Loại|Mức ưu tiên|Ngày]]`");
+
+        prompt.append("\n\n### HỎI VỀ KHÓA HỌC NỔI BẬT / XEM NHIỀU NHẤT:");
+        prompt.append("\n- Khi hỏi 'Khóa học nổi tiếng', 'Khóa học nổi bật': Gọi tool `get_popular_courses_by_top_categories`.");
+        prompt.append("\n- Khi hỏi 'Khóa học nổi tiếng/nổi bật' + 'Chủ đề': Gọi tool `get_popular_courses_by_category` truyền tên chủ đề.");
+        prompt.append("\n- Khi hỏi 'Khóa học xem nhiều nhất', 'Khóa học nhiều học viên nhất': Gọi tool `get_most_enrolled_courses`.");
+        prompt.append("\n- Khi hỏi 'Khóa học xem nhiều nhất' + 'Chủ đề': Gọi tool `get_most_enrolled_courses_by_category` truyền tên chủ đề.");
+
+        prompt.append("\n\n### PHÂN BIỆT KHÓA HỌC VÀ BÀI VIẾT DIỄN ĐÀN:");
+        prompt.append("\n- Khi người dùng hỏi về KHÓA HỌC ('Khóa học xem nhiều nhất', 'Khóa học nổi bật', 'Khóa học Java'...): BẮT BUỘC GỌI CÁC TOOL KHÓA HỌC (`get_most_enrolled_courses`, `get_popular_courses_by_top_categories`, `search_courses`). TUYỆT ĐỐI KHÔNG GỌI TOOL BÀI VIẾT DIỄN ĐÀN (`get_top_liked_threads`).");
+        prompt.append("\n- CHỈ gọi tool `get_top_liked_threads` khi người dùng hỏi cụ thể về 'Bài viết diễn đàn', 'Bài viết hot', 'Diễn đàn'.");
 
         prompt.append("\n\n### XỬ LÝ HỖ TRỢ KỸ THUẬT (Customer Support):");
         prompt.append("\nKhi người dùng báo gặp sự cố, lỗi, hoặc vấn đề cần hỗ trợ:");
@@ -734,6 +805,93 @@ public class AiService {
     // =====================================================================
     // HELPERS
     // =====================================================================
+
+    public String getPopularCoursesByTopCategories() {
+        List<Integer> topCategoryIds = courseRepository.findTopCategoryIdsByCourseCount(PageRequest.of(0, 3));
+        if (topCategoryIds == null || topCategoryIds.isEmpty()) {
+            return "DATABASE_EMPTY: Chưa có dữ liệu về các chủ đề khóa học nổi bật.";
+        }
+        StringBuilder sb = new StringBuilder("Dưới đây là Top 3 Chủ đề nổi bật nhất và các khóa học được đánh giá cao nhất:\n\n");
+        for (Integer catId : topCategoryIds) {
+            Category cat = categoryRepository.findById(catId).orElse(null);
+            if (cat == null) continue;
+            sb.append(String.format("📌 Chủ đề: %s\n", cat.getName()));
+            List<Course> topCourses = courseRepository.findTopCoursesByRatingAndCategoryId(cat.getId(), PageRequest.of(0, 3));
+            if (topCourses == null || topCourses.isEmpty()) {
+                sb.append("Chưa có khóa học nào thuộc chủ đề này.\n\n");
+            } else {
+                for (Course c : topCourses) {
+                    sb.append(formatCourseCardWithRating(c));
+                }
+                sb.append("\n");
+            }
+        }
+        return sb.toString();
+    }
+
+    public String getPopularCoursesByCategory(String categoryName) {
+        if (categoryName == null || categoryName.trim().isEmpty()) {
+            return "Lỗi: Tên chủ đề không hợp lệ.";
+        }
+        List<Course> topCourses = courseRepository.findTopCoursesByRatingAndCategoryName(categoryName.trim(), PageRequest.of(0, 5));
+        if (topCourses == null || topCourses.isEmpty()) {
+            return "DATABASE_EMPTY: Không tìm thấy khóa học nổi bật nào thuộc chủ đề '" + categoryName + "'.";
+        }
+        StringBuilder sb = new StringBuilder(String.format("Dưới đây là Top 5 khóa học nổi bật / đánh giá cao nhất thuộc chủ đề '%s':\n\n", categoryName.trim()));
+        for (Course c : topCourses) {
+            sb.append(formatCourseCardWithRating(c));
+        }
+        return sb.toString();
+    }
+
+    public String getMostEnrolledCourses() {
+        List<Course> topCourses = courseRepository.findTopCoursesByEnrollments(PageRequest.of(0, 5));
+        if (topCourses == null || topCourses.isEmpty()) {
+            return "DATABASE_EMPTY: Chưa có dữ liệu về khóa học có nhiều học viên nhất.";
+        }
+        StringBuilder sb = new StringBuilder("Dưới đây là Top 5 khóa học có nhiều học viên tham gia nhất (xem nhiều nhất) toàn hệ thống:\n\n");
+        for (Course c : topCourses) {
+            sb.append(formatCourseCardWithEnrollments(c));
+        }
+        return sb.toString();
+    }
+
+    public String getMostEnrolledCoursesByCategory(String categoryName) {
+        if (categoryName == null || categoryName.trim().isEmpty()) {
+            return "Lỗi: Tên chủ đề không hợp lệ.";
+        }
+        List<Course> topCourses = courseRepository.findTopCoursesByEnrollmentsAndCategoryName(categoryName.trim(), PageRequest.of(0, 5));
+        if (topCourses == null || topCourses.isEmpty()) {
+            return "DATABASE_EMPTY: Không tìm thấy khóa học có nhiều học viên thuộc chủ đề '" + categoryName + "'.";
+        }
+        StringBuilder sb = new StringBuilder(String.format("Dưới đây là Top 5 khóa học có nhiều học viên tham gia nhất (xem nhiều nhất) thuộc chủ đề '%s':\n\n", categoryName.trim()));
+        for (Course c : topCourses) {
+            sb.append(formatCourseCardWithEnrollments(c));
+        }
+        return sb.toString();
+    }
+
+    private String formatCourseCardWithRating(Course c) {
+        String author = (c.getAccount() != null && c.getAccount().getFullName() != null) ? c.getAccount().getFullName() : "Không rõ";
+        String categoryName = (c.getCategory() != null && c.getCategory().getName() != null) ? c.getCategory().getName() : "Không rõ";
+        String title = cleanHtml(c.getTitle() != null ? c.getTitle() : "Không có tiêu đề");
+        Double avgRating = reviewRepository != null ? reviewRepository.getAverageRatingByCourseId(c.getId()) : 0.0;
+        String ratingStr = (avgRating != null && avgRating > 0) ? String.format("⭐ %.1f", avgRating) : "⭐ Mới";
+        String priceStr = String.format("%.0fđ (%s)", c.getPrice(), ratingStr);
+        String thumbnail = (c.getThumbnail() != null && !c.getThumbnail().isEmpty()) ? c.getThumbnail() : "none";
+        return String.format("[[CARD:course|%s|%s|%s|%s|%s|%s]]\n", c.getSlug(), title, priceStr, author, categoryName, thumbnail);
+    }
+
+    private String formatCourseCardWithEnrollments(Course c) {
+        String author = (c.getAccount() != null && c.getAccount().getFullName() != null) ? c.getAccount().getFullName() : "Không rõ";
+        String categoryName = (c.getCategory() != null && c.getCategory().getName() != null) ? c.getCategory().getName() : "Không rõ";
+        String title = cleanHtml(c.getTitle() != null ? c.getTitle() : "Không có tiêu đề");
+        long studentCount = enrollmentRepository != null ? enrollmentRepository.countByCourseId(c.getId()) : 0;
+        String studentStr = String.format("👥 %d học viên", studentCount);
+        String priceStr = String.format("%.0fđ (%s)", c.getPrice(), studentStr);
+        String thumbnail = (c.getThumbnail() != null && !c.getThumbnail().isEmpty()) ? c.getThumbnail() : "none";
+        return String.format("[[CARD:course|%s|%s|%s|%s|%s|%s]]\n", c.getSlug(), title, priceStr, author, categoryName, thumbnail);
+    }
 
     private String cleanHtml(String html) {
         if (html == null) {
