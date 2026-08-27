@@ -212,7 +212,12 @@ public class CouponService implements ApplicationRunner {
         if (isPlaintextCode(coupon)) {
             return coupon.getEncryptedCode();
         }
-        return couponCodeCipher.decrypt(coupon.getAccount().getId(), coupon.getEncryptedCode());
+        try {
+            return couponCodeCipher.decrypt(coupon.getAccount().getId(), coupon.getEncryptedCode());
+        } catch (Exception exception) {
+            log.warn("Could not decrypt coupon {}: {}", coupon.getId(), exception.getMessage());
+            return "[MA_KHONG_HOP_LE]";
+        }
     }
 
     private boolean isPlaintextCode(Coupon coupon) {
@@ -463,11 +468,11 @@ public class CouponService implements ApplicationRunner {
     }
 
     private boolean isAdmin(Account account) {
-        return account.getRole() != null && "ADMIN".equalsIgnoreCase(account.getRole().getName());
+        return account != null && account.getRole() != null && "ADMIN".equalsIgnoreCase(account.getRole().getName());
     }
 
     private boolean isInstructor(Account account) {
-        if (account.getRole() == null || account.getRole().getName() == null) {
+        if (account == null || account.getRole() == null || account.getRole().getName() == null) {
             return false;
         }
         String roleName = account.getRole().getName();

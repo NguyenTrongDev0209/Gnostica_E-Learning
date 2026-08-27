@@ -1,6 +1,5 @@
 import React from "react";
 import LineChart from "@/components/common/composite/LineChart";
-import { ChartDateFilters } from "@/components/common/composite/DataFilter";
 
 import { AreaChart, Area, CartesianGrid, XAxis, YAxis, BarChart, Bar, ComposedChart, Line, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/common/micro/AppChart";
@@ -16,6 +15,27 @@ import { useSystemMetrics } from "@/hooks/system/useSystemMetrics";
 import AppCard, { AppCardContent, AppCardHeader, AppCardTitle, AppCardDescription } from "@/components/common/micro/AppCard";
 import AppBadge from "@/components/common/micro/AppBadge";
 import AppProgress from "@/components/common/micro/AppProgress";
+import dashboardService from "@/services/admin/dashboardService";
+
+function ChartMonthsFilter({ defaultMonths = 6, onChange }) {
+    const [months, setMonths] = React.useState(defaultMonths.toString());
+    return (
+        <AppSelect 
+            value={months} 
+            onValueChange={(val) => {
+                setMonths(val);
+                onChange?.(parseInt(val));
+            }}
+            options={[
+                { label: "3 tháng qua", value: "3" },
+                { label: "6 tháng qua", value: "6" },
+                { label: "9 tháng qua", value: "9" },
+                { label: "12 tháng qua", value: "12" },
+            ]}
+            className="!h-9 w-[140px] bg-card border border-border text-sm font-medium rounded-lg shadow-sm"
+        />
+    );
+}
 
 export default function AdminDashboard() {
   const {
@@ -24,7 +44,15 @@ export default function AdminDashboard() {
     revenueData,
     recentOrders,
     topCourses,
-    isLoading
+    violations,
+    userRatings,
+    isLoading,
+    refresh,
+    fetchStats,
+    fetchRevenue,
+    fetchMemberGrowth,
+    fetchViolations,
+    fetchUserRatings
   } = useDashboard();
 
   if (isLoading) {
@@ -63,7 +91,7 @@ export default function AdminDashboard() {
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-3 shrink-0">
-              <AppButton appVariant="default" className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-bold shadow-sm" size="sm">
+              <AppButton onClick={refresh} appVariant="default" className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-bold shadow-sm" size="sm">
                 <RefreshCw className="w-4 h-4 mr-2" />
                 Đồng bộ
               </AppButton>
@@ -92,8 +120,8 @@ export default function AdminDashboard() {
         </div>
 
         <div className="grid grid-cols-1 gap-6">
-          <RevenueCharts revenueData={revenueData} stats={stats} />
-          <InstructorRevenueChart revenueData={revenueData} stats={stats} />
+          <RevenueCharts revenueData={revenueData} stats={stats} onFilterChange={fetchRevenue} />
+          <InstructorRevenueChart revenueData={revenueData} stats={stats} onFilterChange={fetchRevenue} />
         </div>
       </div>
 
@@ -106,9 +134,9 @@ export default function AdminDashboard() {
               Người dùng
             </h2>
           </div>
-          <MemberGrowthChart data={memberGrowth} stats={stats} className="flex-none mb-6" />
-          <ViolatingUsersChart />
-          <UserRatingsChart />
+          <MemberGrowthChart data={memberGrowth} stats={stats} className="flex-none mb-6" onFilterChange={fetchMemberGrowth} />
+          <ViolatingUsersChart data={violations} onFilterChange={fetchViolations} />
+          <UserRatingsChart data={userRatings} onFilterChange={fetchUserRatings} />
         </div>
         
         <div className="lg:col-span-1 pt-0 lg:pt-11 flex flex-col space-y-6">
@@ -125,7 +153,7 @@ export default function AdminDashboard() {
 }
 
 
-function RevenueCharts({ revenueData, stats }) {
+function RevenueCharts({ revenueData, stats, onFilterChange }) {
     // Tự động tính doanh thu nền tảng và giảng viên nếu chưa có
     const chartData = revenueData?.map(item => {
         const total = item.revenue || 0;
@@ -147,11 +175,7 @@ function RevenueCharts({ revenueData, stats }) {
     );
 
     const headerExtra = (
-        <ChartDateFilters
-            onDateChange={(type, value) => console.log('Date changed:', type, value)}
-            onPresetChange={(preset) => console.log('Preset changed:', preset)}
-            defaultPreset="6-months"
-        />
+        <ChartMonthsFilter onChange={onFilterChange} defaultMonths={6} />
     );
 
     const formatYAxis = (value) => `${(value / 1000000).toFixed(0)}M`;
@@ -208,7 +232,7 @@ function RevenueCharts({ revenueData, stats }) {
     );
 }
 
-function InstructorRevenueChart({ revenueData, stats }) {
+function InstructorRevenueChart({ revenueData, stats, onFilterChange }) {
     const chartData = revenueData?.map(item => {
         const instructorRevenue = item.instructorRevenue || Math.round((item.revenue || 0) * 0.6);
         const withdrawable = item.withdrawable || Math.round(instructorRevenue * 0.8);
@@ -227,11 +251,7 @@ function InstructorRevenueChart({ revenueData, stats }) {
     );
 
     const headerExtra = (
-        <ChartDateFilters
-            onDateChange={(type, value) => console.log('Date changed:', type, value)}
-            onPresetChange={(preset) => console.log('Preset changed:', preset)}
-            defaultPreset="6-months"
-        />
+        <ChartMonthsFilter onChange={onFilterChange} defaultMonths={6} />
     );
 
     const formatYAxis = (value) => `${(value / 1000000).toFixed(0)}M`;
@@ -457,7 +477,7 @@ const memberGrowthConfig = {
     total: { label: "Tổng số", color: "var(--primary)" }
 };
 
-function MemberGrowthChart({ data, stats, className = "" }) {
+function MemberGrowthChart({ data, stats, className = "", onFilterChange }) {
     const subtitle = (
         <>
             <span className="text-sm font-medium text-muted-foreground uppercase tracking-widest">Học viên mới:</span>
@@ -466,11 +486,7 @@ function MemberGrowthChart({ data, stats, className = "" }) {
     );
 
     const headerExtra = (
-        <ChartDateFilters
-            onDateChange={(type, value) => console.log('Date changed:', type, value)}
-            onPresetChange={(preset) => console.log('Preset changed:', preset)}
-            defaultPreset="6-months"
-        />
+        <ChartMonthsFilter onChange={onFilterChange} defaultMonths={6} />
     );
 
     // Tự động sinh dữ liệu ảo cho giảng viên và tổng nếu chưa có từ API
@@ -712,8 +728,8 @@ const violatingUsersConfig = {
     violations: { label: "Người dùng vi phạm", color: "var(--error)" },
 };
 
-function ViolatingUsersChart() {
-    const data = [
+function ViolatingUsersChart({ data, onFilterChange }) {
+    const chartData = data && data.length > 0 ? data : [
         { month: "T1", violations: 12 },
         { month: "T2", violations: 19 },
         { month: "T3", violations: 15 },
@@ -723,7 +739,7 @@ function ViolatingUsersChart() {
         { month: "T7", violations: 18 },
     ];
 
-    const totalViolations = data.reduce((sum, item) => sum + item.violations, 0);
+    const totalViolations = chartData.reduce((sum, item) => sum + item.violations, 0);
 
     const subtitle = (
         <>
@@ -743,17 +759,13 @@ function ViolatingUsersChart() {
                         </div>
                     </div>
                     <div className="flex flex-wrap items-center gap-3">
-                        <ChartDateFilters
-                            onDateChange={(type, value) => console.log('Date changed:', type, value)}
-                            onPresetChange={(preset) => console.log('Preset changed:', preset)}
-                            defaultPreset="6-months"
-                        />
+                        <ChartMonthsFilter onChange={onFilterChange} defaultMonths={6} />
                     </div>
                 </div>
             </AppCardHeader>
             <AppCardContent className="w-full pt-0 flex-1 flex flex-col min-h-0">
                 <ChartContainer config={violatingUsersConfig} className="flex-1 w-full min-h-0 !aspect-auto">
-                    <LineChart data={data} margin={{ top: 20, right: 10, left: 0, bottom: 0 }}>
+                    <LineChart data={chartData} margin={{ top: 20, right: 10, left: 0, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
                         <XAxis 
                             dataKey="month" 
@@ -924,8 +936,8 @@ const userRatingsConfig = {
     total: { label: "Tổng", color: "var(--foreground)" }
 };
 
-function UserRatingsChart() {
-    const data = [
+function UserRatingsChart({ data, onFilterChange }) {
+    const chartData = data && data.length > 0 ? data : [
         { month: "T1", star5: 120, star4: 45, star3: 15, star2: 5, star1: 2, total: 187 },
         { month: "T2", star5: 135, star4: 50, star3: 20, star2: 8, star1: 3, total: 216 },
         { month: "T3", star5: 150, star4: 60, star3: 25, star2: 10, star1: 4, total: 249 },
@@ -935,7 +947,7 @@ function UserRatingsChart() {
         { month: "T7", star5: 300, star4: 120, star3: 50, star2: 25, star1: 12, total: 507 },
     ];
 
-    const totalRatings = data.reduce((sum, item) => sum + item.total, 0);
+    const totalRatings = chartData.reduce((sum, item) => sum + item.total, 0);
 
     const subtitle = (
         <>
@@ -955,17 +967,13 @@ function UserRatingsChart() {
                         </div>
                     </div>
                     <div className="flex flex-wrap items-center gap-3">
-                        <ChartDateFilters
-                            onDateChange={(type, value) => console.log('Date changed:', type, value)}
-                            onPresetChange={(preset) => console.log('Preset changed:', preset)}
-                            defaultPreset="6-months"
-                        />
+                        <ChartMonthsFilter onChange={onFilterChange} defaultMonths={6} />
                     </div>
                 </div>
             </AppCardHeader>
             <AppCardContent className="w-full pt-0 flex-1 flex flex-col min-h-0">
                 <ChartContainer config={userRatingsConfig} className="flex-1 w-full min-h-0 !aspect-auto">
-                    <ComposedChart data={data} margin={{ top: 20, right: 10, left: 0, bottom: 0 }}>
+                    <ComposedChart data={chartData} margin={{ top: 20, right: 10, left: 0, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
                         <XAxis 
                             dataKey="month" 
