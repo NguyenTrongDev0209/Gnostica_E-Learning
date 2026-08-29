@@ -45,6 +45,7 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Integer>
     org.springframework.data.domain.Page<Enrollment> findByAccountIdOrderByCreatedAtDesc(java.util.UUID accountId, org.springframework.data.domain.Pageable pageable);
     
     long countByAccountId(java.util.UUID accountId);
+    long countByCourseId(java.util.UUID courseId);
     long countByProgressPercentEquals(Integer progressPercent);
     long countByProgressPercentLessThan(Integer progressPercent);
     long countByCourseAccountId(java.util.UUID accountId);

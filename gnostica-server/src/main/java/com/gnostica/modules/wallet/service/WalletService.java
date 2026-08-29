@@ -44,6 +44,7 @@ public class WalletService {
     private final PayoutSecurityService payoutSecurityService;
     private final ApplicationEventPublisher eventPublisher;
     private final PayoutSubmissionService payoutSubmissionService;
+    private final BankLookupService bankLookupService;
     private final BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
 
     public Account getCurrentAccount() {
@@ -86,6 +87,9 @@ public class WalletService {
                 .bankBin(activeBank == null || activeBank.getBank() == null ? null : activeBank.getBank().getBin())
                 .bankName(
                         activeBank == null || activeBank.getBank() == null ? null : activeBank.getBank().getShortName())
+                .accountName(activeBank == null ? null : activeBank.getName())
+                .bankLogoUrl(
+                        activeBank == null || activeBank.getBank() == null ? null : activeBank.getBank().getLogoUrl())
                 .build();
     }
 
@@ -218,6 +222,24 @@ public class WalletService {
                 .orElseThrow(() -> new RuntimeException("Ngân hàng không hợp lệ."));
 
         String accountNumber = request.getAccountNumber().trim();
+
+        // Bắt buộc kiểm tra tên tài khoản trước khi lưu (chống bỏ qua bước xác minh)
+        if (request.getName() == null || request.getName().isBlank()) {
+            throw new RuntimeException("Vui lòng kiểm tra tên tài khoản trước khi lưu.");
+        }
+
+        // Xác minh lại tên chủ tài khoản phía server qua BankLookup, lưu tên đã xác minh
+        String verifiedName;
+        try {
+            verifiedName = bankLookupService.lookupAccountName(request.getBin(), accountNumber);
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e.getMessage() != null ? e.getMessage()
+                    : "Không thể xác minh tên tài khoản. Vui lòng thử lại.");
+        }
+        if (verifiedName == null || verifiedName.isBlank()) {
+            throw new RuntimeException("Không thể xác minh tên tài khoản. Vui lòng thử lại.");
+        }
+
         AccountBank accountBank = accountBankRepository
                 .findByAccountAndBankAndAccountNumber(account, bank, accountNumber)
                 .orElseGet(() -> {
@@ -230,6 +252,7 @@ public class WalletService {
 
         // Kích hoạt lại bản ghi cũ (nếu có) thay vì chèn trùng unique key.
         accountBank.setPin(bCryptPasswordEncoder.encode(request.getPin()));
+        accountBank.setName(verifiedName);
         accountBank.setStatus(1);
         accountBank.setDeletedAt(null);
 

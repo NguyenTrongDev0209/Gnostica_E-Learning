@@ -20,4 +20,6 @@ public class WalletOverviewResponse {
     private String accountNumber;
     private String bankBin;
     private String bankName;
+    private String accountName;
+    private String bankLogoUrl;
 }
