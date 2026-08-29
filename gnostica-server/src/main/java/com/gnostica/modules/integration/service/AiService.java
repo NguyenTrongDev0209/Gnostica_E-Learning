@@ -155,7 +155,7 @@ public class AiService {
                     String author = c.getAccount() != null ? c.getAccount().getFullName() : "Không rõ";
                     String categoryName = c.getCategory() != null ? c.getCategory().getName() : "Không rõ";
                     String title = cleanHtml(c.getTitle() != null ? c.getTitle() : "Không có tiêu đề");
-                    String priceStr = String.format("%.0fđ", c.getPrice());
+                    String priceStr = String.format("%.0fđ", c.getPrice() != null ? c.getPrice().doubleValue() : 0.0);
                     String thumbnail = c.getThumbnail() != null && !c.getThumbnail().isEmpty() ? c.getThumbnail() : "none";
                     sb.append(String.format("[[CARD:course|%s|%s|%s|%s|%s|%s]]\n", c.getSlug(), title, priceStr, author, categoryName, thumbnail));
                 }
@@ -535,7 +535,7 @@ public class AiService {
         for (Course c : courses) {
             sb.append(String.format("Khóa học Slug: %s\n", c.getSlug()));
             sb.append(String.format("Tiêu đề: %s\n", c.getTitle()));
-            sb.append(String.format("Giá: %.0f VNĐ (Giảm giá %d%%)\n", c.getPrice(), c.getDiscount()));
+            sb.append(String.format("Giá: %.0f VNĐ (Giảm giá %d%%)\n", c.getPrice() != null ? c.getPrice().doubleValue() : 0.0, c.getDiscount()));
             sb.append(String.format("Tác giả: %s\n", c.getAccount() != null ? c.getAccount().getFullName() : "Không rõ"));
             sb.append(String.format("Danh mục: %s\n", c.getCategory() != null ? c.getCategory().getName() : "Không rõ"));
             sb.append(String.format("Ảnh: %s\n", c.getThumbnail()));
@@ -877,7 +877,7 @@ public class AiService {
         String title = cleanHtml(c.getTitle() != null ? c.getTitle() : "Không có tiêu đề");
         Double avgRating = reviewRepository != null ? reviewRepository.getAverageRatingByCourseId(c.getId()) : 0.0;
         String ratingStr = (avgRating != null && avgRating > 0) ? String.format("⭐ %.1f", avgRating) : "⭐ Mới";
-        String priceStr = String.format("%.0fđ (%s)", c.getPrice(), ratingStr);
+        String priceStr = String.format("%.0fđ (%s)", c.getPrice() != null ? c.getPrice().doubleValue() : 0.0, ratingStr);
         String thumbnail = (c.getThumbnail() != null && !c.getThumbnail().isEmpty()) ? c.getThumbnail() : "none";
         return String.format("[[CARD:course|%s|%s|%s|%s|%s|%s]]\n", c.getSlug(), title, priceStr, author, categoryName, thumbnail);
     }
@@ -888,7 +888,7 @@ public class AiService {
         String title = cleanHtml(c.getTitle() != null ? c.getTitle() : "Không có tiêu đề");
         long studentCount = enrollmentRepository != null ? enrollmentRepository.countByCourseId(c.getId()) : 0;
         String studentStr = String.format("👥 %d học viên", studentCount);
-        String priceStr = String.format("%.0fđ (%s)", c.getPrice(), studentStr);
+        String priceStr = String.format("%.0fđ (%s)", c.getPrice() != null ? c.getPrice().doubleValue() : 0.0, studentStr);
         String thumbnail = (c.getThumbnail() != null && !c.getThumbnail().isEmpty()) ? c.getThumbnail() : "none";
         return String.format("[[CARD:course|%s|%s|%s|%s|%s|%s]]\n", c.getSlug(), title, priceStr, author, categoryName, thumbnail);
     }

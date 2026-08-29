@@ -43,6 +43,12 @@ public class AccountBank {
     private String pin;
 
     /**
+     * Tên chủ tài khoản ngân hàng (xác minh qua BankLookup khi lưu tài khoản).
+     */
+    @Size(max = 255)
+    private String name;
+
+    /**
      * Status: 0: Inactive (Ngừng dùng), 1: Active (Đang sử dụng)
      */
     @NotNull

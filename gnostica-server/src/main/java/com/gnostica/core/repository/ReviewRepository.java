@@ -14,6 +14,9 @@ public interface ReviewRepository extends JpaRepository<Review, Integer> {
     @org.springframework.data.jpa.repository.Query("SELECT COALESCE(AVG(r.rating), 0.0) FROM Review r WHERE r.course.account.email = :instructorEmail AND r.course.deletedAt IS NULL")
     Double getAverageRatingByInstructorEmail(@org.springframework.data.repository.query.Param("instructorEmail") String instructorEmail);
 
+    @org.springframework.data.jpa.repository.Query("SELECT COALESCE(AVG(r.rating), 0.0) FROM Review r WHERE r.course.id = :courseId AND r.deletedAt IS NULL")
+    Double getAverageRatingByCourseId(@org.springframework.data.repository.query.Param("courseId") java.util.UUID courseId);
+
     @org.springframework.data.jpa.repository.Query("SELECT r.rating, COUNT(r) FROM Review r WHERE r.course.account.email = :instructorEmail AND r.course.deletedAt IS NULL GROUP BY r.rating")
     List<Object[]> countRatingsByInstructorEmail(@org.springframework.data.repository.query.Param("instructorEmail") String instructorEmail);
 
