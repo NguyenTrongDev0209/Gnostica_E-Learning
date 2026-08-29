@@ -30,6 +30,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import com.gnostica.core.repository.OrderDetailRepository;
 import com.gnostica.modules.wallet.event.PayoutSubmissionRequestedEvent;
 
 @Service
@@ -41,6 +42,7 @@ public class WalletService {
     private final AccountBankRepository accountBankRepository;
     private final BankRepository bankRepository;
     private final PaymentRepository paymentRepository;
+    private final OrderDetailRepository orderDetailRepository;
     private final PayoutSecurityService payoutSecurityService;
     private final ApplicationEventPublisher eventPublisher;
     private final PayoutSubmissionService payoutSubmissionService;
@@ -71,12 +73,17 @@ public class WalletService {
         LocalDateTime startOfDay = java.time.LocalDate.now().atStartOfDay();
         AccountBank activeBank = accountBankRepository.findByAccountAndStatus(account, 1).orElse(null);
 
+        Double totalRevenueDouble = orderDetailRepository.sumTotalRevenueByAccount(account);
+        Double monthRevenueDouble = orderDetailRepository.sumRevenueByAccountAndDateRange(
+                account, startOfMonth, startOfNextMonth);
+        BigDecimal totalRevenue = totalRevenueDouble != null ? BigDecimal.valueOf(totalRevenueDouble) : BigDecimal.ZERO;
+        BigDecimal currentMonthRevenue = monthRevenueDouble != null ? BigDecimal.valueOf(monthRevenueDouble) : BigDecimal.ZERO;
+
         return WalletOverviewResponse.builder()
                 .accountId(account.getId())
                 .remain(wallet.getRemain())
-                .totalRevenue(walletRepository.sumTotalRevenueByAccount(account))
-                .currentMonthRevenue(walletRepository.sumRevenueByAccountAndCreatedAtBetween(
-                        account, startOfMonth, startOfNextMonth))
+                .totalRevenue(totalRevenue)
+                .currentMonthRevenue(currentMonthRevenue)
                 .pendingRevenue(walletRepository.sumPendingRevenueByAccount(account))
                 .type(wallet.getType())
                 .status(wallet.getStatus())

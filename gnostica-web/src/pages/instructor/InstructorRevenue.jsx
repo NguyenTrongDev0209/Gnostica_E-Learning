@@ -300,18 +300,6 @@ export default function InstructorRevenue() {
 
       {/* Transaction History Section */}
       <div className="space-y-6">
-        <div className="flex items-center justify-between glass p-4 rounded-2xl border border-border shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
-              <Activity className="w-5 h-5" />
-            </div>
-            <div>
-              <h2 className="text-lg font-bold text-foreground tracking-tight">Lịch Sử Rút Tiền</h2>
-              <p className="text-xs font-medium text-muted-foreground">Danh sách các yêu cầu rút tiền từ ví của bạn.</p>
-            </div>
-          </div>
-        </div>
-
         <DataFilter
           searchQuery={searchTerm}
           onSearchChange={setSearchTerm}

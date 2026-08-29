@@ -12,7 +12,9 @@ import com.gnostica.core.repository.BankRepository;
 import com.gnostica.core.repository.PaymentRepository;
 import com.gnostica.core.repository.PayoutRepository;
 import com.gnostica.core.repository.WalletRepository;
+import com.gnostica.core.repository.OrderDetailRepository;
 import com.gnostica.modules.wallet.dto.request.WithdrawRequest;
+import com.gnostica.modules.wallet.dto.response.WalletOverviewResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -39,6 +41,7 @@ class WalletServiceTest {
     @Mock private AccountBankRepository accountBankRepository;
     @Mock private BankRepository bankRepository;
     @Mock private PaymentRepository paymentRepository;
+    @Mock private OrderDetailRepository orderDetailRepository;
     @Mock private PayoutSecurityService payoutSecurityService;
     @Mock private ApplicationEventPublisher eventPublisher;
     @Mock private PayoutSubmissionService payoutSubmissionService;
@@ -148,5 +151,30 @@ class WalletServiceTest {
         org.mockito.ArgumentCaptor<Payout> captor = org.mockito.ArgumentCaptor.forClass(Payout.class);
         verify(payoutRepository).saveAndFlush(captor.capture());
         assertEquals(Integer.valueOf(PayoutStatus.AWAITING_APPROVAL), captor.getValue().getStatus());
+    }
+
+    @Test
+    void testGetMyWalletOverview_returnsRevenueBasedOnCoursePayments() {
+        Account account = new Account();
+        account.setId(java.util.UUID.randomUUID());
+        account.setEmail("test@test.com");
+        account.setStatus(1);
+
+        when(accountRepository.findByEmail("test@test.com")).thenReturn(Optional.of(account));
+        when(walletRepository.sumAvailableRemainByAccount(account)).thenReturn(new BigDecimal("500000"));
+        when(payoutRepository.sumPayoutsByAccount(any(), any())).thenReturn(BigDecimal.ZERO);
+        when(paymentRepository.sumWalletPaymentsByAccount(account)).thenReturn(BigDecimal.ZERO);
+        when(walletRepository.sumPendingRevenueByAccount(account)).thenReturn(BigDecimal.ZERO);
+        when(accountBankRepository.findByAccountAndStatus(any(), eq(1))).thenReturn(Optional.empty());
+
+        when(orderDetailRepository.sumTotalRevenueByAccount(account)).thenReturn(1200000.0);
+        when(orderDetailRepository.sumRevenueByAccountAndDateRange(eq(account), any(), any())).thenReturn(450000.0);
+
+        WalletOverviewResponse overview = walletService.getMyWalletOverview();
+
+        assertNotNull(overview);
+        assertEquals(new BigDecimal("500000"), overview.getRemain());
+        assertEquals(new BigDecimal("1200000.0"), overview.getTotalRevenue());
+        assertEquals(new BigDecimal("450000.0"), overview.getCurrentMonthRevenue());
     }
 }

@@ -22,6 +22,15 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, java.u
     Double sumTotalRevenueByInstructorEmail(
             @org.springframework.data.repository.query.Param("instructorEmail") String instructorEmail);
 
+    @org.springframework.data.jpa.repository.Query("SELECT COALESCE(SUM((od.price * (100 - COALESCE(od.discount, 0)) / 100.0) - COALESCE(od.order.couponPrice, 0.0)), 0.0) FROM OrderDetail od WHERE od.course.account = :account AND od.order.status = 1 AND od.status = 1")
+    Double sumTotalRevenueByAccount(@org.springframework.data.repository.query.Param("account") com.gnostica.core.model.Account account);
+
+    @org.springframework.data.jpa.repository.Query("SELECT COALESCE(SUM((od.price * (100 - COALESCE(od.discount, 0)) / 100.0) - COALESCE(od.order.couponPrice, 0.0)), 0.0) FROM OrderDetail od WHERE od.course.account = :account AND od.order.status = 1 AND od.status = 1 AND od.order.createdAt >= :startDate AND od.order.createdAt < :endDate")
+    Double sumRevenueByAccountAndDateRange(
+            @org.springframework.data.repository.query.Param("account") com.gnostica.core.model.Account account,
+            @org.springframework.data.repository.query.Param("startDate") java.time.LocalDateTime startDate,
+            @org.springframework.data.repository.query.Param("endDate") java.time.LocalDateTime endDate);
+
     @org.springframework.data.jpa.repository.Query("SELECT COALESCE(SUM((od.price * (100 - COALESCE(od.discount, 0)) / 100.0) - COALESCE(od.order.couponPrice, 0.0)), 0.0) FROM OrderDetail od WHERE od.course.id = :courseId AND od.order.status = 1 AND od.status = 1")
     Double sumTotalRevenueByCourseId(@org.springframework.data.repository.query.Param("courseId") java.util.UUID courseId);
 
