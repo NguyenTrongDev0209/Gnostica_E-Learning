@@ -11,6 +11,7 @@ import AppHeader from '../../components/ui/AppHeader';
 import forumCategoryService from '../../services/forum/forumCategoryService';
 import threadService from '../../services/forum/threadService';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from 'expo-image-picker';
 
@@ -18,6 +19,7 @@ const CreatePostScreen = () => {
     const navigation = useNavigation();
     const route = useRoute();
     const { user } = useAuth();
+    const { isDarkMode } = useTheme();
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const [categories, setCategories] = useState([]);
@@ -174,22 +176,27 @@ const CreatePostScreen = () => {
     return (
         <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : undefined}
-            style={{ flex: 1, backgroundColor: '#ffffff' }}
+            style={{ flex: 1, backgroundColor: isDarkMode ? '#0f172a' : '#ffffff' }}
         >
-            <AppHeader title="Đăng bài thảo luận" rightComponent={
-                <TouchableOpacity onPress={handleCreate} disabled={submitting} style={{ paddingHorizontal: 4 }}>
-                    {submitting ? (
-                        <ActivityIndicator size="small" color="#f97316" />
-                    ) : (
-                        <LinearGradient
-                            colors={['#fb923c', '#ea580c']}
-                            style={{ paddingHorizontal: 16, paddingVertical: 7, borderRadius: 20 }}
-                        >
-                            <AppText style={{ color: '#fff', fontWeight: 'bold', fontSize: 14 }}>Đăng</AppText>
-                        </LinearGradient>
-                    )}
-                </TouchableOpacity>
-            } />
+            <AppHeader 
+                title="Đăng bài thảo luận" 
+                className={isDarkMode ? '!bg-slate-800 !border-slate-700' : ''}
+                titleClassName={isDarkMode ? '!text-slate-100' : ''}
+                rightComponent={
+                    <TouchableOpacity onPress={handleCreate} disabled={submitting} style={{ paddingHorizontal: 4 }}>
+                        {submitting ? (
+                            <ActivityIndicator size="small" color="#f97316" />
+                        ) : (
+                            <LinearGradient
+                                colors={['#fb923c', '#ea580c']}
+                                style={{ paddingHorizontal: 16, paddingVertical: 7, borderRadius: 20 }}
+                            >
+                                <AppText style={{ color: '#fff', fontWeight: 'bold', fontSize: 14 }}>Đăng</AppText>
+                            </LinearGradient>
+                        )}
+                    </TouchableOpacity>
+                } 
+            />
 
             <ScrollView style={{ flex: 1, paddingHorizontal: 16 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
 
@@ -209,11 +216,11 @@ const CreatePostScreen = () => {
                                     paddingVertical: 8,
                                     borderRadius: 20,
                                     borderWidth: 1.5,
-                                    borderColor: selectedCategory?.id === cat.id ? '#f97316' : '#e2e8f0',
-                                    backgroundColor: selectedCategory?.id === cat.id ? '#fff7ed' : '#f8fafc',
+                                    borderColor: selectedCategory?.id === cat.id ? '#f97316' : (isDarkMode ? '#334155' : '#e2e8f0'),
+                                    backgroundColor: selectedCategory?.id === cat.id ? (isDarkMode ? '#451a03' : '#fff7ed') : (isDarkMode ? '#1e293b' : '#f8fafc'),
                                 }}
                             >
-                                <AppText style={{ fontWeight: '600', color: selectedCategory?.id === cat.id ? '#ea580c' : '#64748b' }}>{cat.name}</AppText>
+                                <AppText style={{ fontWeight: '600', color: selectedCategory?.id === cat.id ? '#ea580c' : (isDarkMode ? '#94a3b8' : '#64748b') }}>{cat.name}</AppText>
                             </TouchableOpacity>
                         ))}
                     </ScrollView>
@@ -223,26 +230,26 @@ const CreatePostScreen = () => {
                 <TextInput
                     placeholder="Tiêu đề bài viết"
                     placeholderTextColor="#94a3b8"
-                    style={{ fontSize: 22, fontWeight: 'bold', color: '#0f172a', marginBottom: 12, fontFamily: 'Inter_700Bold' }}
+                    style={{ fontSize: 22, fontWeight: 'bold', color: isDarkMode ? '#f8fafc' : '#0f172a', marginBottom: 12, fontFamily: 'Inter_700Bold' }}
                     multiline
                     value={title}
                     onChangeText={setTitle}
                 />
 
-                <View style={{ height: 1, backgroundColor: '#f1f5f9', marginBottom: 12 }} />
+                <View style={{ height: 1, backgroundColor: isDarkMode ? '#334155' : '#f1f5f9', marginBottom: 12 }} />
 
                 {/* Content */}
                 <TextInput
                     placeholder="Bạn muốn chia sẻ điều gì?"
                     placeholderTextColor="#94a3b8"
-                    style={{ fontSize: 15, color: '#334155', minHeight: 160, textAlignVertical: 'top', lineHeight: 22 }}
+                    style={{ fontSize: 15, color: isDarkMode ? '#cbd5e1' : '#334155', minHeight: 160, textAlignVertical: 'top', lineHeight: 22 }}
                     multiline
                     textAlignVertical="top"
                     value={content}
                     onChangeText={setContent}
                 />
 
-                <View style={{ height: 1, backgroundColor: '#f1f5f9', marginVertical: 20 }} />
+                <View style={{ height: 1, backgroundColor: isDarkMode ? '#334155' : '#f1f5f9', marginVertical: 20 }} />
 
                 {/* Image Picker */}
                 <AppText style={{ color: '#94a3b8', fontWeight: 'bold', fontSize: 11, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>Hình ảnh</AppText>
@@ -268,8 +275,8 @@ const CreatePostScreen = () => {
                             onPress={pickImages}
                             style={{
                                 width: 90, height: 90, borderRadius: 12,
-                                borderWidth: 1.5, borderStyle: 'dashed', borderColor: '#cbd5e1',
-                                backgroundColor: '#f8fafc',
+                                borderWidth: 1.5, borderStyle: 'dashed', borderColor: isDarkMode ? '#475569' : '#cbd5e1',
+                                backgroundColor: isDarkMode ? '#1e293b' : '#f8fafc',
                                 alignItems: 'center', justifyContent: 'center',
                             }}
                         >
@@ -279,7 +286,7 @@ const CreatePostScreen = () => {
                     )}
                 </View>
 
-                <View style={{ height: 1, backgroundColor: '#f1f5f9', marginVertical: 20 }} />
+                <View style={{ height: 1, backgroundColor: isDarkMode ? '#334155' : '#f1f5f9', marginVertical: 20 }} />
 
                 {/* Hashtags */}
                 <AppText style={{ color: '#94a3b8', fontWeight: 'bold', fontSize: 11, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>Hashtag</AppText>
@@ -290,7 +297,7 @@ const CreatePostScreen = () => {
                         {hashtags.map(tag => (
                             <View key={tag} style={{
                                 flexDirection: 'row', alignItems: 'center',
-                                backgroundColor: '#fff7ed', borderWidth: 1, borderColor: '#fed7aa',
+                                backgroundColor: isDarkMode ? '#451a03' : '#fff7ed', borderWidth: 1, borderColor: isDarkMode ? '#7c2d12' : '#fed7aa',
                                 borderRadius: 20, paddingHorizontal: 12, paddingVertical: 5,
                             }}>
                                 <AppText style={{ color: '#ea580c', fontWeight: '600', fontSize: 13 }}>#{tag}</AppText>
@@ -306,9 +313,9 @@ const CreatePostScreen = () => {
                 {hashtags.length < 5 && (
                     <View style={{
                         flexDirection: 'row', alignItems: 'center',
-                        borderWidth: 1.5, borderColor: '#e2e8f0',
+                        borderWidth: 1.5, borderColor: isDarkMode ? '#334155' : '#e2e8f0',
                         borderRadius: 14, paddingHorizontal: 12, paddingVertical: 8,
-                        backgroundColor: '#f8fafc',
+                        backgroundColor: isDarkMode ? '#1e293b' : '#f8fafc',
                     }}>
                         <Hash size={16} color="#f97316" style={{ marginRight: 6 }} />
                         <TextInput
@@ -318,7 +325,7 @@ const CreatePostScreen = () => {
                             placeholder="Nhập hashtag rồi nhấn +"
                             placeholderTextColor="#94a3b8"
                             returnKeyType="done"
-                            style={{ flex: 1, fontSize: 14, color: '#334155' }}
+                            style={{ flex: 1, fontSize: 14, color: isDarkMode ? '#f8fafc' : '#334155' }}
                             autoCapitalize="none"
                         />
                         <TouchableOpacity onPress={addHashtag} style={{ marginLeft: 8 }}>

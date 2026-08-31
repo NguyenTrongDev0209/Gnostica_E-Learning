@@ -7,6 +7,7 @@ import { clsx } from 'clsx';
 import CourseCard from './components/CourseCard';
 import courseService from '../../services/course/courseService';
 import AppHeader from '../../components/ui/AppHeader';
+import { useTheme } from '../../context/ThemeContext';
 
 const SORT_OPTIONS = [
     { key: 'popular', label: 'Phổ biến', icon: TrendingUp },
@@ -17,6 +18,7 @@ const SORT_OPTIONS = [
 const CourseCatalogScreen = () => {
     const navigation = useNavigation();
     const route = useRoute();
+    const { isDarkMode } = useTheme();
     const { categoryId, categoryName } = route.params || {};
     const [activeSort, setActiveSort] = useState('popular');
     const [courses, setCourses] = useState([]);
@@ -26,7 +28,6 @@ const CourseCatalogScreen = () => {
         const fetchCourses = async () => {
             setLoading(true);
             try {
-                // sort mapping: popular -> rating? newest -> createdAt? price -> salePrice?
                 let sortBy = 'id';
                 let sortDir = 'desc';
                 if (activeSort === 'newest') {
@@ -49,7 +50,7 @@ const CourseCatalogScreen = () => {
                         title: course.title,
                         thumbnail: course.thumbnail,
                         instructor: course.instructorName || 'Giảng viên',
-                        rating: 4.5, // Giả sử backend chưa có field rating cho từng khóa ở API list
+                        rating: 4.5,
                         category: course.categoryName || categoryName,
                         studentCount: course.students || 0,
                         price: new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(course.salePrice),
@@ -68,12 +69,16 @@ const CourseCatalogScreen = () => {
     }, [categoryId, activeSort]);
 
     return (
-        <View className="flex-1 bg-slate-50">
+        <View className={`flex-1 ${isDarkMode ? 'bg-slate-900' : 'bg-slate-50'}`}>
             {/* Header */}
-            <AppHeader title={categoryName || "Tất cả khóa học"} />
+            <AppHeader 
+                title={categoryName || "Tất cả khóa học"} 
+                className={isDarkMode ? '!bg-slate-800 !border-slate-700' : ''}
+                titleClassName={isDarkMode ? '!text-slate-100' : ''}
+            />
 
             {/* Sort options */}
-            <View className="bg-white border-b border-slate-100 flex-row px-4 py-3 justify-between">
+            <View className={`border-b flex-row px-4 py-3 justify-between ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'}`}>
                 {SORT_OPTIONS.map(opt => {
                     const isActive = activeSort === opt.key;
                     return (
@@ -82,13 +87,13 @@ const CourseCatalogScreen = () => {
                             onPress={() => setActiveSort(opt.key)}
                             className={clsx(
                                 "flex-row items-center gap-1.5 px-3 py-1.5 rounded-lg",
-                                isActive ? "bg-blue-50" : ""
+                                isActive ? (isDarkMode ? "bg-blue-950" : "bg-blue-50") : ""
                             )}
                         >
-                            <opt.icon size={16} color={isActive ? "#2563EB" : "#64748B"} />
+                            <opt.icon size={16} color={isActive ? "#3B82F6" : (isDarkMode ? "#94A3B8" : "#64748B")} />
                             <AppText className={clsx(
                                 "text-sm font-semibold",
-                                isActive ? "text-blue-600" : "text-slate-500"
+                                isActive ? "text-blue-500" : (isDarkMode ? "text-slate-400" : "text-slate-500")
                             )}>{opt.label}</AppText>
                         </TouchableOpacity>
                     );

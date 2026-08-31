@@ -8,6 +8,7 @@ import { enableScreens } from 'react-native-screens';
 import { AuthProvider } from './src/context/AuthContext';
 import { CartProvider } from './src/context/CartContext';
 import { LoadingProvider } from './src/context/LoadingContext';
+import { ThemeProvider } from './src/context/ThemeContext';
 import {
   useFonts,
   Inter_400Regular,
@@ -60,7 +61,6 @@ import GiftResponseScreen from './src/screens/checkout/GiftResponseScreen';
 import RefundScreen from './src/screens/checkout/RefundScreen';
 import RefundRequestScreen from './src/screens/checkout/RefundRequestScreen';
 import AiChatScreen from './src/screens/ai/AiChatScreen';
-// Removed Admin & Instructor Imports
 
 const Stack = createNativeStackNavigator();
 
@@ -109,57 +109,57 @@ export default function App() {
   }
 
   return (
-    <AuthProvider>
-      <CartProvider>
-        <LoadingProvider>
-          <NavigationContainer>
-            <Stack.Navigator screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
-              <Stack.Screen name="Main" component={AppNavigator} options={{ animation: 'none' }} />
-              <Stack.Screen name="Login" component={LoginScreen} />
-              <Stack.Screen name="EmailLogin" component={EmailLoginScreen} />
-              <Stack.Screen name="EmailRegister" component={EmailRegisterScreen} />
-              <Stack.Screen name="CourseDetail" component={CourseDetailScreen} />
-              <Stack.Screen name="Cart" component={CartScreen} />
-              <Stack.Screen name="Learning" component={LearningScreen} />
-              <Stack.Screen name="CourseCatalog" component={CourseCatalogScreen} />
-              <Stack.Screen name="Checkout" component={CheckoutScreen} />
-              <Stack.Screen name="CheckoutResult" component={CheckoutResultScreen} />
-              <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
-              <Stack.Screen name="Orders" component={OrdersScreen} />
-              <Stack.Screen name="Settings" component={SettingsScreen} />
-              <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-              <Stack.Screen name="ConfirmCode" component={ConfirmCodeScreen} />
-              <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
-              <Stack.Screen name="Wishlist" component={WishlistScreen} />
-              <Stack.Screen name="Certificates" component={CertificatesScreen} />
-              <Stack.Screen name="Vouchers" component={VouchersScreen} />
-              <Stack.Screen name="Notifications" component={NotificationsScreen} />
-              <Stack.Screen name="LegalInfo" component={LegalInfoScreen} />
-              <Stack.Screen name="Profile" component={ProfileScreen} />
-              <Stack.Screen name="Support" component={SupportScreen} />
-              <Stack.Screen name="Forum" component={ForumScreen} />
-              <Stack.Screen name="ForumDetail" component={ForumDetailScreen} />
-              <Stack.Screen name="CreatePost" component={CreatePostScreen} />
-              <Stack.Screen name="CategoryBrowse" component={CategoryBrowseScreen} />
-              <Stack.Screen name="InstructorList" component={InstructorListScreen} />
-              <Stack.Screen name="FavoriteInstructors" component={FavoriteInstructorsScreen} />
-              <Stack.Screen name="LearningProgress" component={LearningProgressScreen} />
-              <Stack.Screen name="ApplyInstructor" component={ApplyInstructorScreen} />
-              <Stack.Screen name="MyForumPosts" component={MyForumPostsScreen} />
-              <Stack.Screen name="PaymentQRCode" component={PaymentQRCodeScreen} />
-              <Stack.Screen name="PaymentSuccess" component={PaymentSuccessScreen} />
-              <Stack.Screen name="Search" component={SearchScreen} />
-              <Stack.Screen name="Gift" component={GiftScreen} />
-              <Stack.Screen name="GiftResponse" component={GiftResponseScreen} />
-              <Stack.Screen name="RefundScreen" component={RefundScreen} />
-              <Stack.Screen name="RefundRequestScreen" component={RefundRequestScreen} />
-              <Stack.Screen name="AiChat" component={AiChatScreen} />
-              {/* Removed Admin & Instructor Screens */}
-            </Stack.Navigator>
-          </NavigationContainer>
-        </LoadingProvider>
-      </CartProvider>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <CartProvider>
+          <LoadingProvider>
+            <NavigationContainer>
+              <Stack.Navigator screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
+                <Stack.Screen name="Main" component={AppNavigator} options={{ animation: 'none' }} />
+                <Stack.Screen name="Login" component={LoginScreen} />
+                <Stack.Screen name="EmailLogin" component={EmailLoginScreen} />
+                <Stack.Screen name="EmailRegister" component={EmailRegisterScreen} />
+                <Stack.Screen name="CourseDetail" component={CourseDetailScreen} />
+                <Stack.Screen name="Cart" component={CartScreen} />
+                <Stack.Screen name="Learning" component={LearningScreen} />
+                <Stack.Screen name="CourseCatalog" component={CourseCatalogScreen} />
+                <Stack.Screen name="Checkout" component={CheckoutScreen} />
+                <Stack.Screen name="CheckoutResult" component={CheckoutResultScreen} />
+                <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
+                <Stack.Screen name="Orders" component={OrdersScreen} />
+                <Stack.Screen name="Settings" component={SettingsScreen} />
+                <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+                <Stack.Screen name="ConfirmCode" component={ConfirmCodeScreen} />
+                <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
+                <Stack.Screen name="Wishlist" component={WishlistScreen} />
+                <Stack.Screen name="Certificates" component={CertificatesScreen} />
+                <Stack.Screen name="Vouchers" component={VouchersScreen} />
+                <Stack.Screen name="Notifications" component={NotificationsScreen} />
+                <Stack.Screen name="LegalInfo" component={LegalInfoScreen} />
+                <Stack.Screen name="Profile" component={ProfileScreen} />
+                <Stack.Screen name="Support" component={SupportScreen} />
+                <Stack.Screen name="Forum" component={ForumScreen} />
+                <Stack.Screen name="ForumDetail" component={ForumDetailScreen} />
+                <Stack.Screen name="CreatePost" component={CreatePostScreen} />
+                <Stack.Screen name="CategoryBrowse" component={CategoryBrowseScreen} />
+                <Stack.Screen name="InstructorList" component={InstructorListScreen} />
+                <Stack.Screen name="FavoriteInstructors" component={FavoriteInstructorsScreen} />
+                <Stack.Screen name="LearningProgress" component={LearningProgressScreen} />
+                <Stack.Screen name="ApplyInstructor" component={ApplyInstructorScreen} />
+                <Stack.Screen name="MyForumPosts" component={MyForumPostsScreen} />
+                <Stack.Screen name="PaymentQRCode" component={PaymentQRCodeScreen} />
+                <Stack.Screen name="PaymentSuccess" component={PaymentSuccessScreen} />
+                <Stack.Screen name="Search" component={SearchScreen} />
+                <Stack.Screen name="Gift" component={GiftScreen} />
+                <Stack.Screen name="GiftResponse" component={GiftResponseScreen} />
+                <Stack.Screen name="RefundScreen" component={RefundScreen} />
+                <Stack.Screen name="RefundRequestScreen" component={RefundRequestScreen} />
+                <Stack.Screen name="AiChat" component={AiChatScreen} />
+              </Stack.Navigator>
+            </NavigationContainer>
+          </LoadingProvider>
+        </CartProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
-
