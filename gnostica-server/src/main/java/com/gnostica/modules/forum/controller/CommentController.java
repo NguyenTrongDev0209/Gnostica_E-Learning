@@ -8,6 +8,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import com.gnostica.core.security.AuthenticatedAccountProvider;
 
 @RestController
 @RequestMapping("/api/comments")
@@ -15,6 +16,9 @@ public class CommentController {
 
     @Autowired
     private CommentService commentService;
+
+    @Autowired
+    private AuthenticatedAccountProvider authenticatedAccountProvider;
 
     @GetMapping("/thread/{threadId}")
     public ResponseEntity<?> getComments(@PathVariable Integer threadId) {
@@ -37,7 +41,7 @@ public class CommentController {
     @PostMapping
     public ResponseEntity<?> addComment(@RequestBody Map<String, Object> payload) {
         String content = (String) payload.get("content");
-        String userEmail = (String) payload.get("userEmail");
+        String userEmail = authenticatedAccountProvider.requireCurrentAccount().getEmail();
         Integer parentId = parseInteger(payload.get("parentId"));
 
         String targetType = payload.get("targetType") != null ? payload.get("targetType").toString() : null;
@@ -47,10 +51,6 @@ public class CommentController {
         if ((targetType == null || targetType.isBlank() || targetId == null || targetId.isBlank()) && legacyThreadId != null) {
             targetType = "THREAD";
             targetId = legacyThreadId.toString();
-        }
-
-        if (userEmail == null || userEmail.isBlank()) {
-            return ResponseEntity.status(401).body("Loi: Khong tim thay email nguoi dung!");
         }
 
         if (targetType == null || targetType.isBlank() || targetId == null || targetId.isBlank()) {
@@ -66,8 +66,9 @@ public class CommentController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteComment(@PathVariable Integer id, @RequestParam String userEmail) {
+    public ResponseEntity<?> deleteComment(@PathVariable Integer id) {
         try {
+            String userEmail = authenticatedAccountProvider.requireCurrentAccount().getEmail();
             commentService.deleteComment(id, userEmail);
             return ResponseEntity.ok("Comment deleted successfully");
         } catch (Exception e) {
@@ -78,11 +79,7 @@ public class CommentController {
     @PutMapping("/{id}")
     public ResponseEntity<?> updateComment(@PathVariable Integer id, @RequestBody Map<String, Object> payload) {
         String content = (String) payload.get("content");
-        String userEmail = (String) payload.get("userEmail");
-
-        if (userEmail == null || userEmail.isBlank()) {
-            return ResponseEntity.status(401).body("Loi: Khong tim thay email nguoi dung!");
-        }
+        String userEmail = authenticatedAccountProvider.requireCurrentAccount().getEmail();
 
         try {
             Comment comment = commentService.updateComment(id, content, userEmail);
@@ -95,11 +92,7 @@ public class CommentController {
     @PutMapping("/{id}/status")
     public ResponseEntity<?> updateCommentStatus(@PathVariable Integer id, @RequestBody Map<String, Object> payload) {
         Integer status = parseInteger(payload.get("status"));
-        String userEmail = (String) payload.get("userEmail");
-
-        if (userEmail == null || userEmail.isBlank()) {
-            return ResponseEntity.status(401).body("Loi: Khong tim thay email nguoi dung!");
-        }
+        String userEmail = authenticatedAccountProvider.requireCurrentAccount().getEmail();
 
         if (status == null) {
             return ResponseEntity.badRequest().body("Loi: status la bat buoc!");
