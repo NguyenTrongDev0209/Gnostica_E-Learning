@@ -178,7 +178,7 @@ export default function InstructorRevenue() {
     if (statusFilter.length > 0) {
       const allowedStatuses = [];
       if (statusFilter.includes("success")) allowedStatuses.push(3);
-      if (statusFilter.includes("pending")) allowedStatuses.push(1, 2);
+      if (statusFilter.includes("pending")) allowedStatuses.push(1, 2, 6); // 6 = chờ admin duyệt
       if (statusFilter.includes("failed")) allowedStatuses.push(4, 5);
       matchStatus = allowedStatuses.includes(trx.status);
     }

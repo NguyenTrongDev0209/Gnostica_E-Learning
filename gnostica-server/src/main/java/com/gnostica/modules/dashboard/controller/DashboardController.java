@@ -23,10 +23,12 @@ import com.gnostica.modules.dashboard.dto.response.TopInstructorDTO;
 import com.gnostica.modules.dashboard.dto.response.UserAgeDistributionDTO;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/api/dashboard")
 @RequiredArgsConstructor
+@Slf4j
 public class DashboardController {
 
     private final DashboardService dashboardService;
@@ -53,7 +55,7 @@ public class DashboardController {
         try {
             return ApiResponse.success(dashboardService.getDashboardStats(period));
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Lỗi lấy thống kê dashboard", e);
             return ApiResponse.error("fail");
         }
     }
@@ -71,7 +73,7 @@ public class DashboardController {
             }
             return ApiResponse.success(dashboardService.getMemberGrowthData(months));
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Lỗi lấy tăng trưởng thành viên", e);
             return ApiResponse.error("fail");
         }
     }
@@ -89,7 +91,7 @@ public class DashboardController {
             }
             return ApiResponse.success(dashboardService.getRevenueData(months));
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Lỗi lấy dữ liệu doanh thu", e);
             return ApiResponse.error("fail");
         }
     }
@@ -99,7 +101,7 @@ public class DashboardController {
         try {
             return ApiResponse.success(dashboardService.getRecentOrders());
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Lỗi lấy đơn hàng gần đây", e);
             return ApiResponse.error("fail");
         }
     }
@@ -109,7 +111,7 @@ public class DashboardController {
         try {
             return ApiResponse.success(dashboardService.getTopCourses());
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Lỗi lấy khóa học nổi bật", e);
             return ApiResponse.error("fail");
         }
     }
@@ -119,7 +121,7 @@ public class DashboardController {
         try {
             return ApiResponse.success(dashboardService.getTopInstructors(period));
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Lỗi lấy giảng viên nổi bật", e);
             return ApiResponse.error("fail");
         }
     }
@@ -129,7 +131,7 @@ public class DashboardController {
         try {
             return ApiResponse.success(dashboardService.getStudentProductivity(period));
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Lỗi lấy năng suất học viên", e);
             return ApiResponse.error("fail");
         }
     }
@@ -139,7 +141,7 @@ public class DashboardController {
         try {
             return ApiResponse.success(dashboardService.getUserAgeDistribution());
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Lỗi lấy phân bố tuổi người dùng", e);
             return ApiResponse.error("fail");
         }
     }
@@ -157,7 +159,7 @@ public class DashboardController {
             }
             return ApiResponse.success(dashboardService.getUserRatingsData(months));
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Lỗi lấy đánh giá người dùng", e);
             return ApiResponse.error("fail");
         }
     }
@@ -175,7 +177,7 @@ public class DashboardController {
             }
             return ApiResponse.success(dashboardService.getViolationsData(months));
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Lỗi lấy dữ liệu vi phạm", e);
             return ApiResponse.error("fail");
         }
     }

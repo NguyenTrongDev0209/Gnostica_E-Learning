@@ -62,20 +62,25 @@ const CheckoutScreen = () => {
     const handleApplyVoucher = async () => {
         if (!voucherCode) return;
         try {
-            const response = await couponService.validate(voucherCode);
+            // Backend bắt buộc courseId (kiểm tra scope + tính % theo đơn) — thiếu sẽ 400.
+            const response = await couponService.validate(voucherCode, course.id);
             // Dựa theo response backend, thường là ApiResponse<Coupon> hoặc ném lỗi nếu sai
             const coupon = response.data || response;
             if (coupon) {
                 let discountAmount = 0;
-                if (coupon.discountType === 'PERCENTAGE' || coupon.discountType === 'PERCENT') {
-                    discountAmount = Math.round(subtotal * (coupon.discountValue || coupon.value) / 100);
+                // Backend trả discountType dạng SỐ: 1 = %, 2 = cố định (không phải chuỗi 'PERCENTAGE').
+                const isPercent = Number(coupon.discountType) === 1;
+                if (isPercent) {
+                    discountAmount = Math.round(subtotal * (Number(coupon.discountValue) || 0) / 100);
                 } else {
-                    discountAmount = coupon.discountValue || coupon.value || 0;
+                    discountAmount = Number(coupon.discountValue) || 0;
                 }
-                
-                if (coupon.maxDiscount && discountAmount > coupon.maxDiscount) {
-                    discountAmount = coupon.maxDiscount;
+
+                if (coupon.maxDiscount && discountAmount > Number(coupon.maxDiscount)) {
+                    discountAmount = Number(coupon.maxDiscount);
                 }
+                // Không vượt quá tổng tiền đơn
+                discountAmount = Math.min(discountAmount, subtotal);
 
                 setDiscount(discountAmount);
                 setVoucherApplied(true);

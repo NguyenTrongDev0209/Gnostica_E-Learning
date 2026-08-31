@@ -140,11 +140,13 @@ export default function AdminDashboard() {
 
 
 function RevenueCharts({ revenueData, stats, onFilterChange }) {
-    // Tự động tính doanh thu nền tảng và giảng viên nếu chưa có
+    // Backend /dashboard/revenue trả sẵn revenue/instructorRevenue/platformRevenue.
+    // Chỉ fallback khi trường bị thiếu (null/undefined) — dùng `??` thay `||` để không
+    // bịa dữ liệu khi giá trị hợp lệ bằng 0. Fallback 90/10 khớp backend (không phải 60/40).
     const chartData = revenueData?.map(item => {
-        const total = item.revenue || 0;
-        const instructor = item.instructorRevenue || Math.round(total * 0.6);
-        const platform = total - instructor;
+        const total = item.revenue ?? 0;
+        const instructor = item.instructorRevenue ?? Math.round(total * 0.9);
+        const platform = item.platformRevenue ?? (total - instructor);
         return {
             ...item,
             label: item.label || item.month,
@@ -156,7 +158,7 @@ function RevenueCharts({ revenueData, stats, onFilterChange }) {
 
     const subtitle = (
         <>
-            <span className="text-sm font-medium text-muted-foreground uppercase tracking-widest">Tổng doanh thu:</span>
+            <span className="text-sm font-medium text-muted-foreground uppercase tracking-widest">Doanh thu toàn kỳ:</span>
             <span className="text-2xl font-semibold text-foreground">{(stats?.totalRevenue || 0).toLocaleString()}đ</span>
         </>
     );
@@ -223,9 +225,11 @@ function RevenueCharts({ revenueData, stats, onFilterChange }) {
 }
 
 function InstructorRevenueChart({ revenueData, stats, onFilterChange }) {
+    // Backend trả sẵn instructorRevenue/withdrawable. Fallback `??` khớp backend:
+    // instructor ≈ 90% doanh thu, withdrawable ≈ 90% doanh thu giảng viên (trừ 10% hold).
     const chartData = revenueData?.map(item => {
-        const instructorRevenue = item.instructorRevenue || Math.round((item.revenue || 0) * 0.6);
-        const withdrawable = item.withdrawable || Math.round(instructorRevenue * 0.8);
+        const instructorRevenue = item.instructorRevenue ?? Math.round((item.revenue ?? 0) * 0.9);
+        const withdrawable = item.withdrawable ?? Math.round(instructorRevenue * 0.9);
         return {
             ...item,
             label: item.label || item.month,
@@ -236,7 +240,7 @@ function InstructorRevenueChart({ revenueData, stats, onFilterChange }) {
 
     const subtitle = (
         <>
-            <span className="text-sm font-medium text-muted-foreground uppercase tracking-widest">Tổng doanh thu:</span>
+            <span className="text-sm font-medium text-muted-foreground uppercase tracking-widest">Doanh thu GV toàn kỳ:</span>
             <span className="text-2xl font-semibold text-foreground">{(stats?.instructorRevenue || 0).toLocaleString()}đ</span>
         </>
     );
@@ -334,36 +338,29 @@ function PlatformOverview({ stats }) {
 }
 
 function StatsGrid({ stats }) {
+    // 4 thẻ hiển thị số TOÀN KỲ (từ trước tới nay) do backend /dashboard/stats trả.
     const dynamicStats = [
         {
-            title: "Tổng Doanh Thu",
+            title: "Doanh thu toàn kỳ",
             value: `${(stats?.totalRevenue || 0).toLocaleString()}đ`,
-            trend: stats?.revenueTrend ? `+${stats.revenueTrend}%` : "+0%",
-            isPositive: true,
             icon: TrendingUp,
             color: "bg-info text-white border-info"
         },
         {
-            title: "Tổng Doanh Thu Giảng Viên",
+            title: "Doanh thu GV toàn kỳ",
             value: `${(stats?.instructorRevenue || 0).toLocaleString()}đ`,
-            trend: stats?.instructorRevenueTrend ? `+${stats.instructorRevenueTrend}%` : "0%",
-            isPositive: true,
             icon: BookOpen,
             color: "bg-warning text-white border-warning"
         },
         {
-            title: "Người Dùng Mới",
+            title: "Tổng người dùng",
             value: (stats?.newStudents || 0).toLocaleString(),
-            trend: stats?.studentTrend ? `+${stats.studentTrend}%` : "+0%",
-            isPositive: true,
             icon: Users,
             color: "bg-success text-white border-success"
         },
         {
-            title: "Đơn Hàng Mới",
+            title: "Tổng đơn hàng",
             value: (stats?.todayOrders || 0).toLocaleString(),
-            trend: stats?.orderTrend ? `${stats.orderTrend}%` : "0%",
-            isPositive: stats?.orderTrend >= 0,
             icon: ShoppingCart,
             color: "bg-primary text-white border-primary"
         },
@@ -438,10 +435,14 @@ const memberGrowthConfig = {
 };
 
 function MemberGrowthChart({ data, stats, className = "", onFilterChange }) {
+    // Tổng học viên mới trong khoảng thời gian biểu đồ đang hiển thị (không dùng
+    // stats.newStudents vì thẻ banner giờ là TOÀN KỲ).
+    const newStudentsInRange = (data || []).reduce((sum, item) => sum + (item.students ?? 0), 0);
+
     const subtitle = (
         <>
-            <span className="text-sm font-medium text-muted-foreground uppercase tracking-widest">Học viên mới:</span>
-            <span className="text-2xl font-semibold text-foreground">{(stats?.newStudents || 0).toLocaleString()}</span>
+            <span className="text-sm font-medium text-muted-foreground uppercase tracking-widest">Học viên mới (kỳ này):</span>
+            <span className="text-2xl font-semibold text-foreground">{newStudentsInRange.toLocaleString()}</span>
         </>
     );
 
@@ -452,14 +453,15 @@ function MemberGrowthChart({ data, stats, className = "", onFilterChange }) {
         />
     );
 
-    // Tự động sinh dữ liệu ảo cho giảng viên và tổng nếu chưa có từ API
+    // Backend trả sẵn students/instructors theo bucket — không bịa dữ liệu giảng viên ảo.
     const chartData = data?.map(item => {
-        const instructors = item.instructors || Math.floor((item.students || 0) * 0.1);
+        const students = item.students ?? 0;
+        const instructors = item.instructors ?? 0;
         return {
             ...item,
             label: item.label || item.month,
             instructors,
-            total: (item.students || 0) + instructors
+            total: students + instructors
         };
     }) || [];
 

@@ -1,5 +1,6 @@
 package com.gnostica.modules.dashboard.service.impl;
 
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -10,6 +11,7 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -24,7 +26,10 @@ import com.gnostica.modules.dashboard.dto.response.StudentProductivityDTO;
 import com.gnostica.modules.dashboard.dto.response.TopCourseDTO;
 import com.gnostica.modules.dashboard.dto.response.TopInstructorDTO;
 import com.gnostica.modules.dashboard.dto.response.UserAgeDistributionDTO;
+import com.gnostica.modules.checkout.util.OrderRevenueCalculator;
 import com.gnostica.core.model.Account;
+import com.gnostica.core.model.OrderDetail;
+import com.gnostica.core.model.Order;
 import com.gnostica.core.model.Payment;
 import com.gnostica.core.model.Report;
 import com.gnostica.core.model.Review;
@@ -203,42 +208,24 @@ public class DashboardServiceImpl implements DashboardService {
 
     @Override
     public DashboardStatsResponse getDashboardStats(String period) {
-        LocalDateTime[] ranges = resolvePeriodRange(period);
-        LocalDateTime currentStart = ranges[0];
-        LocalDateTime currentEnd = ranges[1];
-        LocalDateTime prevStart = ranges[2];
-        LocalDateTime prevEnd = ranges[3];
+        // 4 thẻ trên banner hiển thị số TOÀN KỲ (từ trước tới nay), không theo kỳ.
+        // Tham số period vẫn giữ để tương thích API nhưng không còn ảnh hưởng 4 thẻ này.
 
-        // 1. Total Revenue from Payments (Status 2 = SUCCESS)
-        java.math.BigDecimal totalRevenueObj = paymentRepository.sumAmountByStatus(2);
+        // 1. Tổng doanh thu TOÀN KỲ (loại trừ đơn đã hoàn tiền)
+        java.math.BigDecimal totalRevenueObj = paymentRepository.sumSuccessfulAmountExcludingRefunded();
         Double totalRevenue = totalRevenueObj != null ? totalRevenueObj.doubleValue() : 0.0;
 
-        java.math.BigDecimal currentRevenueObj = paymentRepository.sumAmountByStatusAndDateRange(currentStart, currentEnd);
-        Double currentRevenue = currentRevenueObj != null ? currentRevenueObj.doubleValue() : 0.0;
-        java.math.BigDecimal prevRevenueObj = paymentRepository.sumAmountByStatusAndDateRange(prevStart, prevEnd);
-        Double prevRevenue = prevRevenueObj != null ? prevRevenueObj.doubleValue() : 0.0;
-        Double revenueTrend = calculateTrend(prevRevenue, currentRevenue);
-
-        // 2. Instructor Revenue & Period Trend
+        // 2. Doanh thu giảng viên TOÀN KỲ (sau giảm giá/coupon × tỷ lệ hoa hồng)
         Double totalInstructorRev = orderDetailRepository.sumTotalInstructorRevenue();
         if (totalInstructorRev == null) totalInstructorRev = 0.0;
-        Double currentInstRev = orderDetailRepository.sumInstructorRevenueByDateRange(currentStart, currentEnd);
-        if (currentInstRev == null) currentInstRev = 0.0;
-        Double prevInstRev = orderDetailRepository.sumInstructorRevenueByDateRange(prevStart, prevEnd);
-        if (prevInstRev == null) prevInstRev = 0.0;
-        Double instructorRevenueTrend = calculateTrend(prevInstRev, currentInstRev);
 
-        // 3. New Students (in period) & Trend
-        long currentStudents = accountRepository.countByRoleNameAndCreatedAtGreaterThanEqualAndCreatedAtLessThan("USER", currentStart, currentEnd);
-        long prevStudents = accountRepository.countByRoleNameAndCreatedAtGreaterThanEqualAndCreatedAtLessThan("USER", prevStart, prevEnd);
-        Double studentTrend = calculateTrend((double) prevStudents, (double) currentStudents);
+        // 3. Tổng người dùng TOÀN KỲ (role USER, chưa bị xoá)
+        long newStudents = accountRepository.countByRoleNameIgnoreCaseAndDeletedAtIsNull("USER");
 
-        // 4. Orders in period vs previous period
-        long currentOrders = orderRepository.countByCreatedAtGreaterThanEqualAndCreatedAtLessThan(currentStart, currentEnd);
-        long prevOrders = orderRepository.countByCreatedAtGreaterThanEqualAndCreatedAtLessThan(prevStart, prevEnd);
-        Double orderTrend = calculateTrend((double) prevOrders, (double) currentOrders);
+        // 4. Tổng đơn hàng TOÀN KỲ
+        long todayOrders = orderRepository.count();
 
-        // 5. Platform overview counts
+        // Platform overview counts (đã là toàn kỳ)
         long totalCourses = courseRepository.countByDeletedAtIsNull();
         long activeCourses = courseRepository.countByStatusAndDeletedAtIsNull(1);
         long totalCategories = categoryRepository.countByDeletedAtIsNull();
@@ -246,20 +233,20 @@ public class DashboardServiceImpl implements DashboardService {
         long totalInstructors = accountRepository.countByRoleNameIgnoreCaseAndDeletedAtIsNull("INSTRUCTOR");
 
         return DashboardStatsResponse.builder()
-                .totalRevenue(currentRevenue)
-                .instructorRevenue(currentInstRev)
-                .newStudents(currentStudents)
+                .totalRevenue(totalRevenue)
+                .instructorRevenue(totalInstructorRev)
+                .newStudents(newStudents)
                 .activeCourses(activeCourses)
-                .todayOrders(currentOrders)
+                .todayOrders(todayOrders)
                 .totalCourses(totalCourses)
                 .totalCategories(totalCategories)
                 .totalUsers(totalUsers)
                 .totalInstructors(totalInstructors)
-                .revenueTrend(Math.round(revenueTrend * 10.0) / 10.0)
-                .instructorRevenueTrend(Math.round(instructorRevenueTrend * 10.0) / 10.0)
-                .studentTrend(Math.round(studentTrend * 10.0) / 10.0)
+                .revenueTrend(0.0)
+                .instructorRevenueTrend(0.0)
+                .studentTrend(0.0)
                 .courseTrend(0.0)
-                .orderTrend(Math.round(orderTrend * 10.0) / 10.0)
+                .orderTrend(0.0)
                 .build();
     }
 
@@ -358,37 +345,52 @@ public class DashboardServiceImpl implements DashboardService {
                     .build());
         }
 
-        // 1. Phân bổ doanh thu từ Order Details (status 1 = valid, order.status 1 = completed)
-        List<com.gnostica.core.model.OrderDetail> orderDetails = orderDetailRepository.findAllByOrderCreatedAtBetweenAndOrderStatus(s, e, 1);
-        for (com.gnostica.core.model.OrderDetail od : orderDetails) {
-            if (od.getOrder() == null || od.getOrder().getCreatedAt() == null) continue;
-            TimeBucket bucket = findBucket(buckets, od.getOrder().getCreatedAt());
+        // 1. Phân bổ doanh thu từ Order Details (order.status = 1 → PAID; đơn REFUNDED đã bị loại).
+        // Dùng OrderRevenueCalculator — CÙNG nguồn sự thật với WalletListener, để số liệu
+        // dashboard khớp với sổ cái ví thực tế (coupon platform không trừ vào phần giảng viên).
+        List<OrderDetail> orderDetails = orderDetailRepository.findAllByOrderCreatedAtBetweenAndOrderStatus(s, e, 1);
+        Map<UUID, List<OrderDetail>> byOrder = orderDetails.stream()
+                .filter(od -> od.getOrder() != null)
+                .collect(Collectors.groupingBy(od -> od.getOrder().getId()));
+
+        for (List<OrderDetail> details : byOrder.values()) {
+            Order order = details.get(0).getOrder();
+            if (order.getCreatedAt() == null) continue;
+            TimeBucket bucket = findBucket(buckets, order.getCreatedAt());
             if (bucket == null) continue;
             RevenueMonthDTO data = map.get(bucket.getLabel());
             if (data == null) continue;
 
-            double rawPrice = od.getPrice() != null ? od.getPrice().doubleValue() : 0.0;
-            double discount = od.getDiscount() != null ? od.getDiscount().doubleValue() : 0.0;
-            double couponPrice = (od.getOrder() != null && od.getOrder().getCouponPrice() != null) ? od.getOrder().getCouponPrice().doubleValue() : 0.0;
+            for (OrderDetail od : details) {
+                BigDecimal instructorRatio = od.getCommission() != null && od.getCommission().getInstructorRatio() != null
+                        ? od.getCommission().getInstructorRatio() : new BigDecimal("90");
+                BigDecimal platformRatio = od.getCommission() != null && od.getCommission().getPlatformRatio() != null
+                        ? od.getCommission().getPlatformRatio() : new BigDecimal("10");
 
-            double price = (rawPrice * (100.0 - discount) / 100.0) - couponPrice;
-            if (price < 0) price = 0.0;
+                OrderRevenueCalculator.Split split = OrderRevenueCalculator.split(
+                        order, od, details, instructorRatio, platformRatio);
 
-            double instructorRatio = od.getCommission() != null && od.getCommission().getInstructorRatio() != null
-                    ? od.getCommission().getInstructorRatio().doubleValue() : 90.0;
-            double instRev = price * (instructorRatio / 100.0);
-            double platRev = price - instRev;
+                double netSale = split.netSaleAmount.doubleValue();
+                double instRev = split.instructorAmount.doubleValue();
+                double platRev = split.platformAmount.doubleValue();
 
-            data.setRevenue(data.getRevenue() + price);
-            data.setInstructorRevenue(data.getInstructorRevenue() + instRev);
-            data.setPlatformRevenue(data.getPlatformRevenue() + platRev);
-            data.setWithdrawable(data.getWithdrawable() + (instRev * 0.9));
+                data.setRevenue(data.getRevenue() + netSale);
+                data.setInstructorRevenue(data.getInstructorRevenue() + instRev);
+                data.setPlatformRevenue(data.getPlatformRevenue() + platRev);
+                // Ước lượng tiền có thể rút: 90% doanh thu giảng viên (trừ ~10% đang hold 30 ngày).
+                data.setWithdrawable(data.getWithdrawable() + (instRev * 0.9));
+            }
         }
 
-        // 2. Thống kê đơn hàng và fallback payments
+        // 2. Đếm đơn hàng từ giao dịch thanh toán thành công.
+        // Chỉ tính payment của đơn còn PAID (loại trừ đã hoàn tiền / đã hủy) để không tính
+        // trùng đơn WALLET đã hoàn (payment WALLET giữ status SUCCESS sau khi hoàn tiền).
         List<Payment> payments = paymentRepository.findByCreatedAtBetween(s, e)
                 .stream()
-                .filter(p -> p.getStatus() == 2)
+                .filter(p -> p.getStatus() == 2
+                        && p.getOrder() != null
+                        && p.getOrder().getStatus() != null
+                        && p.getOrder().getStatus() == 1)
                 .collect(Collectors.toList());
 
         for (Payment p : payments) {
@@ -399,12 +401,14 @@ public class DashboardServiceImpl implements DashboardService {
             if (data == null) continue;
             data.setOrders(data.getOrders() + 1);
 
+            // Fallback phòng khi không có OrderDetail (dữ liệu cũ): chỉ cộng doanh thu nếu
+            // bucket chưa có doanh thu từ order details (tránh double-count).
             if (data.getRevenue() == 0.0 && p.getAmount() != null) {
                 double amount = p.getAmount().doubleValue();
                 data.setRevenue(data.getRevenue() + amount);
                 data.setInstructorRevenue(data.getInstructorRevenue() + (amount * 0.9));
                 data.setPlatformRevenue(data.getPlatformRevenue() + (amount * 0.1));
-                data.setWithdrawable(data.getWithdrawable() + (amount * 0.8));
+                data.setWithdrawable(data.getWithdrawable() + (amount * 0.9));
             }
         }
         return new ArrayList<>(map.values());

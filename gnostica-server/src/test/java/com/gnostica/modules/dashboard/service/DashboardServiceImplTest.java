@@ -6,6 +6,7 @@ import static org.mockito.Mockito.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -65,24 +66,17 @@ class DashboardServiceImplTest {
 
     @Test
     void testGetDashboardStats_Success() {
-        when(paymentRepository.sumAmountByStatus(2)).thenReturn(new BigDecimal("1000000.00"));
-        when(paymentRepository.sumAmountByStatusAndDateRange(any(LocalDateTime.class), any(LocalDateTime.class)))
-                .thenReturn(new BigDecimal("600000.00"), new BigDecimal("400000.00"));
-
+        // 4 thẻ banner hiển thị số TOÀN KỲ (từ trước tới nay), không phải theo kỳ.
+        when(paymentRepository.sumSuccessfulAmountExcludingRefunded()).thenReturn(new BigDecimal("1000000.00"));
         when(orderDetailRepository.sumTotalInstructorRevenue()).thenReturn(900000.0);
-        when(orderDetailRepository.sumInstructorRevenueByDateRange(any(LocalDateTime.class), any(LocalDateTime.class)))
-                .thenReturn(540000.0, 360000.0);
 
-        when(accountRepository.countByRoleNameAndCreatedAtGreaterThanEqualAndCreatedAtLessThan(eq("USER"), any(), any()))
-                .thenReturn(15L, 10L);
-
-        when(orderRepository.countByCreatedAtGreaterThanEqualAndCreatedAtLessThan(any(), any()))
-                .thenReturn(5L, 4L);
+        // newStudents & totalUsers cùng dùng countByRoleNameIgnoreCaseAndDeletedAtIsNull("USER")
+        when(accountRepository.countByRoleNameIgnoreCaseAndDeletedAtIsNull("USER")).thenReturn(150L);
+        when(orderRepository.count()).thenReturn(40L);
 
         when(courseRepository.countByDeletedAtIsNull()).thenReturn(20L);
         when(courseRepository.countByStatusAndDeletedAtIsNull(1)).thenReturn(18L);
         when(categoryRepository.countByDeletedAtIsNull()).thenReturn(5L);
-        when(accountRepository.countByRoleNameIgnoreCaseAndDeletedAtIsNull("USER")).thenReturn(150L);
         when(accountRepository.countByRoleNameIgnoreCaseAndDeletedAtIsNull("INSTRUCTOR")).thenReturn(12L);
 
         DashboardStatsResponse stats = dashboardService.getDashboardStats("this-month");
@@ -90,28 +84,24 @@ class DashboardServiceImplTest {
         assertNotNull(stats);
         assertEquals(1000000.0, stats.getTotalRevenue());
         assertEquals(900000.0, stats.getInstructorRevenue());
-        assertEquals(15L, stats.getNewStudents());
+        assertEquals(150L, stats.getNewStudents());
         assertEquals(18L, stats.getActiveCourses());
-        assertEquals(5L, stats.getTodayOrders());
+        assertEquals(40L, stats.getTodayOrders());
         assertEquals(20L, stats.getTotalCourses());
         assertEquals(5L, stats.getTotalCategories());
         assertEquals(150L, stats.getTotalUsers());
         assertEquals(12L, stats.getTotalInstructors());
-        assertEquals(50.0, stats.getRevenueTrend()); // (600000 - 400000) / 400000 * 100
-        assertEquals(50.0, stats.getInstructorRevenueTrend());
-        assertEquals(50.0, stats.getStudentTrend()); // (15 - 10) / 10 * 100
-        assertEquals(25.0, stats.getOrderTrend()); // (5 - 4) / 4 * 100
+        // Trend bằng 0 vì thẻ toàn kỳ không so sánh với kỳ trước.
+        assertEquals(0.0, stats.getRevenueTrend());
+        assertEquals(0.0, stats.getInstructorRevenueTrend());
+        assertEquals(0.0, stats.getStudentTrend());
+        assertEquals(0.0, stats.getOrderTrend());
     }
 
     @Test
     void testGetDashboardStats_NullSafe() {
-        when(paymentRepository.sumAmountByStatus(2)).thenReturn(null);
-        when(paymentRepository.sumAmountByStatusAndDateRange(any(LocalDateTime.class), any(LocalDateTime.class)))
-                .thenReturn((BigDecimal) null);
-
+        when(paymentRepository.sumSuccessfulAmountExcludingRefunded()).thenReturn(null);
         when(orderDetailRepository.sumTotalInstructorRevenue()).thenReturn(null);
-        when(orderDetailRepository.sumInstructorRevenueByDateRange(any(LocalDateTime.class), any(LocalDateTime.class)))
-                .thenReturn((Double) null);
 
         DashboardStatsResponse stats = dashboardService.getDashboardStats(null);
 
@@ -120,25 +110,36 @@ class DashboardServiceImplTest {
         assertEquals(0.0, stats.getInstructorRevenue());
         assertEquals(0.0, stats.getRevenueTrend());
         assertEquals(0.0, stats.getInstructorRevenueTrend());
+        assertEquals(0L, stats.getTodayOrders());
+        assertEquals(0L, stats.getNewStudents());
     }
 
     @Test
     void testGetRevenueData_Success() {
-        when(orderDetailRepository.findAllByOrderCreatedAtAfterAndOrderStatus(any(), eq(1)))
+        when(orderDetailRepository.findAllByOrderCreatedAtBetweenAndOrderStatus(any(), any(), eq(1)))
                 .thenReturn(java.util.Collections.emptyList());
-        when(paymentRepository.findByCreatedAtAfter(any()))
+        when(paymentRepository.findByCreatedAtBetween(any(), any()))
                 .thenReturn(java.util.Collections.emptyList());
 
         var revenueList = dashboardService.getRevenueData(12);
 
         assertNotNull(revenueList);
         assertEquals(12, revenueList.size());
-        assertEquals("T1", revenueList.get(0).getMonth());
+        assertEquals(expectedFirstMonthLabel(12), revenueList.get(0).getMonth());
         assertEquals(0.0, revenueList.get(0).getRevenue());
         assertEquals(0.0, revenueList.get(0).getInstructorRevenue());
         assertEquals(0.0, revenueList.get(0).getPlatformRevenue());
         assertEquals(0.0, revenueList.get(0).getWithdrawable());
         assertEquals(0L, revenueList.get(0).getOrders());
+    }
+
+    /** Nhãn tháng đầu tiên của chuỗi `months` tháng tính từ đầu tháng hiện tại (bắt đầu từ T-{months-1}). */
+    private String expectedFirstMonthLabel(int months) {
+        YearMonth now = YearMonth.now();
+        YearMonth first = now.minusMonths(months - 1L);
+        return first.getYear() == now.getYear()
+                ? "T" + first.getMonthValue()
+                : "T" + first.getMonthValue() + "/" + (first.getYear() % 100);
     }
 
     @Test
@@ -169,25 +170,25 @@ class DashboardServiceImplTest {
 
     @Test
     void testGetUserRatingsData_Success() {
-        when(reviewRepository.findByCreatedAtAfterAndDeletedAtIsNull(any()))
+        when(reviewRepository.findByCreatedAtBetweenAndDeletedAtIsNull(any(), any()))
                 .thenReturn(java.util.Collections.emptyList());
 
         var result = dashboardService.getUserRatingsData(12);
         assertNotNull(result);
         assertEquals(12, result.size());
-        assertEquals("T1", result.get(0).getMonth());
+        assertEquals(expectedFirstMonthLabel(12), result.get(0).getMonth());
         assertEquals(0L, result.get(0).getTotal());
     }
 
     @Test
     void testGetViolationsData_Success() {
-        when(reportRepository.findByCreatedAtAfterAndDeletedAtIsNull(any()))
+        when(reportRepository.findByCreatedAtBetweenAndDeletedAtIsNull(any(), any()))
                 .thenReturn(java.util.Collections.emptyList());
 
         var result = dashboardService.getViolationsData(12);
         assertNotNull(result);
         assertEquals(12, result.size());
-        assertEquals("T1", result.get(0).getMonth());
+        assertEquals(expectedFirstMonthLabel(12), result.get(0).getMonth());
         assertEquals(0L, result.get(0).getViolations());
     }
 }
