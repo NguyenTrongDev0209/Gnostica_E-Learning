@@ -22,6 +22,7 @@ export default function AdminDashboard() {
     memberGrowth,
     revenueData,
     instructorRevenueData,
+    refundData,
     recentOrders,
     topCourses,
     topInstructors,
@@ -34,6 +35,7 @@ export default function AdminDashboard() {
     fetchStats,
     fetchRevenue,
     fetchInstructorRevenue,
+    fetchRefundData,
     fetchMemberGrowth,
     fetchTopInstructors,
     fetchStudentProductivity,
@@ -108,6 +110,7 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-1 gap-6">
           <RevenueCharts revenueData={revenueData} stats={stats} onFilterChange={fetchRevenue} />
           <InstructorRevenueChart revenueData={instructorRevenueData} stats={stats} onFilterChange={fetchInstructorRevenue} />
+          <RefundStatsChart refundData={refundData} stats={stats} onFilterChange={fetchRefundData} />
         </div>
       </div>
 
@@ -226,10 +229,9 @@ function RevenueCharts({ revenueData, stats, onFilterChange }) {
 
 function InstructorRevenueChart({ revenueData, stats, onFilterChange }) {
     // Backend trả sẵn instructorRevenue/withdrawable. Fallback `??` khớp backend:
-    // instructor ≈ 90% doanh thu, withdrawable ≈ 90% doanh thu giảng viên (trừ 10% hold).
     const chartData = revenueData?.map(item => {
         const instructorRevenue = item.instructorRevenue ?? Math.round((item.revenue ?? 0) * 0.9);
-        const withdrawable = item.withdrawable ?? Math.round(instructorRevenue * 0.9);
+        const withdrawable = item.withdrawable ?? 0;
         return {
             ...item,
             label: item.label || item.month,
@@ -297,6 +299,112 @@ function InstructorRevenueChart({ revenueData, stats, onFilterChange }) {
                         
                         <Bar dataKey="withdrawable" name="Có thể rút" fill="var(--success)" radius={[4, 4, 0, 0]} maxBarSize={40} />
                         <Line type="monotone" dataKey="instructorRevenue" name="Doanh thu" stroke="var(--warning)" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
+                    </ComposedChart>
+                </ChartContainer>
+            </AppCardContent>
+        </AppCard>
+    );
+}
+
+function RefundStatsChart({ refundData, stats, onFilterChange }) {
+    const chartData = refundData?.map(item => {
+        const refundedAmount = item.refundedAmount ?? 0;
+        const approvedCount = item.approvedCount ?? 0;
+        const rejectedCount = item.rejectedCount ?? 0;
+        const pendingCount = item.pendingCount ?? 0;
+        const totalRequests = item.totalRequests ?? (approvedCount + rejectedCount + pendingCount);
+        return {
+            ...item,
+            label: item.label || item.month,
+            refundedAmount,
+            approvedCount,
+            rejectedCount,
+            pendingCount,
+            totalRequests
+        };
+    }) || [];
+
+    const subtitle = (
+        <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+            <div className="flex items-baseline gap-2">
+                <span className="text-sm font-medium text-muted-foreground uppercase tracking-widest">Đã hoàn toàn kỳ:</span>
+                <span className="text-2xl font-semibold text-destructive">{(stats?.totalRefunded || 0).toLocaleString()}đ</span>
+            </div>
+            {stats?.pendingRefunds > 0 && (
+                <AppBadge variant="destructive" className="bg-destructive/10 text-destructive border-destructive/20 text-xs font-semibold">
+                    {stats.pendingRefunds} yêu cầu chờ duyệt
+                </AppBadge>
+            )}
+        </div>
+    );
+
+    const headerExtra = (
+        <ChartDateFilters
+            onRangeChange={(range) => onFilterChange?.(range)}
+            defaultPreset="this-year"
+        />
+    );
+
+    const formatYAxis = (value) => value >= 1000000 ? `${(value / 1000000).toFixed(0)}M` : value >= 1000 ? `${(value / 1000).toFixed(0)}K` : `${value}`;
+
+    const refundConfig = {
+        refundedAmount: { label: "Tiền đã hoàn", color: "var(--destructive)" },
+        approvedCount: { label: "Đã duyệt hoàn", color: "var(--success)" },
+        rejectedCount: { label: "Từ chối", color: "var(--muted-foreground)" },
+        pendingCount: { label: "Chờ xử lý", color: "var(--warning)" }
+    };
+
+    return (
+        <AppCard appVariant="default" className="border-border shadow-sm flex flex-col h-[400px]">
+            <AppCardHeader className="pb-2">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="space-y-1">
+                        <AppCardTitle className="text-lg font-semibold flex items-center gap-2">
+                            <span>Thống kê Hoàn tiền</span>
+                        </AppCardTitle>
+                        {subtitle}
+                    </div>
+                    <div className="flex flex-wrap items-center gap-3">
+                        {headerExtra}
+                    </div>
+                </div>
+            </AppCardHeader>
+            <AppCardContent className="w-full pt-0 flex-1 flex flex-col min-h-0">
+                <ChartContainer config={refundConfig} className="flex-1 w-full min-h-0 !aspect-auto">
+                    <ComposedChart data={chartData} margin={{ top: 20, right: 10, left: 0, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
+                        <XAxis 
+                            dataKey="label" 
+                            axisLine={false} 
+                            tickLine={false} 
+                            tick={{ fontSize: 12, fontWeight: 500, fill: 'var(--muted-foreground)' }} 
+                            dy={10} 
+                        />
+                        <YAxis 
+                            axisLine={false} 
+                            tickLine={false} 
+                            tick={{ fontSize: 12, fontWeight: 500, fill: 'var(--muted-foreground)' }} 
+                            tickFormatter={formatYAxis}
+                            dx={-10}
+                        />
+                        <ChartTooltip 
+                            content={
+                                <ChartTooltipContent 
+                                    formatter={(value, name) => {
+                                        if (name === "Tiền đã hoàn" || name === "refundedAmount") {
+                                            return `${value.toLocaleString()}đ`;
+                                        }
+                                        return `${value} yêu cầu`;
+                                    }} 
+                                />
+                            } 
+                        />
+                        <ChartLegend content={<ChartLegendContent />} />
+                        
+                        <Bar dataKey="refundedAmount" name="Tiền đã hoàn" fill="var(--destructive)" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                        <Line type="monotone" dataKey="approvedCount" name="Đã duyệt" stroke="var(--success)" strokeWidth={2.5} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
+                        <Line type="monotone" dataKey="pendingCount" name="Chờ xử lý" stroke="var(--warning)" strokeWidth={2} strokeDasharray="4 4" dot={{ r: 3 }} />
+                        <Line type="monotone" dataKey="rejectedCount" name="Từ chối" stroke="var(--muted-foreground)" strokeWidth={2} dot={{ r: 3 }} />
                     </ComposedChart>
                 </ChartContainer>
             </AppCardContent>

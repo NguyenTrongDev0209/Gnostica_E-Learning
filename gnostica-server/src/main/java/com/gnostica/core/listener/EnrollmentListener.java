@@ -56,8 +56,7 @@ public class EnrollmentListener {
                 Enrollment enrollment = existingEnrollment.get();
                 enrollment.setStatus(1); // 1: Active
                 enrollment.setOrderDetail(detail);
-                enrollment.setProgressPercent(0);
-                enrollment.setCompletedAt(null);
+                // Giữ nguyên tiến độ & ngày hoàn thành khi mua lại (không reset về 0%)
                 enrollmentRepository.save(enrollment);
                 log.info("Re-activated enrollment for student {} in course {}", order.getAccount().getEmail(),
                         detail.getCourse().getTitle());

@@ -21,6 +21,7 @@ import com.gnostica.modules.dashboard.dto.response.MemberGrowthDTO;
 import com.gnostica.modules.dashboard.dto.response.MonthlyUserRatingDTO;
 import com.gnostica.modules.dashboard.dto.response.MonthlyViolationDTO;
 import com.gnostica.modules.checkout.dto.response.RecentOrderDTO;
+import com.gnostica.modules.dashboard.dto.response.RefundMonthDTO;
 import com.gnostica.modules.dashboard.dto.response.RevenueMonthDTO;
 import com.gnostica.modules.dashboard.dto.response.StudentProductivityDTO;
 import com.gnostica.modules.dashboard.dto.response.TopCourseDTO;
@@ -31,6 +32,7 @@ import com.gnostica.core.model.Account;
 import com.gnostica.core.model.OrderDetail;
 import com.gnostica.core.model.Order;
 import com.gnostica.core.model.Payment;
+import com.gnostica.core.model.Refund;
 import com.gnostica.core.model.Report;
 import com.gnostica.core.model.Review;
 import com.gnostica.core.repository.AccountRepository;
@@ -232,6 +234,12 @@ public class DashboardServiceImpl implements DashboardService {
         long totalUsers = accountRepository.countByRoleNameIgnoreCaseAndDeletedAtIsNull("USER");
         long totalInstructors = accountRepository.countByRoleNameIgnoreCaseAndDeletedAtIsNull("INSTRUCTOR");
 
+        // 5. Thống kê hoàn tiền TOÀN KỲ
+        java.math.BigDecimal totalRefundedObj = refundRepository.sumTotalApprovedRefundAmount();
+        Double totalRefunded = totalRefundedObj != null ? totalRefundedObj.doubleValue() : 0.0;
+        long totalRefunds = refundRepository.count();
+        long pendingRefunds = refundRepository.countByStatus(1);
+
         return DashboardStatsResponse.builder()
                 .totalRevenue(totalRevenue)
                 .instructorRevenue(totalInstructorRev)
@@ -242,6 +250,9 @@ public class DashboardServiceImpl implements DashboardService {
                 .totalCategories(totalCategories)
                 .totalUsers(totalUsers)
                 .totalInstructors(totalInstructors)
+                .totalRefunded(totalRefunded)
+                .totalRefunds(totalRefunds)
+                .pendingRefunds(pendingRefunds)
                 .revenueTrend(0.0)
                 .instructorRevenueTrend(0.0)
                 .studentTrend(0.0)
@@ -377,8 +388,10 @@ public class DashboardServiceImpl implements DashboardService {
                 data.setRevenue(data.getRevenue() + netSale);
                 data.setInstructorRevenue(data.getInstructorRevenue() + instRev);
                 data.setPlatformRevenue(data.getPlatformRevenue() + platRev);
-                // Ước lượng tiền có thể rút: 90% doanh thu giảng viên (trừ ~10% đang hold 30 ngày).
-                data.setWithdrawable(data.getWithdrawable() + (instRev * 0.9));
+                // Tiền có thể rút: chỉ tính các đơn hàng đã qua thời gian giữ 30 ngày
+                if (order.getCreatedAt().plusDays(30).isBefore(LocalDateTime.now())) {
+                    data.setWithdrawable(data.getWithdrawable() + instRev);
+                }
             }
         }
 
@@ -408,7 +421,9 @@ public class DashboardServiceImpl implements DashboardService {
                 data.setRevenue(data.getRevenue() + amount);
                 data.setInstructorRevenue(data.getInstructorRevenue() + (amount * 0.9));
                 data.setPlatformRevenue(data.getPlatformRevenue() + (amount * 0.1));
-                data.setWithdrawable(data.getWithdrawable() + (amount * 0.9));
+                if (p.getCreatedAt().plusDays(30).isBefore(LocalDateTime.now())) {
+                    data.setWithdrawable(data.getWithdrawable() + (amount * 0.9));
+                }
             }
         }
         return new ArrayList<>(map.values());
@@ -421,6 +436,59 @@ public class DashboardServiceImpl implements DashboardService {
         LocalDateTime start = now.minusMonths(m - 1).withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0).withNano(0);
         LocalDateTime end = now;
         return getRevenueData(start, end);
+    }
+
+    @Override
+    public List<RefundMonthDTO> getRefundData(LocalDateTime start, LocalDateTime end) {
+        LocalDateTime[] range = resolveDefaultRange(start, end);
+        LocalDateTime s = range[0];
+        LocalDateTime e = range[1];
+        Granularity g = resolveGranularity(s, e);
+        List<TimeBucket> buckets = buildBuckets(s, e, g);
+
+        Map<String, RefundMonthDTO> map = new LinkedHashMap<>();
+        for (TimeBucket b : buckets) {
+            map.put(b.getLabel(), RefundMonthDTO.builder()
+                    .label(b.getLabel())
+                    .refundedAmount(0.0)
+                    .approvedCount(0L)
+                    .rejectedCount(0L)
+                    .pendingCount(0L)
+                    .totalRequests(0L)
+                    .build());
+        }
+
+        List<Refund> refunds = refundRepository.findAllByCreatedAtBetween(s, e);
+        for (Refund r : refunds) {
+            if (r.getCreatedAt() == null) continue;
+            TimeBucket bucket = findBucket(buckets, r.getCreatedAt());
+            if (bucket == null) continue;
+            RefundMonthDTO data = map.get(bucket.getLabel());
+            if (data == null) continue;
+
+            data.setTotalRequests(data.getTotalRequests() + 1);
+
+            int status = r.getStatus() != null ? r.getStatus() : 0;
+            if (status == 2) { // APPROVED
+                double amt = r.getAmount() != null ? r.getAmount().doubleValue() : 0.0;
+                data.setRefundedAmount(data.getRefundedAmount() + amt);
+                data.setApprovedCount(data.getApprovedCount() + 1);
+            } else if (status == 3) { // REJECTED
+                data.setRejectedCount(data.getRejectedCount() + 1);
+            } else if (status == 1) { // PENDING
+                data.setPendingCount(data.getPendingCount() + 1);
+            }
+        }
+        return new ArrayList<>(map.values());
+    }
+
+    @Override
+    public List<RefundMonthDTO> getRefundData(Integer months) {
+        LocalDateTime now = LocalDateTime.now();
+        int m = (months != null && months > 0) ? months : 12;
+        LocalDateTime start = now.minusMonths(m - 1).withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0).withNano(0);
+        LocalDateTime end = now;
+        return getRefundData(start, end);
     }
 
     @Override

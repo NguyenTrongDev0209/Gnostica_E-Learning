@@ -13,6 +13,7 @@ export function useDashboard() {
   const [userDemographics, setUserDemographics] = useState(null);
   const [userRatings, setUserRatings] = useState([]);
   const [violations, setViolations] = useState([]);
+  const [refundData, setRefundData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchDashboardData = async () => {
@@ -22,6 +23,7 @@ export function useDashboard() {
         statsData,
         growthData,
         revData,
+        refundsData,
         ordersData,
         coursesData,
         instructorsData,
@@ -33,6 +35,7 @@ export function useDashboard() {
         dashboardService.getStats().catch(() => null),
         dashboardService.getMemberGrowth().catch(() => []),
         dashboardService.getRevenue().catch(() => []),
+        dashboardService.getRefunds().catch(() => []),
         dashboardService.getRecentOrders().catch(() => []),
         dashboardService.getTopCourses().catch(() => []),
         dashboardService.getTopInstructors().catch(() => []),
@@ -46,6 +49,7 @@ export function useDashboard() {
       setMemberGrowth(growthData || []);
       setRevenueData(revData || []);
       setInstructorRevenueData(revData || []);
+      setRefundData(refundsData || []);
       setRecentOrders(ordersData || []);
       setTopCourses(coursesData || []);
       setTopInstructors(instructorsData || []);
@@ -136,11 +140,21 @@ export function useDashboard() {
     }
   };
 
+  const fetchRefundData = async (params) => {
+    try {
+      const data = await dashboardService.getRefunds(params);
+      setRefundData(data || []);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   return {
     stats,
     memberGrowth,
     revenueData,
     instructorRevenueData,
+    refundData,
     recentOrders,
     topCourses,
     topInstructors,
@@ -153,6 +167,7 @@ export function useDashboard() {
     fetchStats,
     fetchRevenue,
     fetchInstructorRevenue,
+    fetchRefundData,
     fetchMemberGrowth,
     fetchTopInstructors,
     fetchStudentProductivity,

@@ -22,6 +22,11 @@ public class DashboardStatsResponse {
     private Long totalUsers;
     private Long totalInstructors;
 
+    // Refund metrics
+    private Double totalRefunded;
+    private Long totalRefunds;
+    private Long pendingRefunds;
+
     // Growth percentages
     private Double revenueTrend; // e.g. 12.5
     private Double instructorRevenueTrend; // e.g. 8.0

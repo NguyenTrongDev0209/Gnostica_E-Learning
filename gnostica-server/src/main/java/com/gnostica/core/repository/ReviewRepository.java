@@ -25,6 +25,7 @@ public interface ReviewRepository extends JpaRepository<Review, Integer> {
 
     org.springframework.data.domain.Page<Review> findByCourseAccountIdAndCourseDeletedAtIsNullOrderByCreatedAtDesc(java.util.UUID instructorId, org.springframework.data.domain.Pageable pageable);
     List<Review> findByCreatedAtAfterAndDeletedAtIsNull(java.time.LocalDateTime createdAt);
+    List<Review> findByCreatedAtBetweenAndDeletedAtIsNull(java.time.LocalDateTime start, java.time.LocalDateTime end);
 
     @org.springframework.data.jpa.repository.Query("SELECT COALESCE(AVG(r.rating), 0.0) FROM Review r WHERE r.course.account.id = :instructorId AND r.course.deletedAt IS NULL AND r.deletedAt IS NULL AND r.status = 1 AND r.parent IS NULL")
     Double getAverageRatingByInstructorId(@org.springframework.data.repository.query.Param("instructorId") java.util.UUID instructorId);

@@ -16,6 +16,7 @@ import com.gnostica.modules.dashboard.dto.response.MemberGrowthDTO;
 import com.gnostica.modules.dashboard.dto.response.MonthlyUserRatingDTO;
 import com.gnostica.modules.dashboard.dto.response.MonthlyViolationDTO;
 import com.gnostica.modules.checkout.dto.response.RecentOrderDTO;
+import com.gnostica.modules.dashboard.dto.response.RefundMonthDTO;
 import com.gnostica.modules.dashboard.dto.response.RevenueMonthDTO;
 import com.gnostica.modules.dashboard.dto.response.StudentProductivityDTO;
 import com.gnostica.modules.dashboard.dto.response.TopCourseDTO;
@@ -92,6 +93,24 @@ public class DashboardController {
             return ApiResponse.success(dashboardService.getRevenueData(months));
         } catch (Exception e) {
             log.error("Lỗi lấy dữ liệu doanh thu", e);
+            return ApiResponse.error("fail");
+        }
+    }
+
+    @GetMapping("/refunds")
+    public ApiResponse<List<RefundMonthDTO>> getRefunds(
+            @RequestParam(required = false) String start,
+            @RequestParam(required = false) String end,
+            @RequestParam(required = false) Integer months) {
+        try {
+            LocalDateTime startDt = parseDate(start, false);
+            LocalDateTime endDt = parseDate(end, true);
+            if (startDt != null || endDt != null) {
+                return ApiResponse.success(dashboardService.getRefundData(startDt, endDt));
+            }
+            return ApiResponse.success(dashboardService.getRefundData(months));
+        } catch (Exception e) {
+            log.error("Lỗi lấy dữ liệu hoàn tiền", e);
             return ApiResponse.error("fail");
         }
     }

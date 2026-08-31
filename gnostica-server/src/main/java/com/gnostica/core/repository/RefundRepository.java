@@ -19,6 +19,13 @@ import org.springframework.data.jpa.repository.Query;
 
 @Repository
 public interface RefundRepository extends JpaRepository<Refund, UUID> {
+    @Query("SELECT COALESCE(SUM(r.amount), 0) FROM Refund r WHERE r.status = 2")
+    java.math.BigDecimal sumTotalApprovedRefundAmount();
+
+    long countByStatus(Integer status);
+
+    List<Refund> findAllByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
+
     @Query("SELECT r.createdAt, r.status, r.amount FROM Refund r WHERE r.createdAt >= :startDate")
     List<Object[]> getAdminStatsProjection(@Param("startDate") LocalDateTime startDate);
 
@@ -33,6 +40,9 @@ public interface RefundRepository extends JpaRepository<Refund, UUID> {
     boolean existsByOrderDetailIdAndStatus(UUID orderDetailId, Integer status);
     boolean existsByOrderDetailIdAndStatusIn(UUID orderDetailId, List<Integer> statuses);
     boolean existsByRefundCode(String refundCode);
+
+    /** Đếm số bản ghi hoàn tiền của một người từ một mốc thời gian (dùng để giới hạn số lần hoàn/tháng). */
+    long countByAccountAndCreatedAtGreaterThanEqual(Account account, LocalDateTime createdAt);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT r FROM Refund r WHERE r.id = :id")

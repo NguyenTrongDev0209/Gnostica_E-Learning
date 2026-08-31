@@ -5,6 +5,7 @@ import com.gnostica.modules.dashboard.dto.response.MemberGrowthDTO;
 import com.gnostica.modules.dashboard.dto.response.MonthlyUserRatingDTO;
 import com.gnostica.modules.dashboard.dto.response.MonthlyViolationDTO;
 import com.gnostica.modules.checkout.dto.response.RecentOrderDTO;
+import com.gnostica.modules.dashboard.dto.response.RefundMonthDTO;
 import com.gnostica.modules.dashboard.dto.response.RevenueMonthDTO;
 import com.gnostica.modules.dashboard.dto.response.StudentProductivityDTO;
 import com.gnostica.modules.dashboard.dto.response.TopCourseDTO;
@@ -21,6 +22,9 @@ public interface DashboardService {
 
     List<RevenueMonthDTO> getRevenueData(Integer months);
     List<RevenueMonthDTO> getRevenueData(LocalDateTime start, LocalDateTime end);
+
+    List<RefundMonthDTO> getRefundData(Integer months);
+    List<RefundMonthDTO> getRefundData(LocalDateTime start, LocalDateTime end);
 
     List<RecentOrderDTO> getRecentOrders();
 

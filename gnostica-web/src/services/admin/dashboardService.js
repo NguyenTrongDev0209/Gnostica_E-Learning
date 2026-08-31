@@ -107,10 +107,19 @@ const getViolations = async (params) => {
     return response.data.data;
 };
 
+const getRefunds = async (params) => {
+    const response = await axiosClient.get(`${API_URL}/refunds`, {
+        params: buildRangeParams(params),
+        headers: getAuthHeaders()
+    });
+    return response.data.data;
+};
+
 const dashboardService = {
     getStats,
     getMemberGrowth,
     getRevenue,
+    getRefunds,
     getRecentOrders,
     getTopCourses,
     getTopInstructors,

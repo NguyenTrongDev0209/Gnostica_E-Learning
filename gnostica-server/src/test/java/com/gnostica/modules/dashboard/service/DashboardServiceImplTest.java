@@ -191,4 +191,20 @@ class DashboardServiceImplTest {
         assertEquals(expectedFirstMonthLabel(12), result.get(0).getMonth());
         assertEquals(0L, result.get(0).getViolations());
     }
+
+    @Test
+    void testGetRefundData_Success() {
+        when(refundRepository.findAllByCreatedAtBetween(any(), any()))
+                .thenReturn(java.util.Collections.emptyList());
+
+        var result = dashboardService.getRefundData(12);
+        assertNotNull(result);
+        assertEquals(12, result.size());
+        assertEquals(expectedFirstMonthLabel(12), result.get(0).getMonth());
+        assertEquals(0.0, result.get(0).getRefundedAmount());
+        assertEquals(0L, result.get(0).getApprovedCount());
+        assertEquals(0L, result.get(0).getRejectedCount());
+        assertEquals(0L, result.get(0).getPendingCount());
+        assertEquals(0L, result.get(0).getTotalRequests());
+    }
 }
