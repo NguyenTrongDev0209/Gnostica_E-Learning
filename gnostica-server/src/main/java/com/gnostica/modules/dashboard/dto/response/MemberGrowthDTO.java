@@ -10,7 +10,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MemberGrowthDTO {
-    private String month; // T1, T2, ...
+    private String label;
     private Long students;
     private Long instructors;
+
+    public String getMonth() {
+        return label;
+    }
 }

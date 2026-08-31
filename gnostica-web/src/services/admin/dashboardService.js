@@ -17,6 +17,19 @@ const getAuthHeaders = () => {
     return {};
 };
 
+const buildRangeParams = (param) => {
+    if (!param) return undefined;
+    if (typeof param === 'object') {
+        const { start, end, months } = param;
+        const res = {};
+        if (start) res.start = start;
+        if (end) res.end = end;
+        if (months) res.months = months;
+        return Object.keys(res).length > 0 ? res : undefined;
+    }
+    return { months: param };
+};
+
 const getStats = async (period) => {
     const response = await axiosClient.get(`${API_URL}/stats`, {
         params: period ? { period } : undefined,
@@ -25,17 +38,17 @@ const getStats = async (period) => {
     return response.data.data;
 };
 
-const getMemberGrowth = async (months) => {
+const getMemberGrowth = async (params) => {
     const response = await axiosClient.get(`${API_URL}/member-growth`, {
-        params: months ? { months } : undefined,
+        params: buildRangeParams(params),
         headers: getAuthHeaders()
     });
     return response.data.data;
 };
 
-const getRevenue = async (months) => {
+const getRevenue = async (params) => {
     const response = await axiosClient.get(`${API_URL}/revenue`, {
-        params: months ? { months } : undefined,
+        params: buildRangeParams(params),
         headers: getAuthHeaders()
     });
     return response.data.data;
@@ -78,17 +91,17 @@ const getUserDemographics = async () => {
     return response.data.data;
 };
 
-const getUserRatings = async (months) => {
+const getUserRatings = async (params) => {
     const response = await axiosClient.get(`${API_URL}/user-ratings`, {
-        params: months ? { months } : undefined,
+        params: buildRangeParams(params),
         headers: getAuthHeaders()
     });
     return response.data.data;
 };
 
-const getViolations = async (months) => {
+const getViolations = async (params) => {
     const response = await axiosClient.get(`${API_URL}/violations`, {
-        params: months ? { months } : undefined,
+        params: buildRangeParams(params),
         headers: getAuthHeaders()
     });
     return response.data.data;

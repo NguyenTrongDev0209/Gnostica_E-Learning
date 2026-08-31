@@ -15,6 +15,7 @@ public interface PaymentRepository extends JpaRepository<Payment, java.util.UUID
     boolean existsByGatewayAndGatewayTransactionNo(String gateway, String gatewayTransactionNo);
     List<Payment> findByOrder(Order order);
     List<Payment> findByCreatedAtAfter(LocalDateTime createdAt);
+    List<Payment> findByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
 
     @Query("SELECT p FROM Payment p WHERE p.order.id IN :orderIds ORDER BY p.createdAt DESC")
     List<Payment> findByOrderIdsOrderByCreatedAtDesc(@Param("orderIds") java.util.Collection<java.util.UUID> orderIds);

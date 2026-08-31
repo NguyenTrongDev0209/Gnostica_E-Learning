@@ -48,4 +48,6 @@ public interface RefundRepository extends JpaRepository<Refund, UUID> {
     Page<Refund> findByStatusInOrderByCreatedAtDesc(List<Integer> statuses, Pageable pageable);
 
     long countByOrderDetailCourseAccountId(UUID accountId);
+    long countByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
+    long countByOrderDetailCourseAccountIdAndCreatedAtBetween(UUID accountId, LocalDateTime startDate, LocalDateTime endDate);
 }

@@ -1,10 +1,15 @@
 package com.gnostica.modules.dashboard.service.impl;
 
+import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -51,6 +56,150 @@ public class DashboardServiceImpl implements DashboardService {
     private final ReviewRepository reviewRepository;
     private final RefundRepository refundRepository;
     private final ReportRepository reportRepository;
+
+    public enum Granularity {
+        DAY,
+        WEEK,
+        MONTH,
+        QUARTER
+    }
+
+    public static class TimeBucket {
+        private final String label;
+        private final LocalDateTime start;
+        private final LocalDateTime end;
+
+        public TimeBucket(String label, LocalDateTime start, LocalDateTime end) {
+            this.label = label;
+            this.start = start;
+            this.end = end;
+        }
+
+        public String getLabel() {
+            return label;
+        }
+
+        public LocalDateTime getStart() {
+            return start;
+        }
+
+        public LocalDateTime getEnd() {
+            return end;
+        }
+
+        public boolean contains(LocalDateTime time) {
+            if (time == null) return false;
+            return (!time.isBefore(start)) && (time.isBefore(end) || time.isEqual(end));
+        }
+    }
+
+    private LocalDateTime[] resolveDefaultRange(LocalDateTime start, LocalDateTime end) {
+        LocalDateTime now = LocalDateTime.now();
+        if (start == null && end == null) {
+            start = LocalDateTime.of(now.getYear(), 1, 1, 0, 0, 0);
+            end = LocalDateTime.of(now.getYear(), 12, 31, 23, 59, 59, 999999999);
+        } else if (start == null) {
+            start = end.minusYears(1).withDayOfYear(1).withHour(0).withMinute(0).withSecond(0).withNano(0);
+        } else if (end == null) {
+            end = now;
+        }
+        if (start.isAfter(end)) {
+            LocalDateTime temp = start;
+            start = end;
+            end = temp;
+        }
+        return new LocalDateTime[]{start, end};
+    }
+
+    private Granularity resolveGranularity(LocalDateTime start, LocalDateTime end) {
+        long days = Duration.between(start, end).toDays();
+        if (days <= 7) {
+            return Granularity.DAY;
+        } else if (days <= 92) {
+            return Granularity.WEEK;
+        } else if (days <= 730) {
+            return Granularity.MONTH;
+        } else {
+            return Granularity.QUARTER;
+        }
+    }
+
+    private List<TimeBucket> buildBuckets(LocalDateTime start, LocalDateTime end, Granularity granularity) {
+        List<TimeBucket> buckets = new ArrayList<>();
+        DateTimeFormatter dayFmt = DateTimeFormatter.ofPattern("dd/MM");
+
+        switch (granularity) {
+            case DAY: {
+                LocalDate curr = start.toLocalDate();
+                LocalDate endD = end.toLocalDate();
+                while (!curr.isAfter(endD)) {
+                    LocalDateTime bStart = curr.atStartOfDay();
+                    LocalDateTime bEnd = curr.plusDays(1).atStartOfDay();
+                    String label = curr.format(dayFmt);
+                    buckets.add(new TimeBucket(label, bStart, bEnd));
+                    curr = curr.plusDays(1);
+                }
+                break;
+            }
+            case WEEK: {
+                LocalDate curr = start.toLocalDate();
+                LocalDate endD = end.toLocalDate();
+                while (!curr.isAfter(endD)) {
+                    LocalDateTime bStart = curr.atStartOfDay();
+                    LocalDate next = curr.plusDays(7);
+                    LocalDateTime bEnd = next.atStartOfDay();
+                    LocalDate displayEnd = next.minusDays(1).isAfter(endD) ? endD : next.minusDays(1);
+                    String label = curr.format(dayFmt) + " - " + displayEnd.format(dayFmt);
+                    buckets.add(new TimeBucket(label, bStart, bEnd));
+                    curr = next;
+                }
+                break;
+            }
+            case MONTH: {
+                YearMonth currYM = YearMonth.from(start);
+                YearMonth endYM = YearMonth.from(end);
+                boolean multiYear = start.getYear() != end.getYear();
+                while (!currYM.isAfter(endYM)) {
+                    LocalDateTime bStart = currYM.atDay(1).atStartOfDay();
+                    LocalDateTime bEnd = currYM.plusMonths(1).atDay(1).atStartOfDay();
+                    String label = multiYear 
+                        ? "T" + currYM.getMonthValue() + "/" + (currYM.getYear() % 100) 
+                        : "T" + currYM.getMonthValue();
+                    buckets.add(new TimeBucket(label, bStart, bEnd));
+                    currYM = currYM.plusMonths(1);
+                }
+                break;
+            }
+            case QUARTER: {
+                int startQ = (start.getMonthValue() - 1) / 3 + 1;
+                LocalDate currQStart = LocalDate.of(start.getYear(), (startQ - 1) * 3 + 1, 1);
+                LocalDate endD = end.toLocalDate();
+                while (!currQStart.isAfter(endD)) {
+                    LocalDateTime bStart = currQStart.atStartOfDay();
+                    LocalDate nextQ = currQStart.plusMonths(3);
+                    LocalDateTime bEnd = nextQ.atStartOfDay();
+                    int qNum = (currQStart.getMonthValue() - 1) / 3 + 1;
+                    String label = "Q" + qNum + "/" + (currQStart.getYear() % 100);
+                    buckets.add(new TimeBucket(label, bStart, bEnd));
+                    currQStart = nextQ;
+                }
+                break;
+            }
+        }
+        return buckets;
+    }
+
+    private TimeBucket findBucket(List<TimeBucket> buckets, LocalDateTime time) {
+        if (time == null || buckets == null || buckets.isEmpty()) return null;
+        for (TimeBucket b : buckets) {
+            if (b.contains(time)) return b;
+        }
+        TimeBucket last = buckets.get(buckets.size() - 1);
+        if (time.isEqual(last.getEnd()) || (!time.isBefore(last.getStart()) && !time.isAfter(last.getEnd()))) {
+            return last;
+        }
+        return null;
+    }
 
     @Override
     public DashboardStatsResponse getDashboardStats(String period) {
@@ -150,47 +299,57 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     @Override
-    public List<MemberGrowthDTO> getMemberGrowthData(Integer months) {
-        LocalDateTime now = LocalDateTime.now();
-        int currentYear = now.getYear();
-        LocalDateTime startDate = LocalDateTime.of(currentYear, 1, 1, 0, 0, 0);
+    public List<MemberGrowthDTO> getMemberGrowthData(LocalDateTime start, LocalDateTime end) {
+        LocalDateTime[] range = resolveDefaultRange(start, end);
+        LocalDateTime s = range[0];
+        LocalDateTime e = range[1];
+        Granularity g = resolveGranularity(s, e);
+        List<TimeBucket> buckets = buildBuckets(s, e, g);
 
-        List<Account> accounts = accountRepository.findAllByCreatedAtAfter(startDate);
-        List<MemberGrowthDTO> growthData = new ArrayList<>();
-
-        for (int i = 1; i <= 12; i++) {
-            growthData.add(new MemberGrowthDTO("T" + i, 0L, 0L));
+        Map<String, MemberGrowthDTO> map = new LinkedHashMap<>();
+        for (TimeBucket b : buckets) {
+            map.put(b.getLabel(), new MemberGrowthDTO(b.getLabel(), 0L, 0L));
         }
 
+        List<Account> accounts = accountRepository.findAllByCreatedAtBetween(s, e);
         for (Account acc : accounts) {
-            if (acc.getCreatedAt() == null || acc.getRole() == null)
-                continue;
-            LocalDateTime createdAt = acc.getCreatedAt();
-            if (createdAt.getYear() != currentYear) continue;
-            int monthIdx = createdAt.getMonthValue() - 1;
-            if (monthIdx < 0 || monthIdx >= 12) continue;
-            
+            if (acc.getCreatedAt() == null || acc.getRole() == null) continue;
+            TimeBucket bucket = findBucket(buckets, acc.getCreatedAt());
+            if (bucket == null) continue;
+            MemberGrowthDTO data = map.get(bucket.getLabel());
+            if (data == null) continue;
+
             String roleName = acc.getRole().getName();
-            MemberGrowthDTO targetMonth = growthData.get(monthIdx);
             if ("USER".equalsIgnoreCase(roleName)) {
-                targetMonth.setStudents(targetMonth.getStudents() + 1);
+                data.setStudents(data.getStudents() + 1);
             } else if ("INSTRUCTOR".equalsIgnoreCase(roleName)) {
-                targetMonth.setInstructors(targetMonth.getInstructors() + 1);
+                data.setInstructors(data.getInstructors() + 1);
             }
         }
-        return growthData;
+        return new ArrayList<>(map.values());
     }
 
     @Override
-    public List<RevenueMonthDTO> getRevenueData(Integer months) {
+    public List<MemberGrowthDTO> getMemberGrowthData(Integer months) {
         LocalDateTime now = LocalDateTime.now();
-        int currentYear = now.getYear();
-        LocalDateTime startDate = LocalDateTime.of(currentYear, 1, 1, 0, 0, 0);
+        int m = (months != null && months > 0) ? months : 12;
+        LocalDateTime start = now.minusMonths(m - 1).withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0).withNano(0);
+        LocalDateTime end = now;
+        return getMemberGrowthData(start, end);
+    }
 
-        List<RevenueMonthDTO> revenueData = new ArrayList<>();
-        for (int i = 1; i <= 12; i++) {
-            revenueData.add(RevenueMonthDTO.builder()
-                    .month("T" + i)
+    @Override
+    public List<RevenueMonthDTO> getRevenueData(LocalDateTime start, LocalDateTime end) {
+        LocalDateTime[] range = resolveDefaultRange(start, end);
+        LocalDateTime s = range[0];
+        LocalDateTime e = range[1];
+        Granularity g = resolveGranularity(s, e);
+        List<TimeBucket> buckets = buildBuckets(s, e, g);
+
+        Map<String, RevenueMonthDTO> map = new LinkedHashMap<>();
+        for (TimeBucket b : buckets) {
+            map.put(b.getLabel(), RevenueMonthDTO.builder()
+                    .label(b.getLabel())
                     .revenue(0.0)
                     .instructorRevenue(0.0)
                     .platformRevenue(0.0)
@@ -200,14 +359,13 @@ public class DashboardServiceImpl implements DashboardService {
         }
 
         // 1. Phân bổ doanh thu từ Order Details (status 1 = valid, order.status 1 = completed)
-        List<com.gnostica.core.model.OrderDetail> orderDetails = orderDetailRepository.findAllByOrderCreatedAtAfterAndOrderStatus(startDate, 1);
+        List<com.gnostica.core.model.OrderDetail> orderDetails = orderDetailRepository.findAllByOrderCreatedAtBetweenAndOrderStatus(s, e, 1);
         for (com.gnostica.core.model.OrderDetail od : orderDetails) {
             if (od.getOrder() == null || od.getOrder().getCreatedAt() == null) continue;
-            LocalDateTime createdAt = od.getOrder().getCreatedAt();
-            if (createdAt.getYear() != currentYear) continue;
-            int monthIdx = createdAt.getMonthValue() - 1;
-            if (monthIdx < 0 || monthIdx >= 12) continue;
-            RevenueMonthDTO data = revenueData.get(monthIdx);
+            TimeBucket bucket = findBucket(buckets, od.getOrder().getCreatedAt());
+            if (bucket == null) continue;
+            RevenueMonthDTO data = map.get(bucket.getLabel());
+            if (data == null) continue;
 
             double rawPrice = od.getPrice() != null ? od.getPrice().doubleValue() : 0.0;
             double discount = od.getDiscount() != null ? od.getDiscount().doubleValue() : 0.0;
@@ -224,25 +382,23 @@ public class DashboardServiceImpl implements DashboardService {
             data.setRevenue(data.getRevenue() + price);
             data.setInstructorRevenue(data.getInstructorRevenue() + instRev);
             data.setPlatformRevenue(data.getPlatformRevenue() + platRev);
-            data.setWithdrawable(data.getWithdrawable() + (instRev * 0.9)); // 90% of instructor earnings
+            data.setWithdrawable(data.getWithdrawable() + (instRev * 0.9));
         }
 
-        // 2. Thống kê đơn hàng và fallback doanh thu từ Payments nếu chưa có order_details
-        List<Payment> payments = paymentRepository.findByCreatedAtAfter(startDate)
+        // 2. Thống kê đơn hàng và fallback payments
+        List<Payment> payments = paymentRepository.findByCreatedAtBetween(s, e)
                 .stream()
                 .filter(p -> p.getStatus() == 2)
                 .collect(Collectors.toList());
 
         for (Payment p : payments) {
             if (p.getCreatedAt() == null) continue;
-            LocalDateTime createdAt = p.getCreatedAt();
-            if (createdAt.getYear() != currentYear) continue;
-            int monthIdx = createdAt.getMonthValue() - 1;
-            if (monthIdx < 0 || monthIdx >= 12) continue;
-            RevenueMonthDTO data = revenueData.get(monthIdx);
+            TimeBucket bucket = findBucket(buckets, p.getCreatedAt());
+            if (bucket == null) continue;
+            RevenueMonthDTO data = map.get(bucket.getLabel());
+            if (data == null) continue;
             data.setOrders(data.getOrders() + 1);
 
-            // Fallback nếu orderDetails không có bản ghi (ví dụ seed data payment trực tiếp)
             if (data.getRevenue() == 0.0 && p.getAmount() != null) {
                 double amount = p.getAmount().doubleValue();
                 data.setRevenue(data.getRevenue() + amount);
@@ -251,7 +407,16 @@ public class DashboardServiceImpl implements DashboardService {
                 data.setWithdrawable(data.getWithdrawable() + (amount * 0.8));
             }
         }
-        return revenueData;
+        return new ArrayList<>(map.values());
+    }
+
+    @Override
+    public List<RevenueMonthDTO> getRevenueData(Integer months) {
+        LocalDateTime now = LocalDateTime.now();
+        int m = (months != null && months > 0) ? months : 12;
+        LocalDateTime start = now.minusMonths(m - 1).withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0).withNano(0);
+        LocalDateTime end = now;
+        return getRevenueData(start, end);
     }
 
     @Override
@@ -284,15 +449,33 @@ public class DashboardServiceImpl implements DashboardService {
 
     @Override
     public List<TopInstructorDTO> getTopInstructors(String period) {
+        LocalDateTime[] pRange = resolvePeriodRange(period);
+        LocalDateTime pStart = pRange[0];
+        LocalDateTime pEnd = pRange[1];
+
         List<Account> instructors = accountRepository.findByRoleName("INSTRUCTOR");
-        List<TopInstructorDTO> result = new ArrayList<>();
+        
+        class InstructorRank {
+            TopInstructorDTO dto;
+            long totalStudents;
+            int courseCount;
+        }
+
+        List<InstructorRank> rankedList = new ArrayList<>();
 
         for (Account inst : instructors) {
             if (inst.getDeletedAt() != null) continue;
-            long completed = enrollmentRepository.countByCourseAccountIdAndProgressPercentEquals(inst.getId(), 100);
-            long learning = enrollmentRepository.countByCourseAccountIdAndProgressPercentLessThan(inst.getId(), 100);
-            long refunds = refundRepository.countByOrderDetailCourseAccountId(inst.getId());
+            long completed = enrollmentRepository.countByCourseAccountIdAndProgressPercentEqualsAndCreatedAtBetween(inst.getId(), 100, pStart, pEnd);
+            long learning = enrollmentRepository.countByCourseAccountIdAndProgressPercentLessThanAndCreatedAtBetween(inst.getId(), 100, pStart, pEnd);
+            long refunds = refundRepository.countByOrderDetailCourseAccountIdAndCreatedAtBetween(inst.getId(), pStart, pEnd);
             long total = completed + learning + refunds;
+
+            if (total == 0) {
+                completed = enrollmentRepository.countByCourseAccountIdAndProgressPercentEquals(inst.getId(), 100);
+                learning = enrollmentRepository.countByCourseAccountIdAndProgressPercentLessThan(inst.getId(), 100);
+                refunds = refundRepository.countByOrderDetailCourseAccountId(inst.getId());
+                total = completed + learning + refunds;
+            }
 
             int compPercent = total > 0 ? (int) Math.round((completed * 100.0) / total) : 60;
             int learnPercent = total > 0 ? (int) Math.round((learning * 100.0) / total) : 35;
@@ -301,28 +484,58 @@ public class DashboardServiceImpl implements DashboardService {
                 refundPercent = Math.max(0, 100 - compPercent - learnPercent);
             }
 
-            result.add(TopInstructorDTO.builder()
+            long totalStudents = completed + learning;
+            long courseCount = courseRepository.countByAccountIdAndStatus(inst.getId(), 1);
+
+            TopInstructorDTO dto = TopInstructorDTO.builder()
                     .id(inst.getId())
-                    .name(inst.getFullName() != null ? inst.getFullName() : "Giảng viên")
-                    .avatar(inst.getAvatar() != null ? inst.getAvatar() : "https://i.pravatar.cc/150?u=" + (inst.getId() != null ? Math.abs(inst.getId().hashCode()) : 1))
+                    .name(inst.getFullName() != null && !inst.getFullName().isBlank() ? inst.getFullName() : inst.getEmail())
+                    .avatar(inst.getAvatar() != null && !inst.getAvatar().isBlank() ? inst.getAvatar() : "/default-avatar.png")
                     .completion(compPercent)
                     .learning(learnPercent)
                     .refund(refundPercent)
-                    .build());
+                    .build();
+
+            InstructorRank rank = new InstructorRank();
+            rank.dto = dto;
+            rank.totalStudents = totalStudents;
+            rank.courseCount = (int) courseCount;
+            rankedList.add(rank);
         }
-        return result.stream().limit(5).collect(Collectors.toList());
+
+        return rankedList.stream()
+                .sorted((a, b) -> {
+                    int cmp = Long.compare(b.totalStudents, a.totalStudents);
+                    if (cmp != 0) return cmp;
+                    return Integer.compare(b.courseCount, a.courseCount);
+                })
+                .map(r -> r.dto)
+                .limit(5)
+                .collect(Collectors.toList());
     }
 
     @Override
     public StudentProductivityDTO getStudentProductivity(String period) {
-        long completed = enrollmentRepository.countByProgressPercentEquals(100);
-        long learning = enrollmentRepository.countByProgressPercentLessThan(100);
-        long refunds = refundRepository.count();
+        LocalDateTime[] pRange = resolvePeriodRange(period);
+        LocalDateTime pStart = pRange[0];
+        LocalDateTime pEnd = pRange[1];
+
+        long completed = enrollmentRepository.countByProgressPercentEqualsAndCreatedAtBetween(100, pStart, pEnd);
+        long learning = enrollmentRepository.countByProgressPercentLessThanAndCreatedAtBetween(100, pStart, pEnd);
+        long refunds = refundRepository.countByCreatedAtBetween(pStart, pEnd);
+
+        if (completed == 0 && learning == 0 && refunds == 0) {
+            completed = enrollmentRepository.countByProgressPercentEquals(100);
+            learning = enrollmentRepository.countByProgressPercentLessThan(100);
+            refunds = refundRepository.count();
+        }
+
         if (completed == 0 && learning == 0 && refunds == 0) {
             completed = 65L;
             learning = 30L;
             refunds = 5L;
         }
+
         return StudentProductivityDTO.builder()
                 .completion(completed)
                 .learning(learning)
@@ -367,35 +580,29 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     @Override
-    public List<MonthlyUserRatingDTO> getUserRatingsData(Integer months) {
-        int limit = (months != null && months > 0 && months <= 12) ? months : 12;
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime startDate = now.minusMonths(limit - 1).withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0).withNano(0);
-        
-        List<Review> reviews = reviewRepository.findByCreatedAtAfterAndDeletedAtIsNull(startDate);
+    public List<MonthlyUserRatingDTO> getUserRatingsData(LocalDateTime start, LocalDateTime end) {
+        LocalDateTime[] range = resolveDefaultRange(start, end);
+        LocalDateTime s = range[0];
+        LocalDateTime e = range[1];
+        Granularity g = resolveGranularity(s, e);
+        List<TimeBucket> buckets = buildBuckets(s, e, g);
 
-        List<MonthlyUserRatingDTO> result = new ArrayList<>();
-        for (int i = limit - 1; i >= 0; i--) {
-            LocalDateTime monthDate = now.minusMonths(i);
-            result.add(MonthlyUserRatingDTO.builder()
-                    .month("T" + monthDate.getMonthValue())
-                    .star1(0L)
-                    .star2(0L)
-                    .star3(0L)
-                    .star4(0L)
-                    .star5(0L)
-                    .total(0L)
+        Map<String, MonthlyUserRatingDTO> map = new LinkedHashMap<>();
+        for (TimeBucket b : buckets) {
+            map.put(b.getLabel(), MonthlyUserRatingDTO.builder()
+                    .label(b.getLabel())
+                    .star1(0L).star2(0L).star3(0L).star4(0L).star5(0L).total(0L)
                     .build());
         }
 
+        List<Review> reviews = reviewRepository.findByCreatedAtBetweenAndDeletedAtIsNull(s, e);
         for (Review r : reviews) {
             if (r.getCreatedAt() == null || r.getRating() == null) continue;
-            LocalDateTime createdAt = r.getCreatedAt();
-            int monthsBetween = (now.getYear() - createdAt.getYear()) * 12 + now.getMonthValue() - createdAt.getMonthValue();
-            int monthIdx = limit - 1 - monthsBetween;
-            
-            if (monthIdx < 0 || monthIdx >= limit) continue;
-            MonthlyUserRatingDTO dto = result.get(monthIdx);
+            TimeBucket bucket = findBucket(buckets, r.getCreatedAt());
+            if (bucket == null) continue;
+            MonthlyUserRatingDTO dto = map.get(bucket.getLabel());
+            if (dto == null) continue;
+
             int star = r.getRating();
             if (star == 1) dto.setStar1(dto.getStar1() + 1);
             else if (star == 2) dto.setStar2(dto.getStar2() + 1);
@@ -404,37 +611,53 @@ public class DashboardServiceImpl implements DashboardService {
             else if (star == 5) dto.setStar5(dto.getStar5() + 1);
             dto.setTotal(dto.getTotal() + 1);
         }
-        return result;
+        return new ArrayList<>(map.values());
     }
 
     @Override
-    public List<MonthlyViolationDTO> getViolationsData(Integer months) {
-        int limit = (months != null && months > 0 && months <= 12) ? months : 12;
+    public List<MonthlyUserRatingDTO> getUserRatingsData(Integer months) {
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime startDate = now.minusMonths(limit - 1).withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0).withNano(0);
-        
-        List<Report> reports = reportRepository.findByCreatedAtAfterAndDeletedAtIsNull(startDate);
+        int m = (months != null && months > 0) ? months : 12;
+        LocalDateTime start = now.minusMonths(m - 1).withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0).withNano(0);
+        LocalDateTime end = now;
+        return getUserRatingsData(start, end);
+    }
 
-        List<MonthlyViolationDTO> result = new ArrayList<>();
-        for (int i = limit - 1; i >= 0; i--) {
-            LocalDateTime monthDate = now.minusMonths(i);
-            result.add(MonthlyViolationDTO.builder()
-                    .month("T" + monthDate.getMonthValue())
+    @Override
+    public List<MonthlyViolationDTO> getViolationsData(LocalDateTime start, LocalDateTime end) {
+        LocalDateTime[] range = resolveDefaultRange(start, end);
+        LocalDateTime s = range[0];
+        LocalDateTime e = range[1];
+        Granularity g = resolveGranularity(s, e);
+        List<TimeBucket> buckets = buildBuckets(s, e, g);
+
+        Map<String, MonthlyViolationDTO> map = new LinkedHashMap<>();
+        for (TimeBucket b : buckets) {
+            map.put(b.getLabel(), MonthlyViolationDTO.builder()
+                    .label(b.getLabel())
                     .violations(0L)
                     .build());
         }
 
+        List<Report> reports = reportRepository.findByCreatedAtBetweenAndDeletedAtIsNull(s, e);
         for (Report rep : reports) {
             if (rep.getCreatedAt() == null) continue;
-            LocalDateTime createdAt = rep.getCreatedAt();
-            int monthsBetween = (now.getYear() - createdAt.getYear()) * 12 + now.getMonthValue() - createdAt.getMonthValue();
-            int monthIdx = limit - 1 - monthsBetween;
-            
-            if (monthIdx < 0 || monthIdx >= limit) continue;
-            MonthlyViolationDTO dto = result.get(monthIdx);
+            TimeBucket bucket = findBucket(buckets, rep.getCreatedAt());
+            if (bucket == null) continue;
+            MonthlyViolationDTO dto = map.get(bucket.getLabel());
+            if (dto == null) continue;
             dto.setViolations(dto.getViolations() + 1);
         }
-        return result;
+        return new ArrayList<>(map.values());
+    }
+
+    @Override
+    public List<MonthlyViolationDTO> getViolationsData(Integer months) {
+        LocalDateTime now = LocalDateTime.now();
+        int m = (months != null && months > 0) ? months : 12;
+        LocalDateTime start = now.minusMonths(m - 1).withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0).withNano(0);
+        LocalDateTime end = now;
+        return getViolationsData(start, end);
     }
 
     private String formatFriendlyDate(LocalDateTime dateTime) {

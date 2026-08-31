@@ -51,6 +51,12 @@ public interface OrderDetailRepository extends JpaRepository<OrderDetail, java.u
             @org.springframework.data.repository.query.Param("startDate") java.time.LocalDateTime startDate,
             @org.springframework.data.repository.query.Param("orderStatus") Integer orderStatus);
 
+    @org.springframework.data.jpa.repository.Query("SELECT od FROM OrderDetail od LEFT JOIN FETCH od.commission LEFT JOIN FETCH od.order o WHERE o.createdAt >= :startDate AND o.createdAt < :endDate AND o.status = :orderStatus AND od.status = 1")
+    List<OrderDetail> findAllByOrderCreatedAtBetweenAndOrderStatus(
+            @org.springframework.data.repository.query.Param("startDate") java.time.LocalDateTime startDate,
+            @org.springframework.data.repository.query.Param("endDate") java.time.LocalDateTime endDate,
+            @org.springframework.data.repository.query.Param("orderStatus") Integer orderStatus);
+
     List<OrderDetail> findByOrderId(java.util.UUID orderId);
     org.springframework.data.domain.Page<OrderDetail> findByCourseAccountIdAndOrderStatusOrderByOrderCreatedAtDesc(java.util.UUID instructorId, Integer orderStatus, org.springframework.data.domain.Pageable pageable);
 }

@@ -5,6 +5,7 @@ export function useDashboard() {
   const [stats, setStats] = useState(null);
   const [memberGrowth, setMemberGrowth] = useState([]);
   const [revenueData, setRevenueData] = useState([]);
+  const [instructorRevenueData, setInstructorRevenueData] = useState([]);
   const [recentOrders, setRecentOrders] = useState([]);
   const [topCourses, setTopCourses] = useState([]);
   const [topInstructors, setTopInstructors] = useState([]);
@@ -44,6 +45,7 @@ export function useDashboard() {
       setStats(statsData);
       setMemberGrowth(growthData || []);
       setRevenueData(revData || []);
+      setInstructorRevenueData(revData || []);
       setRecentOrders(ordersData || []);
       setTopCourses(coursesData || []);
       setTopInstructors(instructorsData || []);
@@ -71,18 +73,27 @@ export function useDashboard() {
     }
   };
 
-  const fetchRevenue = async (months) => {
+  const fetchRevenue = async (params) => {
     try {
-      const data = await dashboardService.getRevenue(months);
+      const data = await dashboardService.getRevenue(params);
       setRevenueData(data || []);
     } catch (e) {
       console.error(e);
     }
   };
 
-  const fetchMemberGrowth = async (months) => {
+  const fetchInstructorRevenue = async (params) => {
     try {
-      const data = await dashboardService.getMemberGrowth(months);
+      const data = await dashboardService.getRevenue(params);
+      setInstructorRevenueData(data || []);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const fetchMemberGrowth = async (params) => {
+    try {
+      const data = await dashboardService.getMemberGrowth(params);
       setMemberGrowth(data || []);
     } catch (e) {
       console.error(e);
@@ -107,18 +118,18 @@ export function useDashboard() {
     }
   };
 
-  const fetchUserRatings = async (months) => {
+  const fetchUserRatings = async (params) => {
     try {
-      const data = await dashboardService.getUserRatings(months);
+      const data = await dashboardService.getUserRatings(params);
       setUserRatings(data || []);
     } catch (e) {
       console.error(e);
     }
   };
 
-  const fetchViolations = async (months) => {
+  const fetchViolations = async (params) => {
     try {
-      const data = await dashboardService.getViolations(months);
+      const data = await dashboardService.getViolations(params);
       setViolations(data || []);
     } catch (e) {
       console.error(e);
@@ -129,6 +140,7 @@ export function useDashboard() {
     stats,
     memberGrowth,
     revenueData,
+    instructorRevenueData,
     recentOrders,
     topCourses,
     topInstructors,
@@ -140,6 +152,7 @@ export function useDashboard() {
     refresh: fetchDashboardData,
     fetchStats,
     fetchRevenue,
+    fetchInstructorRevenue,
     fetchMemberGrowth,
     fetchTopInstructors,
     fetchStudentProductivity,

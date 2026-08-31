@@ -16,6 +16,7 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
 
     boolean existsByEmail(String email);
     java.util.List<Account> findAllByCreatedAtAfter(java.time.LocalDateTime date);
+    java.util.List<Account> findAllByCreatedAtBetween(java.time.LocalDateTime startDate, java.time.LocalDateTime endDate);
     long countByRoleNameAndCreatedAtAfter(String roleName, java.time.LocalDateTime date);
     long countByRoleNameAndCreatedAtGreaterThanEqualAndCreatedAtLessThan(String roleName, java.time.LocalDateTime startDate, java.time.LocalDateTime endDate);
 

@@ -21,4 +21,5 @@ public interface ReportRepository extends JpaRepository<Report, Integer> {
     List<Object[]> getAdminStatsProjection(@Param("startDate") LocalDateTime startDate, @Param("targetType") String targetType);
 
     List<Report> findByCreatedAtAfterAndDeletedAtIsNull(LocalDateTime createdAt);
+    List<Report> findByCreatedAtBetweenAndDeletedAtIsNull(LocalDateTime startDate, LocalDateTime endDate);
 }

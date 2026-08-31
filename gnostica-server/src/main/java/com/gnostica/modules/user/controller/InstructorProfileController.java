@@ -29,7 +29,7 @@ public class InstructorProfileController {
     private final com.fasterxml.jackson.databind.ObjectMapper objectMapper;
 
     /**
-     * Láº¥y danh sÃ¡ch táº¥t cáº£ giáº£ng viÃªn kÃ¨m theo thá»‘ng kÃª
+     * Lấy danh sách tất cả giảng viên kèm theo thống kê
      */
     @GetMapping("/list")
     public ResponseEntity<?> getAllInstructorsWithStats() {
@@ -58,14 +58,14 @@ public class InstructorProfileController {
             }
 
             return InstructorStatsResponse.builder()
-                    .id(account.getId()) // Sá»­ dá»¥ng Account ID cho cÃ¡c liÃªn káº¿t URL
+                    .id(account.getId()) // Sử dụng Account ID cho các liên kết URL
                     .fullName(account.getFullName())
                     .email(account.getEmail())
                     .avatar(account.getAvatar())
                     .coursesCount(coursesCount)
                     .studentsCount(studentsCount)
                     .rating(4.8)
-                    .title(title.isEmpty() ? "Giáº£ng viÃªn" : title)
+                    .title(title.isEmpty() ? "Giảng viên" : title)
                     .bio(bio)
                     .categories(categories)
                     .build();
@@ -75,17 +75,17 @@ public class InstructorProfileController {
     }
 
     /**
-     * Láº¥y thÃ´ng tin há»“ sÆ¡ cÃ´ng khai cá»§a giáº£ng viÃªn theo ID
+     * Lấy thông tin hồ sơ công khai của giảng viên theo ID
      */
     @GetMapping("/{id}/profile")
     public ResponseEntity<?> getInstructorProfile(@PathVariable java.util.UUID id) {
         Account account = accountRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("KhÃ´ng tÃ¬m tháº¥y giáº£ng viÃªn"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy giảng viên"));
 
-        // Äáº¿m sá»‘ khÃ³a há»c Ä‘ang hoáº¡t Ä‘á»™ng cá»§a giáº£ng viÃªn
+        // Đếm số khóa học đang hoạt động của giảng viên
         long coursesCount = courseRepository.countByAccountIdAndStatus(id, 1);
 
-        // Äáº¿m tá»•ng sá»‘ há»c viÃªn Ä‘Ã£ Ä‘Äƒng kÃ½ cÃ¡c khÃ³a há»c cá»§a giáº£ng viÃªn
+        // Đếm tổng số học viên đã đăng ký các khóa học của giảng viên
         long studentsCount = courseRepository.countStudentsByInstructorId(id);
 
         Map<String, Object> profile = new HashMap<>();

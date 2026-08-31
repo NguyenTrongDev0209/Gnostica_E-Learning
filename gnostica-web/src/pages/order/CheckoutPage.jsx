@@ -202,7 +202,7 @@ function CheckoutPaymentMethod({ paymentMethods, paymentMethod, setPaymentMethod
 
 // ── CheckoutOrderSummary ──
 function CheckoutOrderSummary({
-  loading, subtotal, totalOriginal, discount,
+  loading, subtotal, totalOriginal, courseDiscount = 0, couponDiscount = 0,
   couponCode, setCouponCode, applyCoupon, removeCoupon, appliedCoupon, couponMessage, isCouponLoading,
   paymentMethod, walletBalance
 }) {
@@ -221,8 +221,14 @@ function CheckoutOrderSummary({
           </div>
           <div className="flex justify-between text-sm font-normal">
             <span className="text-muted-foreground">Giảm giá</span>
-            <span className="text-error">-{discount.toLocaleString()}đ</span>
+            <span className="text-error">-{courseDiscount.toLocaleString()}đ</span>
           </div>
+          {couponDiscount > 0 && (
+            <div className="flex justify-between text-sm font-normal">
+              <span className="text-muted-foreground">Giảm Coupon</span>
+              <span className="text-error">-{couponDiscount.toLocaleString()}đ</span>
+            </div>
+          )}
         </div>
 
         <Separator className="bg-secondary" />
@@ -393,7 +399,8 @@ export default function CheckoutPage() {
 
   const subtotal = currentSubtotal - extraDiscount;
   const totalOriginal = orderItems.reduce((sum, item) => sum + (item.originalPrice || item.price), 0);
-  const discount = totalOriginal - subtotal;
+  const courseDiscount = Math.max(0, totalOriginal - currentSubtotal);
+  const couponDiscount = extraDiscount;
 
   // Chính sách phương thức thanh toán theo tổng tiền:
   // - Đơn 0đ: chỉ dùng Ví (disable PayOS + VNPay)
@@ -641,7 +648,8 @@ export default function CheckoutPage() {
                   loading={loading}
                   subtotal={subtotal}
                   totalOriginal={totalOriginal}
-                  discount={discount}
+                  courseDiscount={courseDiscount}
+                  couponDiscount={couponDiscount}
                   couponCode={couponCode}
                   setCouponCode={setCouponCode}
                   applyCoupon={applyCoupon}

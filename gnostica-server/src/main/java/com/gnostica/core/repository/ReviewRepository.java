@@ -25,4 +25,5 @@ public interface ReviewRepository extends JpaRepository<Review, Integer> {
 
     org.springframework.data.domain.Page<Review> findByCourseAccountIdAndCourseDeletedAtIsNullOrderByCreatedAtDesc(java.util.UUID instructorId, org.springframework.data.domain.Pageable pageable);
     List<Review> findByCreatedAtAfterAndDeletedAtIsNull(java.time.LocalDateTime createdAt);
+    List<Review> findByCreatedAtBetweenAndDeletedAtIsNull(java.time.LocalDateTime startDate, java.time.LocalDateTime endDate);
 }

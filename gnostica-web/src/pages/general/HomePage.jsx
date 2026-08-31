@@ -494,7 +494,7 @@ const InstructorGrid = () => {
           <div className="flex items-center gap-4 text-xs text-muted-foreground w-full justify-center border-t border-border/60 pt-3 mt-auto">
             <div className="flex items-center gap-1">
               <Users className="w-4 h-4" />
-              <span>{instructor.students} hb</span>
+              <span>{instructor.students} học viên</span>
             </div>
             <div className="flex items-center gap-1">
               <BookOpen className="w-4 h-4" />

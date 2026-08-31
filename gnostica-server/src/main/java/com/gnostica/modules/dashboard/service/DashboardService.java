@@ -10,14 +10,17 @@ import com.gnostica.modules.dashboard.dto.response.StudentProductivityDTO;
 import com.gnostica.modules.dashboard.dto.response.TopCourseDTO;
 import com.gnostica.modules.dashboard.dto.response.TopInstructorDTO;
 import com.gnostica.modules.dashboard.dto.response.UserAgeDistributionDTO;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface DashboardService {
     DashboardStatsResponse getDashboardStats(String period);
 
     List<MemberGrowthDTO> getMemberGrowthData(Integer months);
+    List<MemberGrowthDTO> getMemberGrowthData(LocalDateTime start, LocalDateTime end);
 
     List<RevenueMonthDTO> getRevenueData(Integer months);
+    List<RevenueMonthDTO> getRevenueData(LocalDateTime start, LocalDateTime end);
 
     List<RecentOrderDTO> getRecentOrders();
 
@@ -30,8 +33,10 @@ public interface DashboardService {
     UserAgeDistributionDTO getUserAgeDistribution();
 
     List<MonthlyUserRatingDTO> getUserRatingsData(Integer months);
+    List<MonthlyUserRatingDTO> getUserRatingsData(LocalDateTime start, LocalDateTime end);
 
     List<MonthlyViolationDTO> getViolationsData(Integer months);
+    List<MonthlyViolationDTO> getViolationsData(LocalDateTime start, LocalDateTime end);
 }
 
 
