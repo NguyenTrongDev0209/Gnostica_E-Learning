@@ -3,8 +3,11 @@ import React from 'react';
 import { View, Image, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
+import { useTheme } from '../../../context/ThemeContext';
+
 const CourseProgressCard = ({ course, onPress }) => {
     const navigation = useNavigation();
+    const { isDarkMode } = useTheme();
     const rawProgress = course?.progressPercent ?? course?.progress ?? 0;
     const progress = Math.min(100, Math.max(0, Math.round(rawProgress)));
     const isCompleted = progress >= 100 || course?.completed;
@@ -21,12 +24,14 @@ const CourseProgressCard = ({ course, onPress }) => {
         <TouchableOpacity
             onPress={handlePress}
             activeOpacity={0.85}
-            className="flex-row bg-white rounded-[14px] mb-3 overflow-hidden border border-slate-100 shadow-sm"
+            className={`flex-row rounded-[14px] mb-3 overflow-hidden border shadow-sm ${
+                isDarkMode ? 'bg-slate-800 border-slate-700/60' : 'bg-white border-slate-100'
+            }`}
         >
             {/* Thumbnail */}
             <Image
                 source={{ uri: course?.thumbnail || course?.courseThumbnail || 'https://via.placeholder.com/150' }}
-                className="bg-slate-200"
+                className={isDarkMode ? "bg-slate-700" : "bg-slate-200"}
                 style={{ width: 96, minHeight: 96 }}
                 resizeMode="cover"
             />
@@ -34,17 +39,17 @@ const CourseProgressCard = ({ course, onPress }) => {
             {/* Content */}
             <View className="flex-1 p-3 justify-between">
                 <View>
-                    <AppText numberOfLines={2} className="text-[13px] font-bold text-slate-800 leading-[18px]">
+                    <AppText numberOfLines={2} className={`text-[13px] font-bold leading-[18px] ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}>
                         {course?.title || course?.courseTitle}
                     </AppText>
-                    <AppText className="text-[11px] text-slate-500 mt-[3px] mb-2" numberOfLines={1}>
+                    <AppText className={`text-[11px] mt-[3px] mb-2 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`} numberOfLines={1}>
                         {course?.instructorName ? `Giảng viên: ${course.instructorName}` : (course?.lastLesson || 'Bài học tiếp theo')}
                     </AppText>
                 </View>
 
                 {/* Progress Bar */}
                 <View>
-                    <View className="h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                    <View className={`h-1.5 rounded-full overflow-hidden ${isDarkMode ? 'bg-slate-700' : 'bg-slate-200'}`}>
                         <View
                             className="h-full rounded-full"
                             style={{

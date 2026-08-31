@@ -4,11 +4,13 @@ import { View, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-nat
 import CourseCard from './CourseCard';
 import courseService from '../../../services/course/courseService';
 import { useNavigation } from '@react-navigation/native';
+import { useTheme } from '../../../context/ThemeContext';
 import { useAuth } from '../../../context/AuthContext';
 
 const CourseSection = ({ title, variant = 'trending', customData, limit = 5 }) => {
     const navigation = useNavigation();
     const { isAuthenticated } = useAuth();
+    const { isDarkMode } = useTheme();
     const [data, setData] = useState(customData || []);
     const [loading, setLoading] = useState(!customData);
 
@@ -78,9 +80,9 @@ const CourseSection = ({ title, variant = 'trending', customData, limit = 5 }) =
     return (
         <View className="mt-7">
             <View className="flex-row justify-between items-center px-5 mb-3">
-                <AppText className="text-[18px] font-extrabold text-slate-800">{title}</AppText>
+                <AppText className={`text-[18px] font-extrabold ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}>{title}</AppText>
                 <TouchableOpacity onPress={() => navigation.navigate('CourseCatalog')}>
-                    <AppText className="text-[13px] text-blue-600 font-semibold">Xem tất cả</AppText>
+                    <AppText className="text-[13px] text-blue-500 font-semibold">Xem tất cả</AppText>
                 </TouchableOpacity>
             </View>
             <ScrollView

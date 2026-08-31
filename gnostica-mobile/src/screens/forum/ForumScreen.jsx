@@ -10,6 +10,7 @@ import FloatingAiButton from '../../components/ui/FloatingAiButton';
 import threadService from '../../services/forum/threadService';
 import forumCategoryService from '../../services/forum/forumCategoryService';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 
 const normalizeSearchText = (text) => {
     if (!text) return '';
@@ -32,6 +33,7 @@ const PAGE_SIZE = 10;
 const ForumScreen = () => {
     const navigation = useNavigation();
     const { user } = useAuth();
+    const { isDarkMode } = useTheme();
     const [threads, setThreads] = useState([]);
     const [categories, setCategories] = useState([]);
     const [activeCategory, setActiveCategory] = useState(null);
@@ -140,7 +142,6 @@ const ForumScreen = () => {
         if (!cat) return true;
         if (!t) return false;
 
-        // 1. Match by ID (String comparison)
         const catIdStr = cat.id != null ? String(cat.id) : null;
         const threadCatIdStr = (t.topic?.id != null ? String(t.topic.id) : null) ||
                                (t.category?.id != null ? String(t.category.id) : null) ||
@@ -151,14 +152,12 @@ const ForumScreen = () => {
             return true;
         }
 
-        // 2. Match by Slug
         const catSlug = (cat.slug || '').toLowerCase().trim();
         const threadSlug = (t.topic?.slug || t.category?.slug || t.topicSlug || t.categorySlug || '').toLowerCase().trim();
         if (catSlug && threadSlug && (catSlug === threadSlug || catSlug.includes(threadSlug) || threadSlug.includes(catSlug))) {
             return true;
         }
 
-        // 3. Match by Name / Title
         const catName = normalizeSearchText(cat.name || cat.title || '');
         const threadTitle = normalizeSearchText(
             t.topic?.title || t.topic?.name || t.category?.title || t.category?.name || t.topicName || t.categoryName || ''
@@ -170,7 +169,6 @@ const ForumScreen = () => {
             }
         }
 
-        // 4. Match by Hashtags
         if (catName && Array.isArray(t.hashtags)) {
             const matchTag = t.hashtags.some(h => {
                 const tagName = normalizeSearchText(h?.hashtag?.name || h?.name || '');
@@ -207,11 +205,15 @@ const ForumScreen = () => {
     };
 
     return (
-        <View className="flex-1 bg-slate-50">
-            <AppHeader title="Diễn đàn thảo luận" />
+        <View className={`flex-1 ${isDarkMode ? 'bg-slate-900' : 'bg-slate-50'}`}>
+            <AppHeader 
+                title="Diễn đàn thảo luận" 
+                className={isDarkMode ? '!bg-slate-800 !border-slate-700' : ''}
+                titleClassName={isDarkMode ? '!text-slate-100' : ''}
+            />
 
             {/* Search Bar */}
-            <View className="bg-white px-4 pt-3 pb-1 border-b border-slate-100">
+            <View className={`px-4 pt-3 pb-1 border-b ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'}`}>
                 <SearchBar
                     value={searchQuery}
                     onChangeText={(text) => {
@@ -223,11 +225,12 @@ const ForumScreen = () => {
                         setSearchQuery('');
                         setCurrentPage(0);
                     }}
+                    style={{ backgroundColor: isDarkMode ? '#334155' : '#F1F5F9', borderRadius: 12, borderWidth: 0 }}
                 />
             </View>
 
             {/* Categories Filter Bar */}
-            <View className="bg-white border-b border-slate-100" style={{ paddingVertical: 10 }}>
+            <View className={`border-b ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'}`} style={{ paddingVertical: 10 }}>
                 <ScrollView
                     horizontal
                     showsHorizontalScrollIndicator={false}
@@ -378,7 +381,9 @@ const ForumScreen = () => {
                         return (
                             <TouchableOpacity
                                 key={post.id}
-                                className="bg-white rounded-2xl p-4 mb-4 shadow-sm border border-slate-100"
+                                className={`rounded-2xl p-4 mb-4 shadow-sm border ${
+                                    isDarkMode ? 'bg-slate-800 border-slate-700/60' : 'bg-white border-slate-100'
+                                }`}
                                 onPress={() => navigation.navigate('ForumDetail', { post })}
                             >
                                 <View className="flex-row items-center mb-3">
@@ -390,46 +395,46 @@ const ForumScreen = () => {
                                         )}
                                     </View>
                                     <View className="ml-2">
-                                        <AppText className="text-slate-900 font-bold text-xs">{authorName}</AppText>
-                                        <AppText className="text-slate-400 text-[10px]">{formattedDate}</AppText>
+                                        <AppText className={`font-bold text-xs ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}>{authorName}</AppText>
+                                        <AppText className={`text-[10px] ${isDarkMode ? 'text-slate-400' : 'text-slate-400'}`}>{formattedDate}</AppText>
                                     </View>
-                                    <View className="ml-auto bg-slate-50 px-2 py-0.5 rounded-md">
-                                        <AppText className="text-slate-500 text-[10px] font-medium">{categoryName}</AppText>
+                                    <View className={`ml-auto px-2 py-0.5 rounded-md ${isDarkMode ? 'bg-slate-700/60' : 'bg-slate-50'}`}>
+                                        <AppText className={`text-[10px] font-medium ${isDarkMode ? 'text-slate-300' : 'text-slate-500'}`}>{categoryName}</AppText>
                                     </View>
                                 </View>
 
-                                <AppText className="text-slate-900 font-bold text-base mb-2" numberOfLines={2}>{formattedTitle}</AppText>
-                                <AppText className="text-slate-500 text-sm mb-4" numberOfLines={2}>{stripHtml(post.content)}</AppText>
+                                <AppText className={`font-bold text-base mb-2 ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`} numberOfLines={2}>{formattedTitle}</AppText>
+                                <AppText className={`text-sm mb-4 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`} numberOfLines={2}>{stripHtml(post.content)}</AppText>
 
-                                <View className="flex-row items-center gap-2.5 border-t border-slate-50 pt-3">
-                                    <View className="flex-row items-center bg-slate-100 rounded-full px-2 py-1 gap-1">
+                                <View className={`flex-row items-center gap-2.5 border-t pt-3 ${isDarkMode ? 'border-slate-700/60' : 'border-slate-50'}`}>
+                                    <View className={`flex-row items-center rounded-full px-2 py-1 gap-1 ${isDarkMode ? 'bg-slate-700/60' : 'bg-slate-100'}`}>
                                         <TouchableOpacity onPress={(e) => { e.stopPropagation?.(); handleVote(post.id, 1); }} activeOpacity={0.7}>
-                                            <ArrowBigUp size={18} color={post.userVote === 1 ? '#2563eb' : '#64748b'} fill={post.userVote === 1 ? '#2563eb' : 'transparent'} />
+                                            <ArrowBigUp size={18} color={post.userVote === 1 ? '#3b82f6' : (isDarkMode ? '#94a3b8' : '#64748b')} fill={post.userVote === 1 ? '#3b82f6' : 'transparent'} />
                                         </TouchableOpacity>
-                                        <AppText className={`text-xs font-bold px-1 ${post.userVote === 1 ? 'text-blue-600' : post.userVote === -1 ? 'text-red-500' : 'text-slate-700'}`}>
+                                        <AppText className={`text-xs font-bold px-1 ${post.userVote === 1 ? 'text-blue-500' : post.userVote === -1 ? 'text-red-500' : (isDarkMode ? 'text-slate-300' : 'text-slate-700')}`}>
                                             {post.voteScore != null ? post.voteScore : 0}
                                         </AppText>
                                         <TouchableOpacity onPress={(e) => { e.stopPropagation?.(); handleVote(post.id, -1); }} activeOpacity={0.7}>
-                                            <ArrowBigDown size={18} color={post.userVote === -1 ? '#ef4444' : '#64748b'} fill={post.userVote === -1 ? '#ef4444' : 'transparent'} />
+                                            <ArrowBigDown size={18} color={post.userVote === -1 ? '#ef4444' : (isDarkMode ? '#94a3b8' : '#64748b')} fill={post.userVote === -1 ? '#ef4444' : 'transparent'} />
                                         </TouchableOpacity>
                                     </View>
 
                                     <TouchableOpacity
-                                        className="flex-row items-center bg-slate-100 rounded-full px-2.5 py-1"
+                                        className={`flex-row items-center rounded-full px-2.5 py-1 ${isDarkMode ? 'bg-slate-700/60' : 'bg-slate-100'}`}
                                         onPress={(e) => { e.stopPropagation?.(); handleLike(post.id); }}
                                         activeOpacity={0.7}
                                     >
-                                        <Heart size={14} color={post.userLiked ? "#ef4444" : "#64748b"} fill={post.userLiked ? "#ef4444" : "transparent"} />
-                                        <AppText className={`text-xs ml-1 ${post.userLiked ? 'text-red-500 font-bold' : 'text-slate-600'}`}>{post.likes || 0}</AppText>
+                                        <Heart size={14} color={post.userLiked ? "#ef4444" : (isDarkMode ? "#94a3b8" : "#64748b")} fill={post.userLiked ? "#ef4444" : "transparent"} />
+                                        <AppText className={`text-xs ml-1 ${post.userLiked ? 'text-red-500 font-bold' : (isDarkMode ? 'text-slate-300' : 'text-slate-600')}`}>{post.likes || 0}</AppText>
                                     </TouchableOpacity>
 
                                     <View className="flex-row items-center ml-1">
-                                        <MessageCircle size={16} color="#64748b" />
-                                        <AppText className="text-slate-500 text-xs ml-1">{post.commentCount || post.comments || 0}</AppText>
+                                        <MessageCircle size={16} color={isDarkMode ? "#94a3b8" : "#64748b"} />
+                                        <AppText className={`text-xs ml-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>{post.commentCount || post.comments || 0}</AppText>
                                     </View>
                                     <View className="flex-row items-center ml-auto">
-                                        <Clock size={14} color="#94A3B8" />
-                                        <AppText className="text-slate-400 text-[10px] ml-1">{post.viewCount || post.views || 0} lượt xem</AppText>
+                                        <Clock size={14} color={isDarkMode ? "#64748B" : "#94A3B8"} />
+                                        <AppText className={`text-[10px] ml-1 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>{post.viewCount || post.views || 0} lượt xem</AppText>
                                     </View>
                                 </View>
                             </TouchableOpacity>

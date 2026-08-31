@@ -5,6 +5,8 @@ import { MonitorPlay, PenTool, Lightbulb, Briefcase, Languages, Sparkles, Trendi
 import { useNavigation } from '@react-navigation/native';
 import categoryService from '../../../services/course/categoryService';
 
+import { useTheme } from '../../../context/ThemeContext';
+
 const ICONS = {
     MonitorPlay, PenTool, Lightbulb, Briefcase, Languages, Sparkles, TrendingUp, Camera
 };
@@ -14,6 +16,7 @@ const colors = ['#2563EB', '#16A34A', '#D97706', '#9333EA', '#E11D48', '#0D9488'
 
 const CategorySection = () => {
     const navigation = useNavigation();
+    const { isDarkMode } = useTheme();
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -51,9 +54,9 @@ const CategorySection = () => {
     return (
         <View className="mt-6">
             <View className="flex-row justify-between items-center px-5 mb-4">
-                <AppText className="text-[18px] font-extrabold text-slate-800">Danh mục</AppText>
+                <AppText className={`text-[18px] font-extrabold ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}>Danh mục</AppText>
                 <TouchableOpacity onPress={() => navigation.navigate('CategoryBrowse')}>
-                    <AppText className="text-[13px] text-blue-600 font-semibold">Tất cả</AppText>
+                    <AppText className="text-[13px] text-blue-500 font-semibold">Tất cả</AppText>
                 </TouchableOpacity>
             </View>
             <View className="flex-row flex-wrap px-2">
@@ -79,7 +82,7 @@ const CategorySection = () => {
                             >
                                 <IconComponent size={26} color="#ffffff" strokeWidth={1.8} />
                             </View>
-                            <AppText className="text-[11px] text-slate-600 text-center font-semibold" numberOfLines={1}>
+                            <AppText className={`text-[11px] text-center font-semibold ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`} numberOfLines={1}>
                                 {cat.name}
                             </AppText>
                         </TouchableOpacity>

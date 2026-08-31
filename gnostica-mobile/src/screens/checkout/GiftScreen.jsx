@@ -6,10 +6,12 @@ import AppHeader from '../../components/ui/AppHeader';
 import Button from '../../components/ui/Button';
 import giftService from '../../services/checkout/giftService';
 import { User, MessageSquare } from 'lucide-react-native';
+import { useTheme } from '../../context/ThemeContext';
 
 const GiftScreen = () => {
     const navigation = useNavigation();
     const route = useRoute();
+    const { isDarkMode } = useTheme();
     const { course } = route.params || {};
     
     const [email, setEmail] = useState('');
@@ -21,10 +23,14 @@ const GiftScreen = () => {
 
     if (!course) {
         return (
-            <View className="flex-1 bg-slate-50">
-                <AppHeader title="Tặng khóa học" />
+            <View className={`flex-1 ${isDarkMode ? 'bg-slate-900' : 'bg-slate-50'}`}>
+                <AppHeader 
+                    title="Tặng khóa học" 
+                    className={isDarkMode ? '!bg-slate-800 !border-slate-700' : ''}
+                    titleClassName={isDarkMode ? '!text-slate-100' : ''}
+                />
                 <View className="flex-1 items-center justify-center p-5">
-                    <AppText className="text-lg font-bold text-slate-800 mb-2">Không có khóa học</AppText>
+                    <AppText className={`text-lg font-bold mb-2 ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}>Không có khóa học</AppText>
                     <Button variant="primary" onPress={() => navigation.goBack()}>Quay lại</Button>
                 </View>
             </View>
@@ -103,8 +109,12 @@ const GiftScreen = () => {
             style={{ flex: 1 }} 
             behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
-            <View className="flex-1 bg-slate-50">
-                <AppHeader title="Tặng khóa học" />
+            <View className={`flex-1 ${isDarkMode ? 'bg-slate-900' : 'bg-slate-50'}`}>
+                <AppHeader 
+                    title="Tặng khóa học" 
+                    className={isDarkMode ? '!bg-slate-800 !border-slate-700' : ''}
+                    titleClassName={isDarkMode ? '!text-slate-100' : ''}
+                />
                 <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
                     
                     {/* Course Summary */}
@@ -112,16 +122,18 @@ const GiftScreen = () => {
                         <AppText className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
                             Khóa học sẽ tặng
                         </AppText>
-                        <View className="flex-row bg-white rounded-2xl p-3 border border-slate-100 shadow-sm">
+                        <View className={`flex-row rounded-2xl p-3 border shadow-sm ${
+                            isDarkMode ? 'bg-slate-800 border-slate-700/60' : 'bg-white border-slate-100'
+                        }`}>
                             <Image
                                 source={{ uri: course.thumbnail }}
-                                className="w-[72px] h-[72px] rounded-xl bg-slate-200"
+                                className={`w-[72px] h-[72px] rounded-xl ${isDarkMode ? 'bg-slate-700' : 'bg-slate-200'}`}
                             />
                             <View className="flex-1 ml-3 justify-center">
-                                <AppText className="text-[13px] font-bold text-slate-800 mb-1" numberOfLines={2}>
+                                <AppText className={`text-[13px] font-bold mb-1 ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`} numberOfLines={2}>
                                     {course.title}
                                 </AppText>
-                                <AppText className="text-sm font-extrabold text-blue-600">{formatPrice(course.price)}</AppText>
+                                <AppText className="text-sm font-extrabold text-blue-500">{formatPrice(course.price)}</AppText>
                             </View>
                         </View>
                     </View>
@@ -131,14 +143,18 @@ const GiftScreen = () => {
                         <AppText className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
                             Thông tin người nhận
                         </AppText>
-                        <View className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm">
+                        <View className={`rounded-2xl p-4 border shadow-sm ${
+                            isDarkMode ? 'bg-slate-800 border-slate-700/60' : 'bg-white border-slate-100'
+                        }`}>
                             <View className="flex-row items-center gap-2">
-                                <View className="flex-1 flex-row items-center bg-slate-50 rounded-xl px-3 h-[46px] border border-slate-200">
-                                    <User size={18} color="#64748b" />
+                                <View className={`flex-1 flex-row items-center rounded-xl px-3 h-[46px] border ${
+                                    isDarkMode ? 'bg-slate-700 border-slate-600' : 'bg-slate-50 border-slate-200'
+                                }`}>
+                                    <User size={18} color={isDarkMode ? "#94a3b8" : "#64748b"} />
                                     <TextInput
                                         placeholder="Nhập email người nhận..."
                                         placeholderTextColor="#94a3b8"
-                                        className="flex-1 ml-2 text-sm text-slate-800 p-0 m-0"
+                                        className={`flex-1 ml-2 text-sm p-0 m-0 ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}
                                         value={email}
                                         onChangeText={(text) => {
                                             setEmail(text);
@@ -160,32 +176,34 @@ const GiftScreen = () => {
                             </View>
 
                             {receiver && (
-                                <View className="mt-4 pt-4 border-t border-slate-100">
+                                <View className={`mt-4 pt-4 border-t ${isDarkMode ? 'border-slate-700/60' : 'border-slate-100'}`}>
                                     {receiver.alreadyOwned && (
-                                        <View className="bg-red-50 p-3 rounded-xl mb-3">
-                                            <AppText className="text-red-600 text-xs font-semibold">
+                                        <View className={`p-3 rounded-xl mb-3 ${isDarkMode ? 'bg-red-950/60' : 'bg-red-50'}`}>
+                                            <AppText className="text-red-500 text-xs font-semibold">
                                                 Người dùng này đã sở hữu khóa học nên bạn không thể tặng.
                                             </AppText>
                                         </View>
                                     )}
                                     {receiver.previouslyRejected && !receiver.alreadyOwned && (
-                                        <View className="bg-orange-50 p-3 rounded-xl mb-3">
-                                            <AppText className="text-orange-600 text-xs font-semibold">
+                                        <View className={`p-3 rounded-xl mb-3 ${isDarkMode ? 'bg-orange-950/60' : 'bg-orange-50'}`}>
+                                            <AppText className="text-orange-500 text-xs font-semibold">
                                                 Cảnh báo: Người này đã từng từ chối nhận món quà này trước đó.
                                             </AppText>
                                         </View>
                                     )}
                                     <View className="flex-row items-center">
-                                        <View className="w-10 h-10 rounded-full bg-slate-200 items-center justify-center overflow-hidden">
+                                        <View className={`w-10 h-10 rounded-full items-center justify-center overflow-hidden ${
+                                            isDarkMode ? 'bg-slate-700' : 'bg-slate-200'
+                                        }`}>
                                             {receiver.avatar ? (
                                                 <Image source={{ uri: receiver.avatar }} className="w-full h-full" />
                                             ) : (
-                                                <AppText className="font-bold text-slate-500">{receiver.fullName?.charAt(0)}</AppText>
+                                                <AppText className={`font-bold ${isDarkMode ? 'text-slate-300' : 'text-slate-500'}`}>{receiver.fullName?.charAt(0)}</AppText>
                                             )}
                                         </View>
                                         <View className="ml-3 flex-1">
-                                            <AppText className="font-bold text-slate-800 text-sm">{receiver.fullName}</AppText>
-                                            <AppText className="text-slate-500 text-xs">{receiver.email}</AppText>
+                                            <AppText className={`font-bold text-sm ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}>{receiver.fullName}</AppText>
+                                            <AppText className={`text-xs ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>{receiver.email}</AppText>
                                         </View>
                                     </View>
                                 </View>
@@ -199,13 +217,17 @@ const GiftScreen = () => {
                             <AppText className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
                                 Lời nhắn (Không bắt buộc)
                             </AppText>
-                            <View className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm">
-                                <View className="flex-row items-start bg-slate-50 rounded-xl px-3 py-3 border border-slate-200">
-                                    <MessageSquare size={18} color="#64748b" style={{ marginTop: 2 }} />
+                            <View className={`rounded-2xl p-4 border shadow-sm ${
+                                isDarkMode ? 'bg-slate-800 border-slate-700/60' : 'bg-white border-slate-100'
+                            }`}>
+                                <View className={`flex-row items-start rounded-xl px-3 py-3 border ${
+                                    isDarkMode ? 'bg-slate-700 border-slate-600' : 'bg-slate-50 border-slate-200'
+                                }`}>
+                                    <MessageSquare size={18} color={isDarkMode ? "#94a3b8" : "#64748b"} style={{ marginTop: 2 }} />
                                     <TextInput
                                         placeholder="Nhập lời nhắn gửi đến người nhận..."
                                         placeholderTextColor="#94a3b8"
-                                        className="flex-1 ml-2 text-sm text-slate-800 p-0 m-0"
+                                        className={`flex-1 ml-2 text-sm p-0 m-0 ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}
                                         value={message}
                                         onChangeText={setMessage}
                                         multiline
@@ -222,7 +244,7 @@ const GiftScreen = () => {
 
                 {/* Footer Pay Button */}
                 {receiver && !receiver.alreadyOwned && (
-                    <View className="bg-white px-5 py-4 pb-8 border-t border-slate-100">
+                    <View className={`px-5 py-4 pb-8 border-t ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'}`}>
                         <Button
                             variant="primary"
                             className="py-4 rounded-xl"

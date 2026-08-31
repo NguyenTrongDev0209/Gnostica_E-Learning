@@ -7,6 +7,7 @@ import { ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, ChevronRight } from 'luci
 import SearchBar from '../../components/ui/SearchBar';
 import CourseCard from '../course/components/CourseCard';
 import courseService from '../../services/course/courseService';
+import { useTheme } from '../../context/ThemeContext';
 
 const PAGE_SIZE = 10;
 
@@ -25,6 +26,7 @@ const FILTERS = ['Tất cả', 'Miễn phí', 'Lập trình', 'Thiết kế', 'M
 
 const SearchScreen = () => {
     const route = useRoute();
+    const { isDarkMode } = useTheme();
     const [query, setQuery] = useState(route.params?.query || '');
     const [activeFilter, setActiveFilter] = useState(route.params?.categoryName || 'Tất cả');
     const [priceSort, setPriceSort] = useState('default'); // 'default' | 'asc' | 'desc'
@@ -125,7 +127,6 @@ const SearchScreen = () => {
     const PaginationBar = () => {
         if (totalPages <= 1) return null;
 
-        // Compute page numbers to display (max 5 visible)
         const getPages = () => {
             if (totalPages <= 5) return Array.from({ length: totalPages }, (_, i) => i + 1);
             if (currentPage <= 3) return [1, 2, 3, 4, 5];
@@ -134,20 +135,25 @@ const SearchScreen = () => {
         };
 
         return (
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 16, paddingHorizontal: 12, gap: 4, backgroundColor: '#f8fafc', borderTopWidth: 1, borderTopColor: '#e2e8f0' }}>
+            <View style={{
+                flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+                paddingVertical: 16, paddingHorizontal: 12, gap: 4,
+                backgroundColor: isDarkMode ? '#0f172a' : '#f8fafc',
+                borderTopWidth: 1, borderTopColor: isDarkMode ? '#334155' : '#e2e8f0'
+            }}>
                 {/* Prev */}
                 <TouchableOpacity
                     onPress={() => setCurrentPage(p => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
                     style={{
                         width: 36, height: 36, borderRadius: 10,
-                        backgroundColor: currentPage === 1 ? '#f1f5f9' : '#fff',
-                        borderWidth: 1, borderColor: currentPage === 1 ? '#e2e8f0' : '#cbd5e1',
+                        backgroundColor: currentPage === 1 ? (isDarkMode ? '#1e293b' : '#f1f5f9') : (isDarkMode ? '#334155' : '#fff'),
+                        borderWidth: 1, borderColor: currentPage === 1 ? (isDarkMode ? '#334155' : '#e2e8f0') : (isDarkMode ? '#475569' : '#cbd5e1'),
                         alignItems: 'center', justifyContent: 'center',
                         opacity: currentPage === 1 ? 0.4 : 1,
                     }}
                 >
-                    <ChevronLeft size={16} color="#475569" strokeWidth={2.5} />
+                    <ChevronLeft size={16} color={isDarkMode ? "#94a3b8" : "#475569"} strokeWidth={2.5} />
                 </TouchableOpacity>
 
                 {/* Page numbers */}
@@ -157,15 +163,15 @@ const SearchScreen = () => {
                         onPress={() => setCurrentPage(page)}
                         style={{
                             width: 36, height: 36, borderRadius: 10,
-                            backgroundColor: currentPage === page ? '#2563eb' : '#fff',
-                            borderWidth: 1, borderColor: currentPage === page ? '#2563eb' : '#cbd5e1',
+                            backgroundColor: currentPage === page ? '#2563eb' : (isDarkMode ? '#334155' : '#fff'),
+                            borderWidth: 1, borderColor: currentPage === page ? '#2563eb' : (isDarkMode ? '#475569' : '#cbd5e1'),
                             alignItems: 'center', justifyContent: 'center',
                         }}
                     >
                         <AppText style={{
                             fontSize: 13,
                             fontWeight: '700',
-                            color: currentPage === page ? '#ffffff' : '#475569',
+                            color: currentPage === page ? '#ffffff' : (isDarkMode ? '#cbd5e1' : '#475569'),
                         }}>
                             {page}
                         </AppText>
@@ -178,35 +184,35 @@ const SearchScreen = () => {
                     disabled={currentPage === totalPages}
                     style={{
                         width: 36, height: 36, borderRadius: 10,
-                        backgroundColor: currentPage === totalPages ? '#f1f5f9' : '#fff',
-                        borderWidth: 1, borderColor: currentPage === totalPages ? '#e2e8f0' : '#cbd5e1',
+                        backgroundColor: currentPage === totalPages ? (isDarkMode ? '#1e293b' : '#f1f5f9') : (isDarkMode ? '#334155' : '#fff'),
+                        borderWidth: 1, borderColor: currentPage === totalPages ? (isDarkMode ? '#334155' : '#e2e8f0') : (isDarkMode ? '#475569' : '#cbd5e1'),
                         alignItems: 'center', justifyContent: 'center',
                         opacity: currentPage === totalPages ? 0.4 : 1,
                     }}
                 >
-                    <ChevronRight size={16} color="#475569" strokeWidth={2.5} />
+                    <ChevronRight size={16} color={isDarkMode ? "#94a3b8" : "#475569"} strokeWidth={2.5} />
                 </TouchableOpacity>
             </View>
         );
     };
 
     return (
-        <View className="flex-1 bg-slate-50">
+        <View className={`flex-1 ${isDarkMode ? 'bg-slate-900' : 'bg-slate-50'}`}>
             {/* Header */}
-            <View className="bg-white pt-10 px-5 pb-4">
-                <AppText className="text-2xl font-extrabold text-slate-800 mb-3.5">
+            <View className={`pt-10 px-5 pb-4 ${isDarkMode ? 'bg-slate-800' : 'bg-white'}`}>
+                <AppText className={`text-2xl font-extrabold mb-3.5 ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}>
                     Tìm kiếm
                 </AppText>
                 <SearchBar
                     value={query}
                     onChangeText={setQuery}
                     onClear={() => setQuery('')}
-                    style={{ backgroundColor: '#F1F5F9', borderWidth: 0, borderRadius: 12 }}
+                    style={{ backgroundColor: isDarkMode ? '#334155' : '#F1F5F9', borderWidth: 0, borderRadius: 12 }}
                 />
             </View>
 
             {/* Filter Chips */}
-            <View className="bg-white border-b border-slate-100">
+            <View className={`border-b ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'}`}>
                 <ScrollView
                     horizontal
                     showsHorizontalScrollIndicator={false}
@@ -220,12 +226,12 @@ const SearchScreen = () => {
                                 'px-[18px] py-2 rounded-[10px] border',
                                 activeFilter === f
                                     ? 'bg-blue-600 border-blue-600'
-                                    : 'bg-slate-50 border-slate-200',
+                                    : (isDarkMode ? 'bg-slate-700 border-slate-600' : 'bg-slate-50 border-slate-200'),
                             )}
                         >
                             <AppText className={clsx(
                                 'text-[13px] font-bold',
-                                activeFilter === f ? 'text-white' : 'text-slate-500',
+                                activeFilter === f ? 'text-white' : (isDarkMode ? 'text-slate-300' : 'text-slate-500'),
                             )}>
                                 {f}
                             </AppText>
@@ -235,8 +241,8 @@ const SearchScreen = () => {
             </View>
 
             {/* Price Sort & Results Count Bar */}
-            <View className="flex-row items-center justify-between px-4 py-2.5 bg-white border-b border-slate-100">
-                <AppText className="text-xs font-semibold text-slate-500">
+            <View className={`flex-row items-center justify-between px-4 py-2.5 border-b ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'}`}>
+                <AppText className={`text-xs font-semibold ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
                     {courses.length} khóa học
                     {totalPages > 1 ? ` · Trang ${currentPage}/${totalPages}` : ''}
                 </AppText>
@@ -247,20 +253,20 @@ const SearchScreen = () => {
                     className={clsx(
                         'flex-row items-center gap-1.5 px-3 py-1.5 rounded-full border',
                         priceSort !== 'default'
-                            ? 'bg-blue-50 border-blue-200'
-                            : 'bg-slate-50 border-slate-200'
+                            ? (isDarkMode ? 'bg-blue-950 border-blue-900' : 'bg-blue-50 border-blue-200')
+                            : (isDarkMode ? 'bg-slate-700 border-slate-600' : 'bg-slate-50 border-slate-200')
                     )}
                 >
                     {priceSort === 'asc' ? (
-                        <ArrowUp size={14} color="#2563eb" strokeWidth={2.5} />
+                        <ArrowUp size={14} color="#3b82f6" strokeWidth={2.5} />
                     ) : priceSort === 'desc' ? (
-                        <ArrowDown size={14} color="#2563eb" strokeWidth={2.5} />
+                        <ArrowDown size={14} color="#3b82f6" strokeWidth={2.5} />
                     ) : (
-                        <ArrowUpDown size={14} color="#64748b" strokeWidth={2} />
+                        <ArrowUpDown size={14} color={isDarkMode ? "#94a3b8" : "#64748b"} strokeWidth={2} />
                     )}
                     <AppText className={clsx(
                         'text-xs font-bold',
-                        priceSort !== 'default' ? 'text-blue-600' : 'text-slate-600'
+                        priceSort !== 'default' ? 'text-blue-500' : (isDarkMode ? 'text-slate-300' : 'text-slate-600')
                     )}>
                         {priceSort === 'asc'
                             ? 'Giá: Thấp -> Cao'
@@ -279,10 +285,10 @@ const SearchScreen = () => {
             ) : courses.length === 0 ? (
                 <View className="flex-1 items-center justify-center pb-24">
                     <AppText className="text-5xl mb-3">🔍</AppText>
-                    <AppText className="text-[17px] font-bold text-slate-800 mb-1.5">
+                    <AppText className={`text-[17px] font-bold mb-1.5 ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}>
                         Không tìm thấy kết quả
                     </AppText>
-                    <AppText className="text-[13px] text-slate-500 text-center px-10">
+                    <AppText className={`text-[13px] text-center px-10 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
                         Hãy thử từ khóa khác hoặc thay đổi bộ lọc
                     </AppText>
                 </View>
