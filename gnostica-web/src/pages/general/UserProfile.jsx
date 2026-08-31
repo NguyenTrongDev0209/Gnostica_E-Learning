@@ -100,6 +100,12 @@ const MOCK_LIKED_POSTS = [
   },
 ];
 
+const formatJoinDate = (dateString) => {
+  if (!dateString) return "Mới đây";
+  const date = new Date(dateString);
+  return `Tháng ${date.getMonth() + 1}, ${date.getFullYear()}`;
+};
+
 const UserProfile = () => {
   const { id } = useParams();
   const [following, setFollowing] = useState(false);
@@ -185,7 +191,10 @@ const UserProfile = () => {
             ...MOCK_USER.stats,
             courses: fetchedProfile.coursesCount || 0,
             students: fetchedProfile.studentsCount || 0,
-          }
+            rating: fetchedProfile.rating || 0,
+            reviewsCount: fetchedProfile.reviewsCount || 0,
+          },
+          joinedAt: formatJoinDate(fetchedProfile.joinedAt),
         }
       : MOCK_USER;
 
@@ -277,7 +286,7 @@ const UserProfile = () => {
                   <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 flex-wrap">
                     <div>
                       <h1 className="text-2xl font-bold text-foreground leading-tight">{user?.name || "Giảng viên"}</h1>
-                      <p className="text-sm text-muted-foreground font-medium">@{user?.username || (user?.email ? user.email.split('@')[0] : "giangvien")}</p>
+                      <p className="text-sm text-muted-foreground font-medium">@{user?.email ? user.email.split('@')[0] : "giangvien"}</p>
                       {/* Badges */}
                       <div className="flex gap-2 flex-wrap mt-2">
                         <Badge className="bg-primary/10 text-primary border-none text-xs font-semibold">
@@ -341,9 +350,6 @@ const UserProfile = () => {
                   {/* Bio & Meta */}
                   <p className="text-sm text-muted-foreground mt-3 leading-relaxed max-w-2xl">{user?.bio || ""}</p>
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3 text-xs text-muted-foreground">
-                    {user?.location && (
-                      <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" />{user.location}</span>
-                    )}
                     {user?.website && (
                       <a href={user.website} target="_blank" rel="noreferrer"
                         className="flex items-center gap-1 hover:text-primary transition-colors">
@@ -367,15 +373,17 @@ const UserProfile = () => {
                   <>
                     <StatBlock icon={BookOpen} value={user.stats.courses || 0} label="Khóa học" />
                     <StatBlock icon={Users} value={user.stats.students || 0} label="Học viên" color="text-warning" />
+                    <StatBlock icon={Star} value={user.stats.rating || 0} label="Đánh giá" color="text-info" />
+                    <StatBlock icon={MessageSquare} value={user.stats.reviewsCount || 0} label="Nhận xét" color="text-success" />
                   </>
                 ) : (
                   <>
                     <StatBlock icon={BookOpen} value={user.stats.posts} label="Bài đăng" />
                     <StatBlock icon={ThumbsUp} value={user.stats.likes} label="Lượt thích" color="text-warning" />
+                    <StatBlock icon={Eye} value={user.stats.views} label="Lượt xem" color="text-info" />
+                    <StatBlock icon={MessageSquare} value={user.stats.comments} label="Bình luận" color="text-success" />
                   </>
                 )}
-                <StatBlock icon={Eye} value={user.stats.views} label="Lượt xem" color="text-info" />
-                <StatBlock icon={MessageSquare} value={user.stats.comments} label="Bình luận" color="text-success" />
               </div>
             </CardContent>
           </Card>
