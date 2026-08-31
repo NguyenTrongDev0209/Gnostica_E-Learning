@@ -11,36 +11,41 @@ import SettingsScreen from '../screens/profile/SettingsScreen';
 import HighlightsScreen from '../screens/home/HighlightsScreen';
 import ForumScreen from '../screens/forum/ForumScreen';
 
+import { useTheme } from '../context/ThemeContext';
+
 const Tab = createBottomTabNavigator();
 
-const PRIMARY = '#2563eb';
-const INACTIVE = '#94a3b8';
+const PRIMARY = '#3b82f6';
 const HIGHLIGHT = '#f97316';
 
-const TabIcon = ({ Icon, focused, color }) => (
+const TabIcon = ({ Icon, focused, inactiveColor }) => (
     <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-        <Icon size={24} color={color || (focused ? PRIMARY : INACTIVE)} strokeWidth={focused ? 2.5 : 1.8} />
+        <Icon size={24} color={focused ? PRIMARY : inactiveColor} strokeWidth={focused ? 2.5 : 1.8} />
     </View>
 );
 
 const AppNavigator = () => {
+    const { isDarkMode, colors } = useTheme();
+    const inactiveColor = colors?.tabInactive || '#94a3b8';
+
     return (
         <Tab.Navigator
             screenOptions={({ route }) => ({
                 headerShown: false,
                 tabBarShowLabel: true,
                 tabBarActiveTintColor: PRIMARY,
-                tabBarInactiveTintColor: INACTIVE,
+                tabBarInactiveTintColor: inactiveColor,
                 tabBarStyle: {
                     position: 'absolute',
-                    backgroundColor: '#ffffff',
-                    borderTopWidth: 0,
+                    backgroundColor: colors?.tabBg || '#ffffff',
+                    borderTopWidth: isDarkMode ? 1 : 0,
+                    borderTopColor: colors?.tabBorder || '#f1f5f9',
                     height: 75,
                     paddingBottom: 25,
                     paddingTop: 0,
                     elevation: 25,
                     shadowColor: '#000',
-                    shadowOpacity: 0.1,
+                    shadowOpacity: isDarkMode ? 0.4 : 0.1,
                     shadowOffset: { width: 0, height: -4 },
                     shadowRadius: 10,
                 },
@@ -60,7 +65,7 @@ const AppNavigator = () => {
                 component={HomeScreen}
                 options={{
                     tabBarLabel: 'Trang chủ',
-                    tabBarIcon: ({ focused }) => <TabIcon Icon={Home} focused={focused} />,
+                    tabBarIcon: ({ focused }) => <TabIcon Icon={Home} focused={focused} inactiveColor={inactiveColor} />,
                 }}
             />
             <Tab.Screen
@@ -68,7 +73,7 @@ const AppNavigator = () => {
                 component={MyCoursesScreen}
                 options={{
                     tabBarLabel: 'Khóa học',
-                    tabBarIcon: ({ focused }) => <TabIcon Icon={BookOpen} focused={focused} />,
+                    tabBarIcon: ({ focused }) => <TabIcon Icon={BookOpen} focused={focused} inactiveColor={inactiveColor} />,
                 }}
             />
             <Tab.Screen
@@ -92,7 +97,7 @@ const AppNavigator = () => {
                                     height: 58,
                                     borderRadius: 29,
                                     borderWidth: 4,
-                                    borderColor: '#fff',
+                                    borderColor: isDarkMode ? '#0f172a' : '#fff',
                                     justifyContent: 'center',
                                     alignItems: 'center',
                                 }}
@@ -115,7 +120,7 @@ const AppNavigator = () => {
                 component={ForumScreen}
                 options={{
                     tabBarLabel: 'Diễn đàn',
-                    tabBarIcon: ({ focused }) => <TabIcon Icon={MessageSquare} focused={focused} />,
+                    tabBarIcon: ({ focused }) => <TabIcon Icon={MessageSquare} focused={focused} inactiveColor={inactiveColor} />,
                 }}
             />
             <Tab.Screen
@@ -123,7 +128,7 @@ const AppNavigator = () => {
                 component={SettingsScreen}
                 options={{
                     tabBarLabel: 'Cài đặt',
-                    tabBarIcon: ({ focused }) => <TabIcon Icon={Settings} focused={focused} />,
+                    tabBarIcon: ({ focused }) => <TabIcon Icon={Settings} focused={focused} inactiveColor={inactiveColor} />,
                 }}
             />
         </Tab.Navigator>

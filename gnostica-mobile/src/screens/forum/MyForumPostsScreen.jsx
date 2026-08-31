@@ -6,6 +6,7 @@ import { MessageSquare, ThumbsUp, Eye, Clock, Heart } from 'lucide-react-native'
 import AppHeader from '../../components/ui/AppHeader';
 import threadService from '../../services/forum/threadService';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const TABS = [
@@ -18,7 +19,7 @@ const stripHtml = (html) => {
     return html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
 };
 
-const PostCard = ({ post, onPress }) => {
+const PostCard = ({ post, onPress, isDarkMode }) => {
     const formatted = post.title && post.title.length > 55
         ? post.title.substring(0, 55).trim() + '...'
         : post.title;
@@ -32,12 +33,12 @@ const PostCard = ({ post, onPress }) => {
             activeOpacity={0.8}
             onPress={() => onPress(post)}
             style={{
-                backgroundColor: '#fff',
+                backgroundColor: isDarkMode ? '#1e293b' : '#fff',
                 borderRadius: 16,
                 padding: 16,
                 marginBottom: 12,
                 borderWidth: 1,
-                borderColor: '#F1F5F9',
+                borderColor: isDarkMode ? '#334155' : '#F1F5F9',
                 shadowColor: '#000',
                 shadowOffset: { width: 0, height: 1 },
                 shadowOpacity: 0.04,
@@ -45,14 +46,14 @@ const PostCard = ({ post, onPress }) => {
                 elevation: 2,
             }}
         >
-            <AppText style={{ fontSize: 15, fontWeight: '700', color: '#1e293b', marginBottom: 6, lineHeight: 22 }} numberOfLines={2}>
+            <AppText style={{ fontSize: 15, fontWeight: '700', color: isDarkMode ? '#f8fafc' : '#1e293b', marginBottom: 6, lineHeight: 22 }} numberOfLines={2}>
                 {formatted}
             </AppText>
-            <AppText style={{ fontSize: 13, color: '#64748b', marginBottom: 12, lineHeight: 18 }} numberOfLines={2}>
+            <AppText style={{ fontSize: 13, color: isDarkMode ? '#cbd5e1' : '#64748b', marginBottom: 12, lineHeight: 18 }} numberOfLines={2}>
                 {stripHtml(post.content)}
             </AppText>
 
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 10, borderTopWidth: 1, borderTopColor: '#F8FAFC' }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 10, borderTopWidth: 1, borderTopColor: isDarkMode ? '#334155' : '#F8FAFC' }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                     <Clock size={11} color="#94A3B8" />
                     <AppText style={{ fontSize: 11, color: '#94A3B8' }}>{dateStr}</AppText>
@@ -60,15 +61,15 @@ const PostCard = ({ post, onPress }) => {
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                         <Heart size={12} color="#ec4899" />
-                        <AppText style={{ fontSize: 11, color: '#64748b', fontWeight: '600' }}>{post.likes || 0}</AppText>
+                        <AppText style={{ fontSize: 11, color: isDarkMode ? '#cbd5e1' : '#64748b', fontWeight: '600' }}>{post.likes || 0}</AppText>
                     </View>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                        <Eye size={12} color="#64748b" />
-                        <AppText style={{ fontSize: 11, color: '#64748b', fontWeight: '600' }}>{post.viewCount || post.views || 0}</AppText>
+                        <Eye size={12} color={isDarkMode ? '#cbd5e1' : '#64748b'} />
+                        <AppText style={{ fontSize: 11, color: isDarkMode ? '#cbd5e1' : '#64748b', fontWeight: '600' }}>{post.viewCount || post.views || 0}</AppText>
                     </View>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                        <MessageSquare size={12} color="#64748b" />
-                        <AppText style={{ fontSize: 11, color: '#64748b', fontWeight: '600' }}>{post.commentCount || post.comments || 0}</AppText>
+                        <MessageSquare size={12} color={isDarkMode ? '#cbd5e1' : '#64748b'} />
+                        <AppText style={{ fontSize: 11, color: isDarkMode ? '#cbd5e1' : '#64748b', fontWeight: '600' }}>{post.commentCount || post.comments || 0}</AppText>
                     </View>
                 </View>
             </View>
@@ -93,6 +94,7 @@ const EmptyState = ({ tab }) => (
 export default function MyForumPostsScreen() {
     const navigation = useNavigation();
     const { user } = useAuth();
+    const { isDarkMode } = useTheme();
     const [activeTab, setActiveTab] = useState('my');
     const [myPosts, setMyPosts] = useState([]);
     const [likedPosts, setLikedPosts] = useState([]);
@@ -102,7 +104,6 @@ export default function MyForumPostsScreen() {
     useEffect(() => {
         if (!user?.email) return;
 
-        // Fetch my posts
         (async () => {
             try {
                 const res = await threadService.getMyPosts(user.email, { page: 0, size: 20 });
@@ -116,7 +117,6 @@ export default function MyForumPostsScreen() {
             }
         })();
 
-        // Fetch liked posts
         (async () => {
             try {
                 const res = await threadService.getMyLikedPosts(user.email, { page: 0, size: 20 });
@@ -137,17 +137,17 @@ export default function MyForumPostsScreen() {
     const currentPosts = activeTab === 'my' ? myPosts : likedPosts;
 
     return (
-        <View style={{ flex: 1, backgroundColor: '#F8FAFC' }}>
+        <View style={{ flex: 1, backgroundColor: isDarkMode ? '#0f172a' : '#F8FAFC' }}>
             <AppHeader title="Bài viết diễn đàn" />
 
             {/* Tab Bar */}
             <View style={{
                 flexDirection: 'row',
-                backgroundColor: '#fff',
+                backgroundColor: isDarkMode ? '#1e293b' : '#fff',
                 paddingHorizontal: 16,
                 paddingVertical: 10,
                 borderBottomWidth: 1,
-                borderBottomColor: '#F1F5F9',
+                borderBottomColor: isDarkMode ? '#334155' : '#F1F5F9',
                 gap: 8,
             }}>
                 {TABS.map(tab => {
@@ -181,10 +181,10 @@ export default function MyForumPostsScreen() {
                                     justifyContent: 'center',
                                     paddingVertical: 10,
                                     gap: 6,
-                                    backgroundColor: '#F8FAFC',
+                                    backgroundColor: isDarkMode ? '#0f172a' : '#F8FAFC',
                                     borderRadius: 12,
                                     borderWidth: 1,
-                                    borderColor: '#E2E8F0',
+                                    borderColor: isDarkMode ? '#334155' : '#E2E8F0',
                                 }}>
                                     <tab.icon size={15} color="#94a3b8" />
                                     <AppText style={{ color: '#94a3b8', fontWeight: '600', fontSize: 13 }}>{tab.label}</AppText>
@@ -204,7 +204,7 @@ export default function MyForumPostsScreen() {
                     <EmptyState tab={activeTab} />
                 ) : (
                     currentPosts.map(post => (
-                        <PostCard key={post.id} post={post} onPress={goToPost} />
+                        <PostCard key={post.id} post={post} onPress={goToPost} isDarkMode={isDarkMode} />
                     ))
                 )}
                 <View style={{ height: 80 }} />

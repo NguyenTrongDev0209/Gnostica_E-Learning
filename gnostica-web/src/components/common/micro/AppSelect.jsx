@@ -34,10 +34,13 @@ export default function AppSelect({
   contentClassName,
   ...props
 }) {
-  const selectedOption = options.find((option) => option.value === value);
+  const normalizedValue = value !== undefined && value !== null ? String(value) : "";
+  const selectedOption = normalizedValue
+    ? options.find((option) => option.value !== undefined && option.value !== null && String(option.value) === normalizedValue)
+    : null;
 
   return (
-    <Select value={value} onValueChange={onValueChange} disabled={disabled} {...props}>
+    <Select value={normalizedValue} onValueChange={onValueChange} disabled={disabled} {...props}>
       <SelectTrigger 
         aria-invalid={error}
         className={cn(
@@ -64,25 +67,28 @@ export default function AppSelect({
       <SelectContent position="popper" className={cn("shadow-none border border-border ring-0 rounded-xl bg-card", contentClassName)}>
         <SelectGroup className="p-1 space-y-1">
           {options.length > 0 ? (
-            options.map((opt) => (
-              <SelectItem 
-                key={opt.value} 
-                value={opt.value} 
-                disabled={opt.disabled}
-                className="rounded-lg cursor-pointer py-2.5 text-sm transition-colors focus:!bg-primary/10 focus:!text-primary focus:**:!text-primary data-[state=checked]:!text-primary data-[state=checked]:!bg-primary/10 data-[state=checked]:**:!text-primary data-[state=checked]:font-medium"
-              >
-                <span className="flex min-w-0 items-center gap-2">
-                  {opt.imageUrl && (
-                    <img
-                      src={opt.imageUrl}
-                      alt=""
-                      className="size-10 shrink-0 object-contain"
-                    />
-                  )}
-                  <span className="truncate">{opt.label}</span>
-                </span>
-              </SelectItem>
-            ))
+            options.map((opt) => {
+              const strVal = opt.value !== undefined && opt.value !== null ? String(opt.value) : "";
+              return (
+                <SelectItem 
+                  key={strVal || opt.label} 
+                  value={strVal} 
+                  disabled={opt.disabled}
+                  className="rounded-lg cursor-pointer py-2.5 text-sm transition-colors focus:!bg-primary/10 focus:!text-primary focus:**:!text-primary data-[state=checked]:!text-primary data-[state=checked]:!bg-primary/10 data-[state=checked]:**:!text-primary data-[state=checked]:font-medium"
+                >
+                  <span className="flex min-w-0 items-center gap-2">
+                    {opt.imageUrl && (
+                      <img
+                        src={opt.imageUrl}
+                        alt=""
+                        className="size-10 shrink-0 object-contain"
+                      />
+                    )}
+                    <span className="truncate">{opt.label}</span>
+                  </span>
+                </SelectItem>
+              );
+            })
           ) : (
             <div className="py-6 text-center text-sm text-muted-foreground flex flex-col items-center justify-center pointer-events-none">
               <span className="opacity-70">Không có dữ liệu</span>

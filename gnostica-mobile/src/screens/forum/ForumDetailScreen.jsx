@@ -10,6 +10,7 @@ import commentService from '../../services/forum/commentService';
 import threadService from '../../services/forum/threadService';
 import threadReportService from '../../services/forum/threadReportService';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const addReplyToTree = (list, parentId, newReply) => {
@@ -50,6 +51,7 @@ const ForumDetailScreen = () => {
     const inputRef = useRef(null);
     const { width } = useWindowDimensions();
     const { user } = useAuth();
+    const { isDarkMode } = useTheme();
     const initialPost = route.params?.post || (
         (route.params?.id || route.params?.threadId) ? {
             id: route.params?.id || route.params?.threadId,
@@ -80,10 +82,8 @@ const ForumDetailScreen = () => {
             const numericId = Number(post.id);
 
             try {
-                // Increment view
                 await threadService.incrementView(numericId).catch(() => {});
 
-                // Fetch full thread data and comments in parallel
                 const [threadRes, commentsRes] = await Promise.all([
                     threadService.getById(numericId).catch(() => null),
                     commentService.getByThreadId(numericId).catch(() => null)
@@ -103,7 +103,6 @@ const ForumDetailScreen = () => {
                     setComments(commentsData.content);
                 }
 
-                // Check report status
                 if (user?.email) {
                     threadReportService.checkReportStatus(numericId, user.email)
                         .then(res => {
@@ -169,7 +168,6 @@ const ForumDetailScreen = () => {
             return;
         }
 
-        // Không thể like bài viết của chính mình
         const authorEmail = post?.authorEmail || post?.account?.email;
         if (authorEmail && authorEmail === user.email) {
             Alert.alert('Thông báo', 'Bạn không thể thích bài viết của chính mình!');
@@ -370,8 +368,8 @@ const ForumDetailScreen = () => {
         const canDelete = isCommentOwner || isPostOwner;
 
         const indentClass = depth > 0
-            ? (depth === 1 ? 'ml-4 pl-3 border-l-2 border-blue-400 bg-blue-50/40' : 'ml-3 pl-2 border-l-2 border-slate-300 bg-slate-100/50')
-            : 'bg-slate-50';
+            ? (depth === 1 ? (isDarkMode ? 'ml-4 pl-3 border-l-2 border-blue-500 bg-slate-800/90' : 'ml-4 pl-3 border-l-2 border-blue-400 bg-blue-50/40') : (isDarkMode ? 'ml-3 pl-2 border-l-2 border-slate-600 bg-slate-800/60' : 'ml-3 pl-2 border-l-2 border-slate-300 bg-slate-100/50'))
+            : (isDarkMode ? 'bg-slate-800/80' : 'bg-slate-50');
 
         return (
             <View key={itemKey} className={`mb-3 p-3.5 rounded-2xl ${indentClass}`}>
@@ -385,17 +383,17 @@ const ForumDetailScreen = () => {
                                 <AppText className="text-white font-bold text-[10px]">{commentAuthor.substring(0, 2).toUpperCase()}</AppText>
                             )}
                         </View>
-                        <AppText className="text-slate-900 font-bold text-xs">{commentAuthor}</AppText>
+                        <AppText className={`font-bold text-xs ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}>{commentAuthor}</AppText>
                         {parentAuthorName && (
-                            <View className="bg-blue-100 px-1.5 py-0.5 rounded">
-                                <AppText className="text-blue-700 text-[10px] font-semibold">@{parentAuthorName}</AppText>
+                            <View className={`${isDarkMode ? 'bg-blue-950/80' : 'bg-blue-100'} px-1.5 py-0.5 rounded`}>
+                                <AppText className="text-blue-400 text-[10px] font-semibold">@{parentAuthorName}</AppText>
                             </View>
                         )}
                     </View>
-                    <AppText className="text-slate-400 text-[10px]">{commentDate}</AppText>
+                    <AppText className={`text-[10px] ${isDarkMode ? 'text-slate-400' : 'text-slate-400'}`}>{commentDate}</AppText>
                 </View>
 
-                <AppText className="text-slate-700 text-sm mb-2">{comment.content}</AppText>
+                <AppText className={`text-sm mb-2 ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>{comment.content}</AppText>
 
                 {/* Action Buttons: Reply & Delete */}
                 <View className="flex-row items-center gap-4 mt-1 pt-1">
@@ -403,8 +401,8 @@ const ForumDetailScreen = () => {
                         className="flex-row items-center self-start"
                         onPress={() => handleStartReply(comment)}
                     >
-                        <MessageCircle size={14} color="#2563eb" />
-                        <AppText className="text-blue-600 text-xs font-semibold ml-1">Trả lời</AppText>
+                        <MessageCircle size={14} color="#3b82f6" />
+                        <AppText className="text-blue-500 text-xs font-semibold ml-1">Trả lời</AppText>
                     </TouchableOpacity>
 
                     {canDelete && (
@@ -431,9 +429,13 @@ const ForumDetailScreen = () => {
     return (
         <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : undefined}
-            className="flex-1 bg-white"
+            className={`flex-1 ${isDarkMode ? 'bg-slate-900' : 'bg-white'}`}
         >
-            <AppHeader title="Chi tiết bài đăng" />
+            <AppHeader 
+                title="Chi tiết bài đăng" 
+                className={isDarkMode ? '!bg-slate-800 !border-slate-700' : ''}
+                titleClassName={isDarkMode ? '!text-slate-100' : ''}
+            />
 
             <ScrollView className="flex-1 px-4 pt-4" showsVerticalScrollIndicator={false}>
                 {/* Main Post */}
@@ -446,12 +448,12 @@ const ForumDetailScreen = () => {
                         )}
                     </View>
                     <View className="ml-3">
-                        <AppText className="text-slate-900 font-bold text-sm">{authorName}</AppText>
-                        <AppText className="text-slate-400 text-xs">{formattedDate} • Trong {categoryName} • {post.viewCount ?? post.views ?? 1} lượt xem</AppText>
+                        <AppText className={`font-bold text-sm ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}>{authorName}</AppText>
+                        <AppText className={`text-xs ${isDarkMode ? 'text-slate-400' : 'text-slate-400'}`}>{formattedDate} • Trong {categoryName} • {post.viewCount ?? post.views ?? 1} lượt xem</AppText>
                     </View>
                 </View>
 
-                <AppText className="text-slate-900 font-bold text-xl mb-4 leading-7">{post.title}</AppText>
+                <AppText className={`font-bold text-xl mb-4 leading-7 ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}>{post.title}</AppText>
 
                 {/* Render HTML content properly */}
                 {post.content ? (
@@ -461,12 +463,12 @@ const ForumDetailScreen = () => {
                             source={{ html: post.content }}
                             baseStyle={{
                                 fontSize: 15,
-                                color: '#334155',
+                                color: isDarkMode ? '#cbd5e1' : '#334155',
                                 lineHeight: 24,
                             }}
                             tagsStyles={{
                                 p: { marginTop: 0, marginBottom: 10 },
-                                span: { fontSize: 15 },
+                                span: { fontSize: 15, color: isDarkMode ? '#cbd5e1' : '#334155' },
                                 img: {
                                     maxWidth: width - 32,
                                     width: width - 32,
@@ -485,67 +487,67 @@ const ForumDetailScreen = () => {
                     </View>
                 ) : null}
 
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, borderTopWidth: 1, borderBottomWidth: 1, borderColor: '#f1f5f9', paddingVertical: 12, marginBottom: 24 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, borderTopWidth: 1, borderBottomWidth: 1, borderColor: isDarkMode ? '#334155' : '#f1f5f9', paddingVertical: 12, marginBottom: 24 }}>
                     {/* Vote controls */}
-                    <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#f1f5f9', borderRadius: 99, paddingHorizontal: 10, paddingVertical: 6, gap: 4 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: isDarkMode ? '#1e293b' : '#f1f5f9', borderRadius: 99, paddingHorizontal: 10, paddingVertical: 6, gap: 4 }}>
                         <TouchableOpacity onPress={() => handleVote(1)} activeOpacity={0.7}>
-                            <ArrowBigUp size={22} color={post.userVote === 1 ? '#2563eb' : '#64748b'} fill={post.userVote === 1 ? '#2563eb' : 'transparent'} />
+                            <ArrowBigUp size={22} color={post.userVote === 1 ? '#3b82f6' : (isDarkMode ? '#94a3b8' : '#64748b')} fill={post.userVote === 1 ? '#3b82f6' : 'transparent'} />
                         </TouchableOpacity>
-                        <AppText style={{ fontSize: 13, fontWeight: 'bold', paddingHorizontal: 2, color: post.userVote === 1 ? '#2563eb' : post.userVote === -1 ? '#ef4444' : '#334155' }}>
+                        <AppText style={{ fontSize: 13, fontWeight: 'bold', paddingHorizontal: 2, color: post.userVote === 1 ? '#3b82f6' : post.userVote === -1 ? '#ef4444' : (isDarkMode ? '#f8fafc' : '#334155') }}>
                             {post.voteScore != null ? post.voteScore : 0}
                         </AppText>
                         <TouchableOpacity onPress={() => handleVote(-1)} activeOpacity={0.7}>
-                            <ArrowBigDown size={22} color={post.userVote === -1 ? '#ef4444' : '#64748b'} fill={post.userVote === -1 ? '#ef4444' : 'transparent'} />
+                            <ArrowBigDown size={22} color={post.userVote === -1 ? '#ef4444' : (isDarkMode ? '#94a3b8' : '#64748b')} fill={post.userVote === -1 ? '#ef4444' : 'transparent'} />
                         </TouchableOpacity>
                     </View>
 
                     {/* Like Button */}
                     <TouchableOpacity onPress={handleLike} activeOpacity={0.7}
-                        style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#f1f5f9', borderRadius: 99, paddingHorizontal: 12, paddingVertical: 7 }}>
-                        <Heart size={17} color={isLiked ? '#ef4444' : '#64748b'} fill={isLiked ? '#ef4444' : 'transparent'} />
-                        <AppText style={{ fontSize: 13, marginLeft: 5, color: isLiked ? '#ef4444' : '#64748b', fontWeight: isLiked ? 'bold' : 'normal' }}>{likesCount}</AppText>
+                        style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: isDarkMode ? '#1e293b' : '#f1f5f9', borderRadius: 99, paddingHorizontal: 12, paddingVertical: 7 }}>
+                        <Heart size={17} color={isLiked ? '#ef4444' : (isDarkMode ? '#94a3b8' : '#64748b')} fill={isLiked ? '#ef4444' : 'transparent'} />
+                        <AppText style={{ fontSize: 13, marginLeft: 5, color: isLiked ? '#ef4444' : (isDarkMode ? '#cbd5e1' : '#64748b'), fontWeight: isLiked ? 'bold' : 'normal' }}>{likesCount}</AppText>
                     </TouchableOpacity>
 
                     {/* Comment Count (no label) */}
-                    <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#f1f5f9', borderRadius: 99, paddingHorizontal: 12, paddingVertical: 7 }}>
-                        <MessageCircle size={17} color="#64748b" />
-                        <AppText style={{ fontSize: 13, marginLeft: 5, color: '#64748b' }}>{comments.length || post.commentCount || post.comments || 0}</AppText>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: isDarkMode ? '#1e293b' : '#f1f5f9', borderRadius: 99, paddingHorizontal: 12, paddingVertical: 7 }}>
+                        <MessageCircle size={17} color={isDarkMode ? '#94a3b8' : '#64748b'} />
+                        <AppText style={{ fontSize: 13, marginLeft: 5, color: isDarkMode ? '#cbd5e1' : '#64748b' }}>{comments.length || post.commentCount || post.comments || 0}</AppText>
                     </View>
 
                     {/* More (...) button */}
                     <TouchableOpacity
                         onPress={() => setShowMenu(true)}
                         activeOpacity={0.7}
-                        style={{ marginLeft: 'auto', width: 36, height: 36, borderRadius: 18, backgroundColor: '#f1f5f9', alignItems: 'center', justifyContent: 'center' }}
+                        style={{ marginLeft: 'auto', width: 36, height: 36, borderRadius: 18, backgroundColor: isDarkMode ? '#1e293b' : '#f1f5f9', alignItems: 'center', justifyContent: 'center' }}
                     >
-                        <MoreHorizontal size={20} color="#64748b" />
+                        <MoreHorizontal size={20} color={isDarkMode ? '#94a3b8' : '#64748b'} />
                     </TouchableOpacity>
                 </View>
 
                 {/* More Menu Modal (bottom sheet style) */}
                 <Modal visible={showMenu} transparent animationType="fade" onRequestClose={() => setShowMenu(false)}>
                     <TouchableOpacity
-                        style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.45)' }}
+                        style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.55)' }}
                         activeOpacity={1}
                         onPress={() => setShowMenu(false)}
                     >
                         <View style={{
                             position: 'absolute', bottom: 0, left: 0, right: 0,
-                            backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24,
+                            backgroundColor: isDarkMode ? '#1e293b' : '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24,
                             paddingBottom: 36, paddingTop: 8,
                         }}>
                             {/* Handle */}
-                            <View style={{ width: 40, height: 4, backgroundColor: '#e2e8f0', borderRadius: 2, alignSelf: 'center', marginBottom: 16 }} />
+                            <View style={{ width: 40, height: 4, backgroundColor: isDarkMode ? '#334155' : '#e2e8f0', borderRadius: 2, alignSelf: 'center', marginBottom: 16 }} />
 
                             {/* Share */}
                             <TouchableOpacity onPress={handleShare} activeOpacity={0.8}
                                 style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 16, paddingHorizontal: 24, gap: 14 }}>
-                                <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: '#eff6ff', alignItems: 'center', justifyContent: 'center' }}>
-                                    <Share2 size={22} color="#2563eb" />
+                                <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: isDarkMode ? '#0f172a' : '#eff6ff', alignItems: 'center', justifyContent: 'center' }}>
+                                    <Share2 size={22} color="#3b82f6" />
                                 </View>
                                 <View>
-                                    <AppText style={{ fontSize: 15, fontWeight: '700', color: '#1e293b' }}>Chia sẻ</AppText>
-                                    <AppText style={{ fontSize: 12, color: '#94a3b8', marginTop: 1 }}>Chia sẻ bài viết với bạn bè</AppText>
+                                    <AppText style={{ fontSize: 15, fontWeight: '700', color: isDarkMode ? '#f8fafc' : '#1e293b' }}>Chia sẻ</AppText>
+                                    <AppText style={{ fontSize: 12, color: isDarkMode ? '#94a3b8' : '#94a3b8', marginTop: 1 }}>Chia sẻ bài viết với bạn bè</AppText>
                                 </View>
                             </TouchableOpacity>
 
@@ -553,14 +555,14 @@ const ForumDetailScreen = () => {
                             <TouchableOpacity onPress={handleOpenReport} activeOpacity={0.8}
                                 style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 16, paddingHorizontal: 24, gap: 14,
                                     opacity: hasReported ? 0.5 : 1 }}>
-                                <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: hasReported ? '#fef2f2' : '#fff5f5', alignItems: 'center', justifyContent: 'center' }}>
+                                <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: hasReported ? '#451a1a' : (isDarkMode ? '#451a1a' : '#fff5f5'), alignItems: 'center', justifyContent: 'center' }}>
                                     <Flag size={22} color={hasReported ? '#dc2626' : '#ef4444'} fill={hasReported ? '#dc2626' : 'transparent'} />
                                 </View>
                                 <View>
                                     <AppText style={{ fontSize: 15, fontWeight: '700', color: hasReported ? '#dc2626' : '#ef4444' }}>
                                         {hasReported ? 'Đã tố cáo' : 'Tố cáo'}
                                     </AppText>
-                                    <AppText style={{ fontSize: 12, color: '#94a3b8', marginTop: 1 }}>Báo cáo nội dung vi phạm</AppText>
+                                    <AppText style={{ fontSize: 12, color: isDarkMode ? '#94a3b8' : '#94a3b8', marginTop: 1 }}>Báo cáo nội dung vi phạm</AppText>
                                 </View>
                             </TouchableOpacity>
                         </View>
@@ -569,19 +571,19 @@ const ForumDetailScreen = () => {
 
                 {/* Report Form Modal */}
                 <Modal visible={showReportModal} transparent animationType="slide" onRequestClose={() => setShowReportModal(false)}>
-                    <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.45)' }} activeOpacity={1} onPress={() => setShowReportModal(false)} />
+                    <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.55)' }} activeOpacity={1} onPress={() => setShowReportModal(false)} />
                     <View style={{
                         position: 'absolute', bottom: 0, left: 0, right: 0,
-                        backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24,
+                        backgroundColor: isDarkMode ? '#1e293b' : '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24,
                         paddingBottom: 36, paddingHorizontal: 20, paddingTop: 8,
                     }}>
-                        <View style={{ width: 40, height: 4, backgroundColor: '#e2e8f0', borderRadius: 2, alignSelf: 'center', marginBottom: 20 }} />
+                        <View style={{ width: 40, height: 4, backgroundColor: isDarkMode ? '#334155' : '#e2e8f0', borderRadius: 2, alignSelf: 'center', marginBottom: 20 }} />
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 20 }}>
-                            <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#fef2f2', alignItems: 'center', justifyContent: 'center' }}>
+                            <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: isDarkMode ? '#451a1a' : '#fef2f2', alignItems: 'center', justifyContent: 'center' }}>
                                 <Flag size={20} color="#ef4444" />
                             </View>
                             <View>
-                                <AppText style={{ fontSize: 17, fontWeight: 'bold', color: '#1e293b' }}>Tố cáo bài viết</AppText>
+                                <AppText style={{ fontSize: 17, fontWeight: 'bold', color: isDarkMode ? '#f8fafc' : '#1e293b' }}>Tố cáo bài viết</AppText>
                                 <AppText style={{ fontSize: 12, color: '#94a3b8' }}>Vui lòng chọn loại vi phạm</AppText>
                             </View>
                         </View>
@@ -599,8 +601,8 @@ const ForumDetailScreen = () => {
                                     flexDirection: 'row', alignItems: 'center', paddingVertical: 12,
                                     paddingHorizontal: 14, marginBottom: 8, borderRadius: 12,
                                     borderWidth: 1.5,
-                                    borderColor: reportType === opt.value ? '#ef4444' : '#e2e8f0',
-                                    backgroundColor: reportType === opt.value ? '#fef2f2' : '#f8fafc',
+                                    borderColor: reportType === opt.value ? '#ef4444' : (isDarkMode ? '#334155' : '#e2e8f0'),
+                                    backgroundColor: reportType === opt.value ? (isDarkMode ? '#451a1a' : '#fef2f2') : (isDarkMode ? '#0f172a' : '#f8fafc'),
                                 }}>
                                 <View style={{
                                     width: 18, height: 18, borderRadius: 9, borderWidth: 2,
@@ -608,7 +610,7 @@ const ForumDetailScreen = () => {
                                     backgroundColor: reportType === opt.value ? '#ef4444' : 'transparent',
                                     marginRight: 10,
                                 }} />
-                                <AppText style={{ fontSize: 14, fontWeight: '600', color: reportType === opt.value ? '#dc2626' : '#334155' }}>
+                                <AppText style={{ fontSize: 14, fontWeight: '600', color: reportType === opt.value ? '#ef4444' : (isDarkMode ? '#cbd5e1' : '#334155') }}>
                                     {opt.label}
                                 </AppText>
                             </TouchableOpacity>
@@ -621,15 +623,15 @@ const ForumDetailScreen = () => {
                             onChangeText={setReportDetail}
                             multiline
                             style={{
-                                borderWidth: 1, borderColor: '#e2e8f0', borderRadius: 12,
+                                borderWidth: 1, borderColor: isDarkMode ? '#334155' : '#e2e8f0', borderRadius: 12,
                                 padding: 12, marginTop: 8, marginBottom: 16,
-                                minHeight: 80, fontSize: 14, color: '#334155', textAlignVertical: 'top',
+                                minHeight: 80, fontSize: 14, color: isDarkMode ? '#f8fafc' : '#334155', textAlignVertical: 'top',
                             }}
                         />
 
                         <View style={{ flexDirection: 'row', gap: 10 }}>
-                            <TouchableOpacity onPress={() => setShowReportModal(false)} style={{ flex: 1, paddingVertical: 14, borderRadius: 14, borderWidth: 1, borderColor: '#e2e8f0', alignItems: 'center' }}>
-                                <AppText style={{ fontWeight: '700', color: '#64748b' }}>Hủy</AppText>
+                            <TouchableOpacity onPress={() => setShowReportModal(false)} style={{ flex: 1, paddingVertical: 14, borderRadius: 14, borderWidth: 1, borderColor: isDarkMode ? '#334155' : '#e2e8f0', alignItems: 'center' }}>
+                                <AppText style={{ fontWeight: '700', color: isDarkMode ? '#cbd5e1' : '#64748b' }}>Hủy</AppText>
                             </TouchableOpacity>
                             <TouchableOpacity onPress={handleSubmitReport} disabled={submittingReport} activeOpacity={0.85} style={{ flex: 1.5, borderRadius: 14, overflow: 'hidden' }}>
                                 <LinearGradient colors={['#f87171', '#dc2626']} style={{ paddingVertical: 14, alignItems: 'center' }}>
@@ -644,7 +646,7 @@ const ForumDetailScreen = () => {
                 </Modal>
 
                 {/* Comments Section */}
-                <AppText className="text-slate-900 font-bold text-base mb-4">Bình luận ({comments.length || post.comments || 0})</AppText>
+                <AppText className={`font-bold text-base mb-4 ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}>Bình luận ({comments.length || post.comments || 0})</AppText>
 
                 {loadingComments ? (
                     <ActivityIndicator size="small" color="#2563EB" className="my-4" />
@@ -657,14 +659,14 @@ const ForumDetailScreen = () => {
             </ScrollView>
 
             {/* Bottom Bar Input */}
-            <View className="border-t border-slate-100 bg-white">
+            <View className={`border-t ${isDarkMode ? 'border-slate-800 bg-slate-900' : 'border-slate-100 bg-white'}`}>
                 {replyTarget && (
-                    <View className="flex-row justify-between items-center bg-blue-50 px-4 py-2 border-b border-blue-100">
-                        <AppText className="text-xs text-blue-700 font-medium">
+                    <View className={`flex-row justify-between items-center px-4 py-2 border-b ${isDarkMode ? 'bg-blue-950/80 border-blue-900' : 'bg-blue-50 border-blue-100'}`}>
+                        <AppText className="text-xs text-blue-400 font-medium">
                             Đang trả lời <AppText className="font-bold">{replyTarget.authorName}</AppText>
                         </AppText>
                         <TouchableOpacity onPress={() => setReplyTarget(null)}>
-                            <X size={16} color="#1d4ed8" />
+                            <X size={16} color="#3b82f6" />
                         </TouchableOpacity>
                     </View>
                 )}
@@ -672,7 +674,8 @@ const ForumDetailScreen = () => {
                     <TextInput
                         ref={inputRef}
                         placeholder={replyTarget ? `Trả lời ${replyTarget.authorName}...` : "Viết bình luận của bạn..."}
-                        className="flex-1 bg-slate-100 rounded-2xl px-4 py-3 text-slate-700"
+                        placeholderTextColor="#94a3b8"
+                        className={`flex-1 rounded-2xl px-4 py-3 ${isDarkMode ? 'bg-slate-800 text-slate-100' : 'bg-slate-100 text-slate-700'}`}
                         value={reply}
                         onChangeText={setReply}
                         multiline

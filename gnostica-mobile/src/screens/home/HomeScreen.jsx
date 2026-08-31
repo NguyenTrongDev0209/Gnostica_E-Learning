@@ -15,6 +15,7 @@ import SideMenu from '../../components/ui/SideMenu';
 import FloatingAiButton from '../../components/ui/FloatingAiButton';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
 import { getRecentSearches, addRecentSearch, clearRecentSearches } from '../../services/course/searchHistoryService';
 import categoryService from '../../services/course/categoryService';
@@ -34,6 +35,7 @@ const normalizeSearchText = (text) => {
 const HomeScreen = () => {
     const navigation = useNavigation();
     const { isAuthenticated, user } = useAuth();
+    const { isDarkMode } = useTheme();
     const [isMenuVisible, setIsMenuVisible] = useState(false);
     const insets = useSafeAreaInsets();
     const [refreshing, setRefreshing] = useState(false);
@@ -69,14 +71,14 @@ const HomeScreen = () => {
             try {
                 const trimmed = searchQuery.trim();
                 const normKey = normalizeSearchText(trimmed);
-                
+
                 // 1. Fetch categories
                 const catRes = await categoryService.getAll({ search: trimmed || undefined, limit: 10 });
                 const catData = catRes?.data?.content || catRes?.content || catRes?.data || catRes;
                 if (Array.isArray(catData)) {
                     let filteredCats = catData;
                     if (normKey) {
-                        filteredCats = catData.filter(cat => 
+                        filteredCats = catData.filter(cat =>
                             cat.name && normalizeSearchText(cat.name).includes(normKey)
                         );
                     }
@@ -86,16 +88,16 @@ const HomeScreen = () => {
                 }
 
                 // 2. Fetch courses & filter by title keyword
-                const courseRes = await courseService.getAll({ 
+                const courseRes = await courseService.getAll({
                     title: trimmed || undefined,
                     search: trimmed || undefined,
-                    size: 20 
+                    size: 20
                 });
                 const courseData = courseRes?.data?.content || courseRes?.content || courseRes?.data || courseRes;
                 if (Array.isArray(courseData)) {
                     let filteredCourses = courseData;
                     if (normKey) {
-                        filteredCourses = courseData.filter(c => 
+                        filteredCourses = courseData.filter(c =>
                             c.title && normalizeSearchText(c.title).includes(normKey)
                         );
                     }
@@ -153,16 +155,17 @@ const HomeScreen = () => {
     };
 
     return (
-        <View className="flex-1 bg-slate-50">
+        <View className={`flex-1 ${isDarkMode ? 'bg-slate-900' : 'bg-slate-50'}`}>
             <SideMenu visible={isMenuVisible} onClose={() => setIsMenuVisible(false)} />
 
             {/* Header */}
             <View
-                className="flex-row items-center px-4 pb-4 bg-white gap-3 z-50 border-b border-slate-100"
+                className={`flex-row items-center px-4 pb-4 gap-3 z-50 border-b ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'
+                    }`}
                 style={{ paddingTop: Math.max(insets.top, 20) + 12 }}
             >
                 <TouchableOpacity className="p-1" onPress={() => setIsMenuVisible(true)}>
-                    <Menu size={26} color="#1e293b" />
+                    <Menu size={26} color={isDarkMode ? "#f8fafc" : "#1e293b"} />
                 </TouchableOpacity>
 
                 <View className="flex-1">
@@ -173,12 +176,12 @@ const HomeScreen = () => {
                         onClear={() => setSearchQuery('')}
                         onSubmitEditing={() => executeSearch()}
                         placeholder="Tìm kiếm khóa học..."
-                        style={{ backgroundColor: '#F1F5F9', borderRadius: 12, borderWidth: 0 }}
+                        style={{ backgroundColor: isDarkMode ? '#334155' : '#F1F5F9', borderRadius: 12, borderWidth: 0 }}
                     />
                 </View>
 
                 <TouchableOpacity className="p-1" onPress={() => navigation.navigate('Notifications')}>
-                    <Bell size={24} color="#1e293b" />
+                    <Bell size={24} color={isDarkMode ? "#f8fafc" : "#1e293b"} />
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -214,7 +217,7 @@ const HomeScreen = () => {
                         style={{
                             marginTop: Math.max(insets.top, 20) + 64,
                             marginHorizontal: 16,
-                            backgroundColor: '#ffffff',
+                            backgroundColor: isDarkMode ? '#1e293b' : '#ffffff',
                             borderRadius: 16,
                             padding: 16,
                             maxHeight: 460,
@@ -242,11 +245,12 @@ const HomeScreen = () => {
                                         <TouchableOpacity
                                             key={`recent-${idx}`}
                                             onPress={() => executeSearch(item)}
-                                            className="flex-row items-center py-2.5 px-2 border-b border-slate-50 justify-between"
+                                            className={`flex-row items-center py-2.5 px-2 justify-between border-b ${isDarkMode ? 'border-slate-700/60' : 'border-slate-50'
+                                                }`}
                                         >
                                             <View className="flex-row items-center flex-1 gap-2.5">
                                                 <History size={16} color="#94A3B8" />
-                                                <AppText className="text-sm font-medium text-slate-800 flex-1" numberOfLines={1}>
+                                                <AppText className={`text-sm font-medium flex-1 ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`} numberOfLines={1}>
                                                     {item}
                                                 </AppText>
                                             </View>
@@ -266,11 +270,12 @@ const HomeScreen = () => {
                                         <TouchableOpacity
                                             key={`cat-${cat.id}`}
                                             onPress={() => handleSelectCategory(cat)}
-                                            className="flex-row items-center py-2.5 px-2 border-b border-slate-50 justify-between"
+                                            className={`flex-row items-center py-2.5 px-2 justify-between border-b ${isDarkMode ? 'border-slate-700/60' : 'border-slate-50'
+                                                }`}
                                         >
                                             <View className="flex-row items-center flex-1 gap-2.5">
-                                                <Search size={16} color="#2563EB" />
-                                                <AppText className="text-sm font-semibold text-slate-800 flex-1" numberOfLines={1}>
+                                                <Search size={16} color="#3B82F6" />
+                                                <AppText className={`text-sm font-semibold flex-1 ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`} numberOfLines={1}>
                                                     {cat.name}
                                                 </AppText>
                                             </View>
@@ -293,20 +298,21 @@ const HomeScreen = () => {
                                         <TouchableOpacity
                                             key={`course-${course.id}`}
                                             onPress={() => handleSelectCourse(course)}
-                                            className="flex-row items-center py-2 px-1 border-b border-slate-50 gap-3"
+                                            className={`flex-row items-center py-2 px-1 gap-3 border-b ${isDarkMode ? 'border-slate-700/60' : 'border-slate-50'
+                                                }`}
                                         >
                                             <Image
                                                 source={{ uri: course.thumbnail || 'https://via.placeholder.com/120x80' }}
-                                                className="w-16 h-12 rounded-lg bg-slate-200"
+                                                className={`w-16 h-12 rounded-lg ${isDarkMode ? 'bg-slate-700' : 'bg-slate-200'}`}
                                                 resizeMode="cover"
                                             />
                                             <View className="flex-1 justify-center">
                                                 {course.categoryName ? (
-                                                    <AppText className="text-[11px] font-bold text-blue-600 mb-0.5" numberOfLines={1}>
+                                                    <AppText className="text-[11px] font-bold text-blue-500 mb-0.5" numberOfLines={1}>
                                                         {course.categoryName}
                                                     </AppText>
                                                 ) : null}
-                                                <AppText className="text-xs font-bold text-slate-800" numberOfLines={1}>
+                                                <AppText className={`text-xs font-bold ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`} numberOfLines={1}>
                                                     {course.title}
                                                 </AppText>
                                                 {course.instructorName ? (
@@ -358,24 +364,6 @@ const HomeScreen = () => {
 
                 {/* FAQ Section */}
                 <FAQSection />
-
-                {/* CTA Banner */}
-                {!isAuthenticated && (
-                    <View className="mx-5 mt-6 mb-6 bg-slate-900 rounded-2xl p-5 flex-row items-center">
-                        <View className="flex-1 pr-4">
-                            <AppText className="text-white font-bold text-base mb-1">Bạn là giảng viên?</AppText>
-                            <AppText className="text-slate-400 text-xs leading-4">
-                                Chia sẻ kiến thức và tạo thu nhập cùng Gnostica.
-                            </AppText>
-                        </View>
-                        <TouchableOpacity
-                            className="bg-white px-4 py-2.5 rounded-xl"
-                            onPress={() => navigation.navigate('Login')}
-                        >
-                            <AppText className="text-slate-900 font-bold text-xs">Tìm hiểu</AppText>
-                        </TouchableOpacity>
-                    </View>
-                )}
 
                 <View className="h-5" />
             </ScrollView>

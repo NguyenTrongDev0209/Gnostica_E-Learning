@@ -8,10 +8,12 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Avatar from '../../../components/ui/Avatar';
 import wishlistService from '../../../services/course/wishlistService';
 import { useAuth } from '../../../context/AuthContext';
+import { useTheme } from '../../../context/ThemeContext';
 
 const CourseCard = ({ course, width }) => {
     const navigation = useNavigation();
     const { user } = useAuth();
+    const { isDarkMode } = useTheme();
 
     const [isSaved, setIsSaved] = useState(false);
     const [loadingSave, setLoadingSave] = useState(false);
@@ -68,13 +70,15 @@ const CourseCard = ({ course, width }) => {
     return (
         <TouchableOpacity
             onPress={() => navigation.navigate('CourseDetail', { course })}
-            className="bg-white rounded-[14px] flex-col shadow-sm border border-slate-200 overflow-hidden mb-1"
+            className={`rounded-[14px] flex-col shadow-sm border overflow-hidden mb-1 ${
+                isDarkMode ? 'bg-slate-800 border-slate-700/60' : 'bg-white border-slate-200'
+            }`}
             style={{ width: width || '100%' }}
             activeOpacity={0.85}
         >
             {/* Top Image Section */}
             <View className="p-2 pb-0">
-                <View className="w-full h-[130px] rounded-lg overflow-hidden bg-slate-100">
+                <View className={`w-full h-[130px] rounded-lg overflow-hidden ${isDarkMode ? 'bg-slate-700' : 'bg-slate-100'}`}>
                     <Image
                         source={{ uri: course?.thumbnail }}
                         className="w-full h-full"
@@ -89,7 +93,7 @@ const CourseCard = ({ course, width }) => {
                 <View className="flex-row items-center justify-between mb-2">
                     <View className="flex-row items-center gap-1.5 flex-1 pr-2">
                         <Avatar name={instructorName} size={20} />
-                        <AppText className="text-xs font-semibold text-blue-600 flex-1" numberOfLines={1}>
+                        <AppText className="text-xs font-semibold text-blue-500 flex-1" numberOfLines={1}>
                             {instructorName}
                         </AppText>
                     </View>
@@ -104,7 +108,7 @@ const CourseCard = ({ course, width }) => {
                 {/* Title */}
                 <AppText
                     numberOfLines={2}
-                    className="text-[14px] font-bold text-slate-900 leading-[20px] mb-2"
+                    className={`text-[14px] font-bold leading-[20px] mb-2 ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}
                     style={{ minHeight: 40 }}
                 >
                     {course?.title}
@@ -112,9 +116,9 @@ const CourseCard = ({ course, width }) => {
 
                 {/* Category */}
                 {course?.category && (
-                    <View className="self-start bg-slate-50 rounded px-2 py-0.5 flex-row items-center gap-1.5 mb-2">
-                        <View className="w-1.5 h-1.5 rounded-full bg-blue-600" />
-                        <AppText className="text-[10px] font-semibold text-blue-600">
+                    <View className={`self-start rounded px-2 py-0.5 flex-row items-center gap-1.5 mb-2 ${isDarkMode ? 'bg-slate-700/60' : 'bg-slate-50'}`}>
+                        <View className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                        <AppText className="text-[10px] font-semibold text-blue-500">
                             {course.category}
                         </AppText>
                     </View>
@@ -122,14 +126,14 @@ const CourseCard = ({ course, width }) => {
 
                 {/* Students */}
                 <View className="flex-row items-center gap-1.5 mb-2.5">
-                    <Users size={12} color="#64748B" />
-                    <AppText className="text-[11px] font-medium text-slate-500">
+                    <Users size={12} color={isDarkMode ? "#94A3B8" : "#64748B"} />
+                    <AppText className={`text-[11px] font-medium ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
                         {course?.studentCount ? course.studentCount.toLocaleString('vi-VN') : 0} học viên
                     </AppText>
                 </View>
 
                 {/* Separator Line */}
-                <View className="h-[1px] bg-slate-100 mb-2" />
+                <View className={`h-[1px] mb-2 ${isDarkMode ? 'bg-slate-700/60' : 'bg-slate-100'}`} />
 
                 {/* Footer Row: Price + Bookmark */}
                 <View className="flex-row items-center justify-between">

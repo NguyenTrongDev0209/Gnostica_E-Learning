@@ -2,6 +2,7 @@ import AppText from '../../../components/ui/AppText';
 import React, { useState, useEffect, useRef } from 'react';
 import { View, ImageBackground, FlatList, Dimensions } from 'react-native';
 import Button from '../../../components/ui/Button';
+import { useTheme } from '../../../context/ThemeContext';
 
 const { width } = Dimensions.get('window');
 
@@ -42,6 +43,7 @@ const BANNERS = [
 ];
 
 const HeroSection = () => {
+    const { isDarkMode } = useTheme();
     const flatListRef = useRef(null);
     const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -124,7 +126,7 @@ const HeroSection = () => {
                     <View
                         key={index}
                         className={`h-1.5 rounded-full ${
-                            currentIndex === index ? 'w-4 bg-blue-600' : 'w-1.5 bg-slate-300'
+                            currentIndex === index ? 'w-4 bg-blue-500' : (isDarkMode ? 'w-1.5 bg-slate-700' : 'w-1.5 bg-slate-300')
                         }`}
                         style={{
                             opacity: currentIndex === index ? 1 : 0.5,

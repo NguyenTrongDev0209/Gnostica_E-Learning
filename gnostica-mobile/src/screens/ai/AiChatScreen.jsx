@@ -18,6 +18,7 @@ import aiService from '../../services/ai/aiService';
 import enrollmentService from '../../services/course/enrollmentService';
 import threadService from '../../services/forum/threadService';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const QUICK_PROMPTS = [
@@ -54,6 +55,7 @@ const isForumQuery = (text) => {
 const AiChatScreen = () => {
     const navigation = useNavigation();
     const { user } = useAuth();
+    const { isDarkMode } = useTheme();
     const flatListRef = useRef(null);
 
     const [messages, setMessages] = useState([
@@ -105,7 +107,6 @@ const AiChatScreen = () => {
         setIsLoading(true);
 
         try {
-            // 1. Kiểm tra xem user có hỏi về tiến độ học tập không
             if (isProgressQuery(query)) {
                 try {
                     const res = await enrollmentService.getMyCourses();
@@ -147,7 +148,6 @@ const AiChatScreen = () => {
                 }
             }
 
-            // 2. Kiểm tra xem user có hỏi về Bài viết nổi bật (top 5 bài nhiều view nhất) không
             if (isForumQuery(query)) {
                 try {
                     const res = await threadService.getAll({ page: 0, size: 5, sortBy: 'viewCount' });
@@ -181,7 +181,6 @@ const AiChatScreen = () => {
                 }
             }
 
-            // 3. Nếu câu hỏi bình thường, gửi payload tới AI backend
             const apiMessages = updatedMessages
                 .filter(m => m.id !== 'welcome')
                 .map((m, idx, arr) => {
@@ -254,12 +253,10 @@ const AiChatScreen = () => {
         }
     };
 
-    // Component render Card tương tác trên mobile
     const renderCard = (cardData, key) => {
         const { type, id, title, info, author, category, imgUrl } = cardData;
         const hasThumb = imgUrl && imgUrl !== 'none' && imgUrl !== 'null';
 
-        // Special Progress Card
         if (type === 'progress') {
             const percent = parseInt(info) || 0;
             const lessonsInfo = author || '0 bài';
@@ -270,34 +267,40 @@ const AiChatScreen = () => {
                     key={key}
                     activeOpacity={0.85}
                     onPress={() => handleCardPress(cardData)}
-                    className="mt-2.5 mb-2 bg-white border border-blue-100 rounded-2xl p-3.5 shadow-xs"
+                    className={`mt-2.5 mb-2 border rounded-2xl p-3.5 shadow-xs ${
+                        isDarkMode ? 'bg-slate-900 border-slate-700' : 'bg-white border-blue-100'
+                    }`}
                 >
                     <View className="flex-row items-center mb-2">
                         {hasThumb && (
                             <Image
                                 source={{ uri: imgUrl }}
-                                className="w-12 h-12 rounded-xl bg-slate-100 mr-3 border border-slate-100"
+                                className={`w-12 h-12 rounded-xl mr-3 border ${
+                                    isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-slate-100 border-slate-100'
+                                }`}
                                 resizeMode="cover"
                             />
                         )}
                         <View className="flex-1">
                             <View className="flex-row items-center justify-between">
-                                <AppText className="font-bold text-slate-900 text-sm flex-1 mr-2" numberOfLines={1}>
+                                <AppText className={`font-bold text-sm flex-1 mr-2 ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`} numberOfLines={1}>
                                     {title}
                                 </AppText>
-                                <View className="bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100">
-                                    <AppText className="text-blue-700 font-bold text-xs">{percent}%</AppText>
+                                <View className={`px-2 py-0.5 rounded-full border ${
+                                    isDarkMode ? 'bg-blue-950/80 border-blue-900' : 'bg-blue-50 border-blue-100'
+                                }`}>
+                                    <AppText className="text-blue-400 font-bold text-xs">{percent}%</AppText>
                                 </View>
                             </View>
 
-                            <AppText className="text-xs text-slate-500 mt-0.5" numberOfLines={1}>
+                            <AppText className={`text-xs mt-0.5 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`} numberOfLines={1}>
                                 {lessonsInfo} • {lastLesson}
                             </AppText>
                         </View>
                     </View>
 
                     {/* Progress Bar */}
-                    <View className="h-2 bg-slate-100 rounded-full overflow-hidden mb-3">
+                    <View className={`h-2 rounded-full overflow-hidden mb-3 ${isDarkMode ? 'bg-slate-800' : 'bg-slate-100'}`}>
                         <View className="h-full bg-blue-600 rounded-full" style={{ width: `${Math.min(100, Math.max(0, percent))}%` }} />
                     </View>
 
@@ -320,27 +323,33 @@ const AiChatScreen = () => {
                 key={key}
                 activeOpacity={0.8}
                 onPress={() => handleCardPress(cardData)}
-                className="mt-2.5 mb-2 bg-white border border-blue-100 rounded-2xl p-3 shadow-xs"
+                className={`mt-2.5 mb-2 border rounded-2xl p-3 shadow-xs ${
+                    isDarkMode ? 'bg-slate-900 border-slate-700' : 'bg-white border-blue-100'
+                }`}
             >
                 <View className="flex-row items-start">
                     {hasThumb && (
                         <Image
                             source={{ uri: imgUrl }}
-                            className="w-12 h-12 rounded-xl bg-slate-100 mr-3 border border-slate-100"
+                            className={`w-12 h-12 rounded-xl mr-3 border ${
+                                isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-slate-100 border-slate-100'
+                            }`}
                             resizeMode="cover"
                         />
                     )}
                     <View className="flex-1">
                         <View className="flex-row items-center justify-between mb-1">
                             <View className="flex-row items-center flex-1 mr-2">
-                                <View className="w-5 h-5 rounded-full bg-blue-100 items-center justify-center mr-1.5">
+                                <View className={`w-5 h-5 rounded-full items-center justify-center mr-1.5 ${
+                                    isDarkMode ? 'bg-blue-950' : 'bg-blue-100'
+                                }`}>
                                     {isCourse ? (
-                                        <BookOpen size={12} color="#2563eb" />
+                                        <BookOpen size={12} color="#3b82f6" />
                                     ) : (
-                                        <MessageSquare size={12} color="#2563eb" />
+                                        <MessageSquare size={12} color="#3b82f6" />
                                     )}
                                 </View>
-                                <AppText className="text-[11px] font-bold text-blue-600 flex-1" numberOfLines={1}>
+                                <AppText className="text-[11px] font-bold text-blue-400 flex-1" numberOfLines={1}>
                                     {category || 'Gnostica'}
                                 </AppText>
                             </View>
@@ -349,34 +358,32 @@ const AiChatScreen = () => {
                             ) : null}
                         </View>
 
-                        <AppText className="font-bold text-slate-900 text-xs leading-4 mb-1" numberOfLines={2}>
+                        <AppText className={`font-bold text-xs leading-4 mb-1 ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`} numberOfLines={2}>
                             {title}
                         </AppText>
 
                         {info && info !== 'none' && info !== 'null' ? (
-                            <AppText className="text-[11px] text-slate-500 mb-1.5" numberOfLines={2}>
+                            <AppText className={`text-[11px] mb-1.5 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`} numberOfLines={2}>
                                 {info}
                             </AppText>
                         ) : null}
                     </View>
                 </View>
 
-                <View className="flex-row items-center justify-between pt-1.5 mt-1 border-t border-slate-100">
-                    <AppText className="text-[10px] font-semibold text-blue-600">Xem chi tiết</AppText>
-                    <ChevronRight size={14} color="#2563eb" />
+                <View className={`flex-row items-center justify-between pt-1.5 mt-1 border-t ${
+                    isDarkMode ? 'border-slate-800' : 'border-slate-100'
+                }`}>
+                    <AppText className="text-[10px] font-semibold text-blue-400">Xem chi tiết</AppText>
+                    <ChevronRight size={14} color="#3b82f6" />
                 </View>
             </TouchableOpacity>
         );
     };
 
-    // Hàm render nội dung tin nhắn kết hợp Card & làm sạch Markdown
     const renderMessageBody = (rawContent, isUser, isError) => {
         if (!rawContent) return null;
 
-        // 1. Loại bỏ comment hệ thống dạng /* ... */
         let cleaned = rawContent.replace(/\/\*[\s\S]*?\*\//g, '').trim();
-
-        // 2. Tách chuỗi theo định dạng [[CARD:...]]
         const parts = cleaned.split(/(\[\[CARD:[^\]]+\]\])/g);
 
         return (
@@ -396,14 +403,13 @@ const AiChatScreen = () => {
                         return renderCard(cardData, `card-${index}`);
                     }
 
-                    // Loại bỏ Markdown bold `**` để hiển thị chữ sạch đẹp
                     let textContent = part.replace(/\*\*/g, '').trim();
                     if (!textContent) return null;
 
                     return (
                         <AppText
                             key={`text-${index}`}
-                            className={`text-sm leading-5 ${isUser ? 'text-white' : isError ? 'text-red-600' : 'text-slate-800'}`}
+                            className={`text-sm leading-5 ${isUser ? 'text-white' : isError ? 'text-red-500' : (isDarkMode ? 'text-slate-100' : 'text-slate-800')}`}
                         >
                             {textContent}
                         </AppText>
@@ -431,8 +437,8 @@ const AiChatScreen = () => {
                         isUser
                             ? 'bg-blue-600 rounded-br-none shadow-sm'
                             : item.isError
-                            ? 'bg-red-50 border border-red-200 rounded-bl-none'
-                            : 'bg-white border border-slate-200 rounded-bl-none shadow-sm'
+                            ? (isDarkMode ? 'bg-red-950/80 border border-red-800' : 'bg-red-50 border border-red-200')
+                            : (isDarkMode ? 'bg-slate-800 border border-slate-700/60 rounded-bl-none shadow-sm' : 'bg-white border border-slate-200 rounded-bl-none shadow-sm')
                     }`}
                 >
                     {renderMessageBody(item.content, isUser, item.isError)}
@@ -444,11 +450,13 @@ const AiChatScreen = () => {
                 </View>
 
                 {isUser && (
-                    <View className="w-8 h-8 rounded-full bg-slate-200 items-center justify-center ml-2 self-start mt-1 overflow-hidden border border-slate-200">
+                    <View className={`w-8 h-8 rounded-full items-center justify-center ml-2 self-start mt-1 overflow-hidden border ${
+                        isDarkMode ? 'bg-slate-700 border-slate-600' : 'bg-slate-200 border-slate-200'
+                    }`}>
                         {userAvatar ? (
                             <Image source={{ uri: userAvatar }} className="w-full h-full rounded-full" resizeMode="cover" />
                         ) : (
-                            <User size={18} color="#475569" />
+                            <User size={18} color={isDarkMode ? "#cbd5e1" : "#475569"} />
                         )}
                     </View>
                 )}
@@ -457,20 +465,22 @@ const AiChatScreen = () => {
     };
 
     return (
-        <SafeAreaView className="flex-1 bg-slate-50">
+        <SafeAreaView className={`flex-1 ${isDarkMode ? 'bg-slate-900' : 'bg-slate-50'}`}>
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : undefined}
                 className="flex-1"
                 keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
             >
                 {/* Header */}
-                <View className="bg-white border-b border-slate-200 px-4 py-3 flex-row items-center justify-between shadow-sm">
+                <View className={`border-b px-4 py-3 flex-row items-center justify-between shadow-sm ${
+                    isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'
+                }`}>
                     <View className="flex-row items-center">
                         <TouchableOpacity
                             onPress={() => navigation.goBack()}
-                            className="p-1.5 mr-2 rounded-full bg-slate-100"
+                            className={`p-1.5 mr-2 rounded-full ${isDarkMode ? 'bg-slate-700' : 'bg-slate-100'}`}
                         >
-                            <ChevronLeft size={22} color="#334155" />
+                            <ChevronLeft size={22} color={isDarkMode ? '#f8fafc' : '#334155'} />
                         </TouchableOpacity>
 
                         <View className="flex-row items-center">
@@ -482,12 +492,12 @@ const AiChatScreen = () => {
                             </LinearGradient>
                             <View>
                                 <View className="flex-row items-center">
-                                    <AppText className="font-bold text-slate-900 text-base mr-1.5">Gnostica AI</AppText>
+                                    <AppText className={`font-bold text-base mr-1.5 ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}>Gnostica AI</AppText>
                                     <Sparkles size={14} color="#f59e0b" fill="#f59e0b" />
                                 </View>
                                 <View className="flex-row items-center mt-0.5">
                                     <View className={`w-2 h-2 rounded-full mr-1.5 ${quota.remaining > 0 ? 'bg-emerald-500' : 'bg-red-500'}`} />
-                                    <AppText className="text-slate-500 text-xs font-medium">Còn {quota.remaining}/{quota.dailyLimit} lượt hôm nay</AppText>
+                                    <AppText className={`text-xs font-medium ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Còn {quota.remaining}/{quota.dailyLimit} lượt hôm nay</AppText>
                                 </View>
                             </View>
                         </View>
@@ -496,9 +506,9 @@ const AiChatScreen = () => {
                     {/* New Chat Button */}
                     <TouchableOpacity
                         onPress={handleNewChat}
-                        className="p-2 rounded-full bg-blue-50 border border-blue-200"
+                        className={`p-2 rounded-full border ${isDarkMode ? 'bg-blue-950/80 border-blue-900' : 'bg-blue-50 border-blue-200'}`}
                     >
-                        <Plus size={18} color="#2563eb" />
+                        <Plus size={18} color="#3b82f6" />
                     </TouchableOpacity>
                 </View>
 
@@ -521,12 +531,14 @@ const AiChatScreen = () => {
                                             <TouchableOpacity
                                                 key={p.id}
                                                 onPress={() => handleSendMessage(p.prompt)}
-                                                className="bg-white border border-blue-100 rounded-xl p-3 mr-3 shadow-xs max-w-[220px]"
+                                                className={`border rounded-xl p-3 mr-3 shadow-xs max-w-[220px] ${
+                                                    isDarkMode ? 'bg-slate-800 border-slate-700/60' : 'bg-white border-blue-100'
+                                                }`}
                                             >
-                                                <AppText className="font-semibold text-blue-700 text-xs mb-1">
+                                                <AppText className={`font-semibold text-xs mb-1 ${isDarkMode ? 'text-blue-400' : 'text-blue-700'}`}>
                                                     {p.title}
                                                 </AppText>
-                                                <AppText className="text-slate-600 text-xs" numberOfLines={2}>
+                                                <AppText className={`text-xs ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`} numberOfLines={2}>
                                                     {p.prompt}
                                                 </AppText>
                                             </TouchableOpacity>
@@ -537,9 +549,11 @@ const AiChatScreen = () => {
                         }
                         ListFooterComponent={
                             isLoading ? (
-                                <View className="flex-row items-center ml-4 mb-4 bg-white p-3 rounded-2xl rounded-bl-none max-w-[120px] border border-slate-200">
+                                <View className={`flex-row items-center ml-4 mb-4 p-3 rounded-2xl rounded-bl-none max-w-[120px] border ${
+                                    isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'
+                                }`}>
                                     <ActivityIndicator size="small" color="#2563eb" className="mr-2" />
-                                    <AppText className="text-xs text-slate-500">Đang trả lời...</AppText>
+                                    <AppText className={`text-xs ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Đang trả lời...</AppText>
                                 </View>
                             ) : null
                         }
@@ -547,9 +561,13 @@ const AiChatScreen = () => {
                 </View>
 
                 {/* Input Bar */}
-                <View className="bg-white border-t border-slate-200 px-4 py-3 flex-row items-center">
+                <View className={`border-t px-4 py-3 flex-row items-center ${
+                    isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'
+                }`}>
                     <TextInput
-                        className="flex-1 bg-slate-100 text-slate-800 px-4 py-2.5 rounded-full text-sm max-h-24 font-normal"
+                        className={`flex-1 px-4 py-2.5 rounded-full text-sm max-h-24 font-normal ${
+                            isDarkMode ? 'bg-slate-700 text-slate-100' : 'bg-slate-100 text-slate-800'
+                        }`}
                         placeholder="Đặt câu hỏi cho AI Gnostica..."
                         placeholderTextColor="#94a3b8"
                         value={inputMessage}
@@ -562,7 +580,7 @@ const AiChatScreen = () => {
                         onPress={() => handleSendMessage()}
                         disabled={!inputMessage.trim() || isLoading}
                         className={`w-10 h-10 rounded-full items-center justify-center ml-2.5 ${
-                            inputMessage.trim() && !isLoading ? 'bg-blue-600' : 'bg-slate-200'
+                            inputMessage.trim() && !isLoading ? 'bg-blue-600' : (isDarkMode ? 'bg-slate-700' : 'bg-slate-200')
                         }`}
                     >
                         <Send size={18} color={inputMessage.trim() && !isLoading ? '#ffffff' : '#94a3b8'} />

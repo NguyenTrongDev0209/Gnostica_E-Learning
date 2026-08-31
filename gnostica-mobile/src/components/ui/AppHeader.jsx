@@ -4,14 +4,16 @@ import { useNavigation } from '@react-navigation/native';
 import { ArrowLeft } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AppText from './AppText';
+import { useTheme } from '../../context/ThemeContext';
 
-const AppHeader = ({ title, rightComponent, onBackPress, showBack = true, className = '', titleClassName = '' }) => {
+const AppHeader = ({ title, rightComponent, onBackPress, showBack = true, className = '', titleClassName = '', iconColor }) => {
     let navigation = null;
     try {
         navigation = useNavigation();
     } catch (_) {}
 
     const insets = useSafeAreaInsets();
+    const { isDarkMode } = useTheme();
 
     const handleBackPress = () => {
         if (onBackPress) {
@@ -21,9 +23,13 @@ const AppHeader = ({ title, rightComponent, onBackPress, showBack = true, classN
         }
     };
 
+    const defaultIconColor = iconColor || (isDarkMode ? '#f8fafc' : '#1e293b');
+
     return (
         <View 
-            className={`bg-white px-4 pb-4 border-b border-slate-100 flex-row items-center justify-between ${className}`}
+            className={`px-4 pb-4 border-b flex-row items-center justify-between ${
+                isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'
+            } ${className}`}
             style={{ paddingTop: Math.max(insets.top, 20) + 12 }}
         >
             <View className="flex-row items-center flex-1">
@@ -33,11 +39,13 @@ const AppHeader = ({ title, rightComponent, onBackPress, showBack = true, classN
                         className="p-2 -ml-2"
                         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
-                        <ArrowLeft size={24} color="#1e293b" />
+                        <ArrowLeft size={24} color={defaultIconColor} />
                     </TouchableOpacity>
                 )}
                 <AppText 
-                    className={`text-xl font-bold text-slate-800 flex-1 ${showBack ? 'ml-2' : ''} ${titleClassName}`}
+                    className={`text-xl font-bold flex-1 ${showBack ? 'ml-2' : ''} ${
+                        isDarkMode ? 'text-slate-100' : 'text-slate-800'
+                    } ${titleClassName}`}
                     numberOfLines={1}
                 >
                     {title}
