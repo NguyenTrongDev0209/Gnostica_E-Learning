@@ -58,8 +58,9 @@ public class SecurityConfig {
             )
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/error", "/favicon.ico", "/**/*.html", "/**/*.css", "/**/*.js", "/ws/**").permitAll()
-                .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/verify", "/api/auth/resend-otp", "/api/auth/forgot-password", "/api/auth/reset-password", "/api/auth/user", "/api/account/**", "/api/upload/**", "/api/follow/**", "/api/oauth2/**", "/api/login/oauth2/**", "/api/threads/**", "/api/forum-categories/**", "/api/comments/**", "/api/progress/**", "/api/ai/**", "/api/thread-reports/**", "/api/dashboard/**", "/api/checkout/payments/**",
+                .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/verify", "/api/auth/resend-otp", "/api/auth/forgot-password", "/api/auth/reset-password", "/api/auth/user", "/api/account/**", "/api/upload/**", "/api/follow/**", "/api/oauth2/**", "/api/login/oauth2/**", "/api/progress/**", "/api/ai/**", "/api/thread-reports/**", "/api/dashboard/**", "/api/checkout/payments/**",
                                                                 "/api/certificates/**", "/api/instructor-dashboard/test-reviews").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/threads", "/api/threads/{id}", "/api/threads/slug/{slug}", "/api/threads/{id}/related", "/api/threads/{id}/like-status", "/api/threads/{id}/vote-status", "/api/threads/top-contributors", "/api/forum-categories/**", "/api/comments/thread/{threadId}", "/api/comments/target/{targetType}/{targetId}").permitAll()
                 .requestMatchers("/api/courses/draft/**", "/api/courses/draft", "/api/courses/instructor").authenticated()
                 .requestMatchers(HttpMethod.GET, "/api/reviews/course/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/courses/**", "/api/categories/**", "/api/instructors/**", "/api/public/**").permitAll()

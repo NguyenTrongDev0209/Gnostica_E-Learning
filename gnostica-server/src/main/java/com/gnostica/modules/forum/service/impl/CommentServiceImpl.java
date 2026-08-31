@@ -12,6 +12,7 @@ import com.gnostica.core.repository.LessonRepository;
 import com.gnostica.core.repository.ThreadRepository;
 import com.gnostica.modules.forum.service.CommentService;
 import com.gnostica.modules.user.service.NotificationService;
+import com.gnostica.core.exception.ForbiddenException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -135,7 +136,7 @@ public class CommentServiceImpl implements CommentService {
                 .orElseThrow(() -> new RuntimeException("Comment not found"));
 
         if (!comment.getAccount().getEmail().equals(userEmail)) {
-            throw new RuntimeException("You are not authorized to update this comment");
+            throw new ForbiddenException("Bạn không có quyền sửa bình luận này.");
         }
 
         comment.setContent(content.trim());
@@ -172,7 +173,7 @@ public class CommentServiceImpl implements CommentService {
                 .orElse(false);
 
         if (!isCommentAuthor && !isThreadAuthor && !isLessonInstructor && !isAdmin) {
-            throw new RuntimeException("You are not authorized to update this comment's status");
+            throw new ForbiddenException("Bạn không có quyền thay đổi trạng thái bình luận này.");
         }
 
         Integer oldStatus = comment.getStatus();
@@ -214,7 +215,7 @@ public class CommentServiceImpl implements CommentService {
         }
 
         if (!isCommentAuthor && !isThreadAuthor && !isLessonInstructor) {
-            throw new RuntimeException("You are not authorized to delete this comment");
+            throw new ForbiddenException("Bạn không có quyền xóa bình luận này.");
         }
 
         commentRepository.delete(comment);
@@ -229,7 +230,7 @@ public class CommentServiceImpl implements CommentService {
                 && account.getRole().getName().toUpperCase().contains("ADMIN");
 
         if (!isInstructor && !isEnrolled && !isAdmin) {
-            throw new RuntimeException("You are not authorized to comment on this lesson");
+            throw new ForbiddenException("Bạn không có quyền bình luận trong bài học này.");
         }
     }
 

@@ -59,57 +59,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
-        registration.interceptors(stompChannelInterceptor, new ChannelInterceptor() {
-            @Override
-            public Message<?> preSend(Message<?> message, MessageChannel channel) {
-                StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
-                StompCommand command = accessor.getCommand();
-                if (command == null) {
-                    return message;
-                }
-
-                if (StompCommand.CONNECT.equals(command)) {
-                    String authorization = accessor.getFirstNativeHeader("Authorization");
-                    if (authorization == null || !authorization.startsWith("Bearer ")) {
-                        throw new org.springframework.security.access.AccessDeniedException("WebSocket authentication is required");
-                    }
-                    String token = authorization.substring(7);
-                    if (!jwtProvider.validateToken(token)) {
-                        throw new org.springframework.security.access.AccessDeniedException("Invalid WebSocket token");
-                    }
-                    String roles = jwtProvider.getRolesFromJWT(token);
-                    java.util.List<SimpleGrantedAuthority> authorities = java.util.Arrays.stream(
-                                    roles == null ? new String[0] : roles.split(","))
-                            .filter(role -> !role.isBlank())
-                            .map(SimpleGrantedAuthority::new)
-                            .toList();
-                    accessor.setUser(new UsernamePasswordAuthenticationToken(
-                            jwtProvider.getUsernameFromJWT(token), null, authorities));
-                    return message;
-                }
-
-                if (StompCommand.SUBSCRIBE.equals(command)) {
-                    if (accessor.getUser() == null) {
-                        throw new org.springframework.security.access.AccessDeniedException("Subscription is not permitted: unauthenticated");
-                    }
-                    String dest = accessor.getDestination();
-                    if (dest == null || !(dest.equals("/user/queue/payment-status")
-                            || dest.equals("/user/queue/messages")
-                            || dest.equals("/user/queue/conversations")
-                            || dest.equals("/user/queue/read-receipts"))) {
-                        throw new org.springframework.security.access.AccessDeniedException("Subscription to " + dest + " is not permitted");
-                    }
-                }
-
-                if (StompCommand.SEND.equals(command)) {
-                    String destination = accessor.getDestination();
-                    if (destination != null && (destination.startsWith("/topic/")
-                            || destination.startsWith("/queue/") || destination.startsWith("/user/"))) {
-                        throw new org.springframework.security.access.AccessDeniedException("Clients cannot publish directly to broker destinations");
-                    }
-                }
-                return message;
-            }
-        });
+        registration.interceptors(stompChannelInterceptor);
     }
 }
