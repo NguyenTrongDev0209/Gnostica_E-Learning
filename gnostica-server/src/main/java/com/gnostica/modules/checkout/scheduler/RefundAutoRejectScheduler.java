@@ -26,6 +26,7 @@ public class RefundAutoRejectScheduler {
     private final RefundRepository refundRepository;
     private final PaymentRepository paymentRepository;
     private final NotificationService notificationService;
+    private final com.gnostica.core.repository.EnrollmentRepository enrollmentRepository;
 
     // Run every day at 00:00:00
     @Scheduled(cron = "0 0 0 * * *")
@@ -55,6 +56,12 @@ public class RefundAutoRejectScheduler {
                 refund.setStatus(RefundStatus.REJECTED);
                 refund.setReason(refund.getReason() + " | Từ chối tự động: " + RefundService.AUTO_REJECT_REASON);
                 refundRepository.save(refund);
+
+                com.gnostica.core.model.Enrollment enrollment = enrollmentRepository.findByAccountAndCourse(refund.getAccount(), refund.getOrderDetail().getCourse()).orElse(null);
+                if (enrollment != null && java.util.Objects.equals(enrollment.getStatus(), 3)) {
+                    enrollment.setStatus(enrollment.getProgressPercent() != null && enrollment.getProgressPercent() == 100 ? 2 : 1);
+                    enrollmentRepository.save(enrollment);
+                }
 
                 notificationService.createNotification(
                         refund.getAccount(),

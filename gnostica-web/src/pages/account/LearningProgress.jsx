@@ -13,6 +13,7 @@ import {
   BookOpen,
   Clock,
 } from "lucide-react";
+
 export default function LearningProgress() {
   const { courses, stats, loading } = useLearningProgress();
 
@@ -169,7 +170,7 @@ function LearningProgressList({ loading, courses }) {
 
               {/* Actions */}
               <div className="shrink-0 flex md:flex-col gap-3 justify-end items-end border-t border-border pt-4 md:border-0 md:pt-0">
-                <Link to={`/learning/${course.courseId}`}>
+                <Link to={`/learning/${course.courseSlug || course.slug || course.courseId}`}>
                   {course.progressPercent === 100 ? (
                     <AppButton appVariant="ghostMuted" variant="ghost" className="px-6 border border-border">Xem lại bài</AppButton>
                   ) : (

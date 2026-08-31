@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import useAuthStore from "@/store/useAuthStore";
 import { API_URL } from "@/config/environment";
 import walletService from "@/services/payment/walletService";
+import enrollmentService from "@/services/course/enrollmentService";
 
 export default function useAccountOverview() {
   const [loading, setLoading] = useState(true);
@@ -18,27 +19,33 @@ export default function useAccountOverview() {
           "Authorization": `Bearer ${token}`
         };
 
-        const [statsRes, coursesRes, certsRes, walletData] = await Promise.all([
-          fetch(`${API_URL}/enrollments/stats`, { headers }),
-          fetch(`${API_URL}/enrollments/my-courses`, { headers }),
-          fetch(`${API_URL}/certificates/my-certificates`, { headers }),
+        const [statsData, coursesData, certsRes, walletData] = await Promise.all([
+          enrollmentService.getMyStats().catch(() => null),
+          enrollmentService.getMyCourses().catch(() => []),
+          fetch(`${API_URL}/certificates/my-certificates`, { headers }).catch(() => ({ ok: false })),
           walletService.getMyWallet().catch(() => null)
         ]);
 
-        const statsData = statsRes.ok ? await statsRes.json() : null;
-        const coursesData = coursesRes.ok ? await coursesRes.json() : [];
-        const certsData = certsRes.ok ? await certsRes.json() : [];
+        const certsData = certsRes && certsRes.ok ? await certsRes.json() : [];
+        const rawCourses = Array.isArray(coursesData) ? coursesData : (coursesData?.data || []);
 
-        // Format data if needed
-        const recentCourses = (coursesData.data || []).map(c => ({
-          id: c.courseId,
-          slug: c.courseSlug,
-          courseTitle: c.courseTitle,
-          thumbnail: c.courseThumbnail || "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&q=80",
-          instructor: c.instructorName,
-          category: "Lập trình", // Backend doesn't return category yet, hardcode or remove
+        const recentCourses = rawCourses.map(c => ({
+          ...c,
+          id: c.courseId || c.id,
+          courseId: c.courseId || c.id,
+          courseSlug: c.courseSlug || c.slug,
+          slug: c.courseSlug || c.slug,
+          courseTitle: c.courseTitle || c.title,
+          courseThumbnail: c.courseThumbnail || c.thumbnail,
+          thumbnail: c.courseThumbnail || c.thumbnail,
+          category: c.category,
           progressPercent: c.progressPercent || 0,
-          lastAccessed: c.lastWatchedLessonSlug ? "Hôm nay" : "Chưa học"
+          lastAccessed: c.lastWatchedLessonSlug ? "Hôm nay" : "Chưa học",
+          joinedAt: c.joinedAt,
+          completedAt: c.completedAt,
+          firstLessonId: c.firstLessonId,
+          lastWatchedLessonSlug: c.lastWatchedLessonSlug,
+          certificateUrl: c.certificateUrl || c.certifiUrl
         }));
 
         const recentCertificates = (Array.isArray(certsData) ? certsData : []).slice(0, 3).map((c, idx) => ({
@@ -50,7 +57,7 @@ export default function useAccountOverview() {
 
         setData({
           stats: {
-            ...(statsData?.data || { enrolledCourses: 0, completedCourses: 0, hoursStudied: 0 }),
+            ...(statsData || { enrolledCourses: 0, completedCourses: 0, hoursStudied: 0 }),
             walletBalance: walletData?.remain || 0
           },
           recentCourses,

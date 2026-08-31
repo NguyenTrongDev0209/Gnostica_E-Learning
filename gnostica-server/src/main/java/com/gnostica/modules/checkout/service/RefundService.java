@@ -21,6 +21,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -144,6 +145,12 @@ public class RefundService {
             refund.setStatus(RefundStatus.PENDING);
             refund = refundRepository.save(refund);
             
+            // Tạm khóa quyền truy cập khóa học trong lúc chờ duyệt hoàn tiền (Status 3 = PENDING_REFUND)
+            if (enrollment != null) {
+                enrollment.setStatus(3);
+                enrollmentRepository.save(enrollment);
+            }
+
             notificationService.createNotification(account, "Đã gửi yêu cầu hoàn tiền", 
                     "Yêu cầu hoàn tiền khóa học " + detail.getCourse().getTitle() + " đang chờ admin duyệt.", "REFUND_PENDING", refund.getId().toString());
                     
@@ -187,6 +194,11 @@ public class RefundService {
             refund.setReason(refund.getReason() + " | Từ chối tự động: " + AUTO_REJECT_REASON);
             refundRepository.save(refund);
 
+            if (enrollment != null && Objects.equals(enrollment.getStatus(), 3)) {
+                enrollment.setStatus(enrollment.getProgressPercent() != null && enrollment.getProgressPercent() == 100 ? 2 : 1);
+                enrollmentRepository.save(enrollment);
+            }
+
             notificationService.createNotification(refund.getAccount(), "Yêu cầu hoàn tiền bị từ chối", 
                     "Yêu cầu hoàn tiền khóa học " + detail.getCourse().getTitle() + " đã bị từ chối. Lý do: " + AUTO_REJECT_REASON, "REFUND_REJECTED", refund.getId().toString());
             return;
@@ -215,6 +227,13 @@ public class RefundService {
         refund.setStatus(RefundStatus.REJECTED);
         refund.setReason(refund.getReason() + " | Từ chối: " + reason);
         refundRepository.save(refund);
+
+        // Khôi phục quyền truy cập khóa học cho học viên khi bị từ chối hoàn tiền
+        Enrollment enrollment = enrollmentRepository.findByAccountAndCourse(refund.getAccount(), refund.getOrderDetail().getCourse()).orElse(null);
+        if (enrollment != null && Objects.equals(enrollment.getStatus(), 3)) {
+            enrollment.setStatus(enrollment.getProgressPercent() != null && enrollment.getProgressPercent() == 100 ? 2 : 1);
+            enrollmentRepository.save(enrollment);
+        }
 
         notificationService.createNotification(refund.getAccount(), "Yêu cầu hoàn tiền bị từ chối", 
                 "Yêu cầu hoàn tiền khóa học " + refund.getOrderDetail().getCourse().getTitle() + " đã bị từ chối. Lý do: " + reason, "REFUND_REJECTED", refund.getId().toString());

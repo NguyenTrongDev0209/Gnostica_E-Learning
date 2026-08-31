@@ -29,6 +29,8 @@ export default function useLearningProgress() {
         const formattedCourses = (coursesData.data || []).map(c => ({
           id: c.courseId,
           courseId: c.courseId,
+          courseSlug: c.courseSlug || c.slug,
+          slug: c.courseSlug || c.slug,
           courseTitle: c.courseTitle,
           progressPercent: c.progressPercent || 0,
           completedLessons: c.completedLessons || 0,

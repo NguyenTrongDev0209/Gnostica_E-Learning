@@ -30,6 +30,7 @@ public class EnrollmentService {
         private final LessonProgressRepository lessonProgressRepository;
         private final com.gnostica.core.repository.QuizResultRepository quizResultRepository; 
         private final com.gnostica.core.repository.QuizRepository quizRepository;
+        private final com.gnostica.core.repository.RefundRepository refundRepository;
         private final MailService mailService;
 
         @Transactional
@@ -59,7 +60,8 @@ public class EnrollmentService {
                 return enrollments.stream()
                                 .peek(e -> System.out.println(">>> DEBUG [getMyCourses] Evaluating Enrollment ID: "
                                                 + e.getId() + ", Status: " + e.getStatus()))
-                                .filter(e -> e.getStatus() == null || Objects.equals(e.getStatus(), 1) || Objects.equals(e.getStatus(), 2))
+                                .filter(e -> (Objects.equals(e.getStatus(), 1) || Objects.equals(e.getStatus(), 2))
+                                                && (e.getOrderDetail() == null || !refundRepository.existsByOrderDetailIdAndStatus(e.getOrderDetail().getId(), com.gnostica.core.constant.RefundStatus.PENDING)))
                                 .map(e -> {
                                         List<LessonProgress> courseProgress = progressByCourse.getOrDefault(
                                                         e.getCourse().getId(), Collections.emptyList());
@@ -81,11 +83,13 @@ public class EnrollmentService {
                 List<Enrollment> enrollments = enrollmentRepository.findByAccount(account);
 
                 long enrolledCourses = enrollments.stream()
-                                .filter(e -> e.getStatus() == null || Objects.equals(e.getStatus(), 1) || Objects.equals(e.getStatus(), 2))
+                                .filter(e -> (Objects.equals(e.getStatus(), 1) || Objects.equals(e.getStatus(), 2))
+                                                && (e.getOrderDetail() == null || !refundRepository.existsByOrderDetailIdAndStatus(e.getOrderDetail().getId(), com.gnostica.core.constant.RefundStatus.PENDING)))
                                 .count();
 
                 long completedCourses = enrollments.stream()
-                                .filter(e -> e.getStatus() == null || Objects.equals(e.getStatus(), 1) || Objects.equals(e.getStatus(), 2))
+                                .filter(e -> (Objects.equals(e.getStatus(), 1) || Objects.equals(e.getStatus(), 2))
+                                                && (e.getOrderDetail() == null || !refundRepository.existsByOrderDetailIdAndStatus(e.getOrderDetail().getId(), com.gnostica.core.constant.RefundStatus.PENDING)))
                                 .filter(e -> e.getProgressPercent() != null && e.getProgressPercent() == 100)
                                 .count();
 
@@ -379,6 +383,7 @@ public class EnrollmentService {
                 return enrollmentRepository.findByAccount(account).stream()
                                 .anyMatch(e -> e.getCourse() != null &&
                                                 Objects.equals(e.getCourse().getSlug(), courseSlug) &&
-                                                (e.getStatus() == null || e.getStatus() == 1 || e.getStatus() == 2));
+                                                (Objects.equals(e.getStatus(), 1) || Objects.equals(e.getStatus(), 2)) &&
+                                                (e.getOrderDetail() == null || !refundRepository.existsByOrderDetailIdAndStatus(e.getOrderDetail().getId(), com.gnostica.core.constant.RefundStatus.PENDING)));
         }
 }

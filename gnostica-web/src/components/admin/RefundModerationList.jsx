@@ -331,13 +331,13 @@ export default function RefundModerationList() {
         emptyState="Không có yêu cầu hoàn tiền nào phù hợp."
       />
       <AppAlertDialog
-        isOpen={isApproveAlertOpen}
-        onClose={() => setIsApproveAlertOpen(false)}
+        open={isApproveAlertOpen}
+        onOpenChange={setIsApproveAlertOpen}
         onConfirm={handleApproveRefund}
         title="Duyệt hoàn tiền"
         description={`Bạn có chắc chắn muốn duyệt yêu cầu hoàn tiền cho đơn hàng ${selectedRefundAction?.tx?.transactionCode}? Hành động này sẽ cập nhật số dư ví giảng viên và thu hồi khóa học của học viên.`}
         confirmText="Duyệt"
-        confirmVariant="success"
+        variant="success"
         cancelText="Hủy"
       />
 
