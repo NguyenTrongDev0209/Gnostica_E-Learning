@@ -173,4 +173,6 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
 
     @org.springframework.data.jpa.repository.Query("SELECT c FROM Course c WHERE c.status = 1 AND c.deletedAt IS NULL AND (LOWER(c.category.name) LIKE LOWER(CONCAT('%', :categoryName, '%')) OR LOWER(c.category.parent.name) LIKE LOWER(CONCAT('%', :categoryName, '%'))) ORDER BY SIZE(c.enrollments) DESC, c.createdAt DESC")
     java.util.List<Course> findTopCoursesByEnrollmentsAndCategoryName(@org.springframework.data.repository.query.Param("categoryName") String categoryName, org.springframework.data.domain.Pageable pageable);
+
+    long countByAccountEmailAndDeletedAtIsNull(String email);
 }

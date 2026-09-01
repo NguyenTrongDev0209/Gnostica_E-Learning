@@ -47,6 +47,9 @@ public class InstructorDashboardServiceImpl implements InstructorDashboardServic
 
         Double averageRating = reviewRepository.getAverageRatingByInstructorEmail(instructorEmail);
         
+        long totalCourses = courseRepository.countByAccountEmailAndDeletedAtIsNull(instructorEmail);
+        long totalStudents = enrollmentRepository.countDistinctStudentsByInstructorEmail(instructorEmail);
+
         return InstructorDashboardStatsDTO.builder()
                 .monthRevenue(thisMonthRevenue)
                 .revenueTrend(revenueTrend)
@@ -56,6 +59,8 @@ public class InstructorDashboardServiceImpl implements InstructorDashboardServic
                 .ratingTrend(0.0) 
                 .completionRate(75.0) 
                 .completionTrend(0.0)
+                .totalCourses(totalCourses)
+                .totalStudents(totalStudents)
                 .build();
     }
 

@@ -18,4 +18,6 @@ public class InstructorDashboardStatsDTO {
     private Double ratingTrend;
     private Double completionRate;
     private Double completionTrend;
+    private Long totalCourses;
+    private Long totalStudents;
 }

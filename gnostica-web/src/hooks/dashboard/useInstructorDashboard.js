@@ -65,6 +65,7 @@ export default function useInstructorDashboard() {
 
         return {
           STATS,
+          RAW_STATS: statsData || {},
           REVENUE_DATA: revenueData || [],
           RATING_DISTRIBUTION: ratingData || [],
           STUDENT_GROWTH_DATA: growthData || [],

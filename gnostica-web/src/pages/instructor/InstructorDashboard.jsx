@@ -40,12 +40,11 @@ function StatsGrid({ stats }) {
 }
 
 function InstructorOverview({ stats }) {
-    // Thống kê mẫu vì trong hook chưa có dữ liệu thật
     const data = [
-        { title: "Khóa học", value: stats?.totalCourses || 15, icon: Book, subtitle: "Tổng khóa học của bạn", color: "bg-info" },
-        { title: "Học viên", value: stats?.uniqueStudents || 1250, icon: UserSquare2, subtitle: "Tổng học viên duy nhất", color: "bg-success" },
-        { title: "Hoàn thành", value: `${stats?.completionRate || 68}%`, icon: CheckCircle, subtitle: "Tỷ lệ hoàn thành khóa học", color: "bg-primary" },
-        { title: "Hoàn tiền", value: `${stats?.refundRate || 1.2}%`, icon: RotateCcw, subtitle: "Tỷ lệ yêu cầu hoàn tiền", color: "bg-error" },
+        { title: "Khóa học", value: stats?.totalCourses || 0, icon: Book, subtitle: "Tổng khóa học của bạn", color: "bg-info" },
+        { title: "Học viên", value: (stats?.totalStudents || 0).toLocaleString('vi-VN'), icon: UserSquare2, subtitle: "Tổng học viên duy nhất", color: "bg-success" },
+        { title: "Hoàn thành", value: `${(stats?.completionRate || 0).toFixed(1)}%`, icon: CheckCircle, subtitle: "Tỷ lệ hoàn thành khóa học", color: "bg-primary" },
+        { title: "Hoàn tiền", value: `${(stats?.refundRate || 0).toFixed(1)}%`, icon: RotateCcw, subtitle: "Tỷ lệ yêu cầu hoàn tiền", color: "bg-error" }
     ];
 
     return (
@@ -73,11 +72,13 @@ function InstructorOverview({ stats }) {
     );
 }
 
-function RevenueChart({ data }) {
+function RevenueChart({ data, totalRevenue }) {
     const subtitle = (
         <>
             <span className="text-sm font-medium text-muted-foreground uppercase tracking-widest">Tổng doanh thu:</span>
-            <span className="text-2xl font-semibold text-foreground">112.800.000đ</span>
+            <span className="text-2xl font-semibold text-foreground">
+                {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(totalRevenue || 0)}
+            </span>
         </>
     );
 
@@ -152,11 +153,13 @@ function RatingDistribution({ data }) {
     );
 }
 
-function StudentGrowthChart({ data, onFilterChange }) {
+function StudentGrowthChart({ data, onFilterChange, totalStudents }) {
     const subtitle = (
         <>
             <span className="text-sm font-medium text-muted-foreground uppercase tracking-widest">Tổng học viên:</span>
-            <span className="text-2xl font-semibold text-foreground">4.330</span>
+            <span className="text-2xl font-semibold text-foreground">
+                {(totalStudents || 0).toLocaleString('vi-VN')}
+            </span>
         </>
     );
 
@@ -245,7 +248,7 @@ export default function InstructorDashboard() {
 
   if (!data) return null;
 
-  const { REVENUE_DATA, STUDENT_GROWTH_DATA, RATING_DISTRIBUTION, COURSE_PERFORMANCE, PENDING_TASKS, STATS } = data;
+  const { REVENUE_DATA, STUDENT_GROWTH_DATA, RATING_DISTRIBUTION, COURSE_PERFORMANCE, PENDING_TASKS, STATS, RAW_STATS } = data;
 
   return (
     <div className="space-y-6 animate-in fade-in duration-700">
@@ -288,12 +291,12 @@ export default function InstructorDashboard() {
         </div>
       </div>
 
-      <InstructorOverview stats={data} />
+      <InstructorOverview stats={RAW_STATS} />
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Revenue Area Chart */}
-        <RevenueChart data={REVENUE_DATA} />
+        <RevenueChart data={REVENUE_DATA} totalRevenue={RAW_STATS?.monthRevenue} />
 
         {/* Rating Distribution */}
         <RatingDistribution data={RATING_DISTRIBUTION} />
@@ -301,7 +304,7 @@ export default function InstructorDashboard() {
 
       {/* Student Growth Chart (Pending Tasks hidden for now) */}
       <div className="grid grid-cols-1 gap-6">
-        <StudentGrowthChart data={STUDENT_GROWTH_DATA} />
+        <StudentGrowthChart data={STUDENT_GROWTH_DATA} totalStudents={RAW_STATS?.totalStudents} />
       </div>
 
     </div>

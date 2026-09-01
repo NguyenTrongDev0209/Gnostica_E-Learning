@@ -4,7 +4,7 @@ import AppTextarea from "@/components/common/micro/AppTextarea";
 import { Switch } from "@/components/common/micro/AppSwitch";
 // Fix imported
 import { cn } from "@/lib/utils";
-import { WS_URL } from "@/config/environment";
+import { WS_URL, API_URL } from "@/config/environment";
 import React, { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { AppButton } from "@/components/common/micro/AppButton";
@@ -1230,7 +1230,12 @@ function FinanceHistoryPanel({ sampleRevenue }) {
             className="border border-border bg-card px-3 text-xs"
             onClick={() => {
               if (row.noticeFileUrl) {
-                window.open(row.noticeFileUrl, "_blank");
+                let finalUrl = row.noticeFileUrl;
+                if (finalUrl && finalUrl.includes('/api/upload/document/')) {
+                    const fileName = finalUrl.split('/api/upload/document/')[1];
+                    finalUrl = `${API_URL}/upload/document/${fileName}`;
+                }
+                window.open(finalUrl, "_blank");
               } else {
                 toast.error("Không có file thông báo đính kèm");
               }
