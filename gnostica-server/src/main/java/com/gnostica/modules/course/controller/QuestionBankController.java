@@ -46,12 +46,16 @@ public class QuestionBankController {
         try {
             log.info("Receiving request to generate {} questions for course {} using AI.", count, courseId);
 
+            boolean isExcel = file.getOriginalFilename() != null &&
+                             (file.getOriginalFilename().toLowerCase().endsWith(".xlsx") ||
+                              file.getOriginalFilename().toLowerCase().endsWith(".xls"));
+
             // --- Validate count parameter ---
             if (count < 1) {
                 return ResponseEntity.badRequest()
                         .body(new ResponseDTO<>(400, "Số câu hỏi phải ít nhất là 1.", null));
             }
-            if (count > MAX_QUESTION_COUNT) {
+            if (!isExcel && count > MAX_QUESTION_COUNT) {
                 return ResponseEntity.badRequest()
                         .body(new ResponseDTO<>(400,
                             "Số câu hỏi không được vượt quá " + MAX_QUESTION_COUNT + " câu mỗi lần.", null));
@@ -59,10 +63,6 @@ public class QuestionBankController {
 
             // --- Extract text (throws IllegalArgumentException for user-facing errors) ---
             String documentText = documentExtractionService.extractText(file);
-
-            boolean isExcel = file.getOriginalFilename() != null &&
-                             (file.getOriginalFilename().toLowerCase().endsWith(".xlsx") ||
-                              file.getOriginalFilename().toLowerCase().endsWith(".xls"));
 
             // --- Content-to-question ratio check (only for non-Excel files) ---
             if (!isExcel) {
@@ -97,8 +97,13 @@ public class QuestionBankController {
             }
 
             // Warn if AI generated fewer questions than requested
-            if (!isExcel && questions.size() < count) {
-                log.warn("AI generated {} questions but {} were requested for course {}.", questions.size(), count, courseId);
+            if (!isExcel) {
+                if (questions.size() < count) {
+                    log.warn("AI generated {} questions but {} were requested for course {}.", questions.size(), count, courseId);
+                } else if (questions.size() > count) {
+                    log.info("AI generated {} questions (more than requested {}). Truncating list.", questions.size(), count);
+                    questions = questions.subList(0, count);
+                }
             }
 
             return ResponseEntity.ok(questions);

@@ -9,6 +9,7 @@ import com.gnostica.modules.course.dto.request.ModuleRequest;
 import com.gnostica.modules.course.dto.request.LessonRequest;
 import com.gnostica.core.repository.CourseRepository;
 import com.gnostica.core.repository.LessonRepository;
+import com.gnostica.core.repository.AttachmentRepository;
 import com.gnostica.modules.integration.service.BunnyStorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,6 +32,7 @@ public class DraftCourseService {
     private final RedisTemplate<String, Object> redisTemplate;
     private final CourseRepository courseRepository;
     private final LessonRepository lessonRepository;
+    private final AttachmentRepository attachmentRepository;
     private final BunnyNetService bunnyNetService;
     private final BunnyStorageService bunnyStorageService;
     private final ObjectMapper objectMapper;
@@ -88,11 +90,12 @@ public class DraftCourseService {
                     for (ModuleRequest section : draft.getSections()) {
                         // Xóa tài liệu đính kèm (documents)
                         if (section.getAttachments() != null && !section.getAttachments().isEmpty()) {
-                            // Cần kiểm tra xem có khóa học thực nào đang dùng document này không (nếu có ModuleRepository thì query)
-                            // Hiện tại để đơn giản, document từ bản nháp thường là rác nếu bản nháp bị xóa
                             String docUrl = section.getAttachments();
-                            String fileName = docUrl.substring(docUrl.lastIndexOf('/') + 1);
-                            bunnyStorageService.deleteDocument(fileName);
+                            boolean isUsed = attachmentRepository.existsByFileUrl(docUrl);
+                            if (!isUsed) {
+                                String fileName = docUrl.substring(docUrl.lastIndexOf('/') + 1);
+                                bunnyStorageService.deleteDocument(fileName);
+                            }
                         }
 
                         if (section.getLessons() != null) {

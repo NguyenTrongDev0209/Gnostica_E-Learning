@@ -29,8 +29,15 @@ export function QuizTab({ courseId }) {
   const [aiLevel, setAiLevel] = React.useState("medium");
   const isExcelFile = aiFile && (aiFile.name.toLowerCase().endsWith('.xlsx') || aiFile.name.toLowerCase().endsWith('.xls'));
 
-  // Heuristic: estimate max recommended questions based on file size (rough: 1KB ~ 5 questions)
-  const estimatedMaxQuestions = aiFile && !isExcelFile ? Math.min(100, Math.max(1, Math.floor(aiFile.size / 1024 / 5))) : null;
+  // Heuristic: estimate max recommended questions based on file size
+  // DOCX/TXT overhead is small: ~1KB = 0.5 questions (2KB per question)
+  // PDF overhead is large: ~1KB = 0.05 questions (20KB per question)
+  let estimatedMaxQuestions = null;
+  if (aiFile && !isExcelFile) {
+    const isPdf = aiFile.name.toLowerCase().endsWith('.pdf');
+    const questionsPerKb = isPdf ? 0.05 : 0.5; 
+    estimatedMaxQuestions = Math.min(100, Math.max(1, Math.floor((aiFile.size / 1024) * questionsPerKb)));
+  }
   const showCountWarning = !isExcelFile && estimatedMaxQuestions !== null && aiQuestionCount > estimatedMaxQuestions;
 
   const [draftQuestions, setDraftQuestions] = React.useState(() => {
