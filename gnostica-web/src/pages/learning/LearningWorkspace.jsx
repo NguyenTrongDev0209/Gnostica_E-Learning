@@ -52,6 +52,7 @@ import useAuthStore from "@/store/useAuthStore";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/common/micro/AppAvatar";
 import { cn } from "@/lib/utils";
 import { AppToast } from "@/components/common/micro/AppToast";
+import { API_URL } from "@/config/environment";
 
 const FALLBACK_LESSON_THUMBNAIL = "https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=320&auto=format&fit=crop";
 const BUNNY_LIBRARY_ID = import.meta.env.VITE_BUNNY_LIBRARY_ID;
@@ -1930,7 +1931,14 @@ export default function LearningWorkspace() {
                                     variant="ghost" 
                                     size="icon" 
                                     className="size-10 rounded-lg text-primary hover:bg-primary/10"
-                                    onClick={() => window.open(file.fileUrl, '_blank')}
+                                    onClick={() => {
+                                      let finalUrl = file.fileUrl;
+                                      if (finalUrl && finalUrl.includes('/api/upload/document/')) {
+                                          const fileName = finalUrl.split('/api/upload/document/')[1];
+                                          finalUrl = `${API_URL}/upload/document/${fileName}`;
+                                      }
+                                      window.open(finalUrl, '_blank');
+                                    }}
                                 >
                                   <Download className="size-5" />
                                 </Button>

@@ -21,7 +21,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 @RestController
 @RequestMapping("/api/upload")
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
 public class UploadController {
 
     private final CloudinaryService cloudinaryService;
@@ -30,6 +29,7 @@ public class UploadController {
     private final BunnyNetConfig bunnyNetConfig;
 
     @PostMapping("/image")
+    @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
     public ResponseEntity<?> uploadImage(@RequestParam("file") MultipartFile file) {
         if (file.getSize() > 5 * 1024 * 1024) {
             return ResponseEntity.badRequest().body(Map.of("message", "File size exceeds 5MB limit"));
@@ -51,6 +51,7 @@ public class UploadController {
     }
 
     @PostMapping("/document")
+    @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
     public ResponseEntity<?> uploadDocument(@RequestParam("file") MultipartFile file) {
         if (file.getSize() > 20 * 1024 * 1024) {
             return ResponseEntity.badRequest().body(Map.of("message", "File size exceeds 20MB limit"));
@@ -96,6 +97,7 @@ public class UploadController {
     }
 
     @PostMapping("/video/init")
+    @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
     public ResponseEntity<Map<String, Object>> initVideoUpload(@RequestBody Map<String, String> request) {
         try {
             String title = request.get("title");

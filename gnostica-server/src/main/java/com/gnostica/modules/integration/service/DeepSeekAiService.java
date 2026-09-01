@@ -121,12 +121,15 @@ public class DeepSeekAiService {
                 
                 // Extract JSON array from the response content to ignore any leading/trailing conversational text or markdown
                 int startIndex = content.indexOf('[');
-                int endIndex = content.lastIndexOf(']');
-                if (startIndex != -1 && endIndex != -1 && endIndex >= startIndex) {
-                    content = content.substring(startIndex, endIndex + 1);
-                } else {
-                    log.warn("No JSON array brackets found in the response. Content: {}", content);
+                if (startIndex != -1) {
+                    content = content.substring(startIndex);
                 }
+                
+                int endIndex = content.lastIndexOf(']');
+                if (endIndex != -1) {
+                    content = content.substring(0, endIndex + 1);
+                }
+                
                 content = content.trim();
                 
                 // Auto-fix truncated JSON array to prevent parsing errors
@@ -135,6 +138,10 @@ public class DeepSeekAiService {
                     if (lastBrace != -1) {
                         content = content.substring(0, lastBrace + 1) + "]";
                         log.warn("JSON response was truncated. Auto-fixed by closing the array.");
+                    } else if (content.startsWith("[")) {
+                        // If there is no '}', it means not even a single object was completed.
+                        content = "[]"; 
+                        log.warn("JSON response truncated before completing a single object. Returning empty array.");
                     }
                 }
                 
@@ -143,7 +150,7 @@ public class DeepSeekAiService {
                     return objectMapper.readValue(content, new TypeReference<List<QuestionDto>>() {});
                 } catch (Exception e) {
                     log.error("Failed to parse DeepSeek AI response into QuestionDto list: {}", content, e);
-                    throw new RuntimeException("Lỗi định dạng dữ liệu từ AI. Xin vui lòng thử lại.");
+                    throw new RuntimeException("Dữ liệu trả về từ AI bị lỗi định dạng (có thể do file quá lớn dẫn đến quá giới hạn). Xin vui lòng chia nhỏ file hoặc thử lại.");
                 }
             }
         }

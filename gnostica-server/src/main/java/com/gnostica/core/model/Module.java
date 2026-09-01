@@ -62,7 +62,7 @@ public class Module {
     @OneToMany(mappedBy = "module", cascade = CascadeType.ALL)
     private java.util.List<Lesson> lessons;
 
-    @OneToMany(mappedBy = "module", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "module", cascade = CascadeType.ALL, orphanRemoval = true)
     private java.util.List<Attachment> attachments;
 
     public Boolean getDeleted() {

@@ -42,6 +42,10 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Integer>
     long countTotalStudentsByInstructorEmail(
             @org.springframework.data.repository.query.Param("instructorEmail") String instructorEmail);
 
+    @org.springframework.data.jpa.repository.Query("SELECT COUNT(DISTINCT e.account.id) FROM Enrollment e JOIN e.course c WHERE c.account.email = :instructorEmail")
+    long countDistinctStudentsByInstructorEmail(
+            @org.springframework.data.repository.query.Param("instructorEmail") String instructorEmail);
+
     org.springframework.data.domain.Page<Enrollment> findByAccountIdOrderByCreatedAtDesc(java.util.UUID accountId, org.springframework.data.domain.Pageable pageable);
     
     long countByAccountId(java.util.UUID accountId);

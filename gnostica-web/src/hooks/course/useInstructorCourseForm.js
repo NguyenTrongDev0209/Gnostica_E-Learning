@@ -410,7 +410,7 @@ export default function useInstructorCourseForm(courseSchema, viErrorMap) {
   useEffect(() => {
     const timer = setInterval(() => {
       saveDraft(methods.getValues(), false);
-    }, 10000);
+    }, 5000);
     return () => clearInterval(timer);
   }, [methods, saveDraft]);
 
