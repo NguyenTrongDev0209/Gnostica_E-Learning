@@ -29,12 +29,12 @@ const formatCurrency = (value) => {
   return `${amount.toLocaleString("vi-VN")}đ`;
 };
 
-export default function useRefundRequests(enabled = true) {
+export default function useRefundRequests(enabled = true, initialStatus = null) {
   const [refunds, setRefunds] = useState([]);
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [pagination, setPagination] = useState({ page: 0, size: 10, totalElements: 0, totalPages: 0 });
-  const [statusFilter, setStatusFilter] = useState(null);
+  const [statusFilter, setStatusFilter] = useState(initialStatus);
   
   const token = useAuthStore(state => state.user?.token);
 
@@ -44,7 +44,8 @@ export default function useRefundRequests(enabled = true) {
     setLoading(true);
     try {
       // Backend nhận List<Integer> status (comma-separated), giống useWithdrawalRequests
-      const statusParam = status && status.length > 0 ? status.join(',') : null;
+      const activeStatus = status !== null ? status : statusFilter;
+      const statusParam = activeStatus && activeStatus.length > 0 ? activeStatus.join(',') : null;
       const data = await adminRefundService.getAllRefunds(page, size, statusParam);
       const mapped = (data.content || []).map(refund => ({
         ...refund,
@@ -71,20 +72,22 @@ export default function useRefundRequests(enabled = true) {
         totalElements: data.totalElements,
         totalPages: data.totalPages
       });
-      setStatusFilter(status);
+      if (status !== null) {
+        setStatusFilter(status);
+      }
     } catch (error) {
       console.error("Failed to fetch refund requests:", error);
       toast.error("Không thể tải danh sách hoàn tiền");
     } finally {
       setLoading(false);
     }
-  }, [token, enabled]);
+  }, [token, enabled, statusFilter]);
 
   useEffect(() => {
     if (enabled) {
-      fetchRefunds(0, 10, statusFilter);
+      fetchRefunds(0, 10, initialStatus);
     }
-  }, [enabled, fetchRefunds]);
+  }, [enabled, initialStatus]);
 
   const approveRefund = async (id) => {
     setActionLoading(true);

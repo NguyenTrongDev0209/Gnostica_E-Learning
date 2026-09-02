@@ -22,7 +22,7 @@ const formatCurrency = (value) => {
     return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 };
 
-const MANUAL_APPROVAL_THRESHOLD = 5000000;
+const MANUAL_APPROVAL_THRESHOLD = 100000;
 
 export default function WithdrawModal({ isOpen, onClose, wallet, user, onSuccess }) {
     const hasBankAccount = !!(wallet?.accountNumber);
@@ -145,7 +145,7 @@ export default function WithdrawModal({ isOpen, onClose, wallet, user, onSuccess
                 withdrawalIdempotencyKeyRef.current
             );
             if (Number(amount) >= MANUAL_APPROVAL_THRESHOLD) {
-                toast.success("Yêu cầu rút tiền đã gửi. Lệnh rút từ 5.000.000đ trở lên cần admin duyệt thủ công trước khi chuyển khoản.");
+                toast.success("Yêu cầu rút tiền đã gửi. Lệnh rút từ 100.000đ trở lên cần admin duyệt thủ công trước khi chuyển khoản.");
             } else {
                 toast.success("Đã tạo lệnh rút tiền thành công!");
             }

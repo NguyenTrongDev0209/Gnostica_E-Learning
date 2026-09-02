@@ -23,6 +23,7 @@ import java.util.List;
 public class CommissionController {
 
     private final CommissionService commissionService;
+    private final com.gnostica.modules.settings.scheduler.CommissionNoticeScheduler commissionNoticeScheduler;
 
     @GetMapping
     public ApiResponse<List<CommissionResponse>> getCommissions() {
@@ -55,5 +56,11 @@ public class CommissionController {
     @PostMapping("/{id}/notify")
     public ApiResponse<CommissionResponse> notifyCommission(@PathVariable Integer id) throws Exception {
         return ApiResponse.success("Đã gửi email thông báo thành công", commissionService.notifyCommission(id));
+    }
+
+    @PostMapping("/check-notifications")
+    public ApiResponse<String> triggerNoticeCheck() {
+        commissionNoticeScheduler.executeCheck();
+        return ApiResponse.success("Đã kiểm tra và tự động gửi thông báo");
     }
 }

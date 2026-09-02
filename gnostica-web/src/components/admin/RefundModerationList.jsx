@@ -28,11 +28,12 @@ import AppAlertDialog from "@/components/common/micro/AppAlertDialog";
 import RefundRejectModal from "@/components/modals/RefundRejectModal";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/common/micro/AppAvatar";
 
-export default function RefundModerationList() {
-  const { refunds, loading, approveRefund, rejectRefund, fetchRefunds, pagination } = useRefundRequests(true);
+export default function RefundModerationList({ onlyPending = false }) {
+  const initialStatus = useMemo(() => (onlyPending ? ["1"] : []), [onlyPending]);
+  const { refunds, loading, approveRefund, rejectRefund, fetchRefunds, pagination } = useRefundRequests(true, initialStatus);
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState([]);
+  const [statusFilter, setStatusFilter] = useState(initialStatus);
   const [dateRange, setDateRange] = useState({ from: null, to: null });
 
   const [selectedRefundAction, setSelectedRefundAction] = useState(null);
@@ -43,18 +44,12 @@ export default function RefundModerationList() {
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
-  // Trigger search / filter (Server-side)
-  // For search and date range, currently not implemented in backend (the backend only takes status, page, size)
-  // So we will do client-side filtering for search & dateRange, but server-side for pagination & status.
-  // Wait, if pagination is server-side, client-side filtering will only filter the current page!
-  // The plan didn't specify adding search/date filtering to backend, so we will pass status to backend and do client search on the returned page for now, or just pass status.
-  // Actually, we should trigger fetchRefunds when page or status changes.
-  
   const handlePageChange = (newPage) => {
-    fetchRefunds(newPage, pagination.size, statusFilter);
+    fetchRefunds(newPage, pagination.size, onlyPending ? ["1"] : statusFilter);
   };
 
   const handleStatusFilterChange = (newStatuses) => {
+    if (onlyPending) return;
     setStatusFilter(newStatuses);
     fetchRefunds(0, pagination.size, newStatuses);
   };
@@ -78,6 +73,7 @@ export default function RefundModerationList() {
 
   const filteredRefunds = useMemo(() => {
     return refunds.filter((t) => {
+      if (onlyPending && t.status !== 1) return false;
       const createdAt = t.createdAt ? new Date(t.createdAt) : null;
       if (dateRange.from && createdAt && createdAt < new Date(dateRange.from)) return false;
       if (dateRange.to && createdAt && createdAt > new Date(new Date(dateRange.to).setHours(23, 59, 59))) return false;
@@ -99,7 +95,7 @@ export default function RefundModerationList() {
       }
       return true;
     });
-  }, [refunds, searchQuery, dateRange]);
+  }, [refunds, searchQuery, dateRange, onlyPending]);
 
   const formatCurrency = (value) => Number(value || 0).toLocaleString("vi-VN", { style: "currency", currency: "VND" });
 
@@ -129,24 +125,28 @@ export default function RefundModerationList() {
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         searchPlaceholder="Tìm theo tên, email, khóa học, mã đơn hàng..."
-        dropdownChecklists={[
-          {
-            title: "Trạng thái",
-            items: [
-              { label: "Chờ duyệt", value: "1" },
-              { label: "Đã duyệt", value: "2" },
-              { label: "Bị từ chối", value: "3" },
-            ],
-            selectedItems: statusFilter || [],
-            onItemToggle: (val) => {
-              const newStatuses = (statusFilter || []).includes(val)
-                ? (statusFilter || []).filter((v) => v !== val)
-                : [...(statusFilter || []), val];
-              handleStatusFilterChange(newStatuses);
-            },
-            onClear: () => handleStatusFilterChange([]),
-          },
-        ]}
+        dropdownChecklists={
+          onlyPending
+            ? []
+            : [
+                {
+                  title: "Trạng thái",
+                  items: [
+                    { label: "Chờ duyệt", value: "1" },
+                    { label: "Đã duyệt", value: "2" },
+                    { label: "Bị từ chối", value: "3" },
+                  ],
+                  selectedItems: statusFilter || [],
+                  onItemToggle: (val) => {
+                    const newStatuses = (statusFilter || []).includes(val)
+                      ? (statusFilter || []).filter((v) => v !== val)
+                      : [...(statusFilter || []), val];
+                    handleStatusFilterChange(newStatuses);
+                  },
+                  onClear: () => handleStatusFilterChange([]),
+                },
+              ]
+        }
         dateRange={dateRange}
         onDateRangeChange={setDateRange}
         dateRangePlaceholder="Ngày yêu cầu"
@@ -331,7 +331,7 @@ export default function RefundModerationList() {
         data={filteredRefunds}
         isLoading={loading}
         loadingState="Đang tải danh sách hoàn tiền..."
-        emptyState="Không có yêu cầu hoàn tiền nào phù hợp."
+        emptyState={onlyPending ? "Hiện không có yêu cầu hoàn tiền nào cần duyệt." : "Không có yêu cầu hoàn tiền nào phù hợp."}
       />
       <AppAlertDialog
         open={isApproveAlertOpen}

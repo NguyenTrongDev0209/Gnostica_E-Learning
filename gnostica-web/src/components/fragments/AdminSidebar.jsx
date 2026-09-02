@@ -44,10 +44,9 @@ const ADMIN_SETTINGS_SUB_ITEMS = [
     tab: "site-pages",
     legacyTabs: ["home", "about"],
   },
-  { label: "Nội dung", icon: FileText, href: "/admin/settings?tab=pages", tab: "pages" },
+  { label: "Điều khoản", icon: FileText, href: "/admin/settings?tab=pages", tab: "pages" },
   { label: "Thanh toán", icon: CreditCard, href: "/admin/settings?tab=payment", tab: "payment" },
   { label: "Tài chính", icon: Percent, href: "/admin/settings?tab=finance", tab: "finance" },
-  { label: "Bảo mật", icon: Shield, href: "/admin/settings?tab=security", tab: "security" },
 ];
 
 const ADMIN_COURSES_SUB_ITEMS = [
