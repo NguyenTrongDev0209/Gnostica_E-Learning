@@ -23,7 +23,7 @@ import jakarta.annotation.PostConstruct;
 @Component
 public class JwtProvider {
 
-    @Value("${app.jwt.secret}")
+    @Value("${app.jwt.secret:${JWT_SECRET:gnostica_e_learning_platform_secret_jwt_key_2026_safe_and_secure_key_for_hmac_sha256}}")
     private String jwtSecret;
 
     @Value("${app.jwt.expiration:86400000}") // 1 day
