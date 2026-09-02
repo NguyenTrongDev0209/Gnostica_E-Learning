@@ -349,8 +349,6 @@ function RefundStatsChart({ refundData, stats, onFilterChange }) {
 
     const refundConfig = {
         refundedAmount: { label: "Tiền đã hoàn", color: "var(--destructive)" },
-        approvedCount: { label: "Đã duyệt hoàn", color: "var(--success)" },
-        rejectedCount: { label: "Từ chối", color: "var(--muted-foreground)" },
         pendingCount: { label: "Chờ xử lý", color: "var(--warning)" }
     };
 
@@ -402,9 +400,7 @@ function RefundStatsChart({ refundData, stats, onFilterChange }) {
                         <ChartLegend content={<ChartLegendContent />} />
                         
                         <Bar dataKey="refundedAmount" name="Tiền đã hoàn" fill="var(--destructive)" radius={[4, 4, 0, 0]} maxBarSize={40} />
-                        <Line type="monotone" dataKey="approvedCount" name="Đã duyệt" stroke="var(--success)" strokeWidth={2.5} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
-                        <Line type="monotone" dataKey="pendingCount" name="Chờ xử lý" stroke="var(--warning)" strokeWidth={2} strokeDasharray="4 4" dot={{ r: 3 }} />
-                        <Line type="monotone" dataKey="rejectedCount" name="Từ chối" stroke="var(--muted-foreground)" strokeWidth={2} dot={{ r: 3 }} />
+                        <Line type="monotone" dataKey="pendingCount" name="Chờ xử lý" stroke="var(--warning)" strokeWidth={2} strokeDasharray="4 4" dot={{ r: 4 }} activeDot={{ r: 6 }} />
                     </ComposedChart>
                 </ChartContainer>
             </AppCardContent>
