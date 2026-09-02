@@ -95,7 +95,6 @@ const SETTINGS_TABS = new Set([
   "pages",
   "payment",
   "finance",
-  "security",
 ]);
 
 export default function AdminSettings() {
@@ -234,9 +233,9 @@ export default function AdminSettings() {
           <FinanceSettings />
         </TabsContent>
 
-        <TabsContent value="security" className="animate-in fade-in duration-300">
+        {/* <TabsContent value="security" className="animate-in fade-in duration-300">
           <SecuritySettings />
-        </TabsContent>
+        </TabsContent> */}
       </Tabs>
     </div>
   );
