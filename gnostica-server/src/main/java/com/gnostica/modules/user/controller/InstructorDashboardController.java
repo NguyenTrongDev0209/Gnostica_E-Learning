@@ -23,8 +23,10 @@ public class InstructorDashboardController {
 
     @GetMapping("/revenue-chart")
     @PreAuthorize("hasRole('INSTRUCTOR') or hasRole('ADMIN')")
-    public ResponseEntity<?> getRevenueChart(org.springframework.security.core.Authentication authentication) {
-        return ResponseEntity.ok(instructorDashboardService.getRevenueChart(authentication.getName()));
+    public ResponseEntity<?> getRevenueChart(
+            org.springframework.security.core.Authentication authentication,
+            @RequestParam(name = "months", defaultValue = "6") Integer months) {
+        return ResponseEntity.ok(instructorDashboardService.getRevenueChart(authentication.getName(), months));
     }
 
     @GetMapping("/rating-distribution")
@@ -35,8 +37,10 @@ public class InstructorDashboardController {
 
     @GetMapping("/student-growth")
     @PreAuthorize("hasRole('INSTRUCTOR') or hasRole('ADMIN')")
-    public ResponseEntity<?> getStudentGrowthChart(org.springframework.security.core.Authentication authentication) {
-        return ResponseEntity.ok(instructorDashboardService.getStudentGrowthChart(authentication.getName()));
+    public ResponseEntity<?> getStudentGrowthChart(
+            org.springframework.security.core.Authentication authentication,
+            @RequestParam(name = "months", defaultValue = "6") Integer months) {
+        return ResponseEntity.ok(instructorDashboardService.getStudentGrowthChart(authentication.getName(), months));
     }
 
     @GetMapping("/course-performance")

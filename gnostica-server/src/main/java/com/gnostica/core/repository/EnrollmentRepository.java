@@ -46,6 +46,24 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Integer>
     long countDistinctStudentsByInstructorEmail(
             @org.springframework.data.repository.query.Param("instructorEmail") String instructorEmail);
 
+    @org.springframework.data.jpa.repository.Query("SELECT COUNT(DISTINCT e.account.id) FROM Enrollment e JOIN e.course c WHERE c.account.email = :instructorEmail AND e.status IN (1, 2) AND e.createdAt >= :startDate AND e.createdAt < :endDate")
+    long countDistinctActiveStudentsByInstructorEmailAndDateRange(
+            @org.springframework.data.repository.query.Param("instructorEmail") String instructorEmail,
+            @org.springframework.data.repository.query.Param("startDate") java.time.LocalDateTime startDate,
+            @org.springframework.data.repository.query.Param("endDate") java.time.LocalDateTime endDate);
+
+    @org.springframework.data.jpa.repository.Query("SELECT COUNT(e) FROM Enrollment e WHERE e.course.account.id = :accountId AND e.status IN (1, 2)")
+    long countActiveByCourseAccountId(@org.springframework.data.repository.query.Param("accountId") java.util.UUID accountId);
+
+    @org.springframework.data.jpa.repository.Query("SELECT COUNT(e) FROM Enrollment e WHERE e.course.account.id = :accountId AND e.status IN (1, 2) AND e.progressPercent = 100")
+    long countCompletedByCourseAccountId(@org.springframework.data.repository.query.Param("accountId") java.util.UUID accountId);
+
+    @org.springframework.data.jpa.repository.Query("SELECT COUNT(e) FROM Enrollment e WHERE e.course.account.id = :accountId AND e.status IN (1, 2) AND e.progressPercent = 100 AND COALESCE(e.completedAt, e.createdAt) >= :startDate AND COALESCE(e.completedAt, e.createdAt) < :endDate")
+    long countCompletedByCourseAccountIdAndDateRange(
+            @org.springframework.data.repository.query.Param("accountId") java.util.UUID accountId,
+            @org.springframework.data.repository.query.Param("startDate") java.time.LocalDateTime startDate,
+            @org.springframework.data.repository.query.Param("endDate") java.time.LocalDateTime endDate);
+
     org.springframework.data.domain.Page<Enrollment> findByAccountIdOrderByCreatedAtDesc(java.util.UUID accountId, org.springframework.data.domain.Pageable pageable);
     
     long countByAccountId(java.util.UUID accountId);

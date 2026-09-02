@@ -1,17 +1,30 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
 import { AppButton } from "@/components/common/micro/AppButton";
-import { Loader2, ArrowUpRight, ArrowDownRight, ChevronRight, CheckCircle2, Star, LayoutDashboard, Download, RefreshCw, Book, UserSquare2, CheckCircle, RotateCcw } from "lucide-react";
+import {
+  Loader2,
+  ArrowUpRight,
+  ArrowDownRight,
+  ChevronRight,
+  CheckCircle2,
+  Star,
+  Download,
+  RefreshCw,
+  Book,
+  UserSquare2,
+  CheckCircle,
+  RotateCcw,
+  AlertCircle
+} from "lucide-react";
 import useInstructorDashboard from "@/hooks/dashboard/useInstructorDashboard";
 import AppCard, { AppCardContent, AppCardHeader, AppCardTitle, AppCardDescription } from "@/components/common/micro/AppCard";
 import AppProgress from "@/components/common/micro/AppProgress";
 import LineChart from "@/components/common/composite/LineChart";
 import { ChartDateFilters } from "@/components/common/composite/DataFilter";
-import AppPageHeader from "@/components/common/composite/AppPageHeader";
-import AppTable from "@/components/common/micro/AppTable";
+import DataTable from "@/components/common/composite/DataTable";
 import AppBadge from "@/components/common/micro/AppBadge";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
-import AppSelect from "@/components/common/micro/AppSelect";
 
 function StatsGrid({ stats }) {
     return (
@@ -26,10 +39,21 @@ function StatsGrid({ stats }) {
                                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center border ${stat.color}`}>
                                     <Icon className="w-5 h-5" />
                                 </div>
+                                {stat.trend && (
+                                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full flex items-center gap-0.5 ${
+                                        stat.isPositive ? 'bg-success/15 text-success' : 'bg-error/15 text-error'
+                                    }`}>
+                                        {stat.isPositive ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+                                        {stat.trend}
+                                    </span>
+                                )}
                             </div>
                             <div>
                                 <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">{stat.title}</h3>
-                                <div className="text-2xl font-semibold text-foreground">{stat.value}</div>
+                                <div className="text-2xl font-bold text-foreground">{stat.value}</div>
+                                {stat.subtitle && (
+                                    <p className="text-xs font-medium text-muted-foreground mt-1.5 line-clamp-1">{stat.subtitle}</p>
+                                )}
                             </div>
                         </AppCardContent>
                     </AppCard>
@@ -44,7 +68,7 @@ function InstructorOverview({ stats }) {
         { title: "Khóa học", value: stats?.totalCourses || 0, icon: Book, subtitle: "Tổng khóa học của bạn", color: "bg-info" },
         { title: "Học viên", value: (stats?.totalStudents || 0).toLocaleString('vi-VN'), icon: UserSquare2, subtitle: "Tổng học viên duy nhất", color: "bg-success" },
         { title: "Hoàn thành", value: `${(stats?.completionRate || 0).toFixed(1)}%`, icon: CheckCircle, subtitle: "Tỷ lệ hoàn thành khóa học", color: "bg-primary" },
-        { title: "Hoàn tiền", value: `${(stats?.refundRate || 0).toFixed(1)}%`, icon: RotateCcw, subtitle: "Tỷ lệ yêu cầu hoàn tiền", color: "bg-error" }
+        { title: "Hoàn tiền", value: `${(stats?.refundRate || 0).toFixed(1)}%`, icon: RotateCcw, subtitle: "Tỷ lệ đơn hoàn đã duyệt", color: "bg-error" }
     ];
 
     return (
@@ -66,60 +90,77 @@ function InstructorOverview({ stats }) {
                             <p className="text-[11px] text-muted-foreground">{item.subtitle}</p>
                         </AppCardContent>
                     </AppCard>
-                )
+                );
             })}
         </div>
     );
 }
 
-function RevenueChart({ data, totalRevenue }) {
+function RevenueChart({ data, totalRevenue, totalNetRevenue, onFilterChange }) {
     const subtitle = (
-        <>
-            <span className="text-sm font-medium text-muted-foreground uppercase tracking-widest">Tổng doanh thu:</span>
-            <span className="text-2xl font-semibold text-foreground">
-                {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(totalRevenue || 0)}
-            </span>
-        </>
+        <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+            <div>
+                <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider block">Doanh thu tháng (Gross)</span>
+                <span className="text-xl font-bold text-foreground">
+                    {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(totalRevenue || 0)}
+                </span>
+            </div>
+            {totalNetRevenue != null && (
+                <div className="border-l border-border pl-4">
+                    <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider block">Thu nhập ròng (Net)</span>
+                    <span className="text-xl font-bold text-primary">
+                        {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(totalNetRevenue || 0)}
+                    </span>
+                </div>
+            )}
+        </div>
     );
 
-    const handleDateChange = (type, value) => {
-        console.log(`Date ${type} changed to:`, value);
-    };
-
     const handlePresetChange = (value) => {
-        console.log("Preset changed to:", value);
+        const monthsMap = {
+            "this-quarter": 3,
+            "6-months": 6,
+            "this-year": 12
+        };
+        onFilterChange?.(monthsMap[value] || 6);
     };
 
     const headerExtra = (
         <ChartDateFilters
-            onDateChange={handleDateChange}
             onPresetChange={handlePresetChange}
+            defaultPreset="6-months"
         />
     );
 
     return (
         <LineChart
-            title="Thống kê Doanh thu"
+            title="Thống kê Doanh thu & Thu nhập"
             subtitle={subtitle}
             headerExtra={headerExtra}
             data={data}
             dataKey="revenue"
-            xAxisKey="name"
+            secondaryDataKey="netRevenue"
+            xAxisKey="month"
             strokeColor="#16a34a"
             fillColor="#16a34a"
             gradientId="colorRevenue"
+            secondaryStrokeColor="#3b82f6"
+            secondaryFillColor="#3b82f6"
+            secondaryGradientId="colorNetRevenue"
             yAxisFormatter={(value) => `${value / 1000000}Tr`}
-            tooltipFormatter={(value) => [`${value.toLocaleString()}đ`, "Doanh thu"]}
+            tooltipFormatter={(value, name) => [`${Number(value || 0).toLocaleString('vi-VN')}đ`, name]}
         />
     );
 }
 
-function RatingDistribution({ data }) {
+function RatingDistribution({ data, totalRatings }) {
     return (
         <AppCard className="border-border shadow-sm">
             <AppCardHeader>
                 <AppCardTitle className="text-lg font-semibold">Phân Bổ Đánh Giá</AppCardTitle>
-                <AppCardDescription>Dựa trên 1,000+ đánh giá mới nhất</AppCardDescription>
+                <AppCardDescription>
+                    Dựa trên {(totalRatings || 0).toLocaleString('vi-VN')} đánh giá hợp lệ
+                </AppCardDescription>
             </AppCardHeader>
             <AppCardContent className="h-[300px] w-full pt-0 flex flex-col">
                 <ResponsiveContainer width="100%" height="70%">
@@ -163,10 +204,18 @@ function StudentGrowthChart({ data, onFilterChange, totalStudents }) {
         </>
     );
 
+    const handlePresetChange = (preset) => {
+        const monthsMap = {
+            "this-quarter": 3,
+            "6-months": 6,
+            "this-year": 12
+        };
+        onFilterChange?.(monthsMap[preset] || 6);
+    };
+
     const headerExtra = (
         <ChartDateFilters
-            onDateChange={(type, value) => onFilterChange?.({ type: 'date', dateType: type, value })}
-            onPresetChange={(preset) => onFilterChange?.({ type: 'preset', value: preset })}
+            onPresetChange={handlePresetChange}
             defaultPreset="6-months"
         />
     );
@@ -178,65 +227,135 @@ function StudentGrowthChart({ data, onFilterChange, totalStudents }) {
             headerExtra={headerExtra}
             data={data}
             dataKey="students"
-            xAxisKey="name"
+            xAxisKey="month"
             strokeColor="#3b82f6"
             fillColor="#3b82f6"
             gradientId="colorStudents"
-            tooltipFormatter={(value) => [`${value.toLocaleString()} HV`, "Học viên"]}
+            tooltipFormatter={(value) => [`${value.toLocaleString('vi-VN')} HV`, "Học viên"]}
             height={280}
         />
     );
 }
 
-function PendingTasks({ tasks }) {
+function CoursePerformanceSection({ courses }) {
+    const columns = [
+        {
+            header: "STT",
+            className: "w-[60px] text-center",
+            cellClassName: "text-center font-sans",
+            render: (_, index) => (
+                <span className="text-sm font-bold text-muted-foreground">
+                    {(index + 1).toString().padStart(2, '0')}
+                </span>
+            )
+        },
+        {
+            header: "Khóa học",
+            className: "min-w-[240px]",
+            render: (c) => (
+                <div className="flex flex-col">
+                    <span className="font-semibold text-foreground line-clamp-1">{c.title}</span>
+                    <span className="text-xs text-muted-foreground font-mono">ID: {c.id}</span>
+                </div>
+            )
+        },
+        {
+            header: "Học viên",
+            className: "text-center",
+            cellClassName: "text-center font-semibold",
+            render: (c) => (c.students || 0).toLocaleString('vi-VN')
+        },
+        {
+            header: "Tiến độ TB",
+            className: "w-[180px]",
+            render: (c) => (
+                <div className="flex items-center gap-2">
+                    <AppProgress value={Math.round(c.avgProgress || 0)} className="h-2 flex-1" />
+                    <span className="text-xs font-semibold text-muted-foreground w-9 text-right">
+                        {Math.round(c.avgProgress || 0)}%
+                    </span>
+                </div>
+            )
+        },
+        {
+            header: "Hoàn thành",
+            className: "text-center",
+            cellClassName: "text-center font-semibold text-foreground",
+            render: (c) => `${(c.completed || 0).toFixed(1)}%`
+        },
+        {
+            header: "Đánh giá",
+            className: "text-center",
+            cellClassName: "text-center",
+            render: (c) => (
+                <div className="inline-flex items-center gap-1 font-semibold text-amber-500">
+                    <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                    <span>{(c.rating || 0).toFixed(1)}</span>
+                </div>
+            )
+        },
+        {
+            header: "Trạng thái",
+            className: "text-center",
+            cellClassName: "text-center",
+            render: (c) => {
+                const map = {
+                    active: { label: "Đang mở", variant: "success" },
+                    pending: { label: "Chờ duyệt", variant: "warning" },
+                    rejected: { label: "Từ chối", variant: "error" },
+                    draft: { label: "Bản nháp", variant: "secondary" }
+                };
+                const conf = map[c.status] || map.draft;
+                return <AppBadge variant={conf.variant} soft className="text-xs">{conf.label}</AppBadge>;
+            }
+        }
+    ];
+
     return (
-        <AppCard className="border-border shadow-sm flex flex-col">
-            <AppCardHeader className="pb-3 border-b border-border">
-                <div className="flex items-center justify-between">
-                    <AppCardTitle className="text-lg font-bold">Việc Cần Làm</AppCardTitle>
-                    <AppBadge variant="error" soft>
-                        {tasks.reduce((s, t) => s + t.count, 0)} chờ xử lý
-                    </AppBadge>
+        <AppCard className="border-border shadow-sm">
+            <AppCardHeader className="pb-3 border-b border-border flex flex-row items-center justify-between">
+                <div>
+                    <AppCardTitle className="text-lg font-bold">Hiệu Suất Khóa Học</AppCardTitle>
+                    <AppCardDescription>Tổng quan tiến độ và đánh giá theo từng khóa học của bạn</AppCardDescription>
                 </div>
-            </AppCardHeader>
-            <AppCardContent className="p-0 flex-1">
-                <div className="flex flex-col divide-y divide-border">
-                    {tasks.map((task) => {
-                        const Icon = task.icon;
-                        return (
-                            <Link key={task.id} to={task.href} className="flex items-center gap-3 px-5 py-4 hover:bg-muted transition-colors group">
-                                <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${task.color}`}>
-                                    <Icon className="w-4 h-4" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-bold text-foreground group-hover:text-foreground truncate">{task.label}</p>
-                                    {task.urgent && (
-                                        <p className="text-[10px] font-bold text-error uppercase tracking-wide">Cần xử lý ngay</p>
-                                    )}
-                                </div>
-                                <div className="flex items-center gap-1.5 shrink-0">
-                                    <span className={`text-sm font-black ${task.urgent ? 'text-error' : 'text-muted-foreground'}`}>{task.count}</span>
-                                    <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/30 group-hover:text-muted-foreground transition-colors" />
-                                </div>
-                            </Link>
-                        );
-                    })}
-                </div>
-            </AppCardContent>
-            <div className="p-4 border-t border-border mt-auto">
-                <Link to="/instructor/courses" className="flex items-center justify-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-primary transition-colors">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    Xem tất cả nhiệm vụ
+                <Link to="/instructor/courses" className="text-xs font-semibold text-primary hover:underline flex items-center gap-1">
+                    Quản lý khóa học <ChevronRight className="w-3.5 h-3.5" />
                 </Link>
-            </div>
+            </AppCardHeader>
+            <AppCardContent className="p-0">
+                <DataTable
+                    columns={columns}
+                    data={courses}
+                    emptyState="Chưa có dữ liệu hiệu suất khóa học."
+                />
+            </AppCardContent>
         </AppCard>
     );
 }
 
-
-
 export default function InstructorDashboard() {
-  const { data, loading } = useInstructorDashboard();
+  const {
+    data,
+    loading,
+    error,
+    refetch,
+    setRevenueMonths,
+    setGrowthMonths
+  } = useInstructorDashboard();
+
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleSync = async () => {
+    setIsRefreshing(true);
+    try {
+      await refetch();
+      toast.success("Đã đồng bộ dữ liệu thống kê mới nhất!");
+    } catch {
+      toast.error("Không thể đồng bộ dữ liệu. Vui lòng thử lại!");
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -246,9 +365,34 @@ export default function InstructorDashboard() {
     );
   }
 
+  if (error && !data) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 gap-4">
+        <AppCard className="max-w-md p-6 text-center border-error/20 bg-card shadow-sm">
+          <AlertCircle className="w-10 h-10 text-error mx-auto mb-2" />
+          <h3 className="text-lg font-bold text-foreground">Không thể tải dữ liệu Dashboard</h3>
+          <p className="text-sm text-muted-foreground mt-1 mb-4">
+            Đã xảy ra sự cố khi kết nối máy chủ. Vui lòng thử lại.
+          </p>
+          <AppButton onClick={() => refetch()} className="btn-md bg-primary text-white">
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Thử lại
+          </AppButton>
+        </AppCard>
+      </div>
+    );
+  }
+
   if (!data) return null;
 
-  const { REVENUE_DATA, STUDENT_GROWTH_DATA, RATING_DISTRIBUTION, COURSE_PERFORMANCE, PENDING_TASKS, STATS, RAW_STATS } = data;
+  const {
+    REVENUE_DATA,
+    STUDENT_GROWTH_DATA,
+    RATING_DISTRIBUTION,
+    COURSE_PERFORMANCE,
+    STATS,
+    RAW_STATS
+  } = data;
 
   return (
     <div className="space-y-6 animate-in fade-in duration-700">
@@ -275,9 +419,15 @@ export default function InstructorDashboard() {
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-3 shrink-0">
-              <AppButton appVariant="default" className="bg-success-foreground text-success hover:bg-success-foreground/90 font-bold shadow-sm" size="sm">
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Đồng bộ
+              <AppButton
+                onClick={handleSync}
+                disabled={isRefreshing}
+                appVariant="default"
+                className="bg-success-foreground text-success hover:bg-success-foreground/90 font-bold shadow-sm"
+                size="sm"
+              >
+                <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+                {isRefreshing ? 'Đang đồng bộ...' : 'Đồng bộ'}
               </AppButton>
               <AppButton appVariant="default" className="bg-success-foreground text-success hover:bg-success-foreground/90 font-bold shadow-sm" size="sm">
                 <Download className="w-4 h-4 mr-2" />
@@ -296,15 +446,32 @@ export default function InstructorDashboard() {
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Revenue Area Chart */}
-        <RevenueChart data={REVENUE_DATA} totalRevenue={RAW_STATS?.monthRevenue} />
+        <RevenueChart
+          data={REVENUE_DATA}
+          totalRevenue={RAW_STATS?.monthRevenue}
+          totalNetRevenue={RAW_STATS?.monthNetRevenue}
+          onFilterChange={(m) => setRevenueMonths(m)}
+        />
 
         {/* Rating Distribution */}
-        <RatingDistribution data={RATING_DISTRIBUTION} />
+        <RatingDistribution
+          data={RATING_DISTRIBUTION}
+          totalRatings={RAW_STATS?.ratingCount}
+        />
       </div>
 
-      {/* Student Growth Chart (Pending Tasks hidden for now) */}
+      {/* Student Growth Chart */}
       <div className="grid grid-cols-1 gap-6">
-        <StudentGrowthChart data={STUDENT_GROWTH_DATA} totalStudents={RAW_STATS?.totalStudents} />
+        <StudentGrowthChart
+          data={STUDENT_GROWTH_DATA}
+          totalStudents={RAW_STATS?.totalStudents}
+          onFilterChange={(m) => setGrowthMonths(m)}
+        />
+      </div>
+
+      {/* Course Performance Table */}
+      <div className="grid grid-cols-1 gap-6">
+        <CoursePerformanceSection courses={COURSE_PERFORMANCE} />
       </div>
 
     </div>

@@ -30,35 +30,66 @@ public class InstructorDashboardServiceImpl implements InstructorDashboardServic
     private final CourseRepository courseRepository;
     private final CommentRepository commentRepository;
     private final LessonRepository lessonRepository;
+    private final AccountRepository accountRepository;
+    private final RefundRepository refundRepository;
 
     @Override
+    @Transactional(readOnly = true)
     public InstructorDashboardStatsDTO getStats(String instructorEmail) {
+        String cleanEmail = instructorEmail != null ? instructorEmail.trim().toLowerCase() : "";
+        Account account = accountRepository.findByEmail(cleanEmail).orElse(null);
+        java.util.UUID accountId = account != null ? account.getId() : null;
+
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime startOfThisMonth = now.withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0).withNano(0);
         LocalDateTime startOfLastMonth = startOfThisMonth.minusMonths(1);
 
-        Double thisMonthRevenue = orderDetailRepository.sumRevenueByInstructorEmailAndDateRange(instructorEmail, startOfThisMonth, now);
-        Double lastMonthRevenue = orderDetailRepository.sumRevenueByInstructorEmailAndDateRange(instructorEmail, startOfLastMonth, startOfThisMonth);
+        Double thisMonthRevenue = orderDetailRepository.sumRevenueByInstructorEmailAndDateRange(cleanEmail, startOfThisMonth, now);
+        Double lastMonthRevenue = orderDetailRepository.sumRevenueByInstructorEmailAndDateRange(cleanEmail, startOfLastMonth, startOfThisMonth);
         Double revenueTrend = calculateTrend(lastMonthRevenue, thisMonthRevenue);
 
-        long thisMonthStudents = enrollmentRepository.countStudentsByInstructorEmailAndDateRange(instructorEmail, startOfThisMonth, now);
-        long lastMonthStudents = enrollmentRepository.countStudentsByInstructorEmailAndDateRange(instructorEmail, startOfLastMonth, startOfThisMonth);
+        Double thisMonthNetRevenue = orderDetailRepository.sumInstructorEarningByEmailAndDateRange(cleanEmail, startOfThisMonth, now);
+
+        long thisMonthStudents = enrollmentRepository.countDistinctActiveStudentsByInstructorEmailAndDateRange(cleanEmail, startOfThisMonth, now);
+        long lastMonthStudents = enrollmentRepository.countDistinctActiveStudentsByInstructorEmailAndDateRange(cleanEmail, startOfLastMonth, startOfThisMonth);
         Double studentTrend = calculateTrend((double) lastMonthStudents, (double) thisMonthStudents);
 
-        Double averageRating = reviewRepository.getAverageRatingByInstructorEmail(instructorEmail);
-        
-        long totalCourses = courseRepository.countByAccountEmailAndDeletedAtIsNull(instructorEmail);
-        long totalStudents = enrollmentRepository.countDistinctStudentsByInstructorEmail(instructorEmail);
+        Double averageRating = reviewRepository.getAverageRatingByInstructorEmail(cleanEmail);
+        long ratingCount = reviewRepository.countValidRatingsByInstructorEmail(cleanEmail);
+
+        Double thisMonthRating = reviewRepository.getAverageRatingByInstructorEmailAndDateRange(cleanEmail, startOfThisMonth, now);
+        Double lastMonthRating = reviewRepository.getAverageRatingByInstructorEmailAndDateRange(cleanEmail, startOfLastMonth, startOfThisMonth);
+        Double ratingTrend = (thisMonthRating != null && thisMonthRating > 0 && lastMonthRating != null && lastMonthRating > 0)
+                ? calculateTrend(lastMonthRating, thisMonthRating)
+                : 0.0;
+
+        long totalCourses = courseRepository.countByAccountEmailAndDeletedAtIsNull(cleanEmail);
+        long totalStudents = enrollmentRepository.countDistinctStudentsByInstructorEmail(cleanEmail);
+
+        long activeEnrollments = accountId != null ? enrollmentRepository.countActiveByCourseAccountId(accountId) : 0;
+        long completedEnrollments = accountId != null ? enrollmentRepository.countCompletedByCourseAccountId(accountId) : 0;
+        Double completionRate = activeEnrollments > 0 ? ((double) completedEnrollments / activeEnrollments) * 100.0 : 0.0;
+
+        long thisMonthCompleted = accountId != null ? enrollmentRepository.countCompletedByCourseAccountIdAndDateRange(accountId, startOfThisMonth, now) : 0;
+        long lastMonthCompleted = accountId != null ? enrollmentRepository.countCompletedByCourseAccountIdAndDateRange(accountId, startOfLastMonth, startOfThisMonth) : 0;
+        Double completionTrend = calculateTrend((double) lastMonthCompleted, (double) thisMonthCompleted);
+
+        long totalEnrollments = accountId != null ? enrollmentRepository.countByCourseAccountId(accountId) : 0;
+        long approvedRefunds = accountId != null ? refundRepository.countByOrderDetailCourseAccountIdAndStatus(accountId, 2) : 0;
+        Double refundRate = totalEnrollments > 0 ? ((double) approvedRefunds / totalEnrollments) * 100.0 : 0.0;
 
         return InstructorDashboardStatsDTO.builder()
-                .monthRevenue(thisMonthRevenue)
+                .monthRevenue(thisMonthRevenue != null ? thisMonthRevenue : 0.0)
+                .monthNetRevenue(thisMonthNetRevenue != null ? thisMonthNetRevenue : 0.0)
                 .revenueTrend(revenueTrend)
                 .newStudents(thisMonthStudents)
                 .studentTrend(studentTrend)
-                .averageRating(averageRating)
-                .ratingTrend(0.0) 
-                .completionRate(75.0) 
-                .completionTrend(0.0)
+                .averageRating(averageRating != null ? averageRating : 0.0)
+                .ratingTrend(ratingTrend)
+                .ratingCount(ratingCount)
+                .completionRate(completionRate)
+                .completionTrend(completionTrend)
+                .refundRate(refundRate)
                 .totalCourses(totalCourses)
                 .totalStudents(totalStudents)
                 .build();
@@ -73,14 +104,27 @@ public class InstructorDashboardServiceImpl implements InstructorDashboardServic
 
     @Override
     public List<ChartDataDTO> getRevenueChart(String instructorEmail) {
+        return getRevenueChart(instructorEmail, 6);
+    }
+
+    @Override
+    public List<ChartDataDTO> getRevenueChart(String instructorEmail, Integer months) {
+        int m = (months != null && months > 0) ? months : 6;
         List<ChartDataDTO> chart = new ArrayList<>();
         LocalDateTime now = LocalDateTime.now();
-        for (int i = 5; i >= 0; i--) {
+        for (int i = m - 1; i >= 0; i--) {
             LocalDateTime start = now.minusMonths(i).withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0).withNano(0);
             LocalDateTime end = start.plusMonths(1);
             Double revenue = orderDetailRepository.sumRevenueByInstructorEmailAndDateRange(instructorEmail, start, end);
-            String monthLabel = "T" + String.format("%02d", start.getMonthValue());
-            chart.add(ChartDataDTO.builder().month(monthLabel).revenue(revenue != null ? revenue : 0.0).students(0L).build());
+            Double netRevenue = orderDetailRepository.sumInstructorEarningByEmailAndDateRange(instructorEmail, start, end);
+            String yearSuffix = String.valueOf(start.getYear()).substring(2);
+            String monthLabel = "T" + String.format("%02d", start.getMonthValue()) + "/" + yearSuffix;
+            chart.add(ChartDataDTO.builder()
+                    .month(monthLabel)
+                    .revenue(revenue != null ? revenue : 0.0)
+                    .netRevenue(netRevenue != null ? netRevenue : 0.0)
+                    .students(0L)
+                    .build());
         }
         return chart;
     }
@@ -110,27 +154,56 @@ public class InstructorDashboardServiceImpl implements InstructorDashboardServic
 
     @Override
     public List<ChartDataDTO> getStudentGrowthChart(String instructorEmail) {
+        return getStudentGrowthChart(instructorEmail, 6);
+    }
+
+    @Override
+    public List<ChartDataDTO> getStudentGrowthChart(String instructorEmail, Integer months) {
+        int m = (months != null && months > 0) ? months : 6;
         List<ChartDataDTO> chart = new ArrayList<>();
         LocalDateTime now = LocalDateTime.now();
-        for (int i = 5; i >= 0; i--) {
+        for (int i = m - 1; i >= 0; i--) {
             LocalDateTime start = now.minusMonths(i).withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0).withNano(0);
             LocalDateTime end = start.plusMonths(1);
             long students = enrollmentRepository.countStudentsByInstructorEmailAndDateRange(instructorEmail, start, end);
-            String monthLabel = "T" + String.format("%02d", start.getMonthValue());
-            chart.add(ChartDataDTO.builder().month(monthLabel).revenue(0.0).students(students).build());
+            String yearSuffix = String.valueOf(start.getYear()).substring(2);
+            String monthLabel = "T" + String.format("%02d", start.getMonthValue()) + "/" + yearSuffix;
+            chart.add(ChartDataDTO.builder()
+                    .month(monthLabel)
+                    .revenue(0.0)
+                    .netRevenue(0.0)
+                    .students(students)
+                    .build());
         }
         return chart;
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<CoursePerformanceDTO> getCoursePerformance(String instructorEmail) {
         List<Course> courses = courseRepository.findByAccountEmailAndDeletedAtIsNull(instructorEmail, org.springframework.data.domain.Pageable.unpaged()).getContent();
         return courses.stream().map(c -> {
-            long students = c.getEnrollments() != null ? c.getEnrollments().size() : 0;
-            long completed = c.getEnrollments() != null ? c.getEnrollments().stream().filter(e -> e.getProgressPercent() != null && e.getProgressPercent() >= 100).count() : 0;
-            Double avgProgress = c.getEnrollments() != null && !c.getEnrollments().isEmpty() ? c.getEnrollments().stream().mapToDouble(e -> e.getProgressPercent() != null ? e.getProgressPercent() : 0).average().orElse(0.0) : 0.0;
-            Double rating = reviewRepository.findByCourseOrderByCreatedAtDesc(c).stream().mapToDouble(Review::getRating).average().orElse(0.0);
-            
+            List<Enrollment> validEnrollments = c.getEnrollments() != null
+                    ? c.getEnrollments().stream().filter(e -> e.getStatus() != null && (e.getStatus() == 1 || e.getStatus() == 2)).toList()
+                    : List.of();
+            long students = validEnrollments.size();
+            long completed = validEnrollments.stream().filter(e -> e.getProgressPercent() != null && e.getProgressPercent() >= 100).count();
+            Double avgProgress = students > 0
+                    ? validEnrollments.stream().mapToDouble(e -> e.getProgressPercent() != null ? e.getProgressPercent() : 0).average().orElse(0.0)
+                    : 0.0;
+            Double rating = reviewRepository.findByCourseAndStatusAndDeletedAtIsNullOrderByCreatedAtDesc(c, 1).stream()
+                    .filter(r -> r.getParent() == null)
+                    .mapToDouble(Review::getRating)
+                    .average()
+                    .orElse(0.0);
+
+            String statusStr = switch (c.getStatus() != null ? c.getStatus() : 0) {
+                case 1 -> "active";
+                case 2 -> "pending";
+                case 3 -> "rejected";
+                default -> "draft";
+            };
+
             return CoursePerformanceDTO.builder()
                     .id(c.getId())
                     .title(c.getTitle())
@@ -138,7 +211,7 @@ public class InstructorDashboardServiceImpl implements InstructorDashboardServic
                     .completed(students > 0 ? (double) completed / students * 100 : 0.0)
                     .avgProgress(avgProgress)
                     .rating(rating)
-                    .status(c.getStatus() == 1 ? "active" : "draft")
+                    .status(statusStr)
                     .build();
         }).collect(Collectors.toList());
     }
