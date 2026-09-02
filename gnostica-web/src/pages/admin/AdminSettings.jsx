@@ -13,10 +13,14 @@ import AppInput from "@/components/common/micro/AppInput";
 import AppTable from "@/components/common/micro/AppTable";
 import { Label } from "@/components/common/micro/AppLabel";
 import { AppDialog } from "@/components/common/micro/AppDialog";
+import { Button } from "@/components/ui/button";
+import AppPopover, { AppPopoverTrigger, AppPopoverContent } from "@/components/common/micro/AppPopover";
+import AppCalendar from "@/components/common/micro/AppCalendar";
 import {
   Activity,
   AlertTriangle,
   Calculator,
+  Calendar as CalendarIcon,
   CreditCard,
   Eye,
   FileText,
@@ -831,6 +835,8 @@ function FinanceSettings() {
   const [noticeFile, setNoticeFile] = useState(null);
   const [isNoticeDialogOpen, setIsNoticeDialogOpen] = useState(false);
   const [applyAfterDays, setApplyAfterDays] = useState("7");
+  const [applyStartDate, setApplyStartDate] = useState(() => getApplyStartDate(7));
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const fileInputRef = useRef(null);
   
   const [platformRatio, setPlatformRatio] = useState(10);
@@ -847,7 +853,6 @@ function FinanceSettings() {
   const sampleRevenue = 1_000_000;
   const platformAmount = Math.round(sampleRevenue * platformRatio / 100);
   const instructorAmount = Math.round(sampleRevenue * instructorRatio / 100);
-  const applyStartDate = getApplyStartDate(Number(applyAfterDays));
 
   const updatePlatformRatio = (rawValue) => {
     const value = Math.min(100, Math.max(0, Number(rawValue) || 0));
@@ -862,17 +867,26 @@ function FinanceSettings() {
       toast.error("Vui lòng đính kèm file quyết định!");
       return;
     }
+
+    const calculatedDays = calculateApplyAfterDays(applyStartDate);
+    if (calculatedDays < 7) {
+      setFormError("date");
+      toast.error("Thời gian áp dụng phải từ sau 7 ngày trở lên tính từ hôm nay!");
+      return;
+    }
     
     try {
       await createMutation.mutateAsync({
         platformRatio,
         instructorRatio,
-        applyAfterDays: Number(applyAfterDays),
+        applyAfterDays: calculatedDays,
         file: noticeFile,
       });
       toast.success("Đã tạo lịch sử áp dụng tỷ lệ mới");
       setNoticeFile(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
+      setApplyAfterDays("7");
+      setApplyStartDate(getApplyStartDate(7));
     } catch (error) {
       const msg = error.response?.data?.message || error.message || "Có lỗi xảy ra khi tạo tỷ lệ";
       toast.error(msg);
@@ -1017,24 +1031,75 @@ function FinanceSettings() {
                   value={applyAfterDays}
                   onValueChange={(val) => {
                     setApplyAfterDays(val);
-                    if (formError === "date") setFormError("");
+                    if (val !== "custom") {
+                      setApplyStartDate(getApplyStartDate(Number(val)));
+                      if (formError === "date") setFormError("");
+                    }
                   }}
                   error={formError === "date"}
                   options={[
                     { label: "Sau 7 ngày", value: "7" },
                     { label: "Sau 15 ngày", value: "15" },
                     { label: "Sau 30 ngày", value: "30" },
+                    { label: "Tùy chọn", value: "custom" },
                   ]}
                   className={cn("bg-card", formError === "date" ? "border-error ring-1 ring-error/20" : "")}
                 />
               </div>
               <div className="space-y-2">
-                <p className="text-xs font-bold uppercase text-muted-foreground">Thời gian bắt đầu</p>
-                <p className="text-sm font-semibold text-foreground">
-                  {formatDateTime(applyStartDate)}
-                </p>
+                <Label className={cn("text-xs font-bold uppercase", formError === "date" ? "text-error" : "text-muted-foreground")}>
+                  Thời gian bắt đầu
+                </Label>
+                <AppPopover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                  <AppPopoverTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-semibold text-sm bg-card border border-border hover:bg-muted transition-colors text-foreground h-10 px-3",
+                        formError === "date" ? "border-error ring-1 ring-error/20" : ""
+                      )}
+                    >
+                      <CalendarIcon className={cn("mr-2 h-4 w-4", formError === "date" ? "text-error" : "text-muted-foreground")} />
+                      <span>{formatDateTime(applyStartDate)}</span>
+                    </Button>
+                  </AppPopoverTrigger>
+                  <AppPopoverContent align="start" className="w-auto p-0 border-none shadow-lg bg-card rounded-xl z-[100]">
+                    <AppCalendar
+                      mode="single"
+                      selected={applyStartDate}
+                      onSelect={(date) => {
+                        if (!date) return;
+                        const dateObj = new Date(date);
+                        dateObj.setHours(0, 0, 0, 0);
+                        setApplyStartDate(dateObj);
+                        setApplyAfterDays("custom");
+                        setIsCalendarOpen(false);
+                        const days = calculateApplyAfterDays(dateObj);
+                        if (days < 7) {
+                          setFormError("date");
+                          toast.error("Thời gian bắt đầu áp dụng phải từ sau 7 ngày trở lên tính từ hôm nay!");
+                        } else if (formError === "date") {
+                          setFormError("");
+                        }
+                      }}
+                      disabled={(d) => {
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        return d < today;
+                      }}
+                      initialFocus
+                      className="border-none shadow-none"
+                    />
+                  </AppPopoverContent>
+                </AppPopover>
               </div>
             </div>
+            {formError === "date" && (
+              <p className="text-xs text-error -mt-3 animate-in fade-in">
+                * Thời gian bắt đầu áp dụng phải từ sau 7 ngày trở lên tính từ hôm nay.
+              </p>
+            )}
 
             <div className="space-y-4 rounded-lg border border-border bg-muted/40 p-4">
               <div className="flex items-start justify-between gap-3">
@@ -1400,6 +1465,8 @@ function EditCommissionDialog({ decision, open, onOpenChange }) {
   const { updateMutation } = useCommissions();
   const [platformRatio, setPlatformRatio] = useState(10);
   const [applyAfterDays, setApplyAfterDays] = useState("7");
+  const [applyStartDate, setApplyStartDate] = useState(() => getApplyStartDate(7));
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [noticeFile, setNoticeFile] = useState(null);
   const [formError, setFormError] = useState("");
   const fileInputRef = useRef(null);
@@ -1407,9 +1474,23 @@ function EditCommissionDialog({ decision, open, onOpenChange }) {
   useEffect(() => {
     if (decision && open) {
       setPlatformRatio(decision.platformRatio);
-      setNoticeFile(null); // File is required to be re-uploaded or we just send null to keep old file? The backend accepts file=null to keep the old noticeFileUrl.
-      setApplyAfterDays("7");
+      setNoticeFile(null);
       setFormError("");
+
+      if (decision.validFrom) {
+        const d = new Date(decision.validFrom);
+        d.setHours(0, 0, 0, 0);
+        setApplyStartDate(d);
+        const days = calculateApplyAfterDays(d);
+        if (days === 7 || days === 15 || days === 30) {
+          setApplyAfterDays(String(days));
+        } else {
+          setApplyAfterDays("custom");
+        }
+      } else {
+        setApplyAfterDays("7");
+        setApplyStartDate(getApplyStartDate(7));
+      }
     }
   }, [decision, open]);
 
@@ -1423,11 +1504,19 @@ function EditCommissionDialog({ decision, open, onOpenChange }) {
   const handleUpdate = () => {
     if (!decision) return;
     setFormError("");
+
+    const calculatedDays = calculateApplyAfterDays(applyStartDate);
+    if (calculatedDays < 7) {
+      setFormError("date");
+      toast.error("Thời gian áp dụng phải từ sau 7 ngày trở lên tính từ hôm nay!");
+      return;
+    }
+
     const formData = new FormData();
     formData.append(
       "data",
       new Blob(
-        [JSON.stringify({ platformRatio, instructorRatio, applyAfterDays: Number(applyAfterDays) })],
+        [JSON.stringify({ platformRatio, instructorRatio, applyAfterDays: calculatedDays })],
         { type: "application/json" }
       )
     );
@@ -1504,26 +1593,82 @@ function EditCommissionDialog({ decision, open, onOpenChange }) {
             />
           </div>
         </div>
-        <div className="space-y-2">
-          <Label className={cn("text-xs font-bold uppercase", formError === "date" ? "text-error" : "text-muted-foreground")}>Ngày áp dụng</Label>
-          <AppSelect
-            value={applyAfterDays}
-            onValueChange={(val) => {
-              setApplyAfterDays(val);
-              if (formError === "date") setFormError("");
-            }}
-            error={formError === "date"}
-            options={[
-              { label: "Sau 7 ngày", value: "7" },
-              { label: "Sau 15 ngày", value: "15" },
-              { label: "Sau 30 ngày", value: "30" },
-            ]}
-            className={cn("bg-card", formError === "date" ? "border-error ring-1 ring-error/20" : "")}
-          />
-          <p className="text-xs text-muted-foreground mt-1">
-            * Thời gian áp dụng sẽ được tính lại từ ngày hôm nay cộng thêm số ngày đã chọn.
-          </p>
+        <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] sm:items-end">
+          <div className="space-y-2">
+            <Label className={cn("text-xs font-bold uppercase", formError === "date" ? "text-error" : "text-muted-foreground")}>Ngày áp dụng</Label>
+            <AppSelect
+              value={applyAfterDays}
+              onValueChange={(val) => {
+                setApplyAfterDays(val);
+                if (val !== "custom") {
+                  setApplyStartDate(getApplyStartDate(Number(val)));
+                  if (formError === "date") setFormError("");
+                }
+              }}
+              error={formError === "date"}
+              options={[
+                { label: "Sau 7 ngày", value: "7" },
+                { label: "Sau 15 ngày", value: "15" },
+                { label: "Sau 30 ngày", value: "30" },
+                { label: "Tùy chọn", value: "custom" },
+              ]}
+              className={cn("bg-card", formError === "date" ? "border-error ring-1 ring-error/20" : "")}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label className={cn("text-xs font-bold uppercase", formError === "date" ? "text-error" : "text-muted-foreground")}>
+              Thời gian bắt đầu
+            </Label>
+            <AppPopover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+              <AppPopoverTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-semibold text-sm bg-card border border-border hover:bg-muted transition-colors text-foreground h-10 px-3",
+                    formError === "date" ? "border-error ring-1 ring-error/20" : ""
+                  )}
+                >
+                  <CalendarIcon className={cn("mr-2 h-4 w-4", formError === "date" ? "text-error" : "text-muted-foreground")} />
+                  <span>{formatDateTime(applyStartDate)}</span>
+                </Button>
+              </AppPopoverTrigger>
+              <AppPopoverContent align="start" className="w-auto p-0 border-none shadow-lg bg-card rounded-xl z-[100]">
+                <AppCalendar
+                  mode="single"
+                  selected={applyStartDate}
+                  onSelect={(date) => {
+                    if (!date) return;
+                    const dateObj = new Date(date);
+                    dateObj.setHours(0, 0, 0, 0);
+                    setApplyStartDate(dateObj);
+                    setApplyAfterDays("custom");
+                    setIsCalendarOpen(false);
+                    const days = calculateApplyAfterDays(dateObj);
+                    if (days < 7) {
+                      setFormError("date");
+                      toast.error("Thời gian bắt đầu áp dụng phải từ sau 7 ngày trở lên tính từ hôm nay!");
+                    } else if (formError === "date") {
+                      setFormError("");
+                    }
+                  }}
+                  disabled={(d) => {
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    return d < today;
+                  }}
+                  initialFocus
+                  className="border-none shadow-none"
+                />
+              </AppPopoverContent>
+            </AppPopover>
+          </div>
         </div>
+        {formError === "date" && (
+          <p className="text-xs text-error -mt-3 animate-in fade-in">
+            * Thời gian bắt đầu áp dụng phải từ sau 7 ngày trở lên tính từ hôm nay.
+          </p>
+        )}
         <div className="flex justify-end gap-3 pt-4">
           <AppButton type="button" appVariant="ghostMuted" onClick={() => onOpenChange(false)}>
             Hủy
@@ -1668,6 +1813,17 @@ function getApplyStartDate(daysToAdd) {
   date.setDate(date.getDate() + daysToAdd + 1);
   date.setHours(0, 0, 0, 0);
   return date;
+}
+
+function calculateApplyAfterDays(targetDate) {
+  if (!targetDate) return 7;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const target = new Date(targetDate);
+  target.setHours(0, 0, 0, 0);
+  const diffTime = target.getTime() - today.getTime();
+  const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+  return diffDays - 1;
 }
 
 function formatDateTime(date) {

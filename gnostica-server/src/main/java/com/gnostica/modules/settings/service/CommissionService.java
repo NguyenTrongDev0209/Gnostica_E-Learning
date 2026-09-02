@@ -28,6 +28,7 @@ public class CommissionService {
     private final ObjectMapper objectMapper;
     private final com.gnostica.core.repository.AccountRepository accountRepository;
     private final com.gnostica.modules.integration.service.MailService mailService;
+    private final com.gnostica.modules.user.service.NotificationService notificationService;
 
     private Commission lazilyUpdateStatus(Commission c, LocalDateTime now) {
         int calculatedStatus = 0; // Draft
@@ -81,6 +82,10 @@ public class CommissionService {
         String noticeFileUrl = null;
         if (file != null && !file.isEmpty()) {
             noticeFileUrl = cloudinaryService.uploadDocument(file);
+        }
+
+        if (request.getApplyAfterDays() == null || request.getApplyAfterDays() < 7) {
+            throw new IllegalArgumentException("Thời gian áp dụng phải từ sau 7 ngày trở lên tính từ hôm nay.");
         }
 
         LocalDateTime validFrom = LocalDate.now().plusDays(request.getApplyAfterDays() + 1).atStartOfDay();
@@ -147,6 +152,10 @@ public class CommissionService {
             commission.setMetadata(metadata.toString());
         }
 
+        if (request.getApplyAfterDays() == null || request.getApplyAfterDays() < 7) {
+            throw new IllegalArgumentException("Thời gian áp dụng phải từ sau 7 ngày trở lên tính từ hôm nay.");
+        }
+
         LocalDateTime validFrom = LocalDate.now().plusDays(request.getApplyAfterDays() + 1).atStartOfDay();
 
         if (commissionRepository.existsGlobalByValidFromAndIdNot(validFrom, commission.getId())) {
@@ -205,6 +214,15 @@ public class CommissionService {
                     commission.getInstructorRatio(),
                     noticeFileUrl
             );
+            if (notificationService != null) {
+                notificationService.createNotification(
+                        instructor,
+                        "Thông báo điều chỉnh tỷ lệ hoa hồng",
+                        "Tỷ lệ hoa hồng mới (" + commission.getPlatformRatio() + "% nền tảng, " + commission.getInstructorRatio() + "% giảng viên) sẽ chính thức có hiệu lực từ ngày " + applyDate + ".",
+                        "COMMISSION_NOTICE",
+                        commission.getId().toString()
+                );
+            }
         }
 
         metadata.put("notified", true);
