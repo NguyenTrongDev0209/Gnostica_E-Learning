@@ -13,8 +13,10 @@ import java.util.List;
 public interface InstructorDashboardService {
     InstructorDashboardStatsDTO getStats(String instructorEmail);
     List<ChartDataDTO> getRevenueChart(String instructorEmail);
+    List<ChartDataDTO> getRevenueChart(String instructorEmail, Integer months);
     List<RatingDistributionDTO> getRatingDistribution(String instructorEmail);
     List<ChartDataDTO> getStudentGrowthChart(String instructorEmail);
+    List<ChartDataDTO> getStudentGrowthChart(String instructorEmail, Integer months);
     List<CoursePerformanceDTO> getCoursePerformance(String instructorEmail);
     List<InstructorQuestionDTO> getQuestions(String instructorEmail);
     List<InstructorReviewDTO> getReviews(String instructorEmail);

@@ -31,6 +31,13 @@ const getMyTransactions = async () => {
     return response.data;
 };
 
+const getMyTransactionHistory = async () => {
+    const response = await axiosClient.get(`${API_URL}/history`, {
+        headers: getAuthHeaders()
+    });
+    return response.data;
+};
+
 const getWalletStats = async () => {
     const response = await axiosClient.get(`${API_URL}/stats`, {
         headers: getAuthHeaders()
@@ -72,6 +79,7 @@ const removeBankAccount = async (pin) => {
 const walletService = {
     getMyWallet,
     getMyTransactions,
+    getMyTransactionHistory,
     getWalletStats,
     requestWithdraw,
     setBankAccount,
