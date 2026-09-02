@@ -4,6 +4,15 @@ import categoryService from '@/services/course/categoryService';
 
 const unwrapCategoryPage = (response) => response?.data?.content || response?.content || [];
 
+const normalizeTitle = (title) => {
+    if (!title || typeof title !== 'string') return 'Giảng viên';
+    const trimmed = title.trim();
+    if (!trimmed || trimmed.includes('Giáº') || trimmed.includes('viÃªn') || trimmed.toLowerCase().includes('giáº')) {
+        return 'Giảng viên';
+    }
+    return trimmed;
+};
+
 export const getInstructors = async () => {
     const response = await axiosClient.get('/instructors/list');
     const instructors = Array.isArray(response.data) ? response.data : [];
@@ -12,7 +21,7 @@ export const getInstructors = async () => {
         id: instructor.id,
         name: instructor.fullName || instructor.email,
         avatar: instructor.avatar || '/default-avatar.png',
-        role: instructor.title || 'Giảng viên',
+        role: normalizeTitle(instructor.title),
         students: Number(instructor.studentsCount || 0),
         courses: Number(instructor.coursesCount || 0)
     }));

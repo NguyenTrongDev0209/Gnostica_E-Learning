@@ -20,10 +20,12 @@ const couponService = {
     /**
      * Kiểm tra tính hợp lệ của mã giảm giá
      * Response: ResponseDTO<CouponResponse> (status 200 nếu hợp lệ, 400 nếu không)
+     * Backend bắt buộc kèm courseId (để kiểm tra scope + tính % theo đơn).
      * @param {string} code
+     * @param {string} courseId
      */
-    validate: (code) => {
-        return api.get(`/checkout/coupons/validate/${code}`);
+    validate: (code, courseId) => {
+        return api.get(`/checkout/coupons/validate/${code}`, { params: { courseId } });
     },
 };
 

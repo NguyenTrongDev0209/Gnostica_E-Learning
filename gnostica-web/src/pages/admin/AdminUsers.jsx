@@ -1194,6 +1194,49 @@ function AdminUserDetail({ user, onBack, isInstructorContext }) {
     activities, activityPage, setActivityPage, activitySize, setActivitySize
   } = useAdminUserDetail(user.id, isInstructor, activeDetailTab);
 
+  // Lọc client-side cho tab Thu nhập (backend phân trang theo user, chưa nhận search/status/date).
+  const filteredIncomes = React.useMemo(() => {
+    const rows = incomes?.data?.content || [];
+    const q = (incomeSearch || "").toLowerCase().trim();
+    return rows.filter((c) => {
+      if (q) {
+        const haystack = `${c.courseTitle || ""} ${c.studentName || ""}`.toLowerCase();
+        if (!haystack.includes(q)) return false;
+      }
+      if (incomeStatus.length > 0 && !incomeStatus.includes(c.status)) return false;
+      if (incomeDateRange?.from || incomeDateRange?.to) {
+        const d = c.createdAt ? new Date(c.createdAt) : null;
+        if (d) {
+          if (incomeDateRange.from && d < new Date(incomeDateRange.from)) return false;
+          if (incomeDateRange.to && d > new Date(new Date(incomeDateRange.to).setHours(23, 59, 59))) return false;
+        }
+      }
+      return true;
+    });
+  }, [incomes, incomeSearch, incomeStatus, incomeDateRange]);
+
+  // Lọc client-side cho tab Rút tiền.
+  const filteredPayouts = React.useMemo(() => {
+    const rows = payouts?.data?.content || [];
+    const q = (payoutSearch || "").toLowerCase().trim();
+    return rows.filter((p) => {
+      if (q) {
+        const code = (p.transactionCode || p.id || "").toLowerCase();
+        const bank = (p.accountBank || "").toLowerCase();
+        if (!code.includes(q) && !bank.includes(q)) return false;
+      }
+      if (payoutStatus.length > 0 && !payoutStatus.includes(p.status)) return false;
+      if (payoutDateRange?.from || payoutDateRange?.to) {
+        const d = p.createdAt ? new Date(p.createdAt) : null;
+        if (d) {
+          if (payoutDateRange.from && d < new Date(payoutDateRange.from)) return false;
+          if (payoutDateRange.to && d > new Date(new Date(payoutDateRange.to).setHours(23, 59, 59))) return false;
+        }
+      }
+      return true;
+    });
+  }, [payouts, payoutSearch, payoutStatus, payoutDateRange]);
+
   return (
     <div className="space-y-6 pb-10">
       <div className="flex items-center gap-4 border-b border-border pb-4">
@@ -1246,7 +1289,7 @@ function AdminUserDetail({ user, onBack, isInstructorContext }) {
             <div className="grid grid-cols-[120px_1fr] gap-2 text-sm">
               <span className="text-muted-foreground">{isInstructor ? "Tổng doanh thu:" : "Tổng mua hàng:"}</span>
               <span className="font-bold text-primary">
-                {new Intl.NumberFormat('vi-VN').format(summary?.data?.totalSpent || 0)} đ
+                {new Intl.NumberFormat('vi-VN').format((isInstructor ? summary?.data?.totalRevenue : summary?.data?.totalSpent) || 0)} đ
               </span>
               <span className="text-muted-foreground">{isInstructor ? "Khóa học đã tạo:" : "Khóa học đã mua:"}</span>
               <span className="font-medium">{summary?.data?.courseCount || 0} Khóa học</span>
@@ -1811,7 +1854,7 @@ function AdminUserDetail({ user, onBack, isInstructorContext }) {
                   header: "Thu nhập",
                   width: "140px",
                   className: "text-center",
-                  render: (c) => <div className="text-center w-full font-bold text-success text-sm">{new Intl.NumberFormat('vi-VN').format(c.price * c.instructorRatio / 100)} đ</div>
+                  render: (c) => <div className="text-center w-full font-bold text-success text-sm">{new Intl.NumberFormat('vi-VN').format(c.incomeAmount ?? (c.price * c.instructorRatio / 100))} đ</div>
                 },
                 {
                   header: "Ngày",
@@ -1832,7 +1875,7 @@ function AdminUserDetail({ user, onBack, isInstructorContext }) {
                   ) 
                 }
               ]}
-              data={incomes?.data?.content || []}
+              data={filteredIncomes}
               emptyState="Chưa có thu nhập nào."
               pagination={{
                 currentPage: incomePage,
@@ -1862,7 +1905,8 @@ function AdminUserDetail({ user, onBack, isInstructorContext }) {
                       { label: "Đang chuyển", value: 2 },
                       { label: "Hoàn tất", value: 3 },
                       { label: "Lỗi", value: 4 },
-                      { label: "Từ chối", value: 5 }
+                      { label: "Từ chối", value: 5 },
+                      { label: "Chờ admin duyệt", value: 6 }
                     ],
                     selectedItems: payoutStatus,
                     onItemToggle: (val) => setPayoutStatus(prev => prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val]),
@@ -1937,7 +1981,7 @@ function AdminUserDetail({ user, onBack, isInstructorContext }) {
                   }
                 }
               ]}
-              data={payouts?.data?.content || []}
+              data={filteredPayouts}
               emptyState="Chưa có yêu cầu rút tiền nào."
               pagination={{
                 currentPage: payoutPage,

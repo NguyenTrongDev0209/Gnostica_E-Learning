@@ -622,6 +622,7 @@ AppDateRangePicker.displayName = "AppDateRangePicker";
 export function ChartDateFilters({
   onDateChange,
   onPresetChange,
+  onRangeChange,
   defaultPreset = "6-months"
 }) {
   const [dateRange, setDateRange] = useState({ from: undefined, to: undefined });
@@ -690,23 +691,29 @@ export function ChartDateFilters({
       return { from: start, to: end };
   };
 
+  const notifyParent = (from, to, preset = selectedPreset) => {
+      const startStr = from ? formatWithTime(formatDateInput(from), false) : null;
+      const endStr = to ? formatWithTime(formatDateInput(to), true) : null;
+
+      if (from) {
+          onDateChange?.('start', startStr);
+      }
+      if (to) {
+          onDateChange?.('end', endStr);
+      }
+      if (from && to && onRangeChange) {
+          onRangeChange({ start: startStr, end: endStr, preset });
+      }
+  };
+
   // Initialize dates based on default preset
   useEffect(() => {
       const range = calculatePresetRange(defaultPreset);
       if (range) {
           setDateRange(range);
-          notifyParent(range.from, range.to);
+          notifyParent(range.from, range.to, defaultPreset);
       }
   }, []);
-
-  const notifyParent = (from, to) => {
-      if (from) {
-          onDateChange?.('start', formatWithTime(formatDateInput(from), false));
-      }
-      if (to) {
-          onDateChange?.('end', formatWithTime(formatDateInput(to), true));
-      }
-  };
 
   const handlePresetSelect = (value) => {
       setSelectedPreset(value);
@@ -715,14 +722,14 @@ export function ChartDateFilters({
       const range = calculatePresetRange(value);
       if (range) {
           setDateRange(range);
-          notifyParent(range.from, range.to);
+          notifyParent(range.from, range.to, value);
       }
   };
 
   const handleDateRangeSelect = (range) => {
       setDateRange(range);
       setSelectedPreset("custom"); // Set to custom when manually changed
-      notifyParent(range?.from, range?.to);
+      notifyParent(range?.from, range?.to, "custom");
   };
 
   return (

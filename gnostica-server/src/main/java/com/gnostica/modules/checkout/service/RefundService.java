@@ -17,10 +17,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -34,7 +36,6 @@ public class RefundService {
     private final OrderDetailRepository orderDetailRepository;
     private final PaymentRepository paymentRepository;
     private final EnrollmentRepository enrollmentRepository;
-    private final LessonProgressRepository lessonProgressRepository;
     private final GiftRepository giftRepository;
     private final WalletService walletService;
     private final NotificationService notificationService;
@@ -47,6 +48,8 @@ public class RefundService {
     public static final int INSTRUCTOR_HOLD_DAYS = 30;
     public static final int MANUAL_DEADLINE_BUFFER_MINUTES = 10;
     public static final String AUTO_REJECT_REASON = "Không đủ điều kiện";
+    /** Mỗi người tối đa số lần yêu cầu hoàn tiền trong 1 tháng (đếm theo bản ghi refund). */
+    public static final int MAX_REFUNDS_PER_MONTH = 5;
 
     @Transactional
     public RefundResponse requestRefund(Account account, RefundRequest req) {
@@ -68,6 +71,14 @@ public class RefundService {
 
         if (!order.getAccount().getId().equals(account.getId())) {
             throw new IllegalArgumentException("Bạn không có quyền thực hiện thao tác này");
+        }
+
+        // Giới hạn hoàn tiền: tối đa 5 yêu cầu/tháng/người (đếm theo bản ghi refund)
+        long refundCountThisMonth = refundRepository.countByAccountAndCreatedAtGreaterThanEqual(
+                account, LocalDate.now().withDayOfMonth(1).atStartOfDay());
+        if (refundCountThisMonth >= MAX_REFUNDS_PER_MONTH) {
+            throw new IllegalArgumentException("Bạn đã đạt giới hạn " + MAX_REFUNDS_PER_MONTH
+                    + " yêu cầu hoàn tiền trong tháng này.");
         }
 
         if (order.getStatus() != OrderStatus.PAID) {
@@ -109,6 +120,11 @@ public class RefundService {
         Integer progress = enrollment.getProgressPercent();
         if (progress == null) progress = 0;
 
+        // Không cho phép hoàn tiền khi đã hoàn thành khóa học (100%)
+        if (progress >= 100) {
+            throw new IllegalArgumentException("Bạn đã hoàn thành khóa học này, không thể hoàn tiền.");
+        }
+
         Refund refund = new Refund();
         refund.setOrderDetail(detail);
         refund.setAccount(account);
@@ -144,6 +160,12 @@ public class RefundService {
             refund.setStatus(RefundStatus.PENDING);
             refund = refundRepository.save(refund);
             
+            // Tạm khóa quyền truy cập khóa học trong lúc chờ duyệt hoàn tiền (Status 3 = PENDING_REFUND)
+            if (enrollment != null) {
+                enrollment.setStatus(3);
+                enrollmentRepository.save(enrollment);
+            }
+
             notificationService.createNotification(account, "Đã gửi yêu cầu hoàn tiền", 
                     "Yêu cầu hoàn tiền khóa học " + detail.getCourse().getTitle() + " đang chờ admin duyệt.", "REFUND_PENDING", refund.getId().toString());
                     
@@ -187,6 +209,11 @@ public class RefundService {
             refund.setReason(refund.getReason() + " | Từ chối tự động: " + AUTO_REJECT_REASON);
             refundRepository.save(refund);
 
+            if (enrollment != null && Objects.equals(enrollment.getStatus(), 3)) {
+                enrollment.setStatus(enrollment.getProgressPercent() != null && enrollment.getProgressPercent() == 100 ? 2 : 1);
+                enrollmentRepository.save(enrollment);
+            }
+
             notificationService.createNotification(refund.getAccount(), "Yêu cầu hoàn tiền bị từ chối", 
                     "Yêu cầu hoàn tiền khóa học " + detail.getCourse().getTitle() + " đã bị từ chối. Lý do: " + AUTO_REJECT_REASON, "REFUND_REJECTED", refund.getId().toString());
             return;
@@ -216,6 +243,13 @@ public class RefundService {
         refund.setReason(refund.getReason() + " | Từ chối: " + reason);
         refundRepository.save(refund);
 
+        // Khôi phục quyền truy cập khóa học cho học viên khi bị từ chối hoàn tiền
+        Enrollment enrollment = enrollmentRepository.findByAccountAndCourse(refund.getAccount(), refund.getOrderDetail().getCourse()).orElse(null);
+        if (enrollment != null && Objects.equals(enrollment.getStatus(), 3)) {
+            enrollment.setStatus(enrollment.getProgressPercent() != null && enrollment.getProgressPercent() == 100 ? 2 : 1);
+            enrollmentRepository.save(enrollment);
+        }
+
         notificationService.createNotification(refund.getAccount(), "Yêu cầu hoàn tiền bị từ chối", 
                 "Yêu cầu hoàn tiền khóa học " + refund.getOrderDetail().getCourse().getTitle() + " đã bị từ chối. Lý do: " + reason, "REFUND_REJECTED", refund.getId().toString());
     }
@@ -237,16 +271,10 @@ public class RefundService {
         // Thu hồi doanh thu giảng viên
         walletService.voidEarningsForOrderDetails(List.of(detail.getId()));
 
-        // Thu hồi quyền truy cập học tập
+        // Thu hồi quyền truy cập học tập (giữ nguyên tiến độ lesson để khi mua lại không bị về 0%)
         if (enrollment != null) {
             enrollment.setStatus(0); // Dropped
             enrollmentRepository.save(enrollment);
-
-            List<LessonProgress> progresses = lessonProgressRepository.findByAccountIdAndLessonModuleCourseId(enrollment.getAccount().getId(), detail.getCourse().getId());
-            for (LessonProgress lp : progresses) {
-                lp.setStatus(0);
-            }
-            lessonProgressRepository.saveAll(progresses);
         }
     }
 

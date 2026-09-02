@@ -10,6 +10,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MonthlyViolationDTO {
-    private String month;
+    private String label;
     private Long violations;
+
+    public String getMonth() {
+        return label;
+    }
 }

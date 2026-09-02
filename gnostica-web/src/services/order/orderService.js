@@ -33,6 +33,19 @@ const getOrders = async () => {
 };
 
 /**
+ * Lấy danh sách đơn hàng cá nhân
+ * @returns {Promise<Array>}
+ */
+const getMyOrders = async () => {
+    try {
+        const response = await axiosClient.get(`${API_URL}/my-orders`);
+        return response.data.data;
+    } catch (error) {
+        throw error.response?.data?.message || 'Không thể lấy danh sách đơn hàng!';
+    }
+};
+
+/**
  * Tạo đơn hàng và link thanh toán PayOS
  * @param {Object} data - Dữ liệu đơn hàng (CreatePaymentLinkRequestBody)
  * @returns {Promise<Object>} - Kết quả từ server (ApiResponse<CreatePaymentLinkResponse>)
@@ -116,6 +129,7 @@ const downloadInvoice = async (orderId, invoiceId) => {
 
 const orderService = {
     getOrders,
+    getMyOrders,
     createOrder,
     getOrderById,
     cancelOrder,

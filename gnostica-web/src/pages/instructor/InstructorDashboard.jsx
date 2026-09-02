@@ -18,8 +18,6 @@ function StatsGrid({ stats }) {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {stats.map((stat, i) => {
                 const Icon = stat.icon;
-                const trendValue = stat.trend ? parseFloat(stat.trend.replace(/[^0-9.-]+/g,"")) : 0;
-                const progressValue = isNaN(trendValue) ? 0 : Math.min(100, Math.max(5, Math.abs(trendValue) * 4));
 
                 return (
                     <AppCard appVariant="default" key={i} className="bg-card text-card-foreground border-none p-0">
@@ -28,42 +26,10 @@ function StatsGrid({ stats }) {
                                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center border ${stat.color}`}>
                                     <Icon className="w-5 h-5" />
                                 </div>
-                                <AppSelect 
-                                    value="this-month" 
-                                    onValueChange={() => {}}
-                                    options={[
-                                        { label: "Hôm nay", value: "today" },
-                                        { label: "Hôm qua", value: "yesterday" },
-                                        { label: "Tháng trước", value: "last-month" },
-                                        { label: "Tháng này", value: "this-month" },
-                                    ]}
-                                    className="!h-8 !py-1 !px-2 bg-transparent border-none shadow-none text-xs font-medium text-muted-foreground hover:bg-muted/50 rounded-md focus:ring-0 w-auto min-w-[100px]"
-                                />
                             </div>
                             <div>
                                 <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">{stat.title}</h3>
                                 <div className="text-2xl font-semibold text-foreground">{stat.value}</div>
-                            </div>
-                            
-                            <div className="mt-1">
-                                <div className="flex justify-end mb-1">
-                                    <span className="text-xs font-semibold text-foreground">
-                                        {Math.round(progressValue)}%
-                                    </span>
-                                </div>
-                                <AppProgress 
-                                    value={progressValue} 
-                                    heightClass="h-1.5" 
-                                    indicatorClassName={stat.isPositive ? "bg-success" : "bg-error"} 
-                                    className="bg-muted"
-                                />
-                                <div className="flex justify-between items-center mt-1.5">
-                                    <span className="text-xs font-medium text-muted-foreground">So với tháng trước</span>
-                                    <span className={`text-xs font-bold flex items-center gap-0.5 ${stat.isPositive ? 'text-success' : 'text-error'}`}>
-                                        {stat.isPositive ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-                                        {stat.trend}
-                                    </span>
-                                </div>
                             </div>
                         </AppCardContent>
                     </AppCard>

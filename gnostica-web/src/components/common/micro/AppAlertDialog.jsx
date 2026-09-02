@@ -41,36 +41,42 @@ export default function AppAlertDialog({
   onConfirm,
   hideCancel = false,
   variant = "default",
+  confirmVariant,
   icon,
   mediaClassName,
   confirmClassName,
   size = "default",
   layout = "default",
   open,
+  isOpen,
   onOpenChange,
+  onClose,
   contentClassName,
   ...props
 }) {
-  const IconComponent = icon !== undefined ? icon : alertIcons[variant];
+  const actualOpen = open !== undefined ? open : isOpen;
+  const actualOnOpenChange = onOpenChange || (onClose ? (val) => !val && onClose() : undefined);
+  const actualVariant = variant !== "default" ? variant : (confirmVariant || "default");
+  const IconComponent = icon !== undefined ? icon : alertIcons[actualVariant];
   const isCentered = layout === "centered";
   
   let actionVariant = "default";
   let actionClass = "rounded-md duration-300 transition-all font-semibold shadow-sm";
 
-  if (variant === "destructive") {
+  if (actualVariant === "destructive") {
     actionClass += " !bg-error hover:!bg-error/90 !text-white !border-none";
-  } else if (variant === "success") {
+  } else if (actualVariant === "success") {
     actionClass += " !bg-success hover:!bg-success/90 !text-white !border-none";
-  } else if (variant === "warning") {
+  } else if (actualVariant === "warning") {
     actionClass += " !bg-warning hover:!bg-warning/90 !text-white !border-none";
-  } else if (variant === "info") {
+  } else if (actualVariant === "info") {
     actionClass += " !bg-info hover:!bg-info/90 !text-white !border-none";
   } else {
     actionClass += " bg-accent-gradient text-white border-none hover:brightness-110";
   }
 
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange} {...props}>
+    <AlertDialog open={actualOpen} onOpenChange={actualOnOpenChange} {...props}>
       {trigger && <AlertDialogTrigger asChild>{trigger}</AlertDialogTrigger>}
       <AlertDialogContent 
         size={size} 

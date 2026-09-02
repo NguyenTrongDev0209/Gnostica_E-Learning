@@ -112,8 +112,11 @@ export default function RefundModerationList() {
   };
 
   const getStatusBadge = (status, label) => {
+    // Lưu ý: AdminTransactionResponse.refundStatus map raw RefundStatus sang PaymentStatus
+    // (1=PENDING, 2→4=REFUNDED, 3=FAILED) nên trạng thái "Đã hoàn tiền" có status = 4.
     switch (status) {
-      case 2: return <AppBadge variant="success" className="w-[100px] justify-center px-2.5 py-1 text-white">{label || "Đã duyệt"}</AppBadge>;
+      case 2:
+      case 4: return <AppBadge variant="success" className="w-[100px] justify-center px-2.5 py-1 text-white">{label || "Đã duyệt"}</AppBadge>;
       case 1: return <AppBadge variant="warning" className="w-[100px] justify-center px-2.5 py-1 text-white">{label || "Đang chờ"}</AppBadge>;
       case 3: return <AppBadge variant="error" className="w-[100px] justify-center px-2.5 py-1 text-white">{label || "Bị từ chối"}</AppBadge>;
       default: return <AppBadge variant="outline" className="w-[100px] justify-center px-2.5 py-1">{label || "Không rõ"}</AppBadge>;
@@ -331,13 +334,13 @@ export default function RefundModerationList() {
         emptyState="Không có yêu cầu hoàn tiền nào phù hợp."
       />
       <AppAlertDialog
-        isOpen={isApproveAlertOpen}
-        onClose={() => setIsApproveAlertOpen(false)}
+        open={isApproveAlertOpen}
+        onOpenChange={setIsApproveAlertOpen}
         onConfirm={handleApproveRefund}
         title="Duyệt hoàn tiền"
         description={`Bạn có chắc chắn muốn duyệt yêu cầu hoàn tiền cho đơn hàng ${selectedRefundAction?.tx?.transactionCode}? Hành động này sẽ cập nhật số dư ví giảng viên và thu hồi khóa học của học viên.`}
         confirmText="Duyệt"
-        confirmVariant="success"
+        variant="success"
         cancelText="Hủy"
       />
 

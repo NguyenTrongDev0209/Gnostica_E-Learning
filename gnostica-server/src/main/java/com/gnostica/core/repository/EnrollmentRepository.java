@@ -55,4 +55,8 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Integer>
     long countByCourseAccountId(java.util.UUID accountId);
     long countByCourseAccountIdAndProgressPercentEquals(java.util.UUID accountId, Integer progressPercent);
     long countByCourseAccountIdAndProgressPercentLessThan(java.util.UUID accountId, Integer progressPercent);
+    long countByProgressPercentEqualsAndCreatedAtBetween(Integer progressPercent, java.time.LocalDateTime startDate, java.time.LocalDateTime endDate);
+    long countByProgressPercentLessThanAndCreatedAtBetween(Integer progressPercent, java.time.LocalDateTime startDate, java.time.LocalDateTime endDate);
+    long countByCourseAccountIdAndProgressPercentEqualsAndCreatedAtBetween(java.util.UUID accountId, Integer progressPercent, java.time.LocalDateTime startDate, java.time.LocalDateTime endDate);
+    long countByCourseAccountIdAndProgressPercentLessThanAndCreatedAtBetween(java.util.UUID accountId, Integer progressPercent, java.time.LocalDateTime startDate, java.time.LocalDateTime endDate);
 }

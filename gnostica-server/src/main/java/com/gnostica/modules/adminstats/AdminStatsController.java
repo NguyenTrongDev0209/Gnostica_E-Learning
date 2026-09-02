@@ -3,12 +3,14 @@ package com.gnostica.modules.adminstats;
 import com.gnostica.core.dto.response.ApiResponse;
 import com.gnostica.modules.adminstats.dto.AdminStatsResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/admin/stats")
 @RequiredArgsConstructor
+@Slf4j
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminStatsController {
 
@@ -19,7 +21,7 @@ public class AdminStatsController {
         try {
             return ApiResponse.success(adminStatsService.getSupportsStats(months));
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Lỗi lấy thống kê hỗ trợ", e);
             return ApiResponse.error("fail");
         }
     }
@@ -29,7 +31,7 @@ public class AdminStatsController {
         try {
             return ApiResponse.success(adminStatsService.getRefundsStats(months));
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Lỗi lấy thống kê hoàn tiền", e);
             return ApiResponse.error("fail");
         }
     }
@@ -39,7 +41,7 @@ public class AdminStatsController {
         try {
             return ApiResponse.success(adminStatsService.getWithdrawalsStats(months));
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Lỗi lấy thống kê rút tiền", e);
             return ApiResponse.error("fail");
         }
     }
@@ -49,7 +51,7 @@ public class AdminStatsController {
         try {
             return ApiResponse.success(adminStatsService.getThreadReportsStats(months));
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Lỗi lấy thống kê báo cáo chủ đề", e);
             return ApiResponse.error("fail");
         }
     }

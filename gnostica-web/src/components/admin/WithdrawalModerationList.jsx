@@ -137,10 +137,15 @@ export default function WithdrawalModerationList() {
         dropdownChecklists={[
           {
             title: "Trạng thái",
+            // Giá trị phải là PayoutStatus THÔ (1..6) vì backend getWithdrawalsPaged
+            // lọc trực tiếp theo cột status của payouts (findByStatusIn...).
             items: [
-              { label: "Chờ xử lý", value: "1" },
-              { label: "Thành công", value: "2" },
-              { label: "Thất bại", value: "3" },
+              { label: "Chờ duyệt", value: "1" },
+              { label: "Đang chuyển", value: "2" },
+              { label: "Hoàn tất", value: "3" },
+              { label: "Lỗi", value: "4" },
+              { label: "Từ chối", value: "5" },
+              { label: "Chờ admin duyệt", value: "6" },
             ],
             selectedItems: statusFilter || [],
             onItemToggle: (val) => {

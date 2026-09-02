@@ -12,6 +12,7 @@ import com.gnostica.core.repository.LogRepository;
 import com.gnostica.core.repository.WalletRepository;
 import com.gnostica.modules.settings.service.CommissionResolver;
 import com.gnostica.modules.checkout.util.OrderPriceCalculator;
+import com.gnostica.modules.checkout.util.OrderRevenueCalculator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -48,41 +49,24 @@ public class WalletListener {
             if (instructor != null) {
                 // All amounts come from the order snapshot, so later course
                 // price changes cannot alter historical instructor revenue.
-                BigDecimal grossAmount = OrderPriceCalculator.amountAfterCourseDiscount(detail)
-                        .setScale(6, RoundingMode.HALF_UP);
-                BigDecimal couponAllocation = OrderPriceCalculator.couponAllocation(order, detail, details)
-                        .setScale(6, RoundingMode.HALF_UP);
-                BigDecimal netSaleAmount = grossAmount.subtract(couponAllocation)
-                        .setScale(6, RoundingMode.HALF_UP);
-                BigDecimal courseDiscountAmount = detail.getPrice().subtract(grossAmount)
-                        .setScale(6, RoundingMode.HALF_UP);
-                BigDecimal discountAmount = courseDiscountAmount.add(couponAllocation)
-                        .setScale(6, RoundingMode.HALF_UP);
                 CommissionResolver.ResolvedCommission commission = detail.getCommission() != null
                         ? new CommissionResolver.ResolvedCommission(
                                 detail.getCommission().getInstructorRatio(),
                                 detail.getCommission().getPlatformRatio(),
                                 detail.getCommission())
                         : commissionResolver.resolve(instructor, LocalDateTime.now());
-                boolean platformSponsoredCoupon = order.getCoupon() != null
-                        && order.getCoupon().getAccount() != null
-                        && order.getCoupon().getAccount().getRole() != null
-                        && "ADMIN".equalsIgnoreCase(order.getCoupon().getAccount().getRole().getName());
-                BigDecimal instructorAmount;
-                BigDecimal platformAmount;
-                if (platformSponsoredCoupon) {
-                    // Platform campaigns never reduce the instructor's agreed share.
-                    instructorAmount = grossAmount.multiply(commission.instructorRatio())
-                            .divide(new BigDecimal("100"), 6, RoundingMode.HALF_UP);
-                    platformAmount = netSaleAmount.subtract(instructorAmount).setScale(6, RoundingMode.HALF_UP);
-                } else {
-                    // Instructor coupons: the platform fee is based on the amount actually
-                    // collected after the coupon (netSaleAmount), so the discount is shared
-                    // proportionally and the instructor never ends up with a negative earning.
-                    platformAmount = netSaleAmount.multiply(commission.platformRatio())
-                            .divide(new BigDecimal("100"), 6, RoundingMode.HALF_UP);
-                    instructorAmount = netSaleAmount.subtract(platformAmount).setScale(6, RoundingMode.HALF_UP);
-                }
+                // Single source of truth for the revenue split (kept in sync with
+                // OrderRevenueCalculator used by dashboards & admin reports).
+                OrderRevenueCalculator.Split split = OrderRevenueCalculator.split(
+                        order, detail, details, commission.instructorRatio(), commission.platformRatio());
+                BigDecimal grossAmount = split.grossAmount;
+                BigDecimal couponAllocation = split.couponAllocation;
+                BigDecimal netSaleAmount = split.netSaleAmount;
+                BigDecimal courseDiscountAmount = split.courseDiscountAmount;
+                BigDecimal discountAmount = split.discountAmount;
+                BigDecimal instructorAmount = split.instructorAmount;
+                BigDecimal platformAmount = split.platformAmount;
+                boolean platformSponsoredCoupon = OrderRevenueCalculator.isPlatformSponsoredCoupon(order);
 
                 Wallet wallet = new Wallet();
                 wallet.setAccount(instructor);

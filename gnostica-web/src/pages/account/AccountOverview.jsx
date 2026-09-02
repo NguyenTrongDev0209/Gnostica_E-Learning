@@ -13,9 +13,11 @@ import AppPageHeader from "@/components/common/composite/AppPageHeader";
 import { AppDialog } from "@/components/common/micro/AppDialog";
 import ApplyInstructor from "@/pages/general/ApplyInstructor";
 import WithdrawModal from "@/components/common/composite/WithdrawModal";
+import RefundRequestDialog from "./components/RefundRequestDialog";
 
 export default function AccountOverview() {
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedRefundCourse, setSelectedRefundCourse] = useState(null);
   const [isInstructorDialogOpen, setIsInstructorDialogOpen] = useState(false);
   const [instructorDialogMode, setInstructorDialogMode] = useState("intro");
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
@@ -126,19 +128,40 @@ export default function AccountOverview() {
           ) : (
             <div className="space-y-6">
               <div className="space-y-4">
-                {paginatedCourses.map((course) => (
-                  <CourseProgressCard
-                    key={course.id}
-                    id={course.id}
-                    title={course.courseTitle}
-                    category={course.category}
-                    image={course.thumbnail}
-                    instructor={course.instructor}
-                    progressPercent={course.progressPercent}
-                    lastAccessed={course.lastAccessed}
-                    link={`/learning/${course.slug}`}
-                  />
-                ))}
+                {paginatedCourses.map((course) => {
+                  const courseSlug = course.courseSlug || course.slug;
+                  const learningLink = courseSlug ? `/learning/${courseSlug}` : null;
+                  const restartLink = courseSlug ? `/learning/${courseSlug}?lesson=${course.firstLessonId}&restart=true` : null;
+
+                  const instructorName = course.instructorName || course.instructor?.name || course.instructor?.fullName || course.authorName || course.creatorName || course.account?.fullName || "Giảng viên Gnostica";
+                  const instructorObj = typeof course.instructorName === 'object' && course.instructorName !== null
+                    ? course.instructorName
+                    : {
+                        name: instructorName,
+                        avatar: course.instructorAvatar || course.instructor?.avatar || course.account?.avatarUrl || course.account?.avatar
+                      };
+
+                  return (
+                    <CourseProgressCard
+                      key={course.id || course.courseId}
+                      id={course.courseId || course.id}
+                      title={course.courseTitle}
+                      category={course.category}
+                      image={course.courseThumbnail || course.thumbnail}
+                      instructor={instructorObj}
+                      progressPercent={course.progressPercent}
+                      lastAccessed={course.lastAccessed}
+                      completedAt={course.completedAt}
+                      joinedAt={course.joinedAt}
+                      firstLessonId={course.firstLessonId}
+                      lastWatchedLessonSlug={course.lastWatchedLessonSlug}
+                      certifiUrl={course.certificateUrl || course.certifiUrl}
+                      link={learningLink}
+                      restartLink={restartLink}
+                      onRefundClick={setSelectedRefundCourse}
+                    />
+                  );
+                })}
               </div>
               <AppPagination 
                 currentPage={currentPage}
@@ -169,6 +192,12 @@ export default function AccountOverview() {
         wallet={wallet}
         user={user}
         onSuccess={() => { window.location.reload() }}
+      />
+
+      <RefundRequestDialog 
+        isOpen={!!selectedRefundCourse}
+        course={selectedRefundCourse}
+        onClose={() => setSelectedRefundCourse(null)}
       />
     </div>
   );

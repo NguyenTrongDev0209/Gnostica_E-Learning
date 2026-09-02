@@ -9,13 +9,13 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class RevenueMonthDTO {
+public class RefundMonthDTO {
     private String label;
-    private Double revenue;
-    private Double instructorRevenue;
-    private Double platformRevenue;
-    private Double withdrawable;
-    private Long orders;
+    private Double refundedAmount;
+    private Long approvedCount;
+    private Long rejectedCount;
+    private Long pendingCount;
+    private Long totalRequests;
 
     public String getMonth() {
         return label;
