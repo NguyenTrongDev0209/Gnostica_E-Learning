@@ -57,8 +57,14 @@ export const getPublicPage = async (slug) => {
 };
 
 export const getPublicTermsMenu = async () => {
-  const response = await axiosClient.get("/public/pages/terms-menu");
+  const response = await axiosClient.get("/public/terms/menu");
   return unwrap(response) || [];
+};
+
+export const getPublicTerm = async (path) => {
+  const clean = (path || "").replace(/^\/+/, "");
+  const response = await axiosClient.get(`/public/terms/${clean}`);
+  return unwrap(response);
 };
 
 export const getAdminPages = async () => {
@@ -83,7 +89,11 @@ export const deleteAdminPage = async (id) => {
 
 export const getAdminTerms = async () => unwrap(await axiosClient.get("/admin/terms")) || [];
 export const createAdminTermModule = async (payload) => unwrap(await axiosClient.post("/admin/terms/modules", payload));
+export const updateAdminTermModule = async ({ id, ...payload }) => unwrap(await axiosClient.put(`/admin/terms/modules/${id}`, payload));
+export const deleteAdminTermModule = async (id) => unwrap(await axiosClient.delete(`/admin/terms/modules/${id}`));
 export const createAdminTerm = async (payload) => unwrap(await axiosClient.post("/admin/terms", payload));
+export const updateAdminTerm = async ({ id, ...payload }) => unwrap(await axiosClient.put(`/admin/terms/${id}`, payload));
+export const deleteAdminTerm = async (id) => unwrap(await axiosClient.delete(`/admin/terms/${id}`));
 
 export const getGlobalCommissions = async () => unwrap(await axiosClient.get("/admin/commissions")) || [];
 export const getActiveCommission = async () => unwrap(await axiosClient.get("/admin/commissions/active"));
