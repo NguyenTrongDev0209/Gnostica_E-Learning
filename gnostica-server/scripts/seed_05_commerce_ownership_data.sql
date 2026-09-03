@@ -5,7 +5,7 @@
 -- reviews deliberately belong to later seed files.
 --
 -- Scale: 25,000 orders / details / payments; 20,000 enrollments and wallet
--- records; 800 coupons; 400 payouts; 35,000 notifications; 17,500 logs.
+-- records; 400 payouts; 35,000 notifications; 17,500 logs.
 --
 -- Prerequisites:
 --   1. seed_00_seed_journal.sql
@@ -13,13 +13,6 @@
 --   3. seed_02_category_topic_data.sql
 --   4. seed_03_course_learning_data.sql
 --   5. At least one active bank record (normally supplied by bank synchronisation).
---
--- Coupon convention for this SQL seed:
---   code      = GNS-XXXXXX (six uppercase letters/digits after GNS-)
---   code_hash = PLAIN:<same-code>
--- CouponService recognises the PLAIN: marker and accepts the raw code entered
--- by a user. Codes are unique inside this seed and cannot be recreated through
--- the application because CouponService also checks raw-code collisions.
 --
 -- The seed is insert-only and can be reverted with undo_last_seed.sql.
 
@@ -67,7 +60,7 @@ WITH new_run AS (
         'RUNNING',
         jsonb_build_object(
             'seed_batch', 'gnostica-commerce-v1',
-            'orders', 25000, 'coupons', 800, 'payouts', 400,
+            'orders', 25000, 'payouts', 400,
             'learning_progress_included', false
         ),
         NOW()
@@ -149,52 +142,6 @@ FROM commissions c
 WHERE c.status = 1
 ORDER BY c.created_at DESC LIMIT 1;
 
--- 800 valid-format coupon codes. The first 400 are platform campaigns and are
--- used by successful orders; other coupons exercise owner/status variations.
-CREATE TEMP TABLE seed_coupon_plan (
-    coupon_no INT PRIMARY KEY,
-    coupon_id UUID NOT NULL UNIQUE,
-    account_id UUID NOT NULL,
-    code TEXT NOT NULL UNIQUE,
-    discount_type INT NOT NULL,
-    discount_value NUMERIC(18,6) NOT NULL,
-    max_discount NUMERIC(18,6),
-    status INT NOT NULL,
-    metadata JSONB NOT NULL
-) ON COMMIT DROP;
-
-INSERT INTO seed_coupon_plan
-SELECT n,
-       gen_random_uuid(),
-       CASE WHEN n <= 400 THEN '00000000-0000-0000-0000-000000000001'::UUID
-            ELSE (SELECT i.account_id FROM seed_instructors i ORDER BY ((i.instructor_no * 17 + n) % 997) LIMIT 1)
-       END,
-       'GNS-' ||
-           substr('ABCDEFGHJKLMNPQRSTUVWXYZ', 1 + ((n * 7) % 24), 1) ||
-           substr('ABCDEFGHJKLMNPQRSTUVWXYZ', 1 + ((n * 13) % 24), 1) ||
-           upper(lpad(to_hex(n), 4, '0')),
-       CASE WHEN n % 4 = 0 THEN 2 ELSE 1 END,
-       CASE WHEN n % 4 = 0 THEN (ARRAY[20000, 30000, 50000]::NUMERIC[])[1 + (n % 3)]
-            ELSE (ARRAY[5, 10, 15, 20]::NUMERIC[])[1 + (n % 4)] END,
-       CASE WHEN n % 4 = 0 THEN NULL ELSE (ARRAY[100000, 150000, 200000]::NUMERIC[])[1 + (n % 3)] END,
-       CASE WHEN n <= 600 THEN 1 WHEN n <= 700 THEN 2 ELSE 0 END,
-       CASE WHEN n <= 400
-            THEN jsonb_build_object('scope', 'ALL_PLATFORM', 'courseIds', jsonb_build_array(), 'categoryIds', jsonb_build_array())
-            ELSE jsonb_build_object('scope', 'ALL_OWNER_COURSES', 'courseIds', jsonb_build_array(), 'categoryIds', jsonb_build_array())
-       END
-FROM generate_series(1, 800) AS n;
-
-DO $$
-BEGIN
-    IF EXISTS (
-        SELECT 1
-        FROM seed_coupon_plan plan
-        JOIN coupons coupon ON lower(coupon.code) = lower(plan.code)
-    ) THEN
-        RAISE EXCEPTION 'A raw coupon code in this seed already exists.';
-    END IF;
-END $$;
-
 -- Pick unique account/course pairs. The total cohort capacity is 25,080; the
 -- final limit makes exactly 25,000 orders without duplicate enrollments.
 CREATE TEMP TABLE seed_purchase_plan ON COMMIT DROP AS
@@ -215,70 +162,26 @@ WITH selected_pairs AS (
                WHEN purchase_no <= 22500 THEN -1
                ELSE 2
            END AS order_status,
-           1 + ((purchase_no * 7) % 12) AS commission_slot,
-           CASE WHEN purchase_no <= 17500 AND purchase_no % 5 IN (0, 1)
-                THEN 1 + ((purchase_no * 37) % 400) END AS coupon_no
+           1 + ((purchase_no * 7) % 12) AS commission_slot
     FROM numbered
 ), priced AS (
-    SELECT classified.*, coupon.coupon_id,
-           round(classified.price * (100 - COALESCE(classified.discount, 0)) / 100, 6) AS gross_price,
-           coupon.discount_type AS coupon_discount_type,
-           coupon.discount_value AS coupon_discount_value,
-           coupon.max_discount AS coupon_max_discount
+    SELECT classified.*,
+           round(classified.price * (100 - COALESCE(classified.discount, 0)) / 100, 6) AS gross_price
     FROM classified
-    LEFT JOIN seed_coupon_plan coupon ON coupon.coupon_no = classified.coupon_no
-), discounted AS (
-    SELECT priced.*,
-           CASE
-               WHEN coupon_id IS NULL THEN 0::NUMERIC
-               WHEN coupon_discount_type = 1 THEN LEAST(gross_price * coupon_discount_value / 100, coupon_max_discount)
-               ELSE LEAST(gross_price, coupon_discount_value)
-           END AS coupon_amount
-    FROM priced
 )
 SELECT purchase_no,
        gen_random_uuid() AS order_id,
        gen_random_uuid() AS order_detail_id,
        gen_random_uuid() AS payment_id,
-       account_id, course_id, instructor_id, coupon_id, coupon_no,
+       account_id, course_id, instructor_id,
+       NULL::UUID AS coupon_id,
        order_status, COALESCE(discount, 0) AS course_discount,
-       gross_price, round(GREATEST(gross_price - coupon_amount, 0), 6) AS final_price,
+       gross_price, gross_price AS final_price,
        (NOW() - INTERVAL '800 days'
            + (commission_slot * 60) * INTERVAL '1 day'
            + ((purchase_no * 19) % 45) * INTERVAL '1 day'
            + ((purchase_no * 13) % 18) * INTERVAL '1 hour')::TIMESTAMP AS created_at
-FROM discounted;
-
-CREATE TEMP TABLE seed_coupon_usage ON COMMIT DROP AS
-SELECT coupon_no, count(*)::INT AS paid_uses
-FROM seed_purchase_plan
-WHERE order_status = 1 AND coupon_no IS NOT NULL
-GROUP BY coupon_no;
-
-WITH inserted AS (
-    INSERT INTO coupons (
-        id, account_id, code, code_hash, name, discount_type, discount_value,
-        min_discount, max_discount, quantity, reserved_quantity, valid_from,
-        valid_until, status, metadata, created_at, updated_at, deleted_at
-    )
-    SELECT plan.coupon_id, plan.account_id, plan.code, 'PLAIN:' || plan.code,
-           CASE WHEN plan.discount_type = 1 THEN 'Ưu đãi học phí ' || (plan.discount_value::INT)::TEXT || '%'
-                ELSE 'Ưu đãi học phí ' || to_char(plan.discount_value, 'FM999G999G999') || 'đ' END,
-           plan.discount_type, plan.discount_value, 0, plan.max_discount,
-           CASE WHEN plan.coupon_no <= 400 THEN 60 - COALESCE(usage.paid_uses, 0)
-                ELSE 10 + ((plan.coupon_no * 11) % 51) END,
-           0,
-           NOW() - INTERVAL '780 days',
-           CASE WHEN plan.status = 2 THEN NOW() - INTERVAL '10 days' ELSE NOW() + INTERVAL '180 days' END,
-           plan.status, plan.metadata,
-           NOW() - ((plan.coupon_no * 7) % 720) * INTERVAL '1 day', NOW(), NULL
-    FROM seed_coupon_plan plan
-    LEFT JOIN seed_coupon_usage usage ON usage.coupon_no = plan.coupon_no
-    RETURNING id
-)
-INSERT INTO seed_run_items (run_id, table_name, record_id)
-SELECT context.run_id, 'coupons', inserted.id::TEXT
-FROM inserted CROSS JOIN seed_context context;
+FROM priced;
 
 WITH inserted AS (
     INSERT INTO orders (
@@ -488,7 +391,6 @@ DECLARE
     v_enrollments INT;
     v_wallets INT;
     v_payouts INT;
-    v_coupons INT;
     v_commissions INT;
     v_banks INT;
     v_refunds INT;
@@ -503,7 +405,6 @@ BEGIN
     SELECT count(*) INTO v_enrollments FROM seed_run_items item JOIN seed_context context ON context.run_id = item.run_id WHERE item.table_name = 'enrollments';
     SELECT count(*) INTO v_wallets FROM seed_wallet_plan;
     SELECT count(*) INTO v_payouts FROM seed_payout_plan;
-    SELECT count(*) INTO v_coupons FROM seed_run_items item JOIN seed_context context ON context.run_id = item.run_id WHERE item.table_name = 'coupons';
     SELECT count(*) INTO v_banks FROM seed_run_items item JOIN seed_context context ON context.run_id = item.run_id WHERE item.table_name = 'account_banks';
     SELECT count(*) INTO v_refunds FROM seed_run_items item JOIN seed_context context ON context.run_id = item.run_id WHERE item.table_name = 'refunds';
     SELECT count(*) INTO v_logs FROM seed_run_items item JOIN seed_context context ON context.run_id = item.run_id WHERE item.table_name = 'logs';
@@ -511,11 +412,11 @@ BEGIN
 
     IF v_orders <> 25000 OR v_details <> 25000 OR v_payments <> 25000
        OR v_enrollments <> 20000 OR v_wallets <> 20000 OR v_payouts <> 400
-       OR v_coupons <> 800 OR v_banks <> 40
+       OR v_banks <> 40
        OR v_refunds <> 2500 OR v_logs <> 17500 OR v_notifications <> 35000 THEN
-        RAISE EXCEPTION 'Unexpected commerce counts: orders %, details %, payments %, enrollments %, wallets %, payouts %, coupons %, banks %, refunds %, logs %, notifications %.',
+        RAISE EXCEPTION 'Unexpected commerce counts: orders %, details %, payments %, enrollments %, wallets %, payouts %, banks %, refunds %, logs %, notifications %.',
             v_orders, v_details, v_payments, v_enrollments, v_wallets, v_payouts,
-            v_coupons, v_banks, v_refunds, v_logs, v_notifications;
+            v_banks, v_refunds, v_logs, v_notifications;
     END IF;
 
     IF EXISTS (
@@ -546,18 +447,6 @@ BEGIN
            OR (plan.order_status = 2 AND (payment.status <> 4 OR detail.status <> 0))
     ) THEN
         RAISE EXCEPTION 'Order, payment and order-detail statuses are inconsistent.';
-    END IF;
-
-    IF EXISTS (
-        SELECT 1
-        FROM coupons coupon
-        JOIN seed_context context ON true
-        JOIN seed_run_items item ON item.run_id = context.run_id AND item.table_name = 'coupons' AND item.record_id = coupon.id::TEXT
-        WHERE coupon.code !~ '^GNS-[A-Z0-9]{6}$'
-           OR coupon.code_hash <> 'PLAIN:' || coupon.code
-           OR coupon.quantity < 0
-    ) THEN
-        RAISE EXCEPTION 'Seeded coupon format, plaintext marker or quantity is invalid.';
     END IF;
 
     IF EXISTS (
