@@ -348,8 +348,7 @@ function RefundStatsChart({ refundData, stats, onFilterChange }) {
     const formatYAxis = (value) => value >= 1000000 ? `${(value / 1000000).toFixed(0)}M` : value >= 1000 ? `${(value / 1000).toFixed(0)}K` : `${value}`;
 
     const refundConfig = {
-        refundedAmount: { label: "Tiền đã hoàn", color: "var(--destructive)" },
-        pendingCount: { label: "Chờ xử lý", color: "var(--warning)" }
+        refundedAmount: { label: "Tiền đã hoàn", color: "var(--destructive)" }
     };
 
     return (
@@ -388,19 +387,13 @@ function RefundStatsChart({ refundData, stats, onFilterChange }) {
                         <ChartTooltip 
                             content={
                                 <ChartTooltipContent 
-                                    formatter={(value, name) => {
-                                        if (name === "Tiền đã hoàn" || name === "refundedAmount") {
-                                            return `${value.toLocaleString()}đ`;
-                                        }
-                                        return `${value} yêu cầu`;
-                                    }} 
+                                    formatter={(value) => `${Number(value || 0).toLocaleString()}đ`} 
                                 />
                             } 
                         />
                         <ChartLegend content={<ChartLegendContent />} />
                         
                         <Bar dataKey="refundedAmount" name="Tiền đã hoàn" fill="var(--destructive)" radius={[4, 4, 0, 0]} maxBarSize={40} />
-                        <Line type="monotone" dataKey="pendingCount" name="Chờ xử lý" stroke="var(--warning)" strokeWidth={2} strokeDasharray="4 4" dot={{ r: 4 }} activeDot={{ r: 6 }} />
                     </ComposedChart>
                 </ChartContainer>
             </AppCardContent>
