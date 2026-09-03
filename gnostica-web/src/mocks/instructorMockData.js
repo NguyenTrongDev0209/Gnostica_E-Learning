@@ -1,7 +1,7 @@
 // src/mocks/instructorMockData.js
 import { DollarSign, Users, Star, Activity, FileText, CheckSquare } from "lucide-react";
 
-export const USE_INSTRUCTOR_MOCK = true;
+export const USE_INSTRUCTOR_MOCK = false;
 
 const today = new Date().toISOString();
 const yesterday = new Date(Date.now() - 86400000).toISOString();

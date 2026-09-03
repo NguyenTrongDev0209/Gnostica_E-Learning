@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import com.gnostica.core.security.AuthenticatedAccountProvider;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -18,11 +19,13 @@ import java.util.HashMap;
 
 @RestController
 @RequestMapping("/api/threads")
-@CrossOrigin(origins = "*", maxAge = 3600)
 public class ThreadController {
 
     @Autowired
     private ThreadService threadService;
+
+    @Autowired
+    private AuthenticatedAccountProvider authenticatedAccountProvider;
 
     @GetMapping
     public ResponseEntity<?> getAllThreads(
@@ -72,7 +75,6 @@ public class ThreadController {
     public ResponseEntity<?> createThread(
             @RequestParam(value = "title", required = false) String title,
             @RequestParam(value = "content", required = false) String content,
-            @RequestParam(value = "authorEmail", required = false) String authorEmail,
             @RequestParam(value = "topicId", required = false) Integer topicId,
             @RequestParam(value = "categoryId", required = false) Integer categoryId,
             @RequestParam(value = "hashtags", required = false) String hashtagsStr,
@@ -81,9 +83,8 @@ public class ThreadController {
             if (content == null || content.trim().isEmpty()) {
                 return ResponseEntity.badRequest().body("Missing required field: content");
             }
-            if (authorEmail == null || authorEmail.trim().isEmpty()) {
-                return ResponseEntity.badRequest().body("Missing required field: authorEmail. Please make sure you are logged in.");
-            }
+            
+            String authorEmail = authenticatedAccountProvider.requireCurrentAccount().getEmail();
 
             // Parse hashtags from comma-separated string
             List<String> hashtags = new java.util.ArrayList<>();
@@ -106,15 +107,9 @@ public class ThreadController {
     }
 
     @PostMapping("/{id}/like")
-    public ResponseEntity<?> likeThread(@PathVariable Integer id, @RequestBody Map<String, String> payload) {
+    public ResponseEntity<?> likeThread(@PathVariable Integer id) {
         try {
-            String userEmail = payload.get("userEmail");
-            if (userEmail == null || userEmail.isEmpty()) {
-                userEmail = payload.get("email");
-            }
-            if (userEmail == null || userEmail.isEmpty()) {
-                return ResponseEntity.badRequest().body("Lỗi: Yêu cầu cung cấp Email người dùng!");
-            }
+            String userEmail = authenticatedAccountProvider.requireCurrentAccount().getEmail();
             return ResponseEntity.ok(threadService.likeThread(id, userEmail));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -212,7 +207,7 @@ public class ThreadController {
         try {
             String reason = payload.get("reason");
             if (reason == null || reason.trim().isEmpty()) {
-                return ResponseEntity.badRequest().body("Lỗi: Yêu cầu cung cấp lý do từ chối!");
+                return ResponseEntity.badRequest().body("Lá»—i: YÃªu cáº§u cung cáº¥p lÃ½ do tá»« chá»‘i!");
             }
             threadService.rejectThread(id, reason);
             return ResponseEntity.ok(Map.of("message", "Thread rejected successfully"));
@@ -248,10 +243,7 @@ public class ThreadController {
     @PostMapping("/{id}/vote")
     public ResponseEntity<?> voteThread(@PathVariable Integer id, @RequestBody Map<String, Object> payload) {
         try {
-            String userEmail = (String) payload.get("email");
-            if (userEmail == null || userEmail.isEmpty()) {
-                userEmail = (String) payload.get("userEmail");
-            }
+            String userEmail = authenticatedAccountProvider.requireCurrentAccount().getEmail();
             Object voteValueObj = payload.get("voteValue");
             Integer voteValue = null;
             if (voteValueObj instanceof Number) {
@@ -259,11 +251,9 @@ public class ThreadController {
             } else if (voteValueObj instanceof String) {
                 voteValue = Integer.parseInt((String) voteValueObj);
             }
-            if (userEmail == null || userEmail.isEmpty()) {
-                return ResponseEntity.badRequest().body("Lỗi: Yêu cầu cung cấp Email người dùng!");
-            }
+            
             if (voteValue == null) {
-                return ResponseEntity.badRequest().body("Lỗi: Yêu cầu cung cấp giá trị vote!");
+                return ResponseEntity.badRequest().body("Lá»—i: YÃªu cáº§u cung cáº¥p giÃ¡ trá»‹ vote!");
             }
             return ResponseEntity.ok(threadService.voteThread(id, userEmail, voteValue));
         } catch (Exception e) {

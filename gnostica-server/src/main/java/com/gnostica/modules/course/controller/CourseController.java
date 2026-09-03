@@ -17,6 +17,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -26,13 +27,13 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/courses")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*") // Adjust based on your env
 public class CourseController {
 
     private final CourseService courseService;
     private final BunnyTranscriptionService bunnyTranscriptionService;
     private final AiModerationService aiModerationService;
     private final LessonPlaybackService lessonPlaybackService;
+    private final com.gnostica.modules.course.service.CourseReportService courseReportService;
     
     @GetMapping
     public ResponseEntity<?> getPublicCourses(
@@ -65,12 +66,12 @@ public class CourseController {
         try {
             Course savedCourse = courseService.createCourse(request, email);
             Map<String, Object> response = new HashMap<>();
-            response.put("message", "Thêm khóa học thành công");
+            response.put("message", "ThÃªm khÃ³a há»c thÃ nh cÃ´ng");
             response.put("courseId", savedCourse.getId());
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             Map<String, Object> error = new HashMap<>();
-            error.put("error", "Lỗi tạo khóa học: " + e.getMessage());
+            error.put("error", "Lá»—i táº¡o khÃ³a há»c: " + e.getMessage());
             return ResponseEntity.badRequest().body(error);
         }
     }
@@ -119,7 +120,7 @@ public class CourseController {
             return ResponseEntity.ok(updatedCourse);
         } catch (Exception e) {
             Map<String, Object> error = new HashMap<>();
-            error.put("error", "Lỗi cập nhật khóa học: " + e.getMessage());
+            error.put("error", "Lá»—i cáº­p nháº­t khÃ³a há»c: " + e.getMessage());
             return ResponseEntity.badRequest().body(error);
         }
     }
@@ -130,11 +131,11 @@ public class CourseController {
         try {
             courseService.deleteCourse(id, email);
             Map<String, String> response = new HashMap<>();
-            response.put("message", "Xóa khóa học thành công");
+            response.put("message", "XÃ³a khÃ³a há»c thÃ nh cÃ´ng");
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             Map<String, String> error = new HashMap<>();
-            error.put("error", "Lỗi xóa khóa học: " + e.getMessage());
+            error.put("error", "Lá»—i xÃ³a khÃ³a há»c: " + e.getMessage());
             return ResponseEntity.badRequest().body(error);
         }
     }
@@ -161,7 +162,7 @@ public class CourseController {
         String email = authentication.getName();
         Integer newStatus = statusUpdate.get("status");
         if (newStatus == null) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Vui lòng cung cấp trạng thái mới"));
+            return ResponseEntity.badRequest().body(Map.of("error", "Vui lÃ²ng cung cáº¥p tráº¡ng thÃ¡i má»›i"));
         }
         try {
             CourseDetailResponse updated = courseService.patchCourseStatus(id, newStatus, email);
@@ -171,6 +172,31 @@ public class CourseController {
         }
     }
 
+    @PostMapping("/{slug}/reports")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Map<String, Object>> submitReport(
+            @PathVariable String slug,
+            @Valid @RequestBody com.gnostica.modules.course.dto.request.CourseReportRequest request,
+            Authentication authentication
+    ) {
+        courseReportService.submitReport(authentication.getName(), slug, request);
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Báo cáo đã được gửi thành công"
+        ));
+    }
+
+    @GetMapping("/{slug}/reports/check")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Map<String, Object>> checkPendingReport(
+            @PathVariable String slug,
+            Authentication authentication
+    ) {
+        boolean hasPending = courseReportService.hasPendingReport(authentication.getName(), slug);
+        return ResponseEntity.ok(Map.of(
+                "hasPending", hasPending
+        ));
+    }
 
     @PostMapping("/ai-pre-scan-text")
     public ResponseEntity<String> preScanText(@RequestBody Map<String, String> body) {
@@ -205,7 +231,7 @@ public class CourseController {
             Authentication authentication
     ) {
         if (authentication == null) {
-            return ResponseEntity.status(401).body(Map.of("error", "Vui lòng đăng nhập để nhận gợi ý"));
+            return ResponseEntity.status(401).body(Map.of("error", "Vui lÃ²ng Ä‘Äƒng nháº­p Ä‘á»ƒ nháº­n gá»£i Ã½"));
         }
         String email = authentication.getName();
         return ResponseEntity.ok(courseService.getRecommendedCourses(email, page, size));

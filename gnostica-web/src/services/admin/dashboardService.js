@@ -17,22 +17,38 @@ const getAuthHeaders = () => {
     return {};
 };
 
-const getStats = async () => {
+const buildRangeParams = (param) => {
+    if (!param) return undefined;
+    if (typeof param === 'object') {
+        const { start, end, months } = param;
+        const res = {};
+        if (start) res.start = start;
+        if (end) res.end = end;
+        if (months) res.months = months;
+        return Object.keys(res).length > 0 ? res : undefined;
+    }
+    return { months: param };
+};
+
+const getStats = async (period) => {
     const response = await axiosClient.get(`${API_URL}/stats`, {
+        params: period ? { period } : undefined,
         headers: getAuthHeaders()
     });
     return response.data.data;
 };
 
-const getMemberGrowth = async () => {
+const getMemberGrowth = async (params) => {
     const response = await axiosClient.get(`${API_URL}/member-growth`, {
+        params: buildRangeParams(params),
         headers: getAuthHeaders()
     });
     return response.data.data;
 };
 
-const getRevenue = async () => {
+const getRevenue = async (params) => {
     const response = await axiosClient.get(`${API_URL}/revenue`, {
+        params: buildRangeParams(params),
         headers: getAuthHeaders()
     });
     return response.data.data;
@@ -52,12 +68,65 @@ const getTopCourses = async () => {
     return response.data.data;
 };
 
+const getTopInstructors = async (period) => {
+    const response = await axiosClient.get(`${API_URL}/top-instructors`, {
+        params: period ? { period } : undefined,
+        headers: getAuthHeaders()
+    });
+    return response.data.data;
+};
+
+const getStudentProductivity = async (period) => {
+    const response = await axiosClient.get(`${API_URL}/student-productivity`, {
+        params: period ? { period } : undefined,
+        headers: getAuthHeaders()
+    });
+    return response.data.data;
+};
+
+const getUserDemographics = async () => {
+    const response = await axiosClient.get(`${API_URL}/user-demographics`, {
+        headers: getAuthHeaders()
+    });
+    return response.data.data;
+};
+
+const getUserRatings = async (params) => {
+    const response = await axiosClient.get(`${API_URL}/user-ratings`, {
+        params: buildRangeParams(params),
+        headers: getAuthHeaders()
+    });
+    return response.data.data;
+};
+
+const getViolations = async (params) => {
+    const response = await axiosClient.get(`${API_URL}/violations`, {
+        params: buildRangeParams(params),
+        headers: getAuthHeaders()
+    });
+    return response.data.data;
+};
+
+const getRefunds = async (params) => {
+    const response = await axiosClient.get(`${API_URL}/refunds`, {
+        params: buildRangeParams(params),
+        headers: getAuthHeaders()
+    });
+    return response.data.data;
+};
+
 const dashboardService = {
     getStats,
     getMemberGrowth,
     getRevenue,
+    getRefunds,
     getRecentOrders,
-    getTopCourses
+    getTopCourses,
+    getTopInstructors,
+    getStudentProductivity,
+    getUserDemographics,
+    getUserRatings,
+    getViolations
 };
 
 export default dashboardService;

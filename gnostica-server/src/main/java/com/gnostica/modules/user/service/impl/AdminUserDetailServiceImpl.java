@@ -5,12 +5,15 @@ import com.gnostica.core.model.Module;
 import com.gnostica.core.repository.*;
 import com.gnostica.modules.user.dto.response.*;
 import com.gnostica.modules.user.service.AdminUserDetailService;
+import com.gnostica.modules.checkout.util.OrderRevenueCalculator;
+import com.gnostica.modules.settings.service.CommissionResolver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -45,6 +48,8 @@ public class AdminUserDetailServiceImpl implements AdminUserDetailService {
     private ModuleRepository moduleRepository;
     @Autowired
     private LogRepository logRepository;
+    @Autowired
+    private CommissionResolver commissionResolver;
     
     @Override
     public AdminUserSummaryDTO getUserSummary(UUID userId) {
@@ -195,17 +200,28 @@ public class AdminUserDetailServiceImpl implements AdminUserDetailService {
     public Page<AdminIncomeDTO> getUserIncomes(UUID userId, Pageable pageable) {
         return orderDetailRepository.findByCourseAccountIdAndOrderStatusOrderByOrderCreatedAtDesc(userId, 1, pageable)
                 .map(od -> {
-                    BigDecimal ratio = od.getCommission() != null && od.getCommission().getInstructorRatio() != null 
-                            ? od.getCommission().getInstructorRatio() : new BigDecimal(100);
-                    BigDecimal income = od.getPrice().multiply(ratio).divide(new BigDecimal(100));
+                    // Thu nhập thực nhận phải dựa trên số tiền học viên thực trả (sau
+                    // giảm giá khóa học & coupon) chứ không phải giá gốc, đồng bộ với
+                    // cách WalletListener hạch toán sổ cái ví.
+                    BigDecimal instructorRatio = od.getCommission() != null && od.getCommission().getInstructorRatio() != null
+                            ? od.getCommission().getInstructorRatio()
+                            : commissionResolver.resolve(od.getCourse().getAccount(), LocalDateTime.now()).instructorRatio();
+                    BigDecimal platformRatio = od.getCommission() != null && od.getCommission().getPlatformRatio() != null
+                            ? od.getCommission().getPlatformRatio()
+                            : commissionResolver.resolve(od.getCourse().getAccount(), LocalDateTime.now()).platformRatio();
+
+                    OrderRevenueCalculator.Split split = OrderRevenueCalculator.split(
+                            od.getOrder(), od, orderDetailRepository.findByOrder(od.getOrder()),
+                            instructorRatio, platformRatio);
+
                     return AdminIncomeDTO.builder()
                             .orderDetailId(od.getId())
                             .orderCode(od.getOrder() != null ? String.valueOf(od.getOrder().getOrderCode()) : null)
                             .courseTitle(od.getCourse().getTitle())
                             .studentName(od.getOrder() != null ? od.getOrder().getAccount().getFullName() : null)
-                            .price(od.getPrice())
-                            .instructorRatio(ratio)
-                            .incomeAmount(income)
+                            .price(split.netSaleAmount)
+                            .instructorRatio(instructorRatio)
+                            .incomeAmount(split.instructorAmount)
                             .createdAt(od.getCreatedAt())
                             .status(od.getStatus())
                             .build();

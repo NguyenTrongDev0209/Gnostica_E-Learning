@@ -14,7 +14,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/checkout/orders")
-@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 @Slf4j
 public class OrderController {
@@ -26,21 +25,21 @@ public class OrderController {
 		try {
 			return ApiResponse.success(orderService.getAllOrders());
 		} catch (Exception e) {
-			log.error("Lỗi khi lấy danh sách đơn hàng", e);
-			return ApiResponse.error("Lỗi khi lấy danh sách đơn hàng");
+			log.error("Lá»—i khi láº¥y danh sÃ¡ch Ä‘Æ¡n hÃ ng", e);
+			return ApiResponse.error("Lá»—i khi láº¥y danh sÃ¡ch Ä‘Æ¡n hÃ ng");
 		}
 	}
 
 	@GetMapping(value = "/my-orders")
 	public ApiResponse<List<OrderResponse>> getMyOrders(org.springframework.security.core.Authentication authentication) {
 		if (authentication == null || !authentication.isAuthenticated()) {
-			return ApiResponse.error("Vui lòng đăng nhập để xem danh sách đơn hàng");
+			return ApiResponse.error("Vui lÃ²ng Ä‘Äƒng nháº­p Ä‘á»ƒ xem danh sÃ¡ch Ä‘Æ¡n hÃ ng");
 		}
 		try {
 			return ApiResponse.success(orderService.getMyOrders(authentication.getName()));
 		} catch (Exception e) {
-			log.error("Lỗi khi lấy danh sách đơn hàng cá nhân", e);
-			return ApiResponse.error("Lỗi khi lấy danh sách đơn hàng cá nhân");
+			log.error("Lá»—i khi láº¥y danh sÃ¡ch Ä‘Æ¡n hÃ ng cÃ¡ nhÃ¢n", e);
+			return ApiResponse.error("Lá»—i khi láº¥y danh sÃ¡ch Ä‘Æ¡n hÃ ng cÃ¡ nhÃ¢n");
 		}
 	}
 
@@ -62,11 +61,11 @@ public class OrderController {
 			if (OrderService.ALREADY_ENROLLED.equals(e.getMessage())) {
 				return ApiResponse.error(1004, OrderService.ALREADY_ENROLLED);
 			}
-			log.warn("Không thể tạo link thanh toán: {}", e.getMessage());
-			return ApiResponse.error("Không thể tạo link thanh toán");
+			log.warn("KhÃ´ng thá»ƒ táº¡o link thanh toÃ¡n: {}", e.getMessage());
+			return ApiResponse.error("KhÃ´ng thá»ƒ táº¡o link thanh toÃ¡n");
 		} catch (Exception e) {
-			log.error("Lỗi khi tạo link thanh toán", e);
-			return ApiResponse.error("Lỗi khi tạo link thanh toán: " + e.getMessage());
+			log.error("Lá»—i khi táº¡o link thanh toÃ¡n", e);
+			return ApiResponse.error("Lá»—i khi táº¡o link thanh toÃ¡n: " + e.getMessage());
 		}
 	}
 
@@ -75,8 +74,8 @@ public class OrderController {
 		try {
 			return ApiResponse.success(orderService.cancelPendingOrder(orderCode));
 		} catch (Exception e) {
-			log.warn("Không thể hủy đơn {}: {}", orderCode, e.getMessage());
-			return ApiResponse.error("Không thể hủy thanh toán");
+			log.warn("KhÃ´ng thá»ƒ há»§y Ä‘Æ¡n {}: {}", orderCode, e.getMessage());
+			return ApiResponse.error("KhÃ´ng thá»ƒ há»§y thanh toÃ¡n");
 		}
 	}
 
@@ -96,8 +95,8 @@ public class OrderController {
 			}
 			return ApiResponse.success(order);
 		} catch (Exception e) {
-			log.error("Lỗi khi lấy thông tin đơn hàng", e);
-			return ApiResponse.error("Lỗi khi lấy thông tin đơn hàng: " + e.getMessage());
+			log.error("Lá»—i khi láº¥y thÃ´ng tin Ä‘Æ¡n hÃ ng", e);
+			return ApiResponse.error("Lá»—i khi láº¥y thÃ´ng tin Ä‘Æ¡n hÃ ng: " + e.getMessage());
 		}
 	}
 
@@ -109,8 +108,8 @@ public class OrderController {
 		try {
 			return ApiResponse.success(orderService.getOrdersPaginated(page, size));
 		} catch (Exception e) {
-			log.error("Lỗi khi lấy danh sách đơn hàng phân trang", e);
-			return ApiResponse.error("Lỗi khi lấy danh sách đơn hàng phân trang");
+			log.error("Lá»—i khi láº¥y danh sÃ¡ch Ä‘Æ¡n hÃ ng phÃ¢n trang", e);
+			return ApiResponse.error("Lá»—i khi láº¥y danh sÃ¡ch Ä‘Æ¡n hÃ ng phÃ¢n trang");
 		}
 	}
 }

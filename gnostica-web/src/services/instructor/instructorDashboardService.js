@@ -7,16 +7,20 @@ export const instructorDashboardService = {
     const response = await axiosClient.get(`${API_URL}/stats`);
     return response.data;
   },
-  getRevenueChart: async () => {
-    const response = await axiosClient.get(`${API_URL}/revenue-chart`);
+  getRevenueChart: async (months = 6) => {
+    const response = await axiosClient.get(`${API_URL}/revenue-chart`, {
+      params: { months }
+    });
     return response.data;
   },
   getRatingDistribution: async () => {
     const response = await axiosClient.get(`${API_URL}/rating-distribution`);
     return response.data;
   },
-  getStudentGrowthChart: async () => {
-    const response = await axiosClient.get(`${API_URL}/student-growth`);
+  getStudentGrowthChart: async (months = 6) => {
+    const response = await axiosClient.get(`${API_URL}/student-growth`, {
+      params: { months }
+    });
     return response.data;
   },
   getCoursePerformance: async () => {

@@ -43,6 +43,11 @@ const LoginScreen = () => {
                     navigation.navigate('Main', { screen: 'Home' });
                     return;
                 }
+                
+                const errorMsg = urlObj.searchParams.get('error');
+                if (errorMsg) {
+                    throw new Error(errorMsg);
+                }
             }
             setIsLoading(false);
         } catch (error) {

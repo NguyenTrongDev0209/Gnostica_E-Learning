@@ -148,6 +148,8 @@ public class RefundServiceTest {
         assertNotNull(res);
         assertEquals(RefundStatus.PENDING, res.getStatus());
         verify(walletService, never()).addRefund(any(), any(), any());
+        assertEquals(3, enrollment.getStatus());
+        verify(enrollmentRepository).save(enrollment);
     }
 
     @Test
@@ -330,5 +332,28 @@ public class RefundServiceTest {
         refundService.approveRefund(refund.getId());
 
         verify(couponService, times(1)).restoreCouponUse(eq(order));
+    }
+
+    @Test
+    void testRejectRefund_RestoresEnrollment() {
+        Refund refund = new Refund();
+        refund.setId(UUID.randomUUID());
+        refund.setStatus(RefundStatus.PENDING);
+        refund.setOrderDetail(detail);
+        refund.setAccount(account);
+        refund.setAmount(BigDecimal.valueOf(100000));
+        refund.setReason("Lý do");
+
+        enrollment.setStatus(3); // Suspended
+
+        when(refundRepository.findByIdForUpdate(refund.getId())).thenReturn(Optional.of(refund));
+        when(enrollmentRepository.findByAccountAndCourse(account, course)).thenReturn(Optional.of(enrollment));
+
+        refundService.rejectRefund(refund.getId(), "Không hợp lệ");
+
+        assertEquals(RefundStatus.REJECTED, refund.getStatus());
+        assertEquals(1, enrollment.getStatus()); // Restored to In Progress
+        verify(enrollmentRepository).save(enrollment);
+        verify(notificationService).createNotification(eq(account), any(), any(), eq("REFUND_REJECTED"), any());
     }
 }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
-import { Wallet as WalletIcon, Banknote, CreditCard, Landmark, Trash2, Clock } from "lucide-react";
+import { Wallet as WalletIcon, Banknote, CreditCard, Landmark, Trash2, Clock, User, ShieldCheck, Loader2 } from "lucide-react";
 import { AppDialog } from "@/components/common/micro/AppDialog";
 import AppInput, { AppInputOTP } from "@/components/common/micro/AppInput";
 import { AppButton } from "@/components/common/micro/AppButton";
@@ -22,7 +22,7 @@ const formatCurrency = (value) => {
     return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 };
 
-const MANUAL_APPROVAL_THRESHOLD = 5000000;
+const MANUAL_APPROVAL_THRESHOLD = 100000;
 
 export default function WithdrawModal({ isOpen, onClose, wallet, user, onSuccess }) {
     const hasBankAccount = !!(wallet?.accountNumber);
@@ -32,16 +32,20 @@ export default function WithdrawModal({ isOpen, onClose, wallet, user, onSuccess
     const [loading, setLoading] = useState(false);
     const withdrawalIdempotencyKeyRef = useRef(null);
 
-    const [setupForm, setSetupForm] = useState({ bin: "", accountNumber: "", pin: "", pinConfirm: "" });
+    const [setupForm, setSetupForm] = useState({ bin: "", accountNumber: "", accountName: "", pin: "", pinConfirm: "" });
     const [setupErrors, setSetupErrors] = useState({});
+    const [accountVerifying, setAccountVerifying] = useState(false);
+    const [accountNameVerified, setAccountNameVerified] = useState(false);
     const [withdrawForm, setWithdrawForm] = useState({ amount: "", pin: "" });
     const [removePin, setRemovePin] = useState("");
 
     useEffect(() => {
         if (isOpen) {
             setStep(hasBankAccount ? "withdraw" : "setup");
-            setSetupForm({ bin: "", accountNumber: "", pin: "", pinConfirm: "" });
+            setSetupForm({ bin: "", accountNumber: "", accountName: "", pin: "", pinConfirm: "" });
             setSetupErrors({});
+            setAccountVerifying(false);
+            setAccountNameVerified(false);
             setWithdrawForm({ amount: "", pin: "" });
             setRemovePin("");
             withdrawalIdempotencyKeyRef.current = globalThis.crypto?.randomUUID?.().replaceAll("-", "")
@@ -55,10 +59,11 @@ export default function WithdrawModal({ isOpen, onClose, wallet, user, onSuccess
     if (!isOpen) return null;
 
     const bankName = banks.find(b => b.bin === wallet?.bankBin)?.shortName || wallet?.bankBin;
+    const bankLogo = wallet?.bankLogoUrl || banks.find(b => b.bin === wallet?.bankBin)?.logoUrl || null;
 
     const handleSetup = async (e) => {
         e.preventDefault();
-        const { bin, accountNumber, pin, pinConfirm } = setupForm;
+        const { bin, accountNumber, pin, pinConfirm, accountName } = setupForm;
         const errors = {};
         if (!bin) errors.bin = "Vui lòng chọn ngân hàng.";
         if (!accountNumber) errors.accountNumber = "Vui lòng nhập số tài khoản.";
@@ -66,13 +71,16 @@ export default function WithdrawModal({ isOpen, onClose, wallet, user, onSuccess
         if (!/^\d{6}$/.test(pin)) errors.pin = "PIN phải gồm đúng 6 chữ số.";
         if (!pinConfirm) errors.pinConfirm = "Vui lòng xác nhận mã PIN.";
         else if (pin !== pinConfirm) errors.pinConfirm = "PIN xác nhận không khớp.";
+        if (!accountNameVerified || !accountName?.trim()) {
+            errors.accountName = "Vui lòng kiểm tra tên tài khoản trước khi lưu.";
+        }
         if (Object.keys(errors).length > 0) {
             setSetupErrors(errors);
             return;
         }
         try {
             setLoading(true);
-            await walletService.setBankAccount({ bin, accountNumber, pin });
+            await walletService.setBankAccount({ bin, accountNumber, name: accountName, pin });
             toast.success("Đã lưu tài khoản ngân hàng!");
             if (onSuccess) onSuccess();
             onClose();
@@ -80,6 +88,38 @@ export default function WithdrawModal({ isOpen, onClose, wallet, user, onSuccess
             toast.error(err?.response?.data?.message || "Không thể lưu tài khoản ngân hàng");
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleVerifyAccountName = async () => {
+        const { bin, accountNumber } = setupForm;
+        const errors = {};
+        if (!bin) errors.bin = "Vui lòng chọn ngân hàng trước khi kiểm tra.";
+        if (!/^\d{6,25}$/.test(accountNumber || "")) errors.accountNumber = "Vui lòng nhập số tài khoản hợp lệ (6–25 chữ số) trước khi kiểm tra.";
+        if (Object.keys(errors).length > 0) {
+            setSetupErrors(errors);
+            return;
+        }
+        setSetupErrors(p => ({ ...p, bin: "", accountNumber: "", accountName: "" }));
+        try {
+            setAccountVerifying(true);
+            setAccountNameVerified(false);
+            setSetupForm(p => ({ ...p, accountName: "" }));
+            const res = await walletService.lookupAccountName(bin, accountNumber);
+            const name = res?.accountName || res?.data?.accountName;
+            if (!name) {
+                setSetupErrors(p => ({ ...p, accountName: "Không tìm thấy tên tài khoản. Vui lòng kiểm tra lại số tài khoản và ngân hàng." }));
+                return;
+            }
+            setSetupForm(p => ({ ...p, accountName: name }));
+            setAccountNameVerified(true);
+            toast.success(`Đã xác minh tên tài khoản: ${name}`);
+        } catch (err) {
+            setSetupErrors(p => ({ ...p, accountName: err?.response?.data?.message || "Không thể kiểm tra tên tài khoản. Vui lòng thử lại." }));
+            setSetupForm(p => ({ ...p, accountName: "" }));
+            setAccountNameVerified(false);
+        } finally {
+            setAccountVerifying(false);
         }
     };
 
@@ -105,7 +145,7 @@ export default function WithdrawModal({ isOpen, onClose, wallet, user, onSuccess
                 withdrawalIdempotencyKeyRef.current
             );
             if (Number(amount) >= MANUAL_APPROVAL_THRESHOLD) {
-                toast.success("Yêu cầu rút tiền đã gửi. Lệnh rút từ 5.000.000đ trở lên cần admin duyệt thủ công trước khi chuyển khoản.");
+                toast.success("Yêu cầu rút tiền đã gửi. Lệnh rút từ 100.000đ trở lên cần admin duyệt thủ công trước khi chuyển khoản.");
             } else {
                 toast.success("Đã tạo lệnh rút tiền thành công!");
             }
@@ -187,8 +227,9 @@ export default function WithdrawModal({ isOpen, onClose, wallet, user, onSuccess
                             <AppSelect
                                 value={setupForm.bin}
                                 onValueChange={bin => {
-                                    setSetupForm(p => ({ ...p, bin }));
-                                    if (setupErrors.bin) setSetupErrors(p => ({ ...p, bin: "" }));
+                                    setSetupForm(p => ({ ...p, bin, accountName: "" }));
+                                    setAccountNameVerified(false);
+                                    if (setupErrors.bin || setupErrors.accountName) setSetupErrors(p => ({ ...p, bin: "", accountName: "" }));
                                 }}
                                 placeholder="Chọn ngân hàng nhận tiền"
                                 options={banks.map(bank => ({ value: bank.bin, label: bank.shortName, imageUrl: bank.logoUrl }))}
@@ -203,11 +244,47 @@ export default function WithdrawModal({ isOpen, onClose, wallet, user, onSuccess
                             placeholder="Ví dụ: 190345..."
                             value={setupForm.accountNumber}
                             onChange={e => {
-                                setSetupForm(p => ({ ...p, accountNumber: e.target.value.replace(/\D/g, "") }));
-                                if (setupErrors.accountNumber) setSetupErrors(p => ({ ...p, accountNumber: "" }));
+                                setSetupForm(p => ({ ...p, accountNumber: e.target.value.replace(/\D/g, ""), accountName: "" }));
+                                setAccountNameVerified(false);
+                                if (setupErrors.accountNumber || setupErrors.accountName) setSetupErrors(p => ({ ...p, accountNumber: "", accountName: "" }));
                             }}
                             error={setupErrors.accountNumber}
                         />
+                        </div>
+                        <div className="space-y-1.5">
+                            <label className="text-sm font-medium text-foreground flex items-center gap-2">
+                                <User className="w-4 h-4 text-muted-foreground" /> Tên tài khoản
+                            </label>
+                            <div className="flex items-stretch gap-2">
+                                <AppInput
+                                    containerClassName="flex-1"
+                                    type="text"
+                                    placeholder="Nhấn Kiểm tra để xác minh tên tài khoản"
+                                    value={setupForm.accountName}
+                                    readOnly
+                                    tabIndex={-1}
+                                    className="bg-muted/50 focus:bg-muted/50 cursor-not-allowed"
+                                />
+                                <AppButton
+                                    type="button"
+                                    appVariant="primary"
+                                    variant="default"
+                                    disabled={accountVerifying}
+                                    onClick={handleVerifyAccountName}
+                                    className="h-11 px-4 shrink-0 bg-primary text-white hover:bg-primary/90 hover:text-white font-semibold border-none"
+                                >
+                                    {accountVerifying ? (
+                                        <span className="flex items-center gap-1.5">
+                                            <Loader2 className="w-4 h-4 animate-spin" /> Đang kiểm tra...
+                                        </span>
+                                    ) : (
+                                        <span className="flex items-center gap-1.5">
+                                            <ShieldCheck className="w-4 h-4" /> Kiểm tra
+                                        </span>
+                                    )}
+                                </AppButton>
+                            </div>
+                            {setupErrors.accountName && <p className="text-error text-xs mt-1">{setupErrors.accountName}</p>}
                         </div>
                         <div className="space-y-4">
                         <AppInputOTP
@@ -246,11 +323,19 @@ export default function WithdrawModal({ isOpen, onClose, wallet, user, onSuccess
                     <form onSubmit={handleWithdraw} autoComplete="off" noValidate className="space-y-4">
                         <div className="border border-border rounded-lg p-3 flex items-center justify-between bg-background shadow-sm">
                             <div className="flex items-center gap-3">
-                                <div className="bg-success text-white p-2 rounded-lg border border-success/20">
-                                    <CreditCard className="w-4 h-4 text-white" />
-                                </div>
+                                {bankLogo ? (
+                                    <img
+                                        src={bankLogo}
+                                        alt={bankName || "Ngân hàng"}
+                                        className="size-9 rounded-lg border border-border bg-white p-1 object-contain"
+                                    />
+                                ) : (
+                                    <div className="bg-success text-white p-2 rounded-lg border border-success/20">
+                                        <CreditCard className="w-4 h-4 text-white" />
+                                    </div>
+                                )}
                                 <div>
-                                    <p className="text-sm font-semibold text-foreground">{bankName || "Ngân hàng"}</p>
+                                    <p className="text-sm font-semibold text-foreground">{wallet?.accountName || "Tên tài khoản"}</p>
                                     <p className="text-xs text-muted-foreground font-mono mt-0.5">{maskAccount(wallet?.accountNumber)}</p>
                                 </div>
                             </div>

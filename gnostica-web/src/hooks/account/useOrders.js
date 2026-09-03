@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import useAuthStore from "@/store/useAuthStore";
-import { API_URL } from "@/config/environment";
+import orderService from "@/services/order/orderService";
 
 const getCourseName = (detail) => (
   detail?.courseName ||
@@ -19,7 +19,14 @@ const getStatusMeta = (status) => {
     };
   }
 
-  if (status === "FAILED" || status === "CANCELLED" || status === 2) {
+  if (status === "REFUNDED" || status === 2) {
+    return {
+      status: "Đã hoàn tiền",
+      statusColor: "bg-info-soft text-info",
+    };
+  }
+
+  if (status === "FAILED" || status === "CANCELLED" || status === 3) {
     return {
       status: "Đã hủy",
       statusColor: "bg-error-soft text-error",
@@ -27,7 +34,7 @@ const getStatusMeta = (status) => {
   }
 
   return {
-    status: "Đang xử lý",
+    status: "Chờ thanh toán",
     statusColor: "bg-warning-soft text-warning",
   };
 };
@@ -44,57 +51,53 @@ export default function useOrders() {
   const [pageSize, setPageSize] = useState(10);
   const [searchQuery, setSearchQuery] = useState("");
   const [dateRange, setDateRange] = useState(null);
-  const token = useAuthStore(state => state.user?.token);
+  const user = useAuthStore(state => state.user);
 
-  useEffect(() => {
-    if (!token) {
+  const fetchOrders = async () => {
+    if (!user) {
       setLoading(false);
       return;
     }
 
-    const fetchOrders = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch(`${API_URL}/order/my-orders`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+    setLoading(true);
+    try {
+      const rawData = await orderService.getMyOrders();
+      const mapped = (rawData || []).map((order) => {
+        const rawDetails = order.details || order.orderDetails || order.items || [];
+        const orderCode = order.orderCode || order.order_code || order.transactionCode || order.transactionId || order.id;
+        const orderDate = order.orderDate || order.createdAt;
+        const totalAmount = order.totalPrice ?? order.finalAmount ?? 0;
+        const statusMeta = getStatusMeta(order.status);
 
-        if (res.ok) {
-          const data = await res.json();
-          const mapped = (data.data || []).map((order) => {
-            const rawDetails = order.details || order.orderDetails || order.items || [];
-            const orderCode = order.order_code || order.orderCode || order.transactionCode || order.transactionId || order.id;
-            const orderDate = order.orderDate || order.createdAt;
-            const totalAmount = order.finalAmount ?? order.totalPrice ?? 0;
-            const statusMeta = getStatusMeta(order.status);
+        return {
+          id: order.id,
+          orderCode,
+          date: orderDate ? new Date(orderDate).toLocaleDateString("vi-VN") : "N/A",
+          createdAt: orderDate,
+          courses: rawDetails.map((detail) => ({ 
+            id: detail.id,
+            name: getCourseName(detail),
+            status: detail.status,
+            giftedTo: detail.giftedTo
+          })),
+          total: formatCurrency(totalAmount),
+          totalAmount: totalAmount,
+          method: order.paymentMethod || "PAYOS",
+          ...statusMeta,
+        };
+      });
 
-            return {
-              id: order.id,
-              orderCode,
-              date: orderDate ? new Date(orderDate).toLocaleDateString("vi-VN") : "N/A",
-              courses: rawDetails.map((detail) => ({ 
-                id: detail.id,
-                name: getCourseName(detail),
-                status: detail.status,
-                giftedTo: detail.giftedTo
-              })),
-              total: formatCurrency(totalAmount),
-              method: order.paymentMethod || "N/A",
-              ...statusMeta,
-            };
-          });
+      setOrders(mapped);
+    } catch (error) {
+      console.error("Failed to fetch orders:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-          setOrders(mapped);
-        }
-      } catch (error) {
-        console.error("Failed to fetch orders:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
+  useEffect(() => {
     fetchOrders();
-  }, [token]);
+  }, [user]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -103,11 +106,17 @@ export default function useOrders() {
   const filteredOrders = orders.filter((order) => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
     const matchesSearch = !normalizedQuery ||
-      String(order.orderCode || order.id || "").toLowerCase().includes(normalizedQuery);
+      String(order.orderCode || order.id || "").toLowerCase().includes(normalizedQuery) ||
+      order.courses.some(c => (c.name || "").toLowerCase().includes(normalizedQuery));
 
     let matchesDate = true;
     if (dateRange?.from) {
-      matchesDate = true;
+      const orderTime = order.createdAt ? new Date(order.createdAt).getTime() : NaN;
+      if (!isNaN(orderTime)) {
+        const fromTime = new Date(dateRange.from).setHours(0, 0, 0, 0);
+        const toTime = dateRange.to ? new Date(dateRange.to).setHours(23, 59, 59, 999) : new Date(dateRange.from).setHours(23, 59, 59, 999);
+        matchesDate = orderTime >= fromTime && orderTime <= toTime;
+      }
     }
 
     return matchesSearch && matchesDate;
@@ -131,5 +140,6 @@ export default function useOrders() {
     setDateRange,
     totalItems,
     totalPages,
+    refresh: fetchOrders,
   };
 }

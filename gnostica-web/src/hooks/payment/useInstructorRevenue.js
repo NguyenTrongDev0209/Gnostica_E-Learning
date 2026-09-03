@@ -2,17 +2,17 @@ import { useQuery } from '@tanstack/react-query';
 import walletService from '@/services/payment/walletService';
 
 export function useInstructorRevenue() {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['instructor_revenue'],
     queryFn: async () => {
-      const [walletData, transactionsData] = await Promise.all([
+      const [walletData, historyData] = await Promise.all([
         walletService.getMyWallet(),
-        walletService.getMyTransactions()
+        walletService.getMyTransactionHistory()
       ]);
 
       return {
-        wallet: walletData,
-        transactions: Array.isArray(transactionsData) ? transactionsData : []
+        wallet: walletData || null,
+        transactions: Array.isArray(historyData) ? historyData : []
       };
     },
     staleTime: 1000 * 60 * 2,
@@ -21,6 +21,8 @@ export function useInstructorRevenue() {
   return {
     wallet: data?.wallet || null,
     transactions: data?.transactions || [],
-    loading: isLoading
+    loading: isLoading,
+    error,
+    refetch
   };
 }

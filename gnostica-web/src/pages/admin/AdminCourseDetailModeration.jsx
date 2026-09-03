@@ -6,13 +6,16 @@ import AppBadge from "@/components/common/micro/AppBadge";
 
 import AppSelect from "@/components/common/micro/AppSelect";
 import AppInput from "@/components/common/micro/AppInput";
-import { CheckCircle2, BookOpen, Layers, Video, ArrowLeft, Loader2, Sparkles, AlertTriangle, ShieldCheck, ShieldAlert, FileText, Trophy, ExternalLink, ChevronRight, Download } from "lucide-react";
-import { useParams, useNavigate } from "react-router-dom";
+import { CheckCircle2, BookOpen, Layers, Video, ArrowLeft, Loader2, Sparkles, AlertTriangle, ShieldCheck, ShieldAlert, FileText, Trophy, ExternalLink, ChevronRight, Download, XCircle, HelpCircle } from "lucide-react";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import CourseRejectModal from "@/components/modals/CourseRejectModal";
 import InstructorProfileModal from "@/components/modals/InstructorProfileModal";
 
 import useAdminCourseModeration from "@/hooks/admin/useAdminCourseModeration";
 import adminCourseService from "@/services/admin/adminCourseService";
+import axiosClient from "@/lib/axiosClient";
+import { toast } from "sonner";
+import { API_URL } from "@/config/environment";
 
 const BUNNY_LIBRARY_ID = import.meta.env.VITE_BUNNY_LIBRARY_ID;
 
@@ -57,6 +60,23 @@ export default function AdminCourseDetailModeration() {
       return null;
     }
   }, [signedEmbeds, isEmbedLink]);
+
+  const location = useLocation();
+  const reportData = location.state?.report;
+
+  const handleResolveReport = async (action) => {
+    if (!reportData) return;
+    try {
+      await axiosClient.put(`/admin/courses/reports/${reportData.id}/resolve`, {
+        action: action,
+        reason: "" // using the report's reason as fallback backend side
+      });
+      toast.success(action === 'HIDE_COURSE' ? 'Đã ẩn khóa học do vi phạm' : 'Đã bỏ qua báo cáo');
+      navigate(-1);
+    } catch (err) {
+      toast.error(err?.response?.data?.message || err?.response?.data || "Lỗi khi xử lý báo cáo");
+    }
+  };
 
   useEffect(() => {
     if (previewVideoUrl) ensureSignedEmbed(previewVideoUrl);
@@ -143,9 +163,9 @@ export default function AdminCourseDetailModeration() {
   };
 
   return (
-    <div className="max-w-[1400px] mx-auto space-y-6 animate-in fade-in duration-500 pb-10">
+    <div className="w-full max-w-[1400px] mx-auto animate-in fade-in duration-500 pb-10">
       {course.isVersionUpdate && (
-        <div className="bg-info/10 border border-info/20 text-info p-4 rounded-xl flex items-start gap-3 shadow-sm">
+        <div className="bg-info/10 border border-info/20 text-info p-4 rounded-xl flex items-start gap-3 shadow-sm mb-6">
           <AlertTriangle className="w-5 h-5 text-info mt-0.5 shrink-0" />
           <div className="flex-1">
             <h3 className="font-bold text-sm">Đây là bản cập nhật của khóa học "{course.originalCourseName}"</h3>
@@ -158,9 +178,9 @@ export default function AdminCourseDetailModeration() {
           </AppButton>
         </div>
       )}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-border/60 shadow-sm sticky top-4 z-20 backdrop-blur-md bg-white/95">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-border/60 shadow-sm relative z-20">
         <div className="flex items-center gap-4 min-w-0">
-          <AppButton appVariant="ghostMuted" variant="ghost" size="icon" onClick={() => navigate("/admin/course-moderation")} className="h-10 w-10 rounded-xl shrink-0 border border-border bg-white hover:bg-muted hover:text-primary transition-colors">
+          <AppButton appVariant="ghostMuted" variant="ghost" size="icon" onClick={() => navigate(-1)} className="h-10 w-10 rounded-xl shrink-0 border border-border bg-white hover:bg-muted hover:text-primary transition-colors">
             <ArrowLeft className="w-5 h-5" />
           </AppButton>
           <div className="min-w-0">
@@ -173,7 +193,16 @@ export default function AdminCourseDetailModeration() {
         </div>
 
         <div className="flex items-center gap-3 shrink-0 ml-14 md:ml-0">
-          {course.status === 4 && (
+          {reportData && reportData.status === "pending" ? (
+            <>
+              <AppButton appVariant="ghostMuted" variant="ghost" onClick={() => handleResolveReport("DISMISS")} disabled={isSubmitting} className="font-bold border border-border bg-white hover:bg-muted h-10 px-5 gap-2">
+                <HelpCircle className="w-4 h-4" /> Bỏ qua báo cáo
+              </AppButton>
+              <AppButton appVariant="primary" onClick={() => handleResolveReport("HIDE_COURSE")} disabled={isSubmitting} className="font-bold bg-error hover:bg-error/90 text-white shadow-md gap-2 border-none px-6 h-10">
+                <XCircle className="w-4 h-4" /> Xác nhận & Ẩn khóa học
+              </AppButton>
+            </>
+          ) : course.status === 4 ? (
             <>
               <AppButton appVariant="ghostMuted" variant="ghost" onClick={() => setIsRejectModalOpen(true)} disabled={isSubmitting} className="font-bold text-error border border-error/20 bg-white hover:bg-error/10 hover:text-error h-10 px-5">
                 Từ chối kiểm duyệt
@@ -182,12 +211,12 @@ export default function AdminCourseDetailModeration() {
                 <CheckCircle2 className="w-4.5 h-4.5" /> Phê duyệt khóa học
               </AppButton>
             </>
-          )}
+          ) : null}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        <div className="lg:col-span-8 space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start mt-6">
+        <div className="lg:col-span-8 space-y-6 min-w-0">
           <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
             <div className="p-5 border-b border-border flex items-center justify-between bg-muted">
               <h2 className="font-extrabold text-foreground flex items-center gap-2">
@@ -246,64 +275,77 @@ export default function AdminCourseDetailModeration() {
                           </TabsTrigger>
                         </TabsList>
                         <TabsContent value="content">
-                          <div className="p-5 bg-muted border border-border/60 rounded-xl min-h-[120px]">
+                          <div className="p-5 bg-muted border border-border/60 rounded-xl min-h-[250px]">
                             <h4 className="font-black text-[13px] uppercase tracking-wider mb-2.5 flex items-center gap-2"><BookOpen className="w-4 h-4 text-info" /> Chi tiết bài giảng:</h4>
                             <div className="text-muted-foreground text-sm prose prose-sm" dangerouslySetInnerHTML={{__html: activePreview.data.content || "<p>Không có mô tả.</p>"}} />
                           </div>
                         </TabsContent>
                         <TabsContent value="attachments">
+                          <div className="p-5 bg-muted border border-border/60 rounded-xl min-h-[250px]">
                            {activePreview.moduleAttachments?.length > 0 ? (
-                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 content-start">
                                {activePreview.moduleAttachments.map((file, i) => (
-                                 <div key={i} className="flex items-center justify-between p-4 bg-white border border-border rounded-xl shadow-sm hover:border-primary/20">
-                                   <div className="flex items-center gap-3">
-                                     <div className="w-10 h-10 rounded-xl bg-warning/10 flex items-center justify-center text-warning border border-warning/20"><FileText className="w-5 h-5" /></div>
+                                 <div key={i} className="flex items-center justify-between p-4 bg-white border border-border rounded-xl shadow-sm hover:border-primary/20 min-w-0">
+                                   <div className="flex items-center gap-3 min-w-0">
+                                     <div className="w-10 h-10 rounded-xl bg-warning/10 flex items-center justify-center text-warning border border-warning/20 shrink-0"><FileText className="w-5 h-5" /></div>
                                      <div className="min-w-0">
                                        <p className="text-[13px] font-bold truncate">{file.fileUrl?.split('/').pop()}</p>
                                        <p className="text-[10px] text-muted-foreground uppercase">{file.fileType || "DOCUMENT"}</p>
                                      </div>
                                    </div>
-                                   <AppButton appVariant="ghostMuted" variant="ghost" size="icon" className="border-none hover:bg-muted" onClick={() => window.open(file.fileUrl, '_blank')}><Download className="w-4 h-4" /></AppButton>
+                                   <AppButton appVariant="ghostMuted" variant="ghost" size="icon" className="border-none hover:bg-muted shrink-0 ml-2" onClick={() => {
+                                     let finalUrl = file.fileUrl;
+                                     if (finalUrl && finalUrl.includes('/api/upload/document/')) {
+                                         const fileName = finalUrl.split('/api/upload/document/')[1];
+                                         finalUrl = `${API_URL}/upload/document/${fileName}`;
+                                     }
+                                     window.open(finalUrl, '_blank');
+                                   }}><Download className="w-4 h-4" /></AppButton>
                                  </div>
                                ))}
                              </div>
                            ) : (
-                             <div className="p-10 text-center border border-dashed rounded-xl flex flex-col items-center justify-center">
+                             <div className="h-full min-h-[200px] flex flex-col items-center justify-center text-center">
                                <FileText className="w-8 h-8 text-muted-foreground/40 mb-2" />
                                <p className="text-muted-foreground text-xs font-bold italic">Chương này chưa có tài liệu đính kèm.</p>
                              </div>
                            )}
+                          </div>
                         </TabsContent>
                       </Tabs>
                     </div>
                   ) : (
-                    <div className="min-h-[350px] bg-gradient-to-br from-primary/10 to-white border border-primary/20 rounded-xl p-6">
-                      <div className="flex items-center gap-3 mb-4 border-b border-primary/20 pb-3">
+                    <div className="min-h-[350px] bg-white border border-border rounded-xl overflow-hidden shadow-lg flex flex-col">
+                      <div className="flex items-center gap-3 p-5 border-b border-border bg-muted">
                         <div className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center"><Trophy className="w-5 h-5" /></div>
                         <div>
-                          <h3 className="font-black">Bài kiểm tra Trắc nghiệm: {activePreview.data.title}</h3>
+                          <h3 className="font-black text-foreground">Bài kiểm tra Trắc nghiệm: {activePreview.data.title}</h3>
                           <p className="text-[11px] text-muted-foreground font-bold mt-0.5">Bao gồm {activePreview.data.questions?.length || 0} câu hỏi trắc nghiệm</p>
                         </div>
                       </div>
-                      <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
+                      <div className="p-6 space-y-4 max-h-[500px] overflow-y-auto bg-slate-50/50 custom-scrollbar">
                         {activePreview.data.questions?.map((q, idx) => (
-                          <div key={q.id} className="p-4 bg-white rounded-xl border border-border shadow-sm">
-                            <p className="font-bold text-sm mb-3">Câu {idx + 1}: {q.text || q.content}</p>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          <div key={q.id} className="p-5 bg-white rounded-xl border border-border shadow-sm hover:border-primary/20 transition-all">
+                            <p className="font-bold text-sm mb-4 text-foreground">Câu {idx + 1}: {q.text || q.content}</p>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                               {q.options ? Object.entries(q.options).map(([key, val]) => (
-                                <div key={key} className={`p-2.5 rounded-lg border text-sm font-medium flex items-center justify-between ${q.correct === key ? 'bg-success/10 border-success/20 text-success' : 'bg-muted border-transparent text-muted-foreground'}`}>
+                                <div key={key} className={`p-3 rounded-lg border text-sm font-medium flex items-center justify-between transition-colors ${q.correct === key ? 'bg-success/10 border-success/30 text-success' : 'bg-muted border-transparent text-muted-foreground'}`}>
                                   <div className="flex gap-2">
                                     <span className="font-bold">{key}.</span> 
                                     <span>{val}</span>
                                   </div>
                                 </div>
                               )) : q.answers?.map((a) => (
-                                <div key={a.id} className={`p-2.5 rounded-lg border text-sm font-medium flex items-center justify-between ${a.isCorrect ? 'bg-success/10 border-success/20 text-success' : 'bg-muted border-transparent text-muted-foreground'}`}>
+                                <div key={a.id} className={`p-3 rounded-lg border text-sm font-medium flex items-center justify-between transition-colors ${a.isCorrect ? 'bg-success/10 border-success/30 text-success' : 'bg-muted border-transparent text-muted-foreground'}`}>
                                   {a.content}
                                 </div>
                               ))}
                             </div>
-                            {q.explanation && <div className="mt-3 p-3 bg-primary/10 border border-primary/20 rounded-lg text-xs font-medium text-foreground"><strong className="text-primary">Giải thích:</strong> {q.explanation}</div>}
+                            {q.explanation && (
+                              <div className="mt-4 p-4 bg-primary/5 border border-primary/10 rounded-lg text-xs font-medium text-foreground leading-relaxed">
+                                <strong className="text-primary mr-1">Giải thích:</strong> {q.explanation}
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>

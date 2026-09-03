@@ -8,6 +8,7 @@ import RatingStars from '../../components/ui/RatingStars';
 import Button from '../../components/ui/Button';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import RenderHtml from 'react-native-render-html';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -43,6 +44,7 @@ const CourseDetailScreen = () => {
     const insets = useSafeAreaInsets();
     const { cartItems, addToCart } = useCart();
     const { user } = useAuth();
+    const { isDarkMode } = useTheme();
 
     const courseParams = route.params?.course || (
         (route.params?.slug || route.params?.id) ? {
@@ -149,9 +151,9 @@ const CourseDetailScreen = () => {
 
     if (!course) {
         return (
-            <View style={{ flex: 1, backgroundColor: '#f8fafc', justifyContent: 'center', alignItems: 'center' }}>
+            <View style={{ flex: 1, backgroundColor: isDarkMode ? '#0f172a' : '#f8fafc', justifyContent: 'center', alignItems: 'center' }}>
                 <ActivityIndicator size="large" color="#2563eb" />
-                <AppText style={{ marginTop: 12, color: '#64748b', fontSize: 13 }}>Đang tải thông tin khóa học...</AppText>
+                <AppText style={{ marginTop: 12, color: isDarkMode ? '#94a3b8' : '#64748b', fontSize: 13 }}>Đang tải thông tin khóa học...</AppText>
             </View>
         );
     }
@@ -166,9 +168,9 @@ const CourseDetailScreen = () => {
     const IMAGE_HEIGHT = 220;
 
     return (
-        <View style={{ flex: 1, backgroundColor: '#f8fafc' }}>
+        <View style={{ flex: 1, backgroundColor: isDarkMode ? '#0f172a' : '#f8fafc' }}>
             {/* Status bar background */}
-            <View style={{ height: Math.max(insets.top, 20), backgroundColor: '#fff' }} />
+            <View style={{ height: Math.max(insets.top, 20), backgroundColor: isDarkMode ? '#1e293b' : '#fff' }} />
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 110 }}>
 
@@ -176,7 +178,7 @@ const CourseDetailScreen = () => {
                 <View style={{ position: 'relative', height: IMAGE_HEIGHT }}>
                     <Image
                         source={{ uri: course.thumbnail }}
-                        style={{ width, height: IMAGE_HEIGHT, backgroundColor: '#E2E8F0' }}
+                        style={{ width, height: IMAGE_HEIGHT, backgroundColor: isDarkMode ? '#334155' : '#E2E8F0' }}
                         resizeMode="cover"
                     />
                     {/* Dark overlay */}
@@ -275,11 +277,11 @@ const CourseDetailScreen = () => {
                 </View>
 
                 {/* Course Info Card */}
-                <View style={{ backgroundColor: '#fff', paddingHorizontal: 20, paddingVertical: 20, marginBottom: 2 }}>
-                    <AppText style={{ fontSize: 13, color: '#2563eb', fontFamily: 'Inter_600SemiBold', marginBottom: 6 }}>
+                <View style={{ backgroundColor: isDarkMode ? '#1e293b' : '#fff', paddingHorizontal: 20, paddingVertical: 20, marginBottom: 2 }}>
+                    <AppText style={{ fontSize: 13, color: '#3b82f6', fontFamily: 'Inter_600SemiBold', marginBottom: 6 }}>
                         {course.category}
                     </AppText>
-                    <AppText style={{ fontSize: 21, fontFamily: 'Inter_700Bold', color: '#1e293b', lineHeight: 30, marginBottom: 12 }}>
+                    <AppText style={{ fontSize: 21, fontFamily: 'Inter_700Bold', color: isDarkMode ? '#f8fafc' : '#1e293b', lineHeight: 30, marginBottom: 12 }}>
                         {course.title}
                     </AppText>
 
@@ -289,37 +291,37 @@ const CourseDetailScreen = () => {
                     {/* Stats */}
                     <View style={{ flexDirection: 'row', gap: 16, marginTop: 10 }}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-                            <Users size={14} color="#64748b" />
-                            <AppText style={{ fontSize: 13, color: '#64748b' }}>
+                            <Users size={14} color={isDarkMode ? "#94a3b8" : "#64748b"} />
+                            <AppText style={{ fontSize: 13, color: isDarkMode ? '#cbd5e1' : '#64748b' }}>
                                 {course.studentCount?.toLocaleString()} học viên
                             </AppText>
                         </View>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-                            <Clock size={14} color="#64748b" />
-                            <AppText style={{ fontSize: 13, color: '#64748b' }}>{course.duration}</AppText>
+                            <Clock size={14} color={isDarkMode ? "#94a3b8" : "#64748b"} />
+                            <AppText style={{ fontSize: 13, color: isDarkMode ? '#cbd5e1' : '#64748b' }}>{course.duration}</AppText>
                         </View>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-                            <BookOpen size={14} color="#64748b" />
-                            <AppText style={{ fontSize: 13, color: '#64748b' }}>{course.level}</AppText>
+                            <BookOpen size={14} color={isDarkMode ? "#94a3b8" : "#64748b"} />
+                            <AppText style={{ fontSize: 13, color: isDarkMode ? '#cbd5e1' : '#64748b' }}>{course.level}</AppText>
                         </View>
                     </View>
 
                     {/* Instructor */}
                     <View style={{
                         marginTop: 16, paddingTop: 16,
-                        borderTopWidth: 1, borderTopColor: '#f1f5f9',
+                        borderTopWidth: 1, borderTopColor: isDarkMode ? '#334155' : '#f1f5f9',
                         flexDirection: 'row', alignItems: 'center', gap: 12,
                     }}>
                         <View style={{
                             width: 44, height: 44, borderRadius: 22,
-                            backgroundColor: '#eff6ff',
+                            backgroundColor: isDarkMode ? '#0f172a' : '#eff6ff',
                             alignItems: 'center', justifyContent: 'center',
                         }}>
                             <AppText style={{ fontSize: 20 }}>👨‍🏫</AppText>
                         </View>
                         <View>
                             <AppText style={{ fontSize: 11, color: '#94a3b8', fontFamily: 'Inter_500Medium' }}>Giảng viên</AppText>
-                            <AppText style={{ fontSize: 14, color: '#1e293b', fontFamily: 'Inter_700Bold' }}>
+                            <AppText style={{ fontSize: 14, color: isDarkMode ? '#f8fafc' : '#1e293b', fontFamily: 'Inter_700Bold' }}>
                                 {typeof course.instructor === 'string' && course.instructor.trim()
                                     ? course.instructor
                                     : (course.instructor?.fullName || course.instructor?.name || course.instructorName || course.authorName || course.account?.fullName || 'Giảng viên Gnostica')}
@@ -330,10 +332,10 @@ const CourseDetailScreen = () => {
 
                 {/* ──────────── TAB BAR ──────────── */}
                 <View style={{
-                    backgroundColor: '#fff',
+                    backgroundColor: isDarkMode ? '#1e293b' : '#fff',
                     flexDirection: 'row',
                     borderBottomWidth: 1,
-                    borderBottomColor: '#f1f5f9',
+                    borderBottomColor: isDarkMode ? '#334155' : '#f1f5f9',
                     marginBottom: 2,
                 }}>
                     {TABS.map(tab => (
@@ -345,13 +347,13 @@ const CourseDetailScreen = () => {
                                 alignItems: 'center',
                                 paddingVertical: 14,
                                 borderBottomWidth: 2.5,
-                                borderBottomColor: activeTab === tab.key ? '#2563eb' : 'transparent',
+                                borderBottomColor: activeTab === tab.key ? '#3b82f6' : 'transparent',
                             }}
                         >
                             <AppText style={{
                                 fontSize: 14,
                                 fontFamily: activeTab === tab.key ? 'Inter_700Bold' : 'Inter_500Medium',
-                                color: activeTab === tab.key ? '#2563eb' : '#94a3b8',
+                                color: activeTab === tab.key ? '#3b82f6' : (isDarkMode ? '#64748b' : '#94a3b8'),
                             }}>
                                 {tab.label}
                             </AppText>
@@ -363,12 +365,12 @@ const CourseDetailScreen = () => {
 
                 {/* Tab: Mô tả */}
                 {activeTab === 'desc' && (
-                    <View style={{ backgroundColor: '#fff', padding: 20 }}>
+                    <View style={{ backgroundColor: isDarkMode ? '#1e293b' : '#fff', padding: 20 }}>
                         <RenderHtml
                             contentWidth={width - 40}
                             source={{ html: course.description || '<p>Chưa có mô tả khóa học</p>' }}
                             baseStyle={{
-                                fontSize: 14, color: '#475569',
+                                fontSize: 14, color: isDarkMode ? '#cbd5e1' : '#475569',
                                 fontFamily: 'Inter_400Regular',
                                 lineHeight: 24,
                             }}
@@ -377,7 +379,7 @@ const CourseDetailScreen = () => {
 
                         {/* What you'll learn */}
                         <AppText style={{
-                            fontSize: 16, fontFamily: 'Inter_700Bold', color: '#1e293b',
+                            fontSize: 16, fontFamily: 'Inter_700Bold', color: isDarkMode ? '#f8fafc' : '#1e293b',
                             marginTop: 24, marginBottom: 14,
                         }}>
                             Bạn sẽ học được gì?
@@ -391,13 +393,13 @@ const CourseDetailScreen = () => {
                             <View key={i} style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 10 }}>
                                 <View style={{
                                     width: 22, height: 22, borderRadius: 11,
-                                    backgroundColor: '#eff6ff',
+                                    backgroundColor: isDarkMode ? '#0f172a' : '#eff6ff',
                                     alignItems: 'center', justifyContent: 'center',
                                     marginTop: 1,
                                 }}>
-                                    <AppText style={{ fontSize: 11, color: '#2563eb', fontFamily: 'Inter_700Bold' }}>✓</AppText>
+                                    <AppText style={{ fontSize: 11, color: '#3b82f6', fontFamily: 'Inter_700Bold' }}>✓</AppText>
                                 </View>
-                                <AppText style={{ flex: 1, fontSize: 13, color: '#475569', fontFamily: 'Inter_400Regular', lineHeight: 20 }}>
+                                <AppText style={{ flex: 1, fontSize: 13, color: isDarkMode ? '#cbd5e1' : '#475569', fontFamily: 'Inter_400Regular', lineHeight: 20 }}>
                                     {item}
                                 </AppText>
                             </View>
@@ -407,15 +409,15 @@ const CourseDetailScreen = () => {
 
                 {/* Tab: Nội dung */}
                 {activeTab === 'curriculum' && (
-                    <View style={{ backgroundColor: '#fff', padding: 20 }}>
+                    <View style={{ backgroundColor: isDarkMode ? '#1e293b' : '#fff', padding: 20 }}>
                         <AppText style={{
-                            fontSize: 13, color: '#64748b',
+                            fontSize: 13, color: isDarkMode ? '#94a3b8' : '#64748b',
                             fontFamily: 'Inter_400Regular', marginBottom: 16,
                         }}>
                             {course.modules?.length || 0} chương • {course.modules?.reduce((sum, m) => sum + (m.lessons?.length || 0), 0)} bài học
                         </AppText>
                         {course.modules?.map((module, i) => (
-                            <View key={i} style={{ borderBottomWidth: 1, borderBottomColor: '#f1f5f9' }}>
+                            <View key={i} style={{ borderBottomWidth: 1, borderBottomColor: isDarkMode ? '#334155' : '#f1f5f9' }}>
                                 <TouchableOpacity
                                     onPress={() => setExpandedSection(expandedSection === i ? null : i)}
                                     style={{
@@ -425,11 +427,11 @@ const CourseDetailScreen = () => {
                                     }}
                                 >
                                     <View style={{ flex: 1 }}>
-                                        <AppText style={{ fontSize: 14, fontFamily: 'Inter_600SemiBold', color: '#1e293b' }}>
+                                        <AppText style={{ fontSize: 14, fontFamily: 'Inter_600SemiBold', color: isDarkMode ? '#f8fafc' : '#1e293b' }}>
                                             Chương {i + 1}: {module.title}
                                         </AppText>
                                         {expandedSection !== i && (
-                                            <AppText style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}>
+                                            <AppText style={{ fontSize: 12, color: isDarkMode ? '#94a3b8' : '#64748b', marginTop: 4 }}>
                                                 {module.lessons?.length || 0} bài học
                                             </AppText>
                                         )}
@@ -451,14 +453,14 @@ const CourseDetailScreen = () => {
                                                     paddingVertical: 12, paddingLeft: 10,
                                                 }}>
                                                     {isVideo ? (
-                                                        <PlayCircle size={18} color={isFree ? '#2563eb' : '#94a3b8'} />
+                                                        <PlayCircle size={18} color={isFree ? '#3b82f6' : '#94a3b8'} />
                                                     ) : (
                                                         <FileText size={18} color="#94a3b8" />
                                                     )}
                                                     <View style={{ flex: 1, marginLeft: 12 }}>
                                                         <AppText style={{ 
                                                             fontSize: 13, 
-                                                            color: isFree ? '#1e293b' : '#475569', 
+                                                            color: isFree ? (isDarkMode ? '#3b82f6' : '#1e293b') : (isDarkMode ? '#cbd5e1' : '#475569'), 
                                                             fontFamily: isFree ? 'Inter_600SemiBold' : 'Inter_500Medium' 
                                                         }}>
                                                             {idx + 1}. {lesson.title}
@@ -466,7 +468,7 @@ const CourseDetailScreen = () => {
                                                     </View>
                                                     <AppText style={{ 
                                                         fontSize: 12, 
-                                                        color: isFree ? '#2563eb' : '#94a3b8',
+                                                        color: isFree ? '#3b82f6' : '#94a3b8',
                                                         fontFamily: isFree ? 'Inter_600SemiBold' : 'Inter_400Regular'
                                                     }}>
                                                         {isFree ? 'Học thử' : (isVideo ? 'Video' : 'Tài liệu')}
@@ -483,15 +485,15 @@ const CourseDetailScreen = () => {
 
                 {/* Tab: Đánh giá */}
                 {activeTab === 'reviews' && (
-                    <View style={{ backgroundColor: '#fff', padding: 20 }}>
+                    <View style={{ backgroundColor: isDarkMode ? '#1e293b' : '#fff', padding: 20 }}>
                         {/* Summary */}
                         <View style={{
                             flexDirection: 'row', alignItems: 'center', gap: 20,
-                            backgroundColor: '#f8fafc', borderRadius: 16, padding: 16,
+                            backgroundColor: isDarkMode ? '#0f172a' : '#f8fafc', borderRadius: 16, padding: 16,
                             marginBottom: 20,
                         }}>
                             <View style={{ alignItems: 'center' }}>
-                                <AppText style={{ fontSize: 44, fontFamily: 'Inter_700Bold', color: '#1e293b', lineHeight: 52 }}>
+                                <AppText style={{ fontSize: 44, fontFamily: 'Inter_700Bold', color: isDarkMode ? '#f8fafc' : '#1e293b', lineHeight: 52 }}>
                                     {course.rating}
                                 </AppText>
                                 <StarRow rating={Math.round(course.rating)} />
@@ -502,8 +504,8 @@ const CourseDetailScreen = () => {
                             <View style={{ flex: 1, gap: 5 }}>
                                 {[5, 4, 3, 2, 1].map(star => (
                                     <View key={star} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                        <AppText style={{ fontSize: 11, color: '#64748b', width: 8 }}>{star}</AppText>
-                                        <View style={{ flex: 1, height: 6, backgroundColor: '#e2e8f0', borderRadius: 3 }}>
+                                        <AppText style={{ fontSize: 11, color: isDarkMode ? '#cbd5e1' : '#64748b', width: 8 }}>{star}</AppText>
+                                        <View style={{ flex: 1, height: 6, backgroundColor: isDarkMode ? '#334155' : '#e2e8f0', borderRadius: 3 }}>
                                             <View style={{
                                                 height: 6, borderRadius: 3,
                                                 backgroundColor: '#fbbf24',
@@ -519,18 +521,18 @@ const CourseDetailScreen = () => {
                         {(courseDetail?.reviews || []).map(review => (
                             <View key={review.id} style={{
                                 paddingVertical: 16,
-                                borderBottomWidth: 1, borderBottomColor: '#f1f5f9',
+                                borderBottomWidth: 1, borderBottomColor: isDarkMode ? '#334155' : '#f1f5f9',
                             }}>
                                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 }}>
                                     <View style={{
                                         width: 38, height: 38, borderRadius: 19,
-                                        backgroundColor: '#f1f5f9',
+                                        backgroundColor: isDarkMode ? '#334155' : '#f1f5f9',
                                         alignItems: 'center', justifyContent: 'center',
                                     }}>
                                         <AppText style={{ fontSize: 18 }}>{review.avatar || '👨‍🎓'}</AppText>
                                     </View>
                                     <View style={{ flex: 1 }}>
-                                        <AppText style={{ fontSize: 13, fontFamily: 'Inter_700Bold', color: '#1e293b' }}>
+                                        <AppText style={{ fontSize: 13, fontFamily: 'Inter_700Bold', color: isDarkMode ? '#f8fafc' : '#1e293b' }}>
                                             {review.name || review.userName || 'Học viên'}
                                         </AppText>
                                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 }}>
@@ -539,7 +541,7 @@ const CourseDetailScreen = () => {
                                         </View>
                                     </View>
                                 </View>
-                                <AppText style={{ fontSize: 13, color: '#475569', fontFamily: 'Inter_400Regular', lineHeight: 20 }}>
+                                <AppText style={{ fontSize: 13, color: isDarkMode ? '#cbd5e1' : '#475569', fontFamily: 'Inter_400Regular', lineHeight: 20 }}>
                                     {review.comment || review.content}
                                 </AppText>
                             </View>
@@ -581,10 +583,10 @@ const CourseDetailScreen = () => {
             {/* Sticky Bottom CTA */}
             <View style={{
                 position: 'absolute', bottom: 0, left: 0, right: 0,
-                backgroundColor: '#fff',
+                backgroundColor: isDarkMode ? '#1e293b' : '#fff',
                 paddingHorizontal: 20, paddingTop: 8,
                 paddingBottom: (insets.bottom || 0) + 8,
-                borderTopWidth: 1, borderTopColor: '#f1f5f9',
+                borderTopWidth: 1, borderTopColor: isDarkMode ? '#334155' : '#f1f5f9',
                 flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 16,
                 shadowColor: '#000',
                 shadowOffset: { width: 0, height: -3 },
@@ -631,14 +633,14 @@ const CourseDetailScreen = () => {
                             width: 50,
                             height: 50,
                             borderRadius: 12,
-                            backgroundColor: '#eff6ff',
+                            backgroundColor: isDarkMode ? '#0f172a' : '#eff6ff',
                             alignItems: 'center',
                             justifyContent: 'center',
                             borderWidth: 1,
-                            borderColor: '#bfdbfe'
+                            borderColor: isDarkMode ? '#1e3a8a' : '#bfdbfe'
                         }}
                     >
-                        <Gift size={22} color="#2563eb" />
+                        <Gift size={22} color="#3b82f6" />
                     </TouchableOpacity>
                     <Button
                         variant="primary"

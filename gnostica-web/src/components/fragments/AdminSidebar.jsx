@@ -44,22 +44,20 @@ const ADMIN_SETTINGS_SUB_ITEMS = [
     tab: "site-pages",
     legacyTabs: ["home", "about"],
   },
-  { label: "Nội dung", icon: FileText, href: "/admin/settings?tab=pages", tab: "pages" },
+  { label: "Điều khoản", icon: FileText, href: "/admin/settings?tab=pages", tab: "pages" },
   { label: "Thanh toán", icon: CreditCard, href: "/admin/settings?tab=payment", tab: "payment" },
   { label: "Tài chính", icon: Percent, href: "/admin/settings?tab=finance", tab: "finance" },
-  { label: "Bảo mật", icon: Shield, href: "/admin/settings?tab=security", tab: "security" },
 ];
 
 const ADMIN_COURSES_SUB_ITEMS = [
   { label: "Danh sách", icon: BookOpen, href: "/admin/courses?tab=list", tab: "list", legacyTabs: ["general"] },
   { label: "Kiểm duyệt", icon: ShieldCheck, href: "/admin/courses?tab=moderation", tab: "moderation" },
-  { label: "Đánh giá", icon: Star, href: "/admin/courses?tab=reviews", tab: "reviews" },
+  { label: "Báo cáo", icon: MessageCircleWarning, href: "/admin/courses?tab=reports", tab: "reports" },
 ];
 
 const ADMIN_FORUM_SUB_ITEMS = [
   { label: "Danh sách", icon: MessageSquare, href: "/admin/forum?tab=list", tab: "list", legacyTabs: ["general"] },
   { label: "Kiểm duyệt", icon: ShieldCheck, href: "/admin/forum?tab=moderation", tab: "moderation" },
-  { label: "Đánh giá", icon: Star, href: "/admin/forum?tab=reviews", tab: "reviews" },
 ];
 
 const ADMIN_COUPONS_SUB_ITEMS = [

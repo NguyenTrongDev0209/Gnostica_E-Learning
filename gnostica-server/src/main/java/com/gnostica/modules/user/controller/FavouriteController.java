@@ -13,7 +13,6 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/favourites")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class FavouriteController {
 
     private final FavouriteService favouriteService;
@@ -21,7 +20,7 @@ public class FavouriteController {
     @GetMapping
     public ResponseEntity<?> getMyFavourites(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
-            return ResponseEntity.status(401).body(ApiResponse.error("Vui lòng đăng nhập để xem danh sách yêu thích"));
+            return ResponseEntity.status(401).body(ApiResponse.error("Vui lÃ²ng Ä‘Äƒng nháº­p Ä‘á»ƒ xem danh sÃ¡ch yÃªu thÃ­ch"));
         }
         return ResponseEntity.ok(ApiResponse.success(favouriteService.getFavouriteCourses(authentication.getName())));
     }
@@ -29,12 +28,12 @@ public class FavouriteController {
     @PostMapping("/toggle/{courseId}")
     public ResponseEntity<?> toggleFavourite(@PathVariable UUID courseId, Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
-            return ResponseEntity.status(401).body(ApiResponse.error("Vui lòng đăng nhập để thực hiện chức năng này"));
+            return ResponseEntity.status(401).body(ApiResponse.error("Vui lÃ²ng Ä‘Äƒng nháº­p Ä‘á»ƒ thá»±c hiá»‡n chá»©c nÄƒng nÃ y"));
         }
         boolean isAdded = favouriteService.toggleFavourite(authentication.getName(), courseId);
         return ResponseEntity.ok(ApiResponse.success(Map.of(
             "isFavourite", isAdded,
-            "message", isAdded ? "Đã thêm vào danh sách yêu thích" : "Đã xóa khỏi danh sách yêu thích"
+            "message", isAdded ? "ÄÃ£ thÃªm vÃ o danh sÃ¡ch yÃªu thÃ­ch" : "ÄÃ£ xÃ³a khá»i danh sÃ¡ch yÃªu thÃ­ch"
         )));
     }
 

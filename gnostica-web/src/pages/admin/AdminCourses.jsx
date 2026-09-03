@@ -11,15 +11,9 @@ import AppInput from '@/components/common/micro/AppInput';
 import adminCourseService from '@/services/admin/adminCourseService';
 import categoryService from '@/services/course/categoryService';
 import AdminCourseModeration from './AdminCourseModeration';
+import AdminCourseReports from './AdminCourseReports';
 
-function AdminCourseReviews() {
-  return (
-    <div className="flex flex-col items-center justify-center h-64 bg-white rounded-xl border border-border border-dashed gap-4">
-      <MessageSquare className="w-12 h-12 text-muted-foreground/40" />
-      <p className="text-muted-foreground font-medium">Tính năng Đánh giá Khóa học đang được xây dựng</p>
-    </div>
-  );
-}
+
 
 const STATUS_META = {
   1: { label: 'Đã xuất bản', className: 'text-success bg-success/10 border-success/20', dot: 'bg-success' },
@@ -210,7 +204,7 @@ export default function AdminCourses() {
       
       {tab === 'list' && <AdminCoursesList />}
       {tab === 'moderation' && <AdminCourseModeration hideHeader={true} />}
-      {tab === 'reviews' && <AdminCourseReviews />}
+      {tab === 'reports' && <AdminCourseReports hideHeader={true} />}
     </div>
   );
 }

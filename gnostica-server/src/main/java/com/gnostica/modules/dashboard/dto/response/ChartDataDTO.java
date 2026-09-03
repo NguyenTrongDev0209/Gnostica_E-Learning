@@ -12,5 +12,6 @@ import lombok.NoArgsConstructor;
 public class ChartDataDTO {
     private String month;
     private Double revenue;
+    private Double netRevenue;
     private Long students;
 }

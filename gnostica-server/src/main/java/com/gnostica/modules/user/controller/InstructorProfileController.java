@@ -6,6 +6,7 @@ import com.gnostica.core.model.Account;
 import com.gnostica.core.model.Course;
 import com.gnostica.core.repository.AccountRepository;
 import com.gnostica.core.repository.CourseRepository;
+import com.gnostica.core.repository.ReviewRepository;
 import com.gnostica.modules.auth.service.AuthService;
 import com.gnostica.modules.course.service.CourseService;
 import lombok.RequiredArgsConstructor;
@@ -20,11 +21,11 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/instructors")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class InstructorProfileController {
 
     private final AccountRepository accountRepository;
     private final CourseRepository courseRepository;
+    private final ReviewRepository reviewRepository;
     private final AuthService authService;
     private final CourseService courseService;
     private final com.fasterxml.jackson.databind.ObjectMapper objectMapper;
@@ -89,6 +90,10 @@ public class InstructorProfileController {
         // Đếm tổng số học viên đã đăng ký các khóa học của giảng viên
         long studentsCount = courseRepository.countStudentsByInstructorId(id);
 
+        // Lấy điểm đánh giá trung bình và tổng số đánh giá
+        Double averageRating = reviewRepository.getAverageRatingByInstructorId(id);
+        long reviewsCount = reviewRepository.countByCourseAccountIdAndDeletedAtIsNullAndStatusAndParentIsNull(id, 1);
+
         Map<String, Object> profile = new HashMap<>();
         profile.put("id", account.getId());
         profile.put("name", account.getFullName());
@@ -97,7 +102,9 @@ public class InstructorProfileController {
         profile.put("role", account.getRole() != null ? account.getRole().getName() : null);
         profile.put("coursesCount", coursesCount);
         profile.put("studentsCount", studentsCount);
-        profile.put("reviewsCount", 0); // Chưa có hệ thống đánh giá
+        profile.put("rating", averageRating != null ? Math.round(averageRating * 10.0) / 10.0 : 0.0);
+        profile.put("reviewsCount", reviewsCount);
+        profile.put("joinedAt", account.getCreatedAt());
 
         String bio = "";
         String title = "";
@@ -127,7 +134,7 @@ public class InstructorProfileController {
     }
 
     /**
-     * Lấy các khóa học đang hoạt động của giảng viên
+     * Láº¥y cÃ¡c khÃ³a há»c Ä‘ang hoáº¡t Ä‘á»™ng cá»§a giáº£ng viÃªn
      */
     @GetMapping("/{id}/courses")
     public ResponseEntity<?> getInstructorCourses(@PathVariable java.util.UUID id) {

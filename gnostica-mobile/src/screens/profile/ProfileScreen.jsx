@@ -10,6 +10,7 @@ import {
 import Avatar from '../../components/ui/Avatar';
 import Button from '../../components/ui/Button';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import enrollmentService from '../../services/course/enrollmentService';
 import api from '../../config/api';
@@ -24,7 +25,6 @@ const MENU_GROUPS = [
             { label: 'Giảng viên yêu thích', icon: Star, color: '#F59E0B', target: 'FavoriteInstructors' },
             { label: 'Bài viết của tôi', icon: MessageSquare, color: '#8B5CF6', target: 'MyForumPosts' },
             { label: 'Chứng chỉ của tôi', icon: CreditCard, color: '#10B981', target: 'Certificates' },
-            { label: 'Mã giảm giá', icon: Bell, color: '#F59E0B', target: 'Vouchers' },
             { label: 'Thông báo', icon: Bell, color: '#3B82F6', target: 'Notifications' },
         ],
     },
@@ -32,28 +32,15 @@ const MENU_GROUPS = [
         title: 'Hỗ trợ',
         items: [
             { label: 'Cài đặt', icon: Settings, color: '#64748B', target: 'Settings' },
-            { label: 'Chăm sóc khách hàng', icon: Headset, color: '#3B82F6', target: 'Support' },
             { label: 'Về Gnostica', icon: HelpCircle, color: '#8B5CF6', target: 'LegalInfo', params: { type: 'about' } },
             { label: 'Chính sách và điều khoản', icon: Shield, color: '#EC4899', target: 'LegalInfo', params: { type: 'terms' } },
-        ],
-    },
-    {
-        title: 'Dành cho giảng viên',
-        items: [
-            { label: 'Đăng ký giảng viên', icon: TrendingUp, color: '#10B981', target: 'ApplyInstructor' },
-            { label: 'Bảng điều khiển giảng viên', icon: TrendingUp, color: '#2563EB', target: 'InstructorDashboard' },
-        ],
-    },
-    {
-        title: 'Dành cho quản trị viên',
-        items: [
-            { label: 'Bảng điều khiển admin', icon: Shield, color: '#DC2626', target: 'AdminDashboard' },
         ],
     },
 ];
 
 const MenuItem = ({ item, onOpenProfileModal }) => {
     const navigation = useNavigation();
+    const { isDarkMode } = useTheme();
 
     const handlePress = () => {
         if (item.action === 'showProfileModal') {
@@ -67,7 +54,7 @@ const MenuItem = ({ item, onOpenProfileModal }) => {
         <TouchableOpacity
             activeOpacity={0.7}
             onPress={handlePress}
-            className="flex-row items-center py-3.5 px-5 border-b border-slate-50"
+            className={`flex-row items-center py-3.5 px-5 border-b ${isDarkMode ? 'border-slate-700/40' : 'border-slate-50'}`}
         >
             <View
                 className="w-[38px] h-[38px] rounded-xl items-center justify-center mr-3.5"
@@ -75,8 +62,8 @@ const MenuItem = ({ item, onOpenProfileModal }) => {
             >
                 <item.icon size={18} color={item.color} strokeWidth={2} />
             </View>
-            <AppText className="flex-1 text-[15px] text-slate-800 font-medium">{item.label}</AppText>
-            <ChevronRight size={16} color="#CBD5E1" />
+            <AppText className={`flex-1 text-[15px] font-medium ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}>{item.label}</AppText>
+            <ChevronRight size={16} color={isDarkMode ? "#64748B" : "#CBD5E1"} />
         </TouchableOpacity>
     );
 };
@@ -85,6 +72,7 @@ const ProfileScreen = () => {
     const navigation = useNavigation();
     const isFocused = useIsFocused();
     const { isAuthenticated, user, logout } = useAuth();
+    const { isDarkMode } = useTheme();
     const insets = useSafeAreaInsets();
 
     const [stats, setStats] = useState({ courses: 0, completed: 0, certificates: 0 });
@@ -131,7 +119,7 @@ const ProfileScreen = () => {
     // Unauthenticated state
     if (!isAuthenticated) {
         return (
-            <View className="flex-1 bg-slate-50">
+            <View className={`flex-1 ${isDarkMode ? 'bg-slate-900' : 'bg-slate-50'}`}>
                 <Modal
                     visible={isFocused}
                     transparent={true}
@@ -139,21 +127,21 @@ const ProfileScreen = () => {
                     statusBarTranslucent
                 >
                     <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 24 }}>
-                        <View style={{ backgroundColor: '#fff', borderRadius: 24, padding: 24, width: '100%', maxWidth: 340, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.1, shadowRadius: 20, elevation: 10 }}>
-                            <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: '#eff6ff', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+                        <View style={{ backgroundColor: isDarkMode ? '#1e293b' : '#fff', borderRadius: 24, padding: 24, width: '100%', maxWidth: 340, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.1, shadowRadius: 20, elevation: 10, borderWidth: isDarkMode ? 1 : 0, borderColor: isDarkMode ? '#334155' : 'transparent' }}>
+                            <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: isDarkMode ? '#1e3a8a' : '#eff6ff', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
                                 <Smile size={32} color="#2563EB" />
                             </View>
-                            <AppText style={{ fontSize: 20, fontFamily: 'Inter_700Bold', color: '#1e293b', marginBottom: 8, textAlign: 'center' }}>
+                            <AppText style={{ fontSize: 20, fontFamily: 'Inter_700Bold', color: isDarkMode ? '#f8fafc' : '#1e293b', marginBottom: 8, textAlign: 'center' }}>
                                 Yêu cầu đăng nhập
                             </AppText>
-                            <AppText style={{ fontSize: 14, color: '#64748b', textAlign: 'center', marginBottom: 24, lineHeight: 22, fontFamily: 'Inter_400Regular' }}>
+                            <AppText style={{ fontSize: 14, color: isDarkMode ? '#94a3b8' : '#64748b', textAlign: 'center', marginBottom: 24, lineHeight: 22, fontFamily: 'Inter_400Regular' }}>
                                 Vui lòng đăng nhập để xem thông tin cá nhân, lưu khóa học yêu thích và theo dõi tiến độ học tập.
                             </AppText>
                             <View style={{ flexDirection: 'row', gap: 12, width: '100%' }}>
                                 <Button
                                     variant="outline"
-                                    className="flex-1 py-3.5 rounded-xl border-slate-200"
-                                    textClassName="text-slate-600 font-semibold"
+                                    className={`flex-1 py-3.5 rounded-xl ${isDarkMode ? 'border-slate-700 bg-slate-800' : 'border-slate-200'}`}
+                                    textClassName={isDarkMode ? 'text-slate-300 font-semibold' : 'text-slate-600 font-semibold'}
                                     onPress={() => navigation.goBack()}
                                 >
                                     Từ chối
@@ -180,7 +168,7 @@ const ProfileScreen = () => {
     };
 
     return (
-        <ScrollView className="flex-1 bg-slate-50" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 80 }}>
+        <ScrollView className={`flex-1 ${isDarkMode ? 'bg-slate-900' : 'bg-slate-50'}`} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 80 }}>
             {/* Header with Cover Image */}
             <View style={{ height: 200, width: '100%' }}>
                 <Image
@@ -202,19 +190,19 @@ const ProfileScreen = () => {
                 style={{
                     marginHorizontal: 20,
                     marginTop: -60,
-                    backgroundColor: '#fff',
+                    backgroundColor: isDarkMode ? '#1e293b' : '#fff',
                     borderRadius: 24,
                     paddingHorizontal: 20,
                     paddingBottom: 24,
                     marginBottom: 10,
                     borderWidth: 1,
-                    borderColor: '#F1F5F9'
+                    borderColor: isDarkMode ? '#334155' : '#F1F5F9'
                 }}
             >
                 {/* Avatar */}
                 <View style={{ alignSelf: 'center', marginTop: -44 }}>
                     <View style={{
-                        borderRadius: 50, padding: 4, backgroundColor: '#fff',
+                        borderRadius: 50, padding: 4, backgroundColor: isDarkMode ? '#1e293b' : '#fff',
                         shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
                         shadowOpacity: 0.1, shadowRadius: 8, elevation: 5
                     }}>
@@ -225,23 +213,23 @@ const ProfileScreen = () => {
                 {/* Name & Edit */}
                 <View className="items-center mt-3">
                     <View className="flex-row items-center">
-                        <AppText className="text-[22px] font-extrabold text-slate-800 tracking-tight">
+                        <AppText className={`text-[22px] font-extrabold tracking-tight ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}>
                             {user?.fullName || user?.name || 'Học viên E-Learning'}
                         </AppText>
                         <TouchableOpacity
                             onPress={() => setShowProfileModal(true)}
-                            className="ml-2 bg-blue-50 w-7 h-7 rounded-full items-center justify-center"
+                            className={`ml-2 w-7 h-7 rounded-full items-center justify-center ${isDarkMode ? 'bg-blue-950' : 'bg-blue-50'}`}
                         >
-                            <Edit3 size={14} color="#2563EB" />
+                            <Edit3 size={14} color="#3B82F6" />
                         </TouchableOpacity>
                     </View>
-                    <AppText className="text-[14px] text-slate-500 mt-1 font-medium">
+                    <AppText className={`text-[14px] mt-1 font-medium ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
                         {user?.email || 'Chưa cập nhật email'}
                     </AppText>
                 </View>
 
                 {/* Stats row with icons */}
-                <View className="flex-row mt-6 pt-6 border-t border-slate-100 w-full">
+                <View className={`flex-row mt-6 pt-6 border-t w-full ${isDarkMode ? 'border-slate-700/60' : 'border-slate-100'}`}>
                     {[
                         { label: 'Khóa học', value: stats.courses, icon: BookOpen, color: '#3B82F6', bg: '#EFF6FF' },
                         { label: 'Hoàn thành', value: stats.completed, icon: Target, color: '#10B981', bg: '#ECFDF5' },
@@ -251,19 +239,19 @@ const ProfileScreen = () => {
                             key={stat.label}
                             className="flex-1 items-center relative"
                         >
-                            <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: stat.bg, alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
+                            <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: isDarkMode ? '#0f172a' : stat.bg, alignItems: 'center', justifyCenter: 'center', marginBottom: 8, alignItems: 'center', justifyContent: 'center' }}>
                                 <stat.icon size={20} color={stat.color} />
                             </View>
                             {loadingStats ? (
                                 <ActivityIndicator size="small" color={stat.color} style={{ marginVertical: 4 }} />
                             ) : (
-                                <AppText className="text-[20px] font-black text-slate-800">{stat.value}</AppText>
+                                <AppText className={`text-[20px] font-black ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}>{stat.value}</AppText>
                             )}
                             <AppText className="text-[11px] text-slate-400 mt-1 font-bold uppercase tracking-[0.8px] text-center px-1">{stat.label}</AppText>
 
                             {/* Divider */}
                             {i < 2 && (
-                                <View style={{ position: 'absolute', right: 0, top: '10%', bottom: '10%', width: 1, backgroundColor: '#F1F5F9' }} />
+                                <View style={{ position: 'absolute', right: 0, top: '10%', bottom: '10%', width: 1, backgroundColor: isDarkMode ? '#334155' : '#F1F5F9' }} />
                             )}
                         </View>
                     ))}
@@ -276,7 +264,7 @@ const ProfileScreen = () => {
                     <AppText className="text-xs font-bold text-slate-400 px-5 mb-2 tracking-[0.8px] uppercase">
                         {group.title}
                     </AppText>
-                    <View className="bg-white border-y border-slate-100">
+                    <View className={`border-y ${isDarkMode ? 'bg-slate-800 border-slate-700/60' : 'bg-white border-slate-100'}`}>
                         {group.items.map(item => (
                             <MenuItem
                                 key={item.label}
@@ -292,7 +280,8 @@ const ProfileScreen = () => {
             <TouchableOpacity
                 onPress={handleLogout}
                 activeOpacity={0.75}
-                className="mx-5 mt-5 mb-10 py-[15px] rounded-[14px] bg-red-50 border border-red-200 flex-row items-center justify-center gap-2.5"
+                className={`mx-5 mt-5 mb-10 py-[15px] rounded-[14px] flex-row items-center justify-center gap-2.5 ${isDarkMode ? 'bg-red-950/50 border border-red-900/80' : 'bg-red-50 border border-red-200'
+                    }`}
             >
                 <LogOut size={18} color="#EF4444" />
                 <AppText className="text-[15px] font-bold text-red-500">Đăng xuất</AppText>
@@ -313,7 +302,7 @@ const ProfileScreen = () => {
                     <TouchableOpacity
                         activeOpacity={1}
                         style={{
-                            backgroundColor: '#fff',
+                            backgroundColor: isDarkMode ? '#1e293b' : '#fff',
                             borderTopLeftRadius: 24,
                             borderTopRightRadius: 24,
                             padding: 24,
@@ -321,25 +310,25 @@ const ProfileScreen = () => {
                         }}
                     >
                         {/* Drag indicator */}
-                        <View style={{ width: 36, height: 4, borderRadius: 2, backgroundColor: '#e2e8f0', alignSelf: 'center', marginBottom: 20 }} />
+                        <View style={{ width: 36, height: 4, borderRadius: 2, backgroundColor: isDarkMode ? '#475569' : '#e2e8f0', alignSelf: 'center', marginBottom: 20 }} />
 
                         {/* Title & Close */}
                         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
                             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                                <View style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: '#eff6ff', alignItems: 'center', justifyContent: 'center' }}>
+                                <View style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: isDarkMode ? '#1e3a8a' : '#eff6ff', alignItems: 'center', justifyContent: 'center' }}>
                                     <User size={20} color="#2563eb" />
                                 </View>
-                                <AppText style={{ fontSize: 18, fontWeight: 'bold', color: '#1e293b' }}>Thông tin cá nhân</AppText>
+                                <AppText style={{ fontSize: 18, fontWeight: 'bold', color: isDarkMode ? '#f8fafc' : '#1e293b' }}>Thông tin cá nhân</AppText>
                             </View>
                             <TouchableOpacity onPress={() => setShowProfileModal(false)} style={{ padding: 4 }}>
-                                <X size={20} color="#94a3b8" />
+                                <X size={20} color={isDarkMode ? '#cbd5e1' : '#94a3b8'} />
                             </TouchableOpacity>
                         </View>
 
                         {/* Avatar & Name Header */}
-                        <View style={{ alignItems: 'center', paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#f1f5f9', marginBottom: 16 }}>
+                        <View style={{ alignItems: 'center', paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: isDarkMode ? '#334155' : '#f1f5f9', marginBottom: 16 }}>
                             <Avatar name={user?.fullName || user?.name || 'Học viên'} size={72} />
-                            <AppText style={{ fontSize: 18, fontWeight: 'bold', color: '#1e293b', marginTop: 12 }}>
+                            <AppText style={{ fontSize: 18, fontWeight: 'bold', color: isDarkMode ? '#f8fafc' : '#1e293b', marginTop: 12 }}>
                                 {user?.fullName || user?.name || 'Học viên E-Learning'}
                             </AppText>
                             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 }}>
@@ -350,38 +339,38 @@ const ProfileScreen = () => {
 
                         {/* Detail Fields */}
                         <View style={{ gap: 12 }}>
-                            <View style={{ backgroundColor: '#f8fafc', padding: 14, borderRadius: 14, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                                <User size={18} color="#64748b" />
+                            <View style={{ backgroundColor: isDarkMode ? '#0f172a' : '#f8fafc', padding: 14, borderRadius: 14, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                                <User size={18} color={isDarkMode ? '#94a3b8' : '#64748b'} />
                                 <View style={{ flex: 1 }}>
                                     <AppText style={{ fontSize: 11, color: '#94a3b8', fontWeight: '600', uppercase: true }}>Họ và tên</AppText>
-                                    <AppText style={{ fontSize: 14, fontWeight: '600', color: '#1e293b', marginTop: 2 }}>
+                                    <AppText style={{ fontSize: 14, fontWeight: '600', color: isDarkMode ? '#f8fafc' : '#1e293b', marginTop: 2 }}>
                                         {user?.fullName || user?.name || 'Chưa cập nhật'}
                                     </AppText>
                                 </View>
                             </View>
 
-                            <View style={{ backgroundColor: '#f8fafc', padding: 14, borderRadius: 14, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                                <Mail size={18} color="#64748b" />
+                            <View style={{ backgroundColor: isDarkMode ? '#0f172a' : '#f8fafc', padding: 14, borderRadius: 14, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                                <Mail size={18} color={isDarkMode ? '#94a3b8' : '#64748b'} />
                                 <View style={{ flex: 1 }}>
                                     <AppText style={{ fontSize: 11, color: '#94a3b8', fontWeight: '600', uppercase: true }}>Địa chỉ Email</AppText>
-                                    <AppText style={{ fontSize: 14, fontWeight: '600', color: '#1e293b', marginTop: 2 }}>
+                                    <AppText style={{ fontSize: 14, fontWeight: '600', color: isDarkMode ? '#f8fafc' : '#1e293b', marginTop: 2 }}>
                                         {user?.email || 'Chưa cập nhật'}
                                     </AppText>
                                 </View>
                             </View>
 
-                            <View style={{ backgroundColor: '#f8fafc', padding: 14, borderRadius: 14, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                                <Shield size={18} color="#64748b" />
+                            <View style={{ backgroundColor: isDarkMode ? '#0f172a' : '#f8fafc', padding: 14, borderRadius: 14, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                                <Shield size={18} color={isDarkMode ? '#94a3b8' : '#64748b'} />
                                 <View style={{ flex: 1 }}>
                                     <AppText style={{ fontSize: 11, color: '#94a3b8', fontWeight: '600', uppercase: true }}>Vai trò tài khoản</AppText>
-                                    <AppText style={{ fontSize: 14, fontWeight: '600', color: '#2563eb', marginTop: 2 }}>
+                                    <AppText style={{ fontSize: 14, fontWeight: '600', color: '#3b82f6', marginTop: 2 }}>
                                         {user?.role === 'ROLE_ADMIN' ? 'Quản trị viên (Admin)' : user?.role === 'ROLE_INSTRUCTOR' ? 'Giảng viên' : 'Học viên (Member)'}
                                     </AppText>
                                 </View>
                             </View>
 
-                            <View style={{ backgroundColor: '#f8fafc', padding: 14, borderRadius: 14, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                                <CheckCircle2 size={18} color="#64748b" />
+                            <View style={{ backgroundColor: isDarkMode ? '#0f172a' : '#f8fafc', padding: 14, borderRadius: 14, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                                <CheckCircle2 size={18} color={isDarkMode ? '#94a3b8' : '#64748b'} />
                                 <View style={{ flex: 1 }}>
                                     <AppText style={{ fontSize: 11, color: '#94a3b8', fontWeight: '600', uppercase: true }}>Trạng thái tài khoản</AppText>
                                     <AppText style={{ fontSize: 14, fontWeight: '600', color: '#10b981', marginTop: 2 }}>
@@ -395,14 +384,14 @@ const ProfileScreen = () => {
                         <TouchableOpacity
                             onPress={() => setShowProfileModal(false)}
                             style={{
-                                backgroundColor: '#f1f5f9',
+                                backgroundColor: isDarkMode ? '#334155' : '#f1f5f9',
                                 paddingVertical: 14,
                                 borderRadius: 14,
                                 alignItems: 'center',
                                 marginTop: 20,
                             }}
                         >
-                            <AppText style={{ fontSize: 15, fontWeight: 'bold', color: '#475569' }}>Đóng</AppText>
+                            <AppText style={{ fontSize: 15, fontWeight: 'bold', color: isDarkMode ? '#f8fafc' : '#475569' }}>Đóng</AppText>
                         </TouchableOpacity>
                     </TouchableOpacity>
                 </TouchableOpacity>

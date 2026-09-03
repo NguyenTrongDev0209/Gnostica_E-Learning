@@ -18,6 +18,7 @@ import {
   RotateCcw,
   MessageSquare,
 } from "lucide-react";
+import { useConversations } from "@/hooks/messaging/useConversations";
 
 const MENU_GROUPS = [
   {
@@ -36,7 +37,7 @@ const MENU_GROUPS = [
       { label: "Danh sách yêu thích", icon: Heart, href: "/account/wishlist" },
       { label: "Lịch sử đơn hàng", icon: ShoppingBag, href: "/account/orders" },
       { label: "Yêu cầu hoàn tiền", icon: RotateCcw, href: "/account/refunds" },
-      { label: "Kho giảm giá", icon: Ticket, href: "/account/vouchers" },
+      // { label: "Kho giảm giá", icon: Ticket, href: "/account/vouchers" },
     ],
   },
   {
@@ -51,6 +52,19 @@ const MENU_GROUPS = [
 
 export default function AccountSidebar({ user, currentUser, handleLogout }) {
   const location = useLocation();
+
+  const { data: conversationsData } = useConversations();
+  const unreadCount = React.useMemo(() => {
+    if (!conversationsData) return 0;
+    const items = Array.isArray(conversationsData.content) 
+      ? conversationsData.content 
+      : Array.isArray(conversationsData.items) 
+        ? conversationsData.items 
+        : Array.isArray(conversationsData) 
+          ? conversationsData 
+          : [];
+    return items.reduce((sum, conv) => sum + (conv.unreadCount || 0), 0);
+  }, [conversationsData]);
 
   return (
     <aside className="w-full lg:w-1/4 lg:max-w-[320px] shrink-0">
@@ -110,11 +124,15 @@ export default function AccountSidebar({ user, currentUser, handleLogout }) {
                       >
                         <Icon className={`w-5 h-5 ${isActive ? "text-white" : "text-muted-foreground"}`} />
                         <span className="flex-1">{item.label}</span>
-                        {item.badge && (
+                        {item.href.includes("/messages") && unreadCount > 0 ? (
+                          <span className="bg-error text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 text-center shadow-sm">
+                            {unreadCount > 99 ? "99+" : unreadCount}
+                          </span>
+                        ) : item.badge ? (
                           <Badge className="bg-primary/10 text-primary text-[10px] font-bold px-1.5 py-0 hover:bg-primary/10">
                             {item.badge}
                           </Badge>
-                        )}
+                        ) : null}
                       </Link>
                     );
                   })}

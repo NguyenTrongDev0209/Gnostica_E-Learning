@@ -5,6 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { Flame, TrendingUp, Award, Star, Users } from 'lucide-react-native';
 import CourseCard from '../course/components/CourseCard';
 import courseService from '../../services/course/courseService';
+import { useTheme } from '../../context/ThemeContext';
 
 const STATS = [
     { label: 'Khóa học', value: '200+', icon: Award, color: '#3B82F6' },
@@ -14,6 +15,7 @@ const STATS = [
 
 const HighlightsScreen = () => {
     const navigation = useNavigation();
+    const { isDarkMode } = useTheme();
     const [topCourses, setTopCourses] = useState([]);
     const [featuredCourses, setFeaturedCourses] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -21,10 +23,9 @@ const HighlightsScreen = () => {
     useEffect(() => {
         const fetchHighlights = async () => {
             try {
-                // Giả lập 2 call API cho Top courses (ví dụ sortBy = students) và Featured
                 const [topRes, featRes] = await Promise.all([
                     courseService.getAll({ sortBy: 'students', sortDir: 'desc', size: 3 }),
-                    courseService.getAll({ size: 5 }) // Tạm dùng getAll cho featured
+                    courseService.getAll({ size: 5 })
                 ]);
                 
                 const formatCourse = (course) => ({
@@ -57,14 +58,14 @@ const HighlightsScreen = () => {
 
     if (loading) {
         return (
-            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: isDarkMode ? '#0f172a' : '#f8fafc' }}>
                 <ActivityIndicator size="large" color="#2563EB" />
             </View>
         );
     }
 
     return (
-        <ScrollView className="flex-1 bg-slate-50" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 80 }}>
+        <ScrollView className={`flex-1 ${isDarkMode ? 'bg-slate-900' : 'bg-slate-50'}`} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 80 }}>
             {/* Hero Banner */}
             <ImageBackground
                 source={{ uri: 'https://picsum.photos/seed/highlights/800/400' }}
@@ -72,7 +73,7 @@ const HighlightsScreen = () => {
                 style={{ minHeight: 220 }}
                 imageStyle={{ opacity: 0.15 }}
             >
-                <View className="absolute top-0 bottom-0 left-0 right-0 bg-gradient-to-b" style={{ backgroundColor: 'rgba(225, 29, 72, 0.9)' }} />
+                <View className="absolute top-0 bottom-0 left-0 right-0" style={{ backgroundColor: 'rgba(225, 29, 72, 0.9)' }} />
 
                 <View className="relative z-10">
                     <View className="flex-row items-center mb-3">
@@ -101,26 +102,28 @@ const HighlightsScreen = () => {
                 <View className="flex-row items-center justify-between mb-4">
                     <View className="flex-row items-center gap-2">
                         <TrendingUp size={20} color="#e32f45" />
-                        <AppText className="text-lg font-extrabold text-slate-800">Trending ngay bây giờ</AppText>
+                        <AppText className={`text-lg font-extrabold ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}>Trending ngay bây giờ</AppText>
                     </View>
                     <TouchableOpacity onPress={() => navigation.navigate('CourseCatalog')}>
-                        <AppText className="text-sm text-blue-600 font-semibold">Xem tất cả</AppText>
+                        <AppText className={`text-sm font-semibold ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>Xem tất cả</AppText>
                     </TouchableOpacity>
                 </View>
 
                 {topCourses.map((course, index) => (
                     <TouchableOpacity
                         key={course.id}
-                        className="bg-white rounded-2xl p-3.5 mb-3 shadow-sm border border-slate-100 flex-row items-center"
+                        className={`rounded-2xl p-3.5 mb-3 shadow-sm border flex-row items-center ${
+                            isDarkMode ? 'bg-slate-800 border-slate-700/60' : 'bg-white border-slate-100'
+                        }`}
                         onPress={() => navigation.navigate('CourseDetail', { course })}
                         activeOpacity={0.85}
                     >
                         {/* Rank Badge */}
                         <View className="w-8 h-8 rounded-full items-center justify-center mr-3"
-                            style={{ backgroundColor: index === 0 ? '#FEF3C7' : index === 1 ? '#F1F5F9' : '#FFF7ED' }}
+                            style={{ backgroundColor: index === 0 ? '#FEF3C7' : index === 1 ? (isDarkMode ? '#334155' : '#F1F5F9') : '#FFF7ED' }}
                         >
                             <AppText className="font-extrabold text-sm"
-                                style={{ color: index === 0 ? '#B45309' : index === 1 ? '#475569' : '#C2410C' }}
+                                style={{ color: index === 0 ? '#B45309' : index === 1 ? (isDarkMode ? '#CBD5E1' : '#475569') : '#C2410C' }}
                             >
                                 {index + 1}
                             </AppText>
@@ -128,25 +131,25 @@ const HighlightsScreen = () => {
 
                         <Image
                             source={{ uri: course.thumbnail }}
-                            className="w-14 h-14 rounded-xl bg-slate-200"
+                            className={`w-14 h-14 rounded-xl ${isDarkMode ? 'bg-slate-700' : 'bg-slate-200'}`}
                         />
 
                         <View className="flex-1 ml-3">
-                            <AppText className="text-[13px] font-bold text-slate-800" numberOfLines={1}>
+                            <AppText className={`text-[13px] font-bold ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`} numberOfLines={1}>
                                 {course.title}
                             </AppText>
                             <AppText className="text-xs text-slate-400 mt-0.5">{course.instructor}</AppText>
                             <View className="flex-row items-center mt-1 gap-2">
                                 <View className="flex-row items-center">
                                     <Star size={10} color="#F59E0B" fill="#F59E0B" />
-                                    <AppText className="text-[10px] text-slate-500 font-medium ml-0.5">{course.rating}</AppText>
+                                    <AppText className={`text-[10px] font-medium ml-0.5 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>{course.rating}</AppText>
                                 </View>
                                 <AppText className="text-[10px] text-slate-300">•</AppText>
                                 <AppText className="text-[10px] text-slate-400">{course.studentCount?.toLocaleString()} học viên</AppText>
                             </View>
                         </View>
 
-                        <AppText className="text-sm font-extrabold text-blue-600">{course.price}</AppText>
+                        <AppText className="text-sm font-extrabold text-blue-500">{course.price}</AppText>
                     </TouchableOpacity>
                 ))}
             </View>
@@ -154,7 +157,7 @@ const HighlightsScreen = () => {
             {/* Featured Courses Horizontal */}
             <View className="mt-6">
                 <View className="flex-row items-center justify-between px-5 mb-4">
-                    <AppText className="text-lg font-extrabold text-slate-800">⭐ Được đề xuất</AppText>
+                    <AppText className={`text-lg font-extrabold ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}>⭐ Được đề xuất</AppText>
                 </View>
                 <ScrollView
                     horizontal

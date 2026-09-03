@@ -22,6 +22,8 @@ import java.time.LocalDateTime;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import com.gnostica.core.security.AuthenticatedAccountProvider;
+import com.gnostica.core.exception.ForbiddenException;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -56,6 +58,8 @@ public class ThreadServiceImpl implements ThreadService {
     private CommentRepository commentRepository;
     @Autowired
     private ReportRepository reportRepository;
+    @Autowired
+    private AuthenticatedAccountProvider authenticatedAccountProvider;
     @Autowired
     private HashtagRepository hashtagRepository;
     @Autowired
@@ -338,6 +342,14 @@ public class ThreadServiceImpl implements ThreadService {
         Thread thread = threadRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Thread not found with id: " + id));
 
+        Account currentUser = authenticatedAccountProvider.requireCurrentAccount();
+        boolean isAdmin = currentUser.getRole().getName() != null && currentUser.getRole().getName().toUpperCase().contains("ADMIN");
+        boolean isAuthor = thread.getAccount() != null && thread.getAccount().getEmail().equals(currentUser.getEmail());
+
+        if (!isAdmin && !isAuthor) {
+            throw new ForbiddenException("Bạn không có quyền xóa bài viết này.");
+        }
+
         voteRepository.deleteByTargetIdAndType(id.toString(), 1);
         reportRepository.deleteByTargetIdAndTargetType(id.toString(), "THREAD");
         commentRepository.deleteByTargetTypeAndTargetId("THREAD", id.toString());
@@ -347,6 +359,12 @@ public class ThreadServiceImpl implements ThreadService {
     @Override
     @Transactional
     public void rejectThread(Integer id, String reason) {
+        Account currentUser = authenticatedAccountProvider.requireCurrentAccount();
+        boolean isAdmin = currentUser.getRole().getName() != null && currentUser.getRole().getName().toUpperCase().contains("ADMIN");
+        if (!isAdmin) {
+            throw new ForbiddenException("Chỉ có Admin mới có quyền từ chối bài viết.");
+        }
+
         Thread thread = threadRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Thread not found with id: " + id));
 
@@ -373,12 +391,23 @@ public class ThreadServiceImpl implements ThreadService {
 
     @Override
     public Page<Thread> getPendingThreads(Pageable pageable) {
+        Account currentUser = authenticatedAccountProvider.requireCurrentAccount();
+        boolean isAdmin = currentUser.getRole().getName() != null && currentUser.getRole().getName().toUpperCase().contains("ADMIN");
+        if (!isAdmin) {
+            throw new ForbiddenException("Chỉ có Admin mới có quyền xem danh sách chờ duyệt.");
+        }
         return populateThreadsStats(threadRepository.findAllByStatus(1, pageable)); // 1 = Draft/Pending
     }
 
     @Override
     @Transactional
     public Thread approveThread(Integer id) {
+        Account currentUser = authenticatedAccountProvider.requireCurrentAccount();
+        boolean isAdmin = currentUser.getRole().getName() != null && currentUser.getRole().getName().toUpperCase().contains("ADMIN");
+        if (!isAdmin) {
+            throw new ForbiddenException("Chỉ có Admin mới có quyền duyệt bài viết.");
+        }
+
         Thread thread = threadRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Thread not found with id: " + id));
         thread.setStatus(2); // Published

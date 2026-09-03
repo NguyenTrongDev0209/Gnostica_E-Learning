@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import CourseProgressCard from './components/CourseProgressCard';
 import Button from '../../components/ui/Button';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import enrollmentService from '../../services/course/enrollmentService';
 
 const TABS = ['Đang học', 'Hoàn thành'];
@@ -14,6 +15,7 @@ const TABS = ['Đang học', 'Hoàn thành'];
 const MyCoursesScreen = () => {
     const navigation = useNavigation();
     const { isAuthenticated } = useAuth();
+    const { isDarkMode } = useTheme();
     const insets = useSafeAreaInsets();
     const [activeTab, setActiveTab] = useState(0);
     
@@ -60,12 +62,12 @@ const MyCoursesScreen = () => {
     // Unauthenticated state
     if (!isAuthenticated) {
         return (
-            <View className="flex-1 bg-slate-50 justify-center items-center p-5">
+            <View className={`flex-1 justify-center items-center p-5 ${isDarkMode ? 'bg-slate-900' : 'bg-slate-50'}`}>
                 <AppText className="text-6xl mb-4">🔒</AppText>
-                <AppText className="text-[22px] font-extrabold text-slate-800 mb-2 text-center">
+                <AppText className={`text-[22px] font-extrabold mb-2 text-center ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}>
                     Yêu cầu đăng nhập
                 </AppText>
-                <AppText className="text-sm text-slate-500 text-center mb-8 leading-[22px]">
+                <AppText className={`text-sm text-center mb-8 leading-[22px] ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
                     Vui lòng đăng nhập để xem danh sách khóa học và tiến độ học tập của bạn.
                 </AppText>
                 <Button
@@ -86,10 +88,10 @@ const MyCoursesScreen = () => {
         : courses.filter(c => isCompletedCourse(c));
 
     return (
-        <View className="flex-1 bg-slate-50">
+        <View className={`flex-1 ${isDarkMode ? 'bg-slate-900' : 'bg-slate-50'}`}>
             {/* Header */}
-            <View className="bg-white px-5 pb-0 border-b border-slate-100" style={{ paddingTop: Math.max(insets.top, 20) + 12 }}>
-                <AppText className="text-[22px] font-extrabold text-slate-800 mb-4">
+            <View className={`px-5 pb-0 border-b ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'}`} style={{ paddingTop: Math.max(insets.top, 20) + 12 }}>
+                <AppText className={`text-[22px] font-extrabold mb-4 ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}>
                     Khóa học của tôi
                 </AppText>
 
@@ -101,12 +103,12 @@ const MyCoursesScreen = () => {
                             onPress={() => setActiveTab(idx)}
                             className={clsx(
                                 'pb-3 mr-6',
-                                activeTab === idx ? 'border-b-[2.5px] border-blue-600' : 'border-b-[2.5px] border-transparent',
+                                activeTab === idx ? 'border-b-[2.5px] border-blue-500' : 'border-b-[2.5px] border-transparent',
                             )}
                         >
                             <AppText className={clsx(
                                 'text-[15px] font-bold',
-                                activeTab === idx ? 'text-blue-600' : 'text-slate-400',
+                                activeTab === idx ? 'text-blue-500' : (isDarkMode ? 'text-slate-400' : 'text-slate-400'),
                             )}>
                                 {tab}
                             </AppText>
@@ -123,13 +125,15 @@ const MyCoursesScreen = () => {
                 <>
                     {/* Progress Summary */}
                     {activeTab === 0 && data.length > 0 && (
-                        <View className="bg-blue-50 mx-5 mt-4 rounded-[14px] p-4 flex-row items-center gap-3">
+                        <View className={`mx-5 mt-4 rounded-[14px] p-4 flex-row items-center gap-3 ${
+                            isDarkMode ? 'bg-blue-950/80 border border-blue-900' : 'bg-blue-50'
+                        }`}>
                             <AppText className="text-4xl">📚</AppText>
                             <View>
-                                <AppText className="text-[15px] font-extrabold text-blue-900">
+                                <AppText className={`text-[15px] font-extrabold ${isDarkMode ? 'text-blue-200' : 'text-blue-900'}`}>
                                     Bạn đang học {data.length} khóa
                                 </AppText>
-                                <AppText className="text-[13px] text-blue-500 mt-0.5">
+                                <AppText className={`text-[13px] mt-0.5 ${isDarkMode ? 'text-blue-400' : 'text-blue-500'}`}>
                                     Tiếp tục học để hoàn thành mục tiêu!
                                 </AppText>
                             </View>
@@ -142,10 +146,10 @@ const MyCoursesScreen = () => {
                             <AppText className="text-5xl mb-3">
                                 {activeTab === 0 ? '📖' : '🏆'}
                             </AppText>
-                            <AppText className="text-[17px] font-bold text-slate-800 mb-1.5">
+                            <AppText className={`text-[17px] font-bold mb-1.5 ${isDarkMode ? 'text-slate-100' : 'text-slate-800'}`}>
                                 {activeTab === 0 ? 'Chưa có khóa học nào' : 'Chưa hoàn thành khóa nào'}
                             </AppText>
-                            <AppText className="text-[13px] text-slate-500 text-center px-10">
+                            <AppText className={`text-[13px] text-center px-10 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
                                 {activeTab === 0
                                     ? 'Hãy khám phá và đăng ký khóa học đầu tiên của bạn'
                                     : 'Hãy kiên trì học và hoàn thành các khóa học đang học'

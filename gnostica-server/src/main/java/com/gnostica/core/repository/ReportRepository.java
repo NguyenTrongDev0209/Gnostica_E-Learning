@@ -13,7 +13,13 @@ import java.util.List;
 public interface ReportRepository extends JpaRepository<Report, Integer> {
     void deleteByTargetIdAndTargetType(String targetId, String targetType);
     boolean existsByTargetIdAndTargetTypeAndAccount_Email(String targetId, String targetType, String email);
+    boolean existsByTargetIdAndTargetTypeAndAccount_EmailAndStatus(String targetId, String targetType, String email, Integer status);
+    org.springframework.data.domain.Page<Report> findByTargetType(String targetType, org.springframework.data.domain.Pageable pageable);
+    org.springframework.data.domain.Page<Report> findByTargetTypeAndStatus(String targetType, Integer status, org.springframework.data.domain.Pageable pageable);
 
     @Query("SELECT r.createdAt, r.status, r.reason FROM Report r WHERE r.createdAt >= :startDate AND r.targetType = :targetType AND r.deletedAt IS NULL")
     List<Object[]> getAdminStatsProjection(@Param("startDate") LocalDateTime startDate, @Param("targetType") String targetType);
+
+    List<Report> findByCreatedAtAfterAndDeletedAtIsNull(LocalDateTime createdAt);
+    List<Report> findByCreatedAtBetweenAndDeletedAtIsNull(LocalDateTime startDate, LocalDateTime endDate);
 }

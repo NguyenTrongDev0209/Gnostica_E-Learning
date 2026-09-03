@@ -12,14 +12,7 @@ function AdminForumList() {
   );
 }
 
-function AdminForumReviews() {
-  return (
-    <div className="flex flex-col items-center justify-center h-64 bg-white rounded-xl border border-border border-dashed gap-4">
-      <MessageSquare className="w-12 h-12 text-muted-foreground/40" />
-      <p className="text-muted-foreground font-medium">Tính năng Đánh giá Bài viết đang được xây dựng</p>
-    </div>
-  );
-}
+
 
 export default function AdminForum() {
   const [searchParams] = useSearchParams();
@@ -39,7 +32,6 @@ export default function AdminForum() {
 
       {tab === 'list' && <AdminForumList />}
       {tab === 'moderation' && <AdminThreadModeration hideHeader={true} />}
-      {tab === 'reviews' && <AdminForumReviews />}
     </div>
   );
 }

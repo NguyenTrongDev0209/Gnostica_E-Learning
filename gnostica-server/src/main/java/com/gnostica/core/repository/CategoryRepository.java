@@ -17,6 +17,7 @@ public interface CategoryRepository extends JpaRepository<Category, Integer> {
     boolean existsBySlugAndIdNot(String slug, Integer id);
     boolean existsByName(String name);
     List<Category> findByParentIsNull();
+    long countByDeletedAtIsNull();
 
     @Query("SELECT DISTINCT c FROM Category c LEFT JOIN c.children ch " +
            "WHERE c.parent IS NULL " +

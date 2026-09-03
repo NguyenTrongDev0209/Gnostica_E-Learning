@@ -170,7 +170,9 @@ function InstructorCourseTable({
                             {row.status === 1 ? (
                                 <span className="inline-flex items-center gap-1 text-[10px] text-success font-bold bg-success/10 px-1.5 py-0 rounded border border-success/20">Đang hiển thị</span>
                             ) : row.status === 3 || row.status === 0 || row.status === "rejected" ? (
-                                <span className="inline-flex items-center gap-1 text-[10px] text-error font-bold bg-error/10 px-1.5 py-0 rounded border border-error/20">Bị từ chối</span>
+                                <span className="inline-flex items-center gap-1 text-[10px] text-error font-bold bg-error/10 px-1.5 py-0 rounded border border-error/20">
+                                    {row.rejectReason?.startsWith("[Báo cáo]") ? "Bị báo cáo" : "Bị từ chối"}
+                                </span>
                             ) : row.status === 4 ? (
                                 <span className="inline-flex items-center gap-1 text-[10px] text-warning font-bold bg-warning/10 px-1.5 py-0.5 rounded border border-warning/20">Chờ duyệt</span>
                             ) : row.status === 2 ? (
@@ -206,7 +208,7 @@ function InstructorCourseTable({
                         <TableActionIconButton
                             icon={MessageSquareWarning}
                             colorVariant="error"
-                            title="Xem lý do từ chối"
+                            title="Xem lý do từ chối/báo cáo"
                             onClick={() => onViewRejectReason?.(row)}
                         />
                     )}
@@ -338,10 +340,16 @@ export default function InstructorCourses() {
   });
 
   const handleOpenRejectReason = (course) => {
+    let reasonText = course.rejectReason || "Không có nội dung lý do chi tiết đính kèm.";
+    let isReported = reasonText.startsWith("[Báo cáo] ");
+    if (isReported) {
+        reasonText = reasonText.replace("[Báo cáo] ", "");
+    }
     setRejectViewModal({
       isOpen: true,
       courseTitle: course.title,
-      reason: course.rejectReason || "Không có nội dung lý do chi tiết đính kèm.",
+      reason: reasonText,
+      isReported: isReported,
     });
   };
 
@@ -476,7 +484,7 @@ export default function InstructorCourses() {
             </div>
             <div className="space-y-1">
               <AppDialogTitle className="text-lg font-bold text-foreground tracking-tight leading-tight uppercase">
-                Lý do từ chối
+                {rejectViewModal.isReported ? "Khóa học bị báo cáo vi phạm" : "Lý do từ chối / Vi phạm"}
               </AppDialogTitle>
               <AppDialogDescription className="text-muted-foreground text-xs font-bold leading-tight">
                 Khóa học: <span className="text-error">"{rejectViewModal.courseTitle}"</span>
@@ -488,7 +496,7 @@ export default function InstructorCourses() {
             <div className="p-5 bg-error/5 border border-error/20 rounded-2xl relative shadow-inner">
               <AlertCircle className="absolute top-4 right-4 w-4 h-4 text-error" />
               <p className="text-[10px] font-bold text-error uppercase tracking-widest mb-2 flex items-center gap-1.5">
-                Phản hồi từ Quản trị viên
+                {rejectViewModal.isReported ? "Nội dung báo cáo" : "Phản hồi từ Quản trị viên"}
               </p>
               <p className="text-foreground font-bold text-sm leading-relaxed whitespace-pre-wrap italic">
                 "{rejectViewModal.reason}"

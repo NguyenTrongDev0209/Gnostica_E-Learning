@@ -14,10 +14,15 @@ import {
   getAdminPages,
   getPublicPage,
   getPublicTermsMenu,
+  getPublicTerm,
   updateAdminPage,
   getAdminTerms,
   createAdminTermModule,
+  updateAdminTermModule,
+  deleteAdminTermModule,
   createAdminTerm,
+  updateAdminTerm,
+  deleteAdminTerm,
   getGlobalCommissions,
   getActiveCommission,
   createCommission,
@@ -99,6 +104,17 @@ export function usePublicTermsMenu() {
   });
 }
 
+export function usePublicTerm(path) {
+  const cleanPath = (path || "").replace(/^\/+/, "");
+  return useQuery({
+    queryKey: ["public", "term", cleanPath],
+    queryFn: () => getPublicTerm(cleanPath),
+    enabled: !!cleanPath && cleanPath !== "terms" && cleanPath !== "terms/",
+    staleTime: 5 * 60_000,
+    retry: (failureCount, error) => error?.response?.status !== 404 && failureCount < 1,
+  });
+}
+
 export function useAdminPages() {
   const queryClient = useQueryClient();
   const refresh = () => {
@@ -115,9 +131,21 @@ export function useAdminPages() {
 
 export function useAdminTerms() {
   const queryClient = useQueryClient();
-  const refresh = () => queryClient.invalidateQueries({ queryKey: ["admin", "terms"] });
+  const refresh = () => {
+    queryClient.invalidateQueries({ queryKey: ["admin", "terms"] });
+    queryClient.invalidateQueries({ queryKey: ["public", "terms-menu"] });
+    queryClient.invalidateQueries({ queryKey: ["public", "term"] });
+  };
   const query = useQuery({ queryKey: ["admin", "terms"], queryFn: getAdminTerms });
-  return { ...query, createModuleMutation: useMutation({ mutationFn: createAdminTermModule, onSuccess: refresh }), createTermMutation: useMutation({ mutationFn: createAdminTerm, onSuccess: refresh }) };
+  return {
+    ...query,
+    createModuleMutation: useMutation({ mutationFn: createAdminTermModule, onSuccess: refresh }),
+    updateModuleMutation: useMutation({ mutationFn: updateAdminTermModule, onSuccess: refresh }),
+    deleteModuleMutation: useMutation({ mutationFn: deleteAdminTermModule, onSuccess: refresh }),
+    createTermMutation: useMutation({ mutationFn: createAdminTerm, onSuccess: refresh }),
+    updateTermMutation: useMutation({ mutationFn: updateAdminTerm, onSuccess: refresh }),
+    deleteTermMutation: useMutation({ mutationFn: deleteAdminTerm, onSuccess: refresh }),
+  };
 }
 
 export function useCommissions() {

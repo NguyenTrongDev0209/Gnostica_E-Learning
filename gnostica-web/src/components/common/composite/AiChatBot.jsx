@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
     MessageCircle, X, Send, Bot, User, Loader2, Minimize2, Maximize2,
-    ThumbsUp, Folder, Image as ImageIcon, Paperclip, CheckCircle, UploadCloud, Ticket,
+    ThumbsUp, Folder, Paperclip, CheckCircle, UploadCloud, Ticket,
     BookOpen, PlayCircle, Eye, ChevronRight
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -166,7 +166,7 @@ const ImageUploadWidget = ({ onSubmitted }) => {
             {uploading ? (
                 <div className="flex items-center gap-2 text-primary text-xs font-semibold py-2">
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Đang tải ảnh lên Cloudinary...</span>
+                    <span>Đang tải ảnh lên...</span>
                 </div>
             ) : urls.length < 3 && (
                 <div
@@ -213,10 +213,7 @@ const AiChatBot = () => {
     const [sessionId, setSessionId] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const [isMinimized, setIsMinimized] = useState(false);
-    const [attachedImageUrl, setAttachedImageUrl] = useState(null);
-    const [isUploadingInputImage, setIsUploadingInputImage] = useState(false);
     const [quota, setQuota] = useState({ dailyLimit: 15, remaining: 15, used: 0 });
-    const bottomFileInputRef = useRef(null);
 
     const userMessageCount = messages.filter(m => m.role === 'user').length;
     const isGuestLimitReached = !isAuthenticated && userMessageCount >= 5;
@@ -349,26 +346,6 @@ const AiChatBot = () => {
         }
     };
 
-    const handleBottomFileChange = async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        if (!file.type.startsWith('image/')) {
-            toast.error('Vui lòng chọn định dạng file ảnh.');
-            return;
-        }
-
-        setIsUploadingInputImage(true);
-        try {
-            const url = await uploadChatImage(file);
-            setAttachedImageUrl(url);
-            toast.success('Đã chọn ảnh đính kèm!');
-        } catch (error) {
-            console.error(error);
-            toast.error('Không thể tải ảnh lên.');
-        } finally {
-            setIsUploadingInputImage(false);
-        }
-    };
 
     const renderMessageContent = (msg) => {
         const content = msg.content;
@@ -604,11 +581,6 @@ const AiChatBot = () => {
             return;
         }
 
-        // Nếu người dùng có đính kèm ảnh ở thanh input
-        if (attachedImageUrl) {
-            finalInput = `${finalInput} (ImageURLs: ${attachedImageUrl})`.trim();
-            setAttachedImageUrl(null);
-        }
 
         const userMessage = { role: 'user', content: finalInput };
         setMessages(prev => [...prev, userMessage]);
@@ -858,39 +830,7 @@ const AiChatBot = () => {
                             </div>
                         ) : (
                             <>
-                                {/* Hiển thị xem trước ảnh đính kèm nếu người dùng đính kèm từ thanh input */}
-                                {attachedImageUrl && (
-                                    <div className="flex items-center gap-2 bg-secondary/40 p-2 rounded-lg text-xs w-fit">
-                                        <img src={attachedImageUrl} alt="attachment" className="w-8 h-8 rounded object-cover border" />
-                                        <span className="text-muted-foreground font-medium text-[11px]">Đã đính kèm ảnh</span>
-                                        <button
-                                            type="button"
-                                            onClick={() => setAttachedImageUrl(null)}
-                                            className="text-muted-foreground hover:text-destructive p-0.5"
-                                        >
-                                            <X size={14} />
-                                        </button>
-                                    </div>
-                                )}
-
                                 <form onSubmit={handleSend} className="flex items-center gap-2">
-                                    <input
-                                        type="file"
-                                        ref={bottomFileInputRef}
-                                        onChange={handleBottomFileChange}
-                                        accept="image/*"
-                                        className="hidden"
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => bottomFileInputRef.current?.click()}
-                                        disabled={isLoading || isUploadingInputImage}
-                                        title="Đính kèm ảnh minh họa"
-                                        className="w-9 h-9 rounded-full bg-secondary/50 hover:bg-secondary text-muted-foreground hover:text-primary flex items-center justify-center transition-colors shrink-0"
-                                    >
-                                        {isUploadingInputImage ? <Loader2 size={16} className="animate-spin" /> : <ImageIcon size={18} />}
-                                    </button>
-
                                     <input
                                         type="text"
                                         value={input}
@@ -902,7 +842,7 @@ const AiChatBot = () => {
 
                                     <button
                                         type="submit"
-                                        disabled={isLoading || (!input.trim() && !attachedImageUrl)}
+                                        disabled={isLoading || !input.trim()}
                                         className="w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center hover:scale-105 active:scale-95 disabled:opacity-50 disabled:scale-100 transition-all shrink-0"
                                     >
                                         <Send size={18} />

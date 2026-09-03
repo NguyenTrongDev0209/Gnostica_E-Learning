@@ -11,6 +11,7 @@ import {
   MessageSquare
 } from "lucide-react";
 import { AppLogo } from "@/components/common/micro/AppButton";
+import { useConversations } from "@/hooks/messaging/useConversations";
 
 const INSTRUCTOR_MENU_GROUPS = [
   {
@@ -46,6 +47,19 @@ const INSTRUCTOR_MENU_GROUPS = [
 export default function InstructorSidebar({ user, handleLogout }) {
   const location = useLocation();
 
+  const { data: conversationsData } = useConversations();
+  const unreadCount = React.useMemo(() => {
+    if (!conversationsData) return 0;
+    const items = Array.isArray(conversationsData.content) 
+      ? conversationsData.content 
+      : Array.isArray(conversationsData.items) 
+        ? conversationsData.items 
+        : Array.isArray(conversationsData) 
+          ? conversationsData 
+          : [];
+    return items.reduce((sum, conv) => sum + (conv.unreadCount || 0), 0);
+  }, [conversationsData]);
+
   return (
     <aside className="w-64 bg-card border-r border-border min-h-screen fixed left-0 top-0 bottom-0 flex flex-col z-50">
       <div className="h-16 flex items-center justify-center px-0 border-b border-border bg-card">
@@ -80,7 +94,12 @@ export default function InstructorSidebar({ user, handleLogout }) {
                       `}
                     >
                       <Icon className={`w-5 h-5 shrink-0 ${isActive ? "text-white" : "text-muted-foreground group-hover:text-foreground"}`} />
-                      {item.label}
+                      <span className="flex-1 truncate">{item.label}</span>
+                      {item.href.includes("/messages") && unreadCount > 0 && (
+                        <span className="bg-error text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 text-center shadow-sm">
+                          {unreadCount > 99 ? "99+" : unreadCount}
+                        </span>
+                      )}
                     </Link>
                   );
                 })}

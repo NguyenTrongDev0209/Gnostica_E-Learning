@@ -44,10 +44,10 @@ public class LessonPlaybackService {
         Lesson lesson = lessonRepository.findById(lessonId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Lesson not found"));
         Course course = lesson.getModule().getCourse();
-        Account account = accountRepository.findByEmail(email)
+        Account account = accountRepository.findByEmail(email.toLowerCase().trim()).or(() -> accountRepository.findByEmail(email))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Account not found"));
         boolean isOwner = course.getAccount() != null && email.equalsIgnoreCase(course.getAccount().getEmail());
-        boolean isEnrolled = enrollmentRepository.existsByAccountAndCourseAndStatusIn(account, course, java.util.List.of(1));
+        boolean isEnrolled = enrollmentRepository.existsByAccountAndCourseAndStatusIn(account, course, java.util.List.of(1, 2));
         if (!isOwner && !isEnrolled) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have access to this lesson");
         }

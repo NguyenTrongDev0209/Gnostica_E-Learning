@@ -30,6 +30,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import com.gnostica.core.repository.OrderDetailRepository;
 import com.gnostica.modules.wallet.event.PayoutSubmissionRequestedEvent;
 
 @Service
@@ -41,9 +42,11 @@ public class WalletService {
     private final AccountBankRepository accountBankRepository;
     private final BankRepository bankRepository;
     private final PaymentRepository paymentRepository;
+    private final OrderDetailRepository orderDetailRepository;
     private final PayoutSecurityService payoutSecurityService;
     private final ApplicationEventPublisher eventPublisher;
     private final PayoutSubmissionService payoutSubmissionService;
+    private final BankLookupService bankLookupService;
     private final BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
 
     public Account getCurrentAccount() {
@@ -70,12 +73,18 @@ public class WalletService {
         LocalDateTime startOfDay = java.time.LocalDate.now().atStartOfDay();
         AccountBank activeBank = accountBankRepository.findByAccountAndStatus(account, 1).orElse(null);
 
+        // Thu nhập RÒNG (sau hoa hồng) — khớp với số tiền thực hạch toán vào ví giảng viên.
+        Double totalRevenueDouble = orderDetailRepository.sumTotalInstructorEarningByAccount(account);
+        Double monthRevenueDouble = orderDetailRepository.sumInstructorEarningByAccountAndDateRange(
+                account, startOfMonth, startOfNextMonth);
+        BigDecimal totalRevenue = totalRevenueDouble != null ? BigDecimal.valueOf(totalRevenueDouble) : BigDecimal.ZERO;
+        BigDecimal currentMonthRevenue = monthRevenueDouble != null ? BigDecimal.valueOf(monthRevenueDouble) : BigDecimal.ZERO;
+
         return WalletOverviewResponse.builder()
                 .accountId(account.getId())
                 .remain(wallet.getRemain())
-                .totalRevenue(walletRepository.sumTotalRevenueByAccount(account))
-                .currentMonthRevenue(walletRepository.sumRevenueByAccountAndCreatedAtBetween(
-                        account, startOfMonth, startOfNextMonth))
+                .totalRevenue(totalRevenue)
+                .currentMonthRevenue(currentMonthRevenue)
                 .pendingRevenue(walletRepository.sumPendingRevenueByAccount(account))
                 .type(wallet.getType())
                 .status(wallet.getStatus())
@@ -86,6 +95,9 @@ public class WalletService {
                 .bankBin(activeBank == null || activeBank.getBank() == null ? null : activeBank.getBank().getBin())
                 .bankName(
                         activeBank == null || activeBank.getBank() == null ? null : activeBank.getBank().getShortName())
+                .accountName(activeBank == null ? null : activeBank.getName())
+                .bankLogoUrl(
+                        activeBank == null || activeBank.getBank() == null ? null : activeBank.getBank().getLogoUrl())
                 .build();
     }
 
@@ -218,6 +230,24 @@ public class WalletService {
                 .orElseThrow(() -> new RuntimeException("Ngân hàng không hợp lệ."));
 
         String accountNumber = request.getAccountNumber().trim();
+
+        // Bắt buộc kiểm tra tên tài khoản trước khi lưu (chống bỏ qua bước xác minh)
+        if (request.getName() == null || request.getName().isBlank()) {
+            throw new RuntimeException("Vui lòng kiểm tra tên tài khoản trước khi lưu.");
+        }
+
+        // Xác minh lại tên chủ tài khoản phía server qua BankLookup, lưu tên đã xác minh
+        String verifiedName;
+        try {
+            verifiedName = bankLookupService.lookupAccountName(request.getBin(), accountNumber);
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e.getMessage() != null ? e.getMessage()
+                    : "Không thể xác minh tên tài khoản. Vui lòng thử lại.");
+        }
+        if (verifiedName == null || verifiedName.isBlank()) {
+            throw new RuntimeException("Không thể xác minh tên tài khoản. Vui lòng thử lại.");
+        }
+
         AccountBank accountBank = accountBankRepository
                 .findByAccountAndBankAndAccountNumber(account, bank, accountNumber)
                 .orElseGet(() -> {
@@ -230,6 +260,7 @@ public class WalletService {
 
         // Kích hoạt lại bản ghi cũ (nếu có) thay vì chèn trùng unique key.
         accountBank.setPin(bCryptPasswordEncoder.encode(request.getPin()));
+        accountBank.setName(verifiedName);
         accountBank.setStatus(1);
         accountBank.setDeletedAt(null);
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import { toast } from "sonner";
 import {
   Download,
@@ -14,35 +14,24 @@ import {
   CheckCircle2,
   Clock,
   XCircle,
-  X,
-  CreditCard,
-  Lock,
-  Trash2,
-  Landmark
+  AlertCircle
 } from "lucide-react";
 import AppCard, { AppCardContent } from "@/components/common/micro/AppCard";
-import { AppDialog } from "@/components/common/micro/AppDialog";
-import AppInput, { AppPasswordInput, AppInputOTP } from "@/components/common/micro/AppInput";
 import { AppButton } from "@/components/common/micro/AppButton";
-import AppSelect from "@/components/common/micro/AppSelect";
-import AppAvatar from "@/components/common/micro/AppAvatar";
 import AppBadge from "@/components/common/micro/AppBadge";
 import DataTable from "@/components/common/composite/DataTable";
 import DataFilter from "@/components/common/composite/DataFilter";
 import { useInstructorRevenue } from "@/hooks/payment/useInstructorRevenue";
-import walletService from "@/services/payment/walletService";
-import bankService from "@/services/payment/bankService";
 import useAuthStore from "@/store/useAuthStore";
 import WithdrawModal from "@/components/common/composite/WithdrawModal";
 
-
 const formatVND = (amount) => {
-    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount || 0);
 };
 
 function InstructorRevenueTable({
     transactions,
-    pagination = { currentPage: 0, totalPages: 1, totalElements: 0 },
+    pagination = { currentPage: 0, totalPages: 1, totalElements: 0, size: 10 },
     onPageChange,
 }) {
     const columns = [
@@ -50,83 +39,137 @@ function InstructorRevenueTable({
             header: "STT",
             className: "w-[60px] text-center",
             cellClassName: "text-center font-sans",
-            render: (trx, index) => (
+            render: (_, index) => (
                 <span className="text-sm font-bold text-muted-foreground tracking-tighter">
-                    {(index + 1).toString().padStart(2, '0')}
+                    {(pagination.currentPage * (pagination.size || 10) + index + 1).toString().padStart(2, '0')}
                 </span>
             )
         },
         {
             header: "Mã GD & Thời gian",
-            render: (trx) => (
-                <div className="flex flex-col">
-                    <span className="font-bold text-foreground flex items-center gap-1.5 capitalize">
-                        RT-{trx.payoutCode || trx.id}
-                        <ArrowDownRight className="w-3 h-3 text-rose-500" />
-                    </span>
-                    <span className="text-xs text-muted-foreground font-medium mt-0.5">
-                        {new Date(trx.createdAt).toLocaleString('vi-VN', {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            second: '2-digit',
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: 'numeric'
-                        })}
-                    </span>
-                </div>
-            )
+            render: (trx) => {
+                const isIncome = trx.category === "EARNING" || trx.category === "DEPOSIT";
+                const displayCode = trx.reference || (trx.id ? trx.id.toString().slice(0, 8) : "N/A");
+                return (
+                    <div className="flex flex-col">
+                        <span className="font-bold text-foreground flex items-center gap-1.5">
+                            {displayCode}
+                            {isIncome ? (
+                                <ArrowUpRight className="w-3.5 h-3.5 text-success" />
+                            ) : (
+                                <ArrowDownRight className="w-3.5 h-3.5 text-error" />
+                            )}
+                        </span>
+                        <span className="text-xs text-muted-foreground font-medium mt-0.5">
+                            {trx.createdAt ? new Date(trx.createdAt).toLocaleString('vi-VN', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                second: '2-digit',
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric'
+                            }) : "N/A"}
+                        </span>
+                    </div>
+                );
+            }
         },
         {
             header: "Nội dung",
-            className: "max-w-[300px]",
-            cellClassName: "max-w-[300px]",
-            render: (trx) => (
-                <span className="text-sm font-bold text-foreground line-clamp-1">
-                    {trx.bankName
-                        ? `Rút tiền về ${trx.bankName}`
-                        : "Yêu cầu rút tiền"}
-                </span>
-            )
+            className: "max-w-[320px]",
+            cellClassName: "max-w-[320px]",
+            render: (trx) => {
+                let desc = "Giao dịch ví";
+                if (trx.category === "EARNING") {
+                    desc = trx.reference ? `Thu nhập từ đơn hàng ${trx.reference}` : "Thu nhập bán khóa học";
+                } else if (trx.category === "WITHDRAWAL") {
+                    desc = trx.bankName ? `Rút tiền về ${trx.bankName} (${trx.maskedAccountNumber || ''})` : "Yêu cầu rút tiền về ngân hàng";
+                } else if (trx.category === "REFUND") {
+                    desc = trx.reference ? `Hoàn tiền học viên (${trx.reference})` : "Hoàn tiền khóa học cho học viên";
+                } else if (trx.category === "DEPOSIT") {
+                    desc = "Nạp tiền vào ví";
+                } else if (trx.category === "GIFT_REFUND") {
+                    desc = "Hoàn tiền tặng quà";
+                }
+                return (
+                    <span className="text-sm font-semibold text-foreground line-clamp-1">
+                        {desc}
+                    </span>
+                );
+            }
         },
         {
             header: "Phát sinh",
-            className: "text-center",
-            cellClassName: "text-center",
-            render: (trx) => (
-                <span className="font-bold text-sm text-error">
-                    -{formatVND(trx.amount)}
-                </span>
-            )
+            className: "text-right",
+            cellClassName: "text-right",
+            render: (trx) => {
+                const isIncome = trx.category === "EARNING" || trx.category === "DEPOSIT";
+                return (
+                    <span className={`font-bold text-sm ${isIncome ? 'text-success' : 'text-error'}`}>
+                        {isIncome ? `+${formatVND(trx.amount)}` : `-${formatVND(trx.amount)}`}
+                    </span>
+                );
+            }
         },
         {
             header: "Loại",
             className: "text-center",
             cellClassName: "text-center",
-            render: (trx) => (
-                <AppBadge variant="secondary" soft className="text-[10px] font-bold uppercase tracking-tight py-0">
-                    Rút tiền
-                </AppBadge>
-            )
+            render: (trx) => {
+                const map = {
+                    EARNING: { label: "Thu nhập", variant: "success" },
+                    WITHDRAWAL: { label: "Rút tiền", variant: "secondary" },
+                    REFUND: { label: "Hoàn tiền", variant: "error" },
+                    DEPOSIT: { label: "Nạp tiền", variant: "info" },
+                    GIFT_REFUND: { label: "Hoàn quà", variant: "warning" }
+                };
+                const conf = map[trx.category] || { label: trx.category || "Khác", variant: "outline" };
+                return (
+                    <AppBadge variant={conf.variant} soft className="text-[10px] font-bold uppercase tracking-tight py-0">
+                        {conf.label}
+                    </AppBadge>
+                );
+            }
         },
         {
             header: "Trạng thái",
             className: "text-center",
             cellClassName: "text-center",
             render: (trx) => {
-                if (trx.status === 3) return (
+                const status = typeof trx.status === 'string' ? trx.status.toUpperCase() : String(trx.status);
+                if (status === "COMPLETED" || status === "3") return (
                     <AppBadge variant="success" soft className="text-[10px] font-bold py-0.5 inline-flex items-center gap-1">
                         <CheckCircle2 className="w-3 h-3" /> Hoàn tất
                     </AppBadge>
                 );
-                if (trx.status === 1 || trx.status === 2 || trx.status === 6) return (
+                if (status === "PENDING" || status === "1") return (
                     <AppBadge variant="warning" soft className="text-[10px] font-bold py-0.5 inline-flex items-center gap-1">
-                        <Clock className="w-3 h-3" /> {trx.status === 1 ? "Chờ duyệt" : trx.status === 6 ? "Chờ admin duyệt" : "Đang chuyển"}
+                        <Clock className="w-3 h-3" /> Chờ duyệt
+                    </AppBadge>
+                );
+                if (status === "AWAITING_APPROVAL" || status === "6") return (
+                    <AppBadge variant="warning" soft className="text-[10px] font-bold py-0.5 inline-flex items-center gap-1">
+                        <Clock className="w-3 h-3" /> Chờ admin duyệt
+                    </AppBadge>
+                );
+                if (status === "PROCESSING" || status === "2") return (
+                    <AppBadge variant="info" soft className="text-[10px] font-bold py-0.5 inline-flex items-center gap-1">
+                        <Clock className="w-3 h-3" /> Đang chuyển
+                    </AppBadge>
+                );
+                if (status === "REJECTED" || status === "5") return (
+                    <AppBadge variant="error" soft className="text-[10px] font-bold py-0.5 inline-flex items-center gap-1">
+                        <XCircle className="w-3 h-3" /> Bị từ chối
+                    </AppBadge>
+                );
+                if (status === "FAILED" || status === "4") return (
+                    <AppBadge variant="error" soft className="text-[10px] font-bold py-0.5 inline-flex items-center gap-1">
+                        <XCircle className="w-3 h-3" /> Thất bại
                     </AppBadge>
                 );
                 return (
-                    <AppBadge variant="error" soft className="text-[10px] font-bold py-0.5 inline-flex items-center gap-1">
-                        <XCircle className="w-3 h-3" /> {trx.status === 5 ? "Bị từ chối" : "Thất bại"}
+                    <AppBadge variant="secondary" soft className="text-[10px] font-bold py-0.5 inline-flex items-center gap-1">
+                        <XCircle className="w-3 h-3" /> {status === "VOIDED" ? "Đã hủy" : status}
                     </AppBadge>
                 );
             }
@@ -138,7 +181,7 @@ function InstructorRevenueTable({
             <DataTable 
                 columns={columns}
                 data={transactions}
-                emptyState="Chưa có giao dịch nào được ghi nhận."
+                emptyState="Chưa có giao dịch nào được ghi nhận trong sổ cái."
                 pagination={{
                     currentPage: pagination.currentPage,
                     totalPages: pagination.totalPages,
@@ -152,7 +195,7 @@ function InstructorRevenueTable({
 }
 
 export default function InstructorRevenue() {
-  const { wallet, transactions, loading } = useInstructorRevenue();
+  const { wallet, transactions, loading, error, refetch } = useInstructorRevenue();
   const user = useAuthStore(state => state.user);
   
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
@@ -163,24 +206,35 @@ export default function InstructorRevenue() {
   });
 
   const [searchTerm, setSearchTerm] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState([]);
   const [statusFilter, setStatusFilter] = useState([]);
   const [dateRange, setDateRange] = useState({ from: undefined, to: undefined });
 
   const filteredTransactions = (Array.isArray(transactions) ? transactions : []).filter((trx) => {
     // Tìm kiếm theo ID hoặc nội dung
     const searchString = searchTerm.toLowerCase();
-    const matchSearch = `rt-${trx.payoutCode || trx.id}`.toLowerCase().includes(searchString) ||
+    const matchSearch = (trx.reference || "").toLowerCase().includes(searchString) ||
+      (trx.id || "").toString().toLowerCase().includes(searchString) ||
       (trx.maskedAccountNumber || "").toLowerCase().includes(searchString) ||
       (trx.bankName || "").toLowerCase().includes(searchString);
     
-    // Lọc trạng thái / loại
+    // Lọc theo loại giao dịch
+    let matchCategory = true;
+    if (categoryFilter.length > 0) {
+      matchCategory = categoryFilter.includes(trx.category);
+    }
+
+    // Lọc trạng thái
     let matchStatus = true;
     if (statusFilter.length > 0) {
-      const allowedStatuses = [];
-      if (statusFilter.includes("success")) allowedStatuses.push(3);
-      if (statusFilter.includes("pending")) allowedStatuses.push(1, 2);
-      if (statusFilter.includes("failed")) allowedStatuses.push(4, 5);
-      matchStatus = allowedStatuses.includes(trx.status);
+      const s = typeof trx.status === 'string' ? trx.status.toUpperCase() : String(trx.status);
+      const isSuccess = s === "COMPLETED" || s === "3";
+      const isPending = s === "PENDING" || s === "1" || s === "PROCESSING" || s === "2" || s === "AWAITING_APPROVAL" || s === "6";
+      const isFailed = s === "FAILED" || s === "4" || s === "REJECTED" || s === "5" || s === "VOIDED";
+
+      matchStatus = (statusFilter.includes("success") && isSuccess) ||
+                    (statusFilter.includes("pending") && isPending) ||
+                    (statusFilter.includes("failed") && isFailed);
     }
 
     // Lọc theo khoảng thời gian
@@ -194,24 +248,87 @@ export default function InstructorRevenue() {
       matchDate = trxDate >= from && trxDate <= to;
     }
 
-    return matchSearch && matchStatus && matchDate;
+    return matchSearch && matchCategory && matchStatus && matchDate;
   });
-
-  const totalLifetime = Number(wallet?.totalRevenue || 0);
-  const thisMonthRevenue = Number(wallet?.currentMonthRevenue || 0);
 
   const handlePageChange = (newPage) => {
     setPagination(prev => ({ ...prev, currentPage: newPage }));
   };
 
+  const totalPages = Math.ceil(filteredTransactions.length / pagination.size) || 1;
+  const paginatedTransactions = filteredTransactions.slice(
+    pagination.currentPage * pagination.size,
+    (pagination.currentPage + 1) * pagination.size
+  );
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-4 animate-fade-in">
         <Loader2 className="w-10 h-10 text-primary animate-spin" />
-        <p className="text-sm font-bold text-muted-foreground animate-pulse">Đang tải dữ liệu doanh thu...</p>
+        <p className="text-sm font-bold text-muted-foreground animate-pulse">Đang tải dữ liệu doanh thu & sổ cái...</p>
       </div>
     );
   }
+
+  if (error && !wallet) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 gap-4">
+        <AppCard className="max-w-md p-6 text-center border-error/20 bg-card shadow-sm">
+          <AlertCircle className="w-10 h-10 text-error mx-auto mb-2" />
+          <h3 className="text-lg font-bold text-foreground">Không thể tải thông tin doanh thu</h3>
+          <p className="text-sm text-muted-foreground mt-1 mb-4">
+            Đã xảy ra lỗi khi tải số dư và sao kê ví. Vui lòng thử lại.
+          </p>
+          <AppButton onClick={() => refetch()} className="btn-md bg-primary text-white">
+            Thử lại
+          </AppButton>
+        </AppCard>
+      </div>
+    );
+  }
+
+  const statCards = [
+    {
+      label: "Số dư khả dụng",
+      value: formatVND(wallet?.remain),
+      icon: WalletIcon,
+      bgClass: "bg-primary/10",
+      textClass: "text-primary",
+      borderClass: "border-primary/20",
+      circleClass: "bg-primary/10 opacity-50 group-hover:opacity-100",
+      sub: `${wallet?.withdrawalsToday || 0}/3 lượt rút hôm nay`
+    },
+    {
+      label: "Đang giữ 30 ngày",
+      value: formatVND(wallet?.pendingRevenue),
+      icon: Clock,
+      bgClass: "bg-warning/10",
+      textClass: "text-warning",
+      borderClass: "border-warning/20",
+      circleClass: "bg-warning/10 opacity-50 group-hover:opacity-100",
+      sub: "Tự động cộng vào số dư khi hết hạn"
+    },
+    {
+      label: "Thu nhập tháng này",
+      value: formatVND(wallet?.currentMonthRevenue),
+      icon: Activity,
+      bgClass: "bg-success/10",
+      textClass: "text-success",
+      borderClass: "border-success/20",
+      circleClass: "bg-success/10 opacity-50 group-hover:opacity-100",
+      sub: "Doanh thu ròng tháng hiện tại"
+    },
+    {
+      label: "Tổng thu nhập ròng",
+      value: formatVND(wallet?.totalRevenue),
+      icon: TrendingUp,
+      bgClass: "bg-info/10",
+      textClass: "text-info",
+      borderClass: "border-info/20",
+      circleClass: "bg-info/10 opacity-50 group-hover:opacity-100",
+      sub: "Tổng thu nhập ròng tích lũy"
+    },
+  ];
 
   return (
     <div className="py-8 space-y-8 animate-fade-up">
@@ -223,7 +340,7 @@ export default function InstructorRevenue() {
             Doanh Thu & Thanh Toán
           </h1>
           <p className="text-sm font-medium text-muted-foreground">
-            Theo dõi dòng tiền, sao kê giao dịch và yêu cầu rút tiền của bạn.
+            Theo dõi dòng tiền, sao kê giao dịch đa loại và yêu cầu rút tiền của bạn.
           </p>
         </div>
         <div className="flex gap-3">
@@ -241,56 +358,20 @@ export default function InstructorRevenue() {
         </div>
       </div>
 
-      {/* Revenue Stats Cards (Standardized) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {[
-          {
-            label: "Số dư khả dụng",
-            value: formatVND(wallet?.remain || 0),
-            icon: WalletIcon,
-            bgClass: "bg-primary/10",
-            textClass: "text-primary",
-            borderClass: "border-primary/20",
-            circleClass: "bg-primary/10 opacity-50 group-hover:opacity-100",
-            sub: `${wallet?.withdrawalsToday || 0}/3 lượt rút hôm nay`
-          },
-          {
-            label: "Doanh thu tháng này",
-            value: formatVND(thisMonthRevenue),
-            icon: Activity,
-            bgClass: "bg-success-soft",
-            textClass: "text-success",
-            borderClass: "border-success/20",
-            circleClass: "bg-success-soft opacity-50 group-hover:opacity-100",
-          },
-          {
-            label: "Tổng doanh thu",
-            value: formatVND(totalLifetime),
-            icon: TrendingUp,
-            bgClass: "bg-info-soft",
-            textClass: "text-info",
-            borderClass: "border-info/20",
-            circleClass: "bg-info-soft opacity-50 group-hover:opacity-100"
-          },
-        ].map((stat, i) => (
-          <AppCard key={i} className={`group hover-lift border-border shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden relative rounded-2xl bg-white`}>
+      {/* Revenue Stats Cards (4 cards: Available, Pending 30d, Month Net, Total Net) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {statCards.map((stat, i) => (
+          <AppCard key={i} className="group hover-lift border-border shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden relative rounded-2xl bg-card">
             <div className={`absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 rounded-full ${stat.circleClass} transition-colors duration-500`} />
-            <AppCardContent className="p-6 flex items-center gap-4 relative z-10">
-              <div className={`w-12 h-12 rounded-2xl ${stat.bgClass} ${stat.textClass} border ${stat.borderClass} flex items-center justify-center group-hover:scale-110 transition-transform duration-500 shadow-sm`}>
+            <AppCardContent className="p-5 flex items-center gap-4 relative z-10">
+              <div className={`w-12 h-12 rounded-2xl ${stat.bgClass} ${stat.textClass} border ${stat.borderClass} flex items-center justify-center group-hover:scale-110 transition-transform duration-500 shadow-sm shrink-0`}>
                 <stat.icon className="w-6 h-6" />
               </div>
-              <div className="flex flex-col flex-1">
-                <div className="flex justify-between items-center">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{stat.label}</span>
-                  {stat.trend && (
-                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-success/10 text-success flex items-center gap-0.5 border border-success/20">
-                      <ArrowUpRight className="w-2.5 h-2.5" /> {stat.trend}
-                    </span>
-                  )}
-                </div>
-                <span className="text-2xl font-semibold tracking-tight text-foreground">{stat.value}</span>
+              <div className="flex flex-col flex-1 min-w-0">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground truncate">{stat.label}</span>
+                <span className="text-xl font-bold tracking-tight text-foreground truncate mt-0.5">{stat.value}</span>
                 {stat.sub && (
-                  <span className="text-[10px] font-bold text-muted-foreground mt-0.5">{stat.sub}</span>
+                  <span className="text-[10px] font-medium text-muted-foreground mt-1 truncate">{stat.sub}</span>
                 )}
               </div>
             </AppCardContent>
@@ -300,29 +381,29 @@ export default function InstructorRevenue() {
 
       {/* Transaction History Section */}
       <div className="space-y-6">
-        <div className="flex items-center justify-between glass p-4 rounded-2xl border border-border shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
-              <Activity className="w-5 h-5" />
-            </div>
-            <div>
-              <h2 className="text-lg font-bold text-foreground tracking-tight">Lịch Sử Rút Tiền</h2>
-              <p className="text-xs font-medium text-muted-foreground">Danh sách các yêu cầu rút tiền từ ví của bạn.</p>
-            </div>
-          </div>
-        </div>
-
         <DataFilter
           searchQuery={searchTerm}
           onSearchChange={setSearchTerm}
-          searchPlaceholder="Tìm mã giao dịch, ngân hàng..."
+          searchPlaceholder="Tìm mã giao dịch, đơn hàng, ngân hàng..."
           dropdownChecklists={[
             {
-              title: "Bộ lọc",
+              title: "Loại GD",
+              items: [
+                { label: "Thu nhập khóa học", value: "EARNING" },
+                { label: "Rút tiền về ngân hàng", value: "WITHDRAWAL" },
+                { label: "Hoàn tiền học viên", value: "REFUND" },
+                { label: "Nạp tiền", value: "DEPOSIT" },
+              ],
+              selectedItems: categoryFilter,
+              onItemToggle: (val) => setCategoryFilter(prev => prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val]),
+              onClear: () => setCategoryFilter([])
+            },
+            {
+              title: "Trạng thái",
               items: [
                 { label: "Hoàn tất", value: "success" },
                 { label: "Chờ duyệt / đang chuyển", value: "pending" },
-                { label: "Thất bại / từ chối", value: "failed" },
+                { label: "Thất bại / từ chối / hủy", value: "failed" },
               ],
               selectedItems: statusFilter,
               onItemToggle: (val) => setStatusFilter(prev => prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val]),
@@ -335,8 +416,12 @@ export default function InstructorRevenue() {
         />
 
         <InstructorRevenueTable
-          transactions={filteredTransactions}
-          pagination={{...pagination, totalElements: filteredTransactions.length, totalPages: Math.ceil(filteredTransactions.length / pagination.size) || 1}}
+          transactions={paginatedTransactions}
+          pagination={{
+            ...pagination,
+            totalPages,
+            totalElements: filteredTransactions.length
+          }}
           onPageChange={handlePageChange}
         />
       </div>
@@ -346,7 +431,7 @@ export default function InstructorRevenue() {
         onClose={() => setIsWithdrawOpen(false)}
         wallet={wallet}
         user={user}
-        onSuccess={() => window.location.reload()}
+        onSuccess={() => refetch()}
       />
     </div>
   );

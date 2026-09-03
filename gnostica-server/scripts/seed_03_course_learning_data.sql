@@ -210,7 +210,7 @@ SELECT
     CASE WHEN p.course_no % 4 = 0 THEN NULL ELSE (ARRAY[
         'b7cbeb53-ce23-4285-97cb-6421148aa852', 'b5f1240f-bbed-45ef-907c-f93d01527918',
         '375482c2-ed32-45ef-917d-7d4a2b9257d4', '6d5e092b-4063-4a92-b3dd-64ba28fd9679',
-        '2b1af695-70df-431a-a3f2-ac6ba18e7c21', '2b21f411-ac17-4289-aa31-16a5cf49f653',
+        '2b1af695-70df-431a-a3f2-ac6ba18e7c21', '65f234b3-aeeb-4720-bda9-14a41ade2802',
         '8e2ac859-60f3-44df-b2a5-f0dee76ba0c1', 'a4bf4b9f-fb44-41fc-a65a-2b035d5cf16a',
         'f0b22fcc-7055-455c-9568-3cc474c63aa5', '84c761de-744a-4342-87ae-d635e197d832'
     ])[1 + ((p.course_no * 3) % 10)] END,
@@ -412,7 +412,7 @@ WITH inserted_lessons AS (
         (ARRAY[
             'b7cbeb53-ce23-4285-97cb-6421148aa852', 'b5f1240f-bbed-45ef-907c-f93d01527918',
             '375482c2-ed32-45ef-917d-7d4a2b9257d4', '6d5e092b-4063-4a92-b3dd-64ba28fd9679',
-            '2b1af695-70df-431a-a3f2-ac6ba18e7c21', '2b21f411-ac17-4289-aa31-16a5cf49f653',
+            '2b1af695-70df-431a-a3f2-ac6ba18e7c21', '65f234b3-aeeb-4720-bda9-14a41ade2802',
             '8e2ac859-60f3-44df-b2a5-f0dee76ba0c1', 'a4bf4b9f-fb44-41fc-a65a-2b035d5cf16a',
             'f0b22fcc-7055-455c-9568-3cc474c63aa5', '84c761de-744a-4342-87ae-d635e197d832'
         ])[1 + ((p.course_no * 5 + p.module_no * 3 + p.lesson_no) % 10)],

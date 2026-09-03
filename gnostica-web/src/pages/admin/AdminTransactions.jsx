@@ -59,7 +59,7 @@ export default function AdminTransactions() {
     return (
       <div className="space-y-6 animate-in fade-in duration-500">
         <TransactionHeader module={activeModule} />
-        <RefundModerationList />
+        <RefundModerationList onlyPending={false} />
       </div>
     );
   }

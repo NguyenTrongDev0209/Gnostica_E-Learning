@@ -59,5 +59,6 @@ public class PageService {
         page.setSlug(request.getSlug().trim().toLowerCase());
         page.setContent(PolicyHtmlSanitizer.sanitize(request.getContent()));
         page.setStatus(request.getStatus());
+       // page.setMetadata(request.getMetadata() == null ? new java.util.LinkedHashMap<>() : new java.util.LinkedHashMap<>(request.getMetadata()));
     }
 }

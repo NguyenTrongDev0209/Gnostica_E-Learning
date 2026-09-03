@@ -4,13 +4,16 @@ import com.gnostica.modules.wallet.dto.response.*;
 
 import com.gnostica.modules.wallet.dto.request.SetBankAccountRequest;
 import com.gnostica.modules.wallet.dto.request.WithdrawRequest;
+import com.gnostica.modules.wallet.dto.request.BankLookupRequest;
 import com.gnostica.core.model.AccountBank;
 import com.gnostica.core.model.Payout;
 import com.gnostica.core.constant.PayoutStatus;
 import com.gnostica.core.repository.PayoutRepository;
 import com.gnostica.modules.wallet.service.WalletService;
+import com.gnostica.modules.wallet.service.BankLookupService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,6 +28,7 @@ public class WalletController {
     private final WalletService walletService;
     private final PayoutSubmissionService payoutSubmissionService;
     private final PayoutRepository payoutRepository;
+    private final BankLookupService bankLookupService;
 
     @GetMapping("/me")
     public ResponseEntity<WalletOverviewResponse> getMyWallet() {
@@ -71,6 +75,21 @@ public class WalletController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("message",
                     e.getMessage() != null ? e.getMessage() : "Không thể lưu tài khoản ngân hàng. Vui lòng thử lại."));
+        }
+    }
+
+    /**
+     * Tra cứu tên chủ tài khoản ngân hàng qua BankLookup API (mỗi request tốn credit).
+     */
+    @PostMapping("/bank-account/lookup")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> lookupBankAccountName(@RequestBody BankLookupRequest request) {
+        try {
+            String accountName = bankLookupService.lookupAccountName(request.getBin(), request.getAccountNumber());
+            return ResponseEntity.ok(Map.of("accountName", accountName));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message",
+                    e.getMessage() != null ? e.getMessage() : "Không thể kiểm tra tên tài khoản. Vui lòng thử lại."));
         }
     }
 

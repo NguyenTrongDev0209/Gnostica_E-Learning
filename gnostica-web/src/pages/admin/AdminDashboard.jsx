@@ -1,11 +1,9 @@
 import React from "react";
-import LineChart from "@/components/common/composite/LineChart";
-import { ChartDateFilters } from "@/components/common/composite/DataFilter";
-
-import { AreaChart, Area, CartesianGrid, XAxis, YAxis, BarChart, Bar, ComposedChart, Line, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { AreaChart, Area, CartesianGrid, XAxis, YAxis, BarChart, Bar, ComposedChart, LineChart, Line, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/common/micro/AppChart";
 import { Link } from "react-router-dom";
 import DataTable from "@/components/common/composite/DataTable";
+import { ChartDateFilters } from "@/components/common/composite/DataFilter";
 
 import { AppButton } from "@/components/common/micro/AppButton";
 import AppSelect from "@/components/common/micro/AppSelect";
@@ -16,15 +14,33 @@ import { useSystemMetrics } from "@/hooks/system/useSystemMetrics";
 import AppCard, { AppCardContent, AppCardHeader, AppCardTitle, AppCardDescription } from "@/components/common/micro/AppCard";
 import AppBadge from "@/components/common/micro/AppBadge";
 import AppProgress from "@/components/common/micro/AppProgress";
+import dashboardService from "@/services/admin/dashboardService";
 
 export default function AdminDashboard() {
   const {
     stats,
     memberGrowth,
     revenueData,
+    instructorRevenueData,
+    refundData,
     recentOrders,
     topCourses,
-    isLoading
+    topInstructors,
+    studentProductivity,
+    userDemographics,
+    violations,
+    userRatings,
+    isLoading,
+    refresh,
+    fetchStats,
+    fetchRevenue,
+    fetchInstructorRevenue,
+    fetchRefundData,
+    fetchMemberGrowth,
+    fetchTopInstructors,
+    fetchStudentProductivity,
+    fetchViolations,
+    fetchUserRatings
   } = useDashboard();
 
   if (isLoading) {
@@ -63,7 +79,7 @@ export default function AdminDashboard() {
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-3 shrink-0">
-              <AppButton appVariant="default" className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-bold shadow-sm" size="sm">
+              <AppButton onClick={refresh} appVariant="default" className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-bold shadow-sm" size="sm">
                 <RefreshCw className="w-4 h-4 mr-2" />
                 Đồng bộ
               </AppButton>
@@ -92,8 +108,9 @@ export default function AdminDashboard() {
         </div>
 
         <div className="grid grid-cols-1 gap-6">
-          <RevenueCharts revenueData={revenueData} stats={stats} />
-          <InstructorRevenueChart revenueData={revenueData} stats={stats} />
+          <RevenueCharts revenueData={revenueData} stats={stats} onFilterChange={fetchRevenue} />
+          <InstructorRevenueChart revenueData={instructorRevenueData} stats={stats} onFilterChange={fetchInstructorRevenue} />
+          <RefundStatsChart refundData={refundData} stats={stats} onFilterChange={fetchRefundData} />
         </div>
       </div>
 
@@ -106,15 +123,15 @@ export default function AdminDashboard() {
               Người dùng
             </h2>
           </div>
-          <MemberGrowthChart data={memberGrowth} stats={stats} className="flex-none mb-6" />
-          <ViolatingUsersChart />
-          <UserRatingsChart />
+          <MemberGrowthChart data={memberGrowth} stats={stats} className="flex-none mb-6" onFilterChange={fetchMemberGrowth} />
+          <ViolatingUsersChart data={violations} onFilterChange={fetchViolations} />
+          <UserRatingsChart data={userRatings} onFilterChange={fetchUserRatings} />
         </div>
         
         <div className="lg:col-span-1 pt-0 lg:pt-11 flex flex-col space-y-6">
-            <TopInstructors />
-            <StudentProductivityChart />
-            <UserAgeChart />
+            <TopInstructors data={topInstructors} onFilterChange={fetchTopInstructors} />
+            <StudentProductivityChart data={studentProductivity} onFilterChange={fetchStudentProductivity} />
+            <UserAgeChart data={userDemographics} />
         </div>
       </div>
 
@@ -125,14 +142,17 @@ export default function AdminDashboard() {
 }
 
 
-function RevenueCharts({ revenueData, stats }) {
-    // Tự động tính doanh thu nền tảng và giảng viên nếu chưa có
+function RevenueCharts({ revenueData, stats, onFilterChange }) {
+    // Backend /dashboard/revenue trả sẵn revenue/instructorRevenue/platformRevenue.
+    // Chỉ fallback khi trường bị thiếu (null/undefined) — dùng `??` thay `||` để không
+    // bịa dữ liệu khi giá trị hợp lệ bằng 0. Fallback 90/10 khớp backend (không phải 60/40).
     const chartData = revenueData?.map(item => {
-        const total = item.revenue || 0;
-        const instructor = item.instructorRevenue || Math.round(total * 0.6);
-        const platform = total - instructor;
+        const total = item.revenue ?? 0;
+        const instructor = item.instructorRevenue ?? Math.round(total * 0.9);
+        const platform = item.platformRevenue ?? (total - instructor);
         return {
             ...item,
+            label: item.label || item.month,
             instructor,
             platform,
             total
@@ -141,16 +161,15 @@ function RevenueCharts({ revenueData, stats }) {
 
     const subtitle = (
         <>
-            <span className="text-sm font-medium text-muted-foreground uppercase tracking-widest">Tổng doanh thu:</span>
+            <span className="text-sm font-medium text-muted-foreground uppercase tracking-widest">Doanh thu toàn kỳ:</span>
             <span className="text-2xl font-semibold text-foreground">{(stats?.totalRevenue || 0).toLocaleString()}đ</span>
         </>
     );
 
     const headerExtra = (
         <ChartDateFilters
-            onDateChange={(type, value) => console.log('Date changed:', type, value)}
-            onPresetChange={(preset) => console.log('Preset changed:', preset)}
-            defaultPreset="6-months"
+            onRangeChange={(range) => onFilterChange?.(range)}
+            defaultPreset="this-year"
         />
     );
 
@@ -182,7 +201,7 @@ function RevenueCharts({ revenueData, stats }) {
                     <ComposedChart data={chartData} margin={{ top: 20, right: 10, left: 0, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
                         <XAxis 
-                            dataKey="month" 
+                            dataKey="label" 
                             axisLine={false} 
                             tickLine={false} 
                             tick={{ fontSize: 12, fontWeight: 500, fill: 'var(--muted-foreground)' }} 
@@ -208,12 +227,14 @@ function RevenueCharts({ revenueData, stats }) {
     );
 }
 
-function InstructorRevenueChart({ revenueData, stats }) {
+function InstructorRevenueChart({ revenueData, stats, onFilterChange }) {
+    // Backend trả sẵn instructorRevenue/withdrawable. Fallback `??` khớp backend:
     const chartData = revenueData?.map(item => {
-        const instructorRevenue = item.instructorRevenue || Math.round((item.revenue || 0) * 0.6);
-        const withdrawable = item.withdrawable || Math.round(instructorRevenue * 0.8);
+        const instructorRevenue = item.instructorRevenue ?? Math.round((item.revenue ?? 0) * 0.9);
+        const withdrawable = item.withdrawable ?? 0;
         return {
             ...item,
+            label: item.label || item.month,
             instructorRevenue,
             withdrawable
         };
@@ -221,16 +242,15 @@ function InstructorRevenueChart({ revenueData, stats }) {
 
     const subtitle = (
         <>
-            <span className="text-sm font-medium text-muted-foreground uppercase tracking-widest">Tổng doanh thu:</span>
+            <span className="text-sm font-medium text-muted-foreground uppercase tracking-widest">Doanh thu GV toàn kỳ:</span>
             <span className="text-2xl font-semibold text-foreground">{(stats?.instructorRevenue || 0).toLocaleString()}đ</span>
         </>
     );
 
     const headerExtra = (
         <ChartDateFilters
-            onDateChange={(type, value) => console.log('Date changed:', type, value)}
-            onPresetChange={(preset) => console.log('Preset changed:', preset)}
-            defaultPreset="6-months"
+            onRangeChange={(range) => onFilterChange?.(range)}
+            defaultPreset="this-year"
         />
     );
 
@@ -261,7 +281,7 @@ function InstructorRevenueChart({ revenueData, stats }) {
                     <ComposedChart data={chartData} margin={{ top: 20, right: 10, left: 0, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
                         <XAxis 
-                            dataKey="month" 
+                            dataKey="label" 
                             axisLine={false} 
                             tickLine={false} 
                             tick={{ fontSize: 12, fontWeight: 500, fill: 'var(--muted-foreground)' }} 
@@ -279,6 +299,108 @@ function InstructorRevenueChart({ revenueData, stats }) {
                         
                         <Bar dataKey="withdrawable" name="Có thể rút" fill="var(--success)" radius={[4, 4, 0, 0]} maxBarSize={40} />
                         <Line type="monotone" dataKey="instructorRevenue" name="Doanh thu" stroke="var(--warning)" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
+                    </ComposedChart>
+                </ChartContainer>
+            </AppCardContent>
+        </AppCard>
+    );
+}
+
+function RefundStatsChart({ refundData, stats, onFilterChange }) {
+    const chartData = refundData?.map(item => {
+        const refundedAmount = item.refundedAmount ?? 0;
+        const approvedCount = item.approvedCount ?? 0;
+        const rejectedCount = item.rejectedCount ?? 0;
+        const pendingCount = item.pendingCount ?? 0;
+        const totalRequests = item.totalRequests ?? (approvedCount + rejectedCount + pendingCount);
+        return {
+            ...item,
+            label: item.label || item.month,
+            refundedAmount,
+            approvedCount,
+            rejectedCount,
+            pendingCount,
+            totalRequests
+        };
+    }) || [];
+
+    const subtitle = (
+        <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+            <div className="flex items-baseline gap-2">
+                <span className="text-sm font-medium text-muted-foreground uppercase tracking-widest">Đã hoàn toàn kỳ:</span>
+                <span className="text-2xl font-semibold text-destructive">{(stats?.totalRefunded || 0).toLocaleString()}đ</span>
+            </div>
+            {stats?.pendingRefunds > 0 && (
+                <AppBadge variant="destructive" className="bg-destructive/10 text-destructive border-destructive/20 text-xs font-semibold">
+                    {stats.pendingRefunds} yêu cầu chờ duyệt
+                </AppBadge>
+            )}
+        </div>
+    );
+
+    const headerExtra = (
+        <ChartDateFilters
+            onRangeChange={(range) => onFilterChange?.(range)}
+            defaultPreset="this-year"
+        />
+    );
+
+    const formatYAxis = (value) => value >= 1000000 ? `${(value / 1000000).toFixed(0)}M` : value >= 1000 ? `${(value / 1000).toFixed(0)}K` : `${value}`;
+
+    const refundConfig = {
+        refundedAmount: { label: "Tiền đã hoàn", color: "var(--destructive)" },
+        pendingCount: { label: "Chờ xử lý", color: "var(--warning)" }
+    };
+
+    return (
+        <AppCard appVariant="default" className="border-border shadow-sm flex flex-col h-[400px]">
+            <AppCardHeader className="pb-2">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="space-y-1">
+                        <AppCardTitle className="text-lg font-semibold flex items-center gap-2">
+                            <span>Thống kê Hoàn tiền</span>
+                        </AppCardTitle>
+                        {subtitle}
+                    </div>
+                    <div className="flex flex-wrap items-center gap-3">
+                        {headerExtra}
+                    </div>
+                </div>
+            </AppCardHeader>
+            <AppCardContent className="w-full pt-0 flex-1 flex flex-col min-h-0">
+                <ChartContainer config={refundConfig} className="flex-1 w-full min-h-0 !aspect-auto">
+                    <ComposedChart data={chartData} margin={{ top: 20, right: 10, left: 0, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
+                        <XAxis 
+                            dataKey="label" 
+                            axisLine={false} 
+                            tickLine={false} 
+                            tick={{ fontSize: 12, fontWeight: 500, fill: 'var(--muted-foreground)' }} 
+                            dy={10} 
+                        />
+                        <YAxis 
+                            axisLine={false} 
+                            tickLine={false} 
+                            tick={{ fontSize: 12, fontWeight: 500, fill: 'var(--muted-foreground)' }} 
+                            tickFormatter={formatYAxis}
+                            dx={-10}
+                        />
+                        <ChartTooltip 
+                            content={
+                                <ChartTooltipContent 
+                                    formatter={(value, name) => {
+                                        if (name === "Tiền đã hoàn" || name === "refundedAmount") {
+                                            return `${value.toLocaleString()}đ`;
+                                        }
+                                        return `${value} yêu cầu`;
+                                    }} 
+                                />
+                            } 
+                        />
+                        <ChartLegend content={<ChartLegendContent />} />
+                        
+                        <Bar dataKey="refundedAmount" name="Tiền đã hoàn" fill="var(--destructive)" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                        <Line type="monotone" dataKey="pendingCount" name="Chờ xử lý" stroke="var(--warning)" strokeWidth={2} strokeDasharray="4 4" dot={{ r: 4 }} activeDot={{ r: 6 }} />
                     </ComposedChart>
                 </ChartContainer>
             </AppCardContent>
@@ -320,36 +442,29 @@ function PlatformOverview({ stats }) {
 }
 
 function StatsGrid({ stats }) {
+    // 4 thẻ hiển thị số TOÀN KỲ (từ trước tới nay) do backend /dashboard/stats trả.
     const dynamicStats = [
         {
-            title: "Tổng Doanh Thu",
+            title: "Doanh thu toàn kỳ",
             value: `${(stats?.totalRevenue || 0).toLocaleString()}đ`,
-            trend: stats?.revenueTrend ? `+${stats.revenueTrend}%` : "+0%",
-            isPositive: true,
             icon: TrendingUp,
             color: "bg-info text-white border-info"
         },
         {
-            title: "Tổng Doanh Thu Giảng Viên",
+            title: "Doanh thu GV toàn kỳ",
             value: `${(stats?.instructorRevenue || 0).toLocaleString()}đ`,
-            trend: stats?.instructorRevenueTrend ? `+${stats.instructorRevenueTrend}%` : "0%",
-            isPositive: true,
             icon: BookOpen,
             color: "bg-warning text-white border-warning"
         },
         {
-            title: "Người Dùng Mới",
+            title: "Tổng người dùng",
             value: (stats?.newStudents || 0).toLocaleString(),
-            trend: stats?.studentTrend ? `+${stats.studentTrend}%` : "+0%",
-            isPositive: true,
             icon: Users,
             color: "bg-success text-white border-success"
         },
         {
-            title: "Đơn Hàng Mới",
+            title: "Tổng đơn hàng",
             value: (stats?.todayOrders || 0).toLocaleString(),
-            trend: stats?.orderTrend ? `${stats.orderTrend}%` : "0%",
-            isPositive: stats?.orderTrend >= 0,
             icon: ShoppingCart,
             color: "bg-primary text-white border-primary"
         },
@@ -359,8 +474,6 @@ function StatsGrid({ stats }) {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {dynamicStats.map((stat, i) => {
                 const Icon = stat.icon;
-                const trendValue = stat.trend ? parseFloat(stat.trend.replace(/[^0-9.-]+/g,"")) : 0;
-                const progressValue = isNaN(trendValue) ? 0 : Math.min(100, Math.max(5, Math.abs(trendValue) * 4));
 
                 return (
                     <AppCard appVariant="default" key={i} className="bg-card text-card-foreground border-none p-0">
@@ -369,42 +482,10 @@ function StatsGrid({ stats }) {
                                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center border ${stat.color}`}>
                                     <Icon className="w-5 h-5" />
                                 </div>
-                                <AppSelect 
-                                    value="this-month" 
-                                    onValueChange={() => {}}
-                                    options={[
-                                        { label: "Hôm nay", value: "today" },
-                                        { label: "Hôm qua", value: "yesterday" },
-                                        { label: "Tháng trước", value: "last-month" },
-                                        { label: "Tháng này", value: "this-month" },
-                                    ]}
-                                    className="!h-8 !py-1 !px-2 bg-transparent border-none shadow-none text-xs font-medium text-muted-foreground hover:bg-muted/50 rounded-md focus:ring-0 w-auto min-w-[100px]"
-                                />
                             </div>
                             <div>
                                 <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">{stat.title}</h3>
                                 <div className="text-2xl font-semibold text-foreground">{stat.value}</div>
-                            </div>
-                            
-                            <div className="mt-1">
-                                <div className="flex justify-end mb-1">
-                                    <span className="text-xs font-semibold text-foreground">
-                                        {Math.round(progressValue)}%
-                                    </span>
-                                </div>
-                                <AppProgress 
-                                    value={progressValue} 
-                                    heightClass="h-1.5" 
-                                    indicatorClassName={stat.isPositive ? "bg-success" : "bg-error"} 
-                                    className="bg-muted"
-                                />
-                                <div className="flex justify-between items-center mt-1.5">
-                                    <span className="text-xs font-medium text-muted-foreground">So với tháng trước</span>
-                                    <span className={`text-xs font-bold flex items-center gap-0.5 ${stat.isPositive ? 'text-success' : 'text-error'}`}>
-                                        {stat.isPositive ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-                                        {stat.trend}
-                                    </span>
-                                </div>
                             </div>
                         </AppCardContent>
                     </AppCard>
@@ -457,29 +538,34 @@ const memberGrowthConfig = {
     total: { label: "Tổng số", color: "var(--primary)" }
 };
 
-function MemberGrowthChart({ data, stats, className = "" }) {
+function MemberGrowthChart({ data, stats, className = "", onFilterChange }) {
+    // Tổng học viên mới trong khoảng thời gian biểu đồ đang hiển thị (không dùng
+    // stats.newStudents vì thẻ banner giờ là TOÀN KỲ).
+    const newStudentsInRange = (data || []).reduce((sum, item) => sum + (item.students ?? 0), 0);
+
     const subtitle = (
         <>
-            <span className="text-sm font-medium text-muted-foreground uppercase tracking-widest">Học viên mới:</span>
-            <span className="text-2xl font-semibold text-foreground">{(stats?.newStudents || 0).toLocaleString()}</span>
+            <span className="text-sm font-medium text-muted-foreground uppercase tracking-widest">Học viên mới (kỳ này):</span>
+            <span className="text-2xl font-semibold text-foreground">{newStudentsInRange.toLocaleString()}</span>
         </>
     );
 
     const headerExtra = (
         <ChartDateFilters
-            onDateChange={(type, value) => console.log('Date changed:', type, value)}
-            onPresetChange={(preset) => console.log('Preset changed:', preset)}
-            defaultPreset="6-months"
+            onRangeChange={(range) => onFilterChange?.(range)}
+            defaultPreset="this-year"
         />
     );
 
-    // Tự động sinh dữ liệu ảo cho giảng viên và tổng nếu chưa có từ API
+    // Backend trả sẵn students/instructors theo bucket — không bịa dữ liệu giảng viên ảo.
     const chartData = data?.map(item => {
-        const instructors = item.instructors || Math.floor(item.students * 0.1);
+        const students = item.students ?? 0;
+        const instructors = item.instructors ?? 0;
         return {
             ...item,
+            label: item.label || item.month,
             instructors,
-            total: item.students + instructors
+            total: students + instructors
         };
     }) || [];
 
@@ -503,7 +589,7 @@ function MemberGrowthChart({ data, stats, className = "" }) {
                     <ComposedChart data={chartData} margin={{ top: 20, right: 10, left: 0, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
                         <XAxis 
-                            dataKey="month" 
+                            dataKey="label" 
                             axisLine={false} 
                             tickLine={false} 
                             tick={{ fontSize: 12, fontWeight: 500, fill: 'var(--muted-foreground)' }} 
@@ -590,14 +676,17 @@ function RecentOrders({ orders }) {
     );
 }
 
-function TopInstructors() {
-    const instructors = [
-        { id: 1, name: "Nguyễn Văn A", avatar: "https://i.pravatar.cc/150?u=1", completion: 60, learning: 35, refund: 5 },
-        { id: 2, name: "Trần Thị B", avatar: "https://i.pravatar.cc/150?u=2", completion: 70, learning: 28, refund: 2 },
-        { id: 3, name: "Lê Văn C", avatar: "https://i.pravatar.cc/150?u=3", completion: 55, learning: 40, refund: 5 },
-        { id: 4, name: "Phạm Thị D", avatar: "https://i.pravatar.cc/150?u=4", completion: 80, learning: 18, refund: 2 },
-        { id: 5, name: "Hoàng Văn E", avatar: "https://i.pravatar.cc/150?u=5", completion: 65, learning: 30, refund: 5 },
-    ];
+function TopInstructors({ data, onFilterChange }) {
+    const [filter, setFilter] = React.useState("this-month");
+
+    const handleFilterChange = (val) => {
+        setFilter(val);
+        if (onFilterChange) {
+            onFilterChange(val);
+        }
+    };
+
+    const instructors = data && data.length > 0 ? data : [];
 
     return (
         <AppCard appVariant="default" className="border-border shadow-sm h-[400px] flex flex-col">
@@ -608,8 +697,8 @@ function TopInstructors() {
                     </div>
                     <div className="flex flex-wrap items-center gap-3">
                         <AppSelect 
-                            value="this-month" 
-                            onValueChange={() => {}}
+                            value={filter} 
+                            onValueChange={handleFilterChange}
                             options={[
                                 { label: "Tháng trước", value: "last-month" },
                                 { label: "Tháng này", value: "this-month" },
@@ -620,27 +709,38 @@ function TopInstructors() {
                     </div>
                 </div>
             </AppCardHeader>
-            <AppCardContent className="px-4 pt-0 pb-4 flex-1">
-                <div className="flex flex-col justify-between divide-y divide-border h-full">
-                    {instructors.map((inst, idx) => (
-                        <div key={idx} className="flex items-center gap-3 py-2 hover:bg-muted/50 transition-colors">
-                            <img src={inst.avatar} alt={inst.name} className="w-8 h-8 rounded-full object-cover shrink-0 border border-border" />
-                            <div className="flex-1 min-w-0">
-                                <p className="text-sm font-semibold text-foreground truncate mb-1">{inst.name}</p>
-                                <div className="flex w-full h-1.5 rounded-full overflow-hidden bg-muted">
-                                    <div className="bg-success" style={{ width: `${inst.completion}%` }} title={`Hoàn thành: ${inst.completion}%`} />
-                                    <div className="bg-info" style={{ width: `${inst.learning}%` }} title={`Đang học: ${inst.learning}%`} />
-                                    <div className="bg-error" style={{ width: `${inst.refund}%` }} title={`Hoàn trả: ${inst.refund}%`} />
-                                </div>
-                                <div className="flex justify-between items-center mt-0.5 text-[10px] text-muted-foreground font-medium">
-                                    <span className="text-success">{inst.completion}% HT</span>
-                                    <span className="text-info">{inst.learning}% ĐH</span>
-                                    <span className="text-error">{inst.refund}% Hoàn</span>
+            <AppCardContent className="px-4 pt-0 pb-4 flex-1 overflow-hidden">
+                {instructors.length === 0 ? (
+                    <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
+                        Chưa có dữ liệu giảng viên
+                    </div>
+                ) : (
+                    <div className="flex flex-col justify-between divide-y divide-border h-full">
+                        {instructors.map((inst, idx) => (
+                            <div key={inst.id || idx} className="flex items-center gap-3 py-2 hover:bg-muted/50 transition-colors">
+                                <img 
+                                    src={inst.avatar || '/default-avatar.png'} 
+                                    alt={inst.name} 
+                                    className="w-8 h-8 rounded-full object-cover shrink-0 border border-border" 
+                                    onError={(e) => { e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(inst.name || 'GV')}&background=random`; }}
+                                />
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-semibold text-foreground truncate mb-1">{inst.name}</p>
+                                    <div className="flex w-full h-1.5 rounded-full overflow-hidden bg-muted">
+                                        <div className="bg-success transition-all duration-300" style={{ width: `${inst.completion || 0}%` }} title={`Hoàn thành: ${inst.completion || 0}%`} />
+                                        <div className="bg-info transition-all duration-300" style={{ width: `${inst.learning || 0}%` }} title={`Đang học: ${inst.learning || 0}%`} />
+                                        <div className="bg-error transition-all duration-300" style={{ width: `${inst.refund || 0}%` }} title={`Hoàn trả: ${inst.refund || 0}%`} />
+                                    </div>
+                                    <div className="flex justify-between items-center mt-0.5 text-[10px] text-muted-foreground font-medium">
+                                        <span className="text-success">{inst.completion || 0}% HT</span>
+                                        <span className="text-info">{inst.learning || 0}% ĐH</span>
+                                        <span className="text-error">{inst.refund || 0}% Hoàn</span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    ))}
-                </div>
+                        ))}
+                    </div>
+                )}
             </AppCardContent>
         </AppCard>
     );
@@ -652,11 +752,20 @@ const productivityConfig = {
     refund: { label: "Hoàn tiền", color: "var(--error)" }
 };
 
-function StudentProductivityChart() {
-    const data = [
-        { name: "completion", value: 65, fill: "var(--success)" },
-        { name: "learning", value: 30, fill: "var(--info)" },
-        { name: "refund", value: 5, fill: "var(--error)" },
+function StudentProductivityChart({ data, onFilterChange }) {
+    const [filter, setFilter] = React.useState("this-month");
+
+    const handleFilterChange = (val) => {
+        setFilter(val);
+        if (onFilterChange) {
+            onFilterChange(val);
+        }
+    };
+
+    const chartData = [
+        { name: "completion", value: Number(data?.completion ?? 65), fill: "var(--success)" },
+        { name: "learning", value: Number(data?.learning ?? 30), fill: "var(--info)" },
+        { name: "refund", value: Number(data?.refund ?? 5), fill: "var(--error)" },
     ];
 
     return (
@@ -668,8 +777,8 @@ function StudentProductivityChart() {
                     </div>
                     <div className="flex flex-wrap items-center gap-3">
                         <AppSelect 
-                            value="this-month" 
-                            onValueChange={() => {}}
+                            value={filter} 
+                            onValueChange={handleFilterChange}
                             options={[
                                 { label: "Tháng trước", value: "last-month" },
                                 { label: "Tháng này", value: "this-month" },
@@ -685,7 +794,7 @@ function StudentProductivityChart() {
                     <PieChart>
                         <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
                         <Pie
-                            data={data}
+                            data={chartData}
                             dataKey="value"
                             nameKey="name"
                             innerRadius={0}
@@ -696,7 +805,7 @@ function StudentProductivityChart() {
                             stroke="var(--background)"
                             paddingAngle={0}
                         >
-                            {data.map((entry, index) => (
+                            {chartData.map((entry, index) => (
                                 <Cell key={`cell-${index}`} fill={entry.fill} />
                             ))}
                         </Pie>
@@ -712,18 +821,15 @@ const violatingUsersConfig = {
     violations: { label: "Người dùng vi phạm", color: "var(--error)" },
 };
 
-function ViolatingUsersChart() {
-    const data = [
-        { month: "T1", violations: 12 },
-        { month: "T2", violations: 19 },
-        { month: "T3", violations: 15 },
-        { month: "T4", violations: 22 },
-        { month: "T5", violations: 14 },
-        { month: "T6", violations: 25 },
-        { month: "T7", violations: 18 },
-    ];
+function ViolatingUsersChart({ data, onFilterChange }) {
+    const rawData = data && data.length > 0 ? data : [];
+    const chartData = rawData.map(item => ({
+        ...item,
+        label: item.label || item.month,
+        violations: item.violations || 0
+    }));
 
-    const totalViolations = data.reduce((sum, item) => sum + item.violations, 0);
+    const totalViolations = chartData.reduce((sum, item) => sum + item.violations, 0);
 
     const subtitle = (
         <>
@@ -744,19 +850,18 @@ function ViolatingUsersChart() {
                     </div>
                     <div className="flex flex-wrap items-center gap-3">
                         <ChartDateFilters
-                            onDateChange={(type, value) => console.log('Date changed:', type, value)}
-                            onPresetChange={(preset) => console.log('Preset changed:', preset)}
-                            defaultPreset="6-months"
+                            onRangeChange={(range) => onFilterChange?.(range)}
+                            defaultPreset="this-year"
                         />
                     </div>
                 </div>
             </AppCardHeader>
             <AppCardContent className="w-full pt-0 flex-1 flex flex-col min-h-0">
                 <ChartContainer config={violatingUsersConfig} className="flex-1 w-full min-h-0 !aspect-auto">
-                    <LineChart data={data} margin={{ top: 20, right: 10, left: 0, bottom: 0 }}>
+                    <LineChart data={chartData} margin={{ top: 20, right: 10, left: 0, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
                         <XAxis 
-                            dataKey="month" 
+                            dataKey="label" 
                             axisLine={false}
                             tickLine={false}
                             tick={{ fontSize: 12, fontWeight: 500, fill: 'var(--muted-foreground)' }}
@@ -870,12 +975,12 @@ const userAgeConfig = {
     age45plus: { label: "45+", color: "var(--success)" }
 };
 
-function UserAgeChart() {
-    const data = [
-        { name: "age18_24", value: 35, fill: "var(--info)" },
-        { name: "age25_34", value: 45, fill: "var(--primary)" },
-        { name: "age35_44", value: 15, fill: "var(--warning)" },
-        { name: "age45plus", value: 5, fill: "var(--success)" },
+function UserAgeChart({ data }) {
+    const chartData = [
+        { name: "age18_24", value: Number(data?.age18_24 ?? 35), fill: "var(--info)" },
+        { name: "age25_34", value: Number(data?.age25_34 ?? 45), fill: "var(--primary)" },
+        { name: "age35_44", value: Number(data?.age35_44 ?? 15), fill: "var(--warning)" },
+        { name: "age45plus", value: Number(data?.age45plus ?? 5), fill: "var(--success)" },
     ];
 
     return (
@@ -892,7 +997,7 @@ function UserAgeChart() {
                     <PieChart>
                         <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
                         <Pie
-                            data={data}
+                            data={chartData}
                             dataKey="value"
                             nameKey="name"
                             innerRadius={0}
@@ -903,7 +1008,7 @@ function UserAgeChart() {
                             stroke="var(--background)"
                             paddingAngle={0}
                         >
-                            {data.map((entry, index) => (
+                            {chartData.map((entry, index) => (
                                 <Cell key={`cell-${index}`} fill={entry.fill} />
                             ))}
                         </Pie>
@@ -924,18 +1029,20 @@ const userRatingsConfig = {
     total: { label: "Tổng", color: "var(--foreground)" }
 };
 
-function UserRatingsChart() {
-    const data = [
-        { month: "T1", star5: 120, star4: 45, star3: 15, star2: 5, star1: 2, total: 187 },
-        { month: "T2", star5: 135, star4: 50, star3: 20, star2: 8, star1: 3, total: 216 },
-        { month: "T3", star5: 150, star4: 60, star3: 25, star2: 10, star1: 4, total: 249 },
-        { month: "T4", star5: 180, star4: 75, star3: 30, star2: 12, star1: 5, total: 302 },
-        { month: "T5", star5: 210, star4: 85, star3: 35, star2: 15, star1: 8, total: 353 },
-        { month: "T6", star5: 250, star4: 100, star3: 40, star2: 20, star1: 10, total: 420 },
-        { month: "T7", star5: 300, star4: 120, star3: 50, star2: 25, star1: 12, total: 507 },
-    ];
+function UserRatingsChart({ data, onFilterChange }) {
+    const rawData = data && data.length > 0 ? data : [];
+    const chartData = rawData.map(item => ({
+        ...item,
+        label: item.label || item.month,
+        star1: item.star1 || 0,
+        star2: item.star2 || 0,
+        star3: item.star3 || 0,
+        star4: item.star4 || 0,
+        star5: item.star5 || 0,
+        total: item.total || 0
+    }));
 
-    const totalRatings = data.reduce((sum, item) => sum + item.total, 0);
+    const totalRatings = chartData.reduce((sum, item) => sum + item.total, 0);
 
     const subtitle = (
         <>
@@ -956,19 +1063,18 @@ function UserRatingsChart() {
                     </div>
                     <div className="flex flex-wrap items-center gap-3">
                         <ChartDateFilters
-                            onDateChange={(type, value) => console.log('Date changed:', type, value)}
-                            onPresetChange={(preset) => console.log('Preset changed:', preset)}
-                            defaultPreset="6-months"
+                            onRangeChange={(range) => onFilterChange?.(range)}
+                            defaultPreset="this-year"
                         />
                     </div>
                 </div>
             </AppCardHeader>
             <AppCardContent className="w-full pt-0 flex-1 flex flex-col min-h-0">
                 <ChartContainer config={userRatingsConfig} className="flex-1 w-full min-h-0 !aspect-auto">
-                    <ComposedChart data={data} margin={{ top: 20, right: 10, left: 0, bottom: 0 }}>
+                    <ComposedChart data={chartData} margin={{ top: 20, right: 10, left: 0, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
                         <XAxis 
-                            dataKey="month" 
+                            dataKey="label" 
                             axisLine={false} 
                             tickLine={false} 
                             tick={{ fontSize: 12, fontWeight: 500, fill: 'var(--muted-foreground)' }} 
