@@ -73,8 +73,9 @@ public class WalletService {
         LocalDateTime startOfDay = java.time.LocalDate.now().atStartOfDay();
         AccountBank activeBank = accountBankRepository.findByAccountAndStatus(account, 1).orElse(null);
 
-        Double totalRevenueDouble = orderDetailRepository.sumTotalRevenueByAccount(account);
-        Double monthRevenueDouble = orderDetailRepository.sumRevenueByAccountAndDateRange(
+        // Thu nhập RÒNG (sau hoa hồng) — khớp với số tiền thực hạch toán vào ví giảng viên.
+        Double totalRevenueDouble = orderDetailRepository.sumTotalInstructorEarningByAccount(account);
+        Double monthRevenueDouble = orderDetailRepository.sumInstructorEarningByAccountAndDateRange(
                 account, startOfMonth, startOfNextMonth);
         BigDecimal totalRevenue = totalRevenueDouble != null ? BigDecimal.valueOf(totalRevenueDouble) : BigDecimal.ZERO;
         BigDecimal currentMonthRevenue = monthRevenueDouble != null ? BigDecimal.valueOf(monthRevenueDouble) : BigDecimal.ZERO;
