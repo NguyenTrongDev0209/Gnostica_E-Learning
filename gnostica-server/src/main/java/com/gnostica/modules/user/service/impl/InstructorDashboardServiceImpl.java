@@ -44,6 +44,9 @@ public class InstructorDashboardServiceImpl implements InstructorDashboardServic
         LocalDateTime startOfThisMonth = now.withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0).withNano(0);
         LocalDateTime startOfLastMonth = startOfThisMonth.minusMonths(1);
 
+        Double totalRevenue = orderDetailRepository.sumTotalRevenueByInstructorEmail(cleanEmail);
+        Double totalNetRevenue = orderDetailRepository.sumTotalInstructorEarningByEmail(cleanEmail);
+
         Double thisMonthRevenue = orderDetailRepository.sumRevenueByInstructorEmailAndDateRange(cleanEmail, startOfThisMonth, now);
         Double lastMonthRevenue = orderDetailRepository.sumRevenueByInstructorEmailAndDateRange(cleanEmail, startOfLastMonth, startOfThisMonth);
         Double revenueTrend = calculateTrend(lastMonthRevenue, thisMonthRevenue);
@@ -79,6 +82,8 @@ public class InstructorDashboardServiceImpl implements InstructorDashboardServic
         Double refundRate = totalEnrollments > 0 ? ((double) approvedRefunds / totalEnrollments) * 100.0 : 0.0;
 
         return InstructorDashboardStatsDTO.builder()
+                .totalRevenue(totalRevenue != null ? totalRevenue : 0.0)
+                .totalNetRevenue(totalNetRevenue != null ? totalNetRevenue : 0.0)
                 .monthRevenue(thisMonthRevenue != null ? thisMonthRevenue : 0.0)
                 .monthNetRevenue(thisMonthNetRevenue != null ? thisMonthNetRevenue : 0.0)
                 .revenueTrend(revenueTrend)

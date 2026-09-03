@@ -100,14 +100,14 @@ function RevenueChart({ data, totalRevenue, totalNetRevenue, onFilterChange }) {
     const subtitle = (
         <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
             <div>
-                <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider block">Doanh thu tháng (Gross)</span>
+                <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider block">Tổng doanh thu</span>
                 <span className="text-xl font-bold text-foreground">
                     {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(totalRevenue || 0)}
                 </span>
             </div>
             {totalNetRevenue != null && (
                 <div className="border-l border-border pl-4">
-                    <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider block">Thu nhập ròng (Net)</span>
+                    <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider block">Thu nhập ròng</span>
                     <span className="text-xl font-bold text-primary">
                         {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(totalNetRevenue || 0)}
                     </span>
@@ -448,8 +448,8 @@ export default function InstructorDashboard() {
         {/* Revenue Area Chart */}
         <RevenueChart
           data={REVENUE_DATA}
-          totalRevenue={RAW_STATS?.monthRevenue}
-          totalNetRevenue={RAW_STATS?.monthNetRevenue}
+          totalRevenue={RAW_STATS?.totalRevenue ?? RAW_STATS?.monthRevenue}
+          totalNetRevenue={RAW_STATS?.totalNetRevenue ?? RAW_STATS?.monthNetRevenue}
           onFilterChange={(m) => setRevenueMonths(m)}
         />
 

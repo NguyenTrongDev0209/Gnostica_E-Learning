@@ -53,6 +53,8 @@ public class WalletController {
         Map<String, Object> stats = new HashMap<>();
         stats.put("balance", wallet.getRemain());
         stats.put("totalRevenue", wallet.getTotalRevenue());
+        stats.put("totalNetRevenue", wallet.getTotalNetRevenue());
+        stats.put("totalGrossRevenue", wallet.getTotalGrossRevenue());
         stats.put("currentMonthRevenue", wallet.getCurrentMonthRevenue());
         stats.put("pendingRevenue", wallet.getPendingRevenue());
         stats.put("transactionCount", history.size());

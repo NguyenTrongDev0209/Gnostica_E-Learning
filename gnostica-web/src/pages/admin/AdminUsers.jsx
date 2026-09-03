@@ -1237,6 +1237,24 @@ function AdminUserDetail({ user, onBack, isInstructorContext }) {
     });
   }, [payouts, payoutSearch, payoutStatus, payoutDateRange]);
 
+  // Lọc client-side cho tab Khóa học (Giảng viên).
+  const filteredCourses = React.useMemo(() => {
+    const rows = courses?.data?.content || [];
+    const q = (courseSearch || "").toLowerCase().trim();
+    return rows.filter((c) => {
+      if (q && !(c.title || "").toLowerCase().includes(q)) return false;
+      if (courseStatus.length > 0 && !courseStatus.includes(String(c.status))) return false;
+      if (courseDateRange?.from || courseDateRange?.to) {
+        const d = c.createdAt ? new Date(c.createdAt) : null;
+        if (d) {
+          if (courseDateRange.from && d < new Date(courseDateRange.from)) return false;
+          if (courseDateRange.to && d > new Date(new Date(courseDateRange.to).setHours(23, 59, 59))) return false;
+        }
+      }
+      return true;
+    });
+  }, [courses, courseSearch, courseStatus, courseDateRange]);
+
   return (
     <div className="space-y-6 pb-10">
       <div className="flex items-center gap-4 border-b border-border pb-4">
@@ -1331,10 +1349,10 @@ function AdminUserDetail({ user, onBack, isInstructorContext }) {
                 {
                   title: "Trạng thái",
                   items: isInstructor ? [
-                    { label: "Bản nháp", value: "1" },
-                    { label: "Chờ duyệt", value: "2" },
-                    { label: "Đã xuất bản", value: "3" },
-                    { label: "Từ chối", value: "0" }
+                    { label: "Đã xuất bản", value: "1" },
+                    { label: "Đang ẩn", value: "2" },
+                    { label: "Bị từ chối", value: "3" },
+                    { label: "Chờ duyệt", value: "4" }
                   ] : [
                     { label: "Đang học", value: "learning" },
                     { label: "Hoàn thành", value: "completed" }
@@ -1411,16 +1429,25 @@ function AdminUserDetail({ user, onBack, isInstructorContext }) {
                     header: "Trạng thái", 
                     width: "140px",
                     className: "text-center",
-                    render: (c) => (
-                      <div className="text-center w-full flex justify-center">
-                        <AppBadge variant={c.status === 3 ? "success" : c.status === 2 ? "warning" : c.status === 1 ? "secondary" : "error"} className="w-[100px] justify-center px-2.5 py-1 text-white">
-                          {c.status === 3 ? "Đã xuất bản" : c.status === 2 ? "Chờ duyệt" : c.status === 1 ? "Bản nháp" : "Từ chối"}
-                        </AppBadge>
-                      </div>
-                    ) 
+                    render: (c) => {
+                      const statusMap = {
+                        1: { label: "Đã xuất bản", variant: "success" },
+                        2: { label: "Đang ẩn", variant: "secondary" },
+                        3: { label: "Bị từ chối", variant: "error" },
+                        4: { label: "Chờ duyệt", variant: "warning" },
+                      };
+                      const s = statusMap[c.status] || { label: "Không xác định", variant: "secondary" };
+                      return (
+                        <div className="text-center w-full flex justify-center">
+                          <AppBadge variant={s.variant} className="w-[100px] justify-center px-2.5 py-1 text-white">
+                            {s.label}
+                          </AppBadge>
+                        </div>
+                      );
+                    } 
                   }
                 ]}
-                data={courses?.data?.content || []}
+                data={filteredCourses}
                 emptyState="Chưa có khóa học nào."
                 pagination={{
                   currentPage: coursePage,
