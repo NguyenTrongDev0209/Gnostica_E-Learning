@@ -73,17 +73,23 @@ public class WalletService {
         LocalDateTime startOfDay = java.time.LocalDate.now().atStartOfDay();
         AccountBank activeBank = accountBankRepository.findByAccountAndStatus(account, 1).orElse(null);
 
+        // Tổng doanh thu (trước chiết khấu sàn, đã trừ coupon - số tiền học viên mua khóa học).
+        Double totalGrossRevenueDouble = orderDetailRepository.sumTotalRevenueByAccount(account);
+        BigDecimal totalGrossRevenue = totalGrossRevenueDouble != null ? BigDecimal.valueOf(totalGrossRevenueDouble) : BigDecimal.ZERO;
+
         // Thu nhập RÒNG (sau hoa hồng) — khớp với số tiền thực hạch toán vào ví giảng viên.
-        Double totalRevenueDouble = orderDetailRepository.sumTotalInstructorEarningByAccount(account);
+        Double totalNetRevenueDouble = orderDetailRepository.sumTotalInstructorEarningByAccount(account);
         Double monthRevenueDouble = orderDetailRepository.sumInstructorEarningByAccountAndDateRange(
                 account, startOfMonth, startOfNextMonth);
-        BigDecimal totalRevenue = totalRevenueDouble != null ? BigDecimal.valueOf(totalRevenueDouble) : BigDecimal.ZERO;
+        BigDecimal totalNetRevenue = totalNetRevenueDouble != null ? BigDecimal.valueOf(totalNetRevenueDouble) : BigDecimal.ZERO;
         BigDecimal currentMonthRevenue = monthRevenueDouble != null ? BigDecimal.valueOf(monthRevenueDouble) : BigDecimal.ZERO;
 
         return WalletOverviewResponse.builder()
                 .accountId(account.getId())
                 .remain(wallet.getRemain())
-                .totalRevenue(totalRevenue)
+                .totalRevenue(totalNetRevenue)
+                .totalNetRevenue(totalNetRevenue)
+                .totalGrossRevenue(totalGrossRevenue)
                 .currentMonthRevenue(currentMonthRevenue)
                 .pendingRevenue(walletRepository.sumPendingRevenueByAccount(account))
                 .type(wallet.getType())

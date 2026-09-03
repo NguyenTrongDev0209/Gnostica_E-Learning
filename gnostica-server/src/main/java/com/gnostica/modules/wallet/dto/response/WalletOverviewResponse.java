@@ -12,6 +12,8 @@ public class WalletOverviewResponse {
     private UUID accountId;
     private BigDecimal remain;
     private BigDecimal totalRevenue;
+    private BigDecimal totalNetRevenue;
+    private BigDecimal totalGrossRevenue;
     private BigDecimal currentMonthRevenue;
     private BigDecimal pendingRevenue;
     private Integer type;

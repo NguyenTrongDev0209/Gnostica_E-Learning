@@ -84,7 +84,7 @@ export default function LineChart({
                         <Area
                             type="monotone"
                             dataKey={dataKey}
-                            name={dataKey === "revenue" ? "Doanh thu (Gross)" : dataKey}
+                            name={dataKey === "revenue" ? "Doanh thu" : dataKey}
                             stroke={strokeColor}
                             strokeWidth={3}
                             fillOpacity={1}
@@ -94,7 +94,7 @@ export default function LineChart({
                             <Area
                                 type="monotone"
                                 dataKey={secondaryDataKey}
-                                name="Thu nhập ròng (Net)"
+                                name="Thu nhập ròng"
                                 stroke={secondaryStrokeColor}
                                 strokeWidth={2.5}
                                 fillOpacity={1}

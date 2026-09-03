@@ -12,6 +12,8 @@ import lombok.NoArgsConstructor;
 public class InstructorDashboardStatsDTO {
     private Double monthRevenue;
     private Double monthNetRevenue;
+    private Double totalRevenue;
+    private Double totalNetRevenue;
     private Double revenueTrend;
     private Long newStudents;
     private Double studentTrend;

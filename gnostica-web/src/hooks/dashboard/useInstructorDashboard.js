@@ -52,9 +52,9 @@ export default function useInstructorDashboard() {
 
         const STATS = [
           {
-            title: "Doanh Thu Tháng (Gross)",
-            value: formatVND(statsData?.monthRevenue || 0),
-            subtitle: `Thu nhập ròng: ${formatVND(statsData?.monthNetRevenue || 0)}`,
+            title: "Tổng Doanh Thu",
+            value: formatVND(statsData?.totalRevenue ?? statsData?.monthRevenue ?? 0),
+            subtitle: `Thu nhập ròng: ${formatVND(statsData?.totalNetRevenue ?? statsData?.monthNetRevenue ?? 0)}`,
             trend: `${statsData?.revenueTrend > 0 ? '+' : ''}${(statsData?.revenueTrend || 0).toFixed(1)}%`,
             isPositive: (statsData?.revenueTrend || 0) >= 0,
             icon: DollarSign,

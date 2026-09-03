@@ -309,14 +309,14 @@ export default function InstructorRevenue() {
       sub: "Tự động cộng vào số dư khi hết hạn"
     },
     {
-      label: "Thu nhập tháng này",
-      value: formatVND(wallet?.currentMonthRevenue),
-      icon: Activity,
+      label: "Tổng doanh thu",
+      value: formatVND(wallet?.totalGrossRevenue),
+      icon: Banknote,
       bgClass: "bg-success/10",
       textClass: "text-success",
       borderClass: "border-success/20",
       circleClass: "bg-success/10 opacity-50 group-hover:opacity-100",
-      sub: "Doanh thu ròng tháng hiện tại"
+      sub: "Tổng tiền bán khóa học (chưa chiết khấu)"
     },
     {
       label: "Tổng thu nhập ròng",

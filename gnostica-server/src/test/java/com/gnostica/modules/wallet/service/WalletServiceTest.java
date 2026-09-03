@@ -168,13 +168,16 @@ class WalletServiceTest {
         when(accountBankRepository.findByAccountAndStatus(any(), eq(1))).thenReturn(Optional.empty());
 
         when(orderDetailRepository.sumTotalRevenueByAccount(account)).thenReturn(1200000.0);
-        when(orderDetailRepository.sumRevenueByAccountAndDateRange(eq(account), any(), any())).thenReturn(450000.0);
+        when(orderDetailRepository.sumTotalInstructorEarningByAccount(account)).thenReturn(1080000.0);
+        when(orderDetailRepository.sumInstructorEarningByAccountAndDateRange(eq(account), any(), any())).thenReturn(450000.0);
 
         WalletOverviewResponse overview = walletService.getMyWalletOverview();
 
         assertNotNull(overview);
         assertEquals(new BigDecimal("500000"), overview.getRemain());
-        assertEquals(new BigDecimal("1200000.0"), overview.getTotalRevenue());
+        assertEquals(new BigDecimal("1200000.0"), overview.getTotalGrossRevenue());
+        assertEquals(new BigDecimal("1080000.0"), overview.getTotalRevenue());
+        assertEquals(new BigDecimal("1080000.0"), overview.getTotalNetRevenue());
         assertEquals(new BigDecimal("450000.0"), overview.getCurrentMonthRevenue());
     }
 }
