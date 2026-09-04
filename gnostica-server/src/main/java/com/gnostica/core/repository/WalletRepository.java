@@ -37,4 +37,13 @@ public interface WalletRepository extends JpaRepository<Wallet, java.util.UUID> 
     List<Wallet> findByAccount(Account account);
 
     List<Wallet> findByTargetTypeAndTargetIdIn(String targetType, java.util.Collection<java.util.UUID> targetIds);
+
+    @Query("SELECT w FROM Wallet w " +
+           "JOIN FETCH w.account a " +
+           "LEFT JOIN FETCH a.role r " +
+           "WHERE w.targetType = 'ORDER_DETAIL' " +
+           "AND w.targetId IN :detailIds " +
+           "AND w.type = 1")
+    List<Wallet> findEarningsByOrderDetailIds(@Param("detailIds") java.util.Collection<java.util.UUID> detailIds);
 }
+

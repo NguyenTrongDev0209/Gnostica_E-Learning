@@ -15,6 +15,16 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
+
+import com.gnostica.core.model.Account;
+import com.gnostica.core.model.Commission;
+import com.gnostica.core.model.Order;
+import com.gnostica.core.model.OrderDetail;
+import com.gnostica.core.model.Role;
+import com.gnostica.core.model.Wallet;
 import com.gnostica.core.repository.AccountRepository;
 import com.gnostica.core.repository.CategoryRepository;
 import com.gnostica.core.repository.CourseRepository;
@@ -25,7 +35,9 @@ import com.gnostica.core.repository.PaymentRepository;
 import com.gnostica.core.repository.RefundRepository;
 import com.gnostica.core.repository.ReportRepository;
 import com.gnostica.core.repository.ReviewRepository;
+import com.gnostica.core.repository.WalletRepository;
 import com.gnostica.modules.dashboard.dto.response.DashboardStatsResponse;
+import com.gnostica.modules.dashboard.dto.response.RevenueMonthDTO;
 import com.gnostica.modules.dashboard.service.impl.DashboardServiceImpl;
 
 @ExtendWith(MockitoExtension.class)
@@ -60,6 +72,9 @@ class DashboardServiceImplTest {
 
     @Mock
     private ReportRepository reportRepository;
+
+    @Mock
+    private WalletRepository walletRepository;
 
     @InjectMocks
     private DashboardServiceImpl dashboardService;
@@ -207,4 +222,205 @@ class DashboardServiceImplTest {
         assertEquals(0L, result.get(0).getPendingCount());
         assertEquals(0L, result.get(0).getTotalRequests());
     }
+
+    private Order createTestOrder(UUID orderId, LocalDateTime createdAt) {
+        return Order.builder()
+                .id(orderId)
+                .status(1)
+                .totalPrice(new BigDecimal("1000000"))
+                .couponPrice(BigDecimal.ZERO)
+                .createdAt(createdAt)
+                .build();
+    }
+
+    private OrderDetail createTestOrderDetail(UUID detailId, Order order) {
+        Commission commission = Commission.builder()
+                .instructorRatio(new BigDecimal("90"))
+                .platformRatio(new BigDecimal("10"))
+                .build();
+        return OrderDetail.builder()
+                .id(detailId)
+                .order(order)
+                .price(new BigDecimal("1000000"))
+                .discount(0)
+                .commission(commission)
+                .status(1)
+                .build();
+    }
+
+    private Wallet createTestWallet(UUID detailId, String roleName, int status, LocalDateTime availableAt, BigDecimal remain) {
+        Role role = Role.builder().name(roleName).build();
+        Account account = Account.builder().role(role).build();
+        return Wallet.builder()
+                .id(UUID.randomUUID())
+                .account(account)
+                .targetType("ORDER_DETAIL")
+                .targetId(detailId)
+                .type(1)
+                .status(status)
+                .availableAt(availableAt)
+                .remain(remain)
+                .build();
+    }
+
+    @Test
+    void testGetRevenueData_Withdrawable_Success() {
+        UUID orderId = UUID.randomUUID();
+        UUID detailId = UUID.randomUUID();
+        LocalDateTime orderTime = LocalDateTime.now();
+        Order order = createTestOrder(orderId, orderTime);
+        OrderDetail detail = createTestOrderDetail(detailId, order);
+
+        Wallet wallet = createTestWallet(
+                detailId,
+                "INSTRUCTOR",
+                1,
+                LocalDateTime.now().minusDays(1),
+                new BigDecimal("900000")
+        );
+
+        when(orderDetailRepository.findAllByOrderCreatedAtBetweenAndOrderStatus(any(), any(), eq(1)))
+                .thenReturn(List.of(detail));
+        when(walletRepository.findEarningsByOrderDetailIds(any()))
+                .thenReturn(List.of(wallet));
+        when(paymentRepository.findByCreatedAtBetween(any(), any()))
+                .thenReturn(Collections.emptyList());
+
+        List<RevenueMonthDTO> result = dashboardService.getRevenueData(12);
+
+        assertNotNull(result);
+        assertEquals(12, result.size());
+        RevenueMonthDTO currentMonth = result.get(result.size() - 1);
+        assertEquals(1000000.0, currentMonth.getRevenue());
+        assertEquals(900000.0, currentMonth.getInstructorRevenue());
+        assertEquals(100000.0, currentMonth.getPlatformRevenue());
+        assertEquals(900000.0, currentMonth.getWithdrawable());
+    }
+
+    @Test
+    void testGetRevenueData_Withdrawable_NotYetAvailable() {
+        UUID orderId = UUID.randomUUID();
+        UUID detailId = UUID.randomUUID();
+        LocalDateTime orderTime = LocalDateTime.now();
+        Order order = createTestOrder(orderId, orderTime);
+        OrderDetail detail = createTestOrderDetail(detailId, order);
+
+        // availableAt trong tương lai (chưa đến hạn rút)
+        Wallet wallet = createTestWallet(
+                detailId,
+                "INSTRUCTOR",
+                1,
+                LocalDateTime.now().plusDays(10),
+                new BigDecimal("900000")
+        );
+
+        when(orderDetailRepository.findAllByOrderCreatedAtBetweenAndOrderStatus(any(), any(), eq(1)))
+                .thenReturn(List.of(detail));
+        when(walletRepository.findEarningsByOrderDetailIds(any()))
+                .thenReturn(List.of(wallet));
+        when(paymentRepository.findByCreatedAtBetween(any(), any()))
+                .thenReturn(Collections.emptyList());
+
+        List<RevenueMonthDTO> result = dashboardService.getRevenueData(12);
+
+        assertNotNull(result);
+        RevenueMonthDTO currentMonth = result.get(result.size() - 1);
+        assertEquals(900000.0, currentMonth.getInstructorRevenue());
+        assertEquals(0.0, currentMonth.getWithdrawable()); // Chưa khả dụng
+    }
+
+    @Test
+    void testGetRevenueData_Withdrawable_StatusVoided() {
+        UUID orderId = UUID.randomUUID();
+        UUID detailId = UUID.randomUUID();
+        LocalDateTime orderTime = LocalDateTime.now();
+        Order order = createTestOrder(orderId, orderTime);
+        OrderDetail detail = createTestOrderDetail(detailId, order);
+
+        // status = 0 (bị hủy / đóng băng / hoàn tiền)
+        Wallet wallet = createTestWallet(
+                detailId,
+                "INSTRUCTOR",
+                0,
+                LocalDateTime.now().minusDays(1),
+                new BigDecimal("900000")
+        );
+
+        when(orderDetailRepository.findAllByOrderCreatedAtBetweenAndOrderStatus(any(), any(), eq(1)))
+                .thenReturn(List.of(detail));
+        when(walletRepository.findEarningsByOrderDetailIds(any()))
+                .thenReturn(List.of(wallet));
+        when(paymentRepository.findByCreatedAtBetween(any(), any()))
+                .thenReturn(Collections.emptyList());
+
+        List<RevenueMonthDTO> result = dashboardService.getRevenueData(12);
+
+        assertNotNull(result);
+        RevenueMonthDTO currentMonth = result.get(result.size() - 1);
+        assertEquals(900000.0, currentMonth.getInstructorRevenue());
+        assertEquals(0.0, currentMonth.getWithdrawable()); // Bị vô hiệu hóa
+    }
+
+    @Test
+    void testGetRevenueData_Withdrawable_NotInstructorRole() {
+        UUID orderId = UUID.randomUUID();
+        UUID detailId = UUID.randomUUID();
+        LocalDateTime orderTime = LocalDateTime.now();
+        Order order = createTestOrder(orderId, orderTime);
+        OrderDetail detail = createTestOrderDetail(detailId, order);
+
+        // Role USER (không phải giảng viên)
+        Wallet wallet = createTestWallet(
+                detailId,
+                "USER",
+                1,
+                LocalDateTime.now().minusDays(1),
+                new BigDecimal("900000")
+        );
+
+        when(orderDetailRepository.findAllByOrderCreatedAtBetweenAndOrderStatus(any(), any(), eq(1)))
+                .thenReturn(List.of(detail));
+        when(walletRepository.findEarningsByOrderDetailIds(any()))
+                .thenReturn(List.of(wallet));
+        when(paymentRepository.findByCreatedAtBetween(any(), any()))
+                .thenReturn(Collections.emptyList());
+
+        List<RevenueMonthDTO> result = dashboardService.getRevenueData(12);
+
+        assertNotNull(result);
+        RevenueMonthDTO currentMonth = result.get(result.size() - 1);
+        assertEquals(900000.0, currentMonth.getInstructorRevenue());
+        assertEquals(0.0, currentMonth.getWithdrawable()); // Sai role không được tính
+    }
+
+    @Test
+    void testGetRevenueData_Withdrawable_FallbackWhenWalletNull() {
+        UUID orderId = UUID.randomUUID();
+        UUID detailId = UUID.randomUUID();
+        // Đơn tạo 35 ngày trước (đã quá 30 ngày)
+        LocalDateTime orderTime = LocalDateTime.now().minusDays(35);
+        Order order = createTestOrder(orderId, orderTime);
+        OrderDetail detail = createTestOrderDetail(detailId, order);
+
+        when(orderDetailRepository.findAllByOrderCreatedAtBetweenAndOrderStatus(any(), any(), eq(1)))
+                .thenReturn(List.of(detail));
+        // Không tìm thấy wallet (dữ liệu cũ)
+        when(walletRepository.findEarningsByOrderDetailIds(any()))
+                .thenReturn(Collections.emptyList());
+        when(paymentRepository.findByCreatedAtBetween(any(), any()))
+                .thenReturn(Collections.emptyList());
+
+        List<RevenueMonthDTO> result = dashboardService.getRevenueData(12);
+
+        assertNotNull(result);
+        RevenueMonthDTO targetMonth = result.stream()
+                .filter(r -> r.getInstructorRevenue() != null && r.getInstructorRevenue() > 0)
+                .findFirst()
+                .orElse(null);
+
+        assertNotNull(targetMonth);
+        assertEquals(900000.0, targetMonth.getInstructorRevenue());
+        assertEquals(900000.0, targetMonth.getWithdrawable()); // Fallback thành công
+    }
 }
+

@@ -7,10 +7,12 @@ import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -35,6 +37,7 @@ import com.gnostica.core.model.Payment;
 import com.gnostica.core.model.Refund;
 import com.gnostica.core.model.Report;
 import com.gnostica.core.model.Review;
+import com.gnostica.core.model.Wallet;
 import com.gnostica.core.repository.AccountRepository;
 import com.gnostica.core.repository.CategoryRepository;
 import com.gnostica.core.repository.CourseRepository;
@@ -45,6 +48,8 @@ import com.gnostica.core.repository.PaymentRepository;
 import com.gnostica.core.repository.RefundRepository;
 import com.gnostica.core.repository.ReportRepository;
 import com.gnostica.core.repository.ReviewRepository;
+import com.gnostica.core.repository.WalletRepository;
+import com.gnostica.core.constant.WalletConstants;
 import com.gnostica.modules.dashboard.service.DashboardService;
 
 import lombok.RequiredArgsConstructor;
@@ -63,6 +68,7 @@ public class DashboardServiceImpl implements DashboardService {
     private final ReviewRepository reviewRepository;
     private final RefundRepository refundRepository;
     private final ReportRepository reportRepository;
+    private final WalletRepository walletRepository;
 
     public enum Granularity {
         DAY,
@@ -360,6 +366,18 @@ public class DashboardServiceImpl implements DashboardService {
         // Dùng OrderRevenueCalculator — CÙNG nguồn sự thật với WalletListener, để số liệu
         // dashboard khớp với sổ cái ví thực tế (coupon platform không trừ vào phần giảng viên).
         List<OrderDetail> orderDetails = orderDetailRepository.findAllByOrderCreatedAtBetweenAndOrderStatus(s, e, 1);
+
+        List<UUID> detailIds = orderDetails.stream()
+                .map(OrderDetail::getId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        Map<UUID, Wallet> walletByDetailId = detailIds.isEmpty()
+                ? Collections.emptyMap()
+                : walletRepository.findEarningsByOrderDetailIds(detailIds).stream()
+                        .filter(w -> w.getTargetId() != null)
+                        .collect(Collectors.toMap(Wallet::getTargetId, w -> w, (w1, w2) -> w1));
+
         Map<UUID, List<OrderDetail>> byOrder = orderDetails.stream()
                 .filter(od -> od.getOrder() != null)
                 .collect(Collectors.groupingBy(od -> od.getOrder().getId()));
@@ -388,9 +406,25 @@ public class DashboardServiceImpl implements DashboardService {
                 data.setRevenue(data.getRevenue() + netSale);
                 data.setInstructorRevenue(data.getInstructorRevenue() + instRev);
                 data.setPlatformRevenue(data.getPlatformRevenue() + platRev);
-                // Tiền có thể rút: chỉ tính các đơn hàng đã qua thời gian giữ 30 ngày
-                if (order.getCreatedAt().plusDays(30).isBefore(LocalDateTime.now())) {
-                    data.setWithdrawable(data.getWithdrawable() + instRev);
+
+                // Tiền có thể rút: lấy từ bảng wallets, kiểm tra Role Giảng viên, Status Active (1), và availableAt <= now
+                Wallet wallet = walletByDetailId.get(od.getId());
+                if (wallet != null) {
+                    boolean isInstructor = isInstructorAccount(wallet.getAccount());
+                    boolean isActive = wallet.getStatus() != null && wallet.getStatus() == 1;
+                    boolean isAvailable = wallet.getAvailableAt() != null && !wallet.getAvailableAt().isAfter(LocalDateTime.now());
+
+                    if (isInstructor && isActive && isAvailable) {
+                        double withdrawableAmount = wallet.getRemain() != null
+                                ? wallet.getRemain().doubleValue()
+                                : instRev;
+                        data.setWithdrawable(data.getWithdrawable() + withdrawableAmount);
+                    }
+                } else {
+                    // Fallback cho dữ liệu cũ (nếu có đơn hàng chưa tạo bản ghi ví)
+                    if (order.getCreatedAt().plusDays(WalletConstants.INSTRUCTOR_HOLD_DAYS).isBefore(LocalDateTime.now())) {
+                        data.setWithdrawable(data.getWithdrawable() + instRev);
+                    }
                 }
             }
         }
@@ -427,6 +461,14 @@ public class DashboardServiceImpl implements DashboardService {
             }
         }
         return new ArrayList<>(map.values());
+    }
+
+    private boolean isInstructorAccount(Account account) {
+        if (account == null || account.getRole() == null || account.getRole().getName() == null) {
+            return false;
+        }
+        String roleName = account.getRole().getName().trim().toUpperCase();
+        return "INSTRUCTOR".equals(roleName) || "ROLE_INSTRUCTOR".equals(roleName);
     }
 
     @Override
