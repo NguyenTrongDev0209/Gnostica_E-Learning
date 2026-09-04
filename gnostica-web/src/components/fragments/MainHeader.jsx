@@ -140,7 +140,7 @@ const MainHeader = ({
                                 </div>
                             )}
                             <a href="https://gnostica.online" target="_blank" rel="noopener noreferrer" className="py-3 border-b border-header-orange/5 font-bold text-lg">Tin tức</a>
-                            <Link to="/promo" className="py-3 font-bold text-lg text-header-orange">Khuyến mãi Hot</Link>
+                            {/* <Link to="/promo" className="py-3 font-bold text-lg text-header-orange">Khuyến mãi Hot</Link> */}
                         </nav>
                     </div>
                 )}
@@ -214,6 +214,7 @@ const MainHeader = ({
                             <div className="absolute bottom-0 left-0 w-full h-[3px] bg-header-orange scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center" />
                         </a>
 
+                        {/* Tạm ẩn Khuyến mãi
                         <Link to="/promo" className="h-full flex items-center relative group px-4">
                             <span className="font-bold text-header-orange flex items-center gap-2">
                                 <Flame className="w-4 h-4 fill-current" />
@@ -221,6 +222,7 @@ const MainHeader = ({
                             </span>
                             <div className="absolute bottom-0 left-0 w-full h-[3px] bg-header-orange scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center" />
                         </Link>
+                        */}
                     </nav>
 
                     {/* Right: Placeholder */}
