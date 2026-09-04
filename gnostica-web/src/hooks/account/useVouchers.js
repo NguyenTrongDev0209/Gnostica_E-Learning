@@ -48,7 +48,7 @@ export default function useVouchers() {
               id: c.id,
               code: c.code,
               title: c.name || "Voucher giảm giá",
-              desc: c.maxDiscount ? `Giảm tối đa ${c.maxDiscount}đ` : "Không giới hạn mức giảm",
+              desc: c.maxDiscount != null ? `Giảm tối đa ${Number(c.maxDiscount).toLocaleString()}đ` : "Không giới hạn mức giảm",
               expiry: c.validUntil ? new Date(c.validUntil).toLocaleDateString("vi-VN") : "Không thời hạn",
               status: c.status === 1 ? "active" : "expired",
               discount: discountText,

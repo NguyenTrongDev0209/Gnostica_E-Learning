@@ -223,10 +223,10 @@ function CheckoutOrderSummary({
             <span className="text-muted-foreground">Giảm giá</span>
             <span className="text-error">-{courseDiscount.toLocaleString()}đ</span>
           </div>
-          {couponDiscount > 0 && (
+          {appliedCoupon != null && (
             <div className="flex justify-between text-sm font-normal">
               <span className="text-muted-foreground">Giảm Coupon</span>
-              <span className="text-error">-{couponDiscount.toLocaleString()}đ</span>
+              <span className="text-error">{couponDiscount > 0 ? `-${couponDiscount.toLocaleString()}đ` : "0đ"}</span>
             </div>
           )}
         </div>
@@ -388,8 +388,8 @@ export default function CheckoutPage() {
     } else if (appliedCoupon.discountType === 2) {
       extraDiscount = appliedCoupon.discountValue;
     }
-    if (appliedCoupon.maxDiscount && extraDiscount > appliedCoupon.maxDiscount) {
-      extraDiscount = appliedCoupon.maxDiscount;
+    if (appliedCoupon.maxDiscount != null && extraDiscount > Number(appliedCoupon.maxDiscount)) {
+      extraDiscount = Number(appliedCoupon.maxDiscount);
     }
     // Capped by max subtotal
     if (extraDiscount > currentSubtotal) {
